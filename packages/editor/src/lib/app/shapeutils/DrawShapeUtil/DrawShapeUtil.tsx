@@ -9,7 +9,12 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
+import {
+	drawShapeMigrations,
+	drawShapePropsValidators,
+	TLDrawShape,
+	TLDrawShapeSegment,
+} from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
@@ -22,6 +27,8 @@ import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments 
 /** @public */
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	static override type = 'draw'
+	override props = drawShapePropsValidators
+	override migrations = drawShapeMigrations
 
 	hideResizeHandles = (shape: TLDrawShape) => getIsDot(shape)
 	hideRotateHandle = (shape: TLDrawShape) => getIsDot(shape)

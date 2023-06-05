@@ -19,6 +19,7 @@ export {
 	filterEntries,
 	getOwnProperty,
 	hasOwnProperty,
+	mapObjectMap,
 	objectMapEntries,
 	objectMapFromEntries,
 	objectMapKeys,

@@ -2,7 +2,7 @@ import { BaseBoxShapeUtil } from '@tldraw/tldraw'
 import { ErrorShape } from './ErrorShape'
 
 export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
-	static override type = 'error'
+	static override type = 'error' as const
 	override type = 'error' as const
 
 	defaultProps() {

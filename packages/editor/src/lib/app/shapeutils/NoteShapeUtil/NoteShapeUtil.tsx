@@ -1,5 +1,5 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { TLNoteShape } from '@tldraw/tlschema'
+import { noteShapeMigrations, noteShapePropsValidators, TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { getLegacyOffsetX } from '../../../utils/legacy'
 import { Editor } from '../../Editor'
@@ -14,6 +14,8 @@ const NOTE_SIZE = 200
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override type = 'note'
+	override props = noteShapePropsValidators
+	override migrations = noteShapeMigrations
 
 	canEdit = () => true
 	hideResizeHandles = () => true

@@ -12,7 +12,12 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDashType, TLGeoShape } from '@tldraw/tlschema'
+import {
+	geoShapeMigrations,
+	geoShapePropsValidators,
+	TLDashType,
+	TLGeoShape,
+} from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { getLegacyOffsetX } from '../../../utils/legacy'
@@ -43,6 +48,8 @@ const MIN_SIZE_WITH_LABEL = 17 * 3
 /** @public */
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override type = 'geo'
+	override props = geoShapePropsValidators
+	override migrations = geoShapeMigrations
 
 	canEdit = () => true
 

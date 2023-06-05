@@ -563,22 +563,25 @@ export type TLEmbedShapeProps = {
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
 
 /** @internal */
+export const embedShapePropsValidators = {
+	opacity: opacityValidator,
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	url: T.string,
+	tmpOldUrl: T.string.optional(),
+	doesResize: T.boolean,
+	overridePermissions: T.dict(
+		T.setEnum(
+			new Set(Object.keys(embedShapePermissionDefaults) as (keyof TLEmbedShapePermissions)[])
+		),
+		T.boolean.optional()
+	).optional(),
+}
+
+/** @internal */
 export const embedShapeTypeValidator: T.Validator<TLEmbedShape> = createShapeValidator(
 	'embed',
-	T.object({
-		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		url: T.string,
-		tmpOldUrl: T.string.optional(),
-		doesResize: T.boolean,
-		overridePermissions: T.dict(
-			T.setEnum(
-				new Set(Object.keys(embedShapePermissionDefaults) as (keyof TLEmbedShapePermissions)[])
-			),
-			T.boolean.optional()
-		).optional(),
-	})
+	T.object(embedShapePropsValidators)
 )
 
 /** @public */

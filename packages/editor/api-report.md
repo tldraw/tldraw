@@ -6,12 +6,14 @@
 
 /// <reference types="react" />
 
+import { ArrayOfValidator } from '@tldraw/validate/.tsbuild/lib/validation';
 import { Atom } from 'signia';
 import { Box2d } from '@tldraw/primitives';
 import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from 'signia';
 import { ComputedCache } from '@tldraw/store';
 import { CubicSpline2d } from '@tldraw/primitives';
+import { DictValidator } from '@tldraw/validate/.tsbuild/lib/validation';
 import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
@@ -32,9 +34,11 @@ import { SerializedSchema } from '@tldraw/store';
 import { Signal } from 'signia';
 import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';
+import { T } from '@tldraw/validate';
 import { TLAlignType } from '@tldraw/tlschema';
 import { TLArrowheadType } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
+import { TLArrowTerminal } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
@@ -47,6 +51,7 @@ import { TLColorType } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLDrawShape } from '@tldraw/tlschema';
+import { TLDrawShapeSegment } from '@tldraw/tlschema';
 import { TLEmbedShape } from '@tldraw/tlschema';
 import { TLFontType } from '@tldraw/tlschema';
 import { TLFrameShape } from '@tldraw/tlschema';
@@ -85,6 +90,7 @@ import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLUserDocument } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
+import { Validator } from '@tldraw/validate/.tsbuild/lib/validation';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -150,6 +156,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape>;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLArrowShape>;
@@ -159,6 +167,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     onResize: TLOnResizeHandler<TLArrowShape>;
     // (undocumented)
     onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
+    // (undocumented)
+    props: {
+        labelColor: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        color: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        fill: Validator<"none" | "pattern" | "semi" | "solid">;
+        dash: Validator<"dashed" | "dotted" | "draw" | "solid">;
+        size: Validator<"l" | "m" | "s" | "xl">;
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        arrowheadStart: Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+        arrowheadEnd: Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+        font: Validator<"draw" | "mono" | "sans" | "serif">;
+        start: Validator<TLArrowTerminal>;
+        end: Validator<TLArrowTerminal>;
+        bend: Validator<number>;
+        text: Validator<string>;
+    };
     // (undocumented)
     render(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
@@ -217,9 +241,19 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     indicator(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onBeforeCreate?: TLOnBeforeCreateHandler<TLBookmarkShape>;
     // (undocumented)
     onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
+    // (undocumented)
+    props: {
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        w: Validator<number>;
+        h: Validator<number>;
+        assetId: Validator<null | TLAssetId>;
+        url: Validator<string>;
+    };
     // (undocumented)
     render(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
@@ -313,7 +347,15 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: Record<string, TLShapeInfo>;
+export const defaultShapes: {
+    draw: typeof DrawShapeUtil;
+    geo: typeof GeoShapeUtil;
+    line: typeof LineShapeUtil;
+    note: typeof NoteShapeUtil;
+    frame: typeof FrameShapeUtil;
+    arrow: typeof ArrowShapeUtil;
+    highlight: typeof HighlightShapeUtil;
+};
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -356,7 +398,21 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     isClosed: (shape: TLDrawShape) => boolean;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onResize: TLOnResizeHandler<TLDrawShape>;
+    // (undocumented)
+    props: {
+        color: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        fill: Validator<"none" | "pattern" | "semi" | "solid">;
+        dash: Validator<"dashed" | "dotted" | "draw" | "solid">;
+        size: Validator<"l" | "m" | "s" | "xl">;
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        segments: ArrayOfValidator<TLDrawShapeSegment>;
+        isComplete: Validator<boolean>;
+        isClosed: Validator<boolean>;
+        isPen: Validator<boolean>;
+    };
     // (undocumented)
     render(shape: TLDrawShape): JSX.Element;
     // (undocumented)
@@ -807,7 +863,19 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onResize: TLOnResizeHandler<TLEmbedShape>;
+    // (undocumented)
+    props: {
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        w: Validator<number>;
+        h: Validator<number>;
+        url: Validator<string>;
+        tmpOldUrl: Validator<string | undefined>;
+        doesResize: Validator<boolean>;
+        overridePermissions: Validator<Record<"allow-downloads-without-user-activation" | "allow-downloads" | "allow-forms" | "allow-modals" | "allow-orientation-lock" | "allow-pointer-lock" | "allow-popups-to-escape-sandbox" | "allow-popups" | "allow-presentation" | "allow-same-origin" | "allow-scripts" | "allow-storage-access-by-user-activation" | "allow-top-navigation-by-user-activation" | "allow-top-navigation", boolean | undefined> | undefined>;
+    };
     // (undocumented)
     render(shape: TLEmbedShape): JSX.Element;
     // (undocumented)
@@ -869,6 +937,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     indicator(shape: TLFrameShape): JSX.Element;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
     // (undocumented)
     onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => {
@@ -876,6 +946,13 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     };
     // (undocumented)
     onResizeEnd: TLOnResizeEndHandler<TLFrameShape>;
+    // (undocumented)
+    props: {
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        w: Validator<number>;
+        h: Validator<number>;
+        name: Validator<string>;
+    };
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
@@ -904,6 +981,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     hitTestPoint(shape: TLGeoShape, point: VecLike): boolean;
     // (undocumented)
     indicator(shape: TLGeoShape): JSX.Element;
+    // (undocumented)
+    migrations: Migrations;
     // (undocumented)
     onBeforeCreate: (shape: TLGeoShape) => {
         props: {
@@ -994,6 +1073,24 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     onEditEnd: TLOnEditEndHandler<TLGeoShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLGeoShape>;
+    // (undocumented)
+    props: {
+        geo: Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+        labelColor: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        color: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        fill: Validator<"none" | "pattern" | "semi" | "solid">;
+        dash: Validator<"dashed" | "dotted" | "draw" | "solid">;
+        size: Validator<"l" | "m" | "s" | "xl">;
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        font: Validator<"draw" | "mono" | "sans" | "serif">;
+        align: Validator<"end" | "middle" | "start">;
+        verticalAlign: Validator<"end" | "middle" | "start">;
+        url: Validator<string>;
+        w: Validator<number>;
+        h: Validator<number>;
+        growY: Validator<number>;
+        text: Validator<string>;
+    };
     // (undocumented)
     render(shape: TLGeoShape): JSX.Element;
     // (undocumented)
@@ -1114,7 +1211,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     indicator(shape: TLGroupShape): JSX.Element;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape>;
+    // (undocumented)
+    props: {
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+    };
     // (undocumented)
     render(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
@@ -1164,7 +1267,18 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     indicator(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onResize: TLOnResizeHandler<TLHighlightShape>;
+    // (undocumented)
+    props: {
+        color: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        size: Validator<"l" | "m" | "s" | "xl">;
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        segments: ArrayOfValidator<TLDrawShapeSegment>;
+        isComplete: Validator<boolean>;
+        isPen: Validator<boolean>;
+    };
     // (undocumented)
     render(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
@@ -1197,9 +1311,32 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     isAspectRatioLocked: () => boolean;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onDoubleClick: (shape: TLImageShape) => void;
     // (undocumented)
     onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>;
+    // (undocumented)
+    props: {
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        w: Validator<number>;
+        h: Validator<number>;
+        playing: Validator<boolean>;
+        url: Validator<string>;
+        assetId: Validator<TLAssetId | null>;
+        crop: Validator<    {
+        topLeft: {
+        x: number;
+        y: number;
+        z: number | undefined;
+        };
+        bottomRight: {
+        x: number;
+        y: number;
+        z: number | undefined;
+        };
+        } | null>;
+    };
     // (undocumented)
     render(shape: TLImageShape): JSX.Element;
     // (undocumented)
@@ -1267,9 +1404,20 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     isClosed: () => boolean;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onHandleChange: TLOnHandleChangeHandler<TLLineShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLLineShape>;
+    // (undocumented)
+    props: {
+        color: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        dash: Validator<"dashed" | "dotted" | "draw" | "solid">;
+        size: Validator<"l" | "m" | "s" | "xl">;
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        spline: Validator<"cubic" | "line">;
+        handles: DictValidator<string, TLHandle>;
+    };
     // (undocumented)
     render(shape: TLLineShape): JSX.Element | undefined;
     // (undocumented)
@@ -1690,6 +1838,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     indicator(shape: TLNoteShape): JSX.Element;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onBeforeCreate: (next: TLNoteShape) => {
         props: {
             growY: number;
@@ -1735,6 +1885,17 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     } | undefined;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
+    // (undocumented)
+    props: {
+        color: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        size: Validator<"l" | "m" | "s" | "xl">;
+        font: Validator<"draw" | "mono" | "sans" | "serif">;
+        align: Validator<"end" | "middle" | "start">;
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        growY: Validator<number>;
+        url: Validator<string>;
+        text: Validator<string>;
+    };
     // (undocumented)
     render(shape: TLNoteShape): JSX.Element;
     // (undocumented)
@@ -1811,7 +1972,7 @@ export function setUserPreferences(user: TLUserPreferences): void;
 
 // @public (undocumented)
 export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
-    constructor(editor: Editor, type: T['type']);
+    constructor(_editor: Editor | null, type: T['type']);
     bounds(shape: T): Box2d;
     canBind: <K>(_shape: T, _otherShape?: K | undefined) => boolean;
     canCrop: TLShapeUtilFlag<T>;
@@ -1824,7 +1985,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     center(shape: T): Vec2dModel;
     abstract defaultProps(): T['props'];
     // (undocumented)
-    editor: Editor;
+    get editor(): Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: T): number;
     protected abstract getBounds(shape: T): Box2d;
@@ -1843,6 +2004,8 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     is(shape: TLBaseShape<string, object>): shape is T;
     isAspectRatioLocked: TLShapeUtilFlag<T>;
     isClosed: TLShapeUtilFlag<T>;
+    // (undocumented)
+    migrations?: Migrations;
     onBeforeCreate?: TLOnBeforeCreateHandler<T>;
     onBeforeUpdate?: TLOnBeforeUpdateHandler<T>;
     // @internal
@@ -1870,6 +2033,10 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     onTranslateStart?: TLOnTranslateStartHandler<T>;
     outline(shape: T): Vec2dModel[];
     point(shape: T): Vec2dModel;
+    // (undocumented)
+    props?: {
+        [Prop in keyof T['props']]: T.Validator<T['props'][Prop]>;
+    };
     // @internal
     providesBackgroundForChildren(shape: T): boolean;
     abstract render(shape: T): any;
@@ -2012,6 +2179,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     isAspectRatioLocked: TLShapeUtilFlag<TLTextShape>;
     // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
     onBeforeCreate: (shape: TLTextShape) => {
         x: number;
         y: number;
@@ -2067,6 +2236,18 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     onEditEnd: TLOnEditEndHandler<TLTextShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLTextShape>;
+    // (undocumented)
+    props: {
+        color: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+        size: Validator<"l" | "m" | "s" | "xl">;
+        font: Validator<"draw" | "mono" | "sans" | "serif">;
+        align: Validator<"end" | "middle" | "start">;
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        w: Validator<number>;
+        text: Validator<string>;
+        scale: Validator<number>;
+        autoSize: Validator<boolean>;
+    };
     // (undocumented)
     render(shape: TLTextShape): JSX.Element;
     // (undocumented)
@@ -2171,7 +2352,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public (undocumented)
 export type TldrawEditorProps = {
     children?: any;
-    shapes?: Record<string, TLShapeInfo>;
+    shapes?: Record<string, AnyTLShapeUtilConstructor>;
     tools?: TLStateNodeConstructor[];
     assetUrls?: TLEditorAssetUrls;
     autoFocus?: boolean;
@@ -2246,7 +2427,7 @@ export interface TLEditorComponents {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
-    shapes?: Record<string, TLShapeInfo>;
+    shapes?: Record<string, AnyTLShapeUtilConstructor>;
     store: TLStore;
     tools?: TLStateNodeConstructor[];
     user?: TLUser;
@@ -2530,7 +2711,7 @@ export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
 // @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
-    new (editor: Editor, type: T['type']): U;
+    new (editor: Editor | null, type: T['type']): U;
     // (undocumented)
     type: T['type'];
 }
@@ -2659,6 +2840,18 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)
     isAspectRatioLocked: () => boolean;
+    // (undocumented)
+    migrations: Migrations;
+    // (undocumented)
+    props: {
+        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+        w: Validator<number>;
+        h: Validator<number>;
+        time: Validator<number>;
+        playing: Validator<boolean>;
+        url: Validator<string>;
+        assetId: Validator<TLAssetId | null>;
+    };
     // (undocumented)
     render(shape: TLVideoShape): JSX.Element;
     // (undocumented)

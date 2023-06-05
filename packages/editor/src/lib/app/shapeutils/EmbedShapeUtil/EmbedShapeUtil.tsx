@@ -3,7 +3,9 @@ import { toDomPrecision } from '@tldraw/primitives'
 import {
 	TLEmbedShape,
 	TLEmbedShapePermissions,
+	embedShapeMigrations,
 	embedShapePermissionDefaults,
+	embedShapePropsValidators,
 } from '@tldraw/tlschema'
 import * as React from 'react'
 import { useMemo } from 'react'
@@ -28,6 +30,8 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 /** @public */
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed'
+	override props = embedShapePropsValidators
+	override migrations = embedShapeMigrations
 
 	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = () => false
 	override canResize = (shape: TLEmbedShape) => {

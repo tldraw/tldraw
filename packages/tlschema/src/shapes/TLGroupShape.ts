@@ -8,15 +8,18 @@ export type TLGroupShapeProps = {
 	opacity: TLOpacityType
 }
 
+/** @internal */
+export const groupShapePropsValidators = {
+	opacity: opacityValidator,
+}
+
 /** @public */
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>
 
 /** @internal */
 export const groupShapeValidator: T.Validator<TLGroupShape> = createShapeValidator(
 	'group',
-	T.object({
-		opacity: opacityValidator,
-	})
+	T.object(groupShapePropsValidators)
 )
 
 /** @internal */

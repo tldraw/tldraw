@@ -1,5 +1,12 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
+import {
+	AssetRecordType,
+	TLAssetId,
+	TLBookmarkAsset,
+	TLBookmarkShape,
+	bookmarkShapePropsValidators,
+} from '@tldraw/tlschema'
+import { bookmarkAssetMigrations } from '@tldraw/tlschema/src/assets/TLBookmarkAsset'
 import { debounce, getHashForString } from '@tldraw/utils'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import {
@@ -19,6 +26,8 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override type = 'bookmark'
+	override props = bookmarkShapePropsValidators
+	override migrations = bookmarkAssetMigrations
 
 	override canResize = () => false
 

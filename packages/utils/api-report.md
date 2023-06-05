@@ -83,6 +83,13 @@ export function lerp(a: number, b: number, t: number): number;
 // @public (undocumented)
 export function lns(str: string): string;
 
+// @internal
+export function mapObjectMap<Key extends string, Value, NewValue>(object: {
+    [K in Key]: Value;
+}, fn: (key: Key, value: Value) => NewValue): {
+    [K in Key]: NewValue;
+};
+
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 

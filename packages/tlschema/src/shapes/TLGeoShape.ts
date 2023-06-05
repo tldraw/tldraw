@@ -34,25 +34,28 @@ export type TLGeoShapeProps = {
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
 /** @internal */
+export const geoShapePropsValidators = {
+	geo: geoValidator,
+	labelColor: colorValidator,
+	color: colorValidator,
+	fill: fillValidator,
+	dash: dashValidator,
+	size: sizeValidator,
+	opacity: opacityValidator,
+	font: fontValidator,
+	align: alignValidator,
+	verticalAlign: verticalAlignValidator,
+	url: T.string,
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	growY: T.positiveNumber,
+	text: T.string,
+}
+
+/** @internal */
 export const geoShapeValidator: T.Validator<TLGeoShape> = createShapeValidator(
 	'geo',
-	T.object({
-		geo: geoValidator,
-		labelColor: colorValidator,
-		color: colorValidator,
-		fill: fillValidator,
-		dash: dashValidator,
-		size: sizeValidator,
-		opacity: opacityValidator,
-		font: fontValidator,
-		align: alignValidator,
-		verticalAlign: verticalAlignValidator,
-		url: T.string,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		growY: T.positiveNumber,
-		text: T.string,
-	})
+	T.object(geoShapePropsValidators)
 )
 
 const Versions = {

@@ -18,15 +18,18 @@ export type TLBookmarkShapeProps = {
 export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
 
 /** @internal */
+export const bookmarkShapePropsValidators = {
+	opacity: opacityValidator,
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	assetId: assetIdValidator.nullable(),
+	url: T.string,
+}
+
+/** @internal */
 export const bookmarkShapeValidator: T.Validator<TLBookmarkShape> = createShapeValidator(
 	'bookmark',
-	T.object({
-		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		assetId: assetIdValidator.nullable(),
-		url: T.string,
-	})
+	T.object(bookmarkShapePropsValidators)
 )
 
 const Versions = {

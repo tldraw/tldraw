@@ -24,19 +24,22 @@ export type TLTextShapeProps = {
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
 /** @internal */
+export const textShapePropsValidators = {
+	color: colorValidator,
+	size: sizeValidator,
+	font: fontValidator,
+	align: alignValidator,
+	opacity: opacityValidator,
+	w: T.nonZeroNumber,
+	text: T.string,
+	scale: T.nonZeroNumber,
+	autoSize: T.boolean,
+}
+
+/** @internal */
 export const textShapeValidator: T.Validator<TLTextShape> = createShapeValidator(
 	'text',
-	T.object({
-		color: colorValidator,
-		size: sizeValidator,
-		font: fontValidator,
-		align: alignValidator,
-		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		text: T.string,
-		scale: T.nonZeroNumber,
-		autoSize: T.boolean,
-	})
+	T.object(textShapePropsValidators)
 )
 
 const Versions = {

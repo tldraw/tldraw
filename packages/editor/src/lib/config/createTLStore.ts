@@ -1,24 +1,19 @@
-import { Migrations, Store, StoreSnapshot } from '@tldraw/store'
+import { Store, StoreSnapshot } from '@tldraw/store'
 import {
 	InstanceRecordType,
 	TLDOCUMENT_ID,
 	TLInstanceId,
 	TLRecord,
 	TLStore,
+	TLUnknownShape,
 	createTLSchema,
 } from '@tldraw/tlschema'
+import { mapObjectMap } from '@tldraw/utils'
 import { TLShapeUtilConstructor } from '../app/shapeutils/ShapeUtil'
 
 /** @public */
-export type TLShapeInfo = {
-	util: TLShapeUtilConstructor<any>
-	migrations?: Migrations
-	validator?: { validate: (record: any) => any }
-}
-
-/** @public */
 export type TLStoreOptions = {
-	customShapes?: Record<string, TLShapeInfo>
+	customShapes?: Record<string, TLShapeUtilConstructor<TLUnknownShape>>
 	instanceId?: TLInstanceId
 	initialData?: StoreSnapshot<TLRecord>
 	defaultName?: string
@@ -39,7 +34,9 @@ export function createTLStore(opts = {} as TLStoreOptions): TLStore {
 	} = opts
 
 	return new Store({
-		schema: createTLSchema({ customShapes }),
+		schema: createTLSchema({
+			customShapes: mapObjectMap(customShapes, (_, Util) => new Util(null, Util.type)),
+		}),
 		initialData,
 		props: {
 			instanceId,

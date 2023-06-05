@@ -14,14 +14,17 @@ type TLFrameShapeProps = {
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
 /** @internal */
+export const frameShapePropsValidators = {
+	opacity: opacityValidator,
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	name: T.string,
+}
+
+/** @internal */
 export const frameShapeValidator: T.Validator<TLFrameShape> = createShapeValidator(
 	'frame',
-	T.object({
-		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		name: T.string,
-	})
+	T.object(frameShapePropsValidators)
 )
 
 /** @internal */

@@ -23,18 +23,21 @@ export type TLNoteShapeProps = {
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
 /** @internal */
+export const noteShapePropsValidators = {
+	color: colorValidator,
+	size: sizeValidator,
+	font: fontValidator,
+	align: alignValidator,
+	opacity: opacityValidator,
+	growY: T.positiveNumber,
+	url: T.string,
+	text: T.string,
+}
+
+/** @internal */
 export const noteShapeValidator: T.Validator<TLNoteShape> = createShapeValidator(
 	'note',
-	T.object({
-		color: colorValidator,
-		size: sizeValidator,
-		font: fontValidator,
-		align: alignValidator,
-		opacity: opacityValidator,
-		growY: T.positiveNumber,
-		url: T.string,
-		text: T.string,
-	})
+	T.object(noteShapePropsValidators)
 )
 
 const Versions = {
