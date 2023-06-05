@@ -3555,6 +3555,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.inputs.pointerVelocity = new Vec2d()
 		}
 
+		const isAutomatic = info.type === 'pointer' && info.isAutomatic
+		const lastActivityTimestamp = isAutomatic
+			? this.store.query.record('pointer').value?.lastActivityTimestamp ?? Date.now()
+			: Date.now()
+
 		// todo: We only have to do this if there are multiple users in the document
 		this.store.put([
 			{
@@ -3562,7 +3567,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				typeName: 'pointer',
 				x: currentPagePoint.x,
 				y: currentPagePoint.y,
-				lastActivityTimestamp: Date.now(),
+				lastActivityTimestamp,
 			},
 		])
 	}
@@ -8011,6 +8016,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shiftKey: this.inputs.shiftKey,
 				button: 0,
 				isPen: this.isPenMode ?? false,
+				isAutomatic: this.instanceState.followingUserId ? true : false,
 			})
 
 			this._cameraManager.tick()

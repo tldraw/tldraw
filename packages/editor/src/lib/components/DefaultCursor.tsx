@@ -1,6 +1,6 @@
 import { Vec2dModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { memo, useRef } from 'react'
+import { memo, useEffect, useRef } from 'react'
 import { useTransform } from '../hooks/useTransform'
 
 /** @public */
@@ -10,11 +10,29 @@ export type TLCursorComponent = (props: {
 	zoom: number
 	color?: string
 	name: string | null
+	lastActivityTimestamp: number
 }) => any | null
 
-const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name }) => {
+const _Cursor: TLCursorComponent = ({
+	className,
+	zoom,
+	point,
+	color,
+	name,
+	lastActivityTimestamp,
+}) => {
 	const rDiv = useRef<HTMLDivElement>(null)
 	useTransform(rDiv, point?.x, point?.y, 1 / zoom)
+
+	useEffect(() => {
+		const div = rDiv.current
+		if (!div) return
+		const timeout = setTimeout(() => {
+			div.style.visibility = 'hidden'
+		}, 300)
+		div.style.visibility = 'visible'
+		return () => clearTimeout(timeout)
+	}, [lastActivityTimestamp])
 
 	if (!point) return null
 

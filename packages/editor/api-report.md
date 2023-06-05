@@ -2485,6 +2485,7 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
     pointerId: number;
     button: number;
     isPen: boolean;
+    isAutomatic?: boolean;
 } & TLPointerEventTarget;
 
 // @public (undocumented)
