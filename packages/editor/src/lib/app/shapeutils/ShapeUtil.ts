@@ -1,14 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box2d, linesIntersect, Matrix2d, VecLike } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
-import {
-	TLBaseShape,
-	TLHandle,
-	TLShape,
-	TLShapePartial,
-	TLUnknownShape,
-	Vec2dModel,
-} from '@tldraw/tlschema'
+import { TLHandle, TLShape, TLShapePartial, TLUnknownShape, Vec2dModel } from '@tldraw/tlschema'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { WeakMapCache } from '../../utils/WeakMapCache'
 import type { Editor } from '../Editor'
@@ -34,18 +27,12 @@ export type TLShapeUtilFlag<T> = (shape: T) => boolean
 export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor, public readonly type: T['type']) {}
 
-	static type: string
-
 	/**
-	 * Check if a shape is of this type.
+	 * The type of the shape util, which should match the shape's type.
 	 *
-	 * @param shape - The shape to check.
-	 * @returns Whether the shape is of this type.
 	 * @public
 	 */
-	is(shape: TLBaseShape<string, object>): shape is T {
-		return shape.type === this.type
-	}
+	static type: string
 
 	/**
 	 * Whether the shape can be scrolled while editing.
@@ -55,7 +42,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	canScroll: TLShapeUtilFlag<T> = () => false
 
 	/**
-	 * Whether the shape can be bound to by an arrow.
+	 * Whether the shape should unmount when not visible in the editor. Consider keeping this to false if the shape's `component` has local state.
 	 *
 	 * @public
 	 */
