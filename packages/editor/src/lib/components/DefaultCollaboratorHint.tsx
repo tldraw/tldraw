@@ -2,6 +2,7 @@ import { Box2d, clamp, Vec2d } from '@tldraw/primitives'
 import { Vec2dModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { useEffect, useRef, useState } from 'react'
+import { useEditor } from '../hooks/useEditor'
 import { useTransform } from '../hooks/useTransform'
 import { DEFAULT_COLLABORATOR_TIMEOUT } from './LiveCollaborators'
 
@@ -13,6 +14,7 @@ export type TLCollaboratorHintComponent = (props: {
 	opacity?: number
 	color: string
 	lastActivityTimestamp: number
+	userId: string
 }) => JSX.Element | null
 
 export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
@@ -23,7 +25,9 @@ export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
 	viewport,
 	opacity = 1,
 	lastActivityTimestamp,
+	userId,
 }) => {
+	const editor = useEditor()
 	const rSvg = useRef<SVGSVGElement>(null)
 
 	useTransform(
@@ -48,7 +52,7 @@ export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
 		return () => clearTimeout(timeout)
 	}, [lastActivityTimestamp])
 
-	if (isTimedOut) return null
+	if (isTimedOut && editor.instanceState.followingUserId !== userId) return null
 
 	return (
 		<svg ref={rSvg} className={classNames('tl-overlays__item', className)}>

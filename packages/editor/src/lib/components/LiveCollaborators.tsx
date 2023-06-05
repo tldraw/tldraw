@@ -78,6 +78,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 					zoom={zoomLevel}
 					viewport={viewportPageBounds}
 					lastActivityTimestamp={lastActivityTimestamp}
+					userId={userId}
 				/>
 			) : null}
 			{scribble && CollaboratorScribble ? (
