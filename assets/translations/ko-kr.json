@@ -271,7 +271,7 @@
 	"tool-panel.drawing": "그리기",
 	"tool-panel.shapes": "모양",
 	"navigation-zone.toggle-minimap": "미니맵 전환",
-	"navigation-zone.zoom": "확대/축소",
+	"navigation-zone.zoom": "확대\/축소",
 	"focus-mode.toggle-focus-mode": "포커스 모드 전환",
 	"toast.close": "닫기",
 	"file-system.file-open-error.title": "파일을 열 수 없습니다.",

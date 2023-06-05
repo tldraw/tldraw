@@ -309,5 +309,8 @@
 	"action.stop-following": "取消追蹤",
 	"people-menu.follow": "追蹤",
 	"style-panel.position": "位置",
-	"page-menu.go-to-page": "轉到頁面"
+	"page-menu.go-to-page": "轉到頁面",
+	"share-menu.create-snapshot-link": "建立快照連結",
+	"share-menu.save-note": "將此專案作為 .tldr 檔下載到您的電腦。",
+	"share-menu.fork-note": "基於此快照建立新的共享專案。"
 }

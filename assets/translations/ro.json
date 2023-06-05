@@ -291,5 +291,9 @@
 	"file-system.shared-document-file-open-error.description": "Deschiderea fișierelor din proiectele partajate nu este acceptată.",
 	"vscode.file-open.dont-show-again": "Nu mai întreba",
 	"vscode.file-open.desc": "Acest fișier a fost creat cu o versiune anterioară de tldraw. Vrei să îl actualizezi pentru a funcționa cu noua versiune?",
-	"context.pages.new-page": "Pagină nouă"
+	"context.pages.new-page": "Pagină nouă",
+	"style-panel.arrowhead-end": "Capăt",
+	"page-menu.go-to-page": "Mergi la pagina",
+	"share-menu.save-note": "Descărcați acest proiect pe computer ca fișier .tldr",
+	"share-menu.snapshot-link-note": "Creați o copie a acestui proiect"
 }
