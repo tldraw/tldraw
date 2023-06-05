@@ -35,6 +35,8 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 	const [isTimedOut, setIsTimedOut] = useState(false)
 
 	useEffect(() => {
+		if (!latestPresence) return
+
 		// By default, show the cursor
 		setIsTimedOut(false)
 
@@ -48,8 +50,8 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 
 	if (!latestPresence) return null
 
-	// If the user has timed out, and we're not following them, ignore them
-	if (isTimedOut && editor.instanceState.followingUserId !== userId) return null
+	// If the user has timed out, and we're not following them, we'll hide their cursor
+	const isCursorTimedOut = isTimedOut && editor.instanceState.followingUserId !== userId
 
 	// if the collaborator is on another page, ignore them
 	if (latestPresence.currentPageId !== editor.currentPageId) return null
@@ -76,25 +78,26 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 					opacity={0.1}
 				/>
 			) : null}
-			{isCursorInViewport && CollaboratorCursor ? (
-				<CollaboratorCursor
-					className="tl-collaborator__cursor"
-					key={userId + '_cursor'}
-					point={cursor}
-					color={color}
-					zoom={zoomLevel}
-					name={userName !== 'New User' ? userName : null}
-				/>
-			) : CollaboratorHint ? (
-				<CollaboratorHint
-					className="tl-collaborator__cursor-hint"
-					key={userId + '_cursor_hint'}
-					point={cursor}
-					color={color}
-					zoom={zoomLevel}
-					viewport={viewportPageBounds}
-				/>
-			) : null}
+			{!isCursorTimedOut &&
+				(isCursorInViewport && CollaboratorCursor ? (
+					<CollaboratorCursor
+						className="tl-collaborator__cursor"
+						key={userId + '_cursor'}
+						point={cursor}
+						color={color}
+						zoom={zoomLevel}
+						name={userName !== 'New User' ? userName : null}
+					/>
+				) : CollaboratorHint ? (
+					<CollaboratorHint
+						className="tl-collaborator__cursor-hint"
+						key={userId + '_cursor_hint'}
+						point={cursor}
+						color={color}
+						zoom={zoomLevel}
+						viewport={viewportPageBounds}
+					/>
+				) : null)}
 			{scribble && CollaboratorScribble ? (
 				<CollaboratorScribble
 					className="tl-collaborator__scribble"
