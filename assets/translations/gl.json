@@ -312,5 +312,14 @@
 	"page-menu.go-to-page": "Ir á páxina",
 	"action.insert-embed": "Inserir embed",
 	"people-menu.following": "Seguindo",
-	"people-menu.leading": "Seguíndote"
+	"people-menu.leading": "Seguíndote",
+	"geo-style.check-box": "Checkbox",
+	"tool.check-box": "Checkbox",
+	"share-menu.create-snapshot-link": "Crear ligazón de instantánea",
+	"share-menu.save-note": "Descarga este proxecto no teu ordenador como ficheiro .tldr.",
+	"share-menu.fork-note": "Crea un novo proxecto compartido baseado nesta instantánea.",
+	"share-menu.snapshot-link-note": "Captura e comparte este proxecto como unha ligazón de instantánea de só lectura.",
+	"share-menu.upload-failed": "Sentímolo, non puidemos subir o teu proxecto neste momento. Por favor téntao de novo ou infórmanos se o problema persiste.",
+	"style-panel.vertical-align": "Aliñar verticalmente",
+	"tool.laser": "Láser"
 }
