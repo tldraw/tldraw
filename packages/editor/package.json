@@ -82,7 +82,7 @@
 		"fake-indexeddb": "^4.0.0",
 		"jest-canvas-mock": "^2.5.1",
 		"jest-environment-jsdom": "^29.4.3",
-		"lazyrepo": "0.0.0-alpha.26",
+		"lazyrepo": "0.0.0-alpha.27",
 		"react-test-renderer": "^18.2.0",
 		"resize-observer-polyfill": "^1.5.1"
 	},
