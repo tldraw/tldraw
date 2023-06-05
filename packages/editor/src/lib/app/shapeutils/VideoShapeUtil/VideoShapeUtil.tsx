@@ -1,5 +1,5 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { TLVideoShape } from '@tldraw/tlschema'
+import { TLVideoShape, videoShapeMigrations, videoShapePropsValidators } from '@tldraw/tlschema'
 import * as React from 'react'
 import { track } from 'signia-react'
 import { DefaultSpinner } from '../../../components/DefaultSpinner'
@@ -12,6 +12,8 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 /** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video'
+	override props = videoShapePropsValidators
+	override migrations = videoShapeMigrations
 
 	override canEdit = () => true
 	override isAspectRatioLocked = () => true

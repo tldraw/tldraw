@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box2d, linesIntersect, Matrix2d, VecLike } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
-import { TLHandle, TLShape, TLShapePartial, TLUnknownShape, Vec2dModel } from '@tldraw/tlschema'
+import {
+	TLBaseShape,
+	TLHandle,
+	TLShape,
+	TLShapePartial,
+	TLUnknownShape,
+	Vec2dModel,
+} from '@tldraw/tlschema'
+import { assert } from '@tldraw/utils'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { WeakMapCache } from '../../utils/WeakMapCache'
 import type { Editor } from '../Editor'
@@ -16,16 +24,26 @@ export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
 	U extends ShapeUtil<T> = ShapeUtil<T>
 > {
-	new (editor: Editor, type: T['type']): U
+	new (editor: Editor | null, type: T['type']): U
 	type: T['type']
 }
+
+export type AnyTLShapeUtilConstructor = TLShapeUtilConstructor<TLBaseShape<any, any>>
 
 /** @public */
 export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
 /** @public */
 export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
-	constructor(public editor: Editor, public readonly type: T['type']) {}
+	constructor(private _editor: Editor | null, public readonly type: T['type']) {}
+
+	get editor() {
+		assert(
+			this._editor,
+			'ShapeUtil constructed without an editor. Only basic functionality (e.g. props, migrations, is) work in this mode.'
+		)
+		return this._editor
+	}
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
@@ -201,6 +219,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 */
 	protected abstract getBounds(shape: T): Box2d
 
+	/** @internal */
 	@computed
 	private get boundsCache(): ComputedCache<Box2d, TLShape> {
 		return this.editor.store.createComputedCache('bounds:' + this.type, (shape) => {

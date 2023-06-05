@@ -69,6 +69,7 @@ import {
 	compact,
 	dedupe,
 	deepCopy,
+	mapObjectMap,
 	partition,
 	sortById,
 	structuredClone,
@@ -76,7 +77,6 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { TLShapeInfo } from '../config/createTLStore'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { coreShapes, defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
@@ -130,7 +130,7 @@ import {
 import { getStraightArrowInfo } from './shapeutils/ArrowShapeUtil/arrow/straight-arrow'
 import { FrameShapeUtil } from './shapeutils/FrameShapeUtil/FrameShapeUtil'
 import { GroupShapeUtil } from './shapeutils/GroupShapeUtil/GroupShapeUtil'
-import { ShapeUtil, TLResizeMode } from './shapeutils/ShapeUtil'
+import { AnyTLShapeUtilConstructor, ShapeUtil, TLResizeMode } from './shapeutils/ShapeUtil'
 import { TextShapeUtil } from './shapeutils/TextShapeUtil/TextShapeUtil'
 import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './tools/RootState'
@@ -163,7 +163,7 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapes?: Record<string, TLShapeInfo>
+	shapes?: Record<string, AnyTLShapeUtilConstructor>
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -202,11 +202,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Shapes.
 		// Accept shapes from constructor parameters which may not conflict with the root note's core tools.
-		const shapeUtils = Object.fromEntries(
-			Object.values(coreShapes).map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
+		const shapeUtils: Record<string, ShapeUtil> = mapObjectMap(
+			coreShapes,
+			(_, Util: AnyTLShapeUtilConstructor) => new Util(this, Util.type)
 		)
 
-		for (const [type, { util: Util }] of Object.entries(shapes)) {
+		for (const [type, Util] of Object.entries(shapes)) {
 			if (shapeUtils[type]) {
 				throw Error(`May not overwrite core shape of type "${type}".`)
 			}

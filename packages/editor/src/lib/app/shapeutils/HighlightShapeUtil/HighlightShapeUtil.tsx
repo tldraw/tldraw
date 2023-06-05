@@ -8,7 +8,12 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDrawShapeSegment, TLHighlightShape } from '@tldraw/tlschema'
+import {
+	highlightShapeMigrations,
+	highlightShapePropsValidators,
+	TLDrawShapeSegment,
+	TLHighlightShape,
+} from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_SIZES } from '../../../constants'
@@ -25,6 +30,8 @@ const UNDERLAY_OPACITY = 0.82
 /** @public */
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	static type = 'highlight'
+	override props = highlightShapePropsValidators
+	override migrations = highlightShapeMigrations
 
 	hideResizeHandles = (shape: TLHighlightShape) => getIsDot(shape)
 	hideRotateHandle = (shape: TLHighlightShape) => getIsDot(shape)

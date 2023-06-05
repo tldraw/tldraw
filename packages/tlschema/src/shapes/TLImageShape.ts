@@ -32,17 +32,20 @@ export const cropValidator = T.object({
 })
 
 /** @internal */
+export const imageShapePropsValidators = {
+	opacity: opacityValidator,
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	playing: T.boolean,
+	url: T.string,
+	assetId: assetIdValidator.nullable(),
+	crop: cropValidator.nullable(),
+}
+
+/** @internal */
 export const imageShapeValidator: T.Validator<TLImageShape> = createShapeValidator(
 	'image',
-	T.object({
-		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		playing: T.boolean,
-		url: T.string,
-		assetId: assetIdValidator.nullable(),
-		crop: cropValidator.nullable(),
-	})
+	T.object(imageShapePropsValidators)
 )
 
 const Versions = {

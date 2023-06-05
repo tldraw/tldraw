@@ -41,19 +41,22 @@ export type TLDrawShapeProps = {
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
 /** @internal */
+export const drawShapePropsValidators = {
+	color: colorValidator,
+	fill: fillValidator,
+	dash: dashValidator,
+	size: sizeValidator,
+	opacity: opacityValidator,
+	segments: T.arrayOf(drawShapeSegmentValidator),
+	isComplete: T.boolean,
+	isClosed: T.boolean,
+	isPen: T.boolean,
+}
+
+/** @internal */
 export const drawShapeValidator: T.Validator<TLDrawShape> = createShapeValidator(
 	'draw',
-	T.object({
-		color: colorValidator,
-		fill: fillValidator,
-		dash: dashValidator,
-		size: sizeValidator,
-		opacity: opacityValidator,
-		segments: T.arrayOf(drawShapeSegmentValidator),
-		isComplete: T.boolean,
-		isClosed: T.boolean,
-		isPen: T.boolean,
-	})
+	T.object(drawShapePropsValidators)
 )
 
 const Versions = {

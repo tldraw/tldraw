@@ -20,17 +20,20 @@ export type TLVideoShapeProps = {
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
 
 /** @internal */
+export const videoShapePropsValidators = {
+	opacity: opacityValidator,
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	time: T.number,
+	playing: T.boolean,
+	url: T.string,
+	assetId: assetIdValidator.nullable(),
+}
+
+/** @internal */
 export const videoShapeValidator: T.Validator<TLVideoShape> = createShapeValidator(
 	'video',
-	T.object({
-		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		time: T.number,
-		playing: T.boolean,
-		url: T.string,
-		assetId: assetIdValidator.nullable(),
-	})
+	T.object(videoShapePropsValidators)
 )
 
 const Versions = {

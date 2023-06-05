@@ -64,23 +64,26 @@ export const arrowTerminalValidator: T.Validator<TLArrowTerminal> = T.union('typ
 })
 
 /** @internal */
+export const arrowShapePropsValidators = {
+	labelColor: colorValidator,
+	color: colorValidator,
+	fill: fillValidator,
+	dash: dashValidator,
+	size: sizeValidator,
+	opacity: opacityValidator,
+	arrowheadStart: arrowheadValidator,
+	arrowheadEnd: arrowheadValidator,
+	font: fontValidator,
+	start: arrowTerminalValidator,
+	end: arrowTerminalValidator,
+	bend: T.number,
+	text: T.string,
+}
+
+/** @internal */
 export const arrowShapeValidator: T.Validator<TLArrowShape> = createShapeValidator(
 	'arrow',
-	T.object({
-		labelColor: colorValidator,
-		color: colorValidator,
-		fill: fillValidator,
-		dash: dashValidator,
-		size: sizeValidator,
-		opacity: opacityValidator,
-		arrowheadStart: arrowheadValidator,
-		arrowheadEnd: arrowheadValidator,
-		font: fontValidator,
-		start: arrowTerminalValidator,
-		end: arrowTerminalValidator,
-		bend: T.number,
-		text: T.string,
-	})
+	T.object(arrowShapePropsValidators)
 )
 
 const Versions = {

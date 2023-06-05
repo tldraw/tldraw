@@ -21,16 +21,19 @@ export type TLIconShapeProps = {
 export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>
 
 /** @internal */
+export const iconShapePropsValidators = {
+	size: sizeValidator,
+	icon: iconValidator,
+	dash: dashValidator,
+	color: colorValidator,
+	opacity: opacityValidator,
+	scale: T.number,
+}
+
+/** @internal */
 export const iconShapeValidator: T.Validator<TLIconShape> = createShapeValidator(
 	'icon',
-	T.object({
-		size: sizeValidator,
-		icon: iconValidator,
-		dash: dashValidator,
-		color: colorValidator,
-		opacity: opacityValidator,
-		scale: T.number,
-	})
+	T.object(iconShapePropsValidators)
 )
 
 /** @internal */

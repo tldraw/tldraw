@@ -101,6 +101,23 @@ export function objectMapFromEntries<Key extends string, Value>(
 }
 
 /**
+ * Map over an object's entries and return a new object with the same keys but different values.
+ *
+ * @internal
+ */
+export function mapObjectMap<Key extends string, Value, NewValue>(
+	object: { [K in Key]: Value },
+	fn: (key: Key, value: Value) => NewValue
+): { [K in Key]: NewValue } {
+	const result: { [K in Key]?: NewValue } = {}
+	for (const [key, value] of objectMapEntries(object)) {
+		const newValue = fn(key, value)
+		result[key] = newValue
+	}
+	return result as { [K in Key]: NewValue }
+}
+
+/**
  * Filters an object using a predicate function.
  * @returns a new object with only the entries that pass the predicate
  * @internal

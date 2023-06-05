@@ -20,16 +20,19 @@ export type TLHighlightShapeProps = {
 export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 
 /** @internal */
+export const highlightShapePropsValidators = {
+	color: colorValidator,
+	size: sizeValidator,
+	opacity: opacityValidator,
+	segments: T.arrayOf(drawShapeSegmentValidator),
+	isComplete: T.boolean,
+	isPen: T.boolean,
+}
+
+/** @internal */
 export const highlightShapeValidator: T.Validator<TLHighlightShape> = createShapeValidator(
 	'highlight',
-	T.object({
-		color: colorValidator,
-		size: sizeValidator,
-		opacity: opacityValidator,
-		segments: T.arrayOf(drawShapeSegmentValidator),
-		isComplete: T.boolean,
-		isPen: T.boolean,
-	})
+	T.object(highlightShapePropsValidators)
 )
 
 /** @internal */

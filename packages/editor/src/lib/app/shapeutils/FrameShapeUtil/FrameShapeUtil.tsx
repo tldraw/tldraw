@@ -1,5 +1,11 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
-import { TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
+import {
+	frameShapeMigrations,
+	frameShapePropsValidators,
+	TLFrameShape,
+	TLShape,
+	TLShapeId,
+} from '@tldraw/tlschema'
 import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defaultEmptyAs } from '../../../utils/string'
@@ -12,6 +18,8 @@ import { FrameHeading } from './components/FrameHeading'
 /** @public */
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	static override type = 'frame'
+	override props = frameShapePropsValidators
+	override migrations = frameShapeMigrations
 
 	override canBind = () => true
 

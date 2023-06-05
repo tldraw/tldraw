@@ -11,57 +11,30 @@ import { LineShapeUtil } from '../app/shapeutils/LineShapeUtil/LineShapeUtil'
 import { NoteShapeUtil } from '../app/shapeutils/NoteShapeUtil/NoteShapeUtil'
 import { TextShapeUtil } from '../app/shapeutils/TextShapeUtil/TextShapeUtil'
 import { VideoShapeUtil } from '../app/shapeutils/VideoShapeUtil/VideoShapeUtil'
-import { TLShapeInfo } from './createTLStore'
 
 /** @public */
-export const coreShapes: Record<string, TLShapeInfo> = {
+export const coreShapes = {
 	// created by grouping interactions, probably the corest core shape that we have
-	group: {
-		util: GroupShapeUtil,
-	},
+	group: GroupShapeUtil,
 	// created by embed menu / url drop
-	embed: {
-		util: EmbedShapeUtil,
-	},
+	embed: EmbedShapeUtil,
 	// created by copy and paste / url drop
-	bookmark: {
-		util: BookmarkShapeUtil,
-	},
+	bookmark: BookmarkShapeUtil,
 	// created by copy and paste / file drop
-	image: {
-		util: ImageShapeUtil,
-	},
+	image: ImageShapeUtil,
 	// created by copy and paste / file drop
-	video: {
-		util: VideoShapeUtil,
-	},
+	video: VideoShapeUtil,
 	// created by copy and paste
-	text: {
-		util: TextShapeUtil,
-	},
+	text: TextShapeUtil,
 }
 
 /** @public */
-export const defaultShapes: Record<string, TLShapeInfo> = {
-	draw: {
-		util: DrawShapeUtil,
-	},
-	geo: {
-		util: GeoShapeUtil,
-	},
-	line: {
-		util: LineShapeUtil,
-	},
-	note: {
-		util: NoteShapeUtil,
-	},
-	frame: {
-		util: FrameShapeUtil,
-	},
-	arrow: {
-		util: ArrowShapeUtil,
-	},
-	highlight: {
-		util: HighlightShapeUtil,
-	},
+export const defaultShapes = {
+	draw: DrawShapeUtil,
+	geo: GeoShapeUtil,
+	line: LineShapeUtil,
+	note: NoteShapeUtil,
+	frame: FrameShapeUtil,
+	arrow: ArrowShapeUtil,
+	highlight: HighlightShapeUtil,
 }
