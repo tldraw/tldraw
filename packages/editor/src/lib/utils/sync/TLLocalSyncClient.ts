@@ -1,7 +1,20 @@
-import { RecordsDiff, SerializedSchema, compareSchemas, squashRecordDiffs } from '@tldraw/store'
-import { TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
-import { assert, hasOwnProperty } from '@tldraw/utils'
-import { transact } from 'signia'
+import {
+	RecordsDiff,
+	SerializedSchema,
+	UnknownRecord,
+	compareSchemas,
+	squashRecordDiffs,
+} from '@tldraw/store'
+import { TLStore } from '@tldraw/tlschema'
+import { assert } from '@tldraw/utils'
+import { Signal, transact } from 'signia'
+import {
+	TAB_ID,
+	TLSessionStateSnapshot,
+	createSessionStateSnapshotSignal,
+	extractSessionStateFromLegacySnapshot,
+	loadSessionStateSnapshotIntoStore,
+} from '../../config/TLSessionStateSnapshot'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
 import { loadDataFromStore, storeChangesInIndexedDb, storeSnapshotInIndexedDb } from './indexedDb'
 
@@ -9,6 +22,8 @@ import { loadDataFromStore, storeChangesInIndexedDb, storeSnapshotInIndexedDb } 
 const PERSIST_THROTTLE_MS = 350
 /** If we're in an error state, how long should we wait before retrying a write? */
 const PERSIST_RETRY_THROTTLE_MS = 10_000
+
+const UPDATE_INSTANCE_STATE = Symbol('UPDATE_INSTANCE_STATE')
 
 /**
  * IMPORTANT!!!
@@ -19,8 +34,8 @@ const PERSIST_RETRY_THROTTLE_MS = 10_000
 
 type SyncMessage = {
 	type: 'diff'
-	instanceId: TLInstanceId
-	changes: RecordsDiff<any>
+	storeId: string
+	changes: RecordsDiff<UnknownRecord>
 	schema: SerializedSchema
 }
 
@@ -33,6 +48,8 @@ type AnnounceMessage = {
 }
 
 type Message = SyncMessage | AnnounceMessage
+
+type UnpackPromise<T> = T extends Promise<infer U> ? U : T
 
 const msg = (msg: Message) => msg
 
@@ -55,13 +72,16 @@ const BC = typeof BroadcastChannel === 'undefined' ? BroadcastChannelMock : Broa
 /** @internal */
 export class TLLocalSyncClient {
 	private disposables = new Set<() => void>()
-	private diffQueue: RecordsDiff<any>[] = []
+	private diffQueue: Array<RecordsDiff<UnknownRecord> | typeof UPDATE_INSTANCE_STATE> = []
 	private didDispose = false
 	private shouldDoFullDBWrite = true
 	private isReloading = false
-	readonly universalPersistenceKey: string
+	readonly persistenceKey: string
+	readonly sessionId: string
 	readonly serializedSchema: SerializedSchema
 	private isDebugging = false
+	private readonly documentTypes: ReadonlySet<string>
+	private readonly $sessionStateSnapshot: Signal<TLSessionStateSnapshot | null>
 
 	initTime = Date.now()
 	private debug(...args: any[]) {
@@ -73,59 +93,77 @@ export class TLLocalSyncClient {
 	constructor(
 		public readonly store: TLStore,
 		{
-			universalPersistenceKey,
+			persistenceKey,
+			sessionId = TAB_ID,
 			onLoad,
 			onLoadError,
 		}: {
-			universalPersistenceKey: string
+			persistenceKey: string
+			sessionId?: string
 			onLoad: (self: TLLocalSyncClient) => void
 			onLoadError: (error: Error) => void
 		},
-		public readonly channel = new BC(`tldraw-tab-sync-${universalPersistenceKey}`)
+		public readonly channel = new BC(`tldraw-tab-sync-${persistenceKey}`)
 	) {
 		if (typeof window !== 'undefined') {
 			;(window as any).tlsync = this
 		}
-		this.universalPersistenceKey = universalPersistenceKey
+		this.persistenceKey = persistenceKey
+		this.sessionId = sessionId
 
 		this.serializedSchema = this.store.schema.serialize()
+		this.$sessionStateSnapshot = createSessionStateSnapshotSignal(this.store)
 
 		this.disposables.add(
 			// Set up a subscription to changes from the store: When
 			// the store changes (and if the change was made by the user)
 			// then immediately send the diff to other tabs via postMessage
 			// and schedule a persist.
-			store.listen(({ changes, source }) => {
-				this.debug('changes', changes, source)
-				if (source === 'user') {
+			store.listen(
+				({ changes }) => {
 					this.diffQueue.push(changes)
 					this.channel.postMessage(
 						msg({
 							type: 'diff',
-							instanceId: this.store.props.instanceId,
+							storeId: this.store.id,
 							changes,
 							schema: this.serializedSchema,
 						})
 					)
 					this.schedulePersist()
-				}
-			})
+				},
+				{ source: 'user', scope: 'document' }
+			)
+		)
+		this.disposables.add(
+			store.listen(
+				() => {
+					this.diffQueue.push(UPDATE_INSTANCE_STATE)
+					this.schedulePersist()
+				},
+				{ scope: 'session' }
+			)
 		)
 
 		this.connect(onLoad, onLoadError)
+
+		this.documentTypes = new Set(
+			Object.values(this.store.schema.types)
+				.filter((t) => t.scope === 'document')
+				.map((t) => t.typeName)
+		)
 	}
 
 	private async connect(onLoad: (client: this) => void, onLoadError: (error: Error) => void) {
 		this.debug('connecting')
-		let data:
-			| {
-					records: TLRecord[]
-					schema?: SerializedSchema
-			  }
-			| undefined
+		let data: UnpackPromise<ReturnType<typeof loadDataFromStore>> | undefined
 
 		try {
-			data = await loadDataFromStore(this.universalPersistenceKey)
+			data = await loadDataFromStore({
+				persistenceKey: this.persistenceKey,
+				sessionId: this.sessionId,
+				didCancel: () => this.didDispose,
+			})
 		} catch (error: any) {
 			onLoadError(error)
 			showCantReadFromIndexDbAlert()
@@ -140,9 +178,11 @@ export class TLLocalSyncClient {
 
 		try {
 			if (data) {
-				const snapshot = Object.fromEntries(data.records.map((r) => [r.id, r]))
+				const documentSnapshot = Object.fromEntries(data.records.map((r) => [r.id, r]))
+				const sessionStateSnapshot =
+					data.sessionStateSnapshot ?? extractSessionStateFromLegacySnapshot(documentSnapshot)
 				const migrationResult = this.store.schema.migrateStoreSnapshot(
-					snapshot,
+					documentSnapshot,
 					data.schema ?? this.store.schema.serializeEarliestVersion()
 				)
 
@@ -156,18 +196,20 @@ export class TLLocalSyncClient {
 				this.store.mergeRemoteChanges(() => {
 					// Calling put will validate the records!
 					this.store.put(
-						Object.values(migrationResult.value).filter(
-							(r) => this.store.schema.types[r.typeName].scope !== 'presence'
-						),
+						Object.values(migrationResult.value).filter((r) => this.documentTypes.has(r.typeName)),
 						'initialize'
 					)
 				})
+
+				if (sessionStateSnapshot) {
+					loadSessionStateSnapshotIntoStore(this.store, sessionStateSnapshot)
+				}
 			}
 
 			this.channel.onmessage = ({ data }) => {
 				this.debug('got message', data)
 				const msg = data as Message
-				// if their schema is eralier than ours, we need to tell them so they can refresh
+				// if their schema is earlier than ours, we need to tell them so they can refresh
 				// if their schema is later than ours, we need to refresh
 				const comparison = compareSchemas(
 					this.serializedSchema,
@@ -175,7 +217,7 @@ export class TLLocalSyncClient {
 				)
 				if (comparison === -1) {
 					// we are older, refresh
-					// but add a safety check to make sure we don't get in an infnite loop
+					// but add a safety check to make sure we don't get in an infinite loop
 					const timeSinceInit = Date.now() - this.initTime
 					if (timeSinceInit < 5000) {
 						// This tab was just reloaded, but is out of date compared to other tabs.
@@ -202,17 +244,11 @@ export class TLLocalSyncClient {
 				// otherwise, all good, same version :)
 				if (msg.type === 'diff') {
 					this.debug('applying diff')
-					const doesDeleteInstance = hasOwnProperty(
-						msg.changes.removed,
-						this.store.props.instanceId
-					)
 					transact(() => {
 						this.store.mergeRemoteChanges(() => {
-							this.store.applyDiff(msg.changes)
-						})
-						if (doesDeleteInstance) {
+							this.store.applyDiff(msg.changes as any)
 							this.store.ensureStoreIsUsable()
-						}
+						})
 					})
 				}
 			}
@@ -258,7 +294,7 @@ export class TLLocalSyncClient {
 	}
 
 	/**
-	 * Persist to indexeddb only under certain circumstances:
+	 * Persist to IndexedDB only under certain circumstances:
 	 *
 	 * - If we're not already persisting
 	 * - If we're not reloading the page
@@ -300,7 +336,7 @@ export class TLLocalSyncClient {
 	}
 
 	/**
-	 * Actually persist to indexeddb. If the write fails, then we'll retry with a full db write after
+	 * Actually persist to IndexedDB. If the write fails, then we'll retry with a full db write after
 	 * a short delay.
 	 */
 	private async doPersist() {
@@ -317,17 +353,26 @@ export class TLLocalSyncClient {
 		try {
 			if (this.shouldDoFullDBWrite) {
 				this.shouldDoFullDBWrite = false
-				await storeSnapshotInIndexedDb(
-					this.universalPersistenceKey,
-					this.store.schema,
-					this.store.serialize(),
-					{
-						didCancel: () => this.didDispose,
-					}
-				)
+				await storeSnapshotInIndexedDb({
+					persistenceKey: this.persistenceKey,
+					schema: this.store.schema,
+					snapshot: this.store.serialize(),
+					didCancel: () => this.didDispose,
+					sessionId: this.sessionId,
+					sessionStateSnapshot: this.$sessionStateSnapshot.value,
+				})
 			} else {
-				const diffs = squashRecordDiffs(diffQueue)
-				await storeChangesInIndexedDb(this.universalPersistenceKey, this.store.schema, diffs)
+				const diffs = squashRecordDiffs(
+					diffQueue.filter((d): d is RecordsDiff<UnknownRecord> => d !== UPDATE_INSTANCE_STATE)
+				)
+				await storeChangesInIndexedDb({
+					persistenceKey: this.persistenceKey,
+					changes: diffs,
+					schema: this.store.schema,
+					didCancel: () => this.didDispose,
+					sessionId: this.sessionId,
+					sessionStateSnapshot: this.$sessionStateSnapshot.value,
+				})
 			}
 			this.didLastWriteError = false
 		} catch (e) {

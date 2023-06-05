@@ -126,7 +126,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 	protected updateBookmarkAsset = debounce((shape: TLBookmarkShape) => {
 		const { url } = shape.props
-		const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(url))
+		const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 		const existing = this.editor.getAssetById(assetId)
 
 		if (existing) {

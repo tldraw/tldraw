@@ -10,7 +10,7 @@ beforeEach(() => {
 describe('setCurrentPage', () => {
 	it('sets the current page', () => {
 		const page1Id = editor.pages[0].id
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page2Id = PageRecordType.createId('page2')
 
 		editor.createPage('New Page 2', page2Id)
 		expect(editor.currentPageId).toEqual(page2Id)
@@ -20,7 +20,7 @@ describe('setCurrentPage', () => {
 
 		expect(editor.currentPage).toEqual(editor.pages[0])
 
-		const page3Id = PageRecordType.createCustomId('page3')
+		const page3Id = PageRecordType.createId('page3')
 		editor.createPage('New Page 3', page3Id)
 
 		expect(editor.currentPageId).toEqual(page3Id)
@@ -49,7 +49,7 @@ describe('setCurrentPage', () => {
 	})
 
 	it('squashes', () => {
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page2Id = PageRecordType.createId('page2')
 		editor.createPage('New Page 2', page2Id)
 
 		editor.history.clear()
@@ -61,7 +61,7 @@ describe('setCurrentPage', () => {
 
 	it('preserves the undo stack', () => {
 		const boxId = createShapeId('geo')
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page2Id = PageRecordType.createId('page2')
 		editor.createPage('New Page 2', page2Id)
 
 		editor.history.clear()
@@ -77,7 +77,7 @@ describe('setCurrentPage', () => {
 	})
 
 	it('logs an error when trying to navigate to a page that does not exist', () => {
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page2Id = PageRecordType.createId('page2')
 		editor.createPage('New Page 2', page2Id)
 		console.error = jest.fn()
 

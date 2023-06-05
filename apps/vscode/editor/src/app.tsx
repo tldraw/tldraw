@@ -1,11 +1,4 @@
-import {
-	Canvas,
-	Editor,
-	ErrorBoundary,
-	TAB_ID,
-	TldrawEditor,
-	setRuntimeOverrides,
-} from '@tldraw/editor'
+import { Canvas, Editor, ErrorBoundary, TldrawEditor, setRuntimeOverrides } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/editor/editor.css'
@@ -129,7 +122,6 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 	return (
 		<TldrawEditor
 			assetUrls={assetUrls}
-			instanceId={TAB_ID}
 			persistenceKey={uri}
 			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
 			autoFocus

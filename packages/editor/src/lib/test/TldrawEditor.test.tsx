@@ -1,5 +1,5 @@
 import { act, render, screen } from '@testing-library/react'
-import { InstanceRecordType, TLBaseShape, TLOpacityType, createShapeId } from '@tldraw/tlschema'
+import { TLBaseShape, TLOpacityType, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { Editor } from '../app/Editor'
 import { BaseBoxShapeUtil } from '../app/shapeutils/BaseBoxShapeUtil'
@@ -64,9 +64,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = createTLStore({
-			instanceId: InstanceRecordType.createCustomId('test'),
-		})
+		const initialStore = createTLStore({})
 		const onMount = jest.fn()
 		const rendered = render(
 			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
@@ -87,9 +85,7 @@ describe('<TldrawEditor />', () => {
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
-		const newStore = createTLStore({
-			instanceId: InstanceRecordType.createCustomId('test'),
-		})
+		const newStore = createTLStore({})
 		rendered.rerender(
 			<TldrawEditor store={newStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-3" />

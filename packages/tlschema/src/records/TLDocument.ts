@@ -55,4 +55,4 @@ export const DocumentRecordType = createRecordType<TLDocument>('document', {
 
 // all document records have the same ID: 'document:document'
 /** @public */
-export const TLDOCUMENT_ID: RecordId<TLDocument> = DocumentRecordType.createCustomId('document')
+export const TLDOCUMENT_ID: RecordId<TLDocument> = DocumentRecordType.createId('document')

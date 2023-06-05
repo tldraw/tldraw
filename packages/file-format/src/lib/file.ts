@@ -4,7 +4,6 @@ import {
 	fileToBase64,
 	TLAsset,
 	TLAssetId,
-	TLInstanceId,
 	TLRecord,
 	TLStore,
 } from '@tldraw/editor'
@@ -83,12 +82,10 @@ export type TldrawFileParseError =
 /** @public */
 export function parseTldrawJsonFile({
 	json,
-	instanceId,
 	store,
 }: {
 	store: TLStore
 	json: string
-	instanceId: TLInstanceId
 }): Result<TLStore, TldrawFileParseError> {
 	// first off, we parse .json file and check it matches the general shape of
 	// a tldraw file
@@ -141,7 +138,6 @@ export function parseTldrawJsonFile({
 		return Result.ok(
 			createTLStore({
 				initialData: migrationResult.value,
-				instanceId,
 			})
 		)
 	} catch (e) {
@@ -222,7 +218,6 @@ export async function parseAndLoadDocument(
 	const parseFileResult = parseTldrawJsonFile({
 		store: createTLStore(),
 		json: document,
-		instanceId: editor.instanceId,
 	})
 	if (!parseFileResult.ok) {
 		let description

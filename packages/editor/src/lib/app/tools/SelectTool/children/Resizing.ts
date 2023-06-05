@@ -214,7 +214,7 @@ export class Resizing extends StateNode {
 
 		this.editor.snaps.clear()
 
-		const shouldSnap = this.editor.userDocumentSettings.isSnapMode ? !ctrlKey : ctrlKey
+		const shouldSnap = this.editor.isSnapMode ? !ctrlKey : ctrlKey
 
 		if (shouldSnap && selectionRotation % TAU === 0) {
 			const { nudge } = this.editor.snaps.snapResize({

@@ -39,9 +39,9 @@ import {
 	TLDocument,
 	TLFrameShape,
 	TLGroupShape,
+	TLINSTANCE_ID,
 	TLImageAsset,
 	TLInstance,
-	TLInstanceId,
 	TLInstancePageState,
 	TLNullableShapeProps,
 	TLPOINTER_ID,
@@ -57,7 +57,6 @@ import {
 	TLSizeStyle,
 	TLStore,
 	TLUnknownShape,
-	TLUserDocument,
 	TLVideoAsset,
 	Vec2dModel,
 	createShapeId,
@@ -262,7 +261,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				prev.typeName === 'instance_page_state' &&
 				next.typeName === 'instance_page_state'
 			) {
-				this._tabStateDidChange(prev, next)
+				this._pageStateDidChange(prev, next)
 			}
 
 			this._updateDepth--
@@ -450,21 +449,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
-
-	/**
-	 * The editor's instanceId (defined in its store.props).
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * const instanceId = editor.instanceId
-	 * ```
-	 *
-	 * @public
-	 */
-	get instanceId(): TLInstanceId {
-		return this.store.props.instanceId
-	}
 
 	/** @internal */
 	annotateError(
@@ -657,7 +641,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Clear any reset timeout
 		clearTimeout(this._isChangingStyleTimeout)
 		if (v) {
-			// If we've set to true, set a new reset timeout to change the value back to false after 2 seonds
+			// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
 			this._isChangingStyleTimeout = setTimeout(() => (this.isChangingStyle = false), 2000)
 		}
 	}
@@ -672,7 +656,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (isPageId(shape.parentId)) {
 				return this.getTransform(shape)
 			}
-			// some weird circular type thing here that I had to work wround with (as any)
+			// some weird circular type thing here that I had to work around with (as any)
 			const parent = (this._pageTransformCache as any).get(shape.parentId)
 
 			return Matrix2d.Compose(parent, this.getTransform(shape))
@@ -1185,17 +1169,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _complete() {
-		const { lastUpdatedPageId, lastUsedTabId } = this.userDocumentSettings
-		if (lastUsedTabId !== this.instanceId || lastUpdatedPageId !== this.currentPageId) {
-			this.store.put([
-				{
-					...this.userDocumentSettings,
-					lastUsedTabId: this.instanceId,
-					lastUpdatedPageId: this.currentPageId,
-				},
-			])
-		}
-
 		for (const parentId of this._invalidParents) {
 			this._invalidParents.delete(parentId)
 			const parent = this.getShapeById(parentId)
@@ -1439,7 +1412,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				allMovingIds.add(id)
 			})
 
-			for (const instancePageState of this.store.query.records('instance_page_state').value) {
+			for (const instancePageState of this._allPageStates.value) {
 				if (instancePageState.pageId === next.parentId) continue
 				const nextPageState = this._cleanupInstancePageState(instancePageState, allMovingIds)
 
@@ -1459,9 +1432,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _tabStateDidChange(prev: TLInstancePageState, next: TLInstancePageState) {
+	private _pageStateDidChange(prev: TLInstancePageState, next: TLInstancePageState) {
 		if (prev?.selectedIds !== next?.selectedIds) {
-			// ensure that descendants and ascenants are not selected at the same time
+			// ensure that descendants and ancestors are not selected at the same time
 			const filtered = next.selectedIds.filter((id) => {
 				let parentId = this.getShapeById(id)?.parentId
 				while (isShapeId(parentId)) {
@@ -1490,14 +1463,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _pageWillBeDeleted(page: TLPage) {
 		// page was deleted, need to check whether it's the current page and select another one if so
-		const instanceStates = this.store.query.exec('instance', { currentPageId: { eq: page.id } })
+		if (this.instanceState.currentPageId !== page.id) return
 
-		if (!instanceStates.length) return
 		const backupPageId = this.pages.find((p) => p.id !== page.id)?.id
-
 		if (!backupPageId) return
-
-		this.store.put(instanceStates.map((state) => ({ ...state, currentPageId: backupPageId })))
+		this.store.put([{ ...this.instanceState, currentPageId: backupPageId }])
 	}
 
 	/* -------------------- Shortcuts ------------------- */
@@ -1527,12 +1497,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	get isSnapMode() {
-		return this.userDocumentSettings.isSnapMode
+		return this.user.isSnapMode
 	}
 
 	setSnapMode(isSnapMode: boolean) {
 		if (isSnapMode !== this.isSnapMode) {
-			this.updateUserDocumentSettings({ isSnapMode }, true)
+			this.user.updateUserPreferences({ isSnapMode })
 		}
 		return this
 	}
@@ -1581,22 +1551,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/** @internal */
-	@computed private get _userDocumentSettings() {
-		return this.store.query.record('user_document')
-	}
-
-	get userDocumentSettings(): TLUserDocument {
-		return this._userDocumentSettings.value!
-	}
-
 	get isGridMode() {
-		return this.userDocumentSettings.isGridMode
+		return this.instanceState.isGridMode
 	}
 
 	setGridMode(isGridMode: boolean): this {
 		if (isGridMode !== this.isGridMode) {
-			this.updateUserDocumentSettings({ isGridMode }, true)
+			this.updateInstanceState({ isGridMode }, true)
 		}
 		return this
 	}
@@ -1638,7 +1599,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** The current tab state */
 	get instanceState(): TLInstance {
-		return this.store.get(this.instanceId)!
+		return this.store.get(TLINSTANCE_ID)!
 	}
 
 	get cursor() {
@@ -1658,17 +1619,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	@computed private get _pageState() {
-		return this.store.query.record(
-			'instance_page_state',
-			() => {
-				return {
-					pageId: { eq: this.currentPageId },
-					instanceId: { eq: this.instanceId },
-				}
-			},
-			'editor._pageState'
-		)
+	@computed private get pageStateId() {
+		return InstancePageStateRecordType.createId(this.currentPageId)
 	}
 
 	/**
@@ -1676,13 +1628,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get pageState(): TLInstancePageState {
-		return this._pageState.value!
+	@computed get pageState(): TLInstancePageState {
+		return this.store.get(this.pageStateId)!
+	}
+	@computed
+	private get cameraId() {
+		return CameraRecordType.createId(this.currentPageId)
 	}
 
 	/** The current camera. */
 	@computed get camera() {
-		return this.store.get(this.pageState.cameraId)!
+		return this.store.get(this.cameraId)!
 	}
 
 	/** The current camera zoom level. */
@@ -1760,9 +1716,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed private get _pageStates() {
-		return this.store.query.records('instance_page_state', () => ({
-			instanceId: { eq: this.instanceId },
-		}))
+		return this.store.query.records('instance_page_state')
 	}
 
 	/**
@@ -2756,7 +2710,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	screenToPage(x: number, y: number, z = 0.5, camera: Vec2dModel = this.camera) {
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(this.instanceId)!
+		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz = 1 } = camera
 		return {
 			x: (x - screenBounds.x) / cz - cx,
@@ -3521,7 +3475,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isEditing: false,
 		/** Whether the user is panning. */
 		isPanning: false,
-		/** Veclocity of mouse pointer, in pixels per millisecond */
+		/** Velocity of mouse pointer, in pixels per millisecond */
 		pointerVelocity: new Vec2d(),
 	}
 
@@ -3535,7 +3489,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
 			this.inputs
 
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(this.instanceId)!
+		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: sx, y: sy, z: sz } = info.point
 		const { x: cx, y: cy, z: cz } = this.camera
 
@@ -3962,7 +3916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isDragging = false
 
 							if (this.isMenuOpen) {
-								// Surpressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
+								// Suppressing pointerup here as <ContextMenu/> doesn't seem to do what we what here.
 								return
 							}
 
@@ -4059,7 +4013,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							break
 						}
 						case 'key_repeat': {
-							// nooop
+							// noop
 							break
 						}
 					}
@@ -4667,7 +4621,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						)
 						partial.parentId = parentId
 						// If the parent is a shape (rather than a page) then insert the
-						// shapes into the shape's children. Ajust the point and page rotation to be
+						// shapes into the shape's children. Adjust the point and page rotation to be
 						// preserved relative to the parent.
 						if (isShapeId(parentId)) {
 							const point = this.getPointInShapeSpace(this.getShapeById(parentId)!, {
@@ -5084,40 +5038,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	)
 
 	/**
-	 * Update user document settings
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * editor.updateUserDocumentSettings({ isGridMode: true })
-	 * ```
-	 *
-	 * @public
-	 */
-	updateUserDocumentSettings(partial: Partial<TLUserDocument>, ephemeral = false) {
-		this._updateUserDocumentSettings(partial, ephemeral)
-		return this
-	}
-
-	/** @internal */
-	private _updateUserDocumentSettings = this.history.createCommand(
-		'updateUserDocumentSettings',
-		(partial: Partial<TLUserDocument>, ephemeral = false) => {
-			const prev = this.userDocumentSettings
-			const next = { ...prev, ...partial }
-			return { data: { prev, next }, ephemeral }
-		},
-		{
-			do: ({ next }) => {
-				this.store.put([next])
-			},
-			undo: ({ prev }) => {
-				this.store.put([prev])
-			},
-		}
-	)
-
-	/**
 	 * Get the editor's locale.
 	 * @public
 	 */
@@ -5229,12 +5149,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 						: getIndexAbove(topIndex),
 			})
 
-			const newCamera = CameraRecordType.create({})
+			const newCamera = CameraRecordType.create({
+				id: CameraRecordType.createId(newPage.id),
+			})
 
 			const newTabPageState = InstancePageStateRecordType.create({
+				id: InstancePageStateRecordType.createId(newPage.id),
 				pageId: newPage.id,
-				instanceId: this.instanceId,
-				cameraId: newCamera.id,
 			})
 
 			return {
@@ -5257,9 +5178,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				])
 				this.updateCullingBounds()
 			},
-			undo: ({ newPage, prevPageState, prevTabState, newTabPageState }) => {
+			undo: ({ newPage, prevPageState, prevTabState, newTabPageState, newCamera }) => {
 				this.store.put([prevPageState, prevTabState])
-				this.store.remove([newTabPageState.id, newPage.id, newTabPageState.cameraId])
+				this.store.remove([newTabPageState.id, newPage.id, newCamera.id])
 
 				this.updateCullingBounds()
 			},
@@ -5656,7 +5577,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const realContainerStyle = getComputedStyle(realContainerEl)
 
 		// Get the styles from the container. We'll use these to pull out colors etc.
-		// NOTE: We can force force a light theme here becasue we don't want export
+		// NOTE: We can force force a light theme here because we don't want export
 		const fakeContainerEl = document.createElement('div')
 		fakeContainerEl.className = `tl-container tl-theme__${
 			darkMode ? 'dark' : 'light'
@@ -6824,13 +6745,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	) {
 		const { type } = options.initialShape
 		// If a shape is not aligned with the scale axis we need to treat it differently to avoid skewing.
-		// Instead of skewing we normalise the scale aspect ratio (i.e. keep the same scale magnitude in both axes)
+		// Instead of skewing we normalize the scale aspect ratio (i.e. keep the same scale magnitude in both axes)
 		// and then after applying the scale to the shape we also rotate it if required and translate it so that it's center
 		// point ends up in the right place.
 
 		const shapeScale = new Vec2d(scale.x, scale.y)
 
-		// // make sure we are contraining aspect ratio, and using the smallest scale axis to avoid shapes getting bigger
+		// // make sure we are constraining aspect ratio, and using the smallest scale axis to avoid shapes getting bigger
 		// // than the selection bounding box
 		if (Math.abs(scale.x) > Math.abs(scale.y)) {
 			shapeScale.x = Math.sign(scale.x) * Math.abs(scale.y)
@@ -6867,7 +6788,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			options.scaleAxisRotation
 		)
 
-		// now caculate how far away the shape is from where it needs to be
+		// now calculate how far away the shape is from where it needs to be
 		const currentPageCenter = this.getPageCenterById(id)
 		const currentPagePoint = this.getPagePointById(id)
 		if (!currentPageCenter || !currentPagePoint) return this
@@ -6978,7 +6899,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// resize the shape's local bounding box
 			const myScale = new Vec2d(scale.x, scale.y)
-			// the shape is algined with the rest of the shpaes in the selection, but may be
+			// the shape is aligned with the rest of the shapes in the selection, but may be
 			// 90deg offset from the main rotation of the selection, in which case
 			// we need to flip the width and height scale factors
 			const areWidthAndHeightAlignedWithCorrectAxis = approximately(
@@ -7244,7 +7165,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Remove a shpae from the existing set of selected shapes.
+	 * Remove a shape from the existing set of selected shapes.
 	 *
 	 * @example
 	 *
@@ -7359,13 +7280,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		{
 			do: ({ toId }) => {
 				if (!this.getPageStateByPageId(toId)) {
-					const camera = CameraRecordType.create({})
+					const camera = CameraRecordType.create({
+						id: CameraRecordType.createId(toId),
+					})
 					this.store.put([
 						camera,
 						InstancePageStateRecordType.create({
+							id: InstancePageStateRecordType.createId(toId),
 							pageId: toId,
-							instanceId: this.instanceId,
-							cameraId: camera.id,
 						}),
 					])
 				}
@@ -7387,7 +7309,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** Set the current user tab state */
 	updateInstanceState(
-		partial: Partial<Omit<TLInstance, 'documentId' | 'userId' | 'currentPageId'>>,
+		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		ephemeral = false,
 		squashing = false
 	) {
@@ -7398,11 +7320,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _updateInstanceState = this.history.createCommand(
 		'updateTabState',
-		(
-			partial: Partial<Omit<TLInstance, 'documentId' | 'userId' | 'currentPageId'>>,
-			ephemeral = false,
-			squashing = false
-		) => {
+		(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral = false, squashing = false) => {
 			const prev = this.instanceState
 			const next = { ...prev, ...partial }
 

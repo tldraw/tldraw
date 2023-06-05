@@ -57,7 +57,6 @@ import { TLHighlightShape } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
-import { TLInstanceId } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLInstancePropsForNextShape } from '@tldraw/tlschema';
@@ -82,9 +81,9 @@ import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
 import { TLTextShapeProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
-import { TLUserDocument } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
+import { UnknownRecord } from '@tldraw/store';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -260,6 +259,9 @@ export function createEmbedShapeAtPoint(editor: Editor, url: string, point: Vec2
     height?: number;
     doesResize?: boolean;
 }): void;
+
+// @public
+export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public (undocumented)
 export function createShapesFromFiles(editor: Editor, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
@@ -573,7 +575,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         pointerVelocity: Vec2d;
     };
-    get instanceId(): TLInstanceId;
     get instanceState(): TLInstance;
     interrupt(): this;
     get isChangingStyle(): boolean;
@@ -763,15 +764,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateCullingBounds(): this;
     // @internal (undocumented)
     updateDocumentSettings(settings: Partial<TLDocument>): void;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId' | 'documentId' | 'userId'>>, ephemeral?: boolean, squashing?: boolean): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
-    updateUserDocumentSettings(partial: Partial<TLUserDocument>, ephemeral?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
     // @internal (undocumented)
     readonly user: UserPreferencesManager;
-    // (undocumented)
-    get userDocumentSettings(): TLUserDocument;
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
     get viewportScreenBounds(): Box2d;
@@ -835,6 +833,9 @@ export function ErrorScreen({ children }: {
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
+
+// @internal (undocumented)
+export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
 
 // @internal (undocumented)
 export const featureFlags: {
@@ -1282,6 +1283,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 export function LoadingScreen({ children }: {
     children: any;
 }): JSX.Element;
+
+// @public
+export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
@@ -1977,8 +1981,8 @@ export function SVGContainer({ children, className, ...rest }: SVGContainerProps
 // @public (undocumented)
 export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 
-// @public (undocumented)
-export const TAB_ID: TLInstanceId;
+// @public
+export const TAB_ID: string;
 
 // @public (undocumented)
 export const TEXT_PROPS: {
@@ -2188,8 +2192,8 @@ export type TldrawEditorProps = {
 } | {
     store?: undefined;
     initialData?: StoreSnapshot<TLRecord>;
-    instanceId?: TLInstanceId;
     persistenceKey?: string;
+    sessionId?: string;
     defaultName?: string;
 });
 
@@ -2527,6 +2531,35 @@ export type TLResizeMode = 'resize_bounds' | 'scale_shape';
 // @public (undocumented)
 export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
 
+// @public
+export interface TLSessionStateSnapshot {
+    // (undocumented)
+    currentPageId: TLPageId;
+    // (undocumented)
+    exportBackground: boolean;
+    // (undocumented)
+    isDebugMode: boolean;
+    // (undocumented)
+    isFocusMode: boolean;
+    // (undocumented)
+    isGridMode: boolean;
+    // (undocumented)
+    isToolLocked: boolean;
+    // (undocumented)
+    pageStates: Array<{
+        pageId: TLPageId;
+        camera: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        selectedIds: TLShapeId[];
+        focusLayerId: null | TLShapeId;
+    }>;
+    // (undocumented)
+    version: number;
+}
+
 // @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
@@ -2590,6 +2623,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isDarkMode: boolean;
     // (undocumented)
+    isSnapMode: boolean;
+    // (undocumented)
     locale: string;
     // (undocumented)
     name: string;
@@ -2626,6 +2661,7 @@ export const useEditor: () => Editor;
 // @internal (undocumented)
 export function useLocalStore(opts?: {
     persistenceKey?: string | undefined;
+    sessionId?: string | undefined;
 } & TLStoreOptions): TLStoreWithStatus;
 
 // @internal (undocumented)

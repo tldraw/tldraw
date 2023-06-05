@@ -11,7 +11,7 @@ const ids = {
 	frame1: createShapeId('frame1'),
 	group1: createShapeId('group1'),
 
-	page2: PageRecordType.createCustomId('page2'),
+	page2: PageRecordType.createId('page2'),
 }
 
 beforeEach(() => {

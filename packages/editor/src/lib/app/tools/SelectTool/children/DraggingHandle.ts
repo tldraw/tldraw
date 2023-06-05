@@ -208,7 +208,7 @@ export class DraggingHandle extends StateNode {
 		this.editor.snaps.clear()
 
 		const { ctrlKey } = this.editor.inputs
-		const shouldSnap = this.editor.userDocumentSettings.isSnapMode ? !ctrlKey : ctrlKey
+		const shouldSnap = this.editor.isSnapMode ? !ctrlKey : ctrlKey
 
 		if (shouldSnap && shape.type === 'line') {
 			const pagePoint = Matrix2d.applyToPoint(this.editor.getPageTransformById(shape.id)!, point)

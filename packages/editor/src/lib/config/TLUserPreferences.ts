@@ -18,6 +18,7 @@ export interface TLUserPreferences {
 	color: string
 	isDarkMode: boolean
 	animationSpeed: number
+	isSnapMode: boolean
 }
 
 interface UserDataSnapshot {
@@ -38,14 +39,16 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	color: T.string,
 	isDarkMode: T.boolean,
 	animationSpeed: T.number,
+	isSnapMode: T.boolean,
 })
 
 const Versions = {
 	AddAnimationSpeed: 1,
+	AddIsSnapMode: 2,
 } as const
 
 const userMigrations = defineMigrations({
-	currentVersion: 1,
+	currentVersion: Versions.AddIsSnapMode,
 	migrators: {
 		[Versions.AddAnimationSpeed]: {
 			up: (user) => {
@@ -55,6 +58,14 @@ const userMigrations = defineMigrations({
 				}
 			},
 			down: ({ animationSpeed: _, ...user }) => {
+				return user
+			},
+		},
+		[Versions.AddIsSnapMode]: {
+			up: (user: TLUserPreferences) => {
+				return { ...user, isSnapMode: false }
+			},
+			down: ({ isSnapMode: _, ...user }: TLUserPreferences) => {
 				return user
 			},
 		},
@@ -90,6 +101,7 @@ function getFreshUserPreferences(): TLUserPreferences {
 		// TODO: detect dark mode
 		isDarkMode: false,
 		animationSpeed: 1,
+		isSnapMode: false,
 	}
 }
 

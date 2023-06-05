@@ -34,4 +34,8 @@ export class UserPreferencesManager {
 	get color() {
 		return this.user.userPreferences.value.color
 	}
+
+	get isSnapMode() {
+		return this.user.userPreferences.value.isSnapMode
+	}
 }

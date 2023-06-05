@@ -7,9 +7,9 @@ import { useTLStore } from './useTLStore'
 
 /** @internal */
 export function useLocalStore(
-	opts = {} as { persistenceKey?: string } & TLStoreOptions
+	opts = {} as { persistenceKey?: string; sessionId?: string } & TLStoreOptions
 ): TLStoreWithStatus {
-	const { persistenceKey, ...rest } = opts
+	const { persistenceKey, sessionId, ...rest } = opts
 
 	const [state, setState] = useState<{ id: string; storeWithStatus: TLStoreWithStatus } | null>(
 		null
@@ -42,7 +42,8 @@ export function useLocalStore(
 		}
 
 		const client = new TLLocalSyncClient(store, {
-			universalPersistenceKey: persistenceKey,
+			sessionId,
+			persistenceKey,
 			onLoad() {
 				setStoreWithStatus({ store, status: 'synced-local' })
 			},
@@ -55,7 +56,7 @@ export function useLocalStore(
 			setState((prevState) => (prevState?.id === id ? null : prevState))
 			client.close()
 		}
-	}, [persistenceKey, store])
+	}, [persistenceKey, store, sessionId])
 
 	return state?.storeWithStatus ?? { status: 'loading' }
 }

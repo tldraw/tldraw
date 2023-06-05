@@ -116,6 +116,13 @@ export {
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export {
+	TAB_ID,
+	createSessionStateSnapshotSignal,
+	extractSessionStateFromLegacySnapshot,
+	loadSessionStateSnapshotIntoStore,
+	type TLSessionStateSnapshot,
+} from './lib/config/TLSessionStateSnapshot'
+export {
 	USER_COLORS,
 	getUserPreferences,
 	setUserPreferences,
@@ -244,5 +251,4 @@ export {
 export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from './lib/utils/svg'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
-export { TAB_ID } from './lib/utils/sync/persistence-constants'
 export { openWindow } from './lib/utils/window-open'

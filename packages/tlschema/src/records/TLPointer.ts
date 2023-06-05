@@ -35,7 +35,7 @@ export const pointerMigrations = defineMigrations({})
 export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 	validator: pointerValidator,
 	migrations: pointerMigrations,
-	scope: 'instance',
+	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TLPointer, 'id' | 'typeName'> => ({
 		x: 0,
@@ -45,4 +45,4 @@ export const PointerRecordType = createRecordType<TLPointer>('pointer', {
 )
 
 /** @public */
-export const TLPOINTER_ID = PointerRecordType.createCustomId('pointer')
+export const TLPOINTER_ID = PointerRecordType.createId('pointer')

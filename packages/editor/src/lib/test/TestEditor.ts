@@ -52,7 +52,7 @@ declare global {
 		}
 	}
 }
-export const TEST_INSTANCE_ID = InstanceRecordType.createCustomId('testInstance1')
+export const TEST_INSTANCE_ID = InstanceRecordType.createId('testInstance1')
 
 export class TestEditor extends Editor {
 	constructor(options = {} as Partial<Omit<TLEditorOptions, 'store'>>) {
@@ -63,7 +63,6 @@ export class TestEditor extends Editor {
 			shapes: { ...defaultShapes, ...shapes },
 			tools: [...defaultTools, ...tools],
 			store: createTLStore({
-				instanceId: TEST_INSTANCE_ID,
 				customShapes: shapes,
 			}),
 			getContainer: () => elm,
@@ -190,7 +189,7 @@ export class TestEditor extends Editor {
 		return createShapeId(id)
 	}
 	testPageID(id: string) {
-		return PageRecordType.createCustomId(id)
+		return PageRecordType.createId(id)
 	}
 
 	expectToBeIn = (path: string) => {

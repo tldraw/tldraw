@@ -156,7 +156,7 @@ function getRandomBookOp(
 				return {
 					type: 'add',
 					record: Book.create({
-						id: Book.createCustomId(getRandomNumber().toString()),
+						id: Book.createId(getRandomNumber().toString()),
 						authorId: author.id,
 						title: getRandomBookName(getRandomNumber),
 					}),
@@ -214,7 +214,7 @@ function getRandomAuthorOp(
 			return {
 				type: 'add',
 				record: Author.create({
-					id: Author.createCustomId(getRandomNumber().toString()),
+					id: Author.createId(getRandomNumber().toString()),
 					name: getRandomAuthorName(getRandomNumber),
 				}),
 			}
@@ -355,7 +355,7 @@ function runTest(seed: number) {
 	const authorNameIndexDiffs: RSIndexDiff<Author>[] = []
 	const authorIdIndexDiffs: RSIndexDiff<Book>[] = []
 
-	const authorIdQueryParam = atom('authorId', Author.createCustomId('does-not-exist'))
+	const authorIdQueryParam = atom('authorId', Author.createId('does-not-exist'))
 	const bookTitleQueryParam = atom('bookTitle', getRandomBookName(getRandomNumber))
 
 	const booksByAuthorQuery = store.query.records('book', () => ({

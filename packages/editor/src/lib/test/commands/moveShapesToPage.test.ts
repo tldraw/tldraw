@@ -8,8 +8,8 @@ const ids = {
 	box2: createShapeId('box2'),
 	ellipse1: createShapeId('ellipse1'),
 	ellipse2: createShapeId('ellipse2'),
-	page1: PageRecordType.createCustomId('page1'),
-	page2: PageRecordType.createCustomId('page2'),
+	page1: PageRecordType.createId('page1'),
+	page2: PageRecordType.createId('page2'),
 }
 
 beforeEach(() => {
@@ -68,7 +68,7 @@ describe('Editor.moveShapesToPage', () => {
 
 	it('Does nothing if the new page is not found or is deleted', () => {
 		editor.history.clear()
-		editor.moveShapesToPage([ids.box1], PageRecordType.createCustomId('missing'))
+		editor.moveShapesToPage([ids.box1], PageRecordType.createId('missing'))
 		expect(editor.history.numUndos).toBe(0)
 	})
 
@@ -101,7 +101,7 @@ describe('Editor.moveShapesToPage', () => {
 
 	it('Sets the correct indices', () => {
 		editor = new TestEditor()
-		const page2Id = PageRecordType.createCustomId('newPage2')
+		const page2Id = PageRecordType.createId('newPage2')
 
 		editor.createPage('New Page 2', page2Id)
 		expect(editor.currentPageId).toBe(page2Id)
@@ -112,7 +112,7 @@ describe('Editor.moveShapesToPage', () => {
 			index: 'a1',
 		})
 
-		const page3Id = PageRecordType.createCustomId('newPage3')
+		const page3Id = PageRecordType.createId('newPage3')
 		editor.createPage('New Page 3', page3Id)
 		expect(editor.currentPageId).toBe(page3Id)
 		editor.createShapes([{ id: ids.box2, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } }])

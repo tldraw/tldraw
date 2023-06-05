@@ -43,6 +43,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	exportBackground: boolean
 	screenBounds: Box2dModel
 	zoomBrush: Box2dModel | null
+	isPenMode: boolean
+	isGridMode: boolean
 }
 
 /** @public */
@@ -84,6 +86,8 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		exportBackground: T.boolean,
 		screenBounds: T.boxModel,
 		zoomBrush: T.boxModel.nullable(),
+		isPenMode: T.boolean,
+		isGridMode: T.boolean,
 	})
 )
 
@@ -99,13 +103,14 @@ const Versions = {
 	AddVerticalAlign: 9,
 	AddScribbleDelay: 10,
 	RemoveUserId: 11,
+	AddIsPenModeAndIsGridMode: 12,
 } as const
 
 export { Versions as instanceTypeVersions }
 
-/** @internal */
+/** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: Versions.RemoveUserId,
+	currentVersion: Versions.AddIsPenModeAndIsGridMode,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -243,6 +248,14 @@ export const instanceMigrations = defineMigrations({
 				return { ...instance, userId: 'user:none' }
 			},
 		},
+		[Versions.AddIsPenModeAndIsGridMode]: {
+			up: (instance: TLInstance) => {
+				return { ...instance, isPenMode: false, isGridMode: false }
+			},
+			down: ({ isPenMode: _, isGridMode: __, ...instance }: TLInstance) => {
+				return instance
+			},
+		},
 	},
 })
 
@@ -250,7 +263,7 @@ export const instanceMigrations = defineMigrations({
 export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 	migrations: instanceMigrations,
 	validator: instanceTypeValidator,
-	scope: 'instance',
+	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
 		followingUserId: null,
@@ -283,5 +296,10 @@ export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 		isToolLocked: false,
 		screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
 		zoomBrush: null,
+		isGridMode: false,
+		isPenMode: false,
 	})
 )
+
+/** @public */
+export const TLINSTANCE_ID = InstanceRecordType.createId('instance')
