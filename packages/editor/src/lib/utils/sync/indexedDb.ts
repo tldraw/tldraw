@@ -195,12 +195,6 @@ export async function storeSnapshotInIndexedDb({
 	})
 }
 
-/** @internal */
-export function clearDb(universalPersistenceKey: string) {
-	const dbId = STORE_PREFIX + universalPersistenceKey
-	indexedDB.deleteDatabase(dbId)
-}
-
 async function pruneSessionState({
 	persistenceKey,
 	didCancel,
@@ -234,8 +228,7 @@ export function getAllIndexDbNames(): string[] {
 	return result
 }
 
-/** @internal */
-export function addDbName(name: string) {
+function addDbName(name: string) {
 	const all = new Set(getAllIndexDbNames())
 	all.add(name)
 	window?.localStorage.setItem(dbNameIndexKey, JSON.stringify([...all]))
