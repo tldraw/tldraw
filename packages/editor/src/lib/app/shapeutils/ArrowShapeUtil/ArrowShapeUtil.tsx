@@ -7,7 +7,6 @@ import {
 	pointInPolygon,
 	shortAngleDist,
 	toDomPrecision,
-	toFixed,
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
@@ -339,8 +338,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							boundShapeId: target.id,
 							normalizedAnchor: precise
 								? {
-										x: toFixed((pointInTargetSpace.x - targetBounds.minX) / targetBounds.width),
-										y: toFixed((pointInTargetSpace.y - targetBounds.minY) / targetBounds.height),
+										x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+										y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
 								  }
 								: { x: 0.5, y: 0.5 },
 							isExact: this.editor.inputs.altKey,
@@ -348,8 +347,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					} else {
 						next.props[handle.id] = {
 							type: 'point',
-							x: toFixed(handle.x),
-							y: toFixed(handle.y),
+							x: handle.x,
+							y: handle.y,
 						}
 					}
 				}
@@ -405,13 +404,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				...shape.props,
 				start: {
 					type: 'point',
-					x: toFixed(start.x),
-					y: toFixed(start.y),
+					x: start.x,
+					y: start.y,
 				},
 				end: {
 					type: 'point',
-					x: toFixed(end.x),
-					y: toFixed(end.y),
+					x: end.x,
+					y: end.y,
 				},
 			},
 		}
@@ -427,14 +426,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// Rescale start handle if it's not bound to a shape
 		if (start.type === 'point') {
-			start.x = toFixed(terminals.start.x * scaleX)
-			start.y = toFixed(terminals.start.y * scaleY)
+			start.x = terminals.start.x * scaleX
+			start.y = terminals.start.y * scaleY
 		}
 
 		// Rescale end handle if it's not bound to a shape
 		if (end.type === 'point') {
-			end.x = toFixed(terminals.end.x * scaleX)
-			end.y = toFixed(terminals.end.y * scaleY)
+			end.x = terminals.end.x * scaleX
+			end.y = terminals.end.y * scaleY
 		}
 
 		// todo: we should only change the normalized anchor positions
@@ -450,11 +449,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 
 			if (start.type === 'binding') {
-				start.normalizedAnchor.x = toFixed(1 - start.normalizedAnchor.x)
+				start.normalizedAnchor.x = 1 - start.normalizedAnchor.x
 			}
 
 			if (end.type === 'binding') {
-				end.normalizedAnchor.x = toFixed(1 - end.normalizedAnchor.x)
+				end.normalizedAnchor.x = 1 - end.normalizedAnchor.x
 			}
 		} else if (scaleX >= 0 && scaleY < 0) {
 			if (bend !== 0) {
@@ -463,11 +462,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 
 			if (start.type === 'binding') {
-				start.normalizedAnchor.y = toFixed(1 - start.normalizedAnchor.y)
+				start.normalizedAnchor.y = 1 - start.normalizedAnchor.y
 			}
 
 			if (end.type === 'binding') {
-				end.normalizedAnchor.y = toFixed(1 - end.normalizedAnchor.y)
+				end.normalizedAnchor.y = 1 - end.normalizedAnchor.y
 			}
 		} else if (scaleX >= 0 && scaleY >= 0) {
 			if (bend !== 0) {
@@ -479,13 +478,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 
 			if (start.type === 'binding') {
-				start.normalizedAnchor.x = toFixed(1 - start.normalizedAnchor.x)
-				start.normalizedAnchor.y = toFixed(1 - start.normalizedAnchor.y)
+				start.normalizedAnchor.x = 1 - start.normalizedAnchor.x
+				start.normalizedAnchor.y = 1 - start.normalizedAnchor.y
 			}
 
 			if (end.type === 'binding') {
-				end.normalizedAnchor.x = toFixed(1 - end.normalizedAnchor.x)
-				end.normalizedAnchor.y = toFixed(1 - end.normalizedAnchor.y)
+				end.normalizedAnchor.x = 1 - end.normalizedAnchor.x
+				end.normalizedAnchor.y = 1 - end.normalizedAnchor.y
 			}
 		}
 
@@ -493,7 +492,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			props: {
 				start,
 				end,
-				bend: toFixed(bend),
+				bend,
 			},
 		}
 

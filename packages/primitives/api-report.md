@@ -631,9 +631,6 @@ export const TAU: number;
 // @public
 export function toDomPrecision(v: number): number;
 
-// @public (undocumented)
-export function toFixed(v: number): number;
-
 // @public
 export function toPrecision(n: number, precision?: number): number;
 

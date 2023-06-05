@@ -185,7 +185,7 @@ describe('When resizing...', () => {
 			})
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
 			.pointerMove(0, 0)
-			.expectShapeToMatch({ id: ids.boxA, x: -0, y: -0, props: { w: 110, h: 110 } })
+			.expectShapeToMatch({ id: ids.boxA, x: 0, y: 0, props: { w: 110, h: 110 } })
 	})
 
 	it('Resizes a single shape from the top right', () => {
@@ -197,7 +197,7 @@ describe('When resizing...', () => {
 			})
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
 			.pointerMove(70, 0)
-			.expectShapeToMatch({ id: ids.boxA, x: 10, y: -0, props: { w: 110, h: 110 } })
+			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 0, props: { w: 110, h: 110 } })
 	})
 
 	it('Resizes a single shape from the bottom right', () => {
@@ -221,7 +221,7 @@ describe('When resizing...', () => {
 			})
 			.expectShapeToMatch({ id: ids.boxA, x: 10, y: 10, props: { w: 100, h: 100 } })
 			.pointerMove(0, 70)
-			.expectShapeToMatch({ id: ids.boxA, x: -0, y: 10, props: { w: 110, h: 110 } })
+			.expectShapeToMatch({ id: ids.boxA, x: 0, y: 10, props: { w: 110, h: 110 } })
 	})
 })
 
@@ -822,8 +822,8 @@ describe('When resizing a shape with children', () => {
 			// A's model should have changed by the offset
 			.expectShapeToMatch({
 				id: ids.boxA,
-				x: -0,
-				y: -0,
+				x: 0,
+				y: 0,
 			})
 			// B's model should have changed by the offset
 			.expectShapeToMatch({
@@ -858,7 +858,7 @@ describe('When resizing a shape with children', () => {
 			// A's model should have changed by the offset
 			.expectShapeToMatch({
 				id: ids.boxA,
-				x: -0,
+				x: 0,
 				y: 0,
 			})
 			// B's model should have changed by the offset

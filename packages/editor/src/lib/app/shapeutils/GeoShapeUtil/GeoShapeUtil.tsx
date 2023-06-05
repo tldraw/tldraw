@@ -750,8 +750,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { x, y } = offset.rot(shape.rotation).add(newPoint)
 
 		return {
-			x: x,
-			y: y,
+			x,
+			y,
 			props: {
 				w: Math.max(Math.abs(w), 1),
 				h: Math.max(Math.abs(h), 1),

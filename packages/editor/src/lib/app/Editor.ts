@@ -6796,7 +6796,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// and finally figure out what the shape's new position should be
 		const postScaleShapePagePoint = Vec2d.Add(currentPagePoint, pageDelta)
-		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint).toFixed()
+		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint)
 
 		this.updateShapes([{ id, type, x, y }], true)
 
