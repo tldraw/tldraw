@@ -1844,7 +1844,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     hitTestLineSegment(shape: T, A: VecLike, B: VecLike): boolean;
     hitTestPoint(shape: T, point: VecLike): boolean;
     abstract indicator(shape: T): any;
-    is(shape: TLBaseShape<string, object>): shape is T;
     isAspectRatioLocked: TLShapeUtilFlag<T>;
     isClosed: TLShapeUtilFlag<T>;
     onBeforeCreate?: TLOnBeforeCreateHandler<T>;
@@ -1885,7 +1884,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     transform(shape: T): Matrix2d;
     // (undocumented)
     readonly type: T['type'];
-    // (undocumented)
     static type: string;
 }
 
