@@ -166,7 +166,7 @@ export async function getMediaAssetFromFile(file: File): Promise<TLAsset> {
 				dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h)
 			}
 
-			const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(dataUrl))
+			const assetId: TLAssetId = AssetRecordType.createId(getHashForString(dataUrl))
 
 			const metadata = await getFileMetaData(file)
 
@@ -420,7 +420,7 @@ export function createEmbedShapeAtPoint(
  * @public
  */
 export async function createBookmarkShapeAtPoint(editor: Editor, url: string, point: Vec2dModel) {
-	const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(url))
+	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 	const existing = editor.getAssetById(assetId) as TLBookmarkAsset
 
 	if (existing) {

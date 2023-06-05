@@ -1706,7 +1706,7 @@ describe('translating while the grid is enabled', () => {
 		//  └───┘       └───┘
 		editor.createShapes([box(ids.box1, 0, 0, 20, 20), box(ids.box2, 50, 0, 20, 20)])
 
-		editor.updateUserDocumentSettings({ isGridMode: true })
+		editor.setGridMode(true)
 
 		// try to snap A to B
 		// doesn't work because of the grid

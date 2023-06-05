@@ -327,10 +327,10 @@ export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" 
 export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
 
 // @public (undocumented)
-export const InstancePageStateRecordType: RecordType<TLInstancePageState, "cameraId" | "instanceId" | "pageId">;
+export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageId">;
 
 // @public (undocumented)
-export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "instanceId" | "userId" | "userName">;
+export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "userId" | "userName">;
 
 // @public (undocumented)
 export const InstanceRecordType: RecordType<TLInstance, "currentPageId">;
@@ -451,6 +451,9 @@ export const LANGUAGES: readonly [{
 
 // @internal (undocumented)
 export const opacityValidator: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+
+// @internal (undocumented)
+export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public (undocumented)
 export const PageRecordType: RecordType<TLPage, "index" | "name">;
@@ -839,6 +842,10 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     isFocusMode: boolean;
     // (undocumented)
+    isGridMode: boolean;
+    // (undocumented)
+    isPenMode: boolean;
+    // (undocumented)
     isToolLocked: boolean;
     // (undocumented)
     propsForNextShape: TLInstancePropsForNextShape;
@@ -851,12 +858,13 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 }
 
 // @public (undocumented)
+export const TLINSTANCE_ID: TLInstanceId;
+
+// @public (undocumented)
 export type TLInstanceId = RecordId<TLInstance>;
 
 // @public
 export interface TLInstancePageState extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
-    // (undocumented)
-    cameraId: RecordId<TLCamera>;
     // (undocumented)
     croppingId: null | TLShapeId;
     // (undocumented)
@@ -869,8 +877,6 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
     hintingIds: TLShapeId[];
     // (undocumented)
     hoveredId: null | TLShapeId;
-    // (undocumented)
-    instanceId: RecordId<TLInstance>;
     // (undocumented)
     pageId: RecordId<TLPage>;
     // (undocumented)
@@ -900,8 +906,6 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     };
     // (undocumented)
     followingUserId: null | string;
-    // (undocumented)
-    instanceId: TLInstanceId;
     // (undocumented)
     lastActivityTimestamp: number;
     // (undocumented)
@@ -962,7 +966,7 @@ export type TLParentId = TLPageId | TLShapeId;
 export const TLPOINTER_ID: TLPointerId;
 
 // @public (undocumented)
-export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape | TLUserDocument;
+export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
 
 // @public
 export type TLScribble = {
@@ -1020,8 +1024,6 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export type TLStoreProps = {
-    instanceId: TLInstanceId;
-    documentId: typeof TLDOCUMENT_ID;
     defaultName: string;
 };
 
@@ -1087,22 +1089,6 @@ export type TLTextShapeProps = {
 // @public
 export type TLUnknownShape = TLBaseShape<string, object>;
 
-// @public
-export interface TLUserDocument extends BaseRecord<'user_document', TLUserDocumentId> {
-    // (undocumented)
-    isGridMode: boolean;
-    // (undocumented)
-    isMobileMode: boolean;
-    // (undocumented)
-    isPenMode: boolean;
-    // (undocumented)
-    isSnapMode: boolean;
-    // (undocumented)
-    lastUpdatedPageId: null | RecordId<TLPage>;
-    // (undocumented)
-    lastUsedTabId: null | RecordId<TLInstance>;
-}
-
 // @public (undocumented)
 export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>;
 
@@ -1118,9 +1104,6 @@ export type TLVideoAsset = TLBaseAsset<'video', {
 
 // @public (undocumented)
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
-
-// @internal (undocumented)
-export const UserDocumentRecordType: RecordType<TLUserDocument, never>;
 
 // @public
 export interface Vec2dModel {

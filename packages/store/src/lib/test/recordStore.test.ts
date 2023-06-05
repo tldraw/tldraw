@@ -27,15 +27,31 @@ const Author = createRecordType<Author>('author', {
 	isPseudonym: false,
 }))
 
+interface Visit extends BaseRecord<'visit', RecordId<Visit>> {
+	visitorName: string
+	booksInBasket: RecordId<Book>[]
+}
+
+const Visit = createRecordType<Visit>('visit', {
+	validator: { validate: (visit) => visit as Visit },
+	scope: 'session',
+}).withDefaultProperties(() => ({
+	visitorName: 'Anonymous',
+	booksInBasket: [],
+}))
+
+type LibraryType = Book | Author | Visit
+
 describe('Store', () => {
-	let store: Store<Book | Author>
+	let store: Store<Book | Author | Visit>
 	beforeEach(() => {
 		store = new Store({
 			props: {},
-			schema: StoreSchema.create<Book | Author>(
+			schema: StoreSchema.create<LibraryType>(
 				{
 					book: Book,
 					author: Author,
+					visit: Visit,
 				},
 				{
 					snapshotMigrations: {
@@ -49,18 +65,18 @@ describe('Store', () => {
 	})
 
 	it('allows records to be added', () => {
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 		expect(store.query.records('author').value).toEqual([
 			{ id: 'author:tolkein', typeName: 'author', name: 'J.R.R Tolkein', isPseudonym: false },
 		])
 
 		store.put([
 			{
-				id: Book.createCustomId('the-hobbit'),
+				id: Book.createId('the-hobbit'),
 				typeName: 'book',
 				title: 'The Hobbit',
 				numPages: 423,
-				author: Author.createCustomId('tolkein'),
+				author: Author.createId('tolkein'),
 			},
 		])
 
@@ -88,7 +104,7 @@ describe('Store', () => {
 		})
 
 		it('allows listening to the change history', () => {
-			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
 			        Array [
@@ -107,7 +123,7 @@ describe('Store', () => {
 			        ]
 		      `)
 
-			store.update(Author.createCustomId('tolkein'), (r) => ({ ...r, name: 'Jimmy Tolks' }))
+			store.update(Author.createId('tolkein'), (r) => ({ ...r, name: 'Jimmy Tolks' }))
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
 			        Array [
@@ -134,7 +150,7 @@ describe('Store', () => {
 			        ]
 		      `)
 
-			store.remove([Author.createCustomId('tolkein')])
+			store.remove([Author.createId('tolkein')])
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
 			        Array [
@@ -155,13 +171,13 @@ describe('Store', () => {
 
 			transact(() => {
 				store.put([
-					Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') }),
-					Author.create({ name: 'David Foster Wallace', id: Author.createCustomId('dfw') }),
-					Author.create({ name: 'Cynan Jones', id: Author.createCustomId('cj') }),
+					Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') }),
+					Author.create({ name: 'David Foster Wallace', id: Author.createId('dfw') }),
+					Author.create({ name: 'Cynan Jones', id: Author.createId('cj') }),
 				])
 
-				store.update(Author.createCustomId('tolkein'), (r) => ({ ...r, name: 'Jimmy Tolks' }))
-				store.update(Author.createCustomId('cj'), (r) => ({ ...r, name: 'Carter, Jimmy' }))
+				store.update(Author.createId('tolkein'), (r) => ({ ...r, name: 'Jimmy Tolks' }))
+				store.update(Author.createId('cj'), (r) => ({ ...r, name: 'Carter, Jimmy' }))
 			})
 
 			expect(lastDiff!).toMatchInlineSnapshot(`
@@ -199,11 +215,11 @@ describe('Store', () => {
 		/* ADDING */
 		store.onAfterCreate = jest.fn((current) => {
 			expect(current).toEqual(
-				Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })
+				Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })
 			)
-			expect([...store.query.ids('author').value]).toEqual([Author.createCustomId('tolkein')])
+			expect([...store.query.ids('author').value]).toEqual([Author.createId('tolkein')])
 		})
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
 		expect(store.onAfterCreate).toHaveBeenCalledTimes(1)
 
@@ -213,11 +229,11 @@ describe('Store', () => {
 				expect(prev.name).toBe('J.R.R Tolkein')
 				expect(current.name).toBe('Butch Cassidy')
 
-				expect(store.get(Author.createCustomId('tolkein'))!.name).toBe('Butch Cassidy')
+				expect(store.get(Author.createId('tolkein'))!.name).toBe('Butch Cassidy')
 			}
 		})
 
-		store.update(Author.createCustomId('tolkein'), (r) => ({ ...r, name: 'Butch Cassidy' }))
+		store.update(Author.createId('tolkein'), (r) => ({ ...r, name: 'Butch Cassidy' }))
 
 		expect(store.onAfterChange).toHaveBeenCalledTimes(1)
 
@@ -228,18 +244,18 @@ describe('Store', () => {
 			}
 		})
 
-		store.remove([Author.createCustomId('tolkein')])
+		store.remove([Author.createId('tolkein')])
 
 		expect(store.onAfterDelete).toHaveBeenCalledTimes(1)
 	})
 
 	it('allows finding and filtering records with a predicate', () => {
 		store.put([
-			Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') }),
-			Author.create({ name: 'James McAvoy', id: Author.createCustomId('mcavoy') }),
-			Author.create({ name: 'Butch Cassidy', id: Author.createCustomId('cassidy') }),
-			Author.create({ name: 'Cynan Jones', id: Author.createCustomId('cj') }),
-			Author.create({ name: 'David Foster Wallace', id: Author.createCustomId('dfw') }),
+			Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') }),
+			Author.create({ name: 'James McAvoy', id: Author.createId('mcavoy') }),
+			Author.create({ name: 'Butch Cassidy', id: Author.createId('cassidy') }),
+			Author.create({ name: 'Cynan Jones', id: Author.createId('cj') }),
+			Author.create({ name: 'David Foster Wallace', id: Author.createId('dfw') }),
 		])
 		const Js = store.query.records('author').value.filter((r) => r.name.startsWith('J'))
 		expect(Js.map((j) => j.name).sort()).toEqual(['J.R.R Tolkein', 'James McAvoy'])
@@ -259,7 +275,7 @@ describe('Store', () => {
 
 		expect(lastIdDiff).toBe(RESET_VALUE)
 
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
 		      Array [
@@ -272,9 +288,9 @@ describe('Store', () => {
 	    `)
 
 		transact(() => {
-			store.put([Author.create({ name: 'James McAvoy', id: Author.createCustomId('mcavoy') })])
-			store.put([Author.create({ name: 'Butch Cassidy', id: Author.createCustomId('cassidy') })])
-			store.remove([Author.createCustomId('tolkein')])
+			store.put([Author.create({ name: 'James McAvoy', id: Author.createId('mcavoy') })])
+			store.put([Author.create({ name: 'Butch Cassidy', id: Author.createId('cassidy') })])
+			store.remove([Author.createId('tolkein')])
 		})
 
 		expect(lastIdDiff).toMatchInlineSnapshot(`
@@ -298,21 +314,21 @@ describe('Store', () => {
 
 		transact(() => {
 			store.put([
-				Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') }),
-				Author.create({ name: 'James McAvoy', id: Author.createCustomId('mcavoy') }),
-				Author.create({ name: 'Butch Cassidy', id: Author.createCustomId('cassidy') }),
+				Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') }),
+				Author.create({ name: 'James McAvoy', id: Author.createId('mcavoy') }),
+				Author.create({ name: 'Butch Cassidy', id: Author.createId('cassidy') }),
 				Book.create({
 					title: 'The Hobbit',
-					id: Book.createCustomId('hobbit'),
-					author: Author.createCustomId('tolkein'),
+					id: Book.createId('hobbit'),
+					author: Author.createId('tolkein'),
 					numPages: 300,
 				}),
 			])
 			store.put([
 				Book.create({
 					title: 'The Lord of the Rings',
-					id: Book.createCustomId('lotr'),
-					author: Author.createCustomId('tolkein'),
+					id: Book.createId('lotr'),
+					author: Author.createId('tolkein'),
 					numPages: 1000,
 				}),
 			])
@@ -365,11 +381,11 @@ describe('Store', () => {
 	`)
 
 		transact(() => {
-			store.update(Author.createCustomId('tolkein'), (author) => ({
+			store.update(Author.createId('tolkein'), (author) => ({
 				...author,
 				name: 'Jimmy Tolks',
 			}))
-			store.update(Book.createCustomId('lotr'), (book) => ({ ...book, numPages: 42 }))
+			store.update(Book.createId('lotr'), (book) => ({ ...book, numPages: 42 }))
 		})
 
 		await new Promise((resolve) => requestAnimationFrame(resolve))
@@ -418,11 +434,11 @@ describe('Store', () => {
 	`)
 
 		transact(() => {
-			store.update(Author.createCustomId('mcavoy'), (author) => ({
+			store.update(Author.createId('mcavoy'), (author) => ({
 				...author,
 				name: 'Sookie Houseboat',
 			}))
-			store.remove([Book.createCustomId('lotr')])
+			store.remove([Book.createId('lotr')])
 		})
 
 		await new Promise((resolve) => requestAnimationFrame(resolve))
@@ -463,8 +479,177 @@ describe('Store', () => {
 	`)
 	})
 
+	it('supports filtering history by scope', () => {
+		const listener = jest.fn()
+		store.listen(listener, {
+			scope: 'session',
+		})
+
+		store.put([
+			Author.create({ name: 'J.R.R Tolkien', id: Author.createId('tolkien') }),
+			Book.create({
+				title: 'The Hobbit',
+				id: Book.createId('hobbit'),
+				author: Author.createId('tolkien'),
+				numPages: 300,
+			}),
+		])
+
+		expect(listener).toHaveBeenCalledTimes(0)
+
+		store.put([
+			Author.create({ name: 'J.D. Salinger', id: Author.createId('salinger') }),
+			Visit.create({ id: Visit.createId('jimmy'), visitorName: 'Jimmy Beans' }),
+		])
+
+		expect(listener).toHaveBeenCalledTimes(1)
+
+		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
+		Object {
+		  "added": Object {
+		    "visit:jimmy": Object {
+		      "booksInBasket": Array [],
+		      "id": "visit:jimmy",
+		      "typeName": "visit",
+		      "visitorName": "Jimmy Beans",
+		    },
+		  },
+		  "removed": Object {},
+		  "updated": Object {},
+		}
+	`)
+	})
+
+	it('supports filtering history by scope (2)', () => {
+		const listener = jest.fn()
+		store.listen(listener, {
+			scope: 'document',
+		})
+
+		store.put([
+			Author.create({ name: 'J.D. Salinger', id: Author.createId('salinger') }),
+			Visit.create({ id: Visit.createId('jimmy'), visitorName: 'Jimmy Beans' }),
+		])
+
+		expect(listener).toHaveBeenCalledTimes(1)
+
+		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
+		Object {
+		  "added": Object {
+		    "author:salinger": Object {
+		      "id": "author:salinger",
+		      "isPseudonym": false,
+		      "name": "J.D. Salinger",
+		      "typeName": "author",
+		    },
+		  },
+		  "removed": Object {},
+		  "updated": Object {},
+		}
+	`)
+	})
+
+	it('supports filtering history by source', () => {
+		const listener = jest.fn()
+		store.listen(listener, {
+			source: 'remote',
+		})
+
+		store.put([
+			Author.create({ name: 'J.D. Salinger', id: Author.createId('salinger') }),
+			Visit.create({ id: Visit.createId('jimmy'), visitorName: 'Jimmy Beans' }),
+		])
+
+		expect(listener).toHaveBeenCalledTimes(0)
+
+		store.mergeRemoteChanges(() => {
+			store.put([
+				Author.create({ name: 'J.R.R Tolkien', id: Author.createId('tolkien') }),
+				Book.create({
+					title: 'The Hobbit',
+					id: Book.createId('hobbit'),
+					author: Author.createId('tolkien'),
+					numPages: 300,
+				}),
+			])
+		})
+
+		expect(listener).toHaveBeenCalledTimes(1)
+
+		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
+		Object {
+		  "added": Object {
+		    "author:tolkien": Object {
+		      "id": "author:tolkien",
+		      "isPseudonym": false,
+		      "name": "J.R.R Tolkien",
+		      "typeName": "author",
+		    },
+		    "book:hobbit": Object {
+		      "author": "author:tolkien",
+		      "id": "book:hobbit",
+		      "numPages": 300,
+		      "title": "The Hobbit",
+		      "typeName": "book",
+		    },
+		  },
+		  "removed": Object {},
+		  "updated": Object {},
+		}
+	`)
+	})
+
+	it('supports filtering history by source (user)', () => {
+		const listener = jest.fn()
+		store.listen(listener, {
+			source: 'user',
+		})
+
+		store.mergeRemoteChanges(() => {
+			store.put([
+				Author.create({ name: 'J.R.R Tolkien', id: Author.createId('tolkien') }),
+				Book.create({
+					title: 'The Hobbit',
+					id: Book.createId('hobbit'),
+					author: Author.createId('tolkien'),
+					numPages: 300,
+				}),
+			])
+		})
+
+		expect(listener).toHaveBeenCalledTimes(0)
+
+		store.put([
+			Author.create({ name: 'J.D. Salinger', id: Author.createId('salinger') }),
+			Visit.create({ id: Visit.createId('jimmy'), visitorName: 'Jimmy Beans' }),
+		])
+
+		expect(listener).toHaveBeenCalledTimes(1)
+
+		expect(listener.mock.calls[0][0].changes).toMatchInlineSnapshot(`
+		Object {
+		  "added": Object {
+		    "author:salinger": Object {
+		      "id": "author:salinger",
+		      "isPseudonym": false,
+		      "name": "J.D. Salinger",
+		      "typeName": "author",
+		    },
+		    "visit:jimmy": Object {
+		      "booksInBasket": Array [],
+		      "id": "visit:jimmy",
+		      "typeName": "visit",
+		      "visitorName": "Jimmy Beans",
+		    },
+		  },
+		  "removed": Object {},
+		  "updated": Object {},
+		}
+	`)
+	})
+
 	it('does not keep global history if no listeners are attached', () => {
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 		expect((store as any).historyAccumulator._history).toHaveLength(0)
 	})
 
@@ -472,12 +657,12 @@ describe('Store', () => {
 		try {
 			// @ts-expect-error
 			globalThis.__FORCE_RAF_IN_TESTS__ = true
-			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 			const firstListener = jest.fn()
 			store.listen(firstListener)
 			expect(firstListener).toHaveBeenCalledTimes(0)
 
-			store.put([Author.create({ name: 'Chips McCoy', id: Author.createCustomId('chips') })])
+			store.put([Author.create({ name: 'Chips McCoy', id: Author.createId('chips') })])
 
 			expect(firstListener).toHaveBeenCalledTimes(0)
 
@@ -499,19 +684,19 @@ describe('Store', () => {
 	})
 
 	it('does not overwrite default properties with undefined', () => {
-		const tolkein = Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })
+		const tolkein = Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })
 		expect(tolkein.isPseudonym).toBe(false)
 
 		const harkaway = Author.create({
 			name: 'Nick Harkaway',
-			id: Author.createCustomId('harkaway'),
+			id: Author.createId('harkaway'),
 			isPseudonym: true,
 		})
 		expect(harkaway.isPseudonym).toBe(true)
 
 		const burns = Author.create({
 			name: 'Anna Burns',
-			id: Author.createCustomId('burns'),
+			id: Author.createId('burns'),
 			isPseudonym: undefined,
 		})
 
@@ -519,7 +704,7 @@ describe('Store', () => {
 	})
 
 	it('allows changed to be merged without triggering listeners', () => {
-		const id = Author.createCustomId('tolkein')
+		const id = Author.createId('tolkein')
 		store.put([Author.create({ name: 'J.R.R Tolkein', id })])
 
 		const listener = jest.fn()
@@ -535,19 +720,19 @@ describe('Store', () => {
 		const listener = jest.fn()
 		store.listen(listener)
 
-		store.put([Author.create({ name: 'Jimmy Beans', id: Author.createCustomId('jimmy') })])
+		store.put([Author.create({ name: 'Jimmy Beans', id: Author.createId('jimmy') })])
 
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(1)
 		expect(listener.mock.calls[0][0].source).toBe('user')
 
 		store.mergeRemoteChanges(() => {
-			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+			store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 			store.put([
 				Book.create({
 					title: 'The Hobbit',
-					id: Book.createCustomId('hobbit'),
-					author: Author.createCustomId('tolkein'),
+					id: Book.createId('hobbit'),
+					author: Author.createId('tolkein'),
 					numPages: 300,
 				}),
 			])
@@ -557,7 +742,7 @@ describe('Store', () => {
 		expect(listener).toHaveBeenCalledTimes(2)
 		expect(listener.mock.calls[1][0].source).toBe('remote')
 
-		store.put([Author.create({ name: 'Steve Ok', id: Author.createCustomId('stever') })])
+		store.put([Author.create({ name: 'Steve Ok', id: Author.createId('stever') })])
 
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		expect(listener).toHaveBeenCalledTimes(3)
@@ -588,21 +773,21 @@ describe('snapshots', () => {
 
 		transact(() => {
 			store.put([
-				Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') }),
-				Author.create({ name: 'James McAvoy', id: Author.createCustomId('mcavoy') }),
-				Author.create({ name: 'Butch Cassidy', id: Author.createCustomId('cassidy') }),
+				Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') }),
+				Author.create({ name: 'James McAvoy', id: Author.createId('mcavoy') }),
+				Author.create({ name: 'Butch Cassidy', id: Author.createId('cassidy') }),
 				Book.create({
 					title: 'The Hobbit',
-					id: Book.createCustomId('hobbit'),
-					author: Author.createCustomId('tolkein'),
+					id: Book.createId('hobbit'),
+					author: Author.createId('tolkein'),
 					numPages: 300,
 				}),
 			])
 			store.put([
 				Book.create({
 					title: 'The Lord of the Rings',
-					id: Book.createCustomId('lotr'),
-					author: Author.createCustomId('tolkein'),
+					id: Book.createId('lotr'),
+					author: Author.createId('tolkein'),
 					numPages: 1000,
 				}),
 			])
@@ -610,7 +795,7 @@ describe('snapshots', () => {
 	})
 
 	it('creates and loads a snapshot', () => {
-		const serializedStore1 = store.serialize()
+		const serializedStore1 = store.serialize('all')
 		const serializedSchema1 = store.schema.serialize()
 
 		const snapshot1 = store.getSnapshot()
@@ -634,7 +819,7 @@ describe('snapshots', () => {
 
 		store2.loadSnapshot(snapshot1)
 
-		const serializedStore2 = store2.serialize()
+		const serializedStore2 = store2.serialize('all')
 		const serializedSchema2 = store2.schema.serialize()
 		const snapshot2 = store2.getSnapshot()
 

@@ -447,7 +447,7 @@ export class Drawing extends StateNode {
 				let didSnap = false
 				let snapSegment: TLDrawShapeSegment | undefined = undefined
 
-				const shouldSnap = this.editor.userDocumentSettings.isSnapMode ? !ctrlKey : ctrlKey
+				const shouldSnap = this.editor.isSnapMode ? !ctrlKey : ctrlKey
 
 				if (shouldSnap) {
 					if (newSegments.length > 2) {

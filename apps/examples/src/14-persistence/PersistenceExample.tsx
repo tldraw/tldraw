@@ -1,4 +1,4 @@
-import { Canvas, ContextMenu, TAB_ID, TldrawEditor, TldrawUi, createTLStore } from '@tldraw/tldraw'
+import { Canvas, ContextMenu, TldrawEditor, TldrawUi, createTLStore } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { throttle } from '@tldraw/utils'
@@ -7,15 +7,15 @@ import { useLayoutEffect, useState } from 'react'
 const PERSISTENCE_KEY = 'example-3'
 
 export default function PersistenceExample() {
-	const [store] = useState(() => createTLStore({ instanceId: TAB_ID }))
-	const [loadingStore, setLoadingStore] = useState<
+	const [store] = useState(() => createTLStore())
+	const [loadingState, setLoadingState] = useState<
 		{ status: 'loading' } | { status: 'ready' } | { status: 'error'; error: string }
 	>({
 		status: 'loading',
 	})
 
 	useLayoutEffect(() => {
-		setLoadingStore({ status: 'loading' })
+		setLoadingState({ status: 'loading' })
 
 		// Get persisted data from local storage
 		const persistedSnapshot = localStorage.getItem(PERSISTENCE_KEY)
@@ -24,12 +24,12 @@ export default function PersistenceExample() {
 			try {
 				const snapshot = JSON.parse(persistedSnapshot)
 				store.loadSnapshot(snapshot)
-				setLoadingStore({ status: 'ready' })
+				setLoadingState({ status: 'ready' })
 			} catch (error: any) {
-				setLoadingStore({ status: 'error', error: error.message }) // Something went wrong
+				setLoadingState({ status: 'error', error: error.message }) // Something went wrong
 			}
 		} else {
-			setLoadingStore({ status: 'ready' }) // Nothing persisted, continue with the empty store
+			setLoadingState({ status: 'ready' }) // Nothing persisted, continue with the empty store
 		}
 
 		// Each time the store changes, run the (debounced) persist function
@@ -45,7 +45,7 @@ export default function PersistenceExample() {
 		}
 	}, [store])
 
-	if (loadingStore.status === 'loading') {
+	if (loadingState.status === 'loading') {
 		return (
 			<div className="tldraw__editor">
 				<h2>Loading...</h2>
@@ -53,11 +53,11 @@ export default function PersistenceExample() {
 		)
 	}
 
-	if (loadingStore.status === 'error') {
+	if (loadingState.status === 'error') {
 		return (
 			<div className="tldraw__editor">
 				<h2>Error!</h2>
-				<p>{loadingStore.error}</p>
+				<p>{loadingState.error}</p>
 			</div>
 		)
 	}

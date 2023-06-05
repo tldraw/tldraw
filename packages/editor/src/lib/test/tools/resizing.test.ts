@@ -2944,7 +2944,7 @@ describe('snapping while the grid is enabled', () => {
 
 		editor.createShapes([box(ids.boxA, 0, 0, 20, 20), box(ids.boxB, 60, 0, 20, 20)])
 
-		editor.updateUserDocumentSettings({ isGridMode: true })
+		editor.setGridMode(true)
 
 		// try to move right side of A to left side of B
 		// doesn't work because of the grid

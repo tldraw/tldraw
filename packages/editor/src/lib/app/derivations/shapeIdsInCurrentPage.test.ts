@@ -51,7 +51,7 @@ describe('shapeIdsInCurrentPage', () => {
 			{ type: 'geo', id: ids.box2 },
 			{ type: 'geo', id: ids.box3 },
 		])
-		const id = PageRecordType.createCustomId('page2')
+		const id = PageRecordType.createId('page2')
 		editor.createPage('New Page 2', id)
 		editor.setCurrentPageId(id)
 		editor.createShapes([

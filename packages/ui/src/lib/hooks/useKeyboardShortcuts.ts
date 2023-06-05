@@ -31,7 +31,7 @@ export function useKeyboardShortcuts() {
 		const container = editor.getContainer()
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: container, scope: editor.instanceId }, callback)
+			hotkeys(keys, { element: container, scope: editor.store.id }, callback)
 		}
 
 		// Add hotkeys for actions and tools.
@@ -86,10 +86,10 @@ export function useKeyboardShortcuts() {
 			actions['zoom-out'].onSelect('kbd')
 		})
 
-		hotkeys.setScope(editor.instanceId)
+		hotkeys.setScope(editor.store.id)
 
 		return () => {
-			hotkeys.deleteScope(editor.instanceId)
+			hotkeys.deleteScope(editor.store.id)
 		}
 	}, [actions, tools, isReadonly, editor, appIsFocused])
 }

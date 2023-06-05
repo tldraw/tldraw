@@ -351,7 +351,7 @@ export function moveShapesToPoint({
 	editor.snaps.clear()
 
 	const shouldSnap =
-		(editor.userDocumentSettings.isSnapMode ? !inputs.ctrlKey : inputs.ctrlKey) &&
+		(editor.isSnapMode ? !inputs.ctrlKey : inputs.ctrlKey) &&
 		editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
 
 	if (shouldSnap) {
