@@ -396,6 +396,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     bringToFront(ids?: TLShapeId[]): this;
     // (undocumented)
     get brush(): Box2dModel | null;
+    bumpPresence(userId: string): void;
     get camera(): TLCamera;
     cancel(): this;
     cancelDoubleClick(): void;
@@ -492,6 +493,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     // (undocumented)
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
+    getLatestPresence(userId: string): TLInstancePresence;
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
     getMaskedPageBoundsById(id: TLShapeId): Box2d | undefined;
     // (undocumented)
