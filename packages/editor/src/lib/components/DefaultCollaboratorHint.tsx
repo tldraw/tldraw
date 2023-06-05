@@ -1,8 +1,9 @@
 import { Box2d, clamp, Vec2d } from '@tldraw/primitives'
 import { Vec2dModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useTransform } from '../hooks/useTransform'
+import { DEFAULT_COLLABORATOR_TIMEOUT } from './LiveCollaborators'
 
 export type TLCollaboratorHintComponent = (props: {
 	className?: string
@@ -11,6 +12,7 @@ export type TLCollaboratorHintComponent = (props: {
 	zoom: number
 	opacity?: number
 	color: string
+	lastActivityTimestamp: number
 }) => JSX.Element | null
 
 export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
@@ -20,6 +22,7 @@ export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
 	color,
 	viewport,
 	opacity = 1,
+	lastActivityTimestamp,
 }) => {
 	const rSvg = useRef<SVGSVGElement>(null)
 
@@ -30,6 +33,22 @@ export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
 		1 / zoom,
 		Vec2d.Angle(viewport.center, point)
 	)
+
+	const [isTimedOut, setIsTimedOut] = useState(false)
+
+	useEffect(() => {
+		// By default, show the cursor
+		setIsTimedOut(false)
+
+		// After a few seconds of inactivity, hide the cursor
+		const timeout = setTimeout(() => {
+			setIsTimedOut(true)
+		}, DEFAULT_COLLABORATOR_TIMEOUT)
+
+		return () => clearTimeout(timeout)
+	}, [lastActivityTimestamp])
+
+	if (isTimedOut) return null
 
 	return (
 		<svg ref={rSvg} className={classNames('tl-overlays__item', className)}>

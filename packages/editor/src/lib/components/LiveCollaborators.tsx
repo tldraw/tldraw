@@ -15,6 +15,8 @@ export const LiveCollaborators = track(function Collaborators() {
 	)
 })
 
+export const DEFAULT_COLLABORATOR_TIMEOUT = 300
+
 const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
 	const editor = useEditor()
 	const { viewportPageBounds, zoomLevel } = editor
@@ -74,6 +76,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 					color={color}
 					zoom={zoomLevel}
 					viewport={viewportPageBounds}
+					lastActivityTimestamp={lastActivityTimestamp}
 				/>
 			) : null}
 			{scribble && CollaboratorScribble ? (

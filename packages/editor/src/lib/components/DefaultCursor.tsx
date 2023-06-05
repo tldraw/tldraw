@@ -1,7 +1,8 @@
 import { Vec2dModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { memo, useEffect, useRef } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { useTransform } from '../hooks/useTransform'
+import { DEFAULT_COLLABORATOR_TIMEOUT } from './LiveCollaborators'
 
 /** @public */
 export type TLCursorComponent = (props: {
@@ -24,17 +25,22 @@ const _Cursor: TLCursorComponent = ({
 	const rDiv = useRef<HTMLDivElement>(null)
 	useTransform(rDiv, point?.x, point?.y, 1 / zoom)
 
+	const [isTimedOut, setIsTimedOut] = useState(false)
+
 	useEffect(() => {
-		const div = rDiv.current
-		if (!div) return
+		// By default, show the cursor
+		setIsTimedOut(false)
+
+		// After a few seconds of inactivity, hide the cursor
 		const timeout = setTimeout(() => {
-			div.style.visibility = 'hidden'
-		}, 300)
-		div.style.visibility = 'visible'
+			setIsTimedOut(true)
+		}, DEFAULT_COLLABORATOR_TIMEOUT)
+
 		return () => clearTimeout(timeout)
 	}, [lastActivityTimestamp])
 
 	if (!point) return null
+	if (isTimedOut) return null
 
 	return (
 		<div ref={rDiv} className={classNames('tl-overlays__item', className)}>
