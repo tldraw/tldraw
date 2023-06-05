@@ -7,7 +7,6 @@ import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLDashType, dashValidator } from '../styles/TLDashStyle'
 import { TLFillType, fillValidator } from '../styles/TLFillStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { SetValue } from '../util-types'
 import { TLBaseShape, createShapeValidator, shapeIdValidator } from './TLBaseShape'
@@ -35,7 +34,6 @@ export type TLArrowShapeProps = {
 	fill: TLFillType
 	dash: TLDashType
 	size: TLSizeType
-	opacity: TLOpacityType
 	arrowheadStart: TLArrowheadType
 	arrowheadEnd: TLArrowheadType
 	font: TLFontType
@@ -70,7 +68,6 @@ export const arrowShapePropsValidators = {
 	fill: fillValidator,
 	dash: dashValidator,
 	size: sizeValidator,
-	opacity: opacityValidator,
 	arrowheadStart: arrowheadValidator,
 	arrowheadEnd: arrowheadValidator,
 	font: fontValidator,

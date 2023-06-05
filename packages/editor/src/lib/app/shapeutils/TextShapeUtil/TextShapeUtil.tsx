@@ -28,7 +28,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	defaultProps(): TLTextShape['props'] {
 		return {
-			opacity: '1',
 			color: 'black',
 			size: 'm',
 			w: 8,

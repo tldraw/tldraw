@@ -9,5 +9,6 @@ export class TextShapeTool extends StateNode {
 
 	static children = () => [Idle, Pointing]
 
-	styles = ['color', 'opacity', 'font', 'align', 'size'] as TLStyleType[]
+	styles = ['color', 'font', 'align', 'size'] as TLStyleType[]
+	shapeType = 'text'
 }

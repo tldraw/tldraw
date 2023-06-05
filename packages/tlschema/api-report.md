@@ -28,7 +28,6 @@ export const arrowShapePropsValidators: {
     fill: T.Validator<"none" | "pattern" | "semi" | "solid">;
     dash: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
     size: T.Validator<"l" | "m" | "s" | "xl">;
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     arrowheadStart: T.Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
     arrowheadEnd: T.Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
     font: T.Validator<"draw" | "mono" | "sans" | "serif">;
@@ -55,7 +54,6 @@ export const bookmarkShapeMigrations: Migrations;
 
 // @internal (undocumented)
 export const bookmarkShapePropsValidators: {
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     w: T.Validator<number>;
     h: T.Validator<number>;
     assetId: T.Validator<null | TLAssetId>;
@@ -115,6 +113,7 @@ export function createShapeValidator<Type extends string, Props extends object>(
     parentId: TLParentId;
     type: Type;
     isLocked: boolean;
+    opacity: number;
     props: Props;
 }>;
 
@@ -138,7 +137,6 @@ export const drawShapePropsValidators: {
     fill: T.Validator<"none" | "pattern" | "semi" | "solid">;
     dash: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
     size: T.Validator<"l" | "m" | "s" | "xl">;
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     segments: T.ArrayOfValidator<TLDrawShapeSegment>;
     isComplete: T.Validator<boolean>;
     isClosed: T.Validator<boolean>;
@@ -355,7 +353,6 @@ export const embedShapePermissionDefaults: {
 
 // @internal (undocumented)
 export const embedShapePropsValidators: {
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     w: T.Validator<number>;
     h: T.Validator<number>;
     url: T.Validator<string>;
@@ -381,7 +378,6 @@ export const frameShapeMigrations: Migrations;
 
 // @internal (undocumented)
 export const frameShapePropsValidators: {
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     w: T.Validator<number>;
     h: T.Validator<number>;
     name: T.Validator<string>;
@@ -398,7 +394,6 @@ export const geoShapePropsValidators: {
     fill: T.Validator<"none" | "pattern" | "semi" | "solid">;
     dash: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
     size: T.Validator<"l" | "m" | "s" | "xl">;
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     font: T.Validator<"draw" | "mono" | "sans" | "serif">;
     align: T.Validator<"end" | "middle" | "start">;
     verticalAlign: T.Validator<"end" | "middle" | "start">;
@@ -419,9 +414,7 @@ export function getDefaultTranslationLocale(): TLLanguage['locale'];
 export const groupShapeMigrations: Migrations;
 
 // @internal (undocumented)
-export const groupShapePropsValidators: {
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
-};
+export const groupShapePropsValidators: {};
 
 // @internal (undocumented)
 export const highlightShapeMigrations: Migrations;
@@ -430,7 +423,6 @@ export const highlightShapeMigrations: Migrations;
 export const highlightShapePropsValidators: {
     color: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
     size: T.Validator<"l" | "m" | "s" | "xl">;
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     segments: T.ArrayOfValidator<TLDrawShapeSegment>;
     isComplete: T.Validator<boolean>;
     isPen: T.Validator<boolean>;
@@ -445,7 +437,6 @@ export const iconShapePropsValidators: {
     icon: T.Validator<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
     dash: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
     color: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     scale: T.Validator<number>;
 };
 
@@ -460,7 +451,6 @@ export const imageShapeMigrations: Migrations;
 
 // @internal (undocumented)
 export const imageShapePropsValidators: {
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     w: T.Validator<number>;
     h: T.Validator<number>;
     playing: T.Validator<boolean>;
@@ -611,7 +601,6 @@ export const lineShapePropsValidators: {
     color: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
     dash: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
     size: T.Validator<"l" | "m" | "s" | "xl">;
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     spline: T.Validator<"cubic" | "line">;
     handles: T.DictValidator<string, TLHandle>;
 };
@@ -625,14 +614,13 @@ export const noteShapePropsValidators: {
     size: T.Validator<"l" | "m" | "s" | "xl">;
     font: T.Validator<"draw" | "mono" | "sans" | "serif">;
     align: T.Validator<"end" | "middle" | "start">;
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     growY: T.Validator<number>;
     url: T.Validator<string>;
     text: T.Validator<string>;
 };
 
 // @internal (undocumented)
-export const opacityValidator: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+export const opacityValidator: T.Validator<number>;
 
 // @internal (undocumented)
 export const pageIdValidator: T.Validator<TLPageId>;
@@ -670,7 +658,6 @@ export const textShapePropsValidators: {
     size: T.Validator<"l" | "m" | "s" | "xl">;
     font: T.Validator<"draw" | "mono" | "sans" | "serif">;
     align: T.Validator<"end" | "middle" | "start">;
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     w: T.Validator<number>;
     text: T.Validator<string>;
     scale: T.Validator<number>;
@@ -699,16 +686,13 @@ export const TL_FONT_TYPES: Set<"draw" | "mono" | "sans" | "serif">;
 export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
-export const TL_OPACITY_TYPES: Set<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
-
-// @public (undocumented)
 export const TL_SIZE_TYPES: Set<"l" | "m" | "s" | "xl">;
 
 // @public (undocumented)
 export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
 
 // @public (undocumented)
-export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign">;
+export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "size" | "spline" | "verticalAlign">;
 
 // @public (undocumented)
 export interface TLAlignStyle extends TLBaseStyle {
@@ -750,7 +734,6 @@ export type TLArrowShapeProps = {
     fill: TLFillType;
     dash: TLDashType;
     size: TLSizeType;
-    opacity: TLOpacityType;
     arrowheadStart: TLArrowheadType;
     arrowheadEnd: TLArrowheadType;
     font: TLFontType;
@@ -809,6 +792,8 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     index: string;
     // (undocumented)
     isLocked: boolean;
+    // (undocumented)
+    opacity: TLOpacityType;
     // (undocumented)
     parentId: TLParentId;
     // (undocumented)
@@ -1014,7 +999,6 @@ export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
 
 // @public (undocumented)
 export type TLImageShapeProps = {
-    opacity: TLOpacityType;
     url: string;
     playing: boolean;
     w: number;
@@ -1045,6 +1029,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     isPenMode: boolean;
     // (undocumented)
     isToolLocked: boolean;
+    // (undocumented)
+    opacityForNextShape: TLOpacityType;
     // (undocumented)
     propsForNextShape: TLInstancePropsForNextShape;
     // (undocumented)
@@ -1136,15 +1122,7 @@ export type TLNullableShapeProps = {
 };
 
 // @public (undocumented)
-export interface TLOpacityStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLOpacityType;
-    // (undocumented)
-    type: 'opacity';
-}
-
-// @public (undocumented)
-export type TLOpacityType = SetValue<typeof TL_OPACITY_TYPES>;
+export type TLOpacityType = number;
 
 // @public
 export interface TLPage extends BaseRecord<'page', TLPageId> {
@@ -1193,7 +1171,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 export type TLShapeProp = keyof TLShapeProps;
 
 // @public (undocumented)
-export type TLShapeProps = SmooshedUnionObject<TLShape['props']>;
+export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
 
 // @public (undocumented)
 export interface TLSizeStyle extends TLBaseStyle {
@@ -1250,8 +1228,6 @@ export interface TLStyleCollections {
     // (undocumented)
     geo: TLGeoStyle[];
     // (undocumented)
-    opacity: TLOpacityStyle[];
-    // (undocumented)
     size: TLSizeStyle[];
     // (undocumented)
     spline: TLSplineStyle[];
@@ -1260,7 +1236,7 @@ export interface TLStyleCollections {
 }
 
 // @public (undocumented)
-export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLOpacityStyle | TLSizeStyle | TLSplineStyle | TLVerticalAlignStyle;
+export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLSizeStyle | TLSplineStyle | TLVerticalAlignStyle;
 
 // @public (undocumented)
 export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;
@@ -1277,7 +1253,6 @@ export type TLTextShapeProps = {
     size: TLSizeType;
     font: TLFontType;
     align: TLAlignType;
-    opacity: TLOpacityType;
     w: number;
     text: string;
     scale: number;
@@ -1321,7 +1296,6 @@ export const videoShapeMigrations: Migrations;
 
 // @internal (undocumented)
 export const videoShapePropsValidators: {
-    opacity: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
     w: T.Validator<number>;
     h: T.Validator<number>;
     time: T.Validator<number>;

@@ -43,7 +43,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			fill: 'none',
 			dash: 'draw',
 			size: 'm',
-			opacity: '1',
 			isComplete: false,
 			isClosed: false,
 			isPen: false,

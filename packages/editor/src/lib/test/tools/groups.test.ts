@@ -1896,10 +1896,10 @@ describe('Group opacity', () => {
 	it("should set the group's opacity to max even if the selected style panel opacity is lower", () => {
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
 		editor.select(ids.boxA, ids.boxB)
-		editor.setProp('opacity', '0.5')
+		editor.setOpacity(0.5)
 		editor.groupShapes()
 		const group = editor.getShapeById(onlySelectedId())!
 		assert(editor.isShapeOfType(group, GroupShapeUtil))
-		expect(group.props.opacity).toBe('1')
+		expect(group.opacity).toBe(1)
 	})
 })

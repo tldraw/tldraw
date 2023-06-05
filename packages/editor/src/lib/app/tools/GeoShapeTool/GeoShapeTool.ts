@@ -9,5 +9,6 @@ export class GeoShapeTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Pointing]
 
-	styles = ['color', 'opacity', 'dash', 'fill', 'size', 'geo', 'font', 'align'] as TLStyleType[]
+	styles = ['color', 'dash', 'fill', 'size', 'geo', 'font', 'align'] as TLStyleType[]
+	shapeType = 'geo'
 }

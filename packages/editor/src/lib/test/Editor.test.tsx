@@ -1,6 +1,7 @@
 import { PageRecordType, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { TestEditor } from './TestEditor'
+import { TL } from './jsx'
 
 let editor: TestEditor
 
@@ -153,6 +154,98 @@ describe('Editor.setProp', () => {
 		editor.setProp('w', 100)
 		editor.setProp('url', 'https://example.com')
 		expect(editor.instanceState.propsForNextShape).toStrictEqual(initialPropsForNextShape)
+	})
+})
+
+describe('Editor.opacity', () => {
+	it('should return the current opacity', () => {
+		expect(editor.opacity).toBe(1)
+		editor.setOpacity(0.5)
+		expect(editor.opacity).toBe(0.5)
+	})
+
+	it('should return opacity for a single selected shape', () => {
+		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
+		editor.setSelectedIds([A])
+		expect(editor.opacity).toBe(0.3)
+	})
+
+	it('should return opacity for multiple selected shapes', () => {
+		const { A, B } = editor.createShapesFromJsx([
+			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
+			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
+		])
+		editor.setSelectedIds([A, B])
+		expect(editor.opacity).toBe(0.3)
+	})
+
+	it('should return null when multiple selected shapes have different opacity', () => {
+		const { A, B } = editor.createShapesFromJsx([
+			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
+			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
+		])
+		editor.setSelectedIds([A, B])
+		expect(editor.opacity).toBe(null)
+	})
+
+	it('ignores the opacity of groups and returns the opacity of their children', () => {
+		const ids = editor.createShapesFromJsx([
+			<TL.group ref="group" x={0} y={0}>
+				<TL.geo ref="A" opacity={0.3} x={0} y={0} />
+			</TL.group>,
+		])
+		editor.setSelectedIds([ids.group])
+		expect(editor.opacity).toBe(0.3)
+	})
+})
+
+describe('Editor.setOpacity', () => {
+	it('should set opacity for selected shapes', () => {
+		const ids = editor.createShapesFromJsx([
+			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
+			<TL.geo ref="B" opacity={0.4} x={0} y={0} />,
+		])
+
+		editor.setSelectedIds([ids.A, ids.B])
+		editor.setOpacity(0.5)
+
+		expect(editor.getShapeById(ids.A)!.opacity).toBe(0.5)
+		expect(editor.getShapeById(ids.B)!.opacity).toBe(0.5)
+	})
+
+	it('should traverse into groups and set opacity in their children', () => {
+		const ids = editor.createShapesFromJsx([
+			<TL.geo ref="boxA" x={0} y={0} />,
+			<TL.group ref="groupA" x={0} y={0}>
+				<TL.geo ref="boxB" x={0} y={0} />
+				<TL.group ref="groupB" x={0} y={0}>
+					<TL.geo ref="boxC" x={0} y={0} />
+					<TL.geo ref="boxD" x={0} y={0} />
+				</TL.group>
+			</TL.group>,
+		])
+
+		editor.setSelectedIds([ids.groupA])
+		editor.setOpacity(0.5)
+
+		// a wasn't selected...
+		expect(editor.getShapeById(ids.boxA)!.opacity).toBe(1)
+
+		// b, c, & d were within a selected group...
+		expect(editor.getShapeById(ids.boxB)!.opacity).toBe(0.5)
+		expect(editor.getShapeById(ids.boxC)!.opacity).toBe(0.5)
+		expect(editor.getShapeById(ids.boxD)!.opacity).toBe(0.5)
+
+		// groups get skipped
+		expect(editor.getShapeById(ids.groupA)!.opacity).toBe(1)
+		expect(editor.getShapeById(ids.groupB)!.opacity).toBe(1)
+	})
+
+	it('stores opacity on opacityForNextShape', () => {
+		editor.setOpacity(0.5)
+		expect(editor.instanceState.opacityForNextShape).toBe(0.5)
+		editor.setOpacity(0.6)
+		expect(editor.instanceState.opacityForNextShape).toBe(0.6)
 	})
 })
 

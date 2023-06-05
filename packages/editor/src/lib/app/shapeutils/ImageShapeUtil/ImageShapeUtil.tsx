@@ -63,7 +63,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	override defaultProps(): TLImageShape['props'] {
 		return {
-			opacity: '1',
 			w: 100,
 			h: 100,
 			assetId: null,

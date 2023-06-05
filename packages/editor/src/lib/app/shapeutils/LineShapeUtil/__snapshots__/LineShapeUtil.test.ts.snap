@@ -5,6 +5,7 @@ Object {
   "id": "shape:line1",
   "index": "a1",
   "isLocked": false,
+  "opacity": 1,
   "parentId": "page:id50",
   "props": Object {
     "color": "black",
@@ -27,7 +28,6 @@ Object {
         "y": 0,
       },
     },
-    "opacity": "1",
     "size": "m",
     "spline": "line",
   },

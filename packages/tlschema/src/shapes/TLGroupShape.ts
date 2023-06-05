@@ -1,17 +1,13 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { opacityValidator, TLOpacityType } from '../styles/TLOpacityStyle'
 import { createShapeValidator, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export type TLGroupShapeProps = {
-	opacity: TLOpacityType
-}
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type TLGroupShapeProps = {}
 
 /** @internal */
-export const groupShapePropsValidators = {
-	opacity: opacityValidator,
-}
+export const groupShapePropsValidators = {}
 
 /** @public */
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>

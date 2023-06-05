@@ -3,7 +3,6 @@ import { T } from '@tldraw/validate'
 import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
@@ -13,7 +12,6 @@ export type TLNoteShapeProps = {
 	size: TLSizeType
 	font: TLFontType
 	align: TLAlignType
-	opacity: TLOpacityType
 	growY: number
 	url: string
 	text: string
@@ -28,7 +26,6 @@ export const noteShapePropsValidators = {
 	size: sizeValidator,
 	font: fontValidator,
 	align: alignValidator,
-	opacity: opacityValidator,
 	growY: T.positiveNumber,
 	url: T.string,
 	text: T.string,

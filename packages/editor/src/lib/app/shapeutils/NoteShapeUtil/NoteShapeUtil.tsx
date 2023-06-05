@@ -24,7 +24,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	defaultProps(): TLNoteShape['props'] {
 		return {
-			opacity: '1',
 			color: 'black',
 			size: 'm',
 			text: '',

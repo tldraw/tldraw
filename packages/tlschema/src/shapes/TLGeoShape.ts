@@ -6,7 +6,6 @@ import { TLDashType, dashValidator } from '../styles/TLDashStyle'
 import { TLFillType, fillValidator } from '../styles/TLFillStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
 import { TLGeoType, geoValidator } from '../styles/TLGeoStyle'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
@@ -19,7 +18,6 @@ export type TLGeoShapeProps = {
 	fill: TLFillType
 	dash: TLDashType
 	size: TLSizeType
-	opacity: TLOpacityType
 	font: TLFontType
 	align: TLAlignType
 	verticalAlign: TLVerticalAlignType
@@ -41,7 +39,6 @@ export const geoShapePropsValidators = {
 	fill: fillValidator,
 	dash: dashValidator,
 	size: sizeValidator,
-	opacity: opacityValidator,
 	font: fontValidator,
 	align: alignValidator,
 	verticalAlign: verticalAlignValidator,

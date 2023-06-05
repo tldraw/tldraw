@@ -6,7 +6,7 @@ import { documentMigrations } from './records/TLDocument'
 import { instanceMigrations, instanceTypeVersions } from './records/TLInstance'
 import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
 import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
-import { TLShape, rootShapeMigrations } from './records/TLShape'
+import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './records/TLShape'
 import { arrowShapeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations } from './shapes/TLDrawShape'
@@ -1026,6 +1026,72 @@ describe('making instance state independent', () => {
 
 		expect(up(prev)).toEqual(next)
 		expect(down(next)).toEqual(next)
+	})
+})
+
+describe('hoist opacity', () => {
+	test('hoists opacity from a shape to another', () => {
+		const { up, down } = rootShapeMigrations.migrators[rootShapeVersions.HoistOpacity]
+		const before = {
+			type: 'myShape',
+			x: 0,
+			y: 0,
+			props: {
+				color: 'red',
+				opacity: '0.5',
+			},
+		}
+		const after = {
+			type: 'myShape',
+			x: 0,
+			y: 0,
+			opacity: 0.5,
+			props: {
+				color: 'red',
+			},
+		}
+		const afterWithNonMatchingOpacity = {
+			type: 'myShape',
+			x: 0,
+			y: 0,
+			opacity: 0.6,
+			props: {
+				color: 'red',
+			},
+		}
+
+		expect(up(before)).toEqual(after)
+		expect(down(after)).toEqual(before)
+		expect(down(afterWithNonMatchingOpacity)).toEqual(before)
+	})
+
+	test('hoists opacity from propsForNextShape', () => {
+		const { up, down } = instanceMigrations.migrators[instanceTypeVersions.HoistOpacity]
+		const before = {
+			isToolLocked: true,
+			propsForNextShape: {
+				color: 'black',
+				opacity: '0.5',
+			},
+		}
+		const after = {
+			isToolLocked: true,
+			opacityForNextShape: 0.5,
+			propsForNextShape: {
+				color: 'black',
+			},
+		}
+		const afterWithNonMatchingOpacity = {
+			isToolLocked: true,
+			opacityForNextShape: 0.6,
+			propsForNextShape: {
+				color: 'black',
+			},
+		}
+
+		expect(up(before)).toEqual(after)
+		expect(down(after)).toEqual(before)
+		expect(down(afterWithNonMatchingOpacity)).toEqual(before)
 	})
 })
 

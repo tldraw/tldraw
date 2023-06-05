@@ -26,7 +26,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	override canEdit = () => true
 
 	override defaultProps(): TLFrameShape['props'] {
-		return { opacity: '1', w: 160 * 2, h: 90 * 2, name: '' }
+		return { w: 160 * 2, h: 90 * 2, name: '' }
 	}
 
 	override render(shape: TLFrameShape) {
@@ -64,7 +64,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		rect.setAttribute('width', shape.props.w.toString())
 		rect.setAttribute('height', shape.props.h.toString())
 		rect.setAttribute('fill', colors.solid)
-		rect.setAttribute('opacity', shape.props.opacity)
 		rect.setAttribute('stroke', colors.fill.black)
 		rect.setAttribute('stroke-width', '1')
 		rect.setAttribute('rx', '1')

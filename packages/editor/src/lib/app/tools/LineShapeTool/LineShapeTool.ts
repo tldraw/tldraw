@@ -11,5 +11,5 @@ export class LineShapeTool extends StateNode {
 
 	shapeType = 'line'
 
-	styles = ['color', 'opacity', 'dash', 'size', 'spline'] as TLStyleType[]
+	styles = ['color', 'dash', 'size', 'spline'] as TLStyleType[]
 }

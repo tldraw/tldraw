@@ -174,7 +174,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
         fill: Validator<"none" | "pattern" | "semi" | "solid">;
         dash: Validator<"dashed" | "dotted" | "draw" | "solid">;
         size: Validator<"l" | "m" | "s" | "xl">;
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         arrowheadStart: Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
         arrowheadEnd: Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
         font: Validator<"draw" | "mono" | "sans" | "serif">;
@@ -203,8 +202,6 @@ export abstract class BaseBoxShapeTool extends StateNode {
     static initial: string;
     // (undocumented)
     abstract shapeType: string;
-    // (undocumented)
-    styles: ("align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign")[];
 }
 
 // @public (undocumented)
@@ -248,7 +245,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
     // (undocumented)
     props: {
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         w: Validator<number>;
         h: Validator<number>;
         assetId: Validator<null | TLAssetId>;
@@ -407,7 +403,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
         fill: Validator<"none" | "pattern" | "semi" | "solid">;
         dash: Validator<"dashed" | "dotted" | "draw" | "solid">;
         size: Validator<"l" | "m" | "s" | "xl">;
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         segments: ArrayOfValidator<TLDrawShapeSegment>;
         isComplete: Validator<boolean>;
         isClosed: Validator<boolean>;
@@ -514,7 +509,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     // (undocumented)
-    get editingShape(): null | TLUnknownShape;
+    get editingShape(): null | TLGroupShape | TLUnknownShape;
     // (undocumented)
     enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
@@ -545,7 +540,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d;
     // (undocumented)
-    getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLGroupShape | TLUnknownShape | undefined;
     // (undocumented)
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
@@ -608,7 +603,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     get hoveredId(): null | TLShapeId;
     // (undocumented)
-    get hoveredShape(): null | TLUnknownShape;
+    get hoveredShape(): null | TLGroupShape | TLUnknownShape;
     inputs: {
         originPagePoint: Vec2d;
         originScreenPoint: Vec2d;
@@ -678,6 +673,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         description: string;
     }>;
     get onlySelectedShape(): null | TLShape;
+    // (undocumented)
+    get opacity(): null | number;
     get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
     get pages(): TLPage[];
@@ -772,6 +769,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     setLocale(locale: string): void;
+    setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
     // @internal (undocumented)
@@ -868,7 +866,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     onResize: TLOnResizeHandler<TLEmbedShape>;
     // (undocumented)
     props: {
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         w: Validator<number>;
         h: Validator<number>;
         url: Validator<string>;
@@ -948,7 +945,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     onResizeEnd: TLOnResizeEndHandler<TLFrameShape>;
     // (undocumented)
     props: {
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         w: Validator<number>;
         h: Validator<number>;
         name: Validator<string>;
@@ -993,7 +989,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             fill: "none" | "pattern" | "semi" | "solid";
             dash: "dashed" | "dotted" | "draw" | "solid";
             size: "l" | "m" | "s" | "xl";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
             verticalAlign: "end" | "middle" | "start";
@@ -1009,6 +1004,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1022,7 +1018,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             fill: "none" | "pattern" | "semi" | "solid";
             dash: "dashed" | "dotted" | "draw" | "solid";
             size: "l" | "m" | "s" | "xl";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
             verticalAlign: "end" | "middle" | "start";
@@ -1038,6 +1033,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1053,6 +1049,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | {
@@ -1066,6 +1063,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1081,7 +1079,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         fill: Validator<"none" | "pattern" | "semi" | "solid">;
         dash: Validator<"dashed" | "dotted" | "draw" | "solid">;
         size: Validator<"l" | "m" | "s" | "xl">;
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         font: Validator<"draw" | "mono" | "sans" | "serif">;
         align: Validator<"end" | "middle" | "start">;
         verticalAlign: Validator<"end" | "middle" | "start">;
@@ -1215,9 +1212,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape>;
     // (undocumented)
-    props: {
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
-    };
+    props: {};
     // (undocumented)
     render(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
@@ -1274,7 +1269,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     props: {
         color: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         size: Validator<"l" | "m" | "s" | "xl">;
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         segments: ArrayOfValidator<TLDrawShapeSegment>;
         isComplete: Validator<boolean>;
         isPen: Validator<boolean>;
@@ -1318,7 +1312,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>;
     // (undocumented)
     props: {
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         w: Validator<number>;
         h: Validator<number>;
         playing: Validator<boolean>;
@@ -1414,7 +1407,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
         color: Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
         dash: Validator<"dashed" | "dotted" | "draw" | "solid">;
         size: Validator<"l" | "m" | "s" | "xl">;
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         spline: Validator<"cubic" | "line">;
         handles: DictValidator<string, TLHandle>;
     };
@@ -1847,7 +1839,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             url: string;
             text: string;
         };
@@ -1858,6 +1849,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1869,7 +1861,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             url: string;
             text: string;
         };
@@ -1880,6 +1871,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1891,7 +1883,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         size: Validator<"l" | "m" | "s" | "xl">;
         font: Validator<"draw" | "mono" | "sans" | "serif">;
         align: Validator<"end" | "middle" | "start">;
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         growY: Validator<number>;
         url: Validator<string>;
         text: Validator<string>;
@@ -2125,6 +2116,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     path: Computed<string>;
     // (undocumented)
+    shapeType?: string;
+    // (undocumented)
     readonly styles: TLStyleType[];
     // (undocumented)
     transition(id: string, info: any): this;
@@ -2189,6 +2182,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         props: TLTextShapeProps;
         id: TLShapeId;
         typeName: "shape";
@@ -2203,7 +2197,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             text: string;
             scale: number;
             autoSize: boolean;
@@ -2213,6 +2206,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -2242,7 +2236,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         size: Validator<"l" | "m" | "s" | "xl">;
         font: Validator<"draw" | "mono" | "sans" | "serif">;
         align: Validator<"end" | "middle" | "start">;
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         w: Validator<number>;
         text: Validator<string>;
         scale: Validator<number>;
@@ -2844,7 +2837,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     migrations: Migrations;
     // (undocumented)
     props: {
-        opacity: Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
         w: Validator<number>;
         h: Validator<number>;
         time: Validator<number>;

@@ -1152,6 +1152,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return next
 	}
 
+	@computed get opacity(): number | null {
+		if (this.isIn('select') && this.selectedIds.length > 0) {
+			const shapesToCheck: TLShape[] = []
+			const addShape = (shapeId: TLShapeId) => {
+				const shape = this.getShapeById(shapeId)
+				if (!shape) return
+				if (shape.type === 'group') {
+					for (const childId of this.getSortedChildIds(shape.id)) {
+						addShape(childId)
+					}
+				} else {
+					shapesToCheck.push(shape)
+				}
+			}
+			for (const shapeId of this.selectedIds) {
+				addShape(shapeId)
+			}
+
+			let opacity: number | null = null
+			for (const shape of shapesToCheck) {
+				if (opacity === null) {
+					opacity = shape.opacity
+				} else if (opacity !== shape.opacity) {
+					return null
+				}
+			}
+
+			return opacity
+		} else {
+			return this.instanceState.opacityForNextShape
+		}
+	}
+
 	/**
 	 * An array of all of the shapes on the current page.
 	 *
@@ -2243,8 +2276,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const shape = this.getShapeById(id)
 			if (!shape) return
 
-			// todo: move opacity to a property of shape, rather than a property of props
-			let opacity = (+(shape.props as { opacity: string }).opacity ?? 1) * parentOpacity
+			let opacity = shape.opacity * parentOpacity
 			let isShapeErasing = false
 
 			if (!isAncestorErasing && erasingIdsSet?.has(id)) {
@@ -4671,7 +4703,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// We then look up each key in the tab state's props; and if it's there,
 					// we use the value from the tab state's props instead of the default.
 					// Note that props will never include opacity.
-					const { propsForNextShape } = this.instanceState
+					const { propsForNextShape, opacityForNextShape } = this.instanceState
 					for (const key in initialProps) {
 						if (key in propsForNextShape) {
 							if (key === 'url') continue
@@ -4689,6 +4721,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					).create({
 						...partial,
 						index,
+						opacity: partial.opacity ?? opacityForNextShape,
 						parentId: partial.parentId ?? focusLayerId,
 						props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
 					})
@@ -7754,10 +7787,74 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Set the current opacity. This will effect any selected shapes, or the
+	 * next-created shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setOpacity(0.5)
+	 * editor.setOpacity(0.5, true)
+	 * ```
+	 *
+	 * @param opacity - The opacity to set. Must be a number between 0 and 1
+	 * inclusive.
+	 * @param ephemeral - Whether the opacity change is ephemeral. Ephemeral
+	 * changes don't get added to the undo/redo stack. Defaults to false.
+	 * @param squashing - Whether the opacity change will be squashed into the
+	 * existing history entry rather than creating a new one. Defaults to false.
+	 */
+	setOpacity(opacity: number, ephemeral = false, squashing = false) {
+		this.history.batch(() => {
+			if (this.isIn('select')) {
+				const {
+					pageState: { selectedIds },
+				} = this
+
+				const shapesToUpdate: TLShape[] = []
+
+				// We can have many deep levels of grouped shape
+				// Making a recursive function to look through all the levels
+				const addShapeById = (id: TLShape['id']) => {
+					const shape = this.getShapeById(id)
+					if (!shape) return
+					if (this.isShapeOfType(shape, GroupShapeUtil)) {
+						const childIds = this.getSortedChildIds(id)
+						for (const childId of childIds) {
+							addShapeById(childId)
+						}
+					} else {
+						shapesToUpdate.push(shape)
+					}
+				}
+
+				if (selectedIds.length > 0) {
+					for (const id of selectedIds) {
+						addShapeById(id)
+					}
+
+					this.updateShapes(
+						shapesToUpdate.map((shape) => {
+							return {
+								id: shape.id,
+								type: shape.type,
+								opacity,
+							}
+						}),
+						ephemeral
+					)
+				}
+			}
+
+			this.updateInstanceState({ opacityForNextShape: opacity }, ephemeral, squashing)
+		})
+
+		return this
+	}
+
+	/**
 	 * Set the current props (generally styles).
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setProp('color', 'red')
 	 * editor.setProp('color', 'red', true)
@@ -7765,67 +7862,43 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param key - The key to set.
 	 * @param value - The value to set.
-	 * @param ephemeral - Whether the style is ephemeral. Defaults to false.
+	 * @param ephemeral - Whether the style change is ephemeral. Ephemeral
+	 * changes don't get added to the undo/redo stack. Defaults to false.
+	 * @param squashing - Whether the style change will be squashed into the
+	 * existing history entry rather than creating a new one. Defaults to false.
 	 * @public
 	 */
 	setProp(key: TLShapeProp, value: any, ephemeral = false, squashing = false) {
-		const children: (TLShape | undefined)[] = []
-		// We can have many deep levels of grouped shape
-		// Making a recursive function to look through all the levels
-		const getChildProp = (id: TLShape['id']) => {
-			const childIds = this.getSortedChildIds(id)
-			for (const childId of childIds) {
-				const childShape = this.getShapeById(childId)
-				if (childShape?.type === 'group') {
-					getChildProp(childShape.id)
-				}
-				children.push(childShape)
-			}
-		}
-
 		this.history.batch(() => {
-			this.updateInstanceState(
-				{
-					propsForNextShape: setPropsForNextShape(this.instanceState.propsForNextShape, {
-						[key]: value,
-					}),
-				},
-				ephemeral,
-				squashing
-			)
-
 			if (this.isIn('select')) {
 				const {
 					pageState: { selectedIds },
 				} = this
 
 				if (selectedIds.length > 0) {
-					const shapes = compact(
-						selectedIds.map((id) => {
-							const shape = this.getShapeById(id)
-							if (shape?.type === 'group') {
-								const childIds = this.getSortedChildIds(shape.id)
-								for (const childId of childIds) {
-									const childShape = this.getShapeById(childId)
-									if (childShape?.type === 'group') {
-										getChildProp(childShape.id)
-									}
-									children.push(childShape)
-								}
-								return children
-							} else {
-								return shape
+					const shapesToUpdate: TLShape[] = []
+
+					// We can have many deep levels of grouped shape
+					// Making a recursive function to look through all the levels
+					const addShapeById = (id: TLShape['id']) => {
+						const shape = this.getShapeById(id)
+						if (!shape) return
+						if (this.isShapeOfType(shape, GroupShapeUtil)) {
+							const childIds = this.getSortedChildIds(id)
+							for (const childId of childIds) {
+								addShapeById(childId)
 							}
-						})
-					)
-						.flat()
-						.filter(
-							(shape) =>
-								shape!.props[key as keyof TLShape['props']] !== undefined && shape?.type !== 'group'
-						) as TLShape[]
+						} else if (shape!.props[key as keyof TLShape['props']] !== undefined) {
+							shapesToUpdate.push(shape)
+						}
+					}
+
+					for (const id of selectedIds) {
+						addShapeById(id)
+					}
 
 					this.updateShapes(
-						shapes.map((shape) => {
+						shapesToUpdate.map((shape) => {
 							const props = { ...shape.props, [key]: value }
 							if (key === 'color' && 'labelColor' in props) {
 								props.labelColor = 'black'
@@ -7840,10 +7913,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						ephemeral
 					)
 
-					if (key !== 'color' && key !== 'opacity') {
+					if (key !== 'color') {
 						const changes: TLShapePartial[] = []
 
-						for (const shape of shapes) {
+						for (const shape of shapesToUpdate) {
 							const currentShape = this.getShapeById(shape.id)
 							if (!currentShape) continue
 							const util = this.getShapeUtil(currentShape)
@@ -8905,9 +8978,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					index: highestIndex,
 					x,
 					y,
-					props: {
-						opacity: '1',
-					},
+					opacity: 1,
+					props: {},
 				},
 			])
 			this.reparentShapesById(sortedShapeIds, groupId)

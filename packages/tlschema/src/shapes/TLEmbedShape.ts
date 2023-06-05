@@ -1,6 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
@@ -549,7 +548,6 @@ export type TLEmbedShapePermissions = { [K in keyof typeof embedShapePermissionD
 
 /** @public */
 export type TLEmbedShapeProps = {
-	opacity: TLOpacityType
 	w: number
 	h: number
 	url: string
@@ -564,7 +562,6 @@ export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
 
 /** @internal */
 export const embedShapePropsValidators = {
-	opacity: opacityValidator,
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	url: T.string,
