@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import { track } from 'signia-react'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -15,7 +16,7 @@ export const LiveCollaborators = track(function Collaborators() {
 	)
 })
 
-export const DEFAULT_COLLABORATOR_TIMEOUT = 300
+export const COLLABORATOR_TIMEOUT = 300
 
 const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
 	const editor = useEditor()
@@ -30,13 +31,30 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 	} = useEditorComponents()
 
 	const latestPresence = usePresence(userId)
+
+	const [isTimedOut, setIsTimedOut] = useState(false)
+
+	useEffect(() => {
+		// By default, show the cursor
+		setIsTimedOut(false)
+
+		// After a few seconds of inactivity, hide the cursor
+		const timeout = setTimeout(() => {
+			setIsTimedOut(true)
+		}, COLLABORATOR_TIMEOUT)
+
+		return () => clearTimeout(timeout)
+	}, [latestPresence])
+
 	if (!latestPresence) return null
+
+	// If the user has timed out, and we're not following them, ignore them
+	if (isTimedOut && editor.instanceState.followingUserId !== userId) return null
 
 	// if the collaborator is on another page, ignore them
 	if (latestPresence.currentPageId !== editor.currentPageId) return null
 
-	const { brush, scribble, selectedIds, userName, cursor, color, lastActivityTimestamp } =
-		latestPresence
+	const { brush, scribble, selectedIds, userName, cursor, color } = latestPresence
 
 	// Add a little padding to the top-left of the viewport
 	// so that the cursor doesn't get cut off
@@ -66,8 +84,6 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 					color={color}
 					zoom={zoomLevel}
 					name={userName !== 'New User' ? userName : null}
-					lastActivityTimestamp={lastActivityTimestamp}
-					userId={userId}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint
@@ -77,8 +93,6 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 					color={color}
 					zoom={zoomLevel}
 					viewport={viewportPageBounds}
-					lastActivityTimestamp={lastActivityTimestamp}
-					userId={userId}
 				/>
 			) : null}
 			{scribble && CollaboratorScribble ? (
