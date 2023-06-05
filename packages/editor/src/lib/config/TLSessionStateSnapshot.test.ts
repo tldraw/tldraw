@@ -7,15 +7,15 @@ import {
 	loadSessionStateSnapshotIntoStore,
 } from './TLSessionStateSnapshot'
 
-let app: TestEditor
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestEditor()
+	editor = new TestEditor()
 })
 
 describe('createSessionStateSnapshotSignal', () => {
 	it('creates a signal', () => {
-		const $snapshot = createSessionStateSnapshotSignal(app.store)
+		const $snapshot = createSessionStateSnapshotSignal(editor.store)
 
 		expect($snapshot.value).toMatchObject({
 			exportBackground: true,
@@ -39,7 +39,7 @@ describe('createSessionStateSnapshotSignal', () => {
 	})
 
 	it('creates a signal that can be reacted to', () => {
-		const $snapshot = createSessionStateSnapshotSignal(app.store)
+		const $snapshot = createSessionStateSnapshotSignal(editor.store)
 
 		let isGridMode = false
 		let numPages = 0
@@ -52,27 +52,27 @@ describe('createSessionStateSnapshotSignal', () => {
 		expect(isGridMode).toBe(false)
 		expect(numPages).toBe(1)
 
-		app.setGridMode(true)
+		editor.setGridMode(true)
 
 		expect(isGridMode).toBe(true)
 		expect(numPages).toBe(1)
 
-		app.createPage('new page')
+		editor.createPage('new page')
 
 		expect(isGridMode).toBe(true)
-		expect(app.pages.length).toBe(2)
+		expect(editor.pages.length).toBe(2)
 		expect(numPages).toBe(2)
 	})
 })
 
 describe(loadSessionStateSnapshotIntoStore, () => {
 	it('loads a snapshot into the store', () => {
-		let snapshot = createSessionStateSnapshotSignal(app.store).value
+		let snapshot = createSessionStateSnapshotSignal(editor.store).value
 		if (!snapshot) throw new Error('snapshot is null')
 
-		expect(app.isGridMode).toBe(false)
-		expect(app.camera.x).toBe(0)
-		expect(app.camera.y).toBe(0)
+		expect(editor.isGridMode).toBe(false)
+		expect(editor.camera.x).toBe(0)
+		expect(editor.camera.y).toBe(0)
 
 		snapshot = JSON.parse(JSON.stringify(snapshot)) as TLSessionStateSnapshot
 
@@ -80,11 +80,11 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 		snapshot.pageStates[0].camera.x = 1
 		snapshot.pageStates[0].camera.y = 2
 
-		loadSessionStateSnapshotIntoStore(app.store, snapshot)
+		loadSessionStateSnapshotIntoStore(editor.store, snapshot)
 
-		expect(app.isGridMode).toBe(true)
-		expect(app.camera.x).toBe(1)
-		expect(app.camera.y).toBe(2)
+		expect(editor.isGridMode).toBe(true)
+		expect(editor.camera.x).toBe(1)
+		expect(editor.camera.y).toBe(2)
 	})
 })
 
