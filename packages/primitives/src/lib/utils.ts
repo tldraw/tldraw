@@ -667,3 +667,10 @@ export function getHeight(pts: VecLike[]) {
 export function toDomPrecision(v: number) {
 	return +v.toFixed(4)
 }
+
+/**
+ * @public
+ */
+export function toFixed(v: number) {
+	return +v.toFixed(2)
+}

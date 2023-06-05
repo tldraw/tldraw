@@ -1,4 +1,4 @@
-import { Matrix2d, snapAngle, Vec2d } from '@tldraw/primitives'
+import { Matrix2d, snapAngle, toFixed, Vec2d } from '@tldraw/primitives'
 import {
 	createShapeId,
 	TLDrawShape,
@@ -607,8 +607,8 @@ export class Drawing extends StateNode {
 						{
 							id: newShapeId,
 							type: this.shapeType,
-							x: currentPagePoint.x,
-							y: currentPagePoint.y,
+							x: toFixed(currentPagePoint.x),
+							y: toFixed(currentPagePoint.y),
 							props: {
 								isPen: this.isPen,
 								segments: [

@@ -6,6 +6,7 @@ import {
 	linesIntersect,
 	pointInPolygon,
 	setStrokePointRadii,
+	toFixed,
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
@@ -279,8 +280,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 				...segment,
 				points: segment.points.map(({ x, y, z }) => {
 					return {
-						x: scaleX * x,
-						y: scaleY * y,
+						x: toFixed(scaleX * x),
+						y: toFixed(scaleY * y),
 						z,
 					}
 				}),
