@@ -10,13 +10,13 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
-import { ArrowShapeUtil } from '../../app/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
-import { GroupShapeUtil } from '../../app/shapeutils/GroupShapeUtil/GroupShapeUtil'
-import { ArrowShapeTool } from '../../app/tools/ArrowShapeTool/ArrowShapeTool'
-import { DrawShapeTool } from '../../app/tools/DrawShapeTool/DrawShapeTool'
-import { EraserShapeTool } from '../../app/tools/EraserShapeTool/EraserShapeTool'
-import { LineShapeTool } from '../../app/tools/LineShapeTool/LineShapeTool'
-import { NoteShapeTool } from '../../app/tools/NoteShapeTool/NoteShapeTool'
+import { ArrowShapeUtil } from '../../editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+import { GroupShapeUtil } from '../../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
+import { ArrowShapeTool } from '../../editor/tools/ArrowShapeTool/ArrowShapeTool'
+import { DrawShapeTool } from '../../editor/tools/DrawShapeTool/DrawShapeTool'
+import { EraserShapeTool } from '../../editor/tools/EraserShapeTool/EraserShapeTool'
+import { LineShapeTool } from '../../editor/tools/LineShapeTool/LineShapeTool'
+import { NoteShapeTool } from '../../editor/tools/NoteShapeTool/NoteShapeTool'
 import { TestEditor } from '../TestEditor'
 
 jest.mock('nanoid', () => {

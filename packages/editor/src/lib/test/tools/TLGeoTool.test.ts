@@ -1,4 +1,4 @@
-import { GeoShapeTool } from '../../app/tools/GeoShapeTool/GeoShapeTool'
+import { GeoShapeTool } from '../../editor/tools/GeoShapeTool/GeoShapeTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

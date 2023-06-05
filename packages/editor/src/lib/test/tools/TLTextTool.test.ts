@@ -1,4 +1,4 @@
-import { TextShapeTool } from '../../app/tools/TextShapeTool/TextShapeTool'
+import { TextShapeTool } from '../../editor/tools/TextShapeTool/TextShapeTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

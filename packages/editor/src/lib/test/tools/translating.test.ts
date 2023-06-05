@@ -1,7 +1,7 @@
 import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
 import { TLShapeId, TLShapePartial, Vec2dModel, createShapeId } from '@tldraw/tlschema'
-import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../app/managers/SnapManager'
-import { ShapeUtil } from '../../app/shapeutils/ShapeUtil'
+import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../editor/managers/SnapManager'
+import { ShapeUtil } from '../../editor/shapeutils/ShapeUtil'
 import { TestEditor } from '../TestEditor'
 
 import { defaultShapes } from '../../config/defaultShapes'

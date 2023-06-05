@@ -1,4 +1,4 @@
-import { BaseBoxShapeTool } from '../../app/tools/BaseBoxShapeTool/BaseBoxShapeTool'
+import { BaseBoxShapeTool } from '../../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
