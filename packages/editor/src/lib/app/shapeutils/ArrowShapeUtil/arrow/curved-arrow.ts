@@ -48,6 +48,10 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 
 	const handleArc = getArcInfo(a, b, c)
 
+	if (!Number.isFinite(handleArc.length) || !Number.isFinite(handleArc.size)) {
+		return getStraightArrowInfo(editor, shape)
+	}
+
 	const arrowPageTransform = editor.getPageTransform(shape)!
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
