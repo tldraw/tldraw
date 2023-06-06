@@ -3981,6 +3981,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 				case 'keyboard': {
 					// please, please
+					if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
+					if (info.key === 'AltRight') info.key = 'AltLeft'
 					if (info.code === 'ControlRight') info.code = 'ControlLeft'
 
 					switch (info.name) {
