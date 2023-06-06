@@ -1,6 +1,6 @@
 import { TLArrowShape, TLLineShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
-import { Editor } from '../app/Editor'
+import { Editor } from '../editor/Editor'
 import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 import { useEditor } from './useEditor'

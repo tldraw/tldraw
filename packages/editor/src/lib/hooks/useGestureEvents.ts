@@ -3,7 +3,7 @@ import type { AnyHandlerEventTypes, EventTypes, GestureKey, Handler } from '@use
 import { createUseGesture, pinchAction, wheelAction } from '@use-gesture/react'
 import throttle from 'lodash.throttle'
 import * as React from 'react'
-import { TLWheelEventInfo } from '../app/types/event-types'
+import { TLWheelEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
 import { normalizeWheel } from './shared'
 import { useEditor } from './useEditor'

@@ -1,12 +1,12 @@
 import { act, render, screen } from '@testing-library/react'
 import { TLBaseShape, TLOpacityType, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
-import { Editor } from '../app/Editor'
-import { BaseBoxShapeUtil } from '../app/shapeutils/BaseBoxShapeUtil'
-import { BaseBoxShapeTool } from '../app/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
 import { createTLStore } from '../config/createTLStore'
+import { Editor } from '../editor/Editor'
+import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
+import { BaseBoxShapeTool } from '../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {

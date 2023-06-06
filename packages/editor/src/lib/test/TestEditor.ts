@@ -15,19 +15,19 @@ import {
 	TLShapePartial,
 	createShapeId,
 } from '@tldraw/tlschema'
-import { Editor, TLEditorOptions } from '../app/Editor'
-import { TLContent } from '../app/types/clipboard-types'
+import { createTLStore } from '../config/createTLStore'
+import { defaultShapes } from '../config/defaultShapes'
+import { defaultTools } from '../config/defaultTools'
+import { Editor, TLEditorOptions } from '../editor/Editor'
+import { TLContent } from '../editor/types/clipboard-types'
 import {
 	TLEventInfo,
 	TLKeyboardEventInfo,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
 	TLWheelEventInfo,
-} from '../app/types/event-types'
-import { RequiredKeys } from '../app/types/misc-types'
-import { createTLStore } from '../config/createTLStore'
-import { defaultShapes } from '../config/defaultShapes'
-import { defaultTools } from '../config/defaultTools'
+} from '../editor/types/event-types'
+import { RequiredKeys } from '../editor/types/misc-types'
 import { shapesFromJsx } from './jsx'
 
 jest.useFakeTimers()

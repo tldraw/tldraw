@@ -1,5 +1,5 @@
 import React from 'react'
-import { Editor } from '../app/Editor'
+import { Editor } from '../editor/Editor'
 
 export const EditorContext = React.createContext({} as Editor)
 
