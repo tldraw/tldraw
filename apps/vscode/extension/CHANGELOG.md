@@ -1,3 +1,12 @@
+## 2.0.8
+- New highlighter tool!
+- You can now lock shapes.
+- Added vertical align setting to Note shapes.
+- Added reduce motion user preference.
+- Fixed control clicking not working on Mac.
+- Improved translations.
+- Fixed a problem where arrows might cause the extension to crash.
+
 ## 2.0.7 
 - New laser tool!
 - New checkbox shape!
