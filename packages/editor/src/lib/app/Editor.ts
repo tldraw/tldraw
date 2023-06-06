@@ -3593,7 +3593,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
-			code: 'CtrlLeft',
+			code: 'ControlLeft',
 		})
 	}
 
@@ -3980,6 +3980,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					break
 				}
 				case 'keyboard': {
+					// please, please
+					if (info.code === 'ControlRight') info.code = 'ControlLeft'
+
 					switch (info.name) {
 						case 'key_down': {
 							// Add the key from the keys set

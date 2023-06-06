@@ -43,7 +43,7 @@ export function getHighlightFreehandSettings(
 	return {
 		size: 1 + strokeWidth,
 		thinning: 0.1,
-		streamline: 0.1, // 0.62 + ((1 + strokeWidth) / 8) * 0.06,
+		streamline: 0.5, // 0.62 + ((1 + strokeWidth) / 8) * 0.06,
 		smoothing: 0.5,
 		simulatePressure: true,
 		easing: EASINGS.easeOutSine,

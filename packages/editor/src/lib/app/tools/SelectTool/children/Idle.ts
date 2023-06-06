@@ -61,9 +61,20 @@ export class Idle extends StateNode {
 		const shouldEnterCropMode = this.shouldEnterCropMode(info, true)
 
 		if (info.ctrlKey && !shouldEnterCropMode) {
+			// On Mac, you can right click using the Control keys + Click.
+			if (
+				info.target === 'shape' &&
+				(this.editor.inputs.keys.has('ControlLeft') || this.editor.inputs.keys.has('ControlRight'))
+			) {
+				if (!this.editor.isShapeOrAncestorLocked(info.shape)) {
+					this.parent.transition('pointing_shape', info)
+					return
+				}
+			}
 			this.parent.transition('brushing', info)
 			return
 		}
+
 		switch (info.target) {
 			case 'canvas': {
 				this.parent.transition('pointing_canvas', info)
