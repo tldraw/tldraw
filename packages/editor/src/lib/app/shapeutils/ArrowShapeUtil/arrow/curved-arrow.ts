@@ -4,6 +4,7 @@ import {
 	getPointOnCircle,
 	intersectCirclePolygon,
 	intersectCirclePolyline,
+	isSafeFloat,
 	lerpAngles,
 	Matrix2d,
 	PI,
@@ -48,7 +49,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 
 	const handleArc = getArcInfo(a, b, c)
 
-	if (!Number.isFinite(handleArc.length) || !Number.isFinite(handleArc.size)) {
+	if (!isSafeFloat(handleArc.length) || !isSafeFloat(handleArc.size)) {
 		return getStraightArrowInfo(editor, shape)
 	}
 
