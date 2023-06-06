@@ -15,11 +15,10 @@ import {
 import { TLDashType, TLGeoShape } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
-import { getLegacyOffsetX } from '../../../utils/legacy'
 import { Editor } from '../../Editor'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnEditEndHandler, TLOnResizeHandler } from '../ShapeUtil'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -633,42 +632,24 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		if (props.text) {
 			const bounds = this.bounds(shape)
-			const padding = 16
 
-			const opts = {
-				fontSize: LABEL_FONT_SIZES[shape.props.size],
-				fontFamily: font,
-				textAlign: shape.props.align,
-				padding,
-				verticalTextAlign: shape.props.verticalAlign,
-				lineHeight: TEXT_PROPS.lineHeight,
-				fontStyle: 'normal',
-				fontWeight: 'normal',
-				width: Math.ceil(bounds.width),
-				height: Math.ceil(bounds.height),
-				overflow: 'wrap' as const,
-				offsetX: 0,
-			}
-
-			const spans = this.editor.textMeasure.measureTextSpans(props.text, opts)
-			const offsetX = getLegacyOffsetX(shape.props.align, padding, spans, bounds.width)
-			if (offsetX) {
-				opts.offsetX = offsetX
-			}
-
-			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-
-			const textBgEl = createTextSvgElementFromSpans(this.editor, spans, {
-				...opts,
-				strokeWidth: 2,
-				stroke: colors.background,
-				fill: colors.background,
+			const rootTextElm = getTextLabelSvgElement({
+				editor: this.editor,
+				shape,
+				font,
+				bounds,
 			})
 
-			const textElm = textBgEl.cloneNode(true) as SVGTextElement
+			const textElm = rootTextElm.cloneNode(true) as SVGTextElement
 			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
 			textElm.setAttribute('stroke', 'none')
 
+			const textBgEl = rootTextElm.cloneNode(true) as SVGTextElement
+			textBgEl.setAttribute('stroke-width', '2')
+			textBgEl.setAttribute('fill', colors.background)
+			textBgEl.setAttribute('stroke', colors.background)
+
+			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 			groupEl.append(textBgEl)
 			groupEl.append(textElm)
 

@@ -1,21 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import {
-	Box2d,
-	getStrokeOutlinePoints,
-	getStrokePoints,
-	linesIntersect,
-	setStrokePointRadii,
-	Vec2d,
-	VecLike,
-} from '@tldraw/primitives'
+import { Box2d, getStrokePoints, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
 import { TLDrawShapeSegment, TLHighlightShape } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_SIZES } from '../../../constants'
-import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
+import { getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../DrawShapeUtil/getPath'
 import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
-import { ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
 import { useForceSolid } from '../shared/useForceSolid'
 
@@ -133,7 +124,11 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		}
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-		const options = getHighlightFreehandSettings(strokeWidth, showAsComplete)
+		const options = getHighlightFreehandSettings({
+			strokeWidth,
+			showAsComplete,
+			isPen: shape.props.isPen,
+		})
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
 		let strokePath
@@ -202,6 +197,29 @@ function getIndicatorDot(point: VecLike, sw: number) {
 	},0`
 }
 
+function getHighlightSvgPath(shape: TLHighlightShape, strokeWidth: number, forceSolid: boolean) {
+	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
+	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
+
+	let sw = strokeWidth
+	if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {
+		sw += rng(shape.id)() * (strokeWidth / 6)
+	}
+
+	const options = getHighlightFreehandSettings({
+		strokeWidth: sw,
+		showAsComplete,
+		isPen: shape.props.isPen,
+	})
+	const strokePoints = getStrokePoints(allPointsFromSegments, options)
+	const solidStrokePath =
+		strokePoints.length > 1
+			? getSvgPathFromStrokePoints(strokePoints, false)
+			: getShapeDot(allPointsFromSegments[0])
+
+	return { solidStrokePath, sw }
+}
+
 function HighlightRenderer({
 	strokeWidth,
 	shape,
@@ -212,51 +230,17 @@ function HighlightRenderer({
 	opacity?: number
 }) {
 	const forceSolid = useForceSolid()
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
-
-	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-
-	let sw = strokeWidth
-	if (!forceSolid && !shape.props.isPen && allPointsFromSegments.length === 1) {
-		sw += rng(shape.id)() * (strokeWidth / 6)
-	}
-
-	const options = getHighlightFreehandSettings(sw, showAsComplete)
-
-	const strokePoints = getStrokePoints(allPointsFromSegments, options)
-
-	const solidStrokePath =
-		strokePoints.length > 1
-			? getSvgPathFromStrokePoints(strokePoints, false)
-			: getShapeDot(allPointsFromSegments[0])
-
-	if (!forceSolid || strokePoints.length < 2) {
-		setStrokePointRadii(strokePoints, options)
-
-		return (
-			<SVGContainer id={shape.id} style={{ opacity }}>
-				<path
-					d={solidStrokePath}
-					strokeLinecap="round"
-					fill="none"
-					pointerEvents="all"
-					stroke={`var(--palette-${shape.props.color}-highlight)`}
-					strokeWidth={sw}
-				/>
-			</SVGContainer>
-		)
-	}
+	const { solidStrokePath, sw } = getHighlightSvgPath(shape, strokeWidth, forceSolid)
 
 	return (
 		<SVGContainer id={shape.id} style={{ opacity }}>
-			<ShapeFill fill="none" color={shape.props.color} d={solidStrokePath} />
 			<path
 				d={solidStrokePath}
 				strokeLinecap="round"
 				fill="none"
+				pointerEvents="all"
 				stroke={`var(--palette-${shape.props.color}-highlight)`}
-				strokeWidth={strokeWidth}
-				strokeDashoffset="0"
+				strokeWidth={sw}
 			/>
 		</SVGContainer>
 	)
@@ -268,28 +252,14 @@ function highlighterToSvg(
 	opacity: number,
 	colors: TLExportColors
 ) {
-	const { color } = shape.props
-
-	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
-
-	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
-
-	let sw = strokeWidth
-	if (!shape.props.isPen && allPointsFromSegments.length === 1) {
-		sw += rng(shape.id)() * (strokeWidth / 6)
-	}
-
-	const options = getHighlightFreehandSettings(sw, showAsComplete)
-	const strokePoints = getStrokePoints(allPointsFromSegments, options)
-
-	setStrokePointRadii(strokePoints, options)
-	const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
+	const { solidStrokePath, sw } = getHighlightSvgPath(shape, strokeWidth, false)
 
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-	path.setAttribute('d', getSvgPathFromStroke(strokeOutlinePoints, true))
-	path.setAttribute('fill', colors.highlight[color])
-	path.setAttribute('stroke-linecap', 'round')
-	path.setAttribute('opacity', opacity.toString())
+	path.setAttribute('d', solidStrokePath)
+	path.setAttribute('fill', 'none')
+	path.setAttribute('stroke', colors.highlight[shape.props.color])
+	path.setAttribute('stroke-width', `${sw}`)
+	path.setAttribute('opacity', `${opacity}`)
 
 	return path
 }

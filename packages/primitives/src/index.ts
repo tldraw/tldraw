@@ -73,6 +73,7 @@ export {
 	getSweep,
 	getWidth,
 	isAngleBetween,
+	isSafeFloat,
 	lerpAngles,
 	longAngleDist,
 	perimeterOfEllipse,
