@@ -1157,6 +1157,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const addShape = (shapeId: TLShapeId) => {
 				const shape = this.getShapeById(shapeId)
 				if (!shape) return
+				// For groups, ignore the opacity of the group shape and instead include
+				// the opacity of the group's children. These are the shapes that would have
+				// their opacity changed if the user called `setOpacity` on the current selection.
 				if (shape.type === 'group') {
 					for (const childId of this.getSortedChildIds(shape.id)) {
 						addShape(childId)
