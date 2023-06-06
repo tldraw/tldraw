@@ -87,7 +87,7 @@ export async function getSvgAsImage(
 			resolve(canvas)
 		}
 
-		image.onerror = (err) => {
+		image.onerror = () => {
 			resolve(null)
 		}
 
