@@ -650,7 +650,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				offsetX: 0,
 			}
 
-			const spans = this.editor.textMeasure.measureTextSpans(props.text, opts)
+			const spans = this.editor.textMeasure.measureTextSpans(shape.props.text, opts)
 			const offsetX = getLegacyOffsetX(shape.props.align, padding, spans, bounds.width)
 			if (offsetX) {
 				opts.offsetX = offsetX
