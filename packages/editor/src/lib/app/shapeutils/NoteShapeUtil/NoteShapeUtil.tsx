@@ -1,10 +1,9 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
 import { TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
-import { getLegacyOffsetX } from '../../../utils/legacy'
 import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler } from '../ShapeUtil'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -131,31 +130,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		rect2.setAttribute('opacity', '.28')
 		g.appendChild(rect2)
 
-		const padding = 16
+		const textElm = getTextLabelSvgElement({
+			editor: this.editor,
+			shape,
+			font,
+			bounds,
+		})
 
-		const opts = {
-			fontSize: LABEL_FONT_SIZES[shape.props.size],
-			fontFamily: font,
-			textAlign: shape.props.align,
-			verticalTextAlign: shape.props.verticalAlign,
-			width: Math.ceil(bounds.width),
-			height: Math.ceil(bounds.height),
-			padding: 16,
-			lineHeight: TEXT_PROPS.lineHeight,
-			fontStyle: 'normal',
-			fontWeight: 'normal',
-			overflow: 'wrap' as const,
-			offsetX: 0,
-		}
-
-		const spans = this.editor.textMeasure.measureTextSpans(shape.props.text, opts)
-		const offsetX = getLegacyOffsetX(shape.props.align, padding, spans, bounds.width)
-		if (offsetX) {
-			opts.offsetX = offsetX
-		}
-
-		const textElm = createTextSvgElementFromSpans(this.editor, spans, opts)
 		textElm.setAttribute('fill', colors.text)
+		textElm.setAttribute('stroke', 'none')
 		g.appendChild(textElm)
 
 		return g
