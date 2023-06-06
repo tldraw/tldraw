@@ -49,7 +49,12 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 
 	const handleArc = getArcInfo(a, b, c)
 
-	if (!isSafeFloat(handleArc.length) || !isSafeFloat(handleArc.size)) {
+	if (
+		handleArc.length === 0 ||
+		handleArc.size === 0 ||
+		!isSafeFloat(handleArc.length) ||
+		!isSafeFloat(handleArc.size)
+	) {
 		return getStraightArrowInfo(editor, shape)
 	}
 
