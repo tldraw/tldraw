@@ -24,12 +24,29 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const editor = useEditor()
 
 	const contextTLUiMenuSchema = useContextMenuSchema()
-	const cb = (isOpen: boolean) => {
-		if (isOpen) return
-		if (shouldDeselect(editor)) {
-			editor.setSelectedIds([])
-		}
-	}
+
+	const cb = React.useCallback(
+		(isOpen: boolean) => {
+			if (!isOpen) {
+				const { onlySelectedShape } = editor
+
+				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
+					editor.setSelectedIds([])
+				}
+			} else {
+				if (editor.isCoarsePointer) {
+					if (!editor.selectedShapes.length) {
+						const shapes = editor.getShapesAtPoint(editor.inputs.currentPagePoint)
+						const lockedShapes = shapes.filter((shape) => editor.isShapeOrAncestorLocked(shape))
+						if (lockedShapes) {
+							editor.select(...lockedShapes.map((s) => s.id))
+						}
+					}
+				}
+			}
+		},
+		[editor]
+	)
 
 	const [_, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
@@ -58,12 +75,6 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 			<ContextMenuContent />
 		</_ContextMenu.Root>
 	)
-}
-
-function shouldDeselect(editor: Editor) {
-	const { onlySelectedShape } = editor
-	if (!onlySelectedShape) return false
-	return editor.isShapeOrAncestorLocked(onlySelectedShape)
 }
 
 function ContextMenuContent() {
