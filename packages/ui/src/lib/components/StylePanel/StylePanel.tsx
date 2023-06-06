@@ -82,8 +82,6 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 
 	const { color, fill, dash, size, opacity } = props
 
-	console.log({ size })
-
 	if (
 		color === undefined &&
 		fill === undefined &&
