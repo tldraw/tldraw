@@ -414,7 +414,7 @@ export class Idle extends StateNode {
 		// We want to use the "actual" shift key state,
 		// not the one that's in the editor.inputs.shiftKey,
 		// because that one uses a short timeout on release
-		const shiftKey = keys.has('Shift')
+		const shiftKey = keys.has('ShiftLeft')
 
 		const delta = new Vec2d(0, 0)
 

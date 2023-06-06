@@ -3980,6 +3980,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					break
 				}
 				case 'keyboard': {
+					if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
+					if (info.key === 'MetaRight') info.key = 'MetaLeft'
+
 					switch (info.name) {
 						case 'key_down': {
 							// Add the key from the keys set
