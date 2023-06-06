@@ -4457,6 +4457,7 @@ __metadata:
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": ^2.1.2
+    "@types/canvas-size": ^1.2.0
     "@types/crc": ^3.8.0
     "@types/lodash.throttle": ^4.1.7
     "@types/lodash.uniq": ^4.5.7
@@ -4464,6 +4465,7 @@ __metadata:
     "@types/wicg-file-system-access": ^2020.9.5
     "@use-gesture/react": ^10.2.27
     benchmark: ^2.1.4
+    canvas-size: ^1.2.6
     classnames: ^2.3.2
     crc: ^4.3.2
     escape-string-regexp: ^5.0.0
@@ -4865,6 +4867,13 @@ __metadata:
     "@types/node": "*"
     "@types/responselike": ^1.0.0
   checksum: d9b26403fe65ce6b0cb3720b7030104c352bcb37e4fac2a7089a25a97de59c355fa08940658751f2f347a8512aa9d18fdb66ab3ade835975b2f454f2d5befbd9
+  languageName: node
+  linkType: hard
+
+"@types/canvas-size@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "@types/canvas-size@npm:1.2.0"
+  checksum: 6108ff83df5a77b07417979ff26bd276a18a1ef492ed03279461661e1bb79d288fb0deedfb5aed491317bcd49da12bdb004e9bc4393e6723f2af65554e2cc1d1
   languageName: node
   linkType: hard
 
@@ -6871,6 +6880,13 @@ __metadata:
   version: 1.0.30001480
   resolution: "caniuse-lite@npm:1.0.30001480"
   checksum: c0b40f02f45ee99c73f732a3118028b2ab1544962d473d84f2afcb898a5e3099bd4c45f316ebc466fb1dbda904e86b72695578ca531a0bfa9d6337e7aad1ee2a
+  languageName: node
+  linkType: hard
+
+"canvas-size@npm:^1.2.6":
+  version: 1.2.6
+  resolution: "canvas-size@npm:1.2.6"
+  checksum: 8ba0ab84e216916442e52127a4580665167a9b17b41aadc55787bb68e90009b8eb2307248a7148accc3c608c6b8e54e8a83ef7d2ef8bd805bb10896ded041123
   languageName: node
   linkType: hard
 
