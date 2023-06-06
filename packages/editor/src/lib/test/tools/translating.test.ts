@@ -755,7 +755,7 @@ describe('custom snapping points', () => {
 		editor = new TestEditor({
 			shapes: {
 				...defaultShapes,
-				__test_top_left_snap_only: __TopLeftSnapOnlyShapeUtil,
+				__test_top_left_snap_only: { util: __TopLeftSnapOnlyShapeUtil },
 			},
 			// x───────┐
 			// │ T     │

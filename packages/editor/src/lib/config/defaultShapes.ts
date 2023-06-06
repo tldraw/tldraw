@@ -11,6 +11,7 @@ import { LineShapeUtil } from '../app/shapeutils/LineShapeUtil/LineShapeUtil'
 import { NoteShapeUtil } from '../app/shapeutils/NoteShapeUtil/NoteShapeUtil'
 import { TextShapeUtil } from '../app/shapeutils/TextShapeUtil/TextShapeUtil'
 import { VideoShapeUtil } from '../app/shapeutils/VideoShapeUtil/VideoShapeUtil'
+import { TLShapeInfo } from './createTLStore'
 
 /** @public */
 export const coreShapes = {
@@ -29,12 +30,12 @@ export const coreShapes = {
 }
 
 /** @public */
-export const defaultShapes = {
-	draw: DrawShapeUtil,
-	geo: GeoShapeUtil,
-	line: LineShapeUtil,
-	note: NoteShapeUtil,
-	frame: FrameShapeUtil,
-	arrow: ArrowShapeUtil,
-	highlight: HighlightShapeUtil,
+export const defaultShapes: Record<string, TLShapeInfo> = {
+	draw: { util: DrawShapeUtil },
+	geo: { util: GeoShapeUtil },
+	line: { util: LineShapeUtil },
+	note: { util: NoteShapeUtil },
+	frame: { util: FrameShapeUtil },
+	arrow: { util: ArrowShapeUtil },
+	highlight: { util: HighlightShapeUtil },
 }

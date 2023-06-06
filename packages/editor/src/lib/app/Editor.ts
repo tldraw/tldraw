@@ -77,6 +77,7 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
+import { TLShapeInfo } from '../config/createTLStore'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { coreShapes, defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
@@ -163,7 +164,7 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapes?: Record<string, AnyTLShapeUtilConstructor>
+	shapes?: Record<string, TLShapeInfo>
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -207,7 +208,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			(_, Util: AnyTLShapeUtilConstructor) => new Util(this, Util.type)
 		)
 
-		for (const [type, Util] of Object.entries(shapes)) {
+		for (const [type, { util: Util }] of Object.entries(shapes)) {
 			if (shapeUtils[type]) {
 				throw Error(`May not overwrite core shape of type "${type}".`)
 			}

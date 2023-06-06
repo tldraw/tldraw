@@ -215,7 +215,7 @@ describe('Custom shapes', () => {
 	}
 
 	const tools = [CardTool]
-	const shapes = { card: CardUtil }
+	const shapes = { card: { util: CardUtil } }
 
 	it('Uses custom shapes', async () => {
 		let editor = {} as Editor

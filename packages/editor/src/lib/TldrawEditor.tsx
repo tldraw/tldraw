@@ -3,11 +3,11 @@ import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { Editor } from './app/Editor'
-import { AnyTLShapeUtilConstructor } from './app/shapeutils/ShapeUtil'
 import { TLStateNodeConstructor } from './app/tools/StateNode'
 import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
+import { TLShapeInfo } from './config/createTLStore'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -31,7 +31,7 @@ export type TldrawEditorProps = {
 	/**
 	 * An array of shape utils to use in the editor.
 	 */
-	shapes?: Record<string, AnyTLShapeUtilConstructor>
+	shapes?: Record<string, TLShapeInfo>
 	/**
 	 * An array of tools to use in the editor.
 	 */

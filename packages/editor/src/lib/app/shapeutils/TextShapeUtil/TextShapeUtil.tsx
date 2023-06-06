@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { textShapeMigrations, textShapePropsValidators, TLTextShape } from '@tldraw/tlschema'
+import { TLTextShape } from '@tldraw/tlschema'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
@@ -19,8 +19,6 @@ const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	static override type = 'text'
-	override props = textShapePropsValidators
-	override migrations = textShapeMigrations
 
 	canEdit = () => true
 

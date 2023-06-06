@@ -9,12 +9,7 @@ import {
 	intersectLineSegmentPolyline,
 	pointNearToPolyline,
 } from '@tldraw/primitives'
-import {
-	TLHandle,
-	TLLineShape,
-	lineShapeMigrations,
-	lineShapePropsValidators,
-} from '@tldraw/tlschema'
+import { TLHandle, TLLineShape } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
@@ -32,8 +27,6 @@ const handlesCache = new WeakMapCache<TLLineShape['props'], TLHandle[]>()
 /** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override type = 'line'
-	override props = lineShapePropsValidators
-	override migrations = lineShapeMigrations
 
 	override hideResizeHandles = () => true
 	override hideRotateHandle = () => true

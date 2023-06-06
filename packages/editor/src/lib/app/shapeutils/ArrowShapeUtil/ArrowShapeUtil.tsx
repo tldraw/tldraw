@@ -12,8 +12,6 @@ import {
 } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
 import {
-	arrowShapeMigrations,
-	arrowShapePropsValidators,
 	TLArrowheadType,
 	TLArrowShape,
 	TLColorType,
@@ -60,8 +58,6 @@ let globalRenderIndex = 0
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override type = 'arrow'
-	override props = arrowShapePropsValidators
-	override migrations = arrowShapeMigrations
 
 	override canEdit = () => true
 	override canBind = () => false

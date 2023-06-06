@@ -1,11 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Vec2d, toDomPrecision } from '@tldraw/primitives'
-import {
-	TLImageShape,
-	TLShapePartial,
-	imageShapeMigrations,
-	imageShapePropsValidators,
-} from '@tldraw/tlschema'
+import { TLImageShape, TLShapePartial } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
 import { useValue } from 'signia-react'
@@ -55,8 +50,6 @@ async function getDataURIFromURL(url: string): Promise<string> {
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image'
-	override props = imageShapePropsValidators
-	override migrations = imageShapeMigrations
 
 	override isAspectRatioLocked = () => true
 	override canCrop = () => true
