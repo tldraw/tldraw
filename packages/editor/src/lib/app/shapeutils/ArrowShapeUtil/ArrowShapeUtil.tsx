@@ -1075,6 +1075,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				child.setAttribute('y', y + labelSize!.y + 'px')
 			})
 
+			const textBgEl = textElm.cloneNode(true) as SVGTextElement
+			textBgEl.setAttribute('stroke-width', '2')
+			textBgEl.setAttribute('fill', colors.background)
+			textBgEl.setAttribute('stroke', colors.background)
+
+			g.appendChild(textBgEl)
 			g.appendChild(textElm)
 		}
 

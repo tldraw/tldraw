@@ -633,16 +633,18 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		if (props.text) {
 			const bounds = this.bounds(shape)
 
-			const textElm = getTextLabelSvgElement({
+			const rootTextElm = getTextLabelSvgElement({
 				editor: this.editor,
 				shape,
 				font,
 				bounds,
 			})
+
+			const textElm = rootTextElm.cloneNode(true) as SVGTextElement
 			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
 			textElm.setAttribute('stroke', 'none')
 
-			const textBgEl = textElm.cloneNode(true) as SVGTextElement
+			const textBgEl = rootTextElm.cloneNode(true) as SVGTextElement
 			textBgEl.setAttribute('stroke-width', '2')
 			textBgEl.setAttribute('fill', colors.background)
 			textBgEl.setAttribute('stroke', colors.background)
