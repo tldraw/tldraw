@@ -92,7 +92,7 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 		return null
 	}
 
-	const showPickers = fill || dash || size
+	const showPickers = fill !== undefined || dash !== undefined || size !== undefined
 
 	const opacityIndex = styles.opacity.findIndex((s) => s.id === opacity)
 
