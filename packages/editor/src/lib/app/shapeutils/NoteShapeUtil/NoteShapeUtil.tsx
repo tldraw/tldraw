@@ -28,6 +28,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			text: '',
 			font: 'draw',
 			align: 'middle',
+			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
 		}
@@ -54,7 +55,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { color, font, size, align, text },
+			props: { color, font, size, align, text, verticalAlign },
 		} = shape
 
 		const adjustedColor = color === 'black' ? 'yellow' : color
@@ -82,7 +83,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							font={font}
 							size={size}
 							align={align}
-							verticalAlign="middle"
+							verticalAlign={verticalAlign}
 							text={text}
 							labelColor="inherit"
 							wrap

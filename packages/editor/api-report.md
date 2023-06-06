@@ -1701,6 +1701,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
+            verticalAlign: "end" | "middle" | "start";
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             url: string;
             text: string;
@@ -1723,6 +1724,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
+            verticalAlign: "end" | "middle" | "start";
             opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             url: string;
             text: string;
