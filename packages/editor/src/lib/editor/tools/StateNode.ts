@@ -70,6 +70,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	current: Atom<StateNode | undefined>
 	type: TLStateNodeType
 	readonly styles: TLStyleType[] = []
+	shapeType?: string
 	initial?: string
 	children?: Record<string, StateNode>
 	parent: StateNode

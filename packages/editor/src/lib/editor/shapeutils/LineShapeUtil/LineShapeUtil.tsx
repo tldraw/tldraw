@@ -36,7 +36,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	override defaultProps(): TLLineShape['props'] {
 		return {
-			opacity: '1',
 			dash: 'draw',
 			size: 'm',
 			color: 'black',

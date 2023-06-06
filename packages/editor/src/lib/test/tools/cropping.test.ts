@@ -20,7 +20,6 @@ const imageWidth = 1200
 const imageHeight = 800
 
 const imageProps = {
-	opacity: '1',
 	assetId: null,
 	playing: true,
 	url: '',

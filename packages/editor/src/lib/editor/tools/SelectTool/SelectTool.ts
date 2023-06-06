@@ -42,7 +42,7 @@ export class SelectTool extends StateNode {
 		DraggingHandle,
 	]
 
-	styles = ['color', 'opacity', 'dash', 'fill', 'size'] as TLStyleType[]
+	styles = ['color', 'dash', 'fill', 'size'] as TLStyleType[]
 
 	onExit = () => {
 		if (this.editor.pageState.editingId) {

@@ -12,7 +12,6 @@ export class ArrowShapeTool extends StateNode {
 
 	styles = [
 		'color',
-		'opacity',
 		'dash',
 		'size',
 		'arrowheadStart',

@@ -292,7 +292,6 @@ export async function createShapesFromFiles(
 					props: {
 						w: asset.props!.w,
 						h: asset.props!.h,
-						opacity: '1',
 					},
 				}
 
@@ -403,7 +402,6 @@ export function createEmbedShapeAtPoint(
 					h: props.height,
 					doesResize: props.doesResize,
 					url,
-					opacity: '1',
 				},
 			},
 		],
@@ -430,10 +428,10 @@ export async function createBookmarkShapeAtPoint(editor: Editor, url: string, po
 				type: 'bookmark',
 				x: point.x - 150,
 				y: point.y - 160,
+				opacity: 1,
 				props: {
 					assetId: existing.id,
 					url: existing.props.src!,
-					opacity: '1',
 				},
 			},
 		])
@@ -450,9 +448,9 @@ export async function createBookmarkShapeAtPoint(editor: Editor, url: string, po
 					type: 'bookmark',
 					x: point.x,
 					y: point.y,
+					opacity: 1,
 					props: {
 						url: url,
-						opacity: '1',
 					},
 				},
 			],
@@ -480,9 +478,9 @@ export async function createBookmarkShapeAtPoint(editor: Editor, url: string, po
 				{
 					id: shapeId,
 					type: 'bookmark',
+					opacity: 1,
 					props: {
 						assetId: assetId,
-						opacity: '1',
 					},
 				},
 			])
@@ -531,11 +529,11 @@ export async function createAssetShapeAtPoint(
 					type: 'image',
 					x: point.x - width / 2,
 					y: point.y - height / 2,
+					opacity: 1,
 					props: {
 						assetId: asset.id,
 						w: width,
 						h: height,
-						opacity: '1',
 					},
 				},
 			],

@@ -55,7 +55,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			fill: 'none',
 			dash: 'draw',
 			size: 'm',
-			opacity: '1',
 			font: 'draw',
 			text: '',
 			align: 'middle',

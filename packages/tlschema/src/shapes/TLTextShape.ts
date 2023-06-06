@@ -3,7 +3,6 @@ import { T } from '@tldraw/validate'
 import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
@@ -13,7 +12,6 @@ export type TLTextShapeProps = {
 	size: TLSizeType
 	font: TLFontType
 	align: TLAlignType
-	opacity: TLOpacityType
 	w: number
 	text: string
 	scale: number
@@ -31,7 +29,6 @@ export const textShapeValidator: T.Validator<TLTextShape> = createShapeValidator
 		size: sizeValidator,
 		font: fontValidator,
 		align: alignValidator,
-		opacity: opacityValidator,
 		w: T.nonZeroNumber,
 		text: T.string,
 		scale: T.nonZeroNumber,

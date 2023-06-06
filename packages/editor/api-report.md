@@ -178,8 +178,6 @@ export abstract class BaseBoxShapeTool extends StateNode {
     static initial: string;
     // (undocumented)
     abstract shapeType: string;
-    // (undocumented)
-    styles: ("align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign")[];
 }
 
 // @public (undocumented)
@@ -623,6 +621,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         description: string;
     }>;
     get onlySelectedShape(): null | TLShape;
+    // (undocumented)
+    get opacity(): null | number;
     get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
     get pages(): TLPage[];
@@ -717,6 +717,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     setLocale(locale: string): void;
+    setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
     // @internal (undocumented)
@@ -915,7 +916,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             fill: "none" | "pattern" | "semi" | "solid";
             dash: "dashed" | "dotted" | "draw" | "solid";
             size: "l" | "m" | "s" | "xl";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
             verticalAlign: "end" | "middle" | "start";
@@ -931,6 +931,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -944,7 +945,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             fill: "none" | "pattern" | "semi" | "solid";
             dash: "dashed" | "dotted" | "draw" | "solid";
             size: "l" | "m" | "s" | "xl";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
             verticalAlign: "end" | "middle" | "start";
@@ -960,6 +960,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -975,6 +976,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | {
@@ -988,6 +990,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1702,7 +1705,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
             verticalAlign: "end" | "middle" | "start";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             url: string;
             text: string;
         };
@@ -1713,6 +1715,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1725,7 +1728,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
             verticalAlign: "end" | "middle" | "start";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             url: string;
             text: string;
         };
@@ -1736,6 +1738,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1962,6 +1965,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     path: Computed<string>;
     // (undocumented)
+    shapeType?: string;
+    // (undocumented)
     readonly styles: TLStyleType[];
     // (undocumented)
     transition(id: string, info: any): this;
@@ -2024,6 +2029,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         props: TLTextShapeProps;
         id: TLShapeId;
         typeName: "shape";
@@ -2038,7 +2044,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             text: string;
             scale: number;
             autoSize: boolean;
@@ -2048,6 +2053,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;

@@ -13,7 +13,7 @@ import { fillValidator } from '../styles/TLFillStyle'
 import { fontValidator } from '../styles/TLFontStyle'
 import { geoValidator } from '../styles/TLGeoStyle'
 import { iconValidator } from '../styles/TLIconStyle'
-import { opacityValidator } from '../styles/TLOpacityStyle'
+import { opacityValidator, TLOpacityType } from '../styles/TLOpacityStyle'
 import { sizeValidator } from '../styles/TLSizeStyle'
 import { splineValidator } from '../styles/TLSplineStyle'
 import { verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
@@ -34,6 +34,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
 	followingUserId: string | null
 	brush: Box2dModel | null
+	opacityForNextShape: TLOpacityType
 	propsForNextShape: TLInstancePropsForNextShape
 	cursor: TLCursor
 	scribble: TLScribble | null
@@ -62,13 +63,13 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		currentPageId: pageIdValidator,
 		followingUserId: T.string.nullable(),
 		brush: T.boxModel.nullable(),
+		opacityForNextShape: opacityValidator,
 		propsForNextShape: T.object({
 			color: colorValidator,
 			labelColor: colorValidator,
 			dash: dashValidator,
 			fill: fillValidator,
 			size: sizeValidator,
-			opacity: opacityValidator,
 			font: fontValidator,
 			align: alignValidator,
 			verticalAlign: verticalAlignValidator,
@@ -104,13 +105,14 @@ const Versions = {
 	AddScribbleDelay: 10,
 	RemoveUserId: 11,
 	AddIsPenModeAndIsGridMode: 12,
+	HoistOpacity: 13,
 } as const
 
 export { Versions as instanceTypeVersions }
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: Versions.AddIsPenModeAndIsGridMode,
+	currentVersion: Versions.HoistOpacity,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -256,6 +258,29 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
+		[Versions.HoistOpacity]: {
+			up: ({ propsForNextShape: { opacity, ...propsForNextShape }, ...instance }: any) => {
+				return { ...instance, opacityForNextShape: Number(opacity ?? '1'), propsForNextShape }
+			},
+			down: ({ opacityForNextShape: opacity, ...instance }: any) => {
+				return {
+					...instance,
+					propsForNextShape: {
+						...instance.propsForNextShape,
+						opacity:
+							opacity < 0.175
+								? '0.1'
+								: opacity < 0.375
+								? '0.25'
+								: opacity < 0.625
+								? '0.5'
+								: opacity < 0.875
+								? '0.75'
+								: '1',
+					},
+				}
+			},
+		},
 	},
 })
 
@@ -267,8 +292,8 @@ export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 }).withDefaultProperties(
 	(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
 		followingUserId: null,
+		opacityForNextShape: 1,
 		propsForNextShape: {
-			opacity: '1',
 			color: 'black',
 			labelColor: 'black',
 			dash: 'draw',

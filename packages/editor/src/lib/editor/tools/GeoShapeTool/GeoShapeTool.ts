@@ -11,7 +11,6 @@ export class GeoShapeTool extends StateNode {
 
 	styles = [
 		'color',
-		'opacity',
 		'dash',
 		'fill',
 		'size',
@@ -20,4 +19,5 @@ export class GeoShapeTool extends StateNode {
 		'align',
 		'verticalAlign',
 	] as TLStyleType[]
+	shapeType = 'geo'
 }

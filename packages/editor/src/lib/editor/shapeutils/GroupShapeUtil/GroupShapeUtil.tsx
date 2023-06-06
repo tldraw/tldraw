@@ -16,7 +16,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	canBind = () => false
 
 	defaultProps(): TLGroupShape['props'] {
-		return { opacity: '1' }
+		return {}
 	}
 
 	getBounds(shape: TLGroupShape): Box2d {
