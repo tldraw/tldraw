@@ -3,8 +3,7 @@ import { T } from '@tldraw/validate'
 import { createShapeValidator, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-// eslint-disable-next-line @typescript-eslint/ban-types
-export type TLGroupShapeProps = {}
+export type TLGroupShapeProps = { [key in never]: undefined }
 
 /** @public */
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>

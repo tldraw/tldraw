@@ -458,7 +458,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     // (undocumented)
-    get editingShape(): null | TLGroupShape | TLUnknownShape;
+    get editingShape(): null | TLUnknownShape;
     // (undocumented)
     enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
@@ -489,7 +489,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d;
     // (undocumented)
-    getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLGroupShape | TLUnknownShape | undefined;
+    getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     // (undocumented)
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
@@ -552,7 +552,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     get hoveredId(): null | TLShapeId;
     // (undocumented)
-    get hoveredShape(): null | TLGroupShape | TLUnknownShape;
+    get hoveredShape(): null | TLUnknownShape;
     inputs: {
         originPagePoint: Vec2d;
         originScreenPoint: Vec2d;
