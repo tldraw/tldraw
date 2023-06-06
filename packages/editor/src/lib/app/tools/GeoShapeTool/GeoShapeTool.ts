@@ -9,6 +9,7 @@ export class GeoShapeTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Pointing]
 
+	shapeType = 'geo'
 	styles = [
 		'color',
 		'opacity',
