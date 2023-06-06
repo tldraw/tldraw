@@ -8575,9 +8575,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		transact(() => {
 			this.stopFollowingUser()
 
-			this.updateInstanceState({
-				followingUserId: userId,
-			})
+			this.updateInstanceState({ followingUserId: userId }, true)
 		})
 
 		const cancel = () => {
@@ -8680,12 +8678,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser = () => {
-		this.updateInstanceState({
-			followingUserId: null,
-		})
-
+		this.updateInstanceState({ followingUserId: null }, true)
 		this.emit('stop-following')
-
 		return this
 	}
 
