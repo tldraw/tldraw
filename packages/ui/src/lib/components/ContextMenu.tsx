@@ -1,7 +1,7 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { Editor, preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
-import * as React from 'react'
+import { useCallback, useState } from 'react'
 import { useValue } from 'signia-react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
@@ -25,7 +25,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 
 	const contextTLUiMenuSchema = useContextMenuSchema()
 
-	const cb = React.useCallback(
+	const cb = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
 				const { onlySelectedShape } = editor
@@ -34,11 +34,29 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 					editor.setSelectedIds([])
 				}
 			} else {
+				// Weird route: selecting locked shapes on long press
 				if (editor.isCoarsePointer) {
-					if (!editor.selectedShapes.length) {
-						const shapes = editor.getShapesAtPoint(editor.inputs.currentPagePoint)
-						const lockedShapes = shapes.filter((shape) => editor.isShapeOrAncestorLocked(shape))
-						if (lockedShapes) {
+					const {
+						selectedShapes,
+						inputs: { currentPagePoint },
+					} = editor
+
+					// get all of the shapes under the current pointer
+					const shapesAtPoint = editor.getShapesAtPoint(currentPagePoint)
+
+					if (
+						// if there are no selected shapes
+						!editor.selectedShapes.length ||
+						// OR if none of the shapes at the point include the selected shape
+						!shapesAtPoint.some((s) => selectedShapes.includes(s))
+					) {
+						// then are there any locked shapes under the current pointer?
+						const lockedShapes = shapesAtPoint.filter((shape) =>
+							editor.isShapeOrAncestorLocked(shape)
+						)
+
+						if (lockedShapes.length) {
+							// nice, let's select them
 							editor.select(...lockedShapes.map((s) => s.id))
 						}
 					}
@@ -87,7 +105,7 @@ function ContextMenuContent() {
 	const breakpoint = useBreakpoint()
 	const container = useContainer()
 
-	const [disableClicks, setDisableClicks] = React.useState(false)
+	const [disableClicks, setDisableClicks] = useState(false)
 
 	function getContextMenuItem(
 		editor: Editor,
