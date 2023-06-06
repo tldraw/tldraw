@@ -96,11 +96,14 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
           <text
             alignment-baseline="mathematical"
             dominant-baseline="mathematical"
+            fill=""
             font-family=""
             font-size="22px"
             font-style="normal"
             font-weight="normal"
             line-height="29.700000000000003px"
+            stroke=""
+            stroke-width="2"
           >
             <tspan
               alignment-baseline="mathematical"
