@@ -4,6 +4,7 @@ import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
+import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
@@ -12,6 +13,7 @@ export type TLNoteShapeProps = {
 	size: TLSizeType
 	font: TLFontType
 	align: TLAlignType
+	verticalAlign: TLVerticalAlignType
 	growY: number
 	url: string
 	text: string
@@ -27,6 +29,7 @@ export const noteShapePropsValidators = {
 	font: fontValidator,
 	align: alignValidator,
 	growY: T.positiveNumber,
+	verticalAlign: verticalAlignValidator,
 	url: T.string,
 	text: T.string,
 }
@@ -41,11 +44,12 @@ const Versions = {
 	AddUrlProp: 1,
 	RemoveJustify: 2,
 	MigrateLegacyAlign: 3,
+	AddVerticalAlign: 4,
 } as const
 
 /** @internal */
 export const noteShapeMigrations = defineMigrations({
-	currentVersion: Versions.MigrateLegacyAlign,
+	currentVersion: Versions.AddVerticalAlign,
 	migrators: {
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
@@ -119,6 +123,25 @@ export const noteShapeMigrations = defineMigrations({
 						...shape.props,
 						align: oldAlign,
 					},
+				}
+			},
+		},
+		[Versions.AddVerticalAlign]: {
+			up: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						verticalAlign: 'middle',
+					},
+				}
+			},
+			down: (shape) => {
+				const { verticalAlign: _, ...props } = shape.props
+
+				return {
+					...shape,
+					props,
 				}
 			},
 		},

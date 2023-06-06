@@ -1,10 +1,9 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
 import { TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
-import { getLegacyOffsetX } from '../../../utils/legacy'
 import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler } from '../ShapeUtil'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -27,6 +26,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			text: '',
 			font: 'draw',
 			align: 'middle',
+			verticalAlign: 'middle',
 			growY: 0,
 			url: '',
 		}
@@ -53,7 +53,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const {
 			id,
 			type,
-			props: { color, font, size, align, text },
+			props: { color, font, size, align, text, verticalAlign },
 		} = shape
 
 		const adjustedColor = color === 'black' ? 'yellow' : color
@@ -81,7 +81,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							font={font}
 							size={size}
 							align={align}
-							verticalAlign="middle"
+							verticalAlign={verticalAlign}
 							text={text}
 							labelColor="inherit"
 							wrap
@@ -129,36 +129,15 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		rect2.setAttribute('opacity', '.28')
 		g.appendChild(rect2)
 
-		const PADDING = 17
+		const textElm = getTextLabelSvgElement({
+			editor: this.editor,
+			shape,
+			font,
+			bounds,
+		})
 
-		const opts = {
-			fontSize: LABEL_FONT_SIZES[shape.props.size],
-			fontFamily: font,
-			textAlign: shape.props.align,
-			verticalTextAlign: 'middle' as const,
-			width: bounds.width - PADDING * 2,
-			height: bounds.height - PADDING * 2,
-			padding: 0,
-			lineHeight: TEXT_PROPS.lineHeight,
-			fontStyle: 'normal',
-			fontWeight: 'normal',
-			overflow: 'wrap' as const,
-			offsetX: 0,
-		}
-
-		const spans = this.editor.textMeasure.measureTextSpans(shape.props.text, opts)
-
-		opts.width = bounds.width
-		const offsetX = getLegacyOffsetX(shape.props.align, PADDING, spans, bounds.width)
-		if (offsetX) {
-			opts.offsetX = offsetX
-		}
-
-		opts.padding = PADDING
-
-		const textElm = createTextSvgElementFromSpans(this.editor, spans, opts)
 		textElm.setAttribute('fill', colors.text)
-		textElm.setAttribute('transform', `translate(0 ${PADDING})`)
+		textElm.setAttribute('stroke', 'none')
 		g.appendChild(textElm)
 
 		return g

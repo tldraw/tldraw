@@ -105,7 +105,7 @@ function CommonStylePickerSet({
 		return null
 	}
 
-	const showPickers = fill || dash || size
+	const showPickers = fill !== undefined || dash !== undefined || size !== undefined
 
 	const opacityIndex =
 		opacity === null

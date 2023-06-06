@@ -4,6 +4,7 @@ import {
 	getPointOnCircle,
 	intersectCirclePolygon,
 	intersectCirclePolyline,
+	isSafeFloat,
 	lerpAngles,
 	Matrix2d,
 	PI,
@@ -47,6 +48,15 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 	const c = middle.clone()
 
 	const handleArc = getArcInfo(a, b, c)
+
+	if (
+		handleArc.length === 0 ||
+		handleArc.size === 0 ||
+		!isSafeFloat(handleArc.length) ||
+		!isSafeFloat(handleArc.size)
+	) {
+		return getStraightArrowInfo(editor, shape)
+	}
 
 	const arrowPageTransform = editor.getPageTransform(shape)!
 

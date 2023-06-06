@@ -1093,6 +1093,21 @@ describe('hoist opacity', () => {
 		expect(down(after)).toEqual(before)
 		expect(down(afterWithNonMatchingOpacity)).toEqual(before)
 	})
+
+	describe('Adds NoteShape vertical alignment', () => {
+		const { up, down } = noteShapeMigrations.migrators[4]
+
+		test('up works as expected', () => {
+			expect(up({ props: { color: 'red' } })).toEqual({
+				props: { verticalAlign: 'middle', color: 'red' },
+			})
+		})
+		test('down works as expected', () => {
+			expect(down({ props: { verticalAlign: 'top', color: 'red' } })).toEqual({
+				props: { color: 'red' },
+			})
+		})
+	})
 })
 
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */

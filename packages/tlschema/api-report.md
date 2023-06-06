@@ -615,6 +615,7 @@ export const noteShapePropsValidators: {
     font: T.Validator<"draw" | "mono" | "sans" | "serif">;
     align: T.Validator<"end" | "middle" | "start">;
     growY: T.Validator<number>;
+    verticalAlign: T.Validator<"end" | "middle" | "start">;
     url: T.Validator<string>;
     text: T.Validator<string>;
 };

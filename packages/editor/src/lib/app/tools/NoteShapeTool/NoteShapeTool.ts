@@ -8,6 +8,5 @@ export class NoteShapeTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Pointing]
 
-	styles = ['color', 'size', 'align', 'font'] as TLStyleType[]
-	shapeType = 'note'
+	styles = ['color', 'opacity', 'size', 'align', 'verticalAlign', 'font'] as TLStyleType[]
 }
