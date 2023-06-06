@@ -3593,7 +3593,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
-			code: 'CtrlLeft',
+			code: 'ControlLeft',
 		})
 	}
 
@@ -3980,8 +3980,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					break
 				}
 				case 'keyboard': {
+					// please, please
 					if (info.key === 'ShiftRight') info.key = 'ShiftLeft'
-					if (info.key === 'MetaRight') info.key = 'MetaLeft'
+					if (info.key === 'AltRight') info.key = 'AltLeft'
+					if (info.code === 'ControlRight') info.code = 'ControlLeft'
 
 					switch (info.name) {
 						case 'key_down': {
@@ -8578,9 +8580,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		transact(() => {
 			this.stopFollowingUser()
 
-			this.updateInstanceState({
-				followingUserId: userId,
-			})
+			this.updateInstanceState({ followingUserId: userId }, true)
 		})
 
 		const cancel = () => {
@@ -8683,12 +8683,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser = () => {
-		this.updateInstanceState({
-			followingUserId: null,
-		})
-
+		this.updateInstanceState({ followingUserId: null }, true)
 		this.emit('stop-following')
-
 		return this
 	}
 
