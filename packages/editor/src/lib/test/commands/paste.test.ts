@@ -1,16 +1,16 @@
-import { TLFrameShape, TLGeoShape } from '@tldraw/tlschema'
+import { TLFrameShape, TLGeoShape, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 
 const ids = {
-	box1: TestEditor.CreateShapeId('box1'),
-	box2: TestEditor.CreateShapeId('box2'),
-	box3: TestEditor.CreateShapeId('box3'),
-	frame1: TestEditor.CreateShapeId('frame1'),
-	frame2: TestEditor.CreateShapeId('frame2'),
-	frame3: TestEditor.CreateShapeId('frame3'),
-	frame4: TestEditor.CreateShapeId('frame4'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
+	frame1: createShapeId('frame1'),
+	frame2: createShapeId('frame2'),
+	frame3: createShapeId('frame3'),
+	frame4: createShapeId('frame4'),
 }
 
 beforeEach(() => {

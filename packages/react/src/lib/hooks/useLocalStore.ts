@@ -1,8 +1,6 @@
+import { LocalSyncClient, TLStoreOptions, TLStoreWithStatus } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
-import { TLStoreOptions } from '../config/createTLStore'
 import { uniqueId } from '../utils/data'
-import { TLStoreWithStatus } from '../utils/sync/StoreWithStatus'
-import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 import { useTLStore } from './useTLStore'
 
 /** @internal */
@@ -41,7 +39,7 @@ export function useLocalStore(
 			})
 		}
 
-		const client = new TLLocalSyncClient(store, {
+		const client = new LocalSyncClient(store, {
 			sessionId,
 			persistenceKey,
 			onLoad() {

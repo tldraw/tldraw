@@ -10,8 +10,11 @@
 	},
 	"references": [
 		{ "path": "../editor" },
-		{ "path": "../react" },
 		{ "path": "../primitives" },
-		{ "path": "../utils" }
+		{ "path": "../tlschema" },
+		{ "path": "../store" },
+		{ "path": "../validate" },
+		{ "path": "../utils" },
+		{ "path": "../indices" }
 	]
 }

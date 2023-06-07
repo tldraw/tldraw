@@ -1,5 +1,5 @@
+import { TLSelectionHandle } from '@tldraw/editor'
 import { useMemo } from 'react'
-import { TLSelectionHandle } from '../editor/types/selection-types'
 import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 import { useEditor } from './useEditor'

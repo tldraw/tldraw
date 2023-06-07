@@ -584,10 +584,6 @@ export class TestEditor extends Editor {
 		this.createShapes(shapes)
 		return ids
 	}
-
-	static CreateShapeId(id?: string) {
-		return id ? createShapeId(id) : createShapeId()
-	}
 }
 
 export const defaultShapesIds = {

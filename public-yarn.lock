@@ -4567,6 +4567,50 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/react@workspace:*, @tldraw/react@workspace:packages/react":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/react@workspace:packages/react"
+  dependencies:
+    "@peculiar/webcrypto": ^1.4.0
+    "@radix-ui/react-alert-dialog": ^1.0.0
+    "@radix-ui/react-context-menu": ^2.1.1
+    "@radix-ui/react-dialog": ^1.0.2
+    "@radix-ui/react-dropdown-menu": ^2.0.1
+    "@radix-ui/react-popover": 1.0.6-rc.5
+    "@radix-ui/react-select": ^1.2.0
+    "@radix-ui/react-slider": ^1.1.0
+    "@radix-ui/react-toast": ^1.1.1
+    "@testing-library/jest-dom": ^5.14.1
+    "@testing-library/react": ^14.0.0
+    "@tldraw/editor": "workspace:*"
+    "@tldraw/indices": "workspace:*"
+    "@tldraw/primitives": "workspace:*"
+    "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
+    "@tldraw/utils": "workspace:*"
+    "@types/lz-string": ^1.3.34
+    "@use-gesture/react": ^10.2.27
+    browser-fs-access: ^0.31.0
+    classnames: ^2.3.2
+    escape-string-regexp: ^5.0.0
+    hotkeys-js: ^3.9.4
+    idb: ^7.1.1
+    is-plain-object: ^5.0.0
+    jest-canvas-mock: ^2.4.0
+    jest-environment-jsdom: ^28.1.2
+    lazyrepo: 0.0.0-alpha.27
+    lodash.throttle: ^4.1.1
+    lz-string: ^1.4.4
+    nanoid: ^4.0.2
+    resize-observer-polyfill: ^1.5.1
+  peerDependencies:
+    react: ^18
+    react-dom: ^18
+    signia: "*"
+    signia-react: "*"
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/scripts@workspace:scripts":
   version: 0.0.0-use.local
   resolution: "@tldraw/scripts@workspace:scripts"
@@ -4661,6 +4705,7 @@ __metadata:
     "@testing-library/react": ^12.0.0
     "@tldraw/editor": "workspace:*"
     "@tldraw/primitives": "workspace:*"
+    "@tldraw/react": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/lz-string": ^1.3.34
@@ -14018,7 +14063,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:4.0.2":
+"nanoid@npm:4.0.2, nanoid@npm:^4.0.2":
   version: 4.0.2
   resolution: "nanoid@npm:4.0.2"
   bin:

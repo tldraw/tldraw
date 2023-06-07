@@ -1,7 +1,7 @@
 import { PageRecordType } from '@tldraw/tlschema'
 import { promiseWithResolve } from '@tldraw/utils'
 import { createTLStore } from '../../config/createTLStore'
-import { TLLocalSyncClient } from './TLLocalSyncClient'
+import { LocalSyncClient } from './LocalSyncClient'
 import * as idb from './indexedDb'
 
 jest.mock('./indexedDb', () => ({
@@ -31,7 +31,7 @@ function testClient(channel = new BroadcastChannelMock('test')) {
 	const onLoadError = jest.fn(() => {
 		return
 	})
-	const client = new TLLocalSyncClient(
+	const client = new LocalSyncClient(
 		store,
 		{
 			onLoad,

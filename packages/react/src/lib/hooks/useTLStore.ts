@@ -1,5 +1,5 @@
+import { TLStoreOptions, createTLStore } from '@tldraw/editor'
 import { useState } from 'react'
-import { TLStoreOptions, createTLStore } from '../config/createTLStore'
 import { usePrevious } from './usePrevious'
 
 /** @public */

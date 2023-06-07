@@ -1,7 +1,6 @@
+import { Editor, TLPointerEventName } from '@tldraw/editor'
 import { TLShapeId } from '@tldraw/tlschema'
 import React from 'react'
-import { Editor } from '../editor/Editor'
-import { TLPointerEventName } from '../editor/types/event-types'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 import { useEditor } from './useEditor'

@@ -1,5 +1,5 @@
+import { Editor } from '@tldraw/editor'
 import React from 'react'
-import { Editor } from '../editor/Editor'
 
 export const EditorContext = React.createContext({} as Editor)
 

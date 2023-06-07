@@ -1,6 +1,6 @@
 {
-	"name": "@tldraw/ui",
-	"description": "A user interface for tldraw.",
+	"name": "@tldraw/react",
+	"description": "A react rendering library for tldraw.",
 	"version": "2.0.0-alpha.12",
 	"packageManager": "yarn@3.5.0",
 	"author": {
@@ -53,15 +53,21 @@
 		"@radix-ui/react-slider": "^1.1.0",
 		"@radix-ui/react-toast": "^1.1.1",
 		"@tldraw/editor": "workspace:*",
+		"@tldraw/indices": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
-		"@tldraw/react": "workspace:*",
+		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
+		"@use-gesture/react": "^10.2.27",
 		"browser-fs-access": "^0.31.0",
 		"classnames": "^2.3.2",
+		"escape-string-regexp": "^5.0.0",
 		"hotkeys-js": "^3.9.4",
 		"idb": "^7.1.1",
-		"lz-string": "^1.4.4"
+		"is-plain-object": "^5.0.0",
+		"lodash.throttle": "^4.1.1",
+		"lz-string": "^1.4.4",
+		"nanoid": "^4.0.2"
 	},
 	"peerDependencies": {
 		"react": "^18",
@@ -72,7 +78,7 @@
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
 		"@testing-library/jest-dom": "^5.14.1",
-		"@testing-library/react": "^12.0.0",
+		"@testing-library/react": "^14.0.0",
 		"@types/lz-string": "^1.3.34",
 		"jest-canvas-mock": "^2.4.0",
 		"jest-environment-jsdom": "^28.1.2",

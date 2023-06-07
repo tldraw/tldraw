@@ -1,3 +1,4 @@
+import { createShapeId } from '@tldraw/tlschema'
 import { MAX_PAGES } from '../../constants'
 import { TestEditor } from '../TestEditor'
 
@@ -7,7 +8,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor.createShapes([
 		{
-			id: TestEditor.CreateShapeId(),
+			id: createShapeId(),
 			type: 'geo',
 		},
 	])

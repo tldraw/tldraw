@@ -2,28 +2,25 @@ import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
-import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
-import { DefaultErrorFallback } from './components/DefaultErrorFallback'
-import { OptionalErrorBoundary } from './components/ErrorBoundary'
-import { TLShapeInfo } from './config/createTLStore'
-import { Editor } from './editor/Editor'
-import { TLStateNodeConstructor } from './editor/tools/StateNode'
-import { ContainerProvider, useContainer } from './hooks/useContainer'
-import { useCursor } from './hooks/useCursor'
-import { useDarkMode } from './hooks/useDarkMode'
-import { EditorContext } from './hooks/useEditor'
+import {
+	Editor,
+	TLEditorAssetUrls,
+	TLStateNodeConstructor,
+	TLStoreWithStatus,
+	defaultEditorAssetUrls,
+	useLocalStore,
+} from '../../../../editor/src'
+import { TLShapeInfo } from '../../../../editor/src/lib/config/createTLStore'
+import { ContainerProvider, useContainer } from '../hooks/useContainer'
+import { useCursor } from '../hooks/useCursor'
+import { EditorContext } from '../hooks/useEditor'
 import {
 	EditorComponentsProvider,
 	TLEditorComponents,
 	useEditorComponents,
-} from './hooks/useEditorComponents'
-import { useEvent } from './hooks/useEvent'
-import { useForceUpdate } from './hooks/useForceUpdate'
-import { useLocalStore } from './hooks/useLocalStore'
-import { usePreloadAssets } from './hooks/usePreloadAssets'
-import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
-import { useZoomCss } from './hooks/useZoomCss'
-import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
+} from '../hooks/useEditorComponents'
+import { DefaultErrorFallback } from './DefaultErrorFallback'
+import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /** @public */
 export type TldrawEditorProps = {

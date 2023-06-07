@@ -7,26 +7,6 @@ export * from '@tldraw/indices'
 export * from '@tldraw/tlschema'
 export { getHashForString } from '@tldraw/utils'
 export {
-	ErrorScreen,
-	LoadingScreen,
-	TldrawEditor,
-	type TldrawEditorProps,
-} from './lib/TldrawEditor'
-export {
-	defaultEditorAssetUrls,
-	setDefaultEditorAssetUrls,
-	type TLEditorAssetUrls,
-} from './lib/assetUrls'
-export { Canvas } from './lib/components/Canvas'
-export { DefaultErrorFallback } from './lib/components/DefaultErrorFallback'
-export {
-	ErrorBoundary,
-	OptionalErrorBoundary,
-	type TLErrorBoundaryProps,
-} from './lib/components/ErrorBoundary'
-export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
-export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
-export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,
@@ -39,7 +19,7 @@ export {
 	setUserPreferences,
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
-export { createTLStore } from './lib/config/createTLStore'
+export { createTLStore, type TLStoreOptions } from './lib/config/createTLStore'
 export { defaultShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
 export {
@@ -81,6 +61,11 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export {
+	type GapsSnapLine,
+	type PointsSnapLine,
+	type SnapLine,
+} from './lib/editor/managers/SnapManager'
 export { ArrowShapeUtil } from './lib/editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
 export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
@@ -169,16 +154,6 @@ export {
 } from './lib/editor/types/history-types'
 export { type RequiredKeys } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
-export { normalizeWheel } from './lib/hooks/shared'
-export { useContainer } from './lib/hooks/useContainer'
-export { useEditor } from './lib/hooks/useEditor'
-export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
-export { useLocalStore } from './lib/hooks/useLocalStore'
-export { usePeerIds } from './lib/hooks/usePeerIds'
-export { usePresence } from './lib/hooks/usePresence'
-export { useQuickReactor } from './lib/hooks/useQuickReactor'
-export { useReactor } from './lib/hooks/useReactor'
-export { useTLStore } from './lib/hooks/useTLStore'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,
@@ -249,6 +224,8 @@ export {
 	defaultEmptyAs,
 } from './lib/utils/string'
 export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from './lib/utils/svg'
+export { LocalSyncClient } from './lib/utils/sync/LocalSyncClient'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { openWindow } from './lib/utils/window-open'
+export {}

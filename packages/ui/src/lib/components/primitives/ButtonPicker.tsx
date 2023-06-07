@@ -1,4 +1,4 @@
-import { TLStyleItem, TLStyleType, useEditor } from '@tldraw/editor'
+import { TLStyleItem, TLStyleType } from '@tldraw/editor'
 import { clamp } from '@tldraw/primitives'
 import classNames from 'classnames'
 import * as React from 'react'
