@@ -77,10 +77,10 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { TLShapeInfo } from '../config/createShape'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { coreShapes, defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
+import { TLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -185,13 +185,7 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({
-		store,
-		user,
-		tools = defaultTools,
-		shapes = defaultShapes,
-		getContainer,
-	}: TLEditorOptions) {
+	constructor({ store, user, tools = [], shapes = defaultShapes, getContainer }: TLEditorOptions) {
 		super()
 
 		this.store = store
@@ -219,12 +213,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			shapeUtils[type] = new Util(this, Util.type)
 		}
+
 		this.shapeUtils = shapeUtils
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		const uniqueTools = Object.fromEntries(tools.map((ToolCtor) => [ToolCtor.id, ToolCtor]))
+		const uniqueTools = Object.fromEntries(
+			[...defaultTools, ...tools].map((ToolCtor) => [ToolCtor.id, ToolCtor])
+		)
 		for (const [id, ToolCtor] of Object.entries(uniqueTools)) {
 			if (this.root.children?.[id]) {
 				throw Error(`Can't override tool with id "${id}"`)
@@ -234,7 +231,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// Next, add tools from shapes.
-		for (const { tool: ToolCtor } of shapes) {
+		for (const { tool: ToolCtor } of [...coreShapes, ...shapes]) {
 			if (!ToolCtor) continue
 			if (this.root.children?.[ToolCtor.id]) {
 				throw Error(`Can't override tool with id "${ToolCtor.id}"`)
@@ -5759,18 +5756,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const shape = this.getShapeById(id)!
 					const util = this.getShapeUtil(shape)
 
-					let _font: any
+					let font: any
 					const {
-						props: { font },
+						props: { font: _font },
 					} = shape as TLBaseShape<any, { font: TLFontType }>
-					if (font && TL_FONT_TYPES.has(font)) {
+					if (_font && TL_FONT_TYPES.has(_font)) {
 						if (fontsUsedInExport.has(font)) {
-							_font = fontsUsedInExport.get(font)!
+							font = fontsUsedInExport.get(font)!
 						} else {
 							// For some reason these styles aren't present in the fake element
 							// so we need to get them from the real element
-							_font = realContainerStyle.getPropertyValue(`--tl-font-${font}`)
-							fontsUsedInExport.set(font, _font)
+							font = realContainerStyle.getPropertyValue(`--tl-font-${_font}`)
+							fontsUsedInExport.set(_font, font)
 						}
 					}
 

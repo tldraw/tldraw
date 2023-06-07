@@ -1,13 +1,14 @@
-import { createShapeId, Tldraw } from '@tldraw/tldraw'
+import { Tldraw, createShapeId, defineShape } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { ErrorShapeUtil } from './ErrorShapeUtil'
 
-const shapes = {
-	error: {
+const shapes = [
+	defineShape({
+		type: 'error',
 		util: ErrorShapeUtil, // a custom shape that will always error
-	},
-}
+	}),
+]
 
 export default function ErrorBoundaryExample() {
 	return (

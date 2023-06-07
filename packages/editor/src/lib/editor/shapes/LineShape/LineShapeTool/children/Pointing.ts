@@ -1,7 +1,7 @@
 import { getIndexAbove, sortByIndex } from '@tldraw/indices'
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
 import { TLHandle, TLShapeId, createShapeId } from '@tldraw/tlschema'
-import { last } from '@tldraw/utils'
+import { last, structuredClone } from '@tldraw/utils'
 import { StateNode } from '../../../../tools/StateNode'
 import { TLEventHandlers, TLInterruptEvent } from '../../../../types/event-types'
 import { TLLineShape } from '../../lineShapeTypes'

@@ -75,7 +75,7 @@ export const Shape = track(function Shape({
 			setProperty('clip-path', clipPath ?? 'none')
 			const {
 				props: { color },
-			} = shape.props as TLBaseShape<any, { color: TLColorType }>
+			} = shape as TLBaseShape<any, { color: TLColorType }>
 			if (color && TL_COLOR_TYPES.has(color)) {
 				setProperty('color', editor.getCssColor(color))
 			}

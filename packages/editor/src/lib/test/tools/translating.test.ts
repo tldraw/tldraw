@@ -4,8 +4,8 @@ import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../editor/managers/Sn
 import { ShapeUtil } from '../../editor/shapeutils/ShapeUtil'
 import { TestEditor } from '../TestEditor'
 
-import { createShape } from '../../config/createShape'
 import { defaultShapes } from '../../config/defaultShapes'
+import { defineShape } from '../../config/defineShape'
 import { getSnapLines } from '../testutils/getSnapLines'
 
 type __TopLeftSnapOnlyShape = any
@@ -756,7 +756,8 @@ describe('custom snapping points', () => {
 		editor = new TestEditor({
 			shapes: [
 				...defaultShapes,
-				createShape<__TopLeftSnapOnlyShape>('__test_top_left_snap_only', {
+				defineShape<__TopLeftSnapOnlyShape>({
+					type: '__test_top_left_snap_only',
 					util: __TopLeftSnapOnlyShapeUtil,
 				}),
 			],

@@ -11,7 +11,7 @@ import { lineShape } from '../editor/shapes/LineShape/lineShape'
 import { noteShape } from '../editor/shapes/NoteShape/noteShape'
 import { textShape } from '../editor/shapes/TextShape/textShape'
 import { videoShape } from '../editor/shapes/VideoShape/videoShape'
-import { TLShapeInfo } from './createShape'
+import { TLShapeInfo } from './defineShape'
 
 /** @public */
 export const coreShapes: TLShapeInfo<any>[] = [

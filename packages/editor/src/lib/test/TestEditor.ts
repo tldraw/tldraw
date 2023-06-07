@@ -57,10 +57,10 @@ export const TEST_INSTANCE_ID = InstanceRecordType.createId('testInstance1')
 export class TestEditor extends Editor {
 	constructor(options = {} as Partial<Omit<TLEditorOptions, 'store'>>) {
 		const elm = document.createElement('div')
-		const { shapes = defaultShapes, tools = [] } = options
+		const { shapes = [], tools = [] } = options
 		elm.tabIndex = 0
 		super({
-			shapes: { ...defaultShapes, ...shapes },
+			shapes: [...defaultShapes, ...shapes],
 			tools: [...defaultTools, ...tools],
 			store: createTLStore({
 				shapes: [...defaultShapes, ...shapes],

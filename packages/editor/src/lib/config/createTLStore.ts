@@ -1,6 +1,7 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore, createTLSchema } from '@tldraw/tlschema'
-import { TLShapeInfo } from './createShape'
+import { coreShapes } from './defaultShapes'
+import { TLShapeInfo } from './defineShape'
 
 /** @public */
 export type TLStoreOptions = {
@@ -19,7 +20,7 @@ export function createTLStore(opts = {} as TLStoreOptions): TLStore {
 	const { shapes = [], initialData, defaultName = '' } = opts
 
 	return new Store({
-		schema: createTLSchema({ shapes }),
+		schema: createTLSchema({ shapes: [...coreShapes, ...shapes] }),
 		initialData,
 		props: {
 			defaultName,

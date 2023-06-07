@@ -3,9 +3,9 @@ import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
-import { createShape } from '../config/createShape'
 import { createTLStore } from '../config/createTLStore'
 import { defaultShapes } from '../config/defaultShapes'
+import { defineShape } from '../config/defineShape'
 import { Editor } from '../editor/Editor'
 import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
 import { BaseBoxShapeTool } from '../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
@@ -28,7 +28,7 @@ afterEach(() => {
 describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
 		await act(async () => (
-			<TldrawEditor autoFocus>
+			<TldrawEditor shapes={defaultShapes} autoFocus>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		))
@@ -38,7 +38,7 @@ describe('<TldrawEditor />', () => {
 		let store: any
 		render(
 			await act(async () => (
-				<TldrawEditor onMount={(editor) => (store = editor.store)} autoFocus>
+				<TldrawEditor shapes={defaultShapes} onMount={(editor) => (store = editor.store)} autoFocus>
 					<div data-testid="canvas-1" />
 				</TldrawEditor>
 			))
@@ -48,10 +48,13 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Renders with an external store', async () => {
-		const store = createTLStore()
+		const store = createTLStore({
+			shapes: defaultShapes,
+		})
 		render(
 			await act(async () => (
 				<TldrawEditor
+					shapes={defaultShapes}
 					store={store}
 					onMount={(editor) => {
 						expect(editor.store).toBe(store)
@@ -66,10 +69,12 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = createTLStore()
+		const initialStore = createTLStore({
+			shapes: defaultShapes,
+		})
 		const onMount = jest.fn()
 		const rendered = render(
-			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor shapes={defaultShapes} store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -79,7 +84,7 @@ describe('<TldrawEditor />', () => {
 		expect(initialEditor.store).toBe(initialStore)
 		// re-render with the same store:
 		rendered.rerender(
-			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor shapes={defaultShapes} store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
 		)
@@ -87,9 +92,9 @@ describe('<TldrawEditor />', () => {
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
-		const newStore = createTLStore()
+		const newStore = createTLStore({ shapes: defaultShapes })
 		rendered.rerender(
-			<TldrawEditor store={newStore} onMount={onMount} autoFocus>
+			<TldrawEditor shapes={defaultShapes} store={newStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)
@@ -105,6 +110,7 @@ describe('<TldrawEditor />', () => {
 			await act(async () => (
 				<TldrawEditor
 					autoFocus
+					shapes={defaultShapes}
 					onMount={(editorApp) => {
 						editor = editorApp
 					}}
@@ -217,7 +223,7 @@ describe('Custom shapes', () => {
 	}
 
 	const tools = [CardTool]
-	const shapes = [createShape<CardShape>('card', { util: CardUtil })]
+	const shapes = [defineShape<CardShape>({ type: 'card', util: CardUtil })]
 
 	it('Uses custom shapes', async () => {
 		let editor = {} as Editor

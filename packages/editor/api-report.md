@@ -306,6 +306,9 @@ export const defaultShapes: TLShapeInfo<any>[];
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
 
+// @public (undocumented)
+export function defineShape<T extends TLUnknownShape>(opts: TLShapeInfo<T>): TLShapeInfo<T>;
+
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
 
@@ -358,7 +361,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, tools, shapes, getContainer, }: TLEditorOptions);
+    constructor({ store, user, tools, shapes, getContainer }: TLEditorOptions);
     addOpenMenu: (id: string) => this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;

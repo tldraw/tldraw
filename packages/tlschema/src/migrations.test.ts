@@ -13,10 +13,6 @@ const assetModules = fs
 	.readdirSync('src/assets')
 	.filter((n) => n.match(/^TL.*\.ts$/))
 	.map((f) => [f, require(`./assets/${f.slice(0, -3)}`)])
-const shapeModules = fs
-	.readdirSync('src/shapes')
-	.filter((n) => n.match(/^TL.*\.ts$/))
-	.map((f) => [f, require(`./shapes/${f.slice(0, -3)}`)])
 const recordModules = fs
 	.readdirSync('src/records')
 	.filter((n) => n.match(/^TL.*\.ts$/))
@@ -24,7 +20,6 @@ const recordModules = fs
 
 const allModules = [
 	...assetModules,
-	...shapeModules,
 	...recordModules,
 	['store-migrations.ts', require('./store-migrations')],
 ]

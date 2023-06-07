@@ -12,9 +12,7 @@ export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
 	validator?: { validate: (shape: T) => T }
 }
 
-export function createShape<T extends TLUnknownShape>(
-	type: T['type'],
-	opts: Omit<TLShapeInfo<T>, 'type'>
-): TLShapeInfo<T> {
-	return { ...opts, type }
+/** @public */
+export function defineShape<T extends TLUnknownShape>(opts: TLShapeInfo<T>): TLShapeInfo<T> {
+	return opts
 }
