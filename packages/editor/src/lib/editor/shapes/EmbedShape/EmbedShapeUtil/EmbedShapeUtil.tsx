@@ -11,7 +11,7 @@ import { rotateBoxShadow } from '../../../../utils/dom'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../../utils/embeds'
 import { BaseBoxShapeUtil } from '../../../shapeutils/BaseBoxShapeUtil'
 import { TLOnResizeHandler, TLShapeUtilFlag } from '../../../shapeutils/ShapeUtil'
-import { resizeBox } from '../../../shapeutils/shared/resizeBox'
+import { resizeBox } from '../../shared/resizeBox'
 import {
 	TLEmbedShape,
 	TLEmbedShapePermissions,

@@ -18,10 +18,10 @@ import {
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
 } from '../../../shapeutils/ShapeUtil'
-import { ShapeFill } from '../../../shapeutils/shared/ShapeFill'
-import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
-import { getPerfectDashProps } from '../../../shapeutils/shared/getPerfectDashProps'
-import { useForceSolid } from '../../../shapeutils/shared/useForceSolid'
+import { ShapeFill } from '../../shared/ShapeFill'
+import { TLExportColors } from '../../shared/TLExportColors'
+import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
+import { useForceSolid } from '../../shared/useForceSolid'
 import { TLLineShape } from '../lineShapeTypes'
 import { getLineDrawPath, getLineIndicatorPath, getLinePoints } from './components/getLinePath'
 import { getLineSvg } from './components/getLineSvg'

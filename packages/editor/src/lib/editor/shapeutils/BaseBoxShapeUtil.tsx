@@ -1,7 +1,7 @@
 import { Box2d, linesIntersect, pointInPolygon, Vec2d, VecLike } from '@tldraw/primitives'
 import { TLBaseShape } from '@tldraw/tlschema'
+import { resizeBox } from '../shapes/shared/resizeBox'
 import { ShapeUtil, TLOnResizeHandler } from './ShapeUtil'
-import { resizeBox } from './shared/resizeBox'
 
 /** @public */
 export type TLBaseBoxShape = TLBaseShape<string, { w: number; h: number }>

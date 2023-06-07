@@ -1,11 +1,7 @@
 import { VecLike } from '@tldraw/primitives'
 import React from 'react'
-import {
-	ShapeFill,
-	getShapeFillSvg,
-	getSvgWithShapeFill,
-} from '../../../../shapeutils/shared/ShapeFill'
-import { TLExportColors } from '../../../../shapeutils/shared/TLExportColors'
+import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../../shared/ShapeFill'
+import { TLExportColors } from '../../../shared/TLExportColors'
 import { TLGeoShape } from '../../geoShapeTypes'
 
 export const SolidStylePolygon = React.memo(function SolidStylePolygon({

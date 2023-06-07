@@ -5,13 +5,13 @@ import { SVGContainer } from '../../../../components/SVGContainer'
 import { FONT_SIZES } from '../../../../constants'
 import { getSvgPathFromStrokePoints } from '../../../../utils/svg'
 import { ShapeUtil, TLOnResizeHandler } from '../../../shapeutils/ShapeUtil'
-import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
-import { useForceSolid } from '../../../shapeutils/shared/useForceSolid'
 import { TLDrawShapeSegment } from '../../DrawShape/drawShapeTypes'
 import {
 	getHighlightFreehandSettings,
 	getPointsFromSegments,
 } from '../../DrawShape/DrawShapeUtil/getPath'
+import { TLExportColors } from '../../shared/TLExportColors'
+import { useForceSolid } from '../../shared/useForceSolid'
 import { TLHighlightShape } from '../highlightShapeTypes'
 
 const OVERLAY_OPACITY = 0.35

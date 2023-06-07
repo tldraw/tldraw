@@ -33,10 +33,10 @@ import {
 	TLOnTranslateStartHandler,
 	TLShapeUtilFlag,
 } from '../../../shapeutils/ShapeUtil'
-import { ShapeFill, getShapeFillSvg } from '../../../shapeutils/shared/ShapeFill'
-import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
-import { createTextSvgElementFromSpans } from '../../../shapeutils/shared/createTextSvgElementFromSpans'
-import { getPerfectDashProps } from '../../../shapeutils/shared/getPerfectDashProps'
+import { ShapeFill, getShapeFillSvg } from '../../shared/ShapeFill'
+import { TLExportColors } from '../../shared/TLExportColors'
+import { createTextSvgElementFromSpans } from '../../shared/createTextSvgElementFromSpans'
+import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import { ARROW_LABEL_FONT_SIZES } from '../arrowConstants'
 import { TLArrowShape } from '../arrowShapeTypes'
 import { ArrowInfo } from './arrow/arrow-types'

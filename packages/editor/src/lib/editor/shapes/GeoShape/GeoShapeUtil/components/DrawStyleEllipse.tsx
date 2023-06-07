@@ -12,12 +12,8 @@ import { TLShapeId } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
 import React from 'react'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../../utils/svg'
-import {
-	ShapeFill,
-	getShapeFillSvg,
-	getSvgWithShapeFill,
-} from '../../../../shapeutils/shared/ShapeFill'
-import { TLExportColors } from '../../../../shapeutils/shared/TLExportColors'
+import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../../shared/ShapeFill'
+import { TLExportColors } from '../../../shared/TLExportColors'
 import { TLGeoShape } from '../../geoShapeTypes'
 
 export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({

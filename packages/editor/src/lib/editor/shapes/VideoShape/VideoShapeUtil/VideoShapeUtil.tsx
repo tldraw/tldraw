@@ -6,7 +6,7 @@ import { HTMLContainer } from '../../../../components/HTMLContainer'
 import { useIsEditing } from '../../../../hooks/useIsEditing'
 import { usePrefersReducedMotion } from '../../../../utils/dom'
 import { BaseBoxShapeUtil } from '../../../shapeutils/BaseBoxShapeUtil'
-import { HyperlinkButton } from '../../../shapeutils/shared/HyperlinkButton'
+import { HyperlinkButton } from '../../shared/HyperlinkButton'
 import { TLVideoShape } from '../videoShapeTypes'
 
 /** @public */

@@ -14,7 +14,7 @@ import {
 } from '../../../../utils/dom'
 import { BaseBoxShapeUtil } from '../../../shapeutils/BaseBoxShapeUtil'
 import { TLOnBeforeCreateHandler, TLOnBeforeUpdateHandler } from '../../../shapeutils/ShapeUtil'
-import { HyperlinkButton } from '../../../shapeutils/shared/HyperlinkButton'
+import { HyperlinkButton } from '../../shared/HyperlinkButton'
 import { TLBookmarkShape } from '../bookmarkShapeTypes'
 
 /** @public */

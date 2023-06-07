@@ -5,8 +5,8 @@ import { TLHandle, TLShape, TLShapePartial, TLUnknownShape, Vec2dModel } from '@
 import { computed, EMPTY_ARRAY } from 'signia'
 import { WeakMapCache } from '../../utils/WeakMapCache'
 import type { Editor } from '../Editor'
+import { TLExportColors } from '../shapes/shared/TLExportColors'
 import { TLResizeHandle } from '../types/selection-types'
-import { TLExportColors } from './shared/TLExportColors'
 
 const points = new WeakMapCache<TLShape, Vec2dModel>()
 const transforms = new WeakMapCache<TLShape, Matrix2d>()
@@ -342,7 +342,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	toBackgroundSvg?(
 		shape: T,
 		font: string | undefined,
-		colors: TLExportColors
+		colors: TLExportColors // todo: remove this
 	): SVGElement | Promise<SVGElement> | null
 
 	/**

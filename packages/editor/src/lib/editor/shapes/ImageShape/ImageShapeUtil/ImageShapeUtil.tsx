@@ -10,7 +10,7 @@ import { useIsCropping } from '../../../../hooks/useIsCropping'
 import { usePrefersReducedMotion } from '../../../../utils/dom'
 import { BaseBoxShapeUtil } from '../../../shapeutils/BaseBoxShapeUtil'
 import { TLOnDoubleClickHandler } from '../../../shapeutils/ShapeUtil'
-import { HyperlinkButton } from '../../../shapeutils/shared/HyperlinkButton'
+import { HyperlinkButton } from '../../shared/HyperlinkButton'
 import { TLImageShape } from '../imageShapeTypes'
 
 const loadImage = async (url: string): Promise<HTMLImageElement> => {

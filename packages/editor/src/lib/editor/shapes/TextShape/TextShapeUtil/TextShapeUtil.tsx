@@ -11,13 +11,13 @@ import {
 	TLOnResizeHandler,
 	TLShapeUtilFlag,
 } from '../../../shapeutils/ShapeUtil'
-import { createTextSvgElementFromSpans } from '../../../shapeutils/shared/createTextSvgElementFromSpans'
-import { resizeScaled } from '../../../shapeutils/shared/resizeScaled'
-import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
-import { useEditableText } from '../../../shapeutils/shared/useEditableText'
+import { createTextSvgElementFromSpans } from '../../shared/createTextSvgElementFromSpans'
+import { resizeScaled } from '../../shared/resizeScaled'
+import { TLExportColors } from '../../shared/TLExportColors'
+import { useEditableText } from '../../shared/useEditableText'
 import { TLTextShape } from '../textShapeTypes'
 
-export { INDENT } from '../../../shapeutils/shared/TextHelpers'
+export { INDENT } from '../../shared/TextHelpers'
 
 const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width: number }>()
 

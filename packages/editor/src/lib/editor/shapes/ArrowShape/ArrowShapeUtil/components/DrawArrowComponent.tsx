@@ -1,6 +1,6 @@
 import { CubicSpline2d, getStroke, Polyline2d } from '@tldraw/primitives'
 import { getSvgPathFromStroke } from '../../../../../utils/svg'
-import { getDrawStrokeInfo } from '../../../../shapeutils/shared/getDrawStrokeInfo'
+import { getDrawStrokeInfo } from '../../../shared/getDrawStrokeInfo'
 
 export function DrawArrowComponent({
 	strokeWidth,

@@ -1,6 +1,6 @@
 import { CubicSegment2d, LineSegment2d } from '@tldraw/primitives'
 import { TLDashType } from '@tldraw/tlschema'
-import { getPerfectDashProps } from '../../../../shapeutils/shared/getPerfectDashProps'
+import { getPerfectDashProps } from '../../../shared/getPerfectDashProps'
 
 export interface SegmentProps {
 	strokeWidth: number
