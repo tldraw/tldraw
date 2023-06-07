@@ -50,6 +50,10 @@ export function setAllVersions(version: string) {
 			path.join(packageDetails.dir, 'package.json'),
 			JSON.stringify(manifest, null, '\t') + '\n'
 		)
+		if (manifest.name === '@tldraw/ui' || manifest.name === '@tldraw/editor') {
+			const versionFileContents = `export const version = '${version}'\n`
+			writeFileSync(path.join(packageDetails.dir, 'src', 'version.ts'), versionFileContents)
+		}
 	}
 
 	const lernaJson = JSON.parse(readFileSync('lerna.json', 'utf8'))
