@@ -1,10 +1,10 @@
+import { groupShape } from '../editor/shapes/GroupShape/groupShape'
 import { ArrowShapeUtil } from '../editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
 import { BookmarkShapeUtil } from '../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 import { DrawShapeUtil } from '../editor/shapeutils/DrawShapeUtil/DrawShapeUtil'
 import { EmbedShapeUtil } from '../editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
 import { FrameShapeUtil } from '../editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
 import { GeoShapeUtil } from '../editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
-import { GroupShapeUtil } from '../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 import { HighlightShapeUtil } from '../editor/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
 import { ImageShapeUtil } from '../editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
 import { LineShapeUtil } from '../editor/shapeutils/LineShapeUtil/LineShapeUtil'
@@ -16,9 +16,7 @@ import { TLShapeInfo } from './createTLStore'
 /** @public */
 export const coreShapes: Record<string, TLShapeInfo> = {
 	// created by grouping interactions, probably the corest core shape that we have
-	group: {
-		util: GroupShapeUtil,
-	},
+	group: groupShape,
 	// created by embed menu / url drop
 	embed: {
 		util: EmbedShapeUtil,
