@@ -1,6 +1,6 @@
 import { Vec2d } from '@tldraw/primitives'
 import { createShapeId } from '@tldraw/tlschema'
-import { TestEditor } from '../TestEditor'
+import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
 

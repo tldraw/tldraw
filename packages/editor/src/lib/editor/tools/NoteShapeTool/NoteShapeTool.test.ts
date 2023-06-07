@@ -1,5 +1,5 @@
-import { NoteShapeTool } from '../../editor/tools/NoteShapeTool/NoteShapeTool'
-import { TestEditor } from '../TestEditor'
+import { TestEditor } from '../../../test/TestEditor'
+import { NoteShapeTool } from './NoteShapeTool'
 
 let editor: TestEditor
 
