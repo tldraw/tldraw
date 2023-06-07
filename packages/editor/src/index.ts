@@ -81,6 +81,7 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export { GroupShapeUtil } from './lib/editor/shapes/GroupShape/GroupShapeUtil/GroupShapeUtil'
 export { ArrowShapeUtil } from './lib/editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
 export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
@@ -88,7 +89,6 @@ export { DrawShapeUtil } from './lib/editor/shapeutils/DrawShapeUtil/DrawShapeUt
 export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
 export { FrameShapeUtil } from './lib/editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
 export { GeoShapeUtil } from './lib/editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
-export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 export { HighlightShapeUtil } from './lib/editor/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
 export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
 export {

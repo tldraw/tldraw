@@ -1,8 +1,8 @@
 import { Box2d, Matrix2d } from '@tldraw/primitives'
 import { TLGroupShape, Vec2dModel } from '@tldraw/tlschema'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { ShapeUtil, TLOnChildrenChangeHandler } from '../ShapeUtil'
-import { DashedOutlineBox } from '../shared/DashedOutlineBox'
+import { SVGContainer } from '../../../../components/SVGContainer'
+import { ShapeUtil, TLOnChildrenChangeHandler } from '../../../shapeutils/ShapeUtil'
+import { DashedOutlineBox } from '../../../shapeutils/shared/DashedOutlineBox'
 
 /** @public */
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
