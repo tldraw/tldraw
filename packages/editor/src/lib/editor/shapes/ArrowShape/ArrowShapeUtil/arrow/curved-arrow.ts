@@ -13,12 +13,12 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
+import { Editor } from '../../../../Editor'
 import {
 	BOUND_ARROW_OFFSET,
 	MIN_ARROW_LENGTH,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
-} from '../../../../../constants'
-import { Editor } from '../../../../Editor'
+} from '../../arrowConstants'
 import { TLArrowShape } from '../../arrowShapeTypes'
 import { ArcInfo, ArrowInfo } from './arrow-types'
 import { getArrowTerminalsInArrowSpace, getBoundShapeInfoForTerminal } from './shared'

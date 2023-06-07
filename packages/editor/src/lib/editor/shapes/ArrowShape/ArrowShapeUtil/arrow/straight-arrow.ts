@@ -7,8 +7,8 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH } from '../../../../../constants'
 import { Editor } from '../../../../Editor'
+import { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH } from '../../arrowConstants'
 import { TLArrowShape } from '../../arrowShapeTypes'
 import { ArrowInfo } from './arrow-types'
 import {
