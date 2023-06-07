@@ -24,7 +24,7 @@ import { deepCopy, last, minBy } from '@tldraw/utils'
 import React from 'react'
 import { EMPTY_ARRAY, computed } from 'signia'
 import { SVGContainer } from '../../../../components/SVGContainer'
-import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../../constants'
+import { FONT_FAMILIES, TEXT_PROPS } from '../../../../constants'
 import {
 	ShapeUtil,
 	TLOnEditEndHandler,
@@ -37,6 +37,7 @@ import { ShapeFill, getShapeFillSvg } from '../../../shapeutils/shared/ShapeFill
 import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
 import { createTextSvgElementFromSpans } from '../../../shapeutils/shared/createTextSvgElementFromSpans'
 import { getPerfectDashProps } from '../../../shapeutils/shared/getPerfectDashProps'
+import { ARROW_LABEL_FONT_SIZES } from '../arrowConstants'
 import { TLArrowShape } from '../arrowShapeTypes'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
@@ -57,7 +58,7 @@ let globalRenderIndex = 0
 
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
-	static override type = 'arrow'
+	static override type = 'arrow' as const
 
 	override canEdit = () => true
 	override canBind = () => false

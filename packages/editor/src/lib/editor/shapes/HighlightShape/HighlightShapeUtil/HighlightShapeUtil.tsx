@@ -19,7 +19,7 @@ const UNDERLAY_OPACITY = 0.82
 
 /** @public */
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
-	static type = 'highlight'
+	static type = 'highlight' as const
 
 	hideResizeHandles = (shape: TLHighlightShape) => getIsDot(shape)
 	hideRotateHandle = (shape: TLHighlightShape) => getIsDot(shape)

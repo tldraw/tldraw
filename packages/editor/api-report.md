@@ -107,8 +107,13 @@ export const ANIMATION_SHORT_MS = 80;
 export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
-export const arrowShape: TLShapeInfo & {
-    tool?: TLStateNodeConstructor;
+export const arrowShape: {
+    util: TLShapeUtilConstructor<TLArrowShape, ShapeUtil<TLArrowShape>>;
+    tool?: TLStateNodeConstructor | undefined;
+    migrations?: Migrations | undefined;
+    validator?: {
+        validate: (shape: TLArrowShape) => TLArrowShape;
+    } | undefined;
 };
 
 // @public (undocumented)
@@ -170,7 +175,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     toSvg(shape: TLArrowShape, font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "arrow";
 }
 
 // @public (undocumented)
@@ -333,8 +338,13 @@ export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
 export const DRAG_DISTANCE = 4;
 
 // @public (undocumented)
-export const drawShape: TLShapeInfo & {
-    tool?: TLStateNodeConstructor;
+export const drawShape: {
+    util: TLShapeUtilConstructor<TLDrawShape, ShapeUtil<TLDrawShape>>;
+    tool?: TLStateNodeConstructor | undefined;
+    migrations?: Migrations | undefined;
+    validator?: {
+        validate: (shape: TLDrawShape) => TLDrawShape;
+    } | undefined;
 };
 
 // @public (undocumented)
@@ -372,7 +382,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "draw";
 }
 
 // @public (undocumented)
@@ -1152,8 +1162,13 @@ export function hardResetEditor(): void;
 export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
 
 // @public (undocumented)
-export const highlightShape: TLShapeInfo & {
-    tool?: TLStateNodeConstructor;
+export const highlightShape: {
+    util: TLShapeUtilConstructor<TLHighlightShape, ShapeUtil<TLHighlightShape>>;
+    tool?: TLStateNodeConstructor | undefined;
+    migrations?: Migrations | undefined;
+    validator?: {
+        validate: (shape: TLHighlightShape) => TLHighlightShape;
+    } | undefined;
 };
 
 // @public (undocumented)
@@ -1193,7 +1208,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     toSvg(shape: TLHighlightShape, _font: string | undefined, colors: TLExportColors): SVGPathElement;
     // (undocumented)
-    static type: string;
+    static type: "highlight";
 }
 
 // @public (undocumented)
