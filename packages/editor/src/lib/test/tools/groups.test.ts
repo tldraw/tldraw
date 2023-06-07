@@ -10,9 +10,9 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
-import { ArrowShapeUtil } from '../../editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+import { ArrowShapeUtil } from '../../..'
+import { ArrowShapeTool } from '../../editor/shapes/ArrowShape/ArrowShapeTool/ArrowShapeTool'
 import { GroupShapeUtil } from '../../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
-import { ArrowShapeTool } from '../../editor/tools/ArrowShapeTool/ArrowShapeTool'
 import { DrawShapeTool } from '../../editor/tools/DrawShapeTool/DrawShapeTool'
 import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
 import { LineShapeTool } from '../../editor/tools/LineShapeTool/LineShapeTool'

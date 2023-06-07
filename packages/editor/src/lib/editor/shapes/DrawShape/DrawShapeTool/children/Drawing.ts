@@ -8,13 +8,12 @@ import {
 	Vec2dModel,
 } from '@tldraw/tlschema'
 import { last, structuredClone } from '@tldraw/utils'
-import { DRAG_DISTANCE } from '../../../../constants'
-import { uniqueId } from '../../../../utils/data'
-import { DrawShapeUtil } from '../../../shapeutils/DrawShapeUtil/DrawShapeUtil'
-import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
-
-import { HighlightShapeUtil } from '../../../shapeutils/HighlightShapeUtil/HighlightShapeUtil'
-import { StateNode } from '../../StateNode'
+import { DRAG_DISTANCE } from '../../../../../constants'
+import { uniqueId } from '../../../../../utils/data'
+import { HighlightShapeUtil } from '../../../../shapeutils/HighlightShapeUtil/HighlightShapeUtil'
+import { StateNode } from '../../../../tools/StateNode'
+import { TLEventHandlers, TLPointerEventInfo } from '../../../../types/event-types'
+import { DrawShapeUtil } from '../../DrawShapeUtil/DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 

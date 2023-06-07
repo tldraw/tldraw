@@ -1,19 +1,19 @@
 import {
 	Box2d,
+	Matrix2d,
+	Vec2d,
+	VecLike,
 	getPointOnCircle,
 	linesIntersect,
 	longAngleDist,
-	Matrix2d,
 	pointInPolygon,
 	shortAngleDist,
 	toDomPrecision,
-	Vec2d,
-	VecLike,
 } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
 import {
-	TLArrowheadType,
 	TLArrowShape,
+	TLArrowheadType,
 	TLColorType,
 	TLFillType,
 	TLHandle,
@@ -22,10 +22,10 @@ import {
 	Vec2dModel,
 } from '@tldraw/tlschema'
 import { deepCopy, last, minBy } from '@tldraw/utils'
-import * as React from 'react'
-import { computed, EMPTY_ARRAY } from 'signia'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
+import React from 'react'
+import { EMPTY_ARRAY, computed } from 'signia'
+import { SVGContainer } from '../../../../components/SVGContainer'
+import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../../constants'
 import {
 	ShapeUtil,
 	TLOnEditEndHandler,
@@ -33,11 +33,11 @@ import {
 	TLOnResizeHandler,
 	TLOnTranslateStartHandler,
 	TLShapeUtilFlag,
-} from '../ShapeUtil'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
-import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
+} from '../../../shapeutils/ShapeUtil'
+import { ShapeFill, getShapeFillSvg } from '../../../shapeutils/shared/ShapeFill'
+import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
+import { createTextSvgElementFromSpans } from '../../../shapeutils/shared/createTextSvgElementFromSpans'
+import { getPerfectDashProps } from '../../../shapeutils/shared/getPerfectDashProps'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
 import {

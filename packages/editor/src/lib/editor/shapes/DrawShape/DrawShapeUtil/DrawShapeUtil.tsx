@@ -1,23 +1,24 @@
 /* eslint-disable react-hooks/rules-of-hooks */
+
 import {
 	Box2d,
+	Vec2d,
+	VecLike,
 	getStrokeOutlinePoints,
 	getStrokePoints,
 	linesIntersect,
 	pointInPolygon,
 	setStrokePointRadii,
 	toFixed,
-	Vec2d,
-	VecLike,
 } from '@tldraw/primitives'
 import { TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
-import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
-import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
-import { useForceSolid } from '../shared/useForceSolid'
+import { SVGContainer } from '../../../../components/SVGContainer'
+import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
+import { ShapeUtil, TLOnResizeHandler } from '../../../shapeutils/ShapeUtil'
+import { ShapeFill, getShapeFillSvg } from '../../../shapeutils/shared/ShapeFill'
+import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
+import { useForceSolid } from '../../../shapeutils/shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
 /** @public */

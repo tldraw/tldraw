@@ -1,7 +1,7 @@
 import { createShapeId, TLArrowShape } from '@tldraw/tlschema'
-import { ArrowShapeUtil } from '../../../shapeutils/ArrowShapeUtil/ArrowShapeUtil'
-import { TLEventHandlers } from '../../../types/event-types'
-import { StateNode } from '../../StateNode'
+import { StateNode } from '../../../../tools/StateNode'
+import { TLEventHandlers } from '../../../../types/event-types'
+import { ArrowShapeUtil } from '../../ArrowShapeUtil/ArrowShapeUtil'
 import { ArrowShapeTool } from '../ArrowShapeTool'
 
 export class Pointing extends StateNode {

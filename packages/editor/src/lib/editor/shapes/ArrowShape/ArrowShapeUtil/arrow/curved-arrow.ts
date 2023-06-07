@@ -18,8 +18,8 @@ import {
 	BOUND_ARROW_OFFSET,
 	MIN_ARROW_LENGTH,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
-} from '../../../../constants'
-import type { Editor } from '../../../Editor'
+} from '../../../../../constants'
+import { Editor } from '../../../../Editor'
 import { ArcInfo, ArrowInfo } from './arrow-types'
 import { getArrowTerminalsInArrowSpace, getBoundShapeInfoForTerminal } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'

@@ -1,11 +1,11 @@
-import { TLEventHandlers } from '../../../types/event-types'
-import { StateNode } from '../../StateNode'
+import { StateNode } from '../../../../tools/StateNode'
+import { TLEventHandlers } from '../../../../types/event-types'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
 	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		this.parent.transition('pointing', info)
+		this.parent.transition('drawing', info)
 	}
 
 	onEnter = () => {

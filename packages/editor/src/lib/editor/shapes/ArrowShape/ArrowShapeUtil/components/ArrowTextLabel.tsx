@@ -1,10 +1,10 @@
 import { VecLike } from '@tldraw/primitives'
 import { TLArrowShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
-import { ARROW_LABEL_FONT_SIZES, TEXT_PROPS } from '../../../../constants'
-import { stopEventPropagation } from '../../../../utils/dom'
-import { TextHelpers } from '../../TextShapeUtil/TextHelpers'
-import { useEditableText } from '../../shared/useEditableText'
+import { ARROW_LABEL_FONT_SIZES, TEXT_PROPS } from '../../../../../constants'
+import { stopEventPropagation } from '../../../../../utils/dom'
+import { TextHelpers } from '../../../../shapeutils/TextShapeUtil/TextHelpers'
+import { useEditableText } from '../../../../shapeutils/shared/useEditableText'
 
 export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	id,

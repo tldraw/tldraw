@@ -1,6 +1,5 @@
 import { TLStyleType } from '@tldraw/tlschema'
-import { StateNode } from '../StateNode'
-
+import { StateNode } from '../../../tools/StateNode'
 import { Drawing } from './children/Drawing'
 import { Idle } from './children/Idle'
 

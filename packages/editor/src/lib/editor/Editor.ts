@@ -121,13 +121,13 @@ import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { ArrowShapeUtil } from './shapeutils/ArrowShapeUtil/ArrowShapeUtil'
-import { getCurvedArrowInfo } from './shapeutils/ArrowShapeUtil/arrow/curved-arrow'
+import { ArrowShapeUtil } from './shapes/ArrowShape/ArrowShapeUtil/ArrowShapeUtil'
+import { getCurvedArrowInfo } from './shapes/ArrowShape/ArrowShapeUtil/arrow/curved-arrow'
 import {
 	getArrowTerminalsInArrowSpace,
 	getIsArrowStraight,
-} from './shapeutils/ArrowShapeUtil/arrow/shared'
-import { getStraightArrowInfo } from './shapeutils/ArrowShapeUtil/arrow/straight-arrow'
+} from './shapes/ArrowShape/ArrowShapeUtil/arrow/shared'
+import { getStraightArrowInfo } from './shapes/ArrowShape/ArrowShapeUtil/arrow/straight-arrow'
 import { FrameShapeUtil } from './shapeutils/FrameShapeUtil/FrameShapeUtil'
 import { GroupShapeUtil } from './shapeutils/GroupShapeUtil/GroupShapeUtil'
 import { ShapeUtil, TLResizeMode } from './shapeutils/ShapeUtil'
