@@ -8,6 +8,7 @@ import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLShapeInfo } from './config/createTLStore'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
+import { TLCreateShapeFromSourceInfo } from './editor/types/shape-create-types'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -62,6 +63,14 @@ export type TldrawEditorProps = {
 	 * @param editor - The editor instance.
 	 */
 	onMount?: (editor: Editor) => void
+
+	/**
+	 * Called when the editor has some data that might lead to creating a shape, such as when a user drops an image onto the canvas.
+	 *
+	 * @param info - The info associated with the source.
+	 */
+	onCreateShapeFromSource?: (info: TLCreateShapeFromSourceInfo) => Promise<void>
+
 	/**
 	 * Called when the editor generates a new asset from a file, such as when an image is dropped into
 	 * the canvas.
@@ -235,6 +244,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 function TldrawEditorWithReadyStore({
 	onMount,
 	children,
+	onCreateShapeFromSource,
 	onCreateAssetFromFile,
 	onCreateBookmarkFromUrl,
 	store,
@@ -265,6 +275,10 @@ function TldrawEditorWithReadyStore({
 
 	React.useEffect(() => {
 		if (!editor) return
+		// Overwrite the default onCreateShapeFromSource handler.
+		if (onCreateShapeFromSource) {
+			editor.onCreateShapeFromSource = onCreateShapeFromSource
+		}
 
 		// Overwrite the default onCreateAssetFromFile handler.
 		if (onCreateAssetFromFile) {
@@ -274,7 +288,7 @@ function TldrawEditorWithReadyStore({
 		if (onCreateBookmarkFromUrl) {
 			editor.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
 		}
-	}, [editor, onCreateAssetFromFile, onCreateBookmarkFromUrl])
+	}, [editor, onCreateAssetFromFile, onCreateShapeFromSource, onCreateBookmarkFromUrl])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()

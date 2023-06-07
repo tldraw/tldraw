@@ -1,11 +1,11 @@
 import { createShapeId } from '@tldraw/tlschema'
 import { Editor } from '../../editor/Editor'
-import { TLCreateShapeFromInteractionInfo } from '../../editor/types/shape-create-types'
+import { TLCreateShapeFromSourceInfo } from '../../editor/types/shape-create-types'
 
 /** @internal */
 export async function plopSvgText(
 	editor: Editor,
-	{ point, text }: Extract<TLCreateShapeFromInteractionInfo, { type: 'svg-text' }>
+	{ point, text }: Extract<TLCreateShapeFromSourceInfo, { type: 'svg-text' }>
 ) {
 	const position =
 		point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)

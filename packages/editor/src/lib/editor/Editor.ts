@@ -145,7 +145,7 @@ import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
 import { RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
-import { TLCreateShapeFromInteractionInfo } from './types/shape-create-types'
+import { TLCreateShapeFromSourceInfo } from './types/shape-create-types'
 
 /** @public */
 export type TLAnimationOptions = Partial<{
@@ -8891,7 +8891,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param info - Info about the source that may lead to the new shapes.
 	 */
-	async onCreateShapeFromSource(info: TLCreateShapeFromInteractionInfo): Promise<void> {
+	async onCreateShapeFromSource(info: TLCreateShapeFromSourceInfo): Promise<void> {
 		switch (info.type) {
 			case 'text': {
 				return await plopText(this, info)

@@ -2,7 +2,7 @@ import { createShapeId } from '@tldraw/tlschema'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../constants'
 import { Editor } from '../../editor/Editor'
 import { INDENT, TextShapeUtil } from '../../editor/shapeutils/TextShapeUtil/TextShapeUtil'
-import { TLCreateShapeFromInteractionInfo } from '../../editor/types/shape-create-types'
+import { TLCreateShapeFromSourceInfo } from '../../editor/types/shape-create-types'
 
 const rtlRegex = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/
 
@@ -52,7 +52,7 @@ function stripTrailingWhitespace(text: string): string {
 /** @internal */
 export async function plopText(
 	editor: Editor,
-	{ point, text }: Extract<TLCreateShapeFromInteractionInfo, { type: 'text' }>
+	{ point, text }: Extract<TLCreateShapeFromSourceInfo, { type: 'text' }>
 ) {
 	const p =
 		point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)

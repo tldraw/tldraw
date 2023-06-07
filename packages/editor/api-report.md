@@ -604,7 +604,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         title: string;
         description: string;
     }>;
-    onCreateShapeFromSource(info: TLCreateShapeFromInteractionInfo): Promise<void>;
+    onCreateShapeFromSource(info: TLCreateShapeFromSourceInfo): Promise<void>;
     get onlySelectedShape(): null | TLShape;
     // (undocumented)
     get opacity(): null | number;
@@ -2161,6 +2161,31 @@ export interface TLContent {
 export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 
 // @public (undocumented)
+export type TLCreateShapeFromSourceInfo = {
+    type: 'embed';
+    url: string;
+    point?: VecLike;
+    embed: EmbedDefinition;
+} | {
+    type: 'files';
+    files: File[];
+    point?: VecLike;
+    ignoreParent: boolean;
+} | {
+    type: 'svg-text';
+    text: string;
+    point?: VecLike;
+} | {
+    type: 'text';
+    point?: VecLike;
+    text: string;
+} | {
+    type: 'url';
+    url: string;
+    point?: VecLike;
+};
+
+// @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public (undocumented)
@@ -2172,6 +2197,7 @@ export type TldrawEditorProps = {
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
     onMount?: (editor: Editor) => void;
+    onCreateShapeFromSource?: (info: TLCreateShapeFromSourceInfo) => Promise<void>;
     onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
     onCreateBookmarkFromUrl?: (url: string) => Promise<{
         image: string;

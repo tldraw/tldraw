@@ -169,6 +169,7 @@ export {
 } from './lib/editor/types/history-types'
 export { type RequiredKeys } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
+export { type TLCreateShapeFromSourceInfo } from './lib/editor/types/shape-create-types'
 export { normalizeWheel } from './lib/hooks/shared'
 export { useContainer } from './lib/hooks/useContainer'
 export { useEditor } from './lib/hooks/useEditor'

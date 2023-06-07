@@ -1,13 +1,13 @@
 import { AssetRecordType, TLAssetId, TLBookmarkAsset, createShapeId } from '@tldraw/tlschema'
 import { getHashForString } from '@tldraw/utils'
 import { Editor } from '../../editor/Editor'
-import { TLCreateShapeFromInteractionInfo } from '../../editor/types/shape-create-types'
+import { TLCreateShapeFromSourceInfo } from '../../editor/types/shape-create-types'
 import { getEmbedInfo } from '../embeds'
 
 /** @internal */
 export async function plopUrl(
 	editor: Editor,
-	{ point, url }: Extract<TLCreateShapeFromInteractionInfo, { type: 'url' }>
+	{ point, url }: Extract<TLCreateShapeFromSourceInfo, { type: 'url' }>
 ) {
 	// try to paste as an embed first
 	const embedInfo = getEmbedInfo(url)

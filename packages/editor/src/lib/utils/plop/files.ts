@@ -8,13 +8,13 @@ import {
 } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
 import { Editor } from '../../editor/Editor'
-import { TLCreateShapeFromInteractionInfo } from '../../editor/types/shape-create-types'
+import { TLCreateShapeFromSourceInfo } from '../../editor/types/shape-create-types'
 import { ACCEPTED_IMG_TYPE, ACCEPTED_VID_TYPE } from '../assets'
 
 /** @internal */
 export async function plopFiles(
 	editor: Editor,
-	{ point, files }: Extract<TLCreateShapeFromInteractionInfo, { type: 'files' }>
+	{ point, files }: Extract<TLCreateShapeFromSourceInfo, { type: 'files' }>
 ) {
 	const position =
 		point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)

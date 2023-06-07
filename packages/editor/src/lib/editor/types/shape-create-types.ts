@@ -1,7 +1,8 @@
 import { VecLike } from '@tldraw/primitives'
 import { EmbedDefinition } from '@tldraw/tlschema'
 
-export type TLCreateShapeFromInteractionInfo =
+/** @public */
+export type TLCreateShapeFromSourceInfo =
 	| {
 			type: 'text'
 			point?: VecLike
