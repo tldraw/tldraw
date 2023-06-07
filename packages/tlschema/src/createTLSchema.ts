@@ -14,7 +14,6 @@ import { TLShape, rootShapeMigrations } from './records/TLShape'
 import { bookmarkShapeMigrations, bookmarkShapeValidator } from './shapes/TLBookmarkShape'
 import { embedShapeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
 import { frameShapeMigrations, frameShapeValidator } from './shapes/TLFrameShape'
-import { geoShapeMigrations, geoShapeValidator } from './shapes/TLGeoShape'
 import { groupShapeMigrations, groupShapeValidator } from './shapes/TLGroupShape'
 import { imageShapeMigrations, imageShapeValidator } from './shapes/TLImageShape'
 import { lineShapeMigrations, lineShapeValidator } from './shapes/TLLineShape'
@@ -60,10 +59,6 @@ const defaultShapes: Record<string, SchemaShapeInfo> = {
 	frame: {
 		migrations: frameShapeMigrations,
 		validator: frameShapeValidator,
-	},
-	geo: {
-		migrations: geoShapeMigrations,
-		validator: geoShapeValidator,
 	},
 	line: {
 		migrations: lineShapeMigrations,

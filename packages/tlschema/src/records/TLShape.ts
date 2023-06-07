@@ -4,7 +4,6 @@ import { TLBaseShape } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
 import { TLFrameShape } from '../shapes/TLFrameShape'
-import { TLGeoShape } from '../shapes/TLGeoShape'
 import { TLGroupShape } from '../shapes/TLGroupShape'
 import { TLIconShape } from '../shapes/TLIconShape'
 import { TLImageShape } from '../shapes/TLImageShape'
@@ -22,7 +21,6 @@ export type TLDefaultShape =
 	| TLBookmarkShape
 	| TLEmbedShape
 	| TLFrameShape
-	| TLGeoShape
 	| TLGroupShape
 	| TLImageShape
 	| TLLineShape

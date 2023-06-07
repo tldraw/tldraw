@@ -1,7 +1,11 @@
-import { TLGeoShape } from '@tldraw/tlschema'
-import * as React from 'react'
-import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import React from 'react'
+import {
+	ShapeFill,
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+} from '../../../../shapeutils/shared/ShapeFill'
+import { TLExportColors } from '../../../../shapeutils/shared/TLExportColors'
+import { TLGeoShape } from '../../geoShapeTypes'
 
 export const SolidStyleOval = React.memo(function SolidStyleOval({
 	w,

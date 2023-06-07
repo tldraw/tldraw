@@ -83,7 +83,6 @@ export {
 	type TLEmbedShapePermissions,
 } from './shapes/TLEmbedShape'
 export { type TLFrameShape } from './shapes/TLFrameShape'
-export { type TLGeoShape } from './shapes/TLGeoShape'
 export { type TLGroupShape } from './shapes/TLGroupShape'
 export { type TLIconShape } from './shapes/TLIconShape'
 export { type TLImageCrop, type TLImageShape, type TLImageShapeProps } from './shapes/TLImageShape'

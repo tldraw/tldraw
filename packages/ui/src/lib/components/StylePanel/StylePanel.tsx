@@ -1,4 +1,10 @@
-import { Editor, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
+import {
+	Editor,
+	TLGeoShapeProps,
+	TLNullableShapeProps,
+	TLStyleItem,
+	useEditor,
+} from '@tldraw/editor'
 import React, { useCallback } from 'react'
 
 import { minBy } from '@tldraw/utils'
@@ -76,7 +82,7 @@ function CommonStylePickerSet({
 	props,
 	opacity,
 }: {
-	props: TLNullableShapeProps
+	props: any // @todo
 	opacity: number | null
 }) {
 	const editor = useEditor()
@@ -233,7 +239,7 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	)
 }
 
-function GeoStylePickerSet({ props }: { props: TLNullableShapeProps }) {
+function GeoStylePickerSet({ props }: { props: TLGeoShapeProps }) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const { geo } = props

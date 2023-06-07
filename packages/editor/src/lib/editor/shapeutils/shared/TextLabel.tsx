@@ -1,8 +1,8 @@
 import {
 	TLAlignType,
+	TLBaseShape,
 	TLFillType,
 	TLFontType,
-	TLShape,
 	TLSizeType,
 	TLVerticalAlignType,
 } from '@tldraw/tlschema'
@@ -14,7 +14,7 @@ import { TextHelpers } from '../TextShapeUtil/TextHelpers'
 import { useEditableText } from './useEditableText'
 
 export const TextLabel = React.memo(function TextLabel<
-	T extends Extract<TLShape, { props: { text: string } }>
+	T extends TLBaseShape<any, { props: { text: string } }>
 >({
 	id,
 	type,

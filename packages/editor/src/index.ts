@@ -45,8 +45,6 @@ export { defaultTools } from './lib/config/defaultTools'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,
-	ARROW_LABEL_FONT_SIZES,
-	BOUND_ARROW_OFFSET,
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_BOOKMARK_HEIGHT,
 	DEFAULT_BOOKMARK_WIDTH,
@@ -68,7 +66,6 @@ export {
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
 	MINOR_NUDGE_FACTOR,
-	MIN_ARROW_LENGTH,
 	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
 	REMOVE_SYMBOL,
@@ -77,7 +74,6 @@ export {
 	STYLES,
 	SVG_PADDING,
 	TEXT_PROPS,
-	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
@@ -93,6 +89,9 @@ export {
 	type TLDrawShape,
 	type TLDrawShapeProps,
 } from './lib/editor/shapes/DrawShape/drawShapeTypes'
+export { GeoShapeUtil } from './lib/editor/shapes/GeoShape/GeoShapeUtil/GeoShapeUtil'
+export { geoShape } from './lib/editor/shapes/GeoShape/geoShape'
+export { type TLGeoShape, type TLGeoShapeProps } from './lib/editor/shapes/GeoShape/geoShapeTypes'
 export { HighlightShapeUtil } from './lib/editor/shapes/HighlightShape/HighlightShapeUtil/HighlightShapeUtil'
 export { highlightShape } from './lib/editor/shapes/HighlightShape/highlightShape'
 export {
@@ -103,7 +102,6 @@ export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/B
 export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
 export { FrameShapeUtil } from './lib/editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
-export { GeoShapeUtil } from './lib/editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
 export {

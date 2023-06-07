@@ -52,7 +52,7 @@ import { TLEmbedShape } from '@tldraw/tlschema';
 import { TLFillType } from '@tldraw/tlschema';
 import { TLFontType } from '@tldraw/tlschema';
 import { TLFrameShape } from '@tldraw/tlschema';
-import { TLGeoShape } from '@tldraw/tlschema';
+import { TLGeoType } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
@@ -71,7 +71,6 @@ import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
-import { TLShapeProp } from '@tldraw/tlschema';
 import { TLShapeProps } from '@tldraw/tlschema';
 import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
@@ -81,6 +80,7 @@ import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
 import { TLTextShapeProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
+import { TLVerticalAlignType } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
@@ -102,9 +102,6 @@ export const ANIMATION_MEDIUM_MS = 320;
 
 // @internal (undocumented)
 export const ANIMATION_SHORT_MS = 80;
-
-// @public (undocumented)
-export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
 export const arrowShape: {
@@ -237,9 +234,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
         cancel(): void;
     };
 }
-
-// @internal (undocumented)
-export const BOUND_ARROW_OFFSET = 10;
 
 // @public (undocumented)
 export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
@@ -742,7 +736,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setPenMode(isPenMode: boolean): this;
     // @internal (undocumented)
     setProjectName(name: string): void;
-    setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
+    setProp(key: string, value: any, ephemeral?: boolean, squashing?: boolean): this;
     // @internal (undocumented)
     setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
@@ -909,6 +903,16 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 }
 
 // @public (undocumented)
+export const geoShape: {
+    util: TLShapeUtilConstructor<TLGeoShape, ShapeUtil<TLGeoShape>>;
+    tool?: TLStateNodeConstructor | undefined;
+    migrations?: Migrations | undefined;
+    validator?: {
+        validate: (shape: TLGeoShape) => TLGeoShape;
+    } | undefined;
+};
+
+// @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     canEdit: () => boolean;
@@ -1023,7 +1027,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     toSvg(shape: TLGeoShape, font: string, colors: TLExportColors): SVGElement;
     // (undocumented)
-    static type: string;
+    static type: "geo";
 }
 
 // @public
@@ -1684,9 +1688,6 @@ export const MAX_SHAPES_PER_PAGE = 2000;
 
 // @internal (undocumented)
 export const MAX_ZOOM = 8;
-
-// @internal (undocumented)
-export const MIN_ARROW_LENGTH = 48;
 
 // @internal (undocumented)
 export const MIN_ZOOM = 0.1;
@@ -2441,6 +2442,27 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
+export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>;
+
+// @public (undocumented)
+export type TLGeoShapeProps = {
+    geo: TLGeoType;
+    labelColor: TLColorType;
+    color: TLColorType;
+    fill: TLFillType;
+    dash: TLDashType;
+    size: TLSizeType;
+    font: TLFontType;
+    align: TLAlignType;
+    verticalAlign: TLVerticalAlignType;
+    url: string;
+    w: number;
+    h: number;
+    text: string;
+    growY: number;
+};
+
+// @public (undocumented)
 export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>;
 
 // @public (undocumented)
@@ -2784,9 +2806,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     static type: string;
 }
-
-// @internal (undocumented)
-export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10;
 
 // @public (undocumented)
 export class WeakMapCache<T extends object, K> {

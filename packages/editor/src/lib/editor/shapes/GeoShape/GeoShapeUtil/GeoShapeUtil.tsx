@@ -12,17 +12,18 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDashType, TLGeoShape } from '@tldraw/tlschema'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
-import { Editor } from '../../Editor'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnEditEndHandler, TLOnResizeHandler } from '../ShapeUtil'
-import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { TextLabel } from '../shared/TextLabel'
-import { TLExportColors } from '../shared/TLExportColors'
-import { useForceSolid } from '../shared/useForceSolid'
+import { TLDashType } from '@tldraw/tlschema'
+import { SVGContainer } from '../../../../components/SVGContainer'
+import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../../constants'
+import { Editor } from '../../../Editor'
+import { BaseBoxShapeUtil } from '../../../shapeutils/BaseBoxShapeUtil'
+import { TLOnEditEndHandler, TLOnResizeHandler } from '../../../shapeutils/ShapeUtil'
+import { getTextLabelSvgElement } from '../../../shapeutils/shared/getTextLabelSvgElement'
+import { HyperlinkButton } from '../../../shapeutils/shared/HyperlinkButton'
+import { TextLabel } from '../../../shapeutils/shared/TextLabel'
+import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
+import { useForceSolid } from '../../../shapeutils/shared/useForceSolid'
+import { TLGeoShape } from '../geoShapeTypes'
 import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
 import { DashStyleOval, DashStyleOvalSvg } from './components/DashStyleOval'
 import { DashStylePolygon, DashStylePolygonSvg } from './components/DashStylePolygon'
@@ -41,7 +42,7 @@ const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
-	static override type = 'geo'
+	static override type = 'geo' as const
 
 	canEdit = () => true
 

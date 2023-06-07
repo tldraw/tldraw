@@ -1,19 +1,24 @@
 import {
 	EASINGS,
+	PI2,
+	TAU,
+	Vec2d,
 	getStrokeOutlinePoints,
 	getStrokePoints,
 	perimeterOfEllipse,
-	PI2,
 	setStrokePointRadii,
-	TAU,
-	Vec2d,
 } from '@tldraw/primitives'
-import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
-import * as React from 'react'
-import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
-import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import React from 'react'
+import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../../utils/svg'
+import {
+	ShapeFill,
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+} from '../../../../shapeutils/shared/ShapeFill'
+import { TLExportColors } from '../../../../shapeutils/shared/TLExportColors'
+import { TLGeoShape } from '../../geoShapeTypes'
 
 export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
 	id,

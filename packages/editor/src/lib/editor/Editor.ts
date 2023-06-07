@@ -7875,7 +7875,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * existing history entry rather than creating a new one. Defaults to false.
 	 * @public
 	 */
-	setProp(key: TLShapeProp, value: any, ephemeral = false, squashing = false) {
+	setProp(key: string, value: any, ephemeral = false, squashing = false) {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {

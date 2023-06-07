@@ -680,7 +680,7 @@ export interface TLDashStyle extends TLBaseStyle {
 export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
 
 // @public
-export type TLDefaultShape = TLBookmarkShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLBookmarkShape | TLEmbedShape | TLFrameShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
 export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
@@ -725,9 +725,6 @@ export type TLFontType = SetValue<typeof TL_FONT_TYPES>;
 
 // @public (undocumented)
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
-
-// @public (undocumented)
-export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>;
 
 // @public (undocumented)
 export interface TLGeoStyle extends TLBaseStyle {

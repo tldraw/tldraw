@@ -1,5 +1,5 @@
 import { Box2d } from '@tldraw/primitives'
-import { TLGeoShape, TLNoteShape } from '@tldraw/tlschema'
+import { TLAlignType, TLBaseShape, TLSizeType, TLVerticalAlignType } from '@tldraw/tlschema'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { getLegacyOffsetX } from '../../../utils/legacy'
 import { Editor } from '../../Editor'
@@ -14,7 +14,10 @@ export function getTextLabelSvgElement({
 	bounds: Box2d
 	editor: Editor
 	font: string
-	shape: TLGeoShape | TLNoteShape
+	shape: TLBaseShape<
+		any,
+		{ text: string; align: TLAlignType; size: TLSizeType; verticalAlign: TLVerticalAlignType }
+	>
 }) {
 	const padding = 16
 

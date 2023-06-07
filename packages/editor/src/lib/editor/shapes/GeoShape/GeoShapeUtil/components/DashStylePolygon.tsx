@@ -1,9 +1,13 @@
 import { Vec2d, VecLike } from '@tldraw/primitives'
-import { TLGeoShape } from '@tldraw/tlschema'
-import * as React from 'react'
-import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
-import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
+import React from 'react'
+import {
+	ShapeFill,
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+} from '../../../../shapeutils/shared/ShapeFill'
+import { TLExportColors } from '../../../../shapeutils/shared/TLExportColors'
+import { getPerfectDashProps } from '../../../../shapeutils/shared/getPerfectDashProps'
+import { TLGeoShape } from '../../geoShapeTypes'
 
 export const DashStylePolygon = React.memo(function DashStylePolygon({
 	dash,

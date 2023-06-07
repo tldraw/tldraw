@@ -1,56 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
-import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
-import { TLColorType, colorValidator } from '../styles/TLColorStyle'
-import { TLDashType, dashValidator } from '../styles/TLDashStyle'
-import { TLFillType, fillValidator } from '../styles/TLFillStyle'
-import { TLFontType, fontValidator } from '../styles/TLFontStyle'
-import { TLGeoType, geoValidator } from '../styles/TLGeoStyle'
-import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
-
-/** @public */
-export type TLGeoShapeProps = {
-	geo: TLGeoType
-	labelColor: TLColorType
-	color: TLColorType
-	fill: TLFillType
-	dash: TLDashType
-	size: TLSizeType
-	font: TLFontType
-	align: TLAlignType
-	verticalAlign: TLVerticalAlignType
-	url: string
-	w: number
-	h: number
-	text: string
-	growY: number
-}
-
-/** @public */
-export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
-
-/** @internal */
-export const geoShapeValidator: T.Validator<TLGeoShape> = createShapeValidator(
-	'geo',
-	T.object({
-		geo: geoValidator,
-		labelColor: colorValidator,
-		color: colorValidator,
-		fill: fillValidator,
-		dash: dashValidator,
-		size: sizeValidator,
-		font: fontValidator,
-		align: alignValidator,
-		verticalAlign: verticalAlignValidator,
-		url: T.string,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		growY: T.positiveNumber,
-		text: T.string,
-	})
-)
+import { TLAlignType } from '@tldraw/tlschema'
 
 const Versions = {
 	AddUrlProp: 1,

@@ -9,7 +9,6 @@ import { instancePresenceMigrations, instancePresenceVersions } from './records/
 import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './records/TLShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
-import { geoShapeMigrations } from './shapes/TLGeoShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
 import { noteShapeMigrations } from './shapes/TLNoteShape'
 import { textShapeMigrations } from './shapes/TLTextShape'
@@ -266,7 +265,6 @@ describe('Adding url props', () => {
 	for (const [name, { up, down }] of [
 		['video shape', videoShapeMigrations.migrators[1]],
 		['note shape', noteShapeMigrations.migrators[1]],
-		['geo shape', geoShapeMigrations.migrators[1]],
 		['image shape', imageShapeMigrations.migrators[1]],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
@@ -399,22 +397,6 @@ describe('Adding isLocked prop', () => {
 	})
 })
 
-describe('Adding labelColor prop to geo / arrow shapes', () => {
-	for (const [name, { up, down }] of [['geo shape', geoShapeMigrations.migrators[2]]] as const) {
-		test(`${name}: up works as expected`, () => {
-			expect(up({ props: { color: 'red' } })).toEqual({
-				props: { color: 'red', labelColor: 'black' },
-			})
-		})
-
-		test(`${name}: down works as expected`, () => {
-			expect(down({ props: { color: 'red', labelColor: 'blue' } })).toEqual({
-				props: { color: 'red' },
-			})
-		})
-	}
-})
-
 describe('Adding labelColor prop to propsForNextShape', () => {
 	const { up, down } = instanceMigrations.migrators[5]
 	test('up works as expected', () => {
@@ -487,7 +469,6 @@ describe('Removing align=justify from shape align props', () => {
 	for (const [name, { up, down }] of [
 		['text', textShapeMigrations.migrators[1]],
 		['note', noteShapeMigrations.migrators[2]],
-		['geo', geoShapeMigrations.migrators[3]],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
 			expect(up({ props: { align: 'justify' } })).toEqual({
@@ -551,33 +532,6 @@ describe('Adding name to document', () => {
 	})
 })
 
-describe('Adding check-box to geo shape', () => {
-	const { up, down } = geoShapeMigrations.migrators[4]
-
-	test('up works as expected', () => {
-		expect(up({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
-	})
-	test('down works as expected', () => {
-		expect(down({ props: { geo: 'rectangle' } })).toEqual({ props: { geo: 'rectangle' } })
-		expect(down({ props: { geo: 'check-box' } })).toEqual({ props: { geo: 'rectangle' } })
-	})
-})
-
-describe('Add verticalAlign to geo shape', () => {
-	const { up, down } = geoShapeMigrations.migrators[5]
-
-	test('up works as expected', () => {
-		expect(up({ props: { type: 'ellipse' } })).toEqual({
-			props: { type: 'ellipse', verticalAlign: 'middle' },
-		})
-	})
-	test('down works as expected', () => {
-		expect(down({ props: { verticalAlign: 'middle', type: 'ellipse' } })).toEqual({
-			props: { type: 'ellipse' },
-		})
-	})
-})
-
 describe('Add verticalAlign to props for next shape', () => {
 	const { up, down } = instanceMigrations.migrators[9]
 	test('up works as expected', () => {
@@ -595,33 +549,6 @@ describe('Add verticalAlign to props for next shape', () => {
 			propsForNextShape: {
 				color: 'red',
 			},
-		})
-	})
-})
-
-describe('Migrate GeoShape legacy horizontal alignment', () => {
-	const { up, down } = geoShapeMigrations.migrators[6]
-
-	test('up works as expected', () => {
-		expect(up({ props: { align: 'start', type: 'ellipse' } })).toEqual({
-			props: { align: 'start-legacy', type: 'ellipse' },
-		})
-		expect(up({ props: { align: 'middle', type: 'ellipse' } })).toEqual({
-			props: { align: 'middle-legacy', type: 'ellipse' },
-		})
-		expect(up({ props: { align: 'end', type: 'ellipse' } })).toEqual({
-			props: { align: 'end-legacy', type: 'ellipse' },
-		})
-	})
-	test('down works as expected', () => {
-		expect(down({ props: { align: 'start-legacy', type: 'ellipse' } })).toEqual({
-			props: { align: 'start', type: 'ellipse' },
-		})
-		expect(down({ props: { align: 'middle-legacy', type: 'ellipse' } })).toEqual({
-			props: { align: 'middle', type: 'ellipse' },
-		})
-		expect(down({ props: { align: 'end-legacy', type: 'ellipse' } })).toEqual({
-			props: { align: 'end', type: 'ellipse' },
 		})
 	})
 })

@@ -1,11 +1,17 @@
-import { perimeterOfEllipse, toDomPrecision } from '@tldraw/primitives'
-import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
-import * as React from 'react'
-import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
-import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
+import { toDomPrecision } from '@tldraw/primitives'
+import { TLShapeId } from '@tldraw/tlschema'
+import React from 'react'
+import {
+	ShapeFill,
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+} from '../../../../shapeutils/shared/ShapeFill'
+import { TLExportColors } from '../../../../shapeutils/shared/TLExportColors'
+import { getPerfectDashProps } from '../../../../shapeutils/shared/getPerfectDashProps'
+import { TLGeoShape } from '../../geoShapeTypes'
+import { getOvalPerimeter, getOvalSolidPath } from '../helpers'
 
-export const DashStyleEllipse = React.memo(function DashStyleEllipse({
+export const DashStyleOval = React.memo(function DashStyleOval({
 	w,
 	h,
 	strokeWidth: sw,
@@ -16,12 +22,8 @@ export const DashStyleEllipse = React.memo(function DashStyleEllipse({
 	strokeWidth: number
 	id: TLShapeId
 }) {
-	const cx = w / 2
-	const cy = h / 2
-	const rx = Math.max(0, cx - sw / 2)
-	const ry = Math.max(0, cy - sw / 2)
-
-	const perimeter = perimeterOfEllipse(rx, ry)
+	const d = getOvalSolidPath(w, h)
+	const perimeter = getOvalPerimeter(w, h)
 
 	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 		perimeter < 64 ? perimeter * 2 : perimeter,
@@ -29,11 +31,11 @@ export const DashStyleEllipse = React.memo(function DashStyleEllipse({
 		{
 			style: dash,
 			snap: 4,
+			start: 'outset',
+			end: 'outset',
 			closed: true,
 		}
 	)
-
-	const d = `M${cx - rx},${cy}a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${rx * 2},0`
 
 	return (
 		<>
@@ -53,7 +55,7 @@ export const DashStyleEllipse = React.memo(function DashStyleEllipse({
 	)
 })
 
-export function DashStyleEllipseSvg({
+export function DashStyleOvalSvg({
 	w,
 	h,
 	strokeWidth: sw,
@@ -66,12 +68,8 @@ export function DashStyleEllipseSvg({
 	id: TLShapeId
 	colors: TLExportColors
 }) {
-	const cx = w / 2
-	const cy = h / 2
-	const rx = Math.max(0, cx - sw / 2)
-	const ry = Math.max(0, cy - sw / 2)
-
-	const perimeter = perimeterOfEllipse(rx, ry)
+	const d = getOvalSolidPath(w, h)
+	const perimeter = getOvalPerimeter(w, h)
 
 	const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 		perimeter < 64 ? perimeter * 2 : perimeter,
@@ -82,8 +80,6 @@ export function DashStyleEllipseSvg({
 			closed: true,
 		}
 	)
-
-	const d = `M${cx - rx},${cy}a${rx},${ry},0,1,1,${rx * 2},0a${rx},${ry},0,1,1,-${rx * 2},0`
 
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', d)
