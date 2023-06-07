@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	createTLStore,
+	defaultShapes,
 	Editor,
 	fileToBase64,
 	TLAsset,
@@ -140,6 +141,7 @@ export function parseTldrawJsonFile({
 		return Result.ok(
 			createTLStore({
 				initialData: migrationResult.value,
+				shapes: defaultShapes,
 			})
 		)
 	} catch (e) {
@@ -222,7 +224,9 @@ export async function parseAndLoadDocument(
 	forceDarkMode?: boolean
 ) {
 	const parseFileResult = parseTldrawJsonFile({
-		store: createTLStore(),
+		store: createTLStore({
+			shapes: defaultShapes,
+		}),
 		json: document,
 	})
 	if (!parseFileResult.ok) {
