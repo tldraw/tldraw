@@ -4,7 +4,6 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLBookmarkAsset,
-	TLImageShape,
 	TLShapePartial,
 	Vec2dModel,
 	createShapeId,
@@ -13,6 +12,7 @@ import { compact, getHashForString } from '@tldraw/utils'
 import uniq from 'lodash.uniq'
 import { MAX_ASSET_HEIGHT, MAX_ASSET_WIDTH } from '../constants'
 import { Editor } from '../editor/Editor'
+import { TLImageShape } from '../editor/shapes/ImageShape/imageShapeTypes'
 import { TLVideoShape } from '../editor/shapes/VideoShape/videoShapeTypes'
 import { isAnimated } from './is-gif-animated'
 import { findChunk, isPng, parsePhys } from './png'

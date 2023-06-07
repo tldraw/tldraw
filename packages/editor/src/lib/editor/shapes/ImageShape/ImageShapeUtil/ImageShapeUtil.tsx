@@ -1,16 +1,17 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Vec2d, toDomPrecision } from '@tldraw/primitives'
-import { TLImageShape, TLShapePartial } from '@tldraw/tlschema'
+import { TLShapePartial } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
 import { useValue } from 'signia-react'
-import { DefaultSpinner } from '../../../components/DefaultSpinner'
-import { HTMLContainer } from '../../../components/HTMLContainer'
-import { useIsCropping } from '../../../hooks/useIsCropping'
-import { usePrefersReducedMotion } from '../../../utils/dom'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnDoubleClickHandler } from '../ShapeUtil'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { DefaultSpinner } from '../../../../components/DefaultSpinner'
+import { HTMLContainer } from '../../../../components/HTMLContainer'
+import { useIsCropping } from '../../../../hooks/useIsCropping'
+import { usePrefersReducedMotion } from '../../../../utils/dom'
+import { BaseBoxShapeUtil } from '../../../shapeutils/BaseBoxShapeUtil'
+import { TLOnDoubleClickHandler } from '../../../shapeutils/ShapeUtil'
+import { HyperlinkButton } from '../../../shapeutils/shared/HyperlinkButton'
+import { TLImageShape } from '../imageShapeTypes'
 
 const loadImage = async (url: string): Promise<HTMLImageElement> => {
 	return new Promise((resolve, reject) => {

@@ -95,7 +95,7 @@ export function createShapeValidator<Type extends string, Props extends object>(
 
 // @public
 export function createTLSchema(opts?: {
-    customShapes?: SchemaShapeInfo[] | undefined;
+    shapes?: SchemaShapeInfo[] | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @internal (undocumented)
@@ -562,25 +562,6 @@ export type TLImageAsset = TLBaseAsset<'image', {
     mimeType: null | string;
     src: null | string;
 }>;
-
-// @public (undocumented)
-export type TLImageCrop = {
-    topLeft: Vec2dModel;
-    bottomRight: Vec2dModel;
-};
-
-// @public (undocumented)
-export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
-
-// @public (undocumented)
-export type TLImageShapeProps = {
-    url: string;
-    playing: boolean;
-    w: number;
-    h: number;
-    assetId: null | TLAssetId;
-    crop: null | TLImageCrop;
-};
 
 // @public
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {

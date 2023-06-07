@@ -11,7 +11,6 @@ import { PointerRecordType } from './records/TLPointer'
 import { InstancePresenceRecordType } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
 import { TLShape, rootShapeMigrations } from './records/TLShape'
-import { imageShapeMigrations, imageShapeValidator } from './shapes/TLImageShape'
 import { storeMigrations } from './store-migrations'
 
 /** @public */
@@ -21,14 +20,6 @@ export type SchemaShapeInfo = {
 	validator?: { validate: (record: any) => any }
 }
 
-const coreShapes: SchemaShapeInfo[] = [
-	{
-		type: 'image',
-		migrations: imageShapeMigrations,
-		validator: imageShapeValidator,
-	},
-]
-
 /**
  * Create a TLSchema with custom shapes. Custom shapes cannot override default shapes.
  *
@@ -37,18 +28,10 @@ const coreShapes: SchemaShapeInfo[] = [
  * @public */
 export function createTLSchema(
 	opts = {} as {
-		customShapes?: SchemaShapeInfo[]
+		shapes?: SchemaShapeInfo[]
 	}
 ) {
-	const { customShapes = [] } = opts
-
-	for (const { type } of customShapes) {
-		if (coreShapes.find((s) => s.type === type)) {
-			throw Error(`Can't override default shape ${type}!`)
-		}
-	}
-
-	const allShapeEntries = [...coreShapes, ...customShapes]
+	const { shapes = [] } = opts
 
 	const ShapeRecordType = createRecordType<TLShape>('shape', {
 		migrations: defineMigrations({
@@ -58,7 +41,7 @@ export function createTLSchema(
 			subTypeKey: 'type',
 			subTypeMigrations: {
 				...Object.fromEntries(
-					allShapeEntries.map(({ type, migrations }) => [type, migrations ?? defineMigrations({})])
+					shapes.map(({ type, migrations }) => [type, migrations ?? defineMigrations({})])
 				),
 			},
 		}),
@@ -67,10 +50,7 @@ export function createTLSchema(
 			'shape',
 			T.union('type', {
 				...Object.fromEntries(
-					allShapeEntries.map(({ type, validator }) => [
-						type,
-						(validator as T.Validator<any>) ?? T.any,
-					])
+					shapes.map(({ type, validator }) => [type, (validator as T.Validator<any>) ?? T.any])
 				),
 			})
 		),

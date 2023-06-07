@@ -124,6 +124,12 @@ export {
 	type TLHighlightShape,
 	type TLHighlightShapeProps,
 } from './lib/editor/shapes/HighlightShape/highlightShapeTypes'
+export { ImageShapeUtil } from './lib/editor/shapes/ImageShape/ImageShapeUtil/ImageShapeUtil'
+export { imageShape } from './lib/editor/shapes/ImageShape/imageShape'
+export {
+	type TLImageShape,
+	type TLImageShapeProps,
+} from './lib/editor/shapes/ImageShape/imageShapeTypes'
 export { LineShapeUtil } from './lib/editor/shapes/LineShape/LineShapeUtil/LineShapeUtil'
 export { lineShape } from './lib/editor/shapes/LineShape/lineShape'
 export {
@@ -149,7 +155,6 @@ export {
 	type TLVideoShapeProps,
 } from './lib/editor/shapes/VideoShape/videoShapeTypes'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
-export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
 export {
 	ShapeUtil,
 	type TLOnBeforeCreateHandler,

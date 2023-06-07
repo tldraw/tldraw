@@ -63,7 +63,7 @@ export class TestEditor extends Editor {
 			shapes: { ...defaultShapes, ...shapes },
 			tools: [...defaultTools, ...tools],
 			store: createTLStore({
-				customShapes: { ...defaultShapes, ...shapes },
+				shapes: [...defaultShapes, ...shapes],
 			}),
 			getContainer: () => elm,
 			...options,

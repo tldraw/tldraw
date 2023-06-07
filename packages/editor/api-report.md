@@ -50,7 +50,6 @@ import { TLFontType } from '@tldraw/tlschema';
 import { TLGeoType } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
-import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
@@ -1199,6 +1198,9 @@ export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 export const ICON_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const imageShape: TLShapeInfo<any>;
+
+// @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop: () => boolean;
@@ -2197,6 +2199,19 @@ export type TLHistoryMark = {
     id: string;
     onUndo: boolean;
     onRedo: boolean;
+};
+
+// @public (undocumented)
+export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
+
+// @public (undocumented)
+export type TLImageShapeProps = {
+    url: string;
+    playing: boolean;
+    w: number;
+    h: number;
+    assetId: null | TLAssetId;
+    crop: null | TLImageCrop;
 };
 
 // @public (undocumented)

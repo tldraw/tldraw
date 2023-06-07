@@ -7,7 +7,6 @@ import { instanceMigrations, instanceTypeVersions } from './records/TLInstance'
 import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
 import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './records/TLShape'
-import { imageShapeMigrations } from './shapes/TLImageShape'
 import { storeMigrations, storeVersions } from './store-migrations'
 
 const assetModules = fs
@@ -256,24 +255,6 @@ describe('Removing dialogs from instance', () => {
 	})
 })
 
-describe('Adding url props', () => {
-	for (const [name, { up, down }] of [
-		['image shape', imageShapeMigrations.migrators[1]],
-	] as const) {
-		test(`${name}: up works as expected`, () => {
-			const before = { props: {} }
-			const after = { props: { url: '' } }
-			expect(up(before)).toStrictEqual(after)
-		})
-
-		test(`${name}: down works as expected`, () => {
-			const before = { props: { url: '' } }
-			const after = { props: {} }
-			expect(down(before)).toStrictEqual(after)
-		})
-	}
-})
-
 describe('Renaming asset props', () => {
 	for (const [name, { up, down }] of [
 		['image shape', imageAssetMigrations.migrators[2]],
@@ -399,21 +380,6 @@ describe('Adding zoomBrush prop to instance', () => {
 
 	test('down works as expected', () => {
 		expect(down({ zoomBrush: { x: 1, y: 2, w: 3, h: 4 } })).toEqual({})
-	})
-})
-
-describe('Add crop=null to image shapes', () => {
-	const { up, down } = imageShapeMigrations.migrators[2]
-	test('up works as expected', () => {
-		expect(up({ props: { w: 100 } })).toEqual({
-			props: { w: 100, crop: null },
-		})
-	})
-
-	test('down works as expected', () => {
-		expect(down({ props: { w: 100, crop: null } })).toEqual({
-			props: { w: 100 },
-		})
 	})
 })
 

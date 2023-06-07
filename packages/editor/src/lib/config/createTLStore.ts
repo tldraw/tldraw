@@ -4,7 +4,7 @@ import { TLShapeInfo } from './createShape'
 
 /** @public */
 export type TLStoreOptions = {
-	customShapes?: TLShapeInfo[]
+	shapes?: TLShapeInfo[]
 	initialData?: StoreSnapshot<TLRecord>
 	defaultName?: string
 }
@@ -16,10 +16,10 @@ export type TLStoreOptions = {
  *
  * @public */
 export function createTLStore(opts = {} as TLStoreOptions): TLStore {
-	const { customShapes = [], initialData, defaultName = '' } = opts
+	const { shapes = [], initialData, defaultName = '' } = opts
 
 	return new Store({
-		schema: createTLSchema({ customShapes }),
+		schema: createTLSchema({ shapes }),
 		initialData,
 		props: {
 			defaultName,

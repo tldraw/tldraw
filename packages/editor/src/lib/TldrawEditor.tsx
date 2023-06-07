@@ -181,7 +181,7 @@ function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined 
 	const { defaultName, initialData, shapes, persistenceKey, sessionId } = props
 
 	const syncedStore = useLocalStore({
-		customShapes: shapes,
+		shapes,
 		initialData,
 		persistenceKey,
 		sessionId,
