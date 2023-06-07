@@ -13,7 +13,7 @@ import { textShape } from '../editor/shapes/TextShape/textShape'
 import { videoShape } from '../editor/shapes/VideoShape/videoShape'
 import { TLShapeInfo } from './defineShape'
 
-/** @public */
+/** @internal */
 export const coreShapes: TLShapeInfo<any>[] = [
 	imageShape,
 	videoShape,

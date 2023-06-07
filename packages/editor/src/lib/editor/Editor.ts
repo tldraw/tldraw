@@ -79,7 +79,7 @@ import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { coreShapes, defaultShapes } from '../config/defaultShapes'
-import { defaultTools } from '../config/defaultTools'
+import { coreTools } from '../config/defaultTools'
 import { TLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
@@ -220,7 +220,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
 		const uniqueTools = Object.fromEntries(
-			[...defaultTools, ...tools].map((ToolCtor) => [ToolCtor.id, ToolCtor])
+			[...coreTools, ...tools].map((ToolCtor) => [ToolCtor.id, ToolCtor])
 		)
 		for (const [id, ToolCtor] of Object.entries(uniqueTools)) {
 			if (this.root.children?.[id]) {

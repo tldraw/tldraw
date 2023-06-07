@@ -41,7 +41,7 @@ export {
 } from './lib/config/TLUserPreferences'
 export { createTLStore } from './lib/config/createTLStore'
 export { defaultShapes } from './lib/config/defaultShapes'
-export { defaultTools } from './lib/config/defaultTools'
+export { coreTools as defaultTools } from './lib/config/defaultTools'
 export { defineShape } from './lib/config/defineShape'
 export {
 	ANIMATION_MEDIUM_MS,

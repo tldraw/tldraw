@@ -4,4 +4,4 @@ import { LaserTool } from '../editor/tools/LaserTool/LaserTool'
 import { TLStateNodeConstructor } from '../editor/tools/StateNode'
 
 /** @public */
-export const defaultTools: TLStateNodeConstructor[] = [HandTool, EraserTool, LaserTool]
+export const coreTools: TLStateNodeConstructor[] = [HandTool, EraserTool, LaserTool]

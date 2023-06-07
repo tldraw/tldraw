@@ -17,7 +17,7 @@ import {
 } from '@tldraw/tlschema'
 import { createTLStore } from '../config/createTLStore'
 import { defaultShapes } from '../config/defaultShapes'
-import { defaultTools } from '../config/defaultTools'
+import { coreTools } from '../config/defaultTools'
 import { Editor, TLEditorOptions } from '../editor/Editor'
 import { TLContent } from '../editor/types/clipboard-types'
 import {
@@ -61,7 +61,7 @@ export class TestEditor extends Editor {
 		elm.tabIndex = 0
 		super({
 			shapes: [...defaultShapes, ...shapes],
-			tools: [...defaultTools, ...tools],
+			tools: [...coreTools, ...tools],
 			store: createTLStore({
 				shapes: [...defaultShapes, ...shapes],
 			}),
