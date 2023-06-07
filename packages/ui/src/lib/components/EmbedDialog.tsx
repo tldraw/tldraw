@@ -1,5 +1,11 @@
-import { TLEmbedResult, createEmbedShapeAtPoint, getEmbedInfo, useEditor } from '@tldraw/editor'
-import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
+import {
+	EMBED_DEFINITIONS,
+	TLEmbedDefinition,
+	TLEmbedResult,
+	createEmbedShapeAtPoint,
+	getEmbedInfo,
+	useEditor,
+} from '@tldraw/editor'
 import { useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { useAssetUrls } from '../hooks/useAssetUrls'
@@ -16,7 +22,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 	const assetUrls = useAssetUrls()
 
 	// The embed definition for the user's selected embed (set by the user clicking on an embed in stage 1)
-	const [embedDefinition, setEmbedDefinition] = useState<null | EmbedDefinition>(null)
+	const [embedDefinition, setEmbedDefinition] = useState<null | TLEmbedDefinition>(null)
 
 	// The URL that the user has typed into (in stage 2)
 	const [url, setUrl] = useState<string>('')

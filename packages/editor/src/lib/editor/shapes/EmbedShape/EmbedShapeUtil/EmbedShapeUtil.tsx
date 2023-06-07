@@ -1,22 +1,22 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { toDomPrecision } from '@tldraw/primitives'
+import * as React from 'react'
+import { useMemo } from 'react'
+import { useValue } from 'signia-react'
+import { DefaultSpinner } from '../../../../components/DefaultSpinner'
+import { HTMLContainer } from '../../../../components/HTMLContainer'
+import { ROTATING_SHADOWS } from '../../../../constants'
+import { useIsEditing } from '../../../../hooks/useIsEditing'
+import { rotateBoxShadow } from '../../../../utils/dom'
+import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../../utils/embeds'
+import { BaseBoxShapeUtil } from '../../../shapeutils/BaseBoxShapeUtil'
+import { TLOnResizeHandler, TLShapeUtilFlag } from '../../../shapeutils/ShapeUtil'
+import { resizeBox } from '../../../shapeutils/shared/resizeBox'
 import {
 	TLEmbedShape,
 	TLEmbedShapePermissions,
 	embedShapePermissionDefaults,
-} from '@tldraw/tlschema'
-import * as React from 'react'
-import { useMemo } from 'react'
-import { useValue } from 'signia-react'
-import { DefaultSpinner } from '../../../components/DefaultSpinner'
-import { HTMLContainer } from '../../../components/HTMLContainer'
-import { ROTATING_SHADOWS } from '../../../constants'
-import { useIsEditing } from '../../../hooks/useIsEditing'
-import { rotateBoxShadow } from '../../../utils/dom'
-import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../utils/embeds'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
-import { resizeBox } from '../shared/resizeBox'
+} from '../embedShapeTypes'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 	return Object.entries(permissions)

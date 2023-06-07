@@ -7,7 +7,6 @@ import { instanceMigrations, instanceTypeVersions } from './records/TLInstance'
 import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
 import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './records/TLShape'
-import { embedShapeMigrations } from './shapes/TLEmbedShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
 import { videoShapeMigrations } from './shapes/TLVideoShape'
 import { storeMigrations, storeVersions } from './store-migrations'
@@ -322,47 +321,6 @@ describe('Cleaning up junk data in instance.propsForNextShape', () => {
 	test('down works as expected', () => {
 		const instance = { propsForNextShape: { color: 'red' } }
 		expect(down(instance)).toBe(instance)
-	})
-})
-
-describe('Generating original URL from embed URL in GenOriginalUrlInEmbed', () => {
-	const { up, down } = embedShapeMigrations.migrators[1]
-	test('up works as expected', () => {
-		expect(up({ props: { url: 'https://codepen.io/Rplus/embed/PWZYRM' } })).toEqual({
-			props: {
-				url: 'https://codepen.io/Rplus/pen/PWZYRM',
-				tmpOldUrl: 'https://codepen.io/Rplus/embed/PWZYRM',
-			},
-		})
-	})
-
-	test('invalid up works as expected', () => {
-		expect(up({ props: { url: 'https://example.com' } })).toEqual({
-			props: {
-				url: '',
-				tmpOldUrl: 'https://example.com',
-			},
-		})
-	})
-
-	test('down works as expected', () => {
-		const instance = {
-			props: {
-				url: 'https://codepen.io/Rplus/pen/PWZYRM',
-				tmpOldUrl: 'https://codepen.io/Rplus/embed/PWZYRM',
-			},
-		}
-		expect(down(instance)).toEqual({ props: { url: 'https://codepen.io/Rplus/embed/PWZYRM' } })
-	})
-
-	test('invalid down works as expected', () => {
-		const instance = {
-			props: {
-				url: 'https://example.com',
-				tmpOldUrl: '',
-			},
-		}
-		expect(down(instance)).toEqual({ props: { url: '' } })
 	})
 })
 

@@ -95,6 +95,14 @@ export {
 	type TLDrawShape,
 	type TLDrawShapeProps,
 } from './lib/editor/shapes/DrawShape/drawShapeTypes'
+export { EmbedShapeUtil } from './lib/editor/shapes/EmbedShape/EmbedShapeUtil/EmbedShapeUtil'
+export { embedShape } from './lib/editor/shapes/EmbedShape/embedShape'
+export {
+	EMBED_DEFINITIONS,
+	type TLEmbedDefinition,
+	type TLEmbedShape,
+	type TLEmbedShapeProps,
+} from './lib/editor/shapes/EmbedShape/embedShapeTypes'
 export { FrameShapeUtil } from './lib/editor/shapes/FrameShape/FrameShapeUtil/FrameShapeUtil'
 export { frameShape } from './lib/editor/shapes/FrameShape/frameShape'
 export {
@@ -129,7 +137,6 @@ export {
 	type TLTextShapeProps,
 } from './lib/editor/shapes/TextShape/textShapeTypes'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
-export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
 export {

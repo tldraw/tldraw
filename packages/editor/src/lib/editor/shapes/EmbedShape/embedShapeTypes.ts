@@ -1,6 +1,24 @@
-import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { TLBaseShape } from '@tldraw/tlschema'
+
+/** @public */
+export type TLEmbedDefinition = {
+	type: string
+	title: string
+	hostnames: readonly string[]
+	minWidth?: number
+	minHeight?: number
+	width: number
+	height: number
+	doesResize: boolean
+	isAspectRatioLocked?: boolean
+	overridePermissions?: TLEmbedShapePermissions
+	instructionLink?: string
+	backgroundColor?: string
+	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
+	overrideOutlineRadius?: number
+	toEmbedUrl: (url: string) => string | undefined
+	fromEmbedUrl: (url: string) => string | undefined
+}
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
 const TLDRAW_APP_RE = /(^\/r\/[^/]+\/?$)/
@@ -14,7 +32,7 @@ const safeParseUrl = (url: string) => {
 }
 
 /** @public */
-export const EMBED_DEFINITIONS = [
+export const EMBED_DEFINITIONS: TLEmbedDefinition[] = [
 	{
 		type: 'tldraw',
 		title: 'tldraw',
@@ -487,7 +505,7 @@ export const EMBED_DEFINITIONS = [
 			return
 		},
 	},
-] as const satisfies readonly EmbedDefinition[]
+]
 
 /**
  * Permissions with note inline from
@@ -559,106 +577,3 @@ export type TLEmbedShapeProps = {
 
 /** @public */
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
-
-/** @internal */
-export const embedShapeTypeValidator: T.Validator<TLEmbedShape> = createShapeValidator(
-	'embed',
-	T.object({
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		url: T.string,
-		tmpOldUrl: T.string.optional(),
-		doesResize: T.boolean,
-		overridePermissions: T.dict(
-			T.setEnum(
-				new Set(Object.keys(embedShapePermissionDefaults) as (keyof TLEmbedShapePermissions)[])
-			),
-			T.boolean.optional()
-		).optional(),
-	})
-)
-
-/** @public */
-export type EmbedDefinition = {
-	readonly type: string
-	readonly title: string
-	readonly hostnames: readonly string[]
-	readonly minWidth?: number
-	readonly minHeight?: number
-	readonly width: number
-	readonly height: number
-	readonly doesResize: boolean
-	readonly isAspectRatioLocked?: boolean
-	readonly overridePermissions?: TLEmbedShapePermissions
-	readonly instructionLink?: string
-	readonly backgroundColor?: string
-	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
-	readonly overrideOutlineRadius?: number
-	readonly toEmbedUrl: (url: string) => string | undefined
-	readonly fromEmbedUrl: (url: string) => string | undefined
-}
-
-const Versions = {
-	GenOriginalUrlInEmbed: 1,
-} as const
-
-/** @internal */
-export const embedShapeMigrations = defineMigrations({
-	currentVersion: Versions.GenOriginalUrlInEmbed,
-	migrators: {
-		[Versions.GenOriginalUrlInEmbed]: {
-			// add tmpOldUrl property
-			up: (shape) => {
-				const url = shape.props.url
-				const host = new URL(url).host.replace('www.', '')
-				let originalUrl
-				for (const localEmbedDef of EMBED_DEFINITIONS) {
-					if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
-						try {
-							originalUrl = localEmbedDef.fromEmbedUrl(url)
-						} catch (err) {
-							console.warn(err)
-						}
-					}
-				}
-
-				return {
-					...shape,
-					props: {
-						...shape.props,
-						tmpOldUrl: shape.props.url,
-						url: originalUrl ?? '',
-					},
-				}
-			},
-			// remove tmpOldUrl property
-			down: (shape) => {
-				let newUrl = shape.props.tmpOldUrl
-				if (!newUrl || newUrl === '') {
-					const url = shape.props.url
-					const host = new URL(url).host.replace('www.', '')
-
-					for (const localEmbedDef of EMBED_DEFINITIONS) {
-						if ((localEmbedDef as EmbedDefinition).hostnames.includes(host)) {
-							try {
-								newUrl = localEmbedDef.toEmbedUrl(url)
-							} catch (err) {
-								console.warn(err)
-							}
-						}
-					}
-				}
-
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const { tmpOldUrl, ...props } = shape.props
-				return {
-					...shape,
-					props: {
-						...props,
-						url: newUrl ?? '',
-					},
-				}
-			},
-		},
-	},
-})

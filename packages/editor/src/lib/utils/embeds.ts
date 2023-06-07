@@ -1,5 +1,5 @@
-import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 import escapeStringRegexp from 'escape-string-regexp'
+import { EMBED_DEFINITIONS, TLEmbedDefinition } from '../editor/shapes/EmbedShape/embedShapeTypes'
 
 /** @public */
 export function matchEmbedUrl(url: string) {
@@ -53,7 +53,7 @@ export function matchUrl(url: string) {
 /** @public */
 export type TLEmbedResult =
 	| {
-			definition: EmbedDefinition
+			definition: TLEmbedDefinition
 			url: string
 			embedUrl: string
 	  }
