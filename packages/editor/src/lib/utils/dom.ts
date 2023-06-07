@@ -119,4 +119,5 @@ export const truncateStringWithEllipsis = (str: string, maxLength: number) => {
 	return str.length <= maxLength ? str : str.substring(0, maxLength - 3) + '...'
 }
 
+/** @internal */
 export const stopEventPropagation = (e: any) => e.stopPropagation()

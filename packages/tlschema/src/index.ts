@@ -105,7 +105,7 @@ export {
 	type TLArrowheadStartStyle,
 	type TLArrowheadType,
 } from './styles/TLArrowheadStyle'
-export { TL_STYLE_TYPES, type TLStyleType } from './styles/TLBaseStyle'
+export { TL_STYLE_TYPES, type TLBaseStyle, type TLStyleType } from './styles/TLBaseStyle'
 export { colorValidator, type TLColorStyle, type TLColorType } from './styles/TLColorStyle'
 export {
 	TL_DASH_TYPES,
@@ -147,3 +147,4 @@ export {
 	getDefaultTranslationLocale,
 	type TLLanguage,
 } from './translations/translations'
+export { type SetValue } from './util-types'

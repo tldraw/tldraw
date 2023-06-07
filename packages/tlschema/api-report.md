@@ -472,6 +472,9 @@ export const rootShapeMigrations: Migrations;
 export const scribbleValidator: T.Validator<TLScribble>;
 
 // @public (undocumented)
+export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
+
+// @public (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @internal (undocumented)
@@ -622,6 +625,14 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     x: number;
     // (undocumented)
     y: number;
+}
+
+// @public (undocumented)
+export interface TLBaseStyle {
+    // (undocumented)
+    icon: string;
+    // (undocumented)
+    type: TLStyleType;
 }
 
 // @public

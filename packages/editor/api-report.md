@@ -1974,6 +1974,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     type: TLStateNodeType;
 }
 
+// @internal (undocumented)
+export const stopEventPropagation: (e: any) => any;
+
 // @public (undocumented)
 export const STYLES: TLStyleCollections;
 
@@ -2565,6 +2568,15 @@ export interface TLSessionStateSnapshot {
     // (undocumented)
     version: number;
 }
+
+// @public (undocumented)
+export type TLShapeInfo = {
+    util: TLShapeUtilConstructor<any>;
+    migrations?: Migrations;
+    validator?: {
+        validate: (record: any) => any;
+    };
+};
 
 // @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
