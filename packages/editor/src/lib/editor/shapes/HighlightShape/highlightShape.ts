@@ -1,11 +1,11 @@
-import { createEditorShape } from '../../../config/createEditorShape'
+import { createShape } from '../../../config/createShape'
 import { HighlightShapeTool } from './HighlightShapeTool/HighlightShapeTool'
 import { HighlightShapeUtil } from './HighlightShapeUtil/HighlightShapeUtil'
 import { highlightShapeMigrations } from './highlightShapeMigrations'
 import { highlightShapeValidator } from './highlightShapeValidator'
 
 /** @public */
-export const highlightShape = createEditorShape({
+export const highlightShape = createShape({
 	util: HighlightShapeUtil,
 	tool: HighlightShapeTool,
 	migrations: highlightShapeMigrations,

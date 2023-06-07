@@ -10,7 +10,7 @@ export type EditorShape<T extends TLUnknownShape> = {
 	validator?: { validate: (shape: T) => T }
 }
 
-export function createEditorShape<T extends TLUnknownShape>(opts: {
+export function createShape<T extends TLUnknownShape>(opts: {
 	util: TLShapeUtilConstructor<T>
 	tool?: TLStateNodeConstructor
 	migrations?: Migrations
