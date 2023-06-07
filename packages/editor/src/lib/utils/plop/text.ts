@@ -1,13 +1,8 @@
-import {
-	Editor,
-	FONT_FAMILIES,
-	FONT_SIZES,
-	INDENT,
-	TEXT_PROPS,
-	TextShapeUtil,
-	createShapeId,
-} from '@tldraw/editor'
-import { VecLike } from '@tldraw/primitives'
+import { createShapeId } from '@tldraw/tlschema'
+import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../constants'
+import { Editor } from '../../editor/Editor'
+import { INDENT, TextShapeUtil } from '../../editor/shapeutils/TextShapeUtil/TextShapeUtil'
+import { TLCreateShapeFromInteractionInfo } from '../../editor/types/shape-create-types'
 
 const rtlRegex = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/
 
@@ -54,17 +49,14 @@ function stripTrailingWhitespace(text: string): string {
 	return text.replace(/[ \t]+$/gm, '').replace(/\n+$/, '')
 }
 
-/**
- * When the clipboard has plain text, create a text shape and insert it into the scene
- *
- * @param editor - The editor instance.
- * @param text - The text to paste.
- * @param point - (optional) The point at which to paste the text.
- * @internal
- */
-export async function pastePlainText(editor: Editor, text: string, point?: VecLike) {
+/** @internal */
+export async function plopText(
+	editor: Editor,
+	{ point, text }: Extract<TLCreateShapeFromInteractionInfo, { type: 'text' }>
+) {
 	const p =
 		point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
+
 	const defaultProps = editor.getShapeUtil(TextShapeUtil).defaultProps()
 
 	const textToPaste = stripTrailingWhitespace(

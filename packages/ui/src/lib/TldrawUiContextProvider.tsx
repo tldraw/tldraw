@@ -9,10 +9,6 @@ import { EventsProvider, TLUiEventHandler } from './hooks/useEventsProvider'
 import { HelpMenuSchemaProvider } from './hooks/useHelpMenuSchema'
 import { KeyboardShortcutsSchemaProvider } from './hooks/useKeyboardShortcutsSchema'
 import { TLUiMenuSchemaProvider } from './hooks/useMenuSchema'
-import {
-	UiCallbacksContextType,
-	UiCallbacksProvider,
-} from './hooks/useOnCreateShapesFromInteraction'
 import { ToastsProvider } from './hooks/useToastsProvider'
 import { ToolbarSchemaProvider } from './hooks/useToolbarSchema'
 import { ToolsProvider } from './hooks/useTools'
@@ -20,7 +16,7 @@ import { TranslationProvider } from './hooks/useTranslation/useTranslation'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from './overrides'
 
 /** @public */
-export interface TldrawUiContextProviderProps extends UiCallbacksContextType {
+export interface TldrawUiContextProviderProps {
 	assetUrls?: TLUiAssetUrls
 	overrides?: TLUiOverrides | TLUiOverrides[]
 	onUiEvent?: TLUiEventHandler
@@ -33,30 +29,27 @@ export function TldrawUiContextProvider({
 	assetUrls,
 	onUiEvent,
 	children,
-	onCreateShapeFromInteraction,
 }: TldrawUiContextProviderProps) {
 	return (
-		<UiCallbacksProvider onCreateShapeFromInteraction={onCreateShapeFromInteraction}>
-			<AssetUrlsProvider assetUrls={assetUrls ?? defaultUiAssetUrls}>
-				<TranslationProvider overrides={useMergedTranslationOverrides(overrides)}>
-					<EventsProvider onEvent={onUiEvent}>
-						<ToastsProvider>
-							<DialogsProvider>
-								<BreakPointProvider>
-									<InternalProviders overrides={overrides}>{children}</InternalProviders>
-								</BreakPointProvider>
-							</DialogsProvider>
-						</ToastsProvider>
-					</EventsProvider>
-				</TranslationProvider>
-			</AssetUrlsProvider>
-		</UiCallbacksProvider>
+		<AssetUrlsProvider assetUrls={assetUrls ?? defaultUiAssetUrls}>
+			<TranslationProvider overrides={useMergedTranslationOverrides(overrides)}>
+				<EventsProvider onEvent={onUiEvent}>
+					<ToastsProvider>
+						<DialogsProvider>
+							<BreakPointProvider>
+								<InternalProviders overrides={overrides}>{children}</InternalProviders>
+							</BreakPointProvider>
+						</DialogsProvider>
+					</ToastsProvider>
+				</EventsProvider>
+			</TranslationProvider>
+		</AssetUrlsProvider>
 	)
 }
 function InternalProviders({
 	overrides,
 	children,
-}: Omit<TldrawUiContextProviderProps, 'assetBaseUrl' | keyof UiCallbacksContextType>) {
+}: Omit<TldrawUiContextProviderProps, 'assetBaseUrl'>) {
 	const mergedOverrides = useMergedOverrides(overrides)
 	return (
 		<ActionsProvider overrides={mergedOverrides.actions}>

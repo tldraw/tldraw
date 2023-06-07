@@ -107,6 +107,11 @@ import { exportPatternSvgDefs } from '../hooks/usePattern'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile, getMediaAssetFromFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
+import { plopEmbed } from '../utils/plop/embed'
+import { plopFiles } from '../utils/plop/files'
+import { plopSvgText } from '../utils/plop/svg'
+import { plopText } from '../utils/plop/text'
+import { plopUrl } from '../utils/plop/url'
 import { setPropsForNextShape } from '../utils/props-for-next-shape'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
@@ -140,6 +145,7 @@ import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
 import { RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
+import { TLCreateShapeFromInteractionInfo } from './types/shape-create-types'
 
 /** @public */
 export type TLAnimationOptions = Partial<{
@@ -8879,6 +8885,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/* -------------------- Callbacks ------------------- */
+
+	/**
+	 * Create shapes when certain interactions are performed, such as dropping a URL onto the canvas. These can be handled in unique ways by overriding this method.
+	 *
+	 * @param info - Info about the source that may lead to the new shapes.
+	 */
+	async onCreateShapeFromSource(info: TLCreateShapeFromInteractionInfo): Promise<void> {
+		switch (info.type) {
+			case 'text': {
+				return await plopText(this, info)
+			}
+			case 'files': {
+				return await plopFiles(this, info)
+			}
+			case 'embed': {
+				return await plopEmbed(this, info)
+			}
+			case 'svg-text': {
+				return await plopSvgText(this, info)
+			}
+			case 'url': {
+				return await plopUrl(this, info)
+			}
+		}
+	}
 
 	/**
 	 * A callback fired when a file is converted to an asset. This callback should return the asset
