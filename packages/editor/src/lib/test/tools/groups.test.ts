@@ -14,7 +14,7 @@ import { ArrowShapeUtil } from '../../editor/shapeutils/ArrowShapeUtil/ArrowShap
 import { GroupShapeUtil } from '../../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 import { ArrowShapeTool } from '../../editor/tools/ArrowShapeTool/ArrowShapeTool'
 import { DrawShapeTool } from '../../editor/tools/DrawShapeTool/DrawShapeTool'
-import { EraserShapeTool } from '../../editor/tools/EraserShapeTool/EraserShapeTool'
+import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
 import { LineShapeTool } from '../../editor/tools/LineShapeTool/LineShapeTool'
 import { NoteShapeTool } from '../../editor/tools/NoteShapeTool/NoteShapeTool'
 import { TestEditor } from '../TestEditor'
@@ -1444,7 +1444,7 @@ describe('erasing', () => {
 	})
 
 	it('erases whole groups if you hit one of their shapes', () => {
-		editor.setSelectedTool(EraserShapeTool.id)
+		editor.setSelectedTool(EraserTool.id)
 
 		// erase D
 		editor.pointerDown(65, 5, ids.boxD)
@@ -1455,7 +1455,7 @@ describe('erasing', () => {
 	})
 
 	it('does not erase whole groups if you do not hit on one of their shapes', () => {
-		editor.setSelectedTool(EraserShapeTool.id)
+		editor.setSelectedTool(EraserTool.id)
 
 		editor.pointerDown(35, 5)
 		expect(editor.erasingIdsSet.size).toBe(0)
@@ -1466,7 +1466,7 @@ describe('erasing', () => {
 		expect(editor.focusLayerId === groupAId).toBe(true)
 		const groupA = editor.getShapeById(groupAId)!
 
-		editor.setSelectedTool(EraserShapeTool.id)
+		editor.setSelectedTool(EraserTool.id)
 
 		// erase B
 		editor.pointerDown(25, 5, ids.boxB)
@@ -1482,7 +1482,7 @@ describe('erasing', () => {
 		editor.select(ids.boxA)
 		expect(editor.focusLayerId === groupAId).toBe(true)
 
-		editor.setSelectedTool(EraserShapeTool.id)
+		editor.setSelectedTool(EraserTool.id)
 
 		// erase E
 		editor.pointerDown(5, 25, ids.boxE)

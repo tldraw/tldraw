@@ -1,5 +1,5 @@
-import { DrawShapeTool } from '../../editor/tools/DrawShapeTool/DrawShapeTool'
-import { TestEditor } from '../TestEditor'
+import { TestEditor } from '../../../test/TestEditor'
+import { DrawShapeTool } from './DrawShapeTool'
 
 let editor: TestEditor
 
