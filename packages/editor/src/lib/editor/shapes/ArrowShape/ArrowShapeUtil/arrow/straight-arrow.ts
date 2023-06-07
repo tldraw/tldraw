@@ -7,9 +7,9 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLArrowShape } from '@tldraw/tlschema'
 import { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH } from '../../../../../constants'
 import { Editor } from '../../../../Editor'
+import { TLArrowShape } from '../../arrowShapeTypes'
 import { ArrowInfo } from './arrow-types'
 import {
 	BoundShapeInfo,

@@ -1,9 +1,10 @@
 import { sortByIndex } from '@tldraw/indices'
 import { Matrix2d, snapAngle, Vec2d } from '@tldraw/primitives'
 import {
-	TLArrowShape,
 	TLArrowTerminal,
+	TLBaseShape,
 	TLHandle,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 } from '@tldraw/tlschema'
@@ -29,7 +30,7 @@ export class DraggingHandle extends StateNode {
 	initialPageRotation: any
 
 	info = {} as TLPointerEventInfo & {
-		shape: TLArrowShape
+		shape: TLShape
 		target: 'handle'
 		onInteractionEnd?: string
 		isCreating: boolean
@@ -41,7 +42,7 @@ export class DraggingHandle extends StateNode {
 
 	onEnter: TLEnterEventHandler = (
 		info: TLPointerEventInfo & {
-			shape: TLArrowShape
+			shape: TLBaseShape<any, { start: TLArrowTerminal; end: TLArrowTerminal }>
 			target: 'handle'
 			onInteractionEnd?: string
 			isCreating: boolean

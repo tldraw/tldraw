@@ -7,9 +7,7 @@ import { instanceMigrations, instanceTypeVersions } from './records/TLInstance'
 import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
 import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './records/TLShape'
-import { arrowShapeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
-import { drawShapeMigrations } from './shapes/TLDrawShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
 import { geoShapeMigrations } from './shapes/TLGeoShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
@@ -389,78 +387,6 @@ describe('Generating original URL from embed URL in GenOriginalUrlInEmbed', () =
 	})
 })
 
-describe('Adding isPen prop', () => {
-	const { up, down } = drawShapeMigrations.migrators[1]
-
-	test('up works as expected with a shape that is not a pen shape', () => {
-		expect(
-			up({
-				props: {
-					segments: [
-						{
-							type: 'free',
-							points: [
-								{ x: 0, y: 0, z: 0.5 },
-								{ x: 1, y: 1, z: 0.5 },
-							],
-						},
-					],
-				},
-			})
-		).toEqual({
-			props: {
-				isPen: false,
-				segments: [
-					{
-						type: 'free',
-						points: [
-							{ x: 0, y: 0, z: 0.5 },
-							{ x: 1, y: 1, z: 0.5 },
-						],
-					},
-				],
-			},
-		})
-	})
-
-	test('up works as expected when converting to pen', () => {
-		expect(
-			up({
-				props: {
-					segments: [
-						{
-							type: 'free',
-							points: [
-								{ x: 0, y: 0, z: 0.2315 },
-								{ x: 1, y: 1, z: 0.2421 },
-							],
-						},
-					],
-				},
-			})
-		).toEqual({
-			props: {
-				isPen: true,
-				segments: [
-					{
-						type: 'free',
-						points: [
-							{ x: 0, y: 0, z: 0.2315 },
-							{ x: 1, y: 1, z: 0.2421 },
-						],
-					},
-				],
-			},
-		})
-	})
-
-	test('down works as expected', () => {
-		expect(down({ props: { isPen: false } })).toEqual({
-			props: {},
-		})
-	})
-})
-
 describe('Adding isLocked prop', () => {
 	const { up, down } = rootShapeMigrations.migrators[1]
 
@@ -474,10 +400,7 @@ describe('Adding isLocked prop', () => {
 })
 
 describe('Adding labelColor prop to geo / arrow shapes', () => {
-	for (const [name, { up, down }] of [
-		['arrow shape', arrowShapeMigrations.migrators[1]],
-		['geo shape', geoShapeMigrations.migrators[2]],
-	] as const) {
+	for (const [name, { up, down }] of [['geo shape', geoShapeMigrations.migrators[2]]] as const) {
 		test(`${name}: up works as expected`, () => {
 			expect(up({ props: { color: 'red' } })).toEqual({
 				props: { color: 'red', labelColor: 'black' },

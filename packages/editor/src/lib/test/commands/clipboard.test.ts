@@ -1,4 +1,5 @@
-import { TLArrowShape, createShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '@tldraw/tlschema'
+import { TLArrowShape } from '../../editor/shapes/ArrowShape/arrowShapeTypes'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

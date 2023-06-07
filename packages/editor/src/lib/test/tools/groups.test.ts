@@ -2,7 +2,6 @@ import { sortByIndex } from '@tldraw/indices'
 import { approximately, Box2d, VecLike } from '@tldraw/primitives'
 import {
 	createShapeId,
-	TLArrowShape,
 	TLGroupShape,
 	TLLineShape,
 	TLShape,
@@ -10,10 +9,11 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
-import { ArrowShapeUtil } from '../../..'
 import { ArrowShapeTool } from '../../editor/shapes/ArrowShape/ArrowShapeTool/ArrowShapeTool'
+import { TLArrowShape } from '../../editor/shapes/ArrowShape/arrowShapeTypes'
+import { ArrowShapeUtil } from '../../editor/shapes/ArrowShape/ArrowShapeUtil/ArrowShapeUtil'
+import { DrawShapeTool } from '../../editor/shapes/DrawShape/DrawShapeTool/DrawShapeTool'
 import { GroupShapeUtil } from '../../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
-import { DrawShapeTool } from '../../editor/tools/DrawShapeTool/DrawShapeTool'
 import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
 import { LineShapeTool } from '../../editor/tools/LineShapeTool/LineShapeTool'
 import { NoteShapeTool } from '../../editor/tools/NoteShapeTool/NoteShapeTool'

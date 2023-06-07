@@ -1,12 +1,12 @@
 /* eslint-disable no-inner-declarations */
-import { TLShape } from '@tldraw/tlschema'
+import { TLBaseShape, TLShape } from '@tldraw/tlschema'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { useValue } from 'signia-react'
 import { useEditor } from '../../../hooks/useEditor'
 import { preventDefault, stopEventPropagation } from '../../../utils/dom'
 import { INDENT, TextHelpers } from '../TextShapeUtil/TextHelpers'
 
-export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(
+export function useEditableText<T extends TLBaseShape<any, { text: string }>>(
 	id: T['id'],
 	type: T['type'],
 	text: string

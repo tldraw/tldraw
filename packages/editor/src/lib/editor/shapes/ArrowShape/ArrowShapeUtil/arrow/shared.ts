@@ -1,7 +1,8 @@
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
-import { TLArrowShape, TLArrowTerminal, TLShape } from '@tldraw/tlschema'
+import { TLArrowTerminal, TLShape } from '@tldraw/tlschema'
 import { Editor } from '../../../../Editor'
 import { ShapeUtil } from '../../../../shapeutils/ShapeUtil'
+import { TLArrowShape } from '../../arrowShapeTypes'
 
 export function getIsArrowStraight(shape: TLArrowShape) {
 	return Math.abs(shape.props.bend) < 8 // snap to +-8px

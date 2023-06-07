@@ -14,7 +14,6 @@ export function setPropsForNextShape(
 	for (const [prop, value] of Object.entries(newProps)) {
 		if (!TL_STYLE_TYPES.has(prop as TLStyleType)) continue
 		if (!nextProps) nextProps = { ...previousProps }
-		// @ts-expect-error typescript can't track `value` correctly
 		nextProps[prop] = value
 	}
 	return nextProps ?? previousProps

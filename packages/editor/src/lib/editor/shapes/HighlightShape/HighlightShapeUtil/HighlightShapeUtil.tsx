@@ -1,18 +1,18 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, getStrokePoints, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
 import { last, rng } from '@tldraw/utils'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { FONT_SIZES } from '../../../constants'
-import { getSvgPathFromStrokePoints } from '../../../utils/svg'
-import { TLDrawShapeSegment } from '../../shapes/DrawShape/drawShapeTypes'
+import { SVGContainer } from '../../../../components/SVGContainer'
+import { FONT_SIZES } from '../../../../constants'
+import { getSvgPathFromStrokePoints } from '../../../../utils/svg'
+import { ShapeUtil, TLOnResizeHandler } from '../../../shapeutils/ShapeUtil'
+import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
+import { useForceSolid } from '../../../shapeutils/shared/useForceSolid'
+import { TLDrawShapeSegment } from '../../DrawShape/drawShapeTypes'
 import {
 	getHighlightFreehandSettings,
 	getPointsFromSegments,
-} from '../../shapes/DrawShape/DrawShapeUtil/getPath'
-import { TLHighlightShape } from '../../shapes/HighlightShape/highlightShapeTypes'
-import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
-import { TLExportColors } from '../shared/TLExportColors'
-import { useForceSolid } from '../shared/useForceSolid'
+} from '../../DrawShape/DrawShapeUtil/getPath'
+import { TLHighlightShape } from '../highlightShapeTypes'
 
 const OVERLAY_OPACITY = 0.35
 const UNDERLAY_OPACITY = 0.82

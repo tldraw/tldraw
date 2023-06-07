@@ -1,34 +1,15 @@
 import {
-	TLArrowShape,
-	TLArrowTerminal,
-	TL_ARROWHEAD_TYPES,
+	arrowTerminalValidator,
+	arrowheadValidator,
 	colorValidator,
 	createShapeValidator,
 	dashValidator,
 	fillValidator,
 	fontValidator,
-	shapeIdValidator,
 	sizeValidator,
 } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
-
-/** @internal */
-export const arrowheadValidator = T.setEnum(TL_ARROWHEAD_TYPES)
-
-/** @internal */
-export const arrowTerminalValidator: T.Validator<TLArrowTerminal> = T.union('type', {
-	binding: T.object({
-		type: T.literal('binding'),
-		boundShapeId: shapeIdValidator,
-		normalizedAnchor: T.point,
-		isExact: T.boolean,
-	}),
-	point: T.object({
-		type: T.literal('point'),
-		x: T.number,
-		y: T.number,
-	}),
-})
+import { TLArrowShape } from './arrowShapeTypes'
 
 /** @internal */
 export const arrowShapeValidator: T.Validator<TLArrowShape> = createShapeValidator(

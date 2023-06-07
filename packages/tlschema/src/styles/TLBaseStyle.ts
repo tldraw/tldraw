@@ -1,5 +1,3 @@
-import { SetValue } from '../util-types'
-
 /** @public */
 export const TL_STYLE_TYPES = new Set([
 	'color',
@@ -18,10 +16,11 @@ export const TL_STYLE_TYPES = new Set([
 ] as const)
 
 /** @public */
-export type TLStyleType = SetValue<typeof TL_STYLE_TYPES>
+export type TLStyleType = any // SetValue<typeof TL_STYLE_TYPES>
 
 /** @public */
 export interface TLBaseStyle {
+	id: string
 	type: TLStyleType
 	icon: string
 }

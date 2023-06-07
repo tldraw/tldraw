@@ -30,5 +30,5 @@ export interface TLArrowheadEndStyle extends TLBaseStyle {
 	type: 'arrowheadEnd'
 }
 
-/** @internal */
+/** @public */
 export const arrowheadValidator = T.setEnum(TL_ARROWHEAD_TYPES)

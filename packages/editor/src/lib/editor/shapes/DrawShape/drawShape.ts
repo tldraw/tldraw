@@ -5,6 +5,7 @@ import { DrawShapeUtil } from './DrawShapeUtil/DrawShapeUtil'
 import { drawShapeMigrations } from './drawShapeMigrations'
 import { drawShapeValidator } from './drawShapeValidator'
 
+/** @public */
 export const drawShape: TLShapeInfo & { tool?: TLStateNodeConstructor } = {
 	util: DrawShapeUtil,
 	tool: DrawShapeTool,

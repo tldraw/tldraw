@@ -1,10 +1,11 @@
 import { VecLike } from '@tldraw/primitives'
-import { TLArrowShape, TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ARROW_LABEL_FONT_SIZES, TEXT_PROPS } from '../../../../../constants'
 import { stopEventPropagation } from '../../../../../utils/dom'
 import { TextHelpers } from '../../../../shapeutils/TextShapeUtil/TextHelpers'
 import { useEditableText } from '../../../../shapeutils/shared/useEditableText'
+import { TLArrowShape } from '../../arrowShapeTypes'
 
 export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	id,
@@ -19,7 +20,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	'text' | 'size' | 'font'
 >) {
 	const { rInput, isEditing, handleFocus, handleBlur, handleKeyDown, handleChange, isEmpty } =
-		useEditableText(id, 'arrow', text)
+		useEditableText<TLArrowShape>(id, 'arrow', text)
 
 	if (!isEditing && isEmpty) {
 		return null

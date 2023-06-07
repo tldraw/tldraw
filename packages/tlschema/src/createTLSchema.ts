@@ -11,14 +11,11 @@ import { PointerRecordType } from './records/TLPointer'
 import { InstancePresenceRecordType } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
 import { TLShape, rootShapeMigrations } from './records/TLShape'
-import { arrowShapeMigrations, arrowShapeValidator } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations, bookmarkShapeValidator } from './shapes/TLBookmarkShape'
-import { drawShapeMigrations, drawShapeValidator } from './shapes/TLDrawShape'
 import { embedShapeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
 import { frameShapeMigrations, frameShapeValidator } from './shapes/TLFrameShape'
 import { geoShapeMigrations, geoShapeValidator } from './shapes/TLGeoShape'
 import { groupShapeMigrations, groupShapeValidator } from './shapes/TLGroupShape'
-import { highlightShapeMigrations, highlightShapeValidator } from './shapes/TLHighlightShape'
 import { imageShapeMigrations, imageShapeValidator } from './shapes/TLImageShape'
 import { lineShapeMigrations, lineShapeValidator } from './shapes/TLLineShape'
 import { noteShapeMigrations, noteShapeValidator } from './shapes/TLNoteShape'
@@ -60,14 +57,6 @@ const coreShapes: Record<string, SchemaShapeInfo> = {
 }
 
 const defaultShapes: Record<string, SchemaShapeInfo> = {
-	arrow: {
-		migrations: arrowShapeMigrations,
-		validator: arrowShapeValidator,
-	},
-	draw: {
-		migrations: drawShapeMigrations,
-		validator: drawShapeValidator,
-	},
 	frame: {
 		migrations: frameShapeMigrations,
 		validator: frameShapeValidator,
@@ -83,10 +72,6 @@ const defaultShapes: Record<string, SchemaShapeInfo> = {
 	note: {
 		migrations: noteShapeMigrations,
 		validator: noteShapeValidator,
-	},
-	highlight: {
-		migrations: highlightShapeMigrations,
-		validator: highlightShapeValidator,
 	},
 }
 

@@ -1,5 +1,4 @@
 import {
-	TLDrawShapeSegment,
 	colorValidator,
 	createShapeValidator,
 	dashValidator,
@@ -7,7 +6,7 @@ import {
 	sizeValidator,
 } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
-import { TLDrawShape, TL_DRAW_SHAPE_SEGMENT_TYPE } from './drawShapeTypes'
+import { TLDrawShape, TLDrawShapeSegment, TL_DRAW_SHAPE_SEGMENT_TYPE } from './drawShapeTypes'
 
 /** @internal */
 export const drawShapeSegmentValidator: T.Validator<TLDrawShapeSegment> = T.object({

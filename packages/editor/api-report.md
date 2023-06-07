@@ -29,12 +29,13 @@ import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
+import { SetValue } from '@tldraw/tlschema';
 import { Signal } from 'signia';
 import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';
 import { TLAlignType } from '@tldraw/tlschema';
 import { TLArrowheadType } from '@tldraw/tlschema';
-import { TLArrowShape } from '@tldraw/tlschema';
+import { TLArrowTerminal } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
@@ -45,15 +46,15 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLColorStyle } from '@tldraw/tlschema';
 import { TLColorType } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
+import { TLDashType } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
-import { TLDrawShape } from '@tldraw/tlschema';
 import { TLEmbedShape } from '@tldraw/tlschema';
+import { TLFillType } from '@tldraw/tlschema';
 import { TLFontType } from '@tldraw/tlschema';
 import { TLFrameShape } from '@tldraw/tlschema';
 import { TLGeoShape } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
-import { TLHighlightShape } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
@@ -62,7 +63,6 @@ import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLInstancePropsForNextShape } from '@tldraw/tlschema';
 import { TLLineShape } from '@tldraw/tlschema';
 import { TLNoteShape } from '@tldraw/tlschema';
-import { TLNullableShapeProps } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
@@ -105,6 +105,11 @@ export const ANIMATION_SHORT_MS = 80;
 
 // @public (undocumented)
 export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export const arrowShape: TLShapeInfo & {
+    tool?: TLStateNodeConstructor;
+};
 
 // @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
@@ -326,6 +331,11 @@ export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
 
 // @internal (undocumented)
 export const DRAG_DISTANCE = 4;
+
+// @public (undocumented)
+export const drawShape: TLShapeInfo & {
+    tool?: TLStateNodeConstructor;
+};
 
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
@@ -639,7 +649,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     get projectName(): string;
     // @internal
-    get props(): null | TLNullableShapeProps;
+    get props(): any | null;
     // (undocumented)
     putContent(content: TLContent, options?: {
         point?: VecLike;
@@ -1140,6 +1150,11 @@ export function hardResetEditor(): void;
 
 // @internal (undocumented)
 export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
+
+// @public (undocumented)
+export const highlightShape: TLShapeInfo & {
+    tool?: TLStateNodeConstructor;
+};
 
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
@@ -2092,6 +2107,25 @@ export type TLAnimationOptions = Partial<{
 }>;
 
 // @public (undocumented)
+export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>;
+
+// @public (undocumented)
+export type TLArrowShapeProps = {
+    labelColor: TLColorType;
+    color: TLColorType;
+    fill: TLFillType;
+    dash: TLDashType;
+    size: TLSizeType;
+    arrowheadStart: TLArrowheadType;
+    arrowheadEnd: TLArrowheadType;
+    font: TLFontType;
+    start: TLArrowTerminal;
+    end: TLArrowTerminal;
+    bend: number;
+    text: string;
+};
+
+// @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
     w: number;
     h: number;
@@ -2202,6 +2236,21 @@ export type TldrawEditorProps = {
     sessionId?: string;
     defaultName?: string;
 });
+
+// @public (undocumented)
+export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>;
+
+// @public (undocumented)
+export type TLDrawShapeProps = {
+    color: TLColorType;
+    fill: TLFillType;
+    dash: TLDashType;
+    size: TLSizeType;
+    segments: TLDrawShapeSegment[];
+    isComplete: boolean;
+    isClosed: boolean;
+    isPen: boolean;
+};
 
 // @public (undocumented)
 export type TLEditorAssetUrls = {
@@ -2375,6 +2424,18 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
+
+// @public (undocumented)
+export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>;
+
+// @public (undocumented)
+export type TLHighlightShapeProps = {
+    color: TLColorType;
+    size: TLSizeType;
+    segments: TLDrawShapeSegment[];
+    isComplete: boolean;
+    isPen: boolean;
+};
 
 // @public (undocumented)
 export type TLHistoryEntry = TLCommand | TLHistoryMark;

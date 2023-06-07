@@ -8,7 +8,7 @@ import {
 	Vec2dModel,
 } from '@tldraw/tlschema'
 
-/** @internal */
+/** @public */
 export const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)
 
 /** @public */

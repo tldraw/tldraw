@@ -275,7 +275,7 @@ function SplineStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	)
 }
 
-function ArrowheadStylePickerSet({ props }: { props: TLNullableShapeProps }) {
+function ArrowheadStylePickerSet({ props }: { props: any }) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const { arrowheadEnd, arrowheadStart } = props

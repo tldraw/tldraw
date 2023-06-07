@@ -1,4 +1,4 @@
-import { TLArrowShape } from '@tldraw/tlschema'
+import { TLArrowTerminal, TLBaseShape } from '@tldraw/tlschema'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 
@@ -10,7 +10,9 @@ export class PointingHandle extends StateNode {
 	onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
 		this.info = info
 
-		const initialTerminal = (info.shape as TLArrowShape).props[info.handle.id as 'start' | 'end']
+		const initialTerminal = (
+			info.shape as TLBaseShape<any, { start: TLArrowTerminal; end: TLArrowTerminal }>
+		).props[info.handle.id as 'start' | 'end']
 
 		if (initialTerminal?.type === 'binding') {
 			this.editor.setHintingIds([initialTerminal.boundShapeId])

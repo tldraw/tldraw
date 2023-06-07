@@ -1,18 +1,13 @@
 import { Matrix2d, snapAngle, toFixed, Vec2d } from '@tldraw/primitives'
-import {
-	createShapeId,
-	TLDrawShape,
-	TLDrawShapeSegment,
-	TLHighlightShape,
-	TLSizeType,
-	Vec2dModel,
-} from '@tldraw/tlschema'
+import { createShapeId, TLSizeType, Vec2dModel } from '@tldraw/tlschema'
 import { last, structuredClone } from '@tldraw/utils'
 import { DRAG_DISTANCE } from '../../../../../constants'
 import { uniqueId } from '../../../../../utils/data'
-import { HighlightShapeUtil } from '../../../../shapeutils/HighlightShapeUtil/HighlightShapeUtil'
 import { StateNode } from '../../../../tools/StateNode'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../../types/event-types'
+import { TLHighlightShape } from '../../../HighlightShape/highlightShapeTypes'
+import { HighlightShapeUtil } from '../../../HighlightShape/HighlightShapeUtil/HighlightShapeUtil'
+import { TLDrawShape, TLDrawShapeSegment } from '../../drawShapeTypes'
 import { DrawShapeUtil } from '../../DrawShapeUtil/DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape

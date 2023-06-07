@@ -38,7 +38,7 @@ export const TL = new Proxy(
 			return createElement(key as string)
 		},
 	}
-) as { [K in TLDefaultShape['type']]: (props: PropsForShape<K>) => null }
+) as { [K in string]: (props: any) => null } // @TODO
 
 export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
 	const ids = {} as Record<string, TLShapeId>

@@ -1,5 +1,6 @@
-import { TLArrowShape, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
+import { TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
 import { Computed, RESET_VALUE, computed, isUninitialized } from 'signia'
+import { TLArrowShape } from '../shapes/ArrowShape/arrowShapeTypes'
 
 export type TLArrowBindingsIndex = Record<
 	TLShapeId,

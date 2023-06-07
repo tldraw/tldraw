@@ -18,6 +18,12 @@ import { UnknownRecord } from '@tldraw/store';
 // @internal (undocumented)
 export const alignValidator: T.Validator<"end" | "middle" | "start">;
 
+// @public (undocumented)
+export const arrowheadValidator: T.Validator<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+
+// @public (undocumented)
+export const arrowTerminalValidator: T.Validator<TLArrowTerminal>;
+
 // @public
 export const assetIdValidator: T.Validator<TLAssetId>;
 
@@ -472,6 +478,9 @@ export const rootShapeMigrations: Migrations;
 export const scribbleValidator: T.Validator<TLScribble>;
 
 // @public (undocumented)
+export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
+
+// @public (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @internal (undocumented)
@@ -482,6 +491,9 @@ export const splineValidator: T.Validator<"cubic" | "line">;
 
 // @public (undocumented)
 export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
+
+// @public (undocumented)
+export const TL_ARROW_TERMINAL_TYPE: Set<"binding" | "point">;
 
 // @public (undocumented)
 export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
@@ -539,25 +551,6 @@ export interface TLArrowheadStartStyle extends TLBaseStyle {
 
 // @public (undocumented)
 export type TLArrowheadType = SetValue<typeof TL_ARROWHEAD_TYPES>;
-
-// @public (undocumented)
-export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>;
-
-// @public (undocumented)
-export type TLArrowShapeProps = {
-    labelColor: TLColorType;
-    color: TLColorType;
-    fill: TLFillType;
-    dash: TLDashType;
-    size: TLSizeType;
-    arrowheadStart: TLArrowheadType;
-    arrowheadEnd: TLArrowheadType;
-    font: TLFontType;
-    start: TLArrowTerminal;
-    end: TLArrowTerminal;
-    bend: number;
-    text: string;
-};
 
 // @public (undocumented)
 export type TLArrowTerminal = {
@@ -687,7 +680,7 @@ export interface TLDashStyle extends TLBaseStyle {
 export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
 
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLBookmarkShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
 export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
@@ -699,15 +692,6 @@ export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>>
 
 // @public (undocumented)
 export const TLDOCUMENT_ID: RecordId<TLDocument>;
-
-// @public (undocumented)
-export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>;
-
-// @public (undocumented)
-export type TLDrawShapeSegment = {
-    type: SetValue<typeof TL_DRAW_SHAPE_SEGMENT_TYPE>;
-    points: Vec2dModel[];
-};
 
 // @public (undocumented)
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
@@ -776,9 +760,6 @@ export interface TLHandle {
 
 // @public
 export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>;
-
-// @public (undocumented)
-export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>;
 
 // @public (undocumented)
 export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>;
@@ -1052,13 +1033,13 @@ export interface TLStyleCollections {
 }
 
 // @public (undocumented)
-export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLSizeStyle | TLSplineStyle | TLVerticalAlignStyle;
+export type TLStyleItem = TLBaseStyle;
 
 // @public (undocumented)
 export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;
 
 // @public (undocumented)
-export type TLStyleType = SetValue<typeof TL_STYLE_TYPES>;
+export type TLStyleType = any;
 
 // @public (undocumented)
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;

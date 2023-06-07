@@ -12,7 +12,6 @@ import {
 } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
 import {
-	TLArrowShape,
 	TLArrowheadType,
 	TLColorType,
 	TLFillType,
@@ -38,6 +37,7 @@ import { ShapeFill, getShapeFillSvg } from '../../../shapeutils/shared/ShapeFill
 import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
 import { createTextSvgElementFromSpans } from '../../../shapeutils/shared/createTextSvgElementFromSpans'
 import { getPerfectDashProps } from '../../../shapeutils/shared/getPerfectDashProps'
+import { TLArrowShape } from '../arrowShapeTypes'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
 import {

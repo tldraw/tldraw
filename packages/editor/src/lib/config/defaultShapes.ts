@@ -1,11 +1,11 @@
-import { ArrowShapeUtil } from '../editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+import { arrowShape } from '../editor/shapes/ArrowShape/arrowShape'
+import { drawShape } from '../editor/shapes/DrawShape/drawShape'
+import { highlightShape } from '../editor/shapes/HighlightShape/highlightShape'
 import { BookmarkShapeUtil } from '../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
-import { DrawShapeUtil } from '../editor/shapeutils/DrawShapeUtil/DrawShapeUtil'
 import { EmbedShapeUtil } from '../editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
 import { FrameShapeUtil } from '../editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
 import { GeoShapeUtil } from '../editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
 import { GroupShapeUtil } from '../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
-import { HighlightShapeUtil } from '../editor/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
 import { ImageShapeUtil } from '../editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
 import { LineShapeUtil } from '../editor/shapeutils/LineShapeUtil/LineShapeUtil'
 import { NoteShapeUtil } from '../editor/shapeutils/NoteShapeUtil/NoteShapeUtil'
@@ -43,9 +43,7 @@ export const coreShapes: Record<string, TLShapeInfo> = {
 
 /** @public */
 export const defaultShapes: Record<string, TLShapeInfo> = {
-	draw: {
-		util: DrawShapeUtil,
-	},
+	draw: drawShape,
 	geo: {
 		util: GeoShapeUtil,
 	},
@@ -58,10 +56,6 @@ export const defaultShapes: Record<string, TLShapeInfo> = {
 	frame: {
 		util: FrameShapeUtil,
 	},
-	arrow: {
-		util: ArrowShapeUtil,
-	},
-	highlight: {
-		util: HighlightShapeUtil,
-	},
+	arrow: arrowShape,
+	highlight: highlightShape,
 }

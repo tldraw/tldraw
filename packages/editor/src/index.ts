@@ -81,15 +81,30 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
-export { ArrowShapeUtil } from './lib/editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+export { ArrowShapeUtil } from './lib/editor/shapes/ArrowShape/ArrowShapeUtil/ArrowShapeUtil'
+export { arrowShape } from './lib/editor/shapes/ArrowShape/arrowShape'
+export {
+	type TLArrowShape,
+	type TLArrowShapeProps,
+} from './lib/editor/shapes/ArrowShape/arrowShapeTypes'
+export { DrawShapeUtil } from './lib/editor/shapes/DrawShape/DrawShapeUtil/DrawShapeUtil'
+export { drawShape } from './lib/editor/shapes/DrawShape/drawShape'
+export {
+	type TLDrawShape,
+	type TLDrawShapeProps,
+} from './lib/editor/shapes/DrawShape/drawShapeTypes'
+export { HighlightShapeUtil } from './lib/editor/shapes/HighlightShape/HighlightShapeUtil/HighlightShapeUtil'
+export { highlightShape } from './lib/editor/shapes/HighlightShape/highlightShape'
+export {
+	type TLHighlightShape,
+	type TLHighlightShapeProps,
+} from './lib/editor/shapes/HighlightShape/highlightShapeTypes'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
 export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
-export { DrawShapeUtil } from './lib/editor/shapeutils/DrawShapeUtil/DrawShapeUtil'
 export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
 export { FrameShapeUtil } from './lib/editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
 export { GeoShapeUtil } from './lib/editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
-export { HighlightShapeUtil } from './lib/editor/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
 export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
 export {
 	LineShapeUtil,

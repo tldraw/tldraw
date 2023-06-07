@@ -27,7 +27,6 @@ import {
 	CameraRecordType,
 	InstancePageStateRecordType,
 	PageRecordType,
-	TLArrowShape,
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
@@ -128,6 +127,7 @@ import {
 	getIsArrowStraight,
 } from './shapes/ArrowShape/ArrowShapeUtil/arrow/shared'
 import { getStraightArrowInfo } from './shapes/ArrowShape/ArrowShapeUtil/arrow/straight-arrow'
+import { TLArrowShape } from './shapes/ArrowShape/arrowShapeTypes'
 import { FrameShapeUtil } from './shapeutils/FrameShapeUtil/FrameShapeUtil'
 import { GroupShapeUtil } from './shapeutils/GroupShapeUtil/GroupShapeUtil'
 import { ShapeUtil, TLResizeMode } from './shapeutils/ShapeUtil'
@@ -1117,7 +1117,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	@computed get props(): TLNullableShapeProps | null {
+	@computed get props(): any | null {
 		let next: TLNullableShapeProps | null
 
 		// If we're in selecting and if we have a selection,

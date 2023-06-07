@@ -11,6 +11,12 @@ export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
+export {
+	TL_ARROW_TERMINAL_TYPE,
+	arrowTerminalValidator,
+	type TLArrowTerminal,
+	type TLArrowTerminalType,
+} from './misc/TLArrowTerminal'
 export { TL_COLOR_TYPES, colorTypeValidator, type TLColor } from './misc/TLColor'
 export { type TLCursor, type TLCursorType } from './misc/TLCursor'
 export { type TLHandle, type TLHandleType } from './misc/TLHandle'
@@ -63,19 +69,12 @@ export {
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
-	type TLArrowShape,
-	type TLArrowShapeProps,
-	type TLArrowTerminal,
-	type TLArrowTerminalType,
-} from './shapes/TLArrowShape'
-export {
 	createShapeValidator,
 	parentIdValidator,
 	shapeIdValidator,
 	type TLBaseShape,
 } from './shapes/TLBaseShape'
 export { type TLBookmarkShape } from './shapes/TLBookmarkShape'
-export { type TLDrawShape, type TLDrawShapeSegment } from './shapes/TLDrawShape'
 export {
 	EMBED_DEFINITIONS,
 	embedShapePermissionDefaults,
@@ -86,7 +85,6 @@ export {
 export { type TLFrameShape } from './shapes/TLFrameShape'
 export { type TLGeoShape } from './shapes/TLGeoShape'
 export { type TLGroupShape } from './shapes/TLGroupShape'
-export { type TLHighlightShape } from './shapes/TLHighlightShape'
 export { type TLIconShape } from './shapes/TLIconShape'
 export { type TLImageCrop, type TLImageShape, type TLImageShapeProps } from './shapes/TLImageShape'
 export { type TLLineShape } from './shapes/TLLineShape'
@@ -101,6 +99,7 @@ export {
 } from './styles/TLAlignStyle'
 export {
 	TL_ARROWHEAD_TYPES,
+	arrowheadValidator,
 	type TLArrowheadEndStyle,
 	type TLArrowheadStartStyle,
 	type TLArrowheadType,

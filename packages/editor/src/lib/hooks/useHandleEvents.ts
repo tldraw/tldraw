@@ -1,6 +1,7 @@
-import { TLArrowShape, TLLineShape, TLShapeId } from '@tldraw/tlschema'
+import { TLLineShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { Editor } from '../editor/Editor'
+import { TLArrowShape } from '../editor/shapes/ArrowShape/arrowShapeTypes'
 import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 import { useEditor } from './useEditor'

@@ -11,7 +11,6 @@ import {
 	setStrokePointRadii,
 	toFixed,
 } from '@tldraw/primitives'
-import { TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../../components/SVGContainer'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
@@ -19,6 +18,7 @@ import { ShapeUtil, TLOnResizeHandler } from '../../../shapeutils/ShapeUtil'
 import { ShapeFill, getShapeFillSvg } from '../../../shapeutils/shared/ShapeFill'
 import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
 import { useForceSolid } from '../../../shapeutils/shared/useForceSolid'
+import { TLDrawShape, TLDrawShapeSegment } from '../drawShapeTypes'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
 /** @public */
