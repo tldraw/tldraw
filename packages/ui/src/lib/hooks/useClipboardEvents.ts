@@ -23,6 +23,7 @@ import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
 import { useEditorIsFocused } from './useEditorIsFocused'
 import { TLUiEventSource, useEvents } from './useEventsProvider'
+import { UiCallbacksContextType, useUiCallbacks } from './useOnCreateShapesFromInteraction'
 
 const INPUTS = ['input', 'select', 'textarea']
 
@@ -171,6 +172,7 @@ type ClipboardResult =
  */
 const handlePasteFromEventClipboardData = async (
 	editor: Editor,
+	callbacks: UiCallbacksContextType,
 	clipboardData: DataTransfer,
 	point?: VecLike
 ) => {
@@ -213,7 +215,7 @@ const handlePasteFromEventClipboardData = async (
 		}
 	}
 
-	handleClipboardThings(editor, things, point)
+	handleClipboardThings(editor, callbacks, things, point)
 }
 
 /**
@@ -227,6 +229,7 @@ const handlePasteFromEventClipboardData = async (
  */
 const handlePasteFromClipboardApi = async (
 	editor: Editor,
+	callbacks: UiCallbacksContextType,
 	clipboardItems: ClipboardItem[],
 	point?: VecLike
 ) => {
@@ -274,10 +277,15 @@ const handlePasteFromClipboardApi = async (
 		}
 	}
 
-	return await handleClipboardThings(editor, things, point)
+	return await handleClipboardThings(editor, callbacks, things, point)
 }
 
-async function handleClipboardThings(editor: Editor, things: ClipboardThing[], point?: VecLike) {
+async function handleClipboardThings(
+	editor: Editor,
+	callbacks: UiCallbacksContextType,
+	things: ClipboardThing[],
+	point?: VecLike
+) {
 	// 1. Handle files
 	//
 	// We need to handle files separately because if we want them to
@@ -293,7 +301,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 		const urls = (fileBlobs.filter(Boolean) as (File | Blob)[]).map((blob) =>
 			URL.createObjectURL(blob)
 		)
-		return await pasteFiles(editor, urls, point)
+		return await pasteFiles(editor, callbacks, urls, point)
 	}
 
 	// 2. Generate clipboard results for non-file things
@@ -547,6 +555,7 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 export function useMenuClipboardEvents() {
 	const editor = useEditor()
 	const trackEvent = useEvents()
+	const callbacks = useUiCallbacks()
 
 	const copy = useCallback(
 		function onCopy(source: TLUiEventSource) {
@@ -581,7 +590,7 @@ export function useMenuClipboardEvents() {
 			if (editor.editingId !== null || disallowClipboardEvents(editor)) return
 
 			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
-				handlePasteFromClipboardApi(editor, data, point)
+				handlePasteFromClipboardApi(editor, callbacks, data, point)
 				trackEvent('paste', { source: 'menu' })
 			} else {
 				// Read it first and then recurse, kind of weird
@@ -590,7 +599,7 @@ export function useMenuClipboardEvents() {
 				})
 			}
 		},
-		[editor, trackEvent]
+		[editor, trackEvent, callbacks]
 	)
 
 	return {
@@ -604,6 +613,7 @@ export function useMenuClipboardEvents() {
 export function useNativeClipboardEvents() {
 	const editor = useEditor()
 	const trackEvent = useEvents()
+	const callbacks = useUiCallbacks()
 
 	const appIsFocused = useEditorIsFocused()
 
@@ -655,12 +665,17 @@ export function useNativeClipboardEvents() {
 
 			// First try to use the clipboard data on the event
 			if (event.clipboardData && !editor.inputs.shiftKey) {
-				handlePasteFromEventClipboardData(editor, event.clipboardData)
+				handlePasteFromEventClipboardData(editor, callbacks, event.clipboardData)
 			} else {
 				// Or else use the clipboard API
 				navigator.clipboard.read().then((clipboardItems) => {
 					if (Array.isArray(clipboardItems) && clipboardItems[0] instanceof ClipboardItem) {
-						handlePasteFromClipboardApi(editor, clipboardItems, editor.inputs.currentPagePoint)
+						handlePasteFromClipboardApi(
+							editor,
+							callbacks,
+							clipboardItems,
+							editor.inputs.currentPagePoint
+						)
 					}
 				})
 			}
@@ -679,5 +694,5 @@ export function useNativeClipboardEvents() {
 			document.removeEventListener('paste', paste)
 			document.removeEventListener('pointerup', pointerUpHandler)
 		}
-	}, [editor, trackEvent, appIsFocused])
+	}, [editor, trackEvent, callbacks, appIsFocused])
 }

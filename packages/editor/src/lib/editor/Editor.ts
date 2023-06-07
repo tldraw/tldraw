@@ -8893,7 +8893,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param file - The file to upload.
 	 * @public
 	 */
-
 	async onCreateAssetFromFile(file: File): Promise<TLAsset> {
 		return await getMediaAssetFromFile(file)
 	}
