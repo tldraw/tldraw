@@ -101,14 +101,7 @@ export const ANIMATION_MEDIUM_MS = 320;
 export const ANIMATION_SHORT_MS = 80;
 
 // @public (undocumented)
-export const arrowShape: {
-    util: TLShapeUtilConstructor<TLArrowShape, ShapeUtil<TLArrowShape>>;
-    tool?: TLStateNodeConstructor | undefined;
-    migrations?: Migrations | undefined;
-    validator?: {
-        validate: (shape: TLArrowShape) => TLArrowShape;
-    } | undefined;
-};
+export const arrowShape: TLShapeInfo<TLArrowShape>;
 
 // @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
@@ -224,7 +217,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     render(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
-    static type: string;
+    static type: "bookmark";
     // (undocumented)
     protected updateBookmarkAsset: {
         (shape: TLBookmarkShape): Promise<void>;
@@ -314,7 +307,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: Record<string, TLShapeInfo>;
+export const defaultShapes: Record<string, TLShapeInfo<any>>;
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -329,14 +322,7 @@ export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
 export const DRAG_DISTANCE = 4;
 
 // @public (undocumented)
-export const drawShape: {
-    util: TLShapeUtilConstructor<TLDrawShape, ShapeUtil<TLDrawShape>>;
-    tool?: TLStateNodeConstructor | undefined;
-    migrations?: Migrations | undefined;
-    validator?: {
-        validate: (shape: TLDrawShape) => TLDrawShape;
-    } | undefined;
-};
+export const drawShape: TLShapeInfo<TLDrawShape>;
 
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
@@ -821,7 +807,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     render(shape: TLEmbedShape): JSX.Element;
     // (undocumented)
-    static type: string;
+    static type: "embed";
 }
 
 // @public (undocumented)
@@ -868,14 +854,7 @@ export const FONT_FAMILIES: Record<TLFontType, string>;
 export const FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
-export const frameShape: {
-    util: TLShapeUtilConstructor<TLFrameShape, ShapeUtil<TLFrameShape>>;
-    tool?: TLStateNodeConstructor | undefined;
-    migrations?: Migrations | undefined;
-    validator?: {
-        validate: (shape: TLFrameShape) => TLFrameShape;
-    } | undefined;
-};
+export const frameShape: TLShapeInfo<TLFrameShape>;
 
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
@@ -910,14 +889,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 }
 
 // @public (undocumented)
-export const geoShape: {
-    util: TLShapeUtilConstructor<TLGeoShape, ShapeUtil<TLGeoShape>>;
-    tool?: TLStateNodeConstructor | undefined;
-    migrations?: Migrations | undefined;
-    validator?: {
-        validate: (shape: TLGeoShape) => TLGeoShape;
-    } | undefined;
-};
+export const geoShape: TLShapeInfo<TLGeoShape>;
 
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
@@ -1150,7 +1122,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     render(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
-    static type: string;
+    static type: "group";
     // (undocumented)
     type: "group";
 }
@@ -1170,14 +1142,7 @@ export function hardResetEditor(): void;
 export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
 
 // @public (undocumented)
-export const highlightShape: {
-    util: TLShapeUtilConstructor<TLHighlightShape, ShapeUtil<TLHighlightShape>>;
-    tool?: TLStateNodeConstructor | undefined;
-    migrations?: Migrations | undefined;
-    validator?: {
-        validate: (shape: TLHighlightShape) => TLHighlightShape;
-    } | undefined;
-};
+export const highlightShape: TLShapeInfo<TLHighlightShape>;
 
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
@@ -1247,7 +1212,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     toSvg(shape: TLImageShape): Promise<SVGGElement>;
     // (undocumented)
-    static type: string;
+    static type: "image";
 }
 
 // @public (undocumented)
@@ -1281,14 +1246,7 @@ export const isValidHttpURL: (url: string) => boolean;
 export const LABEL_FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
-export const lineShape: {
-    util: TLShapeUtilConstructor<TLLineShape, ShapeUtil<TLLineShape>>;
-    tool?: TLStateNodeConstructor | undefined;
-    migrations?: Migrations | undefined;
-    validator?: {
-        validate: (shape: TLLineShape) => TLLineShape;
-    } | undefined;
-};
+export const lineShape: TLShapeInfo<TLLineShape>;
 
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
@@ -1720,14 +1678,7 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
 };
 
 // @public (undocumented)
-export const noteShape: {
-    util: TLShapeUtilConstructor<TLNoteShape, ShapeUtil<TLNoteShape>>;
-    tool?: TLStateNodeConstructor | undefined;
-    migrations?: Migrations | undefined;
-    validator?: {
-        validate: (shape: TLNoteShape) => TLNoteShape;
-    } | undefined;
-};
+export const noteShape: TLShapeInfo<TLNoteShape>;
 
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -2137,7 +2088,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "text";
 }
 
 // @public (undocumented)
@@ -2255,7 +2206,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public (undocumented)
 export type TldrawEditorProps = {
     children?: any;
-    shapes?: Record<string, TLShapeInfo>;
+    shapes?: Record<string, TLShapeInfo<any>>;
     tools?: TLStateNodeConstructor[];
     assetUrls?: TLEditorAssetUrls;
     autoFocus?: boolean;
@@ -2728,9 +2679,9 @@ export interface TLSessionStateSnapshot {
 }
 
 // @public (undocumented)
-export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
+export interface TLShapeUtilConstructor<T extends TLUnknownShape> {
     // (undocumented)
-    new (editor: Editor, type: T['type']): U;
+    new (editor: Editor, type: T['type']): ShapeUtil<T>;
     // (undocumented)
     type: T['type'];
 }
@@ -2867,7 +2818,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     toSvg(shape: TLVideoShape): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "video";
 }
 
 // @public (undocumented)

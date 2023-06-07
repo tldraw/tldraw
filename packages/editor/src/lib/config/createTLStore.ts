@@ -1,13 +1,6 @@
-import { Migrations, Store, StoreSnapshot } from '@tldraw/store'
+import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore, createTLSchema } from '@tldraw/tlschema'
-import { TLShapeUtilConstructor } from '../editor/shapeutils/ShapeUtil'
-
-/** @public */
-export type TLShapeInfo = {
-	util: TLShapeUtilConstructor<any>
-	migrations?: Migrations
-	validator?: { validate: (record: any) => any }
-}
+import { TLShapeInfo } from './createShape'
 
 /** @public */
 export type TLStoreOptions = {

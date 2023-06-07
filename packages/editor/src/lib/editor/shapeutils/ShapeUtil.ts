@@ -12,11 +12,8 @@ const points = new WeakMapCache<TLShape, Vec2dModel>()
 const transforms = new WeakMapCache<TLShape, Matrix2d>()
 
 /** @public */
-export interface TLShapeUtilConstructor<
-	T extends TLUnknownShape,
-	U extends ShapeUtil<T> = ShapeUtil<T>
-> {
-	new (editor: Editor, type: T['type']): U
+export interface TLShapeUtilConstructor<T extends TLUnknownShape> {
+	new (editor: Editor, type: T['type']): ShapeUtil<T>
 	type: T['type']
 }
 

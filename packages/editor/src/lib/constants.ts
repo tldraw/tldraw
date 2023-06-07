@@ -88,13 +88,6 @@ export const DEFAULT_ANIMATION_OPTIONS = {
 export const HAND_TOOL_FRICTION = 0.09
 
 /** @internal */
-export const MIN_ARROW_LENGTH = 48
-/** @internal */
-export const BOUND_ARROW_OFFSET = 10
-/** @internal */
-export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10
-
-/** @internal */
 export const DEFAULT_BOOKMARK_WIDTH = 300
 
 /** @internal */
@@ -150,14 +143,6 @@ export const LABEL_FONT_SIZES: Record<TLSizeType, number> = {
 	m: 22,
 	l: 26,
 	xl: 32,
-}
-
-/** @public */
-export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number> = {
-	s: 18,
-	m: 20,
-	l: 24,
-	xl: 28,
 }
 
 /** @public */

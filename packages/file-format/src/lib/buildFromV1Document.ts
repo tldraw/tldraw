@@ -16,6 +16,7 @@ import {
 	TLFontType,
 	TLGeoShape,
 	TLImageShape,
+	TLNoteShape,
 	TLPageId,
 	TLShapeId,
 	TLShapePartial,
@@ -25,7 +26,6 @@ import {
 	Vec2dModel,
 	createShapeId,
 } from '@tldraw/editor'
-import { TLNoteShape } from '@tldraw/editor/src/lib/editor/shapes/NoteShape/noteShapeTypes'
 import { Vec2d, clamp } from '@tldraw/primitives'
 
 const TLDRAW_V1_VERSION = 15.5

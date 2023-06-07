@@ -3,7 +3,8 @@ import { TLUnknownShape } from '@tldraw/tlschema'
 import { TLShapeUtilConstructor } from '../editor/shapeutils/ShapeUtil'
 import { TLStateNodeConstructor } from '../editor/tools/StateNode'
 
-export type EditorShape<T extends TLUnknownShape> = {
+/** @public */
+export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
 	util: TLShapeUtilConstructor<T>
 	tool?: TLStateNodeConstructor
 	migrations?: Migrations
@@ -15,6 +16,6 @@ export function createShape<T extends TLUnknownShape>(opts: {
 	tool?: TLStateNodeConstructor
 	migrations?: Migrations
 	validator?: { validate: (shape: T) => T }
-}) {
+}): TLShapeInfo<T> {
 	return opts
 }

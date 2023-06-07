@@ -74,7 +74,7 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { TLShapeInfo } from '../config/createTLStore'
+import { TLShapeInfo } from '../config/createShape'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { coreShapes, defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
