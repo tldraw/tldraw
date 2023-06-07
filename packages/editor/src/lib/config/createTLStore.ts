@@ -4,7 +4,7 @@ import { TLShapeInfo } from './createShape'
 
 /** @public */
 export type TLStoreOptions = {
-	customShapes?: Record<string, TLShapeInfo>
+	customShapes?: TLShapeInfo[]
 	initialData?: StoreSnapshot<TLRecord>
 	defaultName?: string
 }

@@ -6,7 +6,7 @@ import { TLDrawShape } from './drawShapeTypes'
 import { drawShapeValidator } from './drawShapeValidator'
 
 /** @public */
-export const drawShape = createShape<TLDrawShape>({
+export const drawShape = createShape<TLDrawShape>('draw', {
 	util: DrawShapeUtil,
 	tool: DrawShapeTool,
 	migrations: drawShapeMigrations,

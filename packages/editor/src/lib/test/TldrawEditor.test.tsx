@@ -3,7 +3,9 @@ import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
+import { createShape } from '../config/createShape'
 import { createTLStore } from '../config/createTLStore'
+import { defaultShapes } from '../config/defaultShapes'
 import { Editor } from '../editor/Editor'
 import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
 import { BaseBoxShapeTool } from '../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
@@ -215,14 +217,14 @@ describe('Custom shapes', () => {
 	}
 
 	const tools = [CardTool]
-	const shapes = { card: { util: CardUtil } }
+	const shapes = [createShape<CardShape>('card', { util: CardUtil })]
 
 	it('Uses custom shapes', async () => {
 		let editor = {} as Editor
 		render(
 			await act(async () => (
 				<TldrawEditor
-					shapes={shapes}
+					shapes={[...defaultShapes, ...shapes]}
 					tools={tools}
 					autoFocus
 					onMount={(editorApp) => {

@@ -6,7 +6,7 @@ import { TLFrameShape } from './frameShapeTypes'
 import { frameShapeValidator } from './frameShapeValidator'
 
 /** @public */
-export const frameShape = createShape<TLFrameShape>({
+export const frameShape = createShape<TLFrameShape>('frame', {
 	util: FrameShapeUtil,
 	tool: FrameShapeTool,
 	migrations: frameShapeMigrations,

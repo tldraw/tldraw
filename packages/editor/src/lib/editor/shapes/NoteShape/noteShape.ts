@@ -6,7 +6,7 @@ import { TLNoteShape } from './noteShapeTypes'
 import { noteShapeValidator } from './noteShapeValidator'
 
 /** @public */
-export const noteShape = createShape<TLNoteShape>({
+export const noteShape = createShape<TLNoteShape>('note', {
 	util: NoteShapeUtil,
 	tool: NoteShapeTool,
 	migrations: noteShapeMigrations,

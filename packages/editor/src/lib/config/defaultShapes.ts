@@ -1,10 +1,5 @@
-import {
-	TLBookmarkShape,
-	TLEmbedShape,
-	TLGroupShape,
-	TLImageShape,
-	TLVideoShape,
-} from '@tldraw/tlschema'
+import { TLEmbedShape, TLGroupShape, TLImageShape, TLVideoShape } from '@tldraw/tlschema'
+import { BookmarkShapeUtil, TLBookmarkShape } from '../..'
 import { arrowShape } from '../editor/shapes/ArrowShape/arrowShape'
 import { drawShape } from '../editor/shapes/DrawShape/drawShape'
 import { frameShape } from '../editor/shapes/FrameShape/frameShape'
@@ -13,7 +8,6 @@ import { highlightShape } from '../editor/shapes/HighlightShape/highlightShape'
 import { lineShape } from '../editor/shapes/LineShape/lineShape'
 import { noteShape } from '../editor/shapes/NoteShape/noteShape'
 import { textShape } from '../editor/shapes/TextShape/textShape'
-import { BookmarkShapeUtil } from '../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 import { EmbedShapeUtil } from '../editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
 import { GroupShapeUtil } from '../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 import { ImageShapeUtil } from '../editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
@@ -21,37 +15,37 @@ import { VideoShapeUtil } from '../editor/shapeutils/VideoShapeUtil/VideoShapeUt
 import { TLShapeInfo, createShape } from './createShape'
 
 /** @public */
-export const coreShapes: Record<string, TLShapeInfo<any>> = {
+export const coreShapes: TLShapeInfo<any>[] = [
 	// created by grouping interactions, probably the corest core shape that we have
-	group: createShape<TLGroupShape>({
+	createShape<TLGroupShape>('group', {
 		util: GroupShapeUtil,
 	}),
 	// created by embed menu / url drop
-	embed: createShape<TLEmbedShape>({
+	createShape<TLEmbedShape>('embed', {
 		util: EmbedShapeUtil,
 	}),
 	// created by copy and paste / url drop
-	bookmark: createShape<TLBookmarkShape>({
+	createShape<TLBookmarkShape>('bookmark', {
 		util: BookmarkShapeUtil,
 	}),
 	// created by copy and paste / file drop
-	image: createShape<TLImageShape>({
+	createShape<TLImageShape>('image', {
 		util: ImageShapeUtil,
 	}),
 	// created by copy and paste / file drop
-	video: createShape<TLVideoShape>({
+	createShape<TLVideoShape>('video', {
 		util: VideoShapeUtil,
 	}),
-}
+]
 
 /** @public */
-export const defaultShapes: Record<string, TLShapeInfo<any>> = {
-	draw: drawShape,
-	arrow: arrowShape,
-	highlight: highlightShape,
-	geo: geoShape,
-	line: lineShape,
-	note: noteShape,
-	frame: frameShape,
-	text: textShape,
-}
+export const defaultShapes: TLShapeInfo<any>[] = [
+	drawShape,
+	arrowShape,
+	highlightShape,
+	geoShape,
+	lineShape,
+	noteShape,
+	frameShape,
+	textShape,
+]

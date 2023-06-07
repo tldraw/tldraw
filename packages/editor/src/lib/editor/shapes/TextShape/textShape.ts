@@ -6,7 +6,7 @@ import { TLTextShape } from './textShapeTypes'
 import { textShapeValidator } from './textShapeValidator'
 
 /** @public */
-export const textShape = createShape<TLTextShape>({
+export const textShape = createShape<TLTextShape>('text', {
 	util: TextShapeUtil,
 	tool: TextShapeTool,
 	migrations: textShapeMigrations,

@@ -1,20 +1,21 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
+import { AssetRecordType, TLAssetId, TLBookmarkAsset } from '@tldraw/tlschema'
 import { debounce, getHashForString } from '@tldraw/utils'
-import { HTMLContainer } from '../../../components/HTMLContainer'
+import { HTMLContainer } from '../../../../components/HTMLContainer'
 import {
 	DEFAULT_BOOKMARK_HEIGHT,
 	DEFAULT_BOOKMARK_WIDTH,
 	ROTATING_SHADOWS,
-} from '../../../constants'
+} from '../../../../constants'
 import {
 	rotateBoxShadow,
 	stopEventPropagation,
 	truncateStringWithEllipsis,
-} from '../../../utils/dom'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnBeforeCreateHandler, TLOnBeforeUpdateHandler } from '../ShapeUtil'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
+} from '../../../../utils/dom'
+import { BaseBoxShapeUtil } from '../../../shapeutils/BaseBoxShapeUtil'
+import { TLOnBeforeCreateHandler, TLOnBeforeUpdateHandler } from '../../../shapeutils/ShapeUtil'
+import { HyperlinkButton } from '../../../shapeutils/shared/HyperlinkButton'
+import { TLBookmarkShape } from '../bookmarkShapeTypes'
 
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {

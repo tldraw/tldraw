@@ -163,7 +163,7 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapes?: Record<string, TLShapeInfo>
+	shapes?: TLShapeInfo[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -203,10 +203,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Shapes.
 		// Accept shapes from constructor parameters which may not conflict with the root note's core tools.
 		const shapeUtils = Object.fromEntries(
-			Object.values(coreShapes).map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
+			coreShapes.map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
 		)
 
-		for (const [type, { util: Util }] of Object.entries(shapes)) {
+		for (const { type, util: Util } of shapes) {
 			if (shapeUtils[type]) {
 				throw Error(`May not overwrite core shape of type "${type}".`)
 			}
@@ -220,13 +220,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		const uniqueTools = Object.fromEntries(tools.map((Ctor) => [Ctor.id, Ctor]))
-		for (const [id, Ctor] of Object.entries(uniqueTools)) {
+		const uniqueTools = Object.fromEntries(tools.map((ToolCtor) => [ToolCtor.id, ToolCtor]))
+		for (const [id, ToolCtor] of Object.entries(uniqueTools)) {
 			if (this.root.children?.[id]) {
 				throw Error(`Can't override tool with id "${id}"`)
 			}
 
-			this.root.children![id] = new Ctor(this)
+			this.root.children![id] = new ToolCtor(this)
+		}
+
+		// Next, add tools from shapes.
+		for (const { tool: ToolCtor } of shapes) {
+			if (!ToolCtor) continue
+			if (this.root.children?.[ToolCtor.id]) {
+				throw Error(`Can't override tool with id "${ToolCtor.id}"`)
+			}
+
+			this.root.children![ToolCtor.id] = new ToolCtor(this)
 		}
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {

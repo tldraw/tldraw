@@ -6,7 +6,7 @@ import { TLGeoShape } from './geoShapeTypes'
 import { geoShapeValidator } from './geoShapeValidator'
 
 /** @public */
-export const geoShape = createShape<TLGeoShape>({
+export const geoShape = createShape<TLGeoShape>('geo', {
 	util: GeoShapeUtil,
 	tool: GeoShapeTool,
 	migrations: geoShapeMigrations,

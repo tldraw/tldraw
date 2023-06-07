@@ -1,30 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
-import { assetIdValidator } from '../assets/TLBaseAsset'
-import { TLAssetId } from '../records/TLAsset'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
-
-/** @public */
-export type TLBookmarkShapeProps = {
-	w: number
-	h: number
-	assetId: TLAssetId | null
-	url: string
-}
-
-/** @public */
-export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
-
-/** @internal */
-export const bookmarkShapeValidator: T.Validator<TLBookmarkShape> = createShapeValidator(
-	'bookmark',
-	T.object({
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		assetId: assetIdValidator.nullable(),
-		url: T.string,
-	})
-)
+import { TLBookmarkShape } from './bookmarkShapeTypes'
 
 const Versions = {
 	NullAssetId: 1,

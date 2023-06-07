@@ -628,9 +628,6 @@ export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
     src: null | string;
 }>;
 
-// @public (undocumented)
-export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>;
-
 // @public
 export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
     // (undocumented)

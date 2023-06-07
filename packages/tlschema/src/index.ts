@@ -74,7 +74,6 @@ export {
 	shapeIdValidator,
 	type TLBaseShape,
 } from './shapes/TLBaseShape'
-export { type TLBookmarkShape } from './shapes/TLBookmarkShape'
 export {
 	EMBED_DEFINITIONS,
 	embedShapePermissionDefaults,

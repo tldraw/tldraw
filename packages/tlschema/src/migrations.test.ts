@@ -7,7 +7,6 @@ import { instanceMigrations, instanceTypeVersions } from './records/TLInstance'
 import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
 import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './records/TLShape'
-import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
 import { videoShapeMigrations } from './shapes/TLVideoShape'
@@ -276,21 +275,6 @@ describe('Adding url props', () => {
 			expect(down(before)).toStrictEqual(after)
 		})
 	}
-})
-
-describe('Bookmark null asset id', () => {
-	const { up, down } = bookmarkShapeMigrations.migrators[1]
-	test('up works as expected', () => {
-		const before = { props: {} }
-		const after = { props: { assetId: null } }
-		expect(up(before)).toStrictEqual(after)
-	})
-
-	test('down works as expected', () => {
-		const before = { props: { assetId: null } }
-		const after = { props: {} }
-		expect(down(before)).toStrictEqual(after)
-	})
 })
 
 describe('Renaming asset props', () => {

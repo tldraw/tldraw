@@ -39,7 +39,6 @@ import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
-import { TLBookmarkShape } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLColorStyle } from '@tldraw/tlschema';
 import { TLColorType } from '@tldraw/tlschema';
@@ -195,6 +194,9 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 export function blobAsString(blob: Blob): Promise<string>;
 
 // @public (undocumented)
+export const bookmarkShape: TLShapeInfo<TLBookmarkShape>;
+
+// @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize: () => boolean;
@@ -305,7 +307,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: Record<string, TLShapeInfo<any>>;
+export const defaultShapes: TLShapeInfo<any>[];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -2136,6 +2138,17 @@ export interface TLBaseEventInfo {
 }
 
 // @public (undocumented)
+export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>;
+
+// @public (undocumented)
+export type TLBookmarkShapeProps = {
+    w: number;
+    h: number;
+    assetId: null | TLAssetId;
+    url: string;
+};
+
+// @public (undocumented)
 export type TLCancelEvent = (info: TLCancelEventInfo) => void;
 
 // @public (undocumented)
@@ -2207,7 +2220,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public (undocumented)
 export type TldrawEditorProps = {
     children?: any;
-    shapes?: Record<string, TLShapeInfo<any>>;
+    shapes?: TLShapeInfo<any>[];
     tools?: TLStateNodeConstructor[];
     assetUrls?: TLEditorAssetUrls;
     autoFocus?: boolean;
@@ -2297,7 +2310,7 @@ export interface TLEditorComponents {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
-    shapes?: Record<string, TLShapeInfo>;
+    shapes?: TLShapeInfo[];
     store: TLStore;
     tools?: TLStateNodeConstructor[];
     user?: TLUser;

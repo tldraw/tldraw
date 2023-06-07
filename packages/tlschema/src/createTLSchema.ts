@@ -11,7 +11,6 @@ import { PointerRecordType } from './records/TLPointer'
 import { InstancePresenceRecordType } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
 import { TLShape, rootShapeMigrations } from './records/TLShape'
-import { bookmarkShapeMigrations, bookmarkShapeValidator } from './shapes/TLBookmarkShape'
 import { embedShapeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
 import { groupShapeMigrations, groupShapeValidator } from './shapes/TLGroupShape'
 import { imageShapeMigrations, imageShapeValidator } from './shapes/TLImageShape'
@@ -28,10 +27,6 @@ const coreShapes: Record<string, SchemaShapeInfo> = {
 	group: {
 		migrations: groupShapeMigrations,
 		validator: groupShapeValidator,
-	},
-	bookmark: {
-		migrations: bookmarkShapeMigrations,
-		validator: bookmarkShapeValidator,
 	},
 	embed: {
 		migrations: embedShapeMigrations,

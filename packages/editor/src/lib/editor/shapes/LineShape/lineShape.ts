@@ -6,7 +6,7 @@ import { TLLineShape } from './lineShapeTypes'
 import { lineShapeValidator } from './lineShapeValidator'
 
 /** @public */
-export const lineShape = createShape<TLLineShape>({
+export const lineShape = createShape<TLLineShape>('line', {
 	util: LineShapeUtil,
 	tool: LineShapeTool,
 	migrations: lineShapeMigrations,

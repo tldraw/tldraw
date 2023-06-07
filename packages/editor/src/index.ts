@@ -83,6 +83,12 @@ export {
 	type TLArrowShape,
 	type TLArrowShapeProps,
 } from './lib/editor/shapes/ArrowShape/arrowShapeTypes'
+export { BookmarkShapeUtil } from './lib/editor/shapes/BookmarkShape/BookmarkShapeUtil/BookmarkShapeUtil'
+export { bookmarkShape } from './lib/editor/shapes/BookmarkShape/bookmarkShape'
+export {
+	type TLBookmarkShape,
+	type TLBookmarkShapeProps,
+} from './lib/editor/shapes/BookmarkShape/bookmarkShapeTypes'
 export { DrawShapeUtil } from './lib/editor/shapes/DrawShape/DrawShapeUtil/DrawShapeUtil'
 export { drawShape } from './lib/editor/shapes/DrawShape/drawShape'
 export {
@@ -123,7 +129,6 @@ export {
 	type TLTextShapeProps,
 } from './lib/editor/shapes/TextShape/textShapeTypes'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
-export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'

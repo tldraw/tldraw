@@ -5,7 +5,7 @@ import { highlightShapeMigrations } from './highlightShapeMigrations'
 import { highlightShapeValidator } from './highlightShapeValidator'
 
 /** @public */
-export const highlightShape = createShape({
+export const highlightShape = createShape('highlight', {
 	util: HighlightShapeUtil,
 	tool: HighlightShapeTool,
 	migrations: highlightShapeMigrations,

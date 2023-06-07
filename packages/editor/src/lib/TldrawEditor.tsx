@@ -31,7 +31,7 @@ export type TldrawEditorProps = {
 	/**
 	 * An array of shape utils to use in the editor.
 	 */
-	shapes?: Record<string, TLShapeInfo<any>>
+	shapes?: TLShapeInfo<any>[]
 	/**
 	 * An array of tools to use in the editor.
 	 */
