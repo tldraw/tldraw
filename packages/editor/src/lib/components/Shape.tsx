@@ -1,6 +1,5 @@
 import { Matrix2d } from '@tldraw/primitives'
-import { TLBaseShape, TLColorType, TLShape, TLShapeId } from '@tldraw/tlschema'
-import { TL_COLOR_TYPES } from '@tldraw/tlschema/src/styles/TLColorStyle'
+import { TLBaseShape, TLColorType, TLShape, TLShapeId, TL_COLOR_TYPES } from '@tldraw/tlschema'
 import * as React from 'react'
 import {
 	track,

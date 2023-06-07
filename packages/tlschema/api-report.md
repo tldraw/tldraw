@@ -296,6 +296,9 @@ export const TL_ARROW_TERMINAL_TYPE: Set<"binding" | "point">;
 // @public (undocumented)
 export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
+// @public (undocumented)
+export const TL_COLOR_TYPES: Set<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+
 // @public
 export const TL_COLORS: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
