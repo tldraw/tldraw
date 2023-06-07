@@ -1,8 +1,9 @@
 // eslint-disable-next-line import/no-internal-modules
 import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 import { TAU } from '@tldraw/primitives'
-import { TLArrowShape, TLArrowTerminal, TLShapeId, createShapeId } from '@tldraw/tlschema'
+import { TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
+import { TLArrowShape, TLArrowTerminal } from '../arrowShapeTypes'
 import { ArrowShapeUtil } from './ArrowShapeUtil'
 
 let editor: TestEditor

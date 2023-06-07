@@ -34,7 +34,7 @@ import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
 
 // @public (undocumented)
-export const ArrowShape: TLShapeInfo & {
+export const arrowShape: TLShapeInfo & {
     tool: TLStateNodeConstructor;
 };
 

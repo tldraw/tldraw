@@ -1,7 +1,4 @@
 import {
-	TLArrowShape,
-	TLArrowTerminal,
-	TL_ARROWHEAD_TYPES,
 	colorValidator,
 	createShapeValidator,
 	dashValidator,
@@ -11,6 +8,7 @@ import {
 	sizeValidator,
 } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
+import { TLArrowShape, TLArrowTerminal, TL_ARROWHEAD_TYPES } from './arrowShapeTypes'
 
 /** @internal */
 export const arrowTerminalValidator: T.Validator<TLArrowTerminal> = T.union('type', {
