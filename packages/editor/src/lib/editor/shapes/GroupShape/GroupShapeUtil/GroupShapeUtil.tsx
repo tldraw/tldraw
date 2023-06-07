@@ -1,12 +1,13 @@
 import { Box2d, Matrix2d } from '@tldraw/primitives'
-import { TLGroupShape, Vec2dModel } from '@tldraw/tlschema'
+import { Vec2dModel } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../../components/SVGContainer'
 import { ShapeUtil, TLOnChildrenChangeHandler } from '../../../shapeutils/ShapeUtil'
 import { DashedOutlineBox } from '../../../shapeutils/shared/DashedOutlineBox'
+import { TLGroupShape } from '../groupShapeTypes'
 
 /** @public */
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
-	static override type = 'group'
+	static override type = 'group' as const
 
 	type = 'group' as const
 

@@ -36,7 +36,6 @@ import {
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLDocument,
-	TLGroupShape,
 	TLINSTANCE_ID,
 	TLImageAsset,
 	TLInstance,
@@ -129,8 +128,9 @@ import { getStraightArrowInfo } from './shapes/ArrowShape/ArrowShapeUtil/arrow/s
 import { TLArrowShape } from './shapes/ArrowShape/arrowShapeTypes'
 import { FrameShapeUtil } from './shapes/FrameShape/FrameShapeUtil/FrameShapeUtil'
 import { TLFrameShape } from './shapes/FrameShape/frameShapeTypes'
+import { GroupShapeUtil } from './shapes/GroupShape/GroupShapeUtil/GroupShapeUtil'
+import { TLGroupShape } from './shapes/GroupShape/groupShapeTypes'
 import { TextShapeUtil } from './shapes/TextShape/TextShapeUtil/TextShapeUtil'
-import { GroupShapeUtil } from './shapeutils/GroupShapeUtil/GroupShapeUtil'
 import { ShapeUtil, TLResizeMode } from './shapeutils/ShapeUtil'
 import { TLExportColors } from './shapeutils/shared/TLExportColors'
 import { RootState } from './tools/RootState'

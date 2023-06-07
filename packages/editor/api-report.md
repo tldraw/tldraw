@@ -48,7 +48,6 @@ import { TLDocument } from '@tldraw/tlschema';
 import { TLFillType } from '@tldraw/tlschema';
 import { TLFontType } from '@tldraw/tlschema';
 import { TLGeoType } from '@tldraw/tlschema';
-import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLImageShape } from '@tldraw/tlschema';
@@ -1102,6 +1101,9 @@ export const GRID_STEPS: {
     mid: number;
     step: number;
 }[];
+
+// @public (undocumented)
+export const groupShape: TLShapeInfo<TLGroupShape>;
 
 // @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
@@ -2165,6 +2167,14 @@ export type TLGeoShapeProps = {
     h: number;
     text: string;
     growY: number;
+};
+
+// @public (undocumented)
+export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
+
+// @public (undocumented)
+export type TLGroupShapeProps = {
+    [key in never]: undefined;
 };
 
 // @public (undocumented)

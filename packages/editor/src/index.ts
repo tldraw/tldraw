@@ -112,6 +112,12 @@ export {
 export { GeoShapeUtil } from './lib/editor/shapes/GeoShape/GeoShapeUtil/GeoShapeUtil'
 export { geoShape } from './lib/editor/shapes/GeoShape/geoShape'
 export { type TLGeoShape, type TLGeoShapeProps } from './lib/editor/shapes/GeoShape/geoShapeTypes'
+export { GroupShapeUtil } from './lib/editor/shapes/GroupShape/GroupShapeUtil/GroupShapeUtil'
+export { groupShape } from './lib/editor/shapes/GroupShape/groupShape'
+export {
+	type TLGroupShape,
+	type TLGroupShapeProps,
+} from './lib/editor/shapes/GroupShape/groupShapeTypes'
 export { HighlightShapeUtil } from './lib/editor/shapes/HighlightShape/HighlightShapeUtil/HighlightShapeUtil'
 export { highlightShape } from './lib/editor/shapes/HighlightShape/highlightShape'
 export {
@@ -137,7 +143,6 @@ export {
 	type TLTextShapeProps,
 } from './lib/editor/shapes/TextShape/textShapeTypes'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
-export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
 export {
 	ShapeUtil,

@@ -74,7 +74,6 @@ export {
 	shapeIdValidator,
 	type TLBaseShape,
 } from './shapes/TLBaseShape'
-export { type TLGroupShape } from './shapes/TLGroupShape'
 export { type TLIconShape } from './shapes/TLIconShape'
 export { type TLImageCrop, type TLImageShape, type TLImageShapeProps } from './shapes/TLImageShape'
 export { type TLVideoShape } from './shapes/TLVideoShape'

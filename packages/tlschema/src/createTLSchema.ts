@@ -11,7 +11,6 @@ import { PointerRecordType } from './records/TLPointer'
 import { InstancePresenceRecordType } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
 import { TLShape, rootShapeMigrations } from './records/TLShape'
-import { groupShapeMigrations, groupShapeValidator } from './shapes/TLGroupShape'
 import { imageShapeMigrations, imageShapeValidator } from './shapes/TLImageShape'
 import { videoShapeMigrations, videoShapeValidator } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
@@ -24,11 +23,6 @@ export type SchemaShapeInfo = {
 }
 
 const coreShapes: SchemaShapeInfo[] = [
-	{
-		type: 'group',
-		migrations: groupShapeMigrations,
-		validator: groupShapeValidator,
-	},
 	{
 		type: 'image',
 		migrations: imageShapeMigrations,

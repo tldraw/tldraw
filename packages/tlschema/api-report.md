@@ -521,9 +521,6 @@ export interface TLGeoStyle extends TLBaseStyle {
 // @public (undocumented)
 export type TLGeoType = SetValue<typeof TL_GEO_TYPES>;
 
-// @public (undocumented)
-export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
-
 // @public
 export interface TLHandle {
     // (undocumented)
