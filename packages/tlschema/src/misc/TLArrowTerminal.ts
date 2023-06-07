@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
+import { shapeIdValidator } from '../records/TLBaseShape'
 import { TLShapeId } from '../records/TLShape'
-import { shapeIdValidator } from '../shapes/TLBaseShape'
 import { SetValue } from '../util-types'
 import { Vec2dModel } from './geometry-types'
 

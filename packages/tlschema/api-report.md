@@ -297,7 +297,7 @@ export const TL_ARROW_TERMINAL_TYPE: Set<"binding" | "point">;
 export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public
-export const TL_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+export const TL_COLORS: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public (undocumented)
 export const TL_DASH_TYPES: Set<"dashed" | "dotted" | "draw" | "solid">;
@@ -310,6 +310,9 @@ export const TL_FONT_TYPES: Set<"draw" | "mono" | "sans" | "serif">;
 
 // @public (undocumented)
 export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+
+// @public
+export const TL_HANDLE_TYPES: Set<"create" | "vertex" | "virtual">;
 
 // @public (undocumented)
 export const TL_SIZE_TYPES: Set<"l" | "m" | "s" | "xl">;
@@ -437,7 +440,7 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 export type TLCameraId = RecordId<TLCamera>;
 
 // @public
-export type TLColor = SetValue<typeof TL_COLOR_TYPES>;
+export type TLColor = SetValue<typeof TL_COLORS>;
 
 // @public (undocumented)
 export interface TLColorStyle extends TLBaseStyle {
@@ -448,7 +451,7 @@ export interface TLColorStyle extends TLBaseStyle {
 }
 
 // @public (undocumented)
-export type TLColorType = SetValue<typeof TL_COLOR_TYPES_2>;
+export type TLColorType = SetValue<typeof TL_COLOR_TYPES>;
 
 // @public
 export interface TLCursor {
@@ -473,9 +476,6 @@ export interface TLDashStyle extends TLBaseStyle {
 
 // @public (undocumented)
 export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
-
-// @public
-export type TLDefaultShape = TLBaseShape<string, any>;
 
 // @public
 export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
@@ -538,9 +538,6 @@ export interface TLHandle {
 
 // @public
 export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>;
-
-// @public (undocumented)
-export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>;
 
 // @public (undocumented)
 export interface TLIconStyle extends TLBaseStyle {
@@ -661,7 +658,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 }
 
 // @public (undocumented)
-export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>;
+export type TLInstancePropsForNextShape = any;
 
 // @public (undocumented)
 export type TLLanguage = (typeof LANGUAGES)[number];
@@ -705,7 +702,7 @@ export type TLScribble = {
 };
 
 // @public
-export type TLShape = TLDefaultShape | TLUnknownShape;
+export type TLShape = TLUnknownShape;
 
 // @public (undocumented)
 export type TLShapeId = RecordId<TLUnknownShape>;
@@ -721,7 +718,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 export type TLShapeProp = keyof TLShapeProps;
 
 // @public (undocumented)
-export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
+export type TLShapeProps = Identity<UnionToIntersection<TLShape['props']>>;
 
 // @public (undocumented)
 export interface TLSizeStyle extends TLBaseStyle {
@@ -789,7 +786,7 @@ export interface TLStyleCollections {
 export type TLStyleItem = TLBaseStyle;
 
 // @public (undocumented)
-export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;
+export type TLStyleProps = any;
 
 // @public (undocumented)
 export type TLStyleType = any;

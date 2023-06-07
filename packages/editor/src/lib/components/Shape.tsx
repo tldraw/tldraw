@@ -1,5 +1,6 @@
 import { Matrix2d } from '@tldraw/primitives'
-import { TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLBaseShape, TLColorType, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TL_COLOR_TYPES } from '@tldraw/tlschema/src/styles/TLColorStyle'
 import * as React from 'react'
 import {
 	track,
@@ -73,8 +74,11 @@ export const Shape = track(function Shape({
 
 			const clipPath = editor.getClipPathById(id)
 			setProperty('clip-path', clipPath ?? 'none')
-			if ('color' in shape.props) {
-				setProperty('color', editor.getCssColor(shape.props.color))
+			const {
+				props: { color },
+			} = shape.props as TLBaseShape<any, { color: TLColorType }>
+			if (color && TL_COLOR_TYPES.has(color)) {
+				setProperty('color', editor.getCssColor(color))
 			}
 		},
 		[editor, setProperty]

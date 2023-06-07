@@ -1,8 +1,8 @@
 import { BaseRecord } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
-import { TLParentId, TLShapeId } from '../records/TLShape'
 import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
+import { TLParentId, TLShapeId } from './TLShape'
 
 /** @public */
 export interface TLBaseShape<Type extends string, Props extends object>

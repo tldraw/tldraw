@@ -43,7 +43,6 @@ import { TLColorStyle } from '@tldraw/tlschema';
 import { TLColorType } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDashType } from '@tldraw/tlschema';
-import { TLDefaultShape } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLFillType } from '@tldraw/tlschema';
 import { TLFontType } from '@tldraw/tlschema';
@@ -450,7 +449,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     // (undocumented)
-    get editingShape(): TLDefaultShape | null;
+    get editingShape(): null | TLUnknownShape;
     // (undocumented)
     enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
@@ -481,7 +480,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d;
     // (undocumented)
-    getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLDefaultShape | undefined;
+    getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     // (undocumented)
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
@@ -508,7 +507,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']): TLPageId | TLShapeId;
     getParentPageId(shape?: TLShape): TLPageId | undefined;
     getParentShape(shape?: TLShape): TLShape | undefined;
-    getParentsMappedToChildren(ids: TLShapeId[]): Map<TLParentId, Set<TLShape>>;
+    getParentsMappedToChildren(ids: TLShapeId[]): Map<TLParentId, Set<TLUnknownShape>>;
     getParentTransform(shape: TLShape): Matrix2d;
     getPointInParentSpace(shapeId: TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d;
@@ -544,7 +543,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     get hoveredId(): null | TLShapeId;
     // (undocumented)
-    get hoveredShape(): TLDefaultShape | null;
+    get hoveredShape(): null | TLUnknownShape;
     inputs: {
         originPagePoint: Vec2d;
         originScreenPoint: Vec2d;
@@ -726,7 +725,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setToolLocked(isToolLocked: boolean): this;
     setZoomBrush(zoomBrush?: Box2dModel | null): this;
     get shapeIds(): Set<TLShapeId>;
-    get shapesArray(): TLShape[];
+    get shapesArray(): TLUnknownShape[];
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -866,7 +865,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
+    canReceiveNewChildrenOfType: (shape: TLUnknownShape, _type: TLShape['type']) => boolean;
     // (undocumented)
     defaultProps(): TLFrameShape['props'];
     // (undocumented)

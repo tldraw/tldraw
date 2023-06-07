@@ -17,9 +17,9 @@ export {
 	type TLArrowTerminal,
 	type TLArrowTerminalType,
 } from './misc/TLArrowTerminal'
-export { TL_COLOR_TYPES, colorTypeValidator, type TLColor } from './misc/TLColor'
+export { TL_COLORS, colorTypeValidator, type TLColor } from './misc/TLColor'
 export { type TLCursor, type TLCursorType } from './misc/TLCursor'
-export { handleValidator, type TLHandle, type TLHandleType } from './misc/TLHandle'
+export { TL_HANDLE_TYPES, handleValidator, type TLHandle, type TLHandleType } from './misc/TLHandle'
 export { scribbleValidator, type TLScribble } from './misc/TLScribble'
 export { type Box2dModel, type Vec2dModel } from './misc/geometry-types'
 export { idValidator } from './misc/id-validator'
@@ -32,6 +32,12 @@ export {
 	type TLAssetPartial,
 	type TLAssetShape,
 } from './records/TLAsset'
+export {
+	createShapeValidator,
+	parentIdValidator,
+	shapeIdValidator,
+	type TLBaseShape,
+} from './records/TLBaseShape'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
 export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './records/TLDocument'
 export {
@@ -58,7 +64,6 @@ export {
 	isShape,
 	isShapeId,
 	rootShapeMigrations,
-	type TLDefaultShape,
 	type TLNullableShapeProps,
 	type TLParentId,
 	type TLShape,
@@ -68,13 +73,6 @@ export {
 	type TLShapeProps,
 	type TLUnknownShape,
 } from './records/TLShape'
-export {
-	createShapeValidator,
-	parentIdValidator,
-	shapeIdValidator,
-	type TLBaseShape,
-} from './shapes/TLBaseShape'
-export { type TLIconShape } from './shapes/TLIconShape'
 export {
 	TL_ALIGN_TYPES,
 	alignValidator,

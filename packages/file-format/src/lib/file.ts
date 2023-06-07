@@ -1,9 +1,11 @@
 import {
+	AssetRecordType,
 	createTLStore,
 	Editor,
 	fileToBase64,
 	TLAsset,
 	TLAssetId,
+	TLBaseShape,
 	TLRecord,
 	TLStore,
 } from '@tldraw/editor'
@@ -181,12 +183,16 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 					assets.push(record)
 				}
 				break
-			case 'shape':
-				if ('assetId' in record.props) {
-					usedAssets.add(record.props.assetId)
+			case 'shape': {
+				const {
+					props: { assetId },
+				} = record as TLBaseShape<any, { assetId?: TLAssetId }>
+				if (assetId && AssetRecordType.isId(assetId)) {
+					usedAssets.add(assetId)
 				}
 				records.push(record)
 				break
+			}
 			default:
 				records.push(record)
 				break

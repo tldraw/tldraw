@@ -23,6 +23,7 @@ import {
 } from '@tldraw/primitives'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
+	AssetRecordType,
 	Box2dModel,
 	CameraRecordType,
 	InstancePageStateRecordType,
@@ -30,12 +31,14 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
+	TLBaseShape,
 	TLColorStyle,
 	TLColorType,
 	TLCursor,
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLDocument,
+	TLFontType,
 	TLINSTANCE_ID,
 	TLImageAsset,
 	TLInstance,
@@ -55,6 +58,7 @@ import {
 	TLStore,
 	TLUnknownShape,
 	TLVideoAsset,
+	TL_FONT_TYPES,
 	Vec2dModel,
 	createShapeId,
 	isPageId,
@@ -1053,7 +1057,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	private _extractSharedProps(shape: TLShape, sharedProps: TLNullableShapeProps) {
+	private _extractSharedProps(shape: TLShape, sharedProps: any) {
+		// @todo: styles!
 		if (shape.type === 'group') {
 			// For groups, ignore the props of the group shape and instead include
 			// the props of the group's children. These are the shapes that would have
@@ -4259,10 +4264,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const assetsSet = new Set<TLAssetId>()
 
 		shapes.forEach((shape) => {
-			if ('assetId' in shape.props) {
-				if (shape.props.assetId !== null) {
-					assetsSet.add(shape.props.assetId)
-				}
+			const {
+				props: { assetId },
+			} = shape as TLBaseShape<any, { assetId: TLAssetId }>
+			if (AssetRecordType.isId(assetId)) {
+				assetsSet.add(assetId)
 			}
 		})
 
@@ -5753,17 +5759,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const shape = this.getShapeById(id)!
 					const util = this.getShapeUtil(shape)
 
-					let font: string | undefined
-					if ('font' in shape.props) {
-						if (shape.props.font) {
-							if (fontsUsedInExport.has(shape.props.font)) {
-								font = fontsUsedInExport.get(shape.props.font)!
-							} else {
-								// For some reason these styles aren't present in the fake element
-								// so we need to get them from the real element
-								font = realContainerStyle.getPropertyValue(`--tl-font-${shape.props.font}`)
-								fontsUsedInExport.set(shape.props.font, font)
-							}
+					let _font: any
+					const {
+						props: { font },
+					} = shape as TLBaseShape<any, { font: TLFontType }>
+					if (font && TL_FONT_TYPES.has(font)) {
+						if (fontsUsedInExport.has(font)) {
+							_font = fontsUsedInExport.get(font)!
+						} else {
+							// For some reason these styles aren't present in the fake element
+							// so we need to get them from the real element
+							_font = realContainerStyle.getPropertyValue(`--tl-font-${font}`)
+							fontsUsedInExport.set(font, _font)
 						}
 					}
 

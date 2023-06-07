@@ -18,10 +18,9 @@ import { sizeValidator } from '../styles/TLSizeStyle'
 import { splineValidator } from '../styles/TLSplineStyle'
 import { verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
 import { pageIdValidator, TLPageId } from './TLPage'
-import { TLShapeProps } from './TLShape'
 
 /** @public */
-export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>
+export type TLInstancePropsForNextShape = any
 
 /**
  * TLInstance

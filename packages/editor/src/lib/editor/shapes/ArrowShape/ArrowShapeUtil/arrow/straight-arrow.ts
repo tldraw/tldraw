@@ -7,6 +7,7 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
+import { TL_SIZE_TYPES, TLBaseShape, TLSizeType } from '@tldraw/tlschema'
 import { Editor } from '../../../../Editor'
 import { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH } from '../../arrowConstants'
 import { TLArrowShape } from '../../arrowShapeTypes'
@@ -85,12 +86,13 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 	// start point has an arrowhead offset the start point
 	if (!isSelfIntersection) {
 		if (startShapeInfo && arrowheadStart !== 'none' && !startShapeInfo.isExact) {
+			const {
+				props: { size },
+			} = startShapeInfo.shape as TLBaseShape<any, { size: TLSizeType }>
 			const offset =
 				BOUND_ARROW_OFFSET +
 				editor.getStrokeWidth(shape.props.size) / 2 +
-				('size' in startShapeInfo.shape.props
-					? editor.getStrokeWidth(startShapeInfo.shape.props.size) / 2
-					: 0)
+				(TL_SIZE_TYPES.has(size) ? editor.getStrokeWidth(size) / 2 : 0)
 
 			minDist -= offset
 			a.nudge(b, offset * (didFlip ? -1 : 1))
@@ -99,12 +101,13 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 		// If the arrow is bound non-exact to an end shape and the
 		// end point has an arrowhead offset the end point
 		if (endShapeInfo && arrowheadEnd !== 'none' && !endShapeInfo.isExact) {
+			const {
+				props: { size },
+			} = endShapeInfo.shape as TLBaseShape<any, { size: TLSizeType }>
 			const offset =
 				BOUND_ARROW_OFFSET +
 				editor.getStrokeWidth(shape.props.size) / 2 +
-				('size' in endShapeInfo.shape.props
-					? editor.getStrokeWidth(endShapeInfo.shape.props.size) / 2
-					: 0)
+				(TL_SIZE_TYPES.has(size) ? editor.getStrokeWidth(size) / 2 : 0)
 
 			minDist -= offset
 			b.nudge(a, offset * (didFlip ? -1 : 1))

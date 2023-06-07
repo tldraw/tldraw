@@ -1,5 +1,5 @@
 import { getIndexAbove } from '@tldraw/indices'
-import { TLDefaultShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
+import { TLShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
 import { assert, assertExists, omitFromStackTrace } from '@tldraw/utils'
 
 const shapeTypeSymbol = Symbol('shapeJsx')
@@ -23,8 +23,9 @@ type CommonProps = {
 	opacity?: number
 }
 
-type ShapeByType<Type extends TLDefaultShape['type']> = Extract<TLDefaultShape, { type: Type }>
-type PropsForShape<Type extends string> = Type extends TLDefaultShape['type']
+type ShapeByType<Type extends TLShape['type']> = Extract<TLShape, { type: Type }>
+
+type PropsForShape<Type extends string> = Type extends TLShape['type']
 	? CommonProps & Partial<ShapeByType<Type>['props']>
 	: CommonProps & Record<string, unknown>
 
@@ -38,7 +39,7 @@ export const TL = new Proxy(
 			return createElement(key as string)
 		},
 	}
-) as { [K in string]: (props: any) => null } // @TODO
+) as { [K in string]: (props: PropsForShape<any>) => null } // @TODO
 
 export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
 	const ids = {} as Record<string, TLShapeId>

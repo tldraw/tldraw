@@ -1,20 +1,7 @@
 import { defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
 import { nanoid } from 'nanoid'
-import { TLBaseShape } from '../shapes/TLBaseShape'
+import { TLBaseShape } from './TLBaseShape'
 import { TLPageId } from './TLPage'
-
-/**
- * The default set of shapes that are available in the editor.
- *
- * @public */
-export type TLDefaultShape = TLBaseShape<string, any>
-// | TLBookmarkShape
-// | TLEmbedShape
-// | TLGroupShape
-// | TLImageShape
-// | TLTextShape
-// | TLVideoShape
-// | TLIconShape
 
 /**
  * A type for a shape that is available in the editor but whose type is
@@ -28,7 +15,7 @@ export type TLUnknownShape = TLBaseShape<string, object>
  *
  * @public
  */
-export type TLShape = TLDefaultShape | TLUnknownShape
+export type TLShape = TLUnknownShape
 
 /** @public */
 export type TLShapePartial<T extends TLShape = TLShape> = T extends T
@@ -50,7 +37,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 type Identity<T> = { [K in keyof T]: T[K] }
 
 /** @public */
-export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>
+export type TLShapeProps = Identity<UnionToIntersection<TLShape['props']>>
 
 /** @public */
 export type TLShapeProp = keyof TLShapeProps

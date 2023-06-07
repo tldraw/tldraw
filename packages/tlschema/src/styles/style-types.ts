@@ -1,14 +1,6 @@
-import {
-	TLAlignStyle,
-	TLColorStyle,
-	TLDashStyle,
-	TLFillStyle,
-	TLFontStyle,
-	TLShapeProps,
-	TLSizeStyle,
-} from '..'
+import { TLAlignStyle, TLColorStyle, TLDashStyle, TLFillStyle, TLFontStyle, TLSizeStyle } from '..'
 import { TLArrowheadEndStyle, TLArrowheadStartStyle } from './TLArrowheadStyle'
-import { TLBaseStyle, TLStyleType } from './TLBaseStyle'
+import { TLBaseStyle } from './TLBaseStyle'
 import { TLGeoStyle } from './TLGeoStyle'
 import { TLSplineStyle } from './TLSplineStyle'
 import { TLVerticalAlignStyle } from './TLVerticalAlignStyle'
@@ -44,4 +36,4 @@ export interface TLStyleCollections {
 }
 
 /** @public */
-export type TLStyleProps = Pick<TLShapeProps, TLStyleType> // @TODO
+export type TLStyleProps = any // @TODO

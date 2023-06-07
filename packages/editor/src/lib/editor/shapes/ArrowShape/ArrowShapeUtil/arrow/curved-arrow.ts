@@ -13,6 +13,7 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
+import { TL_SIZE_TYPES, TLBaseShape, TLSizeType } from '@tldraw/tlschema'
 import { Editor } from '../../../../Editor'
 import {
 	BOUND_ARROW_OFFSET,
@@ -113,12 +114,13 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 			startShapeInfo.didIntersect = true
 
 			if (arrowheadStart !== 'none') {
+				const {
+					props: { size },
+				} = startShapeInfo.shape as TLBaseShape<any, { size: TLSizeType }> // todo: style!
 				const offset =
 					BOUND_ARROW_OFFSET +
 					editor.getStrokeWidth(shape.props.size) / 2 +
-					('size' in startShapeInfo.shape.props
-						? editor.getStrokeWidth(startShapeInfo.shape.props.size) / 2
-						: 0)
+					(TL_SIZE_TYPES.has(size) ? editor.getStrokeWidth(size) / 2 : 0)
 
 				a.setTo(
 					getPointOnCircle(
@@ -190,12 +192,14 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 			endShapeInfo.didIntersect = true
 
 			if (arrowheadEnd !== 'none') {
+				const {
+					props: { size },
+				} = endShapeInfo.shape as TLBaseShape<any, { size: TLSizeType }> // todo: style!
+
 				let offset =
 					BOUND_ARROW_OFFSET +
 					editor.getStrokeWidth(shape.props.size) / 2 +
-					('size' in endShapeInfo.shape.props
-						? editor.getStrokeWidth(endShapeInfo.shape.props.size) / 2
-						: 0)
+					(TL_SIZE_TYPES.has(size) ? editor.getStrokeWidth(size) / 2 : 0)
 
 				if (Vec2d.Dist(a, b) < MIN_ARROW_LENGTH) {
 					offset *= -2
