@@ -12,12 +12,16 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLLineShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
+import { TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
 import { compact, dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
 import { uniqueId } from '../../utils/data'
 import type { Editor } from '../Editor'
-import { getSplineForLineShape, LineShapeUtil } from '../shapeutils/LineShapeUtil/LineShapeUtil'
+import { TLLineShape } from '../shapes/LineShape/lineShapeTypes'
+import {
+	getSplineForLineShape,
+	LineShapeUtil,
+} from '../shapes/LineShape/LineShapeUtil/LineShapeUtil'
 
 export type PointsSnapLine = {
 	id: string

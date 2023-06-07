@@ -28,7 +28,7 @@ export interface TLHandle {
 	y: number
 }
 
-/** @internal */
+/** @public */
 export const handleValidator: T.Validator<TLHandle> = T.object({
 	id: T.string,
 	type: T.setEnum(TL_HANDLE_TYPES),

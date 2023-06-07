@@ -19,7 +19,7 @@ export {
 } from './misc/TLArrowTerminal'
 export { TL_COLOR_TYPES, colorTypeValidator, type TLColor } from './misc/TLColor'
 export { type TLCursor, type TLCursorType } from './misc/TLCursor'
-export { type TLHandle, type TLHandleType } from './misc/TLHandle'
+export { handleValidator, type TLHandle, type TLHandleType } from './misc/TLHandle'
 export { scribbleValidator, type TLScribble } from './misc/TLScribble'
 export { type Box2dModel, type Vec2dModel } from './misc/geometry-types'
 export { idValidator } from './misc/id-validator'
@@ -82,12 +82,9 @@ export {
 	type TLEmbedShape,
 	type TLEmbedShapePermissions,
 } from './shapes/TLEmbedShape'
-export { type TLFrameShape } from './shapes/TLFrameShape'
 export { type TLGroupShape } from './shapes/TLGroupShape'
 export { type TLIconShape } from './shapes/TLIconShape'
 export { type TLImageCrop, type TLImageShape, type TLImageShapeProps } from './shapes/TLImageShape'
-export { type TLLineShape } from './shapes/TLLineShape'
-export { type TLNoteShape } from './shapes/TLNoteShape'
 export { type TLTextShape, type TLTextShapeProps } from './shapes/TLTextShape'
 export { type TLVideoShape } from './shapes/TLVideoShape'
 export {

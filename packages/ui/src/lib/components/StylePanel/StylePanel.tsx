@@ -1,8 +1,16 @@
 import {
 	Editor,
-	TLGeoShapeProps,
-	TLNullableShapeProps,
+	TLAlignType,
+	TLArrowheadType,
+	TLColorType,
+	TLDashType,
+	TLFillType,
+	TLFontType,
+	TLGeoType,
+	TLSizeType,
+	TLSplineType,
 	TLStyleItem,
+	TLVerticalAlignType,
 	useEditor,
 } from '@tldraw/editor'
 import React, { useCallback } from 'react'
@@ -82,7 +90,7 @@ function CommonStylePickerSet({
 	props,
 	opacity,
 }: {
-	props: any // @todo
+	props: { color: TLColorType; fill: TLFillType; dash: TLDashType; size: TLSizeType } // @todo
 	opacity: number | null
 }) {
 	const editor = useEditor()
@@ -184,7 +192,11 @@ function CommonStylePickerSet({
 	)
 }
 
-function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
+function TextStylePickerSet({
+	props,
+}: {
+	props: { font: TLFontType; align: TLAlignType; verticalAlign: TLVerticalAlignType }
+}) {
 	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
 
@@ -239,7 +251,7 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	)
 }
 
-function GeoStylePickerSet({ props }: { props: TLGeoShapeProps }) {
+function GeoStylePickerSet({ props }: { props: { geo: TLGeoType } }) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const { geo } = props
@@ -260,7 +272,7 @@ function GeoStylePickerSet({ props }: { props: TLGeoShapeProps }) {
 	)
 }
 
-function SplineStylePickerSet({ props }: { props: TLNullableShapeProps }) {
+function SplineStylePickerSet({ props }: { props: { spline: TLSplineType } }) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const { spline } = props
@@ -281,7 +293,11 @@ function SplineStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	)
 }
 
-function ArrowheadStylePickerSet({ props }: { props: any }) {
+function ArrowheadStylePickerSet({
+	props,
+}: {
+	props: { arrowheadEnd: TLArrowheadType; arrowheadStart: TLArrowheadType }
+}) {
 	const handleValueChange = useStyleChangeCallback()
 
 	const { arrowheadEnd, arrowheadStart } = props

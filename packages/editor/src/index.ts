@@ -89,6 +89,12 @@ export {
 	type TLDrawShape,
 	type TLDrawShapeProps,
 } from './lib/editor/shapes/DrawShape/drawShapeTypes'
+export { FrameShapeUtil } from './lib/editor/shapes/FrameShape/FrameShapeUtil/FrameShapeUtil'
+export { frameShape } from './lib/editor/shapes/FrameShape/frameShape'
+export {
+	type TLFrameShape,
+	type TLFrameShapeProps,
+} from './lib/editor/shapes/FrameShape/frameShapeTypes'
 export { GeoShapeUtil } from './lib/editor/shapes/GeoShape/GeoShapeUtil/GeoShapeUtil'
 export { geoShape } from './lib/editor/shapes/GeoShape/geoShape'
 export { type TLGeoShape, type TLGeoShapeProps } from './lib/editor/shapes/GeoShape/geoShapeTypes'
@@ -98,17 +104,23 @@ export {
 	type TLHighlightShape,
 	type TLHighlightShapeProps,
 } from './lib/editor/shapes/HighlightShape/highlightShapeTypes'
+export { LineShapeUtil } from './lib/editor/shapes/LineShape/LineShapeUtil/LineShapeUtil'
+export { lineShape } from './lib/editor/shapes/LineShape/lineShape'
+export {
+	type TLLineShape,
+	type TLLineShapeProps,
+} from './lib/editor/shapes/LineShape/lineShapeTypes'
+export { NoteShapeUtil } from './lib/editor/shapes/NoteShape/NoteShapeUtil/NoteShapeUtil'
+export { noteShape } from './lib/editor/shapes/NoteShape/noteShape'
+export {
+	type TLNoteShape,
+	type TLNoteShapeProps,
+} from './lib/editor/shapes/NoteShape/noteShapeTypes'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
 export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
-export { FrameShapeUtil } from './lib/editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
-export {
-	LineShapeUtil,
-	getSplineForLineShape,
-} from './lib/editor/shapeutils/LineShapeUtil/LineShapeUtil'
-export { NoteShapeUtil } from './lib/editor/shapeutils/NoteShapeUtil/NoteShapeUtil'
 export {
 	ShapeUtil,
 	type TLOnBeforeCreateHandler,

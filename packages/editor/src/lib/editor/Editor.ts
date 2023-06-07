@@ -36,7 +36,6 @@ import {
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLDocument,
-	TLFrameShape,
 	TLGroupShape,
 	TLINSTANCE_ID,
 	TLImageAsset,
@@ -128,7 +127,8 @@ import {
 } from './shapes/ArrowShape/ArrowShapeUtil/arrow/shared'
 import { getStraightArrowInfo } from './shapes/ArrowShape/ArrowShapeUtil/arrow/straight-arrow'
 import { TLArrowShape } from './shapes/ArrowShape/arrowShapeTypes'
-import { FrameShapeUtil } from './shapeutils/FrameShapeUtil/FrameShapeUtil'
+import { FrameShapeUtil } from './shapes/FrameShape/FrameShapeUtil/FrameShapeUtil'
+import { TLFrameShape } from './shapes/FrameShape/frameShapeTypes'
 import { GroupShapeUtil } from './shapeutils/GroupShapeUtil/GroupShapeUtil'
 import { ShapeUtil, TLResizeMode } from './shapeutils/ShapeUtil'
 import { TextShapeUtil } from './shapeutils/TextShapeUtil/TextShapeUtil'
@@ -1061,7 +1061,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				prop = props[i] as [TLShapeProp, any]
 
 				// We should probably white list rather than black list here
-				if (BLACKLISTED_PROPS.has(prop[0])) continue
+				if (BLACKLISTED_PROPS.has(prop[0] as string)) continue
 
 				// Check the value of this prop on the shared props object.
 				switch (sharedProps[prop[0]]) {

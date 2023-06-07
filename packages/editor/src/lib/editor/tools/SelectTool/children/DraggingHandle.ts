@@ -42,13 +42,14 @@ export class DraggingHandle extends StateNode {
 
 	onEnter: TLEnterEventHandler = (
 		info: TLPointerEventInfo & {
-			shape: TLBaseShape<any, { start: TLArrowTerminal; end: TLArrowTerminal }>
+			shape: TLBaseShape<string, { start: TLArrowTerminal; end: TLArrowTerminal }>
 			target: 'handle'
 			onInteractionEnd?: string
 			isCreating: boolean
 		}
 	) => {
-		const { shape, isCreating, handle } = info
+		const { isCreating, handle } = info
+		const shape = info.shape
 		this.info = info
 		this.shapeId = shape.id
 		this.markId = isCreating ? 'creating' : this.editor.mark('dragging handle')

@@ -11,7 +11,6 @@ import { Box2d } from '@tldraw/primitives';
 import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from 'signia';
 import { ComputedCache } from '@tldraw/store';
-import { CubicSpline2d } from '@tldraw/primitives';
 import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
@@ -21,7 +20,6 @@ import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
 import { Migrations } from '@tldraw/store';
-import { Polyline2d } from '@tldraw/primitives';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { RotateCorner } from '@tldraw/primitives';
@@ -47,11 +45,11 @@ import { TLColorStyle } from '@tldraw/tlschema';
 import { TLColorType } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDashType } from '@tldraw/tlschema';
+import { TLDefaultShape } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLEmbedShape } from '@tldraw/tlschema';
 import { TLFillType } from '@tldraw/tlschema';
 import { TLFontType } from '@tldraw/tlschema';
-import { TLFrameShape } from '@tldraw/tlschema';
 import { TLGeoType } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
@@ -61,8 +59,6 @@ import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLInstancePropsForNextShape } from '@tldraw/tlschema';
-import { TLLineShape } from '@tldraw/tlschema';
-import { TLNoteShape } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
@@ -74,6 +70,7 @@ import { TLShapePartial } from '@tldraw/tlschema';
 import { TLShapeProps } from '@tldraw/tlschema';
 import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
+import { TLSplineType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStyleCollections } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
@@ -472,7 +469,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     // (undocumented)
-    get editingShape(): null | TLUnknownShape;
+    get editingShape(): TLDefaultShape | null;
     // (undocumented)
     enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
@@ -503,7 +500,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d;
     // (undocumented)
-    getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLDefaultShape | undefined;
     // (undocumented)
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
@@ -566,7 +563,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     get hoveredId(): null | TLShapeId;
     // (undocumented)
-    get hoveredShape(): null | TLUnknownShape;
+    get hoveredShape(): TLDefaultShape | null;
     inputs: {
         originPagePoint: Vec2d;
         originScreenPoint: Vec2d;
@@ -871,6 +868,16 @@ export const FONT_FAMILIES: Record<TLFontType, string>;
 export const FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const frameShape: {
+    util: TLShapeUtilConstructor<TLFrameShape, ShapeUtil<TLFrameShape>>;
+    tool?: TLStateNodeConstructor | undefined;
+    migrations?: Migrations | undefined;
+    validator?: {
+        validate: (shape: TLFrameShape) => TLFrameShape;
+    } | undefined;
+};
+
+// @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -899,7 +906,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     toSvg(shape: TLFrameShape, font: string, colors: TLExportColors): Promise<SVGElement> | SVGElement;
     // (undocumented)
-    static type: string;
+    static type: "frame";
 }
 
 // @public (undocumented)
@@ -1072,9 +1079,6 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: 
 
 // @public
 export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number): Promise<string>;
-
-// @public (undocumented)
-export function getSplineForLineShape(shape: TLLineShape): NonNullable<CubicSpline2d | Polyline2d>;
 
 // @public (undocumented)
 export function getSvgAsDataUrl(svg: SVGElement): Promise<string>;
@@ -1277,6 +1281,16 @@ export const isValidHttpURL: (url: string) => boolean;
 export const LABEL_FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const lineShape: {
+    util: TLShapeUtilConstructor<TLLineShape, ShapeUtil<TLLineShape>>;
+    tool?: TLStateNodeConstructor | undefined;
+    migrations?: Migrations | undefined;
+    validator?: {
+        validate: (shape: TLLineShape) => TLLineShape;
+    } | undefined;
+};
+
+// @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     defaultProps(): TLLineShape['props'];
@@ -1313,7 +1327,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     toSvg(shape: TLLineShape, _font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "line";
 }
 
 // @public (undocumented)
@@ -1706,6 +1720,16 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
 };
 
 // @public (undocumented)
+export const noteShape: {
+    util: TLShapeUtilConstructor<TLNoteShape, ShapeUtil<TLNoteShape>>;
+    tool?: TLStateNodeConstructor | undefined;
+    migrations?: Migrations | undefined;
+    validator?: {
+        validate: (shape: TLNoteShape) => TLNoteShape;
+    } | undefined;
+};
+
+// @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canEdit: () => boolean;
@@ -1780,7 +1804,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     toSvg(shape: TLNoteShape, font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "note";
 }
 
 // @public (undocumented)
@@ -2442,6 +2466,16 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
+export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
+
+// @public (undocumented)
+export type TLFrameShapeProps = {
+    w: number;
+    h: number;
+    name: string;
+};
+
+// @public (undocumented)
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>;
 
 // @public (undocumented)
@@ -2507,6 +2541,35 @@ export type TLKeyboardEventInfo = TLBaseEventInfo & {
 
 // @public (undocumented)
 export type TLKeyboardEventName = 'key_down' | 'key_repeat' | 'key_up';
+
+// @public (undocumented)
+export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>;
+
+// @public (undocumented)
+export type TLLineShapeProps = {
+    color: TLColorType;
+    dash: TLDashType;
+    size: TLSizeType;
+    spline: TLSplineType;
+    handles: {
+        [key: string]: TLHandle;
+    };
+};
+
+// @public (undocumented)
+export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
+
+// @public (undocumented)
+export type TLNoteShapeProps = {
+    color: TLColorType;
+    size: TLSizeType;
+    font: TLFontType;
+    align: TLAlignType;
+    verticalAlign: TLVerticalAlignType;
+    growY: number;
+    url: string;
+    text: string;
+};
 
 // @public (undocumented)
 export type TLOnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void;
@@ -2604,7 +2667,7 @@ export type TLPointerEventTarget = {
     shape?: undefined;
 } | {
     target: 'handle';
-    shape: TLShape;
+    shape: TLBaseShape<string, any>;
     handle: TLHandle;
 } | {
     target: 'selection';
@@ -2612,7 +2675,7 @@ export type TLPointerEventTarget = {
     shape?: undefined;
 } | {
     target: 'shape';
-    shape: TLShape;
+    shape: TLBaseShape<string, any>;
 };
 
 // @public (undocumented)

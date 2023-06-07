@@ -1,4 +1,4 @@
-import { TLFrameShape } from '@tldraw/tlschema'
+import { TLFrameShape } from '../../editor/shapes/FrameShape/frameShapeTypes'
 import { TLGeoShape } from '../../editor/shapes/GeoShape/geoShapeTypes'
 import { TestEditor } from '../TestEditor'
 

@@ -1,33 +1,20 @@
 import { defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
 import { nanoid } from 'nanoid'
 import { TLBaseShape } from '../shapes/TLBaseShape'
-import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
-import { TLEmbedShape } from '../shapes/TLEmbedShape'
-import { TLFrameShape } from '../shapes/TLFrameShape'
-import { TLGroupShape } from '../shapes/TLGroupShape'
-import { TLIconShape } from '../shapes/TLIconShape'
-import { TLImageShape } from '../shapes/TLImageShape'
-import { TLLineShape } from '../shapes/TLLineShape'
-import { TLNoteShape } from '../shapes/TLNoteShape'
-import { TLTextShape } from '../shapes/TLTextShape'
-import { TLVideoShape } from '../shapes/TLVideoShape'
 import { TLPageId } from './TLPage'
 
 /**
  * The default set of shapes that are available in the editor.
  *
  * @public */
-export type TLDefaultShape =
-	| TLBookmarkShape
-	| TLEmbedShape
-	| TLFrameShape
-	| TLGroupShape
-	| TLImageShape
-	| TLLineShape
-	| TLNoteShape
-	| TLTextShape
-	| TLVideoShape
-	| TLIconShape
+export type TLDefaultShape = TLBaseShape<string, any>
+// | TLBookmarkShape
+// | TLEmbedShape
+// | TLGroupShape
+// | TLImageShape
+// | TLTextShape
+// | TLVideoShape
+// | TLIconShape
 
 /**
  * A type for a shape that is available in the editor but whose type is

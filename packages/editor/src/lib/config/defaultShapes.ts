@@ -1,14 +1,14 @@
 import { arrowShape } from '../editor/shapes/ArrowShape/arrowShape'
 import { drawShape } from '../editor/shapes/DrawShape/drawShape'
+import { frameShape } from '../editor/shapes/FrameShape/frameShape'
 import { geoShape } from '../editor/shapes/GeoShape/geoShape'
 import { highlightShape } from '../editor/shapes/HighlightShape/highlightShape'
+import { lineShape } from '../editor/shapes/LineShape/lineShape'
+import { noteShape } from '../editor/shapes/NoteShape/noteShape'
 import { BookmarkShapeUtil } from '../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 import { EmbedShapeUtil } from '../editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
-import { FrameShapeUtil } from '../editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
 import { GroupShapeUtil } from '../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 import { ImageShapeUtil } from '../editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
-import { LineShapeUtil } from '../editor/shapeutils/LineShapeUtil/LineShapeUtil'
-import { NoteShapeUtil } from '../editor/shapeutils/NoteShapeUtil/NoteShapeUtil'
 import { TextShapeUtil } from '../editor/shapeutils/TextShapeUtil/TextShapeUtil'
 import { VideoShapeUtil } from '../editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
 import { TLShapeInfo } from './createTLStore'
@@ -47,13 +47,7 @@ export const defaultShapes: Record<string, TLShapeInfo> = {
 	arrow: arrowShape,
 	highlight: highlightShape,
 	geo: geoShape,
-	line: {
-		util: LineShapeUtil,
-	},
-	note: {
-		util: NoteShapeUtil,
-	},
-	frame: {
-		util: FrameShapeUtil,
-	},
+	line: lineShape,
+	note: noteShape,
+	frame: frameShape,
 }

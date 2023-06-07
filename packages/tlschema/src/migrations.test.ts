@@ -10,7 +10,6 @@ import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './r
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
-import { noteShapeMigrations } from './shapes/TLNoteShape'
 import { textShapeMigrations } from './shapes/TLTextShape'
 import { videoShapeMigrations } from './shapes/TLVideoShape'
 import { storeMigrations, storeVersions } from './store-migrations'
@@ -264,7 +263,6 @@ describe('Removing dialogs from instance', () => {
 describe('Adding url props', () => {
 	for (const [name, { up, down }] of [
 		['video shape', videoShapeMigrations.migrators[1]],
-		['note shape', noteShapeMigrations.migrators[1]],
 		['image shape', imageShapeMigrations.migrators[1]],
 	] as const) {
 		test(`${name}: up works as expected`, () => {
@@ -466,10 +464,7 @@ describe('Adding zoomBrush prop to instance', () => {
 })
 
 describe('Removing align=justify from shape align props', () => {
-	for (const [name, { up, down }] of [
-		['text', textShapeMigrations.migrators[1]],
-		['note', noteShapeMigrations.migrators[2]],
-	] as const) {
+	for (const [name, { up, down }] of [['text', textShapeMigrations.migrators[1]]] as const) {
 		test(`${name}: up works as expected`, () => {
 			expect(up({ props: { align: 'justify' } })).toEqual({
 				props: { align: 'start' },
@@ -549,33 +544,6 @@ describe('Add verticalAlign to props for next shape', () => {
 			propsForNextShape: {
 				color: 'red',
 			},
-		})
-	})
-})
-
-describe('Migrate NoteShape legacy horizontal alignment', () => {
-	const { up, down } = noteShapeMigrations.migrators[3]
-
-	test('up works as expected', () => {
-		expect(up({ props: { align: 'start', color: 'red' } })).toEqual({
-			props: { align: 'start-legacy', color: 'red' },
-		})
-		expect(up({ props: { align: 'middle', color: 'red' } })).toEqual({
-			props: { align: 'middle-legacy', color: 'red' },
-		})
-		expect(up({ props: { align: 'end', color: 'red' } })).toEqual({
-			props: { align: 'end-legacy', color: 'red' },
-		})
-	})
-	test('down works as expected', () => {
-		expect(down({ props: { align: 'start-legacy', color: 'red' } })).toEqual({
-			props: { align: 'start', color: 'red' },
-		})
-		expect(down({ props: { align: 'middle-legacy', color: 'red' } })).toEqual({
-			props: { align: 'middle', color: 'red' },
-		})
-		expect(down({ props: { align: 'end-legacy', color: 'red' } })).toEqual({
-			props: { align: 'end', color: 'red' },
 		})
 	})
 })
@@ -876,21 +844,6 @@ describe('making instance state independent', () => {
 
 		expect(up(prev)).toEqual(next)
 		expect(down(next)).toEqual(next)
-	})
-})
-
-describe('Adds NoteShape vertical alignment', () => {
-	const { up, down } = noteShapeMigrations.migrators[4]
-
-	test('up works as expected', () => {
-		expect(up({ props: { color: 'red' } })).toEqual({
-			props: { verticalAlign: 'middle', color: 'red' },
-		})
-	})
-	test('down works as expected', () => {
-		expect(down({ props: { verticalAlign: 'top', color: 'red' } })).toEqual({
-			props: { color: 'red' },
-		})
 	})
 })
 

@@ -1,5 +1,5 @@
 import { VecLike } from '@tldraw/primitives'
-import { TLHandle, TLShape, Vec2dModel } from '@tldraw/tlschema'
+import { TLBaseShape, TLHandle, Vec2dModel } from '@tldraw/tlschema'
 import { TLSelectionHandle } from './selection-types'
 
 /** @public */
@@ -9,8 +9,8 @@ export type UiEventType = 'pointer' | 'click' | 'keyboard' | 'wheel' | 'pinch' |
 export type TLPointerEventTarget =
 	| { target: 'canvas'; shape?: undefined }
 	| { target: 'selection'; handle?: TLSelectionHandle; shape?: undefined }
-	| { target: 'shape'; shape: TLShape }
-	| { target: 'handle'; shape: TLShape; handle: TLHandle }
+	| { target: 'shape'; shape: TLBaseShape<string, any> }
+	| { target: 'handle'; shape: TLBaseShape<string, any>; handle: TLHandle }
 
 /** @public */
 export type TLPointerEventName =

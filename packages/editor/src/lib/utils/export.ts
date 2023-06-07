@@ -1,5 +1,6 @@
-import { TLNoteShape, TLShape } from '@tldraw/tlschema'
+import { TLShape } from '@tldraw/tlschema'
 import { TLGeoShape } from '../editor/shapes/GeoShape/geoShapeTypes'
+import { TLNoteShape } from '../editor/shapes/NoteShape/noteShapeTypes'
 import { debugFlags } from './debug-flags'
 import { getBrowserCanvasMaxSize } from './getBrowserCanvasMaxSize'
 import { setPhysChunk } from './png'

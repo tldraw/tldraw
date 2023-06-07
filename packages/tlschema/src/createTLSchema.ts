@@ -13,11 +13,8 @@ import { TLRecord } from './records/TLRecord'
 import { TLShape, rootShapeMigrations } from './records/TLShape'
 import { bookmarkShapeMigrations, bookmarkShapeValidator } from './shapes/TLBookmarkShape'
 import { embedShapeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
-import { frameShapeMigrations, frameShapeValidator } from './shapes/TLFrameShape'
 import { groupShapeMigrations, groupShapeValidator } from './shapes/TLGroupShape'
 import { imageShapeMigrations, imageShapeValidator } from './shapes/TLImageShape'
-import { lineShapeMigrations, lineShapeValidator } from './shapes/TLLineShape'
-import { noteShapeMigrations, noteShapeValidator } from './shapes/TLNoteShape'
 import { textShapeMigrations, textShapeValidator } from './shapes/TLTextShape'
 import { videoShapeMigrations, videoShapeValidator } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
@@ -55,21 +52,6 @@ const coreShapes: Record<string, SchemaShapeInfo> = {
 	},
 }
 
-const defaultShapes: Record<string, SchemaShapeInfo> = {
-	frame: {
-		migrations: frameShapeMigrations,
-		validator: frameShapeValidator,
-	},
-	line: {
-		migrations: lineShapeMigrations,
-		validator: lineShapeValidator,
-	},
-	note: {
-		migrations: noteShapeMigrations,
-		validator: noteShapeValidator,
-	},
-}
-
 /**
  * Create a TLSchema with custom shapes. Custom shapes cannot override default shapes.
  *
@@ -89,7 +71,7 @@ export function createTLSchema(
 		}
 	}
 
-	const allShapeEntries = Object.entries({ ...coreShapes, ...defaultShapes, ...customShapes })
+	const allShapeEntries = Object.entries({ ...coreShapes, ...customShapes })
 
 	const ShapeRecordType = createRecordType<TLShape>('shape', {
 		migrations: defineMigrations({
