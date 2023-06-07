@@ -1032,21 +1032,6 @@ export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;
 // @public (undocumented)
 export type TLStyleType = any;
 
-// @public (undocumented)
-export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
-
-// @public (undocumented)
-export type TLTextShapeProps = {
-    color: TLColorType;
-    size: TLSizeType;
-    font: TLFontType;
-    align: TLAlignType;
-    w: number;
-    text: string;
-    scale: number;
-    autoSize: boolean;
-};
-
 // @public
 export type TLUnknownShape = TLBaseShape<string, object>;
 

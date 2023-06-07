@@ -15,7 +15,6 @@ import { bookmarkShapeMigrations, bookmarkShapeValidator } from './shapes/TLBook
 import { embedShapeMigrations, embedShapeTypeValidator } from './shapes/TLEmbedShape'
 import { groupShapeMigrations, groupShapeValidator } from './shapes/TLGroupShape'
 import { imageShapeMigrations, imageShapeValidator } from './shapes/TLImageShape'
-import { textShapeMigrations, textShapeValidator } from './shapes/TLTextShape'
 import { videoShapeMigrations, videoShapeValidator } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
 
@@ -41,10 +40,6 @@ const coreShapes: Record<string, SchemaShapeInfo> = {
 	image: {
 		migrations: imageShapeMigrations,
 		validator: imageShapeValidator,
-	},
-	text: {
-		migrations: textShapeMigrations,
-		validator: textShapeValidator,
 	},
 	video: {
 		migrations: videoShapeMigrations,

@@ -1,6 +1,7 @@
-import { createShapeId, TLTextShape } from '@tldraw/tlschema'
-import { TLEventHandlers } from '../../../types/event-types'
-import { StateNode } from '../../StateNode'
+import { createShapeId } from '@tldraw/tlschema'
+import { StateNode } from '../../../../tools/StateNode'
+import { TLEventHandlers } from '../../../../types/event-types'
+import { TLTextShape } from '../../textShapeTypes'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

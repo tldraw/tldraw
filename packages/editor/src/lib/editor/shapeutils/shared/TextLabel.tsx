@@ -10,7 +10,7 @@ import React from 'react'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
 import { isLegacyAlign } from '../../../utils/legacy'
-import { TextHelpers } from '../TextShapeUtil/TextHelpers'
+import { TextHelpers } from './TextHelpers'
 import { useEditableText } from './useEditableText'
 
 export const TextLabel = React.memo(function TextLabel<

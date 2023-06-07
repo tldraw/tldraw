@@ -116,6 +116,12 @@ export {
 	type TLNoteShape,
 	type TLNoteShapeProps,
 } from './lib/editor/shapes/NoteShape/noteShapeTypes'
+export { TextShapeUtil } from './lib/editor/shapes/TextShape/TextShapeUtil/TextShapeUtil'
+export { textShape } from './lib/editor/shapes/TextShape/textShape'
+export {
+	type TLTextShape,
+	type TLTextShapeProps,
+} from './lib/editor/shapes/TextShape/textShapeTypes'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
 export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
@@ -147,8 +153,8 @@ export {
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/editor/shapeutils/ShapeUtil'
-export { INDENT, TextShapeUtil } from './lib/editor/shapeutils/TextShapeUtil/TextShapeUtil'
 export { VideoShapeUtil } from './lib/editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
+export { INDENT } from './lib/editor/shapeutils/shared/TextHelpers'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export { type TLContent } from './lib/editor/types/clipboard-types'

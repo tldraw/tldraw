@@ -3,7 +3,6 @@ import {
 	TLEmbedShape,
 	TLGroupShape,
 	TLImageShape,
-	TLTextShape,
 	TLVideoShape,
 } from '@tldraw/tlschema'
 import { arrowShape } from '../editor/shapes/ArrowShape/arrowShape'
@@ -13,11 +12,11 @@ import { geoShape } from '../editor/shapes/GeoShape/geoShape'
 import { highlightShape } from '../editor/shapes/HighlightShape/highlightShape'
 import { lineShape } from '../editor/shapes/LineShape/lineShape'
 import { noteShape } from '../editor/shapes/NoteShape/noteShape'
+import { textShape } from '../editor/shapes/TextShape/textShape'
 import { BookmarkShapeUtil } from '../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 import { EmbedShapeUtil } from '../editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
 import { GroupShapeUtil } from '../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
 import { ImageShapeUtil } from '../editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
-import { TextShapeUtil } from '../editor/shapeutils/TextShapeUtil/TextShapeUtil'
 import { VideoShapeUtil } from '../editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
 import { TLShapeInfo, createShape } from './createShape'
 
@@ -43,10 +42,6 @@ export const coreShapes: Record<string, TLShapeInfo<any>> = {
 	video: createShape<TLVideoShape>({
 		util: VideoShapeUtil,
 	}),
-	// created by copy and paste
-	text: createShape<TLTextShape>({
-		util: TextShapeUtil,
-	}),
 }
 
 /** @public */
@@ -58,4 +53,5 @@ export const defaultShapes: Record<string, TLShapeInfo<any>> = {
 	line: lineShape,
 	note: noteShape,
 	frame: frameShape,
+	text: textShape,
 }

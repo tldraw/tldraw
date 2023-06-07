@@ -74,8 +74,6 @@ import { TLSplineType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStyleCollections } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
-import { TLTextShape } from '@tldraw/tlschema';
-import { TLTextShapeProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVerticalAlignType } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
@@ -2006,6 +2004,9 @@ export const TEXT_PROPS: {
 };
 
 // @public (undocumented)
+export const textShape: TLShapeInfo<TLTextShape>;
+
+// @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     canEdit: () => boolean;
@@ -2725,6 +2726,21 @@ export type TLStoreWithStatus = {
     readonly connectionStatus: 'offline' | 'online';
     readonly store: TLStore;
     readonly error?: undefined;
+};
+
+// @public (undocumented)
+export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
+
+// @public (undocumented)
+export type TLTextShapeProps = {
+    color: TLColorType;
+    size: TLSizeType;
+    font: TLFontType;
+    align: TLAlignType;
+    w: number;
+    text: string;
+    scale: number;
+    autoSize: boolean;
 };
 
 // @public (undocumented)

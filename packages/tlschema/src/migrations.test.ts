@@ -10,7 +10,6 @@ import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './r
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
-import { textShapeMigrations } from './shapes/TLTextShape'
 import { videoShapeMigrations } from './shapes/TLVideoShape'
 import { storeMigrations, storeVersions } from './store-migrations'
 
@@ -461,25 +460,6 @@ describe('Adding zoomBrush prop to instance', () => {
 	test('down works as expected', () => {
 		expect(down({ zoomBrush: { x: 1, y: 2, w: 3, h: 4 } })).toEqual({})
 	})
-})
-
-describe('Removing align=justify from shape align props', () => {
-	for (const [name, { up, down }] of [['text', textShapeMigrations.migrators[1]]] as const) {
-		test(`${name}: up works as expected`, () => {
-			expect(up({ props: { align: 'justify' } })).toEqual({
-				props: { align: 'start' },
-			})
-			expect(up({ props: { align: 'end' } })).toEqual({
-				props: { align: 'end' },
-			})
-		})
-
-		test(`${name}: down works as expected`, () => {
-			expect(down({ props: { align: 'start' } })).toEqual({
-				props: { align: 'start' },
-			})
-		})
-	}
 })
 
 describe('Add crop=null to image shapes', () => {

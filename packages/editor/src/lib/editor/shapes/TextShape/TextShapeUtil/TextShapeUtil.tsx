@@ -1,18 +1,23 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { TLTextShape } from '@tldraw/tlschema'
-import { HTMLContainer } from '../../../components/HTMLContainer'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
-import { stopEventPropagation } from '../../../utils/dom'
-import { WeakMapCache } from '../../../utils/WeakMapCache'
-import { Editor } from '../../Editor'
-import { ShapeUtil, TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
-import { resizeScaled } from '../shared/resizeScaled'
-import { TLExportColors } from '../shared/TLExportColors'
-import { useEditableText } from '../shared/useEditableText'
+import { HTMLContainer } from '../../../../components/HTMLContainer'
+import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../../constants'
+import { stopEventPropagation } from '../../../../utils/dom'
+import { WeakMapCache } from '../../../../utils/WeakMapCache'
+import { Editor } from '../../../Editor'
+import {
+	ShapeUtil,
+	TLOnEditEndHandler,
+	TLOnResizeHandler,
+	TLShapeUtilFlag,
+} from '../../../shapeutils/ShapeUtil'
+import { createTextSvgElementFromSpans } from '../../../shapeutils/shared/createTextSvgElementFromSpans'
+import { resizeScaled } from '../../../shapeutils/shared/resizeScaled'
+import { TLExportColors } from '../../../shapeutils/shared/TLExportColors'
+import { useEditableText } from '../../../shapeutils/shared/useEditableText'
+import { TLTextShape } from '../textShapeTypes'
 
-export { INDENT } from './TextHelpers'
+export { INDENT } from '../../../shapeutils/shared/TextHelpers'
 
 const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width: number }>()
 
