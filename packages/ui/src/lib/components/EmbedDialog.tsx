@@ -1,4 +1,4 @@
-import { TLEmbedResult, createEmbedShapeAtPoint, getEmbedInfo, useEditor } from '@tldraw/editor'
+import { TLEmbedResult, getEmbedInfo, useEditor } from '@tldraw/editor'
 import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 import { useRef, useState } from 'react'
 import { track } from 'signia-react'
@@ -105,10 +105,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							onClick={() => {
 								if (!embedInfoForUrl) return
 
-								createEmbedShapeAtPoint(editor, url, editor.viewportPageCenter, {
-									width: embedInfoForUrl.definition.width,
-									height: embedInfoForUrl.definition.height,
-									doesResize: embedInfoForUrl.definition.doesResize,
+								editor.onCreateShapeFromSource({
+									type: 'embed',
+									url,
+									point: editor.viewportPageCenter,
+									embed: embedInfoForUrl.definition,
 								})
 
 								onClose()

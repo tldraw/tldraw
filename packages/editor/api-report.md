@@ -245,24 +245,8 @@ export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: Box
 // @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
 
-// @public (undocumented)
-export function createAssetShapeAtPoint(editor: Editor, svgString: string, point: Vec2dModel): Promise<void>;
-
-// @public
-export function createBookmarkShapeAtPoint(editor: Editor, url: string, point: Vec2dModel): Promise<void>;
-
-// @public (undocumented)
-export function createEmbedShapeAtPoint(editor: Editor, url: string, point: Vec2dModel, props: {
-    width?: number;
-    height?: number;
-    doesResize?: boolean;
-}): void;
-
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
-
-// @public (undocumented)
-export function createShapesFromFiles(editor: Editor, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
 
 // @public
 export function createTLStore(opts?: TLStoreOptions): TLStore;
@@ -620,6 +604,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         title: string;
         description: string;
     }>;
+    onCreateShapeFromSource(info: TLCreateShapeFromInteractionInfo): Promise<void>;
     get onlySelectedShape(): null | TLShape;
     // (undocumented)
     get opacity(): null | number;
