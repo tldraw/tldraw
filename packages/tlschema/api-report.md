@@ -95,7 +95,7 @@ export function createShapeValidator<Type extends string, Props extends object>(
 
 // @public
 export function createTLSchema(opts?: {
-    customShapes: Record<string, SchemaShapeInfo>;
+    customShapes?: SchemaShapeInfo[] | undefined;
 }): StoreSchema<TLRecord, TLStoreProps>;
 
 // @internal (undocumented)

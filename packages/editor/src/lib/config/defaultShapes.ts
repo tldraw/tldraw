@@ -1,6 +1,6 @@
 import { TLEmbedShape, TLGroupShape, TLImageShape, TLVideoShape } from '@tldraw/tlschema'
-import { BookmarkShapeUtil, TLBookmarkShape } from '../..'
 import { arrowShape } from '../editor/shapes/ArrowShape/arrowShape'
+import { bookmarkShape } from '../editor/shapes/BookmarkShape/bookmarkShape'
 import { drawShape } from '../editor/shapes/DrawShape/drawShape'
 import { frameShape } from '../editor/shapes/FrameShape/frameShape'
 import { geoShape } from '../editor/shapes/GeoShape/geoShape'
@@ -24,10 +24,6 @@ export const coreShapes: TLShapeInfo<any>[] = [
 	createShape<TLEmbedShape>('embed', {
 		util: EmbedShapeUtil,
 	}),
-	// created by copy and paste / url drop
-	createShape<TLBookmarkShape>('bookmark', {
-		util: BookmarkShapeUtil,
-	}),
 	// created by copy and paste / file drop
 	createShape<TLImageShape>('image', {
 		util: ImageShapeUtil,
@@ -48,4 +44,5 @@ export const defaultShapes: TLShapeInfo<any>[] = [
 	noteShape,
 	frameShape,
 	textShape,
+	bookmarkShape,
 ]

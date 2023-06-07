@@ -1,6 +1,6 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
-import { annotateError, compact } from '@tldraw/utils'
+import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
@@ -252,7 +252,7 @@ function TldrawEditorWithReadyStore({
 		const editor = new Editor({
 			store,
 			shapes,
-			tools: compact([...(tools ?? []), ...Object.values(shapes ?? {}).map((s) => s.tool)]),
+			tools,
 			getContainer: () => container,
 		})
 		;(window as any).app = editor

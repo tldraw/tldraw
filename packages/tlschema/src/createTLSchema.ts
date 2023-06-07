@@ -19,28 +19,33 @@ import { storeMigrations } from './store-migrations'
 
 /** @public */
 export type SchemaShapeInfo = {
+	type: string
 	migrations?: Migrations
 	validator?: { validate: (record: any) => any }
 }
 
-const coreShapes: Record<string, SchemaShapeInfo> = {
-	group: {
+const coreShapes: SchemaShapeInfo[] = [
+	{
+		type: 'group',
 		migrations: groupShapeMigrations,
 		validator: groupShapeValidator,
 	},
-	embed: {
+	{
+		type: 'embed',
 		migrations: embedShapeMigrations,
 		validator: embedShapeTypeValidator,
 	},
-	image: {
+	{
+		type: 'image',
 		migrations: imageShapeMigrations,
 		validator: imageShapeValidator,
 	},
-	video: {
+	{
+		type: 'video',
 		migrations: videoShapeMigrations,
 		validator: videoShapeValidator,
 	},
-}
+]
 
 /**
  * Create a TLSchema with custom shapes. Custom shapes cannot override default shapes.
@@ -50,18 +55,18 @@ const coreShapes: Record<string, SchemaShapeInfo> = {
  * @public */
 export function createTLSchema(
 	opts = {} as {
-		customShapes: Record<string, SchemaShapeInfo>
+		customShapes?: SchemaShapeInfo[]
 	}
 ) {
-	const { customShapes } = opts
+	const { customShapes = [] } = opts
 
-	for (const key in customShapes) {
-		if (key in coreShapes) {
-			throw Error(`Can't override default shape ${key}!`)
+	for (const { type } of customShapes) {
+		if (coreShapes.find((s) => s.type === type)) {
+			throw Error(`Can't override default shape ${type}!`)
 		}
 	}
 
-	const allShapeEntries = Object.entries({ ...coreShapes, ...customShapes })
+	const allShapeEntries = [...coreShapes, ...customShapes]
 
 	const ShapeRecordType = createRecordType<TLShape>('shape', {
 		migrations: defineMigrations({
@@ -71,7 +76,7 @@ export function createTLSchema(
 			subTypeKey: 'type',
 			subTypeMigrations: {
 				...Object.fromEntries(
-					allShapeEntries.map(([k, v]) => [k, v.migrations ?? defineMigrations({})])
+					allShapeEntries.map(({ type, migrations }) => [type, migrations ?? defineMigrations({})])
 				),
 			},
 		}),
@@ -80,7 +85,10 @@ export function createTLSchema(
 			'shape',
 			T.union('type', {
 				...Object.fromEntries(
-					allShapeEntries.map(([k, v]) => [k, (v.validator as T.Validator<any>) ?? T.any])
+					allShapeEntries.map(({ type, validator }) => [
+						type,
+						(validator as T.Validator<any>) ?? T.any,
+					])
 				),
 			})
 		),

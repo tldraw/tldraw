@@ -16,7 +16,7 @@ export type TLStoreOptions = {
  *
  * @public */
 export function createTLStore(opts = {} as TLStoreOptions): TLStore {
-	const { customShapes = {}, initialData, defaultName = '' } = opts
+	const { customShapes = [], initialData, defaultName = '' } = opts
 
 	return new Store({
 		schema: createTLSchema({ customShapes }),
