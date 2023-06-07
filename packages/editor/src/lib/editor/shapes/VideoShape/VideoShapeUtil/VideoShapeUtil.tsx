@@ -1,13 +1,13 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { TLVideoShape } from '@tldraw/tlschema'
 import * as React from 'react'
 import { track } from 'signia-react'
-import { DefaultSpinner } from '../../../components/DefaultSpinner'
-import { HTMLContainer } from '../../../components/HTMLContainer'
-import { useIsEditing } from '../../../hooks/useIsEditing'
-import { usePrefersReducedMotion } from '../../../utils/dom'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { DefaultSpinner } from '../../../../components/DefaultSpinner'
+import { HTMLContainer } from '../../../../components/HTMLContainer'
+import { useIsEditing } from '../../../../hooks/useIsEditing'
+import { usePrefersReducedMotion } from '../../../../utils/dom'
+import { BaseBoxShapeUtil } from '../../../shapeutils/BaseBoxShapeUtil'
+import { HyperlinkButton } from '../../../shapeutils/shared/HyperlinkButton'
+import { TLVideoShape } from '../videoShapeTypes'
 
 /** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

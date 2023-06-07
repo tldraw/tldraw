@@ -829,9 +829,6 @@ export type TLVideoAsset = TLBaseAsset<'video', {
     src: null | string;
 }>;
 
-// @public (undocumented)
-export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
-
 // @public
 export interface Vec2dModel {
     // (undocumented)

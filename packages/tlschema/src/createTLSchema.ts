@@ -12,7 +12,6 @@ import { InstancePresenceRecordType } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
 import { TLShape, rootShapeMigrations } from './records/TLShape'
 import { imageShapeMigrations, imageShapeValidator } from './shapes/TLImageShape'
-import { videoShapeMigrations, videoShapeValidator } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
 
 /** @public */
@@ -27,11 +26,6 @@ const coreShapes: SchemaShapeInfo[] = [
 		type: 'image',
 		migrations: imageShapeMigrations,
 		validator: imageShapeValidator,
-	},
-	{
-		type: 'video',
-		migrations: videoShapeMigrations,
-		validator: videoShapeValidator,
 	},
 ]
 

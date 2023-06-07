@@ -73,7 +73,6 @@ import { TLStyleType } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVerticalAlignType } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
-import { TLVideoShape } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
@@ -2494,6 +2493,19 @@ export interface TLUserPreferences {
 }
 
 // @public (undocumented)
+export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
+
+// @public (undocumented)
+export type TLVideoShapeProps = {
+    w: number;
+    h: number;
+    time: number;
+    playing: boolean;
+    url: string;
+    assetId: null | TLAssetId;
+};
+
+// @public (undocumented)
 export type TLWheelEvent = (info: TLWheelEventInfo) => void;
 
 // @public (undocumented)
@@ -2547,6 +2559,9 @@ export function useReactor(name: string, reactFn: () => void, deps?: any[] | und
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
+
+// @public (undocumented)
+export const videoShape: TLShapeInfo<TLVideoShape>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

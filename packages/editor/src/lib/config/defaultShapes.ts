@@ -1,4 +1,4 @@
-import { TLImageShape, TLVideoShape } from '@tldraw/tlschema'
+import { TLImageShape } from '@tldraw/tlschema'
 import { arrowShape } from '../editor/shapes/ArrowShape/arrowShape'
 import { bookmarkShape } from '../editor/shapes/BookmarkShape/bookmarkShape'
 import { drawShape } from '../editor/shapes/DrawShape/drawShape'
@@ -10,8 +10,8 @@ import { highlightShape } from '../editor/shapes/HighlightShape/highlightShape'
 import { lineShape } from '../editor/shapes/LineShape/lineShape'
 import { noteShape } from '../editor/shapes/NoteShape/noteShape'
 import { textShape } from '../editor/shapes/TextShape/textShape'
+import { videoShape } from '../editor/shapes/VideoShape/videoShape'
 import { ImageShapeUtil } from '../editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
-import { VideoShapeUtil } from '../editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
 import { TLShapeInfo, createShape } from './createShape'
 
 /** @public */
@@ -20,9 +20,11 @@ export const coreShapes: TLShapeInfo<any>[] = [
 		util: ImageShapeUtil,
 	}),
 	// created by copy and paste / file drop
-	createShape<TLVideoShape>('video', {
-		util: VideoShapeUtil,
-	}),
+	videoShape,
+	groupShape,
+	textShape,
+	bookmarkShape,
+	embedShape,
 ]
 
 /** @public */
@@ -34,8 +36,4 @@ export const defaultShapes: TLShapeInfo<any>[] = [
 	lineShape,
 	noteShape,
 	frameShape,
-	textShape,
-	bookmarkShape,
-	embedShape,
-	groupShape,
 ]

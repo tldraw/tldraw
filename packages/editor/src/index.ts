@@ -142,6 +142,12 @@ export {
 	type TLTextShape,
 	type TLTextShapeProps,
 } from './lib/editor/shapes/TextShape/textShapeTypes'
+export { VideoShapeUtil } from './lib/editor/shapes/VideoShape/VideoShapeUtil/VideoShapeUtil'
+export { videoShape } from './lib/editor/shapes/VideoShape/videoShape'
+export {
+	type TLVideoShape,
+	type TLVideoShapeProps,
+} from './lib/editor/shapes/VideoShape/videoShapeTypes'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
 export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
 export {
@@ -170,7 +176,6 @@ export {
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/editor/shapeutils/ShapeUtil'
-export { VideoShapeUtil } from './lib/editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
 export { INDENT } from './lib/editor/shapeutils/shared/TextHelpers'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'

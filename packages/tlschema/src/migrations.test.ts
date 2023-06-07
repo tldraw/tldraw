@@ -8,7 +8,6 @@ import { instancePageStateMigrations, instancePageStateVersions } from './record
 import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './records/TLShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
-import { videoShapeMigrations } from './shapes/TLVideoShape'
 import { storeMigrations, storeVersions } from './store-migrations'
 
 const assetModules = fs
@@ -259,7 +258,6 @@ describe('Removing dialogs from instance', () => {
 
 describe('Adding url props', () => {
 	for (const [name, { up, down }] of [
-		['video shape', videoShapeMigrations.migrators[1]],
 		['image shape', imageShapeMigrations.migrators[1]],
 	] as const) {
 		test(`${name}: up works as expected`, () => {

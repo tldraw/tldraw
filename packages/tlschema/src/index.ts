@@ -76,7 +76,6 @@ export {
 } from './shapes/TLBaseShape'
 export { type TLIconShape } from './shapes/TLIconShape'
 export { type TLImageCrop, type TLImageShape, type TLImageShapeProps } from './shapes/TLImageShape'
-export { type TLVideoShape } from './shapes/TLVideoShape'
 export {
 	TL_ALIGN_TYPES,
 	alignValidator,
