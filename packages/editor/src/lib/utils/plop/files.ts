@@ -127,15 +127,17 @@ export async function plopFiles(
 
 	const filteredUpdates = compact(shapeUpdates)
 
-	editor.createAssets(compact([...newAssetsForFiles.values()]))
-	editor.createShapes(filteredUpdates)
-	editor.setSelectedIds(filteredUpdates.map((s) => s.id))
+	editor.batch(() => {
+		editor.createAssets(compact([...newAssetsForFiles.values()]))
+		editor.createShapes(filteredUpdates)
+		editor.setSelectedIds(filteredUpdates.map((s) => s.id))
 
-	const { selectedIds, viewportPageBounds } = editor
+		const { selectedIds, viewportPageBounds } = editor
 
-	const pageBounds = Box2d.Common(compact(selectedIds.map((id) => editor.getPageBoundsById(id))))
+		const pageBounds = Box2d.Common(compact(selectedIds.map((id) => editor.getPageBoundsById(id))))
 
-	if (pageBounds && !viewportPageBounds.contains(pageBounds)) {
-		editor.zoomToSelection()
-	}
+		if (pageBounds && !viewportPageBounds.contains(pageBounds)) {
+			editor.zoomToSelection()
+		}
+	})
 }
