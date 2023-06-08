@@ -81,6 +81,7 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export { ExternalContentManager as PlopManager } from './lib/editor/managers/ExternalContentManager'
 export { ArrowShapeUtil } from './lib/editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
 export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
@@ -161,6 +162,7 @@ export {
 	type UiEvent,
 	type UiEventType,
 } from './lib/editor/types/event-types'
+export { type TLExternalContent } from './lib/editor/types/external-content'
 export {
 	type TLCommand,
 	type TLCommandHandler,
@@ -169,7 +171,6 @@ export {
 } from './lib/editor/types/history-types'
 export { type RequiredKeys } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
-export { type TLCreateShapeFromSourceInfo } from './lib/editor/types/shape-create-types'
 export { normalizeWheel } from './lib/hooks/shared'
 export { useContainer } from './lib/hooks/useContainer'
 export { useEditor } from './lib/hooks/useEditor'

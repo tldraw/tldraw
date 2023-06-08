@@ -98,14 +98,14 @@ const handleText = (editor: Editor, data: string, point?: VecLike) => {
 		pasteUrl(editor, data, point)
 	} else if (isSvgText(data)) {
 		editor.mark('paste')
-		editor.onCreateShapeFromSource({
+		editor.onPutExternalContent({
 			type: 'svg-text',
 			text: data,
 			point,
 		})
 	} else {
 		editor.mark('paste')
-		editor.onCreateShapeFromSource({
+		editor.onPutExternalContent({
 			type: 'text',
 			text: data,
 			point,

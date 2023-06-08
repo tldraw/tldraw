@@ -105,7 +105,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							onClick={() => {
 								if (!embedInfoForUrl) return
 
-								editor.onCreateShapeFromSource({
+								editor.onPutExternalContent({
 									type: 'embed',
 									url,
 									point: editor.viewportPageCenter,

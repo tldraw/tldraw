@@ -107,11 +107,6 @@ import { exportPatternSvgDefs } from '../hooks/usePattern'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile, getMediaAssetFromFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
-import { plopEmbed } from '../utils/plop/embed'
-import { plopFiles } from '../utils/plop/files'
-import { plopSvgText } from '../utils/plop/svg'
-import { plopText } from '../utils/plop/text'
-import { plopUrl } from '../utils/plop/url'
 import { setPropsForNextShape } from '../utils/props-for-next-shape'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
@@ -121,6 +116,7 @@ import { ActiveAreaManager, getActiveAreaScreenSpace } from './managers/ActiveAr
 import { CameraManager } from './managers/CameraManager'
 import { ClickManager } from './managers/ClickManager'
 import { DprManager } from './managers/DprManager'
+import { ExternalContentManager } from './managers/ExternalContentManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -143,9 +139,9 @@ import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
+import { TLExternalContent } from './types/external-content'
 import { RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
-import { TLCreateShapeFromSourceInfo } from './types/shape-create-types'
 
 /** @public */
 export type TLAnimationOptions = Partial<{
@@ -374,6 +370,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _updateDepth = 0
+
+	/** @public */
+	externalContentManager = new ExternalContentManager()
 
 	/**
 	 * A manager for the app's snapping feature.
@@ -8887,28 +8886,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* -------------------- Callbacks ------------------- */
 
 	/**
-	 * Create shapes when certain interactions are performed, such as dropping a URL onto the canvas. These can be handled in unique ways by overriding this method.
+	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
 	 *
-	 * @param info - Info about the source that may lead to the new shapes.
+	 * @param info - Info about the external content.
 	 */
-	async onCreateShapeFromSource(info: TLCreateShapeFromSourceInfo): Promise<void> {
-		switch (info.type) {
-			case 'text': {
-				return await plopText(this, info)
-			}
-			case 'files': {
-				return await plopFiles(this, info)
-			}
-			case 'embed': {
-				return await plopEmbed(this, info)
-			}
-			case 'svg-text': {
-				return await plopSvgText(this, info)
-			}
-			case 'url': {
-				return await plopUrl(this, info)
-			}
-		}
+	async onPutExternalContent(info: TLExternalContent): Promise<void> {
+		this.externalContentManager.handleContent(this, info)
 	}
 
 	/**

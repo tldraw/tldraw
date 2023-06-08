@@ -447,6 +447,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
+    // (undocumented)
+    externalContentManager: PlopManager;
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -604,8 +606,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         title: string;
         description: string;
     }>;
-    onCreateShapeFromSource(info: TLCreateShapeFromSourceInfo): Promise<void>;
     get onlySelectedShape(): null | TLShape;
+    onPutExternalContent(info: TLExternalContent): Promise<void>;
     // (undocumented)
     get opacity(): null | number;
     get openMenus(): string[];
@@ -1745,6 +1747,27 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
     fallback: ((error: unknown) => React_3.ReactNode) | null;
 }): JSX.Element;
 
+// @public (undocumented)
+export class PlopManager {
+    // (undocumented)
+    handleContent(editor: Editor, info: TLExternalContent): Promise<void>;
+    handleEmbed(editor: Editor, { point, url, embed }: Extract<TLExternalContent, {
+        type: 'embed';
+    }>): Promise<void>;
+    handleFiles(editor: Editor, { point, files }: Extract<TLExternalContent, {
+        type: 'files';
+    }>): Promise<void>;
+    handleSvgText(editor: Editor, { point, text }: Extract<TLExternalContent, {
+        type: 'svg-text';
+    }>): Promise<void>;
+    handleText(editor: Editor, { point, text }: Extract<TLExternalContent, {
+        type: 'text';
+    }>): Promise<void>;
+    handleUrl: (editor: Editor, { point, url }: Extract<TLExternalContent, {
+        type: 'url';
+    }>) => Promise<void> | undefined;
+}
+
 // @public
 export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
 
@@ -2161,31 +2184,6 @@ export interface TLContent {
 export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 
 // @public (undocumented)
-export type TLCreateShapeFromSourceInfo = {
-    type: 'embed';
-    url: string;
-    point?: VecLike;
-    embed: EmbedDefinition;
-} | {
-    type: 'files';
-    files: File[];
-    point?: VecLike;
-    ignoreParent: boolean;
-} | {
-    type: 'svg-text';
-    text: string;
-    point?: VecLike;
-} | {
-    type: 'text';
-    point?: VecLike;
-    text: string;
-} | {
-    type: 'url';
-    url: string;
-    point?: VecLike;
-};
-
-// @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public (undocumented)
@@ -2197,7 +2195,6 @@ export type TldrawEditorProps = {
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
     onMount?: (editor: Editor) => void;
-    onCreateShapeFromSource?: (info: TLCreateShapeFromSourceInfo) => Promise<void>;
     onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
     onCreateBookmarkFromUrl?: (url: string) => Promise<{
         image: string;
@@ -2386,6 +2383,31 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
+
+// @public (undocumented)
+export type TLExternalContent = {
+    type: 'embed';
+    url: string;
+    point?: VecLike;
+    embed: EmbedDefinition;
+} | {
+    type: 'files';
+    files: File[];
+    point?: VecLike;
+    ignoreParent: boolean;
+} | {
+    type: 'svg-text';
+    text: string;
+    point?: VecLike;
+} | {
+    type: 'text';
+    point?: VecLike;
+    text: string;
+} | {
+    type: 'url';
+    url: string;
+    point?: VecLike;
+};
 
 // @public (undocumented)
 export type TLHistoryEntry = TLCommand | TLHistoryMark;
