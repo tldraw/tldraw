@@ -393,6 +393,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly snaps = new SnapManager(this)
 
 	/**
+	 * A manager for the user and their preferences.
+	 *
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
@@ -551,6 +553,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.emit('crash', { error })
 	}
 
+	/**
+	 * The window's device pixel ratio.
+	 * @public
+	 */
 	get devicePixelRatio() {
 		return this._dprManager.dpr.value
 	}
@@ -575,6 +581,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Add an open menu.
 	 *
+	 * @example
 	 * ```ts
 	 * editor.addOpenMenu('menu-id')
 	 * ```
@@ -592,6 +599,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Delete an open menu.
 	 *
+	 * @example
 	 * ```ts
 	 * editor.deleteOpenMenu('menu-id')
 	 * ```
@@ -627,6 +635,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._isCoarsePointer.value
 	}
 
+	/**
+	 * @internal
+	 */
 	set isCoarsePointer(v) {
 		this._isCoarsePointer.set(v)
 	}
@@ -1579,10 +1590,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * The user's chosen animation speed.
+	 * If 'reduce motion' is enabled, this will be 0.0.
+	 *
+	 * @public
+	 */
 	get animationSpeed() {
 		return this.user.animationSpeed
 	}
 
+	/**
+	 * Set the user's chosen animation speed.
+	 * Set to 0.0 to disable animations.
+	 * Set to 1.0 for full speed.
+	 *
+	 * @public
+	 */
 	setAnimationSpeed(animationSpeed: number) {
 		if (animationSpeed !== this.animationSpeed) {
 			this.user.updateUserPreferences({ animationSpeed })
@@ -8797,6 +8821,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Animate the camera to a shape.
+	 *
+	 * @public
+	 */
 	animateToShape(shapeId: TLShapeId, opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
 		if (!this.canMoveCamera) return this
 
