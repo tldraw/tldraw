@@ -1044,6 +1044,7 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: 
     pointerId: number;
     button: number;
     isPen: boolean;
+    source: "user";
 };
 
 // @public
@@ -2495,7 +2496,7 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
     pointerId: number;
     button: number;
     isPen: boolean;
-    isAutomatic?: boolean;
+    source: 'followingCamera' | 'user';
 } & TLPointerEventTarget;
 
 // @public (undocumented)
