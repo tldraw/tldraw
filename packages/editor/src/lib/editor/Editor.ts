@@ -377,7 +377,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly snaps = new SnapManager(this)
 
 	/**
-	 * @internal
+	 * @public
 	 */
 	readonly user: UserPreferencesManager
 
@@ -1513,7 +1513,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.get(TLDOCUMENT_ID)!
 	}
 
-	/** @internal */
+	/** @public */
 	updateDocumentSettings(settings: Partial<TLDocument>) {
 		this.store.put([{ ...this.documentSettings, ...settings }])
 	}
@@ -1600,7 +1600,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
 
-	/** @internal */
+	/** @public */
 	setReadOnly(isReadOnly: boolean): this {
 		this._isReadOnly.set(isReadOnly)
 		if (isReadOnly) {
