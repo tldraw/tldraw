@@ -564,7 +564,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 * @public
 	 */
-	addOpenMenu = (id: string) => {
+	addOpenMenu(id: string) {
 		const menus = new Set(this.openMenus)
 		if (!menus.has(id)) {
 			menus.add(id)
@@ -581,7 +581,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 * @public
 	 */
-	deleteOpenMenu = (id: string) => {
+	deleteOpenMenu(id: string) {
 		const menus = new Set(this.openMenus)
 		if (menus.has(id)) {
 			menus.delete(id)
@@ -3659,7 +3659,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param info - The event info.
 	 * @public
 	 */
-	dispatch = (info: TLEventInfo): this => {
+	dispatch(info: TLEventInfo): this {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.crashingError) return this
@@ -8634,7 +8634,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param userId - The id of the user to follow.
 	 * @public
 	 */
-	startFollowingUser = (userId: string) => {
+	startFollowingUser(userId: string) {
 		// Currently, we get the leader's viewport page bounds from their user presence.
 		// This is a placeholder until the ephemeral PR lands.
 		// After that, we'll be able to get the required data from their instance presence instead.
@@ -8758,7 +8758,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	stopFollowingUser = () => {
+	stopFollowingUser() {
 		this.updateInstanceState({ followingUserId: null }, true)
 		this.emit('stop-following')
 		return this
