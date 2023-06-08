@@ -42,16 +42,18 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls) {
 }
 
 /** @internal */
-export function useDefaultUiAssetUrls(assetUrls?: RecursivePartial<TLUiAssetUrls>): TLUiAssetUrls {
-	if (!assetUrls) return defaultUiAssetUrls
+export function useDefaultUiAssetUrlsWithOverrides(
+	overrides?: RecursivePartial<TLUiAssetUrls>
+): TLUiAssetUrls {
+	if (!overrides) return defaultUiAssetUrls
 
 	return {
-		fonts: Object.assign({ ...defaultUiAssetUrls.fonts }, { ...assetUrls?.fonts }),
-		icons: Object.assign({ ...defaultUiAssetUrls.icons }, { ...assetUrls?.icons }),
-		embedIcons: Object.assign({ ...defaultUiAssetUrls.embedIcons }, { ...assetUrls?.embedIcons }),
+		fonts: Object.assign({ ...defaultUiAssetUrls.fonts }, { ...overrides?.fonts }),
+		icons: Object.assign({ ...defaultUiAssetUrls.icons }, { ...overrides?.icons }),
+		embedIcons: Object.assign({ ...defaultUiAssetUrls.embedIcons }, { ...overrides?.embedIcons }),
 		translations: Object.assign(
 			{ ...defaultUiAssetUrls.translations },
-			{ ...assetUrls?.translations }
+			{ ...overrides?.translations }
 		),
 	}
 }

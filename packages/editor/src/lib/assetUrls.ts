@@ -28,14 +28,14 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls) {
 }
 
 /** @internal */
-export function useDefaultEditorAssets(
-	assetUrls?: RecursivePartial<TLEditorAssetUrls>
+export function useDefaultEditorAssetsWithOverrides(
+	overrides?: RecursivePartial<TLEditorAssetUrls>
 ): TLEditorAssetUrls {
 	return useMemo(() => {
-		if (!assetUrls) return defaultEditorAssetUrls
+		if (!overrides) return defaultEditorAssetUrls
 
 		return {
-			fonts: Object.assign({ ...defaultEditorAssetUrls.fonts }, { ...assetUrls?.fonts }),
+			fonts: Object.assign({ ...defaultEditorAssetUrls.fonts }, { ...overrides?.fonts }),
 		}
-	}, [assetUrls])
+	}, [overrides])
 }

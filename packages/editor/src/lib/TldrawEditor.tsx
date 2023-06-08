@@ -2,7 +2,7 @@ import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
 import { RecursivePartial, annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
-import { TLEditorAssetUrls, useDefaultEditorAssets } from './assetUrls'
+import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLShapeInfo } from './config/createTLStore'
@@ -196,7 +196,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	assetUrls,
 	...rest
 }: TldrawEditorProps & { store: TLStoreWithStatus }) {
-	const assets = useDefaultEditorAssets(assetUrls)
+	const assets = useDefaultEditorAssetsWithOverrides(assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
 	switch (store.status) {

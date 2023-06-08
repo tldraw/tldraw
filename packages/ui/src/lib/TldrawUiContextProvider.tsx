@@ -1,5 +1,5 @@
 import { RecursivePartial } from '@tldraw/utils'
-import { TLUiAssetUrls, useDefaultUiAssetUrls } from './assetUrls'
+import { TLUiAssetUrls, useDefaultUiAssetUrlsWithOverrides } from './assetUrls'
 import { ActionsProvider } from './hooks/useActions'
 import { ActionsMenuSchemaProvider } from './hooks/useActionsMenuSchema'
 import { AssetUrlsProvider } from './hooks/useAssetUrls'
@@ -32,7 +32,7 @@ export function TldrawUiContextProvider({
 	children,
 }: TldrawUiContextProviderProps) {
 	return (
-		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrls(assetUrls)}>
+		<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
 			<TranslationProvider overrides={useMergedTranslationOverrides(overrides)}>
 				<EventsProvider onEvent={onUiEvent}>
 					<ToastsProvider>
