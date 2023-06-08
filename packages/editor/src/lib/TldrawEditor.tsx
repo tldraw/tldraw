@@ -6,6 +6,7 @@ import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLShapeInfo } from './config/createTLStore'
+import { TLUser, createTLUser } from './config/createTLUser'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -140,6 +141,7 @@ declare global {
 /** @public */
 export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
+	const user = createTLUser()
 
 	const ErrorFallback =
 		props.components?.ErrorFallback === undefined
@@ -160,14 +162,14 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 							{store ? (
 								store instanceof Store ? (
 									// Store is ready to go, whether externally synced or not
-									<TldrawEditorWithReadyStore {...rest} store={store} />
+									<TldrawEditorWithReadyStore {...rest} store={store} user={user} />
 								) : (
 									// Store is a synced store, so handle syncing stages internally
-									<TldrawEditorWithLoadingStore {...rest} store={store} />
+									<TldrawEditorWithLoadingStore {...rest} store={store} user={user} />
 								)
 							) : (
 								// We have no store (it's undefined) so create one and possibly sync it
-								<TldrawEditorWithOwnStore {...rest} store={store} />
+								<TldrawEditorWithOwnStore {...rest} store={store} user={user} />
 							)}
 						</EditorComponentsProvider>
 					</ContainerProvider>
@@ -177,8 +179,8 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 	)
 })
 
-function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined }) {
-	const { defaultName, initialData, shapes, persistenceKey, sessionId } = props
+function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined; user: TLUser }) {
+	const { defaultName, initialData, shapes, persistenceKey, sessionId, user } = props
 
 	const syncedStore = useLocalStore({
 		customShapes: shapes,
@@ -188,17 +190,23 @@ function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined 
 		defaultName,
 	})
 
-	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} />
+	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
 }
 
 const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	store,
 	assetUrls,
+	user,
 	...rest
-}: TldrawEditorProps & { store: TLStoreWithStatus }) {
+}: TldrawEditorProps & { store: TLStoreWithStatus; user: TLUser }) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		assetUrls ?? defaultEditorAssetUrls
 	)
+	const container = useContainer()
+	if (user.userPreferences.value.isDarkMode) {
+		container.classList.remove('tl-theme__light')
+		container.classList.add('tl-theme__dark')
+	}
 
 	switch (store.status) {
 		case 'error': {
@@ -229,7 +237,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
 
-	return <TldrawEditorWithReadyStore {...rest} store={store.store} />
+	return <TldrawEditorWithReadyStore {...rest} store={store.store} user={user} />
 })
 
 function TldrawEditorWithReadyStore({
@@ -241,8 +249,10 @@ function TldrawEditorWithReadyStore({
 	tools,
 	shapes,
 	autoFocus,
+	user,
 }: TldrawEditorProps & {
 	store: TLStore
+	user: TLUser
 }) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
@@ -254,6 +264,7 @@ function TldrawEditorWithReadyStore({
 			shapes,
 			tools,
 			getContainer: () => container,
+			user,
 		})
 		;(window as any).app = editor
 		;(window as any).editor = editor
@@ -261,7 +272,7 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapes, tools, store])
+	}, [container, shapes, tools, store, user])
 
 	React.useEffect(() => {
 		if (!editor) return
