@@ -600,12 +600,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
-    onCreateAssetFromFile(file: File): Promise<TLAsset>;
-    onCreateBookmarkFromUrl(url: string): Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
     get onlySelectedShape(): null | TLShape;
     onPutExternalContent(info: TLExternalContent): Promise<void>;
     // (undocumented)
@@ -1749,6 +1743,10 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
 
 // @public (undocumented)
 export class PlopManager {
+    createAssetFromFile(_editor: Editor, file: File): Promise<TLAsset>;
+    createAssetFromUrl(_editor: Editor, url: string): Promise<TLAsset>;
+    // (undocumented)
+    createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<void>;
     // (undocumented)
     handleContent(editor: Editor, info: TLExternalContent): Promise<void>;
     handleEmbed(editor: Editor, { point, url, embed }: Extract<TLExternalContent, {
@@ -1765,7 +1763,7 @@ export class PlopManager {
     }>): Promise<void>;
     handleUrl: (editor: Editor, { point, url }: Extract<TLExternalContent, {
         type: 'url';
-    }>) => Promise<void> | undefined;
+    }>) => Promise<void>;
 }
 
 // @public
@@ -2195,12 +2193,8 @@ export type TldrawEditorProps = {
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
     onMount?: (editor: Editor) => void;
-    onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
-    onCreateBookmarkFromUrl?: (url: string) => Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
+    onCreateAssetFromFile?: (editor: Editor, file: File) => Promise<TLAsset>;
+    onCreateAssetFromUrl?: (editor: Editor, url: string) => Promise<TLAsset>;
 } & ({
     store: TLStore | TLStoreWithStatus;
 } | {

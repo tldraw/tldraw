@@ -13,7 +13,7 @@ import '../public/index.css'
 import { ChangeResponder } from './ChangeResponder'
 import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
-import { onCreateBookmarkFromUrl } from './utils/bookmarks'
+import { onCreateAssetFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
 
 setRuntimeOverrides({
@@ -123,7 +123,7 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 		<TldrawEditor
 			assetUrls={assetUrls}
 			persistenceKey={uri}
-			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
+			onCreateAssetFromUrl={onCreateAssetFromUrl}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}

@@ -64,38 +64,34 @@ export type TldrawEditorProps = {
 	onMount?: (editor: Editor) => void
 
 	/**
-	 * Called when the editor generates a new asset from a file, such as when an image is dropped into
-	 * the canvas.
+	 * Get an asset from a file.
 	 *
 	 * @example
 	 *
-	 * ```ts
-	 * const editor = new App({
-	 * 	onCreateAssetFromFile: (file) => uploadFileAndCreateAsset(file),
+	 * ```tsx
+	 * <TldrawEditor onCreateAssetFromFile={myCustomHandler}/>
 	 * })
 	 * ```
 	 *
-	 * @param file - The file to generate an asset from.
-	 * @param id - The id to be assigned to the resulting asset.
+	 * @param editor - The editor instance.
+	 * @param file - The file to create the asset for.
 	 */
-	onCreateAssetFromFile?: (file: File) => Promise<TLAsset>
+	onCreateAssetFromFile?: (editor: Editor, file: File) => Promise<TLAsset>
 
 	/**
-	 * Called when a URL is converted to a bookmark. This callback should return the metadata for the
-	 * bookmark.
+	 * Get a bookmark asset from a URL.
 	 *
 	 * @example
 	 *
-	 * ```ts
-	 * editor.onCreateBookmarkFromUrl(url, id)
+	 * ```tsx
+	 * <TldrawEditor onCreateAssetFromUrl={myCustomHandler}/>
 	 * ```
 	 *
-	 * @param url - The url that was created.
+	 * @param editor - The editor instance.
+	 * @param url - The url to create the asset for.
 	 * @public
 	 */
-	onCreateBookmarkFromUrl?: (
-		url: string
-	) => Promise<{ image: string; title: string; description: string }>
+	onCreateAssetFromUrl?: (editor: Editor, url: string) => Promise<TLAsset>
 } & (
 	| {
 			/**
@@ -237,7 +233,7 @@ function TldrawEditorWithReadyStore({
 	onMount,
 	children,
 	onCreateAssetFromFile,
-	onCreateBookmarkFromUrl,
+	onCreateAssetFromUrl,
 	store,
 	tools,
 	shapes,
@@ -269,13 +265,13 @@ function TldrawEditorWithReadyStore({
 
 		// Overwrite the default onCreateAssetFromFile handler.
 		if (onCreateAssetFromFile) {
-			editor.onCreateAssetFromFile = onCreateAssetFromFile
+			editor.externalContentManager.createAssetFromFile = onCreateAssetFromFile
 		}
 
-		if (onCreateBookmarkFromUrl) {
-			editor.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
+		if (onCreateAssetFromUrl) {
+			editor.externalContentManager.createAssetFromUrl = onCreateAssetFromUrl
 		}
-	}, [editor, onCreateAssetFromFile, onCreateBookmarkFromUrl])
+	}, [editor, onCreateAssetFromFile, onCreateAssetFromUrl])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()

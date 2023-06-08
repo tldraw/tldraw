@@ -140,11 +140,11 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 					},
 				])
 			}
-		} else if (this.editor.onCreateBookmarkFromUrl) {
+		} else {
 			// Create a bookmark asset for the URL. First get its meta
 			// data, then create the asset and update the shape.
-			this.editor.onCreateBookmarkFromUrl(url).then((meta) => {
-				if (!meta) {
+			this.editor.externalContentManager.createAssetFromUrl(this.editor, url).then((asset) => {
+				if (!asset) {
 					this.editor.updateShapes([
 						{
 							id: shape.id,
@@ -156,27 +156,14 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 				}
 
 				this.editor.batch(() => {
-					this.editor
-						.createAssets([
-							{
-								id: assetId,
-								typeName: 'asset',
-								type: 'bookmark',
-								props: {
-									src: url,
-									description: meta.description,
-									image: meta.image,
-									title: meta.title,
-								},
-							},
-						])
-						.updateShapes([
-							{
-								id: shape.id,
-								type: shape.type,
-								props: { assetId },
-							},
-						])
+					this.editor.createAssets([asset])
+					this.editor.updateShapes([
+						{
+							id: shape.id,
+							type: shape.type,
+							props: { assetId: asset.id },
+						},
+					])
 				})
 			})
 		}

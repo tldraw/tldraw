@@ -105,7 +105,7 @@ import {
 } from '../constants'
 import { exportPatternSvgDefs } from '../hooks/usePattern'
 import { WeakMapCache } from '../utils/WeakMapCache'
-import { dataUrlToFile, getMediaAssetFromFile } from '../utils/assets'
+import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
 import { setPropsForNextShape } from '../utils/props-for-next-shape'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -116,7 +116,7 @@ import { ActiveAreaManager, getActiveAreaScreenSpace } from './managers/ActiveAr
 import { CameraManager } from './managers/CameraManager'
 import { ClickManager } from './managers/ClickManager'
 import { DprManager } from './managers/DprManager'
-import { ExternalContentManager } from './managers/ExternalContentManager'
+import { ExternalContentManager, TLExternalContent } from './managers/ExternalContentManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -139,7 +139,6 @@ import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
-import { TLExternalContent } from './types/external-content'
 import { RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -4476,7 +4475,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						asset.props.mimeType ?? 'image/png'
 					)
 
-					const newAsset = await this.onCreateAssetFromFile(file)
+					const newAsset = await this.externalContentManager.createAssetFromFile(this, file)
 
 					return [asset, newAsset] as const
 				})
@@ -8892,56 +8891,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	async onPutExternalContent(info: TLExternalContent): Promise<void> {
 		this.externalContentManager.handleContent(this, info)
-	}
-
-	/**
-	 * A callback fired when a file is converted to an asset. This callback should return the asset
-	 * partial.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * editor.onCreateAssetFromFile(myFile)
-	 * ```
-	 *
-	 * @param file - The file to upload.
-	 * @public
-	 */
-	async onCreateAssetFromFile(file: File): Promise<TLAsset> {
-		return await getMediaAssetFromFile(file)
-	}
-
-	/**
-	 * A callback fired when a URL is converted to a bookmark. This callback should return the
-	 * metadata for the bookmark.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * editor.onCreateBookmarkFromUrl(url, id)
-	 * ```
-	 *
-	 * @param url - The url that was created.
-	 * @public
-	 */
-	async onCreateBookmarkFromUrl(
-		url: string
-	): Promise<{ image: string; title: string; description: string }> {
-		try {
-			const resp = await fetch(url, { method: 'GET', mode: 'no-cors' })
-			const html = await resp.text()
-			const doc = new DOMParser().parseFromString(html, 'text/html')
-
-			return {
-				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
-				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? '',
-				description:
-					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
-			}
-		} catch (error) {
-			console.error(error)
-			return { image: '', title: '', description: '' }
-		}
 	}
 
 	/* ---------------- Text Measurement ---------------- */

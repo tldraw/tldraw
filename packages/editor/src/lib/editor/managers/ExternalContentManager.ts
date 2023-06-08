@@ -1,22 +1,65 @@
-import { Box2d, Vec2d } from '@tldraw/primitives'
+import { Vec2d, VecLike } from '@tldraw/primitives'
 import {
 	AssetRecordType,
+	EmbedDefinition,
 	TLAsset,
 	TLAssetId,
-	TLBookmarkAsset,
-	TLImageShape,
 	TLShapePartial,
-	TLVideoShape,
 	createShapeId,
 } from '@tldraw/tlschema'
 import { compact, getHashForString } from '@tldraw/utils'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../constants'
-import { ACCEPTED_IMG_TYPE, ACCEPTED_VID_TYPE } from '../../utils/assets'
+import {
+	FONT_FAMILIES,
+	FONT_SIZES,
+	MAX_ASSET_HEIGHT,
+	MAX_ASSET_WIDTH,
+	TEXT_PROPS,
+} from '../../constants'
+import {
+	ACCEPTED_IMG_TYPE,
+	ACCEPTED_VID_TYPE,
+	containBoxSize,
+	getFileMetaData,
+	getImageSizeFromSrc,
+	getResizedImageDataUrl,
+	getVideoSizeFromSrc,
+	isImage,
+} from '../../utils/assets'
+import { truncateStringWithEllipsis } from '../../utils/dom'
 import { getEmbedInfo } from '../../utils/embeds'
 import { Editor } from '../Editor'
 import { INDENT } from '../shapeutils/TextShapeUtil/TextHelpers'
 import { TextShapeUtil } from '../shapeutils/TextShapeUtil/TextShapeUtil'
-import { TLExternalContent } from '../types/external-content'
+
+/** @public */
+export type TLExternalContent =
+	| {
+			type: 'text'
+			point?: VecLike
+			text: string
+	  }
+	| {
+			type: 'files'
+			files: File[]
+			point?: VecLike
+			ignoreParent: boolean
+	  }
+	| {
+			type: 'url'
+			url: string
+			point?: VecLike
+	  }
+	| {
+			type: 'svg-text'
+			text: string
+			point?: VecLike
+	  }
+	| {
+			type: 'embed'
+			url: string
+			point?: VecLike
+			embed: EmbedDefinition
+	  }
 
 /** @public */
 export class ExternalContentManager {
@@ -77,35 +120,36 @@ export class ExternalContentManager {
 			height = box.height
 		}
 
-		const asset = await editor.onCreateAssetFromFile(
+		const asset = await this.createAssetFromFile(
+			editor,
 			new File([text], 'asset.svg', { type: 'image/svg+xml' })
 		)
-		if (asset.type !== 'bookmark') {
-			asset.props.w = width
-			asset.props.h = height
-		}
 
-		editor.batch(() => {
-			editor.createAssets([asset])
+		this.createShapesForAssets(editor, [asset], position)
 
-			editor.createShapes(
-				[
-					{
-						id: createShapeId(),
-						type: 'image',
-						x: position.x - width / 2,
-						y: position.y - height / 2,
-						opacity: 1,
-						props: {
-							assetId: asset.id,
-							w: width,
-							h: height,
-						},
-					},
-				],
-				true
-			)
-		})
+		// 	editor.batch(() => {
+		// 		asset.props.w = width
+		// 		asset.props.h = height
+		// 		editor.createAssets([asset])
+
+		// 		editor.createShapes(
+		// 			[
+		// 				{
+		// 					id: createShapeId(),
+		// 					type: 'image',
+		// 					x: position.x - width / 2,
+		// 					y: position.y - height / 2,
+		// 					opacity: 1,
+		// 					props: {
+		// 						assetId: asset.id,
+		// 						w: width,
+		// 						h: height,
+		// 					},
+		// 				},
+		// 			],
+		// 			true
+		// 		)
+		// 	})
 	}
 
 	/**
@@ -171,9 +215,9 @@ export class ExternalContentManager {
 
 		const pagePoint = new Vec2d(position.x, position.y)
 
-		const newAssetsForFiles = new Map<File, TLAsset>()
+		const assets: TLAsset[] = []
 
-		const shapePartials = await Promise.all(
+		await Promise.all(
 			files.map(async (file, i) => {
 				// Use mime type instead of file ext, this is because
 				// window.navigator.clipboard does not preserve file names
@@ -187,26 +231,11 @@ export class ExternalContentManager {
 				}
 
 				try {
-					const asset = await editor.onCreateAssetFromFile(file)
-
-					if (asset.type === 'bookmark') return
+					const asset = await this.createAssetFromFile(editor, file)
 
 					if (!asset) throw Error('Could not create an asset')
 
-					newAssetsForFiles.set(file, asset)
-
-					const shapePartial: TLShapePartial<TLImageShape | TLVideoShape> = {
-						id: createShapeId(),
-						type: asset.type,
-						x: pagePoint.x + i,
-						y: pagePoint.y,
-						props: {
-							w: asset.props!.w,
-							h: asset.props!.h,
-						},
-					}
-
-					return shapePartial
+					assets[i] = asset
 				} catch (error) {
 					console.error(error)
 					return null
@@ -214,84 +243,7 @@ export class ExternalContentManager {
 			})
 		)
 
-		// Filter any nullish values and sort the resulting models by x, so that the
-		// left-most model is created first (and placed lowest in the z-order).
-		const results = compact(shapePartials).sort((a, b) => a.x! - b.x!)
-
-		if (results.length === 0) return
-
-		// Adjust the placement of the models.
-		for (let i = 0; i < results.length; i++) {
-			const model = results[i]
-			if (i === 0) {
-				// The first shape is placed so that its center is at the dropping point
-				model.x! -= model.props!.w! / 2
-				model.y! -= model.props!.h! / 2
-			} else {
-				// Later models are placed to the right of the first shape
-				const prevModel = results[i - 1]
-				model.x = prevModel.x! + prevModel.props!.w!
-				model.y = prevModel.y!
-			}
-		}
-
-		const shapeUpdates = await Promise.all(
-			files.map(async (file, i) => {
-				const shape = results[i]
-				if (!shape) return
-
-				const asset = newAssetsForFiles.get(file)
-				if (!asset) return
-
-				// Does the asset collection already have a model with this id
-				let existing: TLAsset | undefined = editor.getAssetById(asset.id)
-
-				if (existing) {
-					newAssetsForFiles.delete(file)
-
-					if (shape.props) {
-						shape.props.assetId = existing.id
-					}
-
-					return shape
-				}
-
-				existing = editor.getAssetBySrc(asset.props!.src!)
-
-				if (existing) {
-					if (shape.props) {
-						shape.props.assetId = existing.id
-					}
-
-					return shape
-				}
-
-				// Create a new model for the new source file
-				if (shape.props) {
-					shape.props.assetId = asset.id
-				}
-
-				return shape
-			})
-		)
-
-		const filteredUpdates = compact(shapeUpdates)
-
-		editor.batch(() => {
-			editor.createAssets(compact([...newAssetsForFiles.values()]))
-			editor.createShapes(filteredUpdates)
-			editor.setSelectedIds(filteredUpdates.map((s) => s.id))
-
-			const { selectedIds, viewportPageBounds } = editor
-
-			const pageBounds = Box2d.Common(
-				compact(selectedIds.map((id) => editor.getPageBoundsById(id)))
-			)
-
-			if (pageBounds && !viewportPageBounds.contains(pageBounds)) {
-				editor.zoomToSelection()
-			}
-		})
+		this.createShapesForAssets(editor, compact(assets), pagePoint)
 	}
 
 	/**
@@ -397,7 +349,10 @@ export class ExternalContentManager {
 	 *
 	 * @public
 	 */
-	handleUrl = (editor: Editor, { point, url }: Extract<TLExternalContent, { type: 'url' }>) => {
+	handleUrl = async (
+		editor: Editor,
+		{ point, url }: Extract<TLExternalContent, { type: 'url' }>
+	) => {
 		// try to paste as an embed first
 		const embedInfo = getEmbedInfo(url)
 
@@ -413,75 +368,297 @@ export class ExternalContentManager {
 		const position =
 			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
 
-		// otherwise, try to paste as a bookmark
 		const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
-		const existing = editor.getAssetById(assetId) as TLBookmarkAsset
 
-		if (existing) {
-			editor.createShapes([
-				{
-					id: createShapeId(),
-					type: 'bookmark',
-					x: position.x - 150,
-					y: position.y - 160,
-					opacity: 1,
-					props: {
-						assetId: existing.id,
-						url: existing.props.src!,
-					},
-				},
-			])
-			return
+		// Use an existing asset if we have one, or else else create a new one
+		let asset = editor.getAssetById(assetId) as TLAsset
+		let shouldAlsoCreateAsset = false
+		if (!asset) {
+			shouldAlsoCreateAsset = true
+			asset = await this.createAssetFromUrl(editor, url)
 		}
 
-		editor.batch(async () => {
-			const shapeId = createShapeId()
+		editor.batch(() => {
+			if (shouldAlsoCreateAsset) {
+				editor.createAssets([asset])
+			}
 
-			editor.createShapes(
-				[
-					{
-						id: shapeId,
+			this.createShapesForAssets(editor, [asset], position)
+		})
+	}
+
+	async createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike) {
+		// const shapePartial: TLShapePartial<TLImageShape | TLVideoShape> = {
+		// 	id: createShapeId(),
+		// 	type: asset.type,
+		// 	x: pagePoint.x + i,
+		// 	y: pagePoint.y,
+		// 	props: {
+		// 		w: asset.props!.w,
+		// 		h: asset.props!.h,
+		// 	},
+		// }
+
+		// return shapePartial
+
+		// // Filter any nullish values and sort the resulting models by x, so that the
+		// // left-most model is created first (and placed lowest in the z-order).
+		// const results = compact(shapePartials).sort((a, b) => a.x! - b.x!)
+
+		// if (results.length === 0) return
+
+		// // Adjust the placement of the models.
+		// for (let i = 0; i < results.length; i++) {
+		// 	const model = results[i]
+		// 	if (i === 0) {
+		// 		// The first shape is placed so that its center is at the dropping point
+		// 		model.x! -= model.props!.w! / 2
+		// 		model.y! -= model.props!.h! / 2
+		// 	} else {
+		// 		// Later models are placed to the right of the first shape
+		// 		const prevModel = results[i - 1]
+		// 		model.x = prevModel.x! + prevModel.props!.w!
+		// 		model.y = prevModel.y!
+		// 	}
+		// }
+
+		// const shapeUpdates = await Promise.all(
+		// 	files.map(async (file, i) => {
+		// 		const shape = results[i]
+		// 		if (!shape) return
+
+		// 		const asset = newAssetsForFiles.get(file)
+		// 		if (!asset) return
+
+		// 		// Does the asset collection already have a model with this id
+		// 		let existing: TLAsset | undefined = editor.getAssetById(asset.id)
+
+		// 		if (existing) {
+		// 			newAssetsForFiles.delete(file)
+
+		// 			if (shape.props) {
+		// 				shape.props.assetId = existing.id
+		// 			}
+
+		// 			return shape
+		// 		}
+
+		// 		existing = editor.getAssetBySrc(asset.props!.src!)
+
+		// 		if (existing) {
+		// 			if (shape.props) {
+		// 				shape.props.assetId = existing.id
+		// 			}
+
+		// 			return shape
+		// 		}
+
+		// 		// Create a new model for the new source file
+		// 		if (shape.props) {
+		// 			shape.props.assetId = asset.id
+		// 		}
+
+		// 		return shape
+		// 	})
+		// )
+
+		// const filteredUpdates = compact(shapeUpdates)
+
+		// editor.batch(() => {
+		// 	editor.createAssets(compact([...newAssetsForFiles.values()]))
+		// 	editor.createShapes(filteredUpdates)
+		// 	editor.setSelectedIds(filteredUpdates.map((s) => s.id))
+
+		// 	const { selectedIds, viewportPageBounds } = editor
+
+		// 	const pageBounds = Box2d.Common(
+		// 		compact(selectedIds.map((id) => editor.getPageBoundsById(id)))
+		// 	)
+
+		// 	if (pageBounds && !viewportPageBounds.contains(pageBounds)) {
+		// 		editor.zoomToSelection()
+		// 	}
+		// })
+
+		if (!assets.length) return
+
+		const currentPoint = Vec2d.From(position)
+		const paritals: TLShapePartial[] = []
+
+		for (const asset of assets) {
+			switch (asset.type) {
+				case 'bookmark': {
+					paritals.push({
+						id: createShapeId(),
 						type: 'bookmark',
-						x: position.x,
-						y: position.y,
+						x: currentPoint.x - 150,
+						y: currentPoint.y - 160,
 						opacity: 1,
 						props: {
-							url: url,
+							assetId: asset.id,
+							url: asset.props.src,
 						},
-					},
-				],
-				true
-			)
+					})
 
-			const meta = await editor.onCreateBookmarkFromUrl(url)
-
-			if (meta) {
-				editor.createAssets([
-					{
-						id: assetId,
-						typeName: 'asset',
-						type: 'bookmark',
-						props: {
-							src: url,
-							description: meta.description,
-							image: meta.image,
-							title: meta.title,
-						},
-					},
-				])
-
-				editor.updateShapes([
-					{
-						id: shapeId,
-						type: 'bookmark',
+					currentPoint.x += 300
+					break
+				}
+				case 'image': {
+					paritals.push({
+						id: createShapeId(),
+						type: 'image',
+						x: currentPoint.x - asset.props.w / 2,
+						y: currentPoint.y - asset.props.h / 2,
 						opacity: 1,
 						props: {
-							assetId: assetId,
+							assetId: asset.id,
+							w: asset.props.w,
+							h: asset.props.h,
 						},
-					},
-				])
+					})
+
+					currentPoint.x += asset.props.w
+					break
+				}
+				case 'video': {
+					paritals.push({
+						id: createShapeId(),
+						type: 'video',
+						x: currentPoint.x - asset.props.w / 2,
+						y: currentPoint.y - asset.props.h / 2,
+						opacity: 1,
+						props: {
+							assetId: asset.id,
+							w: asset.props.w,
+							h: asset.props.h,
+						},
+					})
+
+					currentPoint.x += asset.props.w
+				}
+			}
+		}
+
+		editor.batch(() => {
+			editor.createAssets(assets)
+			editor.createShapes(paritals, true)
+
+			// re-center partials around point
+			const { selectedPageBounds, viewportPageBounds } = editor
+
+			if (selectedPageBounds) {
+				const offset = selectedPageBounds!.center.sub(position)
+
+				editor.updateShapes(
+					paritals.map((partial) => {
+						return {
+							id: partial.id,
+							type: partial.type,
+							x: partial.x! - offset.x,
+							y: partial.y! - offset.y,
+						}
+					})
+				)
+
+				if (selectedPageBounds && !viewportPageBounds.contains(selectedPageBounds)) {
+					editor.zoomToSelection()
+				}
 			}
 		})
+	}
+
+	/**
+	 * Override this method to change how assets are created from files.
+	 *
+	 * @param editor - The editor instance
+	 * @param file - The file to create the asset from.
+	 */
+	async createAssetFromFile(_editor: Editor, file: File): Promise<TLAsset> {
+		return await new Promise((resolve, reject) => {
+			const reader = new FileReader()
+			reader.onerror = () => reject(reader.error)
+			reader.onload = async () => {
+				let dataUrl = reader.result as string
+
+				const isImageType = isImage(file.type)
+				const sizeFn = isImageType ? getImageSizeFromSrc : getVideoSizeFromSrc
+
+				// Hack to make .mov videos work via dataURL.
+				if (file.type === 'video/quicktime' && dataUrl.includes('video/quicktime')) {
+					dataUrl = dataUrl.replace('video/quicktime', 'video/mp4')
+				}
+
+				const originalSize = await sizeFn(dataUrl)
+				const size = containBoxSize(originalSize, { w: MAX_ASSET_WIDTH, h: MAX_ASSET_HEIGHT })
+
+				if (size !== originalSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+					// If we created a new size and the type is an image, rescale the image
+					dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h)
+				}
+
+				const assetId: TLAssetId = AssetRecordType.createId(getHashForString(dataUrl))
+
+				const metadata = await getFileMetaData(file)
+
+				const asset: Extract<TLAsset, { type: 'image' | 'video' }> = {
+					id: assetId,
+					type: isImageType ? 'image' : 'video',
+					typeName: 'asset',
+					props: {
+						name: file.name,
+						src: dataUrl,
+						w: size.w,
+						h: size.h,
+						mimeType: file.type,
+						isAnimated: metadata.isAnimated,
+					},
+				}
+
+				resolve(asset)
+			}
+
+			reader.readAsDataURL(file)
+		})
+	}
+
+	/**
+	 * Override me to change the way assets are created from urls.
+	 *
+	 * @param editor - The editor instance
+	 * @param url - The url to create the asset from
+	 */
+	async createAssetFromUrl(_editor: Editor, url: string): Promise<TLAsset> {
+		let meta: { image: string; title: string; description: string }
+
+		try {
+			const resp = await fetch(url, { method: 'GET', mode: 'no-cors' })
+			const html = await resp.text()
+			const doc = new DOMParser().parseFromString(html, 'text/html')
+			meta = {
+				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
+				title:
+					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
+					truncateStringWithEllipsis(url, 54),
+				description:
+					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
+			}
+		} catch (error) {
+			console.error(error)
+			meta = { image: '', title: truncateStringWithEllipsis(url, 54), description: '' }
+		}
+
+		// Create the bookmark asset from the meta
+		return {
+			id: AssetRecordType.createId(getHashForString(url)),
+			typeName: 'asset',
+			type: 'bookmark',
+			props: {
+				src: url,
+				description: meta.description,
+				image: meta.image,
+				title: meta.title,
+			},
+		}
 	}
 }
 
