@@ -3,8 +3,7 @@
 
 type AssetUrl = string | { src: string }
 type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
-
-export function getAssetUrlsByImport(opts?: AssetUrlOptions): {
+type AssetUrls = {
 	fonts: {
 		monospace: string
 		sansSerif: string
@@ -230,3 +229,4 @@ export function getAssetUrlsByImport(opts?: AssetUrlOptions): {
 		youtube: string
 	}
 }
+export function getAssetUrlsByImport(opts?: AssetUrlOptions): AssetUrls

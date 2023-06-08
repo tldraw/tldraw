@@ -386,24 +386,23 @@ async function writeAssetDeclarationDTSFile(fileName: string, functionNames: str
 	let dts = `
 		type AssetUrl = string | { src: string }
 		type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
+		type AssetUrls = {
+	`
 
+	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
+		dts += `${type}: {\n`
+		for (const name of Object.keys(assets)) {
+			dts += `${JSON.stringify(name)}: string,\n`
+		}
+		dts += '},\n'
+	}
+
+	dts += `
+		}
 	`
 
 	for (const functionName of functionNames) {
-		dts += `
-			export function ${functionName}(opts?: AssetUrlOptions): {
-				`
-		for (const [type, assets] of Object.entries(collectedAssetUrls)) {
-			dts += `${type}: {\n`
-			for (const name of Object.keys(assets)) {
-				dts += `${JSON.stringify(name)}: string,\n`
-			}
-			dts += '},\n'
-		}
-
-		dts += `
-		}
-	`
+		dts += `export function ${functionName}(opts?: AssetUrlOptions): AssetUrls\n`
 	}
 
 	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', `${fileName}.d.ts`)
