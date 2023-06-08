@@ -310,6 +310,21 @@ async function writeUrlBasedAssetDeclarationFile() {
 					.join('\n')}
 			}
 		}
+
+		export function getAssetUrls(opts) {
+			return {
+				${Object.entries(collectedAssetUrls)
+					.flatMap(([type, assets]) => [
+						`${type}: {`,
+						...Object.entries(assets).map(
+							([name, href]) =>
+								`${JSON.stringify(name)}: formatAssetUrl(${JSON.stringify('./' + href)}, opts),`
+						),
+						'},',
+					])
+					.join('\n')}
+			}
+		}
 	`
 
 	await writeCodeFile(
@@ -319,7 +334,7 @@ async function writeUrlBasedAssetDeclarationFile() {
 		assetDeclarationFile
 	)
 
-	await writeAssetDeclarationDTSFile('urls', 'getAssetUrlsByMetaUrl')
+	await writeAssetDeclarationDTSFile('urls', ['getAssetUrlsByMetaUrl', 'getAssetUrls'])
 }
 async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 	let imports = `
@@ -364,28 +379,32 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 		imports + declarations
 	)
 
-	await writeAssetDeclarationDTSFile('imports', 'getAssetUrlsByImport')
+	await writeAssetDeclarationDTSFile('imports', ['getAssetUrlsByImport'])
 }
 
-async function writeAssetDeclarationDTSFile(fileName: string, functionName: string) {
+async function writeAssetDeclarationDTSFile(fileName: string, functionNames: string[] = []) {
 	let dts = `
 		type AssetUrl = string | { src: string }
 		type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
 
-		export function ${functionName}(opts?: AssetUrlOptions): {
 	`
 
-	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
-		dts += `${type}: {\n`
-		for (const name of Object.keys(assets)) {
-			dts += `${JSON.stringify(name)}: string,\n`
+	for (const functionName of functionNames) {
+		dts += `
+			export function ${functionName}(opts?: AssetUrlOptions): {
+				`
+		for (const [type, assets] of Object.entries(collectedAssetUrls)) {
+			dts += `${type}: {\n`
+			for (const name of Object.keys(assets)) {
+				dts += `${JSON.stringify(name)}: string,\n`
+			}
+			dts += '},\n'
 		}
-		dts += '},\n'
+
+		dts += `
+		}
+	`
 	}
-
-	dts += `
-		}
-	`
 
 	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', `${fileName}.d.ts`)
 	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)

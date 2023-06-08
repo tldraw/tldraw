@@ -1,3 +1,5 @@
+import { RecursivePartial } from '@tldraw/utils'
+import { useMemo } from 'react'
 import { version } from '../version'
 
 /** @public */
@@ -23,4 +25,17 @@ export let defaultEditorAssetUrls: TLEditorAssetUrls = {
 /** @internal */
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls) {
 	defaultEditorAssetUrls = assetUrls
+}
+
+/** @internal */
+export function useDefaultEditorAssets(
+	assetUrls: RecursivePartial<TLEditorAssetUrls> | undefined
+): TLEditorAssetUrls {
+	return useMemo(() => {
+		if (!assetUrls) return defaultEditorAssetUrls
+
+		return {
+			fonts: Object.assign({ ...defaultEditorAssetUrls.fonts }, { ...assetUrls?.fonts }),
+		}
+	}, [assetUrls])
 }

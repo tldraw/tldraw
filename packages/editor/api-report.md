@@ -24,6 +24,7 @@ import { Migrations } from '@tldraw/store';
 import { Polyline2d } from '@tldraw/primitives';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { RecursivePartial } from '@tldraw/utils';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
@@ -2183,7 +2184,7 @@ export type TldrawEditorProps = {
     children?: any;
     shapes?: Record<string, TLShapeInfo>;
     tools?: TLStateNodeConstructor[];
-    assetUrls?: TLEditorAssetUrls;
+    assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
     onMount?: (editor: Editor) => void;

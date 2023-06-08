@@ -1,8 +1,8 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
-import { annotateError } from '@tldraw/utils'
+import { RecursivePartial, annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
-import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
+import { TLEditorAssetUrls, useDefaultEditorAssets } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLShapeInfo } from './config/createTLStore'
@@ -39,7 +39,7 @@ export type TldrawEditorProps = {
 	/**
 	 * Urls for where to find fonts and other assets.
 	 */
-	assetUrls?: TLEditorAssetUrls
+	assetUrls?: RecursivePartial<TLEditorAssetUrls>
 	/**
 	 * Whether to automatically focus the editor when it mounts.
 	 */
@@ -196,9 +196,8 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	assetUrls,
 	...rest
 }: TldrawEditorProps & { store: TLStoreWithStatus }) {
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
-		assetUrls ?? defaultEditorAssetUrls
-	)
+	const assets = useDefaultEditorAssets(assetUrls)
+	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
 	switch (store.status) {
 		case 'error': {
