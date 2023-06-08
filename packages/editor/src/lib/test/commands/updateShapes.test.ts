@@ -30,13 +30,13 @@ it('updates shapes', () => {
 		id: ids.box1,
 		rotation: 0,
 		type: 'geo',
+		opacity: 1,
 		props: {
 			h: 100,
 			w: 100,
 			color: 'black',
 			dash: 'draw',
 			fill: 'none',
-			opacity: '1',
 			size: 'm',
 		},
 	})
@@ -49,13 +49,13 @@ it('updates shapes', () => {
 		id: ids.box1,
 		rotation: 0,
 		type: 'geo',
+		opacity: 1,
 		props: {
 			h: 100,
 			w: 100,
 			color: 'black',
 			dash: 'draw',
 			fill: 'none',
-			opacity: '1',
 			size: 'm',
 		},
 	})
@@ -68,13 +68,13 @@ it('updates shapes', () => {
 		id: ids.box1,
 		rotation: 0,
 		type: 'geo',
+		opacity: 1,
 		props: {
 			h: 100,
 			w: 100,
 			color: 'black',
 			dash: 'draw',
 			fill: 'none',
-			opacity: '1',
 			size: 'm',
 		},
 	})

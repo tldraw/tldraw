@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useValue } from 'signia-react'
-import { TLKeyboardEventInfo, TLPointerEventInfo } from '../app/types/event-types'
+import { TLKeyboardEventInfo, TLPointerEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'

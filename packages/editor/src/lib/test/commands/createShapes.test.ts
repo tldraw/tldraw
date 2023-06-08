@@ -33,9 +33,9 @@ it('Creates shapes with the current style', () => {
 })
 
 it('Creates shapes with the current opacity', () => {
-	editor.setProp('opacity', '0.5')
+	editor.setOpacity(0.5)
 	editor.createShapes([{ id: ids.box3, type: 'geo' }])
-	expect(editor.getShapeById<TLGeoShape>(ids.box3)!.props.opacity).toEqual('0.5')
+	expect(editor.getShapeById<TLGeoShape>(ids.box3)!.opacity).toEqual(0.5)
 })
 
 it('Creates shapes at the correct index', () => {

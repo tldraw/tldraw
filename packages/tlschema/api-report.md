@@ -83,6 +83,7 @@ export function createShapeValidator<Type extends string, Props extends object>(
     parentId: TLParentId;
     type: Type;
     isLocked: boolean;
+    opacity: number;
     props: Props;
 }>;
 
@@ -450,7 +451,7 @@ export const LANGUAGES: readonly [{
 }];
 
 // @internal (undocumented)
-export const opacityValidator: T.Validator<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
+export const opacityValidator: T.Validator<number>;
 
 // @internal (undocumented)
 export const pageIdValidator: T.Validator<TLPageId>;
@@ -501,16 +502,13 @@ export const TL_FONT_TYPES: Set<"draw" | "mono" | "sans" | "serif">;
 export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
-export const TL_OPACITY_TYPES: Set<"0.1" | "0.25" | "0.5" | "0.75" | "1">;
-
-// @public (undocumented)
 export const TL_SIZE_TYPES: Set<"l" | "m" | "s" | "xl">;
 
 // @public (undocumented)
 export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
 
 // @public (undocumented)
-export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign">;
+export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "size" | "spline" | "verticalAlign">;
 
 // @public (undocumented)
 export interface TLAlignStyle extends TLBaseStyle {
@@ -552,7 +550,6 @@ export type TLArrowShapeProps = {
     fill: TLFillType;
     dash: TLDashType;
     size: TLSizeType;
-    opacity: TLOpacityType;
     arrowheadStart: TLArrowheadType;
     arrowheadEnd: TLArrowheadType;
     font: TLFontType;
@@ -611,6 +608,8 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     index: string;
     // (undocumented)
     isLocked: boolean;
+    // (undocumented)
+    opacity: TLOpacityType;
     // (undocumented)
     parentId: TLParentId;
     // (undocumented)
@@ -816,7 +815,6 @@ export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
 
 // @public (undocumented)
 export type TLImageShapeProps = {
-    opacity: TLOpacityType;
     url: string;
     playing: boolean;
     w: number;
@@ -847,6 +845,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     isPenMode: boolean;
     // (undocumented)
     isToolLocked: boolean;
+    // (undocumented)
+    opacityForNextShape: TLOpacityType;
     // (undocumented)
     propsForNextShape: TLInstancePropsForNextShape;
     // (undocumented)
@@ -938,15 +938,7 @@ export type TLNullableShapeProps = {
 };
 
 // @public (undocumented)
-export interface TLOpacityStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLOpacityType;
-    // (undocumented)
-    type: 'opacity';
-}
-
-// @public (undocumented)
-export type TLOpacityType = SetValue<typeof TL_OPACITY_TYPES>;
+export type TLOpacityType = number;
 
 // @public
 export interface TLPage extends BaseRecord<'page', TLPageId> {
@@ -995,7 +987,7 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 export type TLShapeProp = keyof TLShapeProps;
 
 // @public (undocumented)
-export type TLShapeProps = SmooshedUnionObject<TLShape['props']>;
+export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
 
 // @public (undocumented)
 export interface TLSizeStyle extends TLBaseStyle {
@@ -1052,8 +1044,6 @@ export interface TLStyleCollections {
     // (undocumented)
     geo: TLGeoStyle[];
     // (undocumented)
-    opacity: TLOpacityStyle[];
-    // (undocumented)
     size: TLSizeStyle[];
     // (undocumented)
     spline: TLSplineStyle[];
@@ -1062,7 +1052,7 @@ export interface TLStyleCollections {
 }
 
 // @public (undocumented)
-export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLOpacityStyle | TLSizeStyle | TLSplineStyle | TLVerticalAlignStyle;
+export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLSizeStyle | TLSplineStyle | TLVerticalAlignStyle;
 
 // @public (undocumented)
 export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;
@@ -1079,7 +1069,6 @@ export type TLTextShapeProps = {
     size: TLSizeType;
     font: TLFontType;
     align: TLAlignType;
-    opacity: TLOpacityType;
     w: number;
     text: string;
     scale: number;

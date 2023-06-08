@@ -8,8 +8,8 @@ import {
 	Vec2d,
 } from '@tldraw/primitives'
 import { createShapeId, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
-import { GapsSnapLine, PointsSnapLine } from '../../app/managers/SnapManager'
-import { TLSelectionHandle } from '../../app/types/selection-types'
+import { GapsSnapLine, PointsSnapLine } from '../../editor/managers/SnapManager'
+import { TLSelectionHandle } from '../../editor/types/selection-types'
 import { TestEditor } from '../TestEditor'
 import { getSnapLines } from '../testutils/getSnapLines'
 import { roundedBox } from '../testutils/roundedBox'

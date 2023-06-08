@@ -127,12 +127,7 @@ export {
 } from './styles/TLFontStyle'
 export { TL_GEO_TYPES, geoValidator, type TLGeoStyle, type TLGeoType } from './styles/TLGeoStyle'
 export { iconValidator, type TLIconStyle, type TLIconType } from './styles/TLIconStyle'
-export {
-	TL_OPACITY_TYPES,
-	opacityValidator,
-	type TLOpacityStyle,
-	type TLOpacityType,
-} from './styles/TLOpacityStyle'
+export { opacityValidator, type TLOpacityType } from './styles/TLOpacityStyle'
 export {
 	TL_SIZE_TYPES,
 	sizeValidator,

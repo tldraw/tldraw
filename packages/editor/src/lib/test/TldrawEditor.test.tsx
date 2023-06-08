@@ -1,12 +1,12 @@
 import { act, render, screen } from '@testing-library/react'
-import { TLBaseShape, TLOpacityType, createShapeId } from '@tldraw/tlschema'
+import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
-import { Editor } from '../app/Editor'
-import { BaseBoxShapeUtil } from '../app/shapeutils/BaseBoxShapeUtil'
-import { BaseBoxShapeTool } from '../app/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
 import { createTLStore } from '../config/createTLStore'
+import { Editor } from '../editor/Editor'
+import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
+import { BaseBoxShapeTool } from '../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -137,7 +137,8 @@ describe('<TldrawEditor />', () => {
 			type: 'geo',
 			x: 0,
 			y: 0,
-			props: { geo: 'rectangle', w: 100, h: 100, opacity: '1' },
+			opacity: 1,
+			props: { geo: 'rectangle', w: 100, h: 100 },
 		})
 
 		// Is the shape's component rendering?
@@ -165,7 +166,6 @@ describe('Custom shapes', () => {
 		{
 			w: number
 			h: number
-			opacity: TLOpacityType
 		}
 	>
 
@@ -178,7 +178,6 @@ describe('Custom shapes', () => {
 
 		override defaultProps(): CardShape['props'] {
 			return {
-				opacity: '1',
 				w: 300,
 				h: 300,
 			}
@@ -262,7 +261,8 @@ describe('Custom shapes', () => {
 			type: 'card',
 			x: 0,
 			y: 0,
-			props: { w: 100, h: 100, opacity: '1' },
+			opacity: 1,
+			props: { w: 100, h: 100 },
 		})
 
 		// Is the shape's component rendering?

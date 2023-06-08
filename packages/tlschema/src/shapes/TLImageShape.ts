@@ -3,7 +3,6 @@ import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { Vec2dModel } from '../misc/geometry-types'
 import { TLAssetId } from '../records/TLAsset'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
@@ -14,7 +13,6 @@ export type TLImageCrop = {
 
 /** @public */
 export type TLImageShapeProps = {
-	opacity: TLOpacityType
 	url: string
 	playing: boolean
 	w: number
@@ -35,7 +33,6 @@ export const cropValidator = T.object({
 export const imageShapeValidator: T.Validator<TLImageShape> = createShapeValidator(
 	'image',
 	T.object({
-		opacity: opacityValidator,
 		w: T.nonZeroNumber,
 		h: T.nonZeroNumber,
 		playing: T.boolean,
