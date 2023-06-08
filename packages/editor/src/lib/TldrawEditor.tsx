@@ -1,5 +1,5 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
-import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
+import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
@@ -48,6 +48,7 @@ export type TldrawEditorProps = {
 	 * Overrides for the tldraw user interface components.
 	 */
 	components?: Partial<TLEditorComponents>
+
 	/**
 	 * Called when the editor has mounted.
 	 *
@@ -64,34 +65,46 @@ export type TldrawEditorProps = {
 	onMount?: (editor: Editor) => void
 
 	/**
-	 * Get an asset from a file.
+	 * Call a callback immediately after the editor is created.
 	 *
 	 * @example
 	 *
 	 * ```tsx
-	 * <TldrawEditor onCreateAssetFromFile={myCustomHandler}/>
-	 * })
+	 * <TldrawEditor onCreateEditor={myCustomHandler}/>
 	 * ```
 	 *
 	 * @param editor - The editor instance.
-	 * @param file - The file to create the asset for.
-	 */
-	onCreateAssetFromFile?: (editor: Editor, file: File) => Promise<TLAsset>
-
-	/**
-	 * Get a bookmark asset from a URL.
-	 *
-	 * @example
-	 *
-	 * ```tsx
-	 * <TldrawEditor onCreateAssetFromUrl={myCustomHandler}/>
-	 * ```
-	 *
-	 * @param editor - The editor instance.
-	 * @param url - The url to create the asset for.
 	 * @public
 	 */
-	onCreateAssetFromUrl?: (editor: Editor, url: string) => Promise<TLAsset>
+	onEditorReady?: (editor: Editor) => void
+
+	/**
+	 * Call a callback immediately before the editor is disposed.
+	 *
+	 * @example
+	 *
+	 * ```tsx
+	 * <TldrawEditor onEditorWillDispose={myCustomHandler}/>
+	 * ```
+	 *
+	 * @param editor - The editor instance.
+	 * @public
+	 */
+	onEditorWillDispose?: (editor: Editor) => void
+
+	/**
+	 * Call a callback immediately after the editor is disposed.
+	 *
+	 * @example
+	 *
+	 * ```tsx
+	 * <TldrawEditor onEditorDispose,={myCustomHandler}/>
+	 * ```
+	 *
+	 * @param editor - The editor instance.
+	 * @public
+	 */
+	onEditorDispose?: (editor: Editor) => void
 } & (
 	| {
 			/**
@@ -232,12 +245,13 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 function TldrawEditorWithReadyStore({
 	onMount,
 	children,
-	onCreateAssetFromFile,
-	onCreateAssetFromUrl,
 	store,
 	tools,
 	shapes,
 	autoFocus,
+	onEditorReady,
+	onEditorDispose,
+	onEditorWillDispose,
 }: TldrawEditorProps & {
 	store: TLStore
 }) {
@@ -255,23 +269,14 @@ function TldrawEditorWithReadyStore({
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		setEditor(editor)
+		onEditorReady?.(editor)
+
 		return () => {
+			onEditorWillDispose?.(editor)
 			editor.dispose()
+			onEditorDispose?.(editor)
 		}
-	}, [container, shapes, tools, store])
-
-	React.useEffect(() => {
-		if (!editor) return
-
-		// Overwrite the default onCreateAssetFromFile handler.
-		if (onCreateAssetFromFile) {
-			editor.externalContentManager.createAssetFromFile = onCreateAssetFromFile
-		}
-
-		if (onCreateAssetFromUrl) {
-			editor.externalContentManager.createAssetFromUrl = onCreateAssetFromUrl
-		}
-	}, [editor, onCreateAssetFromFile, onCreateAssetFromUrl])
+	}, [container, shapes, tools, store, onEditorReady, onEditorWillDispose, onEditorDispose])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()

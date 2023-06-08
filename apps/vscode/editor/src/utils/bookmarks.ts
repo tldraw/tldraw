@@ -15,7 +15,7 @@ export async function onCreateAssetFromUrl(editor: Editor, url: string): Promise
 				src: url,
 				description: meta.description ?? '',
 				image: meta.image ?? '',
-				title: meta.title ?? truncateStringWithEllipsis(url, 54),
+				title: meta.title ?? truncateStringWithEllipsis(url, 32),
 			},
 		}
 	} catch (error) {
@@ -31,13 +31,13 @@ export async function onCreateAssetFromUrl(editor: Editor, url: string): Promise
 				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
 				title:
 					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
-					truncateStringWithEllipsis(url, 54),
+					truncateStringWithEllipsis(url, 32),
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
 		} catch (error) {
 			console.error(error)
-			meta = { image: '', title: truncateStringWithEllipsis(url, 54), description: '' }
+			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
 		}
 
 		// Create the bookmark asset from the meta

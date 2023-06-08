@@ -544,7 +544,8 @@ export class ExternalContentManager {
 			editor.createShapes(paritals, true)
 
 			// re-center partials around point
-			const { selectedPageBounds, viewportPageBounds } = editor
+			const { viewportPageBounds } = editor
+			let { selectedPageBounds } = editor
 
 			if (selectedPageBounds) {
 				const offset = selectedPageBounds!.center.sub(position)
@@ -559,10 +560,13 @@ export class ExternalContentManager {
 						}
 					})
 				)
+			}
 
-				if (selectedPageBounds && !viewportPageBounds.contains(selectedPageBounds)) {
-					editor.zoomToSelection()
-				}
+			// Get the new selected bounds after moving the shapes
+			selectedPageBounds = editor.selectedPageBounds
+
+			if (selectedPageBounds && !viewportPageBounds.contains(selectedPageBounds)) {
+				editor.zoomToSelection()
 			}
 		})
 	}
@@ -638,13 +642,13 @@ export class ExternalContentManager {
 				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
 				title:
 					doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ??
-					truncateStringWithEllipsis(url, 54),
+					truncateStringWithEllipsis(url, 32),
 				description:
 					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
 			}
 		} catch (error) {
 			console.error(error)
-			meta = { image: '', title: truncateStringWithEllipsis(url, 54), description: '' }
+			meta = { image: '', title: truncateStringWithEllipsis(url, 32), description: '' }
 		}
 
 		// Create the bookmark asset from the meta

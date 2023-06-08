@@ -7,7 +7,7 @@ import { ContextMenu, TLUiMenuSchema, TldrawUi } from '@tldraw/ui'
 import '@tldraw/ui/ui.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
 import { ChangeResponder } from './ChangeResponder'
@@ -119,11 +119,15 @@ export type TLDrawInnerProps = {
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
+	const handleEditorReady = useCallback((editor: Editor) => {
+		editor.externalContentManager.createAssetFromUrl = onCreateAssetFromUrl
+	}, [])
+
 	return (
 		<TldrawEditor
 			assetUrls={assetUrls}
 			persistenceKey={uri}
-			onCreateAssetFromUrl={onCreateAssetFromUrl}
+			onEditorReady={handleEditorReady}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
