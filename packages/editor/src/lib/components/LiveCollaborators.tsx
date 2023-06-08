@@ -35,8 +35,6 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 	const [isTimedOut, setIsTimedOut] = useState(false)
 
 	useEffect(() => {
-		if (!latestPresence) return
-
 		// By default, show the cursor
 		setIsTimedOut(false)
 
@@ -46,7 +44,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 		}, COLLABORATOR_TIMEOUT)
 
 		return () => clearTimeout(timeout)
-	}, [latestPresence])
+	}, [latestPresence?.lastActivityTimestamp])
 
 	if (!latestPresence) return null
 
