@@ -78,8 +78,6 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
-export { ArrowShapeUtil } from './lib/editor/shapes/ArrowShape/ArrowShapeUtil/ArrowShapeUtil'
-export { arrowShape } from './lib/editor/shapes/ArrowShape/arrowShape'
 export {
 	type TLArrowShape,
 	type TLArrowShapeProps,
@@ -244,10 +242,6 @@ export {
 	ACCEPTED_IMG_TYPE,
 	ACCEPTED_VID_TYPE,
 	containBoxSize,
-	createAssetShapeAtPoint,
-	createBookmarkShapeAtPoint,
-	createEmbedShapeAtPoint,
-	createShapesFromFiles,
 	dataUrlToFile,
 	getFileMetaData,
 	getImageSizeFromSrc,

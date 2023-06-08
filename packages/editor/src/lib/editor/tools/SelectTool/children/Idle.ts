@@ -142,7 +142,7 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				// Create text shape and transition to editing_shape
 				if (this.editor.isReadOnly) break
-				this.createTextShapeAtPoint(info)
+				this.handleDoubleClickOnCanvas(info)
 				break
 			}
 			case 'selection': {
@@ -210,7 +210,7 @@ export class Idle extends StateNode {
 					// If the shape's double click handler has not created a change,
 					// and if the shape cannot edit, then create a text shape and
 					// begin editing the text shape
-					this.createTextShapeAtPoint(info)
+					this.handleDoubleClickOnCanvas(info)
 				}
 				break
 			}
@@ -376,7 +376,7 @@ export class Idle extends StateNode {
 		this.parent.transition('editing_shape', info)
 	}
 
-	private createTextShapeAtPoint(info: TLClickEventInfo) {
+	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		this.editor.mark('creating text shape')
 
 		const id = createShapeId()

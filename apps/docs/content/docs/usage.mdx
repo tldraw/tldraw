@@ -68,11 +68,19 @@ If you wanted to have more granular control, you could also use those subcompone
 
 ### Assets
 
-In order to use the `<Tldraw/>` component, the app must be able to find certain assets on the host. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. If you are using the `<Tldraw/>` component in your app, you must also copy these folders into your public path.
+In order to use the `<Tldraw/>` component, the app must be able to find certain assets. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. By default we serve these assets from a [public CDN called unpkg](https://unpkg.com/browse/@tldraw/assets@2.0.0-alpha.12/) so everything should work out of the box.
 
-You can copy these files from the [assets folder](https://github.com/tldraw/tldraw/tree/main/assets). Place the folders in your project's public path as shown in that repository.
+If you want more flexibility you can also host these assets yourself:
+1. Download the `embed-icons`, `fonts`, `icons`, and `translations` folders from the [assets folder](https://github.com/tldraw/tldraw/tree/main/assets) of the tldraw repository.
+2. Place the folders in your project's public path.
+3. Pass `assetUrls` prop to our `<Tldraw/>` component to let the component know where the assets live. You can use our [`getAssetUrlsByMetaUrl` helper](https://github.com/tldraw/tldraw/blob/5d826c926d2b8eea633caccbe1049b9e1b4b9070/packages/assets/urls.js#L32) from the `@tldraw/assets` package.
+```
+import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
 
-> **Note:** This requirement is very likely to change in the near future.
+const assetUrls = getAssetUrlsByMetaUrl()
+
+<Tldraw assetUrls={assetUrls} />
+```
 
 While these files must be available, you can overwrite the individual files: for example, by placing different icons under the same name or modifying / adding translations.
 

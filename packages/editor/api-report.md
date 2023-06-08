@@ -92,9 +92,6 @@ export const ANIMATION_MEDIUM_MS = 320;
 export const ANIMATION_SHORT_MS = 80;
 
 // @public (undocumented)
-export const arrowShape: TLShapeInfo<TLArrowShape>;
-
-// @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -233,24 +230,8 @@ export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: Box
 // @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
 
-// @public (undocumented)
-export function createAssetShapeAtPoint(editor: Editor, svgString: string, point: Vec2dModel): Promise<void>;
-
-// @public
-export function createBookmarkShapeAtPoint(editor: Editor, url: string, point: Vec2dModel): Promise<void>;
-
-// @public (undocumented)
-export function createEmbedShapeAtPoint(editor: Editor, url: string, point: Vec2dModel, props: {
-    width?: number;
-    height?: number;
-    doesResize?: boolean;
-}): void;
-
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
-
-// @public (undocumented)
-export function createShapesFromFiles(editor: Editor, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
 
 // @public
 export function createTLStore(opts?: TLStoreOptions): TLStore;
@@ -362,7 +343,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, tools, shapes, getContainer }: TLEditorOptions);
-    addOpenMenu: (id: string) => this;
+    addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
     animateCamera(x: number, y: number, z?: number, opts?: TLAnimationOptions): this;
@@ -436,13 +417,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     get cursor(): TLCursor;
     deleteAssets(ids: TLAssetId[]): this;
-    deleteOpenMenu: (id: string) => this;
+    deleteOpenMenu(id: string): this;
     deletePage(id: TLPageId): void;
     deleteShapes(ids?: TLShapeId[]): this;
     deselect(...ids: TLShapeId[]): this;
     // (undocumented)
     get devicePixelRatio(): number;
-    dispatch: (info: TLEventInfo) => this;
+    dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -457,6 +438,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
+    // (undocumented)
+    externalContentManager: ExternalContentManager;
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -608,12 +591,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
-    onCreateAssetFromFile(file: File): Promise<TLAsset>;
-    onCreateBookmarkFromUrl(url: string): Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
     get onlySelectedShape(): null | TLShape;
     // (undocumented)
     get opacity(): null | number;
@@ -641,6 +618,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         preserveIds?: boolean;
     }): this;
+    putExternalContent(info: TLExternalContent): Promise<void>;
     redo(): this;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingShapes(): {
@@ -717,7 +695,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     setProjectName(name: string): void;
     setProp(key: string, value: any, ephemeral?: boolean, squashing?: boolean): this;
-    // @internal (undocumented)
+    // (undocumented)
     setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
@@ -742,9 +720,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly snaps: SnapManager;
     get sortedShapesArray(): TLShape[];
     stackShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[], gap?: number): this;
-    startFollowingUser: (userId: string) => this | undefined;
+    startFollowingUser(userId: string): this | undefined;
     stopCameraAnimation(): this;
-    stopFollowingUser: () => this;
+    stopFollowingUser(): this;
     readonly store: TLStore;
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
     static styles: TLStyleCollections;
@@ -757,13 +735,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     // @internal
     updateCullingBounds(): this;
-    // @internal (undocumented)
+    // (undocumented)
     updateDocumentSettings(settings: Partial<TLDocument>): void;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
-    // @internal (undocumented)
+    // (undocumented)
     readonly user: UserPreferencesManager;
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
@@ -1904,13 +1882,7 @@ export type TldrawEditorProps = {
     assetUrls?: TLEditorAssetUrls;
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
-    onMount?: (editor: Editor) => void;
-    onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
-    onCreateBookmarkFromUrl?: (url: string) => Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
+    onMount?: (editor: Editor) => (() => void) | undefined | void;
 } & ({
     store: TLStore | TLStoreWithStatus;
 } | {

@@ -2,7 +2,6 @@ import {
 	EMBED_DEFINITIONS,
 	TLEmbedDefinition,
 	TLEmbedResult,
-	createEmbedShapeAtPoint,
 	getEmbedInfo,
 	useEditor,
 } from '@tldraw/editor'
@@ -111,10 +110,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							onClick={() => {
 								if (!embedInfoForUrl) return
 
-								createEmbedShapeAtPoint(editor, url, editor.viewportPageCenter, {
-									width: embedInfoForUrl.definition.width,
-									height: embedInfoForUrl.definition.height,
-									doesResize: embedInfoForUrl.definition.doesResize,
+								editor.putExternalContent({
+									type: 'embed',
+									url,
+									point: editor.viewportPageCenter,
+									embed: embedInfoForUrl.definition,
 								})
 
 								onClose()

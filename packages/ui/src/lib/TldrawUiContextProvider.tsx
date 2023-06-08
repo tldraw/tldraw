@@ -1,4 +1,4 @@
-import { defaultUiAssetUrls, TLUiAssetUrls } from './assetUrls'
+import { TLUiAssetUrls, defaultUiAssetUrls } from './assetUrls'
 import { ActionsProvider } from './hooks/useActions'
 import { ActionsMenuSchemaProvider } from './hooks/useActionsMenuSchema'
 import { AssetUrlsProvider } from './hooks/useAssetUrls'
