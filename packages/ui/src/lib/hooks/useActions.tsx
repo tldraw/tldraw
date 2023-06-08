@@ -1,19 +1,20 @@
 import {
 	ANIMATION_MEDIUM_MS,
-	App,
+	BookmarkShapeUtil,
 	DEFAULT_BOOKMARK_HEIGHT,
 	DEFAULT_BOOKMARK_WIDTH,
-	getEmbedInfo,
-	openWindow,
-	TLBookmarkUtil,
-	TLEmbedUtil,
+	Editor,
+	EmbedShapeUtil,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
-	TLTextUtil,
-	useApp,
+	TextShapeUtil,
+	createShapeId,
+	getEmbedInfo,
+	openWindow,
+	useEditor,
 } from '@tldraw/editor'
-import { approximately, Box2d, TAU, Vec2d } from '@tldraw/primitives'
+import { Box2d, TAU, Vec2d, approximately } from '@tldraw/primitives'
 import { compact } from '@tldraw/utils'
 import * as React from 'react'
 import { EditLinkDialog } from '../components/EditLinkDialog'
@@ -27,42 +28,46 @@ import { useExportAs } from './useExportAs'
 import { useInsertMedia } from './useInsertMedia'
 import { usePrint } from './usePrint'
 import { useToasts } from './useToastsProvider'
-import { TLTranslationKey } from './useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export interface ActionItem {
+export interface TLUiActionItem {
 	icon?: TLUiIconType
 	id: string
 	kbd?: string
 	title?: string
-	label?: TLTranslationKey
-	menuLabel?: TLTranslationKey
-	shortcutsLabel?: TLTranslationKey
-	contextMenuLabel?: TLTranslationKey
+	label?: TLUiTranslationKey
+	menuLabel?: TLUiTranslationKey
+	shortcutsLabel?: TLUiTranslationKey
+	contextMenuLabel?: TLUiTranslationKey
 	readonlyOk: boolean
 	checkbox?: boolean
 	onSelect: (source: TLUiEventSource) => Promise<void> | void
 }
 
 /** @public */
-export type ActionsContextType = Record<string, ActionItem>
+export type TLUiActionsContextType = Record<string, TLUiActionItem>
 
-/** @public */
-export const ActionsContext = React.createContext<ActionsContextType>({})
+/** @internal */
+export const ActionsContext = React.createContext<TLUiActionsContextType>({})
 
 /** @public */
 export type ActionsProviderProps = {
-	overrides?: (app: App, actions: ActionsContextType, helpers: undefined) => ActionsContextType
+	overrides?: (
+		editor: Editor,
+		actions: TLUiActionsContextType,
+		helpers: undefined
+	) => TLUiActionsContextType
 	children: any
 }
 
-function makeActions(actions: ActionItem[]) {
-	return Object.fromEntries(actions.map((action) => [action.id, action])) as ActionsContextType
+function makeActions(actions: TLUiActionItem[]) {
+	return Object.fromEntries(actions.map((action) => [action.id, action])) as TLUiActionsContextType
 }
 
-/** @public */
+/** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
-	const app = useApp()
+	const editor = useEditor()
 
 	const { addDialog, clearDialogs } = useDialogs()
 	const { clearToasts } = useToasts()
@@ -76,7 +81,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const trackEvent = useEvents()
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
-	const actions = React.useMemo<ActionsContextType>(() => {
+	const actions = React.useMemo<TLUiActionsContextType>(() => {
 		const actions = makeActions([
 			{
 				id: 'edit-link',
@@ -85,7 +90,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('edit-link', { source })
-					app.mark('edit-link')
+					editor.mark('edit-link')
 					addDialog({ component: EditLinkDialog })
 				},
 			},
@@ -117,7 +122,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('undo', { source })
-					app.undo()
+					editor.undo()
 				},
 			},
 			{
@@ -128,7 +133,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('redo', { source })
-					app.redo()
+					editor.redo()
 				},
 			},
 			{
@@ -139,7 +144,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'svg', source })
-					exportAs(app.selectedIds, 'svg')
+					exportAs(editor.selectedIds, 'svg')
 				},
 			},
 			{
@@ -150,7 +155,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'png', source })
-					exportAs(app.selectedIds, 'png')
+					exportAs(editor.selectedIds, 'png')
 				},
 			},
 			{
@@ -161,7 +166,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'json', source })
-					exportAs(app.selectedIds, 'json')
+					exportAs(editor.selectedIds, 'json')
 				},
 			},
 			{
@@ -173,7 +178,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('copy-as', { format: 'svg', source })
-					copyAs(app.selectedIds, 'svg')
+					copyAs(editor.selectedIds, 'svg')
 				},
 			},
 			{
@@ -184,7 +189,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('copy-as', { format: 'png', source })
-					copyAs(app.selectedIds, 'png')
+					copyAs(editor.selectedIds, 'png')
 				},
 			},
 			{
@@ -195,7 +200,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('copy-as', { format: 'json', source })
-					copyAs(app.selectedIds, 'json')
+					copyAs(editor.selectedIds, 'json')
 				},
 			},
 			{
@@ -204,12 +209,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-auto-size', { source })
-					app.mark()
-					app.updateShapes(
-						app.selectedShapes
+					editor.mark()
+					editor.updateShapes(
+						editor.selectedShapes
 							.filter(
 								(shape): shape is TLTextShape =>
-									app.isShapeOfType(shape, TLTextUtil) && shape.props.autoSize === false
+									editor.isShapeOfType(shape, TextShapeUtil) && shape.props.autoSize === false
 							)
 							.map((shape) => {
 								return {
@@ -231,14 +236,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('open-embed-link', { source })
-					const ids = app.selectedIds
+					const ids = editor.selectedIds
 					const warnMsg = 'No embed shapes selected'
 					if (ids.length !== 1) {
 						console.error(warnMsg)
 						return
 					}
-					const shape = app.getShapeById(ids[0])
-					if (!shape || !app.isShapeOfType(shape, TLEmbedUtil)) {
+					const shape = editor.getShapeById(ids[0])
+					if (!shape || !editor.isShapeOfType(shape, EmbedShapeUtil)) {
 						console.error(warnMsg)
 						return
 					}
@@ -252,13 +257,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('convert-to-bookmark', { source })
-					const ids = app.selectedIds
-					const shapes = ids.map((id) => app.getShapeById(id))
+					const ids = editor.selectedIds
+					const shapes = ids.map((id) => editor.getShapeById(id))
 
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!shape || !app.isShapeOfType(shape, TLEmbedUtil) || !shape.props.url) continue
+						if (!shape || !editor.isShapeOfType(shape, EmbedShapeUtil) || !shape.props.url) continue
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
@@ -271,7 +276,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						newPos.rot(shape.rotation)
 
 						createList.push({
-							id: app.createShapeId(),
+							id: createShapeId(),
 							type: 'bookmark',
 							rotation: shape.rotation,
 							x: newPos.x,
@@ -284,9 +289,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						deleteList.push(shape.id)
 					}
 
-					app.mark('convert shapes to bookmark')
-					app.deleteShapes(deleteList)
-					app.createShapes(createList)
+					editor.mark('convert shapes to bookmark')
+					editor.deleteShapes(deleteList)
+					editor.createShapes(createList)
 				},
 			},
 			{
@@ -295,13 +300,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('convert-to-embed', { source })
-					const ids = app.selectedIds
-					const shapes = compact(ids.map((id) => app.getShapeById(id)))
+					const ids = editor.selectedIds
+					const shapes = compact(ids.map((id) => editor.getShapeById(id)))
 
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!app.isShapeOfType(shape, TLBookmarkUtil)) continue
+						if (!editor.isShapeOfType(shape, BookmarkShapeUtil)) continue
 
 						const { url } = shape.props
 
@@ -318,7 +323,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						newPos.rot(shape.rotation)
 
 						createList.push({
-							id: app.createShapeId(),
+							id: createShapeId(),
 							type: 'embed',
 							x: newPos.x,
 							y: newPos.y,
@@ -333,9 +338,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						deleteList.push(shape.id)
 					}
 
-					app.mark('convert shapes to embed')
-					app.deleteShapes(deleteList)
-					app.createShapes(createList)
+					editor.mark('convert shapes to embed')
+					editor.deleteShapes(deleteList)
+					editor.createShapes(createList)
 				},
 			},
 			{
@@ -345,21 +350,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'duplicate',
 				readonlyOk: false,
 				onSelect(source) {
-					if (app.currentToolId !== 'select') return
+					if (editor.currentToolId !== 'select') return
 					trackEvent('duplicate-shapes', { source })
-					const ids = app.selectedIds
-					const commonBounds = Box2d.Common(compact(ids.map((id) => app.getPageBoundsById(id))))
-					const offset = app.canMoveCamera
+					const ids = editor.selectedIds
+					const commonBounds = Box2d.Common(compact(ids.map((id) => editor.getPageBoundsById(id))))
+					const offset = editor.canMoveCamera
 						? {
 								x: commonBounds.width + 10,
 								y: 0,
 						  }
 						: {
-								x: 16 / app.zoomLevel,
-								y: 16 / app.zoomLevel,
+								x: 16 / editor.zoomLevel,
+								y: 16 / editor.zoomLevel,
 						  }
-					app.mark('duplicate shapes')
-					app.duplicateShapes(ids, offset)
+					editor.mark('duplicate shapes')
+					editor.duplicateShapes(ids, offset)
 				},
 			},
 			{
@@ -370,8 +375,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('ungroup-shapes', { source })
-					app.mark('ungroup')
-					app.ungroupShapes(app.selectedIds)
+					editor.mark('ungroup')
+					editor.ungroupShapes(editor.selectedIds)
 				},
 			},
 			{
@@ -382,12 +387,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('group-shapes', { source })
-					if (app.selectedShapes.length === 1 && app.selectedShapes[0].type === 'group') {
-						app.mark('ungroup')
-						app.ungroupShapes(app.selectedIds)
+					if (editor.selectedShapes.length === 1 && editor.selectedShapes[0].type === 'group') {
+						editor.mark('ungroup')
+						editor.ungroupShapes(editor.selectedIds)
 					} else {
-						app.mark('group')
-						app.groupShapes(app.selectedIds)
+						editor.mark('group')
+						editor.groupShapes(editor.selectedIds)
 					}
 				},
 			},
@@ -399,8 +404,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'left', source })
-					app.mark('align left')
-					app.alignShapes('left', app.selectedIds)
+					editor.mark('align left')
+					editor.alignShapes('left', editor.selectedIds)
 				},
 			},
 			{
@@ -412,8 +417,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'center-horizontal', source })
-					app.mark('align center horizontal')
-					app.alignShapes('center-horizontal', app.selectedIds)
+					editor.mark('align center horizontal')
+					editor.alignShapes('center-horizontal', editor.selectedIds)
 				},
 			},
 			{
@@ -424,8 +429,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'right', source })
-					app.mark('align right')
-					app.alignShapes('right', app.selectedIds)
+					editor.mark('align right')
+					editor.alignShapes('right', editor.selectedIds)
 				},
 			},
 			{
@@ -437,8 +442,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'center-vertical', source })
-					app.mark('align center vertical')
-					app.alignShapes('center-vertical', app.selectedIds)
+					editor.mark('align center vertical')
+					editor.alignShapes('center-vertical', editor.selectedIds)
 				},
 			},
 			{
@@ -449,8 +454,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'top', source })
-					app.mark('align top')
-					app.alignShapes('top', app.selectedIds)
+					editor.mark('align top')
+					editor.alignShapes('top', editor.selectedIds)
 				},
 			},
 			{
@@ -461,8 +466,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'bottom', source })
-					app.mark('align bottom')
-					app.alignShapes('bottom', app.selectedIds)
+					editor.mark('align bottom')
+					editor.alignShapes('bottom', editor.selectedIds)
 				},
 			},
 			{
@@ -470,11 +475,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.distribute-horizontal',
 				contextMenuLabel: 'action.distribute-horizontal.short',
 				icon: 'distribute-horizontal',
+				kbd: '?!h',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'horizontal', source })
-					app.mark('distribute horizontal')
-					app.distributeShapes('horizontal', app.selectedIds)
+					editor.mark('distribute horizontal')
+					editor.distributeShapes('horizontal', editor.selectedIds)
 				},
 			},
 			{
@@ -482,11 +488,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.distribute-vertical',
 				contextMenuLabel: 'action.distribute-vertical.short',
 				icon: 'distribute-vertical',
+				kbd: '?!V',
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'vertical', source })
-					app.mark('distribute vertical')
-					app.distributeShapes('vertical', app.selectedIds)
+					editor.mark('distribute vertical')
+					editor.distributeShapes('vertical', editor.selectedIds)
 				},
 			},
 			{
@@ -497,8 +504,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('stretch-shapes', { operation: 'horizontal', source })
-					app.mark('stretch horizontal')
-					app.stretchShapes('horizontal', app.selectedIds)
+					editor.mark('stretch horizontal')
+					editor.stretchShapes('horizontal', editor.selectedIds)
 				},
 			},
 			{
@@ -509,8 +516,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('stretch-shapes', { operation: 'vertical', source })
-					app.mark('stretch vertical')
-					app.stretchShapes('vertical', app.selectedIds)
+					editor.mark('stretch vertical')
+					editor.stretchShapes('vertical', editor.selectedIds)
 				},
 			},
 			{
@@ -521,8 +528,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('flip-shapes', { operation: 'horizontal', source })
-					app.mark('flip horizontal')
-					app.flipShapes('horizontal', app.selectedIds)
+					editor.mark('flip horizontal')
+					editor.flipShapes('horizontal', editor.selectedIds)
 				},
 			},
 			{
@@ -533,8 +540,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('flip-shapes', { operation: 'vertical', source })
-					app.mark('flip vertical')
-					app.flipShapes('vertical', app.selectedIds)
+					editor.mark('flip vertical')
+					editor.flipShapes('vertical', editor.selectedIds)
 				},
 			},
 			{
@@ -544,8 +551,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('pack-shapes', { source })
-					app.mark('pack')
-					app.packShapes(app.selectedIds)
+					editor.mark('pack')
+					editor.packShapes(editor.selectedIds)
 				},
 			},
 			{
@@ -556,8 +563,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('stack-shapes', { operation: 'vertical', source })
-					app.mark('stack-vertical')
-					app.stackShapes('vertical', app.selectedIds)
+					editor.mark('stack-vertical')
+					editor.stackShapes('vertical', editor.selectedIds)
 				},
 			},
 			{
@@ -568,8 +575,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('stack-shapes', { operation: 'horizontal', source })
-					app.mark('stack-horizontal')
-					app.stackShapes('horizontal', app.selectedIds)
+					editor.mark('stack-horizontal')
+					editor.stackShapes('horizontal', editor.selectedIds)
 				},
 			},
 			{
@@ -580,8 +587,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'toFront', source })
-					app.mark('bring to front')
-					app.bringToFront()
+					editor.mark('bring to front')
+					editor.bringToFront()
 				},
 			},
 			{
@@ -592,8 +599,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'forward', source })
-					app.mark('bring forward')
-					app.bringForward()
+					editor.mark('bring forward')
+					editor.bringForward()
 				},
 			},
 			{
@@ -604,8 +611,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'backward', source })
-					app.mark('send backward')
-					app.sendBackward()
+					editor.mark('send backward')
+					editor.sendBackward()
 				},
 			},
 			{
@@ -616,8 +623,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'toBack', source })
-					app.mark('send to back')
-					app.sendToBack()
+					editor.mark('send to back')
+					editor.sendToBack()
 				},
 			},
 			{
@@ -626,7 +633,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$x',
 				readonlyOk: false,
 				onSelect(source) {
-					app.mark('cut')
+					editor.mark('cut')
 					cut(source)
 				},
 			},
@@ -649,7 +656,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						paste(
 							clipboardItems,
 							source,
-							source === 'context-menu' ? app.inputs.currentPagePoint : undefined
+							source === 'context-menu' ? editor.inputs.currentPagePoint : undefined
 						)
 					})
 				},
@@ -661,13 +668,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('select-all-shapes', { source })
-					if (app.currentToolId !== 'select') {
-						app.cancel()
-						app.setSelectedTool('select')
+					if (editor.currentToolId !== 'select') {
+						editor.cancel()
+						editor.setSelectedTool('select')
 					}
 
-					app.mark('select all kbd')
-					app.selectAll()
+					editor.mark('select all kbd')
+					editor.selectAll()
 				},
 			},
 			{
@@ -676,8 +683,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('select-none-shapes', { source })
-					app.mark('select none')
-					app.selectNone()
+					editor.mark('select none')
+					editor.selectNone()
 				},
 			},
 			{
@@ -687,10 +694,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'trash',
 				readonlyOk: false,
 				onSelect(source) {
-					if (app.currentToolId !== 'select') return
+					if (editor.currentToolId !== 'select') return
 					trackEvent('delete-shapes', { source })
-					app.mark('delete')
-					app.deleteShapes()
+					editor.mark('delete')
+					editor.deleteShapes()
 				},
 			},
 			{
@@ -699,12 +706,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-cw',
 				readonlyOk: false,
 				onSelect(source) {
-					if (app.selectedIds.length === 0) return
+					if (editor.selectedIds.length === 0) return
 					trackEvent('rotate-cw', { source })
-					app.mark('rotate-cw')
-					const offset = app.selectionRotation % (TAU / 2)
+					editor.mark('rotate-cw')
+					const offset = editor.selectionRotation % (TAU / 2)
 					const dontUseOffset = approximately(offset, 0) || approximately(offset, TAU / 2)
-					app.rotateShapesBy(app.selectedIds, TAU / 2 - (dontUseOffset ? 0 : offset))
+					editor.rotateShapesBy(editor.selectedIds, TAU / 2 - (dontUseOffset ? 0 : offset))
 				},
 			},
 			{
@@ -713,12 +720,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-ccw',
 				readonlyOk: false,
 				onSelect(source) {
-					if (app.selectedIds.length === 0) return
+					if (editor.selectedIds.length === 0) return
 					trackEvent('rotate-ccw', { source })
-					app.mark('rotate-ccw')
-					const offset = app.selectionRotation % (TAU / 2)
+					editor.mark('rotate-ccw')
+					const offset = editor.selectionRotation % (TAU / 2)
 					const offsetCloseToZero = approximately(offset, 0)
-					app.rotateShapesBy(app.selectedIds, offsetCloseToZero ? -(TAU / 2) : -offset)
+					editor.rotateShapesBy(editor.selectedIds, offsetCloseToZero ? -(TAU / 2) : -offset)
 				},
 			},
 			{
@@ -728,7 +735,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
-					app.zoomIn(app.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomIn(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -738,7 +745,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source })
-					app.zoomOut(app.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.zoomOut(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -749,7 +756,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('reset-zoom', { source })
-					app.resetZoom(app.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
+					editor.resetZoom(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -759,7 +766,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-fit', { source })
-					app.zoomToFit({ duration: ANIMATION_MEDIUM_MS })
+					editor.zoomToFit({ duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -769,7 +776,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-selection', { source })
-					app.zoomToSelection({ duration: ANIMATION_MEDIUM_MS })
+					editor.zoomToSelection({ duration: ANIMATION_MEDIUM_MS })
 				},
 			},
 			{
@@ -779,7 +786,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
-					app.setSnapMode(!app.isSnapMode)
+					editor.setSnapMode(!editor.isSnapMode)
 				},
 				checkbox: true,
 			},
@@ -791,7 +798,18 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-dark-mode', { source })
-					app.setDarkMode(!app.isDarkMode)
+					editor.setDarkMode(!editor.isDarkMode)
+				},
+				checkbox: true,
+			},
+			{
+				id: 'toggle-reduce-motion',
+				label: 'action.toggle-reduce-motion',
+				menuLabel: 'action.toggle-reduce-motion.menu',
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-reduce-motion', { source })
+					editor.setAnimationSpeed(editor.animationSpeed === 0 ? 1 : 0)
 				},
 				checkbox: true,
 			},
@@ -803,9 +821,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-transparent', { source })
-					app.updateInstanceState(
+					editor.updateInstanceState(
 						{
-							exportBackground: !app.instanceState.exportBackground,
+							exportBackground: !editor.instanceState.exportBackground,
 						},
 						true
 					)
@@ -820,7 +838,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'q',
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
-					app.setToolLocked(!app.isToolLocked)
+					editor.setToolLocked(!editor.isToolLocked)
 				},
 				checkbox: true,
 			},
@@ -835,11 +853,11 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					// this needs to be deferred because it causes the menu
 					// UI to unmount which puts us in a dodgy state
 					requestAnimationFrame(() => {
-						app.batch(() => {
+						editor.batch(() => {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
 							clearToasts()
-							app.setFocusMode(!app.isFocusMode)
+							editor.setFocusMode(!editor.isFocusMode)
 						})
 					})
 				},
@@ -852,7 +870,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: "$'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
-					app.setGridMode(!app.isGridMode)
+					editor.setGridMode(!editor.isGridMode)
 				},
 				checkbox: true,
 			},
@@ -863,9 +881,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-debug-mode', { source })
-					app.updateInstanceState(
+					editor.updateInstanceState(
 						{
-							isDebugMode: !app.instanceState.isDebugMode,
+							isDebugMode: !editor.instanceState.isDebugMode,
 						},
 						true
 					)
@@ -889,7 +907,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('exit-pen-mode', { source })
-					app.setPenMode(false)
+					editor.setPenMode(false)
 				},
 			},
 			{
@@ -899,7 +917,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('stop-following', { source })
-					app.stopFollowingUser()
+					editor.stopFollowingUser()
 				},
 			},
 			{
@@ -909,20 +927,30 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-to-content', { source })
-					app.zoomToContent()
+					editor.zoomToContent()
+				},
+			},
+			{
+				id: 'toggle-lock',
+				label: 'action.toggle-lock',
+				readonlyOk: false,
+				kbd: '!$l',
+				onSelect(source) {
+					trackEvent('toggle-lock', { source })
+					editor.toggleLock()
 				},
 			},
 		])
 
 		if (overrides) {
-			return overrides(app, actions, undefined)
+			return overrides(editor, actions, undefined)
 		}
 
 		return actions
 	}, [
 		trackEvent,
 		overrides,
-		app,
+		editor,
 		addDialog,
 		insertMedia,
 		exportAs,
@@ -949,6 +977,6 @@ export function useActions() {
 	return ctx
 }
 
-function asActions<T extends Record<string, ActionItem>>(actions: T) {
-	return actions as Record<keyof typeof actions, ActionItem>
+function asActions<T extends Record<string, TLUiActionItem>>(actions: T) {
+	return actions as Record<keyof typeof actions, TLUiActionItem>
 }

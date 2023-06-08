@@ -11,6 +11,7 @@ export const featureFlags = {
 	// todo: remove this. it's not used, but we only have one feature flag and i
 	// wanted an example :(
 	peopleMenu: createFeatureFlag('peopleMenu'),
+	highlighterTool: createFeatureFlag('highlighterTool', { all: true }),
 } satisfies Record<string, DebugFlag<boolean>>
 
 /** @internal */
@@ -50,6 +51,7 @@ export const debugFlags = {
 	debugCursors: createDebugValue('debugCursors', {
 		defaults: { all: false },
 	}),
+	forceSrgb: createDebugValue('forceSrgbColors', { defaults: { all: false } }),
 }
 
 declare global {

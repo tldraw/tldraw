@@ -1,16 +1,16 @@
 import { canolicalizeRotation, Matrix2d, Vec2d } from '@tldraw/primitives'
 import { isShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
-import { App } from '../app/App'
+import { Editor } from '../editor/Editor'
 
 /** @internal */
-export function getRotationSnapshot({ app }: { app: App }) {
+export function getRotationSnapshot({ editor }: { editor: Editor }) {
 	const {
 		selectionRotation,
 		selectionPageCenter,
 		inputs: { originPagePoint },
 		selectedShapes,
-	} = app
+	} = editor
 
 	// todo: this assumes we're rotating the selected shapes
 	// if we try to rotate shapes that aren't selected, this
@@ -23,35 +23,35 @@ export function getRotationSnapshot({ app }: { app: App }) {
 		initialSelectionRotation: selectionRotation,
 		shapeSnapshots: selectedShapes.map((shape) => ({
 			shape: structuredClone(shape),
-			initialPagePoint: app.getPagePointById(shape.id)!,
+			initialPagePoint: editor.getPagePointById(shape.id)!,
 		})),
 	}
 }
 
 /** @internal */
-export type RotationSnapshot = ReturnType<typeof getRotationSnapshot>
+export type TLRotationSnapshot = ReturnType<typeof getRotationSnapshot>
 
 /** @internal */
 export function applyRotationToSnapshotShapes({
 	delta,
-	app,
+	editor,
 	snapshot,
 	stage,
 }: {
 	delta: number
-	snapshot: RotationSnapshot
-	app: App
+	snapshot: TLRotationSnapshot
+	editor: Editor
 	stage: 'start' | 'update' | 'end' | 'one-off'
 }) {
 	const { selectionPageCenter, shapeSnapshots } = snapshot
 
-	app.updateShapes(
+	editor.updateShapes(
 		shapeSnapshots.map(({ shape, initialPagePoint }) => {
 			// We need to both rotate each shape individually and rotate the shapes
 			// around the pivot point (the average center of all rotating shapes.)
 
 			const parentTransform = isShapeId(shape.parentId)
-				? app.getPageTransformById(shape.parentId)!
+				? editor.getPageTransformById(shape.parentId)!
 				: Matrix2d.Identity()
 
 			const newPagePoint = Vec2d.RotWith(initialPagePoint, selectionPageCenter, delta)
@@ -79,9 +79,9 @@ export function applyRotationToSnapshotShapes({
 	const changes: TLShapePartial[] = []
 
 	shapeSnapshots.forEach(({ shape }) => {
-		const current = app.getShapeById(shape.id)
+		const current = editor.getShapeById(shape.id)
 		if (!current) return
-		const util = app.getShapeUtil(shape)
+		const util = editor.getShapeUtil(shape)
 
 		if (stage === 'start' || stage === 'one-off') {
 			const changeStart = util.onRotateStart?.(shape)
@@ -98,6 +98,6 @@ export function applyRotationToSnapshotShapes({
 	})
 
 	if (changes.length > 0) {
-		app.updateShapes(changes)
+		editor.updateShapes(changes)
 	}
 }

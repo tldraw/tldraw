@@ -1,28 +1,14 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import {
-	TLAlignType,
-	TLColorType,
-	TLDashType,
-	TLFillType,
-	TLFontType,
-	TLGeoType,
-	TLOpacityType,
-	TLSizeType,
-	TLVerticalAlignType,
-} from '../style-types'
-import {
-	alignValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	geoValidator,
-	opacityValidator,
-	sizeValidator,
-	verticalAlignValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { defineMigrations } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
+import { TLColorType, colorValidator } from '../styles/TLColorStyle'
+import { TLDashType, dashValidator } from '../styles/TLDashStyle'
+import { TLFillType, fillValidator } from '../styles/TLFillStyle'
+import { TLFontType, fontValidator } from '../styles/TLFontStyle'
+import { TLGeoType, geoValidator } from '../styles/TLGeoStyle'
+import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
+import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLGeoShapeProps = {
@@ -32,7 +18,6 @@ export type TLGeoShapeProps = {
 	fill: TLFillType
 	dash: TLDashType
 	size: TLSizeType
-	opacity: TLOpacityType
 	font: TLFontType
 	align: TLAlignType
 	verticalAlign: TLVerticalAlignType
@@ -46,8 +31,8 @@ export type TLGeoShapeProps = {
 /** @public */
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
-/** @public */
-export const geoShapeTypeValidator: T.Validator<TLGeoShape> = createShapeValidator(
+/** @internal */
+export const geoShapeValidator: T.Validator<TLGeoShape> = createShapeValidator(
 	'geo',
 	T.object({
 		geo: geoValidator,
@@ -56,7 +41,6 @@ export const geoShapeTypeValidator: T.Validator<TLGeoShape> = createShapeValidat
 		fill: fillValidator,
 		dash: dashValidator,
 		size: sizeValidator,
-		opacity: opacityValidator,
 		font: fontValidator,
 		align: alignValidator,
 		verticalAlign: verticalAlignValidator,
@@ -77,8 +61,8 @@ const Versions = {
 	MigrateLegacyAlign: 6,
 } as const
 
-/** @public */
-export const geoShapeTypeMigrations = defineMigrations({
+/** @internal */
+export const geoShapeMigrations = defineMigrations({
 	currentVersion: Versions.MigrateLegacyAlign,
 	migrators: {
 		[Versions.AddUrlProp]: {

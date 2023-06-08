@@ -1,15 +1,15 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { PageRecordType, TLPageId, useApp, useContainer } from '@tldraw/editor'
+import { PageRecordType, TLPageId, useContainer, useEditor } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useToasts } from '../hooks/useToastsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
 
 export const MoveToPageMenu = track(function MoveToPageMenu() {
-	const app = useApp()
+	const editor = useEditor()
 	const container = useContainer()
-	const pages = app.pages
-	const currentPageId = app.currentPageId
+	const pages = editor.pages
+	const currentPageId = editor.currentPageId
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 
@@ -19,7 +19,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 				<Button
 					className="tlui-menu__button"
 					label="context-menu.move-to-page"
-					data-wd="menu-item.move-to-page"
+					data-testid="menu-item.move-to-page"
 					icon="chevron-right"
 				/>
 			</_ContextMenu.SubTrigger>
@@ -28,7 +28,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 					<_ContextMenu.Group
 						dir="ltr"
 						className={'tlui-menu__group'}
-						data-wd={`menu-item.pages`}
+						data-testid={`menu-item.pages`}
 						key="pages"
 					>
 						{pages.map((page) => (
@@ -36,10 +36,10 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 								key={page.id}
 								disabled={currentPageId === page.id}
 								onSelect={() => {
-									app.mark('move_shapes_to_page')
-									app.moveShapesToPage(app.selectedIds, page.id as TLPageId)
+									editor.mark('move_shapes_to_page')
+									editor.moveShapesToPage(editor.selectedIds, page.id as TLPageId)
 
-									const toPage = app.getPageById(page.id)
+									const toPage = editor.getPageById(page.id)
 
 									if (toPage) {
 										addToast({
@@ -50,8 +50,8 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 													label: 'Go Back',
 													type: 'primary',
 													onClick: () => {
-														app.mark('change-page')
-														app.setCurrentPageId(currentPageId)
+														editor.mark('change-page')
+														editor.setCurrentPageId(currentPageId)
 													},
 												},
 											],
@@ -72,20 +72,20 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 					<_ContextMenu.Group
 						dir="ltr"
 						className={'tlui-menu__group'}
-						data-wd={`menu-item.new-page`}
+						data-testid={`menu-item.new-page`}
 						key="new-page"
 					>
 						<_ContextMenu.Item
 							key="new-page"
 							onSelect={() => {
-								app.mark('move_shapes_to_page')
+								editor.mark('move_shapes_to_page')
 								const newPageId = PageRecordType.createId()
-								const ids = app.selectedIds
-								const oldPageId = app.currentPageId
-								app.batch(() => {
-									app.createPage('Page 1', newPageId)
-									app.setCurrentPageId(oldPageId)
-									app.moveShapesToPage(ids, newPageId)
+								const ids = editor.selectedIds
+								const oldPageId = editor.currentPageId
+								editor.batch(() => {
+									editor.createPage('Page 1', newPageId)
+									editor.setCurrentPageId(oldPageId)
+									editor.moveShapesToPage(ids, newPageId)
 								})
 							}}
 							asChild

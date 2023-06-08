@@ -1,9 +1,9 @@
-// import { TestApp } from '../TestApp'
+// import { TestEditor } from '../TestEditor'
 
-// let app: TestApp
+// let editor: TestEditor
 
 // beforeEach(() => {
-// 	app = new TestApp()
+// 	editor =new TestEditor()
 // })
 
 describe('Send to Back', () => {

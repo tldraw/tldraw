@@ -4,7 +4,7 @@ on:
   pull_request:
   merge_group:
   push:
-    branches: [main, lite]
+    branches: [main]
 
 env:
   CI: 1
@@ -54,8 +54,8 @@ jobs:
         # turbo's prefix
         run: "yarn build | sed -E 's/^.*? ::/::/'"
 
-      - name: Pack public packages
-        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"
-
       - name: Test
         run: yarn test
+
+      - name: Pack public packages
+        run: "yarn lazy pack-tarball | sed -E 's/^.*? ::/::/'"

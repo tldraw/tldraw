@@ -1,23 +1,23 @@
 import { Range, Root, Thumb, Track } from '@radix-ui/react-slider'
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
-/** @public */
+/** @internal */
 export interface SliderProps {
 	steps: number
 	value: number | null
 	label: string
 	title: string
 	onValueChange: (value: number, emphemeral: boolean) => void
-	'data-wd'?: string
+	'data-testid'?: string
 }
 
-/** @public */
+/** @internal */
 export function Slider(props: SliderProps) {
 	const { title, steps, value, label, onValueChange } = props
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const handleValueChange = useCallback(
@@ -28,8 +28,8 @@ export function Slider(props: SliderProps) {
 	)
 
 	const handlePointerDown = useCallback(() => {
-		app.mark('click slider')
-	}, [app])
+		editor.mark('click slider')
+	}, [editor])
 
 	const handlePointerUp = useCallback(() => {
 		if (!value) return
@@ -39,7 +39,7 @@ export function Slider(props: SliderProps) {
 	return (
 		<div className="tlui-slider__container">
 			<Root
-				data-wd={props['data-wd']}
+				data-testid={props['data-testid']}
 				className="tlui-slider"
 				area-label="Opacity"
 				dir="ltr"
@@ -50,7 +50,7 @@ export function Slider(props: SliderProps) {
 				onPointerDown={handlePointerDown}
 				onValueChange={handleValueChange}
 				onPointerUp={handlePointerUp}
-				title={title + ' — ' + msg(label as TLTranslationKey)}
+				title={title + ' — ' + msg(label as TLUiTranslationKey)}
 			>
 				<Track className="tlui-slider__track" dir="ltr">
 					{value !== null && <Range className="tlui-slider__range" dir="ltr" />}

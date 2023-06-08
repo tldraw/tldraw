@@ -1,6 +1,6 @@
+import { defineMigrations, migrate } from '@tldraw/store'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
-import { defineMigrations, migrate } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { atom } from 'signia'
 import { uniqueId } from '../utils/data'
 
@@ -17,6 +17,8 @@ export interface TLUserPreferences {
 	locale: string
 	color: string
 	isDarkMode: boolean
+	animationSpeed: number
+	isSnapMode: boolean
 }
 
 interface UserDataSnapshot {
@@ -30,15 +32,45 @@ interface UserChangeBroadcastMessage {
 	data: UserDataSnapshot
 }
 
-const userTypeValidator: T.Validator<TLUserPreferences> = T.object({
+const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
 	id: T.string,
 	name: T.string,
 	locale: T.string,
 	color: T.string,
 	isDarkMode: T.boolean,
+	animationSpeed: T.number,
+	isSnapMode: T.boolean,
 })
 
-const userTypeMigrations = defineMigrations({})
+const Versions = {
+	AddAnimationSpeed: 1,
+	AddIsSnapMode: 2,
+} as const
+
+const userMigrations = defineMigrations({
+	currentVersion: Versions.AddIsSnapMode,
+	migrators: {
+		[Versions.AddAnimationSpeed]: {
+			up: (user) => {
+				return {
+					...user,
+					animationSpeed: 1,
+				}
+			},
+			down: ({ animationSpeed: _, ...user }) => {
+				return user
+			},
+		},
+		[Versions.AddIsSnapMode]: {
+			up: (user: TLUserPreferences) => {
+				return { ...user, isSnapMode: false }
+			},
+			down: ({ isSnapMode: _, ...user }: TLUserPreferences) => {
+				return user
+			},
+		},
+	},
+})
 
 /** @internal */
 export const USER_COLORS = [
@@ -68,8 +100,11 @@ function getFreshUserPreferences(): TLUserPreferences {
 		color: getRandomColor(),
 		// TODO: detect dark mode
 		isDarkMode: false,
+		animationSpeed: 1,
+		isSnapMode: false,
 	}
 }
+
 function migrateUserPreferences(userData: unknown) {
 	if (userData === null || typeof userData !== 'object') {
 		return getFreshUserPreferences()
@@ -82,8 +117,8 @@ function migrateUserPreferences(userData: unknown) {
 	const migrationResult = migrate<TLUserPreferences>({
 		value: userData.user,
 		fromVersion: userData.version,
-		toVersion: userTypeMigrations.currentVersion ?? 0,
-		migrations: userTypeMigrations,
+		toVersion: userMigrations.currentVersion ?? 0,
+		migrations: userMigrations,
 	})
 
 	if (migrationResult.type === 'error') {
@@ -116,13 +151,14 @@ function storeUserPreferences() {
 		window.localStorage.setItem(
 			USER_DATA_KEY,
 			JSON.stringify({
-				version: userTypeMigrations.currentVersion,
+				version: userMigrations.currentVersion,
 				user: globalUserPreferences.value,
 			})
 		)
 	}
 }
 
+/** @public */
 export function setUserPreferences(user: TLUserPreferences) {
 	userTypeValidator.validate(user)
 	globalUserPreferences.set(user)
@@ -153,7 +189,7 @@ function broadcastUserPreferencesChange() {
 		origin: broadcastOrigin,
 		data: {
 			user: globalUserPreferences.value,
-			version: userTypeMigrations.currentVersion,
+			version: userMigrations.currentVersion,
 		},
 	} satisfies UserChangeBroadcastMessage)
 }

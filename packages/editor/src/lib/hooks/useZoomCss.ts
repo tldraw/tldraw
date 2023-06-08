@@ -1,11 +1,11 @@
 import { debounce } from '@tldraw/utils'
 import * as React from 'react'
 import { EffectScheduler } from 'signia'
-import { useApp } from './useApp'
 import { useContainer } from './useContainer'
+import { useEditor } from './useEditor'
 
 export function useZoomCss() {
-	const app = useApp()
+	const editor = useEditor()
 	const container = useContainer()
 
 	React.useEffect(() => {
@@ -13,11 +13,11 @@ export function useZoomCss() {
 		const setScaleDebounced = debounce(setScale, 100)
 
 		const scheduler = new EffectScheduler('useZoomCss', () => {
-			const numShapes = app.shapeIds.size
+			const numShapes = editor.shapeIds.size
 			if (numShapes < 300) {
-				setScale(app.zoomLevel)
+				setScale(editor.zoomLevel)
 			} else {
-				setScaleDebounced(app.zoomLevel)
+				setScaleDebounced(editor.zoomLevel)
 			}
 		})
 
@@ -27,5 +27,5 @@ export function useZoomCss() {
 		return () => {
 			scheduler.detach()
 		}
-	}, [app, container])
+	}, [editor, container])
 }

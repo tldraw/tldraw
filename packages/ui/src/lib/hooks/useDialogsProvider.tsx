@@ -1,61 +1,61 @@
-import { App, uniqueId, useApp } from '@tldraw/editor'
+import { Editor, uniqueId, useEditor } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
 import { useEvents } from './useEventsProvider'
 
 /** @public */
-export interface DialogProps {
+export interface TLUiDialogProps {
 	onClose: () => void
 }
 
 /** @public */
-export interface TLDialog {
+export interface TLUiDialog {
 	id: string
 	onClose?: () => void
-	component: (props: DialogProps) => any
+	component: (props: TLUiDialogProps) => any
 }
 
 /** @public */
-export type DialogsContextType = {
-	addDialog: (dialog: Omit<TLDialog, 'id'> & { id?: string }) => string
+export type TLUiDialogsContextType = {
+	addDialog: (dialog: Omit<TLUiDialog, 'id'> & { id?: string }) => string
 	removeDialog: (id: string) => string
-	updateDialog: (id: string, newDialogData: Partial<TLDialog>) => string
+	updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string
 	clearDialogs: () => void
-	dialogs: TLDialog[]
+	dialogs: TLUiDialog[]
 }
 
-/** @public */
-export const DialogsContext = createContext({} as DialogsContextType)
+/** @internal */
+export const DialogsContext = createContext({} as TLUiDialogsContextType)
 
-/** @public */
+/** @internal */
 export type DialogsProviderProps = {
-	overrides?: (app: App) => DialogsContextType
+	overrides?: (editor: Editor) => TLUiDialogsContextType
 	children: any
 }
 
-/** @public */
+/** @internal */
 export function DialogsProvider({ children }: DialogsProviderProps) {
-	const app = useApp()
+	const editor = useEditor()
 	const trackEvent = useEvents()
 
-	const [dialogs, setDialogs] = useState<TLDialog[]>([])
+	const [dialogs, setDialogs] = useState<TLUiDialog[]>([])
 
 	const addDialog = useCallback(
-		(dialog: Omit<TLDialog, 'id'> & { id?: string }) => {
+		(dialog: Omit<TLUiDialog, 'id'> & { id?: string }) => {
 			const id = dialog.id ?? uniqueId()
 			setDialogs((d) => {
 				return [...d.filter((m) => m.id !== dialog.id), { ...dialog, id }]
 			})
 
 			trackEvent('open-menu', { source: 'dialog', id })
-			app.addOpenMenu(id)
+			editor.addOpenMenu(id)
 
 			return id
 		},
-		[app, trackEvent]
+		[editor, trackEvent]
 	)
 
 	const updateDialog = useCallback(
-		(id: string, newDialogData: Partial<TLDialog>) => {
+		(id: string, newDialogData: Partial<TLUiDialog>) => {
 			setDialogs((d) =>
 				d.map((m) => {
 					if (m.id === id) {
@@ -69,11 +69,11 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			)
 
 			trackEvent('open-menu', { source: 'dialog', id })
-			app.addOpenMenu(id)
+			editor.addOpenMenu(id)
 
 			return id
 		},
-		[app, trackEvent]
+		[editor, trackEvent]
 	)
 
 	const removeDialog = useCallback(
@@ -89,11 +89,11 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			)
 
 			trackEvent('close-menu', { source: 'dialog', id })
-			app.deleteOpenMenu(id)
+			editor.deleteOpenMenu(id)
 
 			return id
 		},
-		[app, trackEvent]
+		[editor, trackEvent]
 	)
 
 	const clearDialogs = useCallback(() => {
@@ -101,11 +101,11 @@ export function DialogsProvider({ children }: DialogsProviderProps) {
 			d.forEach((m) => {
 				m.onClose?.()
 				trackEvent('close-menu', { source: 'dialog', id: m.id })
-				app.deleteOpenMenu(m.id)
+				editor.deleteOpenMenu(m.id)
 			})
 			return []
 		})
-	}, [app, trackEvent])
+	}, [editor, trackEvent])
 
 	return (
 		<DialogsContext.Provider

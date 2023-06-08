@@ -1,7 +1,7 @@
 {
 	"name": "tldraw-vscode",
 	"description": "The tldraw extension for VS Code.",
-	"version": "2.0.6",
+	"version": "2.0.8",
 	"private": true,
 	"packageManager": "yarn@3.5.0",
 	"author": {
@@ -124,7 +124,6 @@
 	"scripts": {
 		"dev": "tsx scripts/dev.ts",
 		"build": "cd ../editor && yarn build && cd ../extension && tsx scripts/build.ts",
-		"web": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=.",
 		"package": "yarn build && tsx scripts/package.ts",
 		"publish": "vsce publish",
 		"lint": "yarn run -T tsx ../../../scripts/lint.ts",
@@ -133,7 +132,7 @@
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/file-format": "workspace:*",
-		"@tldraw/tlstore": "workspace:*",
+		"@tldraw/store": "workspace:*",
 		"@types/fs-extra": "^11.0.1",
 		"@types/node-fetch": "^2.6.2",
 		"@types/vscode": "^1.75.1",
@@ -142,7 +141,7 @@
 		"assert": "^2.0.0",
 		"esbuild": "^0.16.7",
 		"fs-extra": "^11.1.0",
-		"lazyrepo": "0.0.0-alpha.26",
+		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
 		"mocha": "^9.1.1",
 		"process": "^0.11.10",

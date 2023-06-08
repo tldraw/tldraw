@@ -42,7 +42,7 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.26",
+		"lazyrepo": "0.0.0-alpha.27",
 		"ts-node-dev": "^1.1.8"
 	},
 	"jest": {

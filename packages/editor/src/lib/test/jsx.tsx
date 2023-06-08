@@ -1,11 +1,5 @@
 import { getIndexAbove } from '@tldraw/indices'
-import {
-	TLDefaultShape,
-	TLShapeId,
-	TLShapePartial,
-	createCustomShapeId,
-	createShapeId,
-} from '@tldraw/tlschema'
+import { TLDefaultShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
 import { assert, assertExists, omitFromStackTrace } from '@tldraw/utils'
 
 const shapeTypeSymbol = Symbol('shapeJsx')
@@ -26,6 +20,7 @@ type CommonProps = {
 	isLocked?: number
 	ref?: string
 	children?: JSX.Element | JSX.Element[]
+	opacity?: number
 }
 
 type ShapeByType<Type extends TLDefaultShape['type']> = Extract<TLDefaultShape, { type: Type }>
@@ -65,7 +60,7 @@ export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
 			if (ref) {
 				assert(!ids[ref], `Duplicate shape ref: ${ref}`)
 				assert(!el.props.id, `Cannot use both ref and id on shape: ${ref}`)
-				id = createCustomShapeId(ref)
+				id = createShapeId(ref)
 				ids[ref] = id
 			} else if (el.props.id) {
 				id = el.props.id
@@ -95,7 +90,7 @@ export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
 				if (key === 'x' || key === 'y' || key === 'ref' || key === 'id' || key === 'children') {
 					continue
 				}
-				if (key === 'rotation' || key === 'isLocked') {
+				if (key === 'rotation' || key === 'isLocked' || key === 'opacity') {
 					shapePartial[key] = value as any
 					continue
 				}

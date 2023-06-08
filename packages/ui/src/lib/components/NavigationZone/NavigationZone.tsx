@@ -8,7 +8,7 @@ import { Button } from '../primitives/Button'
 import { kbdStr } from '../primitives/shared'
 import { ZoomMenu } from './ZoomMenu'
 
-/** @public */
+/** @internal */
 export const NavigationZone = memo(function NavigationZone() {
 	const actions = useActions()
 	const msg = useTranslation()
@@ -35,7 +35,7 @@ export const NavigationZone = memo(function NavigationZone() {
 						<Button
 							title={msg('navigation-zone.toggle-minimap')}
 							className="tlui-navigation-zone__toggle"
-							data-wd="minimap.toggle"
+							data-testid="minimap.toggle"
 							onClick={toggleMinimap}
 							icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'}
 						/>
@@ -44,14 +44,14 @@ export const NavigationZone = memo(function NavigationZone() {
 					<>
 						<Button
 							icon="minus"
-							data-wd="minimap.zoom-out"
+							data-testid="minimap.zoom-out"
 							title={`${msg(actions['zoom-out'].label!)} ${kbdStr(actions['zoom-out'].kbd!)}`}
 							onClick={() => actions['zoom-out'].onSelect('navigation-zone')}
 						/>
 						<ZoomMenu />
 						<Button
 							icon="plus"
-							data-wd="minimap.zoom-in"
+							data-testid="minimap.zoom-in"
 							title={`${msg(actions['zoom-in'].label!)} ${kbdStr(actions['zoom-in'].kbd!)}`}
 							onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
 						/>

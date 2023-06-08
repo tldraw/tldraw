@@ -1,4 +1,4 @@
-import { MAX_PAGES, useApp } from '@tldraw/editor'
+import { MAX_PAGES, useEditor } from '@tldraw/editor'
 import { PageRecordType, TLPageId } from '@tldraw/tlschema'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useValue } from 'signia-react'
@@ -13,7 +13,7 @@ import { PageItemSubmenu } from './PageItemSubmenu'
 import { onMovePage } from './edit-pages-shared'
 
 export const PageMenu = function PageMenu() {
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
@@ -25,18 +25,20 @@ export const PageMenu = function PageMenu() {
 
 	const rSortableContainer = useRef<HTMLDivElement>(null)
 
-	const pages = useValue('pages', () => app.pages, [app])
-	const currentPage = useValue('currentPage', () => app.currentPage, [app])
+	const pages = useValue('pages', () => editor.pages, [editor])
+	const currentPage = useValue('currentPage', () => editor.currentPage, [editor])
 
 	// When in readonly mode, we don't allow a user to edit the pages
-	const isReadonlyMode = useValue('isReadonlyMode', () => app.isReadOnly, [app])
+	const isReadonlyMode = useValue('isReadonlyMode', () => editor.isReadOnly, [editor])
 
 	// If the user has reached the max page count, we disable the "add page" button
-	const maxPageCountReached = useValue('maxPageCountReached', () => app.pages.length >= MAX_PAGES, [
-		app,
-	])
+	const maxPageCountReached = useValue(
+		'maxPageCountReached',
+		() => editor.pages.length >= MAX_PAGES,
+		[editor]
+	)
 
-	const isCoarsePointer = useValue('isCoarsePointer', () => app.isCoarsePointer, [app])
+	const isCoarsePointer = useValue('isCoarsePointer', () => editor.isCoarsePointer, [editor])
 
 	// The component has an "editing state" that may be toggled to expose additional controls
 	const [isEditing, setIsEditing] = useState(false)
@@ -75,7 +77,7 @@ export const PageMenu = function PageMenu() {
 		if (!isOpen) return
 		requestAnimationFrame(() => {
 			const elm = document.querySelector(
-				`[data-wd="page-menu-item-${currentPage.id}"]`
+				`[data-testid="page-menu-item-${currentPage.id}"]`
 			) as HTMLDivElement
 
 			if (elm) {
@@ -195,13 +197,13 @@ export const PageMenu = function PageMenu() {
 
 			if (mut.status === 'dragging') {
 				const { id, index } = mut.pointing!
-				onMovePage(app, id as TLPageId, index, mut.dragIndex)
+				onMovePage(editor, id as TLPageId, index, mut.dragIndex)
 			}
 
 			e.currentTarget.releasePointerCapture(e.pointerId)
 			mut.status = 'idle'
 		},
-		[app]
+		[editor]
 	)
 
 	const handleKeyDown = useCallback(
@@ -229,18 +231,18 @@ export const PageMenu = function PageMenu() {
 	const handleCreatePageClick = useCallback(() => {
 		if (isReadonlyMode) return
 
-		app.mark('creating page')
+		editor.mark('creating page')
 		const newPageId = PageRecordType.createId()
-		app.createPage(msg('page-menu.new-page-initial-name'), newPageId)
+		editor.createPage(msg('page-menu.new-page-initial-name'), newPageId)
 		setIsEditing(true)
-	}, [app, msg, isReadonlyMode])
+	}, [editor, msg, isReadonlyMode])
 
 	return (
 		<Popover id="page menu" onOpenChange={onOpenChange} open={isOpen}>
 			<PopoverTrigger>
 				<Button
 					className="tlui-page-menu__trigger tlui-menu__trigger"
-					data-wd="main.page-menu"
+					data-testid="main.page-menu"
 					icon="chevron-down"
 					title={currentPage.name}
 				>
@@ -254,13 +256,13 @@ export const PageMenu = function PageMenu() {
 						{!isReadonlyMode && (
 							<>
 								<Button
-									data-wd="page-menu.edit"
+									data-testid="page-menu.edit"
 									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
 									icon={isEditing ? 'check' : 'edit'}
 									onClick={toggleEditing}
 								/>
 								<Button
-									data-wd="page-menu.create"
+									data-testid="page-menu.create"
 									icon="plus"
 									title={msg(
 										maxPageCountReached
@@ -287,7 +289,7 @@ export const PageMenu = function PageMenu() {
 							return isEditing ? (
 								<div
 									key={page.id + '_editing'}
-									data-wd={`page-menu-item-${page.id}`}
+									data-testid={`page-menu-item-${page.id}`}
 									className="tlui-page_menu__item__sortable"
 									style={{
 										zIndex: page.id === currentPage.id ? 888 : index,
@@ -315,7 +317,7 @@ export const PageMenu = function PageMenu() {
 											onClick={() => {
 												const name = window.prompt('Rename page', page.name)
 												if (name && name !== page.name) {
-													app.renamePage(page.id, name)
+													editor.renamePage(page.id, name)
 												}
 											}}
 											onDoubleClick={toggleEditing}
@@ -326,7 +328,7 @@ export const PageMenu = function PageMenu() {
 									) : (
 										<div
 											id={`page-menu-item-${page.id}`}
-											data-wd={`page-menu-item-${page.id}`}
+											data-testid={`page-menu-item-${page.id}`}
 											className="tlui-page_menu__item__sortable__title"
 											style={{ height: ITEM_HEIGHT }}
 										>
@@ -346,12 +348,12 @@ export const PageMenu = function PageMenu() {
 							) : (
 								<div
 									key={page.id}
-									data-wd={`page-menu-item-${page.id}`}
+									data-testid={`page-menu-item-${page.id}`}
 									className="tlui-page-menu__item"
 								>
 									<Button
 										className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
-										onClick={() => app.setCurrentPageId(page.id)}
+										onClick={() => editor.setCurrentPageId(page.id)}
 										onDoubleClick={toggleEditing}
 										isChecked={page.id === currentPage.id}
 										title={msg('page-menu.go-to-page')}
@@ -368,14 +370,14 @@ export const PageMenu = function PageMenu() {
 												item={page}
 												listSize={pages.length}
 												onRename={() => {
-													if (app.isIos) {
+													if (editor.isIos) {
 														const name = window.prompt('Rename page', page.name)
 														if (name && name !== page.name) {
-															app.renamePage(page.id, name)
+															editor.renamePage(page.id, name)
 														}
 													} else {
 														setIsEditing(true)
-														app.setCurrentPageId(page.id)
+														editor.setCurrentPageId(page.id)
 													}
 												}}
 											/>

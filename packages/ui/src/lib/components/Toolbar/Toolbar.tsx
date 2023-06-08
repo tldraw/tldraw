@@ -1,11 +1,11 @@
-import { preventDefault, useApp } from '@tldraw/editor'
+import { preventDefault, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import React from 'react'
 import { track, useValue } from 'signia-react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useReadonly } from '../../hooks/useReadonly'
-import { ToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'
-import { ToolItem } from '../../hooks/useTools'
+import { TLUiToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'
+import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { ActionsMenu } from '../ActionsMenu'
 import { DuplicateButton } from '../DuplicateButton'
@@ -20,35 +20,35 @@ import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
 /** @public */
 export const Toolbar = function Toolbar() {
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
-	const rMostRecentlyActiveDropdownItem = React.useRef<ToolbarItem | undefined>(undefined)
+	const rMostRecentlyActiveDropdownItem = React.useRef<TLUiToolbarItem | undefined>(undefined)
 
 	const isReadOnly = useReadonly()
 	const toolbarItems = useToolbarSchema()
 	const laserTool = toolbarItems.find((item) => item.toolItem.id === 'laser')
 
-	const activeToolId = useValue('current tool id', () => app.currentToolId, [app])
+	const activeToolId = useValue('current tool id', () => editor.currentToolId, [editor])
 
 	const isHandTool = activeToolId === 'hand'
-	const geoState = useValue('geo', () => (app.props ? app.props.geo : undefined), [app])
+	const geoState = useValue('geo', () => (editor.props ? editor.props.geo : undefined), [editor])
 
 	const showEditingTools = !isReadOnly
 	const showExtraActions = !(isReadOnly || isHandTool)
 
-	const getTitle = (item: ToolItem) =>
+	const getTitle = (item: TLUiToolItem) =>
 		item.label ? `${msg(item.label)} ${item.kbd ? kbdStr(item.kbd) : ''}` : ''
 
-	const activeToolbarItem = toolbarItems.find((item) => {
-		return isActiveToolItem(item.toolItem, activeToolId, geoState)
+	const activeTLUiToolbarItem = toolbarItems.find((item) => {
+		return isActiveTLUiToolItem(item.toolItem, activeToolId, geoState)
 	})
 
 	const { itemsInPanel, itemsInDropdown, dropdownFirstItem } = React.useMemo(() => {
-		const itemsInPanel: ToolbarItem[] = []
-		const itemsInDropdown: ToolbarItem[] = []
-		let dropdownFirstItem: ToolbarItem | undefined
+		const itemsInPanel: TLUiToolbarItem[] = []
+		const itemsInDropdown: TLUiToolbarItem[] = []
+		let dropdownFirstItem: TLUiToolbarItem | undefined
 
 		const overflowIndex = Math.min(8, 5 + breakpoint)
 
@@ -60,7 +60,7 @@ export const Toolbar = function Toolbar() {
 			} else {
 				// Items above will be in the dropdown menu unless the item
 				// is active (or was the most recently selected active item)
-				if (item === activeToolbarItem) {
+				if (item === activeTLUiToolbarItem) {
 					// If the dropdown item is active, make it the dropdownFirstItem
 					dropdownFirstItem = item
 				}
@@ -103,7 +103,7 @@ export const Toolbar = function Toolbar() {
 		}
 
 		return { itemsInPanel, itemsInDropdown, dropdownFirstItem }
-	}, [toolbarItems, activeToolbarItem, breakpoint])
+	}, [toolbarItems, activeTLUiToolbarItem, breakpoint])
 
 	return (
 		<div className="tlui-toolbar">
@@ -115,7 +115,7 @@ export const Toolbar = function Toolbar() {
 								'tlui-toolbar__extras__hidden': !showExtraActions,
 							})}
 						>
-							{breakpoint < 5 && (
+							{breakpoint < 6 && (
 								<div className="tlui-toolbar__extras__controls">
 									<UndoButton />
 									<RedoButton />
@@ -139,7 +139,7 @@ export const Toolbar = function Toolbar() {
 									key={toolItem.id}
 									item={toolItem}
 									title={getTitle(toolItem)}
-									isSelected={isActiveToolItem(toolItem, activeToolId, geoState)}
+									isSelected={isActiveTLUiToolItem(toolItem, activeToolId, geoState)}
 								/>
 							)
 						})}
@@ -148,7 +148,7 @@ export const Toolbar = function Toolbar() {
 								key={laserTool.toolItem.id}
 								item={laserTool.toolItem}
 								title={getTitle(laserTool.toolItem)}
-								isSelected={isActiveToolItem(laserTool.toolItem, activeToolId, geoState)}
+								isSelected={isActiveTLUiToolItem(laserTool.toolItem, activeToolId, geoState)}
 							/>
 						)}
 						{showEditingTools && (
@@ -160,7 +160,7 @@ export const Toolbar = function Toolbar() {
 										key={toolItem.id}
 										item={toolItem}
 										title={getTitle(toolItem)}
-										isSelected={isActiveToolItem(toolItem, activeToolId, geoState)}
+										isSelected={isActiveTLUiToolItem(toolItem, activeToolId, geoState)}
 									/>
 								))}
 								{/* Everything Else */}
@@ -170,7 +170,7 @@ export const Toolbar = function Toolbar() {
 										key={toolItem.id}
 										item={toolItem}
 										title={getTitle(toolItem)}
-										isSelected={isActiveToolItem(toolItem, activeToolId, geoState)}
+										isSelected={isActiveTLUiToolItem(toolItem, activeToolId, geoState)}
 									/>
 								))}
 								{/* Overflowing Shapes */}
@@ -181,7 +181,7 @@ export const Toolbar = function Toolbar() {
 											key={dropdownFirstItem.toolItem.id}
 											item={dropdownFirstItem.toolItem}
 											title={getTitle(dropdownFirstItem.toolItem)}
-											isSelected={isActiveToolItem(
+											isSelected={isActiveTLUiToolItem(
 												dropdownFirstItem.toolItem,
 												activeToolId,
 												geoState
@@ -193,7 +193,7 @@ export const Toolbar = function Toolbar() {
 												<Button
 													className="tlui-toolbar__tools__button tlui-toolbar__overflow"
 													icon="chevron-up"
-													data-wd="tools.more"
+													data-testid="tools.more"
 													title={msg('tool-panel.more')}
 												/>
 											</M.Trigger>
@@ -220,7 +220,7 @@ export const Toolbar = function Toolbar() {
 const OverflowToolsContent = track(function OverflowToolsContent({
 	toolbarItems,
 }: {
-	toolbarItems: ToolbarItem[]
+	toolbarItems: TLUiToolbarItem[]
 }) {
 	const msg = useTranslation()
 
@@ -231,7 +231,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 					<M.Item
 						key={id}
 						className="tlui-button-grid__button"
-						data-wd={`tools.${id}`}
+						data-testid={`tools.${id}`}
 						data-tool={id}
 						data-geo={meta?.geo ?? ''}
 						aria-label={label}
@@ -250,14 +250,14 @@ function ToolbarButton({
 	title,
 	isSelected,
 }: {
-	item: ToolItem
+	item: TLUiToolItem
 	title: string
 	isSelected: boolean
 }) {
 	return (
 		<Button
 			className="tlui-toolbar__tools__button"
-			data-wd={`tools.${item.id}`}
+			data-testid={`tools.${item.id}`}
 			data-tool={item.id}
 			data-geo={item.meta?.geo ?? ''}
 			aria-label={item.label}
@@ -273,8 +273,8 @@ function ToolbarButton({
 	)
 }
 
-const isActiveToolItem = (
-	item: ToolItem,
+const isActiveTLUiToolItem = (
+	item: TLUiToolItem,
 	activeToolId: string | undefined,
 	geoState: string | null | undefined
 ) => {

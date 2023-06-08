@@ -6,8 +6,8 @@ import {
 	// @ts-expect-error 'private' export
 	useStateTracking,
 } from 'signia-react'
-import { useApp } from '../..'
-import { TLShapeUtil } from '../app/shapeutils/TLShapeUtil'
+import { useEditor } from '../..'
+import { ShapeUtil } from '../editor/shapeutils/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useShapeEvents } from '../hooks/useShapeEvents'
@@ -27,124 +27,157 @@ opacity based on its own opacity and that of its parent's.
 export const Shape = track(function Shape({
 	id,
 	index,
+	backgroundIndex,
 	opacity,
 	isCulled,
 }: {
 	id: TLShapeId
 	index: number
+	backgroundIndex: number
 	opacity: number
 	isCulled: boolean
 }) {
-	const app = useApp()
+	const editor = useEditor()
 
 	const { ShapeErrorFallback } = useEditorComponents()
 
 	const events = useShapeEvents(id)
 
-	const rContainer = React.useRef<HTMLDivElement>(null)
+	const containerRef = React.useRef<HTMLDivElement>(null)
+	const backgroundContainerRef = React.useRef<HTMLDivElement>(null)
+
+	const setProperty = React.useCallback((property: string, value: string) => {
+		containerRef.current?.style.setProperty(property, value)
+		backgroundContainerRef.current?.style.setProperty(property, value)
+	}, [])
 
 	useQuickReactor(
 		'set shape container transform position',
 		() => {
-			const elm = rContainer.current
-			if (!elm) return
-
-			const shape = app.getShapeById(id)
-			const pageTransform = app.getPageTransformById(id)
+			const shape = editor.getShapeById(id)
+			const pageTransform = editor.getPageTransformById(id)
 
 			if (!shape || !pageTransform) return null
 
 			const transform = Matrix2d.toCssString(pageTransform)
-			elm.style.setProperty('transform', transform)
+			setProperty('transform', transform)
 		},
-		[app]
+		[editor, setProperty]
 	)
 
 	useQuickReactor(
 		'set shape container clip path / color',
 		() => {
-			const elm = rContainer.current
-			const shape = app.getShapeById(id)
-			if (!elm) return
+			const shape = editor.getShapeById(id)
 			if (!shape) return null
 
-			const clipPath = app.getClipPathById(id)
-			elm.style.setProperty('clip-path', clipPath ?? 'none')
+			const clipPath = editor.getClipPathById(id)
+			setProperty('clip-path', clipPath ?? 'none')
 			if ('color' in shape.props) {
-				elm.style.setProperty('color', app.getCssColor(shape.props.color))
+				setProperty('color', editor.getCssColor(shape.props.color))
 			}
 		},
-		[app]
+		[editor, setProperty]
 	)
 
 	useQuickReactor(
 		'set shape height and width',
 		() => {
-			const elm = rContainer.current
-			const shape = app.getShapeById(id)
-			if (!elm) return
+			const shape = editor.getShapeById(id)
 			if (!shape) return null
 
-			const util = app.getShapeUtil(shape)
+			const util = editor.getShapeUtil(shape)
 			const bounds = util.bounds(shape)
-			elm.style.setProperty('width', Math.ceil(bounds.width) + 'px')
-			elm.style.setProperty('height', Math.ceil(bounds.height) + 'px')
+			setProperty('width', Math.ceil(bounds.width) + 'px')
+			setProperty('height', Math.ceil(bounds.height) + 'px')
 		},
-		[app]
+		[editor]
 	)
 
 	// Set the opacity of the container when the opacity changes
 	React.useLayoutEffect(() => {
-		const elm = rContainer.current
-		if (!elm) return
-		elm.style.setProperty('opacity', opacity + '')
-		elm.style.setProperty('z-index', index + '')
-	}, [opacity, index])
+		setProperty('opacity', opacity + '')
+		containerRef.current?.style.setProperty('z-index', index + '')
+		backgroundContainerRef.current?.style.setProperty('z-index', backgroundIndex + '')
+	}, [opacity, index, backgroundIndex, setProperty])
 
-	const shape = app.getShapeById(id)
+	const shape = editor.getShapeById(id)
 
 	if (!shape) return null
 
-	const util = app.getShapeUtil(shape)
+	const util = editor.getShapeUtil(shape)
 
 	return (
-		<div
-			key={id}
-			ref={rContainer}
-			className="tl-shape"
-			data-shape-type={shape.type}
-			draggable={false}
-			onPointerDown={events.onPointerDown}
-			onPointerMove={events.onPointerMove}
-			onPointerUp={events.onPointerUp}
-			onPointerEnter={events.onPointerEnter}
-			onPointerLeave={events.onPointerLeave}
-		>
-			{isCulled && util.canUnmount(shape) ? (
-				<CulledShape shape={shape} util={util} />
-			) : (
-				<OptionalErrorBoundary
-					fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
-					onError={(error) =>
-						app.annotateError(error, { origin: 'react.shape', willCrashApp: false })
-					}
+		<>
+			{util.renderBackground && (
+				<div
+					ref={backgroundContainerRef}
+					className="tl-shape tl-shape-background"
+					data-shape-type={shape.type}
+					draggable={false}
 				>
-					<InnerShape shape={shape} util={util} />
-				</OptionalErrorBoundary>
+					{!isCulled && (
+						<OptionalErrorBoundary
+							fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
+							onError={(error) =>
+								editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+							}
+						>
+							<InnerShapeBackground shape={shape} util={util} />
+						</OptionalErrorBoundary>
+					)}
+				</div>
 			)}
-		</div>
+			<div
+				ref={containerRef}
+				className="tl-shape"
+				data-shape-type={shape.type}
+				draggable={false}
+				onPointerDown={events.onPointerDown}
+				onPointerMove={events.onPointerMove}
+				onPointerUp={events.onPointerUp}
+				onPointerEnter={events.onPointerEnter}
+				onPointerLeave={events.onPointerLeave}
+			>
+				{isCulled && util.canUnmount(shape) ? (
+					<CulledShape shape={shape} util={util} />
+				) : (
+					<OptionalErrorBoundary
+						fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
+						onError={(error) =>
+							editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+						}
+					>
+						<InnerShape shape={shape} util={util} />
+					</OptionalErrorBoundary>
+				)}
+			</div>
+		</>
 	)
 })
 
 const InnerShape = React.memo(
-	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: TLShapeUtil<T> }) {
+	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
 		return useStateTracking('InnerShape:' + util.type, () => util.render(shape))
 	},
 	(prev, next) => prev.shape.props === next.shape.props
 )
 
+const InnerShapeBackground = React.memo(
+	function InnerShapeBackground<T extends TLShape>({
+		shape,
+		util,
+	}: {
+		shape: T
+		util: ShapeUtil<T>
+	}) {
+		return useStateTracking('InnerShape:' + util.type, () => util.renderBackground?.(shape))
+	},
+	(prev, next) => prev.shape.props === next.shape.props
+)
+
 const CulledShape = React.memo(
-	function CulledShap<T extends TLShape>({ shape, util }: { shape: T; util: TLShapeUtil<T> }) {
+	function CulledShap<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
 		const bounds = util.bounds(shape)
 		return (
 			<div

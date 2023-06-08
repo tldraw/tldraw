@@ -1,14 +1,14 @@
 import classNames from 'classnames'
 import * as React from 'react'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Icon } from './Icon'
 
 /** @public */
-export interface InputProps {
+export interface TLUiInputProps {
 	disabled?: boolean
-	label?: TLTranslationKey
+	label?: TLUiTranslationKey
 	icon?: TLUiIconType
 	iconLeft?: TLUiIconType
 	autofocus?: boolean
@@ -19,6 +19,7 @@ export interface InputProps {
 	onComplete?: (value: string) => void
 	onValueChange?: (value: string) => void
 	onCancel?: (value: string) => void
+	onBlur?: (value: string) => void
 	className?: string
 	/**
 	 * Usually on iOS when you focus an input, the browser will adjust the viewport to bring the input
@@ -33,7 +34,7 @@ export interface InputProps {
 }
 
 /** @public */
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Input(
+export const Input = React.forwardRef<HTMLInputElement, TLUiInputProps>(function Input(
 	{
 		className,
 		label,
@@ -46,6 +47,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
 		onComplete,
 		onValueChange,
 		onCancel,
+		onBlur,
 		shouldManuallyMaintainScrollPositionWhenFocused = false,
 		children,
 		value,
@@ -106,7 +108,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(function Inp
 		[onComplete, onCancel]
 	)
 
-	const handleBlur = React.useCallback(() => setIsFocused(false), [])
+	const handleBlur = React.useCallback(
+		(e: React.FocusEvent<HTMLInputElement>) => {
+			setIsFocused(false)
+			const value = e.currentTarget.value
+			onBlur?.(value)
+		},
+		[onBlur]
+	)
 
 	React.useEffect(() => {
 		const visualViewport = window.visualViewport

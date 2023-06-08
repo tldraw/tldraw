@@ -24,10 +24,10 @@ export const PopoverTrigger: FC<{
 	children: React.ReactNode
 	disabled?: boolean
 	className?: string
-	'data-wd'?: string
-}> = ({ children, disabled, 'data-wd': dataWd }) => {
+	'data-testid'?: string
+}> = ({ children, disabled, 'data-testid': testId }) => {
 	return (
-		<PopoverPrimitive.Trigger data-wd={dataWd} disabled={disabled} asChild dir="ltr">
+		<PopoverPrimitive.Trigger data-testid={testId} disabled={disabled} asChild dir="ltr">
 			{children}
 		</PopoverPrimitive.Trigger>
 	)

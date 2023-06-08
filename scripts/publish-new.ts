@@ -3,6 +3,7 @@ import fetch from 'cross-fetch'
 import { assert } from 'node:console'
 import { parse } from 'semver'
 import { exec } from './lib/exec'
+import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 
 async function main() {
@@ -26,13 +27,13 @@ async function main() {
 	await auto.loadConfig()
 	const bump = await auto.getVersion()
 	if (!bump) {
-		console.log('nothing to do')
+		nicelog('nothing to do')
 		return
 	}
 
 	const latestVersion = parse(getLatestVersion())!
 
-	console.log('latestVersion', latestVersion)
+	nicelog('latestVersion', latestVersion)
 
 	const [prereleaseTag, prereleaseNumber] = latestVersion.prerelease
 	if (prereleaseTag && typeof prereleaseNumber !== 'number') {
@@ -67,7 +68,7 @@ async function main() {
 	// finally, publish the packages [IF THIS STEP FAILS, RUN THE `publish-manual.ts` script locally]
 	await publish()
 
-	console.log('Notifying huppy of release...')
+	nicelog('Notifying huppy of release...')
 	const huppyResponse = await fetch('http://localhost:3000/api/on-release', {
 		method: 'POST',
 		headers: {
@@ -75,7 +76,7 @@ async function main() {
 		},
 		body: JSON.stringify({ apiKey: huppyToken, tagToRelease: `v${nextVersion}`, canary: false }),
 	})
-	console.log(
+	nicelog(
 		`huppy: [${huppyResponse.status} ${huppyResponse.statusText}] ${await huppyResponse.text()}`
 	)
 }

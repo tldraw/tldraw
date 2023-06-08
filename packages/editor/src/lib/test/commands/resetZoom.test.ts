@@ -1,30 +1,30 @@
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 
 describe('When resetting zoom', () => {
 	it('Resets the zoom when zoomed out', () => {
-		const center = app.viewportScreenBounds.center.clone()
-		app.zoomOut()
-		app.resetZoom()
-		expect(app.zoomLevel).toBe(1)
-		app.zoomIn()
-		app.resetZoom()
-		expect(app.zoomLevel).toBe(1)
-		expect(app.viewportScreenBounds.center.clone()).toMatchObject(center)
+		const center = editor.viewportScreenBounds.center.clone()
+		editor.zoomOut()
+		editor.resetZoom()
+		expect(editor.zoomLevel).toBe(1)
+		editor.zoomIn()
+		editor.resetZoom()
+		expect(editor.zoomLevel).toBe(1)
+		expect(editor.viewportScreenBounds.center.clone()).toMatchObject(center)
 	})
 
 	it('Resets the zoom when zoomed in', () => {
-		const center = app.viewportScreenBounds.center.clone()
-		app.zoomOut()
-		app.resetZoom()
-		expect(app.viewportScreenBounds.center.clone()).toMatchObject(center)
-		app.zoomIn()
-		app.resetZoom()
-		expect(app.viewportScreenBounds.center.clone()).toMatchObject(center)
+		const center = editor.viewportScreenBounds.center.clone()
+		editor.zoomOut()
+		editor.resetZoom()
+		expect(editor.viewportScreenBounds.center.clone()).toMatchObject(center)
+		editor.zoomIn()
+		editor.resetZoom()
+		expect(editor.viewportScreenBounds.center.clone()).toMatchObject(center)
 	})
 })

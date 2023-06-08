@@ -1,13 +1,11 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { defineMigrations } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { assetIdValidator } from '../assets/TLBaseAsset'
 import { TLAssetId } from '../records/TLAsset'
-import { TLOpacityType } from '../style-types'
-import { assetIdValidator, opacityValidator } from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLBookmarkShapeProps = {
-	opacity: TLOpacityType
 	w: number
 	h: number
 	assetId: TLAssetId | null
@@ -17,11 +15,10 @@ export type TLBookmarkShapeProps = {
 /** @public */
 export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>
 
-/** @public */
-export const bookmarkShapeTypeValidator: T.Validator<TLBookmarkShape> = createShapeValidator(
+/** @internal */
+export const bookmarkShapeValidator: T.Validator<TLBookmarkShape> = createShapeValidator(
 	'bookmark',
 	T.object({
-		opacity: opacityValidator,
 		w: T.nonZeroNumber,
 		h: T.nonZeroNumber,
 		assetId: assetIdValidator.nullable(),
@@ -33,8 +30,8 @@ const Versions = {
 	NullAssetId: 1,
 } as const
 
-/** @public */
-export const bookmarkShapeTypeMigrations = defineMigrations({
+/** @internal */
+export const bookmarkShapeMigrations = defineMigrations({
 	currentVersion: Versions.NullAssetId,
 	migrators: {
 		[Versions.NullAssetId]: {

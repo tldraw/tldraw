@@ -9,6 +9,7 @@ import {
 	writeJsonFile,
 	writeStringFile,
 } from './lib/file'
+import { nicelog } from './lib/nicelog'
 
 // We'll need to copy the assets into these folders
 const PUBLIC_FOLDER_PATHS = [join(BUBLIC_ROOT, 'packages', 'assets')]
@@ -84,7 +85,7 @@ async function copyIcons() {
 			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(' | ')}
 
 		/** @public */
-		export const TLUiIconTypes = [
+		export const iconTypes = [
 			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(', ')}
 		] as const`
 
@@ -166,7 +167,7 @@ async function copyFonts() {
 		const itemWithoutExtension = item.replace(extension, '')
 		const name = FONT_MAPPING[itemWithoutExtension]
 		if (!name) {
-			console.log('Font mapping not found for', itemWithoutExtension)
+			nicelog('Font mapping not found for', itemWithoutExtension)
 			process.exit(1)
 		}
 		collectedAssetUrls.fonts[name] = `${folderName}/${item}`
@@ -203,15 +204,13 @@ async function copyTranslations() {
 	const uiPath = join(BUBLIC_ROOT, 'packages', 'ui', 'src', 'lib', 'hooks', 'useTranslation')
 
 	// languages.ts
+
 	const languagesSource = await readJsonIfExists(join(sourceFolderPath, 'languages.json'))!
-	const languagesFilePath = join(uiPath, 'languages.ts')
 	const languagesFile = `
 		/** @public */
 		export const LANGUAGES = ${JSON.stringify(languagesSource)} as const
 	`
-	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', languagesFilePath, languagesFile)
-
-	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src')
+	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src', 'translations')
 	const schemaLanguagesFilePath = join(schemaPath, 'languages.ts')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
@@ -238,10 +237,10 @@ async function copyTranslations() {
 	// translationKeys.ts
 
 	const translationKeys = Object.keys(defaultTranslation).map((key) => `'${key}'`)
-	const translationKeysFilePath = join(uiPath, 'TLTranslationKey.ts')
+	const translationKeysFilePath = join(uiPath, 'TLUiTranslationKey.ts')
 	const translationKeysFile = `
 		/** @public */
-		export type TLTranslationKey = ${translationKeys.join(' | ')}
+		export type TLUiTranslationKey = ${translationKeys.join(' | ')}
 	`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
@@ -394,18 +393,18 @@ async function writeAssetDeclarationDTSFile(fileName: string, functionName: stri
 
 // --- RUN
 async function main() {
-	console.log('Copying icons...')
+	nicelog('Copying icons...')
 	await copyIcons()
-	console.log('Copying embed icons...')
+	nicelog('Copying embed icons...')
 	await copyEmbedIcons()
-	console.log('Copying fonts...')
+	nicelog('Copying fonts...')
 	await copyFonts()
-	console.log('Copying translations...')
+	nicelog('Copying translations...')
 	await copyTranslations()
-	console.log('Writing asset declaration file...')
+	nicelog('Writing asset declaration file...')
 	await writeUrlBasedAssetDeclarationFile()
 	await writeImportBasedAssetDeclarationFile()
-	console.log('Done!')
+	nicelog('Done!')
 }
 
 main()

@@ -79,7 +79,5 @@ apps/examples/www/index.js
 
 apps/examples/build.esbuild.json
 
-e2e/screenshots
-e2e/downloads
-e2e/driver-logs
-e2e/.wdio-vscode-service/
+apps/examples/e2e/test-results
+apps/examples/playwright-report/index.html

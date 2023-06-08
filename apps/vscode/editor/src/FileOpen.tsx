@@ -1,4 +1,4 @@
-import { TLInstanceId, useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { parseAndLoadDocument } from '@tldraw/file-format'
 import { useDefaultHelpers } from '@tldraw/ui'
 import React from 'react'
@@ -6,14 +6,12 @@ import { vscode } from './utils/vscode'
 
 export function FileOpen({
 	fileContents,
-	instanceId,
 	forceDarkMode,
 }: {
-	instanceId: TLInstanceId
 	fileContents: string
 	forceDarkMode: boolean
 }) {
-	const app = useApp()
+	const editor = useEditor()
 	const { msg, addToast, clearToasts } = useDefaultHelpers()
 	const [isFileLoaded, setIsFileLoaded] = React.useState(false)
 
@@ -34,7 +32,7 @@ export function FileOpen({
 		}
 
 		async function loadFile() {
-			await parseAndLoadDocument(app, fileContents, msg, addToast, onV1FileLoad, forceDarkMode)
+			await parseAndLoadDocument(editor, fileContents, msg, addToast, onV1FileLoad, forceDarkMode)
 		}
 
 		loadFile()
@@ -42,7 +40,7 @@ export function FileOpen({
 		return () => {
 			clearToasts()
 		}
-	}, [fileContents, app, instanceId, addToast, msg, clearToasts, forceDarkMode, isFileLoaded])
+	}, [fileContents, editor, addToast, msg, clearToasts, forceDarkMode, isFileLoaded])
 
 	return null
 }
