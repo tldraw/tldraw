@@ -106,7 +106,7 @@ export function useCanvasEvents() {
 					(file) => !file.name.endsWith('.tldr')
 				)
 
-				await editor.onPutExternalContent({
+				await editor.putExternalContent({
 					type: 'files',
 					files,
 					point: editor.screenToPage(e.clientX, e.clientY),

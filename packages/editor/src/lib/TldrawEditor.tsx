@@ -91,20 +91,6 @@ export type TldrawEditorProps = {
 	 * @public
 	 */
 	onEditorWillDispose?: (editor: Editor) => void
-
-	/**
-	 * Call a callback immediately after the editor is disposed.
-	 *
-	 * @example
-	 *
-	 * ```tsx
-	 * <TldrawEditor onEditorDispose,={myCustomHandler}/>
-	 * ```
-	 *
-	 * @param editor - The editor instance.
-	 * @public
-	 */
-	onEditorDispose?: (editor: Editor) => void
 } & (
 	| {
 			/**
@@ -250,7 +236,6 @@ function TldrawEditorWithReadyStore({
 	shapes,
 	autoFocus,
 	onEditorReady,
-	onEditorDispose,
 	onEditorWillDispose,
 }: TldrawEditorProps & {
 	store: TLStore
@@ -274,9 +259,8 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			onEditorWillDispose?.(editor)
 			editor.dispose()
-			onEditorDispose?.(editor)
 		}
-	}, [container, shapes, tools, store, onEditorReady, onEditorWillDispose, onEditorDispose])
+	}, [container, shapes, tools, store, onEditorReady, onEditorWillDispose])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()

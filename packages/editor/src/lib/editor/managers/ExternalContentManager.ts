@@ -63,22 +63,24 @@ export type TLExternalContent =
 
 /** @public */
 export class ExternalContentManager {
-	async handleContent(editor: Editor, info: TLExternalContent) {
+	constructor(public editor: Editor) {}
+
+	handleContent = async (info: TLExternalContent) => {
 		switch (info.type) {
 			case 'text': {
-				return await this.handleText(editor, info)
+				return await this.handleText(this.editor, info)
 			}
 			case 'files': {
-				return await this.handleFiles(editor, info)
+				return await this.handleFiles(this.editor, info)
 			}
 			case 'embed': {
-				return await this.handleEmbed(editor, info)
+				return await this.handleEmbed(this.editor, info)
 			}
 			case 'svg-text': {
-				return await this.handleSvgText(editor, info)
+				return await this.handleSvgText(this.editor, info)
 			}
 			case 'url': {
-				return await this.handleUrl(editor, info)
+				return await this.handleUrl(this.editor, info)
 			}
 		}
 	}
@@ -88,7 +90,7 @@ export class ExternalContentManager {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.externalContentManager.handleSvgText = myCustomMethod
+	 * editor.this.handleSvgText = myCustomMethod
 	 * ```
 	 *
 	 * @param editor - The editor instance.
@@ -126,30 +128,6 @@ export class ExternalContentManager {
 		)
 
 		this.createShapesForAssets(editor, [asset], position)
-
-		// 	editor.batch(() => {
-		// 		asset.props.w = width
-		// 		asset.props.h = height
-		// 		editor.createAssets([asset])
-
-		// 		editor.createShapes(
-		// 			[
-		// 				{
-		// 					id: createShapeId(),
-		// 					type: 'image',
-		// 					x: position.x - width / 2,
-		// 					y: position.y - height / 2,
-		// 					opacity: 1,
-		// 					props: {
-		// 						assetId: asset.id,
-		// 						w: width,
-		// 						h: height,
-		// 					},
-		// 				},
-		// 			],
-		// 			true
-		// 		)
-		// 	})
 	}
 
 	/**
@@ -157,7 +135,7 @@ export class ExternalContentManager {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.externalContentManager.handleEmbed = myCustomMethod
+	 * editor.this.handleEmbed = myCustomMethod
 	 * ```
 	 *
 	 * @param editor - The editor instance
@@ -198,7 +176,7 @@ export class ExternalContentManager {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.externalContentManager.handleFiles = myCustomMethod
+	 * editor.this.handleFiles = myCustomMethod
 	 * ```
 	 *
 	 * @param editor - The editor instance
@@ -251,7 +229,7 @@ export class ExternalContentManager {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.externalContentManager.handleText = myCustomMethod
+	 * editor.this.handleText = myCustomMethod
 	 * ```
 	 *
 	 * @param editor - The editor instance
@@ -318,7 +296,6 @@ export class ExternalContentManager {
 			p.y = editor.viewportPageBounds.minY + 40 + h / 2
 		}
 
-		editor.mark('paste')
 		editor.createShapes([
 			{
 				id: createShapeId(),
@@ -341,7 +318,7 @@ export class ExternalContentManager {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.externalContentManager.handleUrl = myCustomMethod
+	 * editor.this.handleUrl = myCustomMethod
 	 * ```
 	 *
 	 * @param editor - The editor instance
@@ -388,98 +365,6 @@ export class ExternalContentManager {
 	}
 
 	async createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike) {
-		// const shapePartial: TLShapePartial<TLImageShape | TLVideoShape> = {
-		// 	id: createShapeId(),
-		// 	type: asset.type,
-		// 	x: pagePoint.x + i,
-		// 	y: pagePoint.y,
-		// 	props: {
-		// 		w: asset.props!.w,
-		// 		h: asset.props!.h,
-		// 	},
-		// }
-
-		// return shapePartial
-
-		// // Filter any nullish values and sort the resulting models by x, so that the
-		// // left-most model is created first (and placed lowest in the z-order).
-		// const results = compact(shapePartials).sort((a, b) => a.x! - b.x!)
-
-		// if (results.length === 0) return
-
-		// // Adjust the placement of the models.
-		// for (let i = 0; i < results.length; i++) {
-		// 	const model = results[i]
-		// 	if (i === 0) {
-		// 		// The first shape is placed so that its center is at the dropping point
-		// 		model.x! -= model.props!.w! / 2
-		// 		model.y! -= model.props!.h! / 2
-		// 	} else {
-		// 		// Later models are placed to the right of the first shape
-		// 		const prevModel = results[i - 1]
-		// 		model.x = prevModel.x! + prevModel.props!.w!
-		// 		model.y = prevModel.y!
-		// 	}
-		// }
-
-		// const shapeUpdates = await Promise.all(
-		// 	files.map(async (file, i) => {
-		// 		const shape = results[i]
-		// 		if (!shape) return
-
-		// 		const asset = newAssetsForFiles.get(file)
-		// 		if (!asset) return
-
-		// 		// Does the asset collection already have a model with this id
-		// 		let existing: TLAsset | undefined = editor.getAssetById(asset.id)
-
-		// 		if (existing) {
-		// 			newAssetsForFiles.delete(file)
-
-		// 			if (shape.props) {
-		// 				shape.props.assetId = existing.id
-		// 			}
-
-		// 			return shape
-		// 		}
-
-		// 		existing = editor.getAssetBySrc(asset.props!.src!)
-
-		// 		if (existing) {
-		// 			if (shape.props) {
-		// 				shape.props.assetId = existing.id
-		// 			}
-
-		// 			return shape
-		// 		}
-
-		// 		// Create a new model for the new source file
-		// 		if (shape.props) {
-		// 			shape.props.assetId = asset.id
-		// 		}
-
-		// 		return shape
-		// 	})
-		// )
-
-		// const filteredUpdates = compact(shapeUpdates)
-
-		// editor.batch(() => {
-		// 	editor.createAssets(compact([...newAssetsForFiles.values()]))
-		// 	editor.createShapes(filteredUpdates)
-		// 	editor.setSelectedIds(filteredUpdates.map((s) => s.id))
-
-		// 	const { selectedIds, viewportPageBounds } = editor
-
-		// 	const pageBounds = Box2d.Common(
-		// 		compact(selectedIds.map((id) => editor.getPageBoundsById(id)))
-		// 	)
-
-		// 	if (pageBounds && !viewportPageBounds.contains(pageBounds)) {
-		// 		editor.zoomToSelection()
-		// 	}
-		// })
-
 		if (!assets.length) return
 
 		const currentPoint = Vec2d.From(position)
@@ -540,10 +425,16 @@ export class ExternalContentManager {
 		}
 
 		editor.batch(() => {
-			editor.createAssets(assets)
+			// Create any assets
+			const assetsToCreate = assets.filter((asset) => !editor.getAssetById(asset.id))
+			if (assetsToCreate.length) {
+				editor.createAssets(assetsToCreate)
+			}
+
+			// Create the shapes
 			editor.createShapes(paritals, true)
 
-			// re-center partials around point
+			// Re-position shapes so that the center of the group is at the provided point
 			const { viewportPageBounds } = editor
 			let { selectedPageBounds } = editor
 
@@ -562,9 +453,8 @@ export class ExternalContentManager {
 				)
 			}
 
-			// Get the new selected bounds after moving the shapes
+			// Zoom out to fit the shapes, if necessary
 			selectedPageBounds = editor.selectedPageBounds
-
 			if (selectedPageBounds && !viewportPageBounds.contains(selectedPageBounds)) {
 				editor.zoomToSelection()
 			}

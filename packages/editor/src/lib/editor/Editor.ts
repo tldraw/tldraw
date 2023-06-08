@@ -371,7 +371,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _updateDepth = 0
 
 	/** @public */
-	externalContentManager = new ExternalContentManager()
+	externalContentManager = new ExternalContentManager(this)
 
 	/**
 	 * A manager for the app's snapping feature.
@@ -8889,8 +8889,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param info - Info about the external content.
 	 */
-	async onPutExternalContent(info: TLExternalContent): Promise<void> {
-		this.externalContentManager.handleContent(this, info)
+	async putExternalContent(info: TLExternalContent): Promise<void> {
+		this.externalContentManager.handleContent(info)
 	}
 
 	/* ---------------- Text Measurement ---------------- */

@@ -15,7 +15,7 @@ export async function pasteFiles(editor: Editor, urls: string[], point?: VecLike
 
 	editor.mark('paste')
 
-	await editor.onPutExternalContent({
+	await editor.putExternalContent({
 		type: 'files',
 		files,
 		point,

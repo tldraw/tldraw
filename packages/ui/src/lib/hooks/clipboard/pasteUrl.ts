@@ -28,7 +28,7 @@ export async function pasteUrl(editor: Editor, url: string, point?: VecLike) {
 
 	editor.mark('paste')
 
-	return await editor.onPutExternalContent({
+	return await editor.putExternalContent({
 		type: 'url',
 		point,
 		url,

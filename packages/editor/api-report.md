@@ -601,7 +601,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
     get onlySelectedShape(): null | TLShape;
-    onPutExternalContent(info: TLExternalContent): Promise<void>;
     // (undocumented)
     get opacity(): null | number;
     get openMenus(): string[];
@@ -628,6 +627,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         preserveIds?: boolean;
     }): this;
+    putExternalContent(info: TLExternalContent): Promise<void>;
     redo(): this;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingShapes(): {
@@ -1743,12 +1743,15 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
 
 // @public (undocumented)
 export class PlopManager {
+    constructor(editor: Editor);
     createAssetFromFile(_editor: Editor, file: File): Promise<TLAsset>;
     createAssetFromUrl(_editor: Editor, url: string): Promise<TLAsset>;
     // (undocumented)
     createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<void>;
     // (undocumented)
-    handleContent(editor: Editor, info: TLExternalContent): Promise<void>;
+    editor: Editor;
+    // (undocumented)
+    handleContent: (info: TLExternalContent) => Promise<void>;
     handleEmbed(editor: Editor, { point, url, embed }: Extract<TLExternalContent, {
         type: 'embed';
     }>): Promise<void>;
@@ -2195,7 +2198,6 @@ export type TldrawEditorProps = {
     onMount?: (editor: Editor) => void;
     onEditorReady?: (editor: Editor) => void;
     onEditorWillDispose?: (editor: Editor) => void;
-    onEditorDispose?: (editor: Editor) => void;
 } & ({
     store: TLStore | TLStoreWithStatus;
 } | {
