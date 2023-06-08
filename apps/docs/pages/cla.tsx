@@ -28,6 +28,7 @@ export default function CLA({ sidebar }: Props) {
 					}}
 				/>
 				<h2>Contributor License Agreement</h2>
+				<h4>Version 1.0 — June 8th 2023</h4>
 				<p>
 					In order to clarify the intellectual property license granted with Contributions from any
 					person, tldraw, Inc. (“tldraw”) must have a Contributor License Agreement on file that has
