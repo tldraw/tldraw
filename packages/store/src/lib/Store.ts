@@ -1,14 +1,16 @@
 import {
+	filterEntries,
 	objectMapEntries,
 	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
 	throttledRaf,
 } from '@tldraw/utils'
+import { nanoid } from 'nanoid'
 import { Atom, Computed, Reactor, atom, computed, reactor, transact } from 'signia'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { Cache } from './Cache'
-import { RecordType } from './RecordType'
+import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
 import { devFreeze } from './devFreeze'
@@ -33,6 +35,13 @@ export type RecordsDiff<R extends UnknownRecord> = {
  */
 export type CollectionDiff<T> = { added?: Set<T>; removed?: Set<T> }
 
+export type ChangeSource = 'user' | 'remote'
+
+export type StoreListenerFilters = {
+	source: ChangeSource | 'all'
+	scope: RecordScope | 'all'
+}
+
 /**
  * An entry containing changes that originated either by user actions or remote changes.
  *
@@ -40,7 +49,7 @@ export type CollectionDiff<T> = { added?: Set<T>; removed?: Set<T> }
  */
 export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
 	changes: RecordsDiff<R>
-	source: 'user' | 'remote'
+	source: ChangeSource
 }
 
 /**
@@ -95,6 +104,10 @@ export type StoreRecord<S extends Store<any>> = S extends Store<infer R> ? R : n
  */
 export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	/**
+	 * The random id of the store.
+	 */
+	public readonly id = nanoid()
+	/**
 	 * An atom containing the store's atoms.
 	 *
 	 * @internal
@@ -125,7 +138,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @internal
 	 */
-	private listeners = new Set<StoreListener<R>>()
+	private listeners = new Set<{ onHistory: StoreListener<R>; filters: StoreListenerFilters }>()
 
 	/**
 	 * An array of history entries that have not yet been flushed.
@@ -145,6 +158,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	readonly schema: StoreSchema<R, Props>
 
 	readonly props: Props
+
+	public readonly scopedTypes: { readonly [K in RecordScope]: ReadonlySet<R['typeName']> }
 
 	constructor(config: {
 		/** The store's initial data. */
@@ -182,6 +197,23 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			},
 			{ scheduleEffect: (cb) => throttledRaf(cb) }
 		)
+		this.scopedTypes = {
+			document: new Set(
+				objectMapValues(this.schema.types)
+					.filter((t) => t.scope === 'document')
+					.map((t) => t.typeName)
+			),
+			session: new Set(
+				objectMapValues(this.schema.types)
+					.filter((t) => t.scope === 'session')
+					.map((t) => t.typeName)
+			),
+			presence: new Set(
+				objectMapValues(this.schema.types)
+					.filter((t) => t.scope === 'presence')
+					.map((t) => t.typeName)
+			),
+		}
 	}
 
 	public _flushHistory() {
@@ -189,9 +221,54 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		if (this.historyAccumulator.hasChanges()) {
 			const entries = this.historyAccumulator.flush()
 			for (const { changes, source } of entries) {
-				this.listeners.forEach((l) => l({ changes, source }))
+				let instanceChanges = null as null | RecordsDiff<R>
+				let documentChanges = null as null | RecordsDiff<R>
+				let presenceChanges = null as null | RecordsDiff<R>
+				for (const { onHistory, filters } of this.listeners) {
+					if (filters.source !== 'all' && filters.source !== source) {
+						continue
+					}
+					if (filters.scope !== 'all') {
+						if (filters.scope === 'document') {
+							documentChanges ??= this.filterChangesByScope(changes, 'document')
+							if (!documentChanges) continue
+							onHistory({ changes: documentChanges, source })
+						} else if (filters.scope === 'session') {
+							instanceChanges ??= this.filterChangesByScope(changes, 'session')
+							if (!instanceChanges) continue
+							onHistory({ changes: instanceChanges, source })
+						} else {
+							presenceChanges ??= this.filterChangesByScope(changes, 'presence')
+							if (!presenceChanges) continue
+							onHistory({ changes: presenceChanges, source })
+						}
+					} else {
+						onHistory({ changes, source })
+					}
+				}
 			}
 		}
+	}
+
+	/**
+	 * Filters out non-document changes from a diff. Returns null if there are no changes left.
+	 * @param change - the records diff
+	 * @returns
+	 */
+	filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope) {
+		const result = {
+			added: filterEntries(change.added, (_, r) => this.scopedTypes[scope].has(r.typeName)),
+			updated: filterEntries(change.updated, (_, r) => this.scopedTypes[scope].has(r[1].typeName)),
+			removed: filterEntries(change.removed, (_, r) => this.scopedTypes[scope].has(r.typeName)),
+		}
+		if (
+			Object.keys(result.added).length === 0 &&
+			Object.keys(result.updated).length === 0 &&
+			Object.keys(result.removed).length === 0
+		) {
+			return null
+		}
+		return result
 	}
 
 	/**
@@ -421,44 +498,20 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
-	 * Opposite of `deserialize`. Creates a JSON payload from the record store.
+	 * Creates a JSON payload from the record store.
 	 *
-	 * @param filter - A function to filter structs that do not satisfy the predicate.
+	 * @param scope - The scope of records to serialize. Defaults to 'document'.
 	 * @returns The record store snapshot as a JSON payload.
 	 */
-	serialize = (filter?: (record: R) => boolean): StoreSnapshot<R> => {
+	serialize = (scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> => {
 		const result = {} as StoreSnapshot<R>
 		for (const [id, atom] of objectMapEntries(this.atoms.value)) {
 			const record = atom.value
-			if (typeof filter === 'function' && !filter(record)) continue
-			result[id as IdOf<R>] = record
+			if (scope === 'all' || this.scopedTypes[scope].has(record.typeName)) {
+				result[id as IdOf<R>] = record
+			}
 		}
 		return result
-	}
-
-	/**
-	 * The same as `serialize`, but only serializes records with a scope of `document`.
-	 * @returns The record store snapshot as a JSON payload.
-	 */
-	serializeDocumentState = (): StoreSnapshot<R> => {
-		return this.serialize((r) => {
-			const type = this.schema.types[r.typeName as R['typeName']] as RecordType<any, any>
-			return type.scope === 'document'
-		})
-	}
-
-	/**
-	 * Opposite of `serialize`. Replace the store's current records with records as defined by a
-	 * simple JSON structure into the stores.
-	 *
-	 * @param snapshot - The JSON snapshot to deserialize.
-	 * @public
-	 */
-	deserialize = (snapshot: StoreSnapshot<R>): void => {
-		transact(() => {
-			this.clear()
-			this.put(Object.values(snapshot))
-		})
 	}
 
 	/**
@@ -469,11 +522,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * store.loadSnapshot(snapshot)
 	 * ```
 	 *
+	 * @param scope - The scope of records to serialize. Defaults to 'document'.
 	 * @public
 	 */
-	getSnapshot() {
+	getSnapshot(scope: RecordScope | 'all' = 'document') {
 		return {
-			store: this.serializeDocumentState(),
+			store: this.serialize(scope),
 			schema: this.schema.serialize(),
 		}
 	}
@@ -497,7 +551,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			throw new Error(`Failed to migrate snapshot: ${migrationResult.reason}`)
 		}
 
-		this.deserialize(migrationResult.value)
+		transact(() => {
+			this.clear()
+			this.put(Object.values(migrationResult.value))
+			this.ensureStoreIsUsable()
+		})
 	}
 
 	/**
@@ -548,12 +606,21 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	/**
 	 * Add a new listener to the store.
 	 *
-	 * @param listener - The listener to call when the store updates.
+	 * @param onHistory - The listener to call when the store updates.
+	 * @param filters - Filters to apply to the listener.
 	 * @returns A function to remove the listener.
 	 */
-	listen = (listener: StoreListener<R>) => {
+	listen = (onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) => {
 		// flush history so that this listener's history starts from exactly now
 		this._flushHistory()
+
+		const listener = {
+			onHistory,
+			filters: {
+				source: filters?.source ?? 'all',
+				scope: filters?.scope ?? 'all',
+			},
+		}
 
 		this.listeners.add(listener)
 
@@ -802,18 +869,18 @@ export function reverseRecordsDiff(diff: RecordsDiff<any>) {
 class HistoryAccumulator<T extends UnknownRecord> {
 	private _history: HistoryEntry<T>[] = []
 
-	private _inteceptors: Set<(entry: HistoryEntry<T>) => void> = new Set()
+	private _interceptors: Set<(entry: HistoryEntry<T>) => void> = new Set()
 
 	intercepting(fn: (entry: HistoryEntry<T>) => void) {
-		this._inteceptors.add(fn)
+		this._interceptors.add(fn)
 		return () => {
-			this._inteceptors.delete(fn)
+			this._interceptors.delete(fn)
 		}
 	}
 
 	add(entry: HistoryEntry<T>) {
 		this._history.push(entry)
-		for (const interceptor of this._inteceptors) {
+		for (const interceptor of this._interceptors) {
 			interceptor(entry)
 		}
 	}

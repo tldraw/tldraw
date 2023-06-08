@@ -8,8 +8,8 @@ import {
 	Vec2d,
 } from '@tldraw/primitives'
 import { createShapeId, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
-import { GapsSnapLine, PointsSnapLine } from '../../app/managers/SnapManager'
-import { TLSelectionHandle } from '../../app/types/selection-types'
+import { GapsSnapLine, PointsSnapLine } from '../../editor/managers/SnapManager'
+import { TLSelectionHandle } from '../../editor/types/selection-types'
 import { TestEditor } from '../TestEditor'
 import { getSnapLines } from '../testutils/getSnapLines'
 import { roundedBox } from '../testutils/roundedBox'
@@ -2944,7 +2944,7 @@ describe('snapping while the grid is enabled', () => {
 
 		editor.createShapes([box(ids.boxA, 0, 0, 20, 20), box(ids.boxB, 60, 0, 20, 20)])
 
-		editor.updateUserDocumentSettings({ isGridMode: true })
+		editor.setGridMode(true)
 
 		// try to move right side of A to left side of B
 		// doesn't work because of the grid

@@ -67,7 +67,7 @@ describe('Store with validation', () => {
 	})
 
 	it('Accepts valid records and rejects invalid records', () => {
-		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createCustomId('tolkein') })])
+		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
 		expect(store.query.records('author').value).toEqual([
 			{ id: 'author:tolkein', typeName: 'author', name: 'J.R.R Tolkein', isPseudonym: false },
@@ -76,11 +76,11 @@ describe('Store with validation', () => {
 		expect(() => {
 			store.put([
 				{
-					id: Book.createCustomId('the-hobbit'),
+					id: Book.createId('the-hobbit'),
 					typeName: 'book',
 					title: 'The Hobbit',
 					numPages: -1, // <---- Invalid!
-					author: Author.createCustomId('tolkein'),
+					author: Author.createId('tolkein'),
 				},
 			])
 		}).toThrow()
@@ -93,9 +93,9 @@ describe('Validating initial data', () => {
 	let snapshot: StoreSnapshot<Book | Author>
 
 	beforeEach(() => {
-		const authorId = Author.createCustomId('tolkein')
+		const authorId = Author.createId('tolkein')
 		const authorRecord = Author.create({ name: 'J.R.R Tolkein', id: authorId })
-		const bookId = Book.createCustomId('the-hobbit')
+		const bookId = Book.createId('the-hobbit')
 		const bookRecord = Book.create({
 			title: 'The Hobbit',
 			numPages: 300,
@@ -124,8 +124,8 @@ describe('Validating initial data', () => {
 })
 
 describe('Create & update validations', () => {
-	const authorId = Author.createCustomId('tolkein')
-	const bookId = Book.createCustomId('the-hobbit')
+	const authorId = Author.createId('tolkein')
+	const bookId = Book.createId('the-hobbit')
 	const initialAuthor = Author.create({ name: 'J.R.R Tolkein', id: authorId })
 	const invalidBook = Book.create({
 		// @ts-expect-error - deliberately invalid data
@@ -165,7 +165,7 @@ describe('Create & update validations', () => {
 	})
 
 	it('Prevents adding invalid records to a store', () => {
-		const newAuthorId = Author.createCustomId('shearing')
+		const newAuthorId = Author.createId('shearing')
 		const store = new Store<Book | Author>({
 			schema,
 			initialData: { [bookId]: validBook, [authorId]: initialAuthor },

@@ -1,4 +1,4 @@
-import { InstancePresenceRecordType, InstanceRecordType, Tldraw } from '@tldraw/tldraw'
+import { InstancePresenceRecordType, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useRef } from 'react'
@@ -19,10 +19,9 @@ export default function UserPresenceExample() {
 					// store with their cursor position etc.
 
 					const peerPresence = InstancePresenceRecordType.create({
-						id: InstancePresenceRecordType.createCustomId('peer-1-presence'),
+						id: InstancePresenceRecordType.createId(editor.store.id),
 						currentPageId: editor.currentPageId,
 						userId: 'peer-1',
-						instanceId: InstanceRecordType.createCustomId('peer-1-editor-instance'),
 						userName: 'Peer 1',
 						cursor: { x: 0, y: 0, type: 'default', rotation: 0 },
 					})

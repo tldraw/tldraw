@@ -1,10 +1,10 @@
 import {
+	FrameShapeUtil,
+	TLExportType,
+	TLShapeId,
 	downloadDataURLAsFile,
 	getSvgAsDataUrl,
 	getSvgAsImage,
-	TLExportType,
-	TLFrameUtil,
-	TLShapeId,
 	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
@@ -38,7 +38,7 @@ export function useExportAs() {
 
 			if (ids.length === 1) {
 				const first = editor.getShapeById(ids[0])!
-				if (editor.isShapeOfType(first, TLFrameUtil)) {
+				if (editor.isShapeOfType(first, FrameShapeUtil)) {
 					name = first.props.name ?? 'frame'
 				} else {
 					name = first.id.replace(/:/, '_')

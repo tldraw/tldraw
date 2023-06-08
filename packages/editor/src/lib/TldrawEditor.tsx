@@ -1,13 +1,13 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
-import { TLAsset, TLInstanceId, TLRecord, TLStore } from '@tldraw/tlschema'
+import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
-import { Editor } from './app/Editor'
-import { StateNodeConstructor } from './app/statechart/StateNode'
-import { EditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
+import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
-import { ShapeInfo } from './config/createTLStore'
+import { TLShapeInfo } from './config/createTLStore'
+import { Editor } from './editor/Editor'
+import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -23,8 +23,7 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
-import { StoreWithStatus } from './utils/sync/StoreWithStatus'
-import { TAB_ID } from './utils/sync/persistence-constants'
+import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /** @public */
 export type TldrawEditorProps = {
@@ -32,15 +31,15 @@ export type TldrawEditorProps = {
 	/**
 	 * An array of shape utils to use in the editor.
 	 */
-	shapes?: Record<string, ShapeInfo>
+	shapes?: Record<string, TLShapeInfo>
 	/**
 	 * An array of tools to use in the editor.
 	 */
-	tools?: StateNodeConstructor[]
+	tools?: TLStateNodeConstructor[]
 	/**
 	 * Urls for where to find fonts and other assets.
 	 */
-	assetUrls?: EditorAssetUrls
+	assetUrls?: TLEditorAssetUrls
 	/**
 	 * Whether to automatically focus the editor when it mounts.
 	 */
@@ -102,7 +101,7 @@ export type TldrawEditorProps = {
 			 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
 			 * from a server or database.
 			 */
-			store: TLStore | StoreWithStatus
+			store: TLStore | TLStoreWithStatus
 	  }
 	| {
 			store?: undefined
@@ -111,16 +110,22 @@ export type TldrawEditorProps = {
 			 */
 			initialData?: StoreSnapshot<TLRecord>
 			/**
-			 * The id of the editor instance (e.g. a browser tab if the editor will have only one tldraw app per
-			 * tab). If not given, one will be generated.
-			 */
-			instanceId?: TLInstanceId
-			/**
-			 * The id under which to sync and persist the editor's data.
+			 * The id under which to sync and persist the editor's data. If none is given tldraw will not sync or persist
+			 * the editor's data.
 			 */
 			persistenceKey?: string
 			/**
-			 * The initial document name to use for the new store.
+			 * When tldraw reloads a document from local persistence, it will try to bring back the
+			 * editor UI state (e.g. camera position, which shapes are selected). It does this using a sessionId,
+			 * which by default is unique per browser tab. If you wish to have more fine-grained
+			 * control over this behavior, you can provide your own sessionId.
+			 *
+			 * If it can't find saved UI state for the given sessionId, it will use the most recently saved
+			 * UI state for the given persistenceKey if available.
+			 */
+			sessionId?: string
+			/**
+			 * The default initial document name. e.g. 'Untitled Document'
 			 */
 			defaultName?: string
 	  }
@@ -173,13 +178,13 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 })
 
 function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined }) {
-	const { defaultName, initialData, instanceId = TAB_ID, shapes, persistenceKey } = props
+	const { defaultName, initialData, shapes, persistenceKey, sessionId } = props
 
 	const syncedStore = useLocalStore({
 		customShapes: shapes,
-		instanceId,
 		initialData,
 		persistenceKey,
+		sessionId,
 		defaultName,
 	})
 
@@ -190,7 +195,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	store,
 	assetUrls,
 	...rest
-}: TldrawEditorProps & { store: StoreWithStatus }) {
+}: TldrawEditorProps & { store: TLStoreWithStatus }) {
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(
 		assetUrls ?? defaultEditorAssetUrls
 	)

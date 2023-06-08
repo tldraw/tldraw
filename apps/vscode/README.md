@@ -12,7 +12,7 @@ This folder contains the source for the tldraw VS Code extension.
 
 In the root folder:
 
-- Run `yarn dev:vscode`.
+- Run `yarn dev-vscode`.
 
 This will start the development server for the `apps/vscode/editor` project and open the `apps/vscode/extension` folder in a new VS Code window.
 

@@ -2,12 +2,10 @@ import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { TLAssetId } from '../records/TLAsset'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLVideoShapeProps = {
-	opacity: TLOpacityType
 	w: number
 	h: number
 	time: number
@@ -23,7 +21,6 @@ export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
 export const videoShapeValidator: T.Validator<TLVideoShape> = createShapeValidator(
 	'video',
 	T.object({
-		opacity: opacityValidator,
 		w: T.nonZeroNumber,
 		h: T.nonZeroNumber,
 		time: T.number,

@@ -36,17 +36,17 @@ it('[regression] does not die if every page has the same index', () => {
 	editor.store.put([
 		{
 			...page,
-			id: PageRecordType.createCustomId('2'),
+			id: PageRecordType.createId('2'),
 			name: 'a',
 		},
 		{
 			...page,
-			id: PageRecordType.createCustomId('3'),
+			id: PageRecordType.createId('3'),
 			name: 'b',
 		},
 		{
 			...page,
-			id: PageRecordType.createCustomId('4'),
+			id: PageRecordType.createId('4'),
 			name: 'c',
 		},
 	])

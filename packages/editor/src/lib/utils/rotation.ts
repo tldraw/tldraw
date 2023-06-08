@@ -1,7 +1,7 @@
 import { canolicalizeRotation, Matrix2d, Vec2d } from '@tldraw/primitives'
 import { isShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
-import { Editor } from '../app/Editor'
+import { Editor } from '../editor/Editor'
 
 /** @internal */
 export function getRotationSnapshot({ editor }: { editor: Editor }) {
@@ -29,7 +29,7 @@ export function getRotationSnapshot({ editor }: { editor: Editor }) {
 }
 
 /** @internal */
-export type RotationSnapshot = ReturnType<typeof getRotationSnapshot>
+export type TLRotationSnapshot = ReturnType<typeof getRotationSnapshot>
 
 /** @internal */
 export function applyRotationToSnapshotShapes({
@@ -39,7 +39,7 @@ export function applyRotationToSnapshotShapes({
 	stage,
 }: {
 	delta: number
-	snapshot: RotationSnapshot
+	snapshot: TLRotationSnapshot
 	editor: Editor
 	stage: 'start' | 'update' | 'end' | 'one-off'
 }) {

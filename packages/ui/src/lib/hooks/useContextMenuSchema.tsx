@@ -1,4 +1,4 @@
-import { Editor, TLBookmarkUtil, TLEmbedUtil, getEmbedInfo, useEditor } from '@tldraw/editor'
+import { BookmarkShapeUtil, Editor, EmbedShapeUtil, getEmbedInfo, useEditor } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { track, useValue } from 'signia-react'
 import {
@@ -65,7 +65,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 			if (editor.selectedIds.length !== 1) return false
 			return editor.selectedIds.some((selectedId) => {
 				const shape = editor.getShapeById(selectedId)
-				return shape && editor.isShapeOfType(shape, TLEmbedUtil) && shape.props.url
+				return shape && editor.isShapeOfType(shape, EmbedShapeUtil) && shape.props.url
 			})
 		},
 		[]
@@ -76,7 +76,9 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 			if (editor.selectedIds.length !== 1) return false
 			return editor.selectedIds.some((selectedId) => {
 				const shape = editor.getShapeById(selectedId)
-				return shape && editor.isShapeOfType(shape, TLBookmarkUtil) && getEmbedInfo(shape.props.url)
+				return (
+					shape && editor.isShapeOfType(shape, BookmarkShapeUtil) && getEmbedInfo(shape.props.url)
+				)
 			})
 		},
 		[]

@@ -1,4 +1,4 @@
-import { InstanceRecordType, PageRecordType, TLInstanceId } from '@tldraw/tlschema'
+import { PageRecordType } from '@tldraw/tlschema'
 import { promiseWithResolve } from '@tldraw/utils'
 import { createTLStore } from '../../config/createTLStore'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
@@ -23,13 +23,8 @@ class BroadcastChannelMock {
 	})
 }
 
-function testClient(
-	instanceId: TLInstanceId = InstanceRecordType.createCustomId('test'),
-	channel = new BroadcastChannelMock('test')
-) {
-	const store = createTLStore({
-		instanceId,
-	})
+function testClient(channel = new BroadcastChannelMock('test')) {
+	const store = createTLStore()
 	const onLoad = jest.fn(() => {
 		return
 	})
@@ -41,7 +36,7 @@ function testClient(
 		{
 			onLoad,
 			onLoadError,
-			universalPersistenceKey: 'test',
+			persistenceKey: 'test',
 		},
 		channel
 	)

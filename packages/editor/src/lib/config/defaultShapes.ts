@@ -1,67 +1,67 @@
-import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
-import { TLBookmarkUtil } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
-import { TLDrawUtil } from '../app/shapeutils/TLDrawUtil/TLDrawUtil'
-import { TLEmbedUtil } from '../app/shapeutils/TLEmbedUtil/TLEmbedUtil'
-import { TLFrameUtil } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
-import { TLGeoUtil } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
-import { TLGroupUtil } from '../app/shapeutils/TLGroupUtil/TLGroupUtil'
-import { TLHighlightUtil } from '../app/shapeutils/TLHighlightUtil/TLHighlightUtil'
-import { TLImageUtil } from '../app/shapeutils/TLImageUtil/TLImageUtil'
-import { TLLineUtil } from '../app/shapeutils/TLLineUtil/TLLineUtil'
-import { TLNoteUtil } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
-import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
-import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
-import { ShapeInfo } from './createTLStore'
+import { ArrowShapeUtil } from '../editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+import { BookmarkShapeUtil } from '../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
+import { DrawShapeUtil } from '../editor/shapeutils/DrawShapeUtil/DrawShapeUtil'
+import { EmbedShapeUtil } from '../editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
+import { FrameShapeUtil } from '../editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
+import { GeoShapeUtil } from '../editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
+import { GroupShapeUtil } from '../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
+import { HighlightShapeUtil } from '../editor/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
+import { ImageShapeUtil } from '../editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
+import { LineShapeUtil } from '../editor/shapeutils/LineShapeUtil/LineShapeUtil'
+import { NoteShapeUtil } from '../editor/shapeutils/NoteShapeUtil/NoteShapeUtil'
+import { TextShapeUtil } from '../editor/shapeutils/TextShapeUtil/TextShapeUtil'
+import { VideoShapeUtil } from '../editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
+import { TLShapeInfo } from './createTLStore'
 
 /** @public */
-export const coreShapes: Record<string, ShapeInfo> = {
+export const coreShapes: Record<string, TLShapeInfo> = {
 	// created by grouping interactions, probably the corest core shape that we have
 	group: {
-		util: TLGroupUtil,
+		util: GroupShapeUtil,
 	},
 	// created by embed menu / url drop
 	embed: {
-		util: TLEmbedUtil,
+		util: EmbedShapeUtil,
 	},
 	// created by copy and paste / url drop
 	bookmark: {
-		util: TLBookmarkUtil,
+		util: BookmarkShapeUtil,
 	},
 	// created by copy and paste / file drop
 	image: {
-		util: TLImageUtil,
+		util: ImageShapeUtil,
 	},
 	// created by copy and paste / file drop
 	video: {
-		util: TLVideoUtil,
+		util: VideoShapeUtil,
 	},
 	// created by copy and paste
 	text: {
-		util: TLTextUtil,
+		util: TextShapeUtil,
 	},
 }
 
 /** @public */
-export const defaultShapes: Record<string, ShapeInfo> = {
+export const defaultShapes: Record<string, TLShapeInfo> = {
 	draw: {
-		util: TLDrawUtil,
+		util: DrawShapeUtil,
 	},
 	geo: {
-		util: TLGeoUtil,
+		util: GeoShapeUtil,
 	},
 	line: {
-		util: TLLineUtil,
+		util: LineShapeUtil,
 	},
 	note: {
-		util: TLNoteUtil,
+		util: NoteShapeUtil,
 	},
 	frame: {
-		util: TLFrameUtil,
+		util: FrameShapeUtil,
 	},
 	arrow: {
-		util: TLArrowUtil,
+		util: ArrowShapeUtil,
 	},
 	highlight: {
-		util: TLHighlightUtil,
+		util: HighlightShapeUtil,
 	},
 }

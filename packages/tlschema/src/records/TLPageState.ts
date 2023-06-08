@@ -2,8 +2,8 @@ import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldra
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { shapeIdValidator } from '../shapes/TLBaseShape'
-import { TLCamera, TLCameraId } from './TLCamera'
-import { instanceIdValidator, TLInstance } from './TLInstance'
+import { CameraRecordType } from './TLCamera'
+import { TLINSTANCE_ID } from './TLInstance'
 import { pageIdValidator, TLPage } from './TLPage'
 import { TLShapeId } from './TLShape'
 
@@ -16,9 +16,7 @@ import { TLShapeId } from './TLShape'
  */
 export interface TLInstancePageState
 	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
-	instanceId: RecordId<TLInstance>
 	pageId: RecordId<TLPage>
-	cameraId: RecordId<TLCamera>
 	selectedIds: TLShapeId[]
 	hintingIds: TLShapeId[]
 	erasingIds: TLShapeId[]
@@ -34,9 +32,7 @@ export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.mo
 	T.object({
 		typeName: T.literal('instance_page_state'),
 		id: idValidator<TLInstancePageStateId>('instance_page_state'),
-		instanceId: instanceIdValidator,
 		pageId: pageIdValidator,
-		cameraId: idValidator<TLCameraId>('camera'),
 		selectedIds: T.arrayOf(shapeIdValidator),
 		hintingIds: T.arrayOf(shapeIdValidator),
 		erasingIds: T.arrayOf(shapeIdValidator),
@@ -49,11 +45,15 @@ export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.mo
 
 const Versions = {
 	AddCroppingId: 1,
+	RemoveInstanceIdAndCameraId: 2,
 } as const
 
 /** @internal */
+export { Versions as instancePageStateVersions }
+
+/** @public */
 export const instancePageStateMigrations = defineMigrations({
-	currentVersion: Versions.AddCroppingId,
+	currentVersion: Versions.RemoveInstanceIdAndCameraId,
 	migrators: {
 		[Versions.AddCroppingId]: {
 			up(instance) {
@@ -61,6 +61,19 @@ export const instancePageStateMigrations = defineMigrations({
 			},
 			down({ croppingId: _croppingId, ...instance }) {
 				return instance
+			},
+		},
+		[Versions.RemoveInstanceIdAndCameraId]: {
+			up({ instanceId: _, cameraId: __, ...instance }) {
+				return instance
+			},
+			down(instance) {
+				// this should never be called since we bump the schema version
+				return {
+					...instance,
+					instanceId: TLINSTANCE_ID,
+					cameraId: CameraRecordType.createId('void'),
+				}
 			},
 		},
 	},
@@ -72,13 +85,10 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 	{
 		migrations: instancePageStateMigrations,
 		validator: instancePageStateValidator,
-		scope: 'instance',
+		scope: 'session',
 	}
 ).withDefaultProperties(
-	(): Omit<
-		TLInstancePageState,
-		'id' | 'typeName' | 'userId' | 'instanceId' | 'cameraId' | 'pageId'
-	> => ({
+	(): Omit<TLInstancePageState, 'id' | 'typeName' | 'pageId'> => ({
 		editingId: null,
 		croppingId: null,
 		selectedIds: [],

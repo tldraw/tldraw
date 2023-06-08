@@ -9,7 +9,7 @@ beforeEach(() => {
 
 describe('deletePage', () => {
 	it('deletes the page', () => {
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page2Id = PageRecordType.createId('page2')
 		editor.createPage('New Page 2', page2Id)
 
 		const pages = editor.pages
@@ -19,7 +19,7 @@ describe('deletePage', () => {
 		expect(editor.pages[0]).toEqual(pages[1])
 	})
 	it('is undoable and redoable', () => {
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page2Id = PageRecordType.createId('page2')
 		editor.mark()
 		editor.createPage('New Page 2', page2Id)
 
@@ -38,7 +38,7 @@ describe('deletePage', () => {
 		expect(editor.pages[0]).toEqual(pages[1])
 	})
 	it('does not allow deleting all pages', () => {
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page2Id = PageRecordType.createId('page2')
 		editor.mark()
 		editor.createPage('New Page 2', page2Id)
 
@@ -52,7 +52,7 @@ describe('deletePage', () => {
 		expect(editor.pages.length).toBe(1)
 	})
 	it('switches the page if you are deleting the current page', () => {
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page2Id = PageRecordType.createId('page2')
 		editor.mark()
 		editor.createPage('New Page 2', page2Id)
 
@@ -64,7 +64,7 @@ describe('deletePage', () => {
 	})
 	it('switches the page if another user or tab deletes the current page', () => {
 		const currentPageId = editor.currentPageId
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page2Id = PageRecordType.createId('page2')
 		editor.mark()
 		editor.createPage('New Page 2', page2Id)
 

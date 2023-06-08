@@ -1,7 +1,7 @@
 import classNames from 'classnames'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useValue } from 'signia-react'
-import { Editor } from '../app/Editor'
+import { Editor } from '../editor/Editor'
 import { EditorContext } from '../hooks/useEditor'
 import { hardResetEditor } from '../utils/hard-reset'
 import { refreshPage } from '../utils/refresh-page'
@@ -13,10 +13,11 @@ const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 function noop() {}
 
-export type TLErrorFallback = (props: { error: unknown; editor?: Editor }) => any | null
+/** @public */
+export type TLErrorFallbackComponent = (props: { error: unknown; editor?: Editor }) => any | null
 
 /** @internal */
-export const DefaultErrorFallback: TLErrorFallback = ({ error, editor }) => {
+export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [shouldShowError, setShouldShowError] = useState(process.env.NODE_ENV === 'development')
 	const [didCopy, setDidCopy] = useState(false)

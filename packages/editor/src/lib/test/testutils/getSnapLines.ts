@@ -1,4 +1,4 @@
-import type { Editor } from '../../app/Editor'
+import type { Editor } from '../../editor/Editor'
 
 const simplifyNumber = (n: number) => {
 	if (Math.abs(Math.round(n) - n) < 0.0001) {

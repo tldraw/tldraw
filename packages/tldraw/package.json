@@ -60,7 +60,7 @@
 		"chokidar-cli": "^3.0.0",
 		"jest-canvas-mock": "^2.4.0",
 		"jest-environment-jsdom": "^28.1.2",
-		"lazyrepo": "0.0.0-alpha.26",
+		"lazyrepo": "0.0.0-alpha.27",
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"jest": {

@@ -4,13 +4,12 @@ import { Box2dModel } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
-import { TLInstanceId } from './TLInstance'
+import { TLINSTANCE_ID } from './TLInstance'
 import { TLPageId } from './TLPage'
 import { TLShapeId } from './TLShape'
 
 /** @public */
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
-	instanceId: TLInstanceId
 	userId: string
 	userName: string
 	lastActivityTimestamp: number
@@ -38,7 +37,6 @@ export type TLInstancePresenceID = RecordId<TLInstancePresence>
 export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.model(
 	'instance_presence',
 	T.object({
-		instanceId: idValidator<TLInstanceId>('instance'),
 		typeName: T.literal('instance_presence'),
 		id: idValidator<TLInstancePresenceID>('instance_presence'),
 		userId: T.string,
@@ -68,8 +66,11 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 
 const Versions = {
 	AddScribbleDelay: 1,
-	AddChatMessage: 2,
+	RemoveInstanceId: 2,
+	AddChatMessage: 3,
 } as const
+
+export { Versions as instancePresenceVersions }
 
 export const instancePresenceMigrations = defineMigrations({
 	currentVersion: Versions.AddChatMessage,
@@ -87,6 +88,14 @@ export const instancePresenceMigrations = defineMigrations({
 					return { ...instance, scribble: rest }
 				}
 				return { ...instance }
+			},
+		},
+		[Versions.RemoveInstanceId]: {
+			up: ({ instanceId: _, ...instance }) => {
+				return instance
+			},
+			down: (instance) => {
+				return { ...instance, instanceId: TLINSTANCE_ID }
 			},
 		},
 		[Versions.AddChatMessage]: {

@@ -1,12 +1,13 @@
 import {
-	defaultEditorAssetUrls,
-	EditorAssetUrls,
 	EMBED_DEFINITIONS,
 	LANGUAGES,
+	TLEditorAssetUrls,
+	defaultEditorAssetUrls,
 } from '@tldraw/editor'
-import { iconTypes, TLUiIconType } from './icon-types'
+import { version } from '../version'
+import { TLUiIconType, iconTypes } from './icon-types'
 
-export type TLUiAssetUrls = EditorAssetUrls & {
+export type TLUiAssetUrls = TLEditorAssetUrls & {
 	icons: Record<TLUiIconType, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
 	embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>
@@ -14,15 +15,23 @@ export type TLUiAssetUrls = EditorAssetUrls & {
 
 export let defaultUiAssetUrls: TLUiAssetUrls = {
 	...defaultEditorAssetUrls,
-	icons: Object.fromEntries(iconTypes.map((name) => [name, `/icons/icon/${name}.svg`])) as Record<
-		TLUiIconType,
-		string
-	>,
+	icons: Object.fromEntries(
+		iconTypes.map((name) => [
+			name,
+			`https://unpkg.com/@tldraw/assets@${version}/icons/icon/${name}.svg`,
+		])
+	) as Record<TLUiIconType, string>,
 	translations: Object.fromEntries(
-		LANGUAGES.map((lang) => [lang.locale, `/translations/${lang.locale}.json`])
+		LANGUAGES.map((lang) => [
+			lang.locale,
+			`https://unpkg.com/@tldraw/assets@${version}/translations/${lang.locale}.json`,
+		])
 	) as Record<(typeof LANGUAGES)[number]['locale'], string>,
 	embedIcons: Object.fromEntries(
-		EMBED_DEFINITIONS.map((def) => [def.type, `/embed-icons/${def.type}.png`])
+		EMBED_DEFINITIONS.map((def) => [
+			def.type,
+			`https://unpkg.com/@tldraw/assets@${version}/embed-icons/${def.type}.png`,
+		])
 	) as Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>,
 }
 

@@ -1,37 +1,27 @@
 import { Signal, computed } from 'signia'
 import { TLStore } from './TLStore'
+import { CameraRecordType } from './records/TLCamera'
+import { TLINSTANCE_ID } from './records/TLInstance'
+import { InstancePageStateRecordType } from './records/TLPageState'
+import { TLPOINTER_ID } from './records/TLPointer'
 import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
 
 /** @internal */
 export const createPresenceStateDerivation =
 	($user: Signal<{ id: string; color: string; name: string }>) =>
 	(store: TLStore): Signal<TLInstancePresence | null> => {
-		const $instance = store.query.record('instance', () => ({
-			id: { eq: store.props.instanceId },
-		}))
-		const $pageState = store.query.record('instance_page_state', () => ({
-			instanceId: { eq: store.props.instanceId },
-			pageId: { eq: $instance.value?.currentPageId ?? ('' as any) },
-		}))
-		const $camera = store.query.record('camera', () => ({
-			id: { eq: $pageState.value?.cameraId ?? ('' as any) },
-		}))
-
-		const $pointer = store.query.record('pointer')
-
 		return computed('instancePresence', () => {
-			const pageState = $pageState.value
-			const instance = $instance.value
-			const camera = $camera.value
-			const pointer = $pointer.value
+			const instance = store.get(TLINSTANCE_ID)
+			const pageState = store.get(InstancePageStateRecordType.createId(instance?.currentPageId))
+			const camera = store.get(CameraRecordType.createId(instance?.currentPageId))
+			const pointer = store.get(TLPOINTER_ID)
 			const user = $user.value
 			if (!pageState || !instance || !camera || !pointer || !user) {
 				return null
 			}
 
 			return InstancePresenceRecordType.create({
-				id: InstancePresenceRecordType.createCustomId(store.props.instanceId),
-				instanceId: store.props.instanceId,
+				id: InstancePresenceRecordType.createId(store.id),
 				selectedIds: pageState.selectedIds,
 				brush: instance.brush,
 				scribble: instance.scribble,

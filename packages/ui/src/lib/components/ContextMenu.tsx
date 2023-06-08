@@ -1,7 +1,7 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { Editor, preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
-import * as React from 'react'
+import { useCallback, useState } from 'react'
 import { useValue } from 'signia-react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
@@ -24,12 +24,45 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const editor = useEditor()
 
 	const contextTLUiMenuSchema = useContextMenuSchema()
-	const cb = (isOpen: boolean) => {
-		if (isOpen) return
-		if (shouldDeselect(editor)) {
-			editor.setSelectedIds([])
-		}
-	}
+
+	const cb = useCallback(
+		(isOpen: boolean) => {
+			if (!isOpen) {
+				const { onlySelectedShape } = editor
+
+				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
+					editor.setSelectedIds([])
+				}
+			} else {
+				// Weird route: selecting locked shapes on long press
+				if (editor.isCoarsePointer) {
+					const {
+						selectedShapes,
+						inputs: { currentPagePoint },
+					} = editor
+
+					// get all of the shapes under the current pointer
+					const shapesAtPoint = editor.getShapesAtPoint(currentPagePoint)
+
+					if (
+						// if there are no selected shapes
+						!editor.selectedShapes.length ||
+						// OR if none of the shapes at the point include the selected shape
+						!shapesAtPoint.some((s) => selectedShapes.includes(s))
+					) {
+						// then are there any locked shapes under the current pointer?
+						const lockedShapes = shapesAtPoint.filter((s) => editor.isShapeOrAncestorLocked(s))
+
+						if (lockedShapes.length) {
+							// nice, let's select them
+							editor.select(...lockedShapes.map((s) => s.id))
+						}
+					}
+				}
+			}
+		},
+		[editor]
+	)
 
 	const [_, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
@@ -60,12 +93,6 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	)
 }
 
-function shouldDeselect(editor: Editor) {
-	const { onlySelectedShape } = editor
-	if (!onlySelectedShape) return false
-	return editor.isShapeOrAncestorLocked(onlySelectedShape)
-}
-
 function ContextMenuContent() {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -76,7 +103,7 @@ function ContextMenuContent() {
 	const breakpoint = useBreakpoint()
 	const container = useContainer()
 
-	const [disableClicks, setDisableClicks] = React.useState(false)
+	const [disableClicks, setDisableClicks] = useState(false)
 
 	function getContextMenuItem(
 		editor: Editor,

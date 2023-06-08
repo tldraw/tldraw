@@ -1,14 +1,12 @@
-import { createRecordType, Migrations, Store } from '@tldraw/store'
-import { structuredClone } from '@tldraw/utils'
+import { Migrations, Store, createRecordType } from '@tldraw/store'
 import fs from 'fs'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
 import { documentMigrations } from './records/TLDocument'
 import { instanceMigrations, instanceTypeVersions } from './records/TLInstance'
-import { instancePageStateMigrations } from './records/TLPageState'
-import { instancePresenceMigrations } from './records/TLPresence'
-import { rootShapeMigrations, TLShape } from './records/TLShape'
-import { userDocumentMigrations, userDocumentVersions } from './records/TLUserDocument'
+import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
+import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
+import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './records/TLShape'
 import { arrowShapeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations } from './shapes/TLDrawShape'
@@ -266,21 +264,6 @@ describe('Removing dialogs from instance', () => {
 	})
 })
 
-describe('Adding snap mode', () => {
-	const { up, down } = userDocumentMigrations.migrators[1]
-	test('up works as expected', () => {
-		const before = {}
-		const after = { isSnapMode: false }
-		expect(up(before)).toStrictEqual(after)
-	})
-
-	test('down works as expected', () => {
-		const before = { isSnapMode: false }
-		const after = {}
-		expect(down(before)).toStrictEqual(after)
-	})
-})
-
 describe('Adding url props', () => {
 	for (const [name, { up, down }] of [
 		['video shape', videoShapeMigrations.migrators[1]],
@@ -334,19 +317,6 @@ describe('Renaming asset props', () => {
 			expect(down(before)).toStrictEqual(after)
 		})
 	}
-})
-
-describe('Adding the missing isMobileMode', () => {
-	const { up, down } = userDocumentMigrations.migrators[2]
-	test('up works as expected', () => {
-		expect(up({})).toMatchObject({ isMobileMode: false })
-		expect(up({ isMobileMode: true })).toMatchObject({ isMobileMode: true })
-	})
-
-	test('down works as expected', () => {
-		expect(down({ isMobileMode: true })).toStrictEqual({})
-		expect(down({ isMobileMode: false })).toStrictEqual({})
-	})
 })
 
 describe('Adding instance.isToolLocked', () => {
@@ -760,43 +730,6 @@ describe('Migrate NoteShape legacy horizontal alignment', () => {
 	})
 })
 
-describe('Removing isReadOnly from user_document', () => {
-	const { up, down } = userDocumentMigrations.migrators[userDocumentVersions.RemoveIsReadOnly]
-	const prev = {
-		id: 'user_document:123',
-		typeName: 'user_document',
-		userId: 'user:123',
-		isReadOnly: false,
-		isPenMode: false,
-		isGridMode: false,
-		isDarkMode: false,
-		isMobileMode: false,
-		isSnapMode: false,
-		lastUpdatedPageId: null,
-		lastUsedTabId: null,
-	}
-
-	const next = {
-		id: 'user_document:123',
-		typeName: 'user_document',
-		userId: 'user:123',
-		isPenMode: false,
-		isGridMode: false,
-		isDarkMode: false,
-		isMobileMode: false,
-		isSnapMode: false,
-		lastUpdatedPageId: null,
-		lastUsedTabId: null,
-	}
-
-	test('up removes the isReadOnly property', () => {
-		expect(up(prev)).toEqual(next)
-	})
-	test('down adds the isReadOnly property', () => {
-		expect(down(next)).toEqual(prev)
-	})
-})
-
 describe('Adds delay to scribble', () => {
 	const { up, down } = instanceMigrations.migrators[10]
 
@@ -987,34 +920,193 @@ describe('user config refactor', () => {
 		}
 	`)
 	})
+})
 
-	test('removes userId and isDarkMode from TLUserDocument', () => {
+describe('making instance state independent', () => {
+	it('adds isPenMode and isGridMode to instance state', () => {
 		const { up, down } =
-			userDocumentMigrations.migrators[userDocumentVersions.RemoveUserIdAndIsDarkMode]
+			instanceMigrations.migrators[instanceTypeVersions.AddIsPenModeAndIsGridMode]
 
 		const prev = {
-			id: 'user_document:123',
-			typeName: 'user_document',
-			userId: 'user:123',
-			isDarkMode: false,
-			isGridMode: false,
+			id: 'instance:123',
+			typeName: 'instance',
 		}
 		const next = {
-			id: 'user_document:123',
-			typeName: 'user_document',
+			id: 'instance:123',
+			typeName: 'instance',
+			isPenMode: false,
 			isGridMode: false,
 		}
 
 		expect(up(prev)).toEqual(next)
+		expect(down(next)).toEqual(prev)
+	})
+
+	it('removes instanceId and cameraId from instancePageState', () => {
+		const { up, down } =
+			instancePageStateMigrations.migrators[instancePageStateVersions.RemoveInstanceIdAndCameraId]
+
+		const prev = {
+			id: 'instance_page_state:123',
+			typeName: 'instance_page_state',
+			instanceId: 'instance:123',
+			cameraId: 'camera:123',
+			selectedIds: [],
+		}
+
+		const next = {
+			id: 'instance_page_state:123',
+			typeName: 'instance_page_state',
+			selectedIds: [],
+		}
+
+		expect(up(prev)).toEqual(next)
+		// down should never be called
 		expect(down(next)).toMatchInlineSnapshot(`
 		Object {
-		  "id": "user_document:123",
-		  "isDarkMode": false,
-		  "isGridMode": false,
-		  "typeName": "user_document",
-		  "userId": "user:none",
+		  "cameraId": "camera:void",
+		  "id": "instance_page_state:123",
+		  "instanceId": "instance:instance",
+		  "selectedIds": Array [],
+		  "typeName": "instance_page_state",
 		}
 	`)
+	})
+
+	it('removes instanceId from instancePresence', () => {
+		const { up, down } =
+			instancePresenceMigrations.migrators[instancePresenceVersions.RemoveInstanceId]
+
+		const prev = {
+			id: 'instance_presence:123',
+			typeName: 'instance_presence',
+			instanceId: 'instance:123',
+			selectedIds: [],
+		}
+
+		const next = {
+			id: 'instance_presence:123',
+			typeName: 'instance_presence',
+			selectedIds: [],
+		}
+
+		expect(up(prev)).toEqual(next)
+
+		// down should never be called
+		expect(down(next)).toMatchInlineSnapshot(`
+		Object {
+		  "id": "instance_presence:123",
+		  "instanceId": "instance:instance",
+		  "selectedIds": Array [],
+		  "typeName": "instance_presence",
+		}
+	`)
+	})
+
+	it('removes userDocument from the schema', () => {
+		const { up, down } = storeMigrations.migrators[storeVersions.RemoveUserDocument]
+
+		const prev = {
+			'user_document:123': {
+				id: 'user_document:123',
+				typeName: 'user_document',
+			},
+			'instance:123': {
+				id: 'instance:123',
+				typeName: 'instance',
+			},
+		}
+
+		const next = {
+			'instance:123': {
+				id: 'instance:123',
+				typeName: 'instance',
+			},
+		}
+
+		expect(up(prev)).toEqual(next)
+		expect(down(next)).toEqual(next)
+	})
+})
+
+describe('Adds NoteShape vertical alignment', () => {
+	const { up, down } = noteShapeMigrations.migrators[4]
+
+	test('up works as expected', () => {
+		expect(up({ props: { color: 'red' } })).toEqual({
+			props: { verticalAlign: 'middle', color: 'red' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { verticalAlign: 'top', color: 'red' } })).toEqual({
+			props: { color: 'red' },
+		})
+	})
+})
+
+describe('hoist opacity', () => {
+	test('hoists opacity from a shape to another', () => {
+		const { up, down } = rootShapeMigrations.migrators[rootShapeVersions.HoistOpacity]
+		const before = {
+			type: 'myShape',
+			x: 0,
+			y: 0,
+			props: {
+				color: 'red',
+				opacity: '0.5',
+			},
+		}
+		const after = {
+			type: 'myShape',
+			x: 0,
+			y: 0,
+			opacity: 0.5,
+			props: {
+				color: 'red',
+			},
+		}
+		const afterWithNonMatchingOpacity = {
+			type: 'myShape',
+			x: 0,
+			y: 0,
+			opacity: 0.6,
+			props: {
+				color: 'red',
+			},
+		}
+
+		expect(up(before)).toEqual(after)
+		expect(down(after)).toEqual(before)
+		expect(down(afterWithNonMatchingOpacity)).toEqual(before)
+	})
+
+	test('hoists opacity from propsForNextShape', () => {
+		const { up, down } = instanceMigrations.migrators[instanceTypeVersions.HoistOpacity]
+		const before = {
+			isToolLocked: true,
+			propsForNextShape: {
+				color: 'black',
+				opacity: '0.5',
+			},
+		}
+		const after = {
+			isToolLocked: true,
+			opacityForNextShape: 0.5,
+			propsForNextShape: {
+				color: 'black',
+			},
+		}
+		const afterWithNonMatchingOpacity = {
+			isToolLocked: true,
+			opacityForNextShape: 0.6,
+			propsForNextShape: {
+				color: 'black',
+			},
+		}
+
+		expect(up(before)).toEqual(after)
+		expect(down(after)).toEqual(before)
+		expect(down(afterWithNonMatchingOpacity)).toEqual(before)
 	})
 })
 

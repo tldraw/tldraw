@@ -5,13 +5,14 @@ const Versions = {
 	RemoveCodeAndIconShapeTypes: 1,
 	AddInstancePresenceType: 2,
 	RemoveTLUserAndPresenceAndAddPointer: 3,
+	RemoveUserDocument: 4,
 } as const
 
 export { Versions as storeVersions }
 
 /** @public */
 export const storeMigrations = defineMigrations({
-	currentVersion: Versions.RemoveTLUserAndPresenceAndAddPointer,
+	currentVersion: Versions.RemoveUserDocument,
 	migrators: {
 		[Versions.RemoveCodeAndIconShapeTypes]: {
 			up: (store: StoreSnapshot<TLRecord>) => {
@@ -46,6 +47,16 @@ export const storeMigrations = defineMigrations({
 				return Object.fromEntries(
 					Object.entries(store).filter(([_, v]) => v.typeName !== 'pointer')
 				)
+			},
+		},
+		[Versions.RemoveUserDocument]: {
+			up: (store: StoreSnapshot<TLRecord>) => {
+				return Object.fromEntries(
+					Object.entries(store).filter(([_, v]) => !v.typeName.match('user_document'))
+				)
+			},
+			down: (store: StoreSnapshot<TLRecord>) => {
+				return store
 			},
 		},
 	},

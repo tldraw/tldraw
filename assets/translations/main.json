@@ -80,7 +80,7 @@
 	"action.toggle-focus-mode": "Toggle focus mode",
 	"action.toggle-grid.menu": "Show grid",
 	"action.toggle-grid": "Toggle grid",
-	"action.toggle-lock": "Lock / Unlock",
+	"action.toggle-lock": "Toggle locked",
 	"action.toggle-snap-mode.menu": "Always snap",
 	"action.toggle-snap-mode": "Toggle always snap",
 	"action.toggle-tool-lock.menu": "Tool lock",

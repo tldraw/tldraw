@@ -67,7 +67,7 @@
 		"@tldraw/ui": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"lazyrepo": "0.0.0-alpha.26",
+		"lazyrepo": "0.0.0-alpha.27",
 		"rimraf": "^4.4.0",
 		"ts-node": "^10.9.1"
 	}

@@ -1,4 +1,4 @@
-import { TLSelectTool } from '../../app/statechart/TLSelectTool/TLSelectTool'
+import { SelectTool } from '../../editor/tools/SelectTool/SelectTool'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 
@@ -11,7 +11,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-describe(TLSelectTool, () => {
+describe(SelectTool, () => {
 	describe('pointer down while shape is being edited', () => {
 		it('captures the pointer down event if it is on the shape', () => {
 			editor.setSelectedTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)

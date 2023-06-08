@@ -11,7 +11,6 @@ import { PointerRecordType } from './records/TLPointer'
 import { InstancePresenceRecordType } from './records/TLPresence'
 import { TLRecord } from './records/TLRecord'
 import { TLShape, rootShapeMigrations } from './records/TLShape'
-import { UserDocumentRecordType } from './records/TLUserDocument'
 import { arrowShapeMigrations, arrowShapeValidator } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations, bookmarkShapeValidator } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations, drawShapeValidator } from './shapes/TLDrawShape'
@@ -133,7 +132,7 @@ export function createTLSchema(
 				),
 			})
 		),
-	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false }))
+	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false, opacity: 1 }))
 
 	return StoreSchema.create<TLRecord, TLStoreProps>(
 		{
@@ -144,7 +143,6 @@ export function createTLSchema(
 			instance_page_state: InstancePageStateRecordType,
 			page: PageRecordType,
 			shape: ShapeRecordType,
-			user_document: UserDocumentRecordType,
 			instance_presence: InstancePresenceRecordType,
 			pointer: PointerRecordType,
 		},
