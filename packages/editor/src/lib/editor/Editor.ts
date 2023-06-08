@@ -270,6 +270,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (record.typeName === 'shape' && this.isShapeOfType(record, ArrowShapeUtil)) {
 				this._arrowDidUpdate(record)
 			}
+			if (record.typeName === 'page') {
+				const cameraId = CameraRecordType.createId(record.id)
+				const pageStateId = InstancePageStateRecordType.createId(record.id)
+				if (!this.store.has(cameraId)) {
+					this.store.put([CameraRecordType.create({ id: cameraId })])
+				}
+				if (!this.store.has(pageStateId)) {
+					this.store.put([
+						InstancePageStateRecordType.create({ id: pageStateId, pageId: record.id }),
+					])
+				}
+			}
 		}
 
 		this._shapeIds = shapeIdsInCurrentPage(this.store, () => this.currentPageId)
@@ -656,8 +668,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (isPageId(shape.parentId)) {
 				return this.getTransform(shape)
 			}
-			// some weird circular type thing here that I had to work around with (as any)
-			const parent = (this._pageTransformCache as any).get(shape.parentId)
+
+			// If the shape's parent doesn't exist yet (e.g. when merging in changes from remote in the wrong order)
+			// then we can't compute the transform yet, so just return the identity matrix.
+			// In the future we should look at creating a store update mechanism that understands and preserves
+			// ordering.
+			const parent = this._pageTransformCache.get(shape.parentId) ?? Matrix2d.Identity()
 
 			return Matrix2d.Compose(parent, this.getTransform(shape))
 		})
@@ -1504,6 +1520,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const backupPageId = this.pages.find((p) => p.id !== page.id)?.id
 		if (!backupPageId) return
 		this.store.put([{ ...this.instanceState, currentPageId: backupPageId }])
+
+		// delete the camera and state for the page if necessary
+		const cameraId = CameraRecordType.createId(page.id)
+		const instancePageStateId = InstancePageStateRecordType.createId(page.id)
+		this.store.remove([cameraId, instancePageStateId])
 	}
 
 	/* -------------------- Shortcuts ------------------- */
@@ -5173,9 +5194,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const topIndex = belowPageIndex ?? pageInfo[pageInfo.length - 1]?.index ?? 'a1'
 			const bottomIndex = pageInfo[pageInfo.findIndex((p) => p.index === topIndex) + 1]?.index
 
-			const prevPageState = { ...this.pageState }
-			const prevInstanceState = { ...this.instanceState }
-
 			title = getIncrementedName(
 				title,
 				pageInfo.map((p) => p.name)
@@ -5201,8 +5219,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			return {
 				data: {
-					prevPageState,
-					prevTabState: prevInstanceState,
+					prevSelectedPageId: this.currentPageId,
 					newPage,
 					newTabPageState,
 					newCamera,
@@ -5219,9 +5236,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				])
 				this.updateCullingBounds()
 			},
-			undo: ({ newPage, prevPageState, prevTabState, newTabPageState, newCamera }) => {
-				this.store.put([prevPageState, prevTabState])
+			undo: ({ newPage, prevSelectedPageId, newTabPageState, newCamera }) => {
+				if (this.pages.length === 1) return
 				this.store.remove([newTabPageState.id, newPage.id, newCamera.id])
+
+				if (this.store.has(prevSelectedPageId) && this.currentPageId !== prevSelectedPageId) {
+					this.store.put([{ ...this.instanceState, currentPageId: prevSelectedPageId }])
+				}
 
 				this.updateCullingBounds()
 			},
@@ -7320,6 +7341,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ toId }) => {
+				if (!this.store.has(toId)) {
+					// in multiplayer contexts this page might have been deleted
+					return
+				}
 				if (!this.getPageStateByPageId(toId)) {
 					const camera = CameraRecordType.create({
 						id: CameraRecordType.createId(toId),
@@ -7338,6 +7363,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.updateCullingBounds()
 			},
 			undo: ({ fromId }) => {
+				if (!this.store.has(fromId)) {
+					// in multiplayer contexts this page might have been deleted
+					return
+				}
 				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
 
 				this.updateCullingBounds()
