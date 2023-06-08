@@ -1111,7 +1111,7 @@ describe('hoist opacity', () => {
 })
 
 describe('Adds chat message to presence', () => {
-	const { up, down } = instancePresenceMigrations.migrators[2]
+	const { up, down } = instancePresenceMigrations.migrators[3]
 
 	test('up adds the chatMessage property', () => {
 		expect(up({})).toEqual({ chatMessage: '' })
@@ -1123,7 +1123,7 @@ describe('Adds chat message to presence', () => {
 })
 
 describe('Adds chat properties to instance', () => {
-	const { up, down } = instanceMigrations.migrators[12]
+	const { up, down } = instanceMigrations.migrators[14]
 
 	test('up adds the chatMessage property', () => {
 		expect(up({})).toEqual({ chatMessage: '', isChatting: false })
