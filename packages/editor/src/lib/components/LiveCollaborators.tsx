@@ -16,7 +16,7 @@ export const LiveCollaborators = track(function Collaborators() {
 	)
 })
 
-export const COLLABORATOR_TIMEOUT = 300
+export const COLLABORATOR_TIMEOUT = 3000
 
 const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
 	const editor = useEditor()
