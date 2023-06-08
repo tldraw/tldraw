@@ -78,6 +78,7 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export { ArrowShapeUtil } from './lib/editor/shapes/ArrowShape/ArrowShapeUtil/ArrowShapeUtil'
 export {
 	type TLArrowShape,
 	type TLArrowShapeProps,

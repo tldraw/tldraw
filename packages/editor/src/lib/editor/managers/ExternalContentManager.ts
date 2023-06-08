@@ -1,7 +1,6 @@
 import { Vec2d, VecLike } from '@tldraw/primitives'
 import {
 	AssetRecordType,
-	EmbedDefinition,
 	TLAsset,
 	TLAssetId,
 	TLShapePartial,
@@ -28,8 +27,9 @@ import {
 import { truncateStringWithEllipsis } from '../../utils/dom'
 import { getEmbedInfo } from '../../utils/embeds'
 import { Editor } from '../Editor'
-import { INDENT } from '../shapeutils/TextShapeUtil/TextHelpers'
-import { TextShapeUtil } from '../shapeutils/TextShapeUtil/TextShapeUtil'
+import { TLEmbedDefinition } from '../shapes/EmbedShape/embedShapeTypes'
+import { TextShapeUtil } from '../shapes/TextShape/TextShapeUtil/TextShapeUtil'
+import { INDENT } from '../shapes/shared/TextHelpers'
 
 /** @public */
 export type TLExternalContent =
@@ -58,7 +58,7 @@ export type TLExternalContent =
 			type: 'embed'
 			url: string
 			point?: VecLike
-			embed: EmbedDefinition
+			embed: TLEmbedDefinition
 	  }
 
 /** @public */

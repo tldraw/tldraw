@@ -1,5 +1,4 @@
 import {
-	ArrowShapeUtil,
 	BookmarkShapeUtil,
 	Editor,
 	EmbedShapeUtil,
@@ -11,6 +10,7 @@ import {
 	isValidHttpURL,
 	useEditor,
 } from '@tldraw/editor'
+import { ArrowShapeUtil } from '@tldraw/editor/src/lib/editor/shapes/ArrowShape/ArrowShapeUtil/ArrowShapeUtil'
 import { VecLike } from '@tldraw/primitives'
 import { isNonNull } from '@tldraw/utils'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
