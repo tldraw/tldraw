@@ -119,17 +119,12 @@ export type TLDrawInnerProps = {
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
-	const handleEditorReady = useCallback((editor: Editor) => {
+	const handleMount = useCallback((editor: Editor) => {
 		editor.externalContentManager.createAssetFromUrl = onCreateAssetFromUrl
 	}, [])
 
 	return (
-		<TldrawEditor
-			assetUrls={assetUrls}
-			persistenceKey={uri}
-			onEditorReady={handleEditorReady}
-			autoFocus
-		>
+		<TldrawEditor assetUrls={assetUrls} persistenceKey={uri} onMount={handleMount} autoFocus>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
 				<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />

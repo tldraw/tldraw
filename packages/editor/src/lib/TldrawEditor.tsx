@@ -62,35 +62,7 @@ export type TldrawEditorProps = {
 	 *
 	 * @param editor - The editor instance.
 	 */
-	onMount?: (editor: Editor) => void
-
-	/**
-	 * Call a callback immediately after the editor is created.
-	 *
-	 * @example
-	 *
-	 * ```tsx
-	 * <TldrawEditor onCreateEditor={myCustomHandler}/>
-	 * ```
-	 *
-	 * @param editor - The editor instance.
-	 * @public
-	 */
-	onEditorReady?: (editor: Editor) => void
-
-	/**
-	 * Call a callback immediately before the editor is disposed.
-	 *
-	 * @example
-	 *
-	 * ```tsx
-	 * <TldrawEditor onEditorWillDispose={myCustomHandler}/>
-	 * ```
-	 *
-	 * @param editor - The editor instance.
-	 * @public
-	 */
-	onEditorWillDispose?: (editor: Editor) => void
+	onMount?: (editor: Editor) => (() => void) | undefined | void
 } & (
 	| {
 			/**
@@ -235,8 +207,6 @@ function TldrawEditorWithReadyStore({
 	tools,
 	shapes,
 	autoFocus,
-	onEditorReady,
-	onEditorWillDispose,
 }: TldrawEditorProps & {
 	store: TLStore
 }) {
@@ -254,26 +224,25 @@ function TldrawEditorWithReadyStore({
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		setEditor(editor)
-		onEditorReady?.(editor)
 
 		return () => {
-			onEditorWillDispose?.(editor)
 			editor.dispose()
 		}
-	}, [container, shapes, tools, store, onEditorReady, onEditorWillDispose])
+	}, [container, shapes, tools, store])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()
 	}, [editor, autoFocus])
 
 	const onMountEvent = useEvent((editor: Editor) => {
-		onMount?.(editor)
+		const teardown = onMount?.(editor)
 		editor.emit('mount')
 		window.tldrawReady = true
+		return teardown
 	})
 
-	React.useEffect(() => {
-		if (editor) onMountEvent(editor)
+	React.useLayoutEffect(() => {
+		if (editor) return onMountEvent?.(editor)
 	}, [editor, onMountEvent])
 
 	const crashingError = useSyncExternalStore(

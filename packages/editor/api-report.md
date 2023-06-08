@@ -2195,9 +2195,7 @@ export type TldrawEditorProps = {
     assetUrls?: TLEditorAssetUrls;
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
-    onMount?: (editor: Editor) => void;
-    onEditorReady?: (editor: Editor) => void;
-    onEditorWillDispose?: (editor: Editor) => void;
+    onMount?: (editor: Editor) => (() => void) | undefined | void;
 } & ({
     store: TLStore | TLStoreWithStatus;
 } | {

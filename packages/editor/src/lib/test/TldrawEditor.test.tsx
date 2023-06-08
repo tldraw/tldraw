@@ -36,7 +36,12 @@ describe('<TldrawEditor />', () => {
 		let store: any
 		render(
 			await act(async () => (
-				<TldrawEditor onMount={(editor) => (store = editor.store)} autoFocus>
+				<TldrawEditor
+					onMount={(editor) => {
+						store = editor.store
+					}}
+					autoFocus
+				>
 					<div data-testid="canvas-1" />
 				</TldrawEditor>
 			))
