@@ -4,9 +4,6 @@
 
 ```ts
 
-import { Box2dModel } from '@tldraw/tlschema';
-import { Vec2dModel } from '@tldraw/tlschema';
-
 // @public
 export function angleDelta(a0: number, a1: number): number;
 
@@ -123,6 +120,18 @@ export class Box2d {
     // (undocumented)
     get width(): number;
     set width(n: number);
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export interface Box2dModel {
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    w: number;
     // (undocumented)
     x: number;
     // (undocumented)
@@ -845,6 +854,16 @@ export class Vec2d {
     y: number;
     // (undocumented)
     z: number;
+}
+
+// @public
+export interface Vec2dModel {
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+    // (undocumented)
+    z?: number;
 }
 
 // @public (undocumented)

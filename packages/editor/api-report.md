@@ -7,13 +7,13 @@
 /// <reference types="react" />
 
 import { Atom } from 'signia';
+import { BaseRecord } from '@tldraw/store';
 import { Box2d } from '@tldraw/primitives';
-import { Box2dModel } from '@tldraw/tlschema';
+import { Box2dModel } from '@tldraw/primitives';
 import { Computed } from 'signia';
 import { ComputedCache } from '@tldraw/store';
 import { CubicSpline2d } from '@tldraw/primitives';
 import { EASINGS } from '@tldraw/primitives';
-import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
 import { getHashForString } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
@@ -24,68 +24,22 @@ import { Migrations } from '@tldraw/store';
 import { Polyline2d } from '@tldraw/primitives';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { RecordId } from '@tldraw/store';
+import { RecordType } from '@tldraw/store';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
 import { Signal } from 'signia';
+import { Store } from '@tldraw/store';
+import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';
-import { TLAlignType } from '@tldraw/tlschema';
-import { TLArrowheadType } from '@tldraw/tlschema';
-import { TLArrowShape } from '@tldraw/tlschema';
-import { TLAsset } from '@tldraw/tlschema';
-import { TLAssetId } from '@tldraw/tlschema';
-import { TLAssetPartial } from '@tldraw/tlschema';
-import { TLBaseShape } from '@tldraw/tlschema';
-import { TLBookmarkAsset } from '@tldraw/tlschema';
-import { TLBookmarkShape } from '@tldraw/tlschema';
-import { TLCamera } from '@tldraw/tlschema';
-import { TLColorStyle } from '@tldraw/tlschema';
-import { TLColorType } from '@tldraw/tlschema';
-import { TLCursor } from '@tldraw/tlschema';
-import { TLDocument } from '@tldraw/tlschema';
-import { TLDrawShape } from '@tldraw/tlschema';
-import { TLEmbedShape } from '@tldraw/tlschema';
-import { TLFontType } from '@tldraw/tlschema';
-import { TLFrameShape } from '@tldraw/tlschema';
-import { TLGeoShape } from '@tldraw/tlschema';
-import { TLGroupShape } from '@tldraw/tlschema';
-import { TLHandle } from '@tldraw/tlschema';
-import { TLHighlightShape } from '@tldraw/tlschema';
-import { TLImageAsset } from '@tldraw/tlschema';
-import { TLImageShape } from '@tldraw/tlschema';
-import { TLInstance } from '@tldraw/tlschema';
-import { TLInstancePageState } from '@tldraw/tlschema';
-import { TLInstancePresence } from '@tldraw/tlschema';
-import { TLInstancePropsForNextShape } from '@tldraw/tlschema';
-import { TLLineShape } from '@tldraw/tlschema';
-import { TLNoteShape } from '@tldraw/tlschema';
-import { TLNullableShapeProps } from '@tldraw/tlschema';
-import { TLPage } from '@tldraw/tlschema';
-import { TLPageId } from '@tldraw/tlschema';
-import { TLParentId } from '@tldraw/tlschema';
-import { TLRecord } from '@tldraw/tlschema';
-import { TLScribble } from '@tldraw/tlschema';
-import { TLShape } from '@tldraw/tlschema';
-import { TLShapeId } from '@tldraw/tlschema';
-import { TLShapePartial } from '@tldraw/tlschema';
-import { TLShapeProp } from '@tldraw/tlschema';
-import { TLShapeProps } from '@tldraw/tlschema';
-import { TLSizeStyle } from '@tldraw/tlschema';
-import { TLSizeType } from '@tldraw/tlschema';
-import { TLStore } from '@tldraw/tlschema';
-import { TLStyleCollections } from '@tldraw/tlschema';
-import { TLStyleType } from '@tldraw/tlschema';
-import { TLTextShape } from '@tldraw/tlschema';
-import { TLTextShapeProps } from '@tldraw/tlschema';
-import { TLUnknownShape } from '@tldraw/tlschema';
-import { TLVideoAsset } from '@tldraw/tlschema';
-import { TLVideoShape } from '@tldraw/tlschema';
+import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 import { Vec2d } from '@tldraw/primitives';
-import { Vec2dModel } from '@tldraw/tlschema';
+import { Vec2dModel } from '@tldraw/primitives';
 import { VecLike } from '@tldraw/primitives';
 
 // @public (undocumented)
@@ -96,6 +50,9 @@ export const ACCEPTED_IMG_TYPE: string[];
 
 // @public (undocumented)
 export const ACCEPTED_VID_TYPE: string[];
+
+// @internal (undocumented)
+export const alignValidator: T.Validator<"end" | "middle" | "start">;
 
 // @internal (undocumented)
 export const ANIMATION_MEDIUM_MS = 320;
@@ -168,6 +125,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     static type: string;
 }
 
+// @public
+export const assetIdValidator: T.Validator<TLAssetId>;
+
+// @internal (undocumented)
+export const assetMigrations: Migrations;
+
+// @public (undocumented)
+export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
+
+// @internal (undocumented)
+export const assetValidator: T.Validator<TLAsset>;
+
 // @public (undocumented)
 export abstract class BaseBoxShapeTool extends StateNode {
     // (undocumented)
@@ -231,6 +200,11 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 // @internal (undocumented)
 export const BOUND_ARROW_OFFSET = 10;
 
+export { Box2dModel }
+
+// @public (undocumented)
+export const CameraRecordType: RecordType<TLCamera, never>;
+
 // @public (undocumented)
 export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
     onDropOverride?: ((defaultOnDrop: (e: React_3.DragEvent<Element>) => Promise<void>) => (e: React_3.DragEvent<Element>) => Promise<void>) | undefined;
@@ -238,6 +212,12 @@ export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
 
 // @public (undocumented)
 export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean | undefined;
+
+// @internal (undocumented)
+export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
+
+// @internal (undocumented)
+export const colorValidator: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
 
 // @public
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
@@ -249,6 +229,14 @@ export function correctSpacesToNbsp(input: string): string;
 export function createAssetShapeAtPoint(editor: Editor, svgString: string, point: Vec2dModel): Promise<void>;
 
 // @public
+export function createAssetValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
+    id: TLAssetId;
+    typeName: 'asset';
+    type: Type;
+    props: Props;
+}>;
+
+// @public
 export function createBookmarkShapeAtPoint(editor: Editor, url: string, point: Vec2dModel): Promise<void>;
 
 // @public (undocumented)
@@ -258,14 +246,47 @@ export function createEmbedShapeAtPoint(editor: Editor, url: string, point: Vec2
     doesResize?: boolean;
 }): void;
 
+// @internal (undocumented)
+export const createPresenceStateDerivation: ($user: Signal<{
+    id: string;
+    color: string;
+    name: string;
+}>) => (store: TLStore) => Signal<null | TLInstancePresence>;
+
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public (undocumented)
+export function createShapeId(id?: string): TLShapeId;
+
+// @public (undocumented)
 export function createShapesFromFiles(editor: Editor, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
+
+// @public (undocumented)
+export function createShapeValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
+    id: TLShapeId;
+    typeName: "shape";
+    x: number;
+    y: number;
+    rotation: number;
+    index: string;
+    parentId: TLParentId;
+    type: Type;
+    isLocked: boolean;
+    opacity: number;
+    props: Props;
+}>;
+
+// @public
+export function createTLSchema(opts?: {
+    customShapes: Record<string, SchemaShapeInfo>;
+}): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
 export function createTLStore(opts?: TLStoreOptions): TLStore;
+
+// @internal (undocumented)
+export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -317,6 +338,9 @@ export const defaultShapes: Record<string, TLShapeInfo>;
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
+
+// @public (undocumented)
+export const DocumentRecordType: RecordType<TLDocument, never>;
 
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
@@ -788,6 +812,211 @@ export class Editor extends EventEmitter<TLEventMap> {
 }
 
 // @public (undocumented)
+export const EMBED_DEFINITIONS: readonly [{
+    readonly type: "tldraw";
+    readonly title: "tldraw";
+    readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
+    readonly minWidth: 300;
+    readonly minHeight: 300;
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "codesandbox";
+    readonly title: "CodeSandbox";
+    readonly hostnames: readonly ["codesandbox.io"];
+    readonly minWidth: 300;
+    readonly minHeight: 300;
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "codepen";
+    readonly title: "Codepen";
+    readonly hostnames: readonly ["codepen.io"];
+    readonly minWidth: 300;
+    readonly minHeight: 300;
+    readonly width: 520;
+    readonly height: 400;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "scratch";
+    readonly title: "Scratch";
+    readonly hostnames: readonly ["scratch.mit.edu"];
+    readonly width: 520;
+    readonly height: 400;
+    readonly doesResize: false;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "youtube";
+    readonly title: "YouTube";
+    readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
+    readonly width: 800;
+    readonly height: 450;
+    readonly doesResize: true;
+    readonly overridePermissions: {
+        readonly 'allow-presentation': true;
+    };
+    readonly isAspectRatioLocked: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "figma";
+    readonly title: "Figma";
+    readonly hostnames: readonly ["figma.com"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "google_maps";
+    readonly title: "Google Maps";
+    readonly hostnames: readonly ["google.*"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "google_calendar";
+    readonly title: "Google Calendar";
+    readonly hostnames: readonly ["calendar.google.*"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly minWidth: 460;
+    readonly minHeight: 360;
+    readonly doesResize: true;
+    readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "google_slides";
+    readonly title: "Google Slides";
+    readonly hostnames: readonly ["docs.google.*"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly minWidth: 460;
+    readonly minHeight: 360;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "github_gist";
+    readonly title: "GitHub Gist";
+    readonly hostnames: readonly ["gist.github.com"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "replit";
+    readonly title: "Replit";
+    readonly hostnames: readonly ["replit.com"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "felt";
+    readonly title: "Felt";
+    readonly hostnames: readonly ["felt.com"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "spotify";
+    readonly title: "Spotify";
+    readonly hostnames: readonly ["open.spotify.com"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly minHeight: 500;
+    readonly overrideOutlineRadius: 12;
+    readonly doesResize: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "vimeo";
+    readonly title: "Vimeo";
+    readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
+    readonly width: 640;
+    readonly height: 360;
+    readonly doesResize: true;
+    readonly isAspectRatioLocked: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "excalidraw";
+    readonly title: "Excalidraw";
+    readonly hostnames: readonly ["excalidraw.com"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly isAspectRatioLocked: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "observable";
+    readonly title: "Observable";
+    readonly hostnames: readonly ["observablehq.com"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly isAspectRatioLocked: false;
+    readonly backgroundColor: "#fff";
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}];
+
+// @public (undocumented)
+export type EmbedDefinition = {
+    readonly type: string;
+    readonly title: string;
+    readonly hostnames: readonly string[];
+    readonly minWidth?: number;
+    readonly minHeight?: number;
+    readonly width: number;
+    readonly height: number;
+    readonly doesResize: boolean;
+    readonly isAspectRatioLocked?: boolean;
+    readonly overridePermissions?: TLEmbedShapePermissions;
+    readonly instructionLink?: string;
+    readonly backgroundColor?: string;
+    readonly overrideOutlineRadius?: number;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+};
+
+// @public
+export const embedShapePermissionDefaults: {
+    readonly 'allow-downloads-without-user-activation': false;
+    readonly 'allow-downloads': false;
+    readonly 'allow-modals': false;
+    readonly 'allow-orientation-lock': false;
+    readonly 'allow-pointer-lock': false;
+    readonly 'allow-popups': true;
+    readonly 'allow-popups-to-escape-sandbox': false;
+    readonly 'allow-presentation': false;
+    readonly 'allow-storage-access-by-user-activation': false;
+    readonly 'allow-top-navigation': false;
+    readonly 'allow-top-navigation-by-user-activation': false;
+    readonly 'allow-scripts': true;
+    readonly 'allow-same-origin': true;
+    readonly 'allow-forms': true;
+};
+
+// @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canEdit: TLShapeUtilFlag<TLEmbedShape>;
@@ -847,6 +1076,15 @@ export const featureFlags: {
 // @public
 export function fileToBase64(file: Blob): Promise<string>;
 
+// @internal (undocumented)
+export const fillValidator: T.Validator<"none" | "pattern" | "semi" | "solid">;
+
+// @internal (undocumented)
+export function fixupRecord(oldRecord: TLRecord): {
+    record: any;
+    issues: string[];
+};
+
 // @public (undocumented)
 export const FONT_ALIGNMENT: Record<TLAlignType, string>;
 
@@ -855,6 +1093,9 @@ export const FONT_FAMILIES: Record<TLFontType, string>;
 
 // @public (undocumented)
 export const FONT_SIZES: Record<TLSizeType, number>;
+
+// @internal (undocumented)
+export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
 
 // @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
@@ -1005,6 +1246,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     static type: string;
 }
+
+// @internal (undocumented)
+export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+
+// @public (undocumented)
+export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
@@ -1190,6 +1437,12 @@ export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 // @public (undocumented)
 export const ICON_SIZES: Record<TLSizeType, number>;
 
+// @internal (undocumented)
+export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
+
+// @internal (undocumented)
+export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
+
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
@@ -1215,6 +1468,18 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 // @public (undocumented)
 export const INDENT = "  ";
 
+// @public (undocumented)
+export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageId">;
+
+// @public (undocumented)
+export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "userId" | "userName">;
+
+// @public (undocumented)
+export const InstanceRecordType: RecordType<TLInstance, "currentPageId">;
+
+// @internal (undocumented)
+export const instanceTypeValidator: T.Validator<TLInstance>;
+
 // @public
 export function isAnimated(buffer: ArrayBuffer): boolean;
 
@@ -1230,8 +1495,17 @@ export const isImage: (ext: string) => boolean;
 // @public (undocumented)
 export function isNoteShape(shape: TLShape): shape is TLNoteShape;
 
+// @public (undocumented)
+export function isPageId(id: string): id is TLPageId;
+
 // @public
 export function isSerializable(value: any): boolean;
+
+// @public (undocumented)
+export function isShape(record?: UnknownRecord): record is TLShape;
+
+// @public (undocumented)
+export function isShapeId(id?: string): id is TLShapeId;
 
 // @public (undocumented)
 export const isSvgText: (text: string) => boolean;
@@ -1241,6 +1515,108 @@ export const isValidHttpURL: (url: string) => boolean;
 
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export const LANGUAGES: readonly [{
+    readonly locale: "ar";
+    readonly label: "عربي";
+}, {
+    readonly locale: "ca";
+    readonly label: "Català";
+}, {
+    readonly locale: "da";
+    readonly label: "Danish";
+}, {
+    readonly locale: "de";
+    readonly label: "Deutsch";
+}, {
+    readonly locale: "en";
+    readonly label: "English";
+}, {
+    readonly locale: "es";
+    readonly label: "Español";
+}, {
+    readonly locale: "fa";
+    readonly label: "فارسی";
+}, {
+    readonly locale: "fi";
+    readonly label: "Suomi";
+}, {
+    readonly locale: "fr";
+    readonly label: "Français";
+}, {
+    readonly locale: "gl";
+    readonly label: "Galego";
+}, {
+    readonly locale: "he";
+    readonly label: "עברית";
+}, {
+    readonly locale: "it";
+    readonly label: "Italiano";
+}, {
+    readonly locale: "ja";
+    readonly label: "日本語";
+}, {
+    readonly locale: "ko-kr";
+    readonly label: "한국어";
+}, {
+    readonly locale: "ku";
+    readonly label: "کوردی";
+}, {
+    readonly locale: "hi-in";
+    readonly label: "हिन्दी";
+}, {
+    readonly locale: "hu";
+    readonly label: "Magyar";
+}, {
+    readonly locale: "my";
+    readonly label: "မြန်မာစာ";
+}, {
+    readonly locale: "ne";
+    readonly label: "नेपाली";
+}, {
+    readonly locale: "no";
+    readonly label: "Norwegian";
+}, {
+    readonly locale: "pl";
+    readonly label: "Polski";
+}, {
+    readonly locale: "pt-br";
+    readonly label: "Português - Brasil";
+}, {
+    readonly locale: "pt-pt";
+    readonly label: "Português - Europeu";
+}, {
+    readonly locale: "ro";
+    readonly label: "Română";
+}, {
+    readonly locale: "ru";
+    readonly label: "Russian";
+}, {
+    readonly locale: "sv";
+    readonly label: "Svenska";
+}, {
+    readonly locale: "te";
+    readonly label: "తెలుగు";
+}, {
+    readonly locale: "th";
+    readonly label: "ภาษาไทย";
+}, {
+    readonly locale: "tr";
+    readonly label: "Türkçe";
+}, {
+    readonly locale: "uk";
+    readonly label: "Ukrainian";
+}, {
+    readonly locale: "vi";
+    readonly label: "Tiếng Việt";
+}, {
+    readonly locale: "zh-cn";
+    readonly label: "Chinese - Simplified";
+}, {
+    readonly locale: "zh-tw";
+    readonly label: "繁體中文 (台灣)";
+}];
 
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
@@ -1752,6 +2128,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     static type: string;
 }
 
+// @internal (undocumented)
+export const opacityValidator: T.Validator<number>;
+
 // @public (undocumented)
 export function openWindow(url: string, target?: string): void;
 
@@ -1759,6 +2138,18 @@ export function openWindow(url: string, target?: string): void;
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
     fallback: ((error: unknown) => React_3.ReactNode) | null;
 }): JSX.Element;
+
+// @internal (undocumented)
+export const pageIdValidator: T.Validator<TLPageId>;
+
+// @public (undocumented)
+export const PageRecordType: RecordType<TLPage, "index" | "name">;
+
+// @public (undocumented)
+export const parentIdValidator: T.Validator<TLParentId>;
+
+// @public (undocumented)
+export const PointerRecordType: RecordType<TLPointer, never>;
 
 // @public
 export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
@@ -1777,6 +2168,9 @@ export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
 
 // @internal (undocumented)
 export const RICH_TYPES: Record<string, boolean>;
+
+// @internal (undocumented)
+export const rootShapeMigrations: Migrations;
 
 // @public (undocumented)
 export function rotateBoxShadow(rotation: number, shadows: {
@@ -1804,6 +2198,9 @@ export const runtime: {
 };
 
 // @internal (undocumented)
+export const scribbleValidator: T.Validator<TLScribble>;
+
+// @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @public (undocumented)
@@ -1817,6 +2214,9 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 
 // @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
+
+// @public (undocumented)
+export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @public (undocumented)
 export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
@@ -1892,8 +2292,14 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     static type: string;
 }
 
+// @internal (undocumented)
+export const sizeValidator: T.Validator<"l" | "m" | "s" | "xl">;
+
 // @public (undocumented)
 export function snapToGrid(n: number, gridSize: number): number;
+
+// @internal (undocumented)
+export const splineValidator: T.Validator<"cubic" | "line">;
 
 // @public (undocumented)
 export abstract class StateNode implements Partial<TLEventHandlers> {
@@ -2086,10 +2492,135 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 }
 
 // @public (undocumented)
+export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
+
+// @public (undocumented)
+export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+
+// @public (undocumented)
+export const TL_COLOR_TYPES: Set<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+
+// @public (undocumented)
+export const TL_DASH_TYPES: Set<"dashed" | "dotted" | "draw" | "solid">;
+
+// @public (undocumented)
+export const TL_FILL_TYPES: Set<"none" | "pattern" | "semi" | "solid">;
+
+// @public (undocumented)
+export const TL_FONT_TYPES: Set<"draw" | "mono" | "sans" | "serif">;
+
+// @public (undocumented)
+export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+
+// @public (undocumented)
+export const TL_SIZE_TYPES: Set<"l" | "m" | "s" | "xl">;
+
+// @public (undocumented)
+export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
+
+// @public (undocumented)
+export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "size" | "spline" | "verticalAlign">;
+
+// @public
+export const TL_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public (undocumented)
+export interface TLAlignStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLAlignType;
+    // (undocumented)
+    type: 'align';
+}
+
+// @public (undocumented)
+export type TLAlignType = SetValue<typeof TL_ALIGN_TYPES>;
+
+// @public (undocumented)
 export type TLAnimationOptions = Partial<{
     duration: number;
     easing: typeof EASINGS.easeInOutCubic;
 }>;
+
+// @public (undocumented)
+export interface TLArrowheadEndStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLArrowheadType;
+    // (undocumented)
+    type: 'arrowheadEnd';
+}
+
+// @public (undocumented)
+export interface TLArrowheadStartStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLArrowheadType;
+    // (undocumented)
+    type: 'arrowheadStart';
+}
+
+// @public (undocumented)
+export type TLArrowheadType = SetValue<typeof TL_ARROWHEAD_TYPES>;
+
+// @public (undocumented)
+export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>;
+
+// @public (undocumented)
+export type TLArrowShapeProps = {
+    labelColor: TLColorType;
+    color: TLColorType;
+    fill: TLFillType;
+    dash: TLDashType;
+    size: TLSizeType;
+    arrowheadStart: TLArrowheadType;
+    arrowheadEnd: TLArrowheadType;
+    font: TLFontType;
+    start: TLArrowTerminal;
+    end: TLArrowTerminal;
+    bend: number;
+    text: string;
+};
+
+// @public (undocumented)
+export type TLArrowTerminal = {
+    type: 'binding';
+    boundShapeId: TLShapeId;
+    normalizedAnchor: Vec2dModel;
+    isExact: boolean;
+} | {
+    type: 'point';
+    x: number;
+    y: number;
+};
+
+// @public (undocumented)
+export type TLArrowTerminalType = SetValue<typeof TL_ARROW_TERMINAL_TYPE>;
+
+// @public (undocumented)
+export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
+
+// @public (undocumented)
+export type TLAssetId = RecordId<TLBaseAsset<any, any>>;
+
+// @public (undocumented)
+export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
+    id: TLAssetId;
+    type: T['type'];
+    props?: Partial<T['props']>;
+} & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
+
+// @public (undocumented)
+export type TLAssetShape = Extract<TLShape, {
+    props: {
+        assetId: TLAssetId;
+    };
+}>;
+
+// @public (undocumented)
+export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
+    // (undocumented)
+    props: Props;
+    // (undocumented)
+    type: Type;
+}
 
 // @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
@@ -2108,6 +2639,52 @@ export interface TLBaseEventInfo {
     // (undocumented)
     type: UiEventType;
 }
+
+// @public (undocumented)
+export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
+    // (undocumented)
+    index: string;
+    // (undocumented)
+    isLocked: boolean;
+    // (undocumented)
+    opacity: TLOpacityType;
+    // (undocumented)
+    parentId: TLParentId;
+    // (undocumented)
+    props: Props;
+    // (undocumented)
+    rotation: number;
+    // (undocumented)
+    type: Type;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
+    title: string;
+    description: string;
+    image: string;
+    src: null | string;
+}>;
+
+// @public (undocumented)
+export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>;
+
+// @public
+export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+    // (undocumented)
+    z: number;
+}
+
+// @public
+export type TLCameraId = RecordId<TLCamera>;
 
 // @public (undocumented)
 export type TLCancelEvent = (info: TLCancelEventInfo) => void;
@@ -2133,6 +2710,17 @@ export type TLClickEventInfo = TLBaseEventInfo & {
 
 // @public (undocumented)
 export type TLCLickEventName = 'double_click' | 'quadruple_click' | 'triple_click';
+
+// @public (undocumented)
+export interface TLColorStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLColorType;
+    // (undocumented)
+    type: 'color';
+}
+
+// @public (undocumented)
+export type TLColorType = SetValue<typeof TL_COLOR_TYPES>;
 
 // @public (undocumented)
 export type TLCommand<Name extends string = any, Data = any> = {
@@ -2175,6 +2763,44 @@ export interface TLContent {
 // @public (undocumented)
 export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 
+// @public
+export interface TLCursor {
+    // (undocumented)
+    color: TLUIColor;
+    // (undocumented)
+    rotation: number;
+    // (undocumented)
+    type: TLCursorType;
+}
+
+// @public
+export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
+
+// @public (undocumented)
+export interface TLDashStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLDashType;
+    // (undocumented)
+    type: 'dash';
+}
+
+// @public (undocumented)
+export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
+
+// @public
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+
+// @public
+export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
+    // (undocumented)
+    gridSize: number;
+    // (undocumented)
+    name: string;
+}
+
+// @public (undocumented)
+export const TLDOCUMENT_ID: RecordId<TLDocument>;
+
 // @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
@@ -2202,6 +2828,15 @@ export type TldrawEditorProps = {
     sessionId?: string;
     defaultName?: string;
 });
+
+// @public (undocumented)
+export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>;
+
+// @public (undocumented)
+export type TLDrawShapeSegment = {
+    type: SetValue<typeof TL_DRAW_SHAPE_SEGMENT_TYPE>;
+    points: Vec2dModel[];
+};
 
 // @public (undocumented)
 export type TLEditorAssetUrls = {
@@ -2268,6 +2903,14 @@ export type TLEmbedResult = {
     url: string;
     embedUrl: string;
 } | undefined;
+
+// @public (undocumented)
+export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
+
+// @public (undocumented)
+export type TLEmbedShapePermissions = {
+    [K in keyof typeof embedShapePermissionDefaults]?: boolean;
+};
 
 // @public (undocumented)
 export type TLEnterEventHandler = (info: any, from: string) => void;
@@ -2377,6 +3020,69 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
+export interface TLFillStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLFillType;
+    // (undocumented)
+    type: 'fill';
+}
+
+// @public (undocumented)
+export type TLFillType = SetValue<typeof TL_FILL_TYPES>;
+
+// @public (undocumented)
+export interface TLFontStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLFontType;
+    // (undocumented)
+    type: 'font';
+}
+
+// @public (undocumented)
+export type TLFontType = SetValue<typeof TL_FONT_TYPES>;
+
+// @public (undocumented)
+export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
+
+// @public (undocumented)
+export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>;
+
+// @public (undocumented)
+export interface TLGeoStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLGeoType;
+    // (undocumented)
+    type: 'geo';
+}
+
+// @public (undocumented)
+export type TLGeoType = SetValue<typeof TL_GEO_TYPES>;
+
+// @public (undocumented)
+export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
+
+// @public
+export interface TLHandle {
+    // (undocumented)
+    canBind?: boolean;
+    id: string;
+    // (undocumented)
+    index: string;
+    // (undocumented)
+    type: TLHandleType;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>;
+
+// @public (undocumented)
+export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>;
+
+// @public (undocumented)
 export type TLHistoryEntry = TLCommand | TLHistoryMark;
 
 // @public (undocumented)
@@ -2386,6 +3092,149 @@ export type TLHistoryMark = {
     onUndo: boolean;
     onRedo: boolean;
 };
+
+// @public (undocumented)
+export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>;
+
+// @public (undocumented)
+export interface TLIconStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLIconType;
+    // (undocumented)
+    type: 'icon';
+}
+
+// @public (undocumented)
+export type TLIconType = SetValue<typeof TL_ICON_TYPES>;
+
+// @public
+export type TLImageAsset = TLBaseAsset<'image', {
+    w: number;
+    h: number;
+    name: string;
+    isAnimated: boolean;
+    mimeType: null | string;
+    src: null | string;
+}>;
+
+// @public (undocumented)
+export type TLImageCrop = {
+    topLeft: Vec2dModel;
+    bottomRight: Vec2dModel;
+};
+
+// @public (undocumented)
+export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
+
+// @public (undocumented)
+export type TLImageShapeProps = {
+    url: string;
+    playing: boolean;
+    w: number;
+    h: number;
+    assetId: null | TLAssetId;
+    crop: null | TLImageCrop;
+};
+
+// @public
+export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
+    // (undocumented)
+    brush: Box2dModel | null;
+    // (undocumented)
+    currentPageId: TLPageId;
+    // (undocumented)
+    cursor: TLCursor;
+    // (undocumented)
+    exportBackground: boolean;
+    // (undocumented)
+    followingUserId: null | string;
+    // (undocumented)
+    isDebugMode: boolean;
+    // (undocumented)
+    isFocusMode: boolean;
+    // (undocumented)
+    isGridMode: boolean;
+    // (undocumented)
+    isPenMode: boolean;
+    // (undocumented)
+    isToolLocked: boolean;
+    // (undocumented)
+    opacityForNextShape: TLOpacityType;
+    // (undocumented)
+    propsForNextShape: TLInstancePropsForNextShape;
+    // (undocumented)
+    screenBounds: Box2dModel;
+    // (undocumented)
+    scribble: null | TLScribble;
+    // (undocumented)
+    zoomBrush: Box2dModel | null;
+}
+
+// @public (undocumented)
+export const TLINSTANCE_ID: TLInstanceId;
+
+// @public (undocumented)
+export type TLInstanceId = RecordId<TLInstance>;
+
+// @public
+export interface TLInstancePageState extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
+    // (undocumented)
+    croppingId: null | TLShapeId;
+    // (undocumented)
+    editingId: null | TLShapeId;
+    // (undocumented)
+    erasingIds: TLShapeId[];
+    // (undocumented)
+    focusLayerId: null | TLShapeId;
+    // (undocumented)
+    hintingIds: TLShapeId[];
+    // (undocumented)
+    hoveredId: null | TLShapeId;
+    // (undocumented)
+    pageId: RecordId<TLPage>;
+    // (undocumented)
+    selectedIds: TLShapeId[];
+}
+
+// @public (undocumented)
+export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
+    // (undocumented)
+    brush: Box2dModel | null;
+    // (undocumented)
+    camera: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    // (undocumented)
+    color: string;
+    // (undocumented)
+    currentPageId: TLPageId;
+    // (undocumented)
+    cursor: {
+        x: number;
+        y: number;
+        type: TLCursor['type'];
+        rotation: number;
+    };
+    // (undocumented)
+    followingUserId: null | string;
+    // (undocumented)
+    lastActivityTimestamp: number;
+    // (undocumented)
+    screenBounds: Box2dModel;
+    // (undocumented)
+    scribble: null | TLScribble;
+    // (undocumented)
+    selectedIds: TLShapeId[];
+    // (undocumented)
+    userId: string;
+    // (undocumented)
+    userName: string;
+}
+
+// @public (undocumented)
+export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>;
 
 // @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
@@ -2409,6 +3258,20 @@ export type TLKeyboardEventInfo = TLBaseEventInfo & {
 
 // @public (undocumented)
 export type TLKeyboardEventName = 'key_down' | 'key_repeat' | 'key_up';
+
+// @public (undocumented)
+export type TLLanguage = (typeof LANGUAGES)[number];
+
+// @public (undocumented)
+export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>;
+
+// @public (undocumented)
+export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
+
+// @public (undocumented)
+export type TLNullableShapeProps = {
+    [K in TLShapeProp]?: null | TLShapeProps[K];
+};
 
 // @public (undocumented)
 export type TLOnBeforeCreateHandler<T extends TLShape> = (next: T) => T | void;
@@ -2471,6 +3334,23 @@ export type TLOnTranslateHandler<T extends TLShape> = TLEventChangeHandler<T>;
 export type TLOnTranslateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
 
 // @public (undocumented)
+export type TLOpacityType = number;
+
+// @public
+export interface TLPage extends BaseRecord<'page', TLPageId> {
+    // (undocumented)
+    index: string;
+    // (undocumented)
+    name: string;
+}
+
+// @public (undocumented)
+export type TLPageId = RecordId<TLPage>;
+
+// @public (undocumented)
+export type TLParentId = TLPageId | TLShapeId;
+
+// @public (undocumented)
 export type TLPinchEvent = (info: TLPinchEventInfo) => void;
 
 // @public (undocumented)
@@ -2483,6 +3363,9 @@ export type TLPinchEventInfo = TLBaseEventInfo & {
 
 // @public (undocumented)
 export type TLPinchEventName = 'pinch_end' | 'pinch_start' | 'pinch';
+
+// @public (undocumented)
+export const TLPOINTER_ID: TLPointerId;
 
 // @public (undocumented)
 export type TLPointerEvent = (info: TLPointerEventInfo) => void;
@@ -2518,6 +3401,9 @@ export type TLPointerEventTarget = {
 };
 
 // @public (undocumented)
+export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
+
+// @public (undocumented)
 export type TLResizeHandle = SelectionCorner | SelectionEdge;
 
 // @public
@@ -2533,6 +3419,16 @@ export type TLResizeInfo<T extends TLShape> = {
 
 // @public
 export type TLResizeMode = 'resize_bounds' | 'scale_shape';
+
+// @public
+export type TLScribble = {
+    points: Vec2dModel[];
+    size: number;
+    color: TLUIColor;
+    opacity: number;
+    state: SetValue<typeof TL_SCRIBBLE_STATES>;
+    delay: number;
+};
 
 // @public (undocumented)
 export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
@@ -2566,6 +3462,25 @@ export interface TLSessionStateSnapshot {
     version: number;
 }
 
+// @public
+export type TLShape = TLDefaultShape | TLUnknownShape;
+
+// @public (undocumented)
+export type TLShapeId = RecordId<TLUnknownShape>;
+
+// @public (undocumented)
+export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
+    id: TLShapeId;
+    type: T['type'];
+    props?: Partial<T['props']>;
+} & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
+
+// @public (undocumented)
+export type TLShapeProp = keyof TLShapeProps;
+
+// @public (undocumented)
+export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
+
 // @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
@@ -2576,6 +3491,28 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
 
 // @public (undocumented)
 export type TLShapeUtilFlag<T> = (shape: T) => boolean;
+
+// @public (undocumented)
+export interface TLSizeStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLSizeType;
+    // (undocumented)
+    type: 'size';
+}
+
+// @public (undocumented)
+export type TLSizeType = SetValue<typeof TL_SIZE_TYPES>;
+
+// @public (undocumented)
+export interface TLSplineStyle extends TLBaseStyle {
+    // (undocumented)
+    id: TLSplineType;
+    // (undocumented)
+    type: 'spline';
+}
+
+// @public (undocumented)
+export type TLSplineType = SetValue<typeof TL_SPLINE_TYPES>;
 
 // @public (undocumented)
 export interface TLStateNodeConstructor {
@@ -2590,6 +3527,20 @@ export interface TLStateNodeConstructor {
     // (undocumented)
     styles?: TLStyleType[];
 }
+
+// @public (undocumented)
+export type TLStore = Store<TLRecord, TLStoreProps>;
+
+// @public (undocumented)
+export type TLStoreProps = {
+    defaultName: string;
+};
+
+// @public (undocumented)
+export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
+
+// @public (undocumented)
+export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
 
 // @public (undocumented)
 export type TLStoreWithStatus = {
@@ -2616,7 +3567,63 @@ export type TLStoreWithStatus = {
 };
 
 // @public (undocumented)
+export interface TLStyleCollections {
+    // (undocumented)
+    align: TLAlignStyle[];
+    // (undocumented)
+    arrowheadEnd: TLArrowheadEndStyle[];
+    // (undocumented)
+    arrowheadStart: TLArrowheadStartStyle[];
+    // (undocumented)
+    color: TLColorStyle[];
+    // (undocumented)
+    dash: TLDashStyle[];
+    // (undocumented)
+    fill: TLFillStyle[];
+    // (undocumented)
+    font: TLFontStyle[];
+    // (undocumented)
+    geo: TLGeoStyle[];
+    // (undocumented)
+    size: TLSizeStyle[];
+    // (undocumented)
+    spline: TLSplineStyle[];
+    // (undocumented)
+    verticalAlign: TLVerticalAlignStyle[];
+}
+
+// @public (undocumented)
+export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLSizeStyle | TLSplineStyle | TLVerticalAlignStyle;
+
+// @public (undocumented)
+export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;
+
+// @public (undocumented)
+export type TLStyleType = SetValue<typeof TL_STYLE_TYPES>;
+
+// @public (undocumented)
+export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
+
+// @public (undocumented)
+export type TLTextShapeProps = {
+    color: TLColorType;
+    size: TLSizeType;
+    font: TLFontType;
+    align: TLAlignType;
+    w: number;
+    text: string;
+    scale: number;
+    autoSize: boolean;
+};
+
+// @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;
+
+// @public
+export type TLUIColor = SetValue<typeof TL_UI_COLOR_TYPES>;
+
+// @public
+export type TLUnknownShape = TLBaseShape<string, object>;
 
 // @public
 export interface TLUserPreferences {
@@ -2637,6 +3644,22 @@ export interface TLUserPreferences {
 }
 
 // @public (undocumented)
+export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>;
+
+// @public
+export type TLVideoAsset = TLBaseAsset<'video', {
+    w: number;
+    h: number;
+    name: string;
+    isAnimated: boolean;
+    mimeType: null | string;
+    src: null | string;
+}>;
+
+// @public (undocumented)
+export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
+
+// @public (undocumented)
 export type TLWheelEvent = (info: TLWheelEventInfo) => void;
 
 // @public (undocumented)
@@ -2648,6 +3671,9 @@ export type TLWheelEventInfo = TLBaseEventInfo & {
 
 // @public (undocumented)
 export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
+
+// @public
+export const uiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public (undocumented)
 export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboardEvent | TLPinchEvent | TLPointerEvent;
@@ -2690,6 +3716,11 @@ export function useReactor(name: string, reactFn: () => void, deps?: any[] | und
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
+
+export { Vec2dModel }
+
+// @internal (undocumented)
+export const verticalAlignValidator: T.Validator<"end" | "middle" | "start">;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
@@ -2735,7 +3766,6 @@ export const ZOOMS: number[];
 
 
 export * from "@tldraw/indices";
-export * from "@tldraw/tlschema";
 
 // (No @packageDocumentation comment for this package)
 

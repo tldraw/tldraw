@@ -4415,7 +4415,6 @@ __metadata:
     "@tldraw/primitives": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
-    "@tldraw/tlschema": "workspace:*"
     "@tldraw/ui": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -4453,7 +4452,6 @@ __metadata:
     "@tldraw/indices": "workspace:*"
     "@tldraw/primitives": "workspace:*"
     "@tldraw/store": "workspace:*"
-    "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": ^2.1.2
@@ -4562,7 +4560,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/primitives@workspace:packages/primitives"
   dependencies:
-    "@tldraw/tlschema": "workspace:*"
     lazyrepo: 0.0.0-alpha.27
   languageName: unknown
   linkType: soft
@@ -4629,21 +4626,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/tlschema@workspace:*, @tldraw/tlschema@workspace:packages/tlschema":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/tlschema@workspace:packages/tlschema"
-  dependencies:
-    "@tldraw/store": "workspace:*"
-    "@tldraw/utils": "workspace:*"
-    "@tldraw/validate": "workspace:*"
-    kleur: ^4.1.5
-    lazyrepo: 0.0.0-alpha.27
-    nanoid: 4.0.2
-  peerDependencies:
-    signia: "*"
-  languageName: unknown
-  linkType: soft
-
 "@tldraw/ui@workspace:*, @tldraw/ui@workspace:packages/ui":
   version: 0.0.0-use.local
   resolution: "@tldraw/ui@workspace:packages/ui"
@@ -4661,7 +4643,6 @@ __metadata:
     "@testing-library/react": ^12.0.0
     "@tldraw/editor": "workspace:*"
     "@tldraw/primitives": "workspace:*"
-    "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/lz-string": ^1.3.34
     browser-fs-access: ^0.31.0

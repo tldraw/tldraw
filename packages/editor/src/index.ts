@@ -1,5 +1,6 @@
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/indices'
+export { type Box2dModel, type Vec2dModel } from '@tldraw/primitives'
 export { getHashForString } from '@tldraw/utils'
 export {
 	ErrorScreen,
