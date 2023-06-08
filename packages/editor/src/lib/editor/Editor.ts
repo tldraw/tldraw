@@ -8770,40 +8770,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/**
-	 * Get the latest presence info for a user.
-	 *
-	 * @param userId - The id of the user to get the presence for.
-	 * @public
-	 */
-	getLatestPresence(userId: string) {
-		const $presences = this.store.query.records('instance_presence', () => ({
-			userId: { eq: userId },
-		}))
-
-		const latestPresence = $presences.value
-			.slice()
-			.sort((a, b) => a.lastActivityTimestamp - b.lastActivityTimestamp)[0]
-
-		return latestPresence ?? null
-	}
-
-	/**
-	 * Bump a user's presence. Update their latest timestamp to the current time.
-	 *
-	 * @param userId - The id of the user to bump the presence for.
-	 * @public
-	 */
-	bumpPresence(userId: string) {
-		const latestPresence = this.getLatestPresence(userId)
-		if (!latestPresence) return
-
-		this.store.update(latestPresence.id, (prev) => ({
-			...prev,
-			lastActivityTimestamp: Date.now(),
-		}))
-	}
-
 	animateToShape(shapeId: TLShapeId, opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
 		if (!this.canMoveCamera) return this
 
