@@ -352,7 +352,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, tools, shapes, getContainer, }: TLEditorOptions);
-    addOpenMenu: (id: string) => this;
+    addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
     animateCamera(x: number, y: number, z?: number, opts?: TLAnimationOptions): this;
@@ -426,13 +426,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     get cursor(): TLCursor;
     deleteAssets(ids: TLAssetId[]): this;
-    deleteOpenMenu: (id: string) => this;
+    deleteOpenMenu(id: string): this;
     deletePage(id: TLPageId): void;
     deleteShapes(ids?: TLShapeId[]): this;
     deselect(...ids: TLShapeId[]): this;
     // (undocumented)
     get devicePixelRatio(): number;
-    dispatch: (info: TLEventInfo) => this;
+    dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -704,7 +704,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     setProjectName(name: string): void;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
-    // @internal (undocumented)
+    // (undocumented)
     setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
@@ -729,9 +729,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly snaps: SnapManager;
     get sortedShapesArray(): TLShape[];
     stackShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[], gap?: number): this;
-    startFollowingUser: (userId: string) => this | undefined;
+    startFollowingUser(userId: string): this | undefined;
     stopCameraAnimation(): this;
-    stopFollowingUser: () => this;
+    stopFollowingUser(): this;
     readonly store: TLStore;
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
     static styles: TLStyleCollections;
@@ -744,13 +744,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     // @internal
     updateCullingBounds(): this;
-    // @internal (undocumented)
+    // (undocumented)
     updateDocumentSettings(settings: Partial<TLDocument>): void;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
-    // @internal (undocumented)
+    // (undocumented)
     readonly user: UserPreferencesManager;
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
