@@ -1,4 +1,4 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useValue } from 'signia-react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -8,31 +8,31 @@ import { Icon } from './primitives/Icon'
 import { Popover, PopoverContent, PopoverTrigger } from './primitives/Popover'
 
 export function MobileStylePanel() {
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const currentColor = useValue(
 		'current color',
 		() => {
-			const { props } = app
-			return props ? (props.color ? app.getCssColor(props.color) : null) : 'var(--color-muted-1)'
+			const { props } = editor
+			return props ? (props.color ? editor.getCssColor(props.color) : null) : 'var(--color-muted-1)'
 		},
-		[app]
+		[editor]
 	)
 
 	const disableStylePanel = useValue(
 		'isHandOrEraserToolActive',
-		() => app.isInAny('hand', 'zoom', 'eraser'),
-		[app]
+		() => editor.isInAny('hand', 'zoom', 'eraser'),
+		[editor]
 	)
 
 	const handleStylesOpenChange = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
-				app.isChangingStyle = false
+				editor.isChangingStyle = false
 			}
 		},
-		[app]
+		[editor]
 	)
 
 	return (

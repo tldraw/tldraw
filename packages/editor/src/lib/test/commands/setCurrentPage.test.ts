@@ -1,91 +1,82 @@
-import { createCustomShapeId, PageRecordType, TLPageId } from '@tldraw/tlschema'
-import { TestApp } from '../TestApp'
+import { PageRecordType, TLPageId, createShapeId } from '@tldraw/tlschema'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 
 describe('setCurrentPage', () => {
 	it('sets the current page', () => {
-		const page1Id = app.pages[0].id
-		const page2Id = PageRecordType.createCustomId('page2')
+		const page1Id = editor.pages[0].id
+		const page2Id = PageRecordType.createId('page2')
 
-		app.createPage('New Page 2', page2Id)
-		expect(app.currentPageId).toEqual(page2Id)
-		expect(app.currentPage).toEqual(app.pages[1])
+		editor.createPage('New Page 2', page2Id)
+		expect(editor.currentPageId).toEqual(page2Id)
+		expect(editor.currentPage).toEqual(editor.pages[1])
 
-		app.setCurrentPageId(page1Id)
+		editor.setCurrentPageId(page1Id)
 
-		expect(app.currentPage).toEqual(app.pages[0])
+		expect(editor.currentPage).toEqual(editor.pages[0])
 
-		const page3Id = PageRecordType.createCustomId('page3')
-		app.createPage('New Page 3', page3Id)
+		const page3Id = PageRecordType.createId('page3')
+		editor.createPage('New Page 3', page3Id)
 
-		expect(app.currentPageId).toEqual(page3Id)
-		expect(app.currentPage).toEqual(app.pages[2])
+		expect(editor.currentPageId).toEqual(page3Id)
+		expect(editor.currentPage).toEqual(editor.pages[2])
 
-		app.setCurrentPageId(app.pages[0].id)
+		editor.setCurrentPageId(editor.pages[0].id)
 
-		expect(app.currentPageId).toEqual(app.pages[0].id)
-		expect(app.currentPage).toEqual(app.pages[0])
+		expect(editor.currentPageId).toEqual(editor.pages[0].id)
+		expect(editor.currentPage).toEqual(editor.pages[0])
 	})
 
-	it('adds tab state for the page if it doesnt already exist', () => {
-		app.setCamera(1, 2, 4)
-		expect(app.camera).toMatchObject({ x: 1, y: 2, z: 4 })
-
+	it("adding a page to the store by any means adds tab state for the page if it doesn't already exist", () => {
 		const page = PageRecordType.create({ name: 'test', index: 'a4' })
-		app.store.put([page])
-
-		expect(app.getPageStateByPageId(page.id)).toBeUndefined()
-
-		app.setCurrentPageId(page.id)
-
-		expect(app.getPageStateByPageId(page.id)).not.toBeUndefined()
-
-		expect(app.camera).toMatchObject({ x: 0, y: 0, z: 1 })
+		expect(editor.getPageStateByPageId(page.id)).toBeUndefined()
+		editor.store.put([page])
+		expect(editor.getPageStateByPageId(page.id)).not.toBeUndefined()
 	})
 
 	it('squashes', () => {
-		const page2Id = PageRecordType.createCustomId('page2')
-		app.createPage('New Page 2', page2Id)
+		const page2Id = PageRecordType.createId('page2')
+		editor.createPage('New Page 2', page2Id)
 
-		app.history.clear()
-		app.setCurrentPageId(app.pages[1].id)
-		app.setCurrentPageId(app.pages[0].id)
-		app.setCurrentPageId(app.pages[0].id)
-		expect(app.history.numUndos).toBe(1)
+		editor.history.clear()
+		editor.setCurrentPageId(editor.pages[1].id)
+		editor.setCurrentPageId(editor.pages[0].id)
+		editor.setCurrentPageId(editor.pages[0].id)
+		expect(editor.history.numUndos).toBe(1)
 	})
 
 	it('preserves the undo stack', () => {
-		const boxId = createCustomShapeId('geo')
-		const page2Id = PageRecordType.createCustomId('page2')
-		app.createPage('New Page 2', page2Id)
+		const boxId = createShapeId('geo')
+		const page2Id = PageRecordType.createId('page2')
+		editor.createPage('New Page 2', page2Id)
 
-		app.history.clear()
-		app.createShapes([{ type: 'geo', id: boxId, props: { w: 100, h: 100 } }])
-		app.undo()
-		app.setCurrentPageId(app.pages[1].id)
-		app.setCurrentPageId(app.pages[0].id)
-		app.setCurrentPageId(app.pages[0].id)
-		expect(app.getShapeById(boxId)).toBeUndefined()
-		expect(app.history.numUndos).toBe(1)
-		app.redo()
-		expect(app.getShapeById(boxId)).not.toBeUndefined()
+		editor.history.clear()
+		editor.createShapes([{ type: 'geo', id: boxId, props: { w: 100, h: 100 } }])
+		editor.undo()
+		editor.setCurrentPageId(editor.pages[1].id)
+		editor.setCurrentPageId(editor.pages[0].id)
+		editor.setCurrentPageId(editor.pages[0].id)
+		expect(editor.getShapeById(boxId)).toBeUndefined()
+		expect(editor.history.numUndos).toBe(1)
+		editor.redo()
+		expect(editor.getShapeById(boxId)).not.toBeUndefined()
 	})
 
 	it('logs an error when trying to navigate to a page that does not exist', () => {
-		const page2Id = PageRecordType.createCustomId('page2')
-		app.createPage('New Page 2', page2Id)
+		const page2Id = PageRecordType.createId('page2')
+		editor.createPage('New Page 2', page2Id)
 		console.error = jest.fn()
 
 		expect(() => {
-			app.setCurrentPageId('page:does-not-exist' as TLPageId)
+			editor.setCurrentPageId('page:does-not-exist' as TLPageId)
 		}).not.toThrow()
 
 		expect(console.error).toHaveBeenCalled()
-		expect(app.currentPageId).toEqual(page2Id)
+		expect(editor.currentPageId).toEqual(page2Id)
 	})
 })

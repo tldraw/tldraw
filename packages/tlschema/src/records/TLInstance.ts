@@ -1,25 +1,23 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { Box2dModel } from '../geometry-types'
-import { TL_STYLE_TYPES, TLStyleType } from '../style-types'
-import { cursorValidator, scribbleTypeValidator, TLCursor, TLScribble } from '../ui-types'
-import {
-	alignValidator,
-	arrowheadValidator,
-	colorValidator,
-	dashValidator,
-	fillValidator,
-	fontValidator,
-	geoValidator,
-	iconValidator,
-	idValidator,
-	opacityValidator,
-	pageIdValidator,
-	sizeValidator,
-	splineValidator,
-	verticalAlignValidator,
-} from '../validation'
-import { TLPageId } from './TLPage'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { Box2dModel } from '../misc/geometry-types'
+import { idValidator } from '../misc/id-validator'
+import { cursorValidator, TLCursor } from '../misc/TLCursor'
+import { scribbleValidator, TLScribble } from '../misc/TLScribble'
+import { alignValidator } from '../styles/TLAlignStyle'
+import { arrowheadValidator } from '../styles/TLArrowheadStyle'
+import { TL_STYLE_TYPES, TLStyleType } from '../styles/TLBaseStyle'
+import { colorValidator } from '../styles/TLColorStyle'
+import { dashValidator } from '../styles/TLDashStyle'
+import { fillValidator } from '../styles/TLFillStyle'
+import { fontValidator } from '../styles/TLFontStyle'
+import { geoValidator } from '../styles/TLGeoStyle'
+import { iconValidator } from '../styles/TLIconStyle'
+import { opacityValidator, TLOpacityType } from '../styles/TLOpacityStyle'
+import { sizeValidator } from '../styles/TLSizeStyle'
+import { splineValidator } from '../styles/TLSplineStyle'
+import { verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
+import { pageIdValidator, TLPageId } from './TLPage'
 import { TLShapeProps } from './TLShape'
 
 /** @public */
@@ -36,6 +34,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
 	followingUserId: string | null
 	brush: Box2dModel | null
+	opacityForNextShape: TLOpacityType
 	propsForNextShape: TLInstancePropsForNextShape
 	cursor: TLCursor
 	scribble: TLScribble | null
@@ -45,12 +44,17 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	exportBackground: boolean
 	screenBounds: Box2dModel
 	zoomBrush: Box2dModel | null
+	isPenMode: boolean
+	isGridMode: boolean
 }
 
 /** @public */
-export type TLInstanceId = ID<TLInstance>
+export type TLInstanceId = RecordId<TLInstance>
 
-/** @public */
+/** @internal */
+export const instanceIdValidator = idValidator<TLInstanceId>('instance')
+
+/** @internal */
 export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 	'instance',
 	T.object({
@@ -59,13 +63,13 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		currentPageId: pageIdValidator,
 		followingUserId: T.string.nullable(),
 		brush: T.boxModel.nullable(),
+		opacityForNextShape: opacityValidator,
 		propsForNextShape: T.object({
 			color: colorValidator,
 			labelColor: colorValidator,
 			dash: dashValidator,
 			fill: fillValidator,
 			size: sizeValidator,
-			opacity: opacityValidator,
 			font: fontValidator,
 			align: alignValidator,
 			verticalAlign: verticalAlignValidator,
@@ -76,13 +80,15 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 			spline: splineValidator,
 		}),
 		cursor: cursorValidator,
-		scribble: scribbleTypeValidator.nullable(),
+		scribble: scribbleValidator.nullable(),
 		isFocusMode: T.boolean,
 		isDebugMode: T.boolean,
 		isToolLocked: T.boolean,
 		exportBackground: T.boolean,
 		screenBounds: T.boxModel,
 		zoomBrush: T.boxModel.nullable(),
+		isPenMode: T.boolean,
+		isGridMode: T.boolean,
 	})
 )
 
@@ -98,13 +104,15 @@ const Versions = {
 	AddVerticalAlign: 9,
 	AddScribbleDelay: 10,
 	RemoveUserId: 11,
+	AddIsPenModeAndIsGridMode: 12,
+	HoistOpacity: 13,
 } as const
 
 export { Versions as instanceTypeVersions }
 
 /** @public */
-export const instanceTypeMigrations = defineMigrations({
-	currentVersion: Versions.RemoveUserId,
+export const instanceMigrations = defineMigrations({
+	currentVersion: Versions.HoistOpacity,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -242,19 +250,50 @@ export const instanceTypeMigrations = defineMigrations({
 				return { ...instance, userId: 'user:none' }
 			},
 		},
+		[Versions.AddIsPenModeAndIsGridMode]: {
+			up: (instance: TLInstance) => {
+				return { ...instance, isPenMode: false, isGridMode: false }
+			},
+			down: ({ isPenMode: _, isGridMode: __, ...instance }: TLInstance) => {
+				return instance
+			},
+		},
+		[Versions.HoistOpacity]: {
+			up: ({ propsForNextShape: { opacity, ...propsForNextShape }, ...instance }: any) => {
+				return { ...instance, opacityForNextShape: Number(opacity ?? '1'), propsForNextShape }
+			},
+			down: ({ opacityForNextShape: opacity, ...instance }: any) => {
+				return {
+					...instance,
+					propsForNextShape: {
+						...instance.propsForNextShape,
+						opacity:
+							opacity < 0.175
+								? '0.1'
+								: opacity < 0.375
+								? '0.25'
+								: opacity < 0.625
+								? '0.5'
+								: opacity < 0.875
+								? '0.75'
+								: '1',
+					},
+				}
+			},
+		},
 	},
 })
 
 /** @public */
 export const InstanceRecordType = createRecordType<TLInstance>('instance', {
-	migrations: instanceTypeMigrations,
+	migrations: instanceMigrations,
 	validator: instanceTypeValidator,
-	scope: 'instance',
+	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
 		followingUserId: null,
+		opacityForNextShape: 1,
 		propsForNextShape: {
-			opacity: '1',
 			color: 'black',
 			labelColor: 'black',
 			dash: 'draw',
@@ -282,5 +321,10 @@ export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 		isToolLocked: false,
 		screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
 		zoomBrush: null,
+		isGridMode: false,
+		isPenMode: false,
 	})
 )
+
+/** @public */
+export const TLINSTANCE_ID = InstanceRecordType.createId('instance')

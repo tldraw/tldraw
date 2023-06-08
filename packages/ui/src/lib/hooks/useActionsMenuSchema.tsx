@@ -1,8 +1,8 @@
-import { App, useApp } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
 import {
-	MenuSchema,
+	TLUiMenuSchema,
 	menuItem,
 	useAllowGroup,
 	useAllowUngroup,
@@ -13,35 +13,35 @@ import { useBreakpoint } from './useBreakpoint'
 import { useHasLinkShapeSelected } from './useHasLinkShapeSelected'
 
 /** @public */
-export type ActionsMenuSchemaContextType = MenuSchema
+export type TLUiActionsMenuSchemaContextType = TLUiMenuSchema
 
-/** @public */
-export const ActionsMenuSchemaContext = React.createContext({} as ActionsMenuSchemaContextType)
+/** @internal */
+export const ActionsMenuSchemaContext = React.createContext({} as TLUiActionsMenuSchemaContextType)
 
 /** @public */
 export type ActionsMenuSchemaProviderProps = {
 	overrides?: (
-		app: App,
-		schema: ActionsMenuSchemaContextType,
+		editor: Editor,
+		schema: TLUiActionsMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
 			oneSelected: boolean
 			twoSelected: boolean
 			threeSelected: boolean
 		}
-	) => ActionsMenuSchemaContextType
+	) => TLUiActionsMenuSchemaContextType
 	children: any
 }
 
-/** @public */
+/** @internal */
 export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvider({
 	overrides,
 	children,
 }: ActionsMenuSchemaProviderProps) {
-	const app = useApp()
+	const editor = useEditor()
 	const actions = useActions()
 
-	const selectedCount = app.selectedIds.length
+	const selectedCount = editor.selectedIds.length
 
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -51,9 +51,9 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 	const allowUngroup = useAllowUngroup()
 	const showEditLink = useHasLinkShapeSelected()
 	const breakpoint = useBreakpoint()
-	const isZoomedTo100 = app.zoomLevel === 1
+	const isZoomedTo100 = editor.zoomLevel === 1
 
-	const actionMenuSchema = useMemo<MenuSchema>(() => {
+	const actionTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
 		const results = [
 			menuItem(actions['align-left'], { disabled: !twoSelected }),
 			menuItem(actions['align-center-horizontal'], { disabled: !twoSelected }),
@@ -84,12 +84,12 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 		]
 
 		if (overrides) {
-			return overrides(app, results, { actions, oneSelected, twoSelected, threeSelected })
+			return overrides(editor, results, { actions, oneSelected, twoSelected, threeSelected })
 		}
 
 		return results
 	}, [
-		app,
+		editor,
 		isZoomedTo100,
 		allowGroup,
 		overrides,
@@ -104,14 +104,14 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 	])
 
 	return (
-		<ActionsMenuSchemaContext.Provider value={actionMenuSchema}>
+		<ActionsMenuSchemaContext.Provider value={actionTLUiMenuSchema}>
 			{children}
 		</ActionsMenuSchemaContext.Provider>
 	)
 })
 
 /** @public */
-export function useActionsMenuSchema(): MenuSchema {
+export function useActionsMenuSchema(): TLUiMenuSchema {
 	const ctx = React.useContext(ActionsMenuSchemaContext)
 
 	if (!ctx) {

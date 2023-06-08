@@ -1,17 +1,17 @@
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 
 jest.useFakeTimers()
 
-let app: TestApp
+let editor: TestEditor
 
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 
-	app.createShapes([])
+	editor.createShapes([])
 })
 
 describe('When panning with the spacebar...', () => {

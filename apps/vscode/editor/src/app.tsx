@@ -1,32 +1,20 @@
-import {
-	App,
-	Canvas,
-	ErrorBoundary,
-	setRuntimeOverrides,
-	TldrawEditor,
-	TldrawEditorConfig,
-} from '@tldraw/editor'
+import { Canvas, Editor, ErrorBoundary, TldrawEditor, setRuntimeOverrides } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/editor/editor.css'
-import { TAB_ID, useLocalSyncClient } from '@tldraw/tlsync-client'
-import { ContextMenu, MenuSchema, TldrawUi } from '@tldraw/ui'
-// eslint-disable-next-line import/no-internal-modules
-import { getAssetUrlsByImport } from '@tldraw/assets/imports'
+import { ContextMenu, TLUiMenuSchema, TldrawUi } from '@tldraw/ui'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/ui/ui.css'
-import { useEffect, useMemo, useState } from 'react'
+// eslint-disable-next-line import/no-internal-modules
+import { getAssetUrlsByImport } from '@tldraw/assets/imports'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
 import { ChangeResponder } from './ChangeResponder'
 import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
-import { onCreateBookmarkFromUrl } from './utils/bookmarks'
+import { onCreateAssetFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
-
-const config = new TldrawEditorConfig()
-
-// @ts-ignore
 
 setRuntimeOverrides({
 	openWindow: (url, target) => {
@@ -69,7 +57,7 @@ export function WrappedTldrawEditor() {
 }
 
 const menuOverrides = {
-	menu: (_app: App, schema: MenuSchema, _helpers: any) => {
+	menu: (_editor: Editor, schema: TLUiMenuSchema, _helpers: any) => {
 		schema.forEach((item) => {
 			if (item.id === 'menu' && item.type === 'group') {
 				item.children = item.children.filter((menuItem) => {
@@ -97,7 +85,6 @@ export const TldrawWrapper = () => {
 						fileContents: message.data.fileContents,
 						uri: message.data.uri,
 						isDarkMode: message.data.isDarkMode,
-						config,
 					})
 					// We only want to listen for this message once
 					window.removeEventListener('message', handleMessage)
@@ -127,32 +114,21 @@ export type TLDrawInnerProps = {
 	fileContents: string
 	uri: string
 	isDarkMode: boolean
-	config: TldrawEditorConfig
 }
 
-function TldrawInner({ uri, config, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
-	const instanceId = TAB_ID
-	const syncedStore = useLocalSyncClient({
-		universalPersistenceKey: uri,
-		instanceId,
-		config,
-	})
-
+function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
+	const handleMount = useCallback((editor: Editor) => {
+		editor.externalContentManager.createAssetFromUrl = onCreateAssetFromUrl
+	}, [])
+
 	return (
-		<TldrawEditor
-			config={config}
-			assetUrls={assetUrls}
-			instanceId={TAB_ID}
-			store={syncedStore}
-			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
-			autoFocus
-		>
+		<TldrawEditor assetUrls={assetUrls} persistenceKey={uri} onMount={handleMount} autoFocus>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
-				<FileOpen instanceId={instanceId} fileContents={fileContents} forceDarkMode={isDarkMode} />
-				<ChangeResponder syncedStore={syncedStore} instanceId={instanceId} />
+				<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />
+				<ChangeResponder />
 				<ContextMenu>
 					<Canvas />
 				</ContextMenu>

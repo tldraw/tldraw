@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { MAX_PAGES, PageRecordType, TLPageId, useApp } from '@tldraw/editor'
+import { MAX_PAGES, PageRecordType, TLPageId, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { track } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -20,28 +20,28 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	item,
 	onRename,
 }: PageItemSubmenuProps) {
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
-	const pages = app.pages
+	const pages = editor.pages
 
 	const onDuplicate = useCallback(() => {
-		app.mark('creating page')
+		editor.mark('creating page')
 		const newId = PageRecordType.createId()
-		app.duplicatePage(item.id as TLPageId, newId)
-	}, [app, item])
+		editor.duplicatePage(item.id as TLPageId, newId)
+	}, [editor, item])
 
 	const onMoveUp = useCallback(() => {
-		onMovePage(app, item.id as TLPageId, index, index - 1)
-	}, [app, item, index])
+		onMovePage(editor, item.id as TLPageId, index, index - 1)
+	}, [editor, item, index])
 
 	const onMoveDown = useCallback(() => {
-		onMovePage(app, item.id as TLPageId, index, index + 1)
-	}, [app, item, index])
+		onMovePage(editor, item.id as TLPageId, index, index + 1)
+	}, [editor, item, index])
 
 	const onDelete = useCallback(() => {
-		app.mark('deleting page')
-		app.deletePage(item.id as TLPageId)
-	}, [app, item])
+		editor.mark('deleting page')
+		editor.deletePage(item.id as TLPageId)
+	}, [editor, item])
 
 	return (
 		<M.Root id={`page item submenu ${index}`}>

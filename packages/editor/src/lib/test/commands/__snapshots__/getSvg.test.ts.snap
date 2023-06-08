@@ -1,14 +1,162 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Matches a snapshot: Basic SVG 1`] = `
-"<svg direction=\\"ltr\\" width=\\"564\\" height=\\"564\\" viewBox=\\"-32 -32 564 564\\" stroke-linecap=\\"round\\" stroke-linejoin=\\"round\\" style=\\"background-color: transparent;\\"><defs><mask id=\\"hash_pattern_mask\\">
-					<rect x=\\"0\\" y=\\"0\\" width=\\"8\\" height=\\"8\\" fill=\\"white\\"></rect>
-					<g strokelinecap=\\"round\\" stroke=\\"black\\">
-						<line x1=\\"0.6666666666666666\\" y1=\\"2\\" x2=\\"2\\" y2=\\"0.6666666666666666\\"></line>
-						<line x1=\\"3.333333333333333\\" y1=\\"4.666666666666666\\" x2=\\"4.666666666666666\\" y2=\\"3.333333333333333\\"></line>
-						<line x1=\\"6\\" y1=\\"7.333333333333333\\" x2=\\"7.333333333333333\\" y2=\\"6\\"></line>
-					</g>
-				</mask><pattern id=\\"hash_pattern\\" width=\\"8\\" height=\\"8\\" patternUnits=\\"userSpaceOnUse\\">
-					<rect x=\\"0\\" y=\\"0\\" width=\\"8\\" height=\\"8\\" fill=\\"\\" mask=\\"url(#hash_pattern_mask)\\"></rect>
-				</pattern><style></style></defs><g transform=\\"matrix(1, 0, 0, 1, 0, 0)\\" opacity=\\"1\\"><path d=\\"M0, 0L100, 0,100, 100,0, 100Z\\" stroke-width=\\"3.5\\" stroke=\\"\\" fill=\\"none\\"></path><g><text font-size=\\"22px\\" font-family=\\"\\" font-style=\\"normal\\" font-weight=\\"normal\\" line-height=\\"29.700000000000003px\\" dominant-baseline=\\"mathematical\\" alignment-baseline=\\"mathematical\\"><tspan alignment-baseline=\\"mathematical\\" x=\\"16px\\" y=\\"-181px\\">Hello&nbsp;world</tspan></text><text font-size=\\"22px\\" font-family=\\"\\" font-style=\\"normal\\" font-weight=\\"normal\\" line-height=\\"29.700000000000003px\\" dominant-baseline=\\"mathematical\\" alignment-baseline=\\"mathematical\\" fill=\\"\\" stroke=\\"none\\"><tspan alignment-baseline=\\"mathematical\\" x=\\"16px\\" y=\\"-181px\\">Hello&nbsp;world</tspan></text></g></g><path d=\\"M0, 0L50, 0,50, 50,0, 50Z\\" stroke-width=\\"3.5\\" stroke=\\"\\" fill=\\"none\\" transform=\\"matrix(1, 0, 0, 1, 100, 100)\\" opacity=\\"1\\"></path><path d=\\"M0, 0L100, 0,100, 100,0, 100Z\\" stroke-width=\\"3.5\\" stroke=\\"\\" fill=\\"none\\" transform=\\"matrix(1, 0, 0, 1, 400, 400)\\" opacity=\\"1\\"></path></svg>"
+<wrapper>
+  <svg
+    direction="ltr"
+    height="564"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    style="background-color: transparent;"
+    viewBox="-32 -32 564 564"
+    width="564"
+  >
+    <defs>
+      <mask
+        id="hash_pattern_mask"
+      >
+        
+					
+        <rect
+          fill="white"
+          height="8"
+          width="8"
+          x="0"
+          y="0"
+        />
+        
+					
+        <g
+          stroke="black"
+          strokelinecap="round"
+        >
+          
+						
+          <line
+            x1="0.6666666666666666"
+            x2="2"
+            y1="2"
+            y2="0.6666666666666666"
+          />
+          
+						
+          <line
+            x1="3.333333333333333"
+            x2="4.666666666666666"
+            y1="4.666666666666666"
+            y2="3.333333333333333"
+          />
+          
+						
+          <line
+            x1="6"
+            x2="7.333333333333333"
+            y1="7.333333333333333"
+            y2="6"
+          />
+          
+					
+        </g>
+        
+				
+      </mask>
+      <pattern
+        height="8"
+        id="hash_pattern"
+        patternUnits="userSpaceOnUse"
+        width="8"
+      >
+        
+					
+        <rect
+          fill=""
+          height="8"
+          mask="url(#hash_pattern_mask)"
+          width="8"
+          x="0"
+          y="0"
+        />
+        
+				
+      </pattern>
+      <style />
+    </defs>
+    <g
+      opacity="1"
+      transform="matrix(1, 0, 0, 1, 0, 0)"
+    >
+      <g>
+        <path
+          d="M0, 0L100, 0,100, 100,0, 100Z"
+          fill="none"
+          stroke=""
+          stroke-width="3.5"
+        />
+        <g>
+          <text
+            alignment-baseline="mathematical"
+            dominant-baseline="mathematical"
+            fill=""
+            font-family=""
+            font-size="22px"
+            font-style="normal"
+            font-weight="normal"
+            line-height="29.700000000000003px"
+            stroke=""
+            stroke-width="2"
+          >
+            <tspan
+              alignment-baseline="mathematical"
+              x="16px"
+              y="-181px"
+            >
+              Hello world
+            </tspan>
+          </text>
+          <text
+            alignment-baseline="mathematical"
+            dominant-baseline="mathematical"
+            fill=""
+            font-family=""
+            font-size="22px"
+            font-style="normal"
+            font-weight="normal"
+            line-height="29.700000000000003px"
+            stroke="none"
+          >
+            <tspan
+              alignment-baseline="mathematical"
+              x="16px"
+              y="-181px"
+            >
+              Hello world
+            </tspan>
+          </text>
+        </g>
+      </g>
+    </g>
+    <g
+      opacity="1"
+      transform="matrix(1, 0, 0, 1, 100, 100)"
+    >
+      <path
+        d="M0, 0L50, 0,50, 50,0, 50Z"
+        fill="none"
+        stroke=""
+        stroke-width="3.5"
+      />
+    </g>
+    <g
+      opacity="1"
+      transform="matrix(1, 0, 0, 1, 400, 400)"
+    >
+      <path
+        d="M0, 0L100, 0,100, 100,0, 100Z"
+        fill="none"
+        stroke=""
+        stroke-width="3.5"
+      />
+    </g>
+  </svg>
+</wrapper>
 `;

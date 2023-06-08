@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { TLUiIconTypes } from '../icon-types'
+import { iconTypes } from '../icon-types'
 import { useAssetUrls } from './useAssetUrls'
 
 /** @internal */
@@ -16,7 +16,7 @@ export function usePreloadIcons(): boolean {
 			// all of the icons it can so that they're available when we need them.
 
 			await Promise.allSettled(
-				TLUiIconTypes.map((icon) => {
+				iconTypes.map((icon) => {
 					const image = new Image()
 					image.src = assetUrls.icons[icon]
 					return image.decode()

@@ -1,12 +1,12 @@
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 
 it('centers on the point', () => {
-	app.centerOnPoint(400, 400)
-	expect(app.viewportPageCenter).toMatchObject({ x: 400, y: 400 })
+	editor.centerOnPoint(400, 400)
+	expect(editor.viewportPageCenter).toMatchObject({ x: 400, y: 400 })
 })

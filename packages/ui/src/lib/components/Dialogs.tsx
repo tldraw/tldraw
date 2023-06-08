@@ -1,9 +1,9 @@
 import * as _Dialog from '@radix-ui/react-dialog'
 import { useContainer } from '@tldraw/editor'
 import React, { useCallback } from 'react'
-import { TLDialog, useDialogs } from '../hooks/useDialogsProvider'
+import { TLUiDialog, useDialogs } from '../hooks/useDialogsProvider'
 
-const Dialog = ({ id, component: ModalContent, onClose }: TLDialog) => {
+const Dialog = ({ id, component: ModalContent, onClose }: TLUiDialog) => {
 	const { removeDialog } = useDialogs()
 
 	const container = useContainer()
@@ -42,7 +42,7 @@ function _Dialogs() {
 
 	return (
 		<>
-			{dialogs.map((dialog: TLDialog) => (
+			{dialogs.map((dialog: TLUiDialog) => (
 				<Dialog key={dialog.id} {...dialog} />
 			))}
 		</>

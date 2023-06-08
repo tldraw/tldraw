@@ -1,20 +1,20 @@
 import * as React from 'react'
 
 /** @public */
-export interface ErrorBoundaryProps {
+export interface TLErrorBoundaryProps {
 	children: React.ReactNode
 	onError?: ((error: unknown) => void) | null
 	fallback: (error: unknown) => React.ReactNode
 }
 
-type ErrorBoundaryState = { error: Error | null }
+type TLErrorBoundaryState = { error: Error | null }
 
-const initialState: ErrorBoundaryState = { error: null }
+const initialState: TLErrorBoundaryState = { error: null }
 
 /** @public */
 export class ErrorBoundary extends React.Component<
-	React.PropsWithRef<React.PropsWithChildren<ErrorBoundaryProps>>,
-	ErrorBoundaryState
+	React.PropsWithRef<React.PropsWithChildren<TLErrorBoundaryProps>>,
+	TLErrorBoundaryState
 > {
 	static getDerivedStateFromError(error: Error) {
 		return { error }
@@ -42,7 +42,7 @@ export function OptionalErrorBoundary({
 	children,
 	fallback,
 	...props
-}: Omit<ErrorBoundaryProps, 'fallback'> & {
+}: Omit<TLErrorBoundaryProps, 'fallback'> & {
 	fallback: ((error: unknown) => React.ReactNode) | null
 }) {
 	if (fallback === null) {

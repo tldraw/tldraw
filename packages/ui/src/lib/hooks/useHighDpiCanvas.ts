@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react'
 
-/** @public */
+/** @internal */
 export function useHighDpiCanvas(ref: React.RefObject<HTMLCanvasElement>, dpr: number) {
 	// Match the resolution of the client
 	useLayoutEffect(() => {

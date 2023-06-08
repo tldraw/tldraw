@@ -141,7 +141,7 @@ export type TLUiIconType =
 	| 'tool-eraser'
 	| 'tool-frame'
 	| 'tool-hand'
-	| 'tool-highlighter'
+	| 'tool-highlight'
 	| 'tool-laser'
 	| 'tool-line'
 	| 'tool-media'
@@ -166,7 +166,7 @@ export type TLUiIconType =
 	| 'zoom-out'
 
 /** @public */
-export const TLUiIconTypes = [
+export const iconTypes = [
 	'align-bottom-center',
 	'align-bottom-left',
 	'align-bottom-right',
@@ -305,7 +305,7 @@ export const TLUiIconTypes = [
 	'tool-eraser',
 	'tool-frame',
 	'tool-hand',
-	'tool-highlighter',
+	'tool-highlight',
 	'tool-laser',
 	'tool-line',
 	'tool-media',

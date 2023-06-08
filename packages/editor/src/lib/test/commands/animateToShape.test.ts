@@ -1,3 +1,3 @@
 export {}
 
-it.todo('App.animateToShape')
+it.todo('Editor.animateToShape')

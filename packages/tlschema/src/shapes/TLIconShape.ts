@@ -1,14 +1,10 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { TLColorType, TLDashType, TLIconType, TLOpacityType, TLSizeType } from '../style-types'
-import {
-	colorValidator,
-	dashValidator,
-	iconValidator,
-	opacityValidator,
-	sizeValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { defineMigrations } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { TLColorType, colorValidator } from '../styles/TLColorStyle'
+import { TLDashType, dashValidator } from '../styles/TLDashStyle'
+import { TLIconType, iconValidator } from '../styles/TLIconStyle'
+import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLIconShapeProps = {
@@ -16,25 +12,23 @@ export type TLIconShapeProps = {
 	icon: TLIconType
 	dash: TLDashType
 	color: TLColorType
-	opacity: TLOpacityType
 	scale: number
 }
 
 /** @public */
 export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>
 
-/** @public */
-export const iconShapeTypeValidator: T.Validator<TLIconShape> = createShapeValidator(
+/** @internal */
+export const iconShapeValidator: T.Validator<TLIconShape> = createShapeValidator(
 	'icon',
 	T.object({
 		size: sizeValidator,
 		icon: iconValidator,
 		dash: dashValidator,
 		color: colorValidator,
-		opacity: opacityValidator,
 		scale: T.number,
 	})
 )
 
-/** @public */
-export const iconShapeTypeMigrations = defineMigrations({})
+/** @internal */
+export const iconShapeMigrations = defineMigrations({})

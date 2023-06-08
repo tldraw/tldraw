@@ -1,8 +1,8 @@
 import { TLShapeId } from '@tldraw/tlschema'
 import { useValue } from 'signia-react'
-import { useApp } from './useApp'
+import { useEditor } from './useEditor'
 
 export function useIsCropping(shapeId: TLShapeId) {
-	const app = useApp()
-	return useValue('isCropping', () => app.croppingId === shapeId, [app, shapeId])
+	const editor = useEditor()
+	return useValue('isCropping', () => editor.croppingId === shapeId, [editor, shapeId])
 }

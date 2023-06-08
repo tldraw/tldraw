@@ -1,6 +1,6 @@
 {
 	"name": "@tldraw/tldraw",
-	"description": "A tiny little drawing app.",
+	"description": "A tiny little drawing editor.",
 	"version": "2.0.0-alpha.12",
 	"packageManager": "yarn@3.5.0",
 	"author": {
@@ -47,7 +47,6 @@
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/polyfills": "workspace:*",
-		"@tldraw/tlsync-client": "workspace:*",
 		"@tldraw/ui": "workspace:*"
 	},
 	"peerDependencies": {
@@ -61,7 +60,7 @@
 		"chokidar-cli": "^3.0.0",
 		"jest-canvas-mock": "^2.4.0",
 		"jest-environment-jsdom": "^28.1.2",
-		"lazyrepo": "0.0.0-alpha.26",
+		"lazyrepo": "0.0.0-alpha.27",
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"jest": {

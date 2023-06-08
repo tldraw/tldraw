@@ -1,16 +1,8 @@
 // Important! don't move this tlschema re-export to lib/index.ts, doing so causes esbuild to produce
 // incorrect output. https://github.com/evanw/esbuild/issues/1737
 
-export {
-	getIndexAbove,
-	getIndexBelow,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBelow,
-	getIndicesBetween,
-	sortByIndex,
-} from '@tldraw/indices'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/indices'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/tlschema'
 export { getHashForString } from '@tldraw/utils'
@@ -21,118 +13,35 @@ export {
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
 export {
-	App,
-	isShapeWithHandles,
-	type AnimationOptions,
-	type AppOptions,
-	type TLChange,
-} from './lib/app/App'
-export { TLArrowUtil } from './lib/app/shapeutils/TLArrowUtil/TLArrowUtil'
-export { TLBookmarkUtil } from './lib/app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
-export { TLBoxUtil } from './lib/app/shapeutils/TLBoxUtil'
-export { TLDrawUtil } from './lib/app/shapeutils/TLDrawUtil/TLDrawUtil'
-export { TLEmbedUtil } from './lib/app/shapeutils/TLEmbedUtil/TLEmbedUtil'
-export { TLFrameUtil } from './lib/app/shapeutils/TLFrameUtil/TLFrameUtil'
-export { TLGeoUtil } from './lib/app/shapeutils/TLGeoUtil/TLGeoUtil'
-export { TLGroupUtil } from './lib/app/shapeutils/TLGroupUtil/TLGroupUtil'
-export { TLImageUtil } from './lib/app/shapeutils/TLImageUtil/TLImageUtil'
-export { TLLineUtil, getSplineForLineShape } from './lib/app/shapeutils/TLLineUtil/TLLineUtil'
-export { TLNoteUtil } from './lib/app/shapeutils/TLNoteUtil/TLNoteUtil'
-export {
-	TLShapeUtil,
-	type OnBeforeCreateHandler,
-	type OnBeforeUpdateHandler,
-	type OnBindingChangeHandler,
-	type OnChildrenChangeHandler,
-	type OnClickHandler,
-	type OnDoubleClickHandleHandler,
-	type OnDoubleClickHandler,
-	type OnDragHandler,
-	type OnEditEndHandler,
-	type OnHandleChangeHandler,
-	type OnResizeEndHandler,
-	type OnResizeHandler,
-	type OnResizeStartHandler,
-	type OnRotateEndHandler,
-	type OnRotateHandler,
-	type OnRotateStartHandler,
-	type OnTranslateEndHandler,
-	type OnTranslateHandler,
-	type OnTranslateStartHandler,
-	type TLResizeInfo,
-	type TLResizeMode,
-	type TLShapeUtilConstructor,
-	type TLShapeUtilFlag,
-} from './lib/app/shapeutils/TLShapeUtil'
-export { INDENT, TLTextUtil } from './lib/app/shapeutils/TLTextUtil/TLTextUtil'
-export { TLVideoUtil } from './lib/app/shapeutils/TLVideoUtil/TLVideoUtil'
-export { StateNode, type StateNodeConstructor } from './lib/app/statechart/StateNode'
-export { TLBoxTool, type TLBoxLike } from './lib/app/statechart/TLBoxTool/TLBoxTool'
-export { type ClipboardPayload, type TLClipboardModel } from './lib/app/types/clipboard-types'
-export { type TLEventMap, type TLEventMapHandler } from './lib/app/types/emit-types'
-export {
-	EVENT_NAME_MAP,
-	type TLBaseEventInfo,
-	type TLCLickEventName,
-	type TLCancelEvent,
-	type TLCancelEventInfo,
-	type TLClickEvent,
-	type TLClickEventInfo,
-	type TLCompleteEvent,
-	type TLCompleteEventInfo,
-	type TLEventHandlers,
-	type TLEventInfo,
-	type TLEventName,
-	type TLInterruptEvent,
-	type TLInterruptEventInfo,
-	type TLKeyboardEvent,
-	type TLKeyboardEventInfo,
-	type TLKeyboardEventName,
-	type TLPinchEvent,
-	type TLPinchEventInfo,
-	type TLPinchEventName,
-	type TLPointerEvent,
-	type TLPointerEventInfo,
-	type TLPointerEventName,
-	type TLPointerEventTarget,
-	type TLTickEvent,
-	type TLWheelEvent,
-	type TLWheelEventInfo,
-	type UiEnterHandler,
-	type UiEvent,
-	type UiEventType,
-	type UiExitHandler,
-} from './lib/app/types/event-types'
-export {
-	type TLCommand,
-	type TLCommandHandler,
-	type TLHistoryEntry,
-	type TLMark,
-} from './lib/app/types/history-types'
-export { type RequiredKeys, type TLEasingType } from './lib/app/types/misc-types'
-export { type TLResizeHandle, type TLSelectionHandle } from './lib/app/types/selection-types'
-export {
 	defaultEditorAssetUrls,
 	setDefaultEditorAssetUrls,
-	type EditorAssetUrls,
+	type TLEditorAssetUrls,
 } from './lib/assetUrls'
 export { Canvas } from './lib/components/Canvas'
 export { DefaultErrorFallback } from './lib/components/DefaultErrorFallback'
 export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
-	type ErrorBoundaryProps,
+	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export {
-	type ErrorSyncedStore,
-	type InitializingSyncedStore,
-	type ReadySyncedStore,
-	type SyncedStore,
-} from './lib/config/SyncedStore'
-export { USER_COLORS } from './lib/config/TLUserPreferences'
-export { TldrawEditorConfig } from './lib/config/TldrawEditorConfig'
+	TAB_ID,
+	createSessionStateSnapshotSignal,
+	extractSessionStateFromLegacySnapshot,
+	loadSessionStateSnapshotIntoStore,
+	type TLSessionStateSnapshot,
+} from './lib/config/TLSessionStateSnapshot'
+export {
+	USER_COLORS,
+	getUserPreferences,
+	setUserPreferences,
+	type TLUserPreferences,
+} from './lib/config/TLUserPreferences'
+export { createTLStore } from './lib/config/createTLStore'
+export { defaultShapes } from './lib/config/defaultShapes'
+export { defaultTools } from './lib/config/defaultTools'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,
@@ -171,24 +80,115 @@ export {
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	ZOOMS,
 } from './lib/constants'
+export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export {
+	ExternalContentManager as PlopManager,
+	type TLExternalContent,
+} from './lib/editor/managers/ExternalContentManager'
+export { ArrowShapeUtil } from './lib/editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
+export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
+export { DrawShapeUtil } from './lib/editor/shapeutils/DrawShapeUtil/DrawShapeUtil'
+export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
+export { FrameShapeUtil } from './lib/editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
+export { GeoShapeUtil } from './lib/editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
+export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
+export { HighlightShapeUtil } from './lib/editor/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
+export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
+export {
+	LineShapeUtil,
+	getSplineForLineShape,
+} from './lib/editor/shapeutils/LineShapeUtil/LineShapeUtil'
+export { NoteShapeUtil } from './lib/editor/shapeutils/NoteShapeUtil/NoteShapeUtil'
+export {
+	ShapeUtil,
+	type TLOnBeforeCreateHandler,
+	type TLOnBeforeUpdateHandler,
+	type TLOnBindingChangeHandler,
+	type TLOnChildrenChangeHandler,
+	type TLOnClickHandler,
+	type TLOnDoubleClickHandleHandler,
+	type TLOnDoubleClickHandler,
+	type TLOnDragHandler,
+	type TLOnEditEndHandler,
+	type TLOnHandleChangeHandler,
+	type TLOnResizeEndHandler,
+	type TLOnResizeHandler,
+	type TLOnResizeStartHandler,
+	type TLOnRotateEndHandler,
+	type TLOnRotateHandler,
+	type TLOnRotateStartHandler,
+	type TLOnTranslateEndHandler,
+	type TLOnTranslateHandler,
+	type TLOnTranslateStartHandler,
+	type TLResizeInfo,
+	type TLResizeMode,
+	type TLShapeUtilConstructor,
+	type TLShapeUtilFlag,
+} from './lib/editor/shapeutils/ShapeUtil'
+export { INDENT, TextShapeUtil } from './lib/editor/shapeutils/TextShapeUtil/TextShapeUtil'
+export { VideoShapeUtil } from './lib/editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
+export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
+export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
+export { type TLContent } from './lib/editor/types/clipboard-types'
+export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
+export {
+	EVENT_NAME_MAP,
+	type TLBaseEventInfo,
+	type TLCLickEventName,
+	type TLCancelEvent,
+	type TLCancelEventInfo,
+	type TLClickEvent,
+	type TLClickEventInfo,
+	type TLCompleteEvent,
+	type TLCompleteEventInfo,
+	type TLEnterEventHandler,
+	type TLEventHandlers,
+	type TLEventInfo,
+	type TLEventName,
+	type TLExitEventHandler,
+	type TLInterruptEvent,
+	type TLInterruptEventInfo,
+	type TLKeyboardEvent,
+	type TLKeyboardEventInfo,
+	type TLKeyboardEventName,
+	type TLPinchEvent,
+	type TLPinchEventInfo,
+	type TLPinchEventName,
+	type TLPointerEvent,
+	type TLPointerEventInfo,
+	type TLPointerEventName,
+	type TLPointerEventTarget,
+	type TLTickEvent,
+	type TLWheelEvent,
+	type TLWheelEventInfo,
+	type UiEvent,
+	type UiEventType,
+} from './lib/editor/types/event-types'
+export {
+	type TLCommand,
+	type TLCommandHandler,
+	type TLHistoryEntry,
+	type TLHistoryMark,
+} from './lib/editor/types/history-types'
+export { type RequiredKeys } from './lib/editor/types/misc-types'
+export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { normalizeWheel } from './lib/hooks/shared'
-export { useApp } from './lib/hooks/useApp'
 export { useContainer } from './lib/hooks/useContainer'
+export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
+export { useTLStore } from './lib/hooks/useTLStore'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,
 	ACCEPTED_IMG_TYPE,
 	ACCEPTED_VID_TYPE,
 	containBoxSize,
-	createAssetShapeAtPoint,
-	createBookmarkShapeAtPoint,
-	createEmbedShapeAtPoint,
-	createShapesFromFiles,
 	dataUrlToFile,
 	getFileMetaData,
 	getImageSizeFromSrc,
@@ -200,7 +200,6 @@ export {
 	isSvgText,
 	isValidHttpURL,
 } from './lib/utils/assets'
-export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
 export {
 	checkFlag,
 	fileToBase64,
@@ -224,7 +223,7 @@ export {
 	getEmbedInfoUnsafely,
 	matchEmbedUrl,
 	matchUrl,
-	type EmbedResult,
+	type TLEmbedResult,
 } from './lib/utils/embeds'
 export {
 	downloadDataURLAsFile,
@@ -238,15 +237,10 @@ export {
 	type TLCopyType,
 	type TLExportType,
 } from './lib/utils/export'
-export { hardResetApp } from './lib/utils/hard-reset'
+export { hardResetEditor } from './lib/utils/hard-reset'
 export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
 export { setPropsForNextShape } from './lib/utils/props-for-next-shape'
 export { refreshPage } from './lib/utils/refresh-page'
-export {
-	applyRotationToSnapshotShapes,
-	getRotationSnapshot,
-	type RotationSnapshot,
-} from './lib/utils/rotation'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
 export {
 	blobAsString,
@@ -255,4 +249,6 @@ export {
 	defaultEmptyAs,
 } from './lib/utils/string'
 export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from './lib/utils/svg'
+export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
+export { hardReset } from './lib/utils/sync/hardReset'
 export { openWindow } from './lib/utils/window-open'

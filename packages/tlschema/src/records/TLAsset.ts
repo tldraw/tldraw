@@ -1,31 +1,30 @@
-import { createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { TLBaseAsset } from '../assets/asset-validation'
+import { createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { TLBaseAsset } from '../assets/TLBaseAsset'
 import {
 	bookmarkAssetMigrations,
-	bookmarkAssetTypeValidator,
+	bookmarkAssetValidator,
 	TLBookmarkAsset,
 } from '../assets/TLBookmarkAsset'
-import { imageAssetMigrations, imageAssetTypeValidator, TLImageAsset } from '../assets/TLImageAsset'
-import { TLVideoAsset, videoAssetMigrations, videoAssetTypeValidator } from '../assets/TLVideoAsset'
+import { imageAssetMigrations, imageAssetValidator, TLImageAsset } from '../assets/TLImageAsset'
+import { TLVideoAsset, videoAssetMigrations, videoAssetValidator } from '../assets/TLVideoAsset'
 import { TLShape } from './TLShape'
 
-// --- DEFINITION ---
 /** @public */
 export type TLAsset = TLImageAsset | TLVideoAsset | TLBookmarkAsset
 
-/** @public */
-export const assetTypeValidator: T.Validator<TLAsset> = T.model(
+/** @internal */
+export const assetValidator: T.Validator<TLAsset> = T.model(
 	'asset',
 	T.union('type', {
-		image: imageAssetTypeValidator,
-		video: videoAssetTypeValidator,
-		bookmark: bookmarkAssetTypeValidator,
+		image: imageAssetValidator,
+		video: videoAssetValidator,
+		bookmark: bookmarkAssetValidator,
 	})
 )
 
-/** @public */
-export const assetTypeMigrations = defineMigrations({
+/** @internal */
+export const assetMigrations = defineMigrations({
 	subTypeKey: 'type',
 	subTypeMigrations: {
 		image: imageAssetMigrations,
@@ -45,13 +44,13 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 
 /** @public */
 export const AssetRecordType = createRecordType<TLAsset>('asset', {
-	migrations: assetTypeMigrations,
-	validator: assetTypeValidator,
+	migrations: assetMigrations,
+	validator: assetValidator,
 	scope: 'document',
 })
 
 /** @public */
-export type TLAssetId = ID<TLBaseAsset<any, any>>
+export type TLAssetId = RecordId<TLBaseAsset<any, any>>
 
 /** @public */
 export type TLAssetShape = Extract<TLShape, { props: { assetId: TLAssetId } }>

@@ -3,10 +3,10 @@ import type { AnyHandlerEventTypes, EventTypes, GestureKey, Handler } from '@use
 import { createUseGesture, pinchAction, wheelAction } from '@use-gesture/react'
 import throttle from 'lodash.throttle'
 import * as React from 'react'
-import { TLWheelEventInfo } from '../app/types/event-types'
+import { TLWheelEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
 import { normalizeWheel } from './shared'
-import { useApp } from './useApp'
+import { useEditor } from './useEditor'
 
 type check<T extends AnyHandlerEventTypes, Key extends GestureKey> = undefined extends T[Key]
 	? EventTypes[Key]
@@ -42,13 +42,13 @@ const isWheelEndEvent = (time: number) => {
 }
 
 export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
-	const app = useApp()
+	const editor = useEditor()
 
 	const events = React.useMemo(() => {
 		let pinchState = null as null | 'zooming' | 'panning'
 
 		const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
-			if (!app.isFocused) {
+			if (!editor.isFocused) {
 				return
 			}
 
@@ -64,13 +64,13 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			// default on the evnet) if the user is wheeling over an a shape
 			// that is scrollable which they're currently editing.
 
-			if (app.editingId) {
-				const shape = app.getShapeById(app.editingId)
+			if (editor.editingId) {
+				const shape = editor.getShapeById(editor.editingId)
 				if (shape) {
-					const util = app.getShapeUtil(shape)
+					const util = editor.getShapeUtil(shape)
 					if (util.canScroll(shape)) {
-						const bounds = app.getPageBoundsById(app.editingId)
-						if (bounds?.containsPoint(app.inputs.currentPagePoint)) {
+						const bounds = editor.getPageBoundsById(editor.editingId)
+						if (bounds?.containsPoint(editor.inputs.currentPagePoint)) {
 							return
 						}
 					}
@@ -91,7 +91,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 				ctrlKey: event.metaKey || event.ctrlKey,
 			}
 
-			app.dispatch(info)
+			editor.dispatch(info)
 		}
 
 		let initTouchDistance = 1
@@ -115,12 +115,12 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			initOrigin.x = origin[0]
 			initOrigin.y = origin[1]
 			initTouchDistance = da[0]
-			initZoom = app.zoomLevel
+			initZoom = editor.zoomLevel
 
-			app.dispatch({
+			editor.dispatch({
 				type: 'pinch',
 				name: 'pinch_start',
-				point: { x: origin[0], y: origin[1], z: app.zoomLevel },
+				point: { x: origin[0], y: origin[1], z: editor.zoomLevel },
 				delta: { x: 0, y: 0 },
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
@@ -178,7 +178,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 			switch (pinchState) {
 				case 'zooming': {
-					app.dispatch({
+					editor.dispatch({
 						type: 'pinch',
 						name: 'pinch',
 						point: { x: origin[0], y: origin[1], z: currentZoom },
@@ -190,7 +190,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 					break
 				}
 				case 'panning': {
-					app.dispatch({
+					editor.dispatch({
 						type: 'pinch',
 						name: 'pinch',
 						point: { x: origin[0], y: origin[1], z: initZoom },
@@ -216,7 +216,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			pinchState = null
 
 			requestAnimationFrame(() => {
-				app.dispatch({
+				editor.dispatch({
 					type: 'pinch',
 					name: 'pinch_end',
 					point: { x: origin[0], y: origin[1], z: scale },
@@ -234,15 +234,15 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			onPinchEnd,
 			onPinch,
 		}
-	}, [app, ref])
+	}, [editor, ref])
 
 	useGesture(events, {
 		target: ref,
 		eventOptions: { passive: false },
 		pinch: {
-			from: () => [app.zoomLevel, 0], // Return the camera z to use when pinch starts
+			from: () => [editor.zoomLevel, 0], // Return the camera z to use when pinch starts
 			scaleBounds: () => {
-				return { from: app.zoomLevel, max: 8, min: 0.05 }
+				return { from: editor.zoomLevel, max: 8, min: 0.05 }
 			},
 		},
 	})

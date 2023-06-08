@@ -1,17 +1,18 @@
 import {
-	App,
 	AssetRecordType,
+	Editor,
 	TLAlignType,
 	TLArrowheadType,
 	TLAssetId,
-	TLClipboardModel,
 	TLColorType,
+	TLContent,
 	TLDashType,
 	TLFillType,
 	TLFontType,
 	TLOpacityType,
 	TLShapeId,
 	TLSizeType,
+	createShapeId,
 	getIndexAbove,
 	getIndices,
 	isShapeId,
@@ -23,25 +24,25 @@ import { compact } from '@tldraw/utils'
 /**
  * When the clipboard has excalidraw content, paste it into the scene.
  *
- * @param app - The app instance.
+ * @param editor - The editor instance.
  * @param clipboard - The clipboard model.
  * @param point - (optional) The point at which to paste the text.
  * @internal
  */
-export async function pasteExcalidrawContent(app: App, clipboard: any, point?: VecLike) {
+export async function pasteExcalidrawContent(editor: Editor, clipboard: any, point?: VecLike) {
 	const { elements, files } = clipboard
 
-	const tldrawContent: TLClipboardModel = {
+	const tldrawContent: TLContent = {
 		shapes: [],
 		rootShapeIds: [],
 		assets: [],
-		schema: app.store.schema.serialize(),
+		schema: editor.store.schema.serialize(),
 	}
 
 	const groupShapeIdToChildren = new Map<string, TLShapeId[]>()
 	const rotatedElements = new Map<TLShapeId, number>()
 
-	const { currentPageId } = app
+	const { currentPageId } = editor
 
 	const excElementIdsToTldrawShapeIds = new Map<string, TLShapeId>()
 	const rootShapeIds: TLShapeId[] = []
@@ -49,7 +50,7 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 	const skipIds = new Set<string>()
 
 	elements.forEach((element: any) => {
-		excElementIdsToTldrawShapeIds.set(element.id, app.createShapeId())
+		excElementIdsToTldrawShapeIds.set(element.id, createShapeId())
 
 		if (element.boundElements !== null) {
 			for (const boundElement of element.boundElements) {
@@ -78,6 +79,7 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 			y: element.y,
 			rotation: 0,
 			isLocked: element.locked,
+			opacity: getOpacity(element.opacity),
 		} as const
 
 		if (element.angle !== 0) {
@@ -120,7 +122,6 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 					type: 'geo',
 					props: {
 						geo: element.type,
-						opacity: getOpacity(element.opacity),
 						url: element.link ?? '',
 						w: element.width,
 						h: element.height,
@@ -141,7 +142,6 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 					props: {
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
-						opacity: getOpacity(element.opacity),
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						segments: [
 							{
@@ -168,7 +168,6 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 					props: {
 						dash: getDash(element),
 						size: strokeWidthsToSizes[element.strokeWidth],
-						opacity: getOpacity(element.opacity),
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						spline: element.roundness ? 'cubic' : 'line',
 						handles: {
@@ -233,7 +232,6 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 						text,
 						bend: getBend(element, start, end),
 						dash: getDash(element),
-						opacity: getOpacity(element.opacity),
 						size: strokeWidthsToSizes[element.strokeWidth] ?? 'm',
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						start: startTargetId
@@ -276,7 +274,6 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 						size,
 						scale,
 						font: fontFamilyToFontType[element.fontFamily] ?? 'draw',
-						opacity: getOpacity(element.opacity),
 						color: colorsToColors[element.strokeColor] ?? 'black',
 						text: element.text,
 						align: textAlignToAlignTypes[element.textAlign],
@@ -307,7 +304,6 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 					...base,
 					type: 'image',
 					props: {
-						opacity: getOpacity(element.opacity),
 						w: element.width,
 						h: element.height,
 						assetId,
@@ -319,19 +315,19 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 		index = getIndexAbove(index)
 	}
 
-	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : undefined)
+	const p = point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : undefined)
 
-	app.mark('paste')
+	editor.mark('paste')
 
-	app.putContent(tldrawContent, {
+	editor.putContent(tldrawContent, {
 		point: p,
 		select: false,
 		preserveIds: true,
 	})
 	for (const groupedShapeIds of groupShapeIdToChildren.values()) {
 		if (groupedShapeIds.length > 1) {
-			app.groupShapes(groupedShapeIds)
-			const groupShape = app.getShapeById(groupedShapeIds[0])
+			editor.groupShapes(groupedShapeIds)
+			const groupShape = editor.getShapeById(groupedShapeIds[0])
 			if (groupShape?.parentId && isShapeId(groupShape.parentId)) {
 				rootShapeIds.push(groupShape.parentId)
 			}
@@ -339,14 +335,14 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 	}
 
 	for (const [id, angle] of rotatedElements) {
-		app.select(id)
-		app.rotateShapesBy([id], angle)
+		editor.select(id)
+		editor.rotateShapesBy([id], angle)
 	}
 
-	const rootShapes = compact(rootShapeIds.map((id) => app.getShapeById(id)))
-	const bounds = Box2d.Common(rootShapes.map((s) => app.getPageBounds(s)!))
-	const viewPortCenter = app.viewportPageBounds.center
-	app.updateShapes(
+	const rootShapes = compact(rootShapeIds.map((id) => editor.getShapeById(id)))
+	const bounds = Box2d.Common(rootShapes.map((s) => editor.getPageBounds(s)!))
+	const viewPortCenter = editor.viewportPageBounds.center
+	editor.updateShapes(
 		rootShapes.map((s) => {
 			const delta = {
 				x: (s.x ?? 0) - (bounds.x + bounds.w / 2),
@@ -361,7 +357,7 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 			}
 		})
 	)
-	app.setSelectedIds(rootShapeIds)
+	editor.setSelectedIds(rootShapeIds)
 }
 
 /* --------------- Translating Helpers --------_------ */
@@ -369,16 +365,16 @@ export async function pasteExcalidrawContent(app: App, clipboard: any, point?: V
 const getOpacity = (opacity: number): TLOpacityType => {
 	const t = opacity / 100
 	if (t < 0.2) {
-		return '0.1'
+		return 0.1
 	} else if (t < 0.4) {
-		return '0.25'
+		return 0.25
 	} else if (t < 0.6) {
-		return '0.5'
+		return 0.5
 	} else if (t < 0.8) {
-		return '0.75'
+		return 0.75
 	}
 
-	return '1'
+	return 1
 }
 
 const strokeWidthsToSizes: Record<number, TLSizeType> = {

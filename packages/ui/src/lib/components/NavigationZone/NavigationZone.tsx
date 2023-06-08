@@ -8,7 +8,7 @@ import { Button } from '../primitives/Button'
 import { kbdStr } from '../primitives/shared'
 import { ZoomMenu } from './ZoomMenu'
 
-/** @public */
+/** @internal */
 export const NavigationZone = memo(function NavigationZone() {
 	const actions = useActions()
 	const msg = useTranslation()

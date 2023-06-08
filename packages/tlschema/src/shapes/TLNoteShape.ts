@@ -1,14 +1,11 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { TLAlignType, TLColorType, TLFontType, TLOpacityType, TLSizeType } from '../style-types'
-import {
-	alignValidator,
-	colorValidator,
-	fontValidator,
-	opacityValidator,
-	sizeValidator,
-} from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { defineMigrations } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
+import { TLColorType, colorValidator } from '../styles/TLColorStyle'
+import { TLFontType, fontValidator } from '../styles/TLFontStyle'
+import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
+import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLNoteShapeProps = {
@@ -16,7 +13,7 @@ export type TLNoteShapeProps = {
 	size: TLSizeType
 	font: TLFontType
 	align: TLAlignType
-	opacity: TLOpacityType
+	verticalAlign: TLVerticalAlignType
 	growY: number
 	url: string
 	text: string
@@ -25,15 +22,15 @@ export type TLNoteShapeProps = {
 /** @public */
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
-/** @public */
-export const noteShapeTypeValidator: T.Validator<TLNoteShape> = createShapeValidator(
+/** @internal */
+export const noteShapeValidator: T.Validator<TLNoteShape> = createShapeValidator(
 	'note',
 	T.object({
 		color: colorValidator,
 		size: sizeValidator,
 		font: fontValidator,
 		align: alignValidator,
-		opacity: opacityValidator,
+		verticalAlign: verticalAlignValidator,
 		growY: T.positiveNumber,
 		url: T.string,
 		text: T.string,
@@ -44,11 +41,12 @@ const Versions = {
 	AddUrlProp: 1,
 	RemoveJustify: 2,
 	MigrateLegacyAlign: 3,
+	AddVerticalAlign: 4,
 } as const
 
-/** @public */
-export const noteShapeTypeMigrations = defineMigrations({
-	currentVersion: Versions.MigrateLegacyAlign,
+/** @internal */
+export const noteShapeMigrations = defineMigrations({
+	currentVersion: Versions.AddVerticalAlign,
 	migrators: {
 		[Versions.AddUrlProp]: {
 			up: (shape) => {
@@ -122,6 +120,25 @@ export const noteShapeTypeMigrations = defineMigrations({
 						...shape.props,
 						align: oldAlign,
 					},
+				}
+			},
+		},
+		[Versions.AddVerticalAlign]: {
+			up: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+						verticalAlign: 'middle',
+					},
+				}
+			},
+			down: (shape) => {
+				const { verticalAlign: _, ...props } = shape.props
+
+				return {
+					...shape,
+					props,
 				}
 			},
 		},

@@ -17,7 +17,7 @@ import {
 import { getApiMarkdown } from './getApiMarkdown'
 import { getSlug } from './utils'
 
-const { log } = console
+const { log: nicelog } = console
 
 type InputCategory = {
 	id: string
@@ -290,14 +290,14 @@ export async function generateContent(): Promise<GeneratedContent> {
 
 	const apiSection = await generateApiDocs()
 
-	log('• Generating site content (content.json)')
+	nicelog('• Generating site content (content.json)')
 
 	try {
 		const outputSections: Section[] = [...(sections as InputSection[]), apiSection]
 			.map((section) => generateSection(section, content, articles))
 			.filter((section) => section.categories.some((c) => c.articleIds.length > 0))
 
-		log('✔ Generated site content.')
+		nicelog('✔ Generated site content.')
 
 		// Write to disk
 
@@ -310,7 +310,7 @@ export async function generateContent(): Promise<GeneratedContent> {
 
 		return contentComplete
 	} catch (error) {
-		log(`x Could not generate site content.`)
+		nicelog(`x Could not generate site content.`)
 
 		throw error
 	}

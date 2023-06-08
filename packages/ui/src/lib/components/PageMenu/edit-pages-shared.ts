@@ -1,9 +1,9 @@
-import { App, getIndexAbove, getIndexBelow, getIndexBetween, TLPageId } from '@tldraw/editor'
+import { Editor, getIndexAbove, getIndexBelow, getIndexBetween, TLPageId } from '@tldraw/editor'
 
-export const onMovePage = (app: App, id: TLPageId, from: number, to: number) => {
+export const onMovePage = (editor: Editor, id: TLPageId, from: number, to: number) => {
 	let index: string
 
-	const pages = app.pages
+	const pages = editor.pages
 
 	const below = from > to ? pages[to - 1] : pages[to]
 	const above = from > to ? pages[to] : pages[to + 1]
@@ -17,8 +17,8 @@ export const onMovePage = (app: App, id: TLPageId, from: number, to: number) => 
 	}
 
 	if (index !== pages[from].index) {
-		app.mark('moving page')
-		app.updatePage({
+		editor.mark('moving page')
+		editor.updatePage({
 			id: id as TLPageId,
 			index,
 		})
