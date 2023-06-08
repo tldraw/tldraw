@@ -42,9 +42,7 @@ export function setDefaultUiAssetUrls(urls: TLUiAssetUrls) {
 }
 
 /** @internal */
-export function useDefaultUiAssetUrls(
-	assetUrls: RecursivePartial<TLUiAssetUrls> | undefined
-): TLUiAssetUrls {
+export function useDefaultUiAssetUrls(assetUrls?: RecursivePartial<TLUiAssetUrls>): TLUiAssetUrls {
 	if (!assetUrls) return defaultUiAssetUrls
 
 	return {

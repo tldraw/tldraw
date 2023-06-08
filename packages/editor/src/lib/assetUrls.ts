@@ -29,7 +29,7 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls) {
 
 /** @internal */
 export function useDefaultEditorAssets(
-	assetUrls: RecursivePartial<TLEditorAssetUrls> | undefined
+	assetUrls?: RecursivePartial<TLEditorAssetUrls>
 ): TLEditorAssetUrls {
 	return useMemo(() => {
 		if (!assetUrls) return defaultEditorAssetUrls
