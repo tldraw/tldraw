@@ -1,6 +1,6 @@
+import { Vec2dModel } from '@tldraw/primitives'
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Vec2dModel } from '../misc/geometry-types'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLDashType, dashValidator } from '../styles/TLDashStyle'
 import { TLFillType, fillValidator } from '../styles/TLFillStyle'

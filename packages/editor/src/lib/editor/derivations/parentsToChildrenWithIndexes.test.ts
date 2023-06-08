@@ -1,5 +1,5 @@
 import { getIndexAbove, getIndexBetween } from '@tldraw/indices'
-import { createShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '../../schema/records/TLShape'
 import { TestEditor } from '../../test/TestEditor'
 
 let editor: TestEditor

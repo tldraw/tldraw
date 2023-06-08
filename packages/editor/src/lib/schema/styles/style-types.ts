@@ -1,15 +1,13 @@
-import {
-	TLAlignStyle,
-	TLColorStyle,
-	TLDashStyle,
-	TLFillStyle,
-	TLFontStyle,
-	TLSizeStyle,
-	TLStyleType,
-} from '..'
 import { TLShapeProps } from '../records/TLShape'
+import { TLAlignStyle } from './TLAlignStyle'
 import { TLArrowheadEndStyle, TLArrowheadStartStyle } from './TLArrowheadStyle'
+import { TLStyleType } from './TLBaseStyle'
+import { TLColorStyle } from './TLColorStyle'
+import { TLDashStyle } from './TLDashStyle'
+import { TLFillStyle } from './TLFillStyle'
+import { TLFontStyle } from './TLFontStyle'
 import { TLGeoStyle } from './TLGeoStyle'
+import { TLSizeStyle } from './TLSizeStyle'
 import { TLSplineStyle } from './TLSplineStyle'
 import { TLVerticalAlignStyle } from './TLVerticalAlignStyle'
 

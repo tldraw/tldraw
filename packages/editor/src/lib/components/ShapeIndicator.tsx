@@ -1,4 +1,3 @@
-import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import * as React from 'react'
 import {
@@ -6,10 +5,11 @@ import {
 	useStateTracking,
 	useValue,
 } from 'signia-react'
-import { useEditor } from '../..'
 import type { Editor } from '../editor/Editor'
 import { ShapeUtil } from '../editor/shapeutils/ShapeUtil'
+import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
+import { TLShape, TLShapeId } from '../schema/records/TLShape'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 class ShapeWithPropsEquality {

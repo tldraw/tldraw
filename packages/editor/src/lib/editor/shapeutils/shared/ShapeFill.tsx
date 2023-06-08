@@ -1,8 +1,9 @@
-import { TLColorType, TLFillType } from '@tldraw/tlschema'
 import * as React from 'react'
 import { useValue } from 'signia-react'
 import { HASH_PATERN_ZOOM_NAMES } from '../../../constants'
 import { useEditor } from '../../../hooks/useEditor'
+import { TLColorType } from '../../../schema/styles/TLColorStyle'
+import { TLFillType } from '../../../schema/styles/TLFillStyle'
 import { TLExportColors } from './TLExportColors'
 
 export interface ShapeFillProps {

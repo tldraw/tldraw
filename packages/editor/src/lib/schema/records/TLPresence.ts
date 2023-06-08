@@ -1,6 +1,6 @@
+import { Box2dModel } from '@tldraw/primitives'
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Box2dModel } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'

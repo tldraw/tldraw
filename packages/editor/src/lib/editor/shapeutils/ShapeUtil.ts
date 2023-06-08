@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Box2d, linesIntersect, Matrix2d, VecLike } from '@tldraw/primitives'
+import { Box2d, linesIntersect, Matrix2d, Vec2dModel, VecLike } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
-import { TLHandle, TLShape, TLShapePartial, TLUnknownShape, Vec2dModel } from '@tldraw/tlschema'
 import { computed, EMPTY_ARRAY } from 'signia'
+import { TLHandle } from '../../schema/misc/TLHandle'
+import { TLShape, TLShapePartial, TLUnknownShape } from '../../schema/records/TLShape'
 import { WeakMapCache } from '../../utils/WeakMapCache'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'

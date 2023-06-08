@@ -12,7 +12,6 @@
 	},
 	"references": [
 		{ "path": "../primitives" },
-		{ "path": "../tlschema" },
 		{ "path": "../store" },
 		{ "path": "../validate" },
 		{ "path": "../utils" },

@@ -1,5 +1,5 @@
-import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
+import { TLShape, TLShapeId } from '../../schema/records/TLShape'
 import type { Editor } from '../Editor'
 
 const LAG_DURATION = 100

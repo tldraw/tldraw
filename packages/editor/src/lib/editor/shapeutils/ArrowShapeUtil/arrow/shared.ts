@@ -1,5 +1,6 @@
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
-import { TLArrowShape, TLArrowTerminal, TLShape } from '@tldraw/tlschema'
+import { TLShape } from '../../../../schema/records/TLShape'
+import { TLArrowShape, TLArrowTerminal } from '../../../../schema/shapes/TLArrowShape'
 import { Editor } from '../../../Editor'
 import { ShapeUtil } from '../../ShapeUtil'
 

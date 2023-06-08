@@ -9,7 +9,7 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
+import { TLShape, TLShapeId, TLShapePartial } from '../../../../schema/records/TLShape'
 import {
 	TLEnterEventHandler,
 	TLEventHandlers,

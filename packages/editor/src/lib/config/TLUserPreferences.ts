@@ -1,7 +1,7 @@
 import { defineMigrations, migrate } from '@tldraw/store'
-import { getDefaultTranslationLocale } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 import { atom } from 'signia'
+import { getDefaultTranslationLocale } from '../schema/translations/translations'
 import { uniqueId } from '../utils/data'
 
 const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'

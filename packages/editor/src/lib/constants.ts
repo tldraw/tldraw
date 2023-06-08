@@ -1,5 +1,8 @@
 import { EASINGS } from '@tldraw/primitives'
-import { TLAlignType, TLFontType, TLSizeType, TLStyleCollections } from '@tldraw/tlschema'
+import { TLAlignType } from './schema/styles/TLAlignStyle'
+import { TLFontType } from './schema/styles/TLFontStyle'
+import { TLSizeType } from './schema/styles/TLSizeStyle'
+import { TLStyleCollections } from './schema/styles/style-types'
 
 /** @internal */
 export const MAX_SHAPES_PER_PAGE = 2000

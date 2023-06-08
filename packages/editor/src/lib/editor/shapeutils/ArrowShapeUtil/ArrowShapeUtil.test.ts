@@ -1,6 +1,7 @@
 import { TAU } from '@tldraw/primitives'
-import { TLArrowShape, TLArrowTerminal, TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
+import { createShapeId, TLShapeId } from '../../../schema/records/TLShape'
+import { TLArrowShape, TLArrowTerminal } from '../../../schema/shapes/TLArrowShape'
 import { TestEditor } from '../../../test/TestEditor'
 import { ArrowShapeUtil } from './ArrowShapeUtil'
 

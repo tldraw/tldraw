@@ -1,8 +1,8 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { TLTextShape } from '@tldraw/tlschema'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { TLTextShape } from '../../../schema/shapes/TLTextShape'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { Editor } from '../../Editor'

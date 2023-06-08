@@ -1,5 +1,5 @@
-import { TLStyleType } from '@tldraw/tlschema'
 import { atom, Atom, computed, Computed } from 'signia'
+import { TLStyleType } from '../../schema/styles/TLBaseStyle'
 import type { Editor } from '../Editor'
 import {
 	EVENT_NAME_MAP,

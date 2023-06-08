@@ -1,5 +1,6 @@
-import { TLArrowShape, createShapeId } from '@tldraw/tlschema'
 import { FrameShapeUtil } from '../../editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
+import { createShapeId } from '../../schema/records/TLShape'
+import { TLArrowShape } from '../../schema/shapes/TLArrowShape'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

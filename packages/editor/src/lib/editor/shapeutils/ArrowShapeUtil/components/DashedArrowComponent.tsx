@@ -1,5 +1,6 @@
 import { CubicSpline2d, Polyline2d } from '@tldraw/primitives'
-import { TLArrowheadType, TLDashType } from '@tldraw/tlschema'
+import { TLArrowheadType } from '../../../../schema/styles/TLArrowheadStyle'
+import { TLDashType } from '../../../../schema/styles/TLDashStyle'
 import { Segment, SegmentSvg } from './Segment'
 /**
  * A base interface for a shape's arrowheads.

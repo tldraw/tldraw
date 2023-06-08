@@ -1,5 +1,5 @@
 import { CubicSegment2d, LineSegment2d } from '@tldraw/primitives'
-import { TLDashType } from '@tldraw/tlschema'
+import { TLDashType } from '../../../../schema/styles/TLDashStyle'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 
 export interface SegmentProps {

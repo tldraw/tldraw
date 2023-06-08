@@ -1,6 +1,6 @@
+import { TLStyleType } from '../../../schema/styles/TLBaseStyle'
 import { StateNode } from '../StateNode'
 
-import { TLStyleType } from '@tldraw/tlschema'
 import { Brushing } from './children/Brushing'
 import { Crop } from './children/Crop/Crop'
 import { Cropping } from './children/Cropping'

@@ -1,6 +1,6 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { TLNoteShape } from '@tldraw/tlschema'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { TLNoteShape } from '../../../schema/shapes/TLNoteShape'
 import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler } from '../ShapeUtil'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'

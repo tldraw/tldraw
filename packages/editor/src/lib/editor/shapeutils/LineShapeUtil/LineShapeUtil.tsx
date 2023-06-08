@@ -9,9 +9,10 @@ import {
 	intersectLineSegmentPolyline,
 	pointNearToPolyline,
 } from '@tldraw/primitives'
-import { TLHandle, TLLineShape } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
+import { TLHandle } from '../../../schema/misc/TLHandle'
+import { TLLineShape } from '../../../schema/shapes/TLLineShape'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { ShapeUtil, TLOnHandleChangeHandler, TLOnResizeHandler } from '../ShapeUtil'
 import { ShapeFill } from '../shared/ShapeFill'

@@ -1,9 +1,6 @@
-import {
-	TLInstancePropsForNextShape,
-	TLShapeProps,
-	TLStyleType,
-	TL_STYLE_TYPES,
-} from '@tldraw/tlschema'
+import { TLInstancePropsForNextShape } from '../schema/records/TLInstance'
+import { TLShapeProps } from '../schema/records/TLShape'
+import { TL_STYLE_TYPES, TLStyleType } from '../schema/styles/TLBaseStyle'
 
 /** @public */
 export function setPropsForNextShape(

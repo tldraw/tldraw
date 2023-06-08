@@ -1,6 +1,5 @@
-import { TLStyleType } from '@tldraw/tlschema'
+import { TLStyleType } from '../../../schema/styles/TLBaseStyle'
 import { StateNode } from '../StateNode'
-
 // shared custody
 import { Drawing } from '../DrawShapeTool/children/Drawing'
 import { Idle } from '../DrawShapeTool/children/Idle'

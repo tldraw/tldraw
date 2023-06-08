@@ -1,4 +1,4 @@
-import { TLDashType } from '@tldraw/tlschema'
+import { TLDashType } from '../../../schema/styles/TLDashStyle'
 
 export function getPerfectDashProps(
 	totalLength: number,

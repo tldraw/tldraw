@@ -5,6 +5,7 @@ export {
 	flipSelectionHandleY,
 	isSelectionCorner,
 	rotateSelectionHandle,
+	type Box2dModel,
 	type RotateCorner,
 	type SelectionCorner,
 	type SelectionEdge,
@@ -21,7 +22,7 @@ export {
 	type MatrixInfo,
 } from './lib/Matrix2d'
 export { Polyline2d } from './lib/Polyline2d'
-export { Vec2d, type VecLike } from './lib/Vec2d'
+export { Vec2d, type Vec2dModel, type VecLike } from './lib/Vec2d'
 export { EASINGS, type EasingType } from './lib/easings'
 export { getStroke } from './lib/freehand/getStroke'
 export { getStrokeOutlinePoints } from './lib/freehand/getStrokeOutlinePoints'

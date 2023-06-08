@@ -1,19 +1,13 @@
-import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
-import {
-	AssetRecordType,
-	TLAsset,
-	TLAssetId,
-	TLBookmarkAsset,
-	TLImageShape,
-	TLShapePartial,
-	TLVideoShape,
-	Vec2dModel,
-	createShapeId,
-} from '@tldraw/tlschema'
+import { Box2d, Vec2d, Vec2dModel, VecLike } from '@tldraw/primitives'
 import { compact, getHashForString } from '@tldraw/utils'
 import uniq from 'lodash.uniq'
 import { MAX_ASSET_HEIGHT, MAX_ASSET_WIDTH } from '../constants'
 import { Editor } from '../editor/Editor'
+import { TLBookmarkAsset } from '../schema/assets/TLBookmarkAsset'
+import { AssetRecordType, TLAsset, TLAssetId } from '../schema/records/TLAsset'
+import { TLShapePartial, createShapeId } from '../schema/records/TLShape'
+import { TLImageShape } from '../schema/shapes/TLImageShape'
+import { TLVideoShape } from '../schema/shapes/TLVideoShape'
 import { isAnimated } from './is-gif-animated'
 import { findChunk, isPng, parsePhys } from './png'
 

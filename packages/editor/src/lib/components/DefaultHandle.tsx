@@ -1,5 +1,6 @@
-import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
+import { TLHandle } from '../schema/misc/TLHandle'
+import { TLShapeId } from '../schema/records/TLShape'
 
 export type TLHandleComponent = (props: {
 	shapeId: TLShapeId

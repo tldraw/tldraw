@@ -1,5 +1,6 @@
 import { intersectLineSegmentPolyline, pointInPolygon } from '@tldraw/primitives'
-import { TLScribble, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLScribble } from '../../../../schema/misc/TLScribble'
+import { TLShape, TLShapeId } from '../../../../schema/records/TLShape'
 import { ScribbleManager } from '../../../managers/ScribbleManager'
 import { ShapeUtil } from '../../../shapeutils/ShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'

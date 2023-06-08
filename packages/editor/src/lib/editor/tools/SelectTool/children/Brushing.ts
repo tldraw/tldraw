@@ -6,7 +6,8 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLPageId, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { TLPageId } from '../../../../schema/records/TLPage'
+import { TLShape, TLShapeId } from '../../../../schema/records/TLShape'
 import { ShapeUtil } from '../../../shapeutils/ShapeUtil'
 import {
 	TLCancelEvent,

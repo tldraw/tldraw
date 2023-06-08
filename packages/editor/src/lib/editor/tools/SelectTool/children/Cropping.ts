@@ -1,13 +1,9 @@
 import { SelectionHandle, Vec2d } from '@tldraw/primitives'
-import {
-	TLBaseShape,
-	TLImageCrop,
-	TLImageShapeProps,
-	TLShape,
-	TLShapePartial,
-} from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { MIN_CROP_SIZE } from '../../../../constants'
+import { TLShape, TLShapePartial } from '../../../../schema/records/TLShape'
+import { TLBaseShape } from '../../../../schema/shapes/TLBaseShape'
+import { TLImageCrop, TLImageShapeProps } from '../../../../schema/shapes/TLImageShape'
 import { ImageShapeUtil } from '../../../shapeutils/ImageShapeUtil/ImageShapeUtil'
 import {
 	TLEnterEventHandler,

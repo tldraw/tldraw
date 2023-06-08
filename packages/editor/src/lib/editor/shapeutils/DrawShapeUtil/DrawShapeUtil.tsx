@@ -10,9 +10,9 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
+import { TLDrawShape, TLDrawShapeSegment } from '../../../schema/shapes/TLDrawShape'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'

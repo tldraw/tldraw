@@ -1,13 +1,9 @@
 import { sortByIndex } from '@tldraw/indices'
 import { Matrix2d, snapAngle, Vec2d } from '@tldraw/primitives'
-import {
-	TLArrowShape,
-	TLArrowTerminal,
-	TLHandle,
-	TLShapeId,
-	TLShapePartial,
-} from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
+import { TLHandle } from '../../../../schema/misc/TLHandle'
+import { TLShapeId, TLShapePartial } from '../../../../schema/records/TLShape'
+import { TLArrowShape, TLArrowTerminal } from '../../../../schema/shapes/TLArrowShape'
 import {
 	TLCancelEvent,
 	TLEnterEventHandler,

@@ -1,4 +1,5 @@
-import { createShapeId, TLTextShape } from '@tldraw/tlschema'
+import { createShapeId } from '../../../../schema/records/TLShape'
+import { TLTextShape } from '../../../../schema/shapes/TLTextShape'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 

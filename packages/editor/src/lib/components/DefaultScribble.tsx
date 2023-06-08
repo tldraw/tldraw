@@ -1,6 +1,6 @@
 import { EASINGS, getStroke } from '@tldraw/primitives'
-import { TLScribble } from '@tldraw/tlschema'
 import classNames from 'classnames'
+import { TLScribble } from '../schema/misc/TLScribble'
 import { getSvgPathFromStroke } from '../utils/svg'
 
 /** @public */

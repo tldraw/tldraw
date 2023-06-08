@@ -1,14 +1,5 @@
 import { sortByIndex } from '@tldraw/indices'
 import { approximately, Box2d, VecLike } from '@tldraw/primitives'
-import {
-	createShapeId,
-	TLArrowShape,
-	TLGroupShape,
-	TLLineShape,
-	TLShape,
-	TLShapeId,
-	TLShapePartial,
-} from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
 import { ArrowShapeUtil } from '../../editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
 import { GroupShapeUtil } from '../../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
@@ -17,6 +8,10 @@ import { DrawShapeTool } from '../../editor/tools/DrawShapeTool/DrawShapeTool'
 import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
 import { LineShapeTool } from '../../editor/tools/LineShapeTool/LineShapeTool'
 import { NoteShapeTool } from '../../editor/tools/NoteShapeTool/NoteShapeTool'
+import { createShapeId, TLShape, TLShapeId, TLShapePartial } from '../../schema/records/TLShape'
+import { TLArrowShape } from '../../schema/shapes/TLArrowShape'
+import { TLGroupShape } from '../../schema/shapes/TLGroupShape'
+import { TLLineShape } from '../../schema/shapes/TLLineShape'
 import { TestEditor } from '../TestEditor'
 
 jest.mock('nanoid', () => {

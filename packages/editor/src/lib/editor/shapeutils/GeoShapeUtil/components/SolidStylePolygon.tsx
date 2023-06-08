@@ -1,6 +1,6 @@
 import { VecLike } from '@tldraw/primitives'
-import { TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
+import { TLGeoShape } from '../../../../schema/shapes/TLGeoShape'
 import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
 import { TLExportColors } from '../../shared/TLExportColors'
 

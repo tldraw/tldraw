@@ -12,9 +12,10 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDashType, TLGeoShape } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { TLGeoShape } from '../../../schema/shapes/TLGeoShape'
+import { TLDashType } from '../../../schema/styles/TLDashStyle'
 import { Editor } from '../../Editor'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnEditEndHandler, TLOnResizeHandler } from '../ShapeUtil'

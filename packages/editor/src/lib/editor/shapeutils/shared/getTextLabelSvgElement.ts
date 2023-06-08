@@ -1,6 +1,7 @@
 import { Box2d } from '@tldraw/primitives'
-import { TLGeoShape, TLNoteShape } from '@tldraw/tlschema'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { TLGeoShape } from '../../../schema/shapes/TLGeoShape'
+import { TLNoteShape } from '../../../schema/shapes/TLNoteShape'
 import { getLegacyOffsetX } from '../../../utils/legacy'
 import { Editor } from '../../Editor'
 import { createTextSvgElementFromSpans } from './createTextSvgElementFromSpans'

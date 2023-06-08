@@ -1,5 +1,11 @@
-import { TLEmbedResult, createEmbedShapeAtPoint, getEmbedInfo, useEditor } from '@tldraw/editor'
-import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
+import {
+	EMBED_DEFINITIONS,
+	EmbedDefinition,
+	TLEmbedResult,
+	createEmbedShapeAtPoint,
+	getEmbedInfo,
+	useEditor,
+} from '@tldraw/editor'
 import { useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { useAssetUrls } from '../hooks/useAssetUrls'

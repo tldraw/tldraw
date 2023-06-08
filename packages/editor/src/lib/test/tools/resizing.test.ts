@@ -7,9 +7,9 @@ import {
 	rotateSelectionHandle,
 	Vec2d,
 } from '@tldraw/primitives'
-import { createShapeId, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine } from '../../editor/managers/SnapManager'
 import { TLSelectionHandle } from '../../editor/types/selection-types'
+import { createShapeId, TLShapeId, TLShapePartial } from '../../schema/records/TLShape'
 import { TestEditor } from '../TestEditor'
 import { getSnapLines } from '../testutils/getSnapLines'
 import { roundedBox } from '../testutils/roundedBox'

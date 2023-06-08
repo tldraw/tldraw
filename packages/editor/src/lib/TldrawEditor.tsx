@@ -1,5 +1,4 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
-import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
 import { annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
@@ -23,6 +22,9 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
+import { TLStore } from './schema/TLStore'
+import { TLAsset } from './schema/records/TLAsset'
+import { TLRecord } from './schema/records/TLRecord'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /** @public */

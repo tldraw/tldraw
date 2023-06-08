@@ -1,5 +1,6 @@
 import { Vec2d } from '@tldraw/primitives'
-import { TLGeoShape, TLShape, createShapeId } from '@tldraw/tlschema'
+import { TLShape, createShapeId } from '../../../../schema/records/TLShape'
+import { TLGeoShape } from '../../../../schema/shapes/TLGeoShape'
 import { debugFlags } from '../../../../utils/debug-flags'
 import {
 	TLClickEventInfo,

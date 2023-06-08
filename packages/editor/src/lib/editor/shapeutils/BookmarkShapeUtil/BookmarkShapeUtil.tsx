@@ -1,5 +1,4 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
 import { debounce, getHashForString } from '@tldraw/utils'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import {
@@ -7,6 +6,9 @@ import {
 	DEFAULT_BOOKMARK_WIDTH,
 	ROTATING_SHADOWS,
 } from '../../../constants'
+import { TLBookmarkAsset } from '../../../schema/assets/TLBookmarkAsset'
+import { AssetRecordType, TLAssetId } from '../../../schema/records/TLAsset'
+import { TLBookmarkShape } from '../../../schema/shapes/TLBookmarkShape'
 import {
 	rotateBoxShadow,
 	stopEventPropagation,

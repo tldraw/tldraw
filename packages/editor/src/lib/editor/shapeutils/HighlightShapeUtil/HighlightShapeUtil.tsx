@@ -1,9 +1,10 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, getStrokePoints, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
-import { TLDrawShapeSegment, TLHighlightShape } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { FONT_SIZES } from '../../../constants'
+import { TLDrawShapeSegment } from '../../../schema/shapes/TLDrawShape'
+import { TLHighlightShape } from '../../../schema/shapes/TLHighlightShape'
 import { getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../DrawShapeUtil/getPath'
 import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'

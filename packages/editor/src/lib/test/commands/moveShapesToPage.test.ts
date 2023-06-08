@@ -1,4 +1,5 @@
-import { PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
+import { PageRecordType } from '../../schema/records/TLPage'
+import { createShapeId, TLShape } from '../../schema/records/TLShape'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

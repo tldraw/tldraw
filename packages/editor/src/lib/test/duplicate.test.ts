@@ -1,4 +1,5 @@
-import { TLArrowShape, TLShapePartial, createShapeId } from '@tldraw/tlschema'
+import { createShapeId, TLShapePartial } from '../schema/records/TLShape'
+import { TLArrowShape } from '../schema/shapes/TLArrowShape'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

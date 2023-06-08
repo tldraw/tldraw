@@ -40,9 +40,6 @@
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
-	"dependencies": {
-		"@tldraw/tlschema": "workspace:*"
-	},
 	"jest": {
 		"preset": "config/jest/node",
 		"moduleNameMapper": {

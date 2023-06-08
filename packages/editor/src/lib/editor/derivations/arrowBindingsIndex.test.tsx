@@ -1,4 +1,4 @@
-import { TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '../../schema/records/TLShape'
 import { TestEditor } from '../../test/TestEditor'
 import { TL } from '../../test/jsx'
 

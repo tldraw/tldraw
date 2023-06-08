@@ -6,5 +6,5 @@
 		"outDir": "./.tsbuild",
 		"rootDir": "src"
 	},
-	"references": [{ "path": "../tlschema" }]
+	"references": []
 }

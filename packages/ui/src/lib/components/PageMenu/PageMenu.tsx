@@ -1,5 +1,4 @@
-import { MAX_PAGES, useEditor } from '@tldraw/editor'
-import { PageRecordType, TLPageId } from '@tldraw/tlschema'
+import { MAX_PAGES, PageRecordType, TLPageId, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useValue } from 'signia-react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'

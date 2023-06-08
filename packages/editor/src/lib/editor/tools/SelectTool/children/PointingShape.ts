@@ -1,4 +1,4 @@
-import { TLShape } from '@tldraw/tlschema'
+import { TLShape } from '../../../../schema/records/TLShape'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 

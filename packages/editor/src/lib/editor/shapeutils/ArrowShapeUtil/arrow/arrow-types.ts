@@ -1,5 +1,5 @@
 import { VecLike } from '@tldraw/primitives'
-import { TLArrowheadType } from '@tldraw/tlschema'
+import { TLArrowheadType } from '../../../../schema/styles/TLArrowheadStyle'
 
 export type ArrowPoint = {
 	handle: VecLike

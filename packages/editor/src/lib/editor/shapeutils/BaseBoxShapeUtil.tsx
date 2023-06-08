@@ -1,5 +1,5 @@
 import { Box2d, linesIntersect, pointInPolygon, Vec2d, VecLike } from '@tldraw/primitives'
-import { TLBaseShape } from '@tldraw/tlschema'
+import { TLBaseShape } from '../../schema/shapes/TLBaseShape'
 import { ShapeUtil, TLOnResizeHandler } from './ShapeUtil'
 import { resizeBox } from './shared/resizeBox'
 

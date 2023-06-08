@@ -1,5 +1,5 @@
-import { createShapeId } from '@tldraw/tlschema'
 import { GeoShapeUtil } from '../../editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
+import { createShapeId } from '../../schema/records/TLShape'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

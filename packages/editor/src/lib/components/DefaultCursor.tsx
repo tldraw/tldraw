@@ -1,4 +1,4 @@
-import { Vec2dModel } from '@tldraw/tlschema'
+import { Vec2dModel } from '@tldraw/primitives'
 import classNames from 'classnames'
 import { memo, useRef } from 'react'
 import { useTransform } from '../hooks/useTransform'

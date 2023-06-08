@@ -1,5 +1,5 @@
-import { TLShapeId } from '@tldraw/tlschema'
 import { assert, assertExists } from '@tldraw/utils'
+import { TLShapeId } from '../../schema/records/TLShape'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 

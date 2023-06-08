@@ -1,14 +1,8 @@
 import { IncrementalSetConstructor } from '@tldraw/store'
-import {
-	isPageId,
-	isShape,
-	isShapeId,
-	TLPageId,
-	TLShape,
-	TLShapeId,
-	TLStore,
-} from '@tldraw/tlschema'
 import { computed, isUninitialized, RESET_VALUE, withDiff } from 'signia'
+import { isPageId, TLPageId } from '../../schema/records/TLPage'
+import { isShape, isShapeId, TLShape, TLShapeId } from '../../schema/records/TLShape'
+import { TLStore } from '../../schema/TLStore'
 
 /**
  * Get whether a shape is in the current page.

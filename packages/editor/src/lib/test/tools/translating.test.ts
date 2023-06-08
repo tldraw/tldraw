@@ -1,10 +1,11 @@
 import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
-import { TLShapeId, TLShapePartial, Vec2dModel, createShapeId } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../editor/managers/SnapManager'
 import { ShapeUtil } from '../../editor/shapeutils/ShapeUtil'
 import { TestEditor } from '../TestEditor'
 
+import { Vec2dModel } from '@tldraw/primitives'
 import { defaultShapes } from '../../config/defaultShapes'
+import { createShapeId, TLShapeId, TLShapePartial } from '../../schema/records/TLShape'
 import { getSnapLines } from '../testutils/getSnapLines'
 
 type __TopLeftSnapOnlyShape = any

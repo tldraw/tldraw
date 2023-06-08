@@ -54,7 +54,6 @@
 		"@radix-ui/react-toast": "^1.1.1",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
-		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"browser-fs-access": "^0.31.0",
 		"classnames": "^2.3.2",

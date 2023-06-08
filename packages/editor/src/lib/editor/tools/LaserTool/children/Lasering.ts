@@ -1,4 +1,4 @@
-import { TLScribble } from '@tldraw/tlschema'
+import { TLScribble } from '../../../../schema/misc/TLScribble'
 import { ScribbleManager } from '../../../managers/ScribbleManager'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'

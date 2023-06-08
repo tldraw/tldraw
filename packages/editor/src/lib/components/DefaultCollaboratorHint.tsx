@@ -1,5 +1,4 @@
-import { Box2d, clamp, Vec2d } from '@tldraw/primitives'
-import { Vec2dModel } from '@tldraw/tlschema'
+import { Box2d, clamp, Vec2d, Vec2dModel } from '@tldraw/primitives'
 import classNames from 'classnames'
 import { useRef } from 'react'
 import { useTransform } from '../hooks/useTransform'

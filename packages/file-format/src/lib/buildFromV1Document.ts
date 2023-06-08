@@ -23,10 +23,9 @@ import {
 	TLSizeType,
 	TLTextShape,
 	TLVideoShape,
-	Vec2dModel,
 	createShapeId,
 } from '@tldraw/editor'
-import { Vec2d, clamp } from '@tldraw/primitives'
+import { Vec2d, Vec2dModel, clamp } from '@tldraw/primitives'
 
 const TLDRAW_V1_VERSION = 15.5
 

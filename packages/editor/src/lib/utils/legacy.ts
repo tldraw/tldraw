@@ -1,5 +1,5 @@
-import { Box2d } from '@tldraw/primitives'
-import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
+import { Box2d, Box2dModel } from '@tldraw/primitives'
+import { TLAlignType } from '../schema/styles/TLAlignStyle'
 
 export function getLegacyOffsetX(
 	align: TLAlignType | string,

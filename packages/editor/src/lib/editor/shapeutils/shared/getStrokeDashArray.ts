@@ -1,4 +1,4 @@
-import { TLDashType } from '@tldraw/tlschema'
+import { TLDashType } from '../../../schema/styles/TLDashStyle'
 
 export function getStrokeDashArray(dash: TLDashType, strokeWidth: number) {
 	switch (dash) {

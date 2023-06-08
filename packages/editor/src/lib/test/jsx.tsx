@@ -1,6 +1,6 @@
 import { getIndexAbove } from '@tldraw/indices'
-import { TLDefaultShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
 import { assert, assertExists, omitFromStackTrace } from '@tldraw/utils'
+import { TLDefaultShape, TLShapeId, TLShapePartial, createShapeId } from '../schema/records/TLShape'
 
 const shapeTypeSymbol = Symbol('shapeJsx')
 

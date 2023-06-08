@@ -1,5 +1,4 @@
 import { act, render, screen } from '@testing-library/react'
-import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
@@ -7,6 +6,8 @@ import { createTLStore } from '../config/createTLStore'
 import { Editor } from '../editor/Editor'
 import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
 import { BaseBoxShapeTool } from '../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
+import { createShapeId } from '../schema/records/TLShape'
+import { TLBaseShape } from '../schema/shapes/TLBaseShape'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {

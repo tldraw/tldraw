@@ -1,5 +1,6 @@
-import { Box2d } from '@tldraw/primitives'
-import { Box2dModel, TLAlignType, TLVerticalAlignType } from '@tldraw/tlschema'
+import { Box2d, Box2dModel } from '@tldraw/primitives'
+import { TLAlignType } from '../../../schema/styles/TLAlignStyle'
+import { TLVerticalAlignType } from '../../../schema/styles/TLVerticalAlignStyle'
 import { correctSpacesToNbsp } from '../../../utils/string'
 import { Editor } from '../../Editor'
 

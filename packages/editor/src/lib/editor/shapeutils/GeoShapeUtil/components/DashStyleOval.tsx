@@ -1,6 +1,7 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
+import { TLShapeId } from '../../../../schema/records/TLShape'
+import { TLGeoShape } from '../../../../schema/shapes/TLGeoShape'
 import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
 import { TLExportColors } from '../../shared/TLExportColors'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'

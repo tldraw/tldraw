@@ -63,7 +63,6 @@
 		"@tldraw/primitives": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tldraw": "workspace:*",
-		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/ui": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",

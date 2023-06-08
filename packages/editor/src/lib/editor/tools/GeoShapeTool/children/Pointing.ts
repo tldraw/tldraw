@@ -1,5 +1,6 @@
 import { Box2d, getStarBounds } from '@tldraw/primitives'
-import { TLGeoShape, createShapeId } from '@tldraw/tlschema'
+import { createShapeId } from '../../../../schema/records/TLShape'
+import { TLGeoShape } from '../../../../schema/shapes/TLGeoShape'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 

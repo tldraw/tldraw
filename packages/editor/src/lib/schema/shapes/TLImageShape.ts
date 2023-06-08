@@ -1,7 +1,7 @@
+import { Vec2dModel } from '@tldraw/primitives'
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { Vec2dModel } from '../misc/geometry-types'
 import { TLAssetId } from '../records/TLAsset'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 

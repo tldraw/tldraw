@@ -1,5 +1,6 @@
 import { CubicSpline2d, Polyline2d } from '@tldraw/primitives'
-import { TLDashType, TLLineShape } from '@tldraw/tlschema'
+import { TLLineShape } from '../../../../schema/shapes/TLLineShape'
+import { TLDashType } from '../../../../schema/styles/TLDashStyle'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import { getLineDrawPath } from './getLinePath'
 

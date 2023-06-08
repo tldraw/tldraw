@@ -1,4 +1,5 @@
-import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
+import { Box2dModel } from '@tldraw/primitives'
+import { TLAlignType } from '../../schema/styles/TLAlignStyle'
 import { uniqueId } from '../../utils/data'
 import { Editor } from '../Editor'
 import { TextHelpers } from '../shapeutils/TextShapeUtil/TextHelpers'

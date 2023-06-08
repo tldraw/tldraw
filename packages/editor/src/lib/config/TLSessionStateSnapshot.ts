@@ -5,21 +5,17 @@ import {
 	migrate,
 	squashRecordDiffs,
 } from '@tldraw/store'
-import {
-	CameraRecordType,
-	InstancePageStateRecordType,
-	InstanceRecordType,
-	TLINSTANCE_ID,
-	TLPageId,
-	TLRecord,
-	TLShapeId,
-	TLStore,
-	pageIdValidator,
-	shapeIdValidator,
-} from '@tldraw/tlschema'
 import { objectMapFromEntries } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { Signal, computed, transact } from 'signia'
+import { TLStore } from '../schema/TLStore'
+import { CameraRecordType } from '../schema/records/TLCamera'
+import { InstanceRecordType, TLINSTANCE_ID } from '../schema/records/TLInstance'
+import { TLPageId, pageIdValidator } from '../schema/records/TLPage'
+import { InstancePageStateRecordType } from '../schema/records/TLPageState'
+import { TLRecord } from '../schema/records/TLRecord'
+import { TLShapeId } from '../schema/records/TLShape'
+import { shapeIdValidator } from '../schema/shapes/TLBaseShape'
 import { uniqueId } from '../utils/data'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const

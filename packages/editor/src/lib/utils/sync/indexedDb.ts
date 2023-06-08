@@ -1,7 +1,8 @@
 import { RecordsDiff, SerializedSchema, StoreSnapshot } from '@tldraw/store'
-import { TLRecord, TLStoreSchema } from '@tldraw/tlschema'
 import { IDBPDatabase, openDB } from 'idb'
 import { TLSessionStateSnapshot } from '../../config/TLSessionStateSnapshot'
+import { TLStoreSchema } from '../../schema/TLStore'
+import { TLRecord } from '../../schema/records/TLRecord'
 
 // DO NOT CHANGE THESE WITHOUT ADDING MIGRATION LOGIC. DOING SO WOULD WIPE ALL EXISTING DATA.
 const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'

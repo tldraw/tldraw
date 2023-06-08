@@ -1,5 +1,5 @@
 import { PI } from '@tldraw/primitives'
-import { TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '../../schema/records/TLShape'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 

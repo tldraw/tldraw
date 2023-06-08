@@ -1,10 +1,5 @@
-// Important! don't move this tlschema re-export to lib/index.ts, doing so causes esbuild to produce
-// incorrect output. https://github.com/evanw/esbuild/issues/1737
-
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/indices'
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/tlschema'
 export { getHashForString } from '@tldraw/utils'
 export {
 	ErrorScreen,
@@ -179,6 +174,189 @@ export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
 export { useTLStore } from './lib/hooks/useTLStore'
+export {
+	type TLStore,
+	type TLStoreProps,
+	type TLStoreSchema,
+	type TLStoreSnapshot,
+} from './lib/schema/TLStore'
+export {
+	assetIdValidator,
+	createAssetValidator,
+	type TLBaseAsset,
+} from './lib/schema/assets/TLBaseAsset'
+export { type TLBookmarkAsset } from './lib/schema/assets/TLBookmarkAsset'
+export { type TLImageAsset } from './lib/schema/assets/TLImageAsset'
+export { type TLVideoAsset } from './lib/schema/assets/TLVideoAsset'
+export { createPresenceStateDerivation } from './lib/schema/createPresenceStateDerivation'
+export { createTLSchema } from './lib/schema/createTLSchema'
+export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './lib/schema/fixup'
+export { type TLCursor, type TLCursorType } from './lib/schema/misc/TLCursor'
+export { type TLHandle, type TLHandleType } from './lib/schema/misc/TLHandle'
+export { scribbleValidator, type TLScribble } from './lib/schema/misc/TLScribble'
+export {
+	TL_UI_COLOR_TYPES,
+	uiColorTypeValidator,
+	type TLUIColor,
+} from './lib/schema/misc/TLUIColor'
+export { idValidator } from './lib/schema/misc/id-validator'
+export {
+	AssetRecordType,
+	assetMigrations,
+	assetValidator,
+	type TLAsset,
+	type TLAssetId,
+	type TLAssetPartial,
+	type TLAssetShape,
+} from './lib/schema/records/TLAsset'
+export { CameraRecordType, type TLCamera, type TLCameraId } from './lib/schema/records/TLCamera'
+export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './lib/schema/records/TLDocument'
+export {
+	InstanceRecordType,
+	TLINSTANCE_ID,
+	instanceTypeValidator,
+	type TLInstance,
+	type TLInstanceId,
+	type TLInstancePropsForNextShape,
+} from './lib/schema/records/TLInstance'
+export {
+	PageRecordType,
+	isPageId,
+	pageIdValidator,
+	type TLPage,
+	type TLPageId,
+} from './lib/schema/records/TLPage'
+export {
+	InstancePageStateRecordType,
+	type TLInstancePageState,
+} from './lib/schema/records/TLPageState'
+export { PointerRecordType, TLPOINTER_ID } from './lib/schema/records/TLPointer'
+export {
+	InstancePresenceRecordType,
+	type TLInstancePresence,
+} from './lib/schema/records/TLPresence'
+export { type TLRecord } from './lib/schema/records/TLRecord'
+export {
+	createShapeId,
+	isShape,
+	isShapeId,
+	rootShapeMigrations,
+	type TLDefaultShape,
+	type TLNullableShapeProps,
+	type TLParentId,
+	type TLShape,
+	type TLShapeId,
+	type TLShapePartial,
+	type TLShapeProp,
+	type TLShapeProps,
+	type TLUnknownShape,
+} from './lib/schema/records/TLShape'
+export {
+	type TLArrowShape,
+	type TLArrowShapeProps,
+	type TLArrowTerminal,
+	type TLArrowTerminalType,
+} from './lib/schema/shapes/TLArrowShape'
+export {
+	createShapeValidator,
+	parentIdValidator,
+	shapeIdValidator,
+	type TLBaseShape,
+} from './lib/schema/shapes/TLBaseShape'
+export { type TLBookmarkShape } from './lib/schema/shapes/TLBookmarkShape'
+export { type TLDrawShape, type TLDrawShapeSegment } from './lib/schema/shapes/TLDrawShape'
+export {
+	EMBED_DEFINITIONS,
+	embedShapePermissionDefaults,
+	type EmbedDefinition,
+	type TLEmbedShape,
+	type TLEmbedShapePermissions,
+} from './lib/schema/shapes/TLEmbedShape'
+export { type TLFrameShape } from './lib/schema/shapes/TLFrameShape'
+export { type TLGeoShape } from './lib/schema/shapes/TLGeoShape'
+export { type TLGroupShape } from './lib/schema/shapes/TLGroupShape'
+export { type TLHighlightShape } from './lib/schema/shapes/TLHighlightShape'
+export { type TLIconShape } from './lib/schema/shapes/TLIconShape'
+export {
+	type TLImageCrop,
+	type TLImageShape,
+	type TLImageShapeProps,
+} from './lib/schema/shapes/TLImageShape'
+export { type TLLineShape } from './lib/schema/shapes/TLLineShape'
+export { type TLNoteShape } from './lib/schema/shapes/TLNoteShape'
+export { type TLTextShape, type TLTextShapeProps } from './lib/schema/shapes/TLTextShape'
+export { type TLVideoShape } from './lib/schema/shapes/TLVideoShape'
+export {
+	TL_ALIGN_TYPES,
+	alignValidator,
+	type TLAlignStyle,
+	type TLAlignType,
+} from './lib/schema/styles/TLAlignStyle'
+export {
+	TL_ARROWHEAD_TYPES,
+	type TLArrowheadEndStyle,
+	type TLArrowheadStartStyle,
+	type TLArrowheadType,
+} from './lib/schema/styles/TLArrowheadStyle'
+export { TL_STYLE_TYPES, type TLStyleType } from './lib/schema/styles/TLBaseStyle'
+export {
+	TL_COLOR_TYPES,
+	colorValidator,
+	type TLColorStyle,
+	type TLColorType,
+} from './lib/schema/styles/TLColorStyle'
+export {
+	TL_DASH_TYPES,
+	dashValidator,
+	type TLDashStyle,
+	type TLDashType,
+} from './lib/schema/styles/TLDashStyle'
+export {
+	TL_FILL_TYPES,
+	fillValidator,
+	type TLFillStyle,
+	type TLFillType,
+} from './lib/schema/styles/TLFillStyle'
+export {
+	TL_FONT_TYPES,
+	fontValidator,
+	type TLFontStyle,
+	type TLFontType,
+} from './lib/schema/styles/TLFontStyle'
+export {
+	TL_GEO_TYPES,
+	geoValidator,
+	type TLGeoStyle,
+	type TLGeoType,
+} from './lib/schema/styles/TLGeoStyle'
+export { iconValidator, type TLIconStyle, type TLIconType } from './lib/schema/styles/TLIconStyle'
+export { opacityValidator, type TLOpacityType } from './lib/schema/styles/TLOpacityStyle'
+export {
+	TL_SIZE_TYPES,
+	sizeValidator,
+	type TLSizeStyle,
+	type TLSizeType,
+} from './lib/schema/styles/TLSizeStyle'
+export {
+	TL_SPLINE_TYPES,
+	splineValidator,
+	type TLSplineStyle,
+	type TLSplineType,
+} from './lib/schema/styles/TLSplineStyle'
+export {
+	verticalAlignValidator,
+	type TLVerticalAlignType,
+} from './lib/schema/styles/TLVerticalAlignStyle'
+export {
+	type TLStyleCollections,
+	type TLStyleItem,
+	type TLStyleProps,
+} from './lib/schema/styles/style-types'
+export {
+	LANGUAGES,
+	getDefaultTranslationLocale,
+	type TLLanguage,
+} from './lib/schema/translations/translations'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,

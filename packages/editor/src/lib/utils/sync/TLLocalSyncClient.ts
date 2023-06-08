@@ -5,7 +5,6 @@ import {
 	compareSchemas,
 	squashRecordDiffs,
 } from '@tldraw/store'
-import { TLStore } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
 import { Signal, transact } from 'signia'
 import {
@@ -15,6 +14,7 @@ import {
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
 } from '../../config/TLSessionStateSnapshot'
+import { TLStore } from '../../schema/TLStore'
 import { showCantReadFromIndexDbAlert, showCantWriteToIndexDbAlert } from './alerts'
 import { loadDataFromStore, storeChangesInIndexedDb, storeSnapshotInIndexedDb } from './indexedDb'
 

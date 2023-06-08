@@ -1,5 +1,5 @@
-import { TLShapeId } from '@tldraw/tlschema'
 import { useValue } from 'signia-react'
+import { TLShapeId } from '../schema/records/TLShape'
 import { useEditor } from './useEditor'
 
 export function useIsEditing(shapeId: TLShapeId) {

@@ -1,4 +1,4 @@
-import { isShapeId } from '@tldraw/tlschema'
+import { isShapeId } from '../../../../schema/records/TLShape'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 

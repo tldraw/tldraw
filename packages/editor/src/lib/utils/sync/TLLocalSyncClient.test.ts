@@ -1,6 +1,6 @@
-import { PageRecordType } from '@tldraw/tlschema'
 import { promiseWithResolve } from '@tldraw/utils'
 import { createTLStore } from '../../config/createTLStore'
+import { PageRecordType } from '../../schema/records/TLPage'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
 import * as idb from './indexedDb'
 

@@ -1,5 +1,14 @@
-import { Vec2dModel } from '@tldraw/tlschema'
 import { EASINGS } from './easings'
+
+/**
+ * A serializable model for 2D vectors.
+ *
+ * @public */
+export interface Vec2dModel {
+	x: number
+	y: number
+	z?: number
+}
 
 /** @public */
 export type VecLike = Vec2d | Vec2dModel

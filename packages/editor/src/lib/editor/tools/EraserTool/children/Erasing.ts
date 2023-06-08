@@ -1,5 +1,6 @@
 import { pointInPolygon } from '@tldraw/primitives'
-import { TLScribble, TLShapeId } from '@tldraw/tlschema'
+import { TLScribble } from '../../../../schema/misc/TLScribble'
+import { TLShapeId } from '../../../../schema/records/TLShape'
 import { ScribbleManager } from '../../../managers/ScribbleManager'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'

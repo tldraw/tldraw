@@ -1,5 +1,5 @@
-import { createShapeId } from '@tldraw/tlschema'
 import { SVG_PADDING } from '../../constants'
+import { createShapeId } from '../../schema/records/TLShape'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

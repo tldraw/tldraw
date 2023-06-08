@@ -48,7 +48,6 @@
 		"@tldraw/indices": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
 		"@tldraw/store": "workspace:*",
-		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"@types/canvas-size": "^1.2.0",

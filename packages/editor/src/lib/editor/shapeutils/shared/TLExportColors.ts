@@ -1,4 +1,4 @@
-import { TLColorType } from '@tldraw/tlschema'
+import { TLColorType } from '../../../schema/styles/TLColorStyle'
 
 export type TLExportColors = {
 	fill: Record<TLColorType, string>

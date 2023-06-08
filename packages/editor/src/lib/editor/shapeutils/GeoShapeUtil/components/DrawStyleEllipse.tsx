@@ -8,9 +8,10 @@ import {
 	TAU,
 	Vec2d,
 } from '@tldraw/primitives'
-import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
 import * as React from 'react'
+import { TLShapeId } from '../../../../schema/records/TLShape'
+import { TLGeoShape } from '../../../../schema/shapes/TLGeoShape'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
 import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
 import { TLExportColors } from '../../shared/TLExportColors'

@@ -1,6 +1,6 @@
+import { Vec2dModel } from '@tldraw/primitives'
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Vec2dModel } from '../misc/geometry-types'
 import { TLShapeId } from '../records/TLShape'
 import { TLArrowheadType, arrowheadValidator } from '../styles/TLArrowheadStyle'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'

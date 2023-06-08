@@ -1,4 +1,4 @@
-import { TLCursorType } from '@tldraw/tlschema'
+import { TLCursorType } from '../../../../schema/misc/TLCursor'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 import { TLSelectionHandle } from '../../../types/selection-types'
 import { StateNode } from '../../StateNode'

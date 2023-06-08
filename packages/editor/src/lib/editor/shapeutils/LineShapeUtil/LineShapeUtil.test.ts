@@ -1,5 +1,7 @@
-import { TLGeoShape, TLLineShape, createShapeId } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
+import { createShapeId } from '../../../schema/records/TLShape'
+import { TLGeoShape } from '../../../schema/shapes/TLGeoShape'
+import { TLLineShape } from '../../../schema/shapes/TLLineShape'
 import { TestEditor } from '../../../test/TestEditor'
 
 jest.mock('nanoid', () => {

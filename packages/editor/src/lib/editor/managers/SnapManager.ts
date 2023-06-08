@@ -10,11 +10,13 @@ import {
 	SelectionCorner,
 	SelectionEdge,
 	Vec2d,
+	Vec2dModel,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLLineShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
 import { compact, dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
+import { TLParentId, TLShape, TLShapeId } from '../../schema/records/TLShape'
+import { TLLineShape } from '../../schema/shapes/TLLineShape'
 import { uniqueId } from '../../utils/data'
 import type { Editor } from '../Editor'
 import { getSplineForLineShape, LineShapeUtil } from '../shapeutils/LineShapeUtil/LineShapeUtil'

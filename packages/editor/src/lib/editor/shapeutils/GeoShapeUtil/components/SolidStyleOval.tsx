@@ -1,5 +1,5 @@
-import { TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
+import { TLGeoShape } from '../../../../schema/shapes/TLGeoShape'
 import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
 import { TLExportColors } from '../../shared/TLExportColors'
 

@@ -1,5 +1,6 @@
-import { TLInstancePresence, TLStore } from '@tldraw/tlschema'
 import { Signal, computed } from 'signia'
+import { TLStore } from '../schema/TLStore'
+import { TLInstancePresence } from '../schema/records/TLPresence'
 import { TLUserPreferences, getUserPreferences, setUserPreferences } from './TLUserPreferences'
 
 /** @public */

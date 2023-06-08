@@ -1,7 +1,7 @@
 import { canolicalizeRotation, Matrix2d, Vec2d } from '@tldraw/primitives'
-import { isShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
+import { isShapeId, TLShapePartial } from '../schema/records/TLShape'
 
 /** @internal */
 export function getRotationSnapshot({ editor }: { editor: Editor }) {

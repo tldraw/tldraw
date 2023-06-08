@@ -1,6 +1,16 @@
-import { Box2dModel } from '@tldraw/tlschema'
 import { Vec2d, VecLike } from './Vec2d'
 import { PI, PI2, toPrecision } from './utils'
+
+/**
+ * A serializable model for 2D boxes.
+ *
+ * @public */
+export interface Box2dModel {
+	x: number
+	y: number
+	w: number
+	h: number
+}
 
 /** @public */
 export type SelectionEdge = 'top' | 'right' | 'bottom' | 'left'

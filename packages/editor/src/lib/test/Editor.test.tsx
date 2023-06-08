@@ -1,5 +1,6 @@
-import { PageRecordType, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
+import { PageRecordType } from '../schema/records/TLPage'
+import { createShapeId } from '../schema/records/TLShape'
 import { TestEditor } from './TestEditor'
 import { TL } from './jsx'
 

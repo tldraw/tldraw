@@ -1,13 +1,11 @@
-import {
-	TLAlignType,
-	TLFillType,
-	TLFontType,
-	TLShape,
-	TLSizeType,
-	TLVerticalAlignType,
-} from '@tldraw/tlschema'
 import React from 'react'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
+import { TLShape } from '../../../schema/records/TLShape'
+import { TLAlignType } from '../../../schema/styles/TLAlignStyle'
+import { TLFillType } from '../../../schema/styles/TLFillStyle'
+import { TLFontType } from '../../../schema/styles/TLFontStyle'
+import { TLSizeType } from '../../../schema/styles/TLSizeStyle'
+import { TLVerticalAlignType } from '../../../schema/styles/TLVerticalAlignStyle'
 import { stopEventPropagation } from '../../../utils/dom'
 import { isLegacyAlign } from '../../../utils/legacy'
 import { TextHelpers } from '../TextShapeUtil/TextHelpers'

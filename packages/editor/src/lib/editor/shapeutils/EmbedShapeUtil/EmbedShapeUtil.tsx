@@ -1,10 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { toDomPrecision } from '@tldraw/primitives'
-import {
-	TLEmbedShape,
-	TLEmbedShapePermissions,
-	embedShapePermissionDefaults,
-} from '@tldraw/tlschema'
 import * as React from 'react'
 import { useMemo } from 'react'
 import { useValue } from 'signia-react'
@@ -12,6 +7,11 @@ import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { ROTATING_SHADOWS } from '../../../constants'
 import { useIsEditing } from '../../../hooks/useIsEditing'
+import {
+	TLEmbedShape,
+	TLEmbedShapePermissions,
+	embedShapePermissionDefaults,
+} from '../../../schema/shapes/TLEmbedShape'
 import { rotateBoxShadow } from '../../../utils/dom'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../utils/embeds'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'

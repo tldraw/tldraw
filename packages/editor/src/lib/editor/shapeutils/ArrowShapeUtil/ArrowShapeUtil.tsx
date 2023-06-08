@@ -8,24 +8,21 @@ import {
 	shortAngleDist,
 	toDomPrecision,
 	Vec2d,
+	Vec2dModel,
 	VecLike,
 } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
-import {
-	TLArrowheadType,
-	TLArrowShape,
-	TLColorType,
-	TLFillType,
-	TLHandle,
-	TLShapeId,
-	TLShapePartial,
-	Vec2dModel,
-} from '@tldraw/tlschema'
 import { deepCopy, last, minBy } from '@tldraw/utils'
 import * as React from 'react'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
+import { TLHandle } from '../../../schema/misc/TLHandle'
+import { TLShapeId, TLShapePartial } from '../../../schema/records/TLShape'
+import { TLArrowShape } from '../../../schema/shapes/TLArrowShape'
+import { TLArrowheadType } from '../../../schema/styles/TLArrowheadStyle'
+import { TLColorType } from '../../../schema/styles/TLColorStyle'
+import { TLFillType } from '../../../schema/styles/TLFillStyle'
 import {
 	ShapeUtil,
 	TLOnEditEndHandler,

@@ -8,12 +8,14 @@ import {
 } from '@tldraw/indices'
 import {
 	Box2d,
+	Box2dModel,
 	EASINGS,
 	MatLike,
 	Matrix2d,
 	Matrix2dModel,
 	PI2,
 	Vec2d,
+	Vec2dModel,
 	VecLike,
 	approximately,
 	areAnglesCompatible,
@@ -22,48 +24,6 @@ import {
 	pointInPolygon,
 } from '@tldraw/primitives'
 import { ComputedCache, RecordType } from '@tldraw/store'
-import {
-	Box2dModel,
-	CameraRecordType,
-	InstancePageStateRecordType,
-	PageRecordType,
-	TLArrowShape,
-	TLAsset,
-	TLAssetId,
-	TLAssetPartial,
-	TLColorStyle,
-	TLColorType,
-	TLCursor,
-	TLCursorType,
-	TLDOCUMENT_ID,
-	TLDocument,
-	TLFrameShape,
-	TLGroupShape,
-	TLINSTANCE_ID,
-	TLImageAsset,
-	TLInstance,
-	TLInstancePageState,
-	TLNullableShapeProps,
-	TLPOINTER_ID,
-	TLPage,
-	TLPageId,
-	TLParentId,
-	TLRecord,
-	TLScribble,
-	TLShape,
-	TLShapeId,
-	TLShapePartial,
-	TLShapeProp,
-	TLSizeStyle,
-	TLStore,
-	TLUnknownShape,
-	TLVideoAsset,
-	Vec2dModel,
-	createShapeId,
-	isPageId,
-	isShape,
-	isShapeId,
-} from '@tldraw/tlschema'
 import {
 	annotateError,
 	compact,
@@ -104,6 +64,36 @@ import {
 	ZOOMS,
 } from '../constants'
 import { exportPatternSvgDefs } from '../hooks/usePattern'
+import { TLStore } from '../schema/TLStore'
+import { TLImageAsset } from '../schema/assets/TLImageAsset'
+import { TLVideoAsset } from '../schema/assets/TLVideoAsset'
+import { TLCursor, TLCursorType } from '../schema/misc/TLCursor'
+import { TLScribble } from '../schema/misc/TLScribble'
+import { TLAsset, TLAssetId, TLAssetPartial } from '../schema/records/TLAsset'
+import { CameraRecordType } from '../schema/records/TLCamera'
+import { TLDOCUMENT_ID, TLDocument } from '../schema/records/TLDocument'
+import { TLINSTANCE_ID, TLInstance } from '../schema/records/TLInstance'
+import { PageRecordType, TLPage, TLPageId, isPageId } from '../schema/records/TLPage'
+import { InstancePageStateRecordType, TLInstancePageState } from '../schema/records/TLPageState'
+import { TLPOINTER_ID } from '../schema/records/TLPointer'
+import { TLRecord } from '../schema/records/TLRecord'
+import {
+	TLNullableShapeProps,
+	TLParentId,
+	TLShape,
+	TLShapeId,
+	TLShapePartial,
+	TLShapeProp,
+	TLUnknownShape,
+	createShapeId,
+	isShape,
+	isShapeId,
+} from '../schema/records/TLShape'
+import { TLArrowShape } from '../schema/shapes/TLArrowShape'
+import { TLFrameShape } from '../schema/shapes/TLFrameShape'
+import { TLGroupShape } from '../schema/shapes/TLGroupShape'
+import { TLColorStyle, TLColorType } from '../schema/styles/TLColorStyle'
+import { TLSizeStyle } from '../schema/styles/TLSizeStyle'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile, getMediaAssetFromFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'

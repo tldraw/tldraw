@@ -6,7 +6,7 @@ import {
 	setStrokePointRadii,
 	Vec2d,
 } from '@tldraw/primitives'
-import { TLLineShape } from '@tldraw/tlschema'
+import { TLLineShape } from '../../../../schema/shapes/TLLineShape'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
 
 export function getLinePoints(spline: CubicSpline2d | Polyline2d) {
