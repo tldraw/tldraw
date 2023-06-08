@@ -1,3 +1,3 @@
 export {}
 
-it.todo('App.interrupt')
+it.todo('Editor.interrupt')

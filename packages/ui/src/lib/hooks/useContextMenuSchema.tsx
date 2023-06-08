@@ -1,8 +1,8 @@
-import { App, TLBookmarkUtil, TLEmbedUtil, getEmbedInfo, useApp } from '@tldraw/editor'
+import { BookmarkShapeUtil, Editor, EmbedShapeUtil, getEmbedInfo, useEditor } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { track, useValue } from 'signia-react'
 import {
-	MenuSchema,
+	TLUiMenuSchema,
 	compactMenuItems,
 	menuCustom,
 	menuGroup,
@@ -19,16 +19,18 @@ import { useOnlyFlippableShape } from './useOnlyFlippableShape'
 import { useShowAutoSizeToggle } from './useShowAutoSizeToggle'
 
 /** @public */
-export type ContextMenuSchemaContextType = MenuSchema
+export type TLUiContextTTLUiMenuSchemaContextType = TLUiMenuSchema
+
+/** @internal */
+export const TLUiContextMenuSchemaContext = React.createContext(
+	{} as TLUiContextTTLUiMenuSchemaContextType
+)
 
 /** @public */
-export const ContextMenuSchemaContext = React.createContext({} as ContextMenuSchemaContextType)
-
-/** @public */
-export type ContextMenuSchemaProviderProps = {
+export type TLUiContextMenuSchemaProviderProps = {
 	overrides?: (
-		app: App,
-		schema: ContextMenuSchemaContextType,
+		editor: Editor,
+		schema: TLUiContextTTLUiMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
 			oneSelected: boolean
@@ -38,32 +40,32 @@ export type ContextMenuSchemaProviderProps = {
 			showUngroup: boolean
 			onlyFlippableShapeSelected: boolean
 		}
-	) => ContextMenuSchemaContextType
+	) => TLUiContextTTLUiMenuSchemaContextType
 	children: any
 }
 
-/** @public */
-export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvider({
+/** @internal */
+export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchemaProvider({
 	overrides,
 	children,
-}: ContextMenuSchemaProviderProps) {
-	const app = useApp()
+}: TLUiContextMenuSchemaProviderProps) {
+	const editor = useEditor()
 	const actions = useActions()
 
 	const showAutoSizeToggle = useShowAutoSizeToggle()
 
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 
-	const selectedCount = app.selectedIds.length
+	const selectedCount = editor.selectedIds.length
 
 	const oneSelected = selectedCount > 0
 	const oneEmbedSelected = useValue(
 		'oneEmbedSelected',
 		() => {
-			if (app.selectedIds.length !== 1) return false
-			return app.selectedIds.some((selectedId) => {
-				const shape = app.getShapeById(selectedId)
-				return shape && app.isShapeOfType(shape, TLEmbedUtil) && shape.props.url
+			if (editor.selectedIds.length !== 1) return false
+			return editor.selectedIds.some((selectedId) => {
+				const shape = editor.getShapeById(selectedId)
+				return shape && editor.isShapeOfType(shape, EmbedShapeUtil) && shape.props.url
 			})
 		},
 		[]
@@ -71,10 +73,12 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',
 		() => {
-			if (app.selectedIds.length !== 1) return false
-			return app.selectedIds.some((selectedId) => {
-				const shape = app.getShapeById(selectedId)
-				return shape && app.isShapeOfType(shape, TLBookmarkUtil) && getEmbedInfo(shape.props.url)
+			if (editor.selectedIds.length !== 1) return false
+			return editor.selectedIds.some((selectedId) => {
+				const shape = editor.getShapeById(selectedId)
+				return (
+					shape && editor.isShapeOfType(shape, BookmarkShapeUtil) && getEmbedInfo(shape.props.url)
+				)
 			})
 		},
 		[]
@@ -83,17 +87,25 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	const twoSelected = selectedCount > 1
 	const threeSelected = selectedCount > 2
 	const threeStackableItems = useThreeStackableItems()
-	const atLeastOneShapeOnPage = useValue('atLeastOneShapeOnPage', () => app.shapeIds.size > 0, [])
-	const isTransparentBg = useValue('isTransparentBg', () => app.instanceState.exportBackground, [])
+	const atLeastOneShapeOnPage = useValue(
+		'atLeastOneShapeOnPage',
+		() => editor.shapeIds.size > 0,
+		[]
+	)
+	const isTransparentBg = useValue(
+		'isTransparentBg',
+		() => editor.instanceState.exportBackground,
+		[]
+	)
 	const allowGroup = useAllowGroup()
 	const allowUngroup = useAllowUngroup()
 	const hasClipboardWrite = Boolean(window.navigator.clipboard?.write)
 	const showEditLink = useHasLinkShapeSelected()
-	const { onlySelectedShape } = app
-	const isShapeLocked = onlySelectedShape && app.isShapeOrAncestorLocked(onlySelectedShape)
+	const { onlySelectedShape } = editor
+	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
-	const contextMenuSchema = useMemo<MenuSchema>(() => {
-		let contextMenuSchema: ContextMenuSchemaContextType = compactMenuItems([
+	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
+		let contextTLUiMenuSchema: TLUiContextTTLUiMenuSchemaContextType = compactMenuItems([
 			menuGroup(
 				'selection',
 				oneEmbedSelected && menuItem(actions['open-embed-link']),
@@ -212,7 +224,7 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 		])
 
 		if (overrides) {
-			contextMenuSchema = overrides(app, contextMenuSchema, {
+			contextTLUiMenuSchema = overrides(editor, contextTLUiMenuSchema, {
 				actions,
 				oneSelected,
 				twoSelected,
@@ -223,9 +235,9 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 			})
 		}
 
-		return contextMenuSchema
+		return contextTLUiMenuSchema
 	}, [
-		app,
+		editor,
 		overrides,
 		actions,
 		oneSelected,
@@ -246,18 +258,18 @@ export const ContextMenuSchemaProvider = track(function ContextMenuSchemaProvide
 	])
 
 	return (
-		<ContextMenuSchemaContext.Provider value={contextMenuSchema}>
+		<TLUiContextMenuSchemaContext.Provider value={contextTLUiMenuSchema}>
 			{children}
-		</ContextMenuSchemaContext.Provider>
+		</TLUiContextMenuSchemaContext.Provider>
 	)
 })
 
 /** @public */
-export function useContextMenuSchema(): MenuSchema {
-	const ctx = React.useContext(ContextMenuSchemaContext)
+export function useContextMenuSchema(): TLUiMenuSchema {
+	const ctx = React.useContext(TLUiContextMenuSchemaContext)
 
 	if (!ctx) {
-		throw new Error('useContextMenuSchema must be used inside of a ContextMenuSchemaProvider.')
+		throw new Error('useContextMenuSchema must be used inside of a TLUiContextMenuSchemaProvider.')
 	}
 
 	return ctx

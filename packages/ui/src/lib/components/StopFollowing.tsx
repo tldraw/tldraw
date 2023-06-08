@@ -1,13 +1,13 @@
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { track } from 'signia-react'
 import { useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 
 export const StopFollowing = track(function ExitPenMode() {
-	const app = useApp()
+	const editor = useEditor()
 	const actions = useActions()
 
-	if (!app.instanceState.followingUserId) {
+	if (!editor.instanceState.followingUserId) {
 		return null
 	}
 

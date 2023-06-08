@@ -1,12 +1,12 @@
 import { act, render, screen } from '@testing-library/react'
-import { InstanceRecordType, TLBaseShape, TLOpacityType } from '@tldraw/tlschema'
+import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
-import { App } from '../app/App'
-import { TLBoxUtil } from '../app/shapeutils/TLBoxUtil'
-import { TLBoxTool } from '../app/statechart/TLBoxTool/TLBoxTool'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
 import { createTLStore } from '../config/createTLStore'
+import { Editor } from '../editor/Editor'
+import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
+import { BaseBoxShapeTool } from '../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -36,7 +36,12 @@ describe('<TldrawEditor />', () => {
 		let store: any
 		render(
 			await act(async () => (
-				<TldrawEditor onMount={(app) => (store = app.store)} autoFocus>
+				<TldrawEditor
+					onMount={(editor) => {
+						store = editor.store
+					}}
+					autoFocus
+				>
 					<div data-testid="canvas-1" />
 				</TldrawEditor>
 			))
@@ -51,8 +56,8 @@ describe('<TldrawEditor />', () => {
 			await act(async () => (
 				<TldrawEditor
 					store={store}
-					onMount={(app) => {
-						expect(app.store).toBe(store)
+					onMount={(editor) => {
+						expect(editor.store).toBe(store)
 					}}
 					autoFocus
 				>
@@ -64,9 +69,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = createTLStore({
-			instanceId: InstanceRecordType.createCustomId('test'),
-		})
+		const initialStore = createTLStore({})
 		const onMount = jest.fn()
 		const rendered = render(
 			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
@@ -74,9 +77,9 @@ describe('<TldrawEditor />', () => {
 			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-1')
-		const initialApp = onMount.mock.lastCall[0]
-		jest.spyOn(initialApp, 'dispose')
-		expect(initialApp.store).toBe(initialStore)
+		const initialEditor = onMount.mock.lastCall[0]
+		jest.spyOn(initialEditor, 'dispose')
+		expect(initialEditor.store).toBe(initialStore)
 		// re-render with the same store:
 		rendered.rerender(
 			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
@@ -87,28 +90,26 @@ describe('<TldrawEditor />', () => {
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
-		const newStore = createTLStore({
-			instanceId: InstanceRecordType.createCustomId('test'),
-		})
+		const newStore = createTLStore({})
 		rendered.rerender(
 			<TldrawEditor store={newStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-3')
-		expect(initialApp.dispose).toHaveBeenCalledTimes(1)
+		expect(initialEditor.dispose).toHaveBeenCalledTimes(1)
 		expect(onMount).toHaveBeenCalledTimes(2)
 		expect(onMount.mock.lastCall[0].store).toBe(newStore)
 	})
 
 	it('Renders the canvas and shapes', async () => {
-		let app = {} as App
+		let editor = {} as Editor
 		render(
 			await act(async () => (
 				<TldrawEditor
 					autoFocus
 					onMount={(editorApp) => {
-						app = editorApp
+						editor = editorApp
 					}}
 				>
 					<Canvas />
@@ -118,15 +119,15 @@ describe('<TldrawEditor />', () => {
 		)
 		await screen.findByTestId('canvas-1')
 
-		expect(app).toBeTruthy()
+		expect(editor).toBeTruthy()
 		await act(async () => {
-			app.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
+			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
 		})
 
-		const id = app.createShapeId()
+		const id = createShapeId()
 
 		await act(async () => {
-			app.createShapes([
+			editor.createShapes([
 				{
 					id,
 					type: 'geo',
@@ -136,12 +137,13 @@ describe('<TldrawEditor />', () => {
 		})
 
 		// Does the shape exist?
-		expect(app.getShapeById(id)).toMatchObject({
+		expect(editor.getShapeById(id)).toMatchObject({
 			id,
 			type: 'geo',
 			x: 0,
 			y: 0,
-			props: { geo: 'rectangle', w: 100, h: 100, opacity: '1' },
+			opacity: 1,
+			props: { geo: 'rectangle', w: 100, h: 100 },
 		})
 
 		// Is the shape's component rendering?
@@ -150,16 +152,16 @@ describe('<TldrawEditor />', () => {
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(0)
 
 		// Select the shape
-		await act(async () => app.select(id))
+		await act(async () => editor.select(id))
 
 		// Is the shape's component rendering?
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
 
 		// Select the eraser tool...
-		await act(async () => app.setSelectedTool('eraser'))
+		await act(async () => editor.setSelectedTool('eraser'))
 
 		// Is the editor's current tool correct?
-		expect(app.currentToolId).toBe('eraser')
+		expect(editor.currentToolId).toBe('eraser')
 	})
 })
 
@@ -169,11 +171,10 @@ describe('Custom shapes', () => {
 		{
 			w: number
 			h: number
-			opacity: TLOpacityType
 		}
 	>
 
-	class CardUtil extends TLBoxUtil<CardShape> {
+	class CardUtil extends BaseBoxShapeUtil<CardShape> {
 		static override type = 'card' as const
 
 		override isAspectRatioLocked = (_shape: CardShape) => false
@@ -182,7 +183,6 @@ describe('Custom shapes', () => {
 
 		override defaultProps(): CardShape['props'] {
 			return {
-				opacity: '1',
 				w: 300,
 				h: 300,
 			}
@@ -213,7 +213,7 @@ describe('Custom shapes', () => {
 		}
 	}
 
-	class CardTool extends TLBoxTool {
+	class CardTool extends BaseBoxShapeTool {
 		static override id = 'card'
 		static override initial = 'idle'
 		override shapeType = 'card'
@@ -223,7 +223,7 @@ describe('Custom shapes', () => {
 	const shapes = { card: { util: CardUtil } }
 
 	it('Uses custom shapes', async () => {
-		let app = {} as App
+		let editor = {} as Editor
 		render(
 			await act(async () => (
 				<TldrawEditor
@@ -231,7 +231,7 @@ describe('Custom shapes', () => {
 					tools={tools}
 					autoFocus
 					onMount={(editorApp) => {
-						app = editorApp
+						editor = editorApp
 					}}
 				>
 					<Canvas />
@@ -241,17 +241,17 @@ describe('Custom shapes', () => {
 		)
 		await screen.findByTestId('canvas-1')
 
-		expect(app).toBeTruthy()
+		expect(editor).toBeTruthy()
 		await act(async () => {
-			app.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
+			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
 		})
 
-		expect(app.shapeUtils.card).toBeTruthy()
+		expect(editor.shapeUtils.card).toBeTruthy()
 
-		const id = app.createShapeId()
+		const id = createShapeId()
 
 		await act(async () => {
-			app.createShapes([
+			editor.createShapes([
 				{
 					id,
 					type: 'card',
@@ -261,27 +261,28 @@ describe('Custom shapes', () => {
 		})
 
 		// Does the shape exist?
-		expect(app.getShapeById(id)).toMatchObject({
+		expect(editor.getShapeById(id)).toMatchObject({
 			id,
 			type: 'card',
 			x: 0,
 			y: 0,
-			props: { w: 100, h: 100, opacity: '1' },
+			opacity: 1,
+			props: { w: 100, h: 100 },
 		})
 
 		// Is the shape's component rendering?
 		expect(await screen.findByTestId('card-shape')).toBeTruthy()
 
 		// Select the shape
-		await act(async () => app.select(id))
+		await act(async () => editor.select(id))
 
 		// Is the shape's component rendering?
 		expect(await screen.findByTestId('card-indicator')).toBeTruthy()
 
 		// Select the tool...
-		await act(async () => app.setSelectedTool('card'))
+		await act(async () => editor.setSelectedTool('card'))
 
 		// Is the editor's current tool correct?
-		expect(app.currentToolId).toBe('card')
+		expect(editor.currentToolId).toBe('card')
 	})
 })

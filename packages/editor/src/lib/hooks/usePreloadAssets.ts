@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { EditorAssetUrls } from '../assetUrls'
+import { TLEditorAssetUrls } from '../assetUrls'
 
 export type TLTypeFace = {
 	url: string
@@ -90,7 +90,7 @@ const usePreloadFont = (id: string, font: TLTypeFace): PreloadStatus => {
 	return state
 }
 
-function getTypefaces(assetUrls: EditorAssetUrls) {
+function getTypefaces(assetUrls: TLEditorAssetUrls) {
 	return {
 		draw: { url: assetUrls.fonts.draw },
 		serif: { url: assetUrls.fonts.serif },
@@ -101,7 +101,7 @@ function getTypefaces(assetUrls: EditorAssetUrls) {
 
 // todo: Expose this via a public API (prop on <Tldraw>).
 
-export function usePreloadAssets(assetUrls: EditorAssetUrls) {
+export function usePreloadAssets(assetUrls: TLEditorAssetUrls) {
 	const typefaces = useMemo(() => getTypefaces(assetUrls), [assetUrls])
 
 	const results = [

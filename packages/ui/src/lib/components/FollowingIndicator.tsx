@@ -1,9 +1,9 @@
-import { useApp, usePresence } from '@tldraw/editor'
+import { useEditor, usePresence } from '@tldraw/editor'
 import { useValue } from 'signia-react'
 
 export function FollowingIndicator() {
-	const app = useApp()
-	const followingUserId = useValue('follow', () => app.instanceState.followingUserId, [app])
+	const editor = useEditor()
+	const followingUserId = useValue('follow', () => editor.instanceState.followingUserId, [editor])
 	if (!followingUserId) return null
 	return <FollowingIndicatorInner userId={followingUserId} />
 }

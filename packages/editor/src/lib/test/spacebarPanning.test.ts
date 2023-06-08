@@ -1,47 +1,47 @@
-import { createCustomShapeId } from '@tldraw/tlschema'
-import { TestApp } from './TestApp'
+import { createShapeId } from '@tldraw/tlschema'
+import { TestEditor } from './TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 const ids = {
-	box1: createCustomShapeId('box1'),
+	box1: createShapeId('box1'),
 }
 
 beforeEach(() => {
-	app = new TestApp()
-	app.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+	editor = new TestEditor()
+	editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 })
 
 it('Sets cursor and state correctly', () => {
-	expect(app.cursor.type).toBe('default')
-	expect(app.inputs.isPanning).toBe(false)
-	app.keyDown(' ')
-	expect(app.inputs.isPanning).toBe(true)
-	expect(app.cursor.type).toBe('grab')
-	app.pointerDown(0, 0)
-	expect(app.cursor.type).toBe('grabbing')
-	app.pointerUp(0, 0)
-	expect(app.cursor.type).toBe('grab')
-	app.keyUp(' ')
-	expect(app.inputs.isPanning).toBe(false)
-	expect(app.cursor.type).toBe('default')
+	expect(editor.cursor.type).toBe('default')
+	expect(editor.inputs.isPanning).toBe(false)
+	editor.keyDown(' ')
+	expect(editor.inputs.isPanning).toBe(true)
+	expect(editor.cursor.type).toBe('grab')
+	editor.pointerDown(0, 0)
+	expect(editor.cursor.type).toBe('grabbing')
+	editor.pointerUp(0, 0)
+	expect(editor.cursor.type).toBe('grab')
+	editor.keyUp(' ')
+	expect(editor.inputs.isPanning).toBe(false)
+	expect(editor.cursor.type).toBe('default')
 })
 
 it('When holding spacebar and clicking and dragging, it pans the camera', () => {
-	app.keyDown(' ')
-	app.pointerDown(0, 0)
-	app.pointerMove(100, 100)
-	app.expectCameraToBe(100, 100, 1)
-	app.keyUp(' ')
+	editor.keyDown(' ')
+	editor.pointerDown(0, 0)
+	editor.pointerMove(100, 100)
+	editor.expectCameraToBe(100, 100, 1)
+	editor.keyUp(' ')
 })
 
 it('When holding spacebar, it updates cursor and does not send events to the state or change statecharts current active state', () => {
-	app.pointerDown(50, 50, { target: 'shape', shape: app.getShapeById(ids.box1) })
-	app.pointerMove(100, 100)
-	app.expectShapeToMatch({ id: ids.box1, x: 150, y: 150 })
+	editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShapeById(ids.box1) })
+	editor.pointerMove(100, 100)
+	editor.expectShapeToMatch({ id: ids.box1, x: 150, y: 150 })
 
-	app.keyDown(' ')
-	app.pointerMove(200, 200)
-	app.expectCameraToBe(100, 100, 1)
-	app.keyUp(' ')
+	editor.keyDown(' ')
+	editor.pointerMove(200, 200)
+	editor.expectCameraToBe(100, 100, 1)
+	editor.keyUp(' ')
 })

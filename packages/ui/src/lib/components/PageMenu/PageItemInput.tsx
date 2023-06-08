@@ -1,4 +1,4 @@
-import { TLPageId, useApp } from '@tldraw/editor'
+import { TLPageId, useEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
 import { Input } from '../primitives/Input'
 
@@ -11,23 +11,23 @@ export const PageItemInput = function PageItemInput({
 	id: TLPageId
 	isCurrentPage: boolean
 }) {
-	const app = useApp()
+	const editor = useEditor()
 
 	const rInput = useRef<HTMLInputElement | null>(null)
 
 	const handleChange = useCallback(
 		(value: string) => {
-			app.renamePage(id, value ? value : 'New Page', true)
+			editor.renamePage(id, value ? value : 'New Page', true)
 		},
-		[app, id]
+		[editor, id]
 	)
 
 	const handleComplete = useCallback(
 		(value: string) => {
-			app.mark('rename page')
-			app.renamePage(id, value || 'New Page', false)
+			editor.mark('rename page')
+			editor.renamePage(id, value || 'New Page', false)
 		},
-		[app, id]
+		[editor, id]
 	)
 
 	return (

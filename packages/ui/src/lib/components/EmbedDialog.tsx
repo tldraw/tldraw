@@ -1,17 +1,17 @@
-import { createEmbedShapeAtPoint, EmbedResult, getEmbedInfo, useApp } from '@tldraw/editor'
+import { TLEmbedResult, getEmbedInfo, useEditor } from '@tldraw/editor'
 import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 import { useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { useAssetUrls } from '../hooks/useAssetUrls'
-import { DialogProps } from '../hooks/useDialogsProvider'
+import { TLUiDialogProps } from '../hooks/useDialogsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
 import * as Dialog from './primitives/Dialog'
 import { Icon } from './primitives/Icon'
 import { Input } from './primitives/Input'
 
-export const EmbedDialog = track(function EmbedDialog({ onClose }: DialogProps) {
-	const app = useApp()
+export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogProps) {
+	const editor = useEditor()
 	const msg = useTranslation()
 	const assetUrls = useAssetUrls()
 
@@ -22,7 +22,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: DialogProps) 
 	const [url, setUrl] = useState<string>('')
 
 	// The embed info for the user's selected embed (based on the URL they've entered in stage 2)
-	const [embedInfoForUrl, setEmbedInfoForUrl] = useState<null | EmbedResult>(null)
+	const [embedInfoForUrl, setEmbedInfoForUrl] = useState<null | TLEmbedResult>(null)
 
 	// Should we show the "invalid URL" error message?
 	const [showError, setShowError] = useState(false)
@@ -105,10 +105,11 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: DialogProps) 
 							onClick={() => {
 								if (!embedInfoForUrl) return
 
-								createEmbedShapeAtPoint(app, url, app.viewportPageCenter, {
-									width: embedInfoForUrl.definition.width,
-									height: embedInfoForUrl.definition.height,
-									doesResize: embedInfoForUrl.definition.doesResize,
+								editor.putExternalContent({
+									type: 'embed',
+									url,
+									point: editor.viewportPageCenter,
+									embed: embedInfoForUrl.definition,
 								})
 
 								onClose()

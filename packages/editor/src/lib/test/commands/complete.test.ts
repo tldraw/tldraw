@@ -1,3 +1,3 @@
 export {}
 
-it.todo('App.complete')
+it.todo('Editor.complete')

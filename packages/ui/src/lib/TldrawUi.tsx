@@ -1,5 +1,5 @@
 import { ToastProvider } from '@radix-ui/react-toast'
-import { useApp } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { useValue } from 'signia-react'
@@ -18,9 +18,9 @@ import { ToastViewport, Toasts } from './components/Toasts'
 import { Toolbar } from './components/Toolbar/Toolbar'
 import { Button } from './components/primitives/Button'
 import { useActions } from './hooks/useActions'
-import { useAppEvents } from './hooks/useAppEvents'
 import { useBreakpoint } from './hooks/useBreakpoint'
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
+import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
@@ -85,22 +85,21 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 	)
 })
 
-/** @public */
-export const TldrawUiContent = React.memo(function TldrawUI({
+const TldrawUiContent = React.memo(function TldrawUI({
 	shareZone,
 	topZone,
 	renderDebugMenuItems,
 }: TldrawUiContentProps) {
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useValue('isReadOnlyMode', () => app.isReadOnly, [app])
-	const isFocusMode = useValue('focus', () => app.instanceState.isFocusMode, [app])
-	const isDebugMode = useValue('debug', () => app.instanceState.isDebugMode, [app])
+	const isReadonlyMode = useValue('isReadOnlyMode', () => editor.isReadOnly, [editor])
+	const isFocusMode = useValue('focus', () => editor.instanceState.isFocusMode, [editor])
+	const isDebugMode = useValue('debug', () => editor.instanceState.isDebugMode, [editor])
 
 	useKeyboardShortcuts()
 	useNativeClipboardEvents()
-	useAppEvents()
+	useEditorEvents()
 
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 

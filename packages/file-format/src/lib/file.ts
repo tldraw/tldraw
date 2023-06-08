@@ -1,23 +1,23 @@
 import {
-	App,
 	createTLStore,
+	Editor,
 	fileToBase64,
 	TLAsset,
-	TLInstanceId,
+	TLAssetId,
 	TLRecord,
 	TLStore,
 } from '@tldraw/editor'
 import {
-	ID,
 	MigrationFailureReason,
 	MigrationResult,
+	RecordId,
 	SerializedSchema,
 	StoreSnapshot,
 	UnknownRecord,
-} from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { TLTranslationKey, ToastsContextType } from '@tldraw/ui'
+} from '@tldraw/store'
+import { TLUiToastsContextType, TLUiTranslationKey } from '@tldraw/ui'
 import { exhaustiveSwitchError, Result } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
 import { buildFromV1Document } from './buildFromV1Document'
 
 /** @public */
@@ -53,7 +53,7 @@ const tldrawFileValidator: T.Validator<TldrawFile> = T.object({
 	}),
 	records: T.arrayOf(
 		T.object({
-			id: T.string as T.Validator<ID<any>>,
+			id: T.string as T.Validator<RecordId<any>>,
 			typeName: T.string,
 		}).allowUnknownProperties()
 	),
@@ -82,12 +82,10 @@ export type TldrawFileParseError =
 /** @public */
 export function parseTldrawJsonFile({
 	json,
-	instanceId,
 	store,
 }: {
 	store: TLStore
 	json: string
-	instanceId: TLInstanceId
 }): Result<TLStore, TldrawFileParseError> {
 	// first off, we parse .json file and check it matches the general shape of
 	// a tldraw file
@@ -140,7 +138,6 @@ export function parseTldrawJsonFile({
 		return Result.ok(
 			createTLStore({
 				initialData: migrationResult.value,
-				instanceId,
 			})
 		)
 	} catch (e) {
@@ -153,7 +150,9 @@ export function parseTldrawJsonFile({
 
 /** @public */
 export async function serializeTldrawJson(store: TLStore): Promise<string> {
-	const recordsToSave: TLRecord[] = []
+	const records: TLRecord[] = []
+	const usedAssets = new Set<TLAssetId | null>()
+	const assets: TLAsset[] = []
 	for (const record of store.allRecords()) {
 		switch (record.typeName) {
 			case 'asset':
@@ -171,22 +170,29 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 						assetSrcToSave = record.props.src
 					}
 
-					recordsToSave.push({
+					assets.push({
 						...record,
 						props: {
 							...record.props,
 							src: assetSrcToSave,
 						},
-					} as TLAsset)
+					})
 				} else {
-					recordsToSave.push(record)
+					assets.push(record)
 				}
 				break
+			case 'shape':
+				if ('assetId' in record.props) {
+					usedAssets.add(record.props.assetId)
+				}
+				records.push(record)
+				break
 			default:
-				recordsToSave.push(record)
+				records.push(record)
 				break
 		}
 	}
+	const recordsToSave = records.concat(assets.filter((a) => usedAssets.has(a.id)))
 
 	return JSON.stringify({
 		tldrawFileFormatVersion: LATEST_TLDRAW_FILE_FORMAT_VERSION,
@@ -202,23 +208,22 @@ export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
 
 /** @internal */
 export async function parseAndLoadDocument(
-	app: App,
+	editor: Editor,
 	document: string,
-	msg: (id: TLTranslationKey) => string,
-	addToast: ToastsContextType['addToast'],
+	msg: (id: TLUiTranslationKey) => string,
+	addToast: TLUiToastsContextType['addToast'],
 	onV1FileLoad?: () => void,
 	forceDarkMode?: boolean
 ) {
 	const parseFileResult = parseTldrawJsonFile({
 		store: createTLStore(),
 		json: document,
-		instanceId: app.instanceId,
 	})
 	if (!parseFileResult.ok) {
 		let description
 		switch (parseFileResult.error.type) {
 			case 'notATldrawFile':
-				app.annotateError(parseFileResult.error.cause, {
+				editor.annotateError(parseFileResult.error.cause, {
 					origin: 'file-system.open.parse',
 					willCrashApp: false,
 					tags: { parseErrorType: parseFileResult.error.type },
@@ -237,7 +242,7 @@ export async function parseAndLoadDocument(
 				}
 				break
 			case 'invalidRecords':
-				app.annotateError(parseFileResult.error.cause, {
+				editor.annotateError(parseFileResult.error.cause, {
 					origin: 'file-system.open.parse',
 					willCrashApp: false,
 					tags: { parseErrorType: parseFileResult.error.type },
@@ -246,7 +251,7 @@ export async function parseAndLoadDocument(
 				description = msg('file-system.file-open-error.generic-corrupted-file')
 				break
 			case 'v1File': {
-				buildFromV1Document(app, parseFileResult.error.data.document)
+				buildFromV1Document(editor, parseFileResult.error.data.document)
 				onV1FileLoad?.()
 				return
 			}
@@ -267,7 +272,7 @@ export async function parseAndLoadDocument(
 	// just restore everything, so if the user has opened
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
-	app.replaceStoreContentsWithRecordsForOtherDocument(parseFileResult.value.allRecords())
+	editor.replaceStoreContentsWithRecordsForOtherDocument(parseFileResult.value.allRecords())
 
-	if (forceDarkMode) app.setDarkMode(true)
+	if (forceDarkMode) editor.setDarkMode(true)
 }

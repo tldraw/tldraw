@@ -1,39 +1,34 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { T } from '@tldraw/validate'
 
 /**
  * TLDocument
  *
  * @public
  */
-export interface TLDocument extends BaseRecord<'document', ID<TLDocument>> {
+export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
 	gridSize: number
 	name: string
 }
 
-/** @public */
-export const documentTypeValidator: T.Validator<TLDocument> = T.model(
+/** @internal */
+export const documentValidator: T.Validator<TLDocument> = T.model(
 	'document',
 	T.object({
 		typeName: T.literal('document'),
-		id: T.literal('document:document' as ID<TLDocument>),
+		id: T.literal('document:document' as RecordId<TLDocument>),
 		gridSize: T.number,
 		name: T.string,
 	})
 )
 
-// --- MIGRATIONS ---
-// STEP 1: Add a new version number here, give it a meaningful name.
-// It should be 1 higher than the current version
 const Versions = {
 	AddName: 1,
 } as const
 
-/** @public */
-export const documentTypeMigrations = defineMigrations({
-	// STEP 2: Update the current version to point to your latest version
+/** @internal */
+export const documentMigrations = defineMigrations({
 	currentVersion: Versions.AddName,
-	// STEP 3: Add an up+down migration for the new version here
 	migrators: {
 		[Versions.AddName]: {
 			up: (document: TLDocument) => {
@@ -48,8 +43,8 @@ export const documentTypeMigrations = defineMigrations({
 
 /** @public */
 export const DocumentRecordType = createRecordType<TLDocument>('document', {
-	migrations: documentTypeMigrations,
-	validator: documentTypeValidator,
+	migrations: documentMigrations,
+	validator: documentValidator,
 	scope: 'document',
 }).withDefaultProperties(
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({
@@ -60,4 +55,4 @@ export const DocumentRecordType = createRecordType<TLDocument>('document', {
 
 // all document records have the same ID: 'document:document'
 /** @public */
-export const TLDOCUMENT_ID: ID<TLDocument> = DocumentRecordType.createCustomId('document')
+export const TLDOCUMENT_ID: RecordId<TLDocument> = DocumentRecordType.createId('document')

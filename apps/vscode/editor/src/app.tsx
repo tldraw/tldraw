@@ -1,26 +1,19 @@
-import {
-	App,
-	Canvas,
-	ErrorBoundary,
-	TAB_ID,
-	TldrawEditor,
-	setRuntimeOverrides,
-} from '@tldraw/editor'
+import { Canvas, Editor, ErrorBoundary, TldrawEditor, setRuntimeOverrides } from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/editor/editor.css'
-import { ContextMenu, MenuSchema, TldrawUi } from '@tldraw/ui'
+import { ContextMenu, TLUiMenuSchema, TldrawUi } from '@tldraw/ui'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/ui/ui.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
 import { ChangeResponder } from './ChangeResponder'
 import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
-import { onCreateBookmarkFromUrl } from './utils/bookmarks'
+import { onCreateAssetFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
 
 setRuntimeOverrides({
@@ -64,7 +57,7 @@ export function WrappedTldrawEditor() {
 }
 
 const menuOverrides = {
-	menu: (_app: App, schema: MenuSchema, _helpers: any) => {
+	menu: (_editor: Editor, schema: TLUiMenuSchema, _helpers: any) => {
 		schema.forEach((item) => {
 			if (item.id === 'menu' && item.type === 'group') {
 				item.children = item.children.filter((menuItem) => {
@@ -126,14 +119,12 @@ export type TLDrawInnerProps = {
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
+	const handleMount = useCallback((editor: Editor) => {
+		editor.externalContentManager.createAssetFromUrl = onCreateAssetFromUrl
+	}, [])
+
 	return (
-		<TldrawEditor
-			assetUrls={assetUrls}
-			instanceId={TAB_ID}
-			persistenceKey={uri}
-			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
-			autoFocus
-		>
+		<TldrawEditor assetUrls={assetUrls} persistenceKey={uri} onMount={handleMount} autoFocus>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
 				<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />

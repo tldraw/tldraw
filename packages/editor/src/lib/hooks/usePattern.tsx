@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { HASH_PATERN_ZOOM_NAMES, MAX_ZOOM } from '../constants'
 import { debugFlags } from '../utils/debug-flags'
-import { useApp } from './useApp'
+import { useEditor } from './useEditor'
 
 const TILE_PATTERN_SIZE = 8
 
@@ -88,8 +88,8 @@ const getDefaultPatterns = () => {
 }
 
 export const usePattern = () => {
-	const app = useApp()
-	const dpr = app.devicePixelRatio
+	const editor = useEditor()
+	const dpr = editor.devicePixelRatio
 	const [isReady, setIsReady] = useState(false)
 	const defaultPatterns = useMemo(() => getDefaultPatterns(), [])
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(defaultPatterns)

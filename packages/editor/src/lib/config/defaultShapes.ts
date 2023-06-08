@@ -1,121 +1,67 @@
-import {
-	arrowShapeTypeMigrations,
-	arrowShapeTypeValidator,
-	bookmarkShapeTypeMigrations,
-	bookmarkShapeTypeValidator,
-	drawShapeTypeMigrations,
-	drawShapeTypeValidator,
-	embedShapeTypeMigrations,
-	embedShapeTypeValidator,
-	frameShapeTypeMigrations,
-	frameShapeTypeValidator,
-	geoShapeTypeMigrations,
-	geoShapeTypeValidator,
-	groupShapeTypeMigrations,
-	groupShapeTypeValidator,
-	highlightShapeTypeMigrations,
-	highlightShapeTypeValidator,
-	imageShapeTypeMigrations,
-	imageShapeTypeValidator,
-	lineShapeTypeMigrations,
-	lineShapeTypeValidator,
-	noteShapeTypeMigrations,
-	noteShapeTypeValidator,
-	textShapeTypeMigrations,
-	textShapeTypeValidator,
-	videoShapeTypeMigrations,
-	videoShapeTypeValidator,
-} from '@tldraw/tlschema'
-import { TLArrowUtil } from '../app/shapeutils/TLArrowUtil/TLArrowUtil'
-import { TLBookmarkUtil } from '../app/shapeutils/TLBookmarkUtil/TLBookmarkUtil'
-import { TLDrawUtil } from '../app/shapeutils/TLDrawUtil/TLDrawUtil'
-import { TLEmbedUtil } from '../app/shapeutils/TLEmbedUtil/TLEmbedUtil'
-import { TLFrameUtil } from '../app/shapeutils/TLFrameUtil/TLFrameUtil'
-import { TLGeoUtil } from '../app/shapeutils/TLGeoUtil/TLGeoUtil'
-import { TLGroupUtil } from '../app/shapeutils/TLGroupUtil/TLGroupUtil'
-import { TLHighlightUtil } from '../app/shapeutils/TLHighlightUtil/TLHighlightUtil'
-import { TLImageUtil } from '../app/shapeutils/TLImageUtil/TLImageUtil'
-import { TLLineUtil } from '../app/shapeutils/TLLineUtil/TLLineUtil'
-import { TLNoteUtil } from '../app/shapeutils/TLNoteUtil/TLNoteUtil'
-import { TLTextUtil } from '../app/shapeutils/TLTextUtil/TLTextUtil'
-import { TLVideoUtil } from '../app/shapeutils/TLVideoUtil/TLVideoUtil'
-import { ShapeInfo } from './createTLStore'
+import { ArrowShapeUtil } from '../editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+import { BookmarkShapeUtil } from '../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
+import { DrawShapeUtil } from '../editor/shapeutils/DrawShapeUtil/DrawShapeUtil'
+import { EmbedShapeUtil } from '../editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
+import { FrameShapeUtil } from '../editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
+import { GeoShapeUtil } from '../editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
+import { GroupShapeUtil } from '../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
+import { HighlightShapeUtil } from '../editor/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
+import { ImageShapeUtil } from '../editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
+import { LineShapeUtil } from '../editor/shapeutils/LineShapeUtil/LineShapeUtil'
+import { NoteShapeUtil } from '../editor/shapeutils/NoteShapeUtil/NoteShapeUtil'
+import { TextShapeUtil } from '../editor/shapeutils/TextShapeUtil/TextShapeUtil'
+import { VideoShapeUtil } from '../editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
+import { TLShapeInfo } from './createTLStore'
 
 /** @public */
-export const coreShapes: Record<string, ShapeInfo> = {
+export const coreShapes: Record<string, TLShapeInfo> = {
 	// created by grouping interactions, probably the corest core shape that we have
 	group: {
-		util: TLGroupUtil,
-		validator: groupShapeTypeValidator,
-		migrations: groupShapeTypeMigrations,
+		util: GroupShapeUtil,
 	},
 	// created by embed menu / url drop
 	embed: {
-		util: TLEmbedUtil,
-		validator: embedShapeTypeValidator,
-		migrations: embedShapeTypeMigrations,
+		util: EmbedShapeUtil,
 	},
 	// created by copy and paste / url drop
 	bookmark: {
-		util: TLBookmarkUtil,
-		validator: bookmarkShapeTypeValidator,
-		migrations: bookmarkShapeTypeMigrations,
+		util: BookmarkShapeUtil,
 	},
 	// created by copy and paste / file drop
 	image: {
-		util: TLImageUtil,
-		validator: imageShapeTypeValidator,
-		migrations: imageShapeTypeMigrations,
+		util: ImageShapeUtil,
 	},
 	// created by copy and paste / file drop
 	video: {
-		util: TLVideoUtil,
-		validator: videoShapeTypeValidator,
-		migrations: videoShapeTypeMigrations,
+		util: VideoShapeUtil,
 	},
 	// created by copy and paste
 	text: {
-		util: TLTextUtil,
-		validator: textShapeTypeValidator,
-		migrations: textShapeTypeMigrations,
+		util: TextShapeUtil,
 	},
 }
 
 /** @public */
-export const defaultShapes: Record<string, ShapeInfo> = {
+export const defaultShapes: Record<string, TLShapeInfo> = {
 	draw: {
-		util: TLDrawUtil,
-		validator: drawShapeTypeValidator,
-		migrations: drawShapeTypeMigrations,
+		util: DrawShapeUtil,
 	},
 	geo: {
-		util: TLGeoUtil,
-		validator: geoShapeTypeValidator,
-		migrations: geoShapeTypeMigrations,
+		util: GeoShapeUtil,
 	},
 	line: {
-		util: TLLineUtil,
-		validator: lineShapeTypeValidator,
-		migrations: lineShapeTypeMigrations,
+		util: LineShapeUtil,
 	},
 	note: {
-		util: TLNoteUtil,
-		validator: noteShapeTypeValidator,
-		migrations: noteShapeTypeMigrations,
+		util: NoteShapeUtil,
 	},
 	frame: {
-		util: TLFrameUtil,
-		validator: frameShapeTypeValidator,
-		migrations: frameShapeTypeMigrations,
+		util: FrameShapeUtil,
 	},
 	arrow: {
-		util: TLArrowUtil,
-		validator: arrowShapeTypeValidator,
-		migrations: arrowShapeTypeMigrations,
+		util: ArrowShapeUtil,
 	},
 	highlight: {
-		util: TLHighlightUtil,
-		validator: highlightShapeTypeValidator,
-		migrations: highlightShapeTypeMigrations,
+		util: HighlightShapeUtil,
 	},
 }

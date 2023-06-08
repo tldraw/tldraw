@@ -1,6 +1,6 @@
+import { defineMigrations, migrate } from '@tldraw/store'
 import { getDefaultTranslationLocale } from '@tldraw/tlschema'
-import { defineMigrations, migrate } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { T } from '@tldraw/validate'
 import { atom } from 'signia'
 import { uniqueId } from '../utils/data'
 
@@ -18,6 +18,7 @@ export interface TLUserPreferences {
 	color: string
 	isDarkMode: boolean
 	animationSpeed: number
+	isSnapMode: boolean
 }
 
 interface UserDataSnapshot {
@@ -38,14 +39,16 @@ const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPrefere
 	color: T.string,
 	isDarkMode: T.boolean,
 	animationSpeed: T.number,
+	isSnapMode: T.boolean,
 })
 
 const Versions = {
 	AddAnimationSpeed: 1,
+	AddIsSnapMode: 2,
 } as const
 
-const userTypeMigrations = defineMigrations({
-	currentVersion: 1,
+const userMigrations = defineMigrations({
+	currentVersion: Versions.AddIsSnapMode,
 	migrators: {
 		[Versions.AddAnimationSpeed]: {
 			up: (user) => {
@@ -55,6 +58,14 @@ const userTypeMigrations = defineMigrations({
 				}
 			},
 			down: ({ animationSpeed: _, ...user }) => {
+				return user
+			},
+		},
+		[Versions.AddIsSnapMode]: {
+			up: (user: TLUserPreferences) => {
+				return { ...user, isSnapMode: false }
+			},
+			down: ({ isSnapMode: _, ...user }: TLUserPreferences) => {
 				return user
 			},
 		},
@@ -90,6 +101,7 @@ function getFreshUserPreferences(): TLUserPreferences {
 		// TODO: detect dark mode
 		isDarkMode: false,
 		animationSpeed: 1,
+		isSnapMode: false,
 	}
 }
 
@@ -105,8 +117,8 @@ function migrateUserPreferences(userData: unknown) {
 	const migrationResult = migrate<TLUserPreferences>({
 		value: userData.user,
 		fromVersion: userData.version,
-		toVersion: userTypeMigrations.currentVersion ?? 0,
-		migrations: userTypeMigrations,
+		toVersion: userMigrations.currentVersion ?? 0,
+		migrations: userMigrations,
 	})
 
 	if (migrationResult.type === 'error') {
@@ -139,7 +151,7 @@ function storeUserPreferences() {
 		window.localStorage.setItem(
 			USER_DATA_KEY,
 			JSON.stringify({
-				version: userTypeMigrations.currentVersion,
+				version: userMigrations.currentVersion,
 				user: globalUserPreferences.value,
 			})
 		)
@@ -177,7 +189,7 @@ function broadcastUserPreferencesChange() {
 		origin: broadcastOrigin,
 		data: {
 			user: globalUserPreferences.value,
-			version: userTypeMigrations.currentVersion,
+			version: userMigrations.currentVersion,
 		},
 	} satisfies UserChangeBroadcastMessage)
 }

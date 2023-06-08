@@ -1,12 +1,12 @@
 import {
-	App,
+	ArrowShapeUtil,
 	AssetRecordType,
+	Editor,
 	MAX_SHAPES_PER_PAGE,
 	PageRecordType,
 	TLAlignType,
 	TLArrowShape,
 	TLArrowTerminal,
-	TLArrowUtil,
 	TLArrowheadType,
 	TLAsset,
 	TLAssetId,
@@ -24,31 +24,32 @@ import {
 	TLTextShape,
 	TLVideoShape,
 	Vec2dModel,
+	createShapeId,
 } from '@tldraw/editor'
 import { Vec2d, clamp } from '@tldraw/primitives'
 
 const TLDRAW_V1_VERSION = 15.5
 
 /** @internal */
-export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
-	app.batch(() => {
+export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument) {
+	editor.batch(() => {
 		document = migrate(document, TLDRAW_V1_VERSION)
 		// Cancel any interactions / states
-		app.cancel().cancel().cancel().cancel()
+		editor.cancel().cancel().cancel().cancel()
 
-		const firstPageId = app.pages[0].id
+		const firstPageId = editor.pages[0].id
 
 		// Set the current page to the first page
-		app.setCurrentPageId(firstPageId)
+		editor.setCurrentPageId(firstPageId)
 
 		// Delete all pages except first page
-		for (const page of app.pages.slice(1)) {
-			app.deletePage(page.id)
+		for (const page of editor.pages.slice(1)) {
+			editor.deletePage(page.id)
 		}
 
 		// Delete all of the shapes on the current page
-		app.selectAll()
-		app.deleteShapes()
+		editor.selectAll()
+		editor.deleteShapes()
 
 		// Create assets
 		const v1AssetIdsToV2AssetIds = new Map<string, TLAssetId>()
@@ -71,15 +72,15 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 							src: v1Asset.src,
 						},
 					}
-					app.createAssets([placeholderAsset])
-					tryMigrateAsset(app, placeholderAsset)
+					editor.createAssets([placeholderAsset])
+					tryMigrateAsset(editor, placeholderAsset)
 					break
 				}
 				case TDAssetType.Video:
 					{
 						const assetId: TLAssetId = AssetRecordType.createId()
 						v1AssetIdsToV2AssetIds.set(v1Asset.id, assetId)
-						app.createAssets([
+						editor.createAssets([
 							{
 								id: assetId,
 								typeName: 'asset',
@@ -107,11 +108,11 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 			.sort((a, b) => ((a.childIndex ?? 1) < (b.childIndex ?? 1) ? -1 : 1))
 			.forEach((v1Page, i) => {
 				if (i === 0) {
-					v1PageIdsToV2PageIds.set(v1Page.id, app.currentPageId)
+					v1PageIdsToV2PageIds.set(v1Page.id, editor.currentPageId)
 				} else {
 					const pageId = PageRecordType.createId()
 					v1PageIdsToV2PageIds.set(v1Page.id, pageId)
-					app.createPage(v1Page.name ?? 'Page', pageId)
+					editor.createPage(v1Page.name ?? 'Page', pageId)
 				}
 			})
 
@@ -119,7 +120,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 			.sort((a, b) => ((a.childIndex ?? 1) < (b.childIndex ?? 1) ? -1 : 1))
 			.forEach((v1Page) => {
 				// Set the current page id to the current page
-				app.setCurrentPageId(v1PageIdsToV2PageIds.get(v1Page.id)!)
+				editor.setCurrentPageId(v1PageIdsToV2PageIds.get(v1Page.id)!)
 
 				const v1ShapeIdsToV2ShapeIds = new Map<string, TLShapeId>()
 				const v1GroupShapeIdsToV1ChildIds = new Map<string, string[]>()
@@ -132,7 +133,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 				v1Shapes.forEach((v1Shape) => {
 					if (v1Shape.type !== TDShapeType.Group) return
 
-					const shapeId = app.createShapeId()
+					const shapeId = createShapeId()
 					v1ShapeIdsToV2ShapeIds.set(v1Shape.id, shapeId)
 					v1GroupShapeIdsToV1ChildIds.set(v1Shape.id, [])
 				})
@@ -155,7 +156,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 						return
 					}
 
-					const shapeId = app.createShapeId()
+					const shapeId = createShapeId()
 					v1ShapeIdsToV2ShapeIds.set(v1Shape.id, shapeId)
 
 					if (v1Shape.parentId !== v1Page.id) {
@@ -193,7 +194,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 								},
 							}
 
-							app.createShapes([partial])
+							editor.createShapes([partial])
 							break
 						}
 						case TDShapeType.Rectangle: {
@@ -215,11 +216,11 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 								},
 							}
 
-							app.createShapes([partial])
+							editor.createShapes([partial])
 
-							const pageBoundsBeforeLabel = app.getPageBoundsById(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
 
-							app.updateShapes([
+							editor.updateShapes([
 								{
 									id: inCommon.id,
 									type: 'geo',
@@ -230,14 +231,14 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 							])
 
 							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = app.getShapeById<TLGeoShape>(inCommon.id)!
+								const shape = editor.getShapeById<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
 								const h = coerceDimension(shape.props.h)
 								const newW = w + growY / 2
 								const newH = h + growY / 2
 
-								app.updateShapes([
+								editor.updateShapes([
 									{
 										id: inCommon.id,
 										type: 'geo',
@@ -270,11 +271,11 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 								},
 							}
 
-							app.createShapes([partial])
+							editor.createShapes([partial])
 
-							const pageBoundsBeforeLabel = app.getPageBoundsById(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
 
-							app.updateShapes([
+							editor.updateShapes([
 								{
 									id: inCommon.id,
 									type: 'geo',
@@ -285,14 +286,14 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 							])
 
 							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = app.getShapeById<TLGeoShape>(inCommon.id)!
+								const shape = editor.getShapeById<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
 								const h = coerceDimension(shape.props.h)
 								const newW = w + growY / 2
 								const newH = h + growY / 2
 
-								app.updateShapes([
+								editor.updateShapes([
 									{
 										id: inCommon.id,
 										type: 'geo',
@@ -325,11 +326,11 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 								},
 							}
 
-							app.createShapes([partial])
+							editor.createShapes([partial])
 
-							const pageBoundsBeforeLabel = app.getPageBoundsById(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
 
-							app.updateShapes([
+							editor.updateShapes([
 								{
 									id: inCommon.id,
 									type: 'geo',
@@ -340,14 +341,14 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 							])
 
 							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = app.getShapeById<TLGeoShape>(inCommon.id)!
+								const shape = editor.getShapeById<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
 								const h = coerceDimension(shape.props.h)
 								const newW = w + growY / 2
 								const newH = h + growY / 2
 
-								app.updateShapes([
+								editor.updateShapes([
 									{
 										id: inCommon.id,
 										type: 'geo',
@@ -383,7 +384,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 								},
 							}
 
-							app.createShapes([partial])
+							editor.createShapes([partial])
 							break
 						}
 						case TDShapeType.Arrow: {
@@ -420,7 +421,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 								},
 							}
 
-							app.createShapes([partial])
+							editor.createShapes([partial])
 
 							break
 						}
@@ -438,7 +439,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 								},
 							}
 
-							app.createShapes([partial])
+							editor.createShapes([partial])
 							break
 						}
 						case TDShapeType.Image: {
@@ -459,7 +460,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 								},
 							}
 
-							app.createShapes([partial])
+							editor.createShapes([partial])
 							break
 						}
 						case TDShapeType.Video: {
@@ -480,7 +481,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 								},
 							}
 
-							app.createShapes([partial])
+							editor.createShapes([partial])
 							break
 						}
 					}
@@ -488,8 +489,8 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 					const rotation = coerceNumber(v1Shape.rotation)
 
 					if (rotation !== 0) {
-						app.select(shapeId)
-						app.rotateShapesBy([shapeId], rotation)
+						editor.select(shapeId)
+						editor.rotateShapesBy([shapeId], rotation)
 					}
 				})
 
@@ -497,14 +498,14 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 				v1GroupShapeIdsToV1ChildIds.forEach((v1ChildIds, v1GroupId) => {
 					const v2ChildShapeIds = v1ChildIds.map((id) => v1ShapeIdsToV2ShapeIds.get(id)!)
 					const v2GroupId = v1ShapeIdsToV2ShapeIds.get(v1GroupId)!
-					app.groupShapes(v2ChildShapeIds, v2GroupId)
+					editor.groupShapes(v2ChildShapeIds, v2GroupId)
 
 					const v1Group = v1Page.shapes[v1GroupId]
 					const rotation = coerceNumber(v1Group.rotation)
 
 					if (rotation !== 0) {
-						app.select(v2GroupId)
-						app.rotateShapesBy([v2GroupId], rotation)
+						editor.select(v2GroupId)
+						editor.rotateShapesBy([v2GroupId], rotation)
 					}
 				})
 
@@ -516,10 +517,10 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 					}
 
 					const v2ShapeId = v1ShapeIdsToV2ShapeIds.get(v1Shape.id)!
-					const util = app.getShapeUtil(TLArrowUtil)
+					const util = editor.getShapeUtil(ArrowShapeUtil)
 
 					// dumb but necessary
-					app.inputs.ctrlKey = false
+					editor.inputs.ctrlKey = false
 
 					for (const handleId of ['start', 'end'] as const) {
 						const bindingId = v1Shape.handles[handleId].bindingId
@@ -532,20 +533,20 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 
 							const targetId = v1ShapeIdsToV2ShapeIds.get(binding.toId)!
 
-							const targetShape = app.getShapeById(targetId)!
+							const targetShape = editor.getShapeById(targetId)!
 
 							// (unexpected) We didn't create the target shape
 							if (!targetShape) continue
 
 							if (targetId) {
-								const bounds = app.getPageBoundsById(targetId)!
+								const bounds = editor.getPageBoundsById(targetId)!
 
-								const v2ShapeFresh = app.getShapeById<TLArrowShape>(v2ShapeId)!
+								const v2ShapeFresh = editor.getShapeById<TLArrowShape>(v2ShapeId)!
 
 								const nx = clamp((coerceNumber(binding.point[0]) + 0.5) / 2, 0.2, 0.8)
 								const ny = clamp((coerceNumber(binding.point[1]) + 0.5) / 2, 0.2, 0.8)
 
-								const point = app.getPointInShapeSpace(v2ShapeFresh, {
+								const point = editor.getPointInShapeSpace(v2ShapeFresh, {
 									x: bounds.minX + bounds.width * nx,
 									y: bounds.minY + bounds.height * ny,
 								})
@@ -574,7 +575,7 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 											}
 										}
 									}
-									app.updateShapes([change])
+									editor.updateShapes([change])
 								}
 							}
 						}
@@ -583,15 +584,15 @@ export function buildFromV1Document(app: App, document: LegacyTldrawDocument) {
 			})
 
 		// Set the current page to the first page again
-		app.setCurrentPageId(firstPageId)
+		editor.setCurrentPageId(firstPageId)
 
-		app.history.clear()
-		app.selectNone()
-		app.updateViewportScreenBounds()
+		editor.history.clear()
+		editor.selectNone()
+		editor.updateViewportScreenBounds()
 
-		const bounds = app.allShapesCommonBounds
+		const bounds = editor.allShapesCommonBounds
 		if (bounds) {
-			app.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
+			editor.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
 		}
 	})
 }
@@ -617,7 +618,7 @@ function coerceDimension(d: unknown): number {
  * to try and download the real assets, extract the metadata, and upload them to our new bucket.
  * It's not a big deal if this fails though.
  */
-async function tryMigrateAsset(app: App, placeholderAsset: TLAsset) {
+async function tryMigrateAsset(editor: Editor, placeholderAsset: TLAsset) {
 	try {
 		if (placeholderAsset.type === 'bookmark' || !placeholderAsset.props.src) return
 
@@ -628,10 +629,10 @@ async function tryMigrateAsset(app: App, placeholderAsset: TLAsset) {
 			type: response.headers.get('content-type') ?? placeholderAsset.props.mimeType ?? undefined,
 		})
 
-		const newAsset = await app.onCreateAssetFromFile(file)
+		const newAsset = await editor.externalContentManager.createAssetFromFile(editor, file)
 		if (newAsset.type === 'bookmark') return
 
-		app.updateAssets([
+		editor.updateAssets([
 			{
 				id: placeholderAsset.id,
 				type: placeholderAsset.type,

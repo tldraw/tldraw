@@ -8,8 +8,8 @@
 	},
 	"references": [
 		{ "path": "../editor" },
-		{ "path": "../tlstore" },
-		{ "path": "../tlvalidate" },
+		{ "path": "../store" },
+		{ "path": "../validate" },
 		{ "path": "../primitives" },
 		{ "path": "../utils" },
 		{ "path": "../ui" }

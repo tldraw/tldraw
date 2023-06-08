@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { useApp } from './useApp'
+import { useEditor } from './useEditor'
 
 let isMobileSafari = false
 
@@ -11,7 +11,7 @@ if (typeof window !== 'undefined') {
 }
 
 export function useSafariFocusOutFix(): void {
-	const app = useApp()
+	const editor = useEditor()
 
 	React.useEffect(() => {
 		if (!isMobileSafari) return
@@ -21,12 +21,12 @@ export function useSafariFocusOutFix(): void {
 				(e.target instanceof HTMLInputElement && e.target.type === 'text') ||
 				e.target instanceof HTMLTextAreaElement
 			) {
-				app.complete()
+				editor.complete()
 			}
 		}
 
 		// Send event on iOS when a user presses the "Done" key while editing a text element.
 		document.addEventListener('focusout', handleFocusOut)
 		return () => document.removeEventListener('focusout', handleFocusOut)
-	}, [app])
+	}, [editor])
 }

@@ -69,6 +69,7 @@
 		"@types/react-dom": "^18.0.6",
 		"@typescript-eslint/eslint-plugin": "^5.57.0",
 		"@typescript-eslint/parser": "^5.57.0",
+		"auto": "^10.46.0",
 		"eslint": "^8.37.0",
 		"eslint-config-prettier": "^8.8.0",
 		"eslint-plugin-import": "^2.27.5",
@@ -90,7 +91,7 @@
 		"@types/glob": "^8.1.0",
 		"fs-extra": "^11.1.0",
 		"json5": "^2.2.3",
-		"lazyrepo": "0.0.0-alpha.26",
+		"lazyrepo": "0.0.0-alpha.27",
 		"rimraf": "^4.4.0",
 		"tsx": "^3.12.2",
 		"vercel": "^28.16.15"

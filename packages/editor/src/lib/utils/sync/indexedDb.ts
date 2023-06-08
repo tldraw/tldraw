@@ -1,16 +1,33 @@
+import { RecordsDiff, SerializedSchema, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStoreSchema } from '@tldraw/tlschema'
-import { RecordsDiff, SerializedSchema, StoreSnapshot } from '@tldraw/tlstore'
 import { IDBPDatabase, openDB } from 'idb'
-import { STORE_PREFIX, addDbName, getAllIndexDbNames } from './persistence-constants'
+import { TLSessionStateSnapshot } from '../../config/TLSessionStateSnapshot'
 
-async function withDb<T>(storeId: string, cb: (db: IDBPDatabase<unknown>) => Promise<T>) {
+// DO NOT CHANGE THESE WITHOUT ADDING MIGRATION LOGIC. DOING SO WOULD WIPE ALL EXISTING DATA.
+const STORE_PREFIX = 'TLDRAW_DOCUMENT_v2'
+const dbNameIndexKey = 'TLDRAW_DB_NAME_INDEX_v2'
+
+const Table = {
+	Records: 'records',
+	Schema: 'schema',
+	SessionState: 'session_state',
+} as const
+
+type StoreName = (typeof Table)[keyof typeof Table]
+
+async function withDb<T>(storeId: string, cb: (db: IDBPDatabase<StoreName>) => Promise<T>) {
 	addDbName(storeId)
-	const db = await openDB(storeId, 2, {
+	const db = await openDB<StoreName>(storeId, 3, {
 		upgrade(database) {
-			if (!database.objectStoreNames.contains('records')) {
-				database.createObjectStore('records')
+			if (!database.objectStoreNames.contains(Table.Records)) {
+				database.createObjectStore(Table.Records)
 			}
-			database.createObjectStore('schema')
+			if (!database.objectStoreNames.contains(Table.Schema)) {
+				database.createObjectStore(Table.Schema)
+			}
+			if (!database.objectStoreNames.contains(Table.SessionState)) {
+				database.createObjectStore(Table.SessionState)
+			}
 		},
 	})
 	try {
@@ -20,41 +37,81 @@ async function withDb<T>(storeId: string, cb: (db: IDBPDatabase<unknown>) => Pro
 	}
 }
 
+type LoadResult = {
+	records: TLRecord[]
+	schema?: SerializedSchema
+	sessionStateSnapshot?: TLSessionStateSnapshot | null
+}
+
+type SessionStateSnapshotRow = {
+	id: string
+	snapshot: TLSessionStateSnapshot
+	updatedAt: number
+}
+
 /** @internal */
-export async function loadDataFromStore(
-	universalPersistenceKey: string,
-	opts?: {
-		didCancel?: () => boolean
-	}
-): Promise<undefined | { records: TLRecord[]; schema?: SerializedSchema }> {
-	const storeId = STORE_PREFIX + universalPersistenceKey
+export async function loadDataFromStore({
+	persistenceKey,
+	sessionId,
+	didCancel,
+}: {
+	persistenceKey: string
+	sessionId?: string
+	didCancel?: () => boolean
+}): Promise<undefined | LoadResult> {
+	const storeId = STORE_PREFIX + persistenceKey
 	if (!getAllIndexDbNames().includes(storeId)) return undefined
+	await pruneSessionState({ persistenceKey, didCancel })
 	return await withDb(storeId, async (db) => {
-		if (opts?.didCancel?.()) return undefined
-		const tx = db.transaction(['records', 'schema'], 'readonly')
-		const recordsStore = tx.objectStore('records')
-		const schemaStore = tx.objectStore('schema')
-		return {
-			records: await recordsStore.getAll(),
-			schema: await schemaStore.get('schema'),
+		if (didCancel?.()) return undefined
+		const tx = db.transaction([Table.Records, Table.Schema, Table.SessionState], 'readonly')
+		const recordsStore = tx.objectStore(Table.Records)
+		const schemaStore = tx.objectStore(Table.Schema)
+		const sessionStateStore = tx.objectStore(Table.SessionState)
+		let sessionStateSnapshot = sessionId
+			? ((await sessionStateStore.get(sessionId)) as SessionStateSnapshotRow | undefined)?.snapshot
+			: null
+		if (!sessionStateSnapshot) {
+			// get the most recent session state
+			const all = (await sessionStateStore.getAll()) as SessionStateSnapshotRow[]
+			sessionStateSnapshot = all.sort((a, b) => a.updatedAt - b.updatedAt).pop()?.snapshot
 		}
+		const result = {
+			records: await recordsStore.getAll(),
+			schema: await schemaStore.get(Table.Schema),
+			sessionStateSnapshot,
+		} satisfies LoadResult
+		if (didCancel?.()) {
+			tx.abort()
+			return undefined
+		}
+		await tx.done
+		return result
 	})
 }
 
 /** @internal */
-export async function storeChangesInIndexedDb(
-	universalPersistenceKey: string,
-	schema: TLStoreSchema,
-	changes: RecordsDiff<any>,
-	opts?: {
-		didCancel?: () => boolean
-	}
-) {
-	const storeId = STORE_PREFIX + universalPersistenceKey
+export async function storeChangesInIndexedDb({
+	persistenceKey,
+	schema,
+	changes,
+	sessionId,
+	sessionStateSnapshot,
+	didCancel,
+}: {
+	persistenceKey: string
+	schema: TLStoreSchema
+	changes: RecordsDiff<any>
+	sessionId?: string | null
+	sessionStateSnapshot?: TLSessionStateSnapshot | null
+	didCancel?: () => boolean
+}) {
+	const storeId = STORE_PREFIX + persistenceKey
 	await withDb(storeId, async (db) => {
-		const tx = db.transaction(['records', 'schema'], 'readwrite')
-		const recordsStore = tx.objectStore('records')
-		const schemaStore = tx.objectStore('schema')
+		const tx = db.transaction([Table.Records, Table.Schema, Table.SessionState], 'readwrite')
+		const recordsStore = tx.objectStore(Table.Records)
+		const schemaStore = tx.objectStore(Table.Schema)
+		const sessionStateStore = tx.objectStore(Table.SessionState)
 
 		for (const [id, record] of Object.entries(changes.added)) {
 			await recordsStore.put(record, id)
@@ -68,28 +125,48 @@ export async function storeChangesInIndexedDb(
 			await recordsStore.delete(id)
 		}
 
-		schemaStore.put(schema.serialize(), 'schema')
+		schemaStore.put(schema.serialize(), Table.Schema)
+		if (sessionStateSnapshot && sessionId) {
+			sessionStateStore.put(
+				{
+					snapshot: sessionStateSnapshot,
+					updatedAt: Date.now(),
+					id: sessionId,
+				} satisfies SessionStateSnapshotRow,
+				sessionId
+			)
+		} else if (sessionStateSnapshot || sessionId) {
+			console.error('sessionStateSnapshot and instanceId must be provided together')
+		}
 
-		if (opts?.didCancel?.()) return tx.abort()
+		if (didCancel?.()) return tx.abort()
 
 		await tx.done
 	})
 }
 
 /** @internal */
-export async function storeSnapshotInIndexedDb(
-	universalPersistenceKey: string,
-	schema: TLStoreSchema,
-	snapshot: StoreSnapshot<any>,
-	opts?: {
-		didCancel?: () => boolean
-	}
-) {
-	const storeId = STORE_PREFIX + universalPersistenceKey
+export async function storeSnapshotInIndexedDb({
+	persistenceKey,
+	schema,
+	snapshot,
+	sessionId,
+	sessionStateSnapshot,
+	didCancel,
+}: {
+	persistenceKey: string
+	schema: TLStoreSchema
+	snapshot: StoreSnapshot<any>
+	sessionId?: string | null
+	sessionStateSnapshot?: TLSessionStateSnapshot | null
+	didCancel?: () => boolean
+}) {
+	const storeId = STORE_PREFIX + persistenceKey
 	await withDb(storeId, async (db) => {
-		const tx = db.transaction(['records', 'schema'], 'readwrite')
-		const recordsStore = tx.objectStore('records')
-		const schemaStore = tx.objectStore('schema')
+		const tx = db.transaction([Table.Records, Table.Schema, Table.SessionState], 'readwrite')
+		const recordsStore = tx.objectStore(Table.Records)
+		const schemaStore = tx.objectStore(Table.Schema)
+		const sessionStateStore = tx.objectStore(Table.SessionState)
 
 		await recordsStore.clear()
 
@@ -97,16 +174,62 @@ export async function storeSnapshotInIndexedDb(
 			await recordsStore.put(record, id)
 		}
 
-		schemaStore.put(schema.serialize(), 'schema')
+		schemaStore.put(schema.serialize(), Table.Schema)
 
-		if (opts?.didCancel?.()) return tx.abort()
+		if (sessionStateSnapshot && sessionId) {
+			sessionStateStore.put(
+				{
+					snapshot: sessionStateSnapshot,
+					updatedAt: Date.now(),
+					id: sessionId,
+				} satisfies SessionStateSnapshotRow,
+				sessionId
+			)
+		} else if (sessionStateSnapshot || sessionId) {
+			console.error('sessionStateSnapshot and instanceId must be provided together')
+		}
+
+		if (didCancel?.()) return tx.abort()
 
 		await tx.done
 	})
 }
 
+async function pruneSessionState({
+	persistenceKey,
+	didCancel,
+}: {
+	persistenceKey: string
+	didCancel?: () => boolean
+}) {
+	await withDb(STORE_PREFIX + persistenceKey, async (db) => {
+		const tx = db.transaction([Table.SessionState], 'readwrite')
+		const sessionStateStore = tx.objectStore(Table.SessionState)
+		const all = (await sessionStateStore.getAll()).sort((a, b) => a.updatedAt - b.updatedAt)
+		if (all.length < 10) {
+			await tx.done
+			return
+		}
+		const toDelete = all.slice(0, all.length - 10)
+		for (const { id } of toDelete) {
+			await sessionStateStore.delete(id)
+		}
+		if (didCancel?.()) return tx.abort()
+		await tx.done
+	})
+}
+
 /** @internal */
-export function clearDb(universalPersistenceKey: string) {
-	const dbId = STORE_PREFIX + universalPersistenceKey
-	indexedDB.deleteDatabase(dbId)
+export function getAllIndexDbNames(): string[] {
+	const result = JSON.parse(window?.localStorage.getItem(dbNameIndexKey) || '[]') ?? []
+	if (!Array.isArray(result)) {
+		return []
+	}
+	return result
+}
+
+function addDbName(name: string) {
+	const all = new Set(getAllIndexDbNames())
+	all.add(name)
+	window?.localStorage.setItem(dbNameIndexKey, JSON.stringify([...all]))
 }

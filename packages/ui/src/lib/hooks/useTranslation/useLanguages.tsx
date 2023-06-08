@@ -1,8 +1,10 @@
-import { useApp } from '@tldraw/editor'
-import { LANGUAGES } from './languages'
+import { LANGUAGES, TLLanguage, useEditor } from '@tldraw/editor'
 
-/** @public */
+/** @internal */
 export function useLanguages() {
-	const app = useApp()
-	return { languages: LANGUAGES, currentLanguage: app.locale }
+	const editor = useEditor()
+	return {
+		languages: LANGUAGES as readonly TLLanguage[],
+		currentLanguage: editor.locale,
+	}
 }

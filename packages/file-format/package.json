@@ -43,10 +43,10 @@
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
-		"@tldraw/tlstore": "workspace:*",
-		"@tldraw/tlvalidate": "workspace:*",
+		"@tldraw/store": "workspace:*",
 		"@tldraw/ui": "workspace:*",
-		"@tldraw/utils": "workspace:*"
+		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*"
 	},
 	"jest": {
 		"preset": "config/jest/node",
@@ -61,6 +61,6 @@
 		]
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.26"
+		"lazyrepo": "0.0.0-alpha.27"
 	}
 }

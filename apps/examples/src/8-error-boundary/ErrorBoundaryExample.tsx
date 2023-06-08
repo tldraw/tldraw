@@ -1,11 +1,11 @@
 import { createShapeId, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
-import { ErrorUtil } from './ErrorUtil'
+import { ErrorShapeUtil } from './ErrorShapeUtil'
 
 const shapes = {
 	error: {
-		util: ErrorUtil, // a custom shape that will always error
+		util: ErrorShapeUtil, // a custom shape that will always error
 	},
 }
 
@@ -18,9 +18,9 @@ export default function ErrorBoundaryExample() {
 					ErrorFallback: null, // disable app-level error boundaries
 					ShapeErrorFallback: ({ error }) => <div>Shape error! {String(error)}</div>, // use a custom error fallback for shapes
 				}}
-				onMount={(app) => {
+				onMount={(editor) => {
 					// When the app starts, create our error shape so we can see.
-					app.createShapes([
+					editor.createShapes([
 						{
 							type: 'error',
 							id: createShapeId(),
@@ -31,8 +31,8 @@ export default function ErrorBoundaryExample() {
 					])
 
 					// Center the camera on the error shape
-					app.zoomToFit()
-					app.resetZoom()
+					editor.zoomToFit()
+					editor.resetZoom()
 				}}
 			/>
 		</div>

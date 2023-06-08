@@ -1,19 +1,19 @@
-import { App, featureFlags, useApp } from '@tldraw/editor'
+import { Editor, featureFlags, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React from 'react'
 import { useValue } from 'signia-react'
-import { ToolItem, ToolsContextType, useTools } from './useTools'
+import { TLUiToolItem, TLUiToolsContextType, useTools } from './useTools'
 
 /** @public */
-export type ToolbarItem = {
+export type TLUiToolbarItem = {
 	id: string
 	type: 'item'
 	readonlyOk: boolean
-	toolItem: ToolItem
+	toolItem: TLUiToolItem
 }
 
 /** @public */
-export function toolbarItem(toolItem: ToolItem): ToolbarItem {
+export function toolbarItem(toolItem: TLUiToolItem): TLUiToolbarItem {
 	return {
 		id: toolItem.id,
 		type: 'item',
@@ -23,30 +23,30 @@ export function toolbarItem(toolItem: ToolItem): ToolbarItem {
 }
 
 /** @public */
-export type ToolbarSchemaContextType = ToolbarItem[]
+export type TLUiToolbarSchemaContextType = TLUiToolbarItem[]
+
+/** @internal */
+export const ToolbarSchemaContext = React.createContext([] as TLUiToolbarSchemaContextType)
 
 /** @public */
-export const ToolbarSchemaContext = React.createContext([] as ToolbarSchemaContextType)
-
-/** @public */
-export type ToolbarSchemaProviderProps = {
+export type TLUiToolbarSchemaProviderProps = {
 	overrides?: (
-		app: App,
-		schema: ToolbarSchemaContextType,
-		more: { tools: ToolsContextType }
-	) => ToolbarSchemaContextType
+		editor: Editor,
+		schema: TLUiToolbarSchemaContextType,
+		more: { tools: TLUiToolsContextType }
+	) => TLUiToolbarSchemaContextType
 	children: any
 }
 
-/** @public */
-export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProviderProps) {
-	const app = useApp()
+/** @internal */
+export function ToolbarSchemaProvider({ overrides, children }: TLUiToolbarSchemaProviderProps) {
+	const editor = useEditor()
 
 	const tools = useTools()
 	const highlighterEnabled = useValue(featureFlags.highlighterTool)
 
-	const toolbarSchema = React.useMemo<ToolbarSchemaContextType>(() => {
-		const schema: ToolbarSchemaContextType = compact([
+	const toolbarSchema = React.useMemo<TLUiToolbarSchemaContextType>(() => {
+		const schema: TLUiToolbarSchemaContextType = compact([
 			toolbarItem(tools.select),
 			toolbarItem(tools.hand),
 			toolbarItem(tools.draw),
@@ -79,11 +79,11 @@ export function ToolbarSchemaProvider({ overrides, children }: ToolbarSchemaProv
 		])
 
 		if (overrides) {
-			return overrides(app, schema, { tools })
+			return overrides(editor, schema, { tools })
 		}
 
 		return schema
-	}, [app, highlighterEnabled, overrides, tools])
+	}, [editor, highlighterEnabled, overrides, tools])
 
 	return (
 		<ToolbarSchemaContext.Provider value={toolbarSchema}>{children}</ToolbarSchemaContext.Provider>

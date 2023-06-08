@@ -1,9 +1,9 @@
 import { TLShapeId } from '@tldraw/tlschema'
 import { assert, assertExists } from '@tldraw/utils'
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 
-let app: TestApp
+let editor: TestEditor
 
 /**
  * When we're comparing shape indexes, we don't actually care about the specific
@@ -33,12 +33,12 @@ function normalizeIndexes(
 }
 
 beforeEach(() => {
-	app = new TestApp()
-	app.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
+	editor = new TestEditor()
+	editor.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
 })
 
 function createShapes() {
-	return app.createShapesFromJsx([
+	return editor.createShapesFromJsx([
 		<TL.geo ref="A" x={100} y={100} w={100} h={100} />,
 		<TL.frame ref="B" x={200} y={200} w={300} h={300}>
 			<TL.geo ref="C" x={200} y={200} w={50} h={50} />
@@ -50,18 +50,18 @@ function createShapes() {
 
 it('updates the culling viewport', () => {
 	const ids = createShapes()
-	app.updateCullingBounds = jest.fn(app.updateCullingBounds)
-	app.pan(-201, -201)
+	editor.updateCullingBounds = jest.fn(editor.updateCullingBounds)
+	editor.pan(-201, -201)
 	jest.advanceTimersByTime(500)
-	expect(app.updateCullingBounds).toHaveBeenCalledTimes(1)
-	expect(app.cullingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
-	expect(app.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
+	expect(editor.updateCullingBounds).toHaveBeenCalledTimes(1)
+	expect(editor.cullingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
+	expect(editor.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 
 it('lists shapes in viewport', () => {
 	const ids = createShapes()
 	expect(
-		app.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
+		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
 	).toStrictEqual([
 		[ids.A, false, true], // A is within the expanded culling bounds, so should not be culled; and it's in the regular viewport too, so it's on screen.
 		[ids.B, false, true],
@@ -70,11 +70,11 @@ it('lists shapes in viewport', () => {
 	])
 
 	// Move the camera 201 pixels to the right and 201 pixels down
-	app.pan(-201, -201)
+	editor.pan(-201, -201)
 	jest.advanceTimersByTime(500)
 
 	expect(
-		app.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
+		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
 	).toStrictEqual([
 		[ids.A, false, false], // A should not be culled, even though it's no longer in the viewport (because it's still in the EXPANDED viewport)
 		[ids.B, false, true],
@@ -82,11 +82,11 @@ it('lists shapes in viewport', () => {
 		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
 	])
 
-	app.pan(-100, -100)
+	editor.pan(-100, -100)
 	jest.advanceTimersByTime(500)
 
 	expect(
-		app.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
+		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
 	).toStrictEqual([
 		[ids.A, true, false], // A should be culled now that it's outside of the expanded viewport too
 		[ids.B, false, true],
@@ -94,10 +94,10 @@ it('lists shapes in viewport', () => {
 		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
 	])
 
-	app.pan(-900, -900)
+	editor.pan(-900, -900)
 	jest.advanceTimersByTime(500)
 	expect(
-		app.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
+		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
 	).toStrictEqual([
 		[ids.A, true, false],
 		[ids.B, true, false],
@@ -109,7 +109,7 @@ it('lists shapes in viewport', () => {
 it('lists shapes in viewport sorted by id with correct indexes & background indexes', () => {
 	const ids = createShapes()
 	// Expect the results to be sorted correctly by id
-	expect(normalizeIndexes(app.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
 		[ids.A, 2, 0],
 		[ids.B, 3, 1],
 		[ids.C, 6, 4], // the background of C is above B
@@ -118,10 +118,10 @@ it('lists shapes in viewport sorted by id with correct indexes & background inde
 	])
 
 	// Send B to the back
-	app.reorderShapes('toBack', [ids.B])
+	editor.reorderShapes('toBack', [ids.B])
 
 	// The items should still be sorted by id
-	expect(normalizeIndexes(app.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
 		[ids.A, 7, 1],
 		[ids.B, 2, 0],
 		[ids.C, 5, 3],
@@ -131,7 +131,7 @@ it('lists shapes in viewport sorted by id with correct indexes & background inde
 })
 
 it('handles frames in frames', () => {
-	const ids = app.createShapesFromJsx([
+	const ids = editor.createShapesFromJsx([
 		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
 		<TL.frame ref="B" x={100} y={0} w={100} h={100}>
 			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
@@ -143,7 +143,7 @@ it('handles frames in frames', () => {
 		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
 	])
 
-	expect(normalizeIndexes(app.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
 		[ids.A, 3, 0],
 		[ids.B, 4, 1],
 		[ids.C, 8, 5], // frame B creates a background, so C's background layer is above B's foreground
@@ -155,7 +155,7 @@ it('handles frames in frames', () => {
 })
 
 it('handles groups in frames', () => {
-	const ids = app.createShapesFromJsx([
+	const ids = editor.createShapesFromJsx([
 		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
 		<TL.frame ref="B" x={100} y={0} w={100} h={100}>
 			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
@@ -167,7 +167,7 @@ it('handles groups in frames', () => {
 		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
 	])
 
-	expect(normalizeIndexes(app.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
 		[ids.A, 3, 0],
 		[ids.B, 4, 1],
 		[ids.C, 9, 5], // frame B creates a background, so C's background layer is above B's foreground
@@ -179,7 +179,7 @@ it('handles groups in frames', () => {
 })
 
 it('handles frames in groups', () => {
-	const ids = app.createShapesFromJsx([
+	const ids = editor.createShapesFromJsx([
 		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
 		<TL.group ref="B" x={100} y={0}>
 			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
@@ -191,7 +191,7 @@ it('handles frames in groups', () => {
 		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
 	])
 
-	expect(normalizeIndexes(app.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
 		[ids.A, 6, 0],
 		[ids.B, 7, 1],
 		[ids.C, 8, 2], // groups don't create backgrounds, so things within the group stay in order
@@ -203,7 +203,7 @@ it('handles frames in groups', () => {
 })
 
 it('handles groups in groups', () => {
-	const ids = app.createShapesFromJsx([
+	const ids = editor.createShapesFromJsx([
 		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
 		<TL.group ref="B" x={100} y={0}>
 			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
@@ -215,7 +215,7 @@ it('handles groups in groups', () => {
 		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
 	])
 
-	expect(normalizeIndexes(app.renderingShapes)).toStrictEqual([
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
 		// as groups don't create backgrounds, everything is consecutive
 		[ids.A, 7, 0],
 		[ids.B, 8, 1],

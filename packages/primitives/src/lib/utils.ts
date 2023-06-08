@@ -667,3 +667,18 @@ export function getHeight(pts: VecLike[]) {
 export function toDomPrecision(v: number) {
 	return +v.toFixed(4)
 }
+
+/**
+ * @public
+ */
+export function toFixed(v: number) {
+	return +v.toFixed(2)
+}
+
+/**
+ * Check if a float is safe to use. ie: Not too big or small.
+ * @public
+ */
+export const isSafeFloat = (n: number) => {
+	return Math.abs(n) < Number.MAX_SAFE_INTEGER
+}

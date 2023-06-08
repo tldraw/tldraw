@@ -1,130 +1,130 @@
-import { TLSelectTool } from '../../app/statechart/TLSelectTool/TLSelectTool'
-import { TestApp } from '../TestApp'
+import { SelectTool } from '../../editor/tools/SelectTool/SelectTool'
+import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
-describe(TLSelectTool, () => {
+describe(SelectTool, () => {
 	describe('pointer down while shape is being edited', () => {
 		it('captures the pointer down event if it is on the shape', () => {
-			app.setSelectedTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
-			const shapeId = app.onlySelectedShape?.id
-			app._transformPointerDownSpy.mockRestore()
-			app._transformPointerUpSpy.mockRestore()
-			app.setSelectedTool('select')
-			app.expectPathToBe('root.select.idle')
-			app.doubleClick(50, 50, shapeId)
+			editor.setSelectedTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
+			const shapeId = editor.onlySelectedShape?.id
+			editor._transformPointerDownSpy.mockRestore()
+			editor._transformPointerUpSpy.mockRestore()
+			editor.setSelectedTool('select')
+			editor.expectPathToBe('root.select.idle')
+			editor.doubleClick(50, 50, shapeId)
 
-			expect(app.pageState.editingId).toBe(shapeId)
+			expect(editor.pageState.editingId).toBe(shapeId)
 
 			// clicking on the shape should not do anything
 			jest.advanceTimersByTime(1000)
-			app.pointerDown(50, 50, shapeId)
+			editor.pointerDown(50, 50, shapeId)
 
-			expect(app.pageState.editingId).toBe(shapeId)
+			expect(editor.pageState.editingId).toBe(shapeId)
 
 			// clicking outside the shape should end editing
 			jest.advanceTimersByTime(1000)
 
-			app.pointerDown(150, 150).pointerUp()
-			expect(app.pageState.editingId).toBe(null)
-			expect(app.root.path.value).toEqual('root.select.idle')
+			editor.pointerDown(150, 150).pointerUp()
+			expect(editor.pageState.editingId).toBe(null)
+			expect(editor.root.path.value).toEqual('root.select.idle')
 		})
 	})
 	it('does not allow pressing undo to end up in the editing state', () => {
-		app.setSelectedTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
-		const shapeId = app.onlySelectedShape?.id
-		app._transformPointerDownSpy.mockRestore()
-		app._transformPointerUpSpy.mockRestore()
-		app.setSelectedTool('select')
-		app.doubleClick(50, 50, shapeId)
+		editor.setSelectedTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
+		const shapeId = editor.onlySelectedShape?.id
+		editor._transformPointerDownSpy.mockRestore()
+		editor._transformPointerUpSpy.mockRestore()
+		editor.setSelectedTool('select')
+		editor.doubleClick(50, 50, shapeId)
 
-		expect(app.pageState.editingId).toBe(shapeId)
+		expect(editor.pageState.editingId).toBe(shapeId)
 
 		// clicking on the shape should not do anything
 		jest.advanceTimersByTime(1000)
-		app.pointerDown(50, 50, shapeId)
+		editor.pointerDown(50, 50, shapeId)
 
-		expect(app.pageState.editingId).toBe(shapeId)
+		expect(editor.pageState.editingId).toBe(shapeId)
 
 		// clicking outside the shape should end editing
 		jest.advanceTimersByTime(1000)
 
-		app.pointerDown(150, 150).pointerUp()
-		expect(app.pageState.editingId).toBe(null)
-		expect(app.root.path.value).toEqual('root.select.idle')
+		editor.pointerDown(150, 150).pointerUp()
+		expect(editor.pageState.editingId).toBe(null)
+		expect(editor.root.path.value).toEqual('root.select.idle')
 
-		app.undo()
+		editor.undo()
 
-		expect(app.pageState.editingId).toBe(null)
+		expect(editor.pageState.editingId).toBe(null)
 	})
 })
 
 describe('When pointing a shape behind the current selection', () => {
 	it('Does not select on pointer down, but does select on pointer up', () => {
-		app.selectNone()
-		const ids = app.createShapesFromJsx([
+		editor.selectNone()
+		const ids = editor.createShapesFromJsx([
 			<TL.geo ref="A" x={0} y={0} w={100} h={100} />,
 			<TL.geo ref="B" x={50} y={50} w={100} h={100} />,
 			<TL.geo ref="C" x={100} y={100} w={100} h={100} />,
 		])
-		app.select(ids.A, ids.C)
+		editor.select(ids.A, ids.C)
 		// don't select it yet! It's behind the current selection
-		app.pointerDown(100, 100, ids.B)
-		expect(app.selectedIds).toMatchObject([ids.A, ids.C])
-		app.pointerUp(100, 100, ids.B)
-		expect(app.selectedIds).toMatchObject([ids.B])
+		editor.pointerDown(100, 100, ids.B)
+		expect(editor.selectedIds).toMatchObject([ids.A, ids.C])
+		editor.pointerUp(100, 100, ids.B)
+		expect(editor.selectedIds).toMatchObject([ids.B])
 	})
 
 	it('Selects on shift+pointer up', () => {
-		app.selectNone()
-		const ids = app.createShapesFromJsx([
+		editor.selectNone()
+		const ids = editor.createShapesFromJsx([
 			<TL.geo ref="A" x={0} y={0} w={100} h={100} />,
 			<TL.geo ref="B" x={50} y={50} w={100} h={100} />,
 			<TL.geo ref="C" x={100} y={100} w={100} h={100} />,
 		])
-		app.select(ids.A, ids.C)
+		editor.select(ids.A, ids.C)
 		// don't select it yet! It's behind the current selection
-		app.pointerDown(100, 100, ids.B, { shiftKey: true })
-		expect(app.selectedIds).toMatchObject([ids.A, ids.C])
-		app.pointerUp(100, 100, ids.B, { shiftKey: true })
-		expect(app.selectedIds).toMatchObject([ids.A, ids.C, ids.B])
+		editor.pointerDown(100, 100, ids.B, { shiftKey: true })
+		expect(editor.selectedIds).toMatchObject([ids.A, ids.C])
+		editor.pointerUp(100, 100, ids.B, { shiftKey: true })
+		expect(editor.selectedIds).toMatchObject([ids.A, ids.C, ids.B])
 
 		// and deselect
-		app.pointerDown(100, 100, ids.B, { shiftKey: true })
-		expect(app.selectedIds).toMatchObject([ids.A, ids.C, ids.B])
-		app.pointerUp(100, 100, ids.B, { shiftKey: true })
-		expect(app.selectedIds).toMatchObject([ids.A, ids.C])
+		editor.pointerDown(100, 100, ids.B, { shiftKey: true })
+		expect(editor.selectedIds).toMatchObject([ids.A, ids.C, ids.B])
+		editor.pointerUp(100, 100, ids.B, { shiftKey: true })
+		expect(editor.selectedIds).toMatchObject([ids.A, ids.C])
 	})
 
 	it('Moves on pointer move, does not select on pointer up', () => {
-		app.selectNone()
-		const ids = app.createShapesFromJsx([
+		editor.selectNone()
+		const ids = editor.createShapesFromJsx([
 			<TL.geo ref="A" x={0} y={0} w={100} h={100} />,
 			<TL.geo ref="B" x={50} y={50} w={100} h={100} />,
 			<TL.geo ref="C" x={100} y={100} w={100} h={100} />,
 		])
-		app.select(ids.A, ids.C) // don't select it yet! It's behind the current selection
-		app.pointerDown(100, 100, ids.B)
-		app.pointerMove(150, 150)
-		app.pointerMove(151, 151)
-		app.pointerMove(100, 100)
-		expect(app.selectedIds).toMatchObject([ids.A, ids.C])
-		app.pointerUp(100, 100, ids.B)
-		expect(app.selectedIds).toMatchObject([ids.A, ids.C]) // no change! we've moved
+		editor.select(ids.A, ids.C) // don't select it yet! It's behind the current selection
+		editor.pointerDown(100, 100, ids.B)
+		editor.pointerMove(150, 150)
+		editor.pointerMove(151, 151)
+		editor.pointerMove(100, 100)
+		expect(editor.selectedIds).toMatchObject([ids.A, ids.C])
+		editor.pointerUp(100, 100, ids.B)
+		expect(editor.selectedIds).toMatchObject([ids.A, ids.C]) // no change! we've moved
 	})
 })
 
 describe('When brushing arrows', () => {
 	it('Brushes a straight arrow', () => {
-		const ids = app
+		const ids = editor
 			.selectAll()
 			.deleteShapes()
 			.setCamera(0, 0, 1)
@@ -138,15 +138,15 @@ describe('When brushing arrows', () => {
 					bend={0}
 				/>,
 			])
-		app.setSelectedTool('select')
-		app.pointerDown(55, 45)
-		app.pointerMove(45, 55)
-		app.expectPathToBe('root.select.brushing')
-		expect(app.selectedIds).toStrictEqual([ids.arrow1])
+		editor.setSelectedTool('select')
+		editor.pointerDown(55, 45)
+		editor.pointerMove(45, 55)
+		editor.expectPathToBe('root.select.brushing')
+		expect(editor.selectedIds).toStrictEqual([ids.arrow1])
 	})
 
 	it('Brushes within the curve of a curved arrow without selecting the arrow', () => {
-		app
+		editor
 			.selectAll()
 			.deleteShapes()
 			.setCamera(0, 0, 1)
@@ -160,10 +160,10 @@ describe('When brushing arrows', () => {
 					bend={40}
 				/>,
 			])
-		app.setSelectedTool('select')
-		app.pointerDown(55, 45)
-		app.pointerMove(45, 55)
-		app.expectPathToBe('root.select.brushing')
-		expect(app.selectedIds).toStrictEqual([])
+		editor.setSelectedTool('select')
+		editor.pointerDown(55, 45)
+		editor.pointerMove(45, 55)
+		editor.expectPathToBe('root.select.brushing')
+		expect(editor.selectedIds).toStrictEqual([])
 	})
 })

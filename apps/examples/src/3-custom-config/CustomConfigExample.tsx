@@ -1,11 +1,11 @@
-import { MenuGroup, Tldraw, menuItem, toolbarItem } from '@tldraw/tldraw'
+import { TLUiMenuGroup, Tldraw, menuItem, toolbarItem } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
-import { CardTool } from './CardTool'
-import { CardUtil } from './CardUtil'
+import { CardShapeTool } from './CardShapeTool'
+import { CardShapeUtil } from './CardShapeUtil'
 
-const shapes = { card: { util: CardUtil } }
-const tools = [CardTool]
+const shapes = { card: { util: CardShapeUtil } }
+const tools = [CardShapeTool]
 
 export default function CustomConfigExample() {
 	return (
@@ -19,7 +19,7 @@ export default function CustomConfigExample() {
 					// We need to add it to the tools list. This "toolItem"
 					// has information about its icon, label, keyboard shortcut,
 					// and what to do when it's selected.
-					tools(app, tools) {
+					tools(editor, tools) {
 						tools.card = {
 							id: 'card',
 							icon: 'color',
@@ -27,7 +27,7 @@ export default function CustomConfigExample() {
 							kbd: 'c',
 							readonlyOk: false,
 							onSelect: () => {
-								app.setSelectedTool('card')
+								editor.setSelectedTool('card')
 							},
 						}
 						return tools
@@ -44,7 +44,7 @@ export default function CustomConfigExample() {
 						// add it to that before returning the array.
 						const toolsGroup = keyboardShortcutsMenu.find(
 							(group) => group.id === 'shortcuts-dialog.tools'
-						) as MenuGroup
+						) as TLUiMenuGroup
 						toolsGroup.children.push(menuItem(tools.card))
 						return keyboardShortcutsMenu
 					},
