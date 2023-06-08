@@ -1,7 +1,14 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
 import { annotateError } from '@tldraw/utils'
-import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
+import React, {
+	memo,
+	useCallback,
+	useLayoutEffect,
+	useMemo,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import { TLEditorAssetUrls, defaultEditorAssetUrls } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
@@ -141,7 +148,7 @@ declare global {
 /** @public */
 export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
-	const user = createTLUser()
+	const user = useMemo(() => createTLUser(), [])
 
 	const ErrorFallback =
 		props.components?.ErrorFallback === undefined
