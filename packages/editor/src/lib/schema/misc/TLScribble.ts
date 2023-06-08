@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 import { SetValue } from '../util-types'
-import { TLColor, colorTypeValidator } from './TLColor'
+import { TLColor, colorTypeValidator } from './TLUIColor'
 import { Vec2dModel } from './geometry-types'
 
 /**
