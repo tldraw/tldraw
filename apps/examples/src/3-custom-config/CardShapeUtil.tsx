@@ -13,7 +13,6 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 	// Default props — used for shapes created with the tool
 	override defaultProps(): CardShape['props'] {
 		return {
-			opacity: '1',
 			w: 300,
 			h: 300,
 		}

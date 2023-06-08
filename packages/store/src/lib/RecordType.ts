@@ -15,7 +15,7 @@ export type RecordTypeRecord<R extends RecordType<any, any>> = ReturnType<R['cre
  *
  * @public
  * */
-export type Scope = 'instance' | 'document' | 'presence'
+export type RecordScope = 'session' | 'document' | 'presence'
 
 /**
  * A record type is a type that can be stored in a record store. It is created with
@@ -31,7 +31,7 @@ export class RecordType<
 	readonly migrations: Migrations
 	readonly validator: StoreValidator<R> | { validate: (r: unknown) => R }
 
-	readonly scope: Scope
+	readonly scope: RecordScope
 
 	constructor(
 		/**
@@ -45,7 +45,7 @@ export class RecordType<
 			readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>
 			readonly migrations: Migrations
 			readonly validator?: StoreValidator<R> | { validate: (r: unknown) => R }
-			readonly scope?: Scope
+			readonly scope?: RecordScope
 		}
 	) {
 		this.createDefaultProperties = config.createDefaultProperties
@@ -97,8 +97,8 @@ export class RecordType<
 	 * @returns The new ID.
 	 * @public
 	 */
-	createId(): IdOf<R> {
-		return (this.typeName + ':' + nanoid()) as IdOf<R>
+	createId(customUniquePart?: string): IdOf<R> {
+		return (this.typeName + ':' + (customUniquePart ?? nanoid())) as IdOf<R>
 	}
 
 	/**
@@ -110,6 +110,7 @@ export class RecordType<
 	 * const id = recordType.createCustomId('myId')
 	 * ```
 	 *
+	 * @deprecated - Use `createId` instead.
 	 * @param id - The ID to base the new ID on.
 	 * @returns The new ID.
 	 */
@@ -123,12 +124,12 @@ export class RecordType<
 	 * @param id - The id
 	 * @returns
 	 */
-	parseId(id: string): IdOf<R> {
+	parseId(id: IdOf<R>): string {
 		if (!this.isId(id)) {
 			throw new Error(`ID "${id}" is not a valid ID for type "${this.typeName}"`)
 		}
 
-		return id.slice(this.typeName.length + 1) as IdOf<R>
+		return id.slice(this.typeName.length + 1)
 	}
 
 	/**
@@ -219,7 +220,7 @@ export function createRecordType<R extends UnknownRecord>(
 	config: {
 		migrations?: Migrations
 		validator?: StoreValidator<R>
-		scope: Scope
+		scope: RecordScope
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {

@@ -30,12 +30,19 @@ export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCa
 export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './records/TLDocument'
 export {
 	InstanceRecordType,
+	TLINSTANCE_ID,
 	instanceTypeValidator,
 	type TLInstance,
 	type TLInstanceId,
 	type TLInstancePropsForNextShape,
 } from './records/TLInstance'
-export { PageRecordType, isPageId, type TLPage, type TLPageId } from './records/TLPage'
+export {
+	PageRecordType,
+	isPageId,
+	pageIdValidator,
+	type TLPage,
+	type TLPageId,
+} from './records/TLPage'
 export { InstancePageStateRecordType, type TLInstancePageState } from './records/TLPageState'
 export { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLPresence'
@@ -55,7 +62,6 @@ export {
 	type TLShapeProps,
 	type TLUnknownShape,
 } from './records/TLShape'
-export { UserDocumentRecordType, type TLUserDocument } from './records/TLUserDocument'
 export {
 	type TLArrowShape,
 	type TLArrowShapeProps,
@@ -121,12 +127,7 @@ export {
 } from './styles/TLFontStyle'
 export { TL_GEO_TYPES, geoValidator, type TLGeoStyle, type TLGeoType } from './styles/TLGeoStyle'
 export { iconValidator, type TLIconStyle, type TLIconType } from './styles/TLIconStyle'
-export {
-	TL_OPACITY_TYPES,
-	opacityValidator,
-	type TLOpacityStyle,
-	type TLOpacityType,
-} from './styles/TLOpacityStyle'
+export { opacityValidator, type TLOpacityType } from './styles/TLOpacityStyle'
 export {
 	TL_SIZE_TYPES,
 	sizeValidator,

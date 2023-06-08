@@ -12,95 +12,6 @@ export {
 	TldrawEditor,
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
-export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/app/Editor'
-export { ArrowShapeUtil } from './lib/app/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
-export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/app/shapeutils/BaseBoxShapeUtil'
-export { BookmarkShapeUtil } from './lib/app/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
-export { DrawShapeUtil } from './lib/app/shapeutils/DrawShapeUtil/DrawShapeUtil'
-export { EmbedShapeUtil } from './lib/app/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
-export { FrameShapeUtil } from './lib/app/shapeutils/FrameShapeUtil/FrameShapeUtil'
-export { GeoShapeUtil } from './lib/app/shapeutils/GeoShapeUtil/GeoShapeUtil'
-export { GroupShapeUtil } from './lib/app/shapeutils/GroupShapeUtil/GroupShapeUtil'
-export { HighlightShapeUtil } from './lib/app/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
-export { ImageShapeUtil } from './lib/app/shapeutils/ImageShapeUtil/ImageShapeUtil'
-export {
-	LineShapeUtil,
-	getSplineForLineShape,
-} from './lib/app/shapeutils/LineShapeUtil/LineShapeUtil'
-export { NoteShapeUtil } from './lib/app/shapeutils/NoteShapeUtil/NoteShapeUtil'
-export {
-	ShapeUtil,
-	type TLOnBeforeCreateHandler,
-	type TLOnBeforeUpdateHandler,
-	type TLOnBindingChangeHandler,
-	type TLOnChildrenChangeHandler,
-	type TLOnClickHandler,
-	type TLOnDoubleClickHandleHandler,
-	type TLOnDoubleClickHandler,
-	type TLOnDragHandler,
-	type TLOnEditEndHandler,
-	type TLOnHandleChangeHandler,
-	type TLOnResizeEndHandler,
-	type TLOnResizeHandler,
-	type TLOnResizeStartHandler,
-	type TLOnRotateEndHandler,
-	type TLOnRotateHandler,
-	type TLOnRotateStartHandler,
-	type TLOnTranslateEndHandler,
-	type TLOnTranslateHandler,
-	type TLOnTranslateStartHandler,
-	type TLResizeInfo,
-	type TLResizeMode,
-	type TLShapeUtilConstructor,
-	type TLShapeUtilFlag,
-} from './lib/app/shapeutils/ShapeUtil'
-export { INDENT, TextShapeUtil } from './lib/app/shapeutils/TextShapeUtil/TextShapeUtil'
-export { VideoShapeUtil } from './lib/app/shapeutils/VideoShapeUtil/VideoShapeUtil'
-export { BaseBoxShapeTool } from './lib/app/tools/BaseBoxShapeTool/BaseBoxShapeTool'
-export { StateNode, type TLStateNodeConstructor } from './lib/app/tools/StateNode'
-export { type TLContent } from './lib/app/types/clipboard-types'
-export { type TLEventMap, type TLEventMapHandler } from './lib/app/types/emit-types'
-export {
-	EVENT_NAME_MAP,
-	type TLBaseEventInfo,
-	type TLCLickEventName,
-	type TLCancelEvent,
-	type TLCancelEventInfo,
-	type TLClickEvent,
-	type TLClickEventInfo,
-	type TLCompleteEvent,
-	type TLCompleteEventInfo,
-	type TLEnterEventHandler,
-	type TLEventHandlers,
-	type TLEventInfo,
-	type TLEventName,
-	type TLExitEventHandler,
-	type TLInterruptEvent,
-	type TLInterruptEventInfo,
-	type TLKeyboardEvent,
-	type TLKeyboardEventInfo,
-	type TLKeyboardEventName,
-	type TLPinchEvent,
-	type TLPinchEventInfo,
-	type TLPinchEventName,
-	type TLPointerEvent,
-	type TLPointerEventInfo,
-	type TLPointerEventName,
-	type TLPointerEventTarget,
-	type TLTickEvent,
-	type TLWheelEvent,
-	type TLWheelEventInfo,
-	type UiEvent,
-	type UiEventType,
-} from './lib/app/types/event-types'
-export {
-	type TLCommand,
-	type TLCommandHandler,
-	type TLHistoryEntry,
-	type TLHistoryMark,
-} from './lib/app/types/history-types'
-export { type RequiredKeys } from './lib/app/types/misc-types'
-export { type TLResizeHandle, type TLSelectionHandle } from './lib/app/types/selection-types'
 export {
 	defaultEditorAssetUrls,
 	setDefaultEditorAssetUrls,
@@ -115,6 +26,13 @@ export {
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
+export {
+	TAB_ID,
+	createSessionStateSnapshotSignal,
+	extractSessionStateFromLegacySnapshot,
+	loadSessionStateSnapshotIntoStore,
+	type TLSessionStateSnapshot,
+} from './lib/config/TLSessionStateSnapshot'
 export {
 	USER_COLORS,
 	getUserPreferences,
@@ -162,6 +80,95 @@ export {
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	ZOOMS,
 } from './lib/constants'
+export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export { ArrowShapeUtil } from './lib/editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
+export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
+export { DrawShapeUtil } from './lib/editor/shapeutils/DrawShapeUtil/DrawShapeUtil'
+export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
+export { FrameShapeUtil } from './lib/editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
+export { GeoShapeUtil } from './lib/editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
+export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
+export { HighlightShapeUtil } from './lib/editor/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
+export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
+export {
+	LineShapeUtil,
+	getSplineForLineShape,
+} from './lib/editor/shapeutils/LineShapeUtil/LineShapeUtil'
+export { NoteShapeUtil } from './lib/editor/shapeutils/NoteShapeUtil/NoteShapeUtil'
+export {
+	ShapeUtil,
+	type TLOnBeforeCreateHandler,
+	type TLOnBeforeUpdateHandler,
+	type TLOnBindingChangeHandler,
+	type TLOnChildrenChangeHandler,
+	type TLOnClickHandler,
+	type TLOnDoubleClickHandleHandler,
+	type TLOnDoubleClickHandler,
+	type TLOnDragHandler,
+	type TLOnEditEndHandler,
+	type TLOnHandleChangeHandler,
+	type TLOnResizeEndHandler,
+	type TLOnResizeHandler,
+	type TLOnResizeStartHandler,
+	type TLOnRotateEndHandler,
+	type TLOnRotateHandler,
+	type TLOnRotateStartHandler,
+	type TLOnTranslateEndHandler,
+	type TLOnTranslateHandler,
+	type TLOnTranslateStartHandler,
+	type TLResizeInfo,
+	type TLResizeMode,
+	type TLShapeUtilConstructor,
+	type TLShapeUtilFlag,
+} from './lib/editor/shapeutils/ShapeUtil'
+export { INDENT, TextShapeUtil } from './lib/editor/shapeutils/TextShapeUtil/TextShapeUtil'
+export { VideoShapeUtil } from './lib/editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
+export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
+export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
+export { type TLContent } from './lib/editor/types/clipboard-types'
+export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
+export {
+	EVENT_NAME_MAP,
+	type TLBaseEventInfo,
+	type TLCLickEventName,
+	type TLCancelEvent,
+	type TLCancelEventInfo,
+	type TLClickEvent,
+	type TLClickEventInfo,
+	type TLCompleteEvent,
+	type TLCompleteEventInfo,
+	type TLEnterEventHandler,
+	type TLEventHandlers,
+	type TLEventInfo,
+	type TLEventName,
+	type TLExitEventHandler,
+	type TLInterruptEvent,
+	type TLInterruptEventInfo,
+	type TLKeyboardEvent,
+	type TLKeyboardEventInfo,
+	type TLKeyboardEventName,
+	type TLPinchEvent,
+	type TLPinchEventInfo,
+	type TLPinchEventName,
+	type TLPointerEvent,
+	type TLPointerEventInfo,
+	type TLPointerEventName,
+	type TLPointerEventTarget,
+	type TLTickEvent,
+	type TLWheelEvent,
+	type TLWheelEventInfo,
+	type UiEvent,
+	type UiEventType,
+} from './lib/editor/types/event-types'
+export {
+	type TLCommand,
+	type TLCommandHandler,
+	type TLHistoryEntry,
+	type TLHistoryMark,
+} from './lib/editor/types/history-types'
+export { type RequiredKeys } from './lib/editor/types/misc-types'
+export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { normalizeWheel } from './lib/hooks/shared'
 export { useContainer } from './lib/hooks/useContainer'
 export { useEditor } from './lib/hooks/useEditor'
@@ -244,5 +251,4 @@ export {
 export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from './lib/utils/svg'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
-export { TAB_ID } from './lib/utils/sync/persistence-constants'
 export { openWindow } from './lib/utils/window-open'

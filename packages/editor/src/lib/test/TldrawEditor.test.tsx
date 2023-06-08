@@ -1,12 +1,12 @@
 import { act, render, screen } from '@testing-library/react'
-import { InstanceRecordType, TLBaseShape, TLOpacityType, createShapeId } from '@tldraw/tlschema'
+import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
 import { TldrawEditor } from '../TldrawEditor'
-import { Editor } from '../app/Editor'
-import { BaseBoxShapeUtil } from '../app/shapeutils/BaseBoxShapeUtil'
-import { BaseBoxShapeTool } from '../app/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
 import { createTLStore } from '../config/createTLStore'
+import { Editor } from '../editor/Editor'
+import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
+import { BaseBoxShapeTool } from '../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -64,9 +64,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = createTLStore({
-			instanceId: InstanceRecordType.createCustomId('test'),
-		})
+		const initialStore = createTLStore({})
 		const onMount = jest.fn()
 		const rendered = render(
 			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
@@ -87,9 +85,7 @@ describe('<TldrawEditor />', () => {
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
-		const newStore = createTLStore({
-			instanceId: InstanceRecordType.createCustomId('test'),
-		})
+		const newStore = createTLStore({})
 		rendered.rerender(
 			<TldrawEditor store={newStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-3" />
@@ -141,7 +137,8 @@ describe('<TldrawEditor />', () => {
 			type: 'geo',
 			x: 0,
 			y: 0,
-			props: { geo: 'rectangle', w: 100, h: 100, opacity: '1' },
+			opacity: 1,
+			props: { geo: 'rectangle', w: 100, h: 100 },
 		})
 
 		// Is the shape's component rendering?
@@ -169,7 +166,6 @@ describe('Custom shapes', () => {
 		{
 			w: number
 			h: number
-			opacity: TLOpacityType
 		}
 	>
 
@@ -182,7 +178,6 @@ describe('Custom shapes', () => {
 
 		override defaultProps(): CardShape['props'] {
 			return {
-				opacity: '1',
 				w: 300,
 				h: 300,
 			}
@@ -266,7 +261,8 @@ describe('Custom shapes', () => {
 			type: 'card',
 			x: 0,
 			y: 0,
-			props: { w: 100, h: 100, opacity: '1' },
+			opacity: 1,
+			props: { w: 100, h: 100 },
 		})
 
 		// Is the shape's component rendering?

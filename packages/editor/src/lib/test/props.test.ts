@@ -16,7 +16,6 @@ describe('Editor.props', () => {
 			dash: 'draw',
 			fill: 'none',
 			size: 'm',
-			opacity: '1',
 		})
 	})
 
@@ -32,12 +31,6 @@ describe('Editor.props', () => {
 			font: 'draw',
 			geo: 'rectangle',
 			verticalAlign: 'middle',
-			// h: 100,
-			// w: 100,
-			// growY: 0,
-			opacity: '1',
-			// text: '',
-			// url: '',
 		})
 	})
 
@@ -53,12 +46,6 @@ describe('Editor.props', () => {
 			font: 'draw',
 			geo: 'rectangle',
 			verticalAlign: 'middle',
-			// h: 100, // blacklisted
-			// w: 100, // blacklisted
-			// growY: 0, // blacklist
-			opacity: '1',
-			// text: '', // blacklisted
-			// url: '', // blacklisted
 		})
 	})
 
@@ -82,13 +69,7 @@ describe('Editor.props', () => {
 			size: 'm',
 			font: 'draw',
 			geo: 'rectangle',
-			opacity: '1',
 			verticalAlign: 'middle',
-			// h: null, // mixed! but also blacklisted
-			// w: null, // mixed! but also blacklisted
-			// growY: 0, // blacklist
-			// text: '', // blacklisted
-			// url: '', // blacklist
 		})
 	})
 
@@ -111,7 +92,6 @@ describe('Editor.props', () => {
 					align: 'start',
 					text: 'hello world this is a long sentence that should wrap',
 					w: 100,
-					opacity: '0.5',
 					url: 'https://aol.com',
 					verticalAlign: 'start',
 				},
@@ -128,10 +108,7 @@ describe('Editor.props', () => {
 			geo: null,
 			size: null,
 			font: null,
-			opacity: null,
 			verticalAlign: null,
-			// growY: null, // blacklist
-			// url: null, // blacklist
 		})
 	})
 })

@@ -12,8 +12,8 @@ import {
 } from '@tldraw/tlschema'
 import { compact, getHashForString } from '@tldraw/utils'
 import uniq from 'lodash.uniq'
-import { Editor } from '../app/Editor'
 import { MAX_ASSET_HEIGHT, MAX_ASSET_WIDTH } from '../constants'
+import { Editor } from '../editor/Editor'
 import { isAnimated } from './is-gif-animated'
 import { findChunk, isPng, parsePhys } from './png'
 
@@ -166,7 +166,7 @@ export async function getMediaAssetFromFile(file: File): Promise<TLAsset> {
 				dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h)
 			}
 
-			const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(dataUrl))
+			const assetId: TLAssetId = AssetRecordType.createId(getHashForString(dataUrl))
 
 			const metadata = await getFileMetaData(file)
 
@@ -292,7 +292,6 @@ export async function createShapesFromFiles(
 					props: {
 						w: asset.props!.w,
 						h: asset.props!.h,
-						opacity: '1',
 					},
 				}
 
@@ -403,7 +402,6 @@ export function createEmbedShapeAtPoint(
 					h: props.height,
 					doesResize: props.doesResize,
 					url,
-					opacity: '1',
 				},
 			},
 		],
@@ -420,7 +418,7 @@ export function createEmbedShapeAtPoint(
  * @public
  */
 export async function createBookmarkShapeAtPoint(editor: Editor, url: string, point: Vec2dModel) {
-	const assetId: TLAssetId = AssetRecordType.createCustomId(getHashForString(url))
+	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 	const existing = editor.getAssetById(assetId) as TLBookmarkAsset
 
 	if (existing) {
@@ -430,10 +428,10 @@ export async function createBookmarkShapeAtPoint(editor: Editor, url: string, po
 				type: 'bookmark',
 				x: point.x - 150,
 				y: point.y - 160,
+				opacity: 1,
 				props: {
 					assetId: existing.id,
 					url: existing.props.src!,
-					opacity: '1',
 				},
 			},
 		])
@@ -450,9 +448,9 @@ export async function createBookmarkShapeAtPoint(editor: Editor, url: string, po
 					type: 'bookmark',
 					x: point.x,
 					y: point.y,
+					opacity: 1,
 					props: {
 						url: url,
-						opacity: '1',
 					},
 				},
 			],
@@ -480,9 +478,9 @@ export async function createBookmarkShapeAtPoint(editor: Editor, url: string, po
 				{
 					id: shapeId,
 					type: 'bookmark',
+					opacity: 1,
 					props: {
 						assetId: assetId,
-						opacity: '1',
 					},
 				},
 			])
@@ -531,11 +529,11 @@ export async function createAssetShapeAtPoint(
 					type: 'image',
 					x: point.x - width / 2,
 					y: point.y - height / 2,
+					opacity: 1,
 					props: {
 						assetId: asset.id,
 						w: width,
 						h: height,
-						opacity: '1',
 					},
 				},
 			],

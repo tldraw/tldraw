@@ -7,7 +7,6 @@ import { TLInstancePageState } from './TLPageState'
 import { TLPointer } from './TLPointer'
 import { TLInstancePresence } from './TLPresence'
 import { TLShape } from './TLShape'
-import { TLUserDocument } from './TLUserDocument'
 
 /** @public */
 export type TLRecord =
@@ -18,6 +17,5 @@ export type TLRecord =
 	| TLInstancePageState
 	| TLPage
 	| TLShape
-	| TLUserDocument
 	| TLInstancePresence
 	| TLPointer

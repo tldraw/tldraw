@@ -10,13 +10,13 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
-import { ArrowShapeUtil } from '../../app/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
-import { GroupShapeUtil } from '../../app/shapeutils/GroupShapeUtil/GroupShapeUtil'
-import { ArrowShapeTool } from '../../app/tools/ArrowShapeTool/ArrowShapeTool'
-import { DrawShapeTool } from '../../app/tools/DrawShapeTool/DrawShapeTool'
-import { EraserShapeTool } from '../../app/tools/EraserShapeTool/EraserShapeTool'
-import { LineShapeTool } from '../../app/tools/LineShapeTool/LineShapeTool'
-import { NoteShapeTool } from '../../app/tools/NoteShapeTool/NoteShapeTool'
+import { ArrowShapeUtil } from '../../editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+import { GroupShapeUtil } from '../../editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
+import { ArrowShapeTool } from '../../editor/tools/ArrowShapeTool/ArrowShapeTool'
+import { DrawShapeTool } from '../../editor/tools/DrawShapeTool/DrawShapeTool'
+import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
+import { LineShapeTool } from '../../editor/tools/LineShapeTool/LineShapeTool'
+import { NoteShapeTool } from '../../editor/tools/NoteShapeTool/NoteShapeTool'
 import { TestEditor } from '../TestEditor'
 
 jest.mock('nanoid', () => {
@@ -1444,7 +1444,7 @@ describe('erasing', () => {
 	})
 
 	it('erases whole groups if you hit one of their shapes', () => {
-		editor.setSelectedTool(EraserShapeTool.id)
+		editor.setSelectedTool(EraserTool.id)
 
 		// erase D
 		editor.pointerDown(65, 5, ids.boxD)
@@ -1455,7 +1455,7 @@ describe('erasing', () => {
 	})
 
 	it('does not erase whole groups if you do not hit on one of their shapes', () => {
-		editor.setSelectedTool(EraserShapeTool.id)
+		editor.setSelectedTool(EraserTool.id)
 
 		editor.pointerDown(35, 5)
 		expect(editor.erasingIdsSet.size).toBe(0)
@@ -1466,7 +1466,7 @@ describe('erasing', () => {
 		expect(editor.focusLayerId === groupAId).toBe(true)
 		const groupA = editor.getShapeById(groupAId)!
 
-		editor.setSelectedTool(EraserShapeTool.id)
+		editor.setSelectedTool(EraserTool.id)
 
 		// erase B
 		editor.pointerDown(25, 5, ids.boxB)
@@ -1482,7 +1482,7 @@ describe('erasing', () => {
 		editor.select(ids.boxA)
 		expect(editor.focusLayerId === groupAId).toBe(true)
 
-		editor.setSelectedTool(EraserShapeTool.id)
+		editor.setSelectedTool(EraserTool.id)
 
 		// erase E
 		editor.pointerDown(5, 25, ids.boxE)
@@ -1896,10 +1896,10 @@ describe('Group opacity', () => {
 	it("should set the group's opacity to max even if the selected style panel opacity is lower", () => {
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
 		editor.select(ids.boxA, ids.boxB)
-		editor.setProp('opacity', '0.5')
+		editor.setOpacity(0.5)
 		editor.groupShapes()
 		const group = editor.getShapeById(onlySelectedId())!
 		assert(editor.isShapeOfType(group, GroupShapeUtil))
-		expect(group.props.opacity).toBe('1')
+		expect(group.opacity).toBe(1)
 	})
 })

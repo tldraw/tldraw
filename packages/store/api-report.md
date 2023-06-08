@@ -42,7 +42,7 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
 export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'], config: {
     migrations?: Migrations;
     validator?: StoreValidator<R>;
-    scope: Scope;
+    scope: RecordScope;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
 // @public (undocumented)
@@ -69,7 +69,7 @@ export function getRecordVersion(record: UnknownRecord, serializedSchema: Serial
 // @public
 export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
     changes: RecordsDiff<R>;
-    source: 'remote' | 'user';
+    source: ChangeSource;
 };
 
 // @public (undocumented)
@@ -166,21 +166,22 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
         readonly validator?: {
             validate: (r: unknown) => R;
         } | StoreValidator<R>;
-        readonly scope?: Scope;
+        readonly scope?: RecordScope;
     });
     clone(record: R): R;
     create(properties: Pick<R, RequiredProperties> & Omit<Partial<R>, RequiredProperties>): R;
+    // @deprecated
     createCustomId(id: string): IdOf<R>;
     // (undocumented)
     readonly createDefaultProperties: () => Exclude<OmitMeta<R>, RequiredProperties>;
-    createId(): IdOf<R>;
+    createId(customUniquePart?: string): IdOf<R>;
     isId(id?: string): id is IdOf<R>;
     isInstance: (record?: UnknownRecord) => record is R;
     // (undocumented)
     readonly migrations: Migrations;
-    parseId(id: string): IdOf<R>;
+    parseId(id: IdOf<R>): string;
     // (undocumented)
-    readonly scope: Scope;
+    readonly scope: RecordScope;
     readonly typeName: R['typeName'];
     validate(record: unknown): R;
     // (undocumented)
@@ -228,23 +229,28 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     clear: () => void;
     createComputedCache: <T, V extends R = R>(name: string, derive: (record: V) => T | undefined) => ComputedCache<T, V>;
     createSelectedComputedCache: <T, J, V extends R = R>(name: string, selector: (record: V) => T | undefined, derive: (input: T) => J | undefined) => ComputedCache<J, V>;
-    deserialize: (snapshot: StoreSnapshot<R>) => void;
     // @internal (undocumented)
     ensureStoreIsUsable(): void;
     // (undocumented)
     extractingChanges(fn: () => void): RecordsDiff<R>;
+    filterChangesByScope(change: RecordsDiff<R>, scope: RecordScope): {
+        added: { [K in IdOf<R>]: R; };
+        updated: { [K_1 in IdOf<R>]: [from: R, to: R]; };
+        removed: { [K in IdOf<R>]: R; };
+    } | null;
     // (undocumented)
     _flushHistory(): void;
     get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
-    getSnapshot(): {
+    getSnapshot(scope?: 'all' | RecordScope): {
         store: StoreSnapshot<R>;
         schema: SerializedSchema;
     };
     has: <K extends IdOf<R>>(id: K) => boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
+    readonly id: string;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
-    listen: (listener: StoreListener<R>) => () => void;
+    listen: (onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) => () => void;
     loadSnapshot(snapshot: {
         store: StoreSnapshot<R>;
         schema: SerializedSchema;
@@ -263,8 +269,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     remove: (ids: IdOf<R>[]) => void;
     // (undocumented)
     readonly schema: StoreSchema<R, Props>;
-    serialize: (filter?: ((record: R) => boolean) | undefined) => StoreSnapshot<R>;
-    serializeDocumentState: () => StoreSnapshot<R>;
+    // (undocumented)
+    readonly scopedTypes: {
+        readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
+    };
+    serialize: (scope?: 'all' | RecordScope) => StoreSnapshot<R>;
     unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
     update: <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
     // (undocumented)

@@ -44,7 +44,7 @@
 	},
 	"devDependencies": {
 		"kleur": "^4.1.5",
-		"lazyrepo": "0.0.0-alpha.26"
+		"lazyrepo": "0.0.0-alpha.27"
 	},
 	"jest": {
 		"preset": "config/jest/node",

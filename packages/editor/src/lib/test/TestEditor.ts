@@ -15,19 +15,19 @@ import {
 	TLShapePartial,
 	createShapeId,
 } from '@tldraw/tlschema'
-import { Editor, TLEditorOptions } from '../app/Editor'
-import { TLContent } from '../app/types/clipboard-types'
+import { createTLStore } from '../config/createTLStore'
+import { defaultShapes } from '../config/defaultShapes'
+import { defaultTools } from '../config/defaultTools'
+import { Editor, TLEditorOptions } from '../editor/Editor'
+import { TLContent } from '../editor/types/clipboard-types'
 import {
 	TLEventInfo,
 	TLKeyboardEventInfo,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
 	TLWheelEventInfo,
-} from '../app/types/event-types'
-import { RequiredKeys } from '../app/types/misc-types'
-import { createTLStore } from '../config/createTLStore'
-import { defaultShapes } from '../config/defaultShapes'
-import { defaultTools } from '../config/defaultTools'
+} from '../editor/types/event-types'
+import { RequiredKeys } from '../editor/types/misc-types'
 import { shapesFromJsx } from './jsx'
 
 jest.useFakeTimers()
@@ -52,7 +52,7 @@ declare global {
 		}
 	}
 }
-export const TEST_INSTANCE_ID = InstanceRecordType.createCustomId('testInstance1')
+export const TEST_INSTANCE_ID = InstanceRecordType.createId('testInstance1')
 
 export class TestEditor extends Editor {
 	constructor(options = {} as Partial<Omit<TLEditorOptions, 'store'>>) {
@@ -63,7 +63,6 @@ export class TestEditor extends Editor {
 			shapes: { ...defaultShapes, ...shapes },
 			tools: [...defaultTools, ...tools],
 			store: createTLStore({
-				instanceId: TEST_INSTANCE_ID,
 				customShapes: shapes,
 			}),
 			getContainer: () => elm,
@@ -190,7 +189,7 @@ export class TestEditor extends Editor {
 		return createShapeId(id)
 	}
 	testPageID(id: string) {
-		return PageRecordType.createCustomId(id)
+		return PageRecordType.createId(id)
 	}
 
 	expectToBeIn = (path: string) => {

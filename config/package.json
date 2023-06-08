@@ -12,6 +12,6 @@
 		"eslint-plugin-react": "7.28.0"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.26"
+		"lazyrepo": "0.0.0-alpha.27"
 	}
 }

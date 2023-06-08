@@ -1,5 +1,5 @@
 import { deleteDB } from 'idb'
-import { getAllIndexDbNames } from './persistence-constants'
+import { getAllIndexDbNames } from './indexedDb'
 
 /**
  * Clear the database of all data associated with tldraw.

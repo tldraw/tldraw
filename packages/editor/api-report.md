@@ -57,7 +57,6 @@ import { TLHighlightShape } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
-import { TLInstanceId } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLInstancePropsForNextShape } from '@tldraw/tlschema';
@@ -82,9 +81,9 @@ import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
 import { TLTextShapeProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
-import { TLUserDocument } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
+import { UnknownRecord } from '@tldraw/store';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -179,8 +178,6 @@ export abstract class BaseBoxShapeTool extends StateNode {
     static initial: string;
     // (undocumented)
     abstract shapeType: string;
-    // (undocumented)
-    styles: ("align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "opacity" | "size" | "spline" | "verticalAlign")[];
 }
 
 // @public (undocumented)
@@ -260,6 +257,9 @@ export function createEmbedShapeAtPoint(editor: Editor, url: string, point: Vec2
     height?: number;
     doesResize?: boolean;
 }): void;
+
+// @public
+export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public (undocumented)
 export function createShapesFromFiles(editor: Editor, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
@@ -575,7 +575,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         pointerVelocity: Vec2d;
     };
-    get instanceId(): TLInstanceId;
     get instanceState(): TLInstance;
     interrupt(): this;
     get isChangingStyle(): boolean;
@@ -624,6 +623,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         description: string;
     }>;
     get onlySelectedShape(): null | TLShape;
+    // (undocumented)
+    get opacity(): null | number;
     get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
     get pages(): TLPage[];
@@ -718,6 +719,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setHoveredId(id?: null | TLShapeId): this;
     setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     setLocale(locale: string): void;
+    setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     // (undocumented)
     setPenMode(isPenMode: boolean): this;
     // @internal (undocumented)
@@ -765,15 +767,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateCullingBounds(): this;
     // @internal (undocumented)
     updateDocumentSettings(settings: Partial<TLDocument>): void;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId' | 'documentId' | 'userId'>>, ephemeral?: boolean, squashing?: boolean): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
-    updateUserDocumentSettings(partial: Partial<TLUserDocument>, ephemeral?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
     // @internal (undocumented)
     readonly user: UserPreferencesManager;
-    // (undocumented)
-    get userDocumentSettings(): TLUserDocument;
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
     get viewportScreenBounds(): Box2d;
@@ -837,6 +836,9 @@ export function ErrorScreen({ children }: {
 
 // @public (undocumented)
 export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyof TLEventHandlers>;
+
+// @internal (undocumented)
+export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
 
 // @internal (undocumented)
 export const featureFlags: {
@@ -916,7 +918,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             fill: "none" | "pattern" | "semi" | "solid";
             dash: "dashed" | "dotted" | "draw" | "solid";
             size: "l" | "m" | "s" | "xl";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
             verticalAlign: "end" | "middle" | "start";
@@ -932,6 +933,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -945,7 +947,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
             fill: "none" | "pattern" | "semi" | "solid";
             dash: "dashed" | "dotted" | "draw" | "solid";
             size: "l" | "m" | "s" | "xl";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
             verticalAlign: "end" | "middle" | "start";
@@ -961,6 +962,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -976,6 +978,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | {
@@ -989,6 +992,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1284,6 +1288,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 export function LoadingScreen({ children }: {
     children: any;
 }): JSX.Element;
+
+// @public
+export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
@@ -1699,7 +1706,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
+            verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
         };
@@ -1710,6 +1717,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1721,7 +1729,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
+            verticalAlign: "end" | "middle" | "start";
             url: string;
             text: string;
         };
@@ -1732,6 +1740,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1842,7 +1851,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     hitTestLineSegment(shape: T, A: VecLike, B: VecLike): boolean;
     hitTestPoint(shape: T, point: VecLike): boolean;
     abstract indicator(shape: T): any;
-    is(shape: TLBaseShape<string, object>): shape is T;
     isAspectRatioLocked: TLShapeUtilFlag<T>;
     isClosed: TLShapeUtilFlag<T>;
     onBeforeCreate?: TLOnBeforeCreateHandler<T>;
@@ -1883,7 +1891,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     transform(shape: T): Matrix2d;
     // (undocumented)
     readonly type: T['type'];
-    // (undocumented)
     static type: string;
 }
 
@@ -1960,6 +1967,8 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     path: Computed<string>;
     // (undocumented)
+    shapeType?: string;
+    // (undocumented)
     readonly styles: TLStyleType[];
     // (undocumented)
     transition(id: string, info: any): this;
@@ -1979,8 +1988,8 @@ export function SVGContainer({ children, className, ...rest }: SVGContainerProps
 // @public (undocumented)
 export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 
-// @public (undocumented)
-export const TAB_ID: TLInstanceId;
+// @public
+export const TAB_ID: string;
 
 // @public (undocumented)
 export const TEXT_PROPS: {
@@ -2022,6 +2031,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         props: TLTextShapeProps;
         id: TLShapeId;
         typeName: "shape";
@@ -2036,7 +2046,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             size: "l" | "m" | "s" | "xl";
             font: "draw" | "mono" | "sans" | "serif";
             align: "end" | "middle" | "start";
-            opacity: "0.1" | "0.25" | "0.5" | "0.75" | "1";
             text: string;
             scale: number;
             autoSize: boolean;
@@ -2046,6 +2055,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         index: string;
         parentId: TLParentId;
         isLocked: boolean;
+        opacity: number;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -2190,8 +2200,8 @@ export type TldrawEditorProps = {
 } | {
     store?: undefined;
     initialData?: StoreSnapshot<TLRecord>;
-    instanceId?: TLInstanceId;
     persistenceKey?: string;
+    sessionId?: string;
     defaultName?: string;
 });
 
@@ -2530,6 +2540,35 @@ export type TLResizeMode = 'resize_bounds' | 'scale_shape';
 // @public (undocumented)
 export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
 
+// @public
+export interface TLSessionStateSnapshot {
+    // (undocumented)
+    currentPageId: TLPageId;
+    // (undocumented)
+    exportBackground: boolean;
+    // (undocumented)
+    isDebugMode: boolean;
+    // (undocumented)
+    isFocusMode: boolean;
+    // (undocumented)
+    isGridMode: boolean;
+    // (undocumented)
+    isToolLocked: boolean;
+    // (undocumented)
+    pageStates: Array<{
+        pageId: TLPageId;
+        camera: {
+            x: number;
+            y: number;
+            z: number;
+        };
+        selectedIds: TLShapeId[];
+        focusLayerId: null | TLShapeId;
+    }>;
+    // (undocumented)
+    version: number;
+}
+
 // @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
@@ -2593,6 +2632,8 @@ export interface TLUserPreferences {
     // (undocumented)
     isDarkMode: boolean;
     // (undocumented)
+    isSnapMode: boolean;
+    // (undocumented)
     locale: string;
     // (undocumented)
     name: string;
@@ -2629,6 +2670,7 @@ export const useEditor: () => Editor;
 // @internal (undocumented)
 export function useLocalStore(opts?: {
     persistenceKey?: string | undefined;
+    sessionId?: string | undefined;
 } & TLStoreOptions): TLStoreWithStatus;
 
 // @internal (undocumented)
