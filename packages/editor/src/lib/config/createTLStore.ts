@@ -1,6 +1,6 @@
 import { Migrations, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore, createTLSchema } from '@tldraw/tlschema'
-import { TLShapeUtilConstructor } from '../app/shapeutils/ShapeUtil'
+import { TLShapeUtilConstructor } from '../editor/shapeutils/ShapeUtil'
 
 /** @public */
 export type TLShapeInfo = {

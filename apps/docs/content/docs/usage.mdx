@@ -32,7 +32,6 @@ export default function () {
 In addition to the library, you will also need to:
 
 - import the **CSS files** for the editor and UI
-- have the library's **assets** available on the same host
 - probably set a `viewport` meta tag in your **html**.
 
 See below for more detail on these.
@@ -65,16 +64,6 @@ The `<Tldraw/>` component combines several other pieces:
 > **Note:** In the future, this library will also include an engine for using our collaboration services.
 
 If you wanted to have more granular control, you could also use those subcomponents directly. See the ["exploded" example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/5-exploded/ExplodedExample.tsx) for what that would look like.
-
-### Assets
-
-In order to use the `<Tldraw/>` component, the app must be able to find certain assets on the host. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. If you are using the `<Tldraw/>` component in your app, you must also copy these folders into your public path.
-
-You can copy these files from the [assets folder](https://github.com/tldraw/tldraw/tree/main/assets). Place the folders in your project's public path as shown in that repository.
-
-> **Note:** This requirement is very likely to change in the near future.
-
-While these files must be available, you can overwrite the individual files: for example, by placing different icons under the same name or modifying / adding translations.
 
 ### CSS
 

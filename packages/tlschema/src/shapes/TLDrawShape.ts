@@ -4,7 +4,6 @@ import { Vec2dModel } from '../misc/geometry-types'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLDashType, dashValidator } from '../styles/TLDashStyle'
 import { TLFillType, fillValidator } from '../styles/TLFillStyle'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { SetValue } from '../util-types'
 import { TLBaseShape, createShapeValidator } from './TLBaseShape'
@@ -30,7 +29,6 @@ export type TLDrawShapeProps = {
 	fill: TLFillType
 	dash: TLDashType
 	size: TLSizeType
-	opacity: TLOpacityType
 	segments: TLDrawShapeSegment[]
 	isComplete: boolean
 	isClosed: boolean
@@ -48,7 +46,6 @@ export const drawShapeValidator: T.Validator<TLDrawShape> = createShapeValidator
 		fill: fillValidator,
 		dash: dashValidator,
 		size: sizeValidator,
-		opacity: opacityValidator,
 		segments: T.arrayOf(drawShapeSegmentValidator),
 		isComplete: T.boolean,
 		isClosed: T.boolean,
