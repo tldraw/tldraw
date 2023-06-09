@@ -66,9 +66,11 @@ import {
 } from '@tldraw/tlschema'
 import {
 	annotateError,
+	assert,
 	compact,
 	dedupe,
 	deepCopy,
+	getOwnProperty,
 	partition,
 	sortById,
 	structuredClone,
@@ -77,6 +79,7 @@ import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { TLUser, createTLUser } from '../config/createTLUser'
+import { checkShapesAndAddCore } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
 import { AnyTLShapeInfo } from '../config/defineShape'
 import {
@@ -194,8 +197,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root = new RootState(this)
 
+		const allShapes = checkShapesAndAddCore(shapes)
+
+		const shapeTypesInSchema = new Set(
+			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
+		)
+		for (const shape of allShapes) {
+			if (!shapeTypesInSchema.has(shape.type)) {
+				throw Error(
+					`Editor and store have different shapes: "${shape.type}" was passed into the editor but not the schema`
+				)
+			}
+			shapeTypesInSchema.delete(shape.type)
+		}
+		if (shapeTypesInSchema.size > 0) {
+			throw Error(
+				`Editor and store have different shapes: "${
+					[...shapeTypesInSchema][0]
+				}" is present in the store schema but not provided to the editor`
+			)
+		}
 		this.shapeUtils = Object.fromEntries(
-			shapes.map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
+			allShapes.map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
 		)
 
 		// Tools.
@@ -956,12 +979,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
-	getShapeUtil<T extends ShapeUtil>({
-		type,
-	}: {
+	getShapeUtil<T extends ShapeUtil>(shapeUtilConstructor: {
 		type: T extends ShapeUtil<infer R> ? R['type'] : string
 	}): T {
-		return this.shapeUtils[type] as T
+		const shapeUtil = getOwnProperty(this.shapeUtils, shapeUtilConstructor.type) as T | undefined
+		assert(shapeUtil, `No shape util found for type "${shapeUtilConstructor.type}"`)
+
+		// does shapeUtilConstructor extends ShapeUtil?
+		if (
+			'prototype' in shapeUtilConstructor &&
+			shapeUtilConstructor.prototype instanceof ShapeUtil
+		) {
+			assert(
+				shapeUtil instanceof (shapeUtilConstructor as any),
+				`Shape util found for type "${shapeUtilConstructor.type}" is not an instance of the provided constructor`
+			)
+		}
+
+		return shapeUtil as T
 	}
 
 	/**

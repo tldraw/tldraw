@@ -301,7 +301,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: (TLShapeInfo<TLArrowShape> | TLShapeInfo<TLDrawShape> | TLShapeInfo<TLFrameShape> | TLShapeInfo<TLGeoShape> | TLShapeInfo<TLHighlightShape> | TLShapeInfo<TLLineShape> | TLShapeInfo<TLNoteShape>)[];
+export const defaultShapes: (TLShapeInfo<TLArrowShape> | TLShapeInfo<TLDrawShape> | TLShapeInfo<TLFrameShape> | TLShapeInfo<TLGeoShape> | TLShapeInfo<TLHighlightShape> | TLShapeInfo<TLLineShape> | TLShapeInfo<TLNoteShape> | TLShapeInfo<TLVideoShape>)[];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -2759,7 +2759,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     toSvg(shape: TLVideoShape): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "video";
 }
 
 // @internal (undocumented)

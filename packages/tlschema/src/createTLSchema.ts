@@ -49,7 +49,7 @@ export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeI
 		),
 	}).withDefaultProperties(() => ({ x: 0, y: 0, rotation: 0, isLocked: false, opacity: 1 }))
 
-	return StoreSchema.create<TLRecord, TLStoreProps>(
+	return StoreSchema.create(
 		{
 			asset: AssetRecordType,
 			camera: CameraRecordType,

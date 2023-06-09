@@ -23,6 +23,8 @@ import {
 	noteShapeProps,
 	textShapeMigrations,
 	textShapeProps,
+	videoShapeMigrations,
+	videoShapeProps,
 } from '@tldraw/tlschema'
 import { ArrowShapeUtil } from '../editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
 import { BookmarkShapeUtil } from '../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
@@ -36,6 +38,7 @@ import { ImageShapeUtil } from '../editor/shapeutils/ImageShapeUtil/ImageShapeUt
 import { LineShapeUtil } from '../editor/shapeutils/LineShapeUtil/LineShapeUtil'
 import { NoteShapeUtil } from '../editor/shapeutils/NoteShapeUtil/NoteShapeUtil'
 import { TextShapeUtil } from '../editor/shapeutils/TextShapeUtil/TextShapeUtil'
+import { VideoShapeUtil } from '../editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
 import { AnyTLShapeInfo, TLShapeInfo, defineShape } from './defineShape'
 
 /** @public */
@@ -108,6 +111,11 @@ export const defaultShapes = [
 		util: HighlightShapeUtil,
 		props: highlightShapeProps,
 		migrations: highlightShapeMigrations,
+	}),
+	defineShape('video', {
+		util: VideoShapeUtil,
+		props: videoShapeProps,
+		migrations: videoShapeMigrations,
 	}),
 ]
 
