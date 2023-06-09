@@ -76,10 +76,9 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { TLShapeInfo } from '../config/createTLStore'
 import { TLUser, createTLUser } from '../config/createTLUser'
-import { coreShapes, defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
+import { AnyTLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -164,7 +163,7 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapes?: Record<string, TLShapeInfo>
+	shapes: AnyTLShapeInfo[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -182,13 +181,7 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({
-		store,
-		user,
-		tools = defaultTools,
-		shapes = defaultShapes,
-		getContainer,
-	}: TLEditorOptions) {
+	constructor({ store, user, tools = defaultTools, shapes, getContainer }: TLEditorOptions) {
 		super()
 
 		this.store = store
@@ -201,22 +194,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root = new RootState(this)
 
-		// Shapes.
-		// Accept shapes from constructor parameters which may not conflict with the root note's core tools.
-		const shapeUtils = Object.fromEntries(
-			Object.values(coreShapes).map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
+		this.shapeUtils = Object.fromEntries(
+			shapes.map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
 		)
-
-		for (const [type, { util: Util }] of Object.entries(shapes)) {
-			if (shapeUtils[type]) {
-				throw Error(`May not overwrite core shape of type "${type}".`)
-			}
-			if (type !== Util.type) {
-				throw Error(`Shape util's type "${Util.type}" does not match provided type "${type}".`)
-			}
-			shapeUtils[type] = new Util(this, Util.type)
-		}
-		this.shapeUtils = shapeUtils
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or

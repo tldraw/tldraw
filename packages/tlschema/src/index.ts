@@ -9,7 +9,7 @@ export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
-export { createTLSchema } from './createTLSchema'
+export { createTLSchema, type SchemaShapeInfo, type TLSchema } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export {
 	TL_CANVAS_UI_COLOR_TYPES,
@@ -67,6 +67,8 @@ export {
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
+	arrowShapeMigrations,
+	arrowShapeProps,
 	type TLArrowShape,
 	type TLArrowShapeProps,
 	type TLArrowTerminal,
@@ -76,27 +78,54 @@ export {
 	createShapeValidator,
 	parentIdValidator,
 	shapeIdValidator,
+	type ShapeProps,
 	type TLBaseShape,
 } from './shapes/TLBaseShape'
-export { type TLBookmarkShape } from './shapes/TLBookmarkShape'
-export { type TLDrawShape, type TLDrawShapeSegment } from './shapes/TLDrawShape'
+export {
+	bookmarkShapeMigrations,
+	bookmarkShapeProps,
+	type TLBookmarkShape,
+} from './shapes/TLBookmarkShape'
+export {
+	drawShapeMigrations,
+	drawShapeProps,
+	type TLDrawShape,
+	type TLDrawShapeSegment,
+} from './shapes/TLDrawShape'
 export {
 	EMBED_DEFINITIONS,
+	embedShapeMigrations,
 	embedShapePermissionDefaults,
+	embedShapeProps,
 	type EmbedDefinition,
 	type TLEmbedShape,
 	type TLEmbedShapePermissions,
 } from './shapes/TLEmbedShape'
-export { type TLFrameShape } from './shapes/TLFrameShape'
-export { type TLGeoShape } from './shapes/TLGeoShape'
-export { type TLGroupShape } from './shapes/TLGroupShape'
-export { type TLHighlightShape } from './shapes/TLHighlightShape'
-export { type TLIconShape } from './shapes/TLIconShape'
-export { type TLImageCrop, type TLImageShape, type TLImageShapeProps } from './shapes/TLImageShape'
-export { type TLLineShape } from './shapes/TLLineShape'
-export { type TLNoteShape } from './shapes/TLNoteShape'
-export { type TLTextShape, type TLTextShapeProps } from './shapes/TLTextShape'
-export { type TLVideoShape } from './shapes/TLVideoShape'
+export { frameShapeMigrations, frameShapeProps, type TLFrameShape } from './shapes/TLFrameShape'
+export { geoShapeMigrations, geoShapeProps, type TLGeoShape } from './shapes/TLGeoShape'
+export { groupShapeMigrations, groupShapeProps, type TLGroupShape } from './shapes/TLGroupShape'
+export {
+	highlightShapeMigrations,
+	highlightShapeProps,
+	type TLHighlightShape,
+} from './shapes/TLHighlightShape'
+export { iconShapeMigrations, iconShapeProps, type TLIconShape } from './shapes/TLIconShape'
+export {
+	imageShapeMigrations,
+	imageShapeProps,
+	type TLImageCrop,
+	type TLImageShape,
+	type TLImageShapeProps,
+} from './shapes/TLImageShape'
+export { lineShapeMigrations, lineShapeProps, type TLLineShape } from './shapes/TLLineShape'
+export { noteShapeMigrations, noteShapeProps, type TLNoteShape } from './shapes/TLNoteShape'
+export {
+	textShapeMigrations,
+	textShapeProps,
+	type TLTextShape,
+	type TLTextShapeProps,
+} from './shapes/TLTextShape'
+export { videoShapeMigrations, videoShapeProps, type TLVideoShape } from './shapes/TLVideoShape'
 export {
 	TL_ALIGN_TYPES,
 	alignValidator,

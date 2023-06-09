@@ -19,6 +19,7 @@ export {
 	filterEntries,
 	getOwnProperty,
 	hasOwnProperty,
+	mapObjectMapValues,
 	objectMapEntries,
 	objectMapFromEntries,
 	objectMapKeys,
@@ -26,5 +27,5 @@ export {
 } from './lib/object'
 export { rafThrottle, throttledRaf } from './lib/raf'
 export { sortById } from './lib/sort'
-export type { RecursivePartial } from './lib/types'
+export type { Identity, RecursivePartial, Required } from './lib/types'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'

@@ -1,4 +1,11 @@
-import { Canvas, ContextMenu, TldrawEditor, TldrawUi, createTLStore } from '@tldraw/tldraw'
+import {
+	Canvas,
+	ContextMenu,
+	TldrawEditor,
+	TldrawUi,
+	createTLStore,
+	defaultShapes,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { throttle } from '@tldraw/utils'
@@ -7,7 +14,7 @@ import { useLayoutEffect, useState } from 'react'
 const PERSISTENCE_KEY = 'example-3'
 
 export default function PersistenceExample() {
-	const [store] = useState(() => createTLStore())
+	const [store] = useState(() => createTLStore({ shapes: defaultShapes }))
 	const [loadingState, setLoadingState] = useState<
 		{ status: 'loading' } | { status: 'ready' } | { status: 'error'; error: string }
 	>({

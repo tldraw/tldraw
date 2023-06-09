@@ -1,20 +1,12 @@
-import { HistoryEntry, Migrations, Store, StoreSnapshot } from '@tldraw/store'
-import { TLRecord, TLStore, createTLSchema } from '@tldraw/tlschema'
-import { TLShapeUtilConstructor } from '../editor/shapeutils/ShapeUtil'
-
-/** @public */
-export type TLShapeInfo = {
-	util: TLShapeUtilConstructor<any>
-	migrations?: Migrations
-	validator?: { validate: (record: any) => any }
-}
+import { HistoryEntry, Store, StoreSchema, StoreSnapshot } from '@tldraw/store'
+import { TLRecord, TLStore, TLStoreProps, createTLSchema } from '@tldraw/tlschema'
+import { AnyTLShapeInfo, TLShapeInfo } from './defineShape'
 
 /** @public */
 export type TLStoreOptions = {
-	customShapes?: Record<string, TLShapeInfo>
 	initialData?: StoreSnapshot<TLRecord>
 	defaultName?: string
-}
+} & ({ shapes: AnyTLShapeInfo[] } | { schema: StoreSchema<TLRecord, TLStoreProps> })
 
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
@@ -25,14 +17,18 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>
  * @param opts - Options for creating the store.
  *
  * @public */
-export function createTLStore(opts = {} as TLStoreOptions): TLStore {
-	const { customShapes = {}, initialData, defaultName = '' } = opts
-
+export function createTLStore({ initialData, defaultName = '', ...rest }: TLStoreOptions): TLStore {
+	const schema =
+		'schema' in rest ? rest.schema : createTLSchema({ shapes: shapesArrayToShapeMap(rest.shapes) })
 	return new Store({
-		schema: createTLSchema({ customShapes }),
+		schema,
 		initialData,
 		props: {
 			defaultName,
 		},
 	})
+}
+
+export function shapesArrayToShapeMap(shapes: TLShapeInfo[]) {
+	return Object.fromEntries(shapes.map((s) => [s.type, s]))
 }

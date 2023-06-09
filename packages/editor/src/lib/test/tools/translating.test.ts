@@ -5,6 +5,7 @@ import { ShapeUtil } from '../../editor/shapeutils/ShapeUtil'
 import { TestEditor } from '../TestEditor'
 
 import { defaultShapes } from '../../config/defaultShapes'
+import { defineShape } from '../../config/defineShape'
 import { getSnapLines } from '../testutils/getSnapLines'
 
 type __TopLeftSnapOnlyShape = any
@@ -39,6 +40,10 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 		return [Vec2d.From({ x: shape.x, y: shape.y })]
 	}
 }
+
+const __TopLeftSnapOnlyShape = defineShape('__test_top_left_snap_only', {
+	util: __TopLeftSnapOnlyShapeUtil,
+})
 
 let editor: TestEditor
 
@@ -753,12 +758,7 @@ describe('custom snapping points', () => {
 	beforeEach(() => {
 		editor?.dispose()
 		editor = new TestEditor({
-			shapes: {
-				...defaultShapes,
-				__test_top_left_snap_only: {
-					util: __TopLeftSnapOnlyShapeUtil,
-				},
-			},
+			shapes: [...defaultShapes, __TopLeftSnapOnlyShape],
 			// x───────┐
 			// │ T     │
 			// │       │
