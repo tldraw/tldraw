@@ -57,25 +57,12 @@ const assetUrls = getAssetUrls({
 
 If you're using a bundler like webpack or rollup, you can import the assets directly from the `@tldraw/assets` package. Here you can use `getAssetUrlsByMetaUrl` helper function:
 ```javascript
-import { getAssetUrlsByMetaUrl } from '@tldraw/assets/selfHosted'
+import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
 
 const assetUrls = getAssetUrlsByMetaUrl()
 
 <Tldraw assetUrls={assetUrls} />
 ```
-
-You also need to setup your bundler to use these assets. For webpack you can do this with [Asset Modules](https://webpack.js.org/guides/asset-modules/). An example config might look like this:
-```javascript
-module: {
-    rules: [
-        {
-            test: /\.(svg|json|woff2)$/,
-            type: 'asset/resource'
-        }
-    ]
-}
- ```
-
 
 ### Adding custom assets
 
