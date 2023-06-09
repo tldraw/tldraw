@@ -2134,7 +2134,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return acc
 		}
 
-		const parent = this.store.get(parentId)!
+		const parent = this.store.get(parentId)
+		if (!parent) return acc
 		acc.push(parent)
 		return this.getAncestors(parent, acc)
 	}
@@ -2152,7 +2153,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getAncestorsById(id: TLShapeId, acc: TLShape[] = []): TLShape[] {
-		const shape = this.getShapeById(id)!
+		const shape = this.getShapeById(id)
+		if (!shape) return acc
 		return this.getAncestors(shape, acc)
 	}
 
