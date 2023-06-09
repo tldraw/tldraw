@@ -333,8 +333,8 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 	)
 }
 
-async function writeSelfManagedAssetDeclarationFile(): Promise<void> {
-	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'selfManaged.js')
+async function writeSelfHostedAssetDeclarationFile(): Promise<void> {
+	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'selfHosted.js')
 	const codeFile = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
@@ -400,7 +400,7 @@ async function main() {
 	await writeAssetDeclarationDTSFile()
 	await writeUrlBasedAssetDeclarationFile()
 	await writeImportBasedAssetDeclarationFile()
-	await writeSelfManagedAssetDeclarationFile()
+	await writeSelfHostedAssetDeclarationFile()
 	nicelog('Done!')
 }
 
