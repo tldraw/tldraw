@@ -1,23 +1,25 @@
 import { TLRecord } from '@tldraw/tldraw'
-import YPartyKitProvider from 'y-partykit/provider'
+import { WebsocketProvider } from 'y-websocket'
 import * as Y from 'yjs'
 
-const partykitHost =
-	process.env.NODE_ENV === 'development' ? 'localhost:1999' : 'yjs.threepointone.partykit.dev'
+const HOST_URL =
+	process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev'
 
 export const doc = new Y.Doc({
 	gc: true,
 })
 
-const ROOM_ID = 'tldraw-5'
+const ROOM_ID = 'tldraw-12'
 
-export const roomProvider = new YPartyKitProvider(partykitHost, ROOM_ID, doc, {
+export const roomProvider = new WebsocketProvider(HOST_URL, ROOM_ID, doc, {
 	connect: false,
 })
 
 // Presence
 
 export const roomAwareness = roomProvider.awareness
+
+roomAwareness.setLocalState({})
 
 // Doc
 

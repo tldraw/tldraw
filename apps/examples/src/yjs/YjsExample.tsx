@@ -1,24 +1,29 @@
-import { HistoryEntry } from '@tldraw/store'
-import { Editor, LoadingScreen, TLRecord, Tldraw, createTLStore } from '@tldraw/tldraw'
+import { Editor, LoadingScreen, TLRecord, Tldraw, createTLStore, uniqueId } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useCallback, useEffect, useState } from 'react'
-import { roomAwareness, roomProvider, yRecords } from './client'
+import { doc, roomAwareness, roomProvider, yRecords } from './client'
 import empty_room from './empty_room'
+
+const userId = uniqueId()
 
 export default function YjsExample() {
 	const [store] = useState(() => createTLStore())
 	const [ready, setReady] = useState(false)
 
 	useEffect(() => {
-		// Create a temporary store
-
-		roomProvider.on('sync', (connected: boolean) => {
+		roomProvider.on('status', (connected: boolean) => {
 			if (connected) {
+				// Create a temporary store
 				const tempStore = createTLStore()
 				const records = [...yRecords.values()]
 				if (records.length === 0) {
 					tempStore.loadSnapshot(empty_room)
+					doc.transact(() => {
+						tempStore.allRecords().forEach((record) => {
+							yRecords.set(record.id, record)
+						})
+					})
 				} else {
 					tempStore.put(records)
 				}
@@ -33,25 +38,6 @@ export default function YjsExample() {
 	}, [store])
 
 	const handleMount = useCallback((editor: Editor) => {
-		function syncChangeWithYjs({ changes, source }: HistoryEntry<TLRecord>) {
-			if (source !== 'user') return
-
-			// added
-			Object.values(changes.added).forEach((record) => {
-				yRecords.set(record.id, record)
-			})
-
-			// removed
-			Object.values(changes.removed).forEach((record) => {
-				yRecords.delete(record.id)
-			})
-
-			// updated
-			Object.values(changes.updated).forEach(([_, record]) => {
-				yRecords.set(record.id, record)
-			})
-		}
-
 		// Observe changes
 		yRecords.observeDeep(([event]) => {
 			editor.store.mergeRemoteChanges(() => {
@@ -71,12 +57,76 @@ export default function YjsExample() {
 			})
 		})
 
-		editor.addListener('change', syncChangeWithYjs)
+		editor.store.listen(
+			function syncChangeWithYjs({ changes }) {
+				doc.transact(() => {
+					Object.values(changes.added).forEach((record) => {
+						yRecords.set(record.id, record)
+					})
+
+					Object.values(changes.updated).forEach(([_, record]) => {
+						yRecords.set(record.id, record)
+					})
+
+					Object.values(changes.removed).forEach((record) => {
+						yRecords.delete(record.id)
+					})
+				})
+			},
+			{ source: 'user', scope: 'document' }
+		)
+
+		editor.store.listen(
+			function syncChangeWithYjsPresence({ changes }) {
+				roomAwareness.doc.transact(() => {
+					Object.values(changes.added).forEach((record) => {
+						roomAwareness.setLocalStateField(record.typeName, {
+							...record,
+							id: record.id.split(':')[0] + ':' + userId,
+						})
+					})
+
+					Object.values(changes.updated).forEach(([_, record]) => {
+						roomAwareness.setLocalStateField(record.typeName, {
+							...record,
+							id: record.id.split(':')[0] + ':' + userId,
+						})
+					})
+
+					Object.values(changes.removed).forEach((record) => {
+						const current = { ...roomAwareness.getLocalState() }
+						delete current[record.typeName]
+						roomAwareness.setLocalState(current)
+					})
+				})
+			},
+			{ source: 'user', scope: 'session' }
+		)
 
 		// Awareness
-		roomAwareness.on('change', () => {
-			// noop
-		})
+		roomAwareness.on(
+			'update',
+			({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
+				const states = roomAwareness.getStates()
+				// roomAwareness.getStates(update)
+				editor.store.mergeRemoteChanges(() => {
+					added.forEach((id: number) => {
+						const record = states.get(id) as TLRecord
+						editor.store.put(Object.values(record))
+					})
+					updated.forEach((id: number) => {
+						const record = states.get(id) as TLRecord
+						editor.store.put(Object.values(record))
+					})
+					removed.forEach((id: number) => {
+						const record = states.get(id) as TLRecord
+						if (record) {
+							editor.store.remove(Object.values(record))
+						}
+					})
+				})
+			}
+		)
 
 		return () => {
 			// noop
