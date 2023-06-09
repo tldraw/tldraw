@@ -45,11 +45,11 @@ export interface Box2dModel {
 // @public (undocumented)
 export const CameraRecordType: RecordType<TLCamera, never>;
 
+// @public
+export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
 // @internal (undocumented)
 export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
-
-// @public
-export const colorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @internal (undocumented)
 export const colorValidator: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
@@ -487,7 +487,7 @@ export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
 export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public
-export const TL_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public (undocumented)
 export const TL_DASH_TYPES: Set<"dashed" | "dotted" | "draw" | "solid">;
@@ -649,7 +649,7 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 export type TLCameraId = RecordId<TLCamera>;
 
 // @public
-export type TLColor = SetValue<typeof TL_COLOR_TYPES>;
+export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
 // @public (undocumented)
 export interface TLColorStyle extends TLBaseStyle {
@@ -660,12 +660,12 @@ export interface TLColorStyle extends TLBaseStyle {
 }
 
 // @public (undocumented)
-export type TLColorType = SetValue<typeof TL_COLOR_TYPES_2>;
+export type TLColorType = SetValue<typeof TL_COLOR_TYPES>;
 
 // @public
 export interface TLCursor {
     // (undocumented)
-    color: TLColor;
+    color: TLCanvasUiColor;
     // (undocumented)
     rotation: number;
     // (undocumented)
@@ -964,7 +964,7 @@ export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstance
 export type TLScribble = {
     points: Vec2dModel[];
     size: number;
-    color: TLColor;
+    color: TLCanvasUiColor;
     opacity: number;
     state: SetValue<typeof TL_SCRIBBLE_STATES>;
     delay: number;

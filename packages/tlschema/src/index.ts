@@ -11,7 +11,11 @@ export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
 export { createTLSchema } from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
-export { TL_COLOR_TYPES, colorTypeValidator, type TLColor } from './misc/TLColor'
+export {
+	TL_CANVAS_UI_COLOR_TYPES,
+	canvasUiColorTypeValidator,
+	type TLCanvasUiColor,
+} from './misc/TLColor'
 export { type TLCursor, type TLCursorType } from './misc/TLCursor'
 export { type TLHandle, type TLHandleType } from './misc/TLHandle'
 export { scribbleValidator, type TLScribble } from './misc/TLScribble'
