@@ -1,4 +1,4 @@
-export default {
+export const EMPTY_ROOM = {
 	store: {
 		'document:document': {
 			gridSize: 10,

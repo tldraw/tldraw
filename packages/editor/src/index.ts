@@ -39,7 +39,12 @@ export {
 	setUserPreferences,
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
-export { createTLStore } from './lib/config/createTLStore'
+export {
+	createTLStore,
+	type TLShapeInfo,
+	type TLStoreEventInfo,
+	type TLStoreOptions,
+} from './lib/config/createTLStore'
 export { defaultShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
 export {

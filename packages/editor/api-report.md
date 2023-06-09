@@ -2595,6 +2595,15 @@ export interface TLSessionStateSnapshot {
 }
 
 // @public (undocumented)
+export type TLShapeInfo = {
+    util: TLShapeUtilConstructor<any>;
+    migrations?: Migrations;
+    validator?: {
+        validate: (record: any) => any;
+    };
+};
+
+// @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
     new (editor: Editor, type: T['type']): U;
@@ -2618,6 +2627,16 @@ export interface TLStateNodeConstructor {
     // (undocumented)
     styles?: TLStyleType[];
 }
+
+// @public (undocumented)
+export type TLStoreEventInfo = HistoryEntry<TLRecord>;
+
+// @public (undocumented)
+export type TLStoreOptions = {
+    customShapes?: Record<string, TLShapeInfo>;
+    initialData?: StoreSnapshot<TLRecord>;
+    defaultName?: string;
+};
 
 // @public (undocumented)
 export type TLStoreWithStatus = {

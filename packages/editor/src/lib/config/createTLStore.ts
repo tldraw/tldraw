@@ -1,4 +1,4 @@
-import { Migrations, Store, StoreSnapshot } from '@tldraw/store'
+import { HistoryEntry, Migrations, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore, createTLSchema } from '@tldraw/tlschema'
 import { TLShapeUtilConstructor } from '../editor/shapeutils/ShapeUtil'
 
@@ -15,6 +15,9 @@ export type TLStoreOptions = {
 	initialData?: StoreSnapshot<TLRecord>
 	defaultName?: string
 }
+
+/** @public */
+export type TLStoreEventInfo = HistoryEntry<TLRecord>
 
 /**
  * A helper for creating a TLStore. Custom shapes cannot override default shapes.
