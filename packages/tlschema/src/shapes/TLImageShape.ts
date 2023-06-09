@@ -1,10 +1,9 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { Vec2dModel } from '../geometry-types'
+import { defineMigrations } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { assetIdValidator } from '../assets/TLBaseAsset'
+import { Vec2dModel } from '../misc/geometry-types'
 import { TLAssetId } from '../records/TLAsset'
-import { TLOpacityType } from '../style-types'
-import { assetIdValidator, opacityValidator } from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLImageCrop = {
@@ -14,7 +13,6 @@ export type TLImageCrop = {
 
 /** @public */
 export type TLImageShapeProps = {
-	opacity: TLOpacityType
 	url: string
 	playing: boolean
 	w: number
@@ -22,21 +20,19 @@ export type TLImageShapeProps = {
 	assetId: TLAssetId | null
 	crop: TLImageCrop | null
 }
-
 /** @public */
+export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
+
+/** @internal */
 export const cropValidator = T.object({
 	topLeft: T.point,
 	bottomRight: T.point,
 })
 
-/** @public */
-export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
-
-/** @public */
-export const imageShapeTypeValidator: T.Validator<TLImageShape> = createShapeValidator(
+/** @internal */
+export const imageShapeValidator: T.Validator<TLImageShape> = createShapeValidator(
 	'image',
 	T.object({
-		opacity: opacityValidator,
 		w: T.nonZeroNumber,
 		h: T.nonZeroNumber,
 		playing: T.boolean,
@@ -51,8 +47,8 @@ const Versions = {
 	AddCropProp: 2,
 } as const
 
-/** @public */
-export const imageShapeTypeMigrations = defineMigrations({
+/** @internal */
+export const imageShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddCropProp,
 	migrators: {
 		[Versions.AddUrlProp]: {

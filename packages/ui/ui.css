@@ -28,6 +28,7 @@
 	grid-column: 1;
 	grid-row: 1;
 	display: flex;
+	min-width: 0px;
 }
 
 .tlui-layout__top__left {
@@ -37,6 +38,19 @@
 	justify-content: flex-start;
 	width: 100%;
 	height: 100%;
+	flex-shrink: 1;
+}
+
+.tlui-layout__top__center {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	width: 100%;
+	height: 100%;
+	margin-left: var(--space-2);
+	flex-grow: 1;
+	min-width: 0px;
 }
 
 .tlui-layout__top__right {
@@ -46,6 +60,8 @@
 	justify-content: flex-start;
 	width: 100%;
 	height: 100%;
+	flex-shrink: 1;
+	min-width: 0px;
 }
 
 .scrollable,
@@ -1479,13 +1495,12 @@
 	display: block;
 	content: '';
 	position: absolute;
-	top: -4px;
-	left: -4px;
 	height: 40px;
 	width: 40px;
 	border-radius: 100%;
 	border: 4px solid var(--color-background);
 	z-index: -1;
+	pointer-events: none;
 }
 
 .tlui-people-menu__button:not([data-state='selected'], :disabled):active::after {
@@ -1610,10 +1625,6 @@
 	min-width: 44px;
 }
 
-.tlui-people-menu__item__follow .tlui-icon {
-	opacity: 0;
-}
-
 .tlui-people-menu__item__follow[data-active='true'] .tlui-icon {
 	opacity: 1;
 }
@@ -1623,9 +1634,54 @@
 }
 
 @media (hover: hover) {
+	.tlui-people-menu__item__follow .tlui-icon {
+		opacity: 0;
+	}
+
 	.tlui-people-menu__item__follow:hover .tlui-icon {
 		opacity: 1;
 	}
+}
+
+/* ------------------ Project Menu ------------------ */
+.tlui-project-menu__wrapper {
+	display: flex;
+	width: 100%;
+	align-items: center;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	min-width: 0px;
+}
+
+.tlui-project-menu__button {
+	display: flex;
+	gap: var(--space-4);
+	pointer-events: all;
+}
+
+.tlui-project-menu__button__name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	min-width: 0px;
+}
+
+.tlui-project-menu__input {
+	min-width: 0px;
+	text-align: center;
+	pointer-events: all;
+
+	/* Position slightly to the right so that it doesn't jump around */
+	/* 40px is the width of the icon */
+	margin-left: 40px;
+}
+
+.tlui-rename-project-dialog__input {
+	background-color: var(--color-muted-2);
+	flex-grow: 2;
+	border-radius: var(--radius-2);
+	padding: 0px var(--space-4);
 }
 
 /* ------------------- Navigation ------------------- */

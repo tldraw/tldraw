@@ -3,6 +3,8 @@
 
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./modules.d.ts" />
+import { formatAssetUrl } from './utils.js'
+
 import embedIconsCodepen from './embed-icons/codepen.png'
 import embedIconsCodesandbox from './embed-icons/codesandbox.png'
 import embedIconsExcalidraw from './embed-icons/excalidraw.png'
@@ -161,7 +163,7 @@ import iconsToolEmbed from './icons/icon/tool-embed.svg'
 import iconsToolEraser from './icons/icon/tool-eraser.svg'
 import iconsToolFrame from './icons/icon/tool-frame.svg'
 import iconsToolHand from './icons/icon/tool-hand.svg'
-import iconsToolHighlighter from './icons/icon/tool-highlighter.svg'
+import iconsToolHighlight from './icons/icon/tool-highlight.svg'
 import iconsToolLaser from './icons/icon/tool-laser.svg'
 import iconsToolLine from './icons/icon/tool-line.svg'
 import iconsToolMedia from './icons/icon/tool-media.svg'
@@ -219,27 +221,6 @@ import translationsUk from './translations/uk.json'
 import translationsVi from './translations/vi.json'
 import translationsZhCn from './translations/zh-cn.json'
 import translationsZhTw from './translations/zh-tw.json'
-
-/** @typedef {string | { src: string }} AssetUrl */
-/** @typedef {{ baseUrl?: string } | ((assetUrl: string) => string)} AssetUrlOptions */
-
-/**
- * @param {AssetUrl} assetUrl
- * @param {AssetUrlOptions} [format]
- * @returns {string}
- */
-function formatAssetUrl(assetUrl, format = {}) {
-	const assetUrlString = typeof assetUrl === 'string' ? assetUrl : assetUrl.src
-
-	if (typeof format === 'function') return format(assetUrlString)
-
-	const { baseUrl = '' } = format
-
-	if (assetUrlString.startsWith('data:')) return assetUrlString
-	if (assetUrlString.match(/^https?:\/\//)) return assetUrlString
-
-	return `${baseUrl.replace(/\/$/, '')}/${assetUrlString.replace(/^\.?\//, '')}`
-}
 
 /**
  * @param {AssetUrlOptions} [opts]
@@ -392,7 +373,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-eraser': formatAssetUrl(iconsToolEraser, opts),
 			'tool-frame': formatAssetUrl(iconsToolFrame, opts),
 			'tool-hand': formatAssetUrl(iconsToolHand, opts),
-			'tool-highlighter': formatAssetUrl(iconsToolHighlighter, opts),
+			'tool-highlight': formatAssetUrl(iconsToolHighlight, opts),
 			'tool-laser': formatAssetUrl(iconsToolLaser, opts),
 			'tool-line': formatAssetUrl(iconsToolLine, opts),
 			'tool-media': formatAssetUrl(iconsToolMedia, opts),

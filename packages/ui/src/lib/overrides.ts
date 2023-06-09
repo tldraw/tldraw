@@ -1,18 +1,18 @@
-import { App } from '@tldraw/editor'
+import { Editor } from '@tldraw/editor'
 import { objectMapEntries } from '@tldraw/utils'
 import { useMemo } from 'react'
 import { ActionsProviderProps } from './hooks/useActions'
 import { ActionsMenuSchemaProviderProps } from './hooks/useActionsMenuSchema'
 import { useBreakpoint } from './hooks/useBreakpoint'
-import { ContextMenuSchemaProviderProps } from './hooks/useContextMenuSchema'
+import { TLUiContextMenuSchemaProviderProps } from './hooks/useContextMenuSchema'
 import { useDialogs } from './hooks/useDialogsProvider'
-import { HelpMenuSchemaProviderProps } from './hooks/useHelpMenuSchema'
-import { KeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
-import { MenuSchemaProviderProps } from './hooks/useMenuSchema'
+import { TLUiHelpMenuSchemaProviderProps } from './hooks/useHelpMenuSchema'
+import { TLUiKeyboardShortcutsSchemaProviderProps } from './hooks/useKeyboardShortcutsSchema'
+import { TLUiMenuSchemaProviderProps } from './hooks/useMenuSchema'
 import { useToasts } from './hooks/useToastsProvider'
-import { ToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
-import { ToolsProviderProps } from './hooks/useTools'
-import { TranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
+import { TLUiToolbarSchemaProviderProps } from './hooks/useToolbarSchema'
+import { TLUiToolsProviderProps } from './hooks/useTools'
+import { TLUiTranslationProviderProps, useTranslation } from './hooks/useTranslation/useTranslation'
 
 /** @public */
 export function useDefaultHelpers() {
@@ -49,47 +49,47 @@ export function useDefaultHelpers() {
 
 type DefaultHelpers = ReturnType<typeof useDefaultHelpers>
 
-export type TldrawUiOverride<Type, Helpers> = (app: App, schema: Type, helpers: Helpers) => Type
+export type TLUiOverride<Type, Helpers> = (editor: Editor, schema: Type, helpers: Helpers) => Type
 
-type WithDefaultHelpers<T extends TldrawUiOverride<any, any>> = T extends TldrawUiOverride<
+type WithDefaultHelpers<T extends TLUiOverride<any, any>> = T extends TLUiOverride<
 	infer Type,
 	infer Helpers
 >
-	? TldrawUiOverride<Type, Helpers extends undefined ? DefaultHelpers : Helpers & DefaultHelpers>
+	? TLUiOverride<Type, Helpers extends undefined ? DefaultHelpers : Helpers & DefaultHelpers>
 	: never
 
 /** @public */
-export interface TldrawUiOverrides {
+export interface TLUiOverrides {
 	actionsMenu?: WithDefaultHelpers<NonNullable<ActionsMenuSchemaProviderProps['overrides']>>
 	actions?: WithDefaultHelpers<NonNullable<ActionsProviderProps['overrides']>>
-	contextMenu?: WithDefaultHelpers<NonNullable<ContextMenuSchemaProviderProps['overrides']>>
-	helpMenu?: WithDefaultHelpers<NonNullable<HelpMenuSchemaProviderProps['overrides']>>
-	menu?: WithDefaultHelpers<NonNullable<MenuSchemaProviderProps['overrides']>>
-	toolbar?: WithDefaultHelpers<NonNullable<ToolbarSchemaProviderProps['overrides']>>
+	contextMenu?: WithDefaultHelpers<NonNullable<TLUiContextMenuSchemaProviderProps['overrides']>>
+	helpMenu?: WithDefaultHelpers<NonNullable<TLUiHelpMenuSchemaProviderProps['overrides']>>
+	menu?: WithDefaultHelpers<NonNullable<TLUiMenuSchemaProviderProps['overrides']>>
+	toolbar?: WithDefaultHelpers<NonNullable<TLUiToolbarSchemaProviderProps['overrides']>>
 	keyboardShortcutsMenu?: WithDefaultHelpers<
-		NonNullable<KeyboardShortcutsSchemaProviderProps['overrides']>
+		NonNullable<TLUiKeyboardShortcutsSchemaProviderProps['overrides']>
 	>
-	tools?: WithDefaultHelpers<NonNullable<ToolsProviderProps['overrides']>>
-	translations?: TranslationProviderProps['overrides']
+	tools?: WithDefaultHelpers<NonNullable<TLUiToolsProviderProps['overrides']>>
+	translations?: TLUiTranslationProviderProps['overrides']
 }
 
-export interface TldrawUiOverridesWithoutDefaults {
+export interface TLUiOverridesWithoutDefaults {
 	actionsMenu?: ActionsMenuSchemaProviderProps['overrides']
 	actions?: ActionsProviderProps['overrides']
-	contextMenu?: ContextMenuSchemaProviderProps['overrides']
-	helpMenu?: HelpMenuSchemaProviderProps['overrides']
-	menu?: MenuSchemaProviderProps['overrides']
-	toolbar?: ToolbarSchemaProviderProps['overrides']
-	keyboardShortcutsMenu?: KeyboardShortcutsSchemaProviderProps['overrides']
-	tools?: ToolsProviderProps['overrides']
-	translations?: TranslationProviderProps['overrides']
+	contextMenu?: TLUiContextMenuSchemaProviderProps['overrides']
+	helpMenu?: TLUiHelpMenuSchemaProviderProps['overrides']
+	menu?: TLUiMenuSchemaProviderProps['overrides']
+	toolbar?: TLUiToolbarSchemaProviderProps['overrides']
+	keyboardShortcutsMenu?: TLUiKeyboardShortcutsSchemaProviderProps['overrides']
+	tools?: TLUiToolsProviderProps['overrides']
+	translations?: TLUiTranslationProviderProps['overrides']
 }
 
 export function mergeOverrides(
-	overrides: TldrawUiOverrides[],
+	overrides: TLUiOverrides[],
 	defaultHelpers: DefaultHelpers
-): TldrawUiOverridesWithoutDefaults {
-	const mergedTranslations: TranslationProviderProps['overrides'] = {}
+): TLUiOverridesWithoutDefaults {
+	const mergedTranslations: TLUiTranslationProviderProps['overrides'] = {}
 	for (const override of overrides) {
 		if (override.translations) {
 			for (const [key, value] of objectMapEntries(override.translations)) {
@@ -102,66 +102,66 @@ export function mergeOverrides(
 		}
 	}
 	return {
-		actionsMenu: (app, schema, helpers) => {
+		actionsMenu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.actionsMenu) {
-					schema = override.actionsMenu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.actionsMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		actions: (app, schema) => {
+		actions: (editor, schema) => {
 			for (const override of overrides) {
 				if (override.actions) {
-					schema = override.actions(app, schema, defaultHelpers)
+					schema = override.actions(editor, schema, defaultHelpers)
 				}
 			}
 			return schema
 		},
-		contextMenu: (app, schema, helpers) => {
+		contextMenu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.contextMenu) {
-					schema = override.contextMenu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.contextMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		helpMenu: (app, schema, helpers) => {
+		helpMenu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.helpMenu) {
-					schema = override.helpMenu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.helpMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		menu: (app, schema, helpers) => {
+		menu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.menu) {
-					schema = override.menu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.menu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		toolbar: (app, schema, helpers) => {
+		toolbar: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.toolbar) {
-					schema = override.toolbar(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.toolbar(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		keyboardShortcutsMenu: (app, schema, helpers) => {
+		keyboardShortcutsMenu: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.keyboardShortcutsMenu) {
-					schema = override.keyboardShortcutsMenu(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.keyboardShortcutsMenu(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
 		},
-		tools: (app, schema, helpers) => {
+		tools: (editor, schema, helpers) => {
 			for (const override of overrides) {
 				if (override.tools) {
-					schema = override.tools(app, schema, { ...defaultHelpers, ...helpers })
+					schema = override.tools(editor, schema, { ...defaultHelpers, ...helpers })
 				}
 			}
 			return schema
@@ -176,13 +176,13 @@ function useShallowArrayEquality<T extends unknown[]>(array: T): T {
 }
 
 export function useMergedTranslationOverrides(
-	overrides?: TldrawUiOverrides[] | TldrawUiOverrides
-): NonNullable<TranslationProviderProps['overrides']> {
+	overrides?: TLUiOverrides[] | TLUiOverrides
+): NonNullable<TLUiTranslationProviderProps['overrides']> {
 	const overridesArray = useShallowArrayEquality(
 		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]
 	)
 	return useMemo(() => {
-		const mergedTranslations: TranslationProviderProps['overrides'] = {}
+		const mergedTranslations: TLUiTranslationProviderProps['overrides'] = {}
 		for (const override of overridesArray) {
 			if (override.translations) {
 				for (const [key, value] of objectMapEntries(override.translations)) {
@@ -199,8 +199,8 @@ export function useMergedTranslationOverrides(
 }
 
 export function useMergedOverrides(
-	overrides?: TldrawUiOverrides[] | TldrawUiOverrides
-): TldrawUiOverridesWithoutDefaults {
+	overrides?: TLUiOverrides[] | TLUiOverrides
+): TLUiOverridesWithoutDefaults {
 	const defaultHelpers = useDefaultHelpers()
 	const overridesArray = useShallowArrayEquality(
 		overrides == null ? [] : Array.isArray(overrides) ? overrides : [overrides]

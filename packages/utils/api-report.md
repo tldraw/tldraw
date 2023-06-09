@@ -131,6 +131,11 @@ export function promiseWithResolve<T>(): Promise<T> & {
 export function rafThrottle(fn: () => void): () => void;
 
 // @public (undocumented)
+export type RecursivePartial<T> = {
+    [P in keyof T]?: RecursivePartial<T[P]>;
+};
+
+// @public (undocumented)
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 
 // @public (undocumented)

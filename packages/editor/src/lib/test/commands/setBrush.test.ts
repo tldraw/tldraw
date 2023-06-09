@@ -1,35 +1,35 @@
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 })
 
 it('Sets the brush', () => {
-	expect(app.brush).toEqual(null)
+	expect(editor.brush).toEqual(null)
 
-	app.setBrush({ x: 0, y: 0, w: 100, h: 100 })
+	editor.setBrush({ x: 0, y: 0, w: 100, h: 100 })
 
-	expect(app.brush).toMatchObject({
+	expect(editor.brush).toMatchObject({
 		x: 0,
 		y: 0,
 		w: 100,
 		h: 100,
 	})
 
-	app.undo()
+	editor.undo()
 
-	expect(app.brush).toEqual({
+	expect(editor.brush).toEqual({
 		x: 0,
 		y: 0,
 		w: 100,
 		h: 100,
 	})
 
-	app.redo()
+	editor.redo()
 
-	expect(app.brush).toEqual({
+	expect(editor.brush).toEqual({
 		x: 0,
 		y: 0,
 		w: 100,

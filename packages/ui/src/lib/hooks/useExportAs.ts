@@ -1,11 +1,11 @@
 import {
+	FrameShapeUtil,
+	TLExportType,
+	TLShapeId,
 	downloadDataURLAsFile,
 	getSvgAsDataUrl,
 	getSvgAsImage,
-	TLExportType,
-	TLFrameUtil,
-	TLShapeId,
-	useApp,
+	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useToasts } from './useToastsProvider'
@@ -13,23 +13,23 @@ import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */
 export function useExportAs() {
-	const app = useApp()
+	const editor = useEditor()
 	const { addToast } = useToasts()
 	const msg = useTranslation()
 
 	return useCallback(
-		async function exportAs(ids: TLShapeId[] = app.selectedIds, format: TLExportType = 'png') {
+		async function exportAs(ids: TLShapeId[] = editor.selectedIds, format: TLExportType = 'png') {
 			if (ids.length === 0) {
-				ids = [...app.shapeIds]
+				ids = [...editor.shapeIds]
 			}
 
 			if (ids.length === 0) {
 				return
 			}
 
-			const svg = await app.getSvg(ids, {
+			const svg = await editor.getSvg(ids, {
 				scale: 1,
-				background: app.instanceState.exportBackground,
+				background: editor.instanceState.exportBackground,
 			})
 
 			if (!svg) throw new Error('Could not construct SVG.')
@@ -37,8 +37,8 @@ export function useExportAs() {
 			let name = 'shapes'
 
 			if (ids.length === 1) {
-				const first = app.getShapeById(ids[0])!
-				if (app.isShapeOfType(first, TLFrameUtil)) {
+				const first = editor.getShapeById(ids[0])!
+				if (editor.isShapeOfType(first, FrameShapeUtil)) {
 					name = first.props.name ?? 'frame'
 				} else {
 					name = first.id.replace(/:/, '_')
@@ -78,7 +78,7 @@ export function useExportAs() {
 				}
 
 				case 'json': {
-					const data = app.getContent(ids)
+					const data = editor.getContent(ids)
 					const dataURL = URL.createObjectURL(
 						new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' })
 					)
@@ -93,6 +93,6 @@ export function useExportAs() {
 					throw new Error(`Export type ${format} not supported.`)
 			}
 		},
-		[app, addToast, msg]
+		[editor, addToast, msg]
 	)
 }

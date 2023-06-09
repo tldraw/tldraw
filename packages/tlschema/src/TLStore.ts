@@ -1,14 +1,12 @@
-import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/tlstore'
+import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/store'
 import { annotateError, structuredClone } from '@tldraw/utils'
-import { TLRecord } from './TLRecord'
-import { TLCamera } from './records/TLCamera'
-import { TLDOCUMENT_ID, TLDocument } from './records/TLDocument'
-import { TLInstance, TLInstanceId } from './records/TLInstance'
-import { TLInstancePageState } from './records/TLInstancePageState'
-import { TLPage } from './records/TLPage'
-import { TLUser, TLUserId } from './records/TLUser'
-import { TLUserDocument } from './records/TLUserDocument'
-import { TLUserPresence } from './records/TLUserPresence'
+import { CameraRecordType, TLCameraId } from './records/TLCamera'
+import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
+import { InstanceRecordType, TLINSTANCE_ID } from './records/TLInstance'
+import { PageRecordType, TLPageId } from './records/TLPage'
+import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TLPageState'
+import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
+import { TLRecord } from './records/TLRecord'
 
 function sortByIndex<T extends { index: string }>(a: T, b: T) {
 	if (a.index < b.index) {
@@ -18,22 +16,6 @@ function sortByIndex<T extends { index: string }>(a: T, b: T) {
 	}
 	return 0
 }
-
-/** @internal */
-export const USER_COLORS = [
-	'#FF802B',
-	'#EC5E41',
-	'#F2555A',
-	'#F04F88',
-	'#E34BA9',
-	'#BD54C6',
-	'#9D5BD2',
-	'#7B66DC',
-	'#02B1CC',
-	'#11B3A3',
-	'#39B178',
-	'#55B467',
-]
 
 function redactRecordForErrorReporting(record: any) {
 	if (record.typeName === 'asset') {
@@ -55,9 +37,7 @@ export type TLStoreSnapshot = StoreSnapshot<TLRecord>
 
 /** @public */
 export type TLStoreProps = {
-	userId: TLUserId
-	instanceId: TLInstanceId
-	documentId: typeof TLDOCUMENT_ID
+	defaultName: string
 }
 
 /** @public */
@@ -90,123 +70,78 @@ export const onValidationFailure: StoreSchemaOptions<
 	throw error
 }
 
-function getRandomColor() {
-	return USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]
-}
-
 function getDefaultPages() {
-	return [TLPage.create({ name: 'Page 1', index: 'a1' })]
+	return [PageRecordType.create({ name: 'Page 1', index: 'a1' })]
 }
 
 /** @internal */
 export function createIntegrityChecker(store: TLStore): () => void {
-	const $pages = store.query.records('page')
-	const $userDocumentSettings = store.query.record('user_document', () => ({
-		userId: { eq: store.props.userId },
-	}))
-
-	const $instanceState = store.query.record('instance', () => ({
-		id: { eq: store.props.instanceId },
-	}))
-
-	const $user = store.query.record('user', () => ({ id: { eq: store.props.userId } }))
-
-	const $userPresences = store.query.records('user_presence')
-	const $instancePageStates = store.query.records('instance_page_state')
+	const $pageIds = store.query.ids('page')
 
 	const ensureStoreIsUsable = (): void => {
-		const { userId, instanceId: tabId } = store.props
 		// make sure we have exactly one document
 		if (!store.has(TLDOCUMENT_ID)) {
-			store.put([TLDocument.create({ id: TLDOCUMENT_ID })])
+			store.put([DocumentRecordType.create({ id: TLDOCUMENT_ID, name: store.props.defaultName })])
 			return ensureStoreIsUsable()
 		}
 
-		// make sure we have document state for the current user
-		const userDocumentSettings = $userDocumentSettings.value
-
-		if (!userDocumentSettings) {
-			store.put([TLUserDocument.create({ userId })])
+		if (!store.has(TLPOINTER_ID)) {
+			store.put([PointerRecordType.create({ id: TLPOINTER_ID })])
 			return ensureStoreIsUsable()
 		}
 
 		// make sure there is at least one page
-		const pages = $pages.value.sort(sortByIndex)
-		if (pages.length === 0) {
+		const pageIds = $pageIds.value
+		if (pageIds.size === 0) {
 			store.put(getDefaultPages())
 			return ensureStoreIsUsable()
 		}
 
+		const getFirstPageId = () => [...pageIds].map((id) => store.get(id)!).sort(sortByIndex)[0].id!
+
 		// make sure we have state for the current user's current tab
-		const instanceState = $instanceState.value
+		const instanceState = store.get(TLINSTANCE_ID)
 		if (!instanceState) {
-			// The tab props are either the the last used tab's props or undefined
-			const propsForNextShape = userDocumentSettings.lastUsedTabId
-				? store.get(userDocumentSettings.lastUsedTabId)?.propsForNextShape
-				: undefined
-
-			// The current page is either the last updated page or the first page
-			const currentPageId = userDocumentSettings?.lastUpdatedPageId ?? pages[0].id!
-
 			store.put([
-				TLInstance.create({
-					id: tabId,
-					userId,
-					currentPageId,
-					propsForNextShape,
+				InstanceRecordType.create({
+					id: TLINSTANCE_ID,
+					currentPageId: getFirstPageId(),
 					exportBackground: true,
 				}),
 			])
 
 			return ensureStoreIsUsable()
-		}
-
-		// make sure the user's currentPageId is still valid
-		let currentPageId = instanceState.currentPageId
-		if (!pages.find((p) => p.id === currentPageId)) {
-			currentPageId = pages[0].id!
-			store.put([{ ...instanceState, currentPageId }])
+		} else if (!pageIds.has(instanceState.currentPageId)) {
+			store.put([{ ...instanceState, currentPageId: getFirstPageId() }])
 			return ensureStoreIsUsable()
 		}
 
-		// make sure we have a user state record for the current user
-		if (!$user.value) {
-			store.put([TLUser.create({ id: userId })])
-			return ensureStoreIsUsable()
+		// make sure we have page states and cameras for all the pages
+		const missingPageStateIds = new Set<TLInstancePageStateId>()
+		const missingCameraIds = new Set<TLCameraId>()
+		for (const id of pageIds) {
+			const pageStateId = InstancePageStateRecordType.createId(id)
+			if (!store.has(pageStateId)) {
+				missingPageStateIds.add(pageStateId)
+			}
+			const cameraId = CameraRecordType.createId(id)
+			if (!store.has(cameraId)) {
+				missingCameraIds.add(cameraId)
+			}
 		}
 
-		const userPresences = $userPresences.value.filter((r) => r.userId === userId)
-		if (userPresences.length === 0) {
-			store.put([TLUserPresence.create({ userId, color: getRandomColor() })])
-			return ensureStoreIsUsable()
-		} else if (userPresences.length > 1) {
-			// make sure we don't duplicate user presences
-			store.remove(userPresences.slice(1).map((r) => r.id))
-		}
-
-		// make sure each page has a instancePageState and camera
-		for (const page of pages) {
-			const instancePageStates = $instancePageStates.value.filter(
-				(tps) => tps.pageId === page.id && tps.instanceId === tabId
+		if (missingPageStateIds.size > 0) {
+			store.put(
+				[...missingPageStateIds].map((id) =>
+					InstancePageStateRecordType.create({
+						id,
+						pageId: InstancePageStateRecordType.parseId(id) as TLPageId,
+					})
+				)
 			)
-			if (instancePageStates.length > 1) {
-				// make sure we only have one instancePageState per instance per page
-				store.remove(instancePageStates.slice(1).map((ips) => ips.id))
-			} else if (instancePageStates.length === 0) {
-				const camera = TLCamera.create({})
-				store.put([
-					camera,
-					TLInstancePageState.create({ pageId: page.id, instanceId: tabId, cameraId: camera.id }),
-				])
-				return ensureStoreIsUsable()
-			}
-
-			// make sure the camera exists
-			const camera = store.get(instancePageStates[0].cameraId)
-			if (!camera) {
-				store.put([TLCamera.create({ id: instancePageStates[0].cameraId })])
-				return ensureStoreIsUsable()
-			}
+		}
+		if (missingCameraIds.size > 0) {
+			store.put([...missingCameraIds].map((id) => CameraRecordType.create({ id })))
 		}
 	}
 

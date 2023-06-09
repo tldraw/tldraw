@@ -1,5 +1,6 @@
 import { TLGeoShape, TLNoteShape, TLShape } from '@tldraw/tlschema'
 import { debugFlags } from './debug-flags'
+import { getBrowserCanvasMaxSize } from './getBrowserCanvasMaxSize'
 import { setPhysChunk } from './png'
 
 /** @public */
@@ -36,8 +37,29 @@ export async function getSvgAsImage(
 
 	const width = +svg.getAttribute('width')!
 	const height = +svg.getAttribute('height')!
+	let scaledWidth = width * scale
+	let scaledHeight = height * scale
 
 	const dataUrl = await getSvgAsDataUrl(svg)
+
+	const canvasSizes = await getBrowserCanvasMaxSize()
+	if (width > canvasSizes.maxWidth) {
+		scaledWidth = canvasSizes.maxWidth
+		scaledHeight = (scaledWidth / width) * height
+	}
+	if (height > canvasSizes.maxHeight) {
+		scaledHeight = canvasSizes.maxHeight
+		scaledWidth = (scaledHeight / height) * width
+	}
+	if (scaledWidth * scaledHeight > canvasSizes.maxArea) {
+		const ratio = Math.sqrt(canvasSizes.maxArea / (scaledWidth * scaledHeight))
+		scaledWidth *= ratio
+		scaledHeight *= ratio
+	}
+
+	scaledWidth = Math.floor(scaledWidth)
+	scaledHeight = Math.floor(scaledHeight)
+	const effectiveScale = scaledWidth / width
 
 	const canvas = await new Promise<HTMLCanvasElement | null>((resolve) => {
 		const image = new Image()
@@ -53,12 +75,12 @@ export async function getSvgAsImage(
 			const canvas = document.createElement('canvas') as HTMLCanvasElement
 			const ctx = canvas.getContext('2d')!
 
-			canvas.width = width * scale
-			canvas.height = height * scale
+			canvas.width = scaledWidth
+			canvas.height = scaledHeight
 
 			ctx.imageSmoothingEnabled = true
 			ctx.imageSmoothingQuality = 'high'
-			ctx.drawImage(image, 0, 0, width * scale, height * scale)
+			ctx.drawImage(image, 0, 0, scaledWidth, scaledHeight)
 
 			URL.revokeObjectURL(dataUrl)
 
@@ -90,7 +112,7 @@ export async function getSvgAsImage(
 	if (!blob) return null
 
 	const view = new DataView(await blob.arrayBuffer())
-	return setPhysChunk(view, scale, {
+	return setPhysChunk(view, effectiveScale, {
 		type: 'image/' + type,
 	})
 }

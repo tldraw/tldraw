@@ -1,9 +1,9 @@
-import { BaseRecord, createRecordType, defineMigrations, ID } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { idValidator } from '../validation'
+import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { idValidator } from '../misc/id-validator'
 
 /**
- * TLCamera
+ * A camera record.
  *
  * @public
  */
@@ -13,11 +13,14 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 	z: number
 }
 
-/** @public */
-export type TLCameraId = ID<TLCamera>
+/**
+ * The id of a camera record.
+ *
+ * @public */
+export type TLCameraId = RecordId<TLCamera>
 
-/** @public */
-export const cameraTypeValidator: T.Validator<TLCamera> = T.model(
+/** @internal */
+export const cameraValidator: T.Validator<TLCamera> = T.model(
 	'camera',
 	T.object({
 		typeName: T.literal('camera'),
@@ -28,10 +31,14 @@ export const cameraTypeValidator: T.Validator<TLCamera> = T.model(
 	})
 )
 
+/** @internal */
+export const cameraMigrations = defineMigrations({})
+
 /** @public */
-export const TLCamera = createRecordType<TLCamera>('camera', {
-	validator: cameraTypeValidator,
-	scope: 'instance',
+export const CameraRecordType = createRecordType<TLCamera>('camera', {
+	validator: cameraValidator,
+	migrations: cameraMigrations,
+	scope: 'session',
 }).withDefaultProperties(
 	(): Omit<TLCamera, 'id' | 'typeName'> => ({
 		x: 0,
@@ -39,6 +46,3 @@ export const TLCamera = createRecordType<TLCamera>('camera', {
 		z: 1,
 	})
 )
-
-/** @public */
-export const cameraTypeMigrations = defineMigrations({})

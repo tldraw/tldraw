@@ -1,121 +1,6 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { TLOpacityType } from '../style-types'
-import { opacityValidator } from '../validation'
-import { createShapeValidator, TLBaseShape } from './shape-validation'
-
-/**
- * Permissions with note inline from
- * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#attr-sandbox
- *
- * @public
- */
-export const tlEmbedShapePermissionDefaults = {
-	// ========================================================================================
-	// Disabled permissions
-	// ========================================================================================
-	// [MDN] Experimental: Allows for downloads to occur without a gesture from the user.
-	// [REASON] Disabled because otherwise the <iframe/> trick the user on behalf of us to performing an action
-	'allow-downloads-without-user-activation': false,
-	// [MDN] Allows for downloads to occur with a gesture from the user.
-	// [REASON] Disabled because otherwise the <iframe/> trick the user on behalf of us to performing an action
-	'allow-downloads': false,
-	// [MDN] Lets the resource open modal windows.
-	// [REASON] The <iframe/> could 'window.prompt("Enter your tldraw password")'
-	'allow-modals': false,
-	// [MDN] Lets the resource lock the screen orientation.
-	// [REASON] Would interfer with tldraw interface
-	'allow-orientation-lock': false,
-	// [MDN] Lets the resource use the Pointer Lock API.
-	// [REASON] Maybe we should allow this for games embeds (scratch/codepen/codesandbox)
-	'allow-pointer-lock': false,
-	// [MDN] Allows popups (such as window.open(), target="_blank", or showModalDialog()). If this keyword is not used, the popup will silently fail to open.
-	// [REASON] We shouldn't allow popups as a embed could pretend to be us by opening a mocked version of tldraw. This is very unobvious when it is performed as an action within out app
-	'allow-popups': true,
-	// [MDN] Lets the sandboxed document open new windows without those windows inheriting the sandboxing. For example, this can safely sandbox an advertisement without forcing the same restrictions upon the page the ad links to.
-	// [REASON] We're alread disabling popups.
-	'allow-popups-to-escape-sandbox': false,
-	// [MDN] Lets the resource start a presentation session.
-	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us
-	'allow-presentation': false,
-	// [MDN] Experimental: Lets the resource request access to the parent's storage capabilities with the Storage Access API.
-	// [REASON] We don't want anyone else to access our storage
-	'allow-storage-access-by-user-activation': false,
-	// [MDN] Lets the resource navigate the top-level browsing context (the one named _top).
-	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us
-	'allow-top-navigation': false,
-	// [MDN] Lets the resource navigate the top-level browsing context, but only if initiated by a user gesture.
-	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us
-	'allow-top-navigation-by-user-activation': false,
-	// ========================================================================================
-	// Enabled permissions
-	// ========================================================================================
-	// [MDN] Lets the resource run scripts (but not create popup windows).
-	'allow-scripts': true,
-	// [MDN] If this token is not used, the resource is treated as being from a special origin that always fails the same-origin policy (potentially preventing access to data storage/cookies and some JavaScript APIs).
-	'allow-same-origin': true,
-	// [MDN] Allows the resource to submit forms. If this keyword is not used, form submission is blocked.
-	'allow-forms': true,
-} as const
-
-/** @public */
-export type TLEmbedShapePermissionName = keyof typeof tlEmbedShapePermissionDefaults
-/** @public */
-export type TLEmbedShapePermissions = { [K in TLEmbedShapePermissionName]?: boolean }
-
-/** @public */
-export type TLEmbedShapeProps = {
-	opacity: TLOpacityType
-	w: number
-	h: number
-	url: string
-	// TODO: This is to store during migration in case anything goes wrong so we can revert.
-	tmpOldUrl?: string
-	doesResize: boolean
-	overridePermissions?: TLEmbedShapePermissions
-}
-
-/** @public */
-export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
-
-/** @public */
-export const embedShapeTypeValidator: T.Validator<TLEmbedShape> = createShapeValidator(
-	'embed',
-	T.object({
-		opacity: opacityValidator,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		url: T.string,
-		tmpOldUrl: T.string.optional(),
-		doesResize: T.boolean,
-		overridePermissions: T.dict(
-			T.setEnum(
-				new Set(Object.keys(tlEmbedShapePermissionDefaults) as TLEmbedShapePermissionName[])
-			),
-			T.boolean.optional()
-		).optional(),
-	})
-)
-
-/** @public */
-export type EmbedDefinition = {
-	readonly type: string
-	readonly title: string
-	readonly hostnames: readonly string[]
-	readonly minWidth?: number
-	readonly minHeight?: number
-	readonly width: number
-	readonly height: number
-	readonly doesResize: boolean
-	readonly isAspectRatioLocked?: boolean
-	readonly overridePermissions?: TLEmbedShapePermissions
-	readonly instructionLink?: string
-	readonly backgroundColor?: string
-	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
-	readonly overrideOutlineRadius?: number
-	readonly toEmbedUrl: (url: string) => string | undefined
-	readonly fromEmbedUrl: (url: string) => string | undefined
-}
+import { defineMigrations } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
 const TLDRAW_APP_RE = /(^\/r\/[^/]+\/?$)/
@@ -604,12 +489,121 @@ export const EMBED_DEFINITIONS = [
 	},
 ] as const satisfies readonly EmbedDefinition[]
 
+/**
+ * Permissions with note inline from
+ * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/iframe#attr-sandbox
+ *
+ * @public
+ */
+export const embedShapePermissionDefaults = {
+	// ========================================================================================
+	// Disabled permissions
+	// ========================================================================================
+	// [MDN] Experimental: Allows for downloads to occur without a gesture from the user.
+	// [REASON] Disabled because otherwise the <iframe/> trick the user on behalf of us to performing an action
+	'allow-downloads-without-user-activation': false,
+	// [MDN] Allows for downloads to occur with a gesture from the user.
+	// [REASON] Disabled because otherwise the <iframe/> trick the user on behalf of us to performing an action
+	'allow-downloads': false,
+	// [MDN] Lets the resource open modal windows.
+	// [REASON] The <iframe/> could 'window.prompt("Enter your tldraw password")'
+	'allow-modals': false,
+	// [MDN] Lets the resource lock the screen orientation.
+	// [REASON] Would interfer with tldraw interface
+	'allow-orientation-lock': false,
+	// [MDN] Lets the resource use the Pointer Lock API.
+	// [REASON] Maybe we should allow this for games embeds (scratch/codepen/codesandbox)
+	'allow-pointer-lock': false,
+	// [MDN] Allows popups (such as window.open(), target="_blank", or showModalDialog()). If this keyword is not used, the popup will silently fail to open.
+	// [REASON] We shouldn't allow popups as a embed could pretend to be us by opening a mocked version of tldraw. This is very unobvious when it is performed as an action within out app
+	'allow-popups': true,
+	// [MDN] Lets the sandboxed document open new windows without those windows inheriting the sandboxing. For example, this can safely sandbox an advertisement without forcing the same restrictions upon the page the ad links to.
+	// [REASON] We're alread disabling popups.
+	'allow-popups-to-escape-sandbox': false,
+	// [MDN] Lets the resource start a presentation session.
+	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us
+	'allow-presentation': false,
+	// [MDN] Experimental: Lets the resource request access to the parent's storage capabilities with the Storage Access API.
+	// [REASON] We don't want anyone else to access our storage
+	'allow-storage-access-by-user-activation': false,
+	// [MDN] Lets the resource navigate the top-level browsing context (the one named _top).
+	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us
+	'allow-top-navigation': false,
+	// [MDN] Lets the resource navigate the top-level browsing context, but only if initiated by a user gesture.
+	// [REASON] Prevents embed from navigating away from tldraw and pretending to be us
+	'allow-top-navigation-by-user-activation': false,
+	// ========================================================================================
+	// Enabled permissions
+	// ========================================================================================
+	// [MDN] Lets the resource run scripts (but not create popup windows).
+	'allow-scripts': true,
+	// [MDN] If this token is not used, the resource is treated as being from a special origin that always fails the same-origin policy (potentially preventing access to data storage/cookies and some JavaScript APIs).
+	'allow-same-origin': true,
+	// [MDN] Allows the resource to submit forms. If this keyword is not used, form submission is blocked.
+	'allow-forms': true,
+} as const
+
+/** @public */
+export type TLEmbedShapePermissions = { [K in keyof typeof embedShapePermissionDefaults]?: boolean }
+
+/** @public */
+export type TLEmbedShapeProps = {
+	w: number
+	h: number
+	url: string
+	// TODO: This is to store during migration in case anything goes wrong so we can revert.
+	tmpOldUrl?: string
+	doesResize: boolean
+	overridePermissions?: TLEmbedShapePermissions
+}
+
+/** @public */
+export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
+
+/** @internal */
+export const embedShapeTypeValidator: T.Validator<TLEmbedShape> = createShapeValidator(
+	'embed',
+	T.object({
+		w: T.nonZeroNumber,
+		h: T.nonZeroNumber,
+		url: T.string,
+		tmpOldUrl: T.string.optional(),
+		doesResize: T.boolean,
+		overridePermissions: T.dict(
+			T.setEnum(
+				new Set(Object.keys(embedShapePermissionDefaults) as (keyof TLEmbedShapePermissions)[])
+			),
+			T.boolean.optional()
+		).optional(),
+	})
+)
+
+/** @public */
+export type EmbedDefinition = {
+	readonly type: string
+	readonly title: string
+	readonly hostnames: readonly string[]
+	readonly minWidth?: number
+	readonly minHeight?: number
+	readonly width: number
+	readonly height: number
+	readonly doesResize: boolean
+	readonly isAspectRatioLocked?: boolean
+	readonly overridePermissions?: TLEmbedShapePermissions
+	readonly instructionLink?: string
+	readonly backgroundColor?: string
+	// TODO: FIXME this is ugly be required because some embeds have their own border radius for example spotify embeds
+	readonly overrideOutlineRadius?: number
+	readonly toEmbedUrl: (url: string) => string | undefined
+	readonly fromEmbedUrl: (url: string) => string | undefined
+}
+
 const Versions = {
 	GenOriginalUrlInEmbed: 1,
 } as const
 
-/** @public */
-export const embedShapeTypeMigrations = defineMigrations({
+/** @internal */
+export const embedShapeMigrations = defineMigrations({
 	currentVersion: Versions.GenOriginalUrlInEmbed,
 	migrators: {
 		[Versions.GenOriginalUrlInEmbed]: {

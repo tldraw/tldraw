@@ -69,7 +69,7 @@ export class TldrawWebviewManager {
         </head>
         <body>
           <div id="root"></div>
-          <noscript>You need to enable JavaScript to run this app.</noscript>
+          <noscript>You need to enable JavaScript to run this editor.</noscript>
 		  <script>
 		    // Plenty of other extensions do this see <https://sourcegraph.com/search?q=context%3Aglobal+%22_defaultStyles%22&patternType=standard&sm=1&groupBy=repo>
 		    document.getElementById("_defaultStyles").remove();

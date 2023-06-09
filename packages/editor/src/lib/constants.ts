@@ -217,13 +217,6 @@ export const STYLES: TLStyleCollections = {
 		{ id: 'l', type: 'size', icon: 'size-large' },
 		{ id: 'xl', type: 'size', icon: 'size-extra-large' },
 	],
-	opacity: [
-		{ id: '0.1', type: 'opacity', icon: 'color' },
-		{ id: '0.25', type: 'opacity', icon: 'color' },
-		{ id: '0.5', type: 'opacity', icon: 'color' },
-		{ id: '0.75', type: 'opacity', icon: 'color' },
-		{ id: '1', type: 'opacity', icon: 'color' },
-	],
 	font: [
 		{ id: 'draw', type: 'font', icon: 'font-draw' },
 		{ id: 'sans', type: 'font', icon: 'font-sans' },
@@ -286,7 +279,7 @@ export const STYLES: TLStyleCollections = {
 	],
 }
 
-// These props should not cause App.props to update
+// These props should not cause Editor.props to update
 export const BLACKLISTED_PROPS = new Set([
 	'bend',
 	'w',

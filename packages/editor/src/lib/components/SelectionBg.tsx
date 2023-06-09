@@ -1,13 +1,13 @@
 import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import * as React from 'react'
 import { track } from 'signia-react'
-import { TLPointerEventInfo } from '../app/types/event-types'
-import { useApp } from '../hooks/useApp'
+import { TLPointerEventInfo } from '../editor/types/event-types'
+import { useEditor } from '../hooks/useEditor'
 import { releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 
 export const SelectionBg = track(function SelectionBg() {
-	const app = useApp()
+	const editor = useEditor()
 
 	const events = React.useMemo(() => {
 		const onPointerDown = (e: React.PointerEvent) => {
@@ -19,10 +19,10 @@ export const SelectionBg = track(function SelectionBg() {
 				type: 'pointer',
 				target: 'selection',
 				name: 'pointer_down',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			}
 
-			app.dispatch(info)
+			editor.dispatch(info)
 		}
 
 		const onPointerMove = (e: React.PointerEvent) => {
@@ -32,10 +32,10 @@ export const SelectionBg = track(function SelectionBg() {
 				type: 'pointer',
 				target: 'selection',
 				name: 'pointer_move',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			}
 
-			app.dispatch(info)
+			editor.dispatch(info)
 		}
 
 		const onPointerUp = (e: React.PointerEvent) => {
@@ -47,10 +47,10 @@ export const SelectionBg = track(function SelectionBg() {
 				type: 'pointer',
 				target: 'selection',
 				name: 'pointer_up',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			}
 
-			app.dispatch(info)
+			editor.dispatch(info)
 		}
 
 		const onPointerEnter = (e: React.PointerEvent) => {
@@ -60,10 +60,10 @@ export const SelectionBg = track(function SelectionBg() {
 				type: 'pointer',
 				target: 'selection',
 				name: 'pointer_enter',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			}
 
-			app.dispatch(info)
+			editor.dispatch(info)
 		}
 
 		const onPointerLeave = (e: React.PointerEvent) => {
@@ -73,10 +73,10 @@ export const SelectionBg = track(function SelectionBg() {
 				type: 'pointer',
 				target: 'selection',
 				name: 'pointer_leave',
-				...getPointerInfo(e, app.getContainer()),
+				...getPointerInfo(e, editor.getContainer()),
 			}
 
-			app.dispatch(info)
+			editor.dispatch(info)
 		}
 
 		return {
@@ -86,12 +86,12 @@ export const SelectionBg = track(function SelectionBg() {
 			onPointerEnter,
 			onPointerLeave,
 		}
-	}, [app])
+	}, [editor])
 
-	const { selectionBounds: bounds, selectedIds } = app
+	const { selectionBounds: bounds, selectedIds } = editor
 	if (!bounds) return null
 
-	const shouldDisplay = app.isInAny(
+	const shouldDisplay = editor.isInAny(
 		'select.idle',
 		'select.brushing',
 		'select.scribble_brushing',
@@ -101,11 +101,11 @@ export const SelectionBg = track(function SelectionBg() {
 	)
 
 	if (selectedIds.length === 1) {
-		const shape = app.getShapeById(selectedIds[0])
+		const shape = editor.getShapeById(selectedIds[0])
 		if (!shape) {
 			return null
 		}
-		const util = app.getShapeUtil(shape)
+		const util = editor.getShapeUtil(shape)
 		if (util.hideSelectionBoundsBg(shape)) {
 			return null
 		}
@@ -114,7 +114,7 @@ export const SelectionBg = track(function SelectionBg() {
 	const transform = Matrix2d.toCssString(
 		Matrix2d.Compose(
 			Matrix2d.Translate(bounds.minX, bounds.minY),
-			Matrix2d.Rotate(app.selectionRotation)
+			Matrix2d.Rotate(editor.selectionRotation)
 		)
 	)
 

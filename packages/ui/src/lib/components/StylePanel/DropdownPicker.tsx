@@ -1,22 +1,22 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { App, TLStyleItem, TLStyleType } from '@tldraw/editor'
+import { Editor, TLStyleItem, TLStyleType } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from '../primitives/Button'
 import * as DropdownMenu from '../primitives/DropdownMenu'
 
-type AllStyles = typeof App.styles
+type AllStyles = typeof Editor.styles
 
 interface DropdownPickerProps<T extends AllStyles[keyof AllStyles][number]> {
 	id: string
-	label?: TLTranslationKey
+	label?: TLUiTranslationKey
 	items: T[]
 	styleType: TLStyleType
 	value: T['id'] | null
-	'data-wd'?: string
+	'data-testid'?: string
 	onValueChange: (value: TLStyleItem, squashing: boolean) => void
 }
 
@@ -29,7 +29,7 @@ export const DropdownPicker = React.memo(function DropdownPicker<
 	label,
 	value,
 	onValueChange,
-	'data-wd': dataWd,
+	'data-testid': testId,
 }: DropdownPickerProps<T>) {
 	const msg = useTranslation()
 
@@ -39,11 +39,11 @@ export const DropdownPicker = React.memo(function DropdownPicker<
 		<DropdownMenu.Root id={`style panel ${id}`}>
 			<Trigger asChild>
 				<Button
-					data-wd={dataWd}
+					data-testid={testId}
 					title={
 						value === null
 							? msg('style-panel.mixed')
-							: msg(`${styleType}-style.${value}` as TLTranslationKey)
+							: msg(`${styleType}-style.${value}` as TLUiTranslationKey)
 					}
 					label={label}
 					icon={(icon as TLUiIconType) ?? 'mixed'}
@@ -61,8 +61,8 @@ export const DropdownPicker = React.memo(function DropdownPicker<
 						return (
 							<DropdownMenu.Item
 								className="tlui-button-grid__button"
-								data-wd={`${dataWd}.${item.id}`}
-								title={msg(`${styleType}-style.${item.id}` as TLTranslationKey)}
+								data-testid={`${testId}.${item.id}`}
+								title={msg(`${styleType}-style.${item.id}` as TLUiTranslationKey)}
 								key={item.id}
 								icon={item.icon as TLUiIconType}
 								onClick={() => onValueChange(item as TLStyleItem, false)}

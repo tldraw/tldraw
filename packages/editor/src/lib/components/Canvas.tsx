@@ -4,10 +4,10 @@ import { dedupe, modulate } from '@tldraw/utils'
 import * as React from 'react'
 import { react } from 'signia'
 import { track, useValue } from 'signia-react'
-import { useApp } from '../hooks/useApp'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
 import { useDocumentEvents } from '../hooks/useDocumentEvents'
+import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoubleTapZoomPencilEvents'
 import { useGestureEvents } from '../hooks/useGestureEvents'
@@ -30,7 +30,7 @@ export const Canvas = track(function Canvas({
 		defaultOnDrop: (e: React.DragEvent<Element>) => Promise<void>
 	) => (e: React.DragEvent<Element>) => Promise<void>
 }) {
-	const app = useApp()
+	const editor = useEditor()
 
 	const { Background, SvgDefs } = useEditorComponents()
 
@@ -50,7 +50,7 @@ export const Canvas = track(function Canvas({
 			const htmlElm = rHtmlLayer.current
 			if (!htmlElm) return
 
-			const { x, y, z } = app.camera
+			const { x, y, z } = editor.camera
 
 			// Because the html container has a width/height of 1px, we
 			// need to create a small offset when zoomed to ensure that
@@ -65,7 +65,7 @@ export const Canvas = track(function Canvas({
 				)}px)`
 			)
 		},
-		[app]
+		[editor]
 	)
 
 	const { context: patternContext, isReady: patternIsReady } = usePattern()
@@ -76,7 +76,7 @@ export const Canvas = track(function Canvas({
 	}
 
 	React.useEffect(() => {
-		if (patternIsReady && app.isSafari) {
+		if (patternIsReady && editor.isSafari) {
 			const htmlElm = rHtmlLayer.current
 
 			if (htmlElm) {
@@ -91,14 +91,14 @@ export const Canvas = track(function Canvas({
 				})
 			}
 		}
-	}, [app, patternIsReady])
+	}, [editor, patternIsReady])
 
 	React.useEffect(() => {
 		rCanvas.current?.focus()
 	}, [])
 
 	return (
-		<div ref={rCanvas} draggable={false} className="tl-canvas" data-wd="canvas" {...events}>
+		<div ref={rCanvas} draggable={false} className="tl-canvas" data-testid="canvas" {...events}>
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />
@@ -135,23 +135,23 @@ export const Canvas = track(function Canvas({
 })
 
 const GridWrapper = track(function GridWrapper() {
-	const app = useApp()
+	const editor = useEditor()
 	const { Grid } = useEditorComponents()
 
 	// get grid from context
 
-	const { x, y, z } = app.camera
-	const isGridMode = app.isGridMode
+	const { x, y, z } = editor.camera
+	const isGridMode = editor.isGridMode
 
 	if (!(Grid && isGridMode)) return null
 
-	return <Grid x={x} y={y} z={z} size={app.gridSize} />
+	return <Grid x={x} y={y} z={z} size={editor.gridSize} />
 })
 
 const ScribbleWrapper = track(function ScribbleWrapper() {
-	const app = useApp()
-	const scribble = app.scribble
-	const zoom = app.zoomLevel
+	const editor = useEditor()
+	const scribble = editor.scribble
+	const zoom = editor.zoomLevel
 
 	const { Scribble } = useEditorComponents()
 
@@ -161,31 +161,31 @@ const ScribbleWrapper = track(function ScribbleWrapper() {
 })
 
 const BrushWrapper = track(function BrushWrapper() {
-	const app = useApp()
-	const { brush } = app
+	const editor = useEditor()
+	const { brush } = editor
 	const { Brush } = useEditorComponents()
 
-	if (!(Brush && brush && app.isIn('select.brushing'))) return null
+	if (!(Brush && brush && editor.isIn('select.brushing'))) return null
 
 	return <Brush className="tl-user-brush" brush={brush} />
 })
 
 export const ZoomBrushWrapper = track(function Zoom() {
-	const app = useApp()
-	const { zoomBrush } = app
+	const editor = useEditor()
+	const { zoomBrush } = editor
 	const { ZoomBrush } = useEditorComponents()
 
-	if (!(ZoomBrush && zoomBrush && app.isIn('zoom'))) return null
+	if (!(ZoomBrush && zoomBrush && editor.isIn('zoom'))) return null
 
 	return <ZoomBrush className="tl-user-brush" brush={zoomBrush} />
 })
 
 export const SnapLinesWrapper = track(function SnapLines() {
-	const app = useApp()
+	const editor = useEditor()
 	const {
 		snaps: { lines },
 		zoomLevel,
-	} = app
+	} = editor
 	const { SnapLine } = useEditorComponents()
 
 	if (!(SnapLine && lines.length > 0)) return null
@@ -202,24 +202,26 @@ export const SnapLinesWrapper = track(function SnapLines() {
 const MIN_HANDLE_DISTANCE = 48
 
 const HandlesWrapper = track(function HandlesWrapper() {
-	const app = useApp()
+	const editor = useEditor()
 
-	const zoom = app.zoomLevel
-	const isChangingStyle = app.isChangingStyle
+	const zoom = editor.zoomLevel
+	const isChangingStyle = editor.isChangingStyle
 
-	const onlySelectedShape = app.onlySelectedShape
+	const onlySelectedShape = editor.onlySelectedShape
 
 	const shouldDisplayHandles =
-		app.isInAny('select.idle', 'select.pointing_handle') && !isChangingStyle && !app.isReadOnly
+		editor.isInAny('select.idle', 'select.pointing_handle') &&
+		!isChangingStyle &&
+		!editor.isReadOnly
 
 	if (!(onlySelectedShape && shouldDisplayHandles)) return null
 
-	const util = app.getShapeUtil(onlySelectedShape)
+	const util = editor.getShapeUtil(onlySelectedShape)
 	const handles = util.handles?.(onlySelectedShape)
 
 	if (!handles) return null
 
-	const transform = app.getPageTransform(onlySelectedShape)
+	const transform = editor.getPageTransform(onlySelectedShape)
 
 	if (!transform) return null
 
@@ -267,9 +269,9 @@ const HandleWrapper = ({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHand
 }
 
 const ShapesToDisplay = track(function ShapesToDisplay() {
-	const app = useApp()
+	const editor = useEditor()
 
-	const { renderingShapes } = app
+	const { renderingShapes } = editor
 
 	const debugSvg = debugFlags.debugSvg.value
 	if (debugSvg) {
@@ -295,23 +297,23 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 })
 
 const SelectedIdIndicators = track(function SelectedIdIndicators() {
-	const app = useApp()
+	const editor = useEditor()
 
 	const shouldDisplay =
-		app.isInAny(
+		editor.isInAny(
 			'select.idle',
 			'select.brushing',
 			'select.scribble_brushing',
 			'select.pointing_shape',
 			'select.pointing_selection',
 			'select.pointing_handle'
-		) && !app.isChangingStyle
+		) && !editor.isChangingStyle
 
 	if (!shouldDisplay) return null
 
 	return (
 		<>
-			{app.selectedIds.map((id) => (
+			{editor.selectedIds.map((id) => (
 				<ShapeIndicator key={id + '_indicator'} className="tl-user-indicator__selected" id={id} />
 			))}
 		</>
@@ -319,12 +321,13 @@ const SelectedIdIndicators = track(function SelectedIdIndicators() {
 })
 
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
-	const app = useApp()
+	const editor = useEditor()
 
 	const displayingHoveredId = useValue(
 		'hovered id and should display',
-		() => (app.isInAny('select.idle', 'select.editing_shape') ? app.pageState.hoveredId : null),
-		[app]
+		() =>
+			editor.isInAny('select.idle', 'select.editing_shape') ? editor.pageState.hoveredId : null,
+		[editor]
 	)
 
 	if (!displayingHoveredId) return null
@@ -333,9 +336,9 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 }
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
-	const app = useApp()
+	const editor = useEditor()
 
-	const ids = dedupe(app.hintingIds)
+	const ids = dedupe(editor.hintingIds)
 
 	if (!ids.length) return null
 
@@ -389,12 +392,12 @@ function ArrowheadCross() {
 }
 
 const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
-	const app = useApp()
-	const shape = app.getShapeById(id)
+	const editor = useEditor()
+	const shape = editor.getShapeById(id)
 
 	const [html, setHtml] = React.useState('')
 
-	const isInRoot = shape?.parentId === app.currentPageId
+	const isInRoot = shape?.parentId === editor.currentPageId
 
 	React.useEffect(() => {
 		if (!isInRoot) return
@@ -403,8 +406,8 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = app.getPageBoundsById(id)
-			const el = await app.getSvg([id], { padding: 0 })
+			const bb = editor.getPageBoundsById(id)
+			const el = await editor.getSvg([id], { padding: 0 })
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')
 				el.setAttribute('preserveAspectRatio', 'xMidYMin slice')
@@ -418,7 +421,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 			latest = null
 			unsubscribe()
 		}
-	}, [app, id, isInRoot])
+	}, [editor, id, isInRoot])
 
 	if (!isInRoot) return null
 
@@ -429,8 +432,8 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 	)
 })
 
-const UiLogger = () => {
-	const logMessages = useValue(debugFlags.logMessages)
+const UiLogger = track(() => {
+	const logMessages = debugFlags.logMessages.value
 
 	return (
 		<div className="debug__ui-logger">
@@ -445,4 +448,4 @@ const UiLogger = () => {
 			})}
 		</div>
 	)
-}
+})

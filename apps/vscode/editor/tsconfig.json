@@ -3,8 +3,7 @@
 		"target": "ESNext",
 		"useDefineForClassFields": true,
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
-		"allowJs": true,
-		"checkJs": true,
+		"allowJs": false,
 		"skipLibCheck": true,
 		"esModuleInterop": true,
 		"removeComments": true,
@@ -21,15 +20,13 @@
 		"composite": true,
 		"importHelpers": false,
 		"skipDefaultLibCheck": true,
-		"experimentalDecorators": true,
-		"rootDir": ".."
+		"experimentalDecorators": true
 	},
 	"include": ["src", "../messages", "scripts", "../vscode-script-utils"],
 	"references": [
 		{ "path": "../../../packages/file-format" },
 		{ "path": "../../../packages/ui" },
 		{ "path": "../../../packages/editor" },
-		{ "path": "../../../packages/tlsync-client" },
 		{ "path": "../../../packages/utils" }
 	]
 }

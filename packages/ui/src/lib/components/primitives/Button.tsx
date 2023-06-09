@@ -1,6 +1,6 @@
 import classnames from 'classnames'
 import * as React from 'react'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Spinner } from '../Spinner'
@@ -8,10 +8,10 @@ import { Icon } from './Icon'
 import { Kbd } from './Kbd'
 
 /** @public */
-export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 	loading?: boolean // TODO: loading spinner
 	disabled?: boolean
-	label?: TLTranslationKey
+	label?: TLUiTranslationKey
 	icon?: TLUiIconType
 	spinner?: boolean
 	iconLeft?: TLUiIconType
@@ -23,7 +23,7 @@ export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 }
 
 /** @public */
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+export const Button = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(function Button(
 	{
 		label,
 		icon,

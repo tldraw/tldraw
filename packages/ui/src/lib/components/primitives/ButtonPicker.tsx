@@ -1,21 +1,21 @@
-import { TLStyleItem, TLStyleType, useApp } from '@tldraw/editor'
+import { TLStyleItem, TLStyleType, useEditor } from '@tldraw/editor'
 import { clamp } from '@tldraw/primitives'
 import classNames from 'classnames'
 import * as React from 'react'
 import { useRef } from 'react'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from './Button'
 
-/** @public */
+/** @internal */
 export interface ButtonPickerProps<T extends TLStyleItem> {
 	title: string
 	items: T[]
 	styleType: TLStyleType
 	value?: string | number | null
 	columns?: 2 | 3 | 4
-	'data-wd'?: string
+	'data-testid'?: string
 	onValueChange: (item: T, squashing: boolean) => void
 }
 
@@ -28,7 +28,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 		onValueChange,
 		columns = clamp(items.length, 2, 4),
 	} = props
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const rPointing = useRef(false)
@@ -48,14 +48,14 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			const { id } = e.currentTarget.dataset
 			if (value === id) return
 
-			app.mark('point picker item')
+			editor.mark('point picker item')
 			onValueChange(items.find((i) => i.id === id)!, false)
 		}
 
 		const handleButtonPointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
 			const { id } = e.currentTarget.dataset
 
-			app.mark('point picker item')
+			editor.mark('point picker item')
 			onValueChange(items.find((i) => i.id === id)!, true)
 
 			rPointing.current = true
@@ -80,7 +80,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			handleButtonPointerEnter,
 			handleButtonPointerUp,
 		}
-	}, [app, value, onValueChange, items])
+	}, [editor, value, onValueChange, items])
 
 	return (
 		<div
@@ -94,10 +94,10 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 				<Button
 					key={item.id}
 					data-id={item.id}
-					data-wd={`${props['data-wd']}.${item.id}`}
+					data-testid={`${props['data-testid']}.${item.id}`}
 					aria-label={item.id}
 					data-state={value === item.id ? 'hinted' : undefined}
-					title={title + ' — ' + msg(`${styleType}-style.${item.id}` as TLTranslationKey)}
+					title={title + ' — ' + msg(`${styleType}-style.${item.id}` as TLUiTranslationKey)}
 					className={classNames('tlui-button-grid__button')}
 					style={item.type === 'color' ? { color: `var(--palette-${item.id})` } : undefined}
 					onPointerEnter={handleButtonPointerEnter}
@@ -111,5 +111,5 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 	)
 }
 
-/** @public */
+/** @internal */
 export const ButtonPicker = React.memo(_ButtonPicker)

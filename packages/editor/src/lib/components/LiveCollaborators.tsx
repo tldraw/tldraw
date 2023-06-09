@@ -1,6 +1,5 @@
-import { TLUserId } from '@tldraw/tlschema'
 import { track } from 'signia-react'
-import { useApp } from '../hooks/useApp'
+import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { usePeerIds } from '../hooks/usePeerIds'
 import { usePresence } from '../hooks/usePresence'
@@ -16,9 +15,9 @@ export const LiveCollaborators = track(function Collaborators() {
 	)
 })
 
-const Collaborator = track(function Collaborator({ userId }: { userId: TLUserId }) {
-	const app = useApp()
-	const { viewportPageBounds, zoomLevel } = app
+const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
+	const editor = useEditor()
+	const { viewportPageBounds, zoomLevel } = editor
 
 	const {
 		CollaboratorBrush,
@@ -32,7 +31,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: TLUserId 
 	if (!latestPresence) return null
 
 	// if the collaborator is on another page, ignore them
-	if (latestPresence.currentPageId !== app.currentPageId) return null
+	if (latestPresence.currentPageId !== editor.currentPageId) return null
 
 	const { brush, scribble, selectedIds, userName, cursor, color } = latestPresence
 

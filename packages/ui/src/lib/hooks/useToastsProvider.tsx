@@ -1,46 +1,46 @@
-import { App, uniqueId } from '@tldraw/editor'
+import { Editor, uniqueId } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
 
 /** @public */
-export interface TLToast {
+export interface TLUiToast {
 	id: string
 	icon?: string
 	title?: string
 	description?: string
-	actions?: TLToastAction[]
+	actions?: TLUiToastAction[]
 	keepOpen?: boolean
 	closeLabel?: string
 }
 
 /** @public */
-export interface TLToastAction {
+export interface TLUiToastAction {
 	type: 'primary' | 'secondary' | 'warn'
 	label: string
 	onClick: () => void
 }
 
 /** @public */
-export type ToastsContextType = {
-	addToast: (toast: Omit<TLToast, 'id'> & { id?: string }) => string
-	removeToast: (id: TLToast['id']) => string
+export type TLUiToastsContextType = {
+	addToast: (toast: Omit<TLUiToast, 'id'> & { id?: string }) => string
+	removeToast: (id: TLUiToast['id']) => string
 	clearToasts: () => void
-	toasts: TLToast[]
+	toasts: TLUiToast[]
 }
 
-/** @public */
-export const ToastsContext = createContext({} as ToastsContextType)
+/** @internal */
+export const ToastsContext = createContext({} as TLUiToastsContextType)
 
-/** @public */
+/** @internal */
 export type ToastsProviderProps = {
-	overrides?: (app: App) => ToastsContextType
+	overrides?: (editor: Editor) => TLUiToastsContextType
 	children: any
 }
 
-/** @public */
+/** @internal */
 export function ToastsProvider({ children }: ToastsProviderProps) {
-	const [toasts, setToasts] = useState<TLToast[]>([])
+	const [toasts, setToasts] = useState<TLUiToast[]>([])
 
-	const addToast = useCallback((toast: Omit<TLToast, 'id'> & { id?: string }) => {
+	const addToast = useCallback((toast: Omit<TLUiToast, 'id'> & { id?: string }) => {
 		const id = toast.id ?? uniqueId()
 		setToasts((d) => [...d.filter((m) => m.id !== toast.id), { ...toast, id }])
 		return id

@@ -315,6 +315,9 @@ export function intersectPolygonPolygon(polygonA: VecLike[], polygonB: VecLike[]
 // @public
 export function isAngleBetween(a: number, b: number, c: number): boolean;
 
+// @public
+export const isSafeFloat: (n: number) => boolean;
+
 // @public (undocumented)
 export function isSelectionCorner(selection: string): selection is SelectionCorner;
 
@@ -630,6 +633,9 @@ export const TAU: number;
 
 // @public
 export function toDomPrecision(v: number): number;
+
+// @public (undocumented)
+export function toFixed(v: number): number;
 
 // @public
 export function toPrecision(n: number, precision?: number): number;

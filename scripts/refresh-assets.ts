@@ -9,6 +9,7 @@ import {
 	writeJsonFile,
 	writeStringFile,
 } from './lib/file'
+import { nicelog } from './lib/nicelog'
 
 // We'll need to copy the assets into these folders
 const PUBLIC_FOLDER_PATHS = [join(BUBLIC_ROOT, 'packages', 'assets')]
@@ -84,7 +85,7 @@ async function copyIcons() {
 			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(' | ')}
 
 		/** @public */
-		export const TLUiIconTypes = [
+		export const iconTypes = [
 			${icons.map((icon) => JSON.stringify(icon.replace('.svg', ''))).join(', ')}
 		] as const`
 
@@ -166,7 +167,7 @@ async function copyFonts() {
 		const itemWithoutExtension = item.replace(extension, '')
 		const name = FONT_MAPPING[itemWithoutExtension]
 		if (!name) {
-			console.log('Font mapping not found for', itemWithoutExtension)
+			nicelog('Font mapping not found for', itemWithoutExtension)
 			process.exit(1)
 		}
 		collectedAssetUrls.fonts[name] = `${folderName}/${item}`
@@ -203,15 +204,13 @@ async function copyTranslations() {
 	const uiPath = join(BUBLIC_ROOT, 'packages', 'ui', 'src', 'lib', 'hooks', 'useTranslation')
 
 	// languages.ts
+
 	const languagesSource = await readJsonIfExists(join(sourceFolderPath, 'languages.json'))!
-	const languagesFilePath = join(uiPath, 'languages.ts')
 	const languagesFile = `
 		/** @public */
 		export const LANGUAGES = ${JSON.stringify(languagesSource)} as const
 	`
-	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', languagesFilePath, languagesFile)
-
-	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src')
+	const schemaPath = join(BUBLIC_ROOT, 'packages', 'tlschema', 'src', 'translations')
 	const schemaLanguagesFilePath = join(schemaPath, 'languages.ts')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
@@ -238,10 +237,10 @@ async function copyTranslations() {
 	// translationKeys.ts
 
 	const translationKeys = Object.keys(defaultTranslation).map((key) => `'${key}'`)
-	const translationKeysFilePath = join(uiPath, 'TLTranslationKey.ts')
+	const translationKeysFilePath = join(uiPath, 'TLUiTranslationKey.ts')
 	const translationKeysFile = `
 		/** @public */
-		export type TLTranslationKey = ${translationKeys.join(' | ')}
+		export type TLUiTranslationKey = ${translationKeys.join(' | ')}
 	`
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
@@ -257,40 +256,14 @@ async function copyTranslations() {
 	}
 }
 
-const assetDeclarationFileCommon = `
-	/** @typedef {string | { src: string }} AssetUrl */
-	/** @typedef {{ baseUrl?: string } | ((assetUrl: string) => string)} AssetUrlOptions */
-
-	/**
-	 * @param {AssetUrl} assetUrl
-	 * @param {AssetUrlOptions} [format]
-	 * @returns {string}
-	 */
-	function formatAssetUrl(assetUrl, format = {}) {
-		const assetUrlString = typeof assetUrl === 'string' ? assetUrl : assetUrl.src
-
-		if (typeof format === 'function') return format(assetUrlString)
-
-		const { baseUrl = '' } = format
-
-		if (assetUrlString.startsWith('data:')) return assetUrlString
-		if (assetUrlString.match(/^https?:\\/\\//)) return assetUrlString
-
-		return \`\${baseUrl.replace(/\\/$/, '')}/\${assetUrlString.replace(/^\\.?\\//, '')}\`
-	}
-`
-
 // 4. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'urls.js')
-	let assetDeclarationFile = `
+	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'urls.js')
+	const codeFile = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
+		import { formatAssetUrl } from './utils.js'
 
-		${assetDeclarationFileCommon}
-	`
-
-	assetDeclarationFile += `
 		/**
 		 * @param {AssetUrlOptions} [opts]
 		 * @public
@@ -313,24 +286,18 @@ async function writeUrlBasedAssetDeclarationFile() {
 		}
 	`
 
-	await writeCodeFile(
-		'scripts/refresh-assets.ts',
-		'javascript',
-		assetDeclarationFilePath,
-		assetDeclarationFile
-	)
-
-	await writeAssetDeclarationDTSFile('urls', 'getAssetUrlsByMetaUrl')
+	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile)
 }
+
 async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 	let imports = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
+		import { formatAssetUrl } from './utils.js'
+
 	`
 
 	let declarations = `
-		${assetDeclarationFileCommon}
-		
 		/**
 		 * @param {AssetUrlOptions} [opts]
 		 * @public
@@ -357,23 +324,50 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 		}
 	`
 
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'imports.js')
+	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'imports.js')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'javascript',
-		assetDeclarationFilePath,
+		codeFilePath,
 		imports + declarations
 	)
-
-	await writeAssetDeclarationDTSFile('imports', 'getAssetUrlsByImport')
 }
 
-async function writeAssetDeclarationDTSFile(fileName: string, functionName: string) {
-	let dts = `
-		type AssetUrl = string | { src: string }
-		type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
+async function writeSelfHostedAssetDeclarationFile(): Promise<void> {
+	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'selfHosted.js')
+	const codeFile = `
+		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
+		/// <reference path="./modules.d.ts" />
+		import { formatAssetUrl } from './utils.js'
 
-		export function ${functionName}(opts?: AssetUrlOptions): {
+		/**
+		 * @param {AssetUrlOptions} [opts]
+		 * @public
+		 */
+		export function getAssetUrls(opts) {
+			return {
+				${Object.entries(collectedAssetUrls)
+					.flatMap(([type, assets]) => [
+						`${type}: {`,
+						...Object.entries(assets).map(
+							([name, href]) =>
+								`${JSON.stringify(name)}: formatAssetUrl(${JSON.stringify('./' + href)}, opts),`
+						),
+						'},',
+					])
+					.join('\n')}
+			}
+		}
+	`
+
+	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile)
+}
+
+async function writeAssetDeclarationDTSFile() {
+	let dts = `
+		export type AssetUrl = string | { src: string }
+		export type AssetUrlOptions = { baseUrl?: string } | ((assetUrl: string) => string)
+		export type AssetUrls = {
 	`
 
 	for (const [type, assets] of Object.entries(collectedAssetUrls)) {
@@ -388,24 +382,26 @@ async function writeAssetDeclarationDTSFile(fileName: string, functionName: stri
 		}
 	`
 
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', `${fileName}.d.ts`)
+	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'types.d.ts')
 	await writeCodeFile('scripts/refresh-assets.ts', 'typescript', assetDeclarationFilePath, dts)
 }
 
 // --- RUN
 async function main() {
-	console.log('Copying icons...')
+	nicelog('Copying icons...')
 	await copyIcons()
-	console.log('Copying embed icons...')
+	nicelog('Copying embed icons...')
 	await copyEmbedIcons()
-	console.log('Copying fonts...')
+	nicelog('Copying fonts...')
 	await copyFonts()
-	console.log('Copying translations...')
+	nicelog('Copying translations...')
 	await copyTranslations()
-	console.log('Writing asset declaration file...')
+	nicelog('Writing asset declaration file...')
+	await writeAssetDeclarationDTSFile()
 	await writeUrlBasedAssetDeclarationFile()
 	await writeImportBasedAssetDeclarationFile()
-	console.log('Done!')
+	await writeSelfHostedAssetDeclarationFile()
+	nicelog('Done!')
 }
 
 main()

@@ -1,4 +1,14 @@
-import { App, debugFlags, hardResetApp, TLShapePartial, uniqueId, useApp } from '@tldraw/editor'
+import {
+	createShapeId,
+	DebugFlag,
+	debugFlags,
+	Editor,
+	featureFlags,
+	hardResetEditor,
+	TLShapePartial,
+	uniqueId,
+	useEditor,
+} from '@tldraw/editor'
 import * as React from 'react'
 import { track, useValue } from 'signia-react'
 import { useDialogs } from '../hooks/useDialogsProvider'
@@ -10,26 +20,26 @@ import * as DropdownMenu from './primitives/DropdownMenu'
 
 let t = 0
 
-function createNShapes(app: App, n: number) {
+function createNShapes(editor: Editor, n: number) {
 	const shapesToCreate: TLShapePartial[] = Array(n)
 	const cols = Math.floor(Math.sqrt(n))
 
 	for (let i = 0; i < n; i++) {
 		t++
 		shapesToCreate[i] = {
-			id: app.createShapeId('box' + t),
+			id: createShapeId('box' + t),
 			type: 'geo',
 			x: (i % cols) * 132,
 			y: Math.floor(i / cols) * 132,
 		}
 	}
 
-	app.batch(() => {
-		app.createShapes(shapesToCreate).setSelectedIds(shapesToCreate.map((s) => s.id))
+	editor.batch(() => {
+		editor.createShapes(shapesToCreate).setSelectedIds(shapesToCreate.map((s) => s.id))
 	})
 }
 
-/** @public */
+/** @internal */
 export const DebugPanel = React.memo(function DebugPanel({
 	renderDebugMenuItems,
 }: {
@@ -53,23 +63,23 @@ export const DebugPanel = React.memo(function DebugPanel({
 })
 
 const CurrentState = track(function CurrentState() {
-	const app = useApp()
-	return <div className="tlui-debug-panel__current-state">{app.root.path.value}</div>
+	const editor = useEditor()
+	return <div className="tlui-debug-panel__current-state">{editor.root.path.value}</div>
 })
 
 const ShapeCount = function ShapeCount() {
-	const app = useApp()
-	const count = useValue('rendering shapes count', () => app.renderingShapes.length, [app])
+	const editor = useEditor()
+	const count = useValue('rendering shapes count', () => editor.renderingShapes.length, [editor])
 
 	return <div>{count} Shapes</div>
 }
 
-function DebugMenuContent({
+const DebugMenuContent = track(function DebugMenuContent({
 	renderDebugMenuItems,
 }: {
 	renderDebugMenuItems: (() => React.ReactNode) | null
 }) {
-	const app = useApp()
+	const editor = useEditor()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 
@@ -87,7 +97,7 @@ function DebugMenuContent({
 							// icon?: string
 							// title?: string
 							// description?: string
-							// actions?: TLToastAction[]
+							// actions?: TLUiToastAction[]
 						})
 					}}
 				>
@@ -116,7 +126,7 @@ function DebugMenuContent({
 				>
 					<span>Show dialog</span>
 				</DropdownMenu.Item>
-				<DropdownMenu.Item onClick={() => createNShapes(app, 100)}>
+				<DropdownMenu.Item onClick={() => createNShapes(editor, 100)}>
 					<span>Create 100 shapes</span>
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
@@ -131,9 +141,9 @@ function DebugMenuContent({
 							return count
 						}
 
-						const { selectedShapes } = app
+						const { selectedShapes } = editor
 
-						const shapes = selectedShapes.length === 0 ? app.renderingShapes : selectedShapes
+						const shapes = selectedShapes.length === 0 ? editor.renderingShapes : selectedShapes
 
 						const elms = shapes.map(
 							(shape) => (document.getElementById(shape.id) as HTMLElement)!.parentElement!
@@ -151,36 +161,6 @@ function DebugMenuContent({
 					<span>Count shapes and nodes</span>
 				</DropdownMenu.Item>
 
-				<DropdownMenu.Item
-					onClick={() => {
-						if (!debugFlags.debugCursors.value) {
-							debugFlags.debugCursors.set(true)
-
-							const MAX_COLUMNS = 5
-							const partials = CURSOR_NAMES.map((name, i) => {
-								return {
-									id: app.createShapeId(),
-									type: 'geo',
-									x: (i % MAX_COLUMNS) * 175,
-									y: Math.floor(i / MAX_COLUMNS) * 175,
-									props: {
-										text: name,
-										w: 150,
-										h: 150,
-										fill: 'semi',
-									},
-								}
-							})
-
-							app.createShapes(partials)
-						} else {
-							debugFlags.debugCursors.set(false)
-						}
-					}}
-				>
-					<span>{debugFlags.debugCursors.value ? 'Debug cursors ✓' : 'Debug cursors'}</span>
-				</DropdownMenu.Item>
-
 				{(() => {
 					if (error) throw Error('oh no!')
 				})()}
@@ -193,34 +173,91 @@ function DebugMenuContent({
 				</DropdownMenu.Item>
 				<DropdownMenu.Item
 					onClick={() => {
-						hardResetApp()
+						hardResetEditor()
 					}}
 				>
 					<span>Hard reset</span>
 				</DropdownMenu.Item>
 			</DropdownMenu.Group>
 			<DropdownMenu.Group>
-				<DropdownMenu.Item
-					onClick={() => {
-						debugFlags.peopleMenu.set(!debugFlags.peopleMenu.value)
-						window.location.reload()
+				<Toggle
+					label="Read-only"
+					value={editor.isReadOnly}
+					onChange={(r) => editor.setReadOnly(r)}
+				/>
+				<DebugFlagToggle flag={debugFlags.debugSvg} />
+				<DebugFlagToggle flag={debugFlags.forceSrgb} />
+				<DebugFlagToggle
+					flag={debugFlags.debugCursors}
+					onChange={(enabled) => {
+						if (enabled) {
+							const MAX_COLUMNS = 5
+							const partials = CURSOR_NAMES.map((name, i) => {
+								return {
+									id: createShapeId(),
+									type: 'geo',
+									x: (i % MAX_COLUMNS) * 175,
+									y: Math.floor(i / MAX_COLUMNS) * 175,
+									props: {
+										text: name,
+										w: 150,
+										h: 150,
+										fill: 'semi',
+									},
+								}
+							})
+
+							editor.createShapes(partials)
+						}
 					}}
-				>
-					<span>Toggle people menu</span>
-				</DropdownMenu.Item>
-				<DropdownMenu.Item
-					onClick={() => {
-						// We need to do this manually because `updateUserDocumentSettings` does not allow toggling `isReadOnly`)
-						app.setReadOnly(!app.isReadOnly)
-					}}
-				>
-					<span>Toggle read-only</span>
-				</DropdownMenu.Item>
+				/>
+			</DropdownMenu.Group>
+			<DropdownMenu.Group>
+				{Object.values(featureFlags).map((flag) => {
+					return <DebugFlagToggle key={flag.name} flag={flag} />
+				})}
 			</DropdownMenu.Group>
 			{renderDebugMenuItems?.()}
 		</>
 	)
+})
+
+function Toggle({
+	label,
+	value,
+	onChange,
+}: {
+	label: string
+	value: boolean
+	onChange: (newValue: boolean) => void
+}) {
+	return (
+		<DropdownMenu.CheckboxItem title={label} checked={value} onSelect={() => onChange(!value)}>
+			{label}
+		</DropdownMenu.CheckboxItem>
+	)
 }
+
+const DebugFlagToggle = track(function DebugFlagToggle({
+	flag,
+	onChange,
+}: {
+	flag: DebugFlag<boolean>
+	onChange?: (newValue: boolean) => void
+}) {
+	return (
+		<Toggle
+			label={flag.name
+				.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
+				.replace(/^[a-z]/, (m) => m.toUpperCase())}
+			value={flag.value}
+			onChange={(newValue) => {
+				flag.set(newValue)
+				onChange?.(newValue)
+			}}
+		/>
+	)
+})
 
 const CURSOR_NAMES = [
 	'none',
@@ -231,13 +268,10 @@ const CURSOR_NAMES = [
 	'grab',
 	'grabbing',
 	'text',
-	'resize-edge',
-	'resize-corner',
 	'ew-resize',
 	'ns-resize',
 	'nesw-resize',
 	'nwse-resize',
-	'rotate',
 	'nwse-rotate',
 	'nesw-rotate',
 	'senw-rotate',

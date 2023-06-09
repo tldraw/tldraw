@@ -1,6 +1,6 @@
-import { TestApp } from '../TestApp'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 // Heads up! App no longer has a `setScreenBounds` method, but the test app does.
 // This is a good way for us to test changes to the `updateViewportPageBounds`
@@ -8,16 +8,16 @@ let app: TestApp
 // eventually push to e2e tests.
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 	// Trigger the initial bounds so that later bounds
 	// can force a resize.
-	app.setScreenBounds({ x: 0, y: 0, w: 1080, h: 720 })
+	editor.setScreenBounds({ x: 0, y: 0, w: 1080, h: 720 })
 })
 
 describe('When resizing', () => {
-	it('sets the viewport bounds with App.resize', () => {
-		app.setScreenBounds({ x: 100, y: 200, w: 700, h: 600 })
-		expect(app.viewportScreenBounds).toMatchObject({
+	it('sets the viewport bounds with Editor.resize', () => {
+		editor.setScreenBounds({ x: 100, y: 200, w: 700, h: 600 })
+		expect(editor.viewportScreenBounds).toMatchObject({
 			x: 0,
 			y: 0,
 			w: 700,
@@ -26,11 +26,11 @@ describe('When resizing', () => {
 	})
 
 	it('updates the viewport as an ephemeral change', () => {
-		app.setScreenBounds({ x: 100, y: 200, w: 700, h: 600 })
+		editor.setScreenBounds({ x: 100, y: 200, w: 700, h: 600 })
 
-		app.undo() // this should have no effect
+		editor.undo() // this should have no effect
 
-		expect(app.viewportScreenBounds).toMatchObject({
+		expect(editor.viewportScreenBounds).toMatchObject({
 			x: 0,
 			y: 0,
 			w: 700,
@@ -39,8 +39,8 @@ describe('When resizing', () => {
 	})
 
 	it('clamps bounds to minimim 0,0,1,1', () => {
-		app.setScreenBounds({ x: -100, y: -200, w: -700, h: 0 })
-		expect(app.viewportScreenBounds).toMatchObject({
+		editor.setScreenBounds({ x: -100, y: -200, w: -700, h: 0 })
+		expect(editor.viewportScreenBounds).toMatchObject({
 			x: 0,
 			y: 0,
 			w: 1,
@@ -51,42 +51,42 @@ describe('When resizing', () => {
 
 describe('When center is false', () => {
 	it('keeps the same top left when resized', () => {
-		const a = app.screenToPage(0, 0)
-		app.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, false)
-		const b = app.screenToPage(0, 0)
+		const a = editor.screenToPage(0, 0)
+		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, false)
+		const b = editor.screenToPage(0, 0)
 		expect(a).toMatchObject(b)
 	})
 
 	it('keeps the same top left when resized while panned / zoomed', () => {
-		app.setCamera(-100, -100, 1.2)
-		const a = app.screenToPage(0, 0)
-		app.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, false)
-		const b = app.screenToPage(0, 0)
+		editor.setCamera(-100, -100, 1.2)
+		const a = editor.screenToPage(0, 0)
+		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, false)
+		const b = editor.screenToPage(0, 0)
 		expect(a).toMatchObject(b)
 	})
 })
 
 describe('When center is true', () => {
 	it('keep the same page center when resized', () => {
-		const a = app.viewportPageCenter.toJson()
-		app.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, true)
-		const b = app.viewportPageCenter.toJson()
+		const a = editor.viewportPageCenter.toJson()
+		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, true)
+		const b = editor.viewportPageCenter.toJson()
 		expect(a).toMatchObject(b)
 	})
 
 	it('keep the same page center when resized while panned / zoomed', () => {
-		app.setCamera(-100, -100, 1.2)
-		const a = app.viewportPageCenter.toJson()
-		app.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, true)
-		const b = app.viewportPageCenter.toJson()
+		editor.setCamera(-100, -100, 1.2)
+		const a = editor.viewportPageCenter.toJson()
+		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, true)
+		const b = editor.viewportPageCenter.toJson()
 		expect(a).toMatchObject(b)
 	})
 })
 
 test("if nothing changes it doesn't update the store", () => {
-	const originalScreenBounds = app.instanceState.screenBounds
-	app.setScreenBounds(originalScreenBounds, true)
-	expect(app.instanceState.screenBounds).toBe(originalScreenBounds)
-	app.setScreenBounds({ ...originalScreenBounds }, true)
-	expect(app.instanceState.screenBounds).toBe(originalScreenBounds)
+	const originalScreenBounds = editor.instanceState.screenBounds
+	editor.setScreenBounds(originalScreenBounds, true)
+	expect(editor.instanceState.screenBounds).toBe(originalScreenBounds)
+	editor.setScreenBounds({ ...originalScreenBounds }, true)
+	expect(editor.instanceState.screenBounds).toBe(originalScreenBounds)
 })

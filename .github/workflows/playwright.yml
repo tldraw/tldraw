@@ -1,0 +1,56 @@
+name: End to end tests
+
+on:
+  pull_request:
+  merge_group:
+  push:
+    branches: [main]
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: 'End to end tests'
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-open # TODO: this should probably run on multiple OSes
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: 'public-yarn.lock'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build all projects
+        # the sed pipe makes sure that github annotations come through without
+        # turbo's prefix
+        run: "yarn build | sed -E 's/^.*? ::/::/'"
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright tests
+        run: yarn e2e
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30

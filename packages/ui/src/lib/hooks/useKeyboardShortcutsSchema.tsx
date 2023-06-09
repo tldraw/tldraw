@@ -1,39 +1,39 @@
-import { App, useApp } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
-import { MenuSchema, menuGroup, menuItem } from './menuHelpers'
-import { ActionsContextType, useActions } from './useActions'
-import { ToolsContextType, useTools } from './useTools'
+import { TLUiMenuSchema, menuGroup, menuItem } from './menuHelpers'
+import { TLUiActionsContextType, useActions } from './useActions'
+import { TLUiToolsContextType, useTools } from './useTools'
 
 /** @public */
-export type KeyboardShortcutsSchemaContextType = MenuSchema
+export type TLUiKeyboardShortcutsSchemaContextType = TLUiMenuSchema
 
-/** @public */
+/** @internal */
 export const KeyboardShortcutsSchemaContext = React.createContext(
-	{} as KeyboardShortcutsSchemaContextType
+	{} as TLUiKeyboardShortcutsSchemaContextType
 )
 
 /** @public */
-export type KeyboardShortcutsSchemaProviderProps = {
+export type TLUiKeyboardShortcutsSchemaProviderProps = {
 	overrides?: (
-		app: App,
-		schema: KeyboardShortcutsSchemaContextType,
-		more: { tools: ToolsContextType; actions: ActionsContextType }
-	) => KeyboardShortcutsSchemaContextType
+		editor: Editor,
+		schema: TLUiKeyboardShortcutsSchemaContextType,
+		more: { tools: TLUiToolsContextType; actions: TLUiActionsContextType }
+	) => TLUiKeyboardShortcutsSchemaContextType
 	children: any
 }
 
-/** @public */
+/** @internal */
 export const KeyboardShortcutsSchemaProvider = track(function KeyboardShortcutsSchemaProvider({
 	overrides,
 	children,
-}: KeyboardShortcutsSchemaProviderProps) {
-	const app = useApp()
+}: TLUiKeyboardShortcutsSchemaProviderProps) {
+	const editor = useEditor()
 	const tools = useTools()
 	const actions = useActions()
 
-	const keyboardShortcutsSchema = useMemo<MenuSchema>(() => {
+	const keyboardShortcutsSchema = useMemo<TLUiMenuSchema>(() => {
 		const keyboardShortcutsSchema = compact([
 			menuGroup(
 				'shortcuts-dialog.tools',
@@ -48,7 +48,8 @@ export const KeyboardShortcutsSchemaProvider = track(function KeyboardShortcutsS
 				menuItem(tools['line']),
 				menuItem(tools['text']),
 				menuItem(tools['frame']),
-				menuItem(tools['note'])
+				menuItem(tools['note']),
+				menuItem(tools['laser'])
 			),
 			menuGroup(
 				'shortcuts-dialog.file',
@@ -103,11 +104,11 @@ export const KeyboardShortcutsSchemaProvider = track(function KeyboardShortcutsS
 		])
 
 		if (overrides) {
-			return overrides(app, keyboardShortcutsSchema, { tools, actions })
+			return overrides(editor, keyboardShortcutsSchema, { tools, actions })
 		}
 
 		return keyboardShortcutsSchema
-	}, [app, overrides, actions, tools])
+	}, [editor, overrides, actions, tools])
 
 	return (
 		<KeyboardShortcutsSchemaContext.Provider value={keyboardShortcutsSchema}>
@@ -117,7 +118,7 @@ export const KeyboardShortcutsSchemaProvider = track(function KeyboardShortcutsS
 })
 
 /** @public */
-export function useKeyboardShortcutsSchema(): KeyboardShortcutsSchemaContextType {
+export function useKeyboardShortcutsSchema(): TLUiKeyboardShortcutsSchemaContextType {
 	const ctx = React.useContext(KeyboardShortcutsSchemaContext)
 
 	if (!ctx) {

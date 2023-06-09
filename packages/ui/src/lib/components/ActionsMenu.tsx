@@ -1,7 +1,7 @@
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
-import { MenuChild } from '../hooks/menuHelpers'
+import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useActionsMenuSchema } from '../hooks/useActionsMenuSchema'
 import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -15,7 +15,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 	const menuSchema = useActionsMenuSchema()
 	const isReadonly = useReadonly()
 
-	function getActionMenuItem(item: MenuChild) {
+	function getActionMenuItem(item: TLUiMenuChild) {
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {
@@ -26,7 +26,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 					<Button
 						key={id}
 						className="tlui-button-grid__button"
-						data-wd={`menu-item.${item.id}`}
+						data-testid={`menu-item.${item.id}`}
 						icon={icon}
 						title={
 							label
@@ -50,7 +50,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 			<PopoverTrigger>
 				<Button
 					className="tlui-menu__trigger"
-					data-wd="main.action-menu"
+					data-testid="main.action-menu"
 					icon="dots-vertical"
 					title={msg('actions-menu.title')}
 					smallIcon

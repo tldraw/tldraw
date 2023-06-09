@@ -1,13 +1,11 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
+import { defineMigrations } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { assetIdValidator } from '../assets/TLBaseAsset'
 import { TLAssetId } from '../records/TLAsset'
-import { TLOpacityType } from '../style-types'
-import { assetIdValidator, opacityValidator } from '../validation'
-import { TLBaseShape, createShapeValidator } from './shape-validation'
+import { TLBaseShape, createShapeValidator } from './TLBaseShape'
 
 /** @public */
 export type TLVideoShapeProps = {
-	opacity: TLOpacityType
 	w: number
 	h: number
 	time: number
@@ -19,11 +17,10 @@ export type TLVideoShapeProps = {
 /** @public */
 export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
 
-/** @public */
-export const videoShapeTypeValidator: T.Validator<TLVideoShape> = createShapeValidator(
+/** @internal */
+export const videoShapeValidator: T.Validator<TLVideoShape> = createShapeValidator(
 	'video',
 	T.object({
-		opacity: opacityValidator,
 		w: T.nonZeroNumber,
 		h: T.nonZeroNumber,
 		time: T.number,
@@ -37,8 +34,8 @@ const Versions = {
 	AddUrlProp: 1,
 } as const
 
-/** @public */
-export const videoShapeTypeMigrations = defineMigrations({
+/** @internal */
+export const videoShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddUrlProp,
 	migrators: {
 		[Versions.AddUrlProp]: {
