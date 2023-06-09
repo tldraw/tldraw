@@ -1,5 +1,4 @@
 import React, { useMemo } from 'react'
-import { createShapesFromFiles } from '../utils/assets'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 import { useEditor } from './useEditor'
@@ -107,7 +106,12 @@ export function useCanvasEvents() {
 					(file) => !file.name.endsWith('.tldr')
 				)
 
-				await createShapesFromFiles(editor, files, editor.screenToPage(e.clientX, e.clientY), false)
+				await editor.putExternalContent({
+					type: 'files',
+					files,
+					point: editor.screenToPage(e.clientX, e.clientY),
+					ignoreParent: false,
+				})
 			}
 
 			return {

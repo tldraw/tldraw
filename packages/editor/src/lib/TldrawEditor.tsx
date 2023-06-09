@@ -1,5 +1,5 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
-import { TLAsset, TLRecord, TLStore } from '@tldraw/tlschema'
+import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { RecursivePartial, annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './assetUrls'
@@ -48,6 +48,7 @@ export type TldrawEditorProps = {
 	 * Overrides for the tldraw user interface components.
 	 */
 	components?: Partial<TLEditorComponents>
+
 	/**
 	 * Called when the editor has mounted.
 	 *
@@ -61,40 +62,7 @@ export type TldrawEditorProps = {
 	 *
 	 * @param editor - The editor instance.
 	 */
-	onMount?: (editor: Editor) => void
-	/**
-	 * Called when the editor generates a new asset from a file, such as when an image is dropped into
-	 * the canvas.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * const editor = new App({
-	 * 	onCreateAssetFromFile: (file) => uploadFileAndCreateAsset(file),
-	 * })
-	 * ```
-	 *
-	 * @param file - The file to generate an asset from.
-	 * @param id - The id to be assigned to the resulting asset.
-	 */
-	onCreateAssetFromFile?: (file: File) => Promise<TLAsset>
-
-	/**
-	 * Called when a URL is converted to a bookmark. This callback should return the metadata for the
-	 * bookmark.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * editor.onCreateBookmarkFromUrl(url, id)
-	 * ```
-	 *
-	 * @param url - The url that was created.
-	 * @public
-	 */
-	onCreateBookmarkFromUrl?: (
-		url: string
-	) => Promise<{ image: string; title: string; description: string }>
+	onMount?: (editor: Editor) => (() => void) | undefined | void
 } & (
 	| {
 			/**
@@ -234,8 +202,6 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 function TldrawEditorWithReadyStore({
 	onMount,
 	children,
-	onCreateAssetFromFile,
-	onCreateBookmarkFromUrl,
 	store,
 	tools,
 	shapes,
@@ -257,36 +223,25 @@ function TldrawEditorWithReadyStore({
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		setEditor(editor)
+
 		return () => {
 			editor.dispose()
 		}
 	}, [container, shapes, tools, store])
-
-	React.useEffect(() => {
-		if (!editor) return
-
-		// Overwrite the default onCreateAssetFromFile handler.
-		if (onCreateAssetFromFile) {
-			editor.onCreateAssetFromFile = onCreateAssetFromFile
-		}
-
-		if (onCreateBookmarkFromUrl) {
-			editor.onCreateBookmarkFromUrl = onCreateBookmarkFromUrl
-		}
-	}, [editor, onCreateAssetFromFile, onCreateBookmarkFromUrl])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()
 	}, [editor, autoFocus])
 
 	const onMountEvent = useEvent((editor: Editor) => {
-		onMount?.(editor)
+		const teardown = onMount?.(editor)
 		editor.emit('mount')
 		window.tldrawReady = true
+		return teardown
 	})
 
-	React.useEffect(() => {
-		if (editor) onMountEvent(editor)
+	React.useLayoutEffect(() => {
+		if (editor) return onMountEvent?.(editor)
 	}, [editor, onMountEvent])
 
 	const crashingError = useSyncExternalStore(
