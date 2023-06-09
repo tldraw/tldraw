@@ -258,8 +258,8 @@ async function copyTranslations() {
 
 // 4. ASSET DECLARATION FILES
 async function writeUrlBasedAssetDeclarationFile() {
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'urls.js')
-	const assetDeclarationFile = `
+	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'urls.js')
+	const codeFile = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
 		import { formatAssetUrl } from './utils.js'
@@ -286,12 +286,7 @@ async function writeUrlBasedAssetDeclarationFile() {
 		}
 	`
 
-	await writeCodeFile(
-		'scripts/refresh-assets.ts',
-		'javascript',
-		assetDeclarationFilePath,
-		assetDeclarationFile
-	)
+	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile)
 }
 
 async function writeImportBasedAssetDeclarationFile(): Promise<void> {
@@ -329,18 +324,18 @@ async function writeImportBasedAssetDeclarationFile(): Promise<void> {
 		}
 	`
 
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'imports.js')
+	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'imports.js')
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'javascript',
-		assetDeclarationFilePath,
+		codeFilePath,
 		imports + declarations
 	)
 }
 
 async function writeSelfManagedAssetDeclarationFile(): Promise<void> {
-	const assetDeclarationFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'selfManaged.js')
-	const assetDeclarationFile = `
+	const codeFilePath = join(BUBLIC_ROOT, 'packages', 'assets', 'selfManaged.js')
+	const codeFile = `
 		// eslint-disable-next-line @typescript-eslint/triple-slash-reference
 		/// <reference path="./modules.d.ts" />
 		import { formatAssetUrl } from './utils.js'
@@ -365,12 +360,7 @@ async function writeSelfManagedAssetDeclarationFile(): Promise<void> {
 		}
 	`
 
-	await writeCodeFile(
-		'scripts/refresh-assets.ts',
-		'javascript',
-		assetDeclarationFilePath,
-		assetDeclarationFile
-	)
+	await writeCodeFile('scripts/refresh-assets.ts', 'javascript', codeFilePath, codeFile)
 }
 
 async function writeAssetDeclarationDTSFile() {
