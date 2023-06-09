@@ -1008,7 +1008,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!withIndices) return EMPTY_ARRAY
 		return this._childIdsCache.get(withIndices, () => withIndices.map(([id]) => id))
 	}
-
 	/**
 	 * Run a visitor function for all descendants of a shape.
 	 *
@@ -2134,7 +2133,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return acc
 		}
 
-		const parent = this.store.get(parentId)!
+		const parent = this.store.get(parentId)
+		if (!parent) return acc
 		acc.push(parent)
 		return this.getAncestors(parent, acc)
 	}
@@ -2152,7 +2152,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getAncestorsById(id: TLShapeId, acc: TLShape[] = []): TLShape[] {
-		const shape = this.getShapeById(id)!
+		const shape = this.getShapeById(id)
+		if (!shape) return acc
 		return this.getAncestors(shape, acc)
 	}
 
@@ -4696,6 +4697,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							partial.x = point.x
 							partial.y = point.y
 							partial.rotation = -this.getPageRotationById(parentId) + (partial.rotation ?? 0)
+						}
+						// a shape cannot be it's own parent. This was a rare issue with frames/groups in the syncFuzz tests.
+						if (partial.parentId === partial.id) {
+							partial.parentId = focusLayerId
 						}
 						return partial
 					}
