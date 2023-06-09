@@ -166,11 +166,11 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapes: AnyTLShapeInfo[]
+	shapes: readonly AnyTLShapeInfo[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
-	tools?: TLStateNodeConstructor[]
+	tools?: readonly TLStateNodeConstructor[]
 	/**
 	 * A user defined externally to replace the default user.
 	 */

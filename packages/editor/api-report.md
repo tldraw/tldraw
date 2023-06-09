@@ -301,7 +301,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: (TLShapeInfo<TLArrowShape> | TLShapeInfo<TLDrawShape> | TLShapeInfo<TLFrameShape> | TLShapeInfo<TLGeoShape> | TLShapeInfo<TLHighlightShape> | TLShapeInfo<TLLineShape> | TLShapeInfo<TLNoteShape> | TLShapeInfo<TLVideoShape>)[];
+export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>, TLShapeInfo<TLVideoShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -2197,8 +2197,8 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public (undocumented)
 export type TldrawEditorProps = {
     children?: any;
-    shapes?: AnyTLShapeInfo[];
-    tools?: TLStateNodeConstructor[];
+    shapes?: readonly AnyTLShapeInfo[];
+    tools?: readonly TLStateNodeConstructor[];
     assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
@@ -2266,9 +2266,9 @@ export interface TLEditorComponents {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
-    shapes: AnyTLShapeInfo[];
+    shapes: readonly AnyTLShapeInfo[];
     store: TLStore;
-    tools?: TLStateNodeConstructor[];
+    tools?: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
 
@@ -2639,10 +2639,13 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
 export type TLStoreOptions = {
-    customShapes?: Record<string, TLShapeInfo>;
     initialData?: StoreSnapshot<TLRecord>;
     defaultName?: string;
-};
+} & ({
+    schema: StoreSchema<TLRecord, TLStoreProps>;
+} | {
+    shapes: readonly AnyTLShapeInfo[];
+});
 
 // @public (undocumented)
 export type TLStoreWithStatus = {

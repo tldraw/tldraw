@@ -1,4 +1,4 @@
-import { TLStoreWithStatus, createTLStore } from '@tldraw/tldraw'
+import { TLStoreWithStatus, createTLStore, defaultShapes } from '@tldraw/tldraw'
 import { useEffect, useState } from 'react'
 import {
 	initializeStoreFromYjsDoc,
@@ -14,7 +14,7 @@ export function useYjsStore() {
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({ status: 'loading' })
 
 	useEffect(() => {
-		const store = createTLStore()
+		const store = createTLStore({ shapes: defaultShapes })
 		initializeStoreFromYjsDoc(store)
 		syncYjsDocChangesToStore(store)
 		syncStoreChangesToYjsDoc(store)

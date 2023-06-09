@@ -32,11 +32,11 @@ export type TldrawEditorProps = {
 	/**
 	 * An array of shape utils to use in the editor.
 	 */
-	shapes?: AnyTLShapeInfo[]
+	shapes?: readonly AnyTLShapeInfo[]
 	/**
 	 * An array of tools to use in the editor.
 	 */
-	tools?: TLStateNodeConstructor[]
+	tools?: readonly TLStateNodeConstructor[]
 	/**
 	 * Urls for where to find fonts and other assets.
 	 */

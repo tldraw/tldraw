@@ -41,7 +41,6 @@ export {
 } from './lib/config/TLUserPreferences'
 export {
 	createTLStore,
-	type TLShapeInfo,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
 } from './lib/config/createTLStore'

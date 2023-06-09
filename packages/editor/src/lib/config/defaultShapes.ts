@@ -73,7 +73,7 @@ export const coreShapes = [
 		props: textShapeProps,
 		migrations: textShapeMigrations,
 	}),
-]
+] as const
 
 /** @public */
 export const defaultShapes = [
@@ -117,10 +117,10 @@ export const defaultShapes = [
 		props: videoShapeProps,
 		migrations: videoShapeMigrations,
 	}),
-]
+] as const
 
 const coreShapeTypes = new Set<string>(coreShapes.map((s) => s.type))
-export function checkShapesAndAddCore(customShapes: TLShapeInfo[]) {
+export function checkShapesAndAddCore(customShapes: readonly TLShapeInfo[]) {
 	const shapes: AnyTLShapeInfo[] = [...coreShapes]
 
 	const addedCustomShapeTypes = new Set<string>()

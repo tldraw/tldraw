@@ -7,7 +7,7 @@ import { AnyTLShapeInfo, TLShapeInfo } from './defineShape'
 export type TLStoreOptions = {
 	initialData?: StoreSnapshot<TLRecord>
 	defaultName?: string
-} & ({ shapes: AnyTLShapeInfo[] } | { schema: StoreSchema<TLRecord, TLStoreProps> })
+} & ({ shapes: readonly AnyTLShapeInfo[] } | { schema: StoreSchema<TLRecord, TLStoreProps> })
 
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>

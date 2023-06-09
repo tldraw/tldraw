@@ -142,14 +142,14 @@ export function promiseWithResolve<T>(): Promise<T> & {
 // @internal
 export function rafThrottle(fn: () => void): () => void;
 
-// @internal (undocumented)
-type Required_2<T, K extends keyof T> = Identity<Omit<T, K> & _Required<Pick<T, K>>>;
-export { Required_2 as Required }
-
 // @public (undocumented)
 export type RecursivePartial<T> = {
     [P in keyof T]?: RecursivePartial<T[P]>;
 };
+
+// @internal (undocumented)
+type Required_2<T, K extends keyof T> = Identity<Omit<T, K> & _Required<Pick<T, K>>>;
+export { Required_2 as Required }
 
 // @public (undocumented)
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;
