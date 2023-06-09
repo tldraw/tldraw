@@ -3,7 +3,7 @@ import { createRoomContext } from '@liveblocks/react'
 import { TLRecord } from '@tldraw/tldraw'
 
 const client = createClient({
-	publicApiKey: 'pk_dev_2ltpvTYbCviEboUl8ALuIUvA9rmSNUPmNuiiSJILWK7bpOTqVVfiRCK0eg7Unrld',
+	publicApiKey: 'GET_A_KEY_FROM_LIVEBLOCKS_DOT_COM',
 	throttle: 16,
 })
 
