@@ -1,10 +1,18 @@
-import { TLRecord, TLStore, TLStoreEventInfo, uniqueId } from '@tldraw/tldraw'
+import {
+	DocumentRecordType,
+	PageRecordType,
+	TLDocument,
+	TLPageId,
+	TLRecord,
+	TLStore,
+	TLStoreEventInfo,
+	uniqueId,
+} from '@tldraw/tldraw'
 import { WebsocketProvider } from 'y-websocket'
 import * as Y from 'yjs'
-import { EMPTY_ROOM } from './room'
 
 const USER_ID = uniqueId()
-const ROOM_ID = 'tldraw-12'
+const ROOM_ID = 'tldraw-20'
 const HOST_URL =
 	process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev'
 
@@ -21,14 +29,24 @@ export function initializeStoreFromYjsDoc(store: TLStore) {
 	const existingYjsRecords = [...yRecords.values()]
 
 	if (existingYjsRecords.length === 0) {
-		store.loadSnapshot(EMPTY_ROOM)
 		doc.transact(() => {
+			store.clear()
+			store.put([
+				DocumentRecordType.create({
+					id: 'document:document' as TLDocument['id'],
+				}),
+				PageRecordType.create({
+					id: 'page:page' as TLPageId,
+					name: 'Page 1',
+					index: 'a1',
+				}),
+			])
 			store.allRecords().forEach((record) => {
 				yRecords.set(record.id, record)
 			})
 		})
 	} else {
-		store.put(existingYjsRecords)
+		store.put(existingYjsRecords, 'initialize')
 	}
 }
 
