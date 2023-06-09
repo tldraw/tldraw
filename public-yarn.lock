@@ -2805,6 +2805,35 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@liveblocks/client@npm:1.0.12, @liveblocks/client@npm:^1.0.12":
+  version: 1.0.12
+  resolution: "@liveblocks/client@npm:1.0.12"
+  dependencies:
+    "@liveblocks/core": 1.0.12
+  checksum: 4697faf9002e35f816829f47330f1449b01b3147296976bb47bb016d1e96682f8de3ad5743a82cd2e6a6bd8b1e4cf15b5c72d43cb7f2fdb334c5680877213d3d
+  languageName: node
+  linkType: hard
+
+"@liveblocks/core@npm:1.0.12":
+  version: 1.0.12
+  resolution: "@liveblocks/core@npm:1.0.12"
+  checksum: 7e6d76419b3e2ce317c5a88ef80184a3774dc8cdf0c35f0ecdb9e6661ddf9865c81a7b66bdb9784e1b4757d0e010c903812787191a23c831957caeba2016e34a
+  languageName: node
+  linkType: hard
+
+"@liveblocks/react@npm:^1.0.12":
+  version: 1.0.12
+  resolution: "@liveblocks/react@npm:1.0.12"
+  dependencies:
+    "@liveblocks/client": 1.0.12
+    "@liveblocks/core": 1.0.12
+    use-sync-external-store: ^1.2.0
+  peerDependencies:
+    react: ^16.14.0 || ^17 || ^18
+  checksum: 7efc62ad0493fb1cafa3184fe617ac74683873e6343b9868ce370fe2ad70cd29c6837ae27be67622644a9fd81af3ab40d09fb54a3a3faf7ed18d544bd83143e9
+  languageName: node
+  linkType: hard
+
 "@mapbox/node-pre-gyp@npm:^1.0.5":
   version: 1.0.10
   resolution: "@mapbox/node-pre-gyp@npm:1.0.10"
@@ -9579,6 +9608,8 @@ __metadata:
   resolution: "examples.tldraw.com@workspace:apps/examples"
   dependencies:
     "@babel/plugin-proposal-decorators": ^7.21.0
+    "@liveblocks/client": ^1.0.12
+    "@liveblocks/react": ^1.0.12
     "@playwright/test": ^1.34.3
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
@@ -18567,6 +18598,15 @@ __metadata:
     "@types/react":
       optional: true
   checksum: 925d1922f9853e516eaad526b6fed1be38008073067274f0ecc3f56b17bb8ab63480140dd7c271f94150027c996cea4efe83d3e3525e8f3eda22055f6a39220b
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.2.0":
+  version: 1.2.0
+  resolution: "use-sync-external-store@npm:1.2.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0
+  checksum: 5c639e0f8da3521d605f59ce5be9e094ca772bd44a4ce7322b055a6f58eeed8dda3c94cabd90c7a41fb6fa852210092008afe48f7038792fd47501f33299116a
   languageName: node
   linkType: hard
 

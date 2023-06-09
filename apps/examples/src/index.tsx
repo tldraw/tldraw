@@ -24,6 +24,7 @@ import ExampleMultiple from './7-multiple/MultipleExample'
 import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
 import EndToEnd from './end-to-end/end-to-end'
+import LiveblocksExample from './liveblocks/LiveblocksExample'
 import YjsExample from './yjs/YjsExample'
 
 // This example is only used for end to end tests
@@ -107,6 +108,10 @@ export const allExamples: Example[] = [
 	{
 		path: '/yjs',
 		element: <YjsExample />,
+	},
+	{
+		path: '/liveblocks',
+		element: <LiveblocksExample />,
 	},
 ]
 
