@@ -50,7 +50,7 @@ export function getArrowTerminalInArrowSpace(
 	const boundShape = editor.getShapeById(terminal.boundShapeId)
 
 	if (!boundShape) {
-		console.error('Expected a bound shape!')
+		// this can happen in multiplayer contexts where the shape is being deleted
 		return new Vec2d(0, 0)
 	} else {
 		// Find the actual local point of the normalized terminal on
