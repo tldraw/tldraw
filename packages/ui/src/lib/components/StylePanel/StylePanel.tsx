@@ -1,11 +1,12 @@
-import { Editor, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
-import React, { useCallback } from 'react'
+import { Editor, TLFrameShape, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
+import React, { ReactEventHandler, useCallback } from 'react'
 
 import { minBy } from '@tldraw/utils'
-import { useValue } from 'signia-react'
+import { track, useValue } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'
+import { Icon } from '../primitives/Icon'
 import { Slider } from '../primitives/Slider'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
@@ -50,6 +51,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 					<SplineStylePickerSet props={props ?? {}} />
 				</div>
 			)}
+			<FrameShapePropsPicker />
 		</div>
 	)
 }
@@ -94,16 +96,6 @@ function CommonStylePickerSet({
 	)
 
 	const { color, fill, dash, size } = props
-
-	if (
-		color === undefined &&
-		fill === undefined &&
-		dash === undefined &&
-		size === undefined &&
-		opacity === undefined
-	) {
-		return null
-	}
 
 	const showPickers = fill !== undefined || dash !== undefined || size !== undefined
 
@@ -299,3 +291,203 @@ function ArrowheadStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 		/>
 	)
 }
+
+const FrameShapePropsPicker = track(function FrameShapePropsPicker() {
+	const editor = useEditor()
+
+	const handlePresetSelect = useCallback<ReactEventHandler<HTMLSelectElement>>(
+		(e) => {
+			const item = ALL_PRESETS.find((item) => item.id === e.currentTarget.value)
+			if (!item) {
+				console.error(`Could not find a preset for ${e.currentTarget.value}`)
+				return
+			}
+			const { onlySelectedShape } = editor
+			if (!onlySelectedShape) return
+			editor.updateShapes([
+				{
+					id: onlySelectedShape.id,
+					type: onlySelectedShape.type,
+					props: { w: item.width, h: item.height },
+				},
+			])
+		},
+		[editor]
+	)
+
+	const handleUpdate = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			const { prop } = e.currentTarget.dataset
+			editor.setProp(prop as 'w' | 'h', +(+e.currentTarget.value).toFixed())
+		},
+		[editor]
+	)
+
+	const { onlySelectedShape } = editor
+
+	if (onlySelectedShape?.type !== 'frame') return null
+
+	const { w, h } = (onlySelectedShape as TLFrameShape).props
+
+	const selectedPresetItem = ALL_PRESETS.find(
+		(item) => item.type === 'size' && item.width === w && item.height === h
+	)
+
+	return (
+		<div>
+			<div className="tlui-size-pickers">
+				<label className="tlui-size-pickers__label">Size</label>
+				<div className="tlui-size-picker">
+					<input
+						className="tlui-input tlui-size-picker__input"
+						type="number"
+						data-prop="w"
+						value={w.toFixed()}
+						onChange={handleUpdate}
+					/>
+					<span className="tlui-size-picker__label">W</span>
+				</div>
+				<div className="tlui-size-picker">
+					<input
+						className="tlui-input tlui-size-picker__input"
+						type="number"
+						data-prop="h"
+						value={h.toFixed()}
+						onChange={handleUpdate}
+					/>
+					<span className="tlui-size-picker__label">H</span>
+				</div>
+			</div>
+			<div className="tlui-size-preset-picker">
+				<select
+					className="tlui-button tlui-size-preset-picker__select"
+					value={selectedPresetItem?.id ?? 'CUSTOM'}
+					onChange={handlePresetSelect}
+				>
+					{selectedPresetItem ? null : (
+						<option disabled value="CUSTOM">
+							Custom
+						</option>
+					)}
+					{SIZE_PRESETS.map((item, i) => (
+						<SizePresetItem key={i} item={item} />
+					))}
+				</select>
+				<Icon className="tlui-size-preset-picker__icon" icon="chevron-down" small />
+			</div>
+		</div>
+	)
+})
+
+function SizePresetItem({ item }: { item: SizePresetItem }) {
+	switch (item.type) {
+		case 'group': {
+			return (
+				<optgroup label={item.label}>
+					{item.children.map((child, i) => (
+						<SizePresetItem key={i} item={child} />
+					))}
+				</optgroup>
+			)
+		}
+		case 'size': {
+			return <option value={item.id}>{item.label}</option>
+		}
+	}
+}
+
+type SizePresetItem =
+	| {
+			type: 'group'
+			label: string
+			children: SizePresetItem[]
+	  }
+	| {
+			type: 'size'
+			id: string
+			label: string
+			width: number
+			height: number
+	  }
+
+const SLIDES_PRESETS: Extract<SizePresetItem, { type: 'size' }>[] = [
+	{
+		type: 'size',
+		id: 'slide-16-9',
+		label: 'Slide 16:9',
+		width: 1920,
+		height: 1080,
+	},
+	{
+		type: 'size',
+		id: 'slide-4-3',
+		label: 'Slide 4:3',
+		width: 1024,
+		height: 1064,
+	},
+]
+
+const SOCIAL_MEDIA_PRESETS: Extract<SizePresetItem, { type: 'size' }>[] = [
+	{
+		id: 'social-media-twitter-post',
+		type: 'size',
+		label: 'Twitter post',
+		width: 1200,
+		height: 675,
+	},
+	{
+		id: 'social-media-twitter-header',
+		type: 'size',
+		label: 'Facebook post',
+		width: 1200,
+		height: 630,
+	},
+	{
+		id: 'social-media-instagram-post',
+		type: 'size',
+		label: 'Instagram post',
+		width: 1080,
+		height: 1080,
+	},
+]
+
+const PAGES_PRESETS: Extract<SizePresetItem, { type: 'size' }>[] = [
+	{
+		id: 'page-a4',
+		type: 'size',
+		label: 'A4',
+		width: 595 * 2,
+		height: 842 * 2,
+	},
+	{
+		id: 'page-letter',
+		type: 'size',
+		label: 'Letter',
+		width: 612 * 2,
+		height: 792 * 2,
+	},
+]
+
+const ALL_PRESETS: Extract<SizePresetItem, { type: 'size' }>[] = [
+	...SLIDES_PRESETS,
+	...PAGES_PRESETS,
+	...SOCIAL_MEDIA_PRESETS,
+]
+
+const SIZE_PRESETS: SizePresetItem[] = [
+	{
+		type: 'group',
+		label: 'Slides',
+		children: SLIDES_PRESETS,
+	},
+	{
+		type: 'group',
+		label: 'Pages',
+		children: PAGES_PRESETS,
+	},
+	{
+		type: 'group',
+		label: 'Social media',
+		children: SOCIAL_MEDIA_PRESETS,
+	},
+]
