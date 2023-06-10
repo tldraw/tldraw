@@ -1,5 +1,6 @@
 import {
 	Editor,
+	FrameShapeUtil,
 	TLFrameShape,
 	TLNullableShapeProps,
 	TLShape,
@@ -17,7 +18,8 @@ import {
 	useState,
 } from 'react'
 
-import { minBy } from '@tldraw/utils'
+import { Box2d } from '@tldraw/primitives'
+import { compact, minBy } from '@tldraw/utils'
 import { useValue } from 'signia-react'
 import { useActions } from '../../hooks/useActions'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -337,8 +339,9 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 			}
 
 			const { selectedShapes } = editor
-			if (!selectedShapes.every((shape) => shape.type === 'frame')) return
+			if (!selectedShapes.every((shape) => editor.isShapeOfType(shape, FrameShapeUtil))) return
 
+			editor.mark('resize-frame-preset')
 			editor.updateShapes([
 				...selectedShapes.map((shape) => ({
 					id: shape.id,
@@ -366,20 +369,12 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 
 	const handleBlur = useCallback(
 		(e: FocusEvent<HTMLInputElement>) => {
-			const { prop } = e.currentTarget.dataset
+			const {
+				value,
+				dataset: { prop },
+			} = e.currentTarget
 
-			if (!prop) return
-
-			const { selectedShapes } = editor
-			if (!selectedShapes.every((shape) => shape.type === 'frame')) return
-
-			editor.updateShapes([
-				...selectedShapes.map((shape) => ({
-					id: shape.id,
-					type: shape.type,
-					props: { [prop as string]: +Math.max(1, +e.currentTarget.value).toFixed() },
-				})),
-			])
+			updateShapes(editor, prop as 'w' | 'h', value)
 		},
 		[editor]
 	)
@@ -388,26 +383,19 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 		(e: KeyboardEvent<HTMLInputElement>) => {
 			if (e.key !== 'Enter') return
 
-			const { prop } = e.currentTarget.dataset
-			if (!prop) return
+			const {
+				value,
+				dataset: { prop },
+			} = e.currentTarget
 
-			const { selectedShapes } = editor
-			if (!selectedShapes.every((shape) => shape.type === 'frame')) return
-
-			editor.updateShapes([
-				...selectedShapes.map((shape) => ({
-					id: shape.id,
-					type: shape.type,
-					props: { [prop as string]: +Math.max(1, +e.currentTarget.value).toFixed() },
-				})),
-			])
+			updateShapes(editor, prop as 'w' | 'h', value)
 		},
 		[editor]
 	)
 
 	const handleExport = useCallback(async () => {
 		const { selectedShapes } = editor
-		if (!selectedShapes.every((shape) => shape.type === 'frame')) return
+		if (!selectedShapes.every((shape) => editor.isShapeOfType(shape, FrameShapeUtil))) return
 
 		for (const shape of selectedShapes) {
 			editor.setSelectedIds([shape.id])
@@ -416,6 +404,42 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 
 		editor.setSelectedIds(selectedShapes.map((shape) => shape.id))
 	}, [editor, actions])
+
+	const handleFitChildren = useCallback(() => {
+		const { selectedShapes } = editor
+		if (!selectedShapes.every((shape) => editor.isShapeOfType(shape, FrameShapeUtil))) return
+
+		editor.mark('resize-to-fit')
+		editor.batch(() => {
+			for (const shape of selectedShapes) {
+				const childIds = editor.getSortedChildIds(shape.id)
+				const children = childIds.map((id) => editor.getShapeById(id)!)
+				const childrenBounds = compact(childIds.map((id) => editor.getPageBoundsById(id)))
+					.reduce((acc, bounds, i) => {
+						if (i === 0) return bounds
+						return acc.expand(bounds)
+					}, {} as Box2d)
+					.expandBy(32)
+				const shapeBounds = editor.getPageBounds(shape)!.point
+				const offset = shapeBounds.clone().sub(childrenBounds.point)
+				editor.updateShapes([
+					{
+						id: shape.id,
+						type: shape.type,
+						x: shapeBounds.x - offset.x,
+						y: shapeBounds.y - offset.y,
+						props: { w: childrenBounds.w, h: childrenBounds.h },
+					},
+					...children.map((shape) => ({
+						id: shape.id,
+						type: shape.type,
+						x: shape.x + offset.x,
+						y: shape.y + offset.y,
+					})),
+				])
+			}
+		})
+	}, [editor])
 
 	if (!currentValue) return null
 
@@ -475,6 +499,7 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 				</select>
 				<Icon className="tlui-size-preset-picker__icon" icon="chevron-down" small />
 			</div>
+			<Button label="style-panel.resize-to-fit" icon="tool-frame" onClick={handleFitChildren} />
 			<Button label="style-panel.export-frames" icon="external-link" onClick={handleExport} />
 		</div>
 	)
@@ -621,4 +646,27 @@ function getWh(shapes: TLShape[]) {
 	}
 
 	return { w, h }
+}
+
+function updateShapes(editor: Editor, prop: 'w' | 'h', value: string) {
+	const next = { [prop as string]: +Math.max(1, +value).toFixed() }
+
+	const { selectedShapes } = editor
+	if (
+		!selectedShapes.every(
+			(shape) =>
+				editor.isShapeOfType(shape, FrameShapeUtil) &&
+				(shape.props.w !== next.w || shape.props.h !== next.h)
+		)
+	)
+		return
+
+	editor.mark('resize-frame')
+	editor.updateShapes([
+		...selectedShapes.map((shape) => ({
+			id: shape.id,
+			type: shape.type,
+			props: next,
+		})),
+	])
 }

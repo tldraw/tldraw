@@ -290,6 +290,7 @@ export type TLUiTranslationKey =
 	| 'home-project-dialog.ok'
 	| 'style-panel.title'
 	| 'style-panel.align'
+	| 'style-panel.resize-to-fit'
 	| 'style-panel.export-frames'
 	| 'style-panel.vertical-align'
 	| 'style-panel.position'
