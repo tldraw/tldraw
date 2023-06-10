@@ -132,19 +132,23 @@ export function syncYjsAwarenessChangesToStore(store: TLStore) {
 			const states = roomAwareness.getStates()
 			// roomAwareness.getStates(update)
 			store.mergeRemoteChanges(() => {
-				added.forEach((id: number) => {
+				added.forEach((id) => {
 					const record = states.get(id) as TLRecord
 					store.put(Object.values(record))
 				})
-				updated.forEach((id: number) => {
+
+				updated.forEach((id) => {
 					const record = states.get(id) as TLRecord
 					store.put(Object.values(record))
 				})
-				removed.forEach((id: number) => {
-					const record = states.get(id) as TLRecord
-					if (record) {
-						store.remove(Object.values(record))
-					}
+
+				removed.forEach((id) => {
+					const recordsToRemove = store
+						.allRecords()
+						.filter((record) => record.id.split(':')[1] === id.toString())
+						.map((record) => record.id)
+
+					store.remove(recordsToRemove)
 				})
 			})
 		}
