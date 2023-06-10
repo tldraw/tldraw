@@ -19,6 +19,7 @@ import {
 
 import { minBy } from '@tldraw/utils'
 import { useValue } from 'signia-react'
+import { useActions } from '../../hooks/useActions'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'
@@ -311,6 +312,8 @@ function ArrowheadStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 	const editor = useEditor()
 
+	const actions = useActions()
+
 	const [currentValue, setCurrentValue] = useState<null | {
 		w: number | 'mixed'
 		h: number | 'mixed'
@@ -402,6 +405,18 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 		[editor]
 	)
 
+	const handleExport = useCallback(async () => {
+		const { selectedShapes } = editor
+		if (!selectedShapes.every((shape) => shape.type === 'frame')) return
+
+		for (const shape of selectedShapes) {
+			editor.setSelectedIds([shape.id])
+			await actions['export-as-svg'].onSelect('style-panel')
+		}
+
+		editor.setSelectedIds(selectedShapes.map((shape) => shape.id))
+	}, [editor, actions])
+
 	if (!currentValue) return null
 
 	const { w, h } = currentValue
@@ -411,7 +426,7 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 	)
 
 	return (
-		<div>
+		<div className="tlui-style-panel__section" aria-label="style panel frames">
 			<div className="tlui-size-pickers">
 				<label className="tlui-size-pickers__label">Size</label>
 				<div className="tlui-size-picker">
@@ -460,6 +475,7 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 				</select>
 				<Icon className="tlui-size-preset-picker__icon" icon="chevron-down" small />
 			</div>
+			<Button label="style-panel.export-frames" icon="external-link" onClick={handleExport} />
 		</div>
 	)
 })

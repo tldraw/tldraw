@@ -18,6 +18,7 @@ export type TLUiEventSource =
 	| 'dialog'
 	| 'help-menu'
 	| 'helper-buttons'
+	| 'style-panel'
 	| 'unknown'
 
 /** @public */
