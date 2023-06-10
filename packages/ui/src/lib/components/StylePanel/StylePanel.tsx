@@ -341,14 +341,16 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 			const { selectedShapes } = editor
 			if (!selectedShapes.every((shape) => editor.isShapeOfType(shape, FrameShapeUtil))) return
 
-			editor.mark('resize-frame-preset')
-			editor.updateShapes([
-				...selectedShapes.map((shape) => ({
-					id: shape.id,
-					type: shape.type,
-					props: { w: item.width, h: item.height },
-				})),
-			])
+			editor.batch(() => {
+				editor.mark('resize-frame-preset')
+				editor.updateShapes([
+					...selectedShapes.map((shape) => ({
+						id: shape.id,
+						type: shape.type,
+						props: { w: item.width, h: item.height },
+					})),
+				])
+			})
 		},
 		[editor]
 	)
@@ -409,8 +411,9 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 		const { selectedShapes } = editor
 		if (!selectedShapes.every((shape) => editor.isShapeOfType(shape, FrameShapeUtil))) return
 
-		editor.mark('resize-to-fit')
 		editor.batch(() => {
+			editor.mark('resize-to-fit')
+
 			for (const shape of selectedShapes) {
 				const childIds = editor.getSortedChildIds(shape.id)
 				const children = childIds.map((id) => editor.getShapeById(id)!)
@@ -422,12 +425,15 @@ const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 					.expandBy(32)
 				const shapeBounds = editor.getPageBounds(shape)!.point
 				const offset = shapeBounds.clone().sub(childrenBounds.point)
+				const nextPoint = shapeBounds.clone().sub(offset)
+				const nextPointInSameSpaceAsFrame = editor.getPointInParentSpace(shape.id, nextPoint)
+				// todo: fix so that this works with rotated frames
 				editor.updateShapes([
 					{
 						id: shape.id,
 						type: shape.type,
-						x: shapeBounds.x - offset.x,
-						y: shapeBounds.y - offset.y,
+						x: nextPointInSameSpaceAsFrame.x,
+						y: nextPointInSameSpaceAsFrame.y,
 						props: { w: childrenBounds.w, h: childrenBounds.h },
 					},
 					...children.map((shape) => ({
