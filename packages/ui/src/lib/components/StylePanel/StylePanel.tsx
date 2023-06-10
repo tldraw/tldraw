@@ -1,8 +1,24 @@
-import { Editor, TLFrameShape, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
-import React, { ReactEventHandler, useCallback } from 'react'
+import {
+	Editor,
+	TLFrameShape,
+	TLNullableShapeProps,
+	TLShape,
+	TLStyleItem,
+	useEditor,
+	useReactor,
+} from '@tldraw/editor'
+import {
+	ChangeEvent,
+	FocusEvent,
+	KeyboardEvent,
+	ReactEventHandler,
+	memo,
+	useCallback,
+	useState,
+} from 'react'
 
 import { minBy } from '@tldraw/utils'
-import { track, useValue } from 'signia-react'
+import { useValue } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'
@@ -61,7 +77,7 @@ const { styles } = Editor
 function useStyleChangeCallback() {
 	const editor = useEditor()
 
-	return React.useCallback(
+	return useCallback(
 		(item: TLStyleItem, squashing: boolean) => {
 			editor.batch(() => {
 				editor.setProp(item.type, item.id, false, squashing)
@@ -86,7 +102,7 @@ function CommonStylePickerSet({
 
 	const handleValueChange = useStyleChangeCallback()
 
-	const handleOpacityValueChange = React.useCallback(
+	const handleOpacityValueChange = useCallback(
 		(value: number, ephemeral: boolean) => {
 			const item = tldrawSupportedOpacities[value]
 			editor.setOpacity(item, ephemeral)
@@ -292,8 +308,22 @@ function ArrowheadStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	)
 }
 
-const FrameShapePropsPicker = track(function FrameShapePropsPicker() {
+const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
 	const editor = useEditor()
+
+	const [currentValue, setCurrentValue] = useState<null | {
+		w: number | 'mixed'
+		h: number | 'mixed'
+	}>(() => ({ w: 'mixed', h: 'mixed' }))
+
+	useReactor(
+		'wh',
+		() => {
+			const wh = getWh(editor.selectedShapes)
+			setCurrentValue((v) => (v === wh ? v : wh))
+		},
+		[editor]
+	)
 
 	const handlePresetSelect = useCallback<ReactEventHandler<HTMLSelectElement>>(
 		(e) => {
@@ -302,32 +332,79 @@ const FrameShapePropsPicker = track(function FrameShapePropsPicker() {
 				console.error(`Could not find a preset for ${e.currentTarget.value}`)
 				return
 			}
-			const { onlySelectedShape } = editor
-			if (!onlySelectedShape) return
+
+			const { selectedShapes } = editor
+			if (!selectedShapes.every((shape) => shape.type === 'frame')) return
+
 			editor.updateShapes([
-				{
-					id: onlySelectedShape.id,
-					type: onlySelectedShape.type,
+				...selectedShapes.map((shape) => ({
+					id: shape.id,
+					type: shape.type,
 					props: { w: item.width, h: item.height },
-				},
+				})),
 			])
 		},
 		[editor]
 	)
 
-	const handleUpdate = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
+	const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		const {
+			value,
+			dataset: { prop },
+		} = e.currentTarget
+		if (!value) return
+		if (!prop) return
+		setCurrentValue((wh) => ({ ...wh!, [prop]: +(+value).toFixed() }))
+	}, [])
+
+	const handleFocus = useCallback(() => {
+		// noop
+	}, [])
+
+	const handleBlur = useCallback(
+		(e: FocusEvent<HTMLInputElement>) => {
 			const { prop } = e.currentTarget.dataset
-			editor.setProp(prop as 'w' | 'h', +(+e.currentTarget.value).toFixed())
+
+			if (!prop) return
+
+			const { selectedShapes } = editor
+			if (!selectedShapes.every((shape) => shape.type === 'frame')) return
+
+			editor.updateShapes([
+				...selectedShapes.map((shape) => ({
+					id: shape.id,
+					type: shape.type,
+					props: { [prop as string]: +Math.max(1, +e.currentTarget.value).toFixed() },
+				})),
+			])
 		},
 		[editor]
 	)
 
-	const { onlySelectedShape } = editor
+	const handleKeyDown = useCallback(
+		(e: KeyboardEvent<HTMLInputElement>) => {
+			if (e.key !== 'Enter') return
 
-	if (onlySelectedShape?.type !== 'frame') return null
+			const { prop } = e.currentTarget.dataset
+			if (!prop) return
 
-	const { w, h } = (onlySelectedShape as TLFrameShape).props
+			const { selectedShapes } = editor
+			if (!selectedShapes.every((shape) => shape.type === 'frame')) return
+
+			editor.updateShapes([
+				...selectedShapes.map((shape) => ({
+					id: shape.id,
+					type: shape.type,
+					props: { [prop as string]: +Math.max(1, +e.currentTarget.value).toFixed() },
+				})),
+			])
+		},
+		[editor]
+	)
+
+	if (!currentValue) return null
+
+	const { w, h } = currentValue
 
 	const selectedPresetItem = ALL_PRESETS.find(
 		(item) => item.type === 'size' && item.width === w && item.height === h
@@ -342,8 +419,12 @@ const FrameShapePropsPicker = track(function FrameShapePropsPicker() {
 						className="tlui-input tlui-size-picker__input"
 						type="number"
 						data-prop="w"
-						value={w.toFixed()}
-						onChange={handleUpdate}
+						value={w === 'mixed' ? '' : (w as number).toFixed()}
+						placeholder={w === 'mixed' ? 'Mixed' : undefined}
+						onChange={handleChange}
+						onBlur={handleBlur}
+						onFocus={handleFocus}
+						onKeyDown={handleKeyDown}
 					/>
 					<span className="tlui-size-picker__label">W</span>
 				</div>
@@ -352,8 +433,12 @@ const FrameShapePropsPicker = track(function FrameShapePropsPicker() {
 						className="tlui-input tlui-size-picker__input"
 						type="number"
 						data-prop="h"
-						value={h.toFixed()}
-						onChange={handleUpdate}
+						value={h === 'mixed' ? '' : (h as number).toFixed()}
+						placeholder={h === 'mixed' ? 'Mixed' : undefined}
+						onChange={handleChange}
+						onBlur={handleBlur}
+						onFocus={handleFocus}
+						onKeyDown={handleKeyDown}
 					/>
 					<span className="tlui-size-picker__label">H</span>
 				</div>
@@ -491,3 +576,33 @@ const SIZE_PRESETS: SizePresetItem[] = [
 		children: SOCIAL_MEDIA_PRESETS,
 	},
 ]
+
+function getWh(shapes: TLShape[]) {
+	if (shapes.length === 0) return null
+
+	let w = -1 as number | 'mixed'
+	let h = -1 as number | 'mixed'
+
+	for (let i = 0; i < shapes.length; i++) {
+		const shape = shapes[i] as TLFrameShape
+		if (shape.type !== 'frame') return null
+
+		if (w !== 'mixed') {
+			if (w === -1) {
+				w = shape.props.w
+			} else if (w !== shape.props.w) {
+				w = 'mixed'
+			}
+		}
+
+		if (h !== 'mixed') {
+			if (h === -1) {
+				h = shape.props.h
+			} else if (h !== shape.props.h) {
+				h = 'mixed'
+			}
+		}
+	}
+
+	return { w, h }
+}
