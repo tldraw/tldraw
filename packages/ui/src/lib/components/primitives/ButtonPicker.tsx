@@ -38,10 +38,19 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 		handleButtonPointerDown,
 		handleButtonPointerEnter,
 		handleButtonPointerUp,
+		handleKeyDown
 	} = React.useMemo(() => {
 		const handlePointerUp = () => {
 			rPointing.current = false
 			window.removeEventListener('pointerup', handlePointerUp)
+		}
+
+		const handleNextItemChanged = (parentElement: HTMLElement | null, itemIndexToChange: number | undefined) => {
+			const nextItem: T | undefined = items.find((i, index) => index === itemIndexToChange);
+			const nextButton: HTMLButtonElement | null | undefined = parentElement?.querySelector(`[data-id="${nextItem?.id}"]`);
+
+			nextButton?.focus();
+			onValueChange(nextItem!, false);
 		}
 
 		const handleButtonClick = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -74,13 +83,50 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			onValueChange(items.find((i) => i.id === id)!, false)
 		}
 
+		const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>): void => {
+			const { id } = e.currentTarget.dataset
+
+			const currentItemIndex: number = items.findIndex((i) => i.id === id);
+			switch (e.key) {
+				case 'ArrowRight': {
+					const indexToFind: number = currentItemIndex === items.length-1 ? 0 : currentItemIndex+1;
+
+					handleNextItemChanged(e.currentTarget.parentElement, indexToFind);
+					break;
+				}
+				case 'ArrowLeft': {
+					const indexToFind: number = currentItemIndex === 0 ? items.length-1 : currentItemIndex-1;
+
+					handleNextItemChanged(e.currentTarget.parentElement, indexToFind);
+					break;
+				}
+				case 'ArrowDown': {
+					const indexToFind: number = currentItemIndex > (items.length - 1)-columns // '- columns' denotes the last row
+						? currentItemIndex % columns 
+						: currentItemIndex+columns;
+
+					handleNextItemChanged(e.currentTarget.parentElement, indexToFind);
+					break;
+				}
+				case 'ArrowUp': {
+					const numRows: number = Math.ceil(items.length / columns);
+					let indexToFind: number | undefined = currentItemIndex - columns;
+					indexToFind = indexToFind < 0 ? indexToFind + (numRows * columns) : indexToFind;
+
+					handleNextItemChanged(e.currentTarget.parentElement, indexToFind);
+					break;
+				}
+			}
+		}
+
 		return {
 			handleButtonClick,
 			handleButtonPointerDown,
 			handleButtonPointerEnter,
 			handleButtonPointerUp,
+			handleKeyDown
 		}
-	}, [editor, value, onValueChange, items])
+	}, [editor, value, onValueChange, items, columns])
 
 	return (
 		<div
@@ -104,6 +150,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 					onPointerDown={handleButtonPointerDown}
 					onPointerUp={handleButtonPointerUp}
 					onClick={handleButtonClick}
+					onKeyDown={handleKeyDown}
 					icon={item.icon as TLUiIconType}
 				/>
 			))}
