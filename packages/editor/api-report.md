@@ -372,6 +372,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     // (undocumented)
     animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
+    animateToUser(userId: string): void;
     // (undocumented)
     get animationSpeed(): number;
     // @internal (undocumented)

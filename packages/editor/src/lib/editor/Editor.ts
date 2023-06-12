@@ -8687,15 +8687,53 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Animate the camera to a user's cursor position.
+	 * This also briefly show the user's cursor if it's not currently visible.
+	 *
+	 * @param userId - The id of the user to aniamte to.
+	 * @public
+	 */
+	animateToUser(userId: string) {
+		const presences = this.store.query.records('instance_presence', () => ({
+			userId: { eq: userId },
+		}))
+
+		const presence = [...presences.value]
+			.sort((a, b) => {
+				return a.lastActivityTimestamp - b.lastActivityTimestamp
+			})
+			.pop()
+
+		if (!presence) return
+
+		this.batch(() => {
+			// If we're following someone, stop following them
+			if (this.instanceState.followingUserId !== null) {
+				this.stopFollowingUser()
+			}
+
+			// If we're not on the same page, move to the page they're on
+			const isOnSamePage = presence.currentPageId === this.currentPageId
+			if (!isOnSamePage) {
+				this.setCurrentPageId(presence.currentPageId)
+			}
+
+			// Only animate the camera if the user is on the same page as us
+			const options = isOnSamePage ? { duration: 500 } : undefined
+
+			const position = presence.cursor
+
+			this.centerOnPoint(position.x, position.y, options)
+		})
+	}
+
+	/**
 	 * Start viewport-following a user.
 	 *
 	 * @param userId - The id of the user to follow.
 	 * @public
 	 */
 	startFollowingUser(userId: string) {
-		// Currently, we get the leader's viewport page bounds from their user presence.
-		// This is a placeholder until the ephemeral PR lands.
-		// After that, we'll be able to get the required data from their instance presence instead.
 		const leaderPresences = this.store.query.records('instance_presence', () => ({
 			userId: { eq: userId },
 		}))
