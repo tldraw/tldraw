@@ -1,5 +1,6 @@
 import { act, render, screen } from '@testing-library/react'
 import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
+import { noop } from '@tldraw/utils'
 import { TldrawEditor } from '../TldrawEditor'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
@@ -113,7 +114,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('throws if the store has different shapes to the ones passed in', async () => {
-		const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
+		const spy = jest.spyOn(console, 'error').mockImplementation(noop)
 		expect(() =>
 			render(
 				<TldrawEditor

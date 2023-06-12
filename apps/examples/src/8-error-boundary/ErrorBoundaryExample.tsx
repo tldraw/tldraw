@@ -10,6 +10,7 @@ export default function ErrorBoundaryExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				shapes={shapes}
+				tools={[]}
 				components={{
 					ErrorFallback: null, // disable app-level error boundaries
 					ShapeErrorFallback: ({ error }) => <div>Shape error! {String(error)}</div>, // use a custom error fallback for shapes

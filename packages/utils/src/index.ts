@@ -10,7 +10,7 @@ export {
 } from './lib/control'
 export { debounce } from './lib/debounce'
 export { annotateError, getErrorAnnotations } from './lib/error'
-export { omitFromStackTrace, throttle } from './lib/function'
+export { noop, omitFromStackTrace, throttle } from './lib/function'
 export { getHashForObject, getHashForString, lns } from './lib/hash'
 export { getFirstFromIterable } from './lib/iterable'
 export { lerp, modulate, rng } from './lib/number'
