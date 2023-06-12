@@ -1,4 +1,5 @@
 import { execFile } from 'child_process'
+import { nicelog } from './nicelog'
 
 type ExecOpts = {
 	pwd?: string
@@ -24,7 +25,7 @@ export async function exec(
 		env,
 	}: ExecOpts = {}
 ): Promise<string> {
-	console.log(`> $ ${command} ${args.join(' ')} (in ${pwd}))`)
+	nicelog(`> $ ${command} ${args.join(' ')} (in ${pwd}))`)
 	return new Promise((resolve, reject) => {
 		const data: string[] = []
 

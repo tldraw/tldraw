@@ -1,6 +1,7 @@
-import { App, TLNullableShapeProps, TLStyleItem, useApp } from '@tldraw/editor'
+import { Editor, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
 import React, { useCallback } from 'react'
 
+import { minBy } from '@tldraw/utils'
 import { useValue } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
@@ -13,21 +14,25 @@ interface StylePanelProps {
 	isMobile?: boolean
 }
 
-/** @public */
+/** @internal */
 export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
-	const app = useApp()
+	const editor = useEditor()
 
-	const props = useValue('props', () => app.props, [app])
+	const props = useValue('props', () => editor.props, [editor])
+	const opacity = useValue('opacity', () => editor.opacity, [editor])
+	const toolShapeType = useValue('toolShapeType', () => editor.root.current.value?.shapeType, [
+		editor,
+	])
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
-			app.isChangingStyle = false
+			editor.isChangingStyle = false
 		}
-	}, [app, isMobile])
+	}, [editor, isMobile])
 
-	if (!props) return null
+	if (!props && !toolShapeType) return null
 
-	const { geo, arrowheadEnd, arrowheadStart, spline, font } = props
+	const { geo, arrowheadEnd, arrowheadStart, spline, font } = props ?? {}
 
 	const hideGeo = geo === undefined
 	const hideArrowHeads = arrowheadEnd === undefined && arrowheadStart === undefined
@@ -36,51 +41,59 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 
 	return (
 		<div className="tlui-style-panel" data-ismobile={isMobile} onPointerLeave={handlePointerOut}>
-			<CommonStylePickerSet props={props} />
-			{!hideText && <TextStylePickerSet props={props} />}
+			<CommonStylePickerSet props={props ?? {}} opacity={opacity} />
+			{!hideText && <TextStylePickerSet props={props ?? {}} />}
 			{!(hideGeo && hideArrowHeads && hideSpline) && (
 				<div className="tlui-style-panel__section" aria-label="style panel styles">
-					<GeoStylePickerSet props={props} />
-					<ArrowheadStylePickerSet props={props} />
-					<SplineStylePickerSet props={props} />
+					<GeoStylePickerSet props={props ?? {}} />
+					<ArrowheadStylePickerSet props={props ?? {}} />
+					<SplineStylePickerSet props={props ?? {}} />
 				</div>
 			)}
 		</div>
 	)
 }
 
-const { styles } = App
+const { styles } = Editor
 
 function useStyleChangeCallback() {
-	const app = useApp()
+	const editor = useEditor()
 
 	return React.useCallback(
 		(item: TLStyleItem, squashing: boolean) => {
-			app.batch(() => {
-				app.setProp(item.type, item.id, false, squashing)
-				app.isChangingStyle = true
+			editor.batch(() => {
+				editor.setProp(item.type, item.id, false, squashing)
+				editor.isChangingStyle = true
 			})
 		},
-		[app]
+		[editor]
 	)
 }
 
-function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
-	const app = useApp()
+const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
+
+function CommonStylePickerSet({
+	props,
+	opacity,
+}: {
+	props: TLNullableShapeProps
+	opacity: number | null
+}) {
+	const editor = useEditor()
 	const msg = useTranslation()
 
 	const handleValueChange = useStyleChangeCallback()
 
 	const handleOpacityValueChange = React.useCallback(
 		(value: number, ephemeral: boolean) => {
-			const item = styles.opacity[value]
-			app.setProp(item.type, item.id, ephemeral)
-			app.isChangingStyle = true
+			const item = tldrawSupportedOpacities[value]
+			editor.setOpacity(item, ephemeral)
+			editor.isChangingStyle = true
 		},
-		[app]
+		[editor]
 	)
 
-	const { color, fill, dash, size, opacity } = props
+	const { color, fill, dash, size } = props
 
 	if (
 		color === undefined &&
@@ -92,9 +105,16 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 		return null
 	}
 
-	const showPickers = fill || dash || size
+	const showPickers = fill !== undefined || dash !== undefined || size !== undefined
 
-	const opacityIndex = styles.opacity.findIndex((s) => s.id === opacity)
+	const opacityIndex =
+		opacity === null
+			? -1
+			: tldrawSupportedOpacities.indexOf(
+					minBy(tldrawSupportedOpacities, (supportedOpacity) =>
+						Math.abs(supportedOpacity - opacity)
+					)!
+			  )
 
 	return (
 		<>
@@ -112,10 +132,10 @@ function CommonStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 				{opacity === undefined ? null : (
 					<Slider
 						data-testid="style.opacity"
-						value={opacityIndex >= 0 ? opacityIndex : styles.opacity.length - 1}
+						value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
 						label={opacity ? `opacity-style.${opacity}` : 'style-panel.mixed'}
 						onValueChange={handleOpacityValueChange}
-						steps={styles.opacity.length - 1}
+						steps={tldrawSupportedOpacities.length - 1}
 						title={msg('style-panel.opacity')}
 					/>
 				)}

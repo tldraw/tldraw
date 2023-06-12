@@ -4,28 +4,44 @@
 
 ```ts
 
-import { App } from '@tldraw/editor';
-import { MigrationFailureReason } from '@tldraw/tlstore';
+import { Editor } from '@tldraw/editor';
+import { MigrationFailureReason } from '@tldraw/store';
 import { Result } from '@tldraw/utils';
-import { SerializedSchema } from '@tldraw/tlstore';
-import { TldrawEditorConfig } from '@tldraw/editor';
-import { TLInstanceId } from '@tldraw/editor';
+import { SerializedSchema } from '@tldraw/store';
 import { TLStore } from '@tldraw/editor';
-import { TLTranslationKey } from '@tldraw/ui';
-import { ToastsContextType } from '@tldraw/ui';
-import { UnknownRecord } from '@tldraw/tlstore';
+import { TLUiToastsContextType } from '@tldraw/ui';
+import { TLUiTranslationKey } from '@tldraw/ui';
+import { UnknownRecord } from '@tldraw/store';
+
+// @internal (undocumented)
+export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocument): void;
 
 // @public (undocumented)
 export function isV1File(data: any): boolean;
 
 // @internal (undocumented)
-export function parseAndLoadDocument(app: App, document: string, msg: (id: TLTranslationKey) => string, addToast: ToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
+export interface LegacyTldrawDocument {
+    // (undocumented)
+    assets: TDAssets;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    pages: Record<string, TDPage>;
+    // (undocumented)
+    pageStates: Record<string, TLV1PageState>;
+    // (undocumented)
+    version: number;
+}
+
+// @internal (undocumented)
+export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
-export function parseTldrawJsonFile({ config, json, instanceId, }: {
-    config: TldrawEditorConfig;
+export function parseTldrawJsonFile({ json, store, }: {
+    store: TLStore;
     json: string;
-    instanceId: TLInstanceId;
 }): Result<TLStore, TldrawFileParseError>;
 
 // @public (undocumented)

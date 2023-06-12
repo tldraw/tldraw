@@ -11,8 +11,8 @@ describe('Tests', () => {
 // let app: TestScene
 
 // beforeEach(() => {
-//   app?.dispose()
-//   app = new TestScene({
+//   editor?.dispose()
+//   editor =new TestScene({
 //     nodes: [
 //       {
 //         id: 'A',
@@ -48,7 +48,7 @@ describe('Tests', () => {
 
 // describe('When running zindex tests', () => {
 //   it('Correctly initializes indices', () => {
-//     expect(app.root.sortedChildren.map((shape) => shape.index)).toMatchObject([
+//     expect(editor.root.sortedChildren.map((shape) => shape.index)).toMatchObject([
 //       'a1',
 //       'a2',
 //       'a3',
@@ -60,208 +60,208 @@ describe('Tests', () => {
 //   })
 
 //   it('Correctly identifies shape orders', () => {
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
 //   })
 // })
 
-// describe('app.getSiblingAbove', () => {
+// describe('editor.getSiblingAbove', () => {
 //   it('Gets the correct shape above', () => {
-//     expect(app.getSiblingAbove('B')?.id).toBe('C')
-//     expect(app.getSiblingAbove('C')?.id).toBe('D')
-//     expect(app.getSiblingAbove('G')?.id).toBeUndefined()
+//     expect(editor.getSiblingAbove('B')?.id).toBe('C')
+//     expect(editor.getSiblingAbove('C')?.id).toBe('D')
+//     expect(editor.getSiblingAbove('G')?.id).toBeUndefined()
 //   })
 // })
 
-// describe('app.getSiblingAbove', () => {
+// describe('editor.getSiblingAbove', () => {
 //   it('Gets the correct shape above', () => {
-//     expect(app.getSiblingBelow('A')?.id).toBeUndefined()
-//     expect(app.getSiblingBelow('B')?.id).toBe('A')
-//     expect(app.getSiblingBelow('C')?.id).toBe('B')
+//     expect(editor.getSiblingBelow('A')?.id).toBeUndefined()
+//     expect(editor.getSiblingBelow('B')?.id).toBe('A')
+//     expect(editor.getSiblingBelow('C')?.id).toBe('B')
 //   })
 // })
 
 // describe('When sending to back', () => {
 //   it('Moves one shape to back', () => {
-//     app.sendToBack(['D'])
-//     app.expectShapesInOrder('D', 'A', 'B', 'C')
-//     app.sendToBack(['D']) // noop
-//     app.expectShapesInOrder('D', 'A', 'B', 'C')
+//     editor.sendToBack(['D'])
+//     editor.expectShapesInOrder('D', 'A', 'B', 'C')
+//     editor.sendToBack(['D']) // noop
+//     editor.expectShapesInOrder('D', 'A', 'B', 'C')
 //   })
 
 //   it('Moves no shapes when selecting shapes at the back', () => {
-//     app.sendToBack(['A', 'B', 'C'])
-//     app.expectShapesInOrder('A', 'B', 'C')
-//     app.sendToBack(['A', 'B', 'C'])
-//     app.expectShapesInOrder('A', 'B', 'C')
+//     editor.sendToBack(['A', 'B', 'C'])
+//     editor.expectShapesInOrder('A', 'B', 'C')
+//     editor.sendToBack(['A', 'B', 'C'])
+//     editor.expectShapesInOrder('A', 'B', 'C')
 //   })
 
 //   it('Moves two adjacent shapes to back', () => {
-//     app.sendToBack(['D', 'E'])
-//     app.expectShapesInOrder('D', 'E', 'A', 'B', 'C', 'F', 'G')
-//     app.sendToBack(['D', 'E'])
-//     app.expectShapesInOrder('D', 'E', 'A', 'B', 'C', 'F', 'G')
+//     editor.sendToBack(['D', 'E'])
+//     editor.expectShapesInOrder('D', 'E', 'A', 'B', 'C', 'F', 'G')
+//     editor.sendToBack(['D', 'E'])
+//     editor.expectShapesInOrder('D', 'E', 'A', 'B', 'C', 'F', 'G')
 //   })
 
 //   it('Moves non-adjacent shapes to back', () => {
-//     app.sendToBack(['E', 'G'])
-//     app.expectShapesInOrder('E', 'G', 'A', 'B', 'C', 'D', 'F')
-//     app.sendToBack(['E', 'G'])
-//     app.expectShapesInOrder('E', 'G', 'A', 'B', 'C', 'D', 'F')
+//     editor.sendToBack(['E', 'G'])
+//     editor.expectShapesInOrder('E', 'G', 'A', 'B', 'C', 'D', 'F')
+//     editor.sendToBack(['E', 'G'])
+//     editor.expectShapesInOrder('E', 'G', 'A', 'B', 'C', 'D', 'F')
 //   })
 
 //   it('Moves non-adjacent shapes to back when one is at the back', () => {
-//     app.sendToBack(['A', 'G'])
-//     app.expectShapesInOrder('A', 'G', 'B', 'C', 'D', 'E', 'F')
-//     app.sendToBack(['A', 'G'])
-//     app.expectShapesInOrder('A', 'G', 'B', 'C', 'D', 'E', 'F')
+//     editor.sendToBack(['A', 'G'])
+//     editor.expectShapesInOrder('A', 'G', 'B', 'C', 'D', 'E', 'F')
+//     editor.sendToBack(['A', 'G'])
+//     editor.expectShapesInOrder('A', 'G', 'B', 'C', 'D', 'E', 'F')
 //   })
 // })
 
 // describe('When sending to front', () => {
 //   it('Moves one shape to front', () => {
-//     app.bringToFront(['A'])
-//     app.expectShapesInOrder('B', 'C', 'D', 'E', 'F', 'G', 'A')
-//     app.bringToFront(['A']) // noop
-//     app.expectShapesInOrder('B', 'C', 'D', 'E', 'F', 'G', 'A')
+//     editor.bringToFront(['A'])
+//     editor.expectShapesInOrder('B', 'C', 'D', 'E', 'F', 'G', 'A')
+//     editor.bringToFront(['A']) // noop
+//     editor.expectShapesInOrder('B', 'C', 'D', 'E', 'F', 'G', 'A')
 //   })
 
 //   it('Moves no shapes when selecting shapes at the front', () => {
-//     app.bringToFront(['G'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
-//     app.bringToFront(['G']) // noop
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.bringToFront(['G'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.bringToFront(['G']) // noop
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
 //   })
 
 //   it('Moves two adjacent shapes to front', () => {
-//     app.bringToFront(['D', 'E'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'F', 'G', 'D', 'E')
-//     app.bringToFront(['D', 'E']) // noop
-//     app.expectShapesInOrder('A', 'B', 'C', 'F', 'G', 'D', 'E')
+//     editor.bringToFront(['D', 'E'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'F', 'G', 'D', 'E')
+//     editor.bringToFront(['D', 'E']) // noop
+//     editor.expectShapesInOrder('A', 'B', 'C', 'F', 'G', 'D', 'E')
 //   })
 
 //   it('Moves non-adjacent shapes to front', () => {
-//     app.bringToFront(['A', 'C'])
-//     app.expectShapesInOrder('B', 'D', 'E', 'F', 'G', 'A', 'C')
-//     app.bringToFront(['A', 'C']) // noop
-//     app.expectShapesInOrder('B', 'D', 'E', 'F', 'G', 'A', 'C')
+//     editor.bringToFront(['A', 'C'])
+//     editor.expectShapesInOrder('B', 'D', 'E', 'F', 'G', 'A', 'C')
+//     editor.bringToFront(['A', 'C']) // noop
+//     editor.expectShapesInOrder('B', 'D', 'E', 'F', 'G', 'A', 'C')
 //   })
 
 //   it('Moves non-adjacent shapes to front when one is at the front', () => {
-//     app.bringToFront(['E', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'F', 'E', 'G')
-//     app.bringToFront(['E', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'F', 'E', 'G')
+//     editor.bringToFront(['E', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'F', 'E', 'G')
+//     editor.bringToFront(['E', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'F', 'E', 'G')
 //   })
 // })
 
 // describe('When sending backward', () => {
 //   it('Moves one shape backward', () => {
-//     app.sendBackward(['C'])
-//     app.expectShapesInOrder('A', 'C', 'B')
-//     app.sendBackward(['C'])
-//     app.expectShapesInOrder('C', 'A', 'B')
+//     editor.sendBackward(['C'])
+//     editor.expectShapesInOrder('A', 'C', 'B')
+//     editor.sendBackward(['C'])
+//     editor.expectShapesInOrder('C', 'A', 'B')
 //   })
 
 //   it('Moves shapes to the first position', () => {
-//     app.sendBackward(['B'])
-//     app.expectShapesInOrder('B', 'A', 'C', 'D', 'E', 'F', 'G')
-//     app.sendBackward(['A'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
-//     app.sendBackward(['B'])
-//     app.expectShapesInOrder('B', 'A', 'C', 'D', 'E', 'F', 'G')
+//     editor.sendBackward(['B'])
+//     editor.expectShapesInOrder('B', 'A', 'C', 'D', 'E', 'F', 'G')
+//     editor.sendBackward(['A'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.sendBackward(['B'])
+//     editor.expectShapesInOrder('B', 'A', 'C', 'D', 'E', 'F', 'G')
 //   })
 
 //   it('Moves two shapes to the first position', () => {
-//     app.sendBackward(['B', 'C'])
-//     app.expectShapesInOrder('B', 'C', 'A', 'D', 'E', 'F', 'G')
-//     app.sendBackward(['C', 'A'])
-//     app.expectShapesInOrder('C', 'A', 'B', 'D', 'E', 'F', 'G')
-//     app.sendBackward(['A', 'B'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.sendBackward(['B', 'C'])
+//     editor.expectShapesInOrder('B', 'C', 'A', 'D', 'E', 'F', 'G')
+//     editor.sendBackward(['C', 'A'])
+//     editor.expectShapesInOrder('C', 'A', 'B', 'D', 'E', 'F', 'G')
+//     editor.sendBackward(['A', 'B'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
 //   })
 
 //   it('Moves no shapes when sending shapes at the back', () => {
-//     app.sendBackward(['A', 'B', 'C'])
-//     app.expectShapesInOrder('A', 'B', 'C')
-//     app.sendBackward(['A', 'B', 'C'])
-//     app.expectShapesInOrder('A', 'B', 'C')
+//     editor.sendBackward(['A', 'B', 'C'])
+//     editor.expectShapesInOrder('A', 'B', 'C')
+//     editor.sendBackward(['A', 'B', 'C'])
+//     editor.expectShapesInOrder('A', 'B', 'C')
 //   })
 
 //   it('Moves two adjacent shapes backward', () => {
-//     app.sendBackward(['D', 'E'])
-//     app.expectShapesInOrder('A', 'B', 'D', 'E', 'C', 'F', 'G')
+//     editor.sendBackward(['D', 'E'])
+//     editor.expectShapesInOrder('A', 'B', 'D', 'E', 'C', 'F', 'G')
 //   })
 
 //   it('Moves two adjacent shapes backward when one is at the back', () => {
-//     app.sendBackward(['A', 'E'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'E', 'D', 'F', 'G')
-//     app.sendBackward(['A', 'E'])
-//     app.expectShapesInOrder('A', 'B', 'E', 'C', 'D', 'F', 'G')
+//     editor.sendBackward(['A', 'E'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'E', 'D', 'F', 'G')
+//     editor.sendBackward(['A', 'E'])
+//     editor.expectShapesInOrder('A', 'B', 'E', 'C', 'D', 'F', 'G')
 //   })
 
 //   it('Moves non-adjacent shapes backward', () => {
-//     app.sendBackward(['E', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'E', 'D', 'G', 'F')
-//     app.sendBackward(['E', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'E', 'C', 'G', 'D', 'F')
+//     editor.sendBackward(['E', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'E', 'D', 'G', 'F')
+//     editor.sendBackward(['E', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'E', 'C', 'G', 'D', 'F')
 //   })
 
 //   it('Moves non-adjacent shapes backward when one is at the back', () => {
-//     app.sendBackward(['A', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'G', 'F')
-//     app.sendBackward(['A', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'G', 'E', 'F')
+//     editor.sendBackward(['A', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'G', 'F')
+//     editor.sendBackward(['A', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'G', 'E', 'F')
 //   })
 
 //   it('Moves non-adjacent shapes to backward when both are at the back', () => {
-//     app.sendBackward(['A', 'B'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
-//     app.sendBackward(['A', 'B'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.sendBackward(['A', 'B'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.sendBackward(['A', 'B'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
 //   })
 // })
 
 // describe('When moving forward', () => {
 //   it('Moves one shape forward', () => {
-//     app.bringForward(['A'])
-//     app.expectShapesInOrder('B', 'A', 'C', 'D', 'E', 'F', 'G')
-//     app.bringForward(['A'])
-//     app.expectShapesInOrder('B', 'C', 'A', 'D', 'E', 'F', 'G')
+//     editor.bringForward(['A'])
+//     editor.expectShapesInOrder('B', 'A', 'C', 'D', 'E', 'F', 'G')
+//     editor.bringForward(['A'])
+//     editor.expectShapesInOrder('B', 'C', 'A', 'D', 'E', 'F', 'G')
 //   })
 
 //   it('Moves no shapes when sending shapes at the front', () => {
-//     app.bringForward(['E', 'F', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
-//     app.bringForward(['E', 'F', 'G']) // noop
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.bringForward(['E', 'F', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.bringForward(['E', 'F', 'G']) // noop
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
 //   })
 
 //   it('Moves two adjacent shapes forward', () => {
-//     app.bringForward(['C', 'D'])
-//     app.expectShapesInOrder('A', 'B', 'E', 'C', 'D', 'F', 'G')
-//     app.bringForward(['C', 'D'])
-//     app.expectShapesInOrder('A', 'B', 'E', 'F', 'C', 'D', 'G')
+//     editor.bringForward(['C', 'D'])
+//     editor.expectShapesInOrder('A', 'B', 'E', 'C', 'D', 'F', 'G')
+//     editor.bringForward(['C', 'D'])
+//     editor.expectShapesInOrder('A', 'B', 'E', 'F', 'C', 'D', 'G')
 //   })
 
 //   it('Moves non-adjacent shapes forward', () => {
-//     app.bringForward(['A', 'C'])
-//     app.expectShapesInOrder('B', 'A', 'D', 'C', 'E', 'F', 'G')
-//     app.bringForward(['A', 'C'])
-//     app.expectShapesInOrder('B', 'D', 'A', 'E', 'C', 'F', 'G')
+//     editor.bringForward(['A', 'C'])
+//     editor.expectShapesInOrder('B', 'A', 'D', 'C', 'E', 'F', 'G')
+//     editor.bringForward(['A', 'C'])
+//     editor.expectShapesInOrder('B', 'D', 'A', 'E', 'C', 'F', 'G')
 //   })
 
 //   it('Moves non-adjacent shapes to forward when one is at the front', () => {
-//     app.bringForward(['C', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'D', 'C', 'E', 'F', 'G')
-//     app.bringForward(['C', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'D', 'E', 'C', 'F', 'G')
+//     editor.bringForward(['C', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'D', 'C', 'E', 'F', 'G')
+//     editor.bringForward(['C', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'D', 'E', 'C', 'F', 'G')
 //   })
 
 //   it('Moves adjacent shapes to forward when both are at the front', () => {
-//     app.bringForward(['F', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
-//     app.bringForward(['F', 'G'])
-//     app.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.bringForward(['F', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
+//     editor.bringForward(['F', 'G'])
+//     editor.expectShapesInOrder('A', 'B', 'C', 'D', 'E', 'F', 'G')
 //   })
 // })
 
@@ -269,18 +269,18 @@ describe('Tests', () => {
 
 // describe('Edge cases...', () => {
 //   it('When bringing forward, does not increment order if shapes at at the top', () => {
-//     app.bringForward(['F', 'G'])
+//     editor.bringForward(['F', 'G'])
 //   })
 //   it('When bringing forward, does not increment order with non-adjacent shapes if shapes at at the top', () => {
-//     app.bringForward(['E', 'G'])
+//     editor.bringForward(['E', 'G'])
 //   })
 
 //   it('When bringing to front, does not change order of shapes already at top', () => {
-//     app.bringToFront(['E', 'G'])
+//     editor.bringToFront(['E', 'G'])
 //   })
 
 //   it('When sending to back, does not change order of shapes already at bottom', () => {
-//     app.sendToBack(['A', 'C'])
+//     editor.sendToBack(['A', 'C'])
 //   })
 
 //   it('When moving back to front...', () => {

@@ -1,22 +1,22 @@
-import { createCustomShapeId } from '@tldraw/tlschema'
-import { TLGeoUtil } from '../../app/shapeutils/TLGeoUtil/TLGeoUtil'
-import { TestApp } from '../TestApp'
+import { createShapeId } from '@tldraw/tlschema'
+import { GeoShapeUtil } from '../../editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
+import { TestEditor } from '../TestEditor'
 
-let app: TestApp
+let editor: TestEditor
 
 afterEach(() => {
-	app?.dispose()
+	editor?.dispose()
 })
 
 const ids = {
-	box1: createCustomShapeId('box1'),
-	box2: createCustomShapeId('box2'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
 }
 
 beforeEach(() => {
-	app = new TestApp()
+	editor = new TestEditor()
 
-	app.createShapes([
+	editor.createShapes([
 		{
 			id: ids.box1,
 			type: 'geo',
@@ -40,10 +40,10 @@ beforeEach(() => {
 	])
 })
 
-describe('app.rotateShapes', () => {
+describe('editor.rotateShapes', () => {
 	it('Rotates shapes and fires events', () => {
 		// Set start / change / end events on only the geo shape
-		const util = app.getShapeUtil(TLGeoUtil)
+		const util = editor.getShapeUtil(GeoShapeUtil)
 
 		// Bad! who did this (did I do this)
 		const fnStart = jest.fn()
@@ -56,12 +56,12 @@ describe('app.rotateShapes', () => {
 		util.onRotateEnd = fnEnd
 
 		// Select the shape...
-		app.select(ids.box1, ids.box2)
+		editor.select(ids.box1, ids.box2)
 
-		const { selectionPageCenter } = app
+		const { selectionPageCenter } = editor
 
 		// Rotate the shape...
-		app.rotateShapesBy(app.selectedIds, Math.PI)
+		editor.rotateShapesBy(editor.selectedIds, Math.PI)
 
 		// Once for each shape
 		expect(fnStart).toHaveBeenCalledTimes(2)
@@ -73,11 +73,11 @@ describe('app.rotateShapes', () => {
 		expect(fnEnd).toHaveBeenCalledTimes(2)
 
 		// Are the shapes rotated?
-		app
+		editor
 			.expectShapeToMatch({ id: ids.box1, rotation: Math.PI })
 			.expectShapeToMatch({ id: ids.box2, rotation: Math.PI })
 
 		// Are the centers the same?
-		expect(selectionPageCenter).toMatchObject(app.selectionPageCenter!)
+		expect(selectionPageCenter).toMatchObject(editor.selectionPageCenter!)
 	})
 })

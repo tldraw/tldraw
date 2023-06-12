@@ -1,46 +1,45 @@
-import { App, useApp } from '@tldraw/editor'
+import { Editor, TLLanguage, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { track } from 'signia-react'
 import { KeyboardShortcutsDialog } from '../components/KeyboardShortcutsDialog'
-import { MenuSchema, menuCustom, menuGroup, menuItem } from './menuHelpers'
+import { TLUiMenuSchema, menuCustom, menuGroup, menuItem } from './menuHelpers'
 import { useActions } from './useActions'
 import { useDialogs } from './useDialogsProvider'
-import { TLListedTranslations } from './useTranslation/translations'
 import { useLanguages } from './useTranslation/useLanguages'
 
 /** @public */
-export type HelpMenuSchemaProviderType = MenuSchema
+export type TLUiHelpMenuSchemaContextType = TLUiMenuSchema
 
 /** @internal */
-export const HelpMenuSchemaContext = React.createContext({} as HelpMenuSchemaProviderType)
+export const HelpMenuSchemaContext = React.createContext({} as TLUiHelpMenuSchemaContextType)
 
 /** @public */
-export type HelpMenuSchemaProviderProps = {
+export type TLUiHelpMenuSchemaProviderProps = {
 	overrides?: (
-		app: App,
-		schema: HelpMenuSchemaProviderType,
+		editor: Editor,
+		schema: TLUiHelpMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
-			languages: TLListedTranslations
+			languages: readonly TLLanguage[]
 			currentLanguage: string
 			oneSelected: boolean
 			twoSelected: boolean
 			threeSelected: boolean
 		}
-	) => HelpMenuSchemaProviderType
+	) => TLUiHelpMenuSchemaContextType
 	children: any
 }
 
-/** @public */
+/** @internal */
 export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 	overrides,
 	children,
-}: HelpMenuSchemaProviderProps) {
-	const app = useApp()
+}: TLUiHelpMenuSchemaProviderProps) {
+	const editor = useEditor()
 	const actions = useActions()
 
-	const selectedCount = app.selectedIds.length
+	const selectedCount = editor.selectedIds.length
 
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -49,8 +48,8 @@ export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 	const { languages, currentLanguage } = useLanguages()
 	const { addDialog } = useDialogs()
 
-	const helpMenuSchema = useMemo<MenuSchema>(() => {
-		const helpMenuSchema = compact([
+	const helpTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {
+		const helpTLUiMenuSchema = compact([
 			menuGroup(
 				'top',
 				menuCustom('LANGUAGE_MENU', { readonlyOk: true }),
@@ -66,7 +65,7 @@ export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 		])
 
 		if (overrides) {
-			return overrides(app, helpMenuSchema, {
+			return overrides(editor, helpTLUiMenuSchema, {
 				actions,
 				currentLanguage,
 				languages,
@@ -76,9 +75,9 @@ export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 			})
 		}
 
-		return helpMenuSchema
+		return helpTLUiMenuSchema
 	}, [
-		app,
+		editor,
 		overrides,
 		languages,
 		actions,
@@ -90,18 +89,18 @@ export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 	])
 
 	return (
-		<HelpMenuSchemaContext.Provider value={helpMenuSchema}>
+		<HelpMenuSchemaContext.Provider value={helpTLUiMenuSchema}>
 			{children}
 		</HelpMenuSchemaContext.Provider>
 	)
 })
 
 /** @public */
-export function useHelpMenuSchema(): MenuSchema {
+export function useHelpMenuSchema(): TLUiMenuSchema {
 	const ctx = React.useContext(HelpMenuSchemaContext)
 
 	if (!ctx) {
-		throw new Error('useHelpMenuSchema must be used inside of a helpMenuSchemaProvider.')
+		throw new Error('useHelpMenuSchema must be used inside of a helpTLUiMenuSchemaProvider.')
 	}
 
 	return ctx

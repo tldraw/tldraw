@@ -1,20 +1,23 @@
 import { createContext, useContext } from 'react'
-import { UiAssetUrls } from '../assetUrls'
+import { TLUiAssetUrls } from '../assetUrls'
 
-const AssetUrlsContext = createContext<UiAssetUrls | null>(null)
+/** @internal */
+type UiAssetUrlsContextType = TLUiAssetUrls | null
 
-/** @public */
+const AssetUrlsContext = createContext<UiAssetUrlsContextType>(null)
+
+/** @internal */
 export function AssetUrlsProvider({
 	assetUrls,
 	children,
 }: {
-	assetUrls: UiAssetUrls
+	assetUrls: TLUiAssetUrls
 	children: React.ReactNode
 }) {
 	return <AssetUrlsContext.Provider value={assetUrls}>{children}</AssetUrlsContext.Provider>
 }
 
-/** @public */
+/** @internal */
 export function useAssetUrls() {
 	const assetUrls = useContext(AssetUrlsContext)
 	if (!assetUrls) {

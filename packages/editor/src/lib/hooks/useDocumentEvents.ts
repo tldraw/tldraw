@@ -1,15 +1,15 @@
 import { useEffect } from 'react'
 import { useValue } from 'signia-react'
-import { TLKeyboardEventInfo, TLPointerEventInfo } from '../app/types/event-types'
+import { TLKeyboardEventInfo, TLPointerEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
-import { useApp } from './useApp'
 import { useContainer } from './useContainer'
+import { useEditor } from './useEditor'
 
 export function useDocumentEvents() {
-	const app = useApp()
+	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => app.isFocused, [app])
+	const isAppFocused = useValue('isFocused', () => editor.isFocused, [editor])
 
 	useEffect(() => {
 		if (!isAppFocused) return
@@ -17,7 +17,7 @@ export function useDocumentEvents() {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (
 				e.altKey &&
-				(app.isIn('zoom') || !app.root.path.value.endsWith('.idle')) &&
+				(editor.isIn('zoom') || !editor.root.path.value.endsWith('.idle')) &&
 				!isFocusingInput()
 			) {
 				// On windows the alt key opens the menu bar.
@@ -52,7 +52,7 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Tab': {
-					if (isFocusingInput() || app.isMenuOpen) {
+					if (isFocusingInput() || editor.isMenuOpen) {
 						return
 					}
 					break
@@ -60,12 +60,12 @@ export function useDocumentEvents() {
 				case ',': {
 					if (!isFocusingInput()) {
 						preventDefault(e)
-						if (!app.inputs.keys.has('Comma')) {
-							const { x, y, z } = app.inputs.currentScreenPoint
+						if (!editor.inputs.keys.has('Comma')) {
+							const { x, y, z } = editor.inputs.currentScreenPoint
 							const {
 								pageState: { hoveredId },
-							} = app
-							app.inputs.keys.add('Comma')
+							} = editor
+							editor.inputs.keys.add('Comma')
 
 							const info: TLPointerEventInfo = {
 								type: 'pointer',
@@ -76,28 +76,28 @@ export function useDocumentEvents() {
 								ctrlKey: e.metaKey || e.ctrlKey,
 								pointerId: 0,
 								button: 0,
-								isPen: app.isPenMode,
+								isPen: editor.isPenMode,
 								...(hoveredId
 									? {
 											target: 'shape',
-											shape: app.getShapeById(hoveredId)!,
+											shape: editor.getShapeById(hoveredId)!,
 									  }
 									: {
 											target: 'canvas',
 									  }),
 							}
 
-							app.dispatch(info)
+							editor.dispatch(info)
 							return
 						}
 					}
 					break
 				}
 				case 'Escape': {
-					if (!app.inputs.keys.has('Escape')) {
-						app.inputs.keys.add('Escape')
+					if (!editor.inputs.keys.has('Escape')) {
+						editor.inputs.keys.add('Escape')
 
-						app.cancel()
+						editor.cancel()
 						// Pressing escape will focus the document.body,
 						// which will cause the app to lose focus, which
 						// will break additional shortcuts. We need to
@@ -108,7 +108,7 @@ export function useDocumentEvents() {
 					return
 				}
 				default: {
-					if (isFocusingInput() || app.isMenuOpen) {
+					if (isFocusingInput() || editor.isMenuOpen) {
 						return
 					}
 				}
@@ -116,7 +116,7 @@ export function useDocumentEvents() {
 
 			const info: TLKeyboardEventInfo = {
 				type: 'keyboard',
-				name: app.inputs.keys.has(e.code) ? 'key_repeat' : 'key_down',
+				name: editor.inputs.keys.has(e.code) ? 'key_repeat' : 'key_down',
 				key: e.key,
 				code: e.code,
 				shiftKey: e.shiftKey,
@@ -124,27 +124,27 @@ export function useDocumentEvents() {
 				ctrlKey: e.metaKey || e.ctrlKey,
 			}
 
-			app.dispatch(info)
+			editor.dispatch(info)
 		}
 
 		const handleKeyUp = (e: KeyboardEvent) => {
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
 
-			if (isFocusingInput() || app.isMenuOpen) {
+			if (isFocusingInput() || editor.isMenuOpen) {
 				return
 			}
 
 			// Use the , key to send pointer events
 			if (e.key === ',') {
 				if (document.activeElement?.ELEMENT_NODE) preventDefault(e)
-				if (app.inputs.keys.has(e.code)) {
-					const { x, y, z } = app.inputs.currentScreenPoint
+				if (editor.inputs.keys.has(e.code)) {
+					const { x, y, z } = editor.inputs.currentScreenPoint
 					const {
 						pageState: { hoveredId },
-					} = app
+					} = editor
 
-					app.inputs.keys.delete(e.code)
+					editor.inputs.keys.delete(e.code)
 
 					const info: TLPointerEventInfo = {
 						type: 'pointer',
@@ -155,17 +155,17 @@ export function useDocumentEvents() {
 						ctrlKey: e.metaKey || e.ctrlKey,
 						pointerId: 0,
 						button: 0,
-						isPen: app.isPenMode,
+						isPen: editor.isPenMode,
 						...(hoveredId
 							? {
 									target: 'shape',
-									shape: app.getShapeById(hoveredId)!,
+									shape: editor.getShapeById(hoveredId)!,
 							  }
 							: {
 									target: 'canvas',
 							  }),
 					}
-					app.dispatch(info)
+					editor.dispatch(info)
 					return
 				}
 			}
@@ -180,7 +180,7 @@ export function useDocumentEvents() {
 				ctrlKey: e.metaKey || e.ctrlKey,
 			}
 
-			app.dispatch(info)
+			editor.dispatch(info)
 		}
 
 		function handleTouchStart(e: TouchEvent) {
@@ -196,7 +196,7 @@ export function useDocumentEvents() {
 				// touchstart event in that case.
 				if (
 					touchXPosition - touchXRadius < 10 ||
-					touchXPosition + touchXRadius > app.viewportScreenBounds.width - 10
+					touchXPosition + touchXRadius > editor.viewportScreenBounds.width - 10
 				) {
 					if ((e.target as HTMLElement)?.tagName === 'BUTTON') {
 						// Force a click before bailing
@@ -216,11 +216,11 @@ export function useDocumentEvents() {
 		}
 
 		function handleBlur() {
-			app.complete()
+			editor.complete()
 		}
 
 		function handleFocus() {
-			app.updateViewportScreenBounds()
+			editor.updateViewportScreenBounds()
 		}
 
 		container.addEventListener('touchstart', handleTouchStart, { passive: false })
@@ -250,7 +250,7 @@ export function useDocumentEvents() {
 			window.removeEventListener('blur', handleBlur)
 			window.removeEventListener('focus', handleFocus)
 		}
-	}, [app, container, isAppFocused])
+	}, [editor, container, isAppFocused])
 }
 
 const INPUTS = ['input', 'select', 'button', 'textarea']

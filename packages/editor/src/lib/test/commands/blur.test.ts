@@ -1,3 +1,3 @@
 export {}
 
-it.todo('App.blur')
+it.todo('Editor.blur')

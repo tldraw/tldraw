@@ -1,11 +1,11 @@
 import { kbd } from './shared'
 
-/** @public */
+/** @internal */
 export interface KbdProps {
 	children: string
 }
 
-/** @public */
+/** @internal */
 export function Kbd({ children }: KbdProps) {
 	return (
 		<kbd className="tlui-kbd">

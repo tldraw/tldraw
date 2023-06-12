@@ -1,8 +1,8 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { preventDefault, useContainer } from '@tldraw/editor'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
-import { Button, ButtonProps } from './Button'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
+import { Button, TLUiButtonProps } from './Button'
 import { Icon } from './Icon'
 
 /** @public */
@@ -88,7 +88,7 @@ export function SubTrigger({
 	'data-testid': testId,
 	'data-direction': dataDirection,
 }: {
-	label: TLTranslationKey
+	label: TLUiTranslationKey
 	'data-testid'?: string
 	'data-direction'?: 'left' | 'right'
 }) {
@@ -153,7 +153,7 @@ export function Indicator() {
 }
 
 /** @public */
-export interface DropdownMenuItemProps extends ButtonProps {
+export interface DropdownMenuItemProps extends TLUiButtonProps {
 	noClose?: boolean
 }
 

@@ -31,8 +31,13 @@
 		"translations",
 		"imports.js",
 		"imports.d.ts",
+		"selfHosted.js",
+		"selfHosted.d.ts",
+		"types.d.ts",
 		"urls.js",
-		"urls.d.ts"
+		"urls.d.ts",
+		"utils.js",
+		"utils.d.ts"
 	],
 	"scripts": {
 		"pack-tarball": "yarn pack",
@@ -42,7 +47,7 @@
 		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {
-		"lazyrepo": "0.0.0-alpha.26",
+		"lazyrepo": "0.0.0-alpha.27",
 		"ts-node-dev": "^1.1.8"
 	},
 	"jest": {

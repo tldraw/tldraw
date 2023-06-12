@@ -5,6 +5,7 @@ Object {
   "id": "shape:lineA",
   "index": "a3",
   "isLocked": false,
+  "opacity": 1,
   "parentId": "shape:boxA",
   "props": Object {
     "color": "black",
@@ -13,7 +14,6 @@ Object {
     "isClosed": false,
     "isComplete": false,
     "isPen": false,
-    "opacity": "1",
     "segments": Array [
       Object {
         "points": Array [
@@ -23,8 +23,8 @@ Object {
             "z": 0.5,
           },
           Object {
-            "x": 110.00000000000001,
-            "y": 110.00000000000001,
+            "x": 110,
+            "y": 110,
             "z": 0.5,
           },
         ],

@@ -1,8 +1,8 @@
 import { TLShapeId } from '@tldraw/tlschema'
 import { useValue } from 'signia-react'
-import { useApp } from './useApp'
+import { useEditor } from './useEditor'
 
 export function useIsEditing(shapeId: TLShapeId) {
-	const app = useApp()
-	return useValue('isEditing', () => app.editingId === shapeId, [app, shapeId])
+	const editor = useEditor()
+	return useValue('isEditing', () => editor.editingId === shapeId, [editor, shapeId])
 }

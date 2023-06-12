@@ -1,9 +1,9 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
-import { App, preventDefault, useApp, useContainer } from '@tldraw/editor'
+import { Editor, preventDefault, useContainer, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
-import * as React from 'react'
+import { useCallback, useState } from 'react'
 import { useValue } from 'signia-react'
-import { MenuChild } from '../hooks/menuHelpers'
+import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
 import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
@@ -15,26 +15,66 @@ import { Icon } from './primitives/Icon'
 import { Kbd } from './primitives/Kbd'
 
 /** @public */
-export interface ContextMenuProps {
+export interface TLUiContextMenuProps {
 	children: any
 }
 
 /** @public */
 export const ContextMenu = function ContextMenu({ children }: { children: any }) {
-	const app = useApp()
+	const editor = useEditor()
 
-	const contextMenuSchema = useContextMenuSchema()
-	const [_, handleOpenChange] = useMenuIsOpen('context menu')
+	const contextTLUiMenuSchema = useContextMenuSchema()
+
+	const cb = useCallback(
+		(isOpen: boolean) => {
+			if (!isOpen) {
+				const { onlySelectedShape } = editor
+
+				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
+					editor.setSelectedIds([])
+				}
+			} else {
+				// Weird route: selecting locked shapes on long press
+				if (editor.isCoarsePointer) {
+					const {
+						selectedShapes,
+						inputs: { currentPagePoint },
+					} = editor
+
+					// get all of the shapes under the current pointer
+					const shapesAtPoint = editor.getShapesAtPoint(currentPagePoint)
+
+					if (
+						// if there are no selected shapes
+						!editor.selectedShapes.length ||
+						// OR if none of the shapes at the point include the selected shape
+						!shapesAtPoint.some((s) => selectedShapes.includes(s))
+					) {
+						// then are there any locked shapes under the current pointer?
+						const lockedShapes = shapesAtPoint.filter((s) => editor.isShapeOrAncestorLocked(s))
+
+						if (lockedShapes.length) {
+							// nice, let's select them
+							editor.select(...lockedShapes.map((s) => s.id))
+						}
+					}
+				}
+			}
+		},
+		[editor]
+	)
+
+	const [_, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
 	// If every item in the menu is readonly, then we don't want to show the menu
 	const isReadonly = useReadonly()
 
 	const noItemsToShow =
-		contextMenuSchema.length === 0 ||
-		(isReadonly && contextMenuSchema.every((item) => !item.readonlyOk))
+		contextTLUiMenuSchema.length === 0 ||
+		(isReadonly && contextTLUiMenuSchema.every((item) => !item.readonlyOk))
 
-	const selectToolActive = useValue('isSelectToolActive', () => app.currentToolId === 'select', [
-		app,
+	const selectToolActive = useValue('isSelectToolActive', () => editor.currentToolId === 'select', [
+		editor,
 	])
 
 	const disabled = !selectToolActive || noItemsToShow
@@ -54,7 +94,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 }
 
 function ContextMenuContent() {
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const menuSchema = useContextMenuSchema()
 	const [_, handleSubOpenChange] = useMenuIsOpen('context menu sub')
@@ -63,9 +103,14 @@ function ContextMenuContent() {
 	const breakpoint = useBreakpoint()
 	const container = useContainer()
 
-	const [disableClicks, setDisableClicks] = React.useState(false)
+	const [disableClicks, setDisableClicks] = useState(false)
 
-	function getContextMenuItem(app: App, item: MenuChild, parent: MenuChild | null, depth: number) {
+	function getContextMenuItem(
+		editor: Editor,
+		item: TLUiMenuChild,
+		parent: TLUiMenuChild | null,
+		depth: number
+	) {
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {
@@ -87,7 +132,7 @@ function ContextMenuContent() {
 						data-testid={`menu-item.${item.id}`}
 						key={item.id}
 					>
-						{item.children.map((child) => getContextMenuItem(app, child, item, depth + 1))}
+						{item.children.map((child) => getContextMenuItem(editor, child, item, depth + 1))}
 					</_ContextMenu.Group>
 				)
 			}
@@ -104,7 +149,7 @@ function ContextMenuContent() {
 						</_ContextMenu.SubTrigger>
 						<_ContextMenu.Portal container={container} dir="ltr">
 							<_ContextMenu.SubContent className="tlui-menu" sideOffset={-4} collisionPadding={4}>
-								{item.children.map((child) => getContextMenuItem(app, child, item, depth + 1))}
+								{item.children.map((child) => getContextMenuItem(editor, child, item, depth + 1))}
 							</_ContextMenu.SubContent>
 						</_ContextMenu.Portal>
 					</_ContextMenu.Sub>
@@ -179,7 +224,7 @@ function ContextMenuContent() {
 				collisionPadding={4}
 				onContextMenu={preventDefault}
 			>
-				{menuSchema.map((item) => getContextMenuItem(app, item, null, 0))}
+				{menuSchema.map((item) => getContextMenuItem(editor, item, null, 0))}
 			</_ContextMenu.Content>
 		</_ContextMenu.Portal>
 	)

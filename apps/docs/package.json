@@ -61,13 +61,13 @@
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/file-format": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
+		"@tldraw/store": "workspace:*",
 		"@tldraw/tldraw": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
-		"@tldraw/tlstore": "workspace:*",
-		"@tldraw/tlsync-client": "workspace:*",
-		"@tldraw/tlvalidate": "workspace:*",
 		"@tldraw/ui": "workspace:*",
-		"lazyrepo": "0.0.0-alpha.26",
+		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*",
+		"lazyrepo": "0.0.0-alpha.27",
 		"rimraf": "^4.4.0",
 		"ts-node": "^10.9.1"
 	}

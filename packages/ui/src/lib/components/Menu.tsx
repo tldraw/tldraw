@@ -1,6 +1,6 @@
-import { App, useApp } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import * as React from 'react'
-import { MenuChild } from '../hooks/menuHelpers'
+import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useMenuSchema } from '../hooks/useMenuSchema'
 import { useReadonly } from '../hooks/useReadonly'
@@ -31,13 +31,18 @@ export const Menu = React.memo(function Menu() {
 })
 
 function MenuContent() {
-	const app = useApp()
+	const editor = useEditor()
 	const msg = useTranslation()
 	const menuSchema = useMenuSchema()
 	const breakpoint = useBreakpoint()
 	const isReadonly = useReadonly()
 
-	function getMenuItem(app: App, item: MenuChild, parent: MenuChild | null, depth: number) {
+	function getMenuItem(
+		editor: Editor,
+		item: TLUiMenuChild,
+		parent: TLUiMenuChild | null,
+		depth: number
+	) {
 		switch (item.type) {
 			case 'custom': {
 				if (isReadonly && !item.readonlyOk) return null
@@ -62,7 +67,7 @@ function MenuContent() {
 						}
 						key={item.id}
 					>
-						{item.children.map((child) => getMenuItem(app, child, item, depth + 1))}
+						{item.children.map((child) => getMenuItem(editor, child, item, depth + 1))}
 					</M.Group>
 				)
 			}
@@ -73,7 +78,7 @@ function MenuContent() {
 					<M.Sub id={`main menu ${parent ? parent.id + ' ' : ''}${item.id}`} key={item.id}>
 						<M.SubTrigger label={item.label} data-testid={`menu-item.${item.id}`} />
 						<M.SubContent sideOffset={-4} alignOffset={-1}>
-							{item.children.map((child) => getMenuItem(app, child, item, depth + 1))}
+							{item.children.map((child) => getMenuItem(editor, child, item, depth + 1))}
 						</M.SubContent>
 					</M.Sub>
 				)
@@ -116,5 +121,5 @@ function MenuContent() {
 		}
 	}
 
-	return <>{menuSchema.map((item) => getMenuItem(app, item, null, 0))}</>
+	return <>{menuSchema.map((item) => getMenuItem(editor, item, null, 0))}</>
 }

@@ -51,7 +51,7 @@ export function matchUrl(url: string) {
 }
 
 /** @public */
-export type EmbedResult =
+export type TLEmbedResult =
 	| {
 			definition: EmbedDefinition
 			url: string
@@ -65,7 +65,7 @@ export type EmbedResult =
  * @param inputUrl - The URL to match
  * @public
  */
-export function getEmbedInfoUnsafely(inputUrl: string): EmbedResult {
+export function getEmbedInfoUnsafely(inputUrl: string): TLEmbedResult {
 	const result = matchUrl(inputUrl) ?? matchEmbedUrl(inputUrl)
 	return result
 }
@@ -77,7 +77,7 @@ export function getEmbedInfoUnsafely(inputUrl: string): EmbedResult {
  * @param inputUrl - The URL to match
  * @public
  */
-export function getEmbedInfo(inputUrl: string): EmbedResult {
+export function getEmbedInfo(inputUrl: string): TLEmbedResult {
 	try {
 		return getEmbedInfoUnsafely(inputUrl)
 	} catch (e) {

@@ -1,27 +1,26 @@
-import { App, createShapesFromFiles } from '@tldraw/editor'
+import { Editor } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
 
 /**
  * When the clipboard has a file, create an image shape from the file and paste it into the scene
  *
- * @param app - The app instance.
+ * @param editor - The editor instance.
  * @param urls - The file urls.
- * @param point - The point at which to paste the file.
+ * @param point - (optional) The point at which to paste the file.
  * @internal
  */
-export async function pasteFiles(app: App, urls: string[], point?: VecLike) {
-	const p = point ?? (app.inputs.shiftKey ? app.inputs.currentPagePoint : app.viewportPageCenter)
-
+export async function pasteFiles(editor: Editor, urls: string[], point?: VecLike) {
 	const blobs = await Promise.all(urls.map(async (url) => await (await fetch(url)).blob()))
+	const files = blobs.map((blob) => new File([blob], 'tldrawFile', { type: blob.type }))
 
-	const files = blobs.map(
-		(blob) =>
-			new File([blob], 'tldrawFile', {
-				type: blob.type,
-			})
-	)
+	editor.mark('paste')
 
-	app.mark('paste')
-	await createShapesFromFiles(app, files, p, false)
+	await editor.putExternalContent({
+		type: 'files',
+		files,
+		point,
+		ignoreParent: false,
+	})
+
 	urls.forEach((url) => URL.revokeObjectURL(url))
 }

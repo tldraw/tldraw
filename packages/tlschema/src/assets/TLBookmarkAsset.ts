@@ -1,9 +1,11 @@
-import { defineMigrations } from '@tldraw/tlstore'
-import { T } from '@tldraw/tlvalidate'
-import { createAssetValidator, TLBaseAsset } from './asset-validation'
+import { defineMigrations } from '@tldraw/store'
+import { T } from '@tldraw/validate'
+import { createAssetValidator, TLBaseAsset } from './TLBaseAsset'
 
-// --- DEFINITION ---
-/** @public */
+/**
+ * An asset used for URL bookmarks, used by the TLBookmarkShape.
+ *
+ *  @public */
 export type TLBookmarkAsset = TLBaseAsset<
 	'bookmark',
 	{
@@ -14,8 +16,8 @@ export type TLBookmarkAsset = TLBaseAsset<
 	}
 >
 
-/** @public */
-export const bookmarkAssetTypeValidator: T.Validator<TLBookmarkAsset> = createAssetValidator(
+/** @internal */
+export const bookmarkAssetValidator: T.Validator<TLBookmarkAsset> = createAssetValidator(
 	'bookmark',
 	T.object({
 		title: T.string,
@@ -25,5 +27,5 @@ export const bookmarkAssetTypeValidator: T.Validator<TLBookmarkAsset> = createAs
 	})
 )
 
-/** @public */
+/** @internal */
 export const bookmarkAssetMigrations = defineMigrations({})

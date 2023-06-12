@@ -1,19 +1,19 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { App, TLStyleItem, TLStyleType } from '@tldraw/editor'
+import { Editor, TLStyleItem, TLStyleType } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
-import { TLTranslationKey } from '../../hooks/useTranslation/TLTranslationKey'
+import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from '../primitives/Button'
 import * as DropdownMenu from '../primitives/DropdownMenu'
 
-type AllStyles = typeof App.styles
+type AllStyles = typeof Editor.styles
 
 interface DoubleDropdownPickerProps<T extends AllStyles[keyof AllStyles][number]> {
-	label: TLTranslationKey
-	labelA: TLTranslationKey
-	labelB: TLTranslationKey
+	label: TLUiTranslationKey
+	labelA: TLUiTranslationKey
+	labelB: TLUiTranslationKey
 	itemsA: T[]
 	itemsB: T[]
 	styleTypeA: TLStyleType
@@ -69,7 +69,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 							' — ' +
 							(valueA === null
 								? msg('style-panel.mixed')
-								: msg(`${styleTypeA}-style.${valueA}` as TLTranslationKey))
+								: msg(`${styleTypeA}-style.${valueA}` as TLUiTranslationKey))
 						}
 						icon={iconA as any}
 						invertIcon
@@ -88,7 +88,9 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 								<DropdownMenu.Item
 									className="tlui-button-grid__button"
 									title={
-										msg(labelA) + ' — ' + msg(`${styleTypeA}-style.${item.id}` as TLTranslationKey)
+										msg(labelA) +
+										' — ' +
+										msg(`${styleTypeA}-style.${item.id}` as TLUiTranslationKey)
 									}
 									data-testid={`${startWdPrefix}.${item.id}`}
 									key={item.id}
@@ -110,7 +112,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 							' — ' +
 							(valueB === null
 								? msg('style-panel.mixed')
-								: msg(`${styleTypeB}-style.${valueB}` as TLTranslationKey))
+								: msg(`${styleTypeB}-style.${valueB}` as TLUiTranslationKey))
 						}
 						icon={iconB as any}
 						smallIcon
@@ -128,7 +130,9 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 								<DropdownMenu.Item
 									className="tlui-button-grid__button"
 									title={
-										msg(labelB) + ' — ' + msg(`${styleTypeB}-style.${item.id}` as TLTranslationKey)
+										msg(labelB) +
+										' — ' +
+										msg(`${styleTypeB}-style.${item.id}` as TLUiTranslationKey)
 									}
 									data-testid={`${endWdPrefix}.${item.id}`}
 									key={item.id}

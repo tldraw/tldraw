@@ -6,9 +6,9 @@ import {
 	useStateTracking,
 	useValue,
 } from 'signia-react'
-import { useApp } from '../..'
-import type { App } from '../app/App'
-import { TLShapeUtil } from '../app/shapeutils/TLShapeUtil'
+import { useEditor } from '../..'
+import type { Editor } from '../editor/Editor'
+import { ShapeUtil } from '../editor/shapeutils/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -20,12 +20,15 @@ class ShapeWithPropsEquality {
 }
 
 // need an extra layer of indirection here to allow hooks to be used inside the indicator render
-const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: TLShapeUtil<any> }) => {
+const EvenInnererIndicator = ({ shape, util }: { shape: TLShape; util: ShapeUtil<any> }) => {
 	return useStateTracking('Indicator:' + shape.type, () => util.indicator(shape))
 }
 
-export const InnerIndicator = ({ app, id }: { app: App; id: TLShapeId }) => {
-	const shape = useValue('shape', () => new ShapeWithPropsEquality(app.store.get(id)), [app, id])
+export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }) => {
+	const shape = useValue('shape', () => new ShapeWithPropsEquality(editor.store.get(id)), [
+		editor,
+		id,
+	])
 
 	const { ShapeIndicatorErrorFallback } = useEditorComponents()
 
@@ -38,13 +41,13 @@ export const InnerIndicator = ({ app, id }: { app: App; id: TLShapeId }) => {
 					: null
 			}
 			onError={(error) =>
-				app.annotateError(error, { origin: 'react.shapeIndicator', willCrashApp: false })
+				editor.annotateError(error, { origin: 'react.shapeIndicator', willCrashApp: false })
 			}
 		>
 			<EvenInnererIndicator
 				key={shape.shape.id}
 				shape={shape.shape}
-				util={app.getShapeUtil(shape.shape)}
+				util={editor.getShapeUtil(shape.shape)}
 			/>
 		</OptionalErrorBoundary>
 	)
@@ -58,16 +61,16 @@ export type TLShapeIndicatorComponent = (props: {
 }) => JSX.Element | null
 
 const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opacity }) => {
-	const app = useApp()
+	const editor = useEditor()
 
 	const transform = useValue(
 		'transform',
 		() => {
-			const pageTransform = app.getPageTransformById(id)
+			const pageTransform = editor.getPageTransformById(id)
 			if (!pageTransform) return ''
 			return pageTransform.toCssString()
 		},
-		[app, id]
+		[editor, id]
 	)
 
 	return (
@@ -78,7 +81,7 @@ const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opac
 				stroke={color ?? 'var(--color-selected)'}
 				opacity={opacity}
 			>
-				<InnerIndicator app={app} id={id} />
+				<InnerIndicator editor={editor} id={id} />
 			</g>
 		</svg>
 	)

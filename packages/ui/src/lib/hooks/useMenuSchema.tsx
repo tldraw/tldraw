@@ -1,9 +1,9 @@
-import { App, useApp } from '@tldraw/editor'
+import { Editor, useEditor } from '@tldraw/editor'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
 import { useValue } from 'signia-react'
 import {
-	MenuSchema,
+	TLUiMenuSchema,
 	menuCustom,
 	menuGroup,
 	menuItem,
@@ -20,16 +20,16 @@ import { useHasLinkShapeSelected } from './useHasLinkShapeSelected'
 import { useShowAutoSizeToggle } from './useShowAutoSizeToggle'
 
 /** @public */
-export type MenuSchemaContextType = MenuSchema
+export type TLUiMenuSchemaContextType = TLUiMenuSchema
+
+/** @internal */
+export const TLUiMenuSchemaContext = React.createContext({} as TLUiMenuSchemaContextType)
 
 /** @public */
-export const MenuSchemaContext = React.createContext({} as MenuSchemaContextType)
-
-/** @public */
-export type MenuSchemaProviderProps = {
+export type TLUiMenuSchemaProviderProps = {
 	overrides?: (
-		app: App,
-		schema: MenuSchemaContextType,
+		editor: Editor,
+		schema: TLUiMenuSchemaContextType,
 		helpers: {
 			actions: ReturnType<typeof useActions>
 			noneSelected: boolean
@@ -37,32 +37,34 @@ export type MenuSchemaProviderProps = {
 			twoSelected: boolean
 			threeSelected: boolean
 		}
-	) => MenuSchemaContextType
+	) => TLUiMenuSchemaContextType
 	children: any
 }
 
-/** @public */
-export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderProps) {
-	const app = useApp()
+/** @internal */
+export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaProviderProps) {
+	const editor = useEditor()
 	const actions = useActions()
 
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < 5
 
-	const isDarkMode = useValue('isDarkMode', () => app.isDarkMode, [app])
-	const animationSpeed = useValue('animationSpeed', () => app.animationSpeed, [app])
-	const isGridMode = useValue('isGridMode', () => app.userDocumentSettings.isGridMode, [app])
-	const isSnapMode = useValue('isSnapMode', () => app.userDocumentSettings.isSnapMode, [app])
-	const isToolLock = useValue('isToolLock', () => app.instanceState.isToolLocked, [app])
-	const isFocusMode = useValue('isFocusMode', () => app.instanceState.isFocusMode, [app])
-	const isDebugMode = useValue('isDebugMode', () => app.instanceState.isDebugMode, [app])
-	const exportBackground = useValue('exportBackground', () => app.instanceState.exportBackground, [
-		app,
-	])
+	const isDarkMode = useValue('isDarkMode', () => editor.isDarkMode, [editor])
+	const animationSpeed = useValue('animationSpeed', () => editor.animationSpeed, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.isGridMode, [editor])
+	const isSnapMode = useValue('isSnapMode', () => editor.isSnapMode, [editor])
+	const isToolLock = useValue('isToolLock', () => editor.instanceState.isToolLocked, [editor])
+	const isFocusMode = useValue('isFocusMode', () => editor.instanceState.isFocusMode, [editor])
+	const isDebugMode = useValue('isDebugMode', () => editor.instanceState.isDebugMode, [editor])
+	const exportBackground = useValue(
+		'exportBackground',
+		() => editor.instanceState.exportBackground,
+		[editor]
+	)
 
-	const emptyPage = useValue('emptyPage', () => app.shapeIds.size === 0, [app])
+	const emptyPage = useValue('emptyPage', () => editor.shapeIds.size === 0, [editor])
 
-	const selectedCount = useValue('selectedCount', () => app.selectedIds.length, [app])
+	const selectedCount = useValue('selectedCount', () => editor.selectedIds.length, [editor])
 	const noneSelected = selectedCount === 0
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -75,9 +77,9 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 	const allowUngroup = useAllowUngroup()
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
-	const isZoomedTo100 = useValue('isZoomedTo100', () => app.zoomLevel === 1, [app])
+	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.zoomLevel === 1, [editor])
 
-	const menuSchema = useMemo<MenuSchema>(() => {
+	const menuSchema = useMemo<TLUiMenuSchema>(() => {
 		const menuSchema = compact([
 			menuGroup(
 				'menu',
@@ -181,7 +183,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 		])
 
 		if (overrides) {
-			return overrides(app, menuSchema, {
+			return overrides(editor, menuSchema, {
 				actions,
 				noneSelected,
 				oneSelected,
@@ -192,7 +194,7 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 
 		return menuSchema
 	}, [
-		app,
+		editor,
 		overrides,
 		actions,
 		oneSelected,
@@ -219,15 +221,17 @@ export function MenuSchemaProvider({ overrides, children }: MenuSchemaProviderPr
 		isZoomedTo100,
 	])
 
-	return <MenuSchemaContext.Provider value={menuSchema}>{children}</MenuSchemaContext.Provider>
+	return (
+		<TLUiMenuSchemaContext.Provider value={menuSchema}>{children}</TLUiMenuSchemaContext.Provider>
+	)
 }
 
 /** @public */
-export function useMenuSchema(): MenuSchema {
-	const ctx = React.useContext(MenuSchemaContext)
+export function useMenuSchema(): TLUiMenuSchema {
+	const ctx = React.useContext(TLUiMenuSchemaContext)
 
 	if (!ctx) {
-		throw new Error('useMenuSchema must be used inside of a MenuSchemaProvider.')
+		throw new Error('useMenuSchema must be used inside of a TLUiMenuSchemaProvider.')
 	}
 
 	return ctx
