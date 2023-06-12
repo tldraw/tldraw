@@ -71,6 +71,7 @@ import {
 	dedupe,
 	deepCopy,
 	getOwnProperty,
+	hasOwnProperty,
 	partition,
 	sortById,
 	structuredClone,
@@ -220,13 +221,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		const uniqueTools = Object.fromEntries(tools.map((Ctor) => [Ctor.id, Ctor]))
-		for (const [id, Ctor] of Object.entries(uniqueTools)) {
-			if (this.root.children?.[id]) {
-				throw Error(`Can't override tool with id "${id}"`)
+		for (const { tool: Tool } of allShapes) {
+			if (Tool) {
+				if (hasOwnProperty(this.root.children!, Tool.id)) {
+					throw Error(`Can't override tool with id "${Tool.id}"`)
+				}
+				this.root.children![Tool.id] = new Tool(this)
 			}
-
-			this.root.children![id] = new Ctor(this)
+		}
+		for (const Tool of tools) {
+			if (hasOwnProperty(this.root.children!, Tool.id)) {
+				throw Error(`Can't override tool with id "${Tool.id}"`)
+			}
+			this.root.children![Tool.id] = new Tool(this)
 		}
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
