@@ -1,11 +1,15 @@
 import { act, render, screen } from '@testing-library/react'
 import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
+import { noop } from '@tldraw/utils'
 import { TldrawEditor } from '../TldrawEditor'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
 import { createTLStore } from '../config/createTLStore'
+import { defaultShapes } from '../config/defaultShapes'
+import { defaultTools } from '../config/defaultTools'
+import { defineShape } from '../config/defineShape'
 import { Editor } from '../editor/Editor'
-import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
+import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
 import { BaseBoxShapeTool } from '../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 
 let originalFetch: typeof window.fetch
@@ -23,51 +27,135 @@ afterEach(() => {
 	window.fetch = originalFetch
 })
 
+function checkAllShapes(editor: Editor, shapes: string[]) {
+	expect(Object.keys(editor!.store.schema.types.shape.migrations.subTypeMigrations!)).toStrictEqual(
+		shapes
+	)
+
+	expect(Object.keys(editor!.shapeUtils)).toStrictEqual(shapes)
+}
+
 describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
-		await act(async () => (
-			<TldrawEditor autoFocus>
+		render(
+			<TldrawEditor autoFocus components={{ ErrorFallback: null }}>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
-		))
-	})
-
-	it('Creates its own store', async () => {
-		let store: any
-		render(
-			await act(async () => (
-				<TldrawEditor onMount={(editor) => (store = editor.store)} autoFocus>
-					<div data-testid="canvas-1" />
-				</TldrawEditor>
-			))
 		)
 		await screen.findByTestId('canvas-1')
-		expect(store).toBeTruthy()
+	})
+
+	it('Creates its own store with core shapes', async () => {
+		let editor: Editor
+		render(
+			<TldrawEditor
+				components={{ ErrorFallback: null }}
+				onMount={(e) => {
+					editor = e
+				}}
+				autoFocus
+			>
+				<div data-testid="canvas-1" />
+			</TldrawEditor>
+		)
+		await screen.findByTestId('canvas-1')
+		checkAllShapes(editor!, ['group', 'embed', 'bookmark', 'image', 'text'])
+	})
+
+	it('Can be created with default shapes', async () => {
+		let editor: Editor
+		render(
+			<TldrawEditor
+				components={{ ErrorFallback: null }}
+				shapes={defaultShapes}
+				onMount={(e) => {
+					editor = e
+				}}
+				autoFocus
+			>
+				<div data-testid="canvas-1" />
+			</TldrawEditor>
+		)
+		await screen.findByTestId('canvas-1')
+		expect(editor!).toBeTruthy()
+
+		checkAllShapes(editor!, [
+			'group',
+			'embed',
+			'bookmark',
+			'image',
+			'text',
+			'draw',
+			'geo',
+			'line',
+			'note',
+			'frame',
+			'arrow',
+			'highlight',
+			'video',
+		])
 	})
 
 	it('Renders with an external store', async () => {
-		const store = createTLStore()
+		const store = createTLStore({ shapes: [] })
 		render(
-			await act(async () => (
+			<TldrawEditor
+				components={{ ErrorFallback: null }}
+				store={store}
+				onMount={(editor) => {
+					expect(editor.store).toBe(store)
+				}}
+				autoFocus
+			>
+				<div data-testid="canvas-1" />
+			</TldrawEditor>
+		)
+		await screen.findByTestId('canvas-1')
+	})
+
+	it('throws if the store has different shapes to the ones passed in', async () => {
+		const spy = jest.spyOn(console, 'error').mockImplementation(noop)
+		expect(() =>
+			render(
 				<TldrawEditor
-					store={store}
-					onMount={(editor) => {
-						expect(editor.store).toBe(store)
-					}}
+					shapes={defaultShapes}
+					components={{ ErrorFallback: null }}
+					store={createTLStore({ shapes: [] })}
 					autoFocus
 				>
 					<div data-testid="canvas-1" />
 				</TldrawEditor>
-			))
+			)
+		).toThrowErrorMatchingInlineSnapshot(
+			`"Editor and store have different shapes: \\"draw\\" was passed into the editor but not the schema"`
 		)
-		await screen.findByTestId('canvas-1')
+
+		expect(() =>
+			render(
+				<TldrawEditor
+					components={{ ErrorFallback: null }}
+					store={createTLStore({ shapes: defaultShapes })}
+					autoFocus
+				>
+					<div data-testid="canvas-1" />
+				</TldrawEditor>
+			)
+		).toThrowErrorMatchingInlineSnapshot(
+			`"Editor and store have different shapes: \\"draw\\" is present in the store schema but not provided to the editor"`
+		)
+		spy.mockRestore()
 	})
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = createTLStore({})
+		const initialStore = createTLStore({ shapes: [] })
 		const onMount = jest.fn()
 		const rendered = render(
-			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				components={{ ErrorFallback: null }}
+				store={initialStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -77,7 +165,12 @@ describe('<TldrawEditor />', () => {
 		expect(initialEditor.store).toBe(initialStore)
 		// re-render with the same store:
 		rendered.rerender(
-			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				components={{ ErrorFallback: null }}
+				store={initialStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
 		)
@@ -85,9 +178,14 @@ describe('<TldrawEditor />', () => {
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
-		const newStore = createTLStore({})
+		const newStore = createTLStore({ shapes: [] })
 		rendered.rerender(
-			<TldrawEditor store={newStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				components={{ ErrorFallback: null }}
+				store={newStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)
@@ -100,17 +198,18 @@ describe('<TldrawEditor />', () => {
 	it('Renders the canvas and shapes', async () => {
 		let editor = {} as Editor
 		render(
-			await act(async () => (
-				<TldrawEditor
-					autoFocus
-					onMount={(editorApp) => {
-						editor = editorApp
-					}}
-				>
-					<Canvas />
-					<div data-testid="canvas-1" />
-				</TldrawEditor>
-			))
+			<TldrawEditor
+				components={{ ErrorFallback: null }}
+				shapes={defaultShapes}
+				tools={defaultTools}
+				autoFocus
+				onMount={(editorApp) => {
+					editor = editorApp
+				}}
+			>
+				<Canvas />
+				<div data-testid="canvas-1" />
+			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-1')
 
@@ -215,24 +314,23 @@ describe('Custom shapes', () => {
 	}
 
 	const tools = [CardTool]
-	const shapes = { card: { util: CardUtil } }
+	const shapes = [defineShape('card', { util: CardUtil })]
 
 	it('Uses custom shapes', async () => {
 		let editor = {} as Editor
 		render(
-			await act(async () => (
-				<TldrawEditor
-					shapes={shapes}
-					tools={tools}
-					autoFocus
-					onMount={(editorApp) => {
-						editor = editorApp
-					}}
-				>
-					<Canvas />
-					<div data-testid="canvas-1" />
-				</TldrawEditor>
-			))
+			<TldrawEditor
+				components={{ ErrorFallback: null }}
+				shapes={shapes}
+				tools={tools}
+				autoFocus
+				onMount={(editorApp) => {
+					editor = editorApp
+				}}
+			>
+				<Canvas />
+				<div data-testid="canvas-1" />
+			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-1')
 
@@ -242,6 +340,7 @@ describe('Custom shapes', () => {
 		})
 
 		expect(editor.shapeUtils.card).toBeTruthy()
+		checkAllShapes(editor, ['group', 'embed', 'bookmark', 'image', 'text', 'card'])
 
 		const id = createShapeId()
 

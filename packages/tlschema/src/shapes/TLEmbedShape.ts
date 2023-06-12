@@ -1,6 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { ShapeProps, TLBaseShape } from './TLBaseShape'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
 const TLDRAW_APP_RE = /(^\/r\/[^/]+\/?$)/
@@ -561,22 +561,19 @@ export type TLEmbedShapeProps = {
 export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
 
 /** @internal */
-export const embedShapeTypeValidator: T.Validator<TLEmbedShape> = createShapeValidator(
-	'embed',
-	T.object({
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		url: T.string,
-		tmpOldUrl: T.string.optional(),
-		doesResize: T.boolean,
-		overridePermissions: T.dict(
-			T.setEnum(
-				new Set(Object.keys(embedShapePermissionDefaults) as (keyof TLEmbedShapePermissions)[])
-			),
-			T.boolean.optional()
-		).optional(),
-	})
-)
+export const embedShapeProps: ShapeProps<TLEmbedShape> = {
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	url: T.string,
+	tmpOldUrl: T.string.optional(),
+	doesResize: T.boolean,
+	overridePermissions: T.dict(
+		T.setEnum(
+			new Set(Object.keys(embedShapePermissionDefaults) as (keyof TLEmbedShapePermissions)[])
+		),
+		T.boolean.optional()
+	).optional(),
+}
 
 /** @public */
 export type EmbedDefinition = {

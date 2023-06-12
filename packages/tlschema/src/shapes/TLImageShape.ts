@@ -3,7 +3,7 @@ import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { Vec2dModel } from '../misc/geometry-types'
 import { TLAssetId } from '../records/TLAsset'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { ShapeProps, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export type TLImageCrop = {
@@ -30,17 +30,14 @@ export const cropValidator = T.object({
 })
 
 /** @internal */
-export const imageShapeValidator: T.Validator<TLImageShape> = createShapeValidator(
-	'image',
-	T.object({
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		playing: T.boolean,
-		url: T.string,
-		assetId: assetIdValidator.nullable(),
-		crop: cropValidator.nullable(),
-	})
-)
+export const imageShapeProps: ShapeProps<TLImageShape> = {
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	playing: T.boolean,
+	url: T.string,
+	assetId: assetIdValidator.nullable(),
+	crop: cropValidator.nullable(),
+}
 
 const Versions = {
 	AddUrlProp: 1,

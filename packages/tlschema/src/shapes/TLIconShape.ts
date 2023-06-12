@@ -4,7 +4,7 @@ import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLDashType, dashValidator } from '../styles/TLDashStyle'
 import { TLIconType, iconValidator } from '../styles/TLIconStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { ShapeProps, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export type TLIconShapeProps = {
@@ -19,16 +19,13 @@ export type TLIconShapeProps = {
 export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>
 
 /** @internal */
-export const iconShapeValidator: T.Validator<TLIconShape> = createShapeValidator(
-	'icon',
-	T.object({
-		size: sizeValidator,
-		icon: iconValidator,
-		dash: dashValidator,
-		color: colorValidator,
-		scale: T.number,
-	})
-)
+export const iconShapeProps: ShapeProps<TLIconShape> = {
+	size: sizeValidator,
+	icon: iconValidator,
+	dash: dashValidator,
+	color: colorValidator,
+	scale: T.number,
+}
 
 /** @internal */
 export const iconShapeMigrations = defineMigrations({})
