@@ -1,11 +1,4 @@
-import {
-	Canvas,
-	ContextMenu,
-	TldrawEditor,
-	TldrawUi,
-	createTLStore,
-	defaultShapes,
-} from '@tldraw/tldraw'
+import { Tldraw, createTLStore, defaultShapes } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { throttle } from '@tldraw/utils'
@@ -71,13 +64,7 @@ export default function PersistenceExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor store={store} autoFocus>
-				<TldrawUi>
-					<ContextMenu>
-						<Canvas />
-					</ContextMenu>
-				</TldrawUi>
-			</TldrawEditor>
+			<Tldraw store={store} autoFocus />
 		</div>
 	)
 }

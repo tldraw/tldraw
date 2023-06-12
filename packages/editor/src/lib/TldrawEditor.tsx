@@ -5,7 +5,6 @@ import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalSto
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
-import { defaultShapes } from './config/defaultShapes'
 import { AnyTLShapeInfo } from './config/defineShape'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
@@ -106,6 +105,9 @@ declare global {
 	}
 }
 
+const EMPTY_SHAPES_ARRAY = [] as const
+const EMPTY_TOOLS_ARRAY = [] as const
+
 /** @public */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
@@ -117,10 +119,13 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	// apply defaults
+	// apply defaults. if you're using the bare @tldraw/editor package, we
+	// default these to the "tldraw zero" configuration. We have different
+	// defaults applied in @tldraw/tldraw.
 	const withDefaults = {
 		...rest,
-		shapes: rest.shapes ?? defaultShapes,
+		shapes: rest.shapes ?? EMPTY_SHAPES_ARRAY,
+		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 	}
 
 	return (
@@ -153,7 +158,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 })
 
 function TldrawEditorWithOwnStore(
-	props: Required<TldrawEditorProps & { store: undefined }, 'shapes'>
+	props: Required<TldrawEditorProps & { store: undefined }, 'shapes' | 'tools'>
 ) {
 	const { defaultName, initialData, shapes, persistenceKey, sessionId } = props
 
@@ -172,7 +177,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	store,
 	assetUrls,
 	...rest
-}: Required<TldrawEditorProps & { store: TLStoreWithStatus }, 'shapes'>) {
+}: Required<TldrawEditorProps & { store: TLStoreWithStatus }, 'shapes' | 'tools'>) {
 	const assets = useDefaultEditorAssetsWithOverrides(assetUrls)
 	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
 
@@ -219,7 +224,7 @@ function TldrawEditorWithReadyStore({
 	TldrawEditorProps & {
 		store: TLStore
 	},
-	'shapes'
+	'shapes' | 'tools'
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()

@@ -6,6 +6,7 @@ import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
 import { createTLStore } from '../config/createTLStore'
 import { defaultShapes } from '../config/defaultShapes'
+import { defaultTools } from '../config/defaultTools'
 import { defineShape } from '../config/defineShape'
 import { Editor } from '../editor/Editor'
 import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
@@ -44,7 +45,7 @@ describe('<TldrawEditor />', () => {
 		await screen.findByTestId('canvas-1')
 	})
 
-	it('Creates its own store with default shapes', async () => {
+	it('Creates its own store with core shapes', async () => {
 		let editor: Editor
 		render(
 			<TldrawEditor
@@ -58,6 +59,26 @@ describe('<TldrawEditor />', () => {
 			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-1')
+		checkAllShapes(editor!, ['group', 'embed', 'bookmark', 'image', 'text'])
+	})
+
+	it('Can be created with default shapes', async () => {
+		let editor: Editor
+		render(
+			<TldrawEditor
+				components={{ ErrorFallback: null }}
+				shapes={defaultShapes}
+				onMount={(e) => {
+					editor = e
+				}}
+				autoFocus
+			>
+				<div data-testid="canvas-1" />
+			</TldrawEditor>
+		)
+		await screen.findByTestId('canvas-1')
+		expect(editor!).toBeTruthy()
+
 		checkAllShapes(editor!, [
 			'group',
 			'embed',
@@ -75,29 +96,8 @@ describe('<TldrawEditor />', () => {
 		])
 	})
 
-	it('Can be created with only core shapes', async () => {
-		let editor: Editor
-		render(
-			<TldrawEditor
-				components={{ ErrorFallback: null }}
-				shapes={[]}
-				tools={[]}
-				onMount={(e) => {
-					editor = e
-				}}
-				autoFocus
-			>
-				<div data-testid="canvas-1" />
-			</TldrawEditor>
-		)
-		await screen.findByTestId('canvas-1')
-		expect(editor!).toBeTruthy()
-
-		checkAllShapes(editor!, ['group', 'embed', 'bookmark', 'image', 'text'])
-	})
-
 	it('Renders with an external store', async () => {
-		const store = createTLStore({ shapes: defaultShapes })
+		const store = createTLStore({ shapes: [] })
 		render(
 			<TldrawEditor
 				components={{ ErrorFallback: null }}
@@ -118,6 +118,7 @@ describe('<TldrawEditor />', () => {
 		expect(() =>
 			render(
 				<TldrawEditor
+					shapes={defaultShapes}
 					components={{ ErrorFallback: null }}
 					store={createTLStore({ shapes: [] })}
 					autoFocus
@@ -134,7 +135,6 @@ describe('<TldrawEditor />', () => {
 				<TldrawEditor
 					components={{ ErrorFallback: null }}
 					store={createTLStore({ shapes: defaultShapes })}
-					shapes={[]}
 					autoFocus
 				>
 					<div data-testid="canvas-1" />
@@ -147,7 +147,7 @@ describe('<TldrawEditor />', () => {
 	})
 
 	it('Accepts fresh versions of store and calls `onMount` for each one', async () => {
-		const initialStore = createTLStore({ shapes: defaultShapes })
+		const initialStore = createTLStore({ shapes: [] })
 		const onMount = jest.fn()
 		const rendered = render(
 			<TldrawEditor
@@ -178,7 +178,7 @@ describe('<TldrawEditor />', () => {
 		// not called again:
 		expect(onMount).toHaveBeenCalledTimes(1)
 		// re-render with a new store:
-		const newStore = createTLStore({ shapes: defaultShapes })
+		const newStore = createTLStore({ shapes: [] })
 		rendered.rerender(
 			<TldrawEditor
 				components={{ ErrorFallback: null }}
@@ -200,6 +200,8 @@ describe('<TldrawEditor />', () => {
 		render(
 			<TldrawEditor
 				components={{ ErrorFallback: null }}
+				shapes={defaultShapes}
+				tools={defaultTools}
 				autoFocus
 				onMount={(editorApp) => {
 					editor = editorApp

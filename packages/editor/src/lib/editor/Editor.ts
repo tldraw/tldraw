@@ -80,7 +80,6 @@ import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
-import { defaultTools } from '../config/defaultTools'
 import { AnyTLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
@@ -170,7 +169,7 @@ export interface TLEditorOptions {
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
-	tools?: readonly TLStateNodeConstructor[]
+	tools: readonly TLStateNodeConstructor[]
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -184,7 +183,7 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({ store, user, tools = defaultTools, shapes, getContainer }: TLEditorOptions) {
+	constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions) {
 		super()
 
 		this.store = store

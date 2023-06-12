@@ -358,7 +358,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, tools, shapes, getContainer }: TLEditorOptions);
+    constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -2268,7 +2268,7 @@ export interface TLEditorOptions {
     getContainer: () => HTMLElement;
     shapes: readonly AnyTLShapeInfo[];
     store: TLStore;
-    tools?: readonly TLStateNodeConstructor[];
+    tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
 
