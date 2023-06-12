@@ -82,6 +82,7 @@ export {
 	STYLES,
 	SVG_PADDING,
 	TEXT_PROPS,
+	VALID_URL_REGEX,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	ZOOMS,
 } from './lib/constants'

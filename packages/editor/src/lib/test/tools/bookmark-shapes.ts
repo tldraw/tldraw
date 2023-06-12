@@ -1,5 +1,8 @@
 import { TLBookmarkShape, createShapeId } from '@tldraw/tlschema'
-import { BookmarkShapeUtil } from '../../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
+import {
+	BookmarkShapeUtil,
+	getHumanReadableAddress,
+} from '../../editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -78,13 +81,12 @@ describe('The URL formatter', () => {
 		const e = editor.getShapeById<TLBookmarkShape>(ids.e)!
 		const f = editor.getShapeById<TLBookmarkShape>(ids.f)!
 
-		const util = editor.getShapeUtil(BookmarkShapeUtil)
-		expect(util.getHumanReadableAddress(a)).toBe('www.github.com')
-		expect(util.getHumanReadableAddress(b)).toBe('www.github.com')
-		expect(util.getHumanReadableAddress(c)).toBe('www.github.com/TodePond')
-		expect(util.getHumanReadableAddress(d)).toBe('www.github.com/TodePond')
-		expect(util.getHumanReadableAddress(e)).toBe('www.github.com')
-		expect(util.getHumanReadableAddress(f)).toBe('www.github.com/TodePond/DreamBerd')
+		expect(getHumanReadableAddress(a)).toBe('www.github.com')
+		expect(getHumanReadableAddress(b)).toBe('www.github.com')
+		expect(getHumanReadableAddress(c)).toBe('www.github.com/TodePond')
+		expect(getHumanReadableAddress(d)).toBe('www.github.com/TodePond')
+		expect(getHumanReadableAddress(e)).toBe('www.github.com')
+		expect(getHumanReadableAddress(f)).toBe('www.github.com/TodePond/DreamBerd')
 	})
 
 	it("Doesn't resize bookmarks", () => {

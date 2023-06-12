@@ -1,5 +1,5 @@
-import { BookmarkShapeUtil, TLBaseShape, useEditor } from '@tldraw/editor'
-import { useCallback, useRef, useState } from 'react'
+import { TLBaseShape, VALID_URL_REGEX, useEditor } from '@tldraw/editor'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -7,16 +7,16 @@ import { Button } from './primitives/Button'
 import * as Dialog from './primitives/Dialog'
 import { Input } from './primitives/Input'
 
-const validUrlRegex = new RegExp(
-	/^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i
-)
-
 // A url can either be invalid, or valid with a protocol, or valid without a protocol.
 // For example, "aol.com" would be valid with a protocol ()
 function validateUrl(url: string) {
-	if (validUrlRegex.test(url)) return true
-	if (validUrlRegex.test('https://' + url)) return 'needs protocol'
-	return false
+	if (VALID_URL_REGEX.test(url)) {
+		return { isValid: true, hasProtocol: true }
+	}
+	if (VALID_URL_REGEX.test('https://' + url)) {
+		return { isValid: true, hasProtocol: false }
+	}
+	return { isValid: false, hasProtocol: false }
 }
 
 type ShapeWithUrl = TLBaseShape<string, { url: string }>
@@ -42,63 +42,82 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	const editor = useEditor()
 	const msg = useTranslation()
 
-	const [validState, setValid] = useState(validateUrl(selectedShape.props.url))
+	const rInput = useRef<HTMLInputElement>(null)
+
+	useEffect(() => {
+		requestAnimationFrame(() => rInput.current?.focus())
+	}, [])
 
 	const rInitialValue = useRef(selectedShape.props.url)
 
-	const rValue = useRef(selectedShape.props.url)
-	const [urlValue, setUrlValue] = useState<string>(
-		validState
-			? validState === 'needs protocol'
-				? 'https://' + selectedShape.props.url
-				: selectedShape.props.url
-			: 'https://'
-	)
+	const [urlInputState, setUrlInputState] = useState(() => {
+		const urlValidResult = validateUrl(selectedShape.props.url)
+
+		const initialValue =
+			urlValidResult.isValid === true
+				? urlValidResult.hasProtocol
+					? selectedShape.props.url
+					: 'https://' + selectedShape.props.url
+				: 'https://'
+
+		return {
+			actual: initialValue,
+			safe: initialValue,
+			valid: true,
+		}
+	})
 
 	const handleChange = useCallback((rawValue: string) => {
 		// Just auto-correct double https:// from a bad paste.
-		const value = rawValue.replace(/https?:\/\/(https?:\/\/)/, (_match, arg1) => {
+		const fixedRawValue = rawValue.replace(/https?:\/\/(https?:\/\/)/, (_match, arg1) => {
 			return arg1
 		})
-		setUrlValue(value)
 
-		const validStateUrl = validateUrl(value.trim())
-		setValid((s) => (s === validStateUrl ? s : validStateUrl))
-		if (validStateUrl) {
-			rValue.current = value
-		}
+		const urlValidResult = validateUrl(fixedRawValue)
+
+		const safeValue =
+			urlValidResult.isValid === true
+				? urlValidResult.hasProtocol
+					? fixedRawValue
+					: 'https://' + fixedRawValue
+				: 'https://'
+
+		setUrlInputState({
+			actual: fixedRawValue,
+			safe: safeValue,
+			valid: urlValidResult.isValid,
+		})
 	}, [])
 
 	const handleClear = useCallback(() => {
-		editor.setProp('url', '', false)
+		const { onlySelectedShape } = editor
+		if (!onlySelectedShape) return
+		editor.updateShapes([
+			{ id: onlySelectedShape.id, type: onlySelectedShape.type, props: { url: '' } },
+		])
 		onClose()
 	}, [editor, onClose])
 
-	const handleComplete = useCallback(
-		(value: string) => {
-			value = value.trim()
-			const validState = validateUrl(value)
+	const handleComplete = useCallback(() => {
+		const { onlySelectedShape } = editor
 
-			const shape = editor.selectedShapes[0]
+		if (!onlySelectedShape) return
 
-			if (shape && 'url' in shape.props) {
-				const current = shape.props.url
-				const next = validState
-					? validState === 'needs protocol'
-						? 'https://' + value
-						: value
-					: editor.isShapeOfType(shape, BookmarkShapeUtil)
-					? rInitialValue.current
-					: ''
-
-				if (current !== undefined && current !== next) {
-					editor.setProp('url', next, false)
-				}
+		// ? URL is a magic value
+		if (onlySelectedShape && 'url' in onlySelectedShape.props) {
+			// Here would be a good place to validate the next shape—would setting the empty
+			if (onlySelectedShape.props.url !== urlInputState.safe) {
+				editor.updateShapes([
+					{
+						id: onlySelectedShape.id,
+						type: onlySelectedShape.type,
+						props: { url: urlInputState.safe },
+					},
+				])
 			}
-			onClose()
-		},
-		[editor, onClose]
-	)
+		}
+		onClose()
+	}, [editor, onClose, urlInputState])
 
 	const handleCancel = useCallback(() => {
 		onClose()
@@ -111,7 +130,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	}
 
 	// Are we going from a valid state to an invalid state?
-	const isRemoving = rInitialValue.current && !validState
+	const isRemoving = rInitialValue.current && !urlInputState.valid
 
 	return (
 		<>
@@ -122,16 +141,19 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 			<Dialog.Body>
 				<div className="tlui-edit-link-dialog">
 					<Input
+						ref={rInput}
 						className="tlui-edit-link-dialog__input"
 						label="edit-link-dialog.url"
 						autofocus
-						value={urlValue}
+						value={urlInputState.actual}
 						onValueChange={handleChange}
 						onComplete={handleComplete}
 						onCancel={handleCancel}
 					/>
 					<div>
-						{validState ? msg('edit-link-dialog.detail') : msg('edit-link-dialog.invalid-url')}
+						{urlInputState.valid
+							? msg('edit-link-dialog.detail')
+							: msg('edit-link-dialog.invalid-url')}
 					</div>
 				</div>
 			</Dialog.Body>
@@ -146,9 +168,9 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 				) : (
 					<Button
 						type="primary"
-						disabled={!validState}
-						onTouchEnd={() => handleComplete(rValue.current)}
-						onClick={() => handleComplete(rValue.current)}
+						disabled={!urlInputState.valid}
+						onTouchEnd={handleComplete}
+						onClick={handleComplete}
 					>
 						{msg('edit-link-dialog.save')}
 					</Button>

@@ -207,8 +207,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     defaultProps(): TLBookmarkShape['props'];
     // (undocumented)
-    getHumanReadableAddress(shape: TLBookmarkShape): string;
-    // (undocumented)
     hideSelectionBoundsBg: () => boolean;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
@@ -222,11 +220,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     render(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
     static type: string;
-    // (undocumented)
-    protected updateBookmarkAsset: {
-        (shape: TLBookmarkShape): Promise<void>;
-        cancel(): void;
-    };
 }
 
 // @internal (undocumented)
@@ -2738,6 +2731,9 @@ export function useReactor(name: string, reactFn: () => void, deps?: any[] | und
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
+
+// @internal (undocumented)
+export const VALID_URL_REGEX: RegExp;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
