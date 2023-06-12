@@ -139,7 +139,12 @@ export {
 	type TLArrowheadType,
 } from './styles/TLArrowheadStyle'
 export { TL_STYLE_TYPES, type TLStyleType } from './styles/TLBaseStyle'
-export { colorValidator, type TLColorStyle, type TLColorType } from './styles/TLColorStyle'
+export {
+	TL_COLOR_TYPES,
+	colorValidator,
+	type TLColorStyle,
+	type TLColorType,
+} from './styles/TLColorStyle'
 export {
 	TL_DASH_TYPES,
 	dashValidator,

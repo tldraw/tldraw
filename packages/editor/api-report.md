@@ -247,6 +247,9 @@ export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
+export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLEmbedShape>, TLShapeInfo<TLBookmarkShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLTextShape>];
+
+// @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
 
 // @public
