@@ -569,9 +569,6 @@ export type TLEmbedShapeProps = {
 	w: number
 	h: number
 	url: string
-	// TODO: This is to store during migration in case anything goes wrong so we can revert.
-	tmpOldUrl?: string
-	overridePermissions?: TLEmbedShapePermissions
 }
 
 /** @public */
@@ -584,13 +581,6 @@ export const embedShapeTypeValidator: T.Validator<TLEmbedShape> = createShapeVal
 		w: T.nonZeroNumber,
 		h: T.nonZeroNumber,
 		url: T.string,
-		tmpOldUrl: T.string.optional(),
-		overridePermissions: T.dict(
-			T.setEnum(
-				new Set(Object.keys(embedShapePermissionDefaults) as (keyof TLEmbedShapePermissions)[])
-			),
-			T.boolean.optional()
-		).optional(),
 	})
 )
 
@@ -618,11 +608,13 @@ export type EmbedDefinition = {
 const Versions = {
 	GenOriginalUrlInEmbed: 1,
 	RemoveDoesResize: 2,
+	RemoveTmpOldUrl: 3,
+	RemovePermissionOverrides: 4,
 } as const
 
 /** @internal */
 export const embedShapeMigrations = defineMigrations({
-	currentVersion: Versions.RemoveDoesResize,
+	currentVersion: Versions.RemovePermissionOverrides,
 	migrators: {
 		[Versions.GenOriginalUrlInEmbed]: {
 			// add tmpOldUrl property
@@ -694,6 +686,44 @@ export const embedShapeMigrations = defineMigrations({
 					props: {
 						...shape.props,
 						doesResize: true,
+					},
+				}
+			},
+		},
+		[Versions.RemoveTmpOldUrl]: {
+			up: (shape) => {
+				const { tmpOldUrl: _, ...props } = shape.props
+				return {
+					...shape,
+					props: {
+						...props,
+					},
+				}
+			},
+			down: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
+					},
+				}
+			},
+		},
+		[Versions.RemovePermissionOverrides]: {
+			up: (shape) => {
+				const { overridePermissions: _, ...props } = shape.props
+				return {
+					...shape,
+					props: {
+						...props,
+					},
+				}
+			},
+			down: (shape) => {
+				return {
+					...shape,
+					props: {
+						...shape.props,
 					},
 				}
 			},
