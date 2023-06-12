@@ -1,8 +1,8 @@
 import { StateNode } from '../StateNode'
 
 import { TLStyleType } from '@tldraw/tlschema'
-import { Idle } from './children/Idle'
-import { Pointing } from './children/Pointing'
+import { Idle } from './toolStates/Idle'
+import { Pointing } from './toolStates/Pointing'
 
 export class GeoShapeTool extends StateNode {
 	static override id = 'geo'

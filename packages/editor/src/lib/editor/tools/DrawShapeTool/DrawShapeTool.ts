@@ -1,8 +1,8 @@
 import { TLStyleType } from '@tldraw/tlschema'
 import { StateNode } from '../StateNode'
 
-import { Drawing } from './children/Drawing'
-import { Idle } from './children/Idle'
+import { Drawing } from './toolStates/Drawing'
+import { Idle } from './toolStates/Idle'
 
 export class DrawShapeTool extends StateNode {
 	static override id = 'draw'

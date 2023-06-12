@@ -1,7 +1,7 @@
 import { TLStyleType } from '@tldraw/tlschema'
 import { StateNode } from '../StateNode'
-import { Idle } from './children/Idle'
-import { Pointing } from './children/Pointing'
+import { Idle } from './toolStates/Idle'
+import { Pointing } from './toolStates/Pointing'
 
 export class NoteShapeTool extends StateNode {
 	static override id = 'note'
