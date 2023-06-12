@@ -1,5 +1,7 @@
-import { PageRecordType, createShapeId } from '@tldraw/tlschema'
+import { PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
+import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
+import { GeoShapeUtil } from '../editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
 import { TestEditor } from './TestEditor'
 import { TL } from './jsx'
 
@@ -439,5 +441,62 @@ describe('isFocused', () => {
 		editor.blur()
 
 		expect(blurMock).toHaveBeenCalled()
+	})
+})
+
+describe('getShapeUtil', () => {
+	it('accepts shapes', () => {
+		const geoShape = editor.getShapeById(ids.box1)!
+		const geoUtil = editor.getShapeUtil(geoShape)
+		expect(geoUtil).toBeInstanceOf(GeoShapeUtil)
+	})
+
+	it('accepts shape utils', () => {
+		const geoUtil = editor.getShapeUtil(GeoShapeUtil)
+		expect(geoUtil).toBeInstanceOf(GeoShapeUtil)
+	})
+
+	it('throws if that shape type isnt registered', () => {
+		const myFakeShape = { type: 'fake' } as TLShape
+		expect(() => editor.getShapeUtil(myFakeShape)).toThrowErrorMatchingInlineSnapshot(
+			`"No shape util found for type \\"fake\\""`
+		)
+
+		class MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
+			static type = 'fake'
+
+			defaultProps() {
+				throw new Error('Method not implemented.')
+			}
+			render() {
+				throw new Error('Method not implemented.')
+			}
+			indicator() {
+				throw new Error('Method not implemented.')
+			}
+		}
+
+		expect(() => editor.getShapeUtil(MyFakeShapeUtil)).toThrowErrorMatchingInlineSnapshot(
+			`"No shape util found for type \\"fake\\""`
+		)
+	})
+
+	it("throws if a shape util that isn't the one registered is passed in", () => {
+		class MyFakeGeoShapeUtil extends BaseBoxShapeUtil<any> {
+			static type = 'geo'
+
+			defaultProps() {
+				throw new Error('Method not implemented.')
+			}
+			render() {
+				throw new Error('Method not implemented.')
+			}
+			indicator() {
+				throw new Error('Method not implemented.')
+			}
+		}
+		expect(() => editor.getShapeUtil(MyFakeGeoShapeUtil)).toThrowErrorMatchingInlineSnapshot(
+			`"Shape util found for type \\"geo\\" is not an instance of the provided constructor"`
+		)
 	})
 })

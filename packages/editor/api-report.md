@@ -24,12 +24,15 @@ import { Migrations } from '@tldraw/store';
 import { Polyline2d } from '@tldraw/primitives';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { RecursivePartial } from '@tldraw/utils';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
+import { ShapeProps } from '@tldraw/tlschema';
 import { Signal } from 'signia';
+import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';
 import { TLAlignType } from '@tldraw/tlschema';
@@ -76,6 +79,7 @@ import { TLShapeProps } from '@tldraw/tlschema';
 import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
+import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStyleCollections } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
@@ -165,7 +169,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     toSvg(shape: TLArrowShape, font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "arrow";
 }
 
 // @public (undocumented)
@@ -220,7 +224,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     render(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
-    static type: string;
+    static type: "bookmark";
     // (undocumented)
     protected updateBookmarkAsset: {
         (shape: TLBookmarkShape): Promise<void>;
@@ -243,29 +247,16 @@ export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
+export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLEmbedShape>, TLShapeInfo<TLBookmarkShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLTextShape>];
+
+// @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
-
-// @public (undocumented)
-export function createAssetShapeAtPoint(editor: Editor, svgString: string, point: Vec2dModel): Promise<void>;
-
-// @public
-export function createBookmarkShapeAtPoint(editor: Editor, url: string, point: Vec2dModel): Promise<void>;
-
-// @public (undocumented)
-export function createEmbedShapeAtPoint(editor: Editor, url: string, point: Vec2dModel, props: {
-    width?: number;
-    height?: number;
-    doesResize?: boolean;
-}): void;
 
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
-// @public (undocumented)
-export function createShapesFromFiles(editor: Editor, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
-
 // @public
-export function createTLStore(opts?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, ...rest }: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -313,10 +304,13 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: Record<string, TLShapeInfo>;
+export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>, TLShapeInfo<TLVideoShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
+
+// @public (undocumented)
+export function defineShape<T extends TLUnknownShape>(type: T['type'], opts: Omit<TLShapeInfo<T>, 'type'>): TLShapeInfo<T>;
 
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
@@ -362,13 +356,13 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "draw";
 }
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, tools, shapes, getContainer, }: TLEditorOptions);
-    addOpenMenu: (id: string) => this;
+    constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions);
+    addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
     animateCamera(x: number, y: number, z?: number, opts?: TLAnimationOptions): this;
@@ -442,13 +436,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     get cursor(): TLCursor;
     deleteAssets(ids: TLAssetId[]): this;
-    deleteOpenMenu: (id: string) => this;
+    deleteOpenMenu(id: string): this;
     deletePage(id: TLPageId): void;
     deleteShapes(ids?: TLShapeId[]): this;
     deselect(...ids: TLShapeId[]): this;
     // (undocumented)
     get devicePixelRatio(): number;
-    dispatch: (info: TLEventInfo) => this;
+    dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -463,6 +457,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
+    // (undocumented)
+    externalContentManager: PlopManager;
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -614,12 +610,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
-    onCreateAssetFromFile(file: File): Promise<TLAsset>;
-    onCreateBookmarkFromUrl(url: string): Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
     get onlySelectedShape(): null | TLShape;
     // (undocumented)
     get opacity(): null | number;
@@ -647,6 +637,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         preserveIds?: boolean;
     }): this;
+    putExternalContent(info: TLExternalContent): Promise<void>;
     redo(): this;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingShapes(): {
@@ -723,7 +714,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     setProjectName(name: string): void;
     setProp(key: TLShapeProp, value: any, ephemeral?: boolean, squashing?: boolean): this;
-    // @internal (undocumented)
+    // (undocumented)
     setReadOnly(isReadOnly: boolean): this;
     setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
@@ -748,9 +739,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly snaps: SnapManager;
     get sortedShapesArray(): TLShape[];
     stackShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[], gap?: number): this;
-    startFollowingUser: (userId: string) => this | undefined;
+    startFollowingUser(userId: string): this | undefined;
     stopCameraAnimation(): this;
-    stopFollowingUser: () => this;
+    stopFollowingUser(): this;
     readonly store: TLStore;
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
     static styles: TLStyleCollections;
@@ -763,13 +754,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     // @internal
     updateCullingBounds(): this;
-    // @internal (undocumented)
+    // (undocumented)
     updateDocumentSettings(settings: Partial<TLDocument>): void;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
-    // @internal (undocumented)
+    // (undocumented)
     readonly user: UserPreferencesManager;
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
@@ -810,7 +801,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     render(shape: TLEmbedShape): JSX.Element;
     // (undocumented)
-    static type: string;
+    static type: "embed";
 }
 
 // @public (undocumented)
@@ -885,7 +876,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     toSvg(shape: TLFrameShape, font: string, colors: TLExportColors): Promise<SVGElement> | SVGElement;
     // (undocumented)
-    static type: string;
+    static type: "frame";
 }
 
 // @public (undocumented)
@@ -1003,7 +994,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     toSvg(shape: TLGeoShape, font: string, colors: TLExportColors): SVGElement;
     // (undocumented)
-    static type: string;
+    static type: "geo";
 }
 
 // @public
@@ -1123,7 +1114,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     render(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
-    static type: string;
+    static type: "group";
     // (undocumented)
     type: "group";
 }
@@ -1179,7 +1170,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     toSvg(shape: TLHighlightShape, _font: string | undefined, colors: TLExportColors): SVGPathElement;
     // (undocumented)
-    static type: string;
+    static type: "highlight";
 }
 
 // @public (undocumented)
@@ -1210,7 +1201,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     toSvg(shape: TLImageShape): Promise<SVGGElement>;
     // (undocumented)
-    static type: string;
+    static type: "image";
 }
 
 // @public (undocumented)
@@ -1280,7 +1271,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     toSvg(shape: TLLineShape, _font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "line";
 }
 
 // @public (undocumented)
@@ -1300,6 +1291,17 @@ export const MAJOR_NUDGE_FACTOR = 10;
 // @public (undocumented)
 export function matchEmbedUrl(url: string): {
     definition: {
+        readonly type: "tldraw";
+        readonly title: "tldraw";
+        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
+        readonly minWidth: 300;
+        readonly minHeight: 300;
+        readonly width: 720;
+        readonly height: 500;
+        readonly doesResize: true;
+        readonly toEmbedUrl: (url: string) => string | undefined;
+        readonly fromEmbedUrl: (url: string) => string | undefined;
+    } | {
         readonly type: "codepen";
         readonly title: "Codepen";
         readonly hostnames: readonly ["codepen.io"];
@@ -1308,7 +1310,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
+        readonly toEmbedUrl: (url: string) => string | undefined; /** @public */
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
         readonly type: "codesandbox";
@@ -1427,17 +1429,6 @@ export function matchEmbedUrl(url: string): {
         readonly height: 500;
         readonly minHeight: 500;
         readonly overrideOutlineRadius: 12;
-        readonly doesResize: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "tldraw";
-        readonly title: "tldraw";
-        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 720;
-        readonly height: 500;
         readonly doesResize: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1472,6 +1463,17 @@ export function matchEmbedUrl(url: string): {
 // @public (undocumented)
 export function matchUrl(url: string): {
     definition: {
+        readonly type: "tldraw";
+        readonly title: "tldraw";
+        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
+        readonly minWidth: 300;
+        readonly minHeight: 300;
+        readonly width: 720;
+        readonly height: 500;
+        readonly doesResize: true;
+        readonly toEmbedUrl: (url: string) => string | undefined;
+        readonly fromEmbedUrl: (url: string) => string | undefined;
+    } | {
         readonly type: "codepen";
         readonly title: "Codepen";
         readonly hostnames: readonly ["codepen.io"];
@@ -1480,7 +1482,7 @@ export function matchUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
+        readonly toEmbedUrl: (url: string) => string | undefined; /** @public */
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
         readonly type: "codesandbox";
@@ -1599,17 +1601,6 @@ export function matchUrl(url: string): {
         readonly height: 500;
         readonly minHeight: 500;
         readonly overrideOutlineRadius: 12;
-        readonly doesResize: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "tldraw";
-        readonly title: "tldraw";
-        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 720;
-        readonly height: 500;
         readonly doesResize: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1750,7 +1741,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     toSvg(shape: TLNoteShape, font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "note";
 }
 
 // @public (undocumented)
@@ -1760,6 +1751,34 @@ export function openWindow(url: string, target?: string): void;
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
     fallback: ((error: unknown) => React_3.ReactNode) | null;
 }): JSX.Element;
+
+// @public (undocumented)
+export class PlopManager {
+    constructor(editor: Editor);
+    createAssetFromFile(_editor: Editor, file: File): Promise<TLAsset>;
+    createAssetFromUrl(_editor: Editor, url: string): Promise<TLAsset>;
+    // (undocumented)
+    createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<void>;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    handleContent: (info: TLExternalContent) => Promise<void>;
+    handleEmbed(editor: Editor, { point, url, embed }: Extract<TLExternalContent, {
+        type: 'embed';
+    }>): Promise<void>;
+    handleFiles(editor: Editor, { point, files }: Extract<TLExternalContent, {
+        type: 'files';
+    }>): Promise<void>;
+    handleSvgText(editor: Editor, { point, text }: Extract<TLExternalContent, {
+        type: 'svg-text';
+    }>): Promise<void>;
+    handleText(editor: Editor, { point, text }: Extract<TLExternalContent, {
+        type: 'text';
+    }>): Promise<void>;
+    handleUrl: (editor: Editor, { point, url }: Extract<TLExternalContent, {
+        type: 'url';
+    }>) => Promise<void>;
+}
 
 // @public
 export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
@@ -2083,7 +2102,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "text";
 }
 
 // @public (undocumented)
@@ -2182,18 +2201,12 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public (undocumented)
 export type TldrawEditorProps = {
     children?: any;
-    shapes?: Record<string, TLShapeInfo>;
-    tools?: TLStateNodeConstructor[];
-    assetUrls?: TLEditorAssetUrls;
+    shapes?: readonly AnyTLShapeInfo[];
+    tools?: readonly TLStateNodeConstructor[];
+    assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
-    onMount?: (editor: Editor) => void;
-    onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
-    onCreateBookmarkFromUrl?: (url: string) => Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
+    onMount?: (editor: Editor) => (() => void) | undefined | void;
 } & ({
     store: TLStore | TLStoreWithStatus;
 } | {
@@ -2257,9 +2270,9 @@ export interface TLEditorComponents {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
-    shapes?: Record<string, TLShapeInfo>;
+    shapes: readonly AnyTLShapeInfo[];
     store: TLStore;
-    tools?: TLStateNodeConstructor[];
+    tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
 
@@ -2376,6 +2389,31 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
+
+// @public (undocumented)
+export type TLExternalContent = {
+    type: 'embed';
+    url: string;
+    point?: VecLike;
+    embed: EmbedDefinition;
+} | {
+    type: 'files';
+    files: File[];
+    point?: VecLike;
+    ignoreParent: boolean;
+} | {
+    type: 'svg-text';
+    text: string;
+    point?: VecLike;
+} | {
+    type: 'text';
+    point?: VecLike;
+    text: string;
+} | {
+    type: 'url';
+    url: string;
+    point?: VecLike;
+};
 
 // @public (undocumented)
 export type TLHistoryEntry = TLCommand | TLHistoryMark;
@@ -2569,6 +2607,14 @@ export interface TLSessionStateSnapshot {
 }
 
 // @public (undocumented)
+export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
+    type: T['type'];
+    util: TLShapeUtilConstructor<T>;
+    props?: ShapeProps<T>;
+    migrations?: Migrations;
+};
+
+// @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
     new (editor: Editor, type: T['type']): U;
@@ -2592,6 +2638,19 @@ export interface TLStateNodeConstructor {
     // (undocumented)
     styles?: TLStyleType[];
 }
+
+// @public (undocumented)
+export type TLStoreEventInfo = HistoryEntry<TLRecord>;
+
+// @public (undocumented)
+export type TLStoreOptions = {
+    initialData?: StoreSnapshot<TLRecord>;
+    defaultName?: string;
+} & ({
+    schema: StoreSchema<TLRecord, TLStoreProps>;
+} | {
+    shapes: readonly AnyTLShapeInfo[];
+});
 
 // @public (undocumented)
 export type TLStoreWithStatus = {
@@ -2667,9 +2726,9 @@ export function useContainer(): HTMLDivElement;
 export const useEditor: () => Editor;
 
 // @internal (undocumented)
-export function useLocalStore(opts?: {
-    persistenceKey?: string | undefined;
-    sessionId?: string | undefined;
+export function useLocalStore({ persistenceKey, sessionId, ...rest }: {
+    persistenceKey?: string;
+    sessionId?: string;
 } & TLStoreOptions): TLStoreWithStatus;
 
 // @internal (undocumented)
@@ -2708,7 +2767,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     toSvg(shape: TLVideoShape): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "video";
 }
 
 // @internal (undocumented)

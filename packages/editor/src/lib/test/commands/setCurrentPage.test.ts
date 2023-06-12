@@ -32,20 +32,11 @@ describe('setCurrentPage', () => {
 		expect(editor.currentPage).toEqual(editor.pages[0])
 	})
 
-	it('adds tab state for the page if it doesnt already exist', () => {
-		editor.setCamera(1, 2, 4)
-		expect(editor.camera).toMatchObject({ x: 1, y: 2, z: 4 })
-
+	it("adding a page to the store by any means adds tab state for the page if it doesn't already exist", () => {
 		const page = PageRecordType.create({ name: 'test', index: 'a4' })
-		editor.store.put([page])
-
 		expect(editor.getPageStateByPageId(page.id)).toBeUndefined()
-
-		editor.setCurrentPageId(page.id)
-
+		editor.store.put([page])
 		expect(editor.getPageStateByPageId(page.id)).not.toBeUndefined()
-
-		expect(editor.camera).toMatchObject({ x: 0, y: 0, z: 1 })
 	})
 
 	it('squashes', () => {

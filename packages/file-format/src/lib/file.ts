@@ -5,6 +5,7 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLRecord,
+	TLSchema,
 	TLStore,
 } from '@tldraw/editor'
 import {
@@ -82,9 +83,9 @@ export type TldrawFileParseError =
 /** @public */
 export function parseTldrawJsonFile({
 	json,
-	store,
+	schema,
 }: {
-	store: TLStore
+	schema: TLSchema
 	json: string
 }): Result<TLStore, TldrawFileParseError> {
 	// first off, we parse .json file and check it matches the general shape of
@@ -121,7 +122,7 @@ export function parseTldrawJsonFile({
 	let migrationResult: MigrationResult<StoreSnapshot<TLRecord>>
 	try {
 		const storeSnapshot = Object.fromEntries(data.records.map((r) => [r.id, r as TLRecord]))
-		migrationResult = store.schema.migrateStoreSnapshot(storeSnapshot, data.schema)
+		migrationResult = schema.migrateStoreSnapshot(storeSnapshot, data.schema)
 	} catch (e) {
 		// junk data in the migration
 		return Result.err({ type: 'invalidRecords', cause: e })
@@ -138,6 +139,7 @@ export function parseTldrawJsonFile({
 		return Result.ok(
 			createTLStore({
 				initialData: migrationResult.value,
+				schema,
 			})
 		)
 	} catch (e) {
@@ -216,7 +218,7 @@ export async function parseAndLoadDocument(
 	forceDarkMode?: boolean
 ) {
 	const parseFileResult = parseTldrawJsonFile({
-		store: createTLStore(),
+		schema: editor.store.schema,
 		json: document,
 	})
 	if (!parseFileResult.ok) {

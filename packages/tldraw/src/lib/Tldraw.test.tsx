@@ -1,3 +1,6 @@
+import { act } from '@testing-library/react'
+import { Tldraw } from './Tldraw'
+
 let originalFetch: typeof window.fetch
 beforeEach(() => {
 	window.fetch = jest.fn().mockImplementation((...args: Parameters<typeof fetch>) => {
@@ -16,10 +19,10 @@ afterEach(() => {
 
 describe('<Tldraw />', () => {
 	it('Renders without crashing', async () => {
-		// const onMount = jest.fn()
-		// act(() => render(<Tldraw onMount={onMount} />))
-
-		// todo
-		expect(true).toBe(true)
+		await act(async () => (
+			<Tldraw autoFocus>
+				<div data-testid="canvas-1" />
+			</Tldraw>
+		))
 	})
 })

@@ -1,4 +1,12 @@
-import { Canvas, Editor, ErrorBoundary, TldrawEditor, setRuntimeOverrides } from '@tldraw/editor'
+import {
+	Canvas,
+	Editor,
+	ErrorBoundary,
+	TldrawEditor,
+	defaultShapes,
+	defaultTools,
+	setRuntimeOverrides,
+} from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/editor/editor.css'
@@ -7,13 +15,13 @@ import { ContextMenu, TLUiMenuSchema, TldrawUi } from '@tldraw/ui'
 import '@tldraw/ui/ui.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
 import { ChangeResponder } from './ChangeResponder'
 import { FileOpen } from './FileOpen'
 import { FullPageMessage } from './FullPageMessage'
-import { onCreateBookmarkFromUrl } from './utils/bookmarks'
+import { onCreateAssetFromUrl } from './utils/bookmarks'
 import { vscode } from './utils/vscode'
 
 setRuntimeOverrides({
@@ -119,11 +127,17 @@ export type TLDrawInnerProps = {
 function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerProps) {
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
+	const handleMount = useCallback((editor: Editor) => {
+		editor.externalContentManager.createAssetFromUrl = onCreateAssetFromUrl
+	}, [])
+
 	return (
 		<TldrawEditor
+			shapes={defaultShapes}
+			tools={defaultTools}
 			assetUrls={assetUrls}
 			persistenceKey={uri}
-			onCreateBookmarkFromUrl={onCreateBookmarkFromUrl}
+			onMount={handleMount}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}

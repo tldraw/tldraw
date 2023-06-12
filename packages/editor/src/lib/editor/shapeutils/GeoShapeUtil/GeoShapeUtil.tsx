@@ -41,7 +41,7 @@ const MIN_SIZE_WITH_LABEL = 17 * 3
 
 /** @public */
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
-	static override type = 'geo'
+	static override type = 'geo' as const
 
 	canEdit = () => true
 

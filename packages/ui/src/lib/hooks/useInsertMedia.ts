@@ -1,4 +1,4 @@
-import { ACCEPTED_ASSET_TYPE, createShapesFromFiles, useEditor } from '@tldraw/editor'
+import { ACCEPTED_ASSET_TYPE, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 
 export function useInsertMedia() {
@@ -14,12 +14,12 @@ export function useInsertMedia() {
 		async function onchange(e: Event) {
 			const fileList = (e.target as HTMLInputElement).files
 			if (!fileList || fileList.length === 0) return
-			await createShapesFromFiles(
-				editor,
-				Array.from(fileList),
-				editor.viewportPageBounds.center,
-				false
-			)
+			await editor.putExternalContent({
+				type: 'files',
+				files: Array.from(fileList),
+				point: editor.viewportPageBounds.center,
+				ignoreParent: false,
+			})
 			input.value = ''
 		}
 		input.addEventListener('change', onchange)

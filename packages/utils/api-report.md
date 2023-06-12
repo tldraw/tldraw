@@ -65,6 +65,11 @@ export function getOwnProperty(obj: object, key: string): unknown;
 // @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
 
+// @internal (undocumented)
+export type Identity<T> = {
+    [K in keyof T]: T[K];
+};
+
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
 
@@ -83,11 +88,21 @@ export function lerp(a: number, b: number, t: number): number;
 // @public (undocumented)
 export function lns(str: string): string;
 
+// @internal
+export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(object: {
+    readonly [K in Key]: ValueBefore;
+}, mapper: (key: Key, value: ValueBefore) => ValueAfter): {
+    [K in Key]: ValueAfter;
+};
+
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
 // @public
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
+
+// @internal
+export function noop(): void;
 
 // @internal
 export function objectMapEntries<Key extends string, Value>(object: {
@@ -129,6 +144,15 @@ export function promiseWithResolve<T>(): Promise<T> & {
 
 // @internal
 export function rafThrottle(fn: () => void): () => void;
+
+// @public (undocumented)
+export type RecursivePartial<T> = {
+    [P in keyof T]?: RecursivePartial<T[P]>;
+};
+
+// @internal (undocumented)
+type Required_2<T, K extends keyof T> = Identity<Omit<T, K> & _Required<Pick<T, K>>>;
+export { Required_2 as Required }
 
 // @public (undocumented)
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;

@@ -1,9 +1,4 @@
-import {
-	Editor,
-	createBookmarkShapeAtPoint,
-	createEmbedShapeAtPoint,
-	getEmbedInfo,
-} from '@tldraw/editor'
+import { Editor } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
 import { pasteFiles } from './pasteFiles'
 
@@ -17,9 +12,6 @@ import { pasteFiles } from './pasteFiles'
  * @internal
  */
 export async function pasteUrl(editor: Editor, url: string, point?: VecLike) {
-	const p =
-		point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
-
 	// Lets see if its an image and we have CORs
 	try {
 		const resp = await fetch(url)
@@ -36,13 +28,9 @@ export async function pasteUrl(editor: Editor, url: string, point?: VecLike) {
 
 	editor.mark('paste')
 
-	// try to paste as an embed first
-	const embedInfo = getEmbedInfo(url)
-
-	if (embedInfo) {
-		return await createEmbedShapeAtPoint(editor, embedInfo.url, p, embedInfo.definition)
-	}
-
-	// otherwise, try to paste as a bookmark
-	return await createBookmarkShapeAtPoint(editor, url, p)
+	return await editor.putExternalContent({
+		type: 'url',
+		point,
+		url,
+	})
 }

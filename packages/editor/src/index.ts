@@ -39,9 +39,14 @@ export {
 	setUserPreferences,
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
-export { createTLStore } from './lib/config/createTLStore'
-export { defaultShapes } from './lib/config/defaultShapes'
+export {
+	createTLStore,
+	type TLStoreEventInfo,
+	type TLStoreOptions,
+} from './lib/config/createTLStore'
+export { coreShapes, defaultShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
+export { defineShape, type TLShapeInfo } from './lib/config/defineShape'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,
@@ -81,6 +86,10 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export {
+	ExternalContentManager as PlopManager,
+	type TLExternalContent,
+} from './lib/editor/managers/ExternalContentManager'
 export { ArrowShapeUtil } from './lib/editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
 export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
@@ -185,10 +194,6 @@ export {
 	ACCEPTED_IMG_TYPE,
 	ACCEPTED_VID_TYPE,
 	containBoxSize,
-	createAssetShapeAtPoint,
-	createBookmarkShapeAtPoint,
-	createEmbedShapeAtPoint,
-	createShapesFromFiles,
 	dataUrlToFile,
 	getFileMetaData,
 	getImageSizeFromSrc,

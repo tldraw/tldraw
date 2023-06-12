@@ -3,27 +3,7 @@
 
 // eslint-disable-next-line @typescript-eslint/triple-slash-reference
 /// <reference path="./modules.d.ts" />
-
-/** @typedef {string | { src: string }} AssetUrl */
-/** @typedef {{ baseUrl?: string } | ((assetUrl: string) => string)} AssetUrlOptions */
-
-/**
- * @param {AssetUrl} assetUrl
- * @param {AssetUrlOptions} [format]
- * @returns {string}
- */
-function formatAssetUrl(assetUrl, format = {}) {
-	const assetUrlString = typeof assetUrl === 'string' ? assetUrl : assetUrl.src
-
-	if (typeof format === 'function') return format(assetUrlString)
-
-	const { baseUrl = '' } = format
-
-	if (assetUrlString.startsWith('data:')) return assetUrlString
-	if (assetUrlString.match(/^https?:\/\//)) return assetUrlString
-
-	return `${baseUrl.replace(/\/$/, '')}/${assetUrlString.replace(/^\.?\//, '')}`
-}
+import { formatAssetUrl } from './utils.js'
 
 /**
  * @param {AssetUrlOptions} [opts]

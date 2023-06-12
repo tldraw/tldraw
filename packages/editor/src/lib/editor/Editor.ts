@@ -66,9 +66,11 @@ import {
 } from '@tldraw/tlschema'
 import {
 	annotateError,
+	assert,
 	compact,
 	dedupe,
 	deepCopy,
+	getOwnProperty,
 	partition,
 	sortById,
 	structuredClone,
@@ -76,10 +78,9 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { TLShapeInfo } from '../config/createTLStore'
 import { TLUser, createTLUser } from '../config/createTLUser'
-import { coreShapes, defaultShapes } from '../config/defaultShapes'
-import { defaultTools } from '../config/defaultTools'
+import { checkShapesAndAddCore } from '../config/defaultShapes'
+import { AnyTLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -105,7 +106,7 @@ import {
 } from '../constants'
 import { exportPatternSvgDefs } from '../hooks/usePattern'
 import { WeakMapCache } from '../utils/WeakMapCache'
-import { dataUrlToFile, getMediaAssetFromFile } from '../utils/assets'
+import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
 import { setPropsForNextShape } from '../utils/props-for-next-shape'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
@@ -116,6 +117,7 @@ import { ActiveAreaManager, getActiveAreaScreenSpace } from './managers/ActiveAr
 import { CameraManager } from './managers/CameraManager'
 import { ClickManager } from './managers/ClickManager'
 import { DprManager } from './managers/DprManager'
+import { ExternalContentManager, TLExternalContent } from './managers/ExternalContentManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -163,11 +165,11 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapes?: Record<string, TLShapeInfo>
+	shapes: readonly AnyTLShapeInfo[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
-	tools?: TLStateNodeConstructor[]
+	tools: readonly TLStateNodeConstructor[]
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -181,13 +183,7 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({
-		store,
-		user,
-		tools = defaultTools,
-		shapes = defaultShapes,
-		getContainer,
-	}: TLEditorOptions) {
+	constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions) {
 		super()
 
 		this.store = store
@@ -200,22 +196,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root = new RootState(this)
 
-		// Shapes.
-		// Accept shapes from constructor parameters which may not conflict with the root note's core tools.
-		const shapeUtils = Object.fromEntries(
-			Object.values(coreShapes).map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
-		)
+		const allShapes = checkShapesAndAddCore(shapes)
 
-		for (const [type, { util: Util }] of Object.entries(shapes)) {
-			if (shapeUtils[type]) {
-				throw Error(`May not overwrite core shape of type "${type}".`)
+		const shapeTypesInSchema = new Set(
+			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
+		)
+		for (const shape of allShapes) {
+			if (!shapeTypesInSchema.has(shape.type)) {
+				throw Error(
+					`Editor and store have different shapes: "${shape.type}" was passed into the editor but not the schema`
+				)
 			}
-			if (type !== Util.type) {
-				throw Error(`Shape util's type "${Util.type}" does not match provided type "${type}".`)
-			}
-			shapeUtils[type] = new Util(this, Util.type)
+			shapeTypesInSchema.delete(shape.type)
 		}
-		this.shapeUtils = shapeUtils
+		if (shapeTypesInSchema.size > 0) {
+			throw Error(
+				`Editor and store have different shapes: "${
+					[...shapeTypesInSchema][0]
+				}" is present in the store schema but not provided to the editor`
+			)
+		}
+		this.shapeUtils = Object.fromEntries(
+			allShapes.map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
+		)
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
@@ -269,6 +272,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.onAfterCreate = (record) => {
 			if (record.typeName === 'shape' && this.isShapeOfType(record, ArrowShapeUtil)) {
 				this._arrowDidUpdate(record)
+			}
+			if (record.typeName === 'page') {
+				const cameraId = CameraRecordType.createId(record.id)
+				const pageStateId = InstancePageStateRecordType.createId(record.id)
+				if (!this.store.has(cameraId)) {
+					this.store.put([CameraRecordType.create({ id: cameraId })])
+				}
+				if (!this.store.has(pageStateId)) {
+					this.store.put([
+						InstancePageStateRecordType.create({ id: pageStateId, pageId: record.id }),
+					])
+				}
 			}
 		}
 
@@ -369,6 +384,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _updateDepth = 0
 
+	/** @public */
+	externalContentManager = new ExternalContentManager(this)
+
 	/**
 	 * A manager for the app's snapping feature.
 	 *
@@ -377,7 +395,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly snaps = new SnapManager(this)
 
 	/**
-	 * @internal
+	 * @public
 	 */
 	readonly user: UserPreferencesManager
 
@@ -564,7 +582,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 * @public
 	 */
-	addOpenMenu = (id: string) => {
+	addOpenMenu(id: string) {
 		const menus = new Set(this.openMenus)
 		if (!menus.has(id)) {
 			menus.add(id)
@@ -581,7 +599,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 * @public
 	 */
-	deleteOpenMenu = (id: string) => {
+	deleteOpenMenu(id: string) {
 		const menus = new Set(this.openMenus)
 		if (menus.has(id)) {
 			menus.delete(id)
@@ -656,8 +674,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (isPageId(shape.parentId)) {
 				return this.getTransform(shape)
 			}
-			// some weird circular type thing here that I had to work around with (as any)
-			const parent = (this._pageTransformCache as any).get(shape.parentId)
+
+			// If the shape's parent doesn't exist yet (e.g. when merging in changes from remote in the wrong order)
+			// then we can't compute the transform yet, so just return the identity matrix.
+			// In the future we should look at creating a store update mechanism that understands and preserves
+			// ordering.
+			const parent = this._pageTransformCache.get(shape.parentId) ?? Matrix2d.Identity()
 
 			return Matrix2d.Compose(parent, this.getTransform(shape))
 		})
@@ -956,12 +978,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
-	getShapeUtil<T extends ShapeUtil>({
-		type,
-	}: {
+	getShapeUtil<T extends ShapeUtil>(shapeUtilConstructor: {
 		type: T extends ShapeUtil<infer R> ? R['type'] : string
 	}): T {
-		return this.shapeUtils[type] as T
+		const shapeUtil = getOwnProperty(this.shapeUtils, shapeUtilConstructor.type) as T | undefined
+		assert(shapeUtil, `No shape util found for type "${shapeUtilConstructor.type}"`)
+
+		// does shapeUtilConstructor extends ShapeUtil?
+		if (
+			'prototype' in shapeUtilConstructor &&
+			shapeUtilConstructor.prototype instanceof ShapeUtil
+		) {
+			assert(
+				shapeUtil instanceof (shapeUtilConstructor as any),
+				`Shape util found for type "${shapeUtilConstructor.type}" is not an instance of the provided constructor`
+			)
+		}
+
+		return shapeUtil as T
 	}
 
 	/**
@@ -988,7 +1022,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!withIndices) return EMPTY_ARRAY
 		return this._childIdsCache.get(withIndices, () => withIndices.map(([id]) => id))
 	}
-
 	/**
 	 * Run a visitor function for all descendants of a shape.
 	 *
@@ -1504,6 +1537,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const backupPageId = this.pages.find((p) => p.id !== page.id)?.id
 		if (!backupPageId) return
 		this.store.put([{ ...this.instanceState, currentPageId: backupPageId }])
+
+		// delete the camera and state for the page if necessary
+		const cameraId = CameraRecordType.createId(page.id)
+		const instancePageStateId = InstancePageStateRecordType.createId(page.id)
+		this.store.remove([cameraId, instancePageStateId])
 	}
 
 	/* -------------------- Shortcuts ------------------- */
@@ -1513,7 +1551,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.get(TLDOCUMENT_ID)!
 	}
 
-	/** @internal */
+	/** @public */
 	updateDocumentSettings(settings: Partial<TLDocument>) {
 		this.store.put([{ ...this.documentSettings, ...settings }])
 	}
@@ -1600,7 +1638,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
 
-	/** @internal */
+	/** @public */
 	setReadOnly(isReadOnly: boolean): this {
 		this._isReadOnly.set(isReadOnly)
 		if (isReadOnly) {
@@ -2109,7 +2147,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return acc
 		}
 
-		const parent = this.store.get(parentId)!
+		const parent = this.store.get(parentId)
+		if (!parent) return acc
 		acc.push(parent)
 		return this.getAncestors(parent, acc)
 	}
@@ -2127,7 +2166,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getAncestorsById(id: TLShapeId, acc: TLShape[] = []): TLShape[] {
-		const shape = this.getShapeById(id)!
+		const shape = this.getShapeById(id)
+		if (!shape) return acc
 		return this.getAncestors(shape, acc)
 	}
 
@@ -3664,7 +3704,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param info - The event info.
 	 * @public
 	 */
-	dispatch = (info: TLEventInfo): this => {
+	dispatch(info: TLEventInfo): this {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.crashingError) return this
@@ -4476,7 +4516,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						asset.props.mimeType ?? 'image/png'
 					)
 
-					const newAsset = await this.onCreateAssetFromFile(file)
+					const newAsset = await this.externalContentManager.createAssetFromFile(this, file)
 
 					return [asset, newAsset] as const
 				})
@@ -4676,6 +4716,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 							partial.x = point.x
 							partial.y = point.y
 							partial.rotation = -this.getPageRotationById(parentId) + (partial.rotation ?? 0)
+						}
+						// a shape cannot be it's own parent. This was a rare issue with frames/groups in the syncFuzz tests.
+						if (partial.parentId === partial.id) {
+							partial.parentId = focusLayerId
 						}
 						return partial
 					}
@@ -5178,9 +5222,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const topIndex = belowPageIndex ?? pageInfo[pageInfo.length - 1]?.index ?? 'a1'
 			const bottomIndex = pageInfo[pageInfo.findIndex((p) => p.index === topIndex) + 1]?.index
 
-			const prevPageState = { ...this.pageState }
-			const prevInstanceState = { ...this.instanceState }
-
 			title = getIncrementedName(
 				title,
 				pageInfo.map((p) => p.name)
@@ -5206,8 +5247,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			return {
 				data: {
-					prevPageState,
-					prevTabState: prevInstanceState,
+					prevSelectedPageId: this.currentPageId,
 					newPage,
 					newTabPageState,
 					newCamera,
@@ -5224,9 +5264,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				])
 				this.updateCullingBounds()
 			},
-			undo: ({ newPage, prevPageState, prevTabState, newTabPageState, newCamera }) => {
-				this.store.put([prevPageState, prevTabState])
+			undo: ({ newPage, prevSelectedPageId, newTabPageState, newCamera }) => {
+				if (this.pages.length === 1) return
 				this.store.remove([newTabPageState.id, newPage.id, newCamera.id])
+
+				if (this.store.has(prevSelectedPageId) && this.currentPageId !== prevSelectedPageId) {
+					this.store.put([{ ...this.instanceState, currentPageId: prevSelectedPageId }])
+				}
 
 				this.updateCullingBounds()
 			},
@@ -7325,6 +7369,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ toId }) => {
+				if (!this.store.has(toId)) {
+					// in multiplayer contexts this page might have been deleted
+					return
+				}
 				if (!this.getPageStateByPageId(toId)) {
 					const camera = CameraRecordType.create({
 						id: CameraRecordType.createId(toId),
@@ -7343,6 +7391,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.updateCullingBounds()
 			},
 			undo: ({ fromId }) => {
+				if (!this.store.has(fromId)) {
+					// in multiplayer contexts this page might have been deleted
+					return
+				}
 				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
 
 				this.updateCullingBounds()
@@ -8640,7 +8692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param userId - The id of the user to follow.
 	 * @public
 	 */
-	startFollowingUser = (userId: string) => {
+	startFollowingUser(userId: string) {
 		// Currently, we get the leader's viewport page bounds from their user presence.
 		// This is a placeholder until the ephemeral PR lands.
 		// After that, we'll be able to get the required data from their instance presence instead.
@@ -8764,7 +8816,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	stopFollowingUser = () => {
+	stopFollowingUser() {
 		this.updateInstanceState({ followingUserId: null }, true)
 		this.emit('stop-following')
 		return this
@@ -8887,54 +8939,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* -------------------- Callbacks ------------------- */
 
 	/**
-	 * A callback fired when a file is converted to an asset. This callback should return the asset
-	 * partial.
+	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
 	 *
-	 * @example
-	 *
-	 * ```ts
-	 * editor.onCreateAssetFromFile(myFile)
-	 * ```
-	 *
-	 * @param file - The file to upload.
-	 * @public
+	 * @param info - Info about the external content.
 	 */
-
-	async onCreateAssetFromFile(file: File): Promise<TLAsset> {
-		return await getMediaAssetFromFile(file)
-	}
-
-	/**
-	 * A callback fired when a URL is converted to a bookmark. This callback should return the
-	 * metadata for the bookmark.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * editor.onCreateBookmarkFromUrl(url, id)
-	 * ```
-	 *
-	 * @param url - The url that was created.
-	 * @public
-	 */
-	async onCreateBookmarkFromUrl(
-		url: string
-	): Promise<{ image: string; title: string; description: string }> {
-		try {
-			const resp = await fetch(url, { method: 'GET', mode: 'no-cors' })
-			const html = await resp.text()
-			const doc = new DOMParser().parseFromString(html, 'text/html')
-
-			return {
-				image: doc.head.querySelector('meta[property="og:image"]')?.getAttribute('content') ?? '',
-				title: doc.head.querySelector('meta[property="og:title"]')?.getAttribute('content') ?? '',
-				description:
-					doc.head.querySelector('meta[property="og:description"]')?.getAttribute('content') ?? '',
-			}
-		} catch (error) {
-			console.error(error)
-			return { image: '', title: '', description: '' }
-		}
+	async putExternalContent(info: TLExternalContent): Promise<void> {
+		this.externalContentManager.handleContent(info)
 	}
 
 	/* ---------------- Text Measurement ---------------- */
