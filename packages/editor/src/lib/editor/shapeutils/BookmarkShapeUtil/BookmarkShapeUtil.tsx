@@ -2,11 +2,12 @@ import { toDomPrecision } from '@tldraw/primitives'
 import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
 import { debounce, getHashForString } from '@tldraw/utils'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { ROTATING_SHADOWS, VALID_URL_REGEX } from '../../../constants'
+import { ROTATING_SHADOWS } from '../../../constants'
 
 const DEFAULT_BOOKMARK_WIDTH = 300
 const DEFAULT_BOOKMARK_HEIGHT = 320
 
+import { isValidUrl } from '../../../utils/data'
 import {
 	rotateBoxShadow,
 	stopEventPropagation,
@@ -110,7 +111,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 	override onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape> = (prev, shape) => {
 		if (prev.props.url !== shape.props.url) {
-			if (!VALID_URL_REGEX.test(shape.props.url)) {
+			if (!isValidUrl(shape.props.url)) {
 				return { ...shape, props: { ...shape.props, url: prev.props.url } }
 			} else {
 				updateBookmarkAssetOnUrlChange(this.editor, shape)

@@ -1215,6 +1215,9 @@ export const isSvgText: (text: string) => boolean;
 export const isValidHttpURL: (url: string) => boolean;
 
 // @public (undocumented)
+export function isValidUrl(url: string): boolean;
+
+// @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
@@ -2731,9 +2734,6 @@ export function useReactor(name: string, reactFn: () => void, deps?: any[] | und
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
-
-// @internal (undocumented)
-export const VALID_URL_REGEX: RegExp;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

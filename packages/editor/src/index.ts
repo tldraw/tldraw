@@ -82,7 +82,6 @@ export {
 	STYLES,
 	SVG_PADDING,
 	TEXT_PROPS,
-	VALID_URL_REGEX,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	ZOOMS,
 } from './lib/constants'
@@ -211,6 +210,7 @@ export {
 	fileToBase64,
 	getIncrementedName,
 	isSerializable,
+	isValidUrl,
 	snapToGrid,
 	uniqueId,
 } from './lib/utils/data'

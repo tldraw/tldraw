@@ -1,4 +1,4 @@
-import { TLBaseShape, VALID_URL_REGEX, useEditor } from '@tldraw/editor'
+import { TLBaseShape, isValidUrl, useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { track } from 'signia-react'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'
@@ -10,10 +10,10 @@ import { Input } from './primitives/Input'
 // A url can either be invalid, or valid with a protocol, or valid without a protocol.
 // For example, "aol.com" would be valid with a protocol ()
 function validateUrl(url: string) {
-	if (VALID_URL_REGEX.test(url)) {
+	if (isValidUrl(url)) {
 		return { isValid: true, hasProtocol: true }
 	}
-	if (VALID_URL_REGEX.test('https://' + url)) {
+	if (isValidUrl('https://' + url)) {
 		return { isValid: true, hasProtocol: false }
 	}
 	return { isValid: false, hasProtocol: false }
