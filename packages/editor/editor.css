@@ -848,7 +848,8 @@ input,
 }
 
 .tl-cursor-chat::placeholder {
-	color: rgba(255, 255, 255, 0.7);
+	color: var(--color-selected-contrast);
+	opacity: 0.7;
 }
 
 /* -------------------------------------------------- */
