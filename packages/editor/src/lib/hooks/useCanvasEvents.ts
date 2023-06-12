@@ -106,10 +106,12 @@ export function useCanvasEvents() {
 					(file) => !file.name.endsWith('.tldr')
 				)
 
+				const rect = editor.getContainer().getBoundingClientRect()
+
 				await editor.putExternalContent({
 					type: 'files',
 					files,
-					point: editor.screenToPage(e.clientX, e.clientY),
+					point: editor.screenToPage(e.clientX - rect.x, e.clientY - rect.y),
 					ignoreParent: false,
 				})
 			}

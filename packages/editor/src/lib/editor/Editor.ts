@@ -66,9 +66,12 @@ import {
 } from '@tldraw/tlschema'
 import {
 	annotateError,
+	assert,
 	compact,
 	dedupe,
 	deepCopy,
+	getOwnProperty,
+	hasOwnProperty,
 	partition,
 	sortById,
 	structuredClone,
@@ -76,10 +79,9 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { TLShapeInfo } from '../config/createTLStore'
 import { TLUser, createTLUser } from '../config/createTLUser'
-import { coreShapes, defaultShapes } from '../config/defaultShapes'
-import { defaultTools } from '../config/defaultTools'
+import { checkShapesAndAddCore } from '../config/defaultShapes'
+import { AnyTLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
@@ -122,18 +124,15 @@ import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { ArrowShapeUtil } from './shapeutils/ArrowShapeUtil/ArrowShapeUtil'
-import { getCurvedArrowInfo } from './shapeutils/ArrowShapeUtil/arrow/curved-arrow'
-import {
-	getArrowTerminalsInArrowSpace,
-	getIsArrowStraight,
-} from './shapeutils/ArrowShapeUtil/arrow/shared'
-import { getStraightArrowInfo } from './shapeutils/ArrowShapeUtil/arrow/straight-arrow'
-import { FrameShapeUtil } from './shapeutils/FrameShapeUtil/FrameShapeUtil'
-import { GroupShapeUtil } from './shapeutils/GroupShapeUtil/GroupShapeUtil'
-import { ShapeUtil, TLResizeMode } from './shapeutils/ShapeUtil'
-import { TextShapeUtil } from './shapeutils/TextShapeUtil/TextShapeUtil'
-import { TLExportColors } from './shapeutils/shared/TLExportColors'
+import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
+import { ArrowShapeUtil } from './shapes/arrow/ArrowShapeUtil'
+import { getCurvedArrowInfo } from './shapes/arrow/arrow/curved-arrow'
+import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/arrow/arrow/shared'
+import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
+import { FrameShapeUtil } from './shapes/frame/FrameShapeUtil'
+import { GroupShapeUtil } from './shapes/group/GroupShapeUtil'
+import { TLExportColors } from './shapes/shared/TLExportColors'
+import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -164,11 +163,11 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapes?: Record<string, TLShapeInfo>
+	shapes: readonly AnyTLShapeInfo[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
-	tools?: TLStateNodeConstructor[]
+	tools: readonly TLStateNodeConstructor[]
 	/**
 	 * A user defined externally to replace the default user.
 	 */
@@ -182,13 +181,7 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({
-		store,
-		user,
-		tools = defaultTools,
-		shapes = defaultShapes,
-		getContainer,
-	}: TLEditorOptions) {
+	constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions) {
 		super()
 
 		this.store = store
@@ -201,33 +194,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root = new RootState(this)
 
-		// Shapes.
-		// Accept shapes from constructor parameters which may not conflict with the root note's core tools.
-		const shapeUtils = Object.fromEntries(
-			Object.values(coreShapes).map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
-		)
+		const allShapes = checkShapesAndAddCore(shapes)
 
-		for (const [type, { util: Util }] of Object.entries(shapes)) {
-			if (shapeUtils[type]) {
-				throw Error(`May not overwrite core shape of type "${type}".`)
+		const shapeTypesInSchema = new Set(
+			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
+		)
+		for (const shape of allShapes) {
+			if (!shapeTypesInSchema.has(shape.type)) {
+				throw Error(
+					`Editor and store have different shapes: "${shape.type}" was passed into the editor but not the schema`
+				)
 			}
-			if (type !== Util.type) {
-				throw Error(`Shape util's type "${Util.type}" does not match provided type "${type}".`)
-			}
-			shapeUtils[type] = new Util(this, Util.type)
+			shapeTypesInSchema.delete(shape.type)
 		}
-		this.shapeUtils = shapeUtils
+		if (shapeTypesInSchema.size > 0) {
+			throw Error(
+				`Editor and store have different shapes: "${
+					[...shapeTypesInSchema][0]
+				}" is present in the store schema but not provided to the editor`
+			)
+		}
+		this.shapeUtils = Object.fromEntries(
+			allShapes.map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
+		)
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		const uniqueTools = Object.fromEntries(tools.map((Ctor) => [Ctor.id, Ctor]))
-		for (const [id, Ctor] of Object.entries(uniqueTools)) {
-			if (this.root.children?.[id]) {
-				throw Error(`Can't override tool with id "${id}"`)
+		for (const { tool: Tool } of allShapes) {
+			if (Tool) {
+				if (hasOwnProperty(this.root.children!, Tool.id)) {
+					throw Error(`Can't override tool with id "${Tool.id}"`)
+				}
+				this.root.children![Tool.id] = new Tool(this)
 			}
-
-			this.root.children![id] = new Ctor(this)
+		}
+		for (const Tool of tools) {
+			if (hasOwnProperty(this.root.children!, Tool.id)) {
+				throw Error(`Can't override tool with id "${Tool.id}"`)
+			}
+			this.root.children![Tool.id] = new Tool(this)
 		}
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
@@ -976,12 +982,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
-	getShapeUtil<T extends ShapeUtil>({
-		type,
-	}: {
+	getShapeUtil<T extends ShapeUtil>(shapeUtilConstructor: {
 		type: T extends ShapeUtil<infer R> ? R['type'] : string
 	}): T {
-		return this.shapeUtils[type] as T
+		const shapeUtil = getOwnProperty(this.shapeUtils, shapeUtilConstructor.type) as T | undefined
+		assert(shapeUtil, `No shape util found for type "${shapeUtilConstructor.type}"`)
+
+		// does shapeUtilConstructor extends ShapeUtil?
+		if (
+			'prototype' in shapeUtilConstructor &&
+			shapeUtilConstructor.prototype instanceof ShapeUtil
+		) {
+			assert(
+				shapeUtil instanceof (shapeUtilConstructor as any),
+				`Shape util found for type "${shapeUtilConstructor.type}" is not an instance of the provided constructor`
+			)
+		}
+
+		return shapeUtil as T
 	}
 
 	/**

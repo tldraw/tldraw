@@ -6,7 +6,7 @@ import { TLDashType, dashValidator } from '../styles/TLDashStyle'
 import { TLFillType, fillValidator } from '../styles/TLFillStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { SetValue } from '../util-types'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { ShapeProps, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)
@@ -39,19 +39,16 @@ export type TLDrawShapeProps = {
 export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
 /** @internal */
-export const drawShapeValidator: T.Validator<TLDrawShape> = createShapeValidator(
-	'draw',
-	T.object({
-		color: colorValidator,
-		fill: fillValidator,
-		dash: dashValidator,
-		size: sizeValidator,
-		segments: T.arrayOf(drawShapeSegmentValidator),
-		isComplete: T.boolean,
-		isClosed: T.boolean,
-		isPen: T.boolean,
-	})
-)
+export const drawShapeProps: ShapeProps<TLDrawShape> = {
+	color: colorValidator,
+	fill: fillValidator,
+	dash: dashValidator,
+	size: sizeValidator,
+	segments: T.arrayOf(drawShapeSegmentValidator),
+	isComplete: T.boolean,
+	isClosed: T.boolean,
+	isPen: T.boolean,
+}
 
 const Versions = {
 	AddInPen: 1,
