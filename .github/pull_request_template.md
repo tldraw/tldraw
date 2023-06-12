@@ -2,19 +2,14 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 
 ### Change Type
 
-<!-- 💡 Indicate the type of change your pull request is. -->
-<!-- 🤷‍♀️ If you're not sure, don't select anything -->
-<!-- ✂️ Feel free to delete unselected options -->
-
-<!-- To select one, put an x in the box: [x] -->
-
-- [ ] `patch` — Bug Fix
-- [ ] `minor` — New Feature
-- [ ] `major` — Breaking Change
-- [ ] `dependencies` — Dependency Update[^1]
+- [ ] `patch` — Bug fix
+- [ ] `minor` — New feature
+- [ ] `major` — Breaking change
+- [ ] `dependencies` — Changes to package dependencies[^1]
 - [ ] `documentation` — Changes to the documentation only[^2]
 - [ ] `tests` — Changes to any test code only[^2]
 - [ ] `internal` — Any other changes that don't affect the published package[^2]
+- [ ] Not sure
 
 [^1]: publishes a `patch` release, for devDependencies use `internal`
 [^2]: will not publish a new version
