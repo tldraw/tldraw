@@ -90,21 +90,7 @@ export {
 	ExternalContentManager as PlopManager,
 	type TLExternalContent,
 } from './lib/editor/managers/ExternalContentManager'
-export { ArrowShapeUtil } from './lib/editor/shapeutils/ArrowShapeUtil/ArrowShapeUtil'
-export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapeutils/BaseBoxShapeUtil'
-export { BookmarkShapeUtil } from './lib/editor/shapeutils/BookmarkShapeUtil/BookmarkShapeUtil'
-export { DrawShapeUtil } from './lib/editor/shapeutils/DrawShapeUtil/DrawShapeUtil'
-export { EmbedShapeUtil } from './lib/editor/shapeutils/EmbedShapeUtil/EmbedShapeUtil'
-export { FrameShapeUtil } from './lib/editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
-export { GeoShapeUtil } from './lib/editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
-export { GroupShapeUtil } from './lib/editor/shapeutils/GroupShapeUtil/GroupShapeUtil'
-export { HighlightShapeUtil } from './lib/editor/shapeutils/HighlightShapeUtil/HighlightShapeUtil'
-export { ImageShapeUtil } from './lib/editor/shapeutils/ImageShapeUtil/ImageShapeUtil'
-export {
-	LineShapeUtil,
-	getSplineForLineShape,
-} from './lib/editor/shapeutils/LineShapeUtil/LineShapeUtil'
-export { NoteShapeUtil } from './lib/editor/shapeutils/NoteShapeUtil/NoteShapeUtil'
+export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
 	type TLOnBeforeCreateHandler,
@@ -130,9 +116,20 @@ export {
 	type TLResizeMode,
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
-} from './lib/editor/shapeutils/ShapeUtil'
-export { INDENT, TextShapeUtil } from './lib/editor/shapeutils/TextShapeUtil/TextShapeUtil'
-export { VideoShapeUtil } from './lib/editor/shapeutils/VideoShapeUtil/VideoShapeUtil'
+} from './lib/editor/shapes/ShapeUtil'
+export { ArrowShapeUtil } from './lib/editor/shapes/arrow/ArrowShapeUtil'
+export { BookmarkShapeUtil } from './lib/editor/shapes/bookmark/BookmarkShapeUtil'
+export { DrawShapeUtil } from './lib/editor/shapes/draw/DrawShapeUtil'
+export { EmbedShapeUtil } from './lib/editor/shapes/embed/EmbedShapeUtil'
+export { FrameShapeUtil } from './lib/editor/shapes/frame/FrameShapeUtil'
+export { GeoShapeUtil } from './lib/editor/shapes/geo/GeoShapeUtil'
+export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
+export { HighlightShapeUtil } from './lib/editor/shapes/highlight/HighlightShapeUtil'
+export { ImageShapeUtil } from './lib/editor/shapes/image/ImageShapeUtil'
+export { LineShapeUtil, getSplineForLineShape } from './lib/editor/shapes/line/LineShapeUtil'
+export { NoteShapeUtil } from './lib/editor/shapes/note/NoteShapeUtil'
+export { INDENT, TextShapeUtil } from './lib/editor/shapes/text/TextShapeUtil'
+export { VideoShapeUtil } from './lib/editor/shapes/video/VideoShapeUtil'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export { type TLContent } from './lib/editor/types/clipboard-types'

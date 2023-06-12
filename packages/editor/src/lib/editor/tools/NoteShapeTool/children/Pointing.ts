@@ -1,5 +1,5 @@
 import { TLNoteShape, createShapeId } from '@tldraw/tlschema'
-import { NoteShapeUtil } from '../../../shapeutils/NoteShapeUtil/NoteShapeUtil'
+import { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { TLEventHandlers, TLInterruptEvent, TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 

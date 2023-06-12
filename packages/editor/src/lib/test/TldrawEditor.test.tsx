@@ -9,7 +9,7 @@ import { defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
 import { defineShape } from '../config/defineShape'
 import { Editor } from '../editor/Editor'
-import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
+import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
 import { BaseBoxShapeTool } from '../editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 
 let originalFetch: typeof window.fetch

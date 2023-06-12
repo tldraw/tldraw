@@ -1,5 +1,5 @@
 import { createShapeId, TLArrowShape } from '@tldraw/tlschema'
-import { ArrowShapeUtil } from '../../../shapeutils/ArrowShapeUtil/ArrowShapeUtil'
+import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 import { ArrowShapeTool } from '../ArrowShapeTool'

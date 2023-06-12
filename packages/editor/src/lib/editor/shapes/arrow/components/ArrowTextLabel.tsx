@@ -3,8 +3,8 @@ import { TLArrowShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ARROW_LABEL_FONT_SIZES, TEXT_PROPS } from '../../../../constants'
 import { stopEventPropagation } from '../../../../utils/dom'
-import { TextHelpers } from '../../TextShapeUtil/TextHelpers'
 import { useEditableText } from '../../shared/useEditableText'
+import { TextHelpers } from '../../text/TextHelpers'
 
 export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	id,

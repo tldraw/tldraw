@@ -1,6 +1,6 @@
 import { assert } from '@tldraw/utils'
 import { TestEditor } from '../../../test/TestEditor'
-import { LineShapeUtil } from '../../shapeutils/LineShapeUtil/LineShapeUtil'
+import { LineShapeUtil } from '../../shapes/line/LineShapeUtil'
 
 let editor: TestEditor
 

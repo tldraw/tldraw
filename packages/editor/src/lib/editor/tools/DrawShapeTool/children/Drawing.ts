@@ -10,10 +10,10 @@ import {
 import { last, structuredClone } from '@tldraw/utils'
 import { DRAG_DISTANCE } from '../../../../constants'
 import { uniqueId } from '../../../../utils/data'
-import { DrawShapeUtil } from '../../../shapeutils/DrawShapeUtil/DrawShapeUtil'
+import { DrawShapeUtil } from '../../../shapes/draw/DrawShapeUtil'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 
-import { HighlightShapeUtil } from '../../../shapeutils/HighlightShapeUtil/HighlightShapeUtil'
+import { HighlightShapeUtil } from '../../../shapes/highlight/HighlightShapeUtil'
 import { StateNode } from '../../StateNode'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
