@@ -3,6 +3,9 @@ import { exhaustiveSwitchError, getOwnProperty, hasOwnProperty } from '@tldraw/u
 /** @public */
 export type ValidatorFn<T> = (value: unknown) => T
 
+/** @public */
+export type Validatable<T> = { validate: (value: unknown) => T }
+
 function formatPath(path: ReadonlyArray<number | string>): string | null {
 	if (!path.length) {
 		return null
@@ -77,10 +80,10 @@ function typeToString(value: unknown): string {
 }
 
 /** @public */
-export type TypeOf<V extends Validator<unknown>> = V extends Validator<infer T> ? T : never
+export type TypeOf<V extends Validatable<unknown>> = V extends Validatable<infer T> ? T : never
 
 /** @public */
-export class Validator<T> {
+export class Validator<T> implements Validatable<T> {
 	constructor(readonly validationFn: ValidatorFn<T>) {}
 
 	/**
@@ -159,7 +162,7 @@ export class Validator<T> {
 
 /** @public */
 export class ArrayOfValidator<T> extends Validator<T[]> {
-	constructor(readonly itemValidator: Validator<T>) {
+	constructor(readonly itemValidator: Validatable<T>) {
 		super((value) => {
 			const arr = array.validate(value)
 			for (let i = 0; i < arr.length; i++) {
@@ -190,7 +193,7 @@ export class ArrayOfValidator<T> extends Validator<T[]> {
 export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 	constructor(
 		public readonly config: {
-			readonly [K in keyof Shape]: Validator<Shape[K]>
+			readonly [K in keyof Shape]: Validatable<Shape[K]>
 		},
 		private readonly shouldAllowUnknownProperties = false
 	) {
@@ -236,7 +239,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 	 * ```
 	 */
 	extend<Extension extends Record<string, unknown>>(extension: {
-		readonly [K in keyof Extension]: Validator<Extension[K]>
+		readonly [K in keyof Extension]: Validatable<Extension[K]>
 	}): ObjectValidator<Shape & Extension> {
 		return new ObjectValidator({ ...this.config, ...extension }) as ObjectValidator<
 			Shape & Extension
@@ -246,7 +249,7 @@ export class ObjectValidator<Shape extends object> extends Validator<Shape> {
 
 // pass this into itself e.g. Config extends UnionObjectSchemaConfig<Key, Config>
 type UnionValidatorConfig<Key extends string, Config> = {
-	readonly [Variant in keyof Config]: Validator<any> & {
+	readonly [Variant in keyof Config]: Validatable<any> & {
 		validate: (input: any) => { readonly [K in Key]: Variant }
 	}
 }
@@ -292,8 +295,8 @@ export class UnionValidator<
 /** @public */
 export class DictValidator<Key extends string, Value> extends Validator<Record<Key, Value>> {
 	constructor(
-		public readonly keyValidator: Validator<Key>,
-		public readonly valueValidator: Validator<Value>
+		public readonly keyValidator: Validatable<Key>,
+		public readonly valueValidator: Validatable<Value>
 	) {
 		super((object) => {
 			if (typeof object !== 'object' || object === null) {
@@ -446,7 +449,7 @@ export const array = new Validator<unknown[]>((value) => {
  *
  * @public
  */
-export function arrayOf<T>(itemValidator: Validator<T>): ArrayOfValidator<T> {
+export function arrayOf<T>(itemValidator: Validatable<T>): ArrayOfValidator<T> {
 	return new ArrayOfValidator(itemValidator)
 }
 
@@ -464,7 +467,7 @@ export const unknownObject = new Validator<Record<string, unknown>>((value) => {
  * @public
  */
 export function object<Shape extends object>(config: {
-	readonly [K in keyof Shape]: Validator<Shape[K]>
+	readonly [K in keyof Shape]: Validatable<Shape[K]>
 }): ObjectValidator<Shape> {
 	return new ObjectValidator(config)
 }
@@ -475,8 +478,8 @@ export function object<Shape extends object>(config: {
  * @public
  */
 export function dict<Key extends string, Value>(
-	keyValidator: Validator<Key>,
-	valueValidator: Validator<Value>
+	keyValidator: Validatable<Key>,
+	valueValidator: Validatable<Value>
 ): DictValidator<Key, Value> {
 	return new DictValidator(keyValidator, valueValidator)
 }
@@ -517,7 +520,7 @@ export function union<Key extends string, Config extends UnionValidatorConfig<Ke
  */
 export function model<T extends { readonly id: string }>(
 	name: string,
-	validator: Validator<T>
+	validator: Validatable<T>
 ): Validator<T> {
 	return new Validator((value) => {
 		const prefix =

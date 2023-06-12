@@ -41,12 +41,12 @@ export {
 } from './lib/config/TLUserPreferences'
 export {
 	createTLStore,
-	type TLShapeInfo,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
 } from './lib/config/createTLStore'
-export { defaultShapes } from './lib/config/defaultShapes'
+export { coreShapes, defaultShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
+export { defineShape, type TLShapeInfo } from './lib/config/defineShape'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,

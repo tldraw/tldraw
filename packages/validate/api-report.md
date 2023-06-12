@@ -11,13 +11,13 @@ const any: Validator<any>;
 const array: Validator<unknown[]>;
 
 // @public
-function arrayOf<T>(itemValidator: Validator<T>): ArrayOfValidator<T>;
+function arrayOf<T>(itemValidator: Validatable<T>): ArrayOfValidator<T>;
 
 // @public (undocumented)
 class ArrayOfValidator<T> extends Validator<T[]> {
-    constructor(itemValidator: Validator<T>);
+    constructor(itemValidator: Validatable<T>);
     // (undocumented)
-    readonly itemValidator: Validator<T>;
+    readonly itemValidator: Validatable<T>;
     // (undocumented)
     lengthGreaterThan1(): Validator<T[]>;
     // (undocumented)
@@ -39,15 +39,15 @@ const boxModel: ObjectValidator<{
 }>;
 
 // @public
-function dict<Key extends string, Value>(keyValidator: Validator<Key>, valueValidator: Validator<Value>): DictValidator<Key, Value>;
+function dict<Key extends string, Value>(keyValidator: Validatable<Key>, valueValidator: Validatable<Value>): DictValidator<Key, Value>;
 
 // @public (undocumented)
 class DictValidator<Key extends string, Value> extends Validator<Record<Key, Value>> {
-    constructor(keyValidator: Validator<Key>, valueValidator: Validator<Value>);
+    constructor(keyValidator: Validatable<Key>, valueValidator: Validatable<Value>);
     // (undocumented)
-    readonly keyValidator: Validator<Key>;
+    readonly keyValidator: Validatable<Key>;
     // (undocumented)
-    readonly valueValidator: Validator<Value>;
+    readonly valueValidator: Validatable<Value>;
 }
 
 // @public
@@ -59,7 +59,7 @@ function literal<T extends boolean | number | string>(expectedValue: T): Validat
 // @public
 function model<T extends {
     readonly id: string;
-}>(name: string, validator: Validator<T>): Validator<T>;
+}>(name: string, validator: Validatable<T>): Validator<T>;
 
 // @public
 const nonZeroInteger: Validator<number>;
@@ -72,22 +72,22 @@ const number: Validator<number>;
 
 // @public
 function object<Shape extends object>(config: {
-    readonly [K in keyof Shape]: Validator<Shape[K]>;
+    readonly [K in keyof Shape]: Validatable<Shape[K]>;
 }): ObjectValidator<Shape>;
 
 // @public (undocumented)
 class ObjectValidator<Shape extends object> extends Validator<Shape> {
     constructor(config: {
-        readonly [K in keyof Shape]: Validator<Shape[K]>;
+        readonly [K in keyof Shape]: Validatable<Shape[K]>;
     }, shouldAllowUnknownProperties?: boolean);
     // (undocumented)
     allowUnknownProperties(): ObjectValidator<Shape>;
     // (undocumented)
     readonly config: {
-        readonly [K in keyof Shape]: Validator<Shape[K]>;
+        readonly [K in keyof Shape]: Validatable<Shape[K]>;
     };
     extend<Extension extends Record<string, unknown>>(extension: {
-        readonly [K in keyof Extension]: Validator<Extension[K]>;
+        readonly [K in keyof Extension]: Validatable<Extension[K]>;
     }): ObjectValidator<Shape & Extension>;
 }
 
@@ -120,6 +120,7 @@ declare namespace T {
         model,
         setEnum,
         ValidatorFn,
+        Validatable,
         ValidationError,
         TypeOf,
         Validator,
@@ -147,7 +148,7 @@ declare namespace T {
 export { T }
 
 // @public (undocumented)
-type TypeOf<V extends Validator<unknown>> = V extends Validator<infer T> ? T : never;
+type TypeOf<V extends Validatable<unknown>> = V extends Validatable<infer T> ? T : never;
 
 // @public
 function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(key: Key, config: Config): UnionValidator<Key, Config>;
@@ -166,6 +167,11 @@ const unknown: Validator<unknown>;
 const unknownObject: Validator<Record<string, unknown>>;
 
 // @public (undocumented)
+type Validatable<T> = {
+    validate: (value: unknown) => T;
+};
+
+// @public (undocumented)
 class ValidationError extends Error {
     constructor(rawMessage: string, path?: ReadonlyArray<number | string>);
     // (undocumented)
@@ -177,7 +183,7 @@ class ValidationError extends Error {
 }
 
 // @public (undocumented)
-class Validator<T> {
+class Validator<T> implements Validatable<T> {
     constructor(validationFn: ValidatorFn<T>);
     check(name: string, checkFn: (value: T) => void): Validator<T>;
     // (undocumented)

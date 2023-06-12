@@ -1,4 +1,12 @@
-import { Canvas, Editor, ErrorBoundary, TldrawEditor, setRuntimeOverrides } from '@tldraw/editor'
+import {
+	Canvas,
+	Editor,
+	ErrorBoundary,
+	TldrawEditor,
+	defaultShapes,
+	defaultTools,
+	setRuntimeOverrides,
+} from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
 import '@tldraw/editor/editor.css'
@@ -124,7 +132,14 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 	}, [])
 
 	return (
-		<TldrawEditor assetUrls={assetUrls} persistenceKey={uri} onMount={handleMount} autoFocus>
+		<TldrawEditor
+			shapes={defaultShapes}
+			tools={defaultTools}
+			assetUrls={assetUrls}
+			persistenceKey={uri}
+			onMount={handleMount}
+			autoFocus
+		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
 			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
 				<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />

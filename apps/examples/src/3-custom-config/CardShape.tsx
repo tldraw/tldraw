@@ -1,5 +1,12 @@
-import { BaseBoxShapeUtil, HTMLContainer } from '@tldraw/tldraw'
-import { CardShape } from './CardShape'
+import { BaseBoxShapeUtil, HTMLContainer, TLBaseShape, defineShape } from '@tldraw/tldraw'
+
+export type CardShape = TLBaseShape<
+	'card',
+	{
+		w: number
+		h: number
+	}
+>
 
 export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 	// Id — the shape util's id
@@ -43,3 +50,7 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}
 }
+
+export const CardShape = defineShape('card', {
+	util: CardShapeUtil,
+})

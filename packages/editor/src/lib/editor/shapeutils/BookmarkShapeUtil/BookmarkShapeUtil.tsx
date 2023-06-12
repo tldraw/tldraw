@@ -18,7 +18,7 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
-	static override type = 'bookmark'
+	static override type = 'bookmark' as const
 
 	override canResize = () => false
 

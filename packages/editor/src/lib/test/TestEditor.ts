@@ -55,16 +55,14 @@ declare global {
 export const TEST_INSTANCE_ID = InstanceRecordType.createId('testInstance1')
 
 export class TestEditor extends Editor {
-	constructor(options = {} as Partial<Omit<TLEditorOptions, 'store'>>) {
+	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')
-		const { shapes = {}, tools = [] } = options
+		const { shapes = defaultShapes, tools = [] } = options
 		elm.tabIndex = 0
 		super({
-			shapes: { ...defaultShapes, ...shapes },
+			shapes,
 			tools: [...defaultTools, ...tools],
-			store: createTLStore({
-				customShapes: shapes,
-			}),
+			store: createTLStore({ shapes }),
 			getContainer: () => elm,
 			...options,
 		})

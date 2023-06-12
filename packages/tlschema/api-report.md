@@ -18,6 +18,12 @@ import { UnknownRecord } from '@tldraw/store';
 // @internal (undocumented)
 export const alignValidator: T.Validator<"end" | "middle" | "start">;
 
+// @internal (undocumented)
+export const arrowShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const arrowShapeProps: ShapeProps<TLArrowShape>;
+
 // @public
 export const assetIdValidator: T.Validator<TLAssetId>;
 
@@ -29,6 +35,12 @@ export const AssetRecordType: RecordType<TLAsset, "props" | "type">;
 
 // @internal (undocumented)
 export const assetValidator: T.Validator<TLAsset>;
+
+// @internal (undocumented)
+export const bookmarkShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const bookmarkShapeProps: ShapeProps<TLBookmarkShape>;
 
 // @public
 export interface Box2dModel {
@@ -45,11 +57,11 @@ export interface Box2dModel {
 // @public (undocumented)
 export const CameraRecordType: RecordType<TLCamera, never>;
 
+// @public
+export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
 // @internal (undocumented)
 export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
-
-// @public
-export const colorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @internal (undocumented)
 export const colorValidator: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
@@ -73,7 +85,9 @@ export const createPresenceStateDerivation: ($user: Signal<{
 export function createShapeId(id?: string): TLShapeId;
 
 // @public (undocumented)
-export function createShapeValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
+export function createShapeValidator<Type extends string, Props extends object>(type: Type, props?: {
+    [K in keyof Props]: T.Validatable<Props[K]>;
+}): T.ObjectValidator<{
     id: TLShapeId;
     typeName: "shape";
     x: number;
@@ -84,19 +98,25 @@ export function createShapeValidator<Type extends string, Props extends object>(
     type: Type;
     isLocked: boolean;
     opacity: number;
-    props: Props;
+    props: Props | Record<string, unknown>;
 }>;
 
 // @public
-export function createTLSchema(opts?: {
-    customShapes: Record<string, SchemaShapeInfo>;
-}): StoreSchema<TLRecord, TLStoreProps>;
+export function createTLSchema({ shapes }: {
+    shapes: Record<string, SchemaShapeInfo>;
+}): TLSchema;
 
 // @internal (undocumented)
 export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
 export const DocumentRecordType: RecordType<TLDocument, never>;
+
+// @internal (undocumented)
+export const drawShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const drawShapeProps: ShapeProps<TLDrawShape>;
 
 // @public (undocumented)
 export const EMBED_DEFINITIONS: readonly [{
@@ -285,6 +305,9 @@ export type EmbedDefinition = {
     readonly fromEmbedUrl: (url: string) => string | undefined;
 };
 
+// @internal (undocumented)
+export const embedShapeMigrations: Migrations;
+
 // @public
 export const embedShapePermissionDefaults: {
     readonly 'allow-downloads-without-user-activation': false;
@@ -304,6 +327,9 @@ export const embedShapePermissionDefaults: {
 };
 
 // @internal (undocumented)
+export const embedShapeProps: ShapeProps<TLEmbedShape>;
+
+// @internal (undocumented)
 export const fillValidator: T.Validator<"none" | "pattern" | "semi" | "solid">;
 
 // @internal (undocumented)
@@ -316,16 +342,52 @@ export function fixupRecord(oldRecord: TLRecord): {
 export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
 
 // @internal (undocumented)
+export const frameShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const frameShapeProps: ShapeProps<TLFrameShape>;
+
+// @internal (undocumented)
+export const geoShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const geoShapeProps: ShapeProps<TLGeoShape>;
+
+// @internal (undocumented)
 export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
 // @internal (undocumented)
+export const groupShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const groupShapeProps: ShapeProps<TLGroupShape>;
+
+// @internal (undocumented)
+export const highlightShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const highlightShapeProps: ShapeProps<TLHighlightShape>;
+
+// @internal (undocumented)
+export const iconShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const iconShapeProps: ShapeProps<TLIconShape>;
+
+// @internal (undocumented)
 export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
 
 // @internal (undocumented)
 export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
+
+// @internal (undocumented)
+export const imageShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const imageShapeProps: ShapeProps<TLImageShape>;
 
 // @public (undocumented)
 export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageId">;
@@ -451,6 +513,18 @@ export const LANGUAGES: readonly [{
 }];
 
 // @internal (undocumented)
+export const lineShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const lineShapeProps: ShapeProps<TLLineShape>;
+
+// @internal (undocumented)
+export const noteShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const noteShapeProps: ShapeProps<TLNoteShape>;
+
+// @internal (undocumented)
 export const opacityValidator: T.Validator<number>;
 
 // @internal (undocumented)
@@ -468,17 +542,36 @@ export const PointerRecordType: RecordType<TLPointer, never>;
 // @internal (undocumented)
 export const rootShapeMigrations: Migrations;
 
+// @public (undocumented)
+export type SchemaShapeInfo = {
+    migrations?: Migrations;
+    props?: Record<string, {
+        validate: (prop: any) => any;
+    }>;
+};
+
 // @internal (undocumented)
 export const scribbleValidator: T.Validator<TLScribble>;
 
 // @public (undocumented)
 export const shapeIdValidator: T.Validator<TLShapeId>;
 
+// @public (undocumented)
+export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
+    [K in keyof Shape['props']]: T.Validator<Shape['props'][K]>;
+};
+
 // @internal (undocumented)
 export const sizeValidator: T.Validator<"l" | "m" | "s" | "xl">;
 
 // @internal (undocumented)
 export const splineValidator: T.Validator<"cubic" | "line">;
+
+// @internal (undocumented)
+export const textShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const textShapeProps: ShapeProps<TLTextShape>;
 
 // @public (undocumented)
 export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
@@ -487,7 +580,10 @@ export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
 export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
 
 // @public
-export const TL_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public (undocumented)
+export const TL_COLOR_TYPES: Set<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
 
 // @public (undocumented)
 export const TL_DASH_TYPES: Set<"dashed" | "dotted" | "draw" | "solid">;
@@ -649,7 +745,7 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 export type TLCameraId = RecordId<TLCamera>;
 
 // @public
-export type TLColor = SetValue<typeof TL_COLOR_TYPES>;
+export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
 // @public (undocumented)
 export interface TLColorStyle extends TLBaseStyle {
@@ -660,12 +756,12 @@ export interface TLColorStyle extends TLBaseStyle {
 }
 
 // @public (undocumented)
-export type TLColorType = SetValue<typeof TL_COLOR_TYPES_2>;
+export type TLColorType = SetValue<typeof TL_COLOR_TYPES>;
 
 // @public
 export interface TLCursor {
     // (undocumented)
-    color: TLColor;
+    color: TLCanvasUiColor;
     // (undocumented)
     rotation: number;
     // (undocumented)
@@ -960,11 +1056,14 @@ export const TLPOINTER_ID: TLPointerId;
 // @public (undocumented)
 export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
 
+// @public (undocumented)
+export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
+
 // @public
 export type TLScribble = {
     points: Vec2dModel[];
     size: number;
-    color: TLColor;
+    color: TLCanvasUiColor;
     opacity: number;
     state: SetValue<typeof TL_SCRIBBLE_STATES>;
     delay: number;
@@ -1106,6 +1205,12 @@ export interface Vec2dModel {
 
 // @internal (undocumented)
 export const verticalAlignValidator: T.Validator<"end" | "middle" | "start">;
+
+// @internal (undocumented)
+export const videoShapeMigrations: Migrations;
+
+// @internal (undocumented)
+export const videoShapeProps: ShapeProps<TLVideoShape>;
 
 // (No @packageDocumentation comment for this package)
 
