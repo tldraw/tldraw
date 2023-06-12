@@ -1,7 +1,7 @@
 import { TLNoteShape, createShapeId } from '@tldraw/tlschema'
 import { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
+import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers, TLInterruptEvent, TLPointerEventInfo } from '../../../types/event-types'
-import { StateNode } from '../../StateNode'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

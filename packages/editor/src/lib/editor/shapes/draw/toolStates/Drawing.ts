@@ -14,7 +14,7 @@ import { DrawShapeUtil } from '../../../shapes/draw/DrawShapeUtil'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 
 import { HighlightShapeUtil } from '../../../shapes/highlight/HighlightShapeUtil'
-import { StateNode } from '../../StateNode'
+import { StateNode } from '../../../tools/StateNode'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 

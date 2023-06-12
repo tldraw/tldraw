@@ -1,7 +1,7 @@
 import { Box2d, getStarBounds } from '@tldraw/primitives'
 import { TLGeoShape, createShapeId } from '@tldraw/tlschema'
+import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers } from '../../../types/event-types'
-import { StateNode } from '../../StateNode'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

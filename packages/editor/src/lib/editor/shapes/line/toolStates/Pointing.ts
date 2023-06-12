@@ -2,8 +2,8 @@ import { getIndexAbove, sortByIndex } from '@tldraw/indices'
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
 import { TLHandle, TLLineShape, TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { last, structuredClone } from '@tldraw/utils'
+import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers, TLInterruptEvent } from '../../../types/event-types'
-import { StateNode } from '../../StateNode'
 import { LineShapeTool } from '../LineShapeTool'
 
 export class Pointing extends StateNode {

@@ -10,13 +10,13 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
+import { ArrowShapeTool } from '../../editor/shapes/arrow/ArrowShapeTool'
 import { ArrowShapeUtil } from '../../editor/shapes/arrow/ArrowShapeUtil'
+import { DrawShapeTool } from '../../editor/shapes/draw/DrawShapeTool'
 import { GroupShapeUtil } from '../../editor/shapes/group/GroupShapeUtil'
-import { ArrowShapeTool } from '../../editor/tools/ArrowShapeTool/ArrowShapeTool'
-import { DrawShapeTool } from '../../editor/tools/DrawShapeTool/DrawShapeTool'
+import { LineShapeTool } from '../../editor/shapes/line/LineShapeTool'
+import { NoteShapeTool } from '../../editor/shapes/note/NoteShapeTool'
 import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
-import { LineShapeTool } from '../../editor/tools/LineShapeTool/LineShapeTool'
-import { NoteShapeTool } from '../../editor/tools/NoteShapeTool/NoteShapeTool'
 import { TestEditor } from '../TestEditor'
 
 jest.mock('nanoid', () => {

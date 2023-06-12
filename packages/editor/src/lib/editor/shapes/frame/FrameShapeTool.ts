@@ -1,4 +1,4 @@
-import { BaseBoxShapeTool } from '../BaseBoxShapeTool/BaseBoxShapeTool'
+import { BaseBoxShapeTool } from '../../tools/BaseBoxShapeTool/BaseBoxShapeTool'
 
 export class FrameShapeTool extends BaseBoxShapeTool {
 	static override id = 'frame'
