@@ -1,6 +1,6 @@
 import { createShapeId } from '@tldraw/tlschema'
-import { FrameShapeUtil } from '../editor/shapeutils/FrameShapeUtil/FrameShapeUtil'
-import { GeoShapeUtil } from '../editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
+import { FrameShapeUtil } from '../editor/shapes/frame/FrameShapeUtil'
+import { GeoShapeUtil } from '../editor/shapes/geo/GeoShapeUtil'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

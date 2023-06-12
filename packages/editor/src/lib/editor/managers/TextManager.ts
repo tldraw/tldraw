@@ -1,7 +1,7 @@
 import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/data'
 import { Editor } from '../Editor'
-import { TextHelpers } from '../shapeutils/TextShapeUtil/TextHelpers'
+import { TextHelpers } from '../shapes/text/TextHelpers'
 
 const textAlignmentsForLtr = {
 	start: 'left',

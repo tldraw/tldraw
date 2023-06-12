@@ -5,7 +5,7 @@ import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { ShapeProps, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export type TLNoteShapeProps = {
@@ -23,19 +23,16 @@ export type TLNoteShapeProps = {
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
 /** @internal */
-export const noteShapeValidator: T.Validator<TLNoteShape> = createShapeValidator(
-	'note',
-	T.object({
-		color: colorValidator,
-		size: sizeValidator,
-		font: fontValidator,
-		align: alignValidator,
-		verticalAlign: verticalAlignValidator,
-		growY: T.positiveNumber,
-		url: T.string,
-		text: T.string,
-	})
-)
+export const noteShapeProps: ShapeProps<TLNoteShape> = {
+	color: colorValidator,
+	size: sizeValidator,
+	font: fontValidator,
+	align: alignValidator,
+	verticalAlign: verticalAlignValidator,
+	growY: T.positiveNumber,
+	url: T.string,
+	text: T.string,
+}
 
 const Versions = {
 	AddUrlProp: 1,
