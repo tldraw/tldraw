@@ -9,7 +9,7 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 - [ ] `documentation` — Changes to the documentation only[^2]
 - [ ] `tests` — Changes to any test code only[^2]
 - [ ] `internal` — Any other changes that don't affect the published package[^2]
-- [ ] Not sure
+- [ ] I don't know
 
 [^1]: publishes a `patch` release, for devDependencies use `internal`
 [^2]: will not publish a new version
