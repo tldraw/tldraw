@@ -6,16 +6,16 @@ import {
 	defaultTools,
 } from '@tldraw/editor'
 import { ContextMenu, TldrawUi, TldrawUiProps } from '@tldraw/ui'
+import { useMemo } from 'react'
 
 /** @public */
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
 	const { children, ...rest } = props
 
-	// apply defaults
 	const withDefaults = {
 		...rest,
-		shapes: rest.shapes ?? defaultShapes,
-		tools: rest.tools ?? defaultTools,
+		shapes: useMemo(() => [...defaultShapes, ...(rest.shapes ?? [])], [rest.shapes]),
+		tools: useMemo(() => [...defaultTools, ...(rest.tools ?? [])], [rest.tools]),
 	}
 
 	return (

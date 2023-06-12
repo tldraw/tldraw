@@ -1,10 +1,10 @@
-import { TLUiMenuGroup, Tldraw, defaultShapes, menuItem, toolbarItem } from '@tldraw/tldraw'
+import { TLUiMenuGroup, Tldraw, menuItem, toolbarItem } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { CardShape } from './CardShape'
 import { CardShapeTool } from './CardShapeTool'
 
-const shapes = [...defaultShapes, CardShape]
+const shapes = [CardShape]
 const tools = [CardShapeTool]
 
 export default function CustomConfigExample() {
