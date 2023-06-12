@@ -130,12 +130,14 @@ export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
 	}
 }
 
-const updateBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TLBookmarkShape) => {
+function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
 	const { url } = shape.props
+
+	// Derive the asset id from the URL
 	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 
-	// Is there an existing asset with the same ID?
 	if (editor.getAssetById(assetId)) {
+		// Existing asset for this URL?
 		if (shape.props.assetId !== assetId) {
 			editor.updateShapes([
 				{
@@ -146,7 +148,7 @@ const updateBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 			])
 		}
 	} else {
-		// No asset? We'll try to asyncronously create a new one
+		// No asset for this URL?
 
 		// First, clear out the existing asset reference
 		editor.updateShapes([
@@ -157,27 +159,34 @@ const updateBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 			},
 		])
 
-		// Create the asset using the external content manager's createAssetFromUrl method.
-		// This may be overwritten by the user (for example, we overwrite it on tldraw.com)
-		const asset = await editor.externalContentManager.createAssetFromUrl(editor, url)
-
-		if (!asset) {
-			// No asset? Just leave the bookmark as a null assetId.
-			return
-		}
-
-		editor.batch(() => {
-			// Create the new asset
-			editor.createAssets([asset])
-
-			// And update the shape
-			editor.updateShapes([
-				{
-					id: shape.id,
-					type: shape.type,
-					props: { assetId: asset.id },
-				},
-			])
-		})
+		// Then try to asyncronously create a new one
+		createBookmarkAssetOnUrlChange(editor, shape)
 	}
+}
+
+const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TLBookmarkShape) => {
+	const { url } = shape.props
+
+	// Create the asset using the external content manager's createAssetFromUrl method.
+	// This may be overwritten by the user (for example, we overwrite it on tldraw.com)
+	const asset = await editor.externalContentManager.createAssetFromUrl(editor, url)
+
+	if (!asset) {
+		// No asset? Just leave the bookmark as a null assetId.
+		return
+	}
+
+	editor.batch(() => {
+		// Create the new asset
+		editor.createAssets([asset])
+
+		// And update the shape
+		editor.updateShapes([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: { assetId: asset.id },
+			},
+		])
+	})
 }, 500)
