@@ -832,6 +832,7 @@ input,
 	margin-left: 13px;
 	opacity: 1;
 	border: none;
+	user-select: text;
 }
 
 .tl-cursor-chat::selection {
