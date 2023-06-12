@@ -111,6 +111,9 @@ export const ANIMATION_SHORT_MS = 80;
 export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const ArrowShape: TLShapeInfo<TLArrowShape>;
+
+// @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -202,6 +205,9 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 
 // @public (undocumented)
 export function blobAsString(blob: Blob): Promise<string>;
+
+// @public (undocumented)
+export const BookmarkShape: TLShapeInfo<TLBookmarkShape>;
 
 // @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
@@ -320,6 +326,9 @@ export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
 
 // @internal (undocumented)
 export const DRAG_DISTANCE = 4;
+
+// @public (undocumented)
+export const DrawShape: TLShapeInfo<TLDrawShape>;
 
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
@@ -779,6 +788,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 }
 
 // @public (undocumented)
+export const EmbedShape: TLShapeInfo<TLEmbedShape>;
+
+// @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canEdit: TLShapeUtilFlag<TLEmbedShape>;
@@ -848,6 +860,9 @@ export const FONT_FAMILIES: Record<TLFontType, string>;
 export const FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const FrameShape: TLShapeInfo<TLFrameShape>;
+
+// @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -878,6 +893,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     static type: "frame";
 }
+
+// @public (undocumented)
+export const GeoShape: TLShapeInfo<TLGeoShape>;
 
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
@@ -1091,6 +1109,9 @@ export const GRID_STEPS: {
 }[];
 
 // @public (undocumented)
+export const GroupShape: TLShapeInfo<TLGroupShape>;
+
+// @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -1131,6 +1152,9 @@ export function hardResetEditor(): void;
 
 // @internal (undocumented)
 export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
+
+// @public (undocumented)
+export const HighlightShape: TLShapeInfo<TLHighlightShape>;
 
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
@@ -1180,6 +1204,9 @@ export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
 // @public (undocumented)
 export const ICON_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export const ImageShape: TLShapeInfo<TLImageShape>;
 
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
@@ -1232,6 +1259,9 @@ export const isValidHttpURL: (url: string) => boolean;
 
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export const LineShape: TLShapeInfo<TLLineShape>;
 
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
@@ -1666,6 +1696,9 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
 };
 
 // @public (undocumented)
+export const NoteShape: TLShapeInfo<TLNoteShape>;
+
+// @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canEdit: () => boolean;
@@ -2017,6 +2050,9 @@ export const TEXT_PROPS: {
     padding: string;
     maxWidth: string;
 };
+
+// @public (undocumented)
+export const TextShape: TLShapeInfo<TLTextShape>;
 
 // @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
@@ -2610,6 +2646,7 @@ export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
     util: TLShapeUtilConstructor<T>;
     props?: ShapeProps<T>;
     migrations?: Migrations;
+    tool?: TLStateNodeConstructor;
 };
 
 // @public (undocumented)
@@ -2749,6 +2786,9 @@ export function useReactor(name: string, reactFn: () => void, deps?: any[] | und
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
+
+// @public (undocumented)
+export const VideoShape: TLShapeInfo<TLVideoShape>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

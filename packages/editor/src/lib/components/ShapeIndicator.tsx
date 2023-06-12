@@ -8,7 +8,7 @@ import {
 } from 'signia-react'
 import { useEditor } from '../..'
 import type { Editor } from '../editor/Editor'
-import { ShapeUtil } from '../editor/shapeutils/ShapeUtil'
+import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 

@@ -1,7 +1,7 @@
 import { PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
-import { BaseBoxShapeUtil } from '../editor/shapeutils/BaseBoxShapeUtil'
-import { GeoShapeUtil } from '../editor/shapeutils/GeoShapeUtil/GeoShapeUtil'
+import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
+import { GeoShapeUtil } from '../editor/shapes/geo/GeoShapeUtil'
 import { TestEditor } from './TestEditor'
 import { TL } from './jsx'
 

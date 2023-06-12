@@ -71,6 +71,7 @@ import {
 	dedupe,
 	deepCopy,
 	getOwnProperty,
+	hasOwnProperty,
 	partition,
 	sortById,
 	structuredClone,
@@ -123,18 +124,15 @@ import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { ArrowShapeUtil } from './shapeutils/ArrowShapeUtil/ArrowShapeUtil'
-import { getCurvedArrowInfo } from './shapeutils/ArrowShapeUtil/arrow/curved-arrow'
-import {
-	getArrowTerminalsInArrowSpace,
-	getIsArrowStraight,
-} from './shapeutils/ArrowShapeUtil/arrow/shared'
-import { getStraightArrowInfo } from './shapeutils/ArrowShapeUtil/arrow/straight-arrow'
-import { FrameShapeUtil } from './shapeutils/FrameShapeUtil/FrameShapeUtil'
-import { GroupShapeUtil } from './shapeutils/GroupShapeUtil/GroupShapeUtil'
-import { ShapeUtil, TLResizeMode } from './shapeutils/ShapeUtil'
-import { TextShapeUtil } from './shapeutils/TextShapeUtil/TextShapeUtil'
-import { TLExportColors } from './shapeutils/shared/TLExportColors'
+import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
+import { ArrowShapeUtil } from './shapes/arrow/ArrowShapeUtil'
+import { getCurvedArrowInfo } from './shapes/arrow/arrow/curved-arrow'
+import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/arrow/arrow/shared'
+import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
+import { FrameShapeUtil } from './shapes/frame/FrameShapeUtil'
+import { GroupShapeUtil } from './shapes/group/GroupShapeUtil'
+import { TLExportColors } from './shapes/shared/TLExportColors'
+import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -223,13 +221,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		const uniqueTools = Object.fromEntries(tools.map((Ctor) => [Ctor.id, Ctor]))
-		for (const [id, Ctor] of Object.entries(uniqueTools)) {
-			if (this.root.children?.[id]) {
-				throw Error(`Can't override tool with id "${id}"`)
+		for (const { tool: Tool } of allShapes) {
+			if (Tool) {
+				if (hasOwnProperty(this.root.children!, Tool.id)) {
+					throw Error(`Can't override tool with id "${Tool.id}"`)
+				}
+				this.root.children![Tool.id] = new Tool(this)
 			}
-
-			this.root.children![id] = new Ctor(this)
+		}
+		for (const Tool of tools) {
+			if (hasOwnProperty(this.root.children!, Tool.id)) {
+				throw Error(`Can't override tool with id "${Tool.id}"`)
+			}
+			this.root.children![Tool.id] = new Tool(this)
 		}
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
