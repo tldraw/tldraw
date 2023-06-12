@@ -10,9 +10,8 @@ import { useMemo } from 'react'
 import { useValue } from 'signia-react'
 import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { ROTATING_SHADOWS } from '../../../constants'
 import { useIsEditing } from '../../../hooks/useIsEditing'
-import { rotateBoxShadow } from '../../../utils/dom'
+import { getRotatedBoxShadow } from '../../../utils/dom'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../utils/embeds'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
@@ -29,32 +28,30 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed'
 
-	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = () => false
-	override canResize = (shape: TLEmbedShape) => {
-		const result = getEmbedInfo(shape.props.url)
-		return !!result?.definition?.doesResize
-	}
-
 	override hideSelectionBoundsBg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
-
 	override canEdit: TLShapeUtilFlag<TLEmbedShape> = () => true
+	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = (shape: TLEmbedShape) => {
+		return !!getEmbedInfo(shape.props.url)?.definition?.canUnmount
+	}
+	override canResize = (shape: TLEmbedShape) => {
+		return !!getEmbedInfo(shape.props.url)?.definition?.doesResize
+	}
 
 	override defaultProps(): TLEmbedShape['props'] {
 		return {
 			w: 300,
 			h: 300,
 			url: '',
-			doesResize: true,
 		}
 	}
 
-	isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape> = (shape) => {
+	override isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape> = (shape) => {
 		const embedInfo = getEmbedInfo(shape.props.url)
 		return embedInfo?.definition.isAspectRatioLocked ?? false
 	}
 
-	onResize: TLOnResizeHandler<TLEmbedShape> = (shape, info) => {
+	override onResize: TLOnResizeHandler<TLEmbedShape> = (shape, info) => {
 		const isAspectRatioLocked = this.isAspectRatioLocked(shape)
 		const embedInfo = getEmbedInfo(shape.props.url)
 		let minWidth = embedInfo?.definition.minWidth ?? 200
@@ -75,7 +72,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return resizeBox(shape, info, { minWidth, minHeight })
 	}
 
-	render(shape: TLEmbedShape) {
+	override render(shape: TLEmbedShape) {
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const embedInfo = useMemo(() => getEmbedInfoUnsafely(url), [url])
@@ -91,6 +88,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 						return true
 					}
 				}
+
 				return false
 			},
 			[]
@@ -102,19 +100,19 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 		if (embedInfo?.definition.type === 'github_gist') {
 			const idFromGistUrl = embedInfo.url.split('/').pop()
-			if (idFromGistUrl) {
-				return (
-					<HTMLContainer className="tl-embed-container" id={shape.id}>
-						<Gist
-							id={idFromGistUrl}
-							width={toDomPrecision(w)!}
-							height={toDomPrecision(h)!}
-							isInteractive={isInteractive}
-							pageRotation={pageRotation}
-						/>
-					</HTMLContainer>
-				)
-			}
+			if (!idFromGistUrl) throw Error('No gist id!')
+
+			return (
+				<HTMLContainer className="tl-embed-container" id={shape.id}>
+					<Gist
+						id={idFromGistUrl}
+						width={toDomPrecision(w)!}
+						height={toDomPrecision(h)!}
+						isInteractive={isInteractive}
+						pageRotation={pageRotation}
+					/>
+				</HTMLContainer>
+			)
 		}
 
 		const sandbox = getSandboxPermissions({
@@ -139,7 +137,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							pointerEvents: isInteractive ? 'auto' : 'none',
 							// Fix for safari <https://stackoverflow.com/a/49150908>
 							zIndex: isInteractive ? '' : '-1',
-							boxShadow: rotateBoxShadow(pageRotation, ROTATING_SHADOWS),
+							boxShadow: getRotatedBoxShadow(pageRotation),
 							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
 							background: embedInfo?.definition.backgroundColor,
 						}}
@@ -153,7 +151,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		)
 	}
 
-	indicator(shape: TLEmbedShape) {
+	override indicator(shape: TLEmbedShape) {
 		const embedInfo = useMemo(() => getEmbedInfo(shape.props.url), [shape.props.url])
 		return (
 			<rect
@@ -183,14 +181,8 @@ function Gist({
 	pageRotation: number
 	style?: React.CSSProperties
 }) {
-	const rIframe = React.useRef<HTMLIFrameElement>(null)
-
-	const fileArg = file ? `?file=${file}` : ''
-	const gistLink = `https://gist.github.com/${id}.js${fileArg}`
-
 	return (
 		<iframe
-			ref={rIframe}
 			className="tl-embed"
 			draggable={false}
 			width={toDomPrecision(width)}
@@ -204,7 +196,7 @@ function Gist({
 				pointerEvents: isInteractive ? 'all' : 'none',
 				// Fix for safari <https://stackoverflow.com/a/49150908>
 				zIndex: isInteractive ? '' : '-1',
-				boxShadow: rotateBoxShadow(pageRotation, ROTATING_SHADOWS),
+				boxShadow: getRotatedBoxShadow(pageRotation),
 			}}
 			srcDoc={`
 			<html>
@@ -212,7 +204,7 @@ function Gist({
 					<base target="_blank">
 				</head>
 				<body>
-					<script src=${gistLink}></script>
+					<script src=${`https://gist.github.com/${id}.js${file ? `?file=${file}` : ''}`}></script>
 					<style type="text/css">
 						* { margin: 0px; }
 						table { height: 100%; background-color: red; }

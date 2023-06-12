@@ -78,7 +78,6 @@ export {
 	MULTI_CLICK_DURATION,
 	REMOVE_SYMBOL,
 	RICH_TYPES,
-	ROTATING_SHADOWS,
 	STYLES,
 	SVG_PADDING,
 	TEXT_PROPS,
@@ -215,10 +214,10 @@ export {
 } from './lib/utils/data'
 export { debugFlags, featureFlags, type DebugFlag } from './lib/utils/debug-flags'
 export {
+	getRotatedBoxShadow,
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,
-	rotateBoxShadow,
 	setPointerCapture,
 	truncateStringWithEllipsis,
 	usePrefersReducedMotion,

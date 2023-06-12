@@ -1032,6 +1032,9 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: 
 export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number): Promise<string>;
 
 // @public (undocumented)
+export function getRotatedBoxShadow(rotation: number): string;
+
+// @public (undocumented)
 export function getSplineForLineShape(shape: TLLineShape): NonNullable<CubicSpline2d | Polyline2d>;
 
 // @public (undocumented)
@@ -1289,6 +1292,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1300,6 +1304,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1309,6 +1314,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1319,6 +1325,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1328,6 +1335,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1337,6 +1345,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1348,6 +1357,7 @@ export function matchEmbedUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1358,6 +1368,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1369,6 +1380,7 @@ export function matchEmbedUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1378,6 +1390,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: false;
         readonly backgroundColor: "#fff";
         readonly toEmbedUrl: (url: string) => string | undefined;
@@ -1389,6 +1402,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1398,6 +1412,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: false;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1409,6 +1424,7 @@ export function matchEmbedUrl(url: string): {
         readonly minHeight: 500;
         readonly overrideOutlineRadius: 12;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1420,6 +1436,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1429,6 +1446,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 640;
         readonly height: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1439,6 +1457,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 800;
         readonly height: 450;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly overridePermissions: {
             readonly 'allow-presentation': true;
         };
@@ -1461,6 +1480,7 @@ export function matchUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1472,6 +1492,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1481,6 +1502,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1491,6 +1513,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1500,6 +1523,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1509,6 +1533,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1520,6 +1545,7 @@ export function matchUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1530,6 +1556,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1541,6 +1568,7 @@ export function matchUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1550,6 +1578,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: false;
         readonly backgroundColor: "#fff";
         readonly toEmbedUrl: (url: string) => string | undefined;
@@ -1561,6 +1590,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1570,6 +1600,7 @@ export function matchUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: false;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1581,6 +1612,7 @@ export function matchUrl(url: string): {
         readonly minHeight: 500;
         readonly overrideOutlineRadius: 12;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1592,6 +1624,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1601,6 +1634,7 @@ export function matchUrl(url: string): {
         readonly width: 640;
         readonly height: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1611,6 +1645,7 @@ export function matchUrl(url: string): {
         readonly width: 800;
         readonly height: 450;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly overridePermissions: {
             readonly 'allow-presentation': true;
         };
@@ -1787,24 +1822,6 @@ export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
 
 // @internal (undocumented)
 export const RICH_TYPES: Record<string, boolean>;
-
-// @public (undocumented)
-export function rotateBoxShadow(rotation: number, shadows: {
-    offsetX: number;
-    offsetY: number;
-    blur: number;
-    spread: number;
-    color: string;
-}[]): string;
-
-// @public (undocumented)
-export const ROTATING_SHADOWS: {
-    offsetX: number;
-    offsetY: number;
-    blur: number;
-    spread: number;
-    color: string;
-}[];
 
 // @public (undocumented)
 export const runtime: {
