@@ -629,7 +629,7 @@ async function tryMigrateAsset(editor: Editor, placeholderAsset: TLAsset) {
 			type: response.headers.get('content-type') ?? placeholderAsset.props.mimeType ?? undefined,
 		})
 
-		const newAsset = await editor.onCreateAssetFromFile(file)
+		const newAsset = await editor.externalContentManager.createAssetFromFile(editor, file)
 		if (newAsset.type === 'bookmark') return
 
 		editor.updateAssets([

@@ -13,6 +13,7 @@ import { NamedExoticComponent } from 'react';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { ReactNode } from 'react';
+import { RecursivePartial } from '@tldraw/utils';
 import { TLCopyType } from '@tldraw/editor';
 import { TLEditorAssetUrls } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
@@ -224,7 +225,7 @@ export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, child
 // @public (undocumented)
 export interface TldrawUiContextProviderProps {
     // (undocumented)
-    assetUrls?: TLUiAssetUrls;
+    assetUrls?: RecursivePartial<TLUiAssetUrls>;
     // (undocumented)
     children?: any;
     // (undocumented)

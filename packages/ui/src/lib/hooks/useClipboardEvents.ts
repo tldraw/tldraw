@@ -17,8 +17,6 @@ import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
-import { pastePlainText } from './clipboard/pastePlainText'
-import { pasteSvgText } from './clipboard/pasteSvgText'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
 import { useEditorIsFocused } from './useEditorIsFocused'
@@ -99,9 +97,19 @@ const handleText = (editor: Editor, data: string, point?: VecLike) => {
 	} else if (isValidHttpURL(data)) {
 		pasteUrl(editor, data, point)
 	} else if (isSvgText(data)) {
-		pasteSvgText(editor, data, point)
+		editor.mark('paste')
+		editor.putExternalContent({
+			type: 'svg-text',
+			text: data,
+			point,
+		})
 	} else {
-		pastePlainText(editor, data, point)
+		editor.mark('paste')
+		editor.putExternalContent({
+			type: 'text',
+			text: data,
+			point,
+		})
 	}
 }
 

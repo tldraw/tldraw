@@ -24,6 +24,7 @@ import { Migrations } from '@tldraw/store';
 import { Polyline2d } from '@tldraw/primitives';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { RecursivePartial } from '@tldraw/utils';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
@@ -245,24 +246,8 @@ export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: Box
 // @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
 
-// @public (undocumented)
-export function createAssetShapeAtPoint(editor: Editor, svgString: string, point: Vec2dModel): Promise<void>;
-
-// @public
-export function createBookmarkShapeAtPoint(editor: Editor, url: string, point: Vec2dModel): Promise<void>;
-
-// @public (undocumented)
-export function createEmbedShapeAtPoint(editor: Editor, url: string, point: Vec2dModel, props: {
-    width?: number;
-    height?: number;
-    doesResize?: boolean;
-}): void;
-
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
-
-// @public (undocumented)
-export function createShapesFromFiles(editor: Editor, files: File[], position: VecLike, _ignoreParent?: boolean): Promise<void>;
 
 // @public
 export function createTLStore(opts?: TLStoreOptions): TLStore;
@@ -463,6 +448,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
+    // (undocumented)
+    externalContentManager: PlopManager;
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -614,12 +601,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
-    onCreateAssetFromFile(file: File): Promise<TLAsset>;
-    onCreateBookmarkFromUrl(url: string): Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
     get onlySelectedShape(): null | TLShape;
     // (undocumented)
     get opacity(): null | number;
@@ -647,6 +628,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         preserveIds?: boolean;
     }): this;
+    putExternalContent(info: TLExternalContent): Promise<void>;
     redo(): this;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingShapes(): {
@@ -1760,6 +1742,34 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
     fallback: ((error: unknown) => React_3.ReactNode) | null;
 }): JSX.Element;
 
+// @public (undocumented)
+export class PlopManager {
+    constructor(editor: Editor);
+    createAssetFromFile(_editor: Editor, file: File): Promise<TLAsset>;
+    createAssetFromUrl(_editor: Editor, url: string): Promise<TLAsset>;
+    // (undocumented)
+    createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<void>;
+    // (undocumented)
+    editor: Editor;
+    // (undocumented)
+    handleContent: (info: TLExternalContent) => Promise<void>;
+    handleEmbed(editor: Editor, { point, url, embed }: Extract<TLExternalContent, {
+        type: 'embed';
+    }>): Promise<void>;
+    handleFiles(editor: Editor, { point, files }: Extract<TLExternalContent, {
+        type: 'files';
+    }>): Promise<void>;
+    handleSvgText(editor: Editor, { point, text }: Extract<TLExternalContent, {
+        type: 'svg-text';
+    }>): Promise<void>;
+    handleText(editor: Editor, { point, text }: Extract<TLExternalContent, {
+        type: 'text';
+    }>): Promise<void>;
+    handleUrl: (editor: Editor, { point, url }: Extract<TLExternalContent, {
+        type: 'url';
+    }>) => Promise<void>;
+}
+
 // @public
 export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
 
@@ -2183,16 +2193,10 @@ export type TldrawEditorProps = {
     children?: any;
     shapes?: Record<string, TLShapeInfo>;
     tools?: TLStateNodeConstructor[];
-    assetUrls?: TLEditorAssetUrls;
+    assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
-    onMount?: (editor: Editor) => void;
-    onCreateAssetFromFile?: (file: File) => Promise<TLAsset>;
-    onCreateBookmarkFromUrl?: (url: string) => Promise<{
-        image: string;
-        title: string;
-        description: string;
-    }>;
+    onMount?: (editor: Editor) => (() => void) | undefined | void;
 } & ({
     store: TLStore | TLStoreWithStatus;
 } | {
@@ -2375,6 +2379,31 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
+
+// @public (undocumented)
+export type TLExternalContent = {
+    type: 'embed';
+    url: string;
+    point?: VecLike;
+    embed: EmbedDefinition;
+} | {
+    type: 'files';
+    files: File[];
+    point?: VecLike;
+    ignoreParent: boolean;
+} | {
+    type: 'svg-text';
+    text: string;
+    point?: VecLike;
+} | {
+    type: 'text';
+    point?: VecLike;
+    text: string;
+} | {
+    type: 'url';
+    url: string;
+    point?: VecLike;
+};
 
 // @public (undocumented)
 export type TLHistoryEntry = TLCommand | TLHistoryMark;
@@ -2567,6 +2596,15 @@ export interface TLSessionStateSnapshot {
 }
 
 // @public (undocumented)
+export type TLShapeInfo = {
+    util: TLShapeUtilConstructor<any>;
+    migrations?: Migrations;
+    validator?: {
+        validate: (record: any) => any;
+    };
+};
+
+// @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
     new (editor: Editor, type: T['type']): U;
@@ -2590,6 +2628,16 @@ export interface TLStateNodeConstructor {
     // (undocumented)
     styles?: TLStyleType[];
 }
+
+// @public (undocumented)
+export type TLStoreEventInfo = HistoryEntry<TLRecord>;
+
+// @public (undocumented)
+export type TLStoreOptions = {
+    customShapes?: Record<string, TLShapeInfo>;
+    initialData?: StoreSnapshot<TLRecord>;
+    defaultName?: string;
+};
 
 // @public (undocumented)
 export type TLStoreWithStatus = {
