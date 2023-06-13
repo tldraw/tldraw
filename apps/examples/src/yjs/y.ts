@@ -6,12 +6,10 @@ import {
 	TLRecord,
 	TLStore,
 	TLStoreEventInfo,
-	uniqueId,
 } from '@tldraw/tldraw'
 import { WebsocketProvider } from 'y-websocket'
 import * as Y from 'yjs'
 
-const USER_ID = uniqueId()
 const ROOM_ID = 'tldraw-20'
 const HOST_URL =
 	process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev'
@@ -96,23 +94,23 @@ export function syncYjsDocChangesToStore(store: TLStore) {
 function syncStoreChangesToYjsAwareness({ changes }: TLStoreEventInfo) {
 	roomAwareness.doc.transact(() => {
 		Object.values(changes.added).forEach((record) => {
+			const idWithUserId = record.id.split(':')[0] + ':' + roomAwareness.clientID
 			roomAwareness.setLocalStateField(record.typeName, {
 				...record,
-				id: record.id.split(':')[0] + ':' + USER_ID,
+				id: idWithUserId,
 			})
 		})
 
 		Object.values(changes.updated).forEach(([_, record]) => {
+			const idWithUserId = record.id.split(':')[0] + ':' + roomAwareness.clientID
 			roomAwareness.setLocalStateField(record.typeName, {
 				...record,
-				id: record.id.split(':')[0] + ':' + USER_ID,
+				id: idWithUserId,
 			})
 		})
 
 		Object.values(changes.removed).forEach((record) => {
-			const current = { ...roomAwareness.getLocalState() }
-			delete current[record.typeName]
-			roomAwareness.setLocalState(current)
+			roomAwareness.setLocalStateField(record.typeName, null)
 		})
 	})
 }
@@ -130,22 +128,31 @@ export function syncYjsAwarenessChangesToStore(store: TLStore) {
 		'update',
 		({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
 			const states = roomAwareness.getStates()
-			// roomAwareness.getStates(update)
+
 			store.mergeRemoteChanges(() => {
-				added.forEach((id: number) => {
-					const record = states.get(id) as TLRecord
-					store.put(Object.values(record))
+				added.forEach((id) => {
+					const state = states.get(id) as Record<TLRecord['id'], TLRecord>
+					const records = Object.values(state)
+					store.put(records)
 				})
-				updated.forEach((id: number) => {
-					const record = states.get(id) as TLRecord
-					store.put(Object.values(record))
+
+				updated.forEach((id) => {
+					const state = states.get(id) as Record<TLRecord['id'], TLRecord>
+					const records = Object.values(state)
+					store.put(records)
 				})
-				removed.forEach((id: number) => {
-					const record = states.get(id) as TLRecord
-					if (record) {
-						store.remove(Object.values(record))
-					}
-				})
+
+				if (removed.length) {
+					const allRecords = store.allRecords()
+
+					removed.forEach((id) => {
+						const recordsToRemove = allRecords
+							.filter((record) => record.id.split(':')[1] === id.toString())
+							.map((record) => record.id)
+
+						store.remove(recordsToRemove)
+					})
+				}
 			})
 		}
 	)
