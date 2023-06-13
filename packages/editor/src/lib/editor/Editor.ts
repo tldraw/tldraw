@@ -434,12 +434,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Whether the editor's camera can move.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.canMoveCamera = false
 	 * ```
 	 *
 	 * @param canMove - Whether the camera can move.
+	 *
 	 * @public
 	 */
 	get canMoveCamera() {
@@ -465,7 +465,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * The current HTML element containing the editor.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * const container = editor.getContainer()
 	 * ```
@@ -561,6 +560,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The window's device pixel ratio.
+	 *
 	 * @public
 	 */
 	get devicePixelRatio() {
@@ -591,6 +591,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * editor.addOpenMenu('menu-id')
 	 * ```
+	 *
 	 * @public
 	 */
 	addOpenMenu(id: string) {
@@ -609,6 +610,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * editor.deleteOpenMenu('menu-id')
 	 * ```
+	 *
 	 * @public
 	 */
 	deleteOpenMenu(id: string) {
@@ -633,8 +635,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _isCoarsePointer = atom<boolean>('isCoarsePointer', false as any)
 
 	/**
-	 * Whether the user is using a "coarse" pointer, such as on a touch screen.
-	 * This is automatically set by the canvas.
+	 * Whether the user is using a "coarse" pointer, such as on a touch screen. This is automatically set by the canvas.
 	 *
 	 * @public
 	 **/
@@ -656,7 +657,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Whether the user is currently changing the style of a shape. This may cause the UI to change.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.isChangingStyle = true
 	 * ```
@@ -747,13 +747,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the page mask for a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * const pageMask = editor.getPageMaskById(shape.id)
 	 * ```
 	 *
 	 * @param id - The id of the shape to get the page mask for.
+	 *
 	 * @returns The page mask for the shape.
+	 *
 	 * @public
 	 */
 	getPageMaskById(id: TLShapeId) {
@@ -786,13 +787,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the clip path for a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * const clipPath = editor.getClipPathById(shape.id)
 	 * ```
 	 *
 	 * @param id - The shape id.
+	 *
 	 * @returns The clip path or undefined.
+	 *
 	 * @public
 	 */
 	getClipPathById(id: TLShapeId) {
@@ -834,7 +836,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Undo to the last mark.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.undo()
 	 * ```
@@ -858,7 +859,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Redo to the next mark.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.redo()
 	 * ```
@@ -884,7 +884,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * any redos.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.mark()
 	 * editor.mark('flip shapes')
@@ -893,6 +892,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param reason - The reason for the mark.
 	 * @param onUndo - Whether to stop at the mark when undoing.
 	 * @param onRedo - Whether to stop at the mark when redoing.
+	 *
 	 * @public
 	 */
 	mark(reason?: string, onUndo?: boolean, onRedo?: boolean) {
@@ -903,7 +903,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Clear all marks in the undo stack back to the next mark.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.bail()
 	 * ```
@@ -919,7 +918,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Clear all marks in the undo stack back to the mark with the provided mark id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.bailToMark('creating')
 	 * ```
@@ -935,7 +933,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Run a function in a batch, which will be undone/redone as a single action.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.batch(() => {
 	 * 	editor.selectAll()
@@ -965,12 +962,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get a shape util by its definition.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getShapeUtil(ArrowShapeUtil)
 	 * ```
 	 *
 	 * @param util - The shape util.
+	 *
 	 * @public
 	 */
 	getShapeUtil<C extends { new (...args: any[]): ShapeUtil<any>; type: string }>(
@@ -980,7 +977,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get a shape util from a shape itself.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * const util = editor.getShapeUtil(myShape)
 	 * const util = editor.getShapeUtil<ArrowShapeUtil>(myShape)
@@ -988,6 +984,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shape - A shape or shape partial.
+	 *
 	 * @public
 	 */
 	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
@@ -1022,12 +1019,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get an array of all the children of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getSortedChildIds('frame1')
 	 * ```
 	 *
 	 * @param parentId - The id of the parent shape.
+	 *
 	 * @public
 	 */
 	getSortedChildIds(parentId: TLParentId): TLShapeId[] {
@@ -1039,13 +1036,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Run a visitor function for all descendants of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.visitDescendants('frame1', myCallback)
 	 * ```
 	 *
 	 * @param parentId - The id of the parent shape.
 	 * @param visitor - The visitor function.
+	 *
 	 * @public
 	 */
 	visitDescendants(parentId: TLParentId, visitor: (id: TLShapeId) => void | false) {
@@ -1201,6 +1198,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the currently selected opacity.
 	 * If any shapes are selected, this returns the opacity of the selected shapes.
 	 * Otherwise, this returns the chosen opacity for the next shape.
+	 *
 	 * @public
 	 */
 	@computed get opacity(): number | null {
@@ -1281,7 +1279,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get all arrows bound to a shape.
+	 *
 	 * @param shapeId - The id of the shape.
+	 *
 	 * @public
 	 */
 	getArrowsBoundTo(shapeId: TLShapeId) {
@@ -1570,7 +1570,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* -------------------- Shortcuts ------------------- */
 
 	/**
-	 * The global document settings that apply to all users
+	 * The global document settings that apply to all users.
 	 *
 	 * @public
 	 **/
@@ -1579,7 +1579,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Update the global document settings that apply to all users
+	 * Update the global document settings that apply to all users.
+	 *
 	 * @public
 	 **/
 	updateDocumentSettings(settings: Partial<TLDocument>) {
@@ -1588,6 +1589,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The document's grid size.
+	 *
 	 * @public
 	 **/
 	get gridSize() {
@@ -1606,6 +1608,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether the user has "always snap" mode enabled.
+	 *
 	 * @public
 	 **/
 	get isSnapMode() {
@@ -1614,6 +1617,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Set whether the user has "always snap" mode enabled.
+	 *
 	 * @public
 	 **/
 	setSnapMode(isSnapMode: boolean) {
@@ -1625,6 +1629,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether the user has dark mode enabled.
+	 *
 	 * @public
 	 **/
 	get isDarkMode() {
@@ -1633,6 +1638,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Set whether the user has dark mode enabled.
+	 *
 	 * @public
 	 **/
 	setDarkMode(isDarkMode: boolean) {
@@ -1658,7 +1664,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setAnimationSpeed(animationSpeed: number) {
+	setAnimationSpeed(animationSpeed: number): this {
 		if (animationSpeed !== this.animationSpeed) {
 			this.user.updateUserPreferences({ animationSpeed })
 		}
@@ -1667,6 +1673,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether the instance is in focus mode or not.
+	 *
 	 * @public
 	 **/
 	get isFocusMode() {
@@ -1675,9 +1682,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Set whether the instance is in focus mode or not.
+	 *
 	 * @public
 	 **/
-	setFocusMode(isFocusMode: boolean) {
+	setFocusMode(isFocusMode: boolean): this {
 		if (isFocusMode !== this.isFocusMode) {
 			this.updateInstanceState({ isFocusMode }, true)
 		}
@@ -1686,6 +1694,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether the instance has "tool lock" mode enabled.
+	 *
 	 * @public
 	 **/
 	get isToolLocked() {
@@ -1694,9 +1703,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Set whether the instance has "tool lock" mode enabled.
+	 *
 	 * @public
 	 **/
-	setToolLocked(isToolLocked: boolean) {
+	setToolLocked(isToolLocked: boolean): this {
 		if (isToolLocked !== this.isToolLocked) {
 			this.updateInstanceState({ isToolLocked }, true)
 		}
@@ -1705,6 +1715,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether the instance's grid is enabled.
+	 *
 	 * @public
 	 **/
 	get isGridMode() {
@@ -1713,6 +1724,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Set whether the instance's grid is enabled.
+	 *
 	 * @public
 	 **/
 	setGridMode(isGridMode: boolean): this {
@@ -1726,6 +1738,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Set whether the editor is in read-only mode or not.
+	 *
 	 * @public
 	 **/
 	setReadOnly(isReadOnly: boolean): this {
@@ -1738,6 +1751,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether the editor is in read-only mode or not.
+	 *
 	 * @public
 	 **/
 	get isReadOnly() {
@@ -1752,6 +1766,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether the editor is in pen mode or not.
+	 *
 	 * @public
 	 **/
 	get isPenMode() {
@@ -1760,6 +1775,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Set whether the editor is in pen mode or not.
+	 *
 	 * @public
 	 **/
 	setPenMode(isPenMode: boolean): this {
@@ -1774,6 +1790,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The current instance's state.
+	 *
 	 * @public
 	 */
 	get instanceState(): TLInstance {
@@ -1782,6 +1799,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The instance's cursor state.
+	 *
 	 * @public
 	 **/
 	get cursor() {
@@ -1790,6 +1808,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The instance's brush state.
+	 *
 	 * @public
 	 **/
 	get brush() {
@@ -1798,6 +1817,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The instance's zoom brush state.
+	 *
 	 * @public
 	 **/
 	get zoomBrush() {
@@ -1806,6 +1826,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The instance's scribble state.
+	 *
 	 * @public
 	 **/
 	get scribble() {
@@ -1825,6 +1846,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get pageState(): TLInstancePageState {
 		return this.store.get(this.pageStateId)!
 	}
+
+	/** @internal */
 	@computed
 	private get cameraId() {
 		return CameraRecordType.createId(this.currentPageId)
@@ -1832,6 +1855,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The current camera.
+	 *
 	 * @public
 	 */
 	@computed get camera() {
@@ -1840,6 +1864,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The current camera zoom level.
+	 *
 	 * @public
 	 */
 	@computed get zoomLevel() {
@@ -1864,8 +1889,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return new Set(this.selectedIds)
 	}
 
-	// Pages
-
 	/** @internal */
 	@computed private get _pages() {
 		return this.store.query.records('page')
@@ -1875,7 +1898,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Info about the project's current pages.
 	 *
 	 * @public
-	 * @readonly
 	 */
 	@computed get pages() {
 		return this._pages.value.sort(sortByIndex)
@@ -1903,14 +1925,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get a page by its ID.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPageById(myPage.id)
 	 * ```
 	 *
 	 * @public
 	 */
-	getPageById(id: TLPage['id']) {
+	getPageById(id: TLPageId) {
 		return this.store.get(id)
 	}
 
@@ -1923,7 +1944,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get a page state by its id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPageStateByPageId('page1')
 	 * ```
@@ -1938,7 +1958,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get a page by its ID.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPageById(myPage.id)
 	 * ```
@@ -1951,7 +1970,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get the ids of shapes on a page.
+	 *
 	 * @param pageId - The id of the page.
+	 *
 	 * @public
 	 **/
 	getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId> {
@@ -1968,12 +1989,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * shape's rotation.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getTransform(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the local transform for.
+	 *
 	 * @public
 	 */
 	getTransform(shape: TLShape) {
@@ -1985,12 +2006,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the local transform of a shape's parent as a matrix model.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getParentTransform(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the parent transform for.
+	 *
 	 * @public
 	 */
 	getParentTransform(shape: TLShape) {
@@ -2004,12 +2025,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the page transform (or absolute transform) of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPageTransform(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the page transform for.
+	 *
 	 * @public
 	 */
 	getPageTransform(shape: TLShape) {
@@ -2020,12 +2041,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the page transform (or absolute transform) of a shape by its id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPageTransformById(myShape)
 	 * ```
 	 *
 	 * @param id - The if of the shape to get the page transform for.
+	 *
 	 * @public
 	 */
 	getPageTransformById(id: TLShapeId) {
@@ -2036,12 +2057,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the page point (or absolute point) of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPagePoint(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the page point for.
+	 *
 	 * @public
 	 */
 	getPagePointById(id: TLShapeId) {
@@ -2054,12 +2075,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the page point (or absolute point) of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPagePoint(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the page point for.
+	 *
 	 * @public
 	 */
 	getPageCenter(shape: TLShape) {
@@ -2074,12 +2095,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the page point (or absolute point) of a shape by its id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPagePoint(myShape)
 	 * ```
 	 *
 	 * @param id - The shape id to get the page point for.
+	 *
 	 * @public
 	 */
 	getPageCenterById(id: TLShapeId) {
@@ -2091,12 +2112,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the page rotation (or absolute rotation) of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPageRotation(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the page rotation for.
+	 *
 	 * @public
 	 */
 	getPageRotation(shape: TLShape): number {
@@ -2105,6 +2126,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get the page rotation (or absolute rotation) of a shape by its id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPageRotationById(myShapeId)
+	 * ```
 	 *
 	 * @param id - The id of the shape to get the page rotation for.
 	 */
@@ -2120,12 +2146,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the local bounds of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getBounds(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the bounds for.
+	 *
 	 * @public
 	 */
 	getBounds(shape: TLShape): Box2d {
@@ -2136,12 +2162,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the local bounds of a shape by its id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getBoundsById(myShape)
 	 * ```
 	 *
 	 * @param id - The id of the shape to get the bounds for.
+	 *
 	 * @public
 	 */
 	getBoundsById(id: TLShapeId): Box2d | undefined {
@@ -2154,12 +2180,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the page (or absolute) bounds of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPageBounds(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the bounds for.
+	 *
 	 * @public
 	 */
 	getPageBounds(shape: TLShape): Box2d | undefined {
@@ -2170,12 +2196,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the page (or absolute) bounds of a shape by its id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPageBoundsById(myShape)
 	 * ```
 	 *
 	 * @param id - The id of the shape to get the page bounds for.
+	 *
 	 * @public
 	 */
 	getPageBoundsById(id: TLShapeId): Box2d | undefined {
@@ -2188,12 +2214,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * of the shape that was in the frame.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getMaskedPageBounds(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the masked bounds for.
+	 *
 	 * @public
 	 */
 	getMaskedPageBounds(shape: TLShape): Box2d | undefined {
@@ -2206,12 +2232,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * the half of the shape that was in the frame.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getMaskedPageBoundsById(myShape)
 	 * ```
 	 *
 	 * @param id - The id of the shape to get the masked page bounds for.
+	 *
 	 * @public
 	 */
 	getMaskedPageBoundsById(id: TLShapeId): Box2d | undefined {
@@ -2230,12 +2256,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the local outline of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getOutline(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the outline for.
+	 *
 	 * @public
 	 */
 	getOutline(shape: TLShape) {
@@ -2246,12 +2272,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the local outline of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getOutlineById(myShape)
 	 * ```
 	 *
 	 * @param id - The shape id to get the outline for.
+	 *
 	 * @public
 	 */
 	getOutlineById(id: TLShapeId) {
@@ -2262,12 +2288,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the ancestors of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * const ancestors = editor.getAncestors(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the ancestors for.
+	 *
 	 * @public
 	 */
 	getAncestors(shape: TLShape, acc: TLShape[] = []): TLShape[] {
@@ -2287,12 +2313,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the ancestors of a shape by its id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * const ancestors = editor.getAncestorsById(myShape)
 	 * ```
 	 *
 	 * @param id - The id of the shape to get the ancestors for.
+	 *
 	 * @public
 	 */
 	getAncestorsById(id: TLShapeId, acc: TLShape[] = []): TLShape[] {
@@ -2305,12 +2331,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Find the first ancestor matching the given predicate
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * const ancestor = editor.findAncestor(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to check the ancestors for.
+	 *
 	 * @public
 	 */
 	findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined {
@@ -2333,9 +2359,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Returns true if the the given shape has the given ancestor
+	 * Returns true if the the given shape has the given ancestor.
+	 *
 	 * @param shape - The shape.
 	 * @param ancestorId - The id of the ancestor.
+	 *
 	 * @public
 	 */
 	hasAncestor(shape: TLShape | undefined, ancestorId: TLShapeId): boolean {
@@ -2385,6 +2413,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Check whether a shape is within the bounds of the current viewport.
 	 *
 	 * @param id - The id of the shape to check.
+	 *
 	 * @public
 	 */
 	isShapeInViewport(id: TLShapeId) {
@@ -2397,6 +2426,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Check whether a shape or its parent is locked.
 	 *
 	 * @param id - The id of the shape to check.
+	 *
 	 * @public
 	 */
 	isShapeOrAncestorLocked(shape?: TLShape): boolean {
@@ -2567,12 +2597,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the corners of a shape in page space.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * const corners = editor.getPageCorners(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape to get the corners for.
+	 *
 	 * @public
 	 */
 	getPageCorners(shape: TLShape): Vec2d[] {
@@ -2593,13 +2623,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * such as when a shape is the child of a frame and is partially clipped by the frame.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.isPointInShape({ x: 100, y: 100 }, myShape)
 	 * ```
 	 *
 	 * @param point - The page point to test.
 	 * @param shape - The shape to test against.
+	 *
 	 * @public
 	 */
 	isPointInShape(point: VecLike, shape: TLShape): boolean {
@@ -2619,12 +2649,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the shapes, if any, at a given page point.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getShapesAtPoint({ x: 100, y: 100 })
 	 * ```
 	 *
 	 * @param point - The page point to test.
+	 *
 	 * @public
 	 */
 	getShapesAtPoint(point: VecLike): TLShape[] {
@@ -2646,13 +2676,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * `{ x: 10, y: 10 }` in the shape's local space.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPointInShapeSpace(myShape, { x: 100, y: 100 })
 	 * ```
 	 *
 	 * @param shape - The shape to get the point in the local space of.
 	 * @param point - The page point to get in the local space of the shape.
+	 *
 	 * @public
 	 */
 	getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d {
@@ -2665,13 +2695,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * `{ x: 10, y: 10 }` in the shape's local space.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getPointInShapeSpace(myShape.id, { x: 100, y: 100 })
 	 * ```
 	 *
 	 * @param shape - The shape to get the point in the local space of.
 	 * @param point - The page point to get in the local space of the shape.
+	 *
 	 * @public
 	 */
 	getPointInParentSpace(shapeId: TLShapeId, point: VecLike): Vec2d {
@@ -2691,13 +2721,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Convert a delta in page space to a delta in the local space of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getDeltaInShapeSpace(myShape, { x: 100, y: 100 })
 	 * ```
 	 *
 	 * @param shape - The shape to get the delta in the local space of.
 	 * @param delta - The page delta to convert.
+	 *
 	 * @public
 	 */
 	getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d {
@@ -2710,13 +2740,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Convert a delta in page space to a delta in the parent space of a shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getDeltaInParentSpace(myShape, { x: 100, y: 100 })
 	 * ```
 	 *
 	 * @param shape - The shape to get the delta in the parent space of.
 	 * @param delta - The page delta to convert.
+	 *
 	 * @public
 	 */
 	getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d {
@@ -2733,12 +2763,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * parents.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getParentsMappedToChildren(['id1', 'id2', 'id3'])
 	 * ```
 	 *
 	 * @param ids - The ids to get the parents and children of.
+	 *
 	 * @public
 	 */
 	getParentsMappedToChildren(ids: TLShapeId[]) {
@@ -2760,13 +2790,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * element. This should be done whenever the container's position on the screen changes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.updateViewportScreenBounds()
+	 * editor.updateViewportScreenBounds(true)
 	 * ```
 	 *
-	 * @param center - Whether to preserve the viewport page center as the viewport changes.
-	 *   (optional)
+	 * @param center - (optional) Whether to preserve the viewport page center as the viewport changes.
+	 *
 	 * @public
 	 */
 	updateViewportScreenBounds(center = false) {
@@ -2881,10 +2911,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * as at the end of a pan, zoom, or animation.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.updateCullingBounds()
 	 * ```
+	 *
 	 *
 	 * @internal
 	 */
@@ -2909,7 +2939,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Convert a point in screen space to a point in page space.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.screenToPage(100, 100)
 	 * ```
@@ -2917,6 +2946,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param x - The x coordinate of the point in screen space.
 	 * @param y - The y coordinate of the point in screen space.
 	 * @param camera - The camera to use. Defaults to the current camera.
+	 *
 	 * @public
 	 */
 	screenToPage(x: number, y: number, z = 0.5, camera: Vec2dModel = this.camera) {
@@ -2933,7 +2963,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Convert a point in page space to a point in screen space.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.pageToScreen(100, 100)
 	 * ```
@@ -2941,6 +2970,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param x - The x coordinate of the point in screen space.
 	 * @param y - The y coordinate of the point in screen space.
 	 * @param camera - The camera to use. Defaults to the current camera.
+	 *
 	 * @public
 	 */
 	pageToScreen(x: number, y: number, z = 0.5, camera: Vec2dModel = this.camera) {
@@ -2956,6 +2986,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The shape id of the current focus layer.
+	 *
 	 * @public
 	 */
 	get focusLayerId() {
@@ -2964,6 +2995,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The shape of the current focus layer.
+	 *
 	 * @public
 	 */
 	get focusLayerShape(): TLShape | undefined {
@@ -2976,6 +3008,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Exit the current focus layer, moving up to the next group if there is one.
+	 *
 	 * @public
 	 */
 	popFocusLayer() {
@@ -3001,6 +3034,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the focus layer to the given shape id.
 	 *
 	 * @param next - The next focus layer id or null to reset the focus layer to the page
+	 *
 	 * @public
 	 */
 	setFocusLayer(next: null | TLShapeId) {
@@ -3036,6 +3070,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the hinted shape ids.
 	 *
 	 * @param ids - The ids to set as hinted.
+	 *
 	 * @public
 	 */
 	setHintingIds(ids: TLShapeId[]): this {
@@ -3071,6 +3106,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the current editing id.
 	 *
 	 * @param id - The id of the shape to edit or null to clear the editing id.
+	 *
 	 * @public
 	 */
 	setEditingId(id: TLShapeId | null): this {
@@ -3113,7 +3149,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Set the current cropping shape's id.
+	 *
 	 * @param id - The id of the shape to crop or null to clear the cropping id.
+	 *
 	 * @public
 	 */
 	setCroppingId(id: TLShapeId | null): this {
@@ -3135,11 +3173,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the id of what should be the parent of a new shape at a given point.
-	 * The parent can be a page or shape.
+	 * Get the id of what should be the parent of a new shape at a given point. The parent can be a page or shape.
+	 *
 	 * @param point - The point to find the parent for.
 	 * @param shapeType - The type of shape that will be created.
+	 *
 	 * @returns The id of the parent.
+	 *
 	 * @public
 	 */
 	getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']) {
@@ -3164,9 +3204,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get the shape that some shapes should be dropped on at a given point.
+	 *
 	 * @param point - The point to find the parent for.
 	 * @param droppingShapes - The shapes that are being dropped.
+	 *
 	 * @returns The shape to drop on.
+	 *
 	 * @public
 	 */
 	getDroppingShape(point: VecLike, droppingShapes: TLShape[] = []) {
@@ -3195,9 +3238,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the shape that should be selected when you click on a given shape, assuming there is
 	 * nothing already selected. It will not return anything higher than or including the current
 	 * focus layer.
+	 *
 	 * @param shape - The shape to get the outermost selectable shape for.
 	 * @param filter - A function to filter the selectable shapes.
+	 *
 	 * @returns The outermost selectable shape.
+	 *
 	 * @public
 	 */
 	getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape {
@@ -3230,10 +3276,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	static styles = STYLES
 
 	/**
-	 * The current page bounds of all the selected shapes (Not the same thing as the page bounds of
-	 * the selection bounding box when the selection has been rotated)
+	 * The current page bounds of all the selected shapes (Not the same thing as the page bounds of the selection bounding box when the selection has been rotated)
 	 *
 	 * @readonly
+	 *
 	 * @public
 	 */
 	@computed get selectedPageBounds(): Box2d | null {
@@ -3248,6 +3294,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The rotation of the selection bounding box.
+	 *
 	 * @readonly
 	 * @public
 	 */
@@ -3270,6 +3317,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The bounds of the selection bounding box.
+	 *
 	 * @readonly
 	 * @public
 	 */
@@ -3307,6 +3355,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The center of the selection bounding box.
+	 *
 	 * @readonly
 	 * @public
 	 */
@@ -3320,12 +3369,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * An array containing all of the shapes in the current page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.shapesArray
 	 * ```
 	 *
 	 * @readonly
+	 *
 	 * @public
 	 */
 	@computed get shapesArray() {
@@ -3337,12 +3386,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * for nested shapes): e.g. A, B, BA, BB, C.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.sortedShapesArray
 	 * ```
 	 *
 	 * @readonly
+	 *
 	 * @public
 	 */
 	@computed get sortedShapesArray(): TLShape[] {
@@ -3375,7 +3424,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * An array containing all of the currently selected shapes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.selectedShapes
 	 * ```
@@ -3392,13 +3440,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * The app's only selected shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.onlySelectedShape
 	 * ```
 	 *
 	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected
 	 *   shape.
+	 *
 	 * @public
 	 * @readonly
 	 */
@@ -3411,7 +3459,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get whether a shape matches the type of a TLShapeUtil.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * const isArrowShape = isShapeOfType(someShape, ArrowShapeUtil)
 	 * ```
@@ -3432,12 +3479,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get a shape by its id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getShapeById('box1')
 	 * ```
 	 *
 	 * @param id - The id of the shape to get.
+	 *
 	 * @public
 	 */
 	getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined {
@@ -3450,7 +3497,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * the page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getParentShape(myShape)
 	 * ```
@@ -3465,7 +3511,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * If siblingShape and targetShape are siblings, this returns targetShape. If targetShape has an
 	 * ancestor who is a sibling of siblingShape, this returns that ancestor. Otherwise, this returns
-	 * undefined
+	 * undefined.
+	 *
+	 * @internal
 	 */
 	private getNearestSiblingShape(
 		siblingShape: TLShape,
@@ -3488,8 +3536,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get the id of the containing page for a given shape.
+	 *
 	 * @param shape - The shape to get the page id for.
+	 *
 	 * @returns The id of the page that contains the shape, or undefined if the shape is undefined.
+	 *
 	 * @public
 	 */
 	getParentPageId(shape?: TLShape): TLPageId | undefined {
@@ -3505,7 +3556,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get whether the given shape is the descendant of the given page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.isShapeInPage(myShape)
 	 * editor.isShapeInPage(myShape, 'page1')
@@ -3513,6 +3563,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param shape - The shape to check.
 	 * @param pageId - The id of the page to check against. Defaults to the current page.
+	 *
 	 * @public
 	 */
 	isShapeInPage(shape: TLShape, pageId = this.currentPageId): boolean {
@@ -3559,12 +3610,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the CSS color value for a given color id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getCssColor('red')
 	 * ```
 	 *
 	 * @param id - The id of the color to get.
+	 *
 	 * @public
 	 */
 	getCssColor(id: TLColorStyle['id']): string {
@@ -3575,12 +3626,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get the stroke width value for a given size id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getStrokeWidth('m')
 	 * ```
 	 *
 	 * @param id - The id of the size to get.
+	 *
 	 * @public
 	 */
 	getStrokeWidth(id: TLSizeStyle['id']): number {
@@ -3615,7 +3666,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the selected tool.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setSelectedTool('hand')
 	 * editor.setSelectedTool('hand', { date: Date.now() })
@@ -3623,6 +3673,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param id - The id of the tool to select.
 	 * @param info - Arbitrary data to pass along into the transition.
+	 *
 	 * @public
 	 */
 	setSelectedTool(id: string, info = {}) {
@@ -3634,13 +3685,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get a descendant by its path.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * state.getStateDescendant('select')
 	 * state.getStateDescendant('select.brushing')
 	 * ```
 	 *
 	 * @param path - The descendant's path of state ids, separated by periods.
+	 *
 	 * @public
 	 */
 	getStateDescendant(path: string): StateNode | undefined {
@@ -3660,13 +3711,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get whether a certain tool (or other state node) is currently active.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.isIn('select')
 	 * editor.isIn('select.brushing')
 	 * ```
 	 *
 	 * @param path - The path of active states, separated by periods.
+	 *
 	 * @public
 	 */
 	isIn(path: string): boolean {
@@ -3689,7 +3740,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get whether the state node is in any of the given active paths.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * state.isInAny('select', 'erase')
 	 * state.isInAny('select.brushing', 'erase.idle')
@@ -3751,7 +3801,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Update the input points from a pointer or pinch event.
 	 *
 	 * @param info - The event info.
-	 * @internal
 	 */
 	private _updateInputsFromEvent(info: TLPointerEventInfo | TLPinchEventInfo) {
 		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
@@ -3884,12 +3933,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Dispatch an event to the editor.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.dispatch(myPointerEvent)
 	 * ```
 	 *
 	 * @param info - The event info.
+	 *
 	 * @public
 	 */
 	dispatch(info: TLEventInfo): this {
@@ -4348,6 +4397,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Replace the store's contents with the given records.
+	 *
 	 * @param records - The records to replace the store's contents with.
 	 */
 	replaceStoreContentsWithRecordsForOtherDocument(records: TLRecord[]) {
@@ -4370,8 +4420,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get content that can be exported for the given shape ids.
+	 *
 	 * @param ids - The ids of the shapes to get content for. Defaults to the selected shape ids.
+	 *
 	 * @returns The exported content.
+	 *
 	 * @public
 	 */
 	getContent(ids: TLShapeId[] = this.selectedIds): TLContent | undefined {
@@ -4511,8 +4564,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Place content into the editor.
+	 *
 	 * @param content - The content.
 	 * @param options - Options for placing the content.
+	 *
 	 * @public
 	 */
 	putContent(
@@ -4828,8 +4883,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get the index above the highest child of a given parent.
+	 *
 	 * @param parentId - The id of the parent.
+	 *
 	 * @returns The index.
+	 *
 	 * @public
 	 */
 	getHighestIndexForParent(parentId: TLShapeId | TLPageId) {
@@ -4845,13 +4903,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Create shapes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.createShapes([{ id: 'box1', type: 'box' }])
 	 * ```
 	 *
 	 * @param partials - The shape partials to create.
 	 * @param select - Whether to select the created shapes. Defaults to false.
+	 *
 	 * @public
 	 */
 	createShapes(partials: TLShapePartial[], select = false) {
@@ -5036,13 +5094,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Animate shapes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }])
 	 * ```
 	 *
 	 * @param partials - The shape partials to update.
-	 * @param options - Options for animating the shapes.
+	 *
 	 * @public
 	 */
 	animateShapes(
@@ -5141,16 +5198,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Update shapes.
+	 * Update shapes using partials of each shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.updateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }])
 	 * ```
 	 *
 	 * @param partials - The shape partials to update.
 	 * @param squashing - Whether the change is ephemeral.
+	 *
 	 * @public
 	 */
 	updateShapes(partials: (TLShapePartial | null | undefined)[], squashing = false) {
@@ -5271,13 +5328,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Delete shapes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.deleteShapes()
 	 * editor.deleteShapes(['box1', 'box2'])
 	 * ```
 	 *
 	 * @param ids - The ids of the shapes to delete. Defaults to the selected shapes.
+	 *
 	 * @public
 	 */
 	deleteShapes(ids: TLShapeId[] = this.selectedIds) {
@@ -5340,6 +5397,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get the user's locale.
+	 *
 	 * @public
 	 */
 	get locale() {
@@ -5350,10 +5408,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Update the user's locale. This affects which translations are used when rendering UI elements.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setLocale('fr')
 	 * ```
+	 *
+	 * @public
 	 */
 	setLocale(locale: string) {
 		this.user.updateUserPreferences({ locale })
@@ -5363,12 +5422,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Update a page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.updatePage({ id: 'page2', name: 'Page 2' })
 	 * ```
 	 *
 	 * @param partial - The partial of the shape to update.
+	 *
 	 * @public
 	 */
 	updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing = false) {
@@ -5408,7 +5467,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Create a page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.createPage('New Page')
 	 * editor.createPage('New Page', 'page1')
@@ -5416,6 +5474,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param id - The new page's id.
 	 * @param title - The new page's title.
+	 *
 	 * @public
 	 */
 	createPage(title: string, id: TLPageId = PageRecordType.createId(), belowPageIndex?: string) {
@@ -5490,8 +5549,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Duplicate a page.
+	 *
 	 * @param id - The id of the page to duplicate. Defaults to the current page.
 	 * @param createId - The id of the new page. Defaults to a new id.
+	 *
 	 * @public
 	 */
 	duplicatePage(id: TLPageId = this.currentPageId, createId: TLPageId = PageRecordType.createId()) {
@@ -5520,12 +5581,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Delete a page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.deletePage('page1')
 	 * ```
 	 *
 	 * @param id - The id of the page to delete.
+	 *
 	 * @public
 	 */
 	deletePage(id: TLPageId) {
@@ -5580,7 +5641,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Update a page state.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setInstancePageState({ id: 'page1', editingId: 'shape:123' })
 	 * editor.setInstancePageState({ id: 'page1', editingId: 'shape:123' }, true)
@@ -5588,6 +5648,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
 	 * @param ephemeral - Whether the command is ephemeral.
+	 *
 	 * @public
 	 */
 	setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral = false) {
@@ -5615,7 +5676,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Select one or more shapes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setSelectedIds(['id1'])
 	 * editor.setSelectedIds(['id1', 'id2'])
@@ -5624,6 +5684,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param ids - The ids to select.
 	 * @param squashing - Whether the change should create a new history entry or combine with the
 	 *   previous (if the previous is the same type).
+	 *
 	 * @public
 	 */
 	setSelectedIds(ids: TLShapeId[], squashing = false) {
@@ -5663,12 +5724,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Determine whether or not a shape is selected
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.isSelected('id1')
 	 * ```
 	 *
 	 * @param id - The id of the shape to check.
+	 *
 	 * @public
 	 */
 	isSelected(id: TLShapeId) {
@@ -5680,6 +5741,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * selection if it or any of its parents is selected.
 	 *
 	 * @param id - The id of the shape to check.
+	 *
 	 * @public
 	 */
 	isWithinSelection(id: TLShapeId) {
@@ -5700,6 +5762,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get all assets in the editor.
+	 *
 	 * @public
 	 */
 	get assets() {
@@ -5710,12 +5773,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Create one or more assets.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.createAssets([...myAssets])
 	 * ```
 	 *
 	 * @param assets - The assets to create.
+	 *
 	 * @public
 	 */
 	createAssets(assets: TLAsset[]) {
@@ -5747,12 +5810,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Delete one or more assets.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.deleteAssets(['asset1', 'asset2'])
 	 * ```
 	 *
 	 * @param ids - The assets to delete.
+	 *
 	 * @public
 	 */
 	deleteAssets(ids: TLAssetId[]) {
@@ -5785,12 +5848,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Update one or more assets.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.updateAssets([{ id: 'asset1', name: 'New name' }])
 	 * ```
 	 *
 	 * @param assets - The assets to update.
+	 *
 	 * @public
 	 */
 	updateAssets(assets: TLAssetPartial[]) {
@@ -5833,12 +5896,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get an asset by its src property.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getAssetBySource('https://example.com/image.png')
 	 * ```
 	 *
 	 * @param src - The source value of the asset.
+	 *
 	 * @public
 	 */
 	getAssetBySrc(src: string) {
@@ -5849,12 +5912,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Get an asset by its id.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.getAssetById('asset1')
 	 * ```
 	 *
 	 * @param id - The id of the asset.
+	 *
 	 * @public
 	 */
 	getAssetById(id: TLAssetId): TLAsset | undefined {
@@ -5864,9 +5927,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* ------------------- SubCommands ------------------ */
 	/**
 	 * Get an exported SVG of the given shapes.
+	 *
 	 * @param ids - The ids of the shapes to export. Defaults to selected shapes.
 	 * @param opts - Options for the export.
+	 *
 	 * @returns The SVG element.
+	 *
 	 * @public
 	 */
 	async getSvg(
@@ -6175,13 +6241,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Rename a page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.renamePage('page1', 'My Page')
 	 * ```
 	 *
 	 * @param id - The id of the page to rename.
 	 * @param name - The new name.
+	 *
 	 * @public
 	 */
 	renamePage(id: TLPageId, name: string, squashing = false) {
@@ -6194,13 +6260,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Move shapes to page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.moveShapesToPage(['box1', 'box2'], 'page1')
 	 * ```
 	 *
 	 * @param ids - The ids of the shapes to move.
 	 * @param pageId - The id of the page where the shapes will be moved.
+	 *
 	 * @public
 	 */
 	moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this {
@@ -6255,9 +6321,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Toggle the lock state of one or more shapes.
-	 * If there is a mix of locked and unlocked shapes, all shapes will be locked.
+	 * Toggle the lock state of one or more shapes. If there is a mix of locked and unlocked shapes, all shapes will be locked.
+	 *
 	 * @param ids - The ids of the shapes to toggle. Defaults to selected shapes.
+	 *
 	 * @public
 	 */
 	toggleLock(ids: TLShapeId[] = this.selectedIds): this {
@@ -6296,6 +6363,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param operation - The operation to perform.
 	 * @param ids - The ids to reorder.
+	 *
 	 * @public
 	 */
 	reorderShapes(operation: 'toBack' | 'toFront' | 'forward' | 'backward', ids: TLShapeId[]) {
@@ -6467,13 +6535,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Send shapes to the back of the page's object list.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.sendToBack()
 	 * editor.sendToBack(['id1', 'id2'])
 	 * ```
 	 *
 	 * @param ids - The ids of the shapes to move. Defaults to the ids of the selected shapes.
+	 *
 	 * @public
 	 */
 	sendToBack(ids = this.pageState.selectedIds) {
@@ -6485,13 +6553,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Send shapes backward in the page's object list.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.sendBackward()
 	 * editor.sendBackward(['id1', 'id2'])
 	 * ```
 	 *
 	 * @param ids - The ids of the shapes to move. Defaults to the ids of the selected shapes.
+	 *
 	 * @public
 	 */
 	sendBackward(ids = this.pageState.selectedIds) {
@@ -6503,13 +6571,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Bring shapes forward in the page's object list.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.bringForward()
 	 * editor.bringForward(['id1', 'id2'])
 	 * ```
 	 *
 	 * @param ids - The ids of the shapes to move. Defaults to the ids of the selected shapes.
+	 *
 	 * @public
 	 */
 	bringForward(ids = this.pageState.selectedIds) {
@@ -6521,13 +6589,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Bring shapes to the front of the page's object list.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.bringToFront()
 	 * editor.bringToFront(['id1', 'id2'])
 	 * ```
 	 *
 	 * @param ids - The ids of the shapes to move. Defaults to the ids of the selected shapes.
+	 *
 	 * @public
 	 */
 	bringToFront(ids = this.pageState.selectedIds) {
@@ -6539,7 +6607,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Flip shape positions.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.flipShapes('horizontal')
 	 * editor.flipShapes('horizontal', ['box1', 'box2'])
@@ -6547,6 +6614,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param operation - Whether to flip horizontally or vertically.
 	 * @param ids - The ids of the shapes to flip. Defaults to selected shapes.
+	 *
 	 * @public
 	 */
 	flipShapes(operation: 'horizontal' | 'vertical', ids: TLShapeId[] = this.selectedIds) {
@@ -6598,7 +6666,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Stack shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.stackShapes('horizontal')
 	 * editor.stackShapes('horizontal', ['box1', 'box2'])
@@ -6608,6 +6675,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param operation - Whether to stack horizontally or vertically.
 	 * @param ids - The ids of the shapes to stack. Defaults to selected shapes.
 	 * @param gap - A specific gap to use when stacking.
+	 *
 	 * @public
 	 */
 	stackShapes(
@@ -6738,7 +6806,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Pack shapes into a grid centered on their current position. Based on potpack
 	 * (https://github.com/mapbox/potpack)
-	 *
 	 * @param ids - The ids of the shapes to pack. Defaults to selected shapes.
 	 * @param padding - The padding to apply to the packed shapes.
 	 */
@@ -6888,7 +6955,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Align shape positions.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.alignShapes('left')
 	 * editor.alignShapes('left', ['box1', 'box2'])
@@ -6896,6 +6962,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param operation - The align operation to apply.
 	 * @param ids - The ids of the shapes to align. Defaults to selected shapes.
+	 *
 	 * @public
 	 */
 	alignShapes(
@@ -6975,7 +7042,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Distribute shape positions.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.distributeShapes('left')
 	 * editor.distributeShapes('left', ['box1', 'box2'])
@@ -6983,6 +7049,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param operation - Whether to distribute shapes horizontally or vertically.
 	 * @param ids - The ids of the shapes to distribute. Defaults to selected shapes.
+	 *
 	 * @public
 	 */
 	distributeShapes(
@@ -7151,9 +7218,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Resize a shape.
+	 *
 	 * @param id - The id of the shape to resize.
 	 * @param scale - The scale factor to apply to the shape.
 	 * @param options - Additional options.
+	 *
 	 * @public
 	 */
 	resizeShape(
@@ -7310,7 +7379,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Stretch shape sizes and positions to fill their common bounding box.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.stretchShapes('horizontal')
 	 * editor.stretchShapes('horizontal', ['box1', 'box2'])
@@ -7318,6 +7386,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param operation - Whether to stretch shapes horizontally or vertically.
 	 * @param ids - The ids of the shapes to stretch. Defaults to selected shapes.
+	 *
 	 * @public
 	 */
 	stretchShapes(
@@ -7395,7 +7464,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * rotations.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.reparentShapesById(['box1', 'box2'], 'frame1')
 	 * ```
@@ -7403,6 +7471,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param ids - The ids of the shapes to reparent.
 	 * @param parentId - The id of the new parent shape.
 	 * @param insertIndex - The index to insert the children.
+	 *
 	 * @public
 	 */
 	reparentShapesById(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string) {
@@ -7482,13 +7551,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Select one or more shapes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.select('id1')
 	 * editor.select('id1', 'id2')
 	 * ```
 	 *
 	 * @param ids - The ids to select.
+	 *
 	 * @public
 	 */
 	select(...ids: TLShapeId[]) {
@@ -7500,7 +7569,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Remove a shape from the existing set of selected shapes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.deselect(shape.id)
 	 * ```
@@ -7519,7 +7587,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Select all direct children of the current page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.selectAll()
 	 * ```
@@ -7537,8 +7604,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Get the shape ids of all descendants of the given shapes (including the shapes themselves).
+	 *
 	 * @param ids - The ids of the shapes to get descendants of.
+	 *
 	 * @returns The decscendant ids.
+	 *
 	 * @public
 	 */
 	getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId> {
@@ -7563,7 +7633,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Clear the selection.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.selectNone()
 	 * ```
@@ -7582,13 +7651,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the current page.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setCurrentPageId('page1')
 	 * ```
 	 *
 	 * @param pageId - The id of the page to set as the current page.
 	 * @param options - Options for setting the current page.
+	 *
 	 * @public
 	 */
 	setCurrentPageId(pageId: TLPageId, { stopFollowing = true }: TLViewportOptions = {}): this {
@@ -7655,11 +7724,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Update the instance's state.
+	 *
 	 * @param partial - A partial object to update the instance state with.
-	 * @param ephemeral - Whether the change is ephemeral. Ephemeral
-	 * changes don't get added to the undo/redo stack. Defaults to false.
-	 * @param squashing - Whether the change will be squashed into the
-	 * existing history entry rather than creating a new one. Defaults to false.
+	 * @param ephemeral - Whether the change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
+	 * @param squashing - Whether the change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
+	 *
 	 * @public
 	 */
 	updateInstanceState(
@@ -7699,6 +7768,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The current hovered shape id.
+	 *
 	 * @readonly
 	 * @public
 	 */
@@ -7708,6 +7778,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The current hovered shape.
+	 *
 	 * @readonly
 	 * @public
 	 */
@@ -7720,13 +7791,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the current hovered shape.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setHoveredId('box1')
 	 * editor.setHoveredId() // Clears the hovered shape.
 	 * ```
 	 *
 	 * @param id - The id of the page to set as the current page
+	 *
 	 * @public
 	 */
 	setHoveredId(id: TLShapeId | null = null): this {
@@ -7740,13 +7811,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the current erasing shapes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setErasingIds(['box1', 'box2'])
 	 * editor.setErasingIds() // Clears the erasing set
 	 * ```
 	 *
 	 * @param ids - The ids of shapes to set as erasing.
+	 *
 	 * @public
 	 */
 	setErasingIds(ids: TLShapeId[] = []): this {
@@ -7761,13 +7832,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the current cursor.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setCursor({ type: 'default' })
 	 * editor.setCursor({ type: 'default', rotation: Math.PI / 2, color: 'red' })
 	 * ```
 	 *
 	 * @param cursor - A partial of the cursor object.
+	 *
 	 * @public
 	 */
 	setCursor(cursor: Partial<TLCursor>): this {
@@ -7795,13 +7866,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the current scribble.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setScribble(nextScribble)
 	 * editor.setScribble() // clears the scribble
 	 * ```
 	 *
 	 * @param scribble - The new scribble object.
+	 *
 	 * @public
 	 */
 	setScribble(scribble: TLScribble | null = null): this {
@@ -7813,13 +7884,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the current brush.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setBrush({ x: 0, y: 0, w: 100, h: 100 })
 	 * editor.setBrush() // Clears the brush
 	 * ```
 	 *
 	 * @param brush - The brush box model to set, or null for no brush model.
+	 *
 	 * @public
 	 */
 	setBrush(brush: Box2dModel | null = null): this {
@@ -7832,13 +7903,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the current zoom brush.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setZoomBrush({ x: 0, y: 0, w: 100, h: 100 })
 	 * editor.setZoomBrush() // Clears the zoom
 	 * ```
 	 *
 	 * @param zoomBrush - The zoom box model to set, or null for no zoom model.
+	 *
 	 * @public
 	 */
 	setZoomBrush(zoomBrush: Box2dModel | null = null): this {
@@ -7851,7 +7922,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Rotate shapes by a delta in radians.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.rotateShapesBy(['box1', 'box2'], Math.PI)
 	 * editor.rotateShapesBy(['box1', 'box2'], Math.PI / 2)
@@ -7873,7 +7943,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Move shapes by a delta.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.nudgeShapes(['box1', 'box2'], { x: 0, y: 1 })
 	 * editor.nudgeShapes(['box1', 'box2'], { x: 0, y: 1 }, true)
@@ -7883,7 +7952,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param direction - The direction in which to move the shapes.
 	 * @param major - Whether this is a major nudge, e.g. a shift + arrow nudge.
 	 */
-	nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major = false, ephemeral = false) {
+	nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major = false, ephemeral = false): this {
 		if (ids.length <= 0) return this
 
 		const step = this.isGridMode
@@ -7932,7 +8001,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Duplicate shapes.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.duplicateShapes()
 	 * editor.duplicateShapes(['id1', 'id2'])
@@ -7941,9 +8009,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param ids - The ids of the shapes to duplicate. Defaults to the ids of the selected shapes.
 	 * @param offset - The offset (in pixels) to apply to the duplicated shapes.
+	 *
 	 * @public
 	 */
-	duplicateShapes(ids: TLShapeId[] = this.selectedIds, offset?: VecLike) {
+	duplicateShapes(ids: TLShapeId[] = this.selectedIds, offset?: VecLike): this {
 		if (ids.length <= 0) return this
 
 		const initialIds = new Set(ids)
@@ -8126,14 +8195,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.setOpacity(0.5, true)
 	 * ```
 	 *
-	 * @param opacity - The opacity to set. Must be a number between 0 and 1
-	 * inclusive.
-	 * @param ephemeral - Whether the opacity change is ephemeral. Ephemeral
-	 * changes don't get added to the undo/redo stack. Defaults to false.
-	 * @param squashing - Whether the opacity change will be squashed into the
-	 * existing history entry rather than creating a new one. Defaults to false.
+	 * @param opacity - The opacity to set. Must be a number between 0 and 1 inclusive.
+	 * @param ephemeral - Whether the opacity change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
+	 * @param squashing - Whether the opacity change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
 	 */
-	setOpacity(opacity: number, ephemeral = false, squashing = false) {
+	setOpacity(opacity: number, ephemeral = false, squashing = false): this {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {
@@ -8192,13 +8258,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param key - The key to set.
 	 * @param value - The value to set.
-	 * @param ephemeral - Whether the style change is ephemeral. Ephemeral
-	 * changes don't get added to the undo/redo stack. Defaults to false.
-	 * @param squashing - Whether the style change will be squashed into the
-	 * existing history entry rather than creating a new one. Defaults to false.
+	 * @param ephemeral - Whether the style change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
+	 * @param squashing - Whether the style change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
+	 *
 	 * @public
 	 */
-	setProp(key: TLShapeProp, value: any, ephemeral = false, squashing = false) {
+	setProp(key: TLShapeProp, value: any, ephemeral = false, squashing = false): this {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {
@@ -8312,7 +8377,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _willSetInitialBounds = true
 
 	/** @internal */
-	private _setCamera(x: number, y: number, z = this.camera.z) {
+	private _setCamera(x: number, y: number, z = this.camera.z): this {
 		const currentCamera = this.camera
 		if (currentCamera.x === x && currentCamera.y === y && currentCamera.z === z) return this
 		const nextCamera = { ...currentCamera, x, y, z }
@@ -8345,7 +8410,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the current camera.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.setCamera(0, 0)
 	 * editor.setCamera(0, 0, 1)
@@ -8355,6 +8419,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param y - The camera's y position.
 	 * @param z - The camera's z position. Defaults to the current zoom.
 	 * @param options - Options for the camera change.
+	 *
 	 * @public
 	 */
 	setCamera(
@@ -8362,7 +8427,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		y: number,
 		z = this.camera.z,
 		{ stopFollowing = true }: TLViewportOptions = {}
-	) {
+	): this {
 		this.stopCameraAnimation()
 		if (stopFollowing && this.instanceState.followingUserId) {
 			this.stopFollowingUser()
@@ -8375,16 +8440,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Whether to enable camera animations or not. Defaults to true.
-	 * @public
-	 */
-	enableAnimations = true
-
-	/**
 	 * Animate the camera.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.animateCamera(0, 0)
 	 * editor.animateCamera(0, 0, 1)
@@ -8395,6 +8453,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param y - The camera's y position.
 	 * @param z - The camera's z position. Defaults to the current zoom.
 	 * @param opts - Options for the animation.
+	 *
 	 * @public
 	 */
 	animateCamera(
@@ -8402,7 +8461,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		y: number,
 		z = this.camera.z,
 		opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS
-	) {
+	): this {
 		x = Number.isNaN(x) ? 0 : x
 		y = Number.isNaN(y) ? 0 : y
 		z = Number.isNaN(z) ? 1 : z
@@ -8412,9 +8471,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const targetViewport = new Box2d(-x, -y, w, h)
 
-		if (!this.enableAnimations) {
-			return this.setCamera(x, y, this.viewportScreenBounds.width / w)
-		}
+		return this.setCamera(x, y, this.viewportScreenBounds.width / w)
 
 		return this._animateToViewport(targetViewport, opts)
 	}
@@ -8423,7 +8480,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Center the camera on a point (in page space).
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.centerOnPoint(100, 100)
 	 * ```
@@ -8431,6 +8487,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param x - The x position of the point.
 	 * @param y - The y position of the point.
 	 * @param opts - The options for an animation.
+	 *
 	 * @public
 	 */
 	centerOnPoint(x: number, y: number, opts?: TLAnimationOptions): this {
@@ -8475,7 +8532,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Zoom the camera to fit the current page's content in the viewport.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.zoomToFit()
 	 * ```
@@ -8504,12 +8560,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Set the zoom back to 100%.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.resetZoom()
 	 * ```
 	 *
 	 * @param opts - The options for an animation.
+	 *
 	 * @public
 	 */
 	resetZoom(point = this.viewportScreenCenter, opts?: TLAnimationOptions): this {
@@ -8530,7 +8586,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Zoom the camera in.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.zoomIn()
 	 * editor.zoomIn(editor.viewportScreenCenter, { duration: 120 })
@@ -8538,6 +8593,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param opts - The options for an animation.
+	 *
 	 * @public
 	 */
 	zoomIn(point = this.viewportScreenCenter, opts?: TLAnimationOptions): this {
@@ -8574,7 +8630,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Zoom the camera out.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.zoomOut()
 	 * editor.zoomOut(editor.viewportScreenCenter, { duration: 120 })
@@ -8582,6 +8637,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param opts - The options for an animation.
+	 *
 	 * @public
 	 */
 	zoomOut(point = this.viewportScreenCenter, opts?: TLAnimationOptions): this {
@@ -8619,12 +8675,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Zoom the camera to fit the current selection in the viewport.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.zoomToSelection()
 	 * ```
 	 *
 	 * @param opts - The options for an animation.
+	 *
 	 * @public
 	 */
 	zoomToSelection(opts?: TLAnimationOptions): this {
@@ -8648,11 +8704,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Pan or pan/zoom the selected ids into view. This method tries to not change the zoom if
-	 * possible.
+	 * Pan or pan/zoom the selected ids into view. This method tries to not change the zoom if possible.
 	 *
 	 * @param ids - The ids of the shapes to pan and zoom into view.
 	 * @param opts - The options for an animation.
+	 *
 	 * @public
 	 */
 	panZoomIntoView(ids: TLShapeId[], opts?: TLAnimationOptions): this {
@@ -8726,7 +8782,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Zoom the camera to fit a bounding box (in page space).
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.zoomToBounds(0, 0, 100, 100)
 	 * ```
@@ -8736,6 +8791,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param width - The bounding box's width.
 	 * @param height - The bounding box's height.
 	 * @param targetZoom - The desired zoom level. Defaults to 0.1.
+	 *
 	 * @public
 	 */
 	zoomToBounds(
@@ -8787,7 +8843,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Pan the camera.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.pan(100, 100)
 	 * editor.pan(100, 100, { duration: 1000 })
@@ -8913,6 +8968,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Slide the camera in a certain direction.
+	 *
 	 * @param opts - Options for the slide
 	 * @public
 	 */
@@ -8964,6 +9020,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Start viewport-following a user.
 	 *
 	 * @param userId - The id of the user to follow.
+	 *
 	 * @public
 	 */
 	startFollowingUser(userId: string) {
@@ -9136,7 +9193,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Blur the app, cancelling any interaction state.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.blur()
 	 * ```
@@ -9154,7 +9210,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Focus the editor.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.focus()
 	 * ```
@@ -9171,7 +9226,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Dispatch a cancel event.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.cancel()
 	 * ```
@@ -9187,7 +9241,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Dispatch an interrupt event.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.interrupt()
 	 * ```
@@ -9203,7 +9256,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Dispatch a complete event.
 	 *
 	 * @example
-	 *
 	 * ```ts
 	 * editor.complete()
 	 * ```
@@ -9239,8 +9291,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Group some shapes together.
+	 *
 	 * @param ids - Ids of the shapes to group. Defaults to the selected shapes.
 	 * @param groupId - Id of the group to create. Defaults to a new shape id.
+	 *
 	 * @public
 	 */
 	groupShapes(ids: TLShapeId[] = this.selectedIds, groupId = createShapeId()) {
@@ -9293,7 +9347,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Ungroup some shapes.
+	 *
 	 * @param ids - Ids of the shapes to ungroup. Defaults to the selected shapes.
+	 *
 	 * @public
 	 */
 	ungroupShapes(ids: TLShapeId[] = this.selectedIds) {

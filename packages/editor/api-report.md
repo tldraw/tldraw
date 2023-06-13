@@ -449,7 +449,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get editingId(): null | TLShapeId;
     // (undocumented)
     get editingShape(): null | TLUnknownShape;
-    enableAnimations: boolean;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
     // (undocumented)
@@ -485,7 +484,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getOutlineById(id: TLShapeId): Vec2dModel[];
     getPageBounds(shape: TLShape): Box2d | undefined;
     getPageBoundsById(id: TLShapeId): Box2d | undefined;
-    getPageById(id: TLPage['id']): TLPage | undefined;
+    getPageById(id: TLPageId): TLPage | undefined;
     getPageCenter(shape: TLShape): null | Vec2d;
     getPageCenterById(id: TLShapeId): null | Vec2d;
     getPageCorners(shape: TLShape): Vec2d[];
