@@ -1114,11 +1114,11 @@ describe('Adds highlightedUserIds to instance', () => {
 	const { up, down } = instanceMigrations.migrators[instanceTypeVersions.AddHighlightedUserIds]
 
 	test('up works as expected', () => {
-		expect(up({})).toEqual({ highlightedUserId: [] })
+		expect(up({})).toEqual({ highlightedUserIds: [] })
 	})
 
 	test('down works as expected', () => {
-		expect(down({ highlightedUserId: [] })).toEqual({})
+		expect(down({ highlightedUserIds: [] })).toEqual({})
 	})
 })
 
