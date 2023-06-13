@@ -78,6 +78,7 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
+import { COLLABORATOR_TIMEOUT } from '../components/LiveCollaborators'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import { AnyTLShapeInfo } from '../config/defineShape'
@@ -8724,6 +8725,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const position = presence.cursor
 
 			this.centerOnPoint(position.x, position.y, options)
+
+			// Highlight the user's cursor
+			const { highlightedUserIds } = this.instanceState
+			this.updateInstanceState({ highlightedUserIds: [...highlightedUserIds, userId] })
+
+			// Unhighlight the user's cursor after a few seconds
+			setTimeout(() => {
+				const highlightedUserIds = [...this.instanceState.highlightedUserIds]
+				const index = highlightedUserIds.indexOf(userId)
+				if (index < 0) return
+				highlightedUserIds.splice(index, 1)
+				this.updateInstanceState({ highlightedUserIds })
+			}, COLLABORATOR_TIMEOUT)
 		})
 	}
 

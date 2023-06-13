@@ -932,6 +932,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     followingUserId: null | string;
     // (undocumented)
+    highlightedUserIds: string[];
+    // (undocumented)
     isDebugMode: boolean;
     // (undocumented)
     isFocusMode: boolean;

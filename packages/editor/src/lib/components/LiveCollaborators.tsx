@@ -48,8 +48,14 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 
 	if (!latestPresence) return null
 
-	// If the user has timed out, and we're not following them, we'll hide their cursor
-	const isCursorTimedOut = isTimedOut && editor.instanceState.followingUserId !== userId
+	// If the user has timed out
+	// ... and we're not following them
+	// ... and they're not highlighted
+	// >>> we'll hide their cursor
+	const isCursorTimedOut =
+		isTimedOut &&
+		editor.instanceState.followingUserId !== userId &&
+		!editor.instanceState.highlightedUserIds.includes(userId)
 
 	// if the collaborator is on another page, ignore them
 	if (latestPresence.currentPageId !== editor.currentPageId) return null

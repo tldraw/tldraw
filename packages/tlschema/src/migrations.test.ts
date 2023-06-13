@@ -1110,6 +1110,18 @@ describe('hoist opacity', () => {
 	})
 })
 
+describe('Adds highlightedUserIds to instance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceTypeVersions.AddHighlightedUserIds]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ highlightedUserId: [] })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ highlightedUserId: [] })).toEqual({})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {
