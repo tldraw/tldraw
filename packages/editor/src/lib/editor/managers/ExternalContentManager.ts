@@ -6,6 +6,8 @@ import {
 	TLAssetId,
 	TLEmbedShape,
 	TLShapePartial,
+	TLTextShape,
+	TLTextShapeProps,
 	createShapeId,
 } from '@tldraw/tlschema'
 import { compact, getHashForString } from '@tldraw/utils'
@@ -248,7 +250,7 @@ export class ExternalContentManager {
 		let w: number
 		let h: number
 		let autoSize: boolean
-		let align = 'middle'
+		let align = 'middle' as TLTextShapeProps['align']
 
 		const isMultiLine = textToPaste.split('\n').length > 1
 
@@ -293,7 +295,7 @@ export class ExternalContentManager {
 			p.y = editor.viewportPageBounds.minY + 40 + h / 2
 		}
 
-		editor.createShapes([
+		editor.createShapes<TLTextShape>([
 			{
 				id: createShapeId(),
 				type: 'text',

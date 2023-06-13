@@ -424,7 +424,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         };
     };
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
-    createShapes(partials: TLShapePartial[], select?: boolean): this;
+    createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select?: boolean): this;
     get croppingId(): null | TLShapeId;
     get cullingBounds(): Box2d;
     // @internal (undocumented)
@@ -760,7 +760,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateDocumentSettings(settings: Partial<TLDocument>): void;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
-    updateShapes(partials: (null | TLShapePartial | undefined)[], squashing?: boolean): this;
+    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
     // (undocumented)
     readonly user: UserPreferencesManager;

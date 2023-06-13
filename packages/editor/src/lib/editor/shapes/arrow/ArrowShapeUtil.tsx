@@ -907,7 +907,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		} = shape
 
 		if (text.trimEnd() !== shape.props.text) {
-			this.editor.updateShapes([
+			this.editor.updateShapes<TLArrowShape>([
 				{
 					id,
 					type,

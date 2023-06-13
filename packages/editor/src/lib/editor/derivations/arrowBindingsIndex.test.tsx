@@ -1,4 +1,4 @@
-import { TLShapeId } from '@tldraw/tlschema'
+import { TLArrowShape, TLShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../../test/TestEditor'
 import { TL } from '../../test/jsx'
 
@@ -212,7 +212,7 @@ describe('arrowBindingsIndex', () => {
 			)
 
 			// move arrowA from box2 to box3
-			editor.updateShapes([
+			editor.updateShapes<TLArrowShape>([
 				{
 					id: arrowAId,
 					type: 'arrow',

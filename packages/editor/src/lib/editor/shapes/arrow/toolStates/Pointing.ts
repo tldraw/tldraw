@@ -2,7 +2,6 @@ import { createShapeId, TLArrowShape } from '@tldraw/tlschema'
 import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers } from '../../../types/event-types'
-import { ArrowShapeTool } from '../ArrowShapeTool'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -31,16 +30,14 @@ export class Pointing extends StateNode {
 
 		this.didTimeout = false
 
-		const shapeType = (this.parent as ArrowShapeTool).shapeType
-
 		this.editor.mark('creating')
 
 		const id = createShapeId()
 
-		this.editor.createShapes([
+		this.editor.createShapes<TLArrowShape>([
 			{
 				id,
-				type: shapeType,
+				type: 'arrow',
 				x: currentPagePoint.x,
 				y: currentPagePoint.y,
 			},
