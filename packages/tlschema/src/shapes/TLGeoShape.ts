@@ -8,7 +8,7 @@ import { TLFontType, fontValidator } from '../styles/TLFontStyle'
 import { TLGeoType, geoValidator } from '../styles/TLGeoStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { ShapeProps, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export type TLGeoShapeProps = {
@@ -32,25 +32,22 @@ export type TLGeoShapeProps = {
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
 /** @internal */
-export const geoShapeValidator: T.Validator<TLGeoShape> = createShapeValidator(
-	'geo',
-	T.object({
-		geo: geoValidator,
-		labelColor: colorValidator,
-		color: colorValidator,
-		fill: fillValidator,
-		dash: dashValidator,
-		size: sizeValidator,
-		font: fontValidator,
-		align: alignValidator,
-		verticalAlign: verticalAlignValidator,
-		url: T.string,
-		w: T.nonZeroNumber,
-		h: T.nonZeroNumber,
-		growY: T.positiveNumber,
-		text: T.string,
-	})
-)
+export const geoShapeProps: ShapeProps<TLGeoShape> = {
+	geo: geoValidator,
+	labelColor: colorValidator,
+	color: colorValidator,
+	fill: fillValidator,
+	dash: dashValidator,
+	size: sizeValidator,
+	font: fontValidator,
+	align: alignValidator,
+	verticalAlign: verticalAlignValidator,
+	url: T.string,
+	w: T.nonZeroNumber,
+	h: T.nonZeroNumber,
+	growY: T.positiveNumber,
+	text: T.string,
+}
 
 const Versions = {
 	AddUrlProp: 1,

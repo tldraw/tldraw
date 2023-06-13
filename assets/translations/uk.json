@@ -328,6 +328,11 @@
 	"sharing.confirm-leave.cancel": "Скасувати",
 	"sharing.confirm-leave.leave": "Вийти",
 	"sharing.confirm-leave.dont-show-again": "Більше не запитувати",
+	"tool.highlight": "Текстовиділювач",
+	"action.toggle-lock": "Блокувати / Розблокувати",
+	"share-menu.default-project-name": "Спільний проєкт",
+	"home-project-dialog.title": "Домашній проєкт",
+	"home-project-dialog.description": "Це ваш локальний домашній проєкт. Це тільки для вас!",
 	"rename-project-dialog.title": "Перейменувати проєкт",
 	"rename-project-dialog.cancel": "Скасувати",
 	"rename-project-dialog.rename": "Перейменувати"

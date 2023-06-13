@@ -77,7 +77,10 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 			return editor.selectedIds.some((selectedId) => {
 				const shape = editor.getShapeById(selectedId)
 				return (
-					shape && editor.isShapeOfType(shape, BookmarkShapeUtil) && getEmbedInfo(shape.props.url)
+					shape &&
+					editor.isShapeOfType(shape, BookmarkShapeUtil) &&
+					shape.props.url &&
+					getEmbedInfo(shape.props.url)
 				)
 			})
 		},
