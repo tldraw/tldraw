@@ -32,8 +32,6 @@ export function useYjsStore({
 
 		const room = new WebsocketProvider(hostUrl, roomId, doc, { connect: false })
 
-		room.awareness.setLocalState({})
-
 		const unsubs: (() => void)[] = []
 		const store = createTLStore({ shapes: defaultShapes })
 

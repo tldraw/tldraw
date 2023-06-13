@@ -10,7 +10,7 @@ export default function YjsExample() {
 	const store = useYjsStore({
 		roomId: 'example',
 		hostUrl: HOST_URL,
-		version: 1,
+		version: 2,
 	})
 
 	return (
