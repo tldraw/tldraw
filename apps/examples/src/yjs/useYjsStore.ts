@@ -7,10 +7,10 @@ import {
 	TLRecord,
 	TLStoreWithStatus,
 	TLUserPreferences,
-	USER_COLORS,
 	createPresenceStateDerivation,
 	createTLStore,
 	defaultShapes,
+	getFreshUserPreferences,
 } from '@tldraw/tldraw'
 import { debounce } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
@@ -118,13 +118,8 @@ export function useYjsStore({
 				// Get the persisted user preferences or use the defaults
 
 				let userPreferences: TLUserPreferences = {
+					...getFreshUserPreferences(),
 					id: userId,
-					name: 'User Name',
-					locale: 'en',
-					color: USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)],
-					isDarkMode: false,
-					isSnapMode: false,
-					animationSpeed: 1,
 				}
 
 				const persistedUserPreferences = localStorage.getItem(`tldraw-presence-${version}`)
