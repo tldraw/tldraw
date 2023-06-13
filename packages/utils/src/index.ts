@@ -10,7 +10,7 @@ export {
 } from './lib/control'
 export { debounce } from './lib/debounce'
 export { annotateError, getErrorAnnotations } from './lib/error'
-export { omitFromStackTrace, throttle } from './lib/function'
+export { noop, omitFromStackTrace, throttle } from './lib/function'
 export { getHashForObject, getHashForString, lns } from './lib/hash'
 export { getFirstFromIterable } from './lib/iterable'
 export { lerp, modulate, rng } from './lib/number'
@@ -19,6 +19,7 @@ export {
 	filterEntries,
 	getOwnProperty,
 	hasOwnProperty,
+	mapObjectMapValues,
 	objectMapEntries,
 	objectMapFromEntries,
 	objectMapKeys,
@@ -26,4 +27,5 @@ export {
 } from './lib/object'
 export { rafThrottle, throttledRaf } from './lib/raf'
 export { sortById } from './lib/sort'
+export type { Identity, RecursivePartial, Required } from './lib/types'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'

@@ -4,6 +4,7 @@ import {
 	TLEditorAssetUrls,
 	defaultEditorAssetUrls,
 } from '@tldraw/editor'
+import { RecursivePartial } from '@tldraw/utils'
 import { version } from '../version'
 import { TLUiIconType, iconTypes } from './icon-types'
 
@@ -38,4 +39,21 @@ export let defaultUiAssetUrls: TLUiAssetUrls = {
 /** @internal */
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls) {
 	defaultUiAssetUrls = urls
+}
+
+/** @internal */
+export function useDefaultUiAssetUrlsWithOverrides(
+	overrides?: RecursivePartial<TLUiAssetUrls>
+): TLUiAssetUrls {
+	if (!overrides) return defaultUiAssetUrls
+
+	return {
+		fonts: Object.assign({ ...defaultUiAssetUrls.fonts }, { ...overrides?.fonts }),
+		icons: Object.assign({ ...defaultUiAssetUrls.icons }, { ...overrides?.icons }),
+		embedIcons: Object.assign({ ...defaultUiAssetUrls.embedIcons }, { ...overrides?.embedIcons }),
+		translations: Object.assign(
+			{ ...defaultUiAssetUrls.translations },
+			{ ...overrides?.translations }
+		),
+	}
 }

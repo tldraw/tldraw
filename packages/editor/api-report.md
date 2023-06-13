@@ -24,12 +24,15 @@ import { Migrations } from '@tldraw/store';
 import { Polyline2d } from '@tldraw/primitives';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { RecursivePartial } from '@tldraw/utils';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
+import { ShapeProps } from '@tldraw/tlschema';
 import { Signal } from 'signia';
+import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';
 import { TLAlignType } from '@tldraw/tlschema';
@@ -76,6 +79,7 @@ import { TLShapeProps } from '@tldraw/tlschema';
 import { TLSizeStyle } from '@tldraw/tlschema';
 import { TLSizeType } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
+import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStyleCollections } from '@tldraw/tlschema';
 import { TLStyleType } from '@tldraw/tlschema';
 import { TLTextShape } from '@tldraw/tlschema';
@@ -105,6 +109,9 @@ export const ANIMATION_SHORT_MS = 80;
 
 // @public (undocumented)
 export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export const ArrowShape: TLShapeInfo<TLArrowShape>;
 
 // @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
@@ -165,7 +172,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     toSvg(shape: TLArrowShape, font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "arrow";
 }
 
 // @public (undocumented)
@@ -200,13 +207,14 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 export function blobAsString(blob: Blob): Promise<string>;
 
 // @public (undocumented)
+export const BookmarkShape: TLShapeInfo<TLBookmarkShape>;
+
+// @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize: () => boolean;
     // (undocumented)
     defaultProps(): TLBookmarkShape['props'];
-    // (undocumented)
-    getHumanReadableAddress(shape: TLBookmarkShape): string;
     // (undocumented)
     hideSelectionBoundsBg: () => boolean;
     // (undocumented)
@@ -220,12 +228,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     render(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
-    static type: string;
-    // (undocumented)
-    protected updateBookmarkAsset: {
-        (shape: TLBookmarkShape): Promise<void>;
-        cancel(): void;
-    };
+    static type: "bookmark";
 }
 
 // @internal (undocumented)
@@ -243,13 +246,16 @@ export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
+export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLEmbedShape>, TLShapeInfo<TLBookmarkShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLTextShape>];
+
+// @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
 
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore(opts?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, ...rest }: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -297,10 +303,13 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: Record<string, TLShapeInfo>;
+export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>, TLShapeInfo<TLVideoShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
+
+// @public (undocumented)
+export function defineShape<T extends TLUnknownShape>(type: T['type'], opts: Omit<TLShapeInfo<T>, 'type'>): TLShapeInfo<T>;
 
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
@@ -310,6 +319,9 @@ export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
 
 // @internal (undocumented)
 export const DRAG_DISTANCE = 4;
+
+// @public (undocumented)
+export const DrawShape: TLShapeInfo<TLDrawShape>;
 
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
@@ -346,12 +358,12 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "draw";
 }
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, tools, shapes, getContainer, }: TLEditorOptions);
+    constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -769,6 +781,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 }
 
 // @public (undocumented)
+export const EmbedShape: TLShapeInfo<TLEmbedShape>;
+
+// @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canEdit: TLShapeUtilFlag<TLEmbedShape>;
@@ -791,7 +806,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     render(shape: TLEmbedShape): JSX.Element;
     // (undocumented)
-    static type: string;
+    static type: "embed";
 }
 
 // @public (undocumented)
@@ -838,6 +853,9 @@ export const FONT_FAMILIES: Record<TLFontType, string>;
 export const FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const FrameShape: TLShapeInfo<TLFrameShape>;
+
+// @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -866,8 +884,11 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     toSvg(shape: TLFrameShape, font: string, colors: TLExportColors): Promise<SVGElement> | SVGElement;
     // (undocumented)
-    static type: string;
+    static type: "frame";
 }
+
+// @public (undocumented)
+export const GeoShape: TLShapeInfo<TLGeoShape>;
 
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
@@ -984,7 +1005,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     toSvg(shape: TLGeoShape, font: string, colors: TLExportColors): SVGElement;
     // (undocumented)
-    static type: string;
+    static type: "geo";
 }
 
 // @public
@@ -1029,6 +1050,9 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: 
 
 // @public
 export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number): Promise<string>;
+
+// @public (undocumented)
+export function getRotatedBoxShadow(rotation: number): string;
 
 // @public (undocumented)
 export function getSplineForLineShape(shape: TLLineShape): NonNullable<CubicSpline2d | Polyline2d>;
@@ -1081,6 +1105,9 @@ export const GRID_STEPS: {
 }[];
 
 // @public (undocumented)
+export const GroupShape: TLShapeInfo<TLGroupShape>;
+
+// @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -1103,7 +1130,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     render(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
-    static type: string;
+    static type: "group";
     // (undocumented)
     type: "group";
 }
@@ -1121,6 +1148,9 @@ export function hardResetEditor(): void;
 
 // @internal (undocumented)
 export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
+
+// @public (undocumented)
+export const HighlightShape: TLShapeInfo<TLHighlightShape>;
 
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
@@ -1159,7 +1189,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     toSvg(shape: TLHighlightShape, _font: string | undefined, colors: TLExportColors): SVGPathElement;
     // (undocumented)
-    static type: string;
+    static type: "highlight";
 }
 
 // @public (undocumented)
@@ -1170,6 +1200,9 @@ export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
 // @public (undocumented)
 export const ICON_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export const ImageShape: TLShapeInfo<TLImageShape>;
 
 // @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
@@ -1190,7 +1223,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     toSvg(shape: TLImageShape): Promise<SVGGElement>;
     // (undocumented)
-    static type: string;
+    static type: "image";
 }
 
 // @public (undocumented)
@@ -1221,7 +1254,13 @@ export const isSvgText: (text: string) => boolean;
 export const isValidHttpURL: (url: string) => boolean;
 
 // @public (undocumented)
+export function isValidUrl(url: string): boolean;
+
+// @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export const LineShape: TLShapeInfo<TLLineShape>;
 
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
@@ -1260,7 +1299,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     toSvg(shape: TLLineShape, _font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "line";
 }
 
 // @public (undocumented)
@@ -1280,6 +1319,18 @@ export const MAJOR_NUDGE_FACTOR = 10;
 // @public (undocumented)
 export function matchEmbedUrl(url: string): {
     definition: {
+        readonly type: "tldraw";
+        readonly title: "tldraw";
+        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
+        readonly minWidth: 300;
+        readonly minHeight: 300;
+        readonly width: 720;
+        readonly height: 500;
+        readonly doesResize: true;
+        readonly canUnmount: true;
+        readonly toEmbedUrl: (url: string) => string | undefined;
+        readonly fromEmbedUrl: (url: string) => string | undefined;
+    } | {
         readonly type: "codepen";
         readonly title: "Codepen";
         readonly hostnames: readonly ["codepen.io"];
@@ -1288,6 +1339,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1299,6 +1351,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1308,6 +1361,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1318,6 +1372,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1327,6 +1382,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1336,6 +1392,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1347,6 +1404,7 @@ export function matchEmbedUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1357,6 +1415,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1368,6 +1427,7 @@ export function matchEmbedUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1377,6 +1437,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: false;
         readonly backgroundColor: "#fff";
         readonly toEmbedUrl: (url: string) => string | undefined;
@@ -1388,6 +1449,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1397,6 +1459,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: false;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1408,17 +1471,7 @@ export function matchEmbedUrl(url: string): {
         readonly minHeight: 500;
         readonly overrideOutlineRadius: 12;
         readonly doesResize: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "tldraw";
-        readonly title: "tldraw";
-        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1428,6 +1481,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 640;
         readonly height: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1438,6 +1492,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 800;
         readonly height: 450;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly overridePermissions: {
             readonly 'allow-presentation': true;
         };
@@ -1452,6 +1507,18 @@ export function matchEmbedUrl(url: string): {
 // @public (undocumented)
 export function matchUrl(url: string): {
     definition: {
+        readonly type: "tldraw";
+        readonly title: "tldraw";
+        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
+        readonly minWidth: 300;
+        readonly minHeight: 300;
+        readonly width: 720;
+        readonly height: 500;
+        readonly doesResize: true;
+        readonly canUnmount: true;
+        readonly toEmbedUrl: (url: string) => string | undefined;
+        readonly fromEmbedUrl: (url: string) => string | undefined;
+    } | {
         readonly type: "codepen";
         readonly title: "Codepen";
         readonly hostnames: readonly ["codepen.io"];
@@ -1460,6 +1527,7 @@ export function matchUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1471,6 +1539,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1480,6 +1549,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1490,6 +1560,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1499,6 +1570,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1508,6 +1580,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1519,6 +1592,7 @@ export function matchUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1529,6 +1603,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1540,6 +1615,7 @@ export function matchUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1549,6 +1625,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: false;
         readonly backgroundColor: "#fff";
         readonly toEmbedUrl: (url: string) => string | undefined;
@@ -1560,6 +1637,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1569,6 +1647,7 @@ export function matchUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: false;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1580,17 +1659,7 @@ export function matchUrl(url: string): {
         readonly minHeight: 500;
         readonly overrideOutlineRadius: 12;
         readonly doesResize: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "tldraw";
-        readonly title: "tldraw";
-        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1600,6 +1669,7 @@ export function matchUrl(url: string): {
         readonly width: 640;
         readonly height: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1610,6 +1680,7 @@ export function matchUrl(url: string): {
         readonly width: 800;
         readonly height: 450;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly overridePermissions: {
             readonly 'allow-presentation': true;
         };
@@ -1654,6 +1725,9 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
     y: number;
     z: number;
 };
+
+// @public (undocumented)
+export const NoteShape: TLShapeInfo<TLNoteShape>;
 
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -1730,7 +1804,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     toSvg(shape: TLNoteShape, font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "note";
 }
 
 // @public (undocumented)
@@ -1786,24 +1860,6 @@ export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
 
 // @internal (undocumented)
 export const RICH_TYPES: Record<string, boolean>;
-
-// @public (undocumented)
-export function rotateBoxShadow(rotation: number, shadows: {
-    offsetX: number;
-    offsetY: number;
-    blur: number;
-    spread: number;
-    color: string;
-}[]): string;
-
-// @public (undocumented)
-export const ROTATING_SHADOWS: {
-    offsetX: number;
-    offsetY: number;
-    blur: number;
-    spread: number;
-    color: string;
-}[];
 
 // @public (undocumented)
 export const runtime: {
@@ -2009,6 +2065,9 @@ export const TEXT_PROPS: {
 };
 
 // @public (undocumented)
+export const TextShape: TLShapeInfo<TLTextShape>;
+
+// @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     canEdit: () => boolean;
@@ -2091,7 +2150,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "text";
 }
 
 // @public (undocumented)
@@ -2190,9 +2249,9 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public (undocumented)
 export type TldrawEditorProps = {
     children?: any;
-    shapes?: Record<string, TLShapeInfo>;
-    tools?: TLStateNodeConstructor[];
-    assetUrls?: TLEditorAssetUrls;
+    shapes?: readonly AnyTLShapeInfo[];
+    tools?: readonly TLStateNodeConstructor[];
+    assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
     onMount?: (editor: Editor) => (() => void) | undefined | void;
@@ -2259,9 +2318,9 @@ export interface TLEditorComponents {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
-    shapes?: Record<string, TLShapeInfo>;
+    shapes: readonly AnyTLShapeInfo[];
     store: TLStore;
-    tools?: TLStateNodeConstructor[];
+    tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
 
@@ -2595,6 +2654,15 @@ export interface TLSessionStateSnapshot {
 }
 
 // @public (undocumented)
+export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
+    type: T['type'];
+    util: TLShapeUtilConstructor<T>;
+    props?: ShapeProps<T>;
+    migrations?: Migrations;
+    tool?: TLStateNodeConstructor;
+};
+
+// @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
     new (editor: Editor, type: T['type']): U;
@@ -2618,6 +2686,19 @@ export interface TLStateNodeConstructor {
     // (undocumented)
     styles?: TLStyleType[];
 }
+
+// @public (undocumented)
+export type TLStoreEventInfo = HistoryEntry<TLRecord>;
+
+// @public (undocumented)
+export type TLStoreOptions = {
+    initialData?: StoreSnapshot<TLRecord>;
+    defaultName?: string;
+} & ({
+    schema: StoreSchema<TLRecord, TLStoreProps>;
+} | {
+    shapes: readonly AnyTLShapeInfo[];
+});
 
 // @public (undocumented)
 export type TLStoreWithStatus = {
@@ -2693,9 +2774,9 @@ export function useContainer(): HTMLDivElement;
 export const useEditor: () => Editor;
 
 // @internal (undocumented)
-export function useLocalStore(opts?: {
-    persistenceKey?: string | undefined;
-    sessionId?: string | undefined;
+export function useLocalStore({ persistenceKey, sessionId, ...rest }: {
+    persistenceKey?: string;
+    sessionId?: string;
 } & TLStoreOptions): TLStoreWithStatus;
 
 // @internal (undocumented)
@@ -2720,6 +2801,9 @@ export function useReactor(name: string, reactFn: () => void, deps?: any[] | und
 export function useTLStore(opts: TLStoreOptions): TLStore;
 
 // @public (undocumented)
+export const VideoShape: TLShapeInfo<TLVideoShape>;
+
+// @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit: () => boolean;
@@ -2734,7 +2818,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     toSvg(shape: TLVideoShape): SVGGElement;
     // (undocumented)
-    static type: string;
+    static type: "video";
 }
 
 // @internal (undocumented)

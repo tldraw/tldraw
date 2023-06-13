@@ -11,7 +11,7 @@ Welcome to the public monorepo for [tldraw](https://tldraw.com).
 
 ## What is tldraw?
 
-tldraw is a collaborative digital whiteboard available at [tldraw.com](https://tldraw.com). Its editor, user interface, and other underlying libraries are open source and available in this repository. They are also distributed on npm. You can use tldraw to create a drop-in whiteboard for your product or as the foundation on which to build your own inifinite canvas applications.
+tldraw is a collaborative digital whiteboard available at [tldraw.com](https://tldraw.com). Its editor, user interface, and other underlying libraries are open source and available in this repository. They are also distributed on npm. You can use tldraw to create a drop-in whiteboard for your product or as the foundation on which to build your own infinite canvas applications.
 
 Learn more at [tldraw.dev](https://tldraw.dev).
 
