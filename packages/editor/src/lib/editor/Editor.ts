@@ -5487,9 +5487,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	duplicatePage(id: TLPageId = this.currentPageId, createId: TLPageId = PageRecordType.createId()) {
-		if (this.pages.length >= MAX_PAGES) return
+		if (this.pages.length >= MAX_PAGES) return this
 		const page = this.getPageById(id)
-		if (!page) return
+		if (!page) return this
 
 		const camera = { ...this.camera }
 		const content = this.getContent(this.getSortedChildIds(page.id))

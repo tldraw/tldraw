@@ -444,7 +444,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     dispose(): void;
     distributeShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
     get documentSettings(): TLDocument;
-    duplicatePage(id?: TLPageId, createId?: TLPageId): this | undefined;
+    duplicatePage(id?: TLPageId, createId?: TLPageId): this;
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     // (undocumented)
