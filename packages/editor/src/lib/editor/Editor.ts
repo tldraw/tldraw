@@ -634,16 +634,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether the user is using a "coarse" pointer, such as on a touch screen.
+	 * This is automatically set by the canvas.
 	 *
 	 * @public
-	 */
+	 **/
 	get isCoarsePointer() {
 		return this._isCoarsePointer.value
 	}
 
-	/**
-	 * @internal
-	 */
 	set isCoarsePointer(v) {
 		this._isCoarsePointer.set(v)
 	}
@@ -1561,16 +1559,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* -------------------- Shortcuts ------------------- */
 
-	/** The global document settings that applies to all users */
+	/**
+	 * The global document settings that apply to all users
+	 *
+	 * @public
+	 **/
 	@computed get documentSettings() {
 		return this.store.get(TLDOCUMENT_ID)!
 	}
 
-	/** @public */
+	/**
+	 * Update the global document settings that apply to all users
+	 * @public
+	 **/
 	updateDocumentSettings(settings: Partial<TLDocument>) {
 		this.store.put([{ ...this.documentSettings, ...settings }])
 	}
 
+	/**
+	 * The document's grid size.
+	 * @public
+	 **/
 	get gridSize() {
 		return this.documentSettings.gridSize
 	}
@@ -1585,10 +1594,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.updateDocumentSettings({ name })
 	}
 
+	/**
+	 * Whether the user has "always snap" mode enabled.
+	 * @public
+	 **/
 	get isSnapMode() {
 		return this.user.isSnapMode
 	}
 
+	/**
+	 * Set whether the user has "always snap" mode enabled.
+	 * @public
+	 **/
 	setSnapMode(isSnapMode: boolean) {
 		if (isSnapMode !== this.isSnapMode) {
 			this.user.updateUserPreferences({ isSnapMode })
@@ -1596,10 +1613,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Whether the user has dark mode enabled.
+	 * @public
+	 **/
 	get isDarkMode() {
 		return this.user.isDarkMode
 	}
 
+	/**
+	 * Set whether the user has dark mode enabled.
+	 * @public
+	 **/
 	setDarkMode(isDarkMode: boolean) {
 		if (isDarkMode !== this.isDarkMode) {
 			this.user.updateUserPreferences({ isDarkMode })
@@ -1631,10 +1656,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Whether the instance is in focus mode or not.
+	 * @public
+	 **/
 	get isFocusMode() {
 		return this.instanceState.isFocusMode
 	}
 
+	/**
+	 * Set whether the instance is in focus mode or not.
+	 * @public
+	 **/
 	setFocusMode(isFocusMode: boolean) {
 		if (isFocusMode !== this.isFocusMode) {
 			this.updateInstanceState({ isFocusMode }, true)
@@ -1642,10 +1675,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Whether the instance has "tool lock" mode enabled.
+	 * @public
+	 **/
 	get isToolLocked() {
 		return this.instanceState.isToolLocked
 	}
 
+	/**
+	 * Set whether the instance has "tool lock" mode enabled.
+	 * @public
+	 **/
 	setToolLocked(isToolLocked: boolean) {
 		if (isToolLocked !== this.isToolLocked) {
 			this.updateInstanceState({ isToolLocked }, true)
@@ -1653,10 +1694,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Whether the instance's grid is enabled.
+	 * @public
+	 **/
 	get isGridMode() {
 		return this.instanceState.isGridMode
 	}
 
+	/**
+	 * Set whether the instance's grid is enabled.
+	 * @public
+	 **/
 	setGridMode(isGridMode: boolean): this {
 		if (isGridMode !== this.isGridMode) {
 			this.updateInstanceState({ isGridMode }, true)
@@ -1666,7 +1715,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
 
-	/** @public */
+	/**
+	 * Set whether the editor is in read-only mode or not.
+	 * @public
+	 **/
 	setReadOnly(isReadOnly: boolean): this {
 		this._isReadOnly.set(isReadOnly)
 		if (isReadOnly) {
@@ -1675,6 +1727,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Whether the editor is in read-only mode or not.
+	 * @public
+	 **/
 	get isReadOnly() {
 		return this._isReadOnly.value
 	}
@@ -1685,10 +1741,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _touchEventsRemainingBeforeExitingPenMode = 0
 
+	/**
+	 * Whether the editor is in pen mode or not.
+	 * @public
+	 **/
 	get isPenMode() {
 		return this._isPenMode.value
 	}
 
+	/**
+	 * Set whether the editor is in pen mode or not.
+	 * @public
+	 **/
 	setPenMode(isPenMode: boolean): this {
 		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
 		if (isPenMode !== this.isPenMode) {
@@ -1699,23 +1763,42 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	// User / User App State
 
-	/** The current tab state */
+	/**
+	 * The current instance's state.
+	 * @public
+	 */
 	get instanceState(): TLInstance {
 		return this.store.get(TLINSTANCE_ID)!
 	}
 
+	/**
+	 * The instance's cursor state.
+	 * @public
+	 **/
 	get cursor() {
 		return this.instanceState.cursor
 	}
 
+	/**
+	 * The instance's brush state.
+	 * @public
+	 **/
 	get brush() {
 		return this.instanceState.brush
 	}
 
+	/**
+	 * The instance's zoom brush state.
+	 * @public
+	 **/
 	get zoomBrush() {
 		return this.instanceState.zoomBrush
 	}
 
+	/**
+	 * The instance's scribble state.
+	 * @public
+	 **/
 	get scribble() {
 		return this.instanceState.scribble
 	}
@@ -1738,12 +1821,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return CameraRecordType.createId(this.currentPageId)
 	}
 
-	/** The current camera. */
+	/**
+	 * The current camera.
+	 * @public
+	 */
 	@computed get camera() {
 		return this.store.get(this.cameraId)!
 	}
 
-	/** The current camera zoom level. */
+	/**
+	 * The current camera zoom level.
+	 * @public
+	 */
 	@computed get zoomLevel() {
 		return this.camera.z
 	}
