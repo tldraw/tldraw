@@ -1,6 +1,7 @@
 import { PageRecordType } from '@tldraw/tlschema'
 import { promiseWithResolve } from '@tldraw/utils'
 import { createTLStore } from '../../config/createTLStore'
+import { defaultShapes } from '../../config/defaultShapes'
 import { TLLocalSyncClient } from './TLLocalSyncClient'
 import * as idb from './indexedDb'
 
@@ -24,7 +25,7 @@ class BroadcastChannelMock {
 }
 
 function testClient(channel = new BroadcastChannelMock('test')) {
-	const store = createTLStore()
+	const store = createTLStore({ shapes: defaultShapes })
 	const onLoad = jest.fn(() => {
 		return
 	})

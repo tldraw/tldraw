@@ -120,3 +120,20 @@ export function filterEntries<Key extends string, Value>(
 	}
 	return didChange ? (result as { [K in Key]: Value }) : object
 }
+
+/**
+ * Maps the values of one object map to another.
+ * @returns a new object with the entries mapped
+ * @internal
+ */
+export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
+	object: { readonly [K in Key]: ValueBefore },
+	mapper: (key: Key, value: ValueBefore) => ValueAfter
+): { [K in Key]: ValueAfter } {
+	const result = {} as { [K in Key]: ValueAfter }
+	for (const [key, value] of objectMapEntries(object)) {
+		const newValue = mapper(key, value)
+		result[key] = newValue
+	}
+	return result
+}

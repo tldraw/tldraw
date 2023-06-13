@@ -1,5 +1,7 @@
 /* ---------------------- Lists --------------------- */
 
+import React from 'react'
+
 export const UnorderedList = (props: any) => {
 	return <ul {...props} />
 }
@@ -14,28 +16,43 @@ export const ListItem = (props: any) => {
 
 /* ------------------- Typography ------------------- */
 
+type Heading = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+
+function heading(heading: Heading, props: any) {
+	const Element = ({ ...props }) => React.createElement(heading, props)
+	if (props.id) {
+		return (
+			<Element {...props}>
+				<a href={`#${props.id}`}>{props.children}</a>
+			</Element>
+		)
+	}
+
+	return <Element {...props} />
+}
+
 export const Heading1 = (props: any) => {
-	return <h1 {...props} />
+	return heading('h1', props)
 }
 
 export const Heading2 = (props: any) => {
-	return <h2 {...props} />
+	return heading('h2', props)
 }
 
 export const Heading3 = (props: any) => {
-	return <h3 {...props} />
+	return heading('h3', props)
 }
 
 export const Heading4 = (props: any) => {
-	return <h4 {...props} />
+	return heading('h4', props)
 }
 
 export const Heading5 = (props: any) => {
-	return <h5 {...props} />
+	return heading('h5', props)
 }
 
 export const Heading6 = (props: any) => {
-	return <h6 {...props} />
+	return heading('h6', props)
 }
 
 export const Paragraph = (props: any) => {

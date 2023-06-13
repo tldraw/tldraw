@@ -20,7 +20,7 @@ export class EditingShape extends StateNode {
 		}
 	}
 
-	onPointerLeave: TLEventHandlers['onPointerEnter'] = (info) => {
+	onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
 				this.editor.setHoveredId(null)
