@@ -1,4 +1,11 @@
-import { createShapeId, Editor, Tldraw, TLGeoShape, useEditor } from '@tldraw/tldraw'
+import {
+	createShapeId,
+	Editor,
+	Tldraw,
+	TLGeoShape,
+	TLShapePartial,
+	useEditor,
+} from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useEffect } from 'react'
@@ -17,23 +24,23 @@ export default function APIExample() {
 
 		editor.focus()
 
-		// Create a shape
-		editor.createShapes([
-			{
-				id,
-				type: 'geo',
-				x: 128 + Math.random() * 500,
-				y: 128 + Math.random() * 500,
-				props: {
-					geo: 'rectangle',
-					w: 100,
-					h: 100,
-					dash: 'draw',
-					color: 'blue',
-					size: 'm',
-				},
+		const geoShapePartial: TLShapePartial<TLGeoShape> = {
+			id,
+			type: 'geo',
+			x: 128 + Math.random() * 500,
+			y: 128 + Math.random() * 500,
+			props: {
+				geo: 'rectangle',
+				w: 100,
+				h: 100,
+				dash: 'draw',
+				color: 'blue',
+				size: 'm',
 			},
-		])
+		}
+
+		// Create a shape
+		editor.createShapes([geoShapePartial])
 
 		// Get the created shape
 		const shape = editor.getShapeById<TLGeoShape>(id)!

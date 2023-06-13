@@ -1,5 +1,5 @@
 import { Vec2d } from '@tldraw/primitives'
-import { createShapeId } from '@tldraw/tlschema'
+import { TLShapePartial, createShapeId } from '@tldraw/tlschema'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
@@ -27,20 +27,18 @@ export class Pointing extends StateNode {
 
 			this.editor.mark(this.markId)
 
-			this.editor.createShapes([
-				{
-					id,
-					type: shapeType,
-					x: originPagePoint.x,
-					y: originPagePoint.y,
-					props: {
-						w: 1,
-						h: 1,
-					},
+			const shapePartial: TLShapePartial<TLBaseBoxShape> = {
+				id,
+				type: shapeType,
+				x: originPagePoint.x,
+				y: originPagePoint.y,
+				props: {
+					w: 1,
+					h: 1,
 				},
-			])
+			}
 
-			this.editor.setSelectedIds([id])
+			this.editor.createShapes([shapePartial], true)
 			this.editor.setSelectedTool('select.resizing', {
 				...info,
 				target: 'selection',
@@ -83,14 +81,14 @@ export class Pointing extends StateNode {
 
 		this.editor.mark(this.markId)
 
-		this.editor.createShapes([
-			{
-				id,
-				type: shapeType,
-				x: originPagePoint.x,
-				y: originPagePoint.y,
-			},
-		])
+		const shapePartial: TLShapePartial<TLBaseBoxShape> = {
+			id,
+			type: shapeType,
+			x: originPagePoint.x,
+			y: originPagePoint.y,
+		}
+
+		this.editor.createShapes([shapePartial])
 
 		const shape = this.editor.getShapeById<TLBaseBoxShape>(id)!
 		const { w, h } = this.editor.getShapeUtil(shape).defaultProps() as TLBaseBoxShape['props']

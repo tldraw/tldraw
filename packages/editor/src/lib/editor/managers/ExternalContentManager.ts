@@ -5,6 +5,8 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLShapePartial,
+	TLTextShape,
+	TLTextShapeProps,
 	createShapeId,
 } from '@tldraw/tlschema'
 import { compact, getHashForString } from '@tldraw/utils'
@@ -251,7 +253,7 @@ export class ExternalContentManager {
 		let w: number
 		let h: number
 		let autoSize: boolean
-		let align = 'middle'
+		let align = 'middle' as TLTextShapeProps['align']
 
 		const isMultiLine = textToPaste.split('\n').length > 1
 
@@ -296,21 +298,21 @@ export class ExternalContentManager {
 			p.y = editor.viewportPageBounds.minY + 40 + h / 2
 		}
 
-		editor.createShapes([
-			{
-				id: createShapeId(),
-				type: 'text',
-				x: p.x - w / 2,
-				y: p.y - h / 2,
-				props: {
-					text: textToPaste,
-					// if the text has more than one line, align it to the left
-					align,
-					autoSize,
-					w,
-				},
+		const textShapePartial: TLShapePartial<TLTextShape> = {
+			id: createShapeId(),
+			type: 'text',
+			x: p.x - w / 2,
+			y: p.y - h / 2,
+			props: {
+				text: textToPaste,
+				// if the text has more than one line, align it to the left
+				align,
+				autoSize,
+				w,
 			},
-		])
+		}
+
+		editor.createShapes([textShapePartial])
 	}
 
 	/**

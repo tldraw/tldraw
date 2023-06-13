@@ -1,4 +1,4 @@
-import { createShapeId, TLTextShape } from '@tldraw/tlschema'
+import { createShapeId, TLShapePartial, TLTextShape } from '@tldraw/tlschema'
 import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers } from '../../../types/event-types'
 
@@ -21,19 +21,19 @@ export class Pointing extends StateNode {
 
 			this.editor.mark('creating')
 
-			this.editor.createShapes([
-				{
-					id,
-					type: 'text',
-					x: originPagePoint.x,
-					y: originPagePoint.y,
-					props: {
-						text: '',
-						autoSize: false,
-						w: 20,
-					},
+			const textShapePartial: TLShapePartial<TLTextShape> = {
+				id,
+				type: 'text',
+				x: originPagePoint.x,
+				y: originPagePoint.y,
+				props: {
+					text: '',
+					autoSize: false,
+					w: 20,
 				},
-			])
+			}
+
+			this.editor.createShapes([textShapePartial])
 
 			this.editor.select(id)
 

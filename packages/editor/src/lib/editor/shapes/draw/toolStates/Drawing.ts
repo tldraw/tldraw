@@ -4,6 +4,7 @@ import {
 	TLDrawShape,
 	TLDrawShapeSegment,
 	TLHighlightShape,
+	TLShapePartial,
 	TLSizeType,
 	Vec2dModel,
 } from '@tldraw/tlschema'
@@ -238,30 +239,30 @@ export class Drawing extends StateNode {
 
 		this.pagePointWhereCurrentSegmentChanged = originPagePoint.clone()
 		const id = createShapeId()
-		this.editor.createShapes([
-			{
-				id,
-				type: this.shapeType,
-				x: originPagePoint.x,
-				y: originPagePoint.y,
-				props: {
-					isPen: this.isPen,
-					segments: [
-						{
-							type: this.segmentMode,
-							points: [
-								{
-									x: 0,
-									y: 0,
-									z: +pressure.toFixed(2),
-								},
-							],
-						},
-					],
-				},
-			},
-		])
 
+		const shapePartial: TLShapePartial<DrawableShape> = {
+			id,
+			type: this.shapeType,
+			x: originPagePoint.x,
+			y: originPagePoint.y,
+			props: {
+				isPen: this.isPen,
+				segments: [
+					{
+						type: this.segmentMode,
+						points: [
+							{
+								x: 0,
+								y: 0,
+								z: +pressure.toFixed(2),
+							},
+						],
+					},
+				],
+			},
+		}
+
+		this.editor.createShapes([shapePartial])
 		this.currentLineLength = 0
 		this.initialShape = this.editor.getShapeById<DrawableShape>(id)
 	}
@@ -603,23 +604,23 @@ export class Drawing extends StateNode {
 
 					const newShapeId = createShapeId()
 
-					this.editor.createShapes([
-						{
-							id: newShapeId,
-							type: this.shapeType,
-							x: toFixed(currentPagePoint.x),
-							y: toFixed(currentPagePoint.y),
-							props: {
-								isPen: this.isPen,
-								segments: [
-									{
-										type: 'free',
-										points: [{ x: 0, y: 0, z: this.isPen ? +(z! * 1.25).toFixed() : 0.5 }],
-									},
-								],
-							},
+					const shapePartial: TLShapePartial<DrawableShape> = {
+						id: newShapeId,
+						type: this.shapeType,
+						x: toFixed(currentPagePoint.x),
+						y: toFixed(currentPagePoint.y),
+						props: {
+							isPen: this.isPen,
+							segments: [
+								{
+									type: 'free',
+									points: [{ x: 0, y: 0, z: this.isPen ? +(z! * 1.25).toFixed() : 0.5 }],
+								},
+							],
 						},
-					])
+					}
+
+					this.editor.createShapes([shapePartial])
 
 					this.initialShape = structuredClone(this.editor.getShapeById<DrawableShape>(newShapeId)!)
 					this.mergeNextPoint = false

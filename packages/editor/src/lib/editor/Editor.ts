@@ -8985,18 +8985,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const highestIndex = shapesWithRootParent[shapesWithRootParent.length - 1]?.index
 
 		this.batch(() => {
-			this.createShapes([
-				{
-					id: groupId,
-					type: 'group',
-					parentId,
-					index: highestIndex,
-					x,
-					y,
-					opacity: 1,
-					props: {},
-				},
-			])
+			const groupShapePartial: TLShapePartial<TLGroupShape> = {
+				id: groupId,
+				type: 'group',
+				parentId,
+				index: highestIndex,
+				x,
+				y,
+				opacity: 1,
+				props: {},
+			}
+			this.createShapes([groupShapePartial])
 			this.reparentShapesById(sortedShapeIds, groupId)
 			this.select(groupId)
 		})
