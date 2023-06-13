@@ -30,7 +30,8 @@ export function useYjsStore({
 	useEffect(() => {
 		const yRecords = doc.getMap<TLRecord>(`tl_${roomId}_${version}`)
 
-		const room = new WebsocketProvider(hostUrl, roomId, doc, { connect: false })
+		const room = new WebsocketProvider(hostUrl, roomId, doc, { connect: true })
+		const userId = room.awareness.clientID.toString()
 
 		const unsubs: (() => void)[] = []
 		const store = createTLStore({ shapes: defaultShapes })
@@ -39,9 +40,7 @@ export function useYjsStore({
 			if (connected) {
 				/* ----------------- Initialization ----------------- */
 
-				const existingYjsRecords = [...yRecords.values()]
-
-				if (existingYjsRecords.length === 0) {
+				if (yRecords.size === 0) {
 					doc.transact(() => {
 						store.clear()
 						store.put([
@@ -59,7 +58,7 @@ export function useYjsStore({
 						})
 					})
 				} else {
-					store.put(existingYjsRecords, 'initialize')
+					store.put([...yRecords.values()], 'initialize')
 				}
 
 				/* -------------------- Document -------------------- */
@@ -88,20 +87,26 @@ export function useYjsStore({
 
 				// Sync the yjs doc changes to the store
 				const handleChange = ([event]: Y.YEvent<any>[]) => {
-					store.mergeRemoteChanges(() => {
-						event.changes.keys.forEach((change, id) => {
-							switch (change.action) {
-								case 'add':
-								case 'update': {
-									store.put([yRecords.get(id)!])
-									break
-								}
-								case 'delete': {
-									store.remove([id as TLRecord['id']])
-									break
-								}
+					const toDelete: TLRecord['id'][] = []
+					const toPut: TLRecord[] = []
+
+					event.changes.keys.forEach((change, id) => {
+						switch (change.action) {
+							case 'add':
+							case 'update': {
+								toPut.push(yRecords.get(id)!)
+								break
 							}
-						})
+							case 'delete': {
+								toDelete.push(id as TLRecord['id'])
+								break
+							}
+						}
+					})
+
+					store.mergeRemoteChanges(() => {
+						store.remove(toDelete)
+						store.put(toPut)
 					})
 				}
 
@@ -111,8 +116,6 @@ export function useYjsStore({
 				/* -------------------- Awareness ------------------- */
 
 				// Get the persisted user preferences or use the defaults
-
-				const userId = room.awareness.clientID.toString()
 
 				let userPreferences: TLUserPreferences = {
 					id: userId,
@@ -224,8 +227,6 @@ export function useYjsStore({
 				})
 			}
 		})
-
-		room.connect()
 
 		return () => {
 			unsubs.forEach((fn) => fn())
