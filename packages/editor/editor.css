@@ -774,24 +774,24 @@ input,
 	width: fit-content;
 	height: fit-content;
 	max-width: 120px;
-	color: var(--color-selected-contrast);
+	padding: 3px 6px;
 	white-space: nowrap;
 	position: absolute;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	border-radius: 10px;
-	padding: 2px 6px;
 	font-size: 12px;
 	font-family: var(--font-family);
+	border-radius: var(--radius-2);
+	color: var(--color-selected-contrast);
 }
 
 .tl-nametag-title {
 	position: absolute;
 	top: 0px;
 	left: 13px;
-	padding: 0px 6px;
 	width: fit-content;
 	height: fit-content;
+	padding: 0px 6px;
 	max-width: 120px;
 	white-space: nowrap;
 	position: absolute;
@@ -800,6 +800,7 @@ input,
 	font-size: 12px;
 	font-family: var(--font-family);
 	text-shadow: var(--tl-text-outline);
+	color: var(--color-selected-contrast);
 }
 
 .tl-nametag-chat {
@@ -811,28 +812,28 @@ input,
 	color: var(--color-selected-contrast);
 	white-space: nowrap;
 	position: absolute;
-	border-radius: 10px;
-	padding: 2px 6px;
+	padding: 3px 6px;
 	font-size: 12px;
 	font-family: var(--font-family);
 	opacity: 1;
+	border-radius: var(--radius-2);
 }
 
 .tl-cursor-chat {
 	position: absolute;
 	color: var(--color-selected-contrast);
 	white-space: nowrap;
-	border-radius: 10px;
-	padding: 2px 6px;
+	padding: 3px 6px;
 	font-size: 12px;
 	font-family: var(--font-family);
-	pointerevents: none;
+	pointer-events: none;
 	z-index: var(--layer-cursor);
 	margin-top: 16px;
 	margin-left: 13px;
 	opacity: 1;
 	border: none;
 	user-select: text;
+	border-radius: var(--radius-2);
 }
 
 .tl-cursor-chat::selection {
