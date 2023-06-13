@@ -1197,6 +1197,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return next
 	}
 
+	/**
+	 * Get the currently selected opacity.
+	 * If any shapes are selected, this returns the opacity of the selected shapes.
+	 * Otherwise, this returns the chosen opacity for the next shape.
+	 * @public
+	 */
 	@computed get opacity(): number | null {
 		if (this.isIn('select') && this.selectedIds.length > 0) {
 			const shapesToCheck: TLShape[] = []
@@ -1273,7 +1279,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return arrowBindingsIndex(this.store)
 	}
 
-	/** GetArrowsBoundTo */
+	/**
+	 * Get all arrows bound to a shape.
+	 * @param shapeId - The id of the shape.
+	 * @public
+	 */
 	getArrowsBoundTo(shapeId: TLShapeId) {
 		return this._arrowBindingsIndex.value[shapeId] || EMPTY_ARRAY
 	}
@@ -1634,7 +1644,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * The user's chosen animation speed.
-	 * If 'reduce motion' is enabled, this will be 0.0.
 	 *
 	 * @public
 	 */
@@ -1940,7 +1949,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.get(id)
 	}
 
-	/** Get shapes on a page. */
+	/**
+	 * Get the ids of shapes on a page.
+	 * @param pageId - The id of the page.
+	 * @public
+	 **/
 	getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId> {
 		const result = this.store.query.exec('shape', { parentId: { eq: pageId } })
 		return this.getShapeAndDescendantIds(result.map((s) => s.id))
@@ -2319,7 +2332,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return undefined
 	}
 
-	/** Returns true if the the given shape has the given ancestor */
+	/**
+	 * Returns true if the the given shape has the given ancestor
+	 * @param shape - The shape.
+	 * @param ancestorId - The id of the ancestor.
+	 * @public
+	 */
 	hasAncestor(shape: TLShape | undefined, ancestorId: TLShapeId): boolean {
 		if (!shape) return false
 		if (shape.parentId === ancestorId) return true
