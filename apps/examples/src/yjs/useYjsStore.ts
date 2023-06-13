@@ -18,6 +18,8 @@ import { atom, react } from 'signia'
 import { WebsocketProvider } from 'y-websocket'
 import * as Y from 'yjs'
 
+const doc = new Y.Doc({ gc: true })
+
 export function useYjsStore({
 	roomId = 'example',
 	version = 1,
@@ -26,18 +28,16 @@ export function useYjsStore({
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({ status: 'loading' })
 
 	useEffect(() => {
-		const doc = new Y.Doc({ gc: true })
 		const yRecords = doc.getMap<TLRecord>(`tl_${roomId}_${version}`)
 
-		const roomProvider = new WebsocketProvider(hostUrl, roomId, doc, { connect: false })
-		const awareness = roomProvider.awareness
+		const room = new WebsocketProvider(hostUrl, roomId, doc, { connect: false })
 
-		awareness.setLocalState({})
+		room.awareness.setLocalState({})
 
 		const unsubs: (() => void)[] = []
 		const store = createTLStore({ shapes: defaultShapes })
 
-		roomProvider.on('status', (connected: boolean) => {
+		room.on('status', (connected: boolean) => {
 			if (connected) {
 				/* ----------------- Initialization ----------------- */
 
@@ -114,7 +114,7 @@ export function useYjsStore({
 
 				// Get the persisted user preferences or use the defaults
 
-				const userId = awareness.clientID.toString()
+				const userId = room.awareness.clientID.toString()
 
 				let userPreferences: TLUserPreferences = {
 					id: userId,
@@ -149,14 +149,14 @@ export function useYjsStore({
 				// Create the instance presence derivation
 				const userPreferencesSignal = atom<TLUserPreferences>('user preferences', userPreferences)
 				const presenceDerivation = createPresenceStateDerivation(userPreferencesSignal)(store)
-				awareness.setLocalStateField('presence', presenceDerivation.value)
+				room.awareness.setLocalStateField('presence', presenceDerivation.value)
 
 				// Sync the instance presence changes to yjs awareness
 				unsubs.push(
 					react('when presence changes', () => {
 						const presence = presenceDerivation.value
 						if (presence && presence.userId === userId) {
-							awareness.setLocalStateField('presence', presence)
+							room.awareness.setLocalStateField('presence', presence)
 							debouncedPersist(presence)
 						}
 					})
@@ -172,7 +172,7 @@ export function useYjsStore({
 					updated: number[]
 					removed: number[]
 				}) => {
-					const states = awareness.getStates()
+					const states = room.awareness.getStates()
 
 					store.mergeRemoteChanges(() => {
 						added.forEach((id) => {
@@ -208,8 +208,8 @@ export function useYjsStore({
 					})
 				}
 
-				awareness.on('update', handleUpdate)
-				unsubs.push(() => awareness.off('update', handleUpdate))
+				room.awareness.on('update', handleUpdate)
+				unsubs.push(() => room.awareness.off('update', handleUpdate))
 
 				// And we're done!
 
@@ -227,7 +227,7 @@ export function useYjsStore({
 			}
 		})
 
-		roomProvider.connect()
+		room.connect()
 
 		return () => {
 			unsubs.forEach((fn) => fn())
