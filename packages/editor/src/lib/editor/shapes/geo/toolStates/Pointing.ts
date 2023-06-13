@@ -1,5 +1,5 @@
 import { Box2d, getStarBounds } from '@tldraw/primitives'
-import { TLGeoShape, TLShapePartial, createShapeId } from '@tldraw/tlschema'
+import { TLGeoShape, createShapeId } from '@tldraw/tlschema'
 import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers } from '../../../types/event-types'
 
@@ -14,19 +14,19 @@ export class Pointing extends StateNode {
 
 			this.editor.mark('creating')
 
-			const shapePartial: TLShapePartial<TLGeoShape> = {
-				id,
-				type: 'geo',
-				x: originPagePoint.x,
-				y: originPagePoint.y,
-				props: {
-					w: 1,
-					h: 1,
-					geo: this.editor.instanceState.propsForNextShape.geo,
+			this.editor.createShapes<TLGeoShape>([
+				{
+					id,
+					type: 'geo',
+					x: originPagePoint.x,
+					y: originPagePoint.y,
+					props: {
+						w: 1,
+						h: 1,
+						geo: this.editor.instanceState.propsForNextShape.geo,
+					},
 				},
-			}
-
-			this.editor.createShapes([shapePartial])
+			])
 
 			this.editor.select(id)
 			this.editor.setSelectedTool('select.resizing', {
@@ -63,19 +63,19 @@ export class Pointing extends StateNode {
 
 		this.editor.mark('creating')
 
-		const geoShapePartial: TLShapePartial<TLGeoShape> = {
-			id,
-			type: 'geo',
-			x: originPagePoint.x,
-			y: originPagePoint.y,
-			props: {
-				geo: this.editor.instanceState.propsForNextShape.geo,
-				w: 1,
-				h: 1,
+		this.editor.createShapes<TLGeoShape>([
+			{
+				id,
+				type: 'geo',
+				x: originPagePoint.x,
+				y: originPagePoint.y,
+				props: {
+					geo: this.editor.instanceState.propsForNextShape.geo,
+					w: 1,
+					h: 1,
+				},
 			},
-		}
-
-		this.editor.createShapes([geoShapePartial])
+		])
 
 		const shape = this.editor.getShapeById<TLGeoShape>(id)!
 		if (!shape) return
@@ -85,7 +85,7 @@ export class Pointing extends StateNode {
 		const delta = this.editor.getDeltaInParentSpace(shape, bounds.center)
 
 		this.editor.select(id)
-		this.editor.updateShapes([
+		this.editor.updateShapes<TLGeoShape>([
 			{
 				id: shape.id,
 				type: 'geo',

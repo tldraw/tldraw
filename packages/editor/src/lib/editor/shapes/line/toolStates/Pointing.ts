@@ -1,6 +1,6 @@
 import { getIndexAbove, sortByIndex } from '@tldraw/indices'
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
-import { TLHandle, TLLineShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
+import { TLHandle, TLLineShape, TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { last, structuredClone } from '@tldraw/utils'
 import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers, TLInterruptEvent } from '../../../types/event-types'
@@ -78,14 +78,14 @@ export class Pointing extends StateNode {
 		} else {
 			const id = createShapeId()
 
-			const shapePartial: TLShapePartial<TLLineShape> = {
-				id,
-				type: 'line',
-				x: currentPagePoint.x,
-				y: currentPagePoint.y,
-			}
-
-			this.editor.createShapes([shapePartial])
+			this.editor.createShapes<TLLineShape>([
+				{
+					id,
+					type: 'line',
+					x: currentPagePoint.x,
+					y: currentPagePoint.y,
+				},
+			])
 
 			this.editor.select(id)
 			this.shape = this.editor.getShapeById(id)!

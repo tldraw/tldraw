@@ -24,38 +24,38 @@ export default function APIExample() {
 
 		editor.focus()
 
-		const geoShapePartial: TLShapePartial<TLGeoShape> = {
-			id,
-			type: 'geo',
-			x: 128 + Math.random() * 500,
-			y: 128 + Math.random() * 500,
-			props: {
-				geo: 'rectangle',
-				w: 100,
-				h: 100,
-				dash: 'draw',
-				color: 'blue',
-				size: 'm',
-			},
-		}
-
 		// Create a shape
-		editor.createShapes([geoShapePartial])
+		editor.createShapes<TLGeoShape>([
+			{
+				id,
+				type: 'geo',
+				x: 128 + Math.random() * 500,
+				y: 128 + Math.random() * 500,
+				props: {
+					geo: 'rectangle',
+					w: 100,
+					h: 100,
+					dash: 'draw',
+					color: 'blue',
+					size: 'm',
+				},
+			},
+		])
 
 		// Get the created shape
 		const shape = editor.getShapeById<TLGeoShape>(id)!
 
-		// Update the shape
-		editor.updateShapes([
-			{
-				id,
-				type: 'geo',
-				props: {
-					h: shape.props.h * 3,
-					text: 'hello world!',
-				},
+		const shapeUpdate: TLShapePartial<TLGeoShape> = {
+			id,
+			type: 'geo',
+			props: {
+				h: shape.props.h * 3,
+				text: 'hello world!',
 			},
-		])
+		}
+
+		// Update the shape
+		editor.updateShapes([shapeUpdate])
 
 		// Select the shape
 		editor.select(id)

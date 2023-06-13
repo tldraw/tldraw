@@ -298,21 +298,21 @@ export class ExternalContentManager {
 			p.y = editor.viewportPageBounds.minY + 40 + h / 2
 		}
 
-		const textShapePartial: TLShapePartial<TLTextShape> = {
-			id: createShapeId(),
-			type: 'text',
-			x: p.x - w / 2,
-			y: p.y - h / 2,
-			props: {
-				text: textToPaste,
-				// if the text has more than one line, align it to the left
-				align,
-				autoSize,
-				w,
+		editor.createShapes<TLTextShape>([
+			{
+				id: createShapeId(),
+				type: 'text',
+				x: p.x - w / 2,
+				y: p.y - h / 2,
+				props: {
+					text: textToPaste,
+					// if the text has more than one line, align it to the left
+					align,
+					autoSize,
+					w,
+				},
 			},
-		}
-
-		editor.createShapes([textShapePartial])
+		])
 	}
 
 	/**

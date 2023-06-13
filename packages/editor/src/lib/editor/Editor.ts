@@ -1348,7 +1348,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		if (finalIndex !== reparentedArrow.index) {
-			this.updateShapes([{ id: arrowId, type: 'arrow', index: finalIndex }])
+			this.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }])
 		}
 	}
 
@@ -4636,14 +4636,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 *
 	 * ```ts
-	 * editor.createShapes([{ id: 'box1', type: 'box' }])
+	 * editor.createShapes([{ id: 'box1', type: 'text', props: { text: "ok" } }])
 	 * ```
 	 *
 	 * @param partials - The shape partials to create.
 	 * @param select - Whether to select the created shapes. Defaults to false.
 	 * @public
 	 */
-	createShapes(partials: TLShapePartial[], select = false) {
+	createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select = false) {
 		this._createShapes(partials, select)
 		return this
 	}
@@ -4934,14 +4934,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 *
 	 * ```ts
-	 * editor.updateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }])
+	 * editor.updateShapes([{ id: 'box1', type: 'geo', props: { w: 100, h: 100 } }])
 	 * ```
 	 *
 	 * @param partials - The shape partials to update.
 	 * @param squashing - Whether the change is ephemeral.
 	 * @public
 	 */
-	updateShapes(partials: (TLShapePartial | null | undefined)[], squashing = false) {
+	updateShapes<T extends TLUnknownShape>(
+		partials: (TLShapePartial<T> | null | undefined)[],
+		squashing = false
+	) {
 		let compactedPartials = compact(partials)
 		if (this.animatingShapes.size > 0) {
 			compactedPartials.forEach((p) => this.animatingShapes.delete(p.id))
@@ -8985,17 +8988,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const highestIndex = shapesWithRootParent[shapesWithRootParent.length - 1]?.index
 
 		this.batch(() => {
-			const groupShapePartial: TLShapePartial<TLGroupShape> = {
-				id: groupId,
-				type: 'group',
-				parentId,
-				index: highestIndex,
-				x,
-				y,
-				opacity: 1,
-				props: {},
-			}
-			this.createShapes([groupShapePartial])
+			this.createShapes<TLGroupShape>([
+				{
+					id: groupId,
+					type: 'group',
+					parentId,
+					index: highestIndex,
+					x,
+					y,
+					opacity: 1,
+					props: {},
+				},
+			])
 			this.reparentShapesById(sortedShapeIds, groupId)
 			this.select(groupId)
 		})

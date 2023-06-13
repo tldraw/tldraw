@@ -25,7 +25,7 @@ export default function ErrorBoundaryExample() {
 					}
 
 					// When the app starts, create our error shape so we can see.
-					editor.createShapes([errorShapePartial])
+					editor.createShapes<ErrorShape>([errorShapePartial])
 
 					// Center the camera on the error shape
 					editor.zoomToFit()

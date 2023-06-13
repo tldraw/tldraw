@@ -1,4 +1,4 @@
-import { TLGeoShape, createShapeId } from '@tldraw/tlschema'
+import { TLArrowShape, TLGeoShape, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -14,6 +14,71 @@ const ids = {
 
 beforeEach(() => {
 	editor = new TestEditor()
+})
+
+it('Uses typescript generics', () => {
+	// No error here because no generic, the editor doesn't know what this guy is
+	editor.createShapes([
+		{
+			id: ids.box1,
+			type: 'geo',
+			props: { w: 'OH NO' },
+		},
+	])
+
+	// Yep error here because we are giving the wrong props to the shape
+	editor.createShapes<TLGeoShape>([
+		{
+			id: ids.box1,
+			type: 'geo',
+			//@ts-expect-error
+			props: { w: 'OH NO' },
+		},
+	])
+
+	// Yep error here because we are giving the wrong generic
+	editor.createShapes<TLArrowShape>([
+		{
+			id: ids.box1,
+			//@ts-expect-error
+			type: 'geo',
+			//@ts-expect-error
+			props: { w: 'OH NO' },
+		},
+	])
+
+	// All good, correct match of generic and shape type
+	editor.createShapes<TLGeoShape>([
+		{
+			id: ids.box1,
+			type: 'geo',
+			props: { w: 100 },
+		},
+	])
+
+	editor.createShapes<TLGeoShape>([
+		{
+			id: ids.box1,
+			type: 'geo',
+		},
+		{
+			id: ids.box1,
+			// @ts-expect-error - wrong type
+			type: 'arrow',
+		},
+	])
+
+	// Unions are supported just fine
+	editor.createShapes<TLGeoShape | TLArrowShape>([
+		{
+			id: ids.box1,
+			type: 'geo',
+		},
+		{
+			id: ids.box1,
+			type: 'arrow',
+		},
+	])
 })
 
 it('Parents shapes to the current page if the parent is not found', () => {
