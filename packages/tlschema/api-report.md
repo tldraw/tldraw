@@ -128,6 +128,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
+    readonly canUnmount: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -139,6 +140,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -150,6 +152,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
     readonly height: 400;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -159,6 +162,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 520;
     readonly height: 400;
     readonly doesResize: false;
+    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -168,6 +172,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 800;
     readonly height: 450;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly overridePermissions: {
         readonly 'allow-presentation': true;
     };
@@ -181,6 +186,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
+    readonly canUnmount: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -190,6 +196,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -201,6 +208,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly minWidth: 460;
     readonly minHeight: 360;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -213,6 +221,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly minWidth: 460;
     readonly minHeight: 360;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -222,6 +231,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
+    readonly canUnmount: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -231,6 +241,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -240,6 +251,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -251,6 +263,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly minHeight: 500;
     readonly overrideOutlineRadius: 12;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -260,6 +273,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 640;
     readonly height: 360;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly isAspectRatioLocked: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -270,6 +284,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly isAspectRatioLocked: true;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -280,6 +295,7 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
+    readonly canUnmount: false;
     readonly isAspectRatioLocked: false;
     readonly backgroundColor: "#fff";
     readonly toEmbedUrl: (url: string) => string | undefined;
@@ -296,6 +312,7 @@ export type EmbedDefinition = {
     readonly width: number;
     readonly height: number;
     readonly doesResize: boolean;
+    readonly canUnmount: boolean;
     readonly isAspectRatioLocked?: boolean;
     readonly overridePermissions?: TLEmbedShapePermissions;
     readonly instructionLink?: string;

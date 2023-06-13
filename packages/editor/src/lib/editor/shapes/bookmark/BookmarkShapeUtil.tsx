@@ -2,14 +2,13 @@ import { toDomPrecision } from '@tldraw/primitives'
 import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
 import { debounce, getHashForString } from '@tldraw/utils'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { ROTATING_SHADOWS } from '../../../constants'
 
 const DEFAULT_BOOKMARK_WIDTH = 300
 const DEFAULT_BOOKMARK_HEIGHT = 320
 
 import { isValidUrl } from '../../../utils/data'
 import {
-	rotateBoxShadow,
+	getRotatedBoxShadow,
 	stopEventPropagation,
 	truncateStringWithEllipsis,
 } from '../../../utils/dom'
@@ -50,7 +49,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 				<div
 					className="tl-bookmark__container tl-hitarea-stroke"
 					style={{
-						boxShadow: rotateBoxShadow(pageRotation, ROTATING_SHADOWS),
+						boxShadow: getRotatedBoxShadow(pageRotation),
 					}}
 				>
 					<div className="tl-bookmark__image_container">
