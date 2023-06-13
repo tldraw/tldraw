@@ -111,6 +111,9 @@ export const ANIMATION_SHORT_MS = 80;
 export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const ArrowShape: TLShapeInfo<TLArrowShape>;
+
+// @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -204,13 +207,14 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 export function blobAsString(blob: Blob): Promise<string>;
 
 // @public (undocumented)
+export const BookmarkShape: TLShapeInfo<TLBookmarkShape>;
+
+// @public (undocumented)
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize: () => boolean;
     // (undocumented)
     defaultProps(): TLBookmarkShape['props'];
-    // (undocumented)
-    getHumanReadableAddress(shape: TLBookmarkShape): string;
     // (undocumented)
     hideSelectionBoundsBg: () => boolean;
     // (undocumented)
@@ -225,11 +229,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     render(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
     static type: "bookmark";
-    // (undocumented)
-    protected updateBookmarkAsset: {
-        (shape: TLBookmarkShape): Promise<void>;
-        cancel(): void;
-    };
 }
 
 // @internal (undocumented)
@@ -320,6 +319,9 @@ export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
 
 // @internal (undocumented)
 export const DRAG_DISTANCE = 4;
+
+// @public (undocumented)
+export const DrawShape: TLShapeInfo<TLDrawShape>;
 
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
@@ -780,6 +782,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 }
 
 // @public (undocumented)
+export const EmbedShape: TLShapeInfo<TLEmbedShape>;
+
+// @public (undocumented)
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canEdit: TLShapeUtilFlag<TLEmbedShape>;
@@ -849,6 +854,9 @@ export const FONT_FAMILIES: Record<TLFontType, string>;
 export const FONT_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const FrameShape: TLShapeInfo<TLFrameShape>;
+
+// @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -879,6 +887,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     static type: "frame";
 }
+
+// @public (undocumented)
+export const GeoShape: TLShapeInfo<TLGeoShape>;
 
 // @public (undocumented)
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
@@ -1043,6 +1054,9 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: 
 export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number): Promise<string>;
 
 // @public (undocumented)
+export function getRotatedBoxShadow(rotation: number): string;
+
+// @public (undocumented)
 export function getSplineForLineShape(shape: TLLineShape): NonNullable<CubicSpline2d | Polyline2d>;
 
 // @public (undocumented)
@@ -1093,6 +1107,9 @@ export const GRID_STEPS: {
 }[];
 
 // @public (undocumented)
+export const GroupShape: TLShapeInfo<TLGroupShape>;
+
+// @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -1133,6 +1150,9 @@ export function hardResetEditor(): void;
 
 // @internal (undocumented)
 export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
+
+// @public (undocumented)
+export const HighlightShape: TLShapeInfo<TLHighlightShape>;
 
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
@@ -1184,6 +1204,9 @@ export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 export const ICON_SIZES: Record<TLSizeType, number>;
 
 // @public (undocumented)
+export const ImageShape: TLShapeInfo<TLImageShape>;
+
+// @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop: () => boolean;
@@ -1233,7 +1256,13 @@ export const isSvgText: (text: string) => boolean;
 export const isValidHttpURL: (url: string) => boolean;
 
 // @public (undocumented)
+export function isValidUrl(url: string): boolean;
+
+// @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLSizeType, number>;
+
+// @public (undocumented)
+export const LineShape: TLShapeInfo<TLLineShape>;
 
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
@@ -1300,6 +1329,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1311,7 +1341,8 @@ export function matchEmbedUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: true;
-        readonly toEmbedUrl: (url: string) => string | undefined; /** @public */
+        readonly canUnmount: false;
+        readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
         readonly type: "codesandbox";
@@ -1322,6 +1353,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1331,6 +1363,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1341,6 +1374,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1350,6 +1384,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1359,6 +1394,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1370,6 +1406,7 @@ export function matchEmbedUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1380,6 +1417,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1391,6 +1429,7 @@ export function matchEmbedUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1400,6 +1439,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: false;
         readonly backgroundColor: "#fff";
         readonly toEmbedUrl: (url: string) => string | undefined;
@@ -1411,6 +1451,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1420,6 +1461,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: false;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1431,6 +1473,7 @@ export function matchEmbedUrl(url: string): {
         readonly minHeight: 500;
         readonly overrideOutlineRadius: 12;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1440,6 +1483,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 640;
         readonly height: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1450,6 +1494,7 @@ export function matchEmbedUrl(url: string): {
         readonly width: 800;
         readonly height: 450;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly overridePermissions: {
             readonly 'allow-presentation': true;
         };
@@ -1472,6 +1517,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1483,7 +1529,8 @@ export function matchUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: true;
-        readonly toEmbedUrl: (url: string) => string | undefined; /** @public */
+        readonly canUnmount: false;
+        readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
         readonly type: "codesandbox";
@@ -1494,6 +1541,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1503,6 +1551,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1513,6 +1562,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1522,6 +1572,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1531,6 +1582,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1542,6 +1594,7 @@ export function matchUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1552,6 +1605,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1563,6 +1617,7 @@ export function matchUrl(url: string): {
         readonly minWidth: 460;
         readonly minHeight: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1572,6 +1627,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: false;
         readonly backgroundColor: "#fff";
         readonly toEmbedUrl: (url: string) => string | undefined;
@@ -1583,6 +1639,7 @@ export function matchUrl(url: string): {
         readonly width: 720;
         readonly height: 500;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1592,6 +1649,7 @@ export function matchUrl(url: string): {
         readonly width: 520;
         readonly height: 400;
         readonly doesResize: false;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1603,6 +1661,7 @@ export function matchUrl(url: string): {
         readonly minHeight: 500;
         readonly overrideOutlineRadius: 12;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
     } | {
@@ -1612,6 +1671,7 @@ export function matchUrl(url: string): {
         readonly width: 640;
         readonly height: 360;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly isAspectRatioLocked: true;
         readonly toEmbedUrl: (url: string) => string | undefined;
         readonly fromEmbedUrl: (url: string) => string | undefined;
@@ -1622,6 +1682,7 @@ export function matchUrl(url: string): {
         readonly width: 800;
         readonly height: 450;
         readonly doesResize: true;
+        readonly canUnmount: false;
         readonly overridePermissions: {
             readonly 'allow-presentation': true;
         };
@@ -1666,6 +1727,9 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
     y: number;
     z: number;
 };
+
+// @public (undocumented)
+export const NoteShape: TLShapeInfo<TLNoteShape>;
 
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -1798,24 +1862,6 @@ export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
 
 // @internal (undocumented)
 export const RICH_TYPES: Record<string, boolean>;
-
-// @public (undocumented)
-export function rotateBoxShadow(rotation: number, shadows: {
-    offsetX: number;
-    offsetY: number;
-    blur: number;
-    spread: number;
-    color: string;
-}[]): string;
-
-// @public (undocumented)
-export const ROTATING_SHADOWS: {
-    offsetX: number;
-    offsetY: number;
-    blur: number;
-    spread: number;
-    color: string;
-}[];
 
 // @public (undocumented)
 export const runtime: {
@@ -2019,6 +2065,9 @@ export const TEXT_PROPS: {
     padding: string;
     maxWidth: string;
 };
+
+// @public (undocumented)
+export const TextShape: TLShapeInfo<TLTextShape>;
 
 // @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
@@ -2613,6 +2662,7 @@ export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
     util: TLShapeUtilConstructor<T>;
     props?: ShapeProps<T>;
     migrations?: Migrations;
+    tool?: TLStateNodeConstructor;
 };
 
 // @public (undocumented)
@@ -2752,6 +2802,9 @@ export function useReactor(name: string, reactFn: () => void, deps?: any[] | und
 
 // @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
+
+// @public (undocumented)
+export const VideoShape: TLShapeInfo<TLVideoShape>;
 
 // @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

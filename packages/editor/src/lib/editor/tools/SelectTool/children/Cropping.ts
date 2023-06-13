@@ -8,7 +8,7 @@ import {
 } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { MIN_CROP_SIZE } from '../../../../constants'
-import { ImageShapeUtil } from '../../../shapeutils/ImageShapeUtil/ImageShapeUtil'
+import { ImageShapeUtil } from '../../../shapes/image/ImageShapeUtil'
 import {
 	TLEnterEventHandler,
 	TLEventHandlers,

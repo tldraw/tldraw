@@ -175,12 +175,8 @@ function TldrawEditorWithOwnStore(
 
 const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	store,
-	assetUrls,
 	...rest
 }: Required<TldrawEditorProps & { store: TLStoreWithStatus }, 'shapes' | 'tools'>) {
-	const assets = useDefaultEditorAssetsWithOverrides(assetUrls)
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-
 	switch (store.status) {
 		case 'error': {
 			// for error handling, we fall back to the default error boundary.
@@ -202,14 +198,6 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 		}
 	}
 
-	if (preloadingError) {
-		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
-	}
-
-	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
-	}
-
 	return <TldrawEditorWithReadyStore {...rest} store={store.store} />
 })
 
@@ -220,6 +208,7 @@ function TldrawEditorWithReadyStore({
 	tools,
 	shapes,
 	autoFocus,
+	assetUrls,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -276,6 +265,17 @@ function TldrawEditorWithReadyStore({
 		),
 		() => editor?.crashingError ?? null
 	)
+
+	const assets = useDefaultEditorAssetsWithOverrides(assetUrls)
+	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+
+	if (preloadingError) {
+		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
+	}
+
+	if (!preloadingComplete) {
+		return <LoadingScreen>Loading assets...</LoadingScreen>
+	}
 
 	if (!editor) {
 		return null
