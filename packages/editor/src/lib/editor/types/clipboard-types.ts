@@ -11,6 +11,7 @@ export interface TLContent {
 }
 
 /**
+ * Options for placing content into the editor.
  * @param point - Where to place the content.
  * @param select - Whether to select the placed content.
  * @param preservePosition - Whether to preserve the position of the content.

@@ -431,7 +431,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _canMoveCamera = atom('can move camera', true)
 
 	/**
-	 * Set whether the editor's camera can move.
+	 * Whether the editor's camera can move.
 	 *
 	 * @example
 	 *
@@ -439,7 +439,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.canMoveCamera = false
 	 * ```
 	 *
-	 * @param canMove - Whether the camera can move.
 	 * @public
 	 */
 	get canMoveCamera() {
