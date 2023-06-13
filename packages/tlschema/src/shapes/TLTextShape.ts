@@ -4,7 +4,7 @@ import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
 import { TLColorType, colorValidator } from '../styles/TLColorStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { TLBaseShape, createShapeValidator } from './TLBaseShape'
+import { ShapeProps, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export type TLTextShapeProps = {
@@ -22,19 +22,16 @@ export type TLTextShapeProps = {
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
 /** @internal */
-export const textShapeValidator: T.Validator<TLTextShape> = createShapeValidator(
-	'text',
-	T.object({
-		color: colorValidator,
-		size: sizeValidator,
-		font: fontValidator,
-		align: alignValidator,
-		w: T.nonZeroNumber,
-		text: T.string,
-		scale: T.nonZeroNumber,
-		autoSize: T.boolean,
-	})
-)
+export const textShapeProps: ShapeProps<TLTextShape> = {
+	color: colorValidator,
+	size: sizeValidator,
+	font: fontValidator,
+	align: alignValidator,
+	w: T.nonZeroNumber,
+	text: T.string,
+	scale: T.nonZeroNumber,
+	autoSize: T.boolean,
+}
 
 const Versions = {
 	RemoveJustify: 1,

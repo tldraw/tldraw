@@ -28,8 +28,8 @@ import {
 import { truncateStringWithEllipsis } from '../../utils/dom'
 import { getEmbedInfo } from '../../utils/embeds'
 import { Editor } from '../Editor'
-import { INDENT } from '../shapeutils/TextShapeUtil/TextHelpers'
-import { TextShapeUtil } from '../shapeutils/TextShapeUtil/TextShapeUtil'
+import { INDENT } from '../shapes/text/TextHelpers'
+import { TextShapeUtil } from '../shapes/text/TextShapeUtil'
 
 /** @public */
 export type TLExternalContent =

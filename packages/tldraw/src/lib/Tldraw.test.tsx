@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { TldrawEditor } from '@tldraw/editor'
+import { Tldraw } from './Tldraw'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -20,9 +20,9 @@ afterEach(() => {
 describe('<Tldraw />', () => {
 	it('Renders without crashing', async () => {
 		await act(async () => (
-			<TldrawEditor autoFocus>
+			<Tldraw autoFocus>
 				<div data-testid="canvas-1" />
-			</TldrawEditor>
+			</Tldraw>
 		))
 	})
 })

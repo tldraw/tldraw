@@ -5,7 +5,7 @@ import { SetValue } from '../util-types'
  * The colors used by tldraw's default shapes.
  *
  *  @public */
-export const TL_COLOR_TYPES = new Set([
+export const TL_CANVAS_UI_COLOR_TYPES = new Set([
 	'accent',
 	'white',
 	'black',
@@ -19,10 +19,10 @@ export const TL_COLOR_TYPES = new Set([
  * A type for the colors used by tldraw's default shapes.
  *
  *  @public */
-export type TLColor = SetValue<typeof TL_COLOR_TYPES>
+export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>
 
 /**
  * A validator for the colors used by tldraw's default shapes.
  *
  * @public */
-export const colorTypeValidator = T.setEnum(TL_COLOR_TYPES)
+export const canvasUiColorTypeValidator = T.setEnum(TL_CANVAS_UI_COLOR_TYPES)

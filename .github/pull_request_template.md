@@ -2,19 +2,17 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 
 ### Change Type
 
-<!-- 💡 Indicate the type of change your pull request is. -->
-<!-- 🤷‍♀️ If you're not sure, don't select anything -->
-<!-- ✂️ Feel free to delete unselected options -->
+- [ ] `patch` — Bug fix
+- [ ] `minor` — New feature
+- [ ] `major` — Breaking change
+- [ ] `dependencies` — Changes to package dependencies[^1]
+- [ ] `documentation` — Changes to the documentation only[^2]
+- [ ] `tests` — Changes to any test code only[^2]
+- [ ] `internal` — Any other changes that don't affect the published package[^2]
+- [ ] I don't know
 
-<!-- To select one, put an x in the box: [x] -->
-
-- [ ] `patch` — Bug Fix
-- [ ] `minor` — New Feature
-- [ ] `major` — Breaking Change
-- [ ] `dependencies` — Dependency Update (publishes a `patch` release, for devDependencies use `internal`)
-- [ ] `documentation` — Changes to the documentation only (will not publish a new version)
-- [ ] `tests` — Changes to any testing-related code only (will not publish a new version)
-- [ ] `internal` — Any other changes that don't affect the published package (will not publish a new version)
+[^1]: publishes a `patch` release, for devDependencies use `internal`
+[^2]: will not publish a new version
 
 ### Test Plan
 
@@ -22,7 +20,7 @@ Describe what your pull request does. If appropriate, add GIFs or images showing
 2.
 
 - [ ] Unit Tests
-- [ ] Webdriver tests
+- [ ] End to end tests
 
 ### Release Notes
 
