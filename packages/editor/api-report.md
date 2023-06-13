@@ -603,7 +603,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     get projectName(): string;
     // @internal
     get props(): null | TLNullableShapeProps;
-    putContent(content: TLContent, options?: TLPutContentOptions): this;
+    putContent(content: TLContent, options?: {
+        point?: VecLike;
+        select?: boolean;
+        preservePosition?: boolean;
+        preserveIds?: boolean;
+    }): this;
     putExternalContent(info: TLExternalContent): Promise<void>;
     redo(): this;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;

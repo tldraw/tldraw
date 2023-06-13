@@ -135,7 +135,7 @@ import { TLExportColors } from './shapes/shared/TLExportColors'
 import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
-import { TLContent, TLPutContentOptions } from './types/clipboard-types'
+import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
 import { RequiredKeys } from './types/misc-types'
@@ -4515,7 +4515,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param options - Options for placing the content.
 	 * @public
 	 */
-	putContent(content: TLContent, options: TLPutContentOptions = {}): this {
+	putContent(
+		content: TLContent,
+		options: {
+			point?: VecLike
+			select?: boolean
+			preservePosition?: boolean
+			preserveIds?: boolean
+		} = {}
+	): this {
 		if (this.isReadOnly) return this
 
 		if (!content.schema) {
