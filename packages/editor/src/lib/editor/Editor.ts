@@ -439,6 +439,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.canMoveCamera = false
 	 * ```
 	 *
+	 * @param canMove - Whether the camera can move.
 	 * @public
 	 */
 	get canMoveCamera() {
