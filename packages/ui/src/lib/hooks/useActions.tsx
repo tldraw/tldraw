@@ -5,6 +5,7 @@ import {
 	DEFAULT_BOOKMARK_WIDTH,
 	Editor,
 	EmbedShapeUtil,
+	TLEmbedShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -314,14 +315,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						if (!embedInfo) continue
 						if (!embedInfo.definition) continue
 
-						const { width, height, doesResize } = embedInfo.definition
+						const { width, height } = embedInfo.definition
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
 						newPos.add(new Vec2d(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
 						newPos.rot(shape.rotation)
 
-						createList.push({
+						const shapeToCreate: TLShapePartial<TLEmbedShape> = {
 							id: createShapeId(),
 							type: 'embed',
 							x: newPos.x,
@@ -331,9 +332,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 								url: url,
 								w: width,
 								h: height,
-								doesResize,
 							},
-						})
+						}
+
+						createList.push(shapeToCreate)
 						deleteList.push(shape.id)
 					}
 
