@@ -17,6 +17,7 @@ import { TLArrowShape } from '@tldraw/tlschema'
 import {
 	BOUND_ARROW_OFFSET,
 	MIN_ARROW_LENGTH,
+	STROKE_SIZES,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 } from '../../../../constants'
 import type { Editor } from '../../../Editor'
@@ -115,9 +116,9 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 			if (arrowheadStart !== 'none') {
 				const offset =
 					BOUND_ARROW_OFFSET +
-					editor.getStrokeWidth(shape.props.size) / 2 +
+					STROKE_SIZES[shape.props.size] / 2 +
 					('size' in startShapeInfo.shape.props
-						? editor.getStrokeWidth(startShapeInfo.shape.props.size) / 2
+						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 						: 0)
 
 				a.setTo(
@@ -192,10 +193,8 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 			if (arrowheadEnd !== 'none') {
 				let offset =
 					BOUND_ARROW_OFFSET +
-					editor.getStrokeWidth(shape.props.size) / 2 +
-					('size' in endShapeInfo.shape.props
-						? editor.getStrokeWidth(endShapeInfo.shape.props.size) / 2
-						: 0)
+					STROKE_SIZES[shape.props.size] / 2 +
+					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
 
 				if (Vec2d.Dist(a, b) < MIN_ARROW_LENGTH) {
 					offset *= -2

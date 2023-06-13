@@ -1,6 +1,7 @@
-import { TLStyleType } from '@tldraw/tlschema'
+import { TLBaseShape } from '@tldraw/tlschema'
 import { atom, Atom, computed, Computed } from 'signia'
 import type { Editor } from '../Editor'
+import { TLShapeUtilConstructor } from '../shapes/ShapeUtil'
 import {
 	EVENT_NAME_MAP,
 	TLEnterEventHandler,
@@ -18,7 +19,6 @@ export interface TLStateNodeConstructor {
 	id: string
 	initial?: string
 	children?: () => TLStateNodeConstructor[]
-	styles?: TLStyleType[]
 }
 
 /** @public */
@@ -69,8 +69,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	id: string
 	current: Atom<StateNode | undefined>
 	type: TLStateNodeType
-	readonly styles: TLStyleType[] = []
-	shapeType?: string
+	shapeType?: TLShapeUtilConstructor<TLBaseShape<any, any>>
 	initial?: string
 	children?: Record<string, StateNode>
 	parent: StateNode

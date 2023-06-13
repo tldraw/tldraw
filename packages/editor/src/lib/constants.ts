@@ -1,5 +1,5 @@
 import { EASINGS } from '@tldraw/primitives'
-import { TLAlignType, TLFontType, TLSizeType, TLStyleCollections } from '@tldraw/tlschema'
+import { TLDefaultFontStyle, TLDefaultSizeStyle } from '@tldraw/tlschema'
 
 /** @internal */
 export const MAX_SHAPES_PER_PAGE = 2000
@@ -119,7 +119,15 @@ export const TEXT_PROPS = {
 }
 
 /** @public */
-export const FONT_SIZES: Record<TLSizeType, number> = {
+export const STROKE_SIZES: Record<TLDefaultSizeStyle, number> = {
+	s: 2,
+	m: 3.5,
+	l: 5,
+	xl: 10,
+}
+
+/** @public */
+export const FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 18,
 	m: 24,
 	l: 36,
@@ -127,7 +135,7 @@ export const FONT_SIZES: Record<TLSizeType, number> = {
 }
 
 /** @public */
-export const LABEL_FONT_SIZES: Record<TLSizeType, number> = {
+export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 18,
 	m: 22,
 	l: 26,
@@ -135,7 +143,7 @@ export const LABEL_FONT_SIZES: Record<TLSizeType, number> = {
 }
 
 /** @public */
-export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number> = {
+export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number> = {
 	s: 18,
 	m: 20,
 	l: 24,
@@ -143,136 +151,12 @@ export const ARROW_LABEL_FONT_SIZES: Record<TLSizeType, number> = {
 }
 
 /** @public */
-export const ICON_SIZES: Record<TLSizeType, number> = {
-	s: 16,
-	m: 32,
-	l: 48,
-	xl: 64,
-}
-
-/** @public */
-export const FONT_FAMILIES: Record<TLFontType, string> = {
+export const FONT_FAMILIES: Record<TLDefaultFontStyle, string> = {
 	draw: 'var(--tl-font-draw)',
 	sans: 'var(--tl-font-sans)',
 	serif: 'var(--tl-font-serif)',
 	mono: 'var(--tl-font-mono)',
 }
-
-/** @public */
-export const FONT_ALIGNMENT: Record<TLAlignType, string> = {
-	middle: 'center',
-	start: 'left',
-	end: 'right',
-}
-
-/** @public */
-export const STYLES: TLStyleCollections = {
-	color: [
-		{ id: 'black', type: 'color', icon: 'color' },
-		{ id: 'grey', type: 'color', icon: 'color' },
-		{ id: 'light-violet', type: 'color', icon: 'color' },
-		{ id: 'violet', type: 'color', icon: 'color' },
-		{ id: 'blue', type: 'color', icon: 'color' },
-		{ id: 'light-blue', type: 'color', icon: 'color' },
-		{ id: 'yellow', type: 'color', icon: 'color' },
-		{ id: 'orange', type: 'color', icon: 'color' },
-		{ id: 'green', type: 'color', icon: 'color' },
-		{ id: 'light-green', type: 'color', icon: 'color' },
-		{ id: 'light-red', type: 'color', icon: 'color' },
-		{ id: 'red', type: 'color', icon: 'color' },
-	],
-	fill: [
-		{ id: 'none', type: 'fill', icon: 'fill-none' },
-		{ id: 'semi', type: 'fill', icon: 'fill-semi' },
-		{ id: 'solid', type: 'fill', icon: 'fill-solid' },
-		{ id: 'pattern', type: 'fill', icon: 'fill-pattern' },
-	],
-	dash: [
-		{ id: 'draw', type: 'dash', icon: 'dash-draw' },
-		{ id: 'dashed', type: 'dash', icon: 'dash-dashed' },
-		{ id: 'dotted', type: 'dash', icon: 'dash-dotted' },
-		{ id: 'solid', type: 'dash', icon: 'dash-solid' },
-	],
-	size: [
-		{ id: 's', type: 'size', icon: 'size-small' },
-		{ id: 'm', type: 'size', icon: 'size-medium' },
-		{ id: 'l', type: 'size', icon: 'size-large' },
-		{ id: 'xl', type: 'size', icon: 'size-extra-large' },
-	],
-	font: [
-		{ id: 'draw', type: 'font', icon: 'font-draw' },
-		{ id: 'sans', type: 'font', icon: 'font-sans' },
-		{ id: 'serif', type: 'font', icon: 'font-serif' },
-		{ id: 'mono', type: 'font', icon: 'font-mono' },
-	],
-	align: [
-		{ id: 'start', type: 'align', icon: 'text-align-left' },
-		{ id: 'middle', type: 'align', icon: 'text-align-center' },
-		{ id: 'end', type: 'align', icon: 'text-align-right' },
-	],
-	verticalAlign: [
-		{ id: 'start', type: 'verticalAlign', icon: 'vertical-align-start' },
-		{ id: 'middle', type: 'verticalAlign', icon: 'vertical-align-center' },
-		{ id: 'end', type: 'verticalAlign', icon: 'vertical-align-end' },
-	],
-	geo: [
-		{ id: 'rectangle', type: 'geo', icon: 'geo-rectangle' },
-		{ id: 'ellipse', type: 'geo', icon: 'geo-ellipse' },
-		{ id: 'triangle', type: 'geo', icon: 'geo-triangle' },
-		{ id: 'diamond', type: 'geo', icon: 'geo-diamond' },
-		{ id: 'pentagon', type: 'geo', icon: 'geo-pentagon' },
-		{ id: 'hexagon', type: 'geo', icon: 'geo-hexagon' },
-		{ id: 'octagon', type: 'geo', icon: 'geo-octagon' },
-		{ id: 'star', type: 'geo', icon: 'geo-star' },
-		{ id: 'rhombus', type: 'geo', icon: 'geo-rhombus' },
-		{ id: 'rhombus-2', type: 'geo', icon: 'geo-rhombus-2' },
-		{ id: 'oval', type: 'geo', icon: 'geo-oval' },
-		{ id: 'trapezoid', type: 'geo', icon: 'geo-trapezoid' },
-		{ id: 'arrow-right', type: 'geo', icon: 'geo-arrow-right' },
-		{ id: 'arrow-left', type: 'geo', icon: 'geo-arrow-left' },
-		{ id: 'arrow-up', type: 'geo', icon: 'geo-arrow-up' },
-		{ id: 'arrow-down', type: 'geo', icon: 'geo-arrow-down' },
-		{ id: 'x-box', type: 'geo', icon: 'geo-x-box' },
-		{ id: 'check-box', type: 'geo', icon: 'geo-check-box' },
-	],
-	arrowheadStart: [
-		{ id: 'none', type: 'arrowheadStart', icon: 'arrowhead-none' },
-		{ id: 'arrow', type: 'arrowheadStart', icon: 'arrowhead-arrow' },
-		{ id: 'triangle', type: 'arrowheadStart', icon: 'arrowhead-triangle' },
-		{ id: 'square', type: 'arrowheadStart', icon: 'arrowhead-square' },
-		{ id: 'dot', type: 'arrowheadStart', icon: 'arrowhead-dot' },
-		{ id: 'diamond', type: 'arrowheadStart', icon: 'arrowhead-diamond' },
-		{ id: 'inverted', type: 'arrowheadStart', icon: 'arrowhead-triangle-inverted' },
-		{ id: 'bar', type: 'arrowheadStart', icon: 'arrowhead-bar' },
-	],
-	arrowheadEnd: [
-		{ id: 'none', type: 'arrowheadEnd', icon: 'arrowhead-none' },
-		{ id: 'arrow', type: 'arrowheadEnd', icon: 'arrowhead-arrow' },
-		{ id: 'triangle', type: 'arrowheadEnd', icon: 'arrowhead-triangle' },
-		{ id: 'square', type: 'arrowheadEnd', icon: 'arrowhead-square' },
-		{ id: 'dot', type: 'arrowheadEnd', icon: 'arrowhead-dot' },
-		{ id: 'diamond', type: 'arrowheadEnd', icon: 'arrowhead-diamond' },
-		{ id: 'inverted', type: 'arrowheadEnd', icon: 'arrowhead-triangle-inverted' },
-		{ id: 'bar', type: 'arrowheadEnd', icon: 'arrowhead-bar' },
-	],
-	spline: [
-		{ id: 'line', type: 'spline', icon: 'spline-line' },
-		{ id: 'cubic', type: 'spline', icon: 'spline-cubic' },
-	],
-}
-
-// These props should not cause Editor.props to update
-export const BLACKLISTED_PROPS = new Set([
-	'bend',
-	'w',
-	'h',
-	'start',
-	'end',
-	'text',
-	'name',
-	'url',
-	'growY',
-])
 
 /** @internal */
 export const COLLABORATOR_TIMEOUT = 3000

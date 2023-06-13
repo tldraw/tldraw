@@ -1,10 +1,11 @@
 import {
-	TLAlignType,
-	TLFillType,
-	TLFontType,
+	TLDefaultColorStyle,
+	TLDefaultFillStyle,
+	TLDefaultFontStyle,
+	TLDefaultHorizontalAlignStyle,
+	TLDefaultSizeStyle,
+	TLDefaultVerticalAlignStyle,
 	TLShape,
-	TLSizeType,
-	TLVerticalAlignType,
 } from '@tldraw/tlschema'
 import React from 'react'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
@@ -28,14 +29,14 @@ export const TextLabel = React.memo(function TextLabel<
 }: {
 	id: T['id']
 	type: T['type']
-	size: TLSizeType
-	font: TLFontType
-	fill?: TLFillType
-	align: TLAlignType
-	verticalAlign: TLVerticalAlignType
+	size: TLDefaultSizeStyle
+	font: TLDefaultFontStyle
+	fill?: TLDefaultFillStyle
+	align: TLDefaultHorizontalAlignStyle
+	verticalAlign: TLDefaultVerticalAlignStyle
 	wrap?: boolean
 	text: string
-	labelColor: string
+	labelColor: TLDefaultColorStyle
 }) {
 	const {
 		rInput,
@@ -77,7 +78,7 @@ export const TextLabel = React.memo(function TextLabel<
 					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
 					minHeight: isEmpty ? LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 32 : 0,
 					minWidth: isEmpty ? 33 : 0,
-					color: labelColor,
+					color: `var(--palette-${labelColor})`,
 				}}
 			>
 				<div className="tl-text tl-text-content" dir="ltr">

@@ -16,9 +16,6 @@ import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal (undocumented)
-export const alignValidator: T.Validator<"end" | "middle" | "start">;
-
-// @internal (undocumented)
 export const arrowShapeMigrations: Migrations;
 
 // @internal (undocumented)
@@ -63,9 +60,6 @@ export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser
 // @internal (undocumented)
 export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
 
-// @internal (undocumented)
-export const colorValidator: T.Validator<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-
 // @public
 export function createAssetValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
     id: TLAssetId;
@@ -106,8 +100,53 @@ export function createTLSchema({ shapes }: {
     shapes: Record<string, SchemaShapeInfo>;
 }): TLSchema;
 
-// @internal (undocumented)
-export const dashValidator: T.Validator<"dashed" | "dotted" | "draw" | "solid">;
+// @public (undocumented)
+export const DefaultColorStyle: EnumStyleProp<readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red"]>;
+
+// @public (undocumented)
+export type DefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+
+// @public (undocumented)
+export const DefaultDashStyle: EnumStyleProp<readonly ["draw", "solid", "dashed", "dotted"]>;
+
+// @public (undocumented)
+export type DefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
+
+// @public (undocumented)
+export const DefaultFillStyle: EnumStyleProp<readonly ["none", "semi", "solid", "pattern"]>;
+
+// @public (undocumented)
+export type DefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>;
+
+// @public (undocumented)
+export const DefaultFontStyle: EnumStyleProp<readonly ["draw", "sans", "serif", "mono"]>;
+
+// @public (undocumented)
+export type DefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
+
+// @public (undocumented)
+export const DefaultHorizontalAlignStyle: EnumStyleProp<readonly ["start", "middle", "end", "start-legacy", "end-legacy", "middle-legacy"]>;
+
+// @public (undocumented)
+export type DefaultHorizontalAlignStyle = 'end-legacy'
+/** @internal */ | 'end'
+/** @internal */ | 'middle-legacy'
+| 'middle'
+| 'start-legacy'
+/** @internal */
+| 'start';
+
+// @public (undocumented)
+export const DefaultSizeStyle: EnumStyleProp<readonly ["s", "m", "l", "xl"]>;
+
+// @public (undocumented)
+export type DefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
+
+// @public (undocumented)
+export const DefaultVerticalAlignStyle: EnumStyleProp<readonly ["start", "middle", "end"]>;
+
+// @public (undocumented)
+export type DefaultVerticalAlignStyle = T.TypeOf<typeof DefaultVerticalAlignStyle>;
 
 // @public (undocumented)
 export const DocumentRecordType: RecordType<TLDocument, never>;
@@ -347,16 +386,10 @@ export const embedShapePermissionDefaults: {
 export const embedShapeProps: ShapeProps<TLEmbedShape>;
 
 // @internal (undocumented)
-export const fillValidator: T.Validator<"none" | "pattern" | "semi" | "solid">;
-
-// @internal (undocumented)
 export function fixupRecord(oldRecord: TLRecord): {
     record: any;
     issues: string[];
 };
-
-// @internal (undocumented)
-export const fontValidator: T.Validator<"draw" | "mono" | "sans" | "serif">;
 
 // @internal (undocumented)
 export const frameShapeMigrations: Migrations;
@@ -369,9 +402,6 @@ export const geoShapeMigrations: Migrations;
 
 // @internal (undocumented)
 export const geoShapeProps: ShapeProps<TLGeoShape>;
-
-// @internal (undocumented)
-export const geoValidator: T.Validator<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
 
 // @public (undocumented)
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
@@ -387,15 +417,6 @@ export const highlightShapeMigrations: Migrations;
 
 // @internal (undocumented)
 export const highlightShapeProps: ShapeProps<TLHighlightShape>;
-
-// @internal (undocumented)
-export const iconShapeMigrations: Migrations;
-
-// @internal (undocumented)
-export const iconShapeProps: ShapeProps<TLIconShape>;
-
-// @internal (undocumented)
-export const iconValidator: T.Validator<"activity" | "airplay" | "alert-circle" | "alert-octagon" | "alert-triangle" | "align-center" | "align-justify" | "align-left" | "align-right" | "anchor" | "aperture" | "archive" | "arrow-down-circle" | "arrow-down-left" | "arrow-down-right" | "arrow-down" | "arrow-left-circle" | "arrow-left" | "arrow-right-circle" | "arrow-right" | "arrow-up-circle" | "arrow-up-left" | "arrow-up-right" | "arrow-up" | "at-sign" | "award" | "bar-chart-2" | "bar-chart" | "battery-charging" | "battery" | "bell-off" | "bell" | "bluetooth" | "bold" | "book-open" | "book" | "bookmark" | "briefcase" | "calendar" | "camera-off" | "camera" | "cast" | "check-circle" | "check-square" | "check" | "chevron-down" | "chevron-left" | "chevron-right" | "chevron-up" | "chevrons-down" | "chevrons-left" | "chevrons-right" | "chevrons-up" | "chrome" | "circle" | "clipboard" | "clock" | "cloud-drizzle" | "cloud-lightning" | "cloud-off" | "cloud-rain" | "cloud-snow" | "cloud" | "codepen" | "codesandbox" | "coffee" | "columns" | "command" | "compass" | "copy" | "corner-down-left" | "corner-down-right" | "corner-left-down" | "corner-left-up" | "corner-right-down" | "corner-right-up" | "corner-up-left" | "corner-up-right" | "cpu" | "credit-card" | "crop" | "crosshair" | "database" | "delete" | "disc" | "divide-circle" | "divide-square" | "divide" | "dollar-sign" | "download-cloud" | "download" | "dribbble" | "droplet" | "edit-2" | "edit-3" | "edit" | "external-link" | "eye-off" | "eye" | "facebook" | "fast-forward" | "feather" | "figma" | "file-minus" | "file-plus" | "file-text" | "file" | "film" | "filter" | "flag" | "folder-minus" | "folder-plus" | "folder" | "framer" | "frown" | "geo" | "gift" | "git-branch" | "git-commit" | "git-merge" | "git-pull-request" | "github" | "gitlab" | "globe" | "grid" | "hard-drive" | "hash" | "headphones" | "heart" | "help-circle" | "hexagon" | "home" | "image" | "inbox" | "info" | "instagram" | "italic" | "key" | "layers" | "layout" | "life-buoy" | "link-2" | "link" | "linkedin" | "list" | "loader" | "lock" | "log-in" | "log-out" | "mail" | "map-pin" | "map" | "maximize-2" | "maximize" | "meh" | "menu" | "message-circle" | "message-square" | "mic-off" | "mic" | "minimize-2" | "minimize" | "minus-circle" | "minus-square" | "minus" | "monitor" | "moon" | "more-horizontal" | "more-vertical" | "mouse-pointer" | "move" | "music" | "navigation-2" | "navigation" | "octagon" | "package" | "paperclip" | "pause-circle" | "pause" | "pen-tool" | "percent" | "phone-call" | "phone-forwarded" | "phone-incoming" | "phone-missed" | "phone-off" | "phone-outgoing" | "phone" | "pie-chart" | "play-circle" | "play" | "plus-circle" | "plus-square" | "plus" | "pocket" | "power" | "printer" | "radio" | "refresh-ccw" | "refresh-cw" | "repeat" | "rewind" | "rotate-ccw" | "rotate-cw" | "rss" | "save" | "scissors" | "search" | "send" | "server" | "settings" | "share-2" | "share" | "shield-off" | "shield" | "shopping-bag" | "shopping-cart" | "shuffle" | "sidebar" | "skip-back" | "skip-forward" | "slack" | "slash" | "sliders" | "smartphone" | "smile" | "speaker" | "square" | "star" | "stop-circle" | "sun" | "sunrise" | "sunset" | "table" | "tablet" | "tag" | "target" | "terminal" | "thermometer" | "thumbs-down" | "thumbs-up" | "toggle-left" | "toggle-right" | "tool" | "trash-2" | "trash" | "trello" | "trending-down" | "trending-up" | "triangle" | "truck" | "tv" | "twitch" | "twitter" | "type" | "umbrella" | "underline" | "unlock" | "upload-cloud" | "upload" | "user-check" | "user-minus" | "user-plus" | "user-x" | "user" | "users" | "video-off" | "video" | "voicemail" | "volume-1" | "volume-2" | "volume-x" | "volume" | "watch" | "wifi-off" | "wifi" | "wind" | "x-circle" | "x-octagon" | "x-square" | "x" | "youtube" | "zap-off" | "zap" | "zoom-in" | "zoom-out">;
 
 // @internal (undocumented)
 export function idValidator<Id extends RecordId<UnknownRecord>>(prefix: Id['__type__']['typeName']): T.Validator<Id>;
@@ -575,14 +596,8 @@ export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @public (undocumented)
 export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
-    [K in keyof Shape['props']]: T.Validator<Shape['props'][K]>;
+    [K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>;
 };
-
-// @internal (undocumented)
-export const sizeValidator: T.Validator<"l" | "m" | "s" | "xl">;
-
-// @internal (undocumented)
-export const splineValidator: T.Validator<"cubic" | "line">;
 
 // @internal (undocumented)
 export const textShapeMigrations: Migrations;
@@ -590,82 +605,31 @@ export const textShapeMigrations: Migrations;
 // @internal (undocumented)
 export const textShapeProps: ShapeProps<TLTextShape>;
 
-// @public (undocumented)
-export const TL_ALIGN_TYPES: Set<"end" | "middle" | "start">;
-
-// @public (undocumented)
-export const TL_ARROWHEAD_TYPES: Set<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-
 // @public
 export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public (undocumented)
-export const TL_COLOR_TYPES: Set<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+export const TLArrowArrowheadEndStyle: EnumStyleProp<readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"]>;
 
 // @public (undocumented)
-export const TL_DASH_TYPES: Set<"dashed" | "dotted" | "draw" | "solid">;
+export const TLArrowArrowheadStartStyle: EnumStyleProp<readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"]>;
 
 // @public (undocumented)
-export const TL_FILL_TYPES: Set<"none" | "pattern" | "semi" | "solid">;
-
-// @public (undocumented)
-export const TL_FONT_TYPES: Set<"draw" | "mono" | "sans" | "serif">;
-
-// @public (undocumented)
-export const TL_GEO_TYPES: Set<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
-
-// @public (undocumented)
-export const TL_SIZE_TYPES: Set<"l" | "m" | "s" | "xl">;
-
-// @public (undocumented)
-export const TL_SPLINE_TYPES: Set<"cubic" | "line">;
-
-// @public (undocumented)
-export const TL_STYLE_TYPES: Set<"align" | "arrowheadEnd" | "arrowheadStart" | "color" | "dash" | "fill" | "font" | "geo" | "icon" | "labelColor" | "size" | "spline" | "verticalAlign">;
-
-// @public (undocumented)
-export interface TLAlignStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLAlignType;
-    // (undocumented)
-    type: 'align';
-}
-
-// @public (undocumented)
-export type TLAlignType = SetValue<typeof TL_ALIGN_TYPES>;
-
-// @public (undocumented)
-export interface TLArrowheadEndStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLArrowheadType;
-    // (undocumented)
-    type: 'arrowheadEnd';
-}
-
-// @public (undocumented)
-export interface TLArrowheadStartStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLArrowheadType;
-    // (undocumented)
-    type: 'arrowheadStart';
-}
-
-// @public (undocumented)
-export type TLArrowheadType = SetValue<typeof TL_ARROWHEAD_TYPES>;
+export type TLArrowArrowheadStyle = T.TypeOf<typeof TLArrowArrowheadStartStyle>;
 
 // @public (undocumented)
 export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>;
 
 // @public (undocumented)
 export type TLArrowShapeProps = {
-    labelColor: TLColorType;
-    color: TLColorType;
-    fill: TLFillType;
-    dash: TLDashType;
-    size: TLSizeType;
-    arrowheadStart: TLArrowheadType;
-    arrowheadEnd: TLArrowheadType;
-    font: TLFontType;
+    labelColor: DefaultColorStyle;
+    color: DefaultColorStyle;
+    fill: DefaultFillStyle;
+    dash: DefaultDashStyle;
+    size: DefaultSizeStyle;
+    arrowheadStart: TLArrowArrowheadStyle;
+    arrowheadEnd: TLArrowArrowheadStyle;
+    font: DefaultFontStyle;
     start: TLArrowTerminal;
     end: TLArrowTerminal;
     bend: number;
@@ -764,17 +728,6 @@ export type TLCameraId = RecordId<TLCamera>;
 // @public
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
-// @public (undocumented)
-export interface TLColorStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLColorType;
-    // (undocumented)
-    type: 'color';
-}
-
-// @public (undocumented)
-export type TLColorType = SetValue<typeof TL_COLOR_TYPES>;
-
 // @public
 export interface TLCursor {
     // (undocumented)
@@ -788,19 +741,8 @@ export interface TLCursor {
 // @public
 export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
-// @public (undocumented)
-export interface TLDashStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLDashType;
-    // (undocumented)
-    type: 'dash';
-}
-
-// @public (undocumented)
-export type TLDashType = SetValue<typeof TL_DASH_TYPES>;
-
 // @public
-export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLIconShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
 
 // @public
 export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
@@ -831,43 +773,16 @@ export type TLEmbedShapePermissions = {
 };
 
 // @public (undocumented)
-export interface TLFillStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLFillType;
-    // (undocumented)
-    type: 'fill';
-}
-
-// @public (undocumented)
-export type TLFillType = SetValue<typeof TL_FILL_TYPES>;
-
-// @public (undocumented)
-export interface TLFontStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLFontType;
-    // (undocumented)
-    type: 'font';
-}
-
-// @public (undocumented)
-export type TLFontType = SetValue<typeof TL_FONT_TYPES>;
-
-// @public (undocumented)
 export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
 
 // @public (undocumented)
 export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>;
 
 // @public (undocumented)
-export interface TLGeoStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLGeoType;
-    // (undocumented)
-    type: 'geo';
-}
+export const TLGeoShapeGeoStyle: EnumStyleProp<readonly ["rectangle", "ellipse", "triangle", "diamond", "pentagon", "hexagon", "octagon", "star", "rhombus", "rhombus-2", "oval", "trapezoid", "arrow-right", "arrow-left", "arrow-up", "arrow-down", "x-box", "check-box"]>;
 
 // @public (undocumented)
-export type TLGeoType = SetValue<typeof TL_GEO_TYPES>;
+export type TLGeoShapeGeoStyle = T.TypeOf<typeof TLGeoShapeGeoStyle>;
 
 // @public (undocumented)
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
@@ -892,20 +807,6 @@ export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>;
 
 // @public (undocumented)
 export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>;
-
-// @public (undocumented)
-export type TLIconShape = TLBaseShape<'icon', TLIconShapeProps>;
-
-// @public (undocumented)
-export interface TLIconStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLIconType;
-    // (undocumented)
-    type: 'icon';
-}
-
-// @public (undocumented)
-export type TLIconType = SetValue<typeof TL_ICON_TYPES>;
 
 // @public
 export type TLImageAsset = TLBaseAsset<'image', {
@@ -967,11 +868,11 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     opacityForNextShape: TLOpacityType;
     // (undocumented)
-    propsForNextShape: TLInstancePropsForNextShape;
-    // (undocumented)
     screenBounds: Box2dModel;
     // (undocumented)
     scribble: null | TLScribble;
+    // (undocumented)
+    stylesForNextShape: Record<string, unknown>;
     // (undocumented)
     zoomBrush: Box2dModel | null;
 }
@@ -1042,13 +943,16 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 }
 
 // @public (undocumented)
-export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>;
-
-// @public (undocumented)
 export type TLLanguage = (typeof LANGUAGES)[number];
 
 // @public (undocumented)
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>;
+
+// @public (undocumented)
+export const TLLineSplineStyle: EnumStyleProp<readonly ["cubic", "line"]>;
+
+// @public (undocumented)
+export type TLLineSplineStyle = T.TypeOf<typeof TLLineSplineStyle>;
 
 // @public (undocumented)
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
@@ -1114,28 +1018,6 @@ export type TLShapeProp = keyof TLShapeProps;
 export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
 
 // @public (undocumented)
-export interface TLSizeStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLSizeType;
-    // (undocumented)
-    type: 'size';
-}
-
-// @public (undocumented)
-export type TLSizeType = SetValue<typeof TL_SIZE_TYPES>;
-
-// @public (undocumented)
-export interface TLSplineStyle extends TLBaseStyle {
-    // (undocumented)
-    id: TLSplineType;
-    // (undocumented)
-    type: 'spline';
-}
-
-// @public (undocumented)
-export type TLSplineType = SetValue<typeof TL_SPLINE_TYPES>;
-
-// @public (undocumented)
 export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
@@ -1150,49 +1032,14 @@ export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
 
 // @public (undocumented)
-export interface TLStyleCollections {
-    // (undocumented)
-    align: TLAlignStyle[];
-    // (undocumented)
-    arrowheadEnd: TLArrowheadEndStyle[];
-    // (undocumented)
-    arrowheadStart: TLArrowheadStartStyle[];
-    // (undocumented)
-    color: TLColorStyle[];
-    // (undocumented)
-    dash: TLDashStyle[];
-    // (undocumented)
-    fill: TLFillStyle[];
-    // (undocumented)
-    font: TLFontStyle[];
-    // (undocumented)
-    geo: TLGeoStyle[];
-    // (undocumented)
-    size: TLSizeStyle[];
-    // (undocumented)
-    spline: TLSplineStyle[];
-    // (undocumented)
-    verticalAlign: TLVerticalAlignStyle[];
-}
-
-// @public (undocumented)
-export type TLStyleItem = TLAlignStyle | TLArrowheadEndStyle | TLArrowheadStartStyle | TLColorStyle | TLDashStyle | TLFillStyle | TLFontStyle | TLGeoStyle | TLSizeStyle | TLSplineStyle | TLVerticalAlignStyle;
-
-// @public (undocumented)
-export type TLStyleProps = Pick<TLShapeProps, TLStyleType>;
-
-// @public (undocumented)
-export type TLStyleType = SetValue<typeof TL_STYLE_TYPES>;
-
-// @public (undocumented)
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
 
 // @public (undocumented)
 export type TLTextShapeProps = {
-    color: TLColorType;
-    size: TLSizeType;
-    font: TLFontType;
-    align: TLAlignType;
+    color: DefaultColorStyle;
+    size: DefaultSizeStyle;
+    font: DefaultFontStyle;
+    align: DefaultHorizontalAlignStyle;
     w: number;
     text: string;
     scale: number;
@@ -1201,9 +1048,6 @@ export type TLTextShapeProps = {
 
 // @public
 export type TLUnknownShape = TLBaseShape<string, object>;
-
-// @public (undocumented)
-export type TLVerticalAlignType = SetValue<typeof TL_VERTICAL_ALIGN_TYPES>;
 
 // @public
 export type TLVideoAsset = TLBaseAsset<'video', {
@@ -1227,9 +1071,6 @@ export interface Vec2dModel {
     // (undocumented)
     z?: number;
 }
-
-// @internal (undocumented)
-export const verticalAlignValidator: T.Validator<"end" | "middle" | "start">;
 
 // @internal (undocumented)
 export const videoShapeMigrations: Migrations;

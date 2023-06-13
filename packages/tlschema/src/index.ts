@@ -18,8 +18,14 @@ export {
 } from './misc/TLColor'
 export { type TLCursor, type TLCursorType } from './misc/TLCursor'
 export { type TLHandle, type TLHandleType } from './misc/TLHandle'
+export { opacityValidator, type TLOpacityType } from './misc/TLOpacity'
 export { scribbleValidator, type TLScribble } from './misc/TLScribble'
-export { type Box2dModel, type Vec2dModel } from './misc/geometry-types'
+export {
+	box2dModelValidator,
+	vec2dModelValidator,
+	type Box2dModel,
+	type Vec2dModel,
+} from './misc/geometry-types'
 export { idValidator } from './misc/id-validator'
 export {
 	AssetRecordType,
@@ -32,14 +38,7 @@ export {
 } from './records/TLAsset'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
 export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './records/TLDocument'
-export {
-	InstanceRecordType,
-	TLINSTANCE_ID,
-	instanceTypeValidator,
-	type TLInstance,
-	type TLInstanceId,
-	type TLInstancePropsForNextShape,
-} from './records/TLInstance'
+export { TLINSTANCE_ID, type TLInstance, type TLInstanceId } from './records/TLInstance'
 export {
 	PageRecordType,
 	isPageId,
@@ -53,11 +52,11 @@ export { InstancePresenceRecordType, type TLInstancePresence } from './records/T
 export { type TLRecord } from './records/TLRecord'
 export {
 	createShapeId,
+	getShapePropKeysByStyle,
 	isShape,
 	isShapeId,
 	rootShapeMigrations,
 	type TLDefaultShape,
-	type TLNullableShapeProps,
 	type TLParentId,
 	type TLShape,
 	type TLShapeId,
@@ -67,12 +66,14 @@ export {
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
+	ArrowShapeArrowheadEndStyle,
+	ArrowShapeArrowheadStartStyle,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	type TLArrowShape,
+	type TLArrowShapeArrowheadStyle,
 	type TLArrowShapeProps,
-	type TLArrowTerminal,
-	type TLArrowTerminalType,
+	type TLArrowShapeTerminal,
 } from './shapes/TLArrowShape'
 export {
 	createShapeValidator,
@@ -102,22 +103,31 @@ export {
 	type TLEmbedShapePermissions,
 } from './shapes/TLEmbedShape'
 export { frameShapeMigrations, frameShapeProps, type TLFrameShape } from './shapes/TLFrameShape'
-export { geoShapeMigrations, geoShapeProps, type TLGeoShape } from './shapes/TLGeoShape'
+export {
+	GeoShapeGeoStyle,
+	geoShapeMigrations,
+	geoShapeProps,
+	type TLGeoShape,
+} from './shapes/TLGeoShape'
 export { groupShapeMigrations, groupShapeProps, type TLGroupShape } from './shapes/TLGroupShape'
 export {
 	highlightShapeMigrations,
 	highlightShapeProps,
 	type TLHighlightShape,
 } from './shapes/TLHighlightShape'
-export { iconShapeMigrations, iconShapeProps, type TLIconShape } from './shapes/TLIconShape'
 export {
 	imageShapeMigrations,
 	imageShapeProps,
-	type TLImageCrop,
 	type TLImageShape,
+	type TLImageShapeCrop,
 	type TLImageShapeProps,
 } from './shapes/TLImageShape'
-export { lineShapeMigrations, lineShapeProps, type TLLineShape } from './shapes/TLLineShape'
+export {
+	LineShapeSplineStyle,
+	lineShapeMigrations,
+	lineShapeProps,
+	type TLLineShape,
+} from './shapes/TLLineShape'
 export { noteShapeMigrations, noteShapeProps, type TLNoteShape } from './shapes/TLNoteShape'
 export {
 	textShapeMigrations,
@@ -126,60 +136,20 @@ export {
 	type TLTextShapeProps,
 } from './shapes/TLTextShape'
 export { videoShapeMigrations, videoShapeProps, type TLVideoShape } from './shapes/TLVideoShape'
+export { EnumStyleProp, StyleProp } from './styles/StyleProp'
+export { DefaultColorStyle, type TLDefaultColorStyle } from './styles/TLColorStyle'
+export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
+export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'
+export { DefaultFontStyle, type TLDefaultFontStyle } from './styles/TLFontStyle'
 export {
-	TL_ALIGN_TYPES,
-	alignValidator,
-	type TLAlignStyle,
-	type TLAlignType,
-} from './styles/TLAlignStyle'
+	DefaultHorizontalAlignStyle,
+	type TLDefaultHorizontalAlignStyle,
+} from './styles/TLHorizontalAlignStyle'
+export { DefaultSizeStyle, type TLDefaultSizeStyle } from './styles/TLSizeStyle'
 export {
-	TL_ARROWHEAD_TYPES,
-	type TLArrowheadEndStyle,
-	type TLArrowheadStartStyle,
-	type TLArrowheadType,
-} from './styles/TLArrowheadStyle'
-export { TL_STYLE_TYPES, type TLStyleType } from './styles/TLBaseStyle'
-export {
-	TL_COLOR_TYPES,
-	colorValidator,
-	type TLColorStyle,
-	type TLColorType,
-} from './styles/TLColorStyle'
-export {
-	TL_DASH_TYPES,
-	dashValidator,
-	type TLDashStyle,
-	type TLDashType,
-} from './styles/TLDashStyle'
-export {
-	TL_FILL_TYPES,
-	fillValidator,
-	type TLFillStyle,
-	type TLFillType,
-} from './styles/TLFillStyle'
-export {
-	TL_FONT_TYPES,
-	fontValidator,
-	type TLFontStyle,
-	type TLFontType,
-} from './styles/TLFontStyle'
-export { TL_GEO_TYPES, geoValidator, type TLGeoStyle, type TLGeoType } from './styles/TLGeoStyle'
-export { iconValidator, type TLIconStyle, type TLIconType } from './styles/TLIconStyle'
-export { opacityValidator, type TLOpacityType } from './styles/TLOpacityStyle'
-export {
-	TL_SIZE_TYPES,
-	sizeValidator,
-	type TLSizeStyle,
-	type TLSizeType,
-} from './styles/TLSizeStyle'
-export {
-	TL_SPLINE_TYPES,
-	splineValidator,
-	type TLSplineStyle,
-	type TLSplineType,
-} from './styles/TLSplineStyle'
-export { verticalAlignValidator, type TLVerticalAlignType } from './styles/TLVerticalAlignStyle'
-export { type TLStyleCollections, type TLStyleItem, type TLStyleProps } from './styles/style-types'
+	DefaultVerticalAlignStyle,
+	type TLDefaultVerticalAlignStyle,
+} from './styles/TLVerticalAlignStyle'
 export {
 	LANGUAGES,
 	getDefaultTranslationLocale,

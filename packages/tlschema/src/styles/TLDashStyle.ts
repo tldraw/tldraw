@@ -1,18 +1,11 @@
 import { T } from '@tldraw/validate'
-import { SetValue } from '../util-types'
-import { TLBaseStyle } from './TLBaseStyle'
+import { StyleProp } from './StyleProp'
 
 /** @public */
-export const TL_DASH_TYPES = new Set(['draw', 'solid', 'dashed', 'dotted'] as const)
+export const DefaultDashStyle = StyleProp.defineEnum('tldraw:dash', {
+	defaultValue: 'draw',
+	values: ['draw', 'solid', 'dashed', 'dotted'],
+})
 
 /** @public */
-export type TLDashType = SetValue<typeof TL_DASH_TYPES>
-
-/** @public */
-export interface TLDashStyle extends TLBaseStyle {
-	id: TLDashType
-	type: 'dash'
-}
-
-/** @internal */
-export const dashValidator = T.setEnum(TL_DASH_TYPES)
+export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>

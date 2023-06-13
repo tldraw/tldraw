@@ -1,4 +1,4 @@
-import { TLArrowShape, createShapeId } from '@tldraw/tlschema'
+import { DefaultFillStyle, TLArrowShape, createShapeId } from '@tldraw/tlschema'
 import { FrameShapeUtil } from '../../editor/shapes/frame/FrameShapeUtil'
 import { TestEditor } from '../TestEditor'
 
@@ -495,7 +495,11 @@ describe('frame shapes', () => {
 		const frameId = editor.onlySelectedShape!.id
 
 		editor.setSelectedTool('geo')
-		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175).setProp('fill', 'solid')
+		editor
+			.pointerDown(125, 125)
+			.pointerMove(175, 175)
+			.pointerUp(175, 175)
+			.setStyle(DefaultFillStyle, 'solid')
 		const boxId = editor.onlySelectedShape!.id
 
 		editor.setSelectedTool('arrow')
@@ -602,7 +606,11 @@ describe('frame shapes', () => {
 
 		// make a shape inside the frame that extends out of the frame
 		editor.setSelectedTool('geo')
-		editor.pointerDown(150, 150).pointerMove(400, 400).pointerUp(400, 400).setProp('fill', 'solid')
+		editor
+			.pointerDown(150, 150)
+			.pointerMove(400, 400)
+			.pointerUp(400, 400)
+			.setStyle(DefaultFillStyle, 'solid')
 		const innerBoxId = editor.onlySelectedShape!.id
 
 		// Make an arrow that binds to the inner box's bottom right corner
@@ -651,15 +659,27 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	const frameId = editor.onlySelectedShape!.id
 
 	editor.setSelectedTool('geo')
-	editor.pointerDown(110, 110).pointerMove(120, 120).pointerUp(120, 120).setProp('fill', 'solid')
+	editor
+		.pointerDown(110, 110)
+		.pointerMove(120, 120)
+		.pointerUp(120, 120)
+		.setStyle(DefaultFillStyle, 'solid')
 	const boxAId = editor.onlySelectedShape!.id
 
 	editor.setSelectedTool('geo')
-	editor.pointerDown(180, 110).pointerMove(190, 120).pointerUp(190, 120).setProp('fill', 'solid')
+	editor
+		.pointerDown(180, 110)
+		.pointerMove(190, 120)
+		.pointerUp(190, 120)
+		.setStyle(DefaultFillStyle, 'solid')
 	const boxBId = editor.onlySelectedShape!.id
 
 	editor.setSelectedTool('geo')
-	editor.pointerDown(160, 160).pointerMove(170, 170).pointerUp(170, 170).setProp('fill', 'solid')
+	editor
+		.pointerDown(160, 160)
+		.pointerMove(170, 170)
+		.pointerUp(170, 170)
+		.setStyle(DefaultFillStyle, 'solid')
 	const boxCId = editor.onlySelectedShape!.id
 
 	editor.setSelectedTool('select')

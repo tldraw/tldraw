@@ -8,7 +8,7 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import { TLArrowShape } from '@tldraw/tlschema'
-import { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH } from '../../../../constants'
+import { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH, STROKE_SIZES } from '../../../../constants'
 import { Editor } from '../../../Editor'
 import { ArrowInfo } from './arrow-types'
 import {
@@ -87,9 +87,9 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 		if (startShapeInfo && arrowheadStart !== 'none' && !startShapeInfo.isExact) {
 			const offset =
 				BOUND_ARROW_OFFSET +
-				editor.getStrokeWidth(shape.props.size) / 2 +
+				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in startShapeInfo.shape.props
-					? editor.getStrokeWidth(startShapeInfo.shape.props.size) / 2
+					? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 					: 0)
 
 			minDist -= offset
@@ -101,10 +101,8 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 		if (endShapeInfo && arrowheadEnd !== 'none' && !endShapeInfo.isExact) {
 			const offset =
 				BOUND_ARROW_OFFSET +
-				editor.getStrokeWidth(shape.props.size) / 2 +
-				('size' in endShapeInfo.shape.props
-					? editor.getStrokeWidth(endShapeInfo.shape.props.size) / 2
-					: 0)
+				STROKE_SIZES[shape.props.size] / 2 +
+				('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
 
 			minDist -= offset
 			b.nudge(a, offset * (didFlip ? -1 : 1))

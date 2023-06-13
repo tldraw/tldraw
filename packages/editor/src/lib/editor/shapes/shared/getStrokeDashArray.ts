@@ -1,6 +1,6 @@
-import { TLDashType } from '@tldraw/tlschema'
+import { TLDefaultDashStyle } from '@tldraw/tlschema'
 
-export function getStrokeDashArray(dash: TLDashType, strokeWidth: number) {
+export function getStrokeDashArray(dash: TLDefaultDashStyle, strokeWidth: number) {
 	switch (dash) {
 		case 'dashed':
 			return `${strokeWidth * 2} ${strokeWidth * 2}`

@@ -1,10 +1,10 @@
 import { CubicSegment2d, LineSegment2d } from '@tldraw/primitives'
-import { TLDashType } from '@tldraw/tlschema'
+import { TLDefaultDashStyle } from '@tldraw/tlschema'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 
 export interface SegmentProps {
 	strokeWidth: number
-	dash: TLDashType
+	dash: TLDefaultDashStyle
 	segment: LineSegment2d | CubicSegment2d
 	location: 'start' | 'middle' | 'end' | 'solo'
 }

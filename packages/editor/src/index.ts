@@ -58,14 +58,12 @@ export {
 	DEFAULT_BOOKMARK_WIDTH,
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
-	FONT_ALIGNMENT,
 	FONT_FAMILIES,
 	FONT_SIZES,
 	GRID_INCREMENT,
 	GRID_STEPS,
 	HAND_TOOL_FRICTION,
 	HASH_PATERN_ZOOM_NAMES,
-	ICON_SIZES,
 	LABEL_FONT_SIZES,
 	MAJOR_NUDGE_FACTOR,
 	MAX_ASSET_HEIGHT,
@@ -79,7 +77,6 @@ export {
 	MULTI_CLICK_DURATION,
 	REMOVE_SYMBOL,
 	RICH_TYPES,
-	STYLES,
 	SVG_PADDING,
 	TEXT_PROPS,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
@@ -198,6 +195,11 @@ export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
 export { useTLStore } from './lib/hooks/useTLStore'
+export {
+	ReadonlySharedStyleMap,
+	SharedStyleMap,
+	type SharedStyle,
+} from './lib/utils/SharedStylesMap'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,
@@ -253,7 +255,6 @@ export {
 } from './lib/utils/export'
 export { hardResetEditor } from './lib/utils/hard-reset'
 export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
-export { setPropsForNextShape } from './lib/utils/props-for-next-shape'
 export { refreshPage } from './lib/utils/refresh-page'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
 export {

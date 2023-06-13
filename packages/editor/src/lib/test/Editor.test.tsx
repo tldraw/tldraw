@@ -1,5 +1,4 @@
 import { PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
-import { structuredClone } from '@tldraw/utils'
 import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
 import { GeoShapeUtil } from '../editor/shapes/geo/GeoShapeUtil'
 import { TestEditor } from './TestEditor'
@@ -148,15 +147,6 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 	editor.pointerMove(50, 50)
 	editor.click(0, 0)
 	expect(editor.canUndo).toBe(false)
-})
-
-describe('Editor.setProp', () => {
-	it('Does not set non-style props on propsForNextShape', () => {
-		const initialPropsForNextShape = structuredClone(editor.instanceState.propsForNextShape)
-		editor.setProp('w', 100)
-		editor.setProp('url', 'https://example.com')
-		expect(editor.instanceState.propsForNextShape).toStrictEqual(initialPropsForNextShape)
-	})
 })
 
 describe('Editor.opacity', () => {

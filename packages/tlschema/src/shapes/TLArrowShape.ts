@@ -1,57 +1,47 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Vec2dModel } from '../misc/geometry-types'
-import { TLShapeId } from '../records/TLShape'
-import { TLArrowheadType, arrowheadValidator } from '../styles/TLArrowheadStyle'
-import { TLColorType, colorValidator } from '../styles/TLColorStyle'
-import { TLDashType, dashValidator } from '../styles/TLDashStyle'
-import { TLFillType, fillValidator } from '../styles/TLFillStyle'
-import { TLFontType, fontValidator } from '../styles/TLFontStyle'
-import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { SetValue } from '../util-types'
-import { ShapeProps, TLBaseShape, shapeIdValidator } from './TLBaseShape'
+import { vec2dModelValidator } from '../misc/geometry-types'
+import { StyleProp } from '../styles/StyleProp'
+import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
+import { DefaultDashStyle } from '../styles/TLDashStyle'
+import { DefaultFillStyle } from '../styles/TLFillStyle'
+import { DefaultFontStyle } from '../styles/TLFontStyle'
+import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { ShapePropsType, TLBaseShape, shapeIdValidator } from './TLBaseShape'
+
+const arrowheadTypes = [
+	'arrow',
+	'triangle',
+	'square',
+	'dot',
+	'pipe',
+	'diamond',
+	'inverted',
+	'bar',
+	'none',
+] as const
 
 /** @public */
-export const TL_ARROW_TERMINAL_TYPE = new Set(['binding', 'point'] as const)
+export const ArrowShapeArrowheadStartStyle = StyleProp.defineEnum('tldraw:arrowheadStart', {
+	defaultValue: 'none',
+	values: arrowheadTypes,
+})
 
 /** @public */
-export type TLArrowTerminalType = SetValue<typeof TL_ARROW_TERMINAL_TYPE>
+export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum('tldraw:arrowheadEnd', {
+	defaultValue: 'arrow',
+	values: arrowheadTypes,
+})
 
 /** @public */
-export type TLArrowTerminal =
-	| {
-			type: 'binding'
-			boundShapeId: TLShapeId
-			normalizedAnchor: Vec2dModel
-			isExact: boolean
-	  }
-	| { type: 'point'; x: number; y: number }
-
-/** @public */
-export type TLArrowShapeProps = {
-	labelColor: TLColorType
-	color: TLColorType
-	fill: TLFillType
-	dash: TLDashType
-	size: TLSizeType
-	arrowheadStart: TLArrowheadType
-	arrowheadEnd: TLArrowheadType
-	font: TLFontType
-	start: TLArrowTerminal
-	end: TLArrowTerminal
-	bend: number
-	text: string
-}
-
-/** @public */
-export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
+export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>
 
 /** @internal */
-export const arrowTerminalValidator: T.Validator<TLArrowTerminal> = T.union('type', {
+const ArrowShapeTerminal = T.union('type', {
 	binding: T.object({
 		type: T.literal('binding'),
 		boundShapeId: shapeIdValidator,
-		normalizedAnchor: T.point,
+		normalizedAnchor: vec2dModelValidator,
 		isExact: T.boolean,
 	}),
 	point: T.object({
@@ -61,21 +51,30 @@ export const arrowTerminalValidator: T.Validator<TLArrowTerminal> = T.union('typ
 	}),
 })
 
-/** @internal */
-export const arrowShapeProps: ShapeProps<TLArrowShape> = {
-	labelColor: colorValidator,
-	color: colorValidator,
-	fill: fillValidator,
-	dash: dashValidator,
-	size: sizeValidator,
-	arrowheadStart: arrowheadValidator,
-	arrowheadEnd: arrowheadValidator,
-	font: fontValidator,
-	start: arrowTerminalValidator,
-	end: arrowTerminalValidator,
+/** @public */
+export type TLArrowShapeTerminal = T.TypeOf<typeof ArrowShapeTerminal>
+
+/** @public */
+export const arrowShapeProps = {
+	labelColor: DefaultLabelColorStyle,
+	color: DefaultColorStyle,
+	fill: DefaultFillStyle,
+	dash: DefaultDashStyle,
+	size: DefaultSizeStyle,
+	arrowheadStart: ArrowShapeArrowheadStartStyle,
+	arrowheadEnd: ArrowShapeArrowheadEndStyle,
+	font: DefaultFontStyle,
+	start: ArrowShapeTerminal,
+	end: ArrowShapeTerminal,
 	bend: T.number,
 	text: T.string,
 }
+
+/** @public */
+export type TLArrowShapeProps = ShapePropsType<typeof arrowShapeProps>
+
+/** @public */
+export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 
 const Versions = {
 	AddLabelColor: 1,

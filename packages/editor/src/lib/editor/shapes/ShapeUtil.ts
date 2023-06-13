@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box2d, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
-import { TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
+import { StyleProp, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import { computed, EMPTY_ARRAY } from 'signia'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
@@ -12,7 +12,7 @@ export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
 	U extends ShapeUtil<T> = ShapeUtil<T>
 > {
-	new (editor: Editor, type: T['type']): U
+	new (editor: Editor, type: T['type'], styleProps: ReadonlyMap<StyleProp<unknown>, string>): U
 	type: T['type']
 }
 
@@ -20,8 +20,45 @@ export interface TLShapeUtilConstructor<
 export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
 /** @public */
-export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
-	constructor(public editor: Editor, public readonly type: T['type']) {}
+export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
+	constructor(
+		public editor: Editor,
+		public readonly type: Shape['type'],
+		public readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>
+	) {}
+
+	hasStyle(style: StyleProp<unknown>) {
+		return this.styleProps.has(style)
+	}
+
+	getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined {
+		const styleKey = this.styleProps.get(style)
+		if (!styleKey) return undefined
+		return (shape.props as any)[styleKey]
+	}
+
+	*iterateStyles(shape: Shape | TLShapePartial<Shape>) {
+		for (const [style, styleKey] of this.styleProps) {
+			const value = (shape.props as any)[styleKey]
+			yield [style, value] as [StyleProp<unknown>, unknown]
+		}
+	}
+
+	setStyleInPartial<T>(
+		style: StyleProp<T>,
+		shape: TLShapePartial<Shape>,
+		value: T
+	): TLShapePartial<Shape> {
+		const styleKey = this.styleProps.get(style)
+		if (!styleKey) return shape
+		return {
+			...shape,
+			props: {
+				...shape.props,
+				[styleKey]: value,
+			},
+		}
+	}
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
@@ -42,14 +79,14 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canScroll: TLShapeUtilFlag<T> = () => false
+	canScroll: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Whether the shape should unmount when not visible in the editor. Consider keeping this to false if the shape's `component` has local state.
 	 *
 	 * @public
 	 */
-	canUnmount: TLShapeUtilFlag<T> = () => true
+	canUnmount: TLShapeUtilFlag<Shape> = () => true
 
 	/**
 	 * Whether the shape can be bound to by an arrow.
@@ -57,28 +94,28 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param _otherShape - The other shape attempting to bind to this shape.
 	 * @public
 	 */
-	canBind = <K>(_shape: T, _otherShape?: K) => true
+	canBind = <K>(_shape: Shape, _otherShape?: K) => true
 
 	/**
 	 * Whether the shape can be double clicked to edit.
 	 *
 	 * @public
 	 */
-	canEdit: TLShapeUtilFlag<T> = () => false
+	canEdit: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Whether the shape can be resized.
 	 *
 	 * @public
 	 */
-	canResize: TLShapeUtilFlag<T> = () => true
+	canResize: TLShapeUtilFlag<Shape> = () => true
 
 	/**
 	 * Whether the shape can be cropped.
 	 *
 	 * @public
 	 */
-	canCrop: TLShapeUtilFlag<T> = () => false
+	canCrop: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Bounds of the shape to edit.
@@ -87,7 +124,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	getEditingBounds = (shape: T) => {
+	getEditingBounds = (shape: Shape) => {
 		return this.bounds(shape)
 	}
 
@@ -96,49 +133,49 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	isClosed: TLShapeUtilFlag<T> = () => true
+	isClosed: TLShapeUtilFlag<Shape> = () => true
 
 	/**
 	 * Whether the shape should hide its resize handles when selected.
 	 *
 	 * @public
 	 */
-	hideResizeHandles: TLShapeUtilFlag<T> = () => false
+	hideResizeHandles: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Whether the shape should hide its resize handles when selected.
 	 *
 	 * @public
 	 */
-	hideRotateHandle: TLShapeUtilFlag<T> = () => false
+	hideRotateHandle: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Whether the shape should hide its selection bounds background when selected.
 	 *
 	 * @public
 	 */
-	hideSelectionBoundsBg: TLShapeUtilFlag<T> = () => false
+	hideSelectionBoundsBg: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Whether the shape should hide its selection bounds foreground when selected.
 	 *
 	 * @public
 	 */
-	hideSelectionBoundsFg: TLShapeUtilFlag<T> = () => false
+	hideSelectionBoundsFg: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Whether the shape's aspect ratio is locked.
 	 *
 	 * @public
 	 */
-	isAspectRatioLocked: TLShapeUtilFlag<T> = () => false
+	isAspectRatioLocked: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Get the default props for a shape.
 	 *
 	 * @public
 	 */
-	abstract defaultProps(): T['props']
+	abstract defaultProps(): Shape['props']
 
 	/**
 	 * Get a JSX element for the shape (as an HTML element).
@@ -146,7 +183,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract render(shape: T): any
+	abstract render(shape: Shape): any
 
 	/**
 	 * Get JSX describing the shape's indicator (as an SVG element).
@@ -154,7 +191,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract indicator(shape: T): any
+	abstract indicator(shape: Shape): any
 
 	/**
 	 * Get a JSX element for the shape (as an HTML element) to be rendered as part of the canvas background - behind any other shape content.
@@ -162,7 +199,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @internal
 	 */
-	renderBackground?(shape: T): any
+	renderBackground?(shape: Shape): any
 
 	/**
 	 * Get an array of handle models for the shape. This is an optional method.
@@ -176,7 +213,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected getHandles?(shape: T): TLHandle[]
+	protected getHandles?(shape: Shape): TLHandle[]
 
 	@computed
 	private get handlesCache(): ComputedCache<TLHandle[], TLShape> {
@@ -191,7 +228,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	handles(shape: T): TLHandle[] {
+	handles(shape: Shape): TLHandle[] {
 		if (!this.getHandles) return EMPTY_ARRAY
 		return this.handlesCache.get(shape.id) ?? EMPTY_ARRAY
 	}
@@ -239,7 +276,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected abstract getBounds(shape: T): Box2d
+	protected abstract getBounds(shape: Shape): Box2d
 
 	@computed
 	private get boundsCache(): ComputedCache<Box2d, TLShape> {
@@ -254,7 +291,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	bounds(shape: T): Box2d {
+	bounds(shape: Shape): Box2d {
 		const result = this.boundsCache.get(shape.id) ?? new Box2d()
 		if (result.width === 0 || result.height === 0) {
 			return new Box2d(result.x, result.y, Math.max(result.width, 1), Math.max(result.height, 1))
@@ -268,7 +305,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected abstract getOutline(shape: T): Vec2d[]
+	protected abstract getOutline(shape: Shape): Vec2d[]
 
 	@computed
 	private get outlineCache(): ComputedCache<Vec2d[], TLShape> {
@@ -283,7 +320,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	outline(shape: T): Vec2d[] {
+	outline(shape: Shape): Vec2d[] {
 		return this.outlineCache.get(shape.id) ?? EMPTY_ARRAY
 	}
 
@@ -293,7 +330,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	snapPoints(shape: T) {
+	snapPoints(shape: Shape) {
 		return this.bounds(shape).snapPoints
 	}
 
@@ -303,7 +340,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	center(shape: T): Vec2d {
+	center(shape: Shape): Vec2d {
 		return this.getCenter(shape)
 	}
 
@@ -313,7 +350,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract getCenter(shape: T): Vec2d
+	abstract getCenter(shape: Shape): Vec2d
 
 	/**
 	 * Get whether the shape can receive children of a given type.
@@ -321,7 +358,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param type - The shape type.
 	 * @public
 	 */
-	canReceiveNewChildrenOfType(shape: T, type: TLShape['type']) {
+	canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']) {
 		return false
 	}
 
@@ -332,7 +369,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dropped.
 	 * @public
 	 */
-	canDropShapes(shape: T, shapes: TLShape[]) {
+	canDropShapes(shape: Shape, shapes: TLShape[]) {
 		return false
 	}
 
@@ -346,7 +383,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	toSvg?(
-		shape: T,
+		shape: Shape,
 		font: string | undefined,
 		colors: TLExportColors
 	): SVGElement | Promise<SVGElement>
@@ -361,7 +398,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	toBackgroundSvg?(
-		shape: T,
+		shape: Shape,
 		font: string | undefined,
 		colors: TLExportColors
 	): SVGElement | Promise<SVGElement> | null
@@ -374,7 +411,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns Whether the point intersects the shape.
 	 * @public
 	 */
-	hitTestPoint(shape: T, point: VecLike): boolean {
+	hitTestPoint(shape: Shape, point: VecLike): boolean {
 		return this.bounds(shape).containsPoint(point)
 	}
 
@@ -387,7 +424,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns Whether the line segment intersects the shape.
 	 * @public
 	 */
-	hitTestLineSegment(shape: T, A: VecLike, B: VecLike): boolean {
+	hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
 		const outline = this.outline(shape)
 
 		for (let i = 0; i < outline.length; i++) {
@@ -400,7 +437,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/** @internal */
-	expandSelectionOutlinePx(shape: T): number {
+	expandSelectionOutlinePx(shape: Shape): number {
 		return 0
 	}
 
@@ -413,7 +450,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @internal
 	 */
-	providesBackgroundForChildren(shape: T): boolean {
+	providesBackgroundForChildren(shape: Shape): boolean {
 		return false
 	}
 
@@ -435,7 +472,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns The next shape or void.
 	 * @public
 	 */
-	onBeforeCreate?: TLOnBeforeCreateHandler<T>
+	onBeforeCreate?: TLOnBeforeCreateHandler<Shape>
 
 	/**
 	 * A callback called just before a shape is updated. This method provides a last chance to modify
@@ -456,7 +493,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns The next shape or void.
 	 * @public
 	 */
-	onBeforeUpdate?: TLOnBeforeUpdateHandler<T>
+	onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>
 
 	/**
 	 * A callback called when some other shapes are dragged over this one.
@@ -474,7 +511,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An object specifying whether the shape should hint that it can receive the dragged shapes.
 	 * @public
 	 */
-	onDragShapesOver?: TLOnDragHandler<T, { shouldHint: boolean }>
+	onDragShapesOver?: TLOnDragHandler<Shape, { shouldHint: boolean }>
 
 	/**
 	 * A callback called when some other shapes are dragged out of this one.
@@ -483,7 +520,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dragged out.
 	 * @public
 	 */
-	onDragShapesOut?: TLOnDragHandler<T>
+	onDragShapesOut?: TLOnDragHandler<Shape>
 
 	/**
 	 * A callback called when some other shapes are dropped over this one.
@@ -492,7 +529,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shapes - The shapes that are being dropped over this one.
 	 * @public
 	 */
-	onDropShapesOver?: TLOnDragHandler<T>
+	onDropShapesOver?: TLOnDragHandler<Shape>
 
 	/**
 	 * A callback called when a shape starts being resized.
@@ -501,7 +538,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResizeStart?: TLOnResizeStartHandler<T>
+	onResizeStart?: TLOnResizeStartHandler<Shape>
 
 	/**
 	 * A callback called when a shape changes from a resize.
@@ -511,7 +548,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResize?: TLOnResizeHandler<T>
+	onResize?: TLOnResizeHandler<Shape>
 
 	/**
 	 * A callback called when a shape finishes resizing.
@@ -521,7 +558,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onResizeEnd?: TLOnResizeEndHandler<T>
+	onResizeEnd?: TLOnResizeEndHandler<Shape>
 
 	/**
 	 * A callback called when a shape starts being translated.
@@ -530,7 +567,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslateStart?: TLOnTranslateStartHandler<T>
+	onTranslateStart?: TLOnTranslateStartHandler<Shape>
 
 	/**
 	 * A callback called when a shape changes from a translation.
@@ -540,7 +577,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslate?: TLOnTranslateHandler<T>
+	onTranslate?: TLOnTranslateHandler<Shape>
 
 	/**
 	 * A callback called when a shape finishes translating.
@@ -550,7 +587,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onTranslateEnd?: TLOnTranslateEndHandler<T>
+	onTranslateEnd?: TLOnTranslateEndHandler<Shape>
 
 	/**
 	 * A callback called when a shape starts being rotated.
@@ -559,7 +596,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotateStart?: TLOnRotateStartHandler<T>
+	onRotateStart?: TLOnRotateStartHandler<Shape>
 
 	/**
 	 * A callback called when a shape changes from a rotation.
@@ -569,7 +606,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotate?: TLOnRotateHandler<T>
+	onRotate?: TLOnRotateHandler<Shape>
 
 	/**
 	 * A callback called when a shape finishes rotating.
@@ -579,7 +616,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onRotateEnd?: TLOnRotateEndHandler<T>
+	onRotateEnd?: TLOnRotateEndHandler<Shape>
 
 	/**
 	 * A callback called when a shape's handle changes.
@@ -589,14 +626,14 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onHandleChange?: TLOnHandleChangeHandler<T>
+	onHandleChange?: TLOnHandleChangeHandler<Shape>
 
 	/**
 	 * Not currently used.
 	 *
 	 * @internal
 	 */
-	onBindingChange?: TLOnBindingChangeHandler<T>
+	onBindingChange?: TLOnBindingChangeHandler<Shape>
 
 	/**
 	 * A callback called when a shape's children change.
@@ -605,7 +642,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An array of shape updates, or void.
 	 * @public
 	 */
-	onChildrenChange?: TLOnChildrenChangeHandler<T>
+	onChildrenChange?: TLOnChildrenChangeHandler<Shape>
 
 	/**
 	 * A callback called when a shape's handle is double clicked.
@@ -615,7 +652,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickHandle?: TLOnDoubleClickHandleHandler<T>
+	onDoubleClickHandle?: TLOnDoubleClickHandleHandler<Shape>
 
 	/**
 	 * A callback called when a shape's edge is double clicked.
@@ -624,7 +661,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClickEdge?: TLOnDoubleClickHandler<T>
+	onDoubleClickEdge?: TLOnDoubleClickHandler<Shape>
 
 	/**
 	 * A callback called when a shape is double clicked.
@@ -633,7 +670,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onDoubleClick?: TLOnDoubleClickHandler<T>
+	onDoubleClick?: TLOnDoubleClickHandler<Shape>
 
 	/**
 	 * A callback called when a shape is clicked.
@@ -642,7 +679,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @returns A change to apply to the shape, or void.
 	 * @public
 	 */
-	onClick?: TLOnClickHandler<T>
+	onClick?: TLOnClickHandler<Shape>
 
 	/**
 	 * A callback called when a shape finishes being editing.
@@ -650,7 +687,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	onEditEnd?: TLOnEditEndHandler<T>
+	onEditEnd?: TLOnEditEndHandler<Shape>
 }
 
 /** @public */

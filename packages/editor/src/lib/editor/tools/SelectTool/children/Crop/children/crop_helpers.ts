@@ -1,13 +1,13 @@
 import { Vec2d } from '@tldraw/primitives'
-import { TLBaseShape, TLImageCrop, TLShapePartial } from '@tldraw/tlschema'
+import { TLBaseShape, TLImageShapeCrop, TLShapePartial } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { Editor } from '../../../../../Editor'
 
-export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLImageCrop }>
+export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
 
 export function getTranslateCroppedImageChange(
 	editor: Editor,
-	shape: TLBaseShape<string, { w: number; h: number; crop: TLImageCrop }>,
+	shape: TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>,
 	delta: Vec2d
 ) {
 	if (!shape) {

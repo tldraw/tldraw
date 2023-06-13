@@ -1,8 +1,9 @@
 import { BaseRecord } from '@tldraw/store'
+import { Expand } from '@tldraw/utils/src/lib/types'
 import { T } from '@tldraw/validate'
+import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
 import { idValidator } from '../misc/id-validator'
 import { TLParentId, TLShapeId } from '../records/TLShape'
-import { TLOpacityType, opacityValidator } from '../styles/TLOpacityStyle'
 
 /** @public */
 export interface TLBaseShape<Type extends string, Props extends object>
@@ -51,5 +52,9 @@ export function createShapeValidator<Type extends string, Props extends object>(
 
 /** @public */
 export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
-	[K in keyof Shape['props']]: T.Validator<Shape['props'][K]>
+	[K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>
 }
+
+export type ShapePropsType<Config extends Record<string, T.Validatable<any>>> = Expand<{
+	[K in keyof Config]: T.TypeOf<Config[K]>
+}>

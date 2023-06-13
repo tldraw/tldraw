@@ -1,5 +1,5 @@
 import { CubicSpline2d, Polyline2d } from '@tldraw/primitives'
-import { TLDashType, TLLineShape } from '@tldraw/tlschema'
+import { TLDefaultDashStyle, TLLineShape } from '@tldraw/tlschema'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import { getLineDrawPath } from './getLinePath'
 
@@ -31,7 +31,7 @@ export function getDashedLineShapeSvg({
 	spline,
 	color,
 }: {
-	dash: TLDashType
+	dash: TLDefaultDashStyle
 	strokeWidth: number
 	spline: CubicSpline2d | Polyline2d
 	color: string

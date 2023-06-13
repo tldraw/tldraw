@@ -1,7 +1,10 @@
-import { defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
+import { createRecordType, defineMigrations, RecordId, UnknownRecord } from '@tldraw/store'
+import { mapObjectMapValues } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
 import { nanoid } from 'nanoid'
+import { SchemaShapeInfo } from '../createTLSchema'
 import { TLArrowShape } from '../shapes/TLArrowShape'
-import { TLBaseShape } from '../shapes/TLBaseShape'
+import { createShapeValidator, TLBaseShape } from '../shapes/TLBaseShape'
 import { TLBookmarkShape } from '../shapes/TLBookmarkShape'
 import { TLDrawShape } from '../shapes/TLDrawShape'
 import { TLEmbedShape } from '../shapes/TLEmbedShape'
@@ -9,12 +12,12 @@ import { TLFrameShape } from '../shapes/TLFrameShape'
 import { TLGeoShape } from '../shapes/TLGeoShape'
 import { TLGroupShape } from '../shapes/TLGroupShape'
 import { TLHighlightShape } from '../shapes/TLHighlightShape'
-import { TLIconShape } from '../shapes/TLIconShape'
 import { TLImageShape } from '../shapes/TLImageShape'
 import { TLLineShape } from '../shapes/TLLineShape'
 import { TLNoteShape } from '../shapes/TLNoteShape'
 import { TLTextShape } from '../shapes/TLTextShape'
 import { TLVideoShape } from '../shapes/TLVideoShape'
+import { StyleProp } from '../styles/StyleProp'
 import { TLPageId } from './TLPage'
 
 /**
@@ -34,7 +37,6 @@ export type TLDefaultShape =
 	| TLNoteShape
 	| TLTextShape
 	| TLVideoShape
-	| TLIconShape
 	| TLHighlightShape
 
 /**
@@ -78,9 +80,6 @@ export type TLShapeProp = keyof TLShapeProps
 
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
-
-/** @public */
-export type TLNullableShapeProps = { [K in TLShapeProp]?: TLShapeProps[K] | null }
 
 export const Versions = {
 	AddIsLocked: 1,
@@ -150,4 +149,47 @@ export function isShapeId(id?: string): id is TLShapeId {
 /** @public */
 export function createShapeId(id?: string): TLShapeId {
 	return `shape:${id ?? nanoid()}` as TLShapeId
+}
+
+/** @internal */
+export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>) {
+	const propKeysByStyle = new Map<StyleProp<unknown>, string>()
+	for (const [key, prop] of Object.entries(props)) {
+		if (prop instanceof StyleProp) {
+			if (propKeysByStyle.has(prop)) {
+				throw new Error(
+					`Duplicate style prop ${prop.id}. Each style prop can only be used once within a shape.`
+				)
+			}
+			propKeysByStyle.set(prop, key)
+		}
+	}
+	return propKeysByStyle
+}
+
+/** @internal */
+export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
+	return createRecordType<TLShape>('shape', {
+		migrations: defineMigrations({
+			currentVersion: rootShapeMigrations.currentVersion,
+			firstVersion: rootShapeMigrations.firstVersion,
+			migrators: rootShapeMigrations.migrators,
+			subTypeKey: 'type',
+			subTypeMigrations: mapObjectMapValues(shapes, (k, v) => v.migrations ?? defineMigrations({})),
+		}),
+		scope: 'document',
+		validator: T.model(
+			'shape',
+			T.union(
+				'type',
+				mapObjectMapValues(shapes, (type, { props }) => createShapeValidator(type, props))
+			)
+		),
+	}).withDefaultProperties(() => ({
+		x: 0,
+		y: 0,
+		rotation: 0,
+		isLocked: false,
+		opacity: 1,
+	}))
 }

@@ -1,30 +1,24 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLColorType, colorValidator } from '../styles/TLColorStyle'
-import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
-import { TLDrawShapeSegment, drawShapeSegmentValidator } from './TLDrawShape'
+import { DefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
+import { DrawShapeSegment } from './TLDrawShape'
 
 /** @public */
-export type TLHighlightShapeProps = {
-	color: TLColorType
-	size: TLSizeType
-	segments: TLDrawShapeSegment[]
-	isComplete: boolean
-	isPen: boolean
-}
-
-/** @public */
-export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
-
-/** @internal */
-export const highlightShapeProps: ShapeProps<TLHighlightShape> = {
-	color: colorValidator,
-	size: sizeValidator,
-	segments: T.arrayOf(drawShapeSegmentValidator),
+export const highlightShapeProps = {
+	color: DefaultColorStyle,
+	size: DefaultSizeStyle,
+	segments: T.arrayOf(DrawShapeSegment),
 	isComplete: T.boolean,
 	isPen: T.boolean,
 }
+
+/** @public */
+export type TLHighlightShapeProps = ShapePropsType<typeof highlightShapeProps>
+
+/** @public */
+export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>
 
 /** @internal */
 export const highlightShapeMigrations = defineMigrations({})

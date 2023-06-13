@@ -1,10 +1,10 @@
-import { TLDashType } from '@tldraw/tlschema'
+import { TLDefaultDashStyle } from '@tldraw/tlschema'
 
 export function getPerfectDashProps(
 	totalLength: number,
 	strokeWidth: number,
 	opts = {} as Partial<{
-		style: TLDashType
+		style: TLDefaultDashStyle
 		snap: number
 		end: 'skip' | 'outset' | 'none'
 		start: 'skip' | 'outset' | 'none'

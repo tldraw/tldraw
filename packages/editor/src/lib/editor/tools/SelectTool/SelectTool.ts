@@ -1,6 +1,4 @@
 import { StateNode } from '../StateNode'
-
-import { TLStyleType } from '@tldraw/tlschema'
 import { Brushing } from './children/Brushing'
 import { Crop } from './children/Crop/Crop'
 import { Cropping } from './children/Cropping'
@@ -42,7 +40,8 @@ export class SelectTool extends StateNode {
 		DraggingHandle,
 	]
 
-	styles = ['color', 'dash', 'fill', 'size'] as TLStyleType[]
+	// TODO(alex): figure out what to do with this
+	// styles = ['color', 'dash', 'fill', 'size'] as TLStyleType[]
 
 	onExit = () => {
 		if (this.editor.pageState.editingId) {

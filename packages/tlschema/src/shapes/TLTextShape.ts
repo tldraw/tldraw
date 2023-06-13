@@ -1,37 +1,28 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
-import { TLColorType, colorValidator } from '../styles/TLColorStyle'
-import { TLFontType, fontValidator } from '../styles/TLFontStyle'
-import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
+import { DefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultFontStyle } from '../styles/TLFontStyle'
+import { DefaultHorizontalAlignStyle } from '../styles/TLHorizontalAlignStyle'
+import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export type TLTextShapeProps = {
-	color: TLColorType
-	size: TLSizeType
-	font: TLFontType
-	align: TLAlignType
-	w: number
-	text: string
-	scale: number
-	autoSize: boolean
-}
-
-/** @public */
-export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
-
-/** @internal */
-export const textShapeProps: ShapeProps<TLTextShape> = {
-	color: colorValidator,
-	size: sizeValidator,
-	font: fontValidator,
-	align: alignValidator,
+export const textShapeProps = {
+	color: DefaultColorStyle,
+	size: DefaultSizeStyle,
+	font: DefaultFontStyle,
+	align: DefaultHorizontalAlignStyle,
 	w: T.nonZeroNumber,
 	text: T.string,
 	scale: T.nonZeroNumber,
 	autoSize: T.boolean,
 }
+
+/** @public */
+export type TLTextShapeProps = ShapePropsType<typeof textShapeProps>
+
+/** @public */
+export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>
 
 const Versions = {
 	RemoveJustify: 1,

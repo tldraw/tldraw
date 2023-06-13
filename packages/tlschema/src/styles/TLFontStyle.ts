@@ -1,18 +1,11 @@
 import { T } from '@tldraw/validate'
-import { SetValue } from '../util-types'
-import { TLBaseStyle } from './TLBaseStyle'
+import { StyleProp } from './StyleProp'
 
 /** @public */
-export const TL_FONT_TYPES = new Set(['draw', 'sans', 'serif', 'mono'] as const)
+export const DefaultFontStyle = StyleProp.defineEnum('tldraw:font', {
+	defaultValue: 'draw',
+	values: ['draw', 'sans', 'serif', 'mono'],
+})
 
 /** @public */
-export type TLFontType = SetValue<typeof TL_FONT_TYPES>
-
-/** @public */
-export interface TLFontStyle extends TLBaseStyle {
-	id: TLFontType
-	type: 'font'
-}
-
-/** @internal */
-export const fontValidator = T.setEnum(TL_FONT_TYPES)
+export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>

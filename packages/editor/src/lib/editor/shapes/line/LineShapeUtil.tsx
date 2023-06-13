@@ -12,6 +12,7 @@ import {
 import { TLHandle, TLLineShape } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
+import { STROKE_SIZES } from '../../../constants'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { ShapeUtil, TLOnHandleChangeHandler, TLOnResizeHandler } from '../ShapeUtil'
 import { ShapeFill } from '../shared/ShapeFill'
@@ -172,7 +173,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	hitTestPoint(shape: TLLineShape, point: Vec2d): boolean {
 		const zoomLevel = this.editor.zoomLevel
-		const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
+		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
 		return pointNearToPolyline(point, this.outline(shape), offsetDist)
 	}
 
@@ -183,7 +184,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	render(shape: TLLineShape) {
 		const forceSolid = useForceSolid()
 		const spline = getSplineForLineShape(shape)
-		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
+		const strokeWidth = STROKE_SIZES[shape.props.size]
 
 		const { dash, color } = shape.props
 
@@ -309,7 +310,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	indicator(shape: TLLineShape) {
-		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
+		const strokeWidth = STROKE_SIZES[shape.props.size]
 		const spline = getSplineForLineShape(shape)
 		const { dash } = shape.props
 
@@ -334,7 +335,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		const { color: _color, size } = shape.props
 		const color = colors.fill[_color]
 		const spline = getSplineForLineShape(shape)
-		return getLineSvg(shape, spline, color, this.editor.getStrokeWidth(size))
+		return getLineSvg(shape, spline, color, STROKE_SIZES[size])
 	}
 }
 

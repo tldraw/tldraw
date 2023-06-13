@@ -1,5 +1,5 @@
 import { CubicSpline2d, Polyline2d } from '@tldraw/primitives'
-import { TLArrowheadType, TLDashType } from '@tldraw/tlschema'
+import { TLArrowShapeArrowheadStyle, TLDefaultDashStyle } from '@tldraw/tlschema'
 import { Segment, SegmentSvg } from './Segment'
 /**
  * A base interface for a shape's arrowheads.
@@ -8,7 +8,7 @@ import { Segment, SegmentSvg } from './Segment'
  */
 export interface TLArrowHeadModel {
 	id: string
-	type: TLArrowheadType
+	type: TLArrowShapeArrowheadStyle
 }
 
 export function DashedArrowComponent({
@@ -18,7 +18,7 @@ export function DashedArrowComponent({
 	start,
 	end,
 }: {
-	dash: TLDashType
+	dash: TLDefaultDashStyle
 	strokeWidth: number
 	spline: CubicSpline2d | Polyline2d
 	start: TLArrowHeadModel
@@ -65,7 +65,7 @@ export function DashedArrowComponentSvg({
 	end,
 	color,
 }: {
-	dash: TLDashType
+	dash: TLDefaultDashStyle
 	strokeWidth: number
 	spline: CubicSpline2d | Polyline2d
 	start: TLArrowHeadModel

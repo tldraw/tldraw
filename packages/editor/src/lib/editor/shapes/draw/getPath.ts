@@ -1,5 +1,5 @@
 import { EASINGS, PI, SIN, StrokeOptions, Vec2d } from '@tldraw/primitives'
-import { TLDashType, TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
+import { TLDefaultDashStyle, TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 
 const PEN_EASING = (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35
 
@@ -57,7 +57,7 @@ export function getHighlightFreehandSettings({
 }
 
 export function getFreehandOptions(
-	shapeProps: { dash: TLDashType; isPen: boolean; isComplete: boolean },
+	shapeProps: { dash: TLDefaultDashStyle; isPen: boolean; isComplete: boolean },
 	strokeWidth: number,
 	forceComplete: boolean,
 	forceSolid: boolean

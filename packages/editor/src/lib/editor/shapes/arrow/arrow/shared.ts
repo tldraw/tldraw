@@ -1,5 +1,5 @@
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
-import { TLArrowShape, TLArrowTerminal, TLShape } from '@tldraw/tlschema'
+import { TLArrowShape, TLArrowShapeTerminal, TLShape } from '@tldraw/tlschema'
 import { Editor } from '../../../Editor'
 import { ShapeUtil } from '../../ShapeUtil'
 
@@ -13,13 +13,11 @@ export type BoundShapeInfo<T extends TLShape = TLShape> = {
 	didIntersect: boolean
 	isExact: boolean
 	transform: Matrix2d
-	// toLocalPoint: (v: VecLike) => Vec2d
-	// toPagePoint: (v: VecLike) => Vec2d
 }
 
 export function getBoundShapeInfoForTerminal(
 	editor: Editor,
-	terminal: TLArrowTerminal
+	terminal: TLArrowShapeTerminal
 ): BoundShapeInfo | undefined {
 	if (terminal.type === 'point') {
 		return
@@ -41,7 +39,7 @@ export function getBoundShapeInfoForTerminal(
 export function getArrowTerminalInArrowSpace(
 	editor: Editor,
 	arrowPageTransform: Matrix2d,
-	terminal: TLArrowTerminal
+	terminal: TLArrowShapeTerminal
 ) {
 	if (terminal.type === 'point') {
 		return Vec2d.From(terminal)

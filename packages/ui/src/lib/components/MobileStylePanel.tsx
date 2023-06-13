@@ -1,4 +1,4 @@
-import { useEditor } from '@tldraw/editor'
+import { DefaultColorStyle, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { useValue } from 'signia-react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
@@ -14,8 +14,8 @@ export function MobileStylePanel() {
 	const currentColor = useValue(
 		'current color',
 		() => {
-			const { props } = editor
-			return props ? (props.color ? editor.getCssColor(props.color) : null) : 'var(--color-muted-1)'
+			const color = editor.styles.getAsKnownValue(DefaultColorStyle)
+			return color ? 'var(--palette-${color})' : 'var(--color-muted-1)'
 		},
 		[editor]
 	)

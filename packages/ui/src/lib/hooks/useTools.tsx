@@ -1,4 +1,4 @@
-import { Editor, TL_GEO_TYPES, featureFlags, useEditor } from '@tldraw/editor'
+import { Editor, GeoShapeGeoStyle, featureFlags, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { useValue } from 'signia-react'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -94,7 +94,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'draw' })
 				},
 			},
-			...[...TL_GEO_TYPES].map((id) => ({
+			...[...GeoShapeGeoStyle.values].map((id) => ({
 				id,
 				label: `tool.${id}` as TLUiTranslationKey,
 				readonlyOk: false,
@@ -106,7 +106,12 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				onSelect(source: TLUiEventSource) {
 					editor.batch(() => {
 						editor.updateInstanceState(
-							{ propsForNextShape: { ...editor.instanceState.propsForNextShape, geo: id } },
+							{
+								stylesForNextShape: {
+									...editor.instanceState.stylesForNextShape,
+									[GeoShapeGeoStyle.id]: id,
+								},
+							},
 							true
 						)
 						editor.setSelectedTool('geo')

@@ -1,7 +1,21 @@
-import { Editor, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
-import React, { useCallback } from 'react'
-
+import {
+	ArrowShapeArrowheadEndStyle,
+	ArrowShapeArrowheadStartStyle,
+	DefaultColorStyle,
+	DefaultDashStyle,
+	DefaultFillStyle,
+	DefaultFontStyle,
+	DefaultHorizontalAlignStyle,
+	DefaultSizeStyle,
+	DefaultVerticalAlignStyle,
+	GeoShapeGeoStyle,
+	LineShapeSplineStyle,
+	ReadonlySharedStyleMap,
+	StyleProp,
+	useEditor,
+} from '@tldraw/editor'
 import { minBy } from '@tldraw/utils'
+import React, { useCallback } from 'react'
 import { useValue } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
@@ -9,6 +23,7 @@ import { ButtonPicker } from '../primitives/ButtonPicker'
 import { Slider } from '../primitives/Slider'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
+import { STYLES } from './styles'
 
 interface StylePanelProps {
 	isMobile?: boolean
@@ -18,7 +33,7 @@ interface StylePanelProps {
 export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	const editor = useEditor()
 
-	const props = useValue('props', () => editor.props, [editor])
+	const styles = useValue('styles', () => editor.styles, [editor])
 	const opacity = useValue('opacity', () => editor.opacity, [editor])
 	const toolShapeType = useValue('toolShapeType', () => editor.root.current.value?.shapeType, [
 		editor,
@@ -30,9 +45,13 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 		}
 	}, [editor, isMobile])
 
-	if (!props && !toolShapeType) return null
+	if (!toolShapeType) return null
 
-	const { geo, arrowheadEnd, arrowheadStart, spline, font } = props ?? {}
+	const geo = styles.get(GeoShapeGeoStyle)
+	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
+	const arrowheadStart = styles.get(ArrowShapeArrowheadStartStyle)
+	const spline = styles.get(LineShapeSplineStyle)
+	const font = styles.get(DefaultFontStyle)
 
 	const hideGeo = geo === undefined
 	const hideArrowHeads = arrowheadEnd === undefined && arrowheadStart === undefined
@@ -41,42 +60,37 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 
 	return (
 		<div className="tlui-style-panel" data-ismobile={isMobile} onPointerLeave={handlePointerOut}>
-			<CommonStylePickerSet props={props ?? {}} opacity={opacity} />
-			{!hideText && <TextStylePickerSet props={props ?? {}} />}
+			<CommonStylePickerSet styles={styles} opacity={opacity} />
+			{!hideText && <TextStylePickerSet styles={styles} />}
 			{!(hideGeo && hideArrowHeads && hideSpline) && (
 				<div className="tlui-style-panel__section" aria-label="style panel styles">
-					<GeoStylePickerSet props={props ?? {}} />
-					<ArrowheadStylePickerSet props={props ?? {}} />
-					<SplineStylePickerSet props={props ?? {}} />
+					<GeoStylePickerSet styles={styles} />
+					<ArrowheadStylePickerSet styles={styles} />
+					<SplineStylePickerSet styles={styles} />
 				</div>
 			)}
 		</div>
 	)
 }
 
-const { styles } = Editor
-
 function useStyleChangeCallback() {
 	const editor = useEditor()
 
-	return React.useCallback(
-		(item: TLStyleItem, squashing: boolean) => {
-			editor.batch(() => {
-				editor.setProp(item.type, item.id, false, squashing)
-				editor.isChangingStyle = true
-			})
-		},
-		[editor]
-	)
+	return React.useMemo(() => {
+		return function <T>(style: StyleProp<T>, value: T, squashing: boolean) {
+			editor.setStyle(style, value, squashing)
+			editor.isChangingStyle = true
+		}
+	}, [editor])
 }
 
 const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
 
 function CommonStylePickerSet({
-	props,
+	styles,
 	opacity,
 }: {
-	props: TLNullableShapeProps
+	styles: ReadonlySharedStyleMap
 	opacity: number | null
 }) {
 	const editor = useEditor()
@@ -93,7 +107,10 @@ function CommonStylePickerSet({
 		[editor]
 	)
 
-	const { color, fill, dash, size } = props
+	const color = styles.get(DefaultColorStyle)
+	const fill = styles.get(DefaultFillStyle)
+	const dash = styles.get(DefaultDashStyle)
+	const size = styles.get(DefaultSizeStyle)
 
 	if (
 		color === undefined &&
@@ -122,9 +139,9 @@ function CommonStylePickerSet({
 				{color === undefined ? null : (
 					<ButtonPicker
 						title={msg('style-panel.color')}
-						styleType="color"
-						data-testid="style.color"
-						items={styles.color}
+						uiType="color"
+						style={DefaultColorStyle}
+						items={STYLES.color}
 						value={color}
 						onValueChange={handleValueChange}
 					/>
@@ -145,9 +162,9 @@ function CommonStylePickerSet({
 					{fill === undefined ? null : (
 						<ButtonPicker
 							title={msg('style-panel.fill')}
-							styleType="fill"
-							data-testid="style.fill"
-							items={styles.fill}
+							uiType="fill"
+							style={DefaultFillStyle}
+							items={STYLES.fill}
 							value={fill}
 							onValueChange={handleValueChange}
 						/>
@@ -155,9 +172,9 @@ function CommonStylePickerSet({
 					{dash === undefined ? null : (
 						<ButtonPicker
 							title={msg('style-panel.dash')}
-							styleType="dash"
-							data-testid="style.dash"
-							items={styles.dash}
+							uiType="dash"
+							style={DefaultDashStyle}
+							items={STYLES.dash}
 							value={dash}
 							onValueChange={handleValueChange}
 						/>
@@ -165,9 +182,9 @@ function CommonStylePickerSet({
 					{size === undefined ? null : (
 						<ButtonPicker
 							title={msg('style-panel.size')}
-							styleType="size"
-							data-testid="style.size"
-							items={styles.size}
+							uiType="size"
+							style={DefaultSizeStyle}
+							items={STYLES.size}
 							value={size}
 							onValueChange={handleValueChange}
 						/>
@@ -178,11 +195,13 @@ function CommonStylePickerSet({
 	)
 }
 
-function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
+function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const msg = useTranslation()
 	const handleValueChange = useStyleChangeCallback()
 
-	const { font, align, verticalAlign } = props
+	const font = styles.get(DefaultFontStyle)
+	const align = styles.get(DefaultHorizontalAlignStyle)
+	const verticalAlign = styles.get(DefaultVerticalAlignStyle)
 	if (font === undefined && align === undefined) {
 		return null
 	}
@@ -192,9 +211,9 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 			{font === undefined ? null : (
 				<ButtonPicker
 					title={msg('style-panel.font')}
-					styleType="font"
-					data-testid="font"
-					items={styles.font}
+					uiType="font"
+					style={DefaultFontStyle}
+					items={STYLES.font}
 					value={font}
 					onValueChange={handleValueChange}
 				/>
@@ -204,9 +223,9 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 				<div className="tlui-style-panel__row">
 					<ButtonPicker
 						title={msg('style-panel.align')}
-						styleType="align"
-						data-testid="align"
-						items={styles.align}
+						uiType="align"
+						style={DefaultHorizontalAlignStyle}
+						items={STYLES.horizontalAlign}
 						value={align}
 						onValueChange={handleValueChange}
 					/>
@@ -220,9 +239,9 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 					) : (
 						<DropdownPicker
 							id="geo-vertical-alignment"
-							styleType="verticalAlign"
-							data-testid="style-panel.geo-vertical-align"
-							items={styles.verticalAlign}
+							uiType="verticalAlign"
+							style={DefaultVerticalAlignStyle}
+							items={STYLES.verticalAlign}
 							value={verticalAlign}
 							onValueChange={handleValueChange}
 						/>
@@ -233,10 +252,10 @@ function TextStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 	)
 }
 
-function GeoStylePickerSet({ props }: { props: TLNullableShapeProps }) {
+function GeoStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const handleValueChange = useStyleChangeCallback()
 
-	const { geo } = props
+	const geo = styles.get(GeoShapeGeoStyle)
 	if (geo === undefined) {
 		return null
 	}
@@ -245,19 +264,19 @@ function GeoStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 		<DropdownPicker
 			id="geo"
 			label={'style-panel.geo'}
-			styleType="geo"
-			data-testid="style-panel.geo"
-			items={styles.geo}
+			uiType="geo"
+			style={GeoShapeGeoStyle}
+			items={STYLES.geo}
 			value={geo}
 			onValueChange={handleValueChange}
 		/>
 	)
 }
 
-function SplineStylePickerSet({ props }: { props: TLNullableShapeProps }) {
+function SplineStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const handleValueChange = useStyleChangeCallback()
 
-	const { spline } = props
+	const spline = styles.get(LineShapeSplineStyle)
 	if (spline === undefined) {
 		return null
 	}
@@ -266,32 +285,34 @@ function SplineStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 		<DropdownPicker
 			id="spline"
 			label={'style-panel.spline'}
-			styleType="spline"
-			data-testid="style.spline"
-			items={styles.spline}
+			uiType="spline"
+			style={LineShapeSplineStyle}
+			items={STYLES.spline}
 			value={spline}
 			onValueChange={handleValueChange}
 		/>
 	)
 }
 
-function ArrowheadStylePickerSet({ props }: { props: TLNullableShapeProps }) {
+function ArrowheadStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	const handleValueChange = useStyleChangeCallback()
 
-	const { arrowheadEnd, arrowheadStart } = props
-	if (arrowheadEnd === undefined && arrowheadStart === undefined) {
+	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
+	const arrowheadStart = styles.get(ArrowShapeArrowheadStartStyle)
+	if (!arrowheadEnd || !arrowheadStart) {
 		return null
 	}
 
 	return (
 		<DoubleDropdownPicker
 			label={'style-panel.arrowheads'}
-			styleTypeA="arrowheadStart"
-			data-testid="style.arrowheads"
-			itemsA={styles.arrowheadStart}
+			uiTypeA="arrowheadStart"
+			styleA={ArrowShapeArrowheadStartStyle}
+			itemsA={STYLES.arrowheadStart}
 			valueA={arrowheadStart}
-			styleTypeB="arrowheadEnd"
-			itemsB={styles.arrowheadEnd}
+			uiTypeB="arrowheadEnd"
+			styleB={ArrowShapeArrowheadEndStyle}
+			itemsB={STYLES.arrowheadEnd}
 			valueB={arrowheadEnd}
 			onValueChange={handleValueChange}
 			labelA="style-panel.arrowhead-start"

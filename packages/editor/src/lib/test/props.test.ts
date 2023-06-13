@@ -1,6 +1,16 @@
-import { createDefaultShapes, defaultShapesIds, TestEditor } from './TestEditor'
+import { ReadonlySharedStyleMap, SharedStyle } from '../utils/SharedStylesMap'
+import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
 
 let editor: TestEditor
+
+function asPlainObject(styles: ReadonlySharedStyleMap | null) {
+	if (!styles) return null
+	const object: Record<string, SharedStyle<unknown>> = {}
+	for (const [key, value] of styles) {
+		object[key.id] = value
+	}
+	return object
+}
 
 beforeEach(() => {
 	editor = new TestEditor()
@@ -9,43 +19,38 @@ beforeEach(() => {
 })
 
 describe('Editor.props', () => {
-	it('should return props', () => {
+	it('should an empty map if nothing is selected', () => {
 		editor.selectNone()
-		expect(editor.props).toEqual({
-			color: 'black',
-			dash: 'draw',
-			fill: 'none',
-			size: 'm',
-		})
+		expect(asPlainObject(editor.styles)).toStrictEqual({})
 	})
 
 	it('should return props for a single shape', () => {
 		editor.select(defaultShapesIds.box1)
-		expect(editor.props).toEqual({
-			align: 'middle',
-			labelColor: 'black',
-			color: 'black',
-			dash: 'draw',
-			fill: 'none',
-			size: 'm',
-			font: 'draw',
-			geo: 'rectangle',
-			verticalAlign: 'middle',
+		expect(asPlainObject(editor.styles)).toStrictEqual({
+			'tldraw:horizontalAlign': { type: 'shared', value: 'middle' },
+			'tldraw:labelColor': { type: 'shared', value: 'black' },
+			'tldraw:color': { type: 'shared', value: 'black' },
+			'tldraw:dash': { type: 'shared', value: 'draw' },
+			'tldraw:fill': { type: 'shared', value: 'none' },
+			'tldraw:size': { type: 'shared', value: 'm' },
+			'tldraw:font': { type: 'shared', value: 'draw' },
+			'tldraw:geo': { type: 'shared', value: 'rectangle' },
+			'tldraw:verticalAlign': { type: 'shared', value: 'middle' },
 		})
 	})
 
 	it('should return props for two matching shapes', () => {
 		editor.select(defaultShapesIds.box1, defaultShapesIds.box2)
-		expect(editor.props).toEqual({
-			align: 'middle',
-			color: 'black',
-			labelColor: 'black',
-			dash: 'draw',
-			fill: 'none',
-			size: 'm',
-			font: 'draw',
-			geo: 'rectangle',
-			verticalAlign: 'middle',
+		expect(asPlainObject(editor.styles)).toStrictEqual({
+			'tldraw:horizontalAlign': { type: 'shared', value: 'middle' },
+			'tldraw:labelColor': { type: 'shared', value: 'black' },
+			'tldraw:color': { type: 'shared', value: 'black' },
+			'tldraw:dash': { type: 'shared', value: 'draw' },
+			'tldraw:fill': { type: 'shared', value: 'none' },
+			'tldraw:size': { type: 'shared', value: 'm' },
+			'tldraw:font': { type: 'shared', value: 'draw' },
+			'tldraw:geo': { type: 'shared', value: 'rectangle' },
+			'tldraw:verticalAlign': { type: 'shared', value: 'middle' },
 		})
 	})
 
@@ -60,20 +65,20 @@ describe('Editor.props', () => {
 
 		editor.select(defaultShapesIds.box1, defaultShapesIds.box2)
 
-		expect(editor.props).toEqual({
-			align: 'middle',
-			labelColor: 'black',
-			color: null, // mixed!
-			dash: null, // mixed!
-			fill: 'none',
-			size: 'm',
-			font: 'draw',
-			geo: 'rectangle',
-			verticalAlign: 'middle',
+		expect(asPlainObject(editor.styles)).toStrictEqual({
+			'tldraw:horizontalAlign': { type: 'shared', value: 'middle' },
+			'tldraw:labelColor': { type: 'shared', value: 'black' },
+			'tldraw:color': { type: 'mixed' },
+			'tldraw:dash': { type: 'mixed' },
+			'tldraw:fill': { type: 'shared', value: 'none' },
+			'tldraw:size': { type: 'shared', value: 'm' },
+			'tldraw:font': { type: 'shared', value: 'draw' },
+			'tldraw:geo': { type: 'shared', value: 'rectangle' },
+			'tldraw:verticalAlign': { type: 'shared', value: 'middle' },
 		})
 	})
 
-	it('should return null for all mixed props', () => {
+	it('should return mixed for all mixed props', () => {
 		editor.updateShapes([
 			{
 				id: defaultShapesIds.box1,
@@ -99,16 +104,17 @@ describe('Editor.props', () => {
 		])
 
 		editor.selectAll()
-		expect(editor.props).toEqual({
-			align: null,
-			labelColor: 'black',
-			color: null,
-			dash: null,
-			fill: null,
-			geo: null,
-			size: null,
-			font: null,
-			verticalAlign: null,
+
+		expect(asPlainObject(editor.styles)).toStrictEqual({
+			'tldraw:color': { type: 'mixed' },
+			'tldraw:dash': { type: 'mixed' },
+			'tldraw:fill': { type: 'mixed' },
+			'tldraw:font': { type: 'mixed' },
+			'tldraw:geo': { type: 'mixed' },
+			'tldraw:horizontalAlign': { type: 'mixed' },
+			'tldraw:labelColor': { type: 'shared', value: 'black' },
+			'tldraw:size': { type: 'mixed' },
+			'tldraw:verticalAlign': { type: 'mixed' },
 		})
 	})
 })

@@ -2,7 +2,7 @@ import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/s
 import { annotateError, structuredClone } from '@tldraw/utils'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
-import { InstanceRecordType, TLINSTANCE_ID } from './records/TLInstance'
+import { TLINSTANCE_ID } from './records/TLInstance'
 import { PageRecordType, TLPageId } from './records/TLPage'
 import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TLPageState'
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
@@ -103,7 +103,7 @@ export function createIntegrityChecker(store: TLStore): () => void {
 		const instanceState = store.get(TLINSTANCE_ID)
 		if (!instanceState) {
 			store.put([
-				InstanceRecordType.create({
+				store.schema.types.instance.create({
 					id: TLINSTANCE_ID,
 					currentPageId: getFirstPageId(),
 					exportBackground: true,
