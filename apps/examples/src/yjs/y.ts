@@ -2,15 +2,18 @@ import {
 	DocumentRecordType,
 	PageRecordType,
 	TLDocument,
+	TLInstancePresence,
 	TLPageId,
 	TLRecord,
 	TLStore,
-	TLStoreEventInfo,
+	USER_COLORS,
+	createPresenceStateDerivation,
 } from '@tldraw/tldraw'
+import { atom, react } from 'signia'
 import { WebsocketProvider } from 'y-websocket'
 import * as Y from 'yjs'
 
-const ROOM_ID = 'tldraw-20'
+const ROOM_ID = 'tldraw-22'
 const HOST_URL =
 	process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev'
 
@@ -19,7 +22,9 @@ export const yRecords = doc.getMap<TLRecord>(`tl_${ROOM_ID}`)
 
 export const roomProvider = new WebsocketProvider(HOST_URL, ROOM_ID, doc, { connect: false })
 export const roomAwareness = roomProvider.awareness
+
 roomAwareness.setLocalState({})
+const userId = roomAwareness.clientID.toString()
 
 /* -------------------- Document -------------------- */
 
@@ -91,39 +96,31 @@ export function syncYjsDocChangesToStore(store: TLStore) {
 
 /* -------------------- Awareness ------------------- */
 
-function syncStoreChangesToYjsAwareness({ changes }: TLStoreEventInfo) {
-	roomAwareness.doc.transact(() => {
-		Object.values(changes.added).forEach((record) => {
-			const idWithUserId = record.id.split(':')[0] + ':' + roomAwareness.clientID
-			roomAwareness.setLocalStateField(record.typeName, {
-				...record,
-				id: idWithUserId,
-			})
-		})
+export function syncStorePresenceToYjsAwareness(store: TLStore) {
+	const userPreferences = atom<any>('user preferences', {
+		id: userId,
+		name: 'User Name',
+		locale: 'en',
+		color: USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)],
+		isDarkMode: false,
+		isSnapMode: false,
+		animationSpeed: 1,
+	})
 
-		Object.values(changes.updated).forEach(([_, record]) => {
-			const idWithUserId = record.id.split(':')[0] + ':' + roomAwareness.clientID
-			roomAwareness.setLocalStateField(record.typeName, {
-				...record,
-				id: idWithUserId,
-			})
-		})
+	const presenceDerivation = createPresenceStateDerivation(userPreferences)(store)
+	roomAwareness.setLocalStateField('presence', presenceDerivation.value)
 
-		Object.values(changes.removed).forEach((record) => {
-			roomAwareness.setLocalStateField(record.typeName, null)
-		})
+	return react('when presence changes', () => {
+		const presence = presenceDerivation.value
+		if (presence) {
+			if (presence.userId === userId) {
+				roomAwareness.setLocalStateField('presence', presence)
+			}
+		}
 	})
 }
 
-export function syncStoreSessionToYjsAwareness(store: TLStore) {
-	return store.listen(syncStoreChangesToYjsAwareness, { source: 'user', scope: 'session' })
-}
-
-export function syncStorePresenceToYjsAwareness(store: TLStore) {
-	return store.listen(syncStoreChangesToYjsAwareness, { source: 'user', scope: 'presence' })
-}
-
-export function syncYjsAwarenessChangesToStore(store: TLStore) {
+export function syncYjsAwarenessToStorePresence(store: TLStore) {
 	roomAwareness.on(
 		'update',
 		({ added, updated, removed }: { added: number[]; updated: number[]; removed: number[] }) => {
@@ -131,23 +128,30 @@ export function syncYjsAwarenessChangesToStore(store: TLStore) {
 
 			store.mergeRemoteChanges(() => {
 				added.forEach((id) => {
-					const state = states.get(id) as Record<TLRecord['id'], TLRecord>
-					const records = Object.values(state)
-					store.put(records)
+					const state = states.get(id) as { presence: TLInstancePresence }
+					if (state.presence) {
+						if (state.presence.userId !== userId) {
+							store.put([state.presence])
+						}
+					}
 				})
 
 				updated.forEach((id) => {
-					const state = states.get(id) as Record<TLRecord['id'], TLRecord>
-					const records = Object.values(state)
-					store.put(records)
+					const state = states.get(id) as { presence: TLInstancePresence }
+					if (state.presence) {
+						if (state.presence.userId !== userId) {
+							store.put([state.presence])
+						}
+					}
 				})
 
 				if (removed.length) {
 					const allRecords = store.allRecords()
 
 					removed.forEach((id) => {
+						const stringId = id.toString()
 						const recordsToRemove = allRecords
-							.filter((record) => record.id.split(':')[1] === id.toString())
+							.filter((record) => 'userId' in record && record.userId === stringId)
 							.map((record) => record.id)
 
 						store.remove(recordsToRemove)

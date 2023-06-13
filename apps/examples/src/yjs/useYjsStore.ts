@@ -5,8 +5,7 @@ import {
 	roomProvider,
 	syncStoreChangesToYjsDoc,
 	syncStorePresenceToYjsAwareness,
-	syncStoreSessionToYjsAwareness,
-	syncYjsAwarenessChangesToStore,
+	syncYjsAwarenessToStorePresence,
 	syncYjsDocChangesToStore,
 } from './y'
 
@@ -15,19 +14,29 @@ export function useYjsStore() {
 
 	useEffect(() => {
 		const store = createTLStore({ shapes: defaultShapes })
-		initializeStoreFromYjsDoc(store)
-		syncYjsDocChangesToStore(store)
-		syncStoreChangesToYjsDoc(store)
-		syncYjsAwarenessChangesToStore(store)
-		syncStorePresenceToYjsAwareness(store)
-		syncStoreSessionToYjsAwareness(store)
 
 		roomProvider.on('status', (connected: boolean) => {
 			if (connected) {
+				initializeStoreFromYjsDoc(store)
+
+				// Sync doc changes
+				syncYjsDocChangesToStore(store)
+				syncStoreChangesToYjsDoc(store)
+
+				// Sync awareness changes
+				syncStorePresenceToYjsAwareness(store)
+				syncYjsAwarenessToStorePresence(store)
+
 				setStoreWithStatus({
 					store,
 					status: 'synced-remote',
 					connectionStatus: 'online',
+				})
+			} else {
+				setStoreWithStatus({
+					store,
+					status: 'synced-remote',
+					connectionStatus: 'offline',
 				})
 			}
 		})
