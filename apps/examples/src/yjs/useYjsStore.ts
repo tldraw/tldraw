@@ -13,19 +13,22 @@ export function useYjsStore() {
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({ status: 'loading' })
 
 	useEffect(() => {
+		const unsubs: (() => void)[] = []
 		const store = createTLStore({ shapes: defaultShapes })
 
 		roomProvider.on('status', (connected: boolean) => {
 			if (connected) {
 				initializeStoreFromYjsDoc(store)
 
-				// Sync doc changes
-				syncYjsDocChangesToStore(store)
-				syncStoreChangesToYjsDoc(store)
+				unsubs.push(
+					// Sync doc changes
+					syncYjsDocChangesToStore(store),
+					syncStoreChangesToYjsDoc(store),
 
-				// Sync awareness changes
-				syncStorePresenceToYjsAwareness(store)
-				syncYjsAwarenessToStorePresence(store)
+					// Sync awareness changes
+					syncYjsAwarenessToStorePresence(store),
+					syncStorePresenceToYjsAwareness(store)
+				)
 
 				setStoreWithStatus({
 					store,
@@ -42,6 +45,11 @@ export function useYjsStore() {
 		})
 
 		roomProvider.connect()
+
+		return () => {
+			unsubs.forEach((fn) => fn())
+			unsubs.length = 0
+		}
 	}, [])
 
 	return storeWithStatus
