@@ -447,7 +447,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					labelColor={this.editor.getCssColor(labelColor)}
 					wrap
 				/>
-				{'url' in shape.props && shape.props.url && (
+				{shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
 				)}
 			</>

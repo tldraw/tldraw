@@ -219,6 +219,7 @@ export {
 	fileToBase64,
 	getIncrementedName,
 	isSerializable,
+	isValidUrl,
 	snapToGrid,
 	uniqueId,
 } from './lib/utils/data'

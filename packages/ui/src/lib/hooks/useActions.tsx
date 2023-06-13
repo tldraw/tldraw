@@ -257,8 +257,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('convert-to-bookmark', { source })
-					const ids = editor.selectedIds
-					const shapes = ids.map((id) => editor.getShapeById(id))
+					const shapes = editor.selectedShapes
 
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []

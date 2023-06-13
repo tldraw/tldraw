@@ -2,12 +2,17 @@ import { toDomPrecision } from '@tldraw/primitives'
 import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
 import { debounce, getHashForString } from '@tldraw/utils'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { DEFAULT_BOOKMARK_HEIGHT, DEFAULT_BOOKMARK_WIDTH } from '../../../constants'
+
+const DEFAULT_BOOKMARK_WIDTH = 300
+const DEFAULT_BOOKMARK_HEIGHT = 320
+
+import { isValidUrl } from '../../../utils/data'
 import {
 	getRotatedBoxShadow,
 	stopEventPropagation,
 	truncateStringWithEllipsis,
 } from '../../../utils/dom'
+import { Editor } from '../../Editor'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnBeforeCreateHandler, TLOnBeforeUpdateHandler } from '../ShapeUtil'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -37,7 +42,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 		const pageRotation = this.editor.getPageRotation(shape)
 
-		const address = this.getHumanReadableAddress(shape)
+		const address = getHumanReadableAddress(shape)
 
 		return (
 			<HTMLContainer>
@@ -100,68 +105,88 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override onBeforeCreate?: TLOnBeforeCreateHandler<TLBookmarkShape> = (shape) => {
-		this.updateBookmarkAsset(shape)
+		updateBookmarkAssetOnUrlChange(this.editor, shape)
 	}
 
 	override onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape> = (prev, shape) => {
 		if (prev.props.url !== shape.props.url) {
-			this.updateBookmarkAsset(shape)
-		}
-	}
-
-	getHumanReadableAddress(shape: TLBookmarkShape) {
-		try {
-			const url = new URL(shape.props.url)
-			const path = url.pathname.replace(/\/*$/, '')
-			return `${url.hostname}${path}`
-		} catch (e) {
-			return shape.props.url
-		}
-	}
-
-	protected updateBookmarkAsset = debounce((shape: TLBookmarkShape) => {
-		const { url } = shape.props
-		const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
-		const existing = this.editor.getAssetById(assetId)
-
-		if (existing) {
-			// If there's an existing asset with the same URL, use
-			// its asset id instead.
-			if (shape.props.assetId !== existing.id) {
-				this.editor.updateShapes([
-					{
-						id: shape.id,
-						type: shape.type,
-						props: { assetId },
-					},
-				])
+			if (!isValidUrl(shape.props.url)) {
+				return { ...shape, props: { ...shape.props, url: prev.props.url } }
+			} else {
+				updateBookmarkAssetOnUrlChange(this.editor, shape)
 			}
-		} else {
-			// Create a bookmark asset for the URL. First get its meta
-			// data, then create the asset and update the shape.
-			this.editor.externalContentManager.createAssetFromUrl(this.editor, url).then((asset) => {
-				if (!asset) {
-					this.editor.updateShapes([
-						{
-							id: shape.id,
-							type: shape.type,
-							props: { assetId: undefined },
-						},
-					])
-					return
-				}
-
-				this.editor.batch(() => {
-					this.editor.createAssets([asset])
-					this.editor.updateShapes([
-						{
-							id: shape.id,
-							type: shape.type,
-							props: { assetId: asset.id },
-						},
-					])
-				})
-			})
 		}
-	}, 500)
+	}
 }
+
+/** @internal */
+export const getHumanReadableAddress = (shape: TLBookmarkShape) => {
+	try {
+		const url = new URL(shape.props.url)
+		const path = url.pathname.replace(/\/*$/, '')
+		return `${url.hostname}${path}`
+	} catch (e) {
+		return shape.props.url
+	}
+}
+
+function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) {
+	const { url } = shape.props
+
+	// Derive the asset id from the URL
+	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
+
+	if (editor.getAssetById(assetId)) {
+		// Existing asset for this URL?
+		if (shape.props.assetId !== assetId) {
+			editor.updateShapes([
+				{
+					id: shape.id,
+					type: shape.type,
+					props: { assetId },
+				},
+			])
+		}
+	} else {
+		// No asset for this URL?
+
+		// First, clear out the existing asset reference
+		editor.updateShapes([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: { assetId: null },
+			},
+		])
+
+		// Then try to asyncronously create a new one
+		createBookmarkAssetOnUrlChange(editor, shape)
+	}
+}
+
+const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TLBookmarkShape) => {
+	const { url } = shape.props
+
+	// Create the asset using the external content manager's createAssetFromUrl method.
+	// This may be overwritten by the user (for example, we overwrite it on tldraw.com)
+	const asset = await editor.externalContentManager.createAssetFromUrl(editor, url)
+
+	if (!asset) {
+		// No asset? Just leave the bookmark as a null assetId.
+		return
+	}
+
+	editor.batch(() => {
+		// Create the new asset
+		editor.createAssets([asset])
+
+		// And update the shape
+		editor.updateShapes([
+			{
+				id: shape.id,
+				type: shape.type,
+				props: { assetId: asset.id },
+			},
+		])
+	})
+}, 500)

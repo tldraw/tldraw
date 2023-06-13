@@ -216,8 +216,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     defaultProps(): TLBookmarkShape['props'];
     // (undocumented)
-    getHumanReadableAddress(shape: TLBookmarkShape): string;
-    // (undocumented)
     hideSelectionBoundsBg: () => boolean;
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
@@ -231,11 +229,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     render(shape: TLBookmarkShape): JSX.Element;
     // (undocumented)
     static type: "bookmark";
-    // (undocumented)
-    protected updateBookmarkAsset: {
-        (shape: TLBookmarkShape): Promise<void>;
-        cancel(): void;
-    };
 }
 
 // @internal (undocumented)
@@ -1259,6 +1252,9 @@ export const isSvgText: (text: string) => boolean;
 
 // @public (undocumented)
 export const isValidHttpURL: (url: string) => boolean;
+
+// @public (undocumented)
+export function isValidUrl(url: string): boolean;
 
 // @public (undocumented)
 export const LABEL_FONT_SIZES: Record<TLSizeType, number>;
