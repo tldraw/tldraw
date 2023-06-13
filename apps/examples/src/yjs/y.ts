@@ -149,7 +149,6 @@ export function syncStorePresenceToYjsAwareness(store: TLStore) {
 		if (presence && presence.userId === userId) {
 			roomAwareness.setLocalStateField('presence', presence)
 			debouncedPersist(presence)
-			// todo: occassionally persist the user preferences
 		}
 	})
 }
