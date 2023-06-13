@@ -1,11 +1,31 @@
-import { Editor, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
-import React, { useCallback } from 'react'
+import {
+	Editor,
+	FrameShapeUtil,
+	TLFrameShape,
+	TLNullableShapeProps,
+	TLShape,
+	TLStyleItem,
+	useEditor,
+	useReactor,
+} from '@tldraw/editor'
+import {
+	ChangeEvent,
+	FocusEvent,
+	KeyboardEvent,
+	ReactEventHandler,
+	memo,
+	useCallback,
+	useState,
+} from 'react'
 
-import { minBy } from '@tldraw/utils'
+import { Box2d } from '@tldraw/primitives'
+import { compact, minBy } from '@tldraw/utils'
 import { useValue } from 'signia-react'
+import { useActions } from '../../hooks/useActions'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'
+import { Icon } from '../primitives/Icon'
 import { Slider } from '../primitives/Slider'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
@@ -50,6 +70,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 					<SplineStylePickerSet props={props ?? {}} />
 				</div>
 			)}
+			<FrameShapePropsPicker />
 		</div>
 	)
 }
@@ -59,7 +80,7 @@ const { styles } = Editor
 function useStyleChangeCallback() {
 	const editor = useEditor()
 
-	return React.useCallback(
+	return useCallback(
 		(item: TLStyleItem, squashing: boolean) => {
 			editor.batch(() => {
 				editor.setProp(item.type, item.id, false, squashing)
@@ -84,7 +105,7 @@ function CommonStylePickerSet({
 
 	const handleValueChange = useStyleChangeCallback()
 
-	const handleOpacityValueChange = React.useCallback(
+	const handleOpacityValueChange = useCallback(
 		(value: number, ephemeral: boolean) => {
 			const item = tldrawSupportedOpacities[value]
 			editor.setOpacity(item, ephemeral)
@@ -94,16 +115,6 @@ function CommonStylePickerSet({
 	)
 
 	const { color, fill, dash, size } = props
-
-	if (
-		color === undefined &&
-		fill === undefined &&
-		dash === undefined &&
-		size === undefined &&
-		opacity === undefined
-	) {
-		return null
-	}
 
 	const showPickers = fill !== undefined || dash !== undefined || size !== undefined
 
@@ -298,4 +309,370 @@ function ArrowheadStylePickerSet({ props }: { props: TLNullableShapeProps }) {
 			labelB="style-panel.arrowhead-end"
 		/>
 	)
+}
+
+const FrameShapePropsPicker = memo(function FrameShapePropsPicker() {
+	const editor = useEditor()
+
+	const actions = useActions()
+
+	const [currentValue, setCurrentValue] = useState<null | {
+		w: number | 'mixed'
+		h: number | 'mixed'
+	}>(() => ({ w: 'mixed', h: 'mixed' }))
+
+	useReactor(
+		'wh',
+		() => {
+			const wh = getWh(editor.selectedShapes)
+			setCurrentValue((v) => (v === wh ? v : wh))
+		},
+		[editor]
+	)
+
+	const handlePresetSelect = useCallback<ReactEventHandler<HTMLSelectElement>>(
+		(e) => {
+			const item = ALL_PRESETS.find((item) => item.id === e.currentTarget.value)
+			if (!item) {
+				console.error(`Could not find a preset for ${e.currentTarget.value}`)
+				return
+			}
+
+			const { selectedShapes } = editor
+			if (!selectedShapes.every((shape) => editor.isShapeOfType(shape, FrameShapeUtil))) return
+
+			editor.batch(() => {
+				editor.mark('resize-frame-preset')
+				editor.updateShapes([
+					...selectedShapes.map((shape) => ({
+						id: shape.id,
+						type: shape.type,
+						props: { w: item.width, h: item.height },
+					})),
+				])
+			})
+		},
+		[editor]
+	)
+
+	const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+		const {
+			value,
+			dataset: { prop },
+		} = e.currentTarget
+		if (!value) return
+		if (!prop) return
+		setCurrentValue((wh) => ({ ...wh!, [prop]: +(+value).toFixed() }))
+	}, [])
+
+	const handleFocus = useCallback(() => {
+		// noop
+	}, [])
+
+	const handleBlur = useCallback(
+		(e: FocusEvent<HTMLInputElement>) => {
+			const {
+				value,
+				dataset: { prop },
+			} = e.currentTarget
+
+			updateShapes(editor, prop as 'w' | 'h', value)
+		},
+		[editor]
+	)
+
+	const handleKeyDown = useCallback(
+		(e: KeyboardEvent<HTMLInputElement>) => {
+			if (e.key !== 'Enter') return
+
+			const {
+				value,
+				dataset: { prop },
+			} = e.currentTarget
+
+			updateShapes(editor, prop as 'w' | 'h', value)
+		},
+		[editor]
+	)
+
+	const handleExport = useCallback(async () => {
+		const { selectedShapes } = editor
+		if (!selectedShapes.every((shape) => editor.isShapeOfType(shape, FrameShapeUtil))) return
+
+		for (const shape of selectedShapes) {
+			editor.setSelectedIds([shape.id])
+			await actions['export-as-svg'].onSelect('style-panel')
+		}
+
+		editor.setSelectedIds(selectedShapes.map((shape) => shape.id))
+	}, [editor, actions])
+
+	const handleFitChildren = useCallback(() => {
+		const { selectedShapes } = editor
+		if (!selectedShapes.every((shape) => editor.isShapeOfType(shape, FrameShapeUtil))) return
+
+		editor.batch(() => {
+			editor.mark('resize-to-fit')
+
+			for (const shape of selectedShapes) {
+				const childIds = editor.getSortedChildIds(shape.id)
+				const children = childIds.map((id) => editor.getShapeById(id)!)
+				const childrenBounds = compact(childIds.map((id) => editor.getPageBoundsById(id)))
+					.reduce((acc, bounds, i) => {
+						if (i === 0) return bounds
+						return acc.expand(bounds)
+					}, {} as Box2d)
+					.expandBy(32)
+				const shapeBounds = editor.getPageBounds(shape)!.point
+				const offset = shapeBounds.clone().sub(childrenBounds.point)
+				const nextPoint = shapeBounds.clone().sub(offset)
+				const nextPointInSameSpaceAsFrame = editor.getPointInParentSpace(shape.id, nextPoint)
+				// todo: fix so that this works with rotated frames
+				editor.updateShapes([
+					{
+						id: shape.id,
+						type: shape.type,
+						x: nextPointInSameSpaceAsFrame.x,
+						y: nextPointInSameSpaceAsFrame.y,
+						props: { w: childrenBounds.w, h: childrenBounds.h },
+					},
+					...children.map((shape) => ({
+						id: shape.id,
+						type: shape.type,
+						x: shape.x + offset.x,
+						y: shape.y + offset.y,
+					})),
+				])
+			}
+		})
+	}, [editor])
+
+	if (!currentValue) return null
+
+	const { w, h } = currentValue
+
+	const selectedPresetItem = ALL_PRESETS.find(
+		(item) => item.type === 'size' && item.width === w && item.height === h
+	)
+
+	return (
+		<div className="tlui-style-panel__section" aria-label="style panel frames">
+			<div className="tlui-size-pickers">
+				<label className="tlui-size-pickers__label">Size</label>
+				<div className="tlui-size-picker">
+					<input
+						className="tlui-input tlui-size-picker__input"
+						type="number"
+						data-prop="w"
+						value={w === 'mixed' ? '' : (w as number).toFixed()}
+						placeholder={w === 'mixed' ? 'Mixed' : undefined}
+						onChange={handleChange}
+						onBlur={handleBlur}
+						onFocus={handleFocus}
+						onKeyDown={handleKeyDown}
+					/>
+					<span className="tlui-size-picker__label">W</span>
+				</div>
+				<div className="tlui-size-picker">
+					<input
+						className="tlui-input tlui-size-picker__input"
+						type="number"
+						data-prop="h"
+						value={h === 'mixed' ? '' : (h as number).toFixed()}
+						placeholder={h === 'mixed' ? 'Mixed' : undefined}
+						onChange={handleChange}
+						onBlur={handleBlur}
+						onFocus={handleFocus}
+						onKeyDown={handleKeyDown}
+					/>
+					<span className="tlui-size-picker__label">H</span>
+				</div>
+			</div>
+			<div className="tlui-size-preset-picker">
+				<select
+					className="tlui-button tlui-size-preset-picker__select"
+					value={selectedPresetItem?.id ?? 'CUSTOM'}
+					onChange={handlePresetSelect}
+				>
+					{selectedPresetItem ? null : (
+						<option disabled value="CUSTOM">
+							Custom
+						</option>
+					)}
+					{SIZE_PRESETS.map((item, i) => (
+						<SizePresetItem key={i} item={item} />
+					))}
+				</select>
+				<Icon className="tlui-size-preset-picker__icon" icon="chevron-down" small />
+			</div>
+			<Button label="style-panel.resize-to-fit" icon="tool-frame" onClick={handleFitChildren} />
+			<Button label="style-panel.export-frames" icon="external-link" onClick={handleExport} />
+		</div>
+	)
+})
+
+function SizePresetItem({ item }: { item: SizePresetItem }) {
+	switch (item.type) {
+		case 'group': {
+			return (
+				<optgroup label={item.label}>
+					{item.children.map((child, i) => (
+						<SizePresetItem key={i} item={child} />
+					))}
+				</optgroup>
+			)
+		}
+		case 'size': {
+			return <option value={item.id}>{item.label}</option>
+		}
+	}
+}
+
+type SizePresetItem =
+	| {
+			type: 'group'
+			label: string
+			children: SizePresetItem[]
+	  }
+	| {
+			type: 'size'
+			id: string
+			label: string
+			width: number
+			height: number
+	  }
+
+const SLIDES_PRESETS: Extract<SizePresetItem, { type: 'size' }>[] = [
+	{
+		type: 'size',
+		id: 'slide-16-9',
+		label: 'Slide 16:9',
+		width: 1920,
+		height: 1080,
+	},
+	{
+		type: 'size',
+		id: 'slide-4-3',
+		label: 'Slide 4:3',
+		width: 1024,
+		height: 1064,
+	},
+]
+
+const SOCIAL_MEDIA_PRESETS: Extract<SizePresetItem, { type: 'size' }>[] = [
+	{
+		id: 'social-media-twitter-post',
+		type: 'size',
+		label: 'Twitter post',
+		width: 1200,
+		height: 675,
+	},
+	{
+		id: 'social-media-twitter-header',
+		type: 'size',
+		label: 'Facebook post',
+		width: 1200,
+		height: 630,
+	},
+	{
+		id: 'social-media-instagram-post',
+		type: 'size',
+		label: 'Instagram post',
+		width: 1080,
+		height: 1080,
+	},
+]
+
+const PAGES_PRESETS: Extract<SizePresetItem, { type: 'size' }>[] = [
+	{
+		id: 'page-a4',
+		type: 'size',
+		label: 'A4',
+		width: 595 * 2,
+		height: 842 * 2,
+	},
+	{
+		id: 'page-letter',
+		type: 'size',
+		label: 'Letter',
+		width: 612 * 2,
+		height: 792 * 2,
+	},
+]
+
+const ALL_PRESETS: Extract<SizePresetItem, { type: 'size' }>[] = [
+	...SLIDES_PRESETS,
+	...PAGES_PRESETS,
+	...SOCIAL_MEDIA_PRESETS,
+]
+
+const SIZE_PRESETS: SizePresetItem[] = [
+	{
+		type: 'group',
+		label: 'Slides',
+		children: SLIDES_PRESETS,
+	},
+	{
+		type: 'group',
+		label: 'Pages',
+		children: PAGES_PRESETS,
+	},
+	{
+		type: 'group',
+		label: 'Social media',
+		children: SOCIAL_MEDIA_PRESETS,
+	},
+]
+
+function getWh(shapes: TLShape[]) {
+	if (shapes.length === 0) return null
+
+	let w = -1 as number | 'mixed'
+	let h = -1 as number | 'mixed'
+
+	for (let i = 0; i < shapes.length; i++) {
+		const shape = shapes[i] as TLFrameShape
+		if (shape.type !== 'frame') return null
+
+		if (w !== 'mixed') {
+			if (w === -1) {
+				w = shape.props.w
+			} else if (w !== shape.props.w) {
+				w = 'mixed'
+			}
+		}
+
+		if (h !== 'mixed') {
+			if (h === -1) {
+				h = shape.props.h
+			} else if (h !== shape.props.h) {
+				h = 'mixed'
+			}
+		}
+	}
+
+	return { w, h }
+}
+
+function updateShapes(editor: Editor, prop: 'w' | 'h', value: string) {
+	const next = { [prop as string]: +Math.max(1, +value).toFixed() }
+
+	const { selectedShapes } = editor
+	if (
+		!selectedShapes.every(
+			(shape) =>
+				editor.isShapeOfType(shape, FrameShapeUtil) &&
+				(shape.props.w !== next.w || shape.props.h !== next.h)
+		)
+	)
+		return
+
+	editor.mark('resize-frame')
+	editor.updateShapes([
+		...selectedShapes.map((shape) => ({
+			id: shape.id,
+			type: shape.type,
+			props: next,
+		})),
+	])
 }
