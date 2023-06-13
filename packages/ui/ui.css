@@ -1227,6 +1227,10 @@
 	margin-right: 0px;
 } */
 
+.tlui-button-grid__button > .tlui-kbd {
+	margin: 0;
+}
+
 /* ------------------ Actions Menu ------------------ */
 
 .tlui-actions-menu {

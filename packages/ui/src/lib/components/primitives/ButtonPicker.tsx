@@ -16,6 +16,7 @@ export interface ButtonPickerProps<T extends TLStyleItem> {
 	value?: string | number | null
 	columns?: 2 | 3 | 4
 	'data-testid'?: string
+	dynamicKbdBinding?: boolean
 	onValueChange: (item: T, squashing: boolean) => void
 }
 
@@ -30,27 +31,59 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 	} = props
 	const editor = useEditor()
 	const msg = useTranslation()
-
+	const dynamicKbdOptions: string[] = React.useMemo(
+		() => [
+			'q',
+			'w',
+			'e',
+			'r',
+			'a',
+			's',
+			'd',
+			'f',
+			'z',
+			'x',
+			'c',
+			'v',
+			'1',
+			'2',
+			'3',
+			'4',
+			'5',
+			'6',
+			'7',
+			'8',
+			'9',
+			'0',
+			'u',
+			'i',
+			'o',
+			'p',
+			'h',
+			'j',
+			'k',
+			'l',
+			'v',
+			'b',
+			'n',
+			'm',
+		],
+		[]
+	)
 	const rPointing = useRef(false)
+
+	const [isFocused, setIsFocused] = React.useState(false)
 
 	const {
 		handleButtonClick,
 		handleButtonPointerDown,
 		handleButtonPointerEnter,
 		handleButtonPointerUp,
-		handleKeyDown
+		handleKeyDown,
 	} = React.useMemo(() => {
 		const handlePointerUp = () => {
 			rPointing.current = false
 			window.removeEventListener('pointerup', handlePointerUp)
-		}
-
-		const handleNextItemChanged = (parentElement: HTMLElement | null, itemIndexToChange: number | undefined) => {
-			const nextItem: T | undefined = items.find((i, index) => index === itemIndexToChange);
-			const nextButton: HTMLButtonElement | null | undefined = parentElement?.querySelector(`[data-id="${nextItem?.id}"]`);
-
-			nextButton?.focus();
-			onValueChange(nextItem!, false);
 		}
 
 		const handleButtonClick = (e: React.PointerEvent<HTMLButtonElement>) => {
@@ -86,37 +119,60 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 		const handleKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>): void => {
 			const { id } = e.currentTarget.dataset
 
-			const currentItemIndex: number = items.findIndex((i) => i.id === id);
+			const currentItemIndex: number = items.findIndex((i) => i.id === id)
 			switch (e.key) {
 				case 'ArrowRight': {
-					const indexToFind: number = currentItemIndex === items.length-1 ? 0 : currentItemIndex+1;
+					const indexToFind: number =
+						currentItemIndex === items.length - 1 ? 0 : currentItemIndex + 1
 
-					handleNextItemChanged(e.currentTarget.parentElement, indexToFind);
-					break;
+					handleNextItemChanged(e.currentTarget.parentElement, indexToFind)
+					break
 				}
 				case 'ArrowLeft': {
-					const indexToFind: number = currentItemIndex === 0 ? items.length-1 : currentItemIndex-1;
+					const indexToFind: number =
+						currentItemIndex === 0 ? items.length - 1 : currentItemIndex - 1
 
-					handleNextItemChanged(e.currentTarget.parentElement, indexToFind);
-					break;
+					handleNextItemChanged(e.currentTarget.parentElement, indexToFind)
+					break
 				}
 				case 'ArrowDown': {
-					const indexToFind: number = currentItemIndex > (items.length - 1)-columns // '- columns' denotes the last row
-						? currentItemIndex % columns 
-						: currentItemIndex+columns;
+					const indexToFind: number =
+						currentItemIndex > items.length - 1 - columns // '- columns' denotes the last row
+							? currentItemIndex % columns
+							: currentItemIndex + columns
 
-					handleNextItemChanged(e.currentTarget.parentElement, indexToFind);
-					break;
+					handleNextItemChanged(e.currentTarget.parentElement, indexToFind)
+					break
 				}
 				case 'ArrowUp': {
-					const numRows: number = Math.ceil(items.length / columns);
-					let indexToFind: number | undefined = currentItemIndex - columns;
-					indexToFind = indexToFind < 0 ? indexToFind + (numRows * columns) : indexToFind;
+					const numRows: number = Math.ceil(items.length / columns)
+					let indexToFind: number | undefined = currentItemIndex - columns
+					indexToFind = indexToFind < 0 ? indexToFind + numRows * columns : indexToFind
 
-					handleNextItemChanged(e.currentTarget.parentElement, indexToFind);
-					break;
+					handleNextItemChanged(e.currentTarget.parentElement, indexToFind)
+					break
+				}
+				default: {
+					const kbdIndex: number | undefined = dynamicKbdOptions.findIndex(
+						(kbd: string) => kbd === e.key
+					)
+
+					handleNextItemChanged(e.currentTarget.parentElement, kbdIndex)
 				}
 			}
+		}
+
+		const handleNextItemChanged = (
+			parentElement: HTMLElement | null,
+			itemIndexToChange: number | undefined
+		) => {
+			const nextItem: T | undefined = items.find((i, index) => index === itemIndexToChange)
+			const nextButton: HTMLButtonElement | null | undefined = parentElement?.querySelector(
+				`[data-id="${nextItem?.id}"]`
+			)
+
+			nextButton?.focus()
+			onValueChange(nextItem!, false)
 		}
 
 		return {
@@ -124,9 +180,9 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			handleButtonPointerDown,
 			handleButtonPointerEnter,
 			handleButtonPointerUp,
-			handleKeyDown
+			handleKeyDown,
 		}
-	}, [editor, value, onValueChange, items, columns])
+	}, [editor, value, onValueChange, items, dynamicKbdOptions, columns])
 
 	return (
 		<div
@@ -135,8 +191,10 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 				'tlui-button-grid__three': columns === 3,
 				'tlui-button-grid__four': columns === 4,
 			})}
+			onFocus={() => setIsFocused(true)}
+			onBlur={() => setIsFocused(false)}
 		>
-			{items.map((item) => (
+			{items.map((item, index) => (
 				<Button
 					key={item.id}
 					data-id={item.id}
@@ -151,6 +209,14 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 					onPointerUp={handleButtonPointerUp}
 					onClick={handleButtonClick}
 					onKeyDown={handleKeyDown}
+					kbd={
+						isFocused &&
+						editor.isChangingStyle &&
+						props.dynamicKbdBinding &&
+						index < dynamicKbdOptions.length
+							? dynamicKbdOptions[index]
+							: undefined
+					}
 					icon={item.icon as TLUiIconType}
 				/>
 			))}

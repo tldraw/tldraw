@@ -124,6 +124,7 @@ function CommonStylePickerSet({
 						title={msg('style-panel.color')}
 						styleType="color"
 						data-testid="style.color"
+						dynamicKbdBinding={true}
 						items={styles.color}
 						value={color}
 						onValueChange={handleValueChange}
