@@ -107,7 +107,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					)
 					editor.setSelectedTool('geo')
 					trackEvent('select-tool', { source, id: `geo` })
-				}
+				},
 			},
 			...[...TL_GEO_TYPES].map((id) => ({
 				id,
