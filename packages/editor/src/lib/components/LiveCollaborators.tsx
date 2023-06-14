@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { track } from 'signia-react'
+import { COLLABORATOR_CHECK_INTERVAL, COLLABORATOR_TIMEOUT } from '../constants'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { usePeerIds } from '../hooks/usePeerIds'
@@ -16,8 +17,6 @@ export const LiveCollaborators = track(function Collaborators() {
 	)
 })
 
-export const COLLABORATOR_TIMEOUT = 3000
-
 const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
 	const editor = useEditor()
 	const { viewportPageBounds, zoomLevel } = editor
@@ -33,29 +32,31 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 	const latestPresence = usePresence(userId)
 
 	const [isTimedOut, setIsTimedOut] = useState(false)
+	const rLastSeen = useRef(-1)
 
 	useEffect(() => {
-		// By default, show the cursor
-		setIsTimedOut(false)
+		const interval = setInterval(() => {
+			setIsTimedOut(rLastSeen.current - Date.now() > COLLABORATOR_TIMEOUT)
+		}, COLLABORATOR_CHECK_INTERVAL)
 
-		// After a few seconds of inactivity, hide the cursor
-		const timeout = setTimeout(() => {
-			setIsTimedOut(true)
-		}, COLLABORATOR_TIMEOUT)
-
-		return () => clearTimeout(timeout)
-	}, [latestPresence?.lastActivityTimestamp])
+		return () => clearInterval(interval)
+	}, [])
 
 	if (!latestPresence) return null
+
+	// We can do this on every render, it's free and would be the same as running a useEffect with a dependency on the timestamp
+	rLastSeen.current = latestPresence.lastActivityTimestamp
 
 	// If the user has timed out
 	// ... and we're not following them
 	// ... and they're not highlighted
-	// >>> we'll hide their cursor
-	const isCursorTimedOut =
+	// then we'll hide the contributor
+	if (
 		isTimedOut &&
 		editor.instanceState.followingUserId !== userId &&
 		!editor.instanceState.highlightedUserIds.includes(userId)
+	)
+		return null
 
 	// if the collaborator is on another page, ignore them
 	if (latestPresence.currentPageId !== editor.currentPageId) return null
@@ -82,26 +83,25 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 					opacity={0.1}
 				/>
 			) : null}
-			{!isCursorTimedOut &&
-				(isCursorInViewport && CollaboratorCursor ? (
-					<CollaboratorCursor
-						className="tl-collaborator__cursor"
-						key={userId + '_cursor'}
-						point={cursor}
-						color={color}
-						zoom={zoomLevel}
-						name={userName !== 'New User' ? userName : null}
-					/>
-				) : CollaboratorHint ? (
-					<CollaboratorHint
-						className="tl-collaborator__cursor-hint"
-						key={userId + '_cursor_hint'}
-						point={cursor}
-						color={color}
-						zoom={zoomLevel}
-						viewport={viewportPageBounds}
-					/>
-				) : null)}
+			{isCursorInViewport && CollaboratorCursor ? (
+				<CollaboratorCursor
+					className="tl-collaborator__cursor"
+					key={userId + '_cursor'}
+					point={cursor}
+					color={color}
+					zoom={zoomLevel}
+					name={userName !== 'New User' ? userName : null}
+				/>
+			) : CollaboratorHint ? (
+				<CollaboratorHint
+					className="tl-collaborator__cursor-hint"
+					key={userId + '_cursor_hint'}
+					point={cursor}
+					color={color}
+					zoom={zoomLevel}
+					viewport={viewportPageBounds}
+				/>
+			) : null}
 			{scribble && CollaboratorScribble ? (
 				<CollaboratorScribble
 					className="tl-collaborator__scribble"

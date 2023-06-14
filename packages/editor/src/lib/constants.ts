@@ -273,3 +273,9 @@ export const BLACKLISTED_PROPS = new Set([
 	'url',
 	'growY',
 ])
+
+/** @internal */
+export const COLLABORATOR_TIMEOUT = 3000
+
+/** @internal */
+export const COLLABORATOR_CHECK_INTERVAL = 1200

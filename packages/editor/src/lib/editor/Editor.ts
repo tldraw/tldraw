@@ -79,7 +79,6 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { COLLABORATOR_TIMEOUT } from '../components/LiveCollaborators'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import { AnyTLShapeInfo } from '../config/defineShape'
@@ -87,6 +86,7 @@ import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
 	COARSE_DRAG_DISTANCE,
+	COLLABORATOR_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_PAN_SNAP,
