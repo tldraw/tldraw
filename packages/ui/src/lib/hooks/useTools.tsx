@@ -94,21 +94,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'draw' })
 				},
 			},
-			{
-				id: 'geo',
-				label: 'tool.rectangle' as TLUiTranslationKey,
-				readonlyOk: false,
-				icon: 'geo-rectangle',
-				kbd: 'g',
-				onSelect(source) {
-					editor.updateInstanceState(
-						{ propsForNextShape: { ...editor.instanceState.propsForNextShape, geo: 'rectangle' } },
-						true
-					)
-					editor.setSelectedTool('geo')
-					trackEvent('select-tool', { source, id: `geo` })
-				},
-			},
 			...[...TL_GEO_TYPES].map((id) => ({
 				id,
 				label: `tool.${id}` as TLUiTranslationKey,
