@@ -101,7 +101,7 @@ function getHotkeysStringFromKbd(kbd: string) {
 }
 
 // Logic to split kbd string from hotkeys-js util.
-function getKeys(key) {
+function getKeys(key: string) {
 	if (typeof key !== 'string') key = '';
 	key = key.replace(/\s/g, '');
 	const keys = key.split(',');
