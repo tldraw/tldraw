@@ -58,7 +58,6 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 	pointerId: number
 	button: number
 	isPen: boolean
-	source: 'user' | 'followingCamera'
 } & TLPointerEventTarget
 
 /** @public */

@@ -3589,7 +3589,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.inputs.pointerVelocity = new Vec2d()
 		}
 
-		const isFollowingCamera = info.type === 'pointer' && info.source === 'followingCamera'
+		const isFollowingCamera = info.type === 'pointer' && this.instanceState.followingUserId
 		const lastActivityTimestamp = isFollowingCamera
 			? this.store.query.record('pointer').value?.lastActivityTimestamp ?? Date.now()
 			: Date.now()
@@ -8072,7 +8072,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				shiftKey: this.inputs.shiftKey,
 				button: 0,
 				isPen: this.isPenMode ?? false,
-				source: this.instanceState.followingUserId ? 'followingCamera' : 'user',
 			})
 
 			this._cameraManager.tick()
