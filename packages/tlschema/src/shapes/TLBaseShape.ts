@@ -32,7 +32,7 @@ export const shapeIdValidator = idValidator<TLShapeId>('shape')
 /** @public */
 export function createShapeValidator<Type extends string, Props extends object>(
 	type: Type,
-	props: T.Validator<Props>
+	props?: { [K in keyof Props]: T.Validatable<Props[K]> }
 ) {
 	return T.object({
 		id: shapeIdValidator,
@@ -45,6 +45,11 @@ export function createShapeValidator<Type extends string, Props extends object>(
 		type: T.literal(type),
 		isLocked: T.boolean,
 		opacity: opacityValidator,
-		props,
+		props: props ? T.object(props) : T.unknownObject,
 	})
+}
+
+/** @public */
+export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
+	[K in keyof Shape['props']]: T.Validator<Shape['props'][K]>
 }

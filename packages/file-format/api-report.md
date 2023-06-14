@@ -8,6 +8,7 @@ import { Editor } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/store';
 import { Result } from '@tldraw/utils';
 import { SerializedSchema } from '@tldraw/store';
+import { TLSchema } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLUiToastsContextType } from '@tldraw/ui';
 import { TLUiTranslationKey } from '@tldraw/ui';
@@ -39,8 +40,8 @@ export interface LegacyTldrawDocument {
 export function parseAndLoadDocument(editor: Editor, document: string, msg: (id: TLUiTranslationKey) => string, addToast: TLUiToastsContextType['addToast'], onV1FileLoad?: () => void, forceDarkMode?: boolean): Promise<void>;
 
 // @public (undocumented)
-export function parseTldrawJsonFile({ json, store, }: {
-    store: TLStore;
+export function parseTldrawJsonFile({ json, schema, }: {
+    schema: TLSchema;
     json: string;
 }): Result<TLStore, TldrawFileParseError>;
 

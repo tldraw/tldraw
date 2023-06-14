@@ -7,7 +7,7 @@ import {
 	useStateTracking,
 } from 'signia-react'
 import { useEditor } from '../..'
-import { ShapeUtil } from '../editor/shapeutils/ShapeUtil'
+import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useShapeEvents } from '../hooks/useShapeEvents'

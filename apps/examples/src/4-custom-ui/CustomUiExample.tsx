@@ -1,4 +1,4 @@
-import { Canvas, TldrawEditor, useEditor } from '@tldraw/tldraw'
+import { Canvas, TldrawEditor, defaultShapes, defaultTools, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import { useEffect } from 'react'
 import { track } from 'signia-react'
@@ -7,7 +7,7 @@ import './custom-ui.css'
 export default function CustomUiExample() {
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor autoFocus>
+			<TldrawEditor shapes={defaultShapes} tools={defaultTools} autoFocus>
 				<Canvas />
 				<CustomUi />
 			</TldrawEditor>

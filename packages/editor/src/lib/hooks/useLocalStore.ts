@@ -6,11 +6,11 @@ import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 import { useTLStore } from './useTLStore'
 
 /** @internal */
-export function useLocalStore(
-	opts = {} as { persistenceKey?: string; sessionId?: string } & TLStoreOptions
-): TLStoreWithStatus {
-	const { persistenceKey, sessionId, ...rest } = opts
-
+export function useLocalStore({
+	persistenceKey,
+	sessionId,
+	...rest
+}: { persistenceKey?: string; sessionId?: string } & TLStoreOptions): TLStoreWithStatus {
 	const [state, setState] = useState<{ id: string; storeWithStatus: TLStoreWithStatus } | null>(
 		null
 	)
