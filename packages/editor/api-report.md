@@ -968,6 +968,9 @@ export function getFileMetaData(file: File): Promise<{
     isAnimated: boolean;
 }>;
 
+// @public (undocumented)
+export function getFreshUserPreferences(): TLUserPreferences;
+
 export { getHashForString }
 
 // @public
