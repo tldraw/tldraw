@@ -6088,6 +6088,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (id === singleFrameShapeId) return []
 
 					const shape = this.getShapeById(id)!
+
+					if (this.isShapeOfType(shape, GroupShapeUtil)) return []
+
 					const util = this.getShapeUtil(shape)
 
 					let font: string | undefined
@@ -6113,6 +6116,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						outerElement.appendChild(shapeSvgElement)
 						shapeSvgElement = outerElement
 					}
+
 					if (backgroundSvgElement) {
 						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 						outerElement.appendChild(backgroundSvgElement)
