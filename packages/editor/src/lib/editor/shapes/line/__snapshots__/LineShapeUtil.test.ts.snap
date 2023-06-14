@@ -6,7 +6,7 @@ Object {
   "index": "a1",
   "isLocked": false,
   "opacity": 1,
-  "parentId": "page:id51",
+  "parentId": "page:id50",
   "props": Object {
     "color": "black",
     "dash": "draw",
