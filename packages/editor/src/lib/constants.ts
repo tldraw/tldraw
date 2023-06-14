@@ -101,24 +101,6 @@ export const DEFAULT_BOOKMARK_WIDTH = 300
 export const DEFAULT_BOOKMARK_HEIGHT = 320
 
 /** @public */
-export const ROTATING_SHADOWS = [
-	{
-		offsetX: 0,
-		offsetY: 2,
-		blur: 4,
-		spread: 0,
-		color: '#00000029',
-	},
-	{
-		offsetX: 0,
-		offsetY: 3,
-		blur: 6,
-		spread: 0,
-		color: '#0000001f',
-	},
-]
-
-/** @public */
 export const GRID_STEPS = [
 	{ min: -1, mid: 0.15, step: 100 },
 	{ min: 0.05, mid: 0.375, step: 25 },

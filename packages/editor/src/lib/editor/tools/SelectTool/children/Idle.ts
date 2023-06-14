@@ -1,5 +1,5 @@
 import { Vec2d } from '@tldraw/primitives'
-import { TLGeoShape, TLShape, createShapeId } from '@tldraw/tlschema'
+import { TLGeoShape, TLShape, TLTextShape, createShapeId } from '@tldraw/tlschema'
 import { debugFlags } from '../../../../utils/debug-flags'
 import {
 	TLClickEventInfo,
@@ -382,7 +382,7 @@ export class Idle extends StateNode {
 
 		const { x, y } = this.editor.inputs.currentPagePoint
 
-		this.editor.createShapes([
+		this.editor.createShapes<TLTextShape>([
 			{
 				id,
 				type: 'text',

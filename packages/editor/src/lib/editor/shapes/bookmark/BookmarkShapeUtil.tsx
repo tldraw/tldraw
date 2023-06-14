@@ -2,14 +2,13 @@ import { toDomPrecision } from '@tldraw/primitives'
 import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
 import { debounce, getHashForString } from '@tldraw/utils'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { ROTATING_SHADOWS } from '../../../constants'
 
 const DEFAULT_BOOKMARK_WIDTH = 300
 const DEFAULT_BOOKMARK_HEIGHT = 320
 
 import { isValidUrl } from '../../../utils/data'
 import {
-	rotateBoxShadow,
+	getRotatedBoxShadow,
 	stopEventPropagation,
 	truncateStringWithEllipsis,
 } from '../../../utils/dom'
@@ -50,7 +49,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 				<div
 					className="tl-bookmark__container tl-hitarea-stroke"
 					style={{
-						boxShadow: rotateBoxShadow(pageRotation, ROTATING_SHADOWS),
+						boxShadow: getRotatedBoxShadow(pageRotation),
 					}}
 				>
 					<div className="tl-bookmark__image_container">
@@ -140,7 +139,7 @@ function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) 
 	if (editor.getAssetById(assetId)) {
 		// Existing asset for this URL?
 		if (shape.props.assetId !== assetId) {
-			editor.updateShapes([
+			editor.updateShapes<TLBookmarkShape>([
 				{
 					id: shape.id,
 					type: shape.type,
@@ -152,7 +151,7 @@ function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) 
 		// No asset for this URL?
 
 		// First, clear out the existing asset reference
-		editor.updateShapes([
+		editor.updateShapes<TLBookmarkShape>([
 			{
 				id: shape.id,
 				type: shape.type,
@@ -182,7 +181,7 @@ const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 		editor.createAssets([asset])
 
 		// And update the shape
-		editor.updateShapes([
+		editor.updateShapes<TLBookmarkShape>([
 			{
 				id: shape.id,
 				type: shape.type,

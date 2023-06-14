@@ -185,7 +185,7 @@ export class Idle extends StateNode {
 				this.editor.mark('translate crop')
 			}
 
-			this.editor.updateShapes([partial])
+			this.editor.updateShapes<ShapeWithCrop>([partial])
 		}
 	}
 }

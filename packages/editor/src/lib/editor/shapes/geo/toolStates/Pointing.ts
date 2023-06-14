@@ -14,7 +14,7 @@ export class Pointing extends StateNode {
 
 			this.editor.mark('creating')
 
-			this.editor.createShapes([
+			this.editor.createShapes<TLGeoShape>([
 				{
 					id,
 					type: 'geo',
@@ -63,7 +63,7 @@ export class Pointing extends StateNode {
 
 		this.editor.mark('creating')
 
-		this.editor.createShapes([
+		this.editor.createShapes<TLGeoShape>([
 			{
 				id,
 				type: 'geo',
@@ -85,7 +85,7 @@ export class Pointing extends StateNode {
 		const delta = this.editor.getDeltaInParentSpace(shape, bounds.center)
 
 		this.editor.select(id)
-		this.editor.updateShapes([
+		this.editor.updateShapes<TLGeoShape>([
 			{
 				id: shape.id,
 				type: 'geo',
