@@ -3601,7 +3601,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				lastActivityTimestamp:
 					// If our pointer moved only because we're following some other user, then don't
 					// update our last activity timestamp; otherwise, update it to the current timestamp.
-					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.FOLLOWING_CAMERA
+					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
 						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
 						: Date.now(),
 			},
@@ -8068,7 +8068,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				target: 'canvas',
 				name: 'pointer_move',
 				point: currentScreenPoint,
-				pointerId: INTERNAL_POINTER_IDS.FOLLOWING_CAMERA,
+				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
 				shiftKey: this.inputs.shiftKey,
