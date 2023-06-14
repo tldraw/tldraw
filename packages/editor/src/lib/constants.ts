@@ -279,3 +279,11 @@ export const COLLABORATOR_TIMEOUT = 3000
 
 /** @internal */
 export const COLLABORATOR_CHECK_INTERVAL = 1200
+
+/**
+ * Negative pointer ids are reserved for internal use.
+ *
+ * @internal */
+export const INTERNAL_POINTER_IDS = {
+	FOLLOWING_CAMERA: -10,
+} as const
