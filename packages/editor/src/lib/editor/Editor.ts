@@ -8471,8 +8471,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const targetViewport = new Box2d(-x, -y, w, h)
 
-		return this.setCamera(x, y, this.viewportScreenBounds.width / w)
-
 		return this._animateToViewport(targetViewport, opts)
 	}
 
