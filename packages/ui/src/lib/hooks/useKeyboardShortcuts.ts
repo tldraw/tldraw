@@ -11,7 +11,6 @@ const SKIP_KBDS = [
 	'copy',
 	'cut',
 	'paste',
-	'delete',
 	// There's also an upload asset action, so we don't want to set the kbd twice
 	'asset',
 ]
@@ -73,7 +72,7 @@ export function useKeyboardShortcuts() {
 
 function getHotkeysStringFromKbd(kbd: string) {
 	return getKeys(kbd)
-		.map(kbd => {
+		.map((kbd) => {
 			let str = ''
 			const chars = kbd.split('')
 			if (chars.length === 1) {
@@ -102,16 +101,16 @@ function getHotkeysStringFromKbd(kbd: string) {
 
 // Logic to split kbd string from hotkeys-js util.
 function getKeys(key: string) {
-	if (typeof key !== 'string') key = '';
-	key = key.replace(/\s/g, '');
-	const keys = key.split(',');
-	let index = keys.lastIndexOf('');
-  
-	for (; index >= 0;) {
-	  keys[index - 1] += ',';
-	  keys.splice(index, 1);
-	  index = keys.lastIndexOf('');
+	if (typeof key !== 'string') key = ''
+	key = key.replace(/\s/g, '')
+	const keys = key.split(',')
+	let index = keys.lastIndexOf('')
+
+	for (; index >= 0; ) {
+		keys[index - 1] += ','
+		keys.splice(index, 1)
+		index = keys.lastIndexOf('')
 	}
-  
-	return keys;
+
+	return keys
 }
