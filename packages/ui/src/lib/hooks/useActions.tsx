@@ -691,7 +691,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'delete',
 				label: 'action.delete',
-				kbd: '⌫',
+				kbd: '⌫,del,backspace',
 				icon: 'trash',
 				readonlyOk: false,
 				onSelect(source) {
@@ -732,7 +732,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in',
 				label: 'action.zoom-in',
-				kbd: '$=',
+				kbd: '$=,=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
@@ -742,7 +742,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-out',
 				label: 'action.zoom-out',
-				kbd: '$-',
+				kbd: '$-,-',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source })

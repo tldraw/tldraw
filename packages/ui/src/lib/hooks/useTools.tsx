@@ -94,6 +94,17 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'draw' })
 				},
 			},
+			{
+				id: 'geo',
+				label: 'tool.geo',
+				readonlyOk: false,
+				icon: 'tool-geo',
+				kbd: 'g',
+				onSelect(source) {
+					editor.setSelectedTool('geo')
+					trackEvent('select-tool', { source, id: `geo` })
+				}
+			},
 			...[...TL_GEO_TYPES].map((id) => ({
 				id,
 				label: `tool.${id}` as TLUiTranslationKey,
