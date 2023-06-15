@@ -69,7 +69,7 @@
 	"action.toggle-debug-mode.menu": "Modalità di debug",
 	"action.toggle-debug-mode": "Alterna modalità di debug",
 	"action.toggle-focus-mode.menu": "Modalità concentrazione",
-	"action.toggle-focus-mode": "Alterna la modalità concentrazione",
+	"action.toggle-focus-mode": "Alterna modalità concentrazione",
 	"action.toggle-grid.menu": "Mostra griglia",
 	"action.toggle-grid": "Alterna griglia",
 	"action.toggle-snap-mode.menu": "Allinea sempre",
@@ -272,7 +272,7 @@
 	"tool-panel.shapes": "Forme",
 	"navigation-zone.toggle-minimap": "Alterna minimappa",
 	"navigation-zone.zoom": "Zoom",
-	"focus-mode.toggle-focus-mode": "Alterna la modalità concentrazione",
+	"focus-mode.toggle-focus-mode": "Alterna modalità concentrazione",
 	"toast.close": "Chiudi",
 	"file-system.file-open-error.title": "Impossibile aprile il file",
 	"file-system.file-open-error.not-a-tldraw-file": "Il file che hai provato ad aprire non sembra essere un file tldraw.",
@@ -323,5 +323,8 @@
 	"sharing.confirm-leave.title": "Abbandonare il progetto attuale?",
 	"sharing.confirm-leave.description": "Sei sicuro di voler abbandonare questo progetto condiviso? Puoi tornare navigando al suo URL.",
 	"sharing.confirm-leave.cancel": "Annulla",
-	"sharing.confirm-leave.dont-show-again": "Non chiedere di nuovo"
+	"sharing.confirm-leave.dont-show-again": "Non chiedere di nuovo",
+	"action.toggle-reduce-motion.menu": "Riduci il movimento",
+	"action.toggle-reduce-motion": "Alterna riduzione del movimento",
+	"tool.highlight": "Evidenziatore"
 }

@@ -9,7 +9,7 @@ import { TLFillType, fillValidator } from '../styles/TLFillStyle'
 import { TLFontType, fontValidator } from '../styles/TLFontStyle'
 import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
 import { SetValue } from '../util-types'
-import { TLBaseShape, createShapeValidator, shapeIdValidator } from './TLBaseShape'
+import { ShapeProps, TLBaseShape, shapeIdValidator } from './TLBaseShape'
 
 /** @public */
 export const TL_ARROW_TERMINAL_TYPE = new Set(['binding', 'point'] as const)
@@ -62,23 +62,20 @@ export const arrowTerminalValidator: T.Validator<TLArrowTerminal> = T.union('typ
 })
 
 /** @internal */
-export const arrowShapeValidator: T.Validator<TLArrowShape> = createShapeValidator(
-	'arrow',
-	T.object({
-		labelColor: colorValidator,
-		color: colorValidator,
-		fill: fillValidator,
-		dash: dashValidator,
-		size: sizeValidator,
-		arrowheadStart: arrowheadValidator,
-		arrowheadEnd: arrowheadValidator,
-		font: fontValidator,
-		start: arrowTerminalValidator,
-		end: arrowTerminalValidator,
-		bend: T.number,
-		text: T.string,
-	})
-)
+export const arrowShapeProps: ShapeProps<TLArrowShape> = {
+	labelColor: colorValidator,
+	color: colorValidator,
+	fill: fillValidator,
+	dash: dashValidator,
+	size: sizeValidator,
+	arrowheadStart: arrowheadValidator,
+	arrowheadEnd: arrowheadValidator,
+	font: fontValidator,
+	start: arrowTerminalValidator,
+	end: arrowTerminalValidator,
+	bend: T.number,
+	text: T.string,
+}
 
 const Versions = {
 	AddLabelColor: 1,

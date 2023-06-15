@@ -1110,6 +1110,51 @@ describe('hoist opacity', () => {
 	})
 })
 
+describe('Removes does resize from embed', () => {
+	const { up, down } = embedShapeMigrations.migrators[2]
+	test('up works as expected', () => {
+		expect(up({ props: { url: 'https://tldraw.com', doesResize: true } })).toEqual({
+			props: { url: 'https://tldraw.com' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { url: 'https://tldraw.com' } })).toEqual({
+			props: { url: 'https://tldraw.com', doesResize: true },
+		})
+	})
+})
+
+describe('Removes tmpOldUrl from embed', () => {
+	const { up, down } = embedShapeMigrations.migrators[3]
+	test('up works as expected', () => {
+		expect(up({ props: { url: 'https://tldraw.com', tmpOldUrl: 'https://tldraw.com' } })).toEqual({
+			props: { url: 'https://tldraw.com' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { url: 'https://tldraw.com' } })).toEqual({
+			props: { url: 'https://tldraw.com' },
+		})
+	})
+})
+
+describe('Removes overridePermissions from embed', () => {
+	const { up, down } = embedShapeMigrations.migrators[4]
+
+	test('up works as expected', () => {
+		expect(
+			up({ props: { url: 'https://tldraw.com', overridePermissions: { display: 'maybe' } } })
+		).toEqual({
+			props: { url: 'https://tldraw.com' },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { url: 'https://tldraw.com' } })).toEqual({
+			props: { url: 'https://tldraw.com' },
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

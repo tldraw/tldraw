@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/tlschema'
+import { createShapeId, TLArrowShape, TLGeoShape } from '@tldraw/tlschema'
 import { createDefaultShapes, TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -11,6 +11,73 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.createShapes(createDefaultShapes())
+})
+
+it('Uses typescript generics', () => {
+	expect(() => {
+		// No error here because no generic, the editor doesn't know what this guy is
+		editor.updateShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				props: { w: 'OH NO' },
+			},
+		])
+
+		// Yep error here because we are giving the wrong props to the shape
+		editor.updateShapes<TLGeoShape>([
+			{
+				id: ids.box1,
+				type: 'geo',
+				//@ts-expect-error
+				props: { w: 'OH NO' },
+			},
+		])
+
+		// Yep error here because we are giving the wrong generic
+		editor.updateShapes<TLArrowShape>([
+			{
+				id: ids.box1,
+				//@ts-expect-error
+				type: 'geo',
+				//@ts-expect-error
+				props: { w: 'OH NO' },
+			},
+		])
+
+		// All good, correct match of generic and shape type
+		editor.updateShapes<TLGeoShape>([
+			{
+				id: ids.box1,
+				type: 'geo',
+				props: { w: 100 },
+			},
+		])
+
+		editor.updateShapes<TLGeoShape>([
+			{
+				id: ids.box1,
+				type: 'geo',
+			},
+			{
+				id: ids.box1,
+				// @ts-expect-error - wrong type
+				type: 'arrow',
+			},
+		])
+
+		// Unions are supported just fine
+		editor.updateShapes<TLGeoShape | TLArrowShape>([
+			{
+				id: ids.box1,
+				type: 'geo',
+			},
+			{
+				id: ids.box1,
+				type: 'arrow',
+			},
+		])
+	}).toThrowError()
 })
 
 it('updates shapes', () => {
