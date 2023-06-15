@@ -257,6 +257,5 @@ function getPointerInfo(e: React.PointerEvent | PointerEvent) {
 		pointerId: e.pointerId,
 		button: e.button,
 		isPen: e.pointerType === 'pen',
-		source: 'user' as const,
 	}
 }
