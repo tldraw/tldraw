@@ -2,7 +2,7 @@
 const nextConfig = {
 	reactStrictMode: true,
 	experimental: {
-		scrollRestoration: true,
+		scrollRestoration: false,
 	},
 	transpilePackages: ['@tldraw/utils'],
 }
