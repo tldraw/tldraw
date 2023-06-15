@@ -1999,8 +1999,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getTransform(shape: TLShape) {
-		const util = this.getShapeUtil(shape)
-		return util.transform(shape)
+		return Matrix2d.Compose(Matrix2d.Translate(shape.x, shape.y), Matrix2d.Rotate(shape.rotation))
 	}
 
 	/**
@@ -2408,19 +2407,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ancestor = this.getParentShape(ancestor)
 		}
 		return undefined
-	}
-
-	/**
-	 * Check whether a shape is within the bounds of the current viewport.
-	 *
-	 * @param id - The id of the shape to check.
-	 *
-	 * @public
-	 */
-	isShapeInViewport(id: TLShapeId) {
-		const pageBounds = this.getPageBoundsById(id)
-		if (!pageBounds) return false
-		return this.viewportPageBounds.includes(pageBounds)
 	}
 
 	/**

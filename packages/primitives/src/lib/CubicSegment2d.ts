@@ -34,6 +34,9 @@ export class CubicSegment2d extends BaseSegment2d<CubicSegment2dModel> {
 	getPoint(t: number) {
 		const { a, b, c, d } = this.values
 
+		if (t <= 0) return Vec2d.From(a)
+		if (t >= 1) return Vec2d.From(d)
+
 		return new Vec2d(
 			(1 - t) * (1 - t) * (1 - t) * a.x +
 				3 * ((1 - t) * (1 - t)) * t * b.x +

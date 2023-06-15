@@ -1,5 +1,5 @@
-import { Box2d, Matrix2d } from '@tldraw/primitives'
-import { TLGroupShape, Vec2dModel } from '@tldraw/tlschema'
+import { Box2d, Matrix2d, Vec2d } from '@tldraw/primitives'
+import { TLGroupShape } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { ShapeUtil, TLOnChildrenChangeHandler } from '../ShapeUtil'
 import { DashedOutlineBox } from '../shared/DashedOutlineBox'
@@ -35,11 +35,11 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return Box2d.FromPoints(allChildPoints)
 	}
 
-	getCenter(shape: TLGroupShape): Vec2dModel {
+	getCenter(shape: TLGroupShape): Vec2d {
 		return this.bounds(shape).center
 	}
 
-	getOutline(shape: TLGroupShape): Vec2dModel[] {
+	getOutline(shape: TLGroupShape): Vec2d[] {
 		return this.bounds(shape).corners
 	}
 

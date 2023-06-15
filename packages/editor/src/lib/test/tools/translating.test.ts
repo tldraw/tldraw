@@ -1,5 +1,5 @@
-import { Box2d, Vec2d, VecLike } from '@tldraw/primitives'
-import { TLShapeId, TLShapePartial, Vec2dModel, createShapeId } from '@tldraw/tlschema'
+import { Box2d, Vec2d } from '@tldraw/primitives'
+import { TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../editor/managers/SnapManager'
 import { ShapeUtil } from '../../editor/shapes/ShapeUtil'
 import { TestEditor } from '../TestEditor'
@@ -20,7 +20,7 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 	getBounds(shape: __TopLeftSnapOnlyShape): Box2d {
 		return new Box2d(shape.x, shape.y, shape.props.width, shape.props.height)
 	}
-	getOutline(shape: __TopLeftSnapOnlyShape): VecLike[] {
+	getOutline(shape: __TopLeftSnapOnlyShape): Vec2d[] {
 		return [
 			Vec2d.From({ x: shape.x, y: shape.y }),
 			Vec2d.From({ x: shape.x + shape.props.width, y: shape.y }),
@@ -34,7 +34,7 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 	indicator() {
 		throw new Error('Method not implemented.')
 	}
-	getCenter(shape: __TopLeftSnapOnlyShape): Vec2dModel {
+	getCenter(shape: __TopLeftSnapOnlyShape): Vec2d {
 		return new Vec2d(shape.x + shape.props.width / 2, shape.y + shape.props.height / 2)
 	}
 	snapPoints(shape: __TopLeftSnapOnlyShape): Vec2d[] {
