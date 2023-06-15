@@ -1,7 +1,7 @@
 /**
  * Rotate the contents of an array.
  *
- * @public
+ * @internal
  */
 export function rotateArray<T>(arr: T[], offset: number): T[] {
 	return arr.map((_, i) => arr[(i + offset) % arr.length])
@@ -10,7 +10,7 @@ export function rotateArray<T>(arr: T[], offset: number): T[] {
 /**
  * Deduplicate the items in an array
  *
- * @public
+ * @internal
  */
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[] {
 	const result: T[] = []

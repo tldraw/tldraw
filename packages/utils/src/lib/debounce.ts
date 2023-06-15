@@ -7,7 +7,7 @@
  * const A = debounce(myFunction, 1000)
  * ```
  *
- * @public
+ * @internal
  * @see source - https://gist.github.com/ca0v/73a31f57b397606c9813472f7493a940
  */
 export function debounce<T extends unknown[], U>(

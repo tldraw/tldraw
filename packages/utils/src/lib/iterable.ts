@@ -14,7 +14,7 @@
  * ```
  *
  * @param value - The iterable Set or Map.
- * @public
+ * @internal
  */
 export function getFirstFromIterable<T = unknown>(set: Set<T> | Map<any, T>): T {
 	return set.values().next().value
