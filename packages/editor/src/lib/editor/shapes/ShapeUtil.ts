@@ -201,12 +201,15 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Get an array of handle models for the shape. This is an optional method.
+	 * Get an array of outline segments for the shape. For most shapes,
+	 * this will be a single segment that includes the entire outline.
+	 * For shapes with handles, this might be segments of the outline
+	 * between each handle.
 	 *
 	 * @example
 	 *
 	 * ```ts
-	 * util.getOutlineSegments?.(myShape)
+	 * util.getOutlineSegments(myShape)
 	 * ```
 	 *
 	 * @param shape - The shape.
@@ -273,16 +276,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 		return transforms.get<T>(shape, (shape) =>
 			Matrix2d.Compose(Matrix2d.Translate(shape.x, shape.y), Matrix2d.Rotate(shape.rotation))
 		)
-	}
-
-	/**
-	 * Get the cached point. Do not override this method!
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	point(shape: T): Vec2dModel {
-		return points.get<T>(shape, (shape) => ({ x: shape.x, y: shape.y }))
 	}
 
 	/**
