@@ -1,15 +1,16 @@
+/* eslint-disable no-inner-declarations */
 import { InstancePresenceRecordType, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
 import { useRef } from 'react'
 
-const SHOW_MOVING_CURSOR = true
-const CURSOR_SPEED = 0.5
-const CIRCLE_RADIUS = 100
-const UPDATE_FPS = 60
+const USER_NAME = 'huppy da arrow'
+const MOVING_CURSOR_SPEED = 0.25 // 0 is stopped, 1 is full send
+const MOVING_CURSOR_RADIUS = 100
+const CURSOR_CHAT_MESSAGE = 'Hey, I think this is just great.'
 
 export default function UserPresenceExample() {
-	const rTimeout = useRef<any>(-1)
+	const rRaf = useRef<any>(-1)
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
@@ -22,39 +23,62 @@ export default function UserPresenceExample() {
 						id: InstancePresenceRecordType.createId(editor.store.id),
 						currentPageId: editor.currentPageId,
 						userId: 'peer-1',
-						userName: 'Peer 1',
+						userName: USER_NAME,
 						cursor: { x: 0, y: 0, type: 'default', rotation: 0 },
+						chatMessage: CURSOR_CHAT_MESSAGE,
 					})
 
 					editor.store.put([peerPresence])
 
 					// Make the fake user's cursor rotate in a circle
-					if (rTimeout.current) {
-						clearTimeout(rTimeout.current)
-					}
+					const raf = rRaf.current
+					cancelAnimationFrame(raf)
 
-					if (SHOW_MOVING_CURSOR) {
-						rTimeout.current = setInterval(() => {
-							const k = 1000 / CURSOR_SPEED
+					if (MOVING_CURSOR_SPEED > 0 || CURSOR_CHAT_MESSAGE) {
+						function loop() {
+							let cursor = peerPresence.cursor
+							let chatMessage = peerPresence.chatMessage
+
 							const now = Date.now()
-							const t = (now % k) / k
-							// rotate in a circle
+
+							if (MOVING_CURSOR_SPEED > 0) {
+								const k = 1000 / MOVING_CURSOR_SPEED
+								const t = (now % k) / k
+
+								cursor = {
+									...peerPresence.cursor,
+									x: 150 + Math.cos(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
+									y: 150 + Math.sin(t * Math.PI * 2) * MOVING_CURSOR_RADIUS,
+								}
+							}
+
+							if (CURSOR_CHAT_MESSAGE) {
+								const k = 1000
+								const t = (now % (k * 3)) / k
+								chatMessage =
+									t < 1
+										? ''
+										: t > 2
+										? CURSOR_CHAT_MESSAGE
+										: CURSOR_CHAT_MESSAGE.slice(0, Math.ceil((t - 1) * CURSOR_CHAT_MESSAGE.length))
+							}
+
 							editor.store.put([
 								{
 									...peerPresence,
-									cursor: {
-										...peerPresence.cursor,
-										x: 150 + Math.cos(t * Math.PI * 2) * CIRCLE_RADIUS,
-										y: 150 + Math.sin(t * Math.PI * 2) * CIRCLE_RADIUS,
-									},
+									cursor,
+									chatMessage,
 									lastActivityTimestamp: now,
 								},
 							])
-						}, 1000 / UPDATE_FPS)
+
+							rRaf.current = requestAnimationFrame(loop)
+						}
+
+						rRaf.current = requestAnimationFrame(loop)
 					} else {
 						editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
-
-						rTimeout.current = setInterval(() => {
+						rRaf.current = setInterval(() => {
 							editor.store.put([{ ...peerPresence, lastActivityTimestamp: Date.now() }])
 						}, 1000)
 					}

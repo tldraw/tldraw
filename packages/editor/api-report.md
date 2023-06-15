@@ -1186,17 +1186,11 @@ export const INDENT = "  ";
 // @public
 export function isAnimated(buffer: ArrayBuffer): boolean;
 
-// @public (undocumented)
-export function isGeoShape(shape: TLShape): shape is TLGeoShape;
-
 // @public
 export function isGIF(buffer: ArrayBuffer): boolean;
 
 // @public (undocumented)
 export const isImage: (ext: string) => boolean;
-
-// @public (undocumented)
-export function isNoteShape(shape: TLShape): shape is TLNoteShape;
 
 // @public
 export function isSerializable(value: any): boolean;

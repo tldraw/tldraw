@@ -62,6 +62,27 @@ https://alex.dytry.ch/toys/palette/?palette=%7B%22families%22:%5B%22black%22,%22
 	/* These cursor values get programmatically overridden */
 	/* They're just here to help your editor autocomplete */
 	--tl-cursor: var(--tl-default-svg);
+	--tl-cursor-none: none;
+	--tl-cursor-default: default;
+	--tl-cursor-pointer: pointer;
+	--tl-cursor-cross: crosshair;
+	--tl-cursor-move: move;
+	--tl-cursor-grab: grab;
+	--tl-cursor-grabbing: grabbing;
+	--tl-cursor-text: text;
+	--tl-cursor-resize-edge: ew-resize;
+	--tl-cursor-resize-corner: nesw-resize;
+	--tl-cursor-ew-resize: ew-resize;
+	--tl-cursor-ns-resize: ns-resize;
+	--tl-cursor-nesw-resize: nesw-resize;
+	--tl-cursor-nwse-resize: nwse-resize;
+	--tl-cursor-rotate: pointer;
+	--tl-cursor-nwse-rotate: pointer;
+	--tl-cursor-nesw-rotate: pointer;
+	--tl-cursor-senw-rotate: pointer;
+	--tl-cursor-swne-rotate: pointer;
+	--tl-cursor-zoom-in: zoom-in;
+	--tl-cursor-zoom-out: zoom-out;
 	--tl-scale: calc(1 / var(--tl-zoom));
 	--tl-font-draw: 'tldraw_draw', sans-serif;
 	--tl-font-sans: 'tldraw_sans', sans-serif;
@@ -746,7 +767,6 @@ input,
 	position: absolute;
 }
 
-/* Rounded corners */
 .tl-nametag {
 	position: absolute;
 	top: 16px;
@@ -754,15 +774,84 @@ input,
 	width: fit-content;
 	height: fit-content;
 	max-width: 120px;
-	color: var(--color-selected-contrast);
+	padding: 3px 6px;
 	white-space: nowrap;
 	position: absolute;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	border-radius: 10px;
-	padding: 2px 6px;
 	font-size: 12px;
 	font-family: var(--font-family);
+	border-radius: var(--radius-2);
+	color: var(--color-selected-contrast);
+}
+
+.tl-nametag-title {
+	position: absolute;
+	top: -2px;
+	left: 13px;
+	width: fit-content;
+	height: fit-content;
+	padding: 0px 6px;
+	max-width: 120px;
+	white-space: nowrap;
+	position: absolute;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 12px;
+	font-family: var(--font-family);
+	text-shadow: var(--tl-text-outline);
+	color: var(--color-selected-contrast);
+}
+
+.tl-nametag-chat {
+	position: absolute;
+	top: 16px;
+	left: 13px;
+	width: fit-content;
+	height: fit-content;
+	color: var(--color-selected-contrast);
+	white-space: nowrap;
+	position: absolute;
+	padding: 3px 6px;
+	font-size: 12px;
+	font-family: var(--font-family);
+	opacity: 1;
+	border-radius: var(--radius-2);
+}
+
+.tl-cursor-chat {
+	position: absolute;
+	color: var(--color-selected-contrast);
+	white-space: nowrap;
+	padding: 3px 6px;
+	font-size: 12px;
+	font-family: var(--font-family);
+	pointer-events: none;
+	z-index: var(--layer-cursor);
+	margin-top: 16px;
+	margin-left: 13px;
+	opacity: 1;
+	border: none;
+	user-select: text;
+	border-radius: var(--radius-2);
+}
+
+.tl-cursor-chat::selection {
+	background: var(--color-selected);
+	color: var(--color-selected-contrast);
+	text-shadow: none;
+}
+
+.tl-cursor-chat-fade {
+	/* Setting to zero causes it to immediately disappear */
+	/* Setting to near-zero causes it to fade out gradually */
+	opacity: 0.0001;
+	transition: opacity 5s ease-in-out;
+}
+
+.tl-cursor-chat::placeholder {
+	color: var(--color-selected-contrast);
+	opacity: 0.7;
 }
 
 /* -------------------------------------------------- */

@@ -81,6 +81,7 @@ export interface TLUiEventMap {
 	'toggle-reduce-motion': null
 	'exit-pen-mode': null
 	'stop-following': null
+	'open-cursor-chat': null
 }
 
 type Join<T, K> = K extends null

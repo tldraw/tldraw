@@ -730,7 +730,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return undefined
 			}
 
-			const frameAncestors = this.getAncestorsById(shape.id).filter((s) => s.type === 'frame')
+			const frameAncestors = this.getAncestorsById(shape.id).filter((shape) =>
+				this.isShapeOfType(shape, FrameShapeUtil)
+			)
 
 			if (frameAncestors.length === 0) return undefined
 
@@ -1089,7 +1091,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private _extractSharedProps(shape: TLShape, sharedProps: TLNullableShapeProps) {
-		if (shape.type === 'group') {
+		if (this.isShapeOfType(shape, GroupShapeUtil)) {
 			// For groups, ignore the props of the group shape and instead include
 			// the props of the group's children. These are the shapes that would have
 			// their props changed if the user called `setProp` on the current selection.
@@ -1212,7 +1214,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// For groups, ignore the opacity of the group shape and instead include
 				// the opacity of the group's children. These are the shapes that would have
 				// their opacity changed if the user called `setOpacity` on the current selection.
-				if (shape.type === 'group') {
+				if (this.isShapeOfType(shape, GroupShapeUtil)) {
 					for (const childId of this.getSortedChildIds(shape.id)) {
 						addShape(childId)
 					}
@@ -1276,7 +1278,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed
 	private get _arrowBindingsIndex() {
-		return arrowBindingsIndex(this.store)
+		return arrowBindingsIndex(this)
 	}
 
 	/**
@@ -1543,9 +1545,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const nextFocusLayerId =
 				filtered.length === 0
 					? next?.focusLayerId
-					: this.findCommonAncestor(
-							compact(filtered.map((id) => this.getShapeById(id))),
-							(shape) => shape.type === 'group'
+					: this.findCommonAncestor(compact(filtered.map((id) => this.getShapeById(id))), (shape) =>
+							this.isShapeOfType(shape, GroupShapeUtil)
 					  )
 
 			if (filtered.length !== next.selectedIds.length || nextFocusLayerId != next.focusLayerId) {
@@ -3005,7 +3006,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (focusedShape) {
 			// If we have a focused layer, look for an ancestor of the focused shape that is a group
-			const match = this.findAncestor(focusedShape, (s) => s.type === 'group')
+			const match = this.findAncestor(focusedShape, (shape) =>
+				this.isShapeOfType(shape, GroupShapeUtil)
+			)
 			// If we have an ancestor that can become a focused layer, set it as the focused layer
 			this.setFocusLayer(match?.id ?? null)
 			this.select(focusedShape.id)
@@ -3239,7 +3242,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let node = shape as TLShape | undefined
 		while (node) {
 			if (
-				node.type === 'group' &&
+				this.isShapeOfType(node, GroupShapeUtil) &&
 				this.focusLayerId !== node.id &&
 				!this.hasAncestor(this.focusLayerShape, node.id) &&
 				(filter?.(node) ?? true)
@@ -4598,15 +4601,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		for (const shape of this.selectedShapes) {
 			if (lowestDepth === 0) break
 
+			const isFrame = this.isShapeOfType(shape, FrameShapeUtil)
 			const ancestors = this.getAncestors(shape)
-			if (shape.type === 'frame') ancestors.push(shape)
+			if (isFrame) ancestors.push(shape)
 
-			const depth = shape.type === 'frame' ? ancestors.length + 1 : ancestors.length
+			const depth = isFrame ? ancestors.length + 1 : ancestors.length
 
 			if (depth < lowestDepth) {
 				lowestDepth = depth
 				lowestAncestors = ancestors
-				pasteParentId = shape.type === 'frame' ? shape.id : shape.parentId
+				pasteParentId = isFrame ? shape.id : shape.parentId
 			} else if (depth === lowestDepth) {
 				if (lowestAncestors.length !== ancestors.length) {
 					throw Error(`Ancestors: ${lowestAncestors.length} !== ${ancestors.length}`)
@@ -4844,7 +4848,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (rootShapes.length === 1) {
 				const onlyRoot = rootShapes[0] as TLFrameShape
 				// If the old bounds are in the viewport...
-				if (onlyRoot.type === 'frame') {
+				if (this.isShapeOfType(onlyRoot, FrameShapeUtil)) {
 					while (
 						this.getShapesAtPoint(point).some(
 							(shape) =>
@@ -6023,7 +6027,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!bbox) return
 
 		const singleFrameShapeId =
-			ids.length === 1 && this.getShapeById(ids[0])?.type === 'frame' ? ids[0] : null
+			ids.length === 1 && this.isShapeOfType(this.getShapeById(ids[0])!, FrameShapeUtil)
+				? ids[0]
+				: null
 		if (!singleFrameShapeId) {
 			// Expand by an extra 32 pixels
 			bbox.expandBy(padding)
@@ -6628,7 +6634,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapes = compact(
 			shapes
 				.map((shape) => {
-					if (shape.type === 'group') {
+					if (this.isShapeOfType(shape, GroupShapeUtil)) {
 						return this.getSortedChildIds(shape.id).map((id) => this.getShapeById(id))
 					}
 

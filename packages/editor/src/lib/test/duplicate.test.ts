@@ -1,4 +1,5 @@
 import { TLArrowShape, TLShapePartial, createShapeId } from '@tldraw/tlschema'
+import { ArrowShapeUtil } from '../editor/shapes/arrow/ArrowShapeUtil'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -186,7 +187,11 @@ describe('When duplicating shapes that include arrows', () => {
 			.selectAll()
 			.deleteShapes()
 			.createShapes(shapes)
-			.select(...editor.shapesArray.filter((s) => s.type === 'arrow').map((s) => s.id))
+			.select(
+				...editor.shapesArray
+					.filter((s) => editor.isShapeOfType(s, ArrowShapeUtil))
+					.map((s) => s.id)
+			)
 
 		const boundsBefore = editor.selectionBounds!
 		editor.duplicateShapes()
