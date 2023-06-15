@@ -1,7 +1,10 @@
 import test, { Page, expect } from '@playwright/test'
+import { Editor } from '@tldraw/tldraw'
+
 import { setupPage, setupPageWithShapes } from '../shared-e2e'
 
 declare const __tldraw_ui_event: { name: string }
+declare const editor: Editor
 
 // We're just testing the events, not the actual results.
 
@@ -296,6 +299,14 @@ test.describe('Keyboard Shortcuts', () => {
 				name: 'align-shapes',
 				data: { operation: 'bottom', source: 'kbd' },
 			})
+
+			// focus to color picker — s
+			await page.keyboard.press('s')
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+				name: 'focus-color-picker',
+				data: { source: 'kbd' },
+			})
+			await page.evaluate(() => (editor.isChangingStyle = false)) // Break out of the changing style state
 
 			/* ---------------------- Misc ---------------------- */
 

@@ -1228,7 +1228,7 @@
 } */
 
 .tlui-button-grid__button > .tlui-kbd {
-	margin: 0;
+	margin: 0; /* Allows the kbd text and icon to fit the container */
 }
 
 /* ------------------ Actions Menu ------------------ */
