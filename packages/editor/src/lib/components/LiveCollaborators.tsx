@@ -36,7 +36,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 
 	useEffect(() => {
 		const interval = setInterval(() => {
-			setIsTimedOut(rLastSeen.current - Date.now() > COLLABORATOR_TIMEOUT)
+			setIsTimedOut(Date.now() - rLastSeen.current > COLLABORATOR_TIMEOUT)
 		}, COLLABORATOR_CHECK_INTERVAL)
 
 		return () => clearInterval(interval)
