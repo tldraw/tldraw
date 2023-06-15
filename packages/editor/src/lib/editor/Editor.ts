@@ -233,7 +233,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.shapeUtils = shapeUtils
-		this.allStylesById = allStylesById
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
@@ -974,8 +973,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
 
-	private readonly allStylesById: ReadonlyMap<string, StyleProp<unknown>>
-
 	/**
 	 * Get a shape util by its definition.
 	 *
@@ -1173,7 +1170,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const styles = new SharedStyleMap()
 		if (currentTool.shapeType) {
 			for (const style of this.getShapeUtil(currentTool.shapeType).styleProps.keys()) {
-				styles.set(style, { type: 'shared', value: this.getStyleForNextShape(style) })
+				styles.applyValue(style, this.getStyleForNextShape(style))
 			}
 		}
 

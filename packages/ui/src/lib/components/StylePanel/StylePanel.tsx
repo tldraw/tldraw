@@ -41,7 +41,7 @@ function getRelevantStyles(
 
 	if (styles.size === 0 && editor.isIn('select') && editor.selectedIds.length === 0) {
 		for (const style of selectToolStyles) {
-			styles.set(style, { type: 'shared', value: editor.getStyleForNextShape(style) })
+			styles.applyValue(style, editor.getStyleForNextShape(style))
 		}
 	}
 
