@@ -94,12 +94,10 @@ export const SelectionFg = track(function SelectionFg() {
 		(showSelectionBounds &&
 			editor.isIn('select.resizing') &&
 			onlyShape &&
-			// todo: remove hardcoded shape type check
 			editor.isShapeOfType(onlyShape, TextShapeUtil))
 
 	if (
 		onlyShape &&
-		// todo: remove hardcoded shape type check
 		editor.isShapeOfType(onlyShape, EmbedShapeUtil) &&
 		shouldDisplayBox &&
 		IS_FIREFOX
@@ -188,7 +186,6 @@ export const SelectionFg = track(function SelectionFg() {
 		shouldDisplayControls &&
 		isCoarsePointer &&
 		onlyShape &&
-		// todo: remove hardcoded shape type check
 		editor.isShapeOfType(onlyShape, TextShapeUtil) &&
 		textHandleHeight * zoom >= 4
 
