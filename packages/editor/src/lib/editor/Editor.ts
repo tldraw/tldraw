@@ -106,7 +106,7 @@ import {
 	ZOOMS,
 } from '../constants'
 import { exportPatternSvgDefs } from '../hooks/usePattern'
-import { ReadonlySharedStyleMap, SharedStyleMap } from '../utils/SharedStylesMap'
+import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
@@ -1134,8 +1134,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const { selectedShapes } = this
 
 			const sharedStyles = new SharedStyleMap()
-			for (const selectedShapre of selectedShapes) {
-				this._extractSharedStyles(selectedShapre, sharedStyles)
+			for (const selectedShape of selectedShapes) {
+				this._extractSharedStyles(selectedShape, sharedStyles)
 			}
 
 			return sharedStyles
@@ -1146,6 +1146,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.instanceState.stylesForNextShape
 	}
 
+	/** @internal */
 	getStyleForNextShape<T>(style: StyleProp<T>): T {
 		const value = this._stylesForNextShape[style.id]
 		return value === undefined ? style.defaultValue : (value as T)
@@ -1156,16 +1157,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * else the user's most recent style choices that correspond to the current active state (i.e.
 	 * the selected tool).
 	 *
-	 * @internal
+	 * @public
 	 */
-	@computed get styles(): ReadonlySharedStyleMap {
+	@computed<ReadonlySharedStyleMap>({ isEqual: (a, b) => a.equals(b) })
+	get sharedStyles(): ReadonlySharedStyleMap {
 		// If we're in selecting and if we have a selection, return the shared styles from the
 		// current selection
 		if (this.isIn('select') && this.selectedIds.length > 0) {
 			return this._selectionSharedStyles.value
 		}
 
-		// If the curernt tool is associated with a shape, return the styles for that shape.
+		// If the current tool is associated with a shape, return the styles for that shape.
 		// Otherwise, just return an empty map.
 		const currentTool = this.root.current.value!
 		const styles = new SharedStyleMap()
@@ -1179,13 +1181,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the currently selected opacity.
-	 * If any shapes are selected, this returns the opacity of the selected shapes.
+	 * Get the currently selected shared opacity.
+	 * If any shapes are selected, this returns the shared opacity of the selected shapes.
 	 * Otherwise, this returns the chosen opacity for the next shape.
 	 *
 	 * @public
 	 */
-	@computed get opacity(): number | null {
+	@computed get sharedOpacity(): SharedStyle<number> {
 		if (this.isIn('select') && this.selectedIds.length > 0) {
 			const shapesToCheck: TLShape[] = []
 			const addShape = (shapeId: TLShapeId) => {
@@ -1211,14 +1213,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (opacity === null) {
 					opacity = shape.opacity
 				} else if (opacity !== shape.opacity) {
-					return null
+					return { type: 'mixed' }
 				}
 			}
 
-			return opacity
-		} else {
-			return this.instanceState.opacityForNextShape
+			if (opacity !== null) return { type: 'shared', value: opacity }
 		}
+		return { type: 'shared', value: this.instanceState.opacityForNextShape }
 	}
 
 	/**

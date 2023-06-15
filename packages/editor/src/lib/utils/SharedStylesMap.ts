@@ -1,10 +1,29 @@
 import { StyleProp } from '@tldraw/tlschema'
 import { exhaustiveSwitchError } from '@tldraw/utils'
 
-export type SharedStyle<T> = { type: 'mixed' } | { type: 'shared'; value: T }
+/** @public */
+export type SharedStyle<T> =
+	| { readonly type: 'mixed' }
+	| { readonly type: 'shared'; readonly value: T }
 
+function sharedStyleEquals<T>(a: SharedStyle<T>, b: SharedStyle<T> | undefined) {
+	if (!b) return false
+	switch (a.type) {
+		case 'mixed':
+			return b.type === 'mixed'
+		case 'shared':
+			return b.type === 'shared' && a.value === b.value
+		default:
+			throw exhaustiveSwitchError(a)
+	}
+}
+
+/** @public */
 export class ReadonlySharedStyleMap {
-	constructor(protected map = new Map<StyleProp<unknown>, SharedStyle<unknown>>()) {}
+	protected map: Map<StyleProp<unknown>, SharedStyle<unknown>>
+	constructor(entries?: Iterable<[StyleProp<unknown>, SharedStyle<unknown>]>) {
+		this.map = new Map(entries)
+	}
 
 	get<T>(prop: StyleProp<T>): SharedStyle<T> | undefined {
 		return this.map.get(prop) as SharedStyle<T> | undefined
@@ -15,6 +34,26 @@ export class ReadonlySharedStyleMap {
 		if (!value) return undefined
 		if (value.type === 'mixed') return undefined
 		return value.value
+	}
+
+	get size() {
+		return this.map.size
+	}
+
+	equals(other: ReadonlySharedStyleMap) {
+		if (this.size !== other.size) return false
+
+		const checkedKeys = new Set()
+		for (const [styleProp, value] of this) {
+			if (!sharedStyleEquals(value, other.get(styleProp))) return false
+			checkedKeys.add(styleProp)
+		}
+		for (const [styleProp, value] of other) {
+			if (checkedKeys.has(styleProp)) continue
+			if (!sharedStyleEquals(value, this.get(styleProp))) return false
+		}
+
+		return true
 	}
 
 	keys() {
@@ -34,6 +73,7 @@ export class ReadonlySharedStyleMap {
 	}
 }
 
+/** @internal */
 export class SharedStyleMap extends ReadonlySharedStyleMap {
 	set<T>(prop: StyleProp<T>, value: SharedStyle<T>) {
 		this.map.set(prop, value)

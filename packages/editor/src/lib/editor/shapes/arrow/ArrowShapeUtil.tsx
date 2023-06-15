@@ -692,7 +692,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					)}
 					<g
 						fill="none"
-						stroke="currentColor"
+						stroke={`var(--palette-${shape.props.color})`}
 						strokeWidth={strokeWidth}
 						strokeLinejoin="round"
 						strokeLinecap="round"

@@ -40,9 +40,6 @@ export class SelectTool extends StateNode {
 		DraggingHandle,
 	]
 
-	// TODO(alex): figure out what to do with this
-	// styles = ['color', 'dash', 'fill', 'size'] as TLStyleType[]
-
 	onExit = () => {
 		if (this.editor.pageState.editingId) {
 			this.editor.setEditingId(null)

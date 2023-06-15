@@ -33,7 +33,9 @@ export const Toolbar = function Toolbar() {
 	const activeToolId = useValue('current tool id', () => editor.currentToolId, [editor])
 
 	const isHandTool = activeToolId === 'hand'
-	const geoState = useValue('geo', () => editor.styles.getAsKnownValue(GeoShapeGeoStyle), [editor])
+	const geoState = useValue('geo', () => editor.sharedStyles.getAsKnownValue(GeoShapeGeoStyle), [
+		editor,
+	])
 
 	const showEditingTools = !isReadOnly
 	const showExtraActions = !(isReadOnly || isHandTool)

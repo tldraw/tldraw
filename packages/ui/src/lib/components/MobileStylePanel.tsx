@@ -14,8 +14,10 @@ export function MobileStylePanel() {
 	const currentColor = useValue(
 		'current color',
 		() => {
-			const color = editor.styles.getAsKnownValue(DefaultColorStyle)
-			return color ? 'var(--palette-${color})' : 'var(--color-muted-1)'
+			const color = editor.sharedStyles.get(DefaultColorStyle)
+			if (!color) return 'var(--color-muted-1)'
+			if (color.type === 'mixed') return null
+			return `var(--palette-${color})`
 		},
 		[editor]
 	)

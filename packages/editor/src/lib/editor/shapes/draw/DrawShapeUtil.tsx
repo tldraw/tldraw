@@ -156,7 +156,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					<path
 						d={getSvgPathFromStroke(strokeOutlinePoints, true)}
 						strokeLinecap="round"
-						fill="currentColor"
+						fill={`var(--palette-${shape.props.color})`}
 					/>
 				</SVGContainer>
 			)
@@ -173,7 +173,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					d={solidStrokePath}
 					strokeLinecap="round"
 					fill="none"
-					stroke="currentColor"
+					stroke={`var(--palette-${shape.props.color})`}
 					strokeWidth={strokeWidth}
 					strokeDasharray={getDrawShapeStrokeDashArray(shape, strokeWidth)}
 					strokeDashoffset="0"

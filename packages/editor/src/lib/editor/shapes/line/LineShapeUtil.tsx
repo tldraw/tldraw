@@ -197,7 +197,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={pathData} fill={'none'} color={color} />
-						<path d={pathData} stroke="currentColor" strokeWidth={strokeWidth} fill="none" />
+						<path
+							d={pathData}
+							stroke={`var(--palette-${color})`}
+							strokeWidth={strokeWidth}
+							fill="none"
+						/>
 					</SVGContainer>
 				)
 			}
@@ -209,7 +214,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={pathData} fill={'none'} color={color} />
-						<g stroke="currentColor" strokeWidth={strokeWidth}>
+						<g stroke={`var(--palette-${color})`} strokeWidth={strokeWidth}>
 							{spline.segments.map((segment, i) => {
 								const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 									segment.length,
@@ -243,7 +248,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={innerPathData} fill={'none'} color={color} />
-						<path d={outerPathData} stroke="currentColor" strokeWidth={strokeWidth} fill="none" />
+						<path
+							d={outerPathData}
+							stroke={`var(--palette-${color})`}
+							strokeWidth={strokeWidth}
+							fill="none"
+						/>
 					</SVGContainer>
 				)
 			}
@@ -257,7 +267,12 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={splinePath} fill={'none'} color={color} />
-						<path strokeWidth={strokeWidth} stroke="currentColor" fill="none" d={splinePath} />
+						<path
+							strokeWidth={strokeWidth}
+							stroke={`var(--palette-${color})`}
+							fill="none"
+							d={splinePath}
+						/>
 					</SVGContainer>
 				)
 			}
@@ -266,7 +281,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={splinePath} fill={'none'} color={color} />
-						<g stroke="currentColor" strokeWidth={strokeWidth}>
+						<g stroke={`var(--palette-${color})`} strokeWidth={strokeWidth}>
 							{spline.segments.map((segment, i) => {
 								const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 									segment.length,
@@ -300,8 +315,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 						<path
 							d={getLineDrawPath(shape, spline, strokeWidth)}
 							strokeWidth={1}
-							stroke="currentColor"
-							fill="currentColor"
+							stroke={`var(--palette-${color})`}
+							fill={`var(--palette-${color})`}
 						/>
 					</SVGContainer>
 				)

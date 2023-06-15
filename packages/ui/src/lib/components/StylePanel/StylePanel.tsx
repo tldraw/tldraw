@@ -8,9 +8,12 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
+	Editor,
 	GeoShapeGeoStyle,
 	LineShapeSplineStyle,
 	ReadonlySharedStyleMap,
+	SharedStyle,
+	SharedStyleMap,
 	StyleProp,
 	useEditor,
 } from '@tldraw/editor'
@@ -29,15 +32,28 @@ interface StylePanelProps {
 	isMobile?: boolean
 }
 
+const selectToolStyles = [DefaultColorStyle, DefaultDashStyle, DefaultFillStyle, DefaultSizeStyle]
+function getRelevantStyles(
+	editor: Editor
+): { styles: ReadonlySharedStyleMap; opacity: SharedStyle<number> } | null {
+	const styles = new SharedStyleMap(editor.sharedStyles)
+	const hasShape = editor.selectedIds.length > 0 || !!editor.root.current.value?.shapeType
+
+	if (styles.size === 0 && editor.isIn('select') && editor.selectedIds.length === 0) {
+		for (const style of selectToolStyles) {
+			styles.set(style, { type: 'shared', value: editor.getStyleForNextShape(style) })
+		}
+	}
+
+	if (styles.size === 0 && !hasShape) return null
+	return { styles, opacity: editor.sharedOpacity }
+}
+
 /** @internal */
 export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	const editor = useEditor()
 
-	const styles = useValue('styles', () => editor.styles, [editor])
-	const opacity = useValue('opacity', () => editor.opacity, [editor])
-	const toolShapeType = useValue('toolShapeType', () => editor.root.current.value?.shapeType, [
-		editor,
-	])
+	const relevantStyles = useValue('getRelevantStyles', () => getRelevantStyles(editor), [editor])
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
@@ -45,8 +61,9 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 		}
 	}, [editor, isMobile])
 
-	if (!toolShapeType) return null
+	if (!relevantStyles) return null
 
+	const { styles, opacity } = relevantStyles
 	const geo = styles.get(GeoShapeGeoStyle)
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
 	const arrowheadStart = styles.get(ArrowShapeArrowheadStartStyle)
@@ -91,7 +108,7 @@ function CommonStylePickerSet({
 	opacity,
 }: {
 	styles: ReadonlySharedStyleMap
-	opacity: number | null
+	opacity: SharedStyle<number>
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -112,24 +129,18 @@ function CommonStylePickerSet({
 	const dash = styles.get(DefaultDashStyle)
 	const size = styles.get(DefaultSizeStyle)
 
-	if (
-		color === undefined &&
-		fill === undefined &&
-		dash === undefined &&
-		size === undefined &&
-		opacity === undefined
-	) {
+	if (color === undefined && fill === undefined && dash === undefined && size === undefined) {
 		return null
 	}
 
 	const showPickers = fill !== undefined || dash !== undefined || size !== undefined
 
 	const opacityIndex =
-		opacity === null
+		opacity.type === 'mixed'
 			? -1
 			: tldrawSupportedOpacities.indexOf(
 					minBy(tldrawSupportedOpacities, (supportedOpacity) =>
-						Math.abs(supportedOpacity - opacity)
+						Math.abs(supportedOpacity - opacity.value)
 					)!
 			  )
 
@@ -150,7 +161,7 @@ function CommonStylePickerSet({
 					<Slider
 						data-testid="style.opacity"
 						value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
-						label={opacity ? `opacity-style.${opacity}` : 'style-panel.mixed'}
+						label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity}`}
 						onValueChange={handleOpacityValueChange}
 						steps={tldrawSupportedOpacities.length - 1}
 						title={msg('style-panel.opacity')}

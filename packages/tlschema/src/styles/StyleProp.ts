@@ -1,5 +1,6 @@
 import { T } from '@tldraw/validate'
 
+/** @public */
 export class StyleProp<Type> implements T.Validatable<Type> {
 	static define<Type>(
 		uniqueId: string,
@@ -26,6 +27,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 	}
 }
 
+/** @public */
 export class EnumStyleProp<T> extends StyleProp<T> {
 	/** @internal */
 	constructor(id: string, defaultValue: T, readonly values: readonly T[]) {

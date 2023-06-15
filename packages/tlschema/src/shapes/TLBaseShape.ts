@@ -1,5 +1,5 @@
 import { BaseRecord } from '@tldraw/store'
-import { Expand } from '@tldraw/utils/src/lib/types'
+import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
 import { idValidator } from '../misc/id-validator'

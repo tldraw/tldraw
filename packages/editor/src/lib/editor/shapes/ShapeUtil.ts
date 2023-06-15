@@ -72,7 +72,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	canSnap: TLShapeUtilFlag<T> = () => true
+	canSnap: TLShapeUtilFlag<Shape> = () => true
 
 	/**
 	 * Whether the shape can be scrolled while editing.
@@ -248,7 +248,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected getOutlineSegments(shape: T): Vec2d[][] {
+	protected getOutlineSegments(shape: Shape): Vec2d[][] {
 		return [this.outline(shape)]
 	}
 
@@ -265,7 +265,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	outlineSegments(shape: T): Vec2d[][] {
+	outlineSegments(shape: Shape): Vec2d[][] {
 		if (!this.getOutlineSegments) return EMPTY_ARRAY
 		return this.outlineSegmentsCache.get(shape.id) ?? EMPTY_ARRAY
 	}

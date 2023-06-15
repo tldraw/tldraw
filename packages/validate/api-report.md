@@ -30,14 +30,6 @@ const bigint: Validator<bigint>;
 // @public
 const boolean: Validator<boolean>;
 
-// @public (undocumented)
-const boxModel: ObjectValidator<{
-    x: number;
-    y: number;
-    w: number;
-    h: number;
-}>;
-
 // @public
 function dict<Key extends string, Value>(keyValidator: Validatable<Key>, valueValidator: Validatable<Value>): DictValidator<Key, Value>;
 
@@ -56,6 +48,9 @@ const integer: Validator<number>;
 // @public
 function literal<T extends boolean | number | string>(expectedValue: T): Validator<T>;
 
+// @public (undocumented)
+function literalEnum<
+
 // @public
 function model<T extends {
     readonly id: string;
@@ -66,6 +61,9 @@ const nonZeroInteger: Validator<number>;
 
 // @public
 const nonZeroNumber: Validator<number>;
+
+// @public (undocumented)
+function nullable<T>(validator: Validatable<T>): Validator<null | T>;
 
 // @public
 const number: Validator<number>;
@@ -92,11 +90,7 @@ class ObjectValidator<Shape extends object> extends Validator<Shape> {
 }
 
 // @public (undocumented)
-const point: ObjectValidator<{
-    x: number;
-    y: number;
-    z: number | undefined;
-}>;
+function optional<T>(validator: Validatable<T>): Validator<T | undefined>;
 
 // @public
 const positiveInteger: Validator<number>;
@@ -119,6 +113,9 @@ declare namespace T {
         union,
         model,
         setEnum,
+        optional,
+        nullable,
+        literalEnum,
         ValidatorFn,
         Validatable,
         ValidationError,
@@ -140,9 +137,7 @@ declare namespace T {
         boolean,
         bigint,
         array,
-        unknownObject,
-        point,
-        boxModel
+        unknownObject
     }
 }
 export { T }
