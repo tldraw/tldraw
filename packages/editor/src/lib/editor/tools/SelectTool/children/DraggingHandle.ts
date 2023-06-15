@@ -227,7 +227,7 @@ export class DraggingHandle extends StateNode {
 
 			// Get all the outline segments from the shape
 			const additionalSegments = util
-				.handleSegments(shape)
+				.outlineSegments(shape)
 				.map((segment) => Matrix2d.applyToPoints(pageTransform, segment))
 
 			// We want to skip the segments that include the handle, so

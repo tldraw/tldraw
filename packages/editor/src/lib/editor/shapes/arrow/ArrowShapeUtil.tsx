@@ -93,7 +93,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return Box2d.FromPoints(this.getOutlineWithoutLabel(shape))
 	}
 
-	getOutlineWithoutLabel(shape: TLArrowShape) {
+	getOutlineWithoutLabel(shape: TLArrowShape): Vec2d[] {
 		const info = this.getArrowInfo(shape)
 
 		if (!info) {
@@ -102,7 +102,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (info.isStraight) {
 			if (info.isValid) {
-				return [info.start.point, info.end.point]
+				return [Vec2d.From(info.start.point), Vec2d.From(info.end.point)]
 			} else {
 				return [new Vec2d(0, 0), new Vec2d(1, 1)]
 			}
@@ -139,7 +139,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return results
 	}
 
-	getOutline(shape: TLArrowShape): Vec2dModel[] {
+	getOutline(shape: TLArrowShape): Vec2d[] {
 		const outlineWithoutLabel = this.getOutlineWithoutLabel(shape)
 
 		const labelBounds = this.getLabelBounds(shape)

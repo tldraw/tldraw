@@ -200,24 +200,38 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 		return this.handlesCache.get(shape.id) ?? EMPTY_ARRAY
 	}
 
-	protected getHandleSegments?(shape: T): Vec2d[][]
-
-	@computed
-	private get handleSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
-		return this.editor.store.createComputedCache('handle-segments:' + this.type, (shape) => {
-			return this.getHandleSegments!(shape as any)
-		})
-	}
-
 	/**
-	 * Get the cached handles (this should not be overridden!)
+	 * Get an array of handle models for the shape. This is an optional method.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * util.getOutlineSegments?.(myShape)
+	 * ```
 	 *
 	 * @param shape - The shape.
 	 * @public
 	 */
-	handleSegments(shape: T): Vec2d[][] {
-		if (!this.getHandleSegments) return EMPTY_ARRAY
-		return this.handleSegmentsCache.get(shape.id) ?? EMPTY_ARRAY
+	protected getOutlineSegments(shape: T): Vec2d[][] {
+		return [this.outline(shape)]
+	}
+
+	@computed
+	private get outlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
+		return this.editor.store.createComputedCache('outline-segments:' + this.type, (shape) => {
+			return this.getOutlineSegments!(shape as any)
+		})
+	}
+
+	/**
+	 * Get the cached outline segments (this should not be overridden!)
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	outlineSegments(shape: T): Vec2d[][] {
+		if (!this.getOutlineSegments) return EMPTY_ARRAY
+		return this.outlineSegmentsCache.get(shape.id) ?? EMPTY_ARRAY
 	}
 
 	/**
@@ -277,10 +291,10 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected abstract getOutline(shape: T): Vec2dModel[]
+	protected abstract getOutline(shape: T): Vec2d[]
 
 	@computed
-	private get outlineCache(): ComputedCache<Vec2dModel[], TLShape> {
+	private get outlineCache(): ComputedCache<Vec2d[], TLShape> {
 		return this.editor.store.createComputedCache('outline:' + this.type, (shape) => {
 			return this.getOutline(shape as any)
 		})
@@ -292,7 +306,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	outline(shape: T): Vec2dModel[] {
+	outline(shape: T): Vec2d[] {
 		return this.outlineCache.get(shape.id) ?? EMPTY_ARRAY
 	}
 
@@ -312,7 +326,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	center(shape: T): Vec2dModel {
+	center(shape: T): Vec2d {
 		return this.getCenter(shape)
 	}
 
@@ -322,7 +336,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract getCenter(shape: T): Vec2dModel
+	abstract getCenter(shape: T): Vec2d
 
 	/**
 	 * Get whether the shape can receive children of a given type.
