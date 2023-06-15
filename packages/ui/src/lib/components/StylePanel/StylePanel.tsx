@@ -103,9 +103,10 @@ function CommonStylePickerSet({
 	useEffect(() => {
 		if (styleChanging === 'color' && rColorButtonPicker) {
 			// Auto-focus the active color when `styleChanging` comes in as 'color' (e.g. "S" keyboard binding) and the parent color element is focused
-			const temp: HTMLButtonElement | null =
+			const selectedColorButton: HTMLButtonElement | null =
 				rColorButtonPicker.current?.querySelector(`[data-id="${color}"]`) ?? null
-			temp?.focus()
+
+			selectedColorButton?.focus()
 		}
 	}, [styleChanging, color])
 
