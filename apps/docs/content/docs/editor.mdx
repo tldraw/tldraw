@@ -1,5 +1,5 @@
 ---
-title: App
+title: Editor
 status: published
 author: steveruizok
 date: 3/22/2023
@@ -7,15 +7,16 @@ order: 3
 keywords:
   - ui
   - app
+  - editor
   - control
   - select
 ---
 
-The `App` class is the main control class for tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
+The `Editor` class is the main control class for tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
 
-By design, the `App`'s surface area is [very large](/gen/editor/App-class). While that makes it difficult to fully document here, the general rule is that everything is available via the `App`. Need to create some shapes? Use `editor.createShapes()`. Need to delete them? Use `editor.deleteShapes()`. Need a sorted array of every shape on the current page? Use `editor.sortedShapesArray`.
+By design, the `Editor`'s surface area is [very large](/gen/editor/Editor-class). While that makes it difficult to fully document here, the general rule is that everything is available via the `Editor`. Need to create some shapes? Use `editor.createShapes()`. Need to delete them? Use `editor.deleteShapes()`. Need a sorted array of every shape on the current page? Use `editor.sortedShapesArray`.
 
-Rather than document everything, this page is intended to give a broad idea of how the `App` class is organized and some of the architectural concepts involved.
+Rather than document everything, this page is intended to give a broad idea of how the `Editor` class is organized and some of the architectural concepts involved.
 
 ## State
 
@@ -42,7 +43,7 @@ export const SelectedIdsCount = track(() => {
 
 ### Changing the state
 
-The `App` class has many methods for updating its state. For example, you can change the current page's selection using `editor.setSelectedIds`. You can also use other convenience methods, such as `editor.select`, `editor.deselect`, `editor.selectAll`, or `editor.selectNone`.
+The `Editor` class has many methods for updating its state. For example, you can change the current page's selection using `editor.setSelectedIds`. You can also use other convenience methods, such as `editor.select`, `editor.deselect`, `editor.selectAll`, or `editor.selectNone`.
 
 ```ts
 editor.selectNone()
@@ -116,13 +117,13 @@ editor.bailToMark("first") // will to A
 
 ## Events and Tools
 
-The `App` class receives events from the user interface via its `dispatch` method. When the `App` receives an event, it is first handled internally to update `editor.inputs` and other state before, and then sent into to the app's state chart.
+The `Editor` class receives events from the user interface via its `dispatch` method. When the `Editor` receives an event, it is first handled internally to update `editor.inputs` and other state before, and then sent into to the app's state chart.
 
 You shouldn't need to use the `dispatch` method directly, however you may write code in the state chart that responds to these events.
 
 ### State Chart
 
-The `App` class has a "state chart", or a tree of `StateNode` instances, that contain the logic for the app's tools such as the select tool or the draw tool. User interactions such as moving the cursor will produce different changes to the state depending on which nodes are active.
+The `Editor` class has a "state chart", or a tree of `StateNode` instances, that contain the logic for the app's tools such as the select tool or the draw tool. User interactions such as moving the cursor will produce different changes to the state depending on which nodes are active.
 
 Each node be active or inactive. Each state node may also have zero or more children. When a state is active, and if the state has children, one (and only one) of its children must also be active. When a state node receives an event from its parent, it has the opportunity to handle the event before passing the event to its active child. The node can handle an event in any way: it can ignore the event, update records in the store, or run a _transition_ that changes which states nodes are active.
 
@@ -237,4 +238,4 @@ editor.setCamera(0, 0, 1)
 
 ---
 
-See the [tldraw repository](https://github.com/tldraw/tldraw/tree/main/apps/examples) for an example of how to use tldraw's App API to control the editor.
+See the [tldraw repository](https://github.com/tldraw/tldraw/tree/main/apps/examples) for an example of how to use tldraw's Editor API to control the editor.

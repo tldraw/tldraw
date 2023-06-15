@@ -1900,7 +1900,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     onTranslateStart?: TLOnTranslateStartHandler<T>;
     outline(shape: T): Vec2d[];
     outlineSegments(shape: T): Vec2d[][];
-    point(shape: T): Vec2dModel;
     // @internal
     providesBackgroundForChildren(shape: T): boolean;
     abstract render(shape: T): any;
