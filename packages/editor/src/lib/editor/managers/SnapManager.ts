@@ -241,7 +241,7 @@ export class SnapManager {
 		})
 	}
 
-	get snapThreshold() {
+	@computed get snapThreshold() {
 		return 8 / this.editor.zoomLevel
 	}
 
