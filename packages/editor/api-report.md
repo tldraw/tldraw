@@ -1896,7 +1896,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     onTranslateEnd?: TLOnTranslateEndHandler<T>;
     onTranslateStart?: TLOnTranslateStartHandler<T>;
     outline(shape: T): Vec2dModel[];
-    point(shape: T): Vec2dModel;
     // @internal
     providesBackgroundForChildren(shape: T): boolean;
     abstract render(shape: T): any;
@@ -1905,7 +1904,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     snapPoints(shape: T): Vec2d[];
     toBackgroundSvg?(shape: T, font: string | undefined, colors: TLExportColors): null | Promise<SVGElement> | SVGElement;
     toSvg?(shape: T, font: string | undefined, colors: TLExportColors): Promise<SVGElement> | SVGElement;
-    transform(shape: T): Matrix2d;
     // (undocumented)
     readonly type: T['type'];
     static type: string;
