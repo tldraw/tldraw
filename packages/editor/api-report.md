@@ -1047,7 +1047,6 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: 
     pointerId: number;
     button: number;
     isPen: boolean;
-    source: "user";
 };
 
 // @public

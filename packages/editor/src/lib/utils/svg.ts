@@ -18,7 +18,6 @@ export function getPointerInfo(e: React.PointerEvent | PointerEvent, container: 
 		pointerId: e.pointerId,
 		button: e.button,
 		isPen: e.pointerType === 'pen',
-		source: 'user' as const,
 	}
 }
 
