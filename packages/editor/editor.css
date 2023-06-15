@@ -787,7 +787,7 @@ input,
 
 .tl-nametag-title {
 	position: absolute;
-	top: 0px;
+	top: -2px;
 	left: 13px;
 	width: fit-content;
 	height: fit-content;
