@@ -2,6 +2,8 @@ import { RotateCorner, toDomPrecision } from '@tldraw/primitives'
 import classNames from 'classnames'
 import { useRef } from 'react'
 import { track } from 'signia-react'
+import { EmbedShapeUtil } from '../editor/shapes/embed/EmbedShapeUtil'
+import { TextShapeUtil } from '../editor/shapes/text/TextShapeUtil'
 import { getCursor } from '../hooks/useCursor'
 import { useEditor } from '../hooks/useEditor'
 import { useSelectionEvents } from '../hooks/useSelectionEvents'
@@ -32,7 +34,7 @@ export const SelectionFg = track(function SelectionFg() {
 
 	let bounds = editor.selectionBounds
 	const shapes = editor.selectedShapes
-	const onlyShape = shapes.length === 1 ? shapes[0] : null
+	const onlyShape = editor.onlySelectedShape
 	const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
 
 	// if all shapes have an expandBy for the selection outline, we can expand by the l
@@ -92,12 +94,17 @@ export const SelectionFg = track(function SelectionFg() {
 		(showSelectionBounds &&
 			editor.isIn('select.resizing') &&
 			onlyShape &&
-			shapes[0].type === 'text')
+			// todo: remove hardcoded shape type check
+			editor.isShapeOfType(onlyShape, TextShapeUtil))
 
-	if (IS_FIREFOX && shouldDisplayBox) {
-		if (editor.onlySelectedShape?.type === 'embed') {
-			shouldDisplayBox = false
-		}
+	if (
+		onlyShape &&
+		// todo: remove hardcoded shape type check
+		editor.isShapeOfType(onlyShape, EmbedShapeUtil) &&
+		shouldDisplayBox &&
+		IS_FIREFOX
+	) {
+		shouldDisplayBox = false
 	}
 
 	const showCropHandles =
@@ -180,7 +187,9 @@ export const SelectionFg = track(function SelectionFg() {
 	const showTextResizeHandles =
 		shouldDisplayControls &&
 		isCoarsePointer &&
-		onlyShape?.type === 'text' &&
+		onlyShape &&
+		// todo: remove hardcoded shape type check
+		editor.isShapeOfType(onlyShape, TextShapeUtil) &&
 		textHandleHeight * zoom >= 4
 
 	return (

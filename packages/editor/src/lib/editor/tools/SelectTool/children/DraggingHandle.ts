@@ -8,6 +8,7 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
+import { LineShapeUtil } from '../../../shapes/line/LineShapeUtil'
 import {
 	TLCancelEvent,
 	TLEnterEventHandler,
@@ -210,7 +211,7 @@ export class DraggingHandle extends StateNode {
 		const { ctrlKey } = this.editor.inputs
 		const shouldSnap = this.editor.isSnapMode ? !ctrlKey : ctrlKey
 
-		if (shouldSnap && shape.type === 'line') {
+		if (shouldSnap && this.editor.isShapeOfType(shape, LineShapeUtil)) {
 			const pagePoint = Matrix2d.applyToPoint(this.editor.getPageTransformById(shape.id)!, point)
 			const snapData = this.editor.snaps.snapLineHandleTranslate({
 				lineId: shape.id,

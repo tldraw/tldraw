@@ -6,6 +6,7 @@ import { TestEditor } from '../TestEditor'
 
 import { defaultShapes } from '../../config/defaultShapes'
 import { defineShape } from '../../config/defineShape'
+import { ArrowShapeUtil } from '../../editor/shapes/arrow/ArrowShapeUtil'
 import { getSnapLines } from '../testutils/getSnapLines'
 
 type __TopLeftSnapOnlyShape = any
@@ -1948,7 +1949,9 @@ describe('translating a shape with a bound shape', () => {
 			props: { start: { type: 'binding' }, end: { type: 'binding' } },
 		})
 
-		const newArrow = editor.shapesArray.find((s) => s.type === 'arrow' && s.id !== arrow1)
+		const newArrow = editor.shapesArray.find(
+			(s) => editor.isShapeOfType(s, ArrowShapeUtil) && s.id !== arrow1
+		)
 		expect(newArrow).toMatchObject({
 			props: { start: { type: 'binding' }, end: { type: 'point' } },
 		})

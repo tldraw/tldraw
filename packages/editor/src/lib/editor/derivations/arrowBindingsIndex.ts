@@ -1,16 +1,15 @@
-import { TLArrowShape, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
+import { TLArrowShape, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Computed, RESET_VALUE, computed, isUninitialized } from 'signia'
+import { Editor } from '../Editor'
+import { ArrowShapeUtil } from '../shapes/arrow/ArrowShapeUtil'
 
 export type TLArrowBindingsIndex = Record<
 	TLShapeId,
 	undefined | { arrowId: TLShapeId; handleId: 'start' | 'end' }[]
 >
 
-function isArrowType(shape: any): shape is TLArrowShape {
-	return shape.type === 'arrow'
-}
-
-export const arrowBindingsIndex = (store: TLStore): Computed<TLArrowBindingsIndex> => {
+export const arrowBindingsIndex = (editor: Editor): Computed<TLArrowBindingsIndex> => {
+	const { store } = editor
 	const shapeHistory = store.query.filterHistory('shape')
 	const arrowQuery = store.query.records('shape', () => ({ type: { eq: 'arrow' as const } }))
 	function fromScratch() {
@@ -35,6 +34,7 @@ export const arrowBindingsIndex = (store: TLStore): Computed<TLArrowBindingsInde
 
 		return bindings2Arrows
 	}
+
 	return computed<TLArrowBindingsIndex>('arrowBindingsIndex', (_lastValue, lastComputedEpoch) => {
 		if (isUninitialized(_lastValue)) {
 			return fromScratch()
@@ -83,7 +83,7 @@ export const arrowBindingsIndex = (store: TLStore): Computed<TLArrowBindingsInde
 
 		for (const changes of diff) {
 			for (const newShape of Object.values(changes.added)) {
-				if (isArrowType(newShape)) {
+				if (editor.isShapeOfType(newShape, ArrowShapeUtil)) {
 					const { start, end } = newShape.props
 					if (start.type === 'binding') {
 						addBinding(start.boundShapeId, newShape.id, 'start')
@@ -95,7 +95,11 @@ export const arrowBindingsIndex = (store: TLStore): Computed<TLArrowBindingsInde
 			}
 
 			for (const [prev, next] of Object.values(changes.updated) as [TLShape, TLShape][]) {
-				if (!isArrowType(prev) || !isArrowType(next)) continue
+				if (
+					!editor.isShapeOfType(prev, ArrowShapeUtil) ||
+					!editor.isShapeOfType(next, ArrowShapeUtil)
+				)
+					continue
 
 				for (const handle of ['start', 'end'] as const) {
 					const prevTerminal = prev.props[handle]
@@ -120,7 +124,7 @@ export const arrowBindingsIndex = (store: TLStore): Computed<TLArrowBindingsInde
 			}
 
 			for (const prev of Object.values(changes.removed)) {
-				if (isArrowType(prev)) {
+				if (editor.isShapeOfType(prev, ArrowShapeUtil)) {
 					const { start, end } = prev.props
 					if (start.type === 'binding') {
 						removingBinding(start.boundShapeId, prev.id, 'start')

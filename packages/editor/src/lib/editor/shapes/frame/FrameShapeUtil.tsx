@@ -4,6 +4,7 @@ import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defaultEmptyAs } from '../../../utils/string'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
+import { GroupShapeUtil } from '../group/GroupShapeUtil'
 import { TLOnResizeEndHandler } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -171,15 +172,15 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
-		const parentId = this.editor.getShapeById(_shape.parentId)
-		const isInGroup = parentId?.type === 'group'
+		const parent = this.editor.getShapeById(_shape.parentId)
+		const isInGroup = parent && this.editor.isShapeOfType(parent, GroupShapeUtil)
 
 		// If frame is in a group, keep the shape
 		// moved out in that group
 		if (isInGroup) {
 			this.editor.reparentShapesById(
 				shapes.map((shape) => shape.id),
-				parentId.id
+				parent.id
 			)
 		} else {
 			this.editor.reparentShapesById(
