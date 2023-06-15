@@ -1032,12 +1032,11 @@ export class SnapManager {
 	}: {
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
-	}) {
+	}): PointsSnapLine[] {
 		// point snaps may align on multiple parallel lines so we need to split the pairs
 		// into groups based on where they are in their their snap axes
 		const snapGroupsX = {} as { [key: string]: SnapPair[] }
 		const snapGroupsY = {} as { [key: string]: SnapPair[] }
-		const result: PointsSnapLine[] = []
 
 		if (nearestSnapsX.length > 0) {
 			for (const snap of nearestSnapsX) {
@@ -1064,8 +1063,9 @@ export class SnapManager {
 		}
 
 		// and finally create all the snap lines for the UI to render
-		for (const [_, snapGroup] of Object.entries(snapGroupsX).concat(Object.entries(snapGroupsY))) {
-			result.push({
+		return Object.values(snapGroupsX)
+			.concat(Object.values(snapGroupsY))
+			.map((snapGroup) => ({
 				id: uniqueId(),
 				type: 'points',
 				points: dedupe(
@@ -1075,10 +1075,7 @@ export class SnapManager {
 						.concat(snapGroup.map((snap) => Vec2d.From(snap.thisPoint))),
 					(a: Vec2d, b: Vec2d) => a.equals(b)
 				),
-			})
-		}
-
-		return result
+			}))
 	}
 
 	private getGapSnapLines({
