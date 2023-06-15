@@ -120,6 +120,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
+    canSnap: () => boolean;
+    // (undocumented)
     defaultProps(): TLArrowShape['props'];
     // (undocumented)
     getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
@@ -571,7 +573,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly isSafari: boolean;
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
-    isShapeInViewport(id: TLShapeId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, util: {
         new (...args: any): ShapeUtil<T>;
         type: string;
@@ -1846,6 +1847,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     canReceiveNewChildrenOfType(shape: T, type: TLShape['type']): boolean;
     canResize: TLShapeUtilFlag<T>;
     canScroll: TLShapeUtilFlag<T>;
+    canSnap: TLShapeUtilFlag<T>;
     canUnmount: TLShapeUtilFlag<T>;
     center(shape: T): Vec2dModel;
     abstract defaultProps(): T['props'];

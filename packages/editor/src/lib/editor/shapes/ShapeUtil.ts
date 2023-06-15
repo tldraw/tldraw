@@ -35,6 +35,13 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	static type: string
 
 	/**
+	 * Whether the shape can be snapped to by another shape.
+	 *
+	 * @public
+	 */
+	canSnap: TLShapeUtilFlag<T> = () => true
+
+	/**
 	 * Whether the shape can be scrolled while editing.
 	 *
 	 * @public

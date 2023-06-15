@@ -57,9 +57,11 @@ export class DraggingHandle extends StateNode {
 
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
+		// <!-- Only relevant to arrows
 		const handles = this.editor.getShapeUtil(shape).handles(shape).sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
 
+		// Find the adjacent handle
 		this.initialAdjacentHandle = null
 
 		// Start from the handle and work forward
@@ -96,13 +98,16 @@ export class DraggingHandle extends StateNode {
 				this.resetExactTimeout()
 			}
 		}
+		// -->
 
 		this.update()
 	}
 
-	exactTimeout = -1 as any
+	// Only relevant to arrows
+	private exactTimeout = -1 as any
 
-	resetExactTimeout() {
+	// Only relevant to arrows
+	private resetExactTimeout() {
 		if (this.exactTimeout !== -1) {
 			this.clearExactTimeout()
 		}
@@ -117,7 +122,8 @@ export class DraggingHandle extends StateNode {
 		}, 750)
 	}
 
-	clearExactTimeout() {
+	// Only relevant to arrows
+	private clearExactTimeout() {
 		if (this.exactTimeout !== -1) {
 			clearTimeout(this.exactTimeout)
 			this.exactTimeout = -1
@@ -184,75 +190,97 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private update() {
-		const { currentPagePoint, originPagePoint, shiftKey } = this.editor.inputs
-		const shape = this.editor.getShapeById(this.shapeId)
+		const { editor, shapeId } = this
+		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
+		const {
+			isSnapMode,
+			hintingIds,
+			snaps,
+			inputs: { currentPagePoint, originPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
+		} = editor
 
+		const shape = editor.getShapeById(shapeId)
 		if (!shape) return
 
-		let point = Vec2d.Add(
-			Vec2d.Rot(Vec2d.Sub(currentPagePoint, originPagePoint), -this.initialPageRotation),
-			this.initialHandle
-		)
+		const util = editor.getShapeUtil(shape)
 
-		if (shiftKey && this.initialHandle.id !== 'middle') {
-			const { initialAdjacentHandle } = this
+		let point = currentPagePoint
+			.clone()
+			.sub(originPagePoint)
+			.rot(-initialPageRotation)
+			.add(initialHandle)
 
-			if (initialAdjacentHandle) {
-				const angle = Vec2d.Angle(initialAdjacentHandle, point)
-				const snappedAngle = snapAngle(angle, 24)
-				const angleDifference = snappedAngle - angle
-				point = Vec2d.RotWith(point, initialAdjacentHandle, angleDifference)
-			}
+		if (shiftKey && initialAdjacentHandle && initialHandle.id !== 'middle') {
+			const angle = Vec2d.Angle(initialAdjacentHandle, point)
+			const snappedAngle = snapAngle(angle, 24)
+			const angleDifference = snappedAngle - angle
+			point = Vec2d.RotWith(point, initialAdjacentHandle, angleDifference)
 		}
 
-		this.editor.snaps.clear()
+		// Clear any existing snaps
+		editor.snaps.clear()
 
-		const { ctrlKey } = this.editor.inputs
-		const shouldSnap = this.editor.isSnapMode ? !ctrlKey : ctrlKey
+		if (isSnapMode ? !ctrlKey : ctrlKey) {
+			// We're snapping
+			const pageTransform = editor.getPageTransformById(shape.id)
+			if (!pageTransform) throw Error('Expected a page transform')
 
-		if (shouldSnap && shape.type === 'line') {
-			const pagePoint = Matrix2d.applyToPoint(this.editor.getPageTransformById(shape.id)!, point)
-			const snapData = this.editor.snaps.snapLineHandleTranslate({
-				lineId: shape.id,
-				handleId: this.initialHandle.id,
-				handlePoint: pagePoint,
+			const pointInPageSpace = Matrix2d.applyToPoint(pageTransform, point)
+
+			const vertexHandles = util.handles(shape).filter((h) => h.type === 'vertex')
+
+			// If the shape has vertex handles, then the dragging handle should
+			// also snap to segments that do not include the dragging handle
+			const additionalSegments: Vec2d[][] = []
+
+			let A: TLHandle, B: TLHandle
+			for (let i = 0; i < vertexHandles.length - 1; i++) {
+				A = vertexHandles[i]
+				B = vertexHandles[i + 1]
+
+				if (A.id === initialHandle.id || B.id === initialHandle.id) continue
+
+				additionalSegments.push(
+					Matrix2d.applyToPoints(pageTransform, [Vec2d.From(A), Vec2d.From(B)])
+				)
+			}
+
+			const snapDelta = snaps.getSnappingHandleDelta({
+				additionalSegments,
+				handlePoint: pointInPageSpace,
 			})
 
-			const { nudge } = snapData
-			if (nudge.x || nudge.y) {
-				const shapeSpaceNudge = this.editor.getDeltaInShapeSpace(shape, nudge)
-				point = Vec2d.Add(point, shapeSpaceNudge)
+			if (snapDelta) {
+				point.add(editor.getDeltaInShapeSpace(shape, snapDelta))
 			}
 		}
-
-		const util = this.editor.getShapeUtil(shape)
 
 		const changes = util.onHandleChange?.(shape, {
 			handle: {
-				...this.initialHandle,
+				...initialHandle,
 				x: point.x,
 				y: point.y,
 			},
-			isPrecise: this.isPrecise || this.editor.inputs.altKey,
+			isPrecise: this.isPrecise || altKey,
 		})
 
 		const next: TLShapePartial<any> = { ...shape, ...changes }
 
-		if (this.initialHandle.canBind) {
-			const bindingAfter = (next.props as any)[this.initialHandle.id] as TLArrowTerminal | undefined
+		// Arrows
+		if (initialHandle.canBind) {
+			const bindingAfter = (next.props as any)[initialHandle.id] as TLArrowTerminal | undefined
 
 			if (bindingAfter?.type === 'binding') {
-				if (this.editor.hintingIds[0] !== bindingAfter.boundShapeId) {
-					this.editor.setHintingIds([bindingAfter.boundShapeId])
+				if (hintingIds[0] !== bindingAfter.boundShapeId) {
+					editor.setHintingIds([bindingAfter.boundShapeId])
 					this.pointingId = bindingAfter.boundShapeId
-					this.isPrecise =
-						this.editor.inputs.pointerVelocity.len() < 0.5 || this.editor.inputs.altKey
+					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
 					this.isPreciseId = this.isPrecise ? bindingAfter.boundShapeId : null
 					this.resetExactTimeout()
 				}
 			} else {
-				if (this.editor.hintingIds.length > 0) {
-					this.editor.setHintingIds([])
+				if (hintingIds.length > 0) {
+					editor.setHintingIds([])
 					this.pointingId = null
 					this.isPrecise = false
 					this.isPreciseId = null
@@ -262,7 +290,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (changes) {
-			this.editor.updateShapes([next], true)
+			editor.updateShapes([next], true)
 		}
 	}
 }
