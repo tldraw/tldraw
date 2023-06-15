@@ -8,7 +8,6 @@ import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
 import { TLExportColors } from './shared/TLExportColors'
 
-const points = new WeakMapCache<TLShape, Vec2dModel>()
 const transforms = new WeakMapCache<TLShape, Matrix2d>()
 
 /** @public */
@@ -232,16 +231,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 		return transforms.get<T>(shape, (shape) =>
 			Matrix2d.Compose(Matrix2d.Translate(shape.x, shape.y), Matrix2d.Rotate(shape.rotation))
 		)
-	}
-
-	/**
-	 * Get the cached point. Do not override this method!
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	point(shape: T): Vec2dModel {
-		return points.get<T>(shape, (shape) => ({ x: shape.x, y: shape.y }))
 	}
 
 	/**
