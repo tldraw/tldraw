@@ -3,10 +3,10 @@ import { Box2d, getStrokePoints, linesIntersect, Vec2d, VecLike } from '@tldraw/
 import { TLDrawShapeSegment, TLHighlightShape } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { FONT_SIZES } from '../../../constants'
 import { getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
+import { FONT_SIZES } from '../shared/default-shape-constants'
 import { TLExportColors } from '../shared/TLExportColors'
 import { useForceSolid } from '../shared/useForceSolid'
 

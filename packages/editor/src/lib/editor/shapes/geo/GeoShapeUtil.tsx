@@ -14,10 +14,15 @@ import {
 } from '@tldraw/primitives'
 import { TLDefaultDashStyle, TLGeoShape } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { FONT_FAMILIES, LABEL_FONT_SIZES, STROKE_SIZES, TEXT_PROPS } from '../../../constants'
 import { Editor } from '../../Editor'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnEditEndHandler, TLOnResizeHandler } from '../ShapeUtil'
+import {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	STROKE_SIZES,
+	TEXT_PROPS,
+} from '../shared/default-shape-constants'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'

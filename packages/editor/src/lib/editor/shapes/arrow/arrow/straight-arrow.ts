@@ -8,13 +8,15 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import { TLArrowShape } from '@tldraw/tlschema'
-import { BOUND_ARROW_OFFSET, MIN_ARROW_LENGTH, STROKE_SIZES } from '../../../../constants'
 import { Editor } from '../../../Editor'
+import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { ArrowInfo } from './arrow-types'
 import {
+	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
+	MIN_ARROW_LENGTH,
 } from './shared'
 
 export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): ArrowInfo {

@@ -9,11 +9,12 @@ import {
 	Vec2dModel,
 } from '@tldraw/tlschema'
 import { last, structuredClone } from '@tldraw/utils'
-import { DRAG_DISTANCE, STROKE_SIZES } from '../../../../constants'
+import { DRAG_DISTANCE } from '../../../../constants'
 import { uniqueId } from '../../../../utils/data'
 import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
+import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { DrawShapeUtil } from '../DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape

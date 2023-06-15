@@ -25,7 +25,6 @@ import { deepCopy, last, minBy } from '@tldraw/utils'
 import * as React from 'react'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, STROKE_SIZES, TEXT_PROPS } from '../../../constants'
 import {
 	ShapeUtil,
 	TLOnEditEndHandler,
@@ -35,6 +34,12 @@ import {
 	TLShapeUtilFlag,
 } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import {
+	ARROW_LABEL_FONT_SIZES,
+	FONT_FAMILIES,
+	STROKE_SIZES,
+	TEXT_PROPS,
+} from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'

@@ -47,9 +47,7 @@ import { TLBookmarkShape } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDefaultColorStyle } from '@tldraw/tlschema';
-import { TLDefaultFontStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
-import { TLDefaultSizeStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLDrawShape } from '@tldraw/tlschema';
 import { TLEmbedShape } from '@tldraw/tlschema';
@@ -98,9 +96,6 @@ export const ANIMATION_MEDIUM_MS = 320;
 
 // @internal (undocumented)
 export const ANIMATION_SHORT_MS = 80;
-
-// @public (undocumented)
-export const ARROW_LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export const ArrowShape: TLShapeInfo<TLArrowShape>;
@@ -225,9 +220,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     static type: "bookmark";
 }
 
-// @internal (undocumented)
-export const BOUND_ARROW_OFFSET = 10;
-
 // @public (undocumented)
 export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
     onDropOverride?: ((defaultOnDrop: (e: React_3.DragEvent<Element>) => Promise<void>) => (e: React_3.DragEvent<Element>) => Promise<void>) | undefined;
@@ -280,12 +272,6 @@ export const DEFAULT_ANIMATION_OPTIONS: {
     duration: number;
     easing: (t: number) => number;
 };
-
-// @internal (undocumented)
-export const DEFAULT_BOOKMARK_HEIGHT = 320;
-
-// @internal (undocumented)
-export const DEFAULT_BOOKMARK_WIDTH = 300;
 
 // @public (undocumented)
 export let defaultEditorAssetUrls: TLEditorAssetUrls;
@@ -785,12 +771,6 @@ export const featureFlags: {
 export function fileToBase64(file: Blob): Promise<string>;
 
 // @public (undocumented)
-export const FONT_FAMILIES: Record<TLDefaultFontStyle, string>;
-
-// @public (undocumented)
-export const FONT_SIZES: Record<TLDefaultSizeStyle, number>;
-
-// @public (undocumented)
 export const FrameShape: TLShapeInfo<TLFrameShape>;
 
 // @public (undocumented)
@@ -1187,9 +1167,6 @@ export const isValidHttpURL: (url: string) => boolean;
 
 // @public (undocumented)
 export function isValidUrl(url: string): boolean;
-
-// @public (undocumented)
-export const LABEL_FONT_SIZES: Record<TLDefaultSizeStyle, number>;
 
 // @public (undocumented)
 export const LineShape: TLShapeInfo<TLLineShape>;
@@ -1642,9 +1619,6 @@ export const MAX_SHAPES_PER_PAGE = 2000;
 export const MAX_ZOOM = 8;
 
 // @internal (undocumented)
-export const MIN_ARROW_LENGTH = 48;
-
-// @internal (undocumented)
 export const MIN_ZOOM = 0.1;
 
 // @internal (undocumented)
@@ -2029,16 +2003,6 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 
 // @public
 export const TAB_ID: string;
-
-// @public (undocumented)
-export const TEXT_PROPS: {
-    lineHeight: number;
-    fontWeight: string;
-    fontVariant: string;
-    fontStyle: string;
-    padding: string;
-    maxWidth: string;
-};
 
 // @public (undocumented)
 export const TextShape: TLShapeInfo<TLTextShape>;
@@ -2803,9 +2767,6 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     static type: "video";
 }
-
-// @internal (undocumented)
-export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10;
 
 // @public (undocumented)
 export class WeakMapCache<T extends object, K> {

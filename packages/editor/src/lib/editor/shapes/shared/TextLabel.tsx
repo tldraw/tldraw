@@ -8,10 +8,10 @@ import {
 	TLShape,
 } from '@tldraw/tlschema'
 import React from 'react'
-import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
 import { isLegacyAlign } from '../../../utils/legacy'
 import { TextHelpers } from '../text/TextHelpers'
+import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
 import { useEditableText } from './useEditableText'
 
 export const TextLabel = React.memo(function TextLabel<

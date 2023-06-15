@@ -14,15 +14,16 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import { TLArrowShape } from '@tldraw/tlschema'
+import type { Editor } from '../../../Editor'
+import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { ArcInfo, ArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
+	getArrowTerminalsInArrowSpace,
+	getBoundShapeInfoForTerminal,
 	MIN_ARROW_LENGTH,
-	STROKE_SIZES,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
-} from '../../../../constants'
-import type { Editor } from '../../../Editor'
-import { ArcInfo, ArrowInfo } from './arrow-types'
-import { getArrowTerminalsInArrowSpace, getBoundShapeInfoForTerminal } from './shared'
+} from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 
 export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBend = 0): ArrowInfo {
