@@ -9583,6 +9583,7 @@ __metadata:
     "@tldraw/assets": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     "@vercel/analytics": ^1.0.1
     concurrently: ^8.1.0
     dotenv: ^16.0.3
