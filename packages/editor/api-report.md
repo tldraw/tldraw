@@ -1226,6 +1226,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
+    getHandleSegments(shape: TLLineShape): Vec2d[][];
+    // (undocumented)
     getOutline(shape: TLLineShape): Vec2d[];
     // (undocumented)
     hideResizeHandles: () => boolean;
@@ -1859,8 +1861,11 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     abstract getCenter(shape: T): Vec2dModel;
     getEditingBounds: (shape: T) => Box2d;
     protected getHandles?(shape: T): TLHandle[];
+    // (undocumented)
+    protected getHandleSegments?(shape: T): Vec2d[][];
     protected abstract getOutline(shape: T): Vec2dModel[];
     handles(shape: T): TLHandle[];
+    handleSegments(shape: T): Vec2d[][];
     hideResizeHandles: TLShapeUtilFlag<T>;
     hideRotateHandle: TLShapeUtilFlag<T>;
     hideSelectionBoundsBg: TLShapeUtilFlag<T>;

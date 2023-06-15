@@ -104,6 +104,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return getLinePoints(getSplineForLineShape(shape))
 	}
 
+	getHandleSegments(shape: TLLineShape) {
+		return getSplineForLineShape(shape).segments.map((s) => s.lut)
+	}
+
 	//   Events
 
 	onResize: TLOnResizeHandler<TLLineShape> = (shape, info) => {

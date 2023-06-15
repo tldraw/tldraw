@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Box2d, linesIntersect, Matrix2d, VecLike } from '@tldraw/primitives'
+import { Box2d, linesIntersect, Matrix2d, Vec2d, VecLike } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
 import { TLHandle, TLShape, TLShapePartial, TLUnknownShape, Vec2dModel } from '@tldraw/tlschema'
 import { computed, EMPTY_ARRAY } from 'signia'
@@ -198,6 +198,26 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	handles(shape: T): TLHandle[] {
 		if (!this.getHandles) return EMPTY_ARRAY
 		return this.handlesCache.get(shape.id) ?? EMPTY_ARRAY
+	}
+
+	protected getHandleSegments?(shape: T): Vec2d[][]
+
+	@computed
+	private get handleSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
+		return this.editor.store.createComputedCache('handle-segments:' + this.type, (shape) => {
+			return this.getHandleSegments!(shape as any)
+		})
+	}
+
+	/**
+	 * Get the cached handles (this should not be overridden!)
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	handleSegments(shape: T): Vec2d[][] {
+		if (!this.getHandleSegments) return EMPTY_ARRAY
+		return this.handleSegmentsCache.get(shape.id) ?? EMPTY_ARRAY
 	}
 
 	/**

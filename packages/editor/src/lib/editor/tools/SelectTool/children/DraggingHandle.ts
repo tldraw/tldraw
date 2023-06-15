@@ -225,29 +225,25 @@ export class DraggingHandle extends StateNode {
 			const pageTransform = editor.getPageTransformById(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 
-			const pointInPageSpace = Matrix2d.applyToPoint(pageTransform, point)
+			// Get all the outline segments from the shape
+			const additionalSegments = util
+				.handleSegments(shape)
+				.map((segment) => Matrix2d.applyToPoints(pageTransform, segment))
 
-			const vertexHandles = util.handles(shape).filter((h) => h.type === 'vertex')
+			// We want to skip the segments that include the handle, so
+			// find the index of the handle that shares the same index property
+			// as the initial dragging handle; this catches a quirk of create handles
+			const handleIndex = util
+				.handles(shape)
+				.filter(({ type }) => type === 'vertex')
+				.sort(sortByIndex)
+				.findIndex(({ index }) => initialHandle.index === index)
 
-			// If the shape has vertex handles, then the dragging handle should
-			// also snap to segments that do not include the dragging handle
-			const additionalSegments: Vec2d[][] = []
-
-			let A: TLHandle, B: TLHandle
-			for (let i = 0; i < vertexHandles.length - 1; i++) {
-				A = vertexHandles[i]
-				B = vertexHandles[i + 1]
-
-				if (A.id === initialHandle.id || B.id === initialHandle.id) continue
-
-				additionalSegments.push(
-					Matrix2d.applyToPoints(pageTransform, [Vec2d.From(A), Vec2d.From(B)])
-				)
-			}
+			additionalSegments.splice(handleIndex - 1, 2)
 
 			const snapDelta = snaps.getSnappingHandleDelta({
 				additionalSegments,
-				handlePoint: pointInPageSpace,
+				handlePoint: Matrix2d.applyToPoint(pageTransform, point),
 			})
 
 			if (snapDelta) {
