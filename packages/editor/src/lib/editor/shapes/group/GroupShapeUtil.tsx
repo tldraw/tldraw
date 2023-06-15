@@ -55,7 +55,11 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 		const isHintingOtherGroup =
 			hintingIds.length > 0 &&
-			hintingIds.some((id) => id !== shape.id && this.editor.getShapeById(id)?.type === 'group')
+			hintingIds.some(
+				(id) =>
+					id !== shape.id &&
+					this.editor.isShapeOfType(this.editor.getShapeById(id)!, GroupShapeUtil)
+			)
 
 		if (
 			// always show the outline while we're erasing the group

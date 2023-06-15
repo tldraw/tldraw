@@ -1,6 +1,7 @@
 import { Vec2d } from '@tldraw/primitives'
 import { TLGeoShape, TLShape, TLTextShape, createShapeId } from '@tldraw/tlschema'
 import { debugFlags } from '../../../../utils/debug-flags'
+import { GroupShapeUtil } from '../../../shapes/group/GroupShapeUtil'
 import {
 	TLClickEventInfo,
 	TLEventHandlers,
@@ -318,7 +319,7 @@ export class Idle extends StateNode {
 				case 'Enter': {
 					const { selectedShapes } = this.editor
 
-					if (selectedShapes.every((shape) => shape.type === 'group')) {
+					if (selectedShapes.every((shape) => this.editor.isShapeOfType(shape, GroupShapeUtil))) {
 						this.editor.setSelectedIds(
 							selectedShapes.flatMap((shape) => this.editor.getSortedChildIds(shape.id))
 						)

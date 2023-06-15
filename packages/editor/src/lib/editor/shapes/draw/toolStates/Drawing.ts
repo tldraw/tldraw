@@ -11,10 +11,8 @@ import {
 import { last, structuredClone } from '@tldraw/utils'
 import { DRAG_DISTANCE } from '../../../../constants'
 import { uniqueId } from '../../../../utils/data'
-import { DrawShapeUtil } from '../../../shapes/draw/DrawShapeUtil'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 
-import { HighlightShapeUtil } from '../../../shapes/highlight/HighlightShapeUtil'
 import { StateNode } from '../../../tools/StateNode'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
@@ -27,11 +25,6 @@ export class Drawing extends StateNode {
 	initialShape?: DrawableShape
 
 	shapeType: DrawableShape['type'] = this.parent.id === 'highlight' ? 'highlight' : 'draw'
-
-	util =
-		this.shapeType === 'highlight'
-			? this.editor.getShapeUtil(HighlightShapeUtil)
-			: this.editor.getShapeUtil(DrawShapeUtil)
 
 	isPen = false
 

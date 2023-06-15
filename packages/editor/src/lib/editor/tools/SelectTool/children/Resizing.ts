@@ -10,6 +10,7 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import { TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
+import { FrameShapeUtil } from '../../../shapes/frame/FrameShapeUtil'
 import {
 	TLEnterEventHandler,
 	TLEventHandlers,
@@ -369,12 +370,12 @@ export class Resizing extends StateNode {
 			const shape = this.editor.getShapeById(id)
 			if (shape) {
 				shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
-				if (shape.type === 'frame' && selectedIds.length === 1) return
+				if (this.editor.isShapeOfType(shape, FrameShapeUtil) && selectedIds.length === 1) return
 				this.editor.visitDescendants(shape.id, (descendantId) => {
 					const descendent = this.editor.getShapeById(descendantId)
 					if (descendent) {
 						shapeSnapshots.set(descendent.id, this._createShapeSnapshot(descendent))
-						if (descendent.type === 'frame') {
+						if (this.editor.isShapeOfType(descendent, FrameShapeUtil)) {
 							return false
 						}
 					}

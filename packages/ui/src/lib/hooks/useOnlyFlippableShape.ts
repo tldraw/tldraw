@@ -1,4 +1,10 @@
-import { useEditor } from '@tldraw/editor'
+import {
+	ArrowShapeUtil,
+	DrawShapeUtil,
+	GroupShapeUtil,
+	LineShapeUtil,
+	useEditor,
+} from '@tldraw/editor'
 import { useValue } from 'signia-react'
 
 export function useOnlyFlippableShape() {
@@ -11,10 +17,10 @@ export function useOnlyFlippableShape() {
 				selectedShapes.length === 1 &&
 				selectedShapes.every(
 					(shape) =>
-						shape.type === 'group' ||
-						shape.type === 'arrow' ||
-						shape.type === 'line' ||
-						shape.type === 'draw'
+						editor.isShapeOfType(shape, GroupShapeUtil) ||
+						editor.isShapeOfType(shape, ArrowShapeUtil) ||
+						editor.isShapeOfType(shape, LineShapeUtil) ||
+						editor.isShapeOfType(shape, DrawShapeUtil)
 				)
 			)
 		},
