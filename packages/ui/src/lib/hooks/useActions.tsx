@@ -940,6 +940,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.toggleLock()
 				},
 			},
+			{
+				id: 'focus-color-picker',
+				label: 'action.focus-color-picker',
+				readonlyOk: false,
+				kbd: 's',
+				onSelect(source) {
+					trackEvent('focus-color-picker', { source })
+					editor.isChangingStyle = true
+					editor.styleChanging = 'color'
+				},
+			},
 		])
 
 		if (overrides) {

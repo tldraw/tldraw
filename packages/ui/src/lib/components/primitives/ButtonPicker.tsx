@@ -16,7 +16,7 @@ export interface ButtonPickerProps<T extends TLStyleItem> {
 	value?: string | number | null
 	columns?: 2 | 3 | 4
 	'data-testid'?: string
-	dynamicKbdBinding?: boolean
+	kbdBindings?: string[]
 	onValueChange: (item: T, squashing: boolean) => void
 }
 
@@ -28,51 +28,14 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 		value = null,
 		onValueChange,
 		columns = clamp(items.length, 2, 4),
+		kbdBindings,
 	} = props
 	const editor = useEditor()
 	const msg = useTranslation()
-	const dynamicKbdOptions: string[] = React.useMemo(
-		() => [
-			'q',
-			'w',
-			'e',
-			'r',
-			'a',
-			's',
-			'd',
-			'f',
-			'z',
-			'x',
-			'c',
-			'v',
-			'1',
-			'2',
-			'3',
-			'4',
-			'5',
-			'6',
-			'7',
-			'8',
-			'9',
-			'0',
-			'u',
-			'i',
-			'o',
-			'p',
-			'h',
-			'j',
-			'k',
-			'l',
-			'v',
-			'b',
-			'n',
-			'm',
-		],
-		[]
-	)
+
 	const rPointing = useRef(false)
 
-	const [isFocused, setIsFocused] = React.useState(false)
+	const [isParentFocused, setIsParentFocused] = React.useState(false)
 
 	const {
 		handleButtonClick,
@@ -153,7 +116,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 					break
 				}
 				default: {
-					const kbdIndex: number | undefined = dynamicKbdOptions.findIndex(
+					const kbdIndex: number | undefined = kbdBindings?.findIndex(
 						(kbd: string) => kbd === e.key
 					)
 
@@ -164,9 +127,18 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 
 		const handleNextItemChanged = (
 			parentElement: HTMLElement | null,
-			itemIndexToChange: number | undefined
+			kdbIndex: number | undefined
 		) => {
-			const nextItem: T | undefined = items.find((i, index) => index === itemIndexToChange)
+			if (kdbIndex === undefined || kdbIndex < 0) {
+				// No valid keyboard index to change, break out.
+				return
+			}
+
+			const nextItem: T | undefined = items.find((i, index) => index === kdbIndex)
+			if (nextItem === undefined) {
+				// No keyboard binding maps to an item, break out.
+				return
+			}
 			const nextButton: HTMLButtonElement | null | undefined = parentElement?.querySelector(
 				`[data-id="${nextItem?.id}"]`
 			)
@@ -182,7 +154,7 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 			handleButtonPointerUp,
 			handleKeyDown,
 		}
-	}, [editor, value, onValueChange, items, dynamicKbdOptions, columns])
+	}, [editor, value, onValueChange, items, columns, kbdBindings])
 
 	return (
 		<div
@@ -191,8 +163,8 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 				'tlui-button-grid__three': columns === 3,
 				'tlui-button-grid__four': columns === 4,
 			})}
-			onFocus={() => setIsFocused(true)}
-			onBlur={() => setIsFocused(false)}
+			onFocus={() => setIsParentFocused(true)}
+			onBlur={() => setIsParentFocused(false)}
 		>
 			{items.map((item, index) => (
 				<Button
@@ -210,11 +182,8 @@ function _ButtonPicker<T extends TLStyleItem>(props: ButtonPickerProps<T>) {
 					onClick={handleButtonClick}
 					onKeyDown={handleKeyDown}
 					kbd={
-						isFocused &&
-						editor.isChangingStyle &&
-						props.dynamicKbdBinding &&
-						index < dynamicKbdOptions.length
-							? dynamicKbdOptions[index]
+						props?.kbdBindings && isParentFocused && index < props.kbdBindings.length
+							? props.kbdBindings[index]
 							: undefined
 					}
 					icon={item.icon as TLUiIconType}

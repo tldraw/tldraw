@@ -73,7 +73,8 @@ export const KeyboardShortcutsSchemaProvider = track(function KeyboardShortcutsS
 				menuItem(actions['delete']),
 				menuItem(actions['duplicate']),
 				menuItem(actions['export-as-svg']),
-				menuItem(actions['export-as-png'])
+				menuItem(actions['export-as-png']),
+				menuItem(actions['focus-color-picker'])
 			),
 
 			menuGroup(

@@ -1,8 +1,9 @@
 import { Editor, TLNullableShapeProps, TLStyleItem, useEditor } from '@tldraw/editor'
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 
 import { minBy } from '@tldraw/utils'
 import { useValue } from 'signia-react'
+import { DYNAMIC_KBD_BINDINGS } from '../../constants'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'
@@ -64,6 +65,7 @@ function useStyleChangeCallback() {
 			editor.batch(() => {
 				editor.setProp(item.type, item.id, false, squashing)
 				editor.isChangingStyle = true
+				editor.styleChanging = item.type
 			})
 		},
 		[editor]
@@ -95,6 +97,18 @@ function CommonStylePickerSet({
 
 	const { color, fill, dash, size } = props
 
+	const rColorButtonPicker = useRef<HTMLDivElement>(null)
+	const styleChanging = useValue('styleChanging', () => editor.styleChanging, [editor])
+
+	useEffect(() => {
+		if (styleChanging === 'color' && rColorButtonPicker) {
+			// Auto-focus the active color when `styleChanging` comes in as 'color' (e.g. "S" keyboard binding) and the parent color element is focused
+			const temp: HTMLButtonElement | null =
+				rColorButtonPicker.current?.querySelector(`[data-id="${color}"]`) ?? null
+			temp?.focus()
+		}
+	}, [styleChanging, color])
+
 	if (
 		color === undefined &&
 		fill === undefined &&
@@ -118,13 +132,17 @@ function CommonStylePickerSet({
 
 	return (
 		<>
-			<div className="tlui-style-panel__section__common" aria-label="style panel styles">
+			<div
+				className="tlui-style-panel__section__common"
+				aria-label="style panel styles"
+				ref={rColorButtonPicker}
+			>
 				{color === undefined ? null : (
 					<ButtonPicker
 						title={msg('style-panel.color')}
 						styleType="color"
 						data-testid="style.color"
-						dynamicKbdBinding={true}
+						kbdBindings={DYNAMIC_KBD_BINDINGS}
 						items={styles.color}
 						value={color}
 						onValueChange={handleValueChange}

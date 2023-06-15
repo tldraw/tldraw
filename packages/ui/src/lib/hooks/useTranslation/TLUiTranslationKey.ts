@@ -43,6 +43,7 @@ export type TLUiTranslationKey =
 	| 'action.flip-vertical'
 	| 'action.flip-horizontal.short'
 	| 'action.flip-vertical.short'
+	| 'action.focus-color-picker'
 	| 'action.fork-project'
 	| 'action.group'
 	| 'action.insert-embed'

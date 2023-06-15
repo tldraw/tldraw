@@ -56,6 +56,7 @@ import {
 	TLShapeProp,
 	TLSizeStyle,
 	TLStore,
+	TLStyleType,
 	TLUnknownShape,
 	TLVideoAsset,
 	Vec2dModel,
@@ -654,11 +655,46 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	set isChangingStyle(v) {
 		this._isChangingStyle.set(v)
+		if (v === false) {
+			this.styleChanging = null
+		}
+
 		// Clear any reset timeout
 		clearTimeout(this._isChangingStyleTimeout)
 		if (v) {
 			// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
 			this._isChangingStyleTimeout = setTimeout(() => (this.isChangingStyle = false), 2000)
+		}
+	}
+
+	/** @internal */
+	private _styleChanging = atom<TLStyleType | null>('styleChanging', null)
+
+	/** @internal */
+	private _styleChangingTimeout = -1 as any
+
+	/**
+	 * The specific style the user is currently changing the shape of. This may cause the UI to change.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * editor.isChangingStyle = true
+	 * ```
+	 *
+	 * @public
+	 */
+	get styleChanging() {
+		return this._styleChanging.value
+	}
+
+	set styleChanging(v) {
+		this._styleChanging.set(v)
+		// Clear any reset timeout
+		clearTimeout(this._styleChangingTimeout)
+		if (v) {
+			// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
+			this._styleChangingTimeout = setTimeout(() => (this.styleChanging = null), 2000)
 		}
 	}
 
