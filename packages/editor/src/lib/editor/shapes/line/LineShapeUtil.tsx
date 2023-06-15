@@ -80,12 +80,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			const sortedHandles = Object.values(handles).sort(sortByIndex)
 			const results = sortedHandles.slice()
 
-			// Add "hint" handles between each vertex handle
+			// Add "create" handles between each vertex handle
 			for (let i = 0; i < spline.segments.length; i++) {
 				const segment = spline.segments[i]
-
-				const point = segment.getPoint(0.5)
-
+				const point = segment.midPoint
 				const index = getIndexBetween(sortedHandles[i].index, sortedHandles[i + 1].index)
 
 				results.push({
