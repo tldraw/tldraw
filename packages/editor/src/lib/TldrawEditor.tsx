@@ -174,10 +174,13 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	...rest
 }: Required<TldrawEditorProps & { store: TLStoreWithStatus; user: TLUser }, 'shapes' | 'tools'>) {
 	const container = useContainer()
-	if (user.userPreferences.value.isDarkMode) {
-		container.classList.remove('tl-theme__light')
-		container.classList.add('tl-theme__dark')
-	}
+
+	useLayoutEffect(() => {
+		if (user.userPreferences.value.isDarkMode) {
+			container.classList.remove('tl-theme__light')
+			container.classList.add('tl-theme__dark')
+		}
+	}, [container, user.userPreferences.value.isDarkMode])
 
 	switch (store.status) {
 		case 'error': {
