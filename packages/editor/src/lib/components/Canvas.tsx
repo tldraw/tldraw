@@ -1,6 +1,7 @@
 import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate } from '@tldraw/utils'
+import classNames from 'classnames'
 import * as React from 'react'
 import { react } from 'signia'
 import { track, useValue } from 'signia-react'
@@ -25,10 +26,12 @@ import { ShapeIndicator } from './ShapeIndicator'
 /** @public */
 export const Canvas = track(function Canvas({
 	onDropOverride,
+	className
 }: {
 	onDropOverride?: (
 		defaultOnDrop: (e: React.DragEvent<Element>) => Promise<void>
-	) => (e: React.DragEvent<Element>) => Promise<void>
+	) => (e: React.DragEvent<Element>) => Promise<void>,
+	className?: string
 }) {
 	const editor = useEditor()
 
@@ -98,7 +101,7 @@ export const Canvas = track(function Canvas({
 	}, [])
 
 	return (
-		<div ref={rCanvas} draggable={false} className="tl-canvas" data-testid="canvas" {...events}>
+		<div ref={rCanvas} draggable={false} className={classNames("tl-canvas", className)} data-testid="canvas" {...events}>
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />
