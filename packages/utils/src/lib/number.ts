@@ -7,7 +7,7 @@
  * const A = lerp(0, 1, 0.5)
  * ```
  *
- * @internal
+ * @public
  */
 export function lerp(a: number, b: number, t: number) {
 	return a + (b - a) * t
@@ -19,7 +19,7 @@ export function lerp(a: number, b: number, t: number) {
  *
  * Adapted from [seedrandom](https://github.com/davidbau/seedrandom).
  *
- * @internal
+ * @public
  */
 export function rng(seed = '') {
 	let x = 0
@@ -57,7 +57,7 @@ export function rng(seed = '') {
  * @param rangeA - From [low, high]
  * @param rangeB - To [low, high]
  * @param clamp - Whether to clamp the the result to [low, high]
- * @internal
+ * @public
  */
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp = false): number {
 	const [fromLow, fromHigh] = rangeA

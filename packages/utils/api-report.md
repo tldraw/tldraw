@@ -16,19 +16,19 @@ export const assertExists: <T>(value: T, message?: string | undefined) => NonNul
 // @internal (undocumented)
 export function compact<T>(arr: T[]): NonNullable<T>[];
 
-// @internal
+// @public
 export function debounce<T extends unknown[], U>(callback: (...args: T) => PromiseLike<U> | U, wait: number): {
     (...args: T): Promise<U>;
     cancel(): void;
 };
 
-// @internal
+// @public
 export function dedupe<T>(input: T[], equals?: (a: any, b: any) => boolean): T[];
 
-// @internal
+// @public
 export function deepCopy<T = unknown>(obj: T): T;
 
-// @internal (undocumented)
+// @public (undocumented)
 export type ErrorResult<E> = {
     readonly ok: false;
     readonly error: E;
@@ -47,13 +47,13 @@ export function filterEntries<Key extends string, Value>(object: {
 // @internal (undocumented)
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
-// @internal
+// @public
 export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
 
-// @internal
+// @public
 export function getHashForObject(obj: any): string;
 
-// @internal
+// @public
 export function getHashForString(string: string): string;
 
 // @internal (undocumented)
@@ -70,22 +70,22 @@ export type Identity<T> = {
     [K in keyof T]: T[K];
 };
 
-// @internal
+// @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
 
-// @internal
+// @public
 export function isNonNull<T>(value: T): value is typeof value extends null ? never : T;
 
-// @internal
+// @public
 export function isNonNullish<T>(value: T): value is typeof value extends undefined ? never : typeof value extends null ? never : T;
 
 // @internal (undocumented)
 export function last<T>(arr: readonly T[]): T | undefined;
 
-// @internal
+// @public
 export function lerp(a: number, b: number, t: number): number;
 
-// @internal (undocumented)
+// @public (undocumented)
 export function lns(str: string): string;
 
 // @internal
@@ -98,7 +98,7 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
-// @internal
+// @public
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
 
 // @internal
@@ -124,7 +124,7 @@ export function objectMapValues<Key extends string, Value>(object: {
     [K in Key]: Value;
 }): Array<Value>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export type OkResult<T> = {
     readonly ok: true;
     readonly value: T;
@@ -145,7 +145,7 @@ export function promiseWithResolve<T>(): Promise<T> & {
 // @internal
 export function rafThrottle(fn: () => void): () => void;
 
-// @internal (undocumented)
+// @public (undocumented)
 export type RecursivePartial<T> = {
     [P in keyof T]?: RecursivePartial<T[P]>;
 };
@@ -154,31 +154,31 @@ export type RecursivePartial<T> = {
 type Required_2<T, K extends keyof T> = Identity<Omit<T, K> & _Required<Pick<T, K>>>;
 export { Required_2 as Required }
 
-// @internal (undocumented)
+// @public (undocumented)
 export type Result<T, E> = ErrorResult<E> | OkResult<T>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const Result: {
     ok<T>(value: T): OkResult<T>;
     err<E>(error: E): ErrorResult<E>;
 };
 
-// @internal
+// @public
 export function rng(seed?: string): () => number;
 
-// @internal
+// @public
 export function rotateArray<T>(arr: T[], offset: number): T[];
 
-// @internal (undocumented)
+// @public (undocumented)
 export function sortById<T extends {
     id: any;
 }>(a: T, b: T): -1 | 1;
 
-// @internal (undocumented)
+// @public (undocumented)
 const structuredClone_2: <T>(i: T) => T;
 export { structuredClone_2 as structuredClone }
 
-// @internal
+// @public
 export function throttle<T extends (...args: any) => any>(func: T, limit: number): (...args: Parameters<T>) => ReturnType<T>;
 
 // @internal

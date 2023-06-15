@@ -29,7 +29,7 @@ export function getOwnProperty(obj: object, key: string): unknown {
  * ```
  *
  * @param obj - Target value to be copied.
- * @internal
+ * @public
  * @see Source - project, ts-deeply https://github.com/ykdr2017/ts-deepcopy
  * @see Code - pen https://codepen.io/erikvullings/pen/ejyBYg
  */

@@ -1,13 +1,13 @@
 import { omitFromStackTrace } from './function'
 
-/** @internal */
+/** @public */
 export type OkResult<T> = { readonly ok: true; readonly value: T }
-/** @internal */
+/** @public */
 export type ErrorResult<E> = { readonly ok: false; readonly error: E }
-/** @internal */
+/** @public */
 export type Result<T, E> = OkResult<T> | ErrorResult<E>
 
-/** @internal */
+/** @public */
 export const Result = {
 	ok<T>(value: T): OkResult<T> {
 		return { ok: true, value }

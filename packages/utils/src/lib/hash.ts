@@ -1,7 +1,7 @@
 /**
  * Hash a string using the FNV-1a algorithm.
  *
- * @internal
+ * @public
  */
 export function getHashForString(string: string) {
 	let hash = 0
@@ -15,13 +15,13 @@ export function getHashForString(string: string) {
 /**
  * Hash a string using the FNV-1a algorithm.
  *
- * @internal
+ * @public
  */
 export function getHashForObject(obj: any) {
 	return getHashForString(JSON.stringify(obj))
 }
 
-/** @internal */
+/** @public */
 export function lns(str: string) {
 	const result = str.split('')
 	result.push(...result.splice(0, Math.round(result.length / 5)))

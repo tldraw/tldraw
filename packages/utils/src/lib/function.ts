@@ -7,8 +7,8 @@
  * const A = throttle(myFunction, 1000)
  * ```
  *
- * @internal
- * @see https://github.com/bameyrick/throttle-typescript
+ * @public
+ * @see source - https://github.com/bameyrick/throttle-typescript
  */
 export function throttle<T extends (...args: any) => any>(
 	func: T,
