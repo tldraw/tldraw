@@ -79,7 +79,6 @@ import {
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
-import { COLLABORATOR_TIMEOUT } from '../components/LiveCollaborators'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import { AnyTLShapeInfo } from '../config/defineShape'
@@ -87,6 +86,7 @@ import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
 	COARSE_DRAG_DISTANCE,
+	COLLABORATOR_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_PAN_SNAP,
@@ -96,6 +96,7 @@ import {
 	FOLLOW_CHASE_ZOOM_UNSNAP,
 	GRID_INCREMENT,
 	HAND_TOOL_FRICTION,
+	INTERNAL_POINTER_IDS,
 	MAJOR_NUDGE_FACTOR,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
@@ -3576,23 +3577,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		previousScreenPoint.setTo(currentScreenPoint)
 		previousPagePoint.setTo(currentPagePoint)
 
-		const px = (sx - screenBounds.x) / cz - cx
-		const py = (sy - screenBounds.y) / cz - cy
-
 		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(px, py, sz ?? 0.5)
+		currentPagePoint.set(
+			(sx - screenBounds.x) / cz - cx,
+			(sy - screenBounds.y) / cz - cy,
+			sz ?? 0.5
+		)
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 
 		// Reset velocity on pointer down
 		if (info.name === 'pointer_down') {
-			this.inputs.pointerVelocity = new Vec2d()
+			this.inputs.pointerVelocity.set(0, 0)
 		}
-
-		const isFollowingCamera = info.type === 'pointer' && info.source === 'followingCamera'
-		const lastActivityTimestamp = isFollowingCamera
-			? this.store.query.record('pointer').value?.lastActivityTimestamp ?? Date.now()
-			: Date.now()
 
 		// todo: We only have to do this if there are multiple users in the document
 		this.store.put([
@@ -3601,7 +3598,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				typeName: 'pointer',
 				x: currentPagePoint.x,
 				y: currentPagePoint.y,
-				lastActivityTimestamp,
+				lastActivityTimestamp:
+					// If our pointer moved only because we're following some other user, then don't
+					// update our last activity timestamp; otherwise, update it to the current timestamp.
+					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
+						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
+						: Date.now(),
 			},
 		])
 	}
@@ -8066,13 +8068,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				target: 'canvas',
 				name: 'pointer_move',
 				point: currentScreenPoint,
-				pointerId: 0,
+				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
 				shiftKey: this.inputs.shiftKey,
 				button: 0,
 				isPen: this.isPenMode ?? false,
-				source: this.instanceState.followingUserId ? 'followingCamera' : 'user',
 			})
 
 			this._cameraManager.tick()

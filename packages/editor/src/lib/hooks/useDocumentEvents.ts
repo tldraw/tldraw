@@ -76,7 +76,6 @@ export function useDocumentEvents() {
 								ctrlKey: e.metaKey || e.ctrlKey,
 								pointerId: 0,
 								button: 0,
-								source: 'user',
 								isPen: editor.isPenMode,
 								...(hoveredId
 									? {
@@ -157,7 +156,6 @@ export function useDocumentEvents() {
 						pointerId: 0,
 						button: 0,
 						isPen: editor.isPenMode,
-						source: 'user',
 						...(hoveredId
 							? {
 									target: 'shape',
