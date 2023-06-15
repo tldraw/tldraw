@@ -1902,7 +1902,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     snapPoints(shape: T): Vec2d[];
     toBackgroundSvg?(shape: T, font: string | undefined, colors: TLExportColors): null | Promise<SVGElement> | SVGElement;
     toSvg?(shape: T, font: string | undefined, colors: TLExportColors): Promise<SVGElement> | SVGElement;
-    transform(shape: T): Matrix2d;
     // (undocumented)
     readonly type: T['type'];
     static type: string;
