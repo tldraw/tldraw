@@ -31,9 +31,9 @@ describe(`Cubic bezier`, () => {
 		// })
 
 		it(`has the expected normals`, () => {
-			expect(b.getNormal(0)).toMatchObject({ x: -1, y: -0 })
+			expect(b.getNormal(0)).toMatchObject({ x: -1, y: 0 })
 			expect(b.getNormal(0.5)).toMatchObject({ x: -0, y: 1 })
-			expect(b.getNormal(1)).toMatchObject({ x: 1, y: -0 })
+			expect(b.getNormal(1)).toMatchObject({ x: 1, y: 0 })
 		})
 
 		// it(`has the correct inflection point`, () => {

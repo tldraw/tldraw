@@ -1,4 +1,3 @@
-import { sortByIndex } from '@tldraw/indices'
 import {
 	Box2d,
 	flipSelectionHandleX,
@@ -12,12 +11,12 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLLineShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
-import { compact, dedupe, deepCopy } from '@tldraw/utils'
+import { TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
+import { dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
 import { uniqueId } from '../../utils/data'
 import type { Editor } from '../Editor'
-import { getSplineForLineShape, LineShapeUtil } from '../shapes/line/LineShapeUtil'
+import { GroupShapeUtil } from '../shapes/group/GroupShapeUtil'
 
 export type PointsSnapLine = {
 	id: string
@@ -81,7 +80,9 @@ type NearestSnap =
 type GapNode = {
 	id: TLShapeId
 	pageBounds: Box2d
+	isClosed: boolean
 }
+
 type Gap = {
 	// e.g.
 	//      start
@@ -125,8 +126,11 @@ function findAdjacentGaps(
 	shapeId: TLShapeId,
 	gapLength: number,
 	direction: 'forward' | 'backward',
-	intersection: [number, number]
+	intersection: [number, number],
+	depth: number
 ): Gap[] {
+	if (depth > 20) return []
+
 	// TODO: take advantage of the fact that gaps is sorted by starting position?
 	const matches = gaps.filter(
 		(gap) =>
@@ -159,7 +163,8 @@ function findAdjacentGaps(
 						match.breadthIntersection[1],
 						intersection[0],
 						intersection[1]
-					)!
+					)!,
+					depth + 1
 				)
 			)
 		}
@@ -236,58 +241,61 @@ export class SnapManager {
 		})
 	}
 
-	get snapThreshold() {
+	@computed get snapThreshold() {
 		return 8 / this.editor.zoomLevel
 	}
 
 	// TODO: make this an incremental derivation
-	@computed get visibleShapesNotInSelection() {
-		const selectedIds = this.editor.selectedIds
+	@computed get snappableShapes(): GapNode[] {
+		const { editor } = this
+		const { selectedIds, cullingBounds } = editor
 
-		const result: Set<{ id: TLShapeId; pageBounds: Box2d }> = new Set()
+		const snappableShapes: GapNode[] = []
 
-		const processParent = (parentId: TLParentId) => {
-			const children = this.editor.getSortedChildIds(parentId)
-			for (const id of children) {
-				const shape = this.editor.getShapeById(id)
-				if (!shape) continue
-				if (shape.type === 'arrow') continue
-				if (selectedIds.includes(id)) continue
-				if (!this.editor.isShapeInViewport(shape.id)) continue
-
-				if (shape.type === 'group') {
-					// snap to children of group but not group itself
-					processParent(id)
+		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
+			const sortedChildIds = editor.getSortedChildIds(parentId)
+			for (const childId of sortedChildIds) {
+				// Skip any selected ids
+				if (selectedIds.includes(childId)) continue
+				const childShape = editor.getShapeById(childId)
+				if (!childShape) continue
+				const util = editor.getShapeUtil(childShape)
+				// Skip any shapes that don't allow snapping
+				if (!util.canSnap(childShape)) continue
+				// Only consider shapes if they're inside of the viewport page bounds
+				const pageBounds = editor.getPageBoundsById(childId)
+				if (!(pageBounds && cullingBounds.includes(pageBounds))) continue
+				// Snap to children of groups but not group itself
+				if (editor.isShapeOfType(childShape, GroupShapeUtil)) {
+					collectSnappableShapesFromParent(childId)
 					continue
 				}
-
-				result.add({ id: shape.id, pageBounds: this.editor.getPageBoundsById(shape.id)! })
-
-				// don't snap to children of frame
-				if (shape.type !== 'frame') {
-					processParent(id)
-				}
+				snappableShapes.push({ id: childId, pageBounds, isClosed: util.isClosed(childShape) })
 			}
 		}
 
-		const commonFrameAncestor = this.editor.findCommonAncestor(
-			compact(selectedIds.map((id) => this.editor.getShapeById(id))),
-			(parent) => parent.type === 'frame'
-		)
+		collectSnappableShapesFromParent(this.currentCommonAncestor ?? editor.currentPageId)
 
-		processParent(commonFrameAncestor ?? this.editor.currentPageId)
-
-		return result
+		return snappableShapes
 	}
 
-	@computed get visibleSnapPointsNotInSelection() {
+	// This needs to be external from any expensive work
+	@computed get currentCommonAncestor() {
+		return this.editor.findCommonAncestor(this.editor.selectedShapes)
+	}
+
+	// Points which belong to snappable shapes
+	@computed get snappablePoints() {
+		const { snappableShapes, snapPointsCache } = this
 		const result: SnapPoint[] = []
-		for (const shape of this.visibleShapesNotInSelection) {
-			const snapPoints = this.snapPointsCache.get(shape.id)
+
+		snappableShapes.forEach((shape) => {
+			const snapPoints = snapPointsCache.get(shape.id)
 			if (snapPoints) {
 				result.push(...snapPoints)
 			}
-		}
+		})
+
 		return result
 	}
 
@@ -295,14 +303,17 @@ export class SnapManager {
 		const horizontal: Gap[] = []
 		const vertical: Gap[] = []
 
-		const sortedShapesHorizontal = [...this.visibleShapesNotInSelection].sort((a, b) => {
+		let startNode: GapNode, endNode: GapNode
+
+		const sortedShapesHorizontal = this.snappableShapes.sort((a, b) => {
 			return a.pageBounds.minX - b.pageBounds.minX
 		})
 
+		// Collect horizontal gaps
 		for (let i = 0; i < sortedShapesHorizontal.length; i++) {
-			const startNode = sortedShapesHorizontal[i]
+			startNode = sortedShapesHorizontal[i]
 			for (let j = i + 1; j < sortedShapesHorizontal.length; j++) {
-				const endNode = sortedShapesHorizontal[j]
+				endNode = sortedShapesHorizontal[j]
 
 				if (
 					// is there space between the boxes
@@ -338,14 +349,15 @@ export class SnapManager {
 			}
 		}
 
-		const sortedShapesVertical = sortedShapesHorizontal.slice(0).sort((a, b) => {
+		// Collect vertical gaps
+		const sortedShapesVertical = sortedShapesHorizontal.sort((a, b) => {
 			return a.pageBounds.minY - b.pageBounds.minY
 		})
 
 		for (let i = 0; i < sortedShapesVertical.length; i++) {
-			const startNode = sortedShapesVertical[i]
+			startNode = sortedShapesVertical[i]
 			for (let j = i + 1; j < sortedShapesVertical.length; j++) {
-				const endNode = sortedShapesVertical[j]
+				endNode = sortedShapesVertical[j]
 
 				if (
 					// is there space between the boxes
@@ -395,23 +407,23 @@ export class SnapManager {
 		initialSelectionPageBounds: Box2d
 		dragDelta: Vec2d
 	}): SnapData {
-		const isXLocked = lockedAxis === 'x'
-		const isYLocked = lockedAxis === 'y'
+		const { snappablePoints: visibleSnapPointsNotInSelection, snapThreshold } = this
 
 		const selectionPageBounds = initialSelectionPageBounds.clone().translate(dragDelta)
+
 		const selectionSnapPoints: SnapPoint[] = initialSelectionSnapPoints.map(({ x, y }, i) => ({
 			id: 'selection:' + i,
 			x: x + dragDelta.x,
 			y: y + dragDelta.y,
 		}))
 
-		const otherNodeSnapPoints = this.visibleSnapPointsNotInSelection
+		const otherNodeSnapPoints = visibleSnapPointsNotInSelection
 
 		const nearestSnapsX: NearestSnap[] = []
 		const nearestSnapsY: NearestSnap[] = []
-		const minOffset = new Vec2d(this.snapThreshold, this.snapThreshold)
+		const minOffset = new Vec2d(snapThreshold, snapThreshold)
 
-		this.findPointSnaps({
+		this.collectPointSnaps({
 			minOffset,
 			nearestSnapsX,
 			nearestSnapsY,
@@ -419,12 +431,17 @@ export class SnapManager {
 			selectionSnapPoints,
 		})
 
-		this.findGapSnaps({ selectionPageBounds, nearestSnapsX, nearestSnapsY, minOffset })
+		this.collectGapSnaps({
+			selectionPageBounds,
+			nearestSnapsX,
+			nearestSnapsY,
+			minOffset,
+		})
 
 		// at the same time, calculate how far we need to nudge the shape to 'snap' to the target point(s)
 		const nudge = new Vec2d(
-			isXLocked ? 0 : nearestSnapsX[0]?.nudge ?? 0,
-			isYLocked ? 0 : nearestSnapsY[0]?.nudge ?? 0
+			lockedAxis === 'x' ? 0 : nearestSnapsX[0]?.nudge ?? 0,
+			lockedAxis === 'y' ? 0 : nearestSnapsY[0]?.nudge ?? 0
 		)
 
 		// ok we've figured out how much the box should be nudged, now let's find all the snap points
@@ -440,7 +457,7 @@ export class SnapManager {
 		})
 		selectionPageBounds.translate(nudge)
 
-		this.findPointSnaps({
+		this.collectPointSnaps({
 			minOffset,
 			nearestSnapsX,
 			nearestSnapsY,
@@ -448,172 +465,84 @@ export class SnapManager {
 			selectionSnapPoints,
 		})
 
-		this.findGapSnaps({
+		this.collectGapSnaps({
 			selectionPageBounds,
 			nearestSnapsX,
 			nearestSnapsY,
 			minOffset,
 		})
 
-		const pointSnaps = this.getPointSnapLines({
+		const pointSnapsLines = this.getPointSnapLines({
 			nearestSnapsX,
 			nearestSnapsY,
 		})
 
-		const gapSnaps = this.getGapSnapLines({
+		const gapSnapLines = this.getGapSnapLines({
 			selectionPageBounds,
 			nearestSnapsX,
 			nearestSnapsY,
 		})
 
-		this._snapLines.set([...gapSnaps, ...pointSnaps])
+		this._snapLines.set([...gapSnapLines, ...pointSnapsLines])
 
 		return { nudge }
 	}
 
-	// for a handle of a line:
-	// - find the nearest snap point
-	// - return the nudge vector to snap to that point
-	// note: this happens within page space
-	snapLineHandleTranslate({
-		lineId,
-		handleId,
-		handlePoint,
-	}: {
-		lineId: TLShapeId
-		handleId: string
-		handlePoint: Vec2d
-	}): SnapData {
-		const line = this.editor.getShapeById<TLLineShape>(lineId)
-		if (!line) {
-			return { nudge: new Vec2d(0, 0) }
-		}
-
-		// We want the line to be able to snap to itself!
-		// but we don't want it to snap to the current segment we're drawing
-		// so let's get the splines of all segments except the current one
-		// and then pass them to the snap function as 'additionalOutlines'
-
-		// First, let's find which handle we're dragging
-		const util = this.editor.getShapeUtil(LineShapeUtil)
-		const handles = util.handles(line).sort(sortByIndex)
-		if (handles.length < 3) return { nudge: new Vec2d(0, 0) }
-
-		const handleNumber = handles.findIndex((h) => h.id === handleId)
-		const handle = handles[handleNumber]
-
-		// Now, let's figure out which segment this handle is on
-		// So... there are two types of handles:
-		// - vertex
-		// - create
-
-		// And this is how the handles of a line are arranged:
-		// vertex --- create --- vertex -- create -- vertex
-
-		// And we number them like this:
-		// v --- c --- v --- c --- v
-		// 0 --- 1 --- 2 --- 3 --- 4
-
-		// We want to get the segments made by connecting the vertex handles:
-		// v --- c --- v --- c --- v
-		// 0 --- 1 --- 2 --- 3 --- 4
-		// |-----------|-----------|
-		// | segment 0 | segment 1 |
-		// |-----------|-----------|
-
-		// If we're dragging a vertex handle, we can get its segment number by dividing its handle number by 2
-		// If we're dragging a create handle, we can get its segment number by adding 1 to its handle number, then dividing by 2
-		const segmentNumber = handle.type === 'vertex' ? handleNumber / 2 : (handleNumber + 1) / 2
-
-		// Then, get the splines of all segments except the current one
-		// (and by the way - we want to get the splines in page space, not shape space)
-		const spline = getSplineForLineShape(line)
-		const ignoreCount = 1
-		const pageTransform = this.editor.getPageTransform(line)!
-
-		const pageHeadSegments = spline.segments
-			.slice(0, Math.max(0, segmentNumber - ignoreCount))
-			.map((s) => Matrix2d.applyToPoints(pageTransform, s.lut))
-
-		const pageTailSegments = spline.segments
-			.slice(segmentNumber + ignoreCount)
-			.map((s) => Matrix2d.applyToPoints(pageTransform, s.lut))
-
-		return this.snapHandleTranslate({
-			handlePoint: handlePoint,
-			additionalOutlines: [...pageHeadSegments, ...pageTailSegments],
+	@computed get outlinesInPageSpace() {
+		return this.snappableShapes.map(({ id, isClosed }) => {
+			const outline = deepCopy(this.editor.getOutlineById(id))
+			if (isClosed) outline.push(outline[0])
+			const pageTransform = this.editor.getPageTransformById(id)
+			if (!pageTransform) throw Error('No page transform')
+			return Matrix2d.applyToPoints(pageTransform, outline)
 		})
 	}
 
-	// for a handle:
-	// - find the nearest snap point from all non-selected shapes
-	// - return the nudge vector to snap to that point
-	// note: this happens within page space
-	snapHandleTranslate({
+	getSnappingHandleDelta({
 		handlePoint,
-		additionalOutlines = [],
+		additionalSegments,
 	}: {
 		handlePoint: Vec2d
-		additionalOutlines?: Vec2dModel[][]
-	}): SnapData {
-		// Get the (page-space) outlines of the shapes that are not in the selection
-		const visibleShapesNotInSelection = this.visibleShapesNotInSelection
-		const pageOutlines = []
-		for (const visibleShape of visibleShapesNotInSelection) {
-			const shape = this.editor.getShapeById(visibleShape.id)!
-
-			if (shape.type === 'text' || shape.type === 'icon') {
-				continue
-			}
-
-			const outline = deepCopy(this.editor.getOutlineById(visibleShape.id))
-
-			const isClosed = this.editor.getShapeUtil(shape).isClosed?.(shape)
-
-			if (isClosed) {
-				outline.push(outline[0])
-			}
-
-			pageOutlines.push(
-				Matrix2d.applyToPoints(this.editor.getPageTransformById(shape.id)!, outline)
-			)
-		}
+		additionalSegments: Vec2d[][]
+	}): Vec2d | null {
+		const { outlinesInPageSpace, snapThreshold } = this
 
 		// Find the nearest point that is within the snap threshold
-		let minDistance = this.snapThreshold
+		let minDistance = snapThreshold
 		let nearestPoint: Vec2d | null = null
-		for (const outline of [...pageOutlines, ...additionalOutlines]) {
-			for (let i = 0; i < outline.length - 1; i++) {
-				const C = outline[i]
-				const D = outline[i + 1]
+		let C: Vec2dModel, D: Vec2dModel, nearest: Vec2d, distance: number
 
-				const distance = Vec2d.DistanceToLineSegment(C, D, handlePoint)
+		const allSegments = [...outlinesInPageSpace, ...additionalSegments]
+		for (const outline of allSegments) {
+			for (let i = 0; i < outline.length - 1; i++) {
+				C = outline[i]
+				D = outline[i + 1]
+
+				nearest = Vec2d.NearestPointOnLineSegment(C, D, handlePoint)
+				distance = Vec2d.Dist(handlePoint, nearest)
+
 				if (isNaN(distance)) continue
 				if (distance < minDistance) {
 					minDistance = distance
-					nearestPoint = Vec2d.NearestPointOnLineSegment(C, D, handlePoint)
+					nearestPoint = nearest
 				}
 			}
 		}
 
 		// If we found a point, display snap lines, and return the nudge
 		if (nearestPoint) {
-			const snapLines: SnapLine[] = []
+			this._snapLines.set([
+				{
+					id: uniqueId(),
+					type: 'points',
+					points: [nearestPoint],
+				},
+			])
 
-			snapLines.push({
-				id: uniqueId(),
-				type: 'points',
-				points: [nearestPoint],
-			})
-
-			this._snapLines.set(snapLines)
-
-			return {
-				nudge: Vec2d.Sub(nearestPoint, handlePoint),
-			}
+			return Vec2d.Sub(nearestPoint, handlePoint)
 		}
 
-		return { nudge: new Vec2d(0, 0) }
+		return null
 	}
 
 	snapResize({
@@ -632,6 +561,8 @@ export class SnapManager {
 		isAspectRatioLocked: boolean
 		isResizingFromCenter: boolean
 	}): SnapData {
+		const { snapThreshold } = this
+
 		// first figure out the new bounds of the selection
 		const {
 			box: unsnappedResizedPageBounds,
@@ -664,13 +595,13 @@ export class SnapManager {
 
 		const selectionSnapPoints = getResizeSnapPointsForHandle(handle, unsnappedResizedPageBounds)
 
-		const otherNodeSnapPoints = this.visibleSnapPointsNotInSelection
+		const otherNodeSnapPoints = this.snappablePoints
 
 		const nearestSnapsX: NearestPointsSnap[] = []
 		const nearestSnapsY: NearestPointsSnap[] = []
-		const minOffset = new Vec2d(this.snapThreshold, this.snapThreshold)
+		const minOffset = new Vec2d(snapThreshold, snapThreshold)
 
-		this.findPointSnaps({
+		this.collectPointSnaps({
 			minOffset,
 			nearestSnapsX,
 			nearestSnapsY,
@@ -741,7 +672,7 @@ export class SnapManager {
 		minOffset.x = 0
 		minOffset.y = 0
 
-		this.findPointSnaps({
+		this.collectPointSnaps({
 			minOffset,
 			nearestSnapsX,
 			nearestSnapsY,
@@ -758,7 +689,7 @@ export class SnapManager {
 		return { nudge }
 	}
 
-	private findPointSnaps({
+	private collectPointSnaps({
 		selectionSnapPoints,
 		otherNodeSnapPoints,
 		minOffset,
@@ -811,7 +742,7 @@ export class SnapManager {
 		}
 	}
 
-	private findGapSnaps({
+	private collectGapSnaps({
 		selectionPageBounds,
 		minOffset,
 		nearestSnapsX,
@@ -822,7 +753,9 @@ export class SnapManager {
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
 	}) {
-		for (const gap of this.visibleGaps.horizontal) {
+		const { horizontal, vertical } = this.visibleGaps
+
+		for (const gap of horizontal) {
 			// ignore this gap if the selection doesn't overlap with it in the y axis
 			if (
 				!rangesOverlap(
@@ -956,7 +889,7 @@ export class SnapManager {
 			}
 		}
 
-		for (const gap of this.visibleGaps.vertical) {
+		for (const gap of vertical) {
 			// ignore this gap if the selection doesn't overlap with it in the y axis
 			if (
 				!rangesOverlap(
@@ -1093,18 +1026,17 @@ export class SnapManager {
 		}
 	}
 
-	getPointSnapLines({
+	private getPointSnapLines({
 		nearestSnapsX,
 		nearestSnapsY,
 	}: {
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
-	}) {
+	}): PointsSnapLine[] {
 		// point snaps may align on multiple parallel lines so we need to split the pairs
 		// into groups based on where they are in their their snap axes
 		const snapGroupsX = {} as { [key: string]: SnapPair[] }
 		const snapGroupsY = {} as { [key: string]: SnapPair[] }
-		const result: PointsSnapLine[] = []
 
 		if (nearestSnapsX.length > 0) {
 			for (const snap of nearestSnapsX) {
@@ -1131,8 +1063,9 @@ export class SnapManager {
 		}
 
 		// and finally create all the snap lines for the UI to render
-		for (const [_, snapGroup] of Object.entries(snapGroupsX).concat(Object.entries(snapGroupsY))) {
-			result.push({
+		return Object.values(snapGroupsX)
+			.concat(Object.values(snapGroupsY))
+			.map((snapGroup) => ({
 				id: uniqueId(),
 				type: 'points',
 				points: dedupe(
@@ -1142,13 +1075,10 @@ export class SnapManager {
 						.concat(snapGroup.map((snap) => Vec2d.From(snap.thisPoint))),
 					(a: Vec2d, b: Vec2d) => a.equals(b)
 				),
-			})
-		}
-
-		return result
+			}))
 	}
 
-	getGapSnapLines({
+	private getGapSnapLines({
 		selectionPageBounds,
 		nearestSnapsX,
 		nearestSnapsY,
@@ -1157,6 +1087,8 @@ export class SnapManager {
 		nearestSnapsX: NearestSnap[]
 		nearestSnapsY: NearestSnap[]
 	}): GapsSnapLine[] {
+		const { vertical, horizontal } = this.visibleGaps
+
 		const selectionSides: Record<SelectionEdge, [Vec2d, Vec2d]> = {
 			top: selectionPageBounds.sides[0],
 			right: selectionPageBounds.sides[1],
@@ -1169,223 +1101,214 @@ export class SnapManager {
 
 		if (nearestSnapsX.length > 0) {
 			for (const snap of nearestSnapsX) {
-				if (snap.type === 'gap_center') {
-					// create
-					const newGapsLength = (snap.gap.length - selectionPageBounds.width) / 2
-					const gapBreadthIntersection = rangeIntersection(
-						snap.gap.breadthIntersection[0],
-						snap.gap.breadthIntersection[1],
-						selectionPageBounds.minY,
-						selectionPageBounds.maxY
-					)!
-					result.push({
-						type: 'gaps',
-						direction: 'horizontal',
-						id: uniqueId(),
-						gaps: [
-							...findAdjacentGaps(
-								this.visibleGaps.horizontal,
-								snap.gap.startNode.id,
-								newGapsLength,
-								'backward',
-								gapBreadthIntersection
-							),
-							{
-								startEdge: snap.gap.startEdge,
-								endEdge: selectionSides.left,
-							},
-							{
-								startEdge: selectionSides.right,
-								endEdge: snap.gap.endEdge,
-							},
-							...findAdjacentGaps(
-								this.visibleGaps.horizontal,
-								snap.gap.endNode.id,
-								newGapsLength,
-								'forward',
-								gapBreadthIntersection
-							),
-						],
-					})
-				}
-				if (snap.type === 'gap_duplicate') {
-					// create
-					const gapBreadthIntersection = rangeIntersection(
-						snap.gap.breadthIntersection[0],
-						snap.gap.breadthIntersection[1],
-						selectionPageBounds.minY,
-						selectionPageBounds.maxY
-					)!
-					result.push({
-						type: 'gaps',
-						direction: 'horizontal',
-						id: uniqueId(),
-						gaps:
-							snap.protrusionDirection === 'left'
-								? [
-										{
-											startEdge: selectionSides.right,
-											endEdge: [
-												Vec2d.Add(snap.gap.startEdge[0], {
-													x: -snap.gap.startNode.pageBounds.width,
-													y: 0,
-												}),
-												Vec2d.Add(snap.gap.startEdge[1], {
-													x: -snap.gap.startNode.pageBounds.width,
-													y: 0,
-												}),
-											],
-										},
-										{
-											startEdge: snap.gap.startEdge,
-											endEdge: snap.gap.endEdge,
-										},
-										...findAdjacentGaps(
-											this.visibleGaps.horizontal,
-											snap.gap.endNode.id,
-											snap.gap.length,
-											'forward',
-											gapBreadthIntersection
-										),
-								  ]
-								: [
-										...findAdjacentGaps(
-											this.visibleGaps.horizontal,
-											snap.gap.startNode.id,
-											snap.gap.length,
-											'backward',
-											gapBreadthIntersection
-										),
-										{
-											startEdge: snap.gap.startEdge,
-											endEdge: snap.gap.endEdge,
-										},
-										{
-											startEdge: [
-												Vec2d.Add(snap.gap.endEdge[0], {
-													x: snap.gap.endNode.pageBounds.width,
-													y: 0,
-												}),
-												Vec2d.Add(snap.gap.endEdge[1], {
-													x: snap.gap.endNode.pageBounds.width,
-													y: 0,
-												}),
-											],
-											endEdge: selectionSides.left,
-										},
-								  ],
-					})
+				if (snap.type === 'points') continue
+
+				const {
+					gap: { breadthIntersection, startEdge, startNode, endNode, length, endEdge },
+				} = snap
+
+				switch (snap.type) {
+					case 'gap_center': {
+						// create
+						const newGapsLength = (length - selectionPageBounds.width) / 2
+						const gapBreadthIntersection = rangeIntersection(
+							breadthIntersection[0],
+							breadthIntersection[1],
+							selectionPageBounds.minY,
+							selectionPageBounds.maxY
+						)!
+						result.push({
+							type: 'gaps',
+							direction: 'horizontal',
+							id: uniqueId(),
+							gaps: [
+								...findAdjacentGaps(
+									horizontal,
+									startNode.id,
+									newGapsLength,
+									'backward',
+									gapBreadthIntersection,
+									0
+								),
+								{
+									startEdge,
+									endEdge: selectionSides.left,
+								},
+								{
+									startEdge: selectionSides.right,
+									endEdge,
+								},
+								...findAdjacentGaps(
+									horizontal,
+									endNode.id,
+									newGapsLength,
+									'forward',
+									gapBreadthIntersection,
+									0
+								),
+							],
+						})
+						break
+					}
+					case 'gap_duplicate': {
+						// create
+						const gapBreadthIntersection = rangeIntersection(
+							breadthIntersection[0],
+							breadthIntersection[1],
+							selectionPageBounds.minY,
+							selectionPageBounds.maxY
+						)!
+						result.push({
+							type: 'gaps',
+							direction: 'horizontal',
+							id: uniqueId(),
+							gaps:
+								snap.protrusionDirection === 'left'
+									? [
+											{
+												startEdge: selectionSides.right,
+												endEdge: startEdge.map((v) =>
+													v.clone().addXY(-startNode.pageBounds.width, 0)
+												) as [Vec2d, Vec2d],
+											},
+											{ startEdge, endEdge },
+											...findAdjacentGaps(
+												horizontal,
+												endNode.id,
+												length,
+												'forward',
+												gapBreadthIntersection,
+												0
+											),
+									  ]
+									: [
+											...findAdjacentGaps(
+												horizontal,
+												startNode.id,
+												length,
+												'backward',
+												gapBreadthIntersection,
+												0
+											),
+											{ startEdge, endEdge },
+											{
+												startEdge: endEdge.map((v) =>
+													v.clone().addXY(snap.gap.endNode.pageBounds.width, 0)
+												) as [Vec2d, Vec2d],
+												endEdge: selectionSides.left,
+											},
+									  ],
+						})
+
+						break
+					}
 				}
 			}
 		}
 
 		if (nearestSnapsY.length > 0) {
 			for (const snap of nearestSnapsY) {
-				if (snap.type === 'gap_center') {
-					const newGapsLength = (snap.gap.length - selectionPageBounds.height) / 2
-					const gapBreadthIntersection = rangeIntersection(
-						snap.gap.breadthIntersection[0],
-						snap.gap.breadthIntersection[1],
-						selectionPageBounds.minX,
-						selectionPageBounds.maxX
-					)!
-					result.push({
-						type: 'gaps',
-						direction: 'vertical',
-						id: uniqueId(),
-						gaps: [
-							...findAdjacentGaps(
-								this.visibleGaps.vertical,
-								snap.gap.startNode.id,
-								newGapsLength,
-								'backward',
-								gapBreadthIntersection
-							),
-							{
-								startEdge: snap.gap.startEdge,
-								endEdge: selectionSides.top,
-							},
-							{
-								startEdge: selectionSides.bottom,
-								endEdge: snap.gap.endEdge,
-							},
-							...findAdjacentGaps(
-								this.visibleGaps.vertical,
-								snap.gap.endNode.id,
-								newGapsLength,
-								'forward',
-								gapBreadthIntersection
-							),
-						],
-					})
-				}
+				if (snap.type === 'points') continue
 
-				if (snap.type === 'gap_duplicate') {
-					const gapBreadthIntersection = rangeIntersection(
-						snap.gap.breadthIntersection[0],
-						snap.gap.breadthIntersection[1],
-						selectionPageBounds.minX,
-						selectionPageBounds.maxX
-					)!
-					result.push({
-						type: 'gaps',
-						direction: 'vertical',
-						id: uniqueId(),
-						gaps:
-							snap.protrusionDirection === 'top'
-								? [
-										{
-											startEdge: selectionSides.bottom,
-											endEdge: [
-												Vec2d.Add(snap.gap.startEdge[0], {
-													x: 0,
-													y: -snap.gap.startNode.pageBounds.height,
-												}),
-												Vec2d.Add(snap.gap.startEdge[1], {
-													x: 0,
-													y: -snap.gap.startNode.pageBounds.height,
-												}),
-											],
-										},
-										{
-											startEdge: snap.gap.startEdge,
-											endEdge: snap.gap.endEdge,
-										},
-										...findAdjacentGaps(
-											this.visibleGaps.vertical,
-											snap.gap.endNode.id,
-											snap.gap.length,
-											'forward',
-											gapBreadthIntersection
-										),
-								  ]
-								: [
-										...findAdjacentGaps(
-											this.visibleGaps.vertical,
-											snap.gap.startNode.id,
-											snap.gap.length,
-											'backward',
-											gapBreadthIntersection
-										),
-										{
-											startEdge: snap.gap.startEdge,
-											endEdge: snap.gap.endEdge,
-										},
-										{
-											startEdge: [
-												Vec2d.Add(snap.gap.endEdge[0], {
-													x: 0,
-													y: snap.gap.endNode.pageBounds.height,
-												}),
-												Vec2d.Add(snap.gap.endEdge[1], {
-													x: 0,
-													y: snap.gap.endNode.pageBounds.height,
-												}),
-											],
-											endEdge: selectionSides.top,
-										},
-								  ],
-					})
+				const {
+					gap: { breadthIntersection, startEdge, startNode, endNode, length, endEdge },
+				} = snap
+
+				switch (snap.type) {
+					case 'gap_center': {
+						const newGapsLength = (length - selectionPageBounds.height) / 2
+						const gapBreadthIntersection = rangeIntersection(
+							breadthIntersection[0],
+							breadthIntersection[1],
+							selectionPageBounds.minX,
+							selectionPageBounds.maxX
+						)!
+
+						result.push({
+							type: 'gaps',
+							direction: 'vertical',
+							id: uniqueId(),
+							gaps: [
+								...findAdjacentGaps(
+									vertical,
+									startNode.id,
+									newGapsLength,
+									'backward',
+									gapBreadthIntersection,
+									0
+								),
+								{
+									startEdge,
+									endEdge: selectionSides.top,
+								},
+								{
+									startEdge: selectionSides.bottom,
+									endEdge,
+								},
+								...findAdjacentGaps(
+									vertical,
+									snap.gap.endNode.id,
+									newGapsLength,
+									'forward',
+									gapBreadthIntersection,
+									0
+								),
+							],
+						})
+						break
+					}
+					case 'gap_duplicate':
+						{
+							const gapBreadthIntersection = rangeIntersection(
+								breadthIntersection[0],
+								breadthIntersection[1],
+								selectionPageBounds.minX,
+								selectionPageBounds.maxX
+							)!
+
+							result.push({
+								type: 'gaps',
+								direction: 'vertical',
+								id: uniqueId(),
+								gaps:
+									snap.protrusionDirection === 'top'
+										? [
+												{
+													startEdge: selectionSides.bottom,
+													endEdge: startEdge.map((v) =>
+														v.clone().addXY(0, -startNode.pageBounds.height)
+													) as [Vec2d, Vec2d],
+												},
+												{ startEdge, endEdge },
+												...findAdjacentGaps(
+													vertical,
+													endNode.id,
+													length,
+													'forward',
+													gapBreadthIntersection,
+													0
+												),
+										  ]
+										: [
+												...findAdjacentGaps(
+													vertical,
+													startNode.id,
+													length,
+													'backward',
+													gapBreadthIntersection,
+													0
+												),
+												{ startEdge, endEdge },
+												{
+													startEdge: endEdge.map((v) =>
+														v.clone().addXY(0, endNode.pageBounds.height)
+													) as [Vec2d, Vec2d],
+													endEdge: selectionSides.top,
+												},
+										  ],
+							})
+						}
+						break
 				}
 			}
 		}

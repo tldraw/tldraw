@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Box2d, linesIntersect, VecLike } from '@tldraw/primitives'
+import { Box2d, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
-import { TLHandle, TLShape, TLShapePartial, TLUnknownShape, Vec2dModel } from '@tldraw/tlschema'
+import { TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import { computed, EMPTY_ARRAY } from 'signia'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
@@ -29,6 +29,13 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	static type: string
+
+	/**
+	 * Whether the shape can be snapped to by another shape.
+	 *
+	 * @public
+	 */
+	canSnap: TLShapeUtilFlag<T> = () => true
 
 	/**
 	 * Whether the shape can be scrolled while editing.
@@ -190,6 +197,43 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
+	 * Get an array of outline segments for the shape. For most shapes,
+	 * this will be a single segment that includes the entire outline.
+	 * For shapes with handles, this might be segments of the outline
+	 * between each handle.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * util.getOutlineSegments(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	protected getOutlineSegments(shape: T): Vec2d[][] {
+		return [this.outline(shape)]
+	}
+
+	@computed
+	private get outlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
+		return this.editor.store.createComputedCache('outline-segments:' + this.type, (shape) => {
+			return this.getOutlineSegments!(shape as any)
+		})
+	}
+
+	/**
+	 * Get the cached outline segments (this should not be overridden!)
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	outlineSegments(shape: T): Vec2d[][] {
+		if (!this.getOutlineSegments) return EMPTY_ARRAY
+		return this.outlineSegmentsCache.get(shape.id) ?? EMPTY_ARRAY
+	}
+
+	/**
 	 * Get the (not cached) bounds for the shape.
 	 *
 	 * @param shape - The shape.
@@ -224,10 +268,10 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected abstract getOutline(shape: T): Vec2dModel[]
+	protected abstract getOutline(shape: T): Vec2d[]
 
 	@computed
-	private get outlineCache(): ComputedCache<Vec2dModel[], TLShape> {
+	private get outlineCache(): ComputedCache<Vec2d[], TLShape> {
 		return this.editor.store.createComputedCache('outline:' + this.type, (shape) => {
 			return this.getOutline(shape as any)
 		})
@@ -239,7 +283,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	outline(shape: T): Vec2dModel[] {
+	outline(shape: T): Vec2d[] {
 		return this.outlineCache.get(shape.id) ?? EMPTY_ARRAY
 	}
 
@@ -259,7 +303,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	center(shape: T): Vec2dModel {
+	center(shape: T): Vec2d {
 		return this.getCenter(shape)
 	}
 
@@ -269,7 +313,7 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract getCenter(shape: T): Vec2dModel
+	abstract getCenter(shape: T): Vec2d
 
 	/**
 	 * Get whether the shape can receive children of a given type.
@@ -651,7 +695,7 @@ export type TLResizeMode = 'scale_shape' | 'resize_bounds'
  * @public
  */
 export type TLResizeInfo<T extends TLShape> = {
-	newPoint: Vec2dModel
+	newPoint: Vec2d
 	handle: TLResizeHandle
 	mode: TLResizeMode
 	scaleX: number
