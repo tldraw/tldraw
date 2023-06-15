@@ -14,7 +14,6 @@ export class CameraManager {
 		this.timeoutRemaining -= elapsed
 		if (this.timeoutRemaining <= 0) {
 			this.state.set('idle')
-			this.editor.off('tick', this.decay)
 			this.editor.updateCullingBounds()
 		}
 	}
@@ -26,7 +25,7 @@ export class CameraManager {
 		// If the state is idle, then start the tick
 		if (this.state.__unsafe__getWithoutCapture() === 'idle') {
 			this.state.set('moving')
-			this.editor.on('tick', this.decay)
+			this.editor.once('tick', this.decay)
 		}
 	}
 }
