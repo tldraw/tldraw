@@ -2566,7 +2566,7 @@ export type TLResizeHandle = SelectionCorner | SelectionEdge;
 
 // @public
 export type TLResizeInfo<T extends TLShape> = {
-    newPoint: Vec2dModel;
+    newPoint: Vec2d;
     handle: TLResizeHandle;
     mode: TLResizeMode;
     scaleX: number;

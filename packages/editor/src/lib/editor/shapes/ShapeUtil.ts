@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box2d, linesIntersect, Matrix2d, Vec2d, VecLike } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
-import { TLHandle, TLShape, TLShapePartial, TLUnknownShape, Vec2dModel } from '@tldraw/tlschema'
+import { TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { WeakMapCache } from '../../utils/WeakMapCache'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
 import { TLExportColors } from './shared/TLExportColors'
 
-const points = new WeakMapCache<TLShape, Vec2dModel>()
 const transforms = new WeakMapCache<TLShape, Matrix2d>()
 
 /** @public */
@@ -711,7 +710,7 @@ export type TLResizeMode = 'scale_shape' | 'resize_bounds'
  * @public
  */
 export type TLResizeInfo<T extends TLShape> = {
-	newPoint: Vec2dModel
+	newPoint: Vec2d
 	handle: TLResizeHandle
 	mode: TLResizeMode
 	scaleX: number
