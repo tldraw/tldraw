@@ -4,7 +4,10 @@ import {
 	EmbedDefinition,
 	TLAsset,
 	TLAssetId,
+	TLEmbedShape,
 	TLShapePartial,
+	TLTextShape,
+	TLTextShapeProps,
 	createShapeId,
 } from '@tldraw/tlschema'
 import { compact, getHashForString } from '@tldraw/utils'
@@ -28,8 +31,8 @@ import {
 import { truncateStringWithEllipsis } from '../../utils/dom'
 import { getEmbedInfo } from '../../utils/embeds'
 import { Editor } from '../Editor'
-import { INDENT } from '../shapeutils/TextShapeUtil/TextHelpers'
-import { TextShapeUtil } from '../shapeutils/TextShapeUtil/TextShapeUtil'
+import { INDENT } from '../shapes/text/TextHelpers'
+import { TextShapeUtil } from '../shapes/text/TextShapeUtil'
 
 /** @public */
 export type TLExternalContent =
@@ -150,25 +153,21 @@ export class ExternalContentManager {
 		const position =
 			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
 
-		const { width, height, doesResize } = embed
+		const { width, height } = embed
 
-		editor.createShapes(
-			[
-				{
-					id: createShapeId(),
-					type: 'embed',
-					x: position.x - (width || 450) / 2,
-					y: position.y - (height || 450) / 2,
-					props: {
-						w: width,
-						h: height,
-						doesResize: doesResize,
-						url,
-					},
-				},
-			],
-			true
-		)
+		const shapePartial: TLShapePartial<TLEmbedShape> = {
+			id: createShapeId(),
+			type: 'embed',
+			x: position.x - (width || 450) / 2,
+			y: position.y - (height || 450) / 2,
+			props: {
+				w: width,
+				h: height,
+				url,
+			},
+		}
+
+		editor.createShapes([shapePartial], true)
 	}
 
 	/**
@@ -251,7 +250,7 @@ export class ExternalContentManager {
 		let w: number
 		let h: number
 		let autoSize: boolean
-		let align = 'middle'
+		let align = 'middle' as TLTextShapeProps['align']
 
 		const isMultiLine = textToPaste.split('\n').length > 1
 
@@ -296,7 +295,7 @@ export class ExternalContentManager {
 			p.y = editor.viewportPageBounds.minY + 40 + h / 2
 		}
 
-		editor.createShapes([
+		editor.createShapes<TLTextShape>([
 			{
 				id: createShapeId(),
 				type: 'text',

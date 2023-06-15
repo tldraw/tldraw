@@ -1,6 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
-import { T } from '@tldraw/validate'
-import { createShapeValidator, TLBaseShape } from './TLBaseShape'
+import { ShapeProps, TLBaseShape } from './TLBaseShape'
 
 /** @public */
 export type TLGroupShapeProps = { [key in never]: undefined }
@@ -9,10 +8,7 @@ export type TLGroupShapeProps = { [key in never]: undefined }
 export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>
 
 /** @internal */
-export const groupShapeValidator: T.Validator<TLGroupShape> = createShapeValidator(
-	'group',
-	T.object({})
-)
+export const groupShapeProps: ShapeProps<TLGroupShape> = {}
 
 /** @internal */
 export const groupShapeMigrations = defineMigrations({})

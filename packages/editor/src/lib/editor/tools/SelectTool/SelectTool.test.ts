@@ -406,7 +406,7 @@ describe('When in readonly mode', () => {
 				x: 100,
 				y: 100,
 				opacity: 1,
-				props: { w: 100, h: 100, url: '', doesResize: false },
+				props: { w: 100, h: 100, url: '' },
 			},
 		])
 		editor.setReadOnly(true)

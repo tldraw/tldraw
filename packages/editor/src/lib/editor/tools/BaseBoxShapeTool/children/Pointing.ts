@@ -1,6 +1,6 @@
 import { Vec2d } from '@tldraw/primitives'
 import { createShapeId } from '@tldraw/tlschema'
-import { TLBaseBoxShape } from '../../../shapeutils/BaseBoxShapeUtil'
+import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 import { BaseBoxShapeTool } from '../BaseBoxShapeTool'
@@ -27,20 +27,21 @@ export class Pointing extends StateNode {
 
 			this.editor.mark(this.markId)
 
-			this.editor.createShapes([
-				{
-					id,
-					type: shapeType,
-					x: originPagePoint.x,
-					y: originPagePoint.y,
-					props: {
-						w: 1,
-						h: 1,
+			this.editor.createShapes<TLBaseBoxShape>(
+				[
+					{
+						id,
+						type: shapeType,
+						x: originPagePoint.x,
+						y: originPagePoint.y,
+						props: {
+							w: 1,
+							h: 1,
+						},
 					},
-				},
-			])
-
-			this.editor.setSelectedIds([id])
+				],
+				true
+			)
 			this.editor.setSelectedTool('select.resizing', {
 				...info,
 				target: 'selection',
@@ -83,7 +84,7 @@ export class Pointing extends StateNode {
 
 		this.editor.mark(this.markId)
 
-		this.editor.createShapes([
+		this.editor.createShapes<TLBaseBoxShape>([
 			{
 				id,
 				type: shapeType,
@@ -96,7 +97,7 @@ export class Pointing extends StateNode {
 		const { w, h } = this.editor.getShapeUtil(shape).defaultProps() as TLBaseBoxShape['props']
 		const delta = this.editor.getDeltaInParentSpace(shape, new Vec2d(w / 2, h / 2))
 
-		this.editor.updateShapes([
+		this.editor.updateShapes<TLBaseBoxShape>([
 			{
 				id,
 				type: shapeType,

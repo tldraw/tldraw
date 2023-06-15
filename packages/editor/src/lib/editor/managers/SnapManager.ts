@@ -17,7 +17,7 @@ import { compact, dedupe, deepCopy } from '@tldraw/utils'
 import { atom, computed, EMPTY_ARRAY } from 'signia'
 import { uniqueId } from '../../utils/data'
 import type { Editor } from '../Editor'
-import { getSplineForLineShape, LineShapeUtil } from '../shapeutils/LineShapeUtil/LineShapeUtil'
+import { getSplineForLineShape, LineShapeUtil } from '../shapes/line/LineShapeUtil'
 
 export type PointsSnapLine = {
 	id: string

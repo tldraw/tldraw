@@ -7,7 +7,7 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import { TLPageId, TLShape, TLShapeId } from '@tldraw/tlschema'
-import { ShapeUtil } from '../../../shapeutils/ShapeUtil'
+import { ShapeUtil } from '../../../shapes/ShapeUtil'
 import {
 	TLCancelEvent,
 	TLEventHandlers,

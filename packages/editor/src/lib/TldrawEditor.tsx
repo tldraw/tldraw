@@ -1,11 +1,11 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
-import { RecursivePartial, annotateError } from '@tldraw/utils'
+import { RecursivePartial, Required, annotateError } from '@tldraw/utils'
 import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
-import { TLShapeInfo } from './config/createTLStore'
+import { AnyTLShapeInfo } from './config/defineShape'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -28,38 +28,24 @@ import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 /** @public */
 export type TldrawEditorProps = {
 	children?: any
-	/**
-	 * An array of shape utils to use in the editor.
-	 */
-	shapes?: Record<string, TLShapeInfo>
-	/**
-	 * An array of tools to use in the editor.
-	 */
-	tools?: TLStateNodeConstructor[]
-	/**
-	 * Urls for where to find fonts and other assets.
-	 */
+	/** An array of shape utils to use in the editor. */
+	shapes?: readonly AnyTLShapeInfo[]
+	/** An array of tools to use in the editor. */
+	tools?: readonly TLStateNodeConstructor[]
+	/** Urls for where to find fonts and other assets. */
 	assetUrls?: RecursivePartial<TLEditorAssetUrls>
-	/**
-	 * Whether to automatically focus the editor when it mounts.
-	 */
+	/** Whether to automatically focus the editor when it mounts. */
 	autoFocus?: boolean
-	/**
-	 * Overrides for the tldraw user interface components.
-	 */
+	/** Overrides for the tldraw user interface components. */
 	components?: Partial<TLEditorComponents>
-
 	/**
 	 * Called when the editor has mounted.
-	 *
 	 * @example
-	 *
 	 * ```ts
 	 * function TldrawEditor() {
 	 * 	return <Editor onMount={(editor) => editor.selectAll()} />
 	 * }
 	 * ```
-	 *
 	 * @param editor - The editor instance.
 	 */
 	onMount?: (editor: Editor) => (() => void) | undefined | void
@@ -105,16 +91,28 @@ declare global {
 	}
 }
 
+const EMPTY_SHAPES_ARRAY = [] as const
+const EMPTY_TOOLS_ARRAY = [] as const
+
 /** @public */
-export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps) {
+export const TldrawEditor = memo(function TldrawEditor({
+	store,
+	components,
+	...rest
+}: TldrawEditorProps) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
 
 	const ErrorFallback =
-		props.components?.ErrorFallback === undefined
-			? DefaultErrorFallback
-			: props.components?.ErrorFallback
+		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	const { store, ...rest } = props
+	// apply defaults. if you're using the bare @tldraw/editor package, we
+	// default these to the "tldraw zero" configuration. We have different
+	// defaults applied in @tldraw/tldraw.
+	const withDefaults = {
+		...rest,
+		shapes: rest.shapes ?? EMPTY_SHAPES_ARRAY,
+		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
+	}
 
 	return (
 		<div ref={setContainer} draggable={false} className="tl-container tl-theme__light" tabIndex={0}>
@@ -124,18 +122,18 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 			>
 				{container && (
 					<ContainerProvider container={container}>
-						<EditorComponentsProvider overrides={props.components}>
+						<EditorComponentsProvider overrides={components}>
 							{store ? (
 								store instanceof Store ? (
 									// Store is ready to go, whether externally synced or not
-									<TldrawEditorWithReadyStore {...rest} store={store} />
+									<TldrawEditorWithReadyStore {...withDefaults} store={store} />
 								) : (
 									// Store is a synced store, so handle syncing stages internally
-									<TldrawEditorWithLoadingStore {...rest} store={store} />
+									<TldrawEditorWithLoadingStore {...withDefaults} store={store} />
 								)
 							) : (
 								// We have no store (it's undefined) so create one and possibly sync it
-								<TldrawEditorWithOwnStore {...rest} store={store} />
+								<TldrawEditorWithOwnStore {...withDefaults} store={store} />
 							)}
 						</EditorComponentsProvider>
 					</ContainerProvider>
@@ -145,11 +143,13 @@ export const TldrawEditor = memo(function TldrawEditor(props: TldrawEditorProps)
 	)
 })
 
-function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined }) {
+function TldrawEditorWithOwnStore(
+	props: Required<TldrawEditorProps & { store: undefined }, 'shapes' | 'tools'>
+) {
 	const { defaultName, initialData, shapes, persistenceKey, sessionId } = props
 
 	const syncedStore = useLocalStore({
-		customShapes: shapes,
+		shapes,
 		initialData,
 		persistenceKey,
 		sessionId,
@@ -161,12 +161,8 @@ function TldrawEditorWithOwnStore(props: TldrawEditorProps & { store: undefined 
 
 const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	store,
-	assetUrls,
 	...rest
-}: TldrawEditorProps & { store: TLStoreWithStatus }) {
-	const assets = useDefaultEditorAssetsWithOverrides(assetUrls)
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-
+}: Required<TldrawEditorProps & { store: TLStoreWithStatus }, 'shapes' | 'tools'>) {
 	switch (store.status) {
 		case 'error': {
 			// for error handling, we fall back to the default error boundary.
@@ -188,14 +184,6 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 		}
 	}
 
-	if (preloadingError) {
-		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
-	}
-
-	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
-	}
-
 	return <TldrawEditorWithReadyStore {...rest} store={store.store} />
 })
 
@@ -206,9 +194,13 @@ function TldrawEditorWithReadyStore({
 	tools,
 	shapes,
 	autoFocus,
-}: TldrawEditorProps & {
-	store: TLStore
-}) {
+	assetUrls,
+}: Required<
+	TldrawEditorProps & {
+		store: TLStore
+	},
+	'shapes' | 'tools'
+>) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
@@ -259,6 +251,17 @@ function TldrawEditorWithReadyStore({
 		),
 		() => editor?.crashingError ?? null
 	)
+
+	const assets = useDefaultEditorAssetsWithOverrides(assetUrls)
+	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+
+	if (preloadingError) {
+		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
+	}
+
+	if (!preloadingComplete) {
+		return <LoadingScreen>Loading assets...</LoadingScreen>
+	}
 
 	if (!editor) {
 		return null

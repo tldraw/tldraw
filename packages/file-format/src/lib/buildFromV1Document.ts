@@ -19,7 +19,6 @@ import {
 	TLNoteShape,
 	TLPageId,
 	TLShapeId,
-	TLShapePartial,
 	TLSizeType,
 	TLTextShape,
 	TLVideoShape,
@@ -182,41 +181,41 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 					switch (v1Shape.type) {
 						case TDShapeType.Sticky: {
-							const partial: TLShapePartial<TLNoteShape> = {
-								...inCommon,
-								type: 'note',
-								props: {
-									text: v1Shape.text ?? '',
-									color: getV2Color(v1Shape.style.color),
-									size: getV2Size(v1Shape.style.size),
-									font: getV2Font(v1Shape.style.font),
-									align: getV2Align(v1Shape.style.textAlign),
+							editor.createShapes<TLNoteShape>([
+								{
+									...inCommon,
+									type: 'note',
+									props: {
+										text: v1Shape.text ?? '',
+										color: getV2Color(v1Shape.style.color),
+										size: getV2Size(v1Shape.style.size),
+										font: getV2Font(v1Shape.style.font),
+										align: getV2Align(v1Shape.style.textAlign),
+									},
 								},
-							}
-
-							editor.createShapes([partial])
+							])
 							break
 						}
 						case TDShapeType.Rectangle: {
-							const partial: TLShapePartial<TLGeoShape> = {
-								...inCommon,
-								type: 'geo',
-								props: {
-									geo: 'rectangle',
-									w: coerceDimension(v1Shape.size[0]),
-									h: coerceDimension(v1Shape.size[1]),
-									text: v1Shape.label ?? '',
-									fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
-									labelColor: getV2Color(v1Shape.style.color),
-									color: getV2Color(v1Shape.style.color),
-									size: getV2Size(v1Shape.style.size),
-									font: getV2Font(v1Shape.style.font),
-									dash: getV2Dash(v1Shape.style.dash),
-									align: 'middle',
+							editor.createShapes<TLGeoShape>([
+								{
+									...inCommon,
+									type: 'geo',
+									props: {
+										geo: 'rectangle',
+										w: coerceDimension(v1Shape.size[0]),
+										h: coerceDimension(v1Shape.size[1]),
+										text: v1Shape.label ?? '',
+										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
+										labelColor: getV2Color(v1Shape.style.color),
+										color: getV2Color(v1Shape.style.color),
+										size: getV2Size(v1Shape.style.size),
+										font: getV2Font(v1Shape.style.font),
+										dash: getV2Dash(v1Shape.style.dash),
+										align: 'middle',
+									},
 								},
-							}
-
-							editor.createShapes([partial])
+							])
 
 							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
 
@@ -254,24 +253,24 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							break
 						}
 						case TDShapeType.Triangle: {
-							const partial: TLShapePartial<TLGeoShape> = {
-								...inCommon,
-								type: 'geo',
-								props: {
-									geo: 'triangle',
-									w: coerceDimension(v1Shape.size[0]),
-									h: coerceDimension(v1Shape.size[1]),
-									fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
-									labelColor: getV2Color(v1Shape.style.color),
-									color: getV2Color(v1Shape.style.color),
-									size: getV2Size(v1Shape.style.size),
-									font: getV2Font(v1Shape.style.font),
-									dash: getV2Dash(v1Shape.style.dash),
-									align: 'middle',
+							editor.createShapes<TLGeoShape>([
+								{
+									...inCommon,
+									type: 'geo',
+									props: {
+										geo: 'triangle',
+										w: coerceDimension(v1Shape.size[0]),
+										h: coerceDimension(v1Shape.size[1]),
+										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
+										labelColor: getV2Color(v1Shape.style.color),
+										color: getV2Color(v1Shape.style.color),
+										size: getV2Size(v1Shape.style.size),
+										font: getV2Font(v1Shape.style.font),
+										dash: getV2Dash(v1Shape.style.dash),
+										align: 'middle',
+									},
 								},
-							}
-
-							editor.createShapes([partial])
+							])
 
 							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
 
@@ -309,24 +308,24 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							break
 						}
 						case TDShapeType.Ellipse: {
-							const partial: TLShapePartial<TLGeoShape> = {
-								...inCommon,
-								type: 'geo',
-								props: {
-									geo: 'ellipse',
-									w: coerceDimension(v1Shape.radius[0]) * 2,
-									h: coerceDimension(v1Shape.radius[1]) * 2,
-									fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
-									labelColor: getV2Color(v1Shape.style.color),
-									color: getV2Color(v1Shape.style.color),
-									size: getV2Size(v1Shape.style.size),
-									font: getV2Font(v1Shape.style.font),
-									dash: getV2Dash(v1Shape.style.dash),
-									align: 'middle',
+							editor.createShapes<TLGeoShape>([
+								{
+									...inCommon,
+									type: 'geo',
+									props: {
+										geo: 'ellipse',
+										w: coerceDimension(v1Shape.radius[0]) * 2,
+										h: coerceDimension(v1Shape.radius[1]) * 2,
+										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
+										labelColor: getV2Color(v1Shape.style.color),
+										color: getV2Color(v1Shape.style.color),
+										size: getV2Size(v1Shape.style.size),
+										font: getV2Font(v1Shape.style.font),
+										dash: getV2Dash(v1Shape.style.dash),
+										align: 'middle',
+									},
 								},
-							}
-
-							editor.createShapes([partial])
+							])
 
 							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
 
@@ -370,21 +369,21 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								break
 							}
 
-							const partial: TLShapePartial<TLDrawShape> = {
-								...inCommon,
-								type: 'draw',
-								props: {
-									fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
-									color: getV2Color(v1Shape.style.color),
-									size: getV2Size(v1Shape.style.size),
-									dash: getV2Dash(v1Shape.style.dash),
-									isPen: false,
-									isComplete: v1Shape.isComplete,
-									segments: [{ type: 'free', points: v1Shape.points.map(getV2Point) }],
+							editor.createShapes<TLDrawShape>([
+								{
+									...inCommon,
+									type: 'draw',
+									props: {
+										fill: getV2Fill(v1Shape.style.isFilled, v1Shape.style.color),
+										color: getV2Color(v1Shape.style.color),
+										size: getV2Size(v1Shape.style.size),
+										dash: getV2Dash(v1Shape.style.dash),
+										isPen: false,
+										isComplete: v1Shape.isComplete,
+										segments: [{ type: 'free', points: v1Shape.points.map(getV2Point) }],
+									},
 								},
-							}
-
-							editor.createShapes([partial])
+							])
 							break
 						}
 						case TDShapeType.Arrow: {
@@ -395,51 +394,51 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							const v2Bend = (dist * -v1Bend) / 2
 
 							// Could also be a line... but we'll use it as an arrow anyway
-							const partial: TLShapePartial<TLArrowShape> = {
-								...inCommon,
-								type: 'arrow',
-								props: {
-									text: v1Shape.label ?? '',
-									color: getV2Color(v1Shape.style.color),
-									labelColor: getV2Color(v1Shape.style.color),
-									size: getV2Size(v1Shape.style.size),
-									font: getV2Font(v1Shape.style.font),
-									dash: getV2Dash(v1Shape.style.dash),
-									arrowheadStart: getV2Arrowhead(v1Shape.decorations?.start),
-									arrowheadEnd: getV2Arrowhead(v1Shape.decorations?.end),
-									start: {
-										type: 'point',
-										x: coerceNumber(v1Shape.handles.start.point[0]),
-										y: coerceNumber(v1Shape.handles.start.point[1]),
+							editor.createShapes<TLArrowShape>([
+								{
+									...inCommon,
+									type: 'arrow',
+									props: {
+										text: v1Shape.label ?? '',
+										color: getV2Color(v1Shape.style.color),
+										labelColor: getV2Color(v1Shape.style.color),
+										size: getV2Size(v1Shape.style.size),
+										font: getV2Font(v1Shape.style.font),
+										dash: getV2Dash(v1Shape.style.dash),
+										arrowheadStart: getV2Arrowhead(v1Shape.decorations?.start),
+										arrowheadEnd: getV2Arrowhead(v1Shape.decorations?.end),
+										start: {
+											type: 'point',
+											x: coerceNumber(v1Shape.handles.start.point[0]),
+											y: coerceNumber(v1Shape.handles.start.point[1]),
+										},
+										end: {
+											type: 'point',
+											x: coerceNumber(v1Shape.handles.end.point[0]),
+											y: coerceNumber(v1Shape.handles.end.point[1]),
+										},
+										bend: v2Bend,
 									},
-									end: {
-										type: 'point',
-										x: coerceNumber(v1Shape.handles.end.point[0]),
-										y: coerceNumber(v1Shape.handles.end.point[1]),
-									},
-									bend: v2Bend,
 								},
-							}
-
-							editor.createShapes([partial])
+							])
 
 							break
 						}
 						case TDShapeType.Text: {
-							const partial: TLShapePartial<TLTextShape> = {
-								...inCommon,
-								type: 'text',
-								props: {
-									text: v1Shape.text ?? ' ',
-									color: getV2Color(v1Shape.style.color),
-									size: getV2TextSize(v1Shape.style.size),
-									font: getV2Font(v1Shape.style.font),
-									align: getV2Align(v1Shape.style.textAlign),
-									scale: v1Shape.style.scale ?? 1,
+							editor.createShapes<TLTextShape>([
+								{
+									...inCommon,
+									type: 'text',
+									props: {
+										text: v1Shape.text ?? ' ',
+										color: getV2Color(v1Shape.style.color),
+										size: getV2TextSize(v1Shape.style.size),
+										font: getV2Font(v1Shape.style.font),
+										align: getV2Align(v1Shape.style.textAlign),
+										scale: v1Shape.style.scale ?? 1,
+									},
 								},
-							}
-
-							editor.createShapes([partial])
+							])
 							break
 						}
 						case TDShapeType.Image: {
@@ -450,17 +449,17 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								return
 							}
 
-							const partial: TLShapePartial<TLImageShape> = {
-								...inCommon,
-								type: 'image',
-								props: {
-									w: coerceDimension(v1Shape.size[0]),
-									h: coerceDimension(v1Shape.size[1]),
-									assetId,
+							editor.createShapes<TLImageShape>([
+								{
+									...inCommon,
+									type: 'image',
+									props: {
+										w: coerceDimension(v1Shape.size[0]),
+										h: coerceDimension(v1Shape.size[1]),
+										assetId,
+									},
 								},
-							}
-
-							editor.createShapes([partial])
+							])
 							break
 						}
 						case TDShapeType.Video: {
@@ -471,17 +470,17 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								return
 							}
 
-							const partial: TLShapePartial<TLVideoShape> = {
-								...inCommon,
-								type: 'video',
-								props: {
-									w: coerceDimension(v1Shape.size[0]),
-									h: coerceDimension(v1Shape.size[1]),
-									assetId,
+							editor.createShapes<TLVideoShape>([
+								{
+									...inCommon,
+									type: 'video',
+									props: {
+										w: coerceDimension(v1Shape.size[0]),
+										h: coerceDimension(v1Shape.size[1]),
+										assetId,
+									},
 								},
-							}
-
-							editor.createShapes([partial])
+							])
 							break
 						}
 					}
