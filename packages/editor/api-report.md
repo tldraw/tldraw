@@ -120,6 +120,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
+    canSnap: () => boolean;
+    // (undocumented)
     defaultProps(): TLArrowShape['props'];
     // (undocumented)
     getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
@@ -134,9 +136,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getLabelBounds(shape: TLArrowShape): Box2d | null;
     // (undocumented)
-    getOutline(shape: TLArrowShape): Vec2dModel[];
+    getOutline(shape: TLArrowShape): Vec2d[];
     // (undocumented)
-    getOutlineWithoutLabel(shape: TLArrowShape): VecLike[];
+    getOutlineWithoutLabel(shape: TLArrowShape): Vec2d[];
     // (undocumented)
     hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
     // (undocumented)
@@ -480,8 +482,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
     getMaskedPageBoundsById(id: TLShapeId): Box2d | undefined;
     getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape;
-    getOutline(shape: TLShape): Vec2dModel[];
-    getOutlineById(id: TLShapeId): Vec2dModel[];
+    getOutline(shape: TLShape): Vec2d[];
+    getOutlineById(id: TLShapeId): Vec2d[];
     getPageBounds(shape: TLShape): Box2d | undefined;
     getPageBoundsById(id: TLShapeId): Box2d | undefined;
     getPageById(id: TLPageId): TLPage | undefined;
@@ -571,7 +573,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly isSafari: boolean;
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
-    isShapeInViewport(id: TLShapeId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, util: {
         new (...args: any): ShapeUtil<T>;
         type: string;
@@ -968,6 +969,9 @@ export function getFileMetaData(file: File): Promise<{
     isAnimated: boolean;
 }>;
 
+// @public (undocumented)
+export function getFreshUserPreferences(): TLUserPreferences;
+
 export { getHashForString }
 
 // @public
@@ -1065,9 +1069,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getBounds(shape: TLGroupShape): Box2d;
     // (undocumented)
-    getCenter(shape: TLGroupShape): Vec2dModel;
+    getCenter(shape: TLGroupShape): Vec2d;
     // (undocumented)
-    getOutline(shape: TLGroupShape): Vec2dModel[];
+    getOutline(shape: TLGroupShape): Vec2d[];
     // (undocumented)
     hideSelectionBoundsBg: () => boolean;
     // (undocumented)
@@ -1223,6 +1227,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
     getOutline(shape: TLLineShape): Vec2d[];
+    // (undocumented)
+    getOutlineSegments(shape: TLLineShape): Vec2d[][];
     // (undocumented)
     hideResizeHandles: () => boolean;
     // (undocumented)
@@ -1843,18 +1849,20 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     canReceiveNewChildrenOfType(shape: T, type: TLShape['type']): boolean;
     canResize: TLShapeUtilFlag<T>;
     canScroll: TLShapeUtilFlag<T>;
+    canSnap: TLShapeUtilFlag<T>;
     canUnmount: TLShapeUtilFlag<T>;
-    center(shape: T): Vec2dModel;
+    center(shape: T): Vec2d;
     abstract defaultProps(): T['props'];
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: T): number;
     protected abstract getBounds(shape: T): Box2d;
-    abstract getCenter(shape: T): Vec2dModel;
+    abstract getCenter(shape: T): Vec2d;
     getEditingBounds: (shape: T) => Box2d;
     protected getHandles?(shape: T): TLHandle[];
-    protected abstract getOutline(shape: T): Vec2dModel[];
+    protected abstract getOutline(shape: T): Vec2d[];
+    protected getOutlineSegments(shape: T): Vec2d[][];
     handles(shape: T): TLHandle[];
     hideResizeHandles: TLShapeUtilFlag<T>;
     hideRotateHandle: TLShapeUtilFlag<T>;
@@ -1890,8 +1898,8 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     onTranslate?: TLOnTranslateHandler<T>;
     onTranslateEnd?: TLOnTranslateEndHandler<T>;
     onTranslateStart?: TLOnTranslateStartHandler<T>;
-    outline(shape: T): Vec2dModel[];
-    point(shape: T): Vec2dModel;
+    outline(shape: T): Vec2d[];
+    outlineSegments(shape: T): Vec2d[][];
     // @internal
     providesBackgroundForChildren(shape: T): boolean;
     abstract render(shape: T): any;
@@ -1900,7 +1908,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
     snapPoints(shape: T): Vec2d[];
     toBackgroundSvg?(shape: T, font: string | undefined, colors: TLExportColors): null | Promise<SVGElement> | SVGElement;
     toSvg?(shape: T, font: string | undefined, colors: TLExportColors): Promise<SVGElement> | SVGElement;
-    transform(shape: T): Matrix2d;
     // (undocumented)
     readonly type: T['type'];
     static type: string;
@@ -2558,7 +2565,7 @@ export type TLResizeHandle = SelectionCorner | SelectionEdge;
 
 // @public
 export type TLResizeInfo<T extends TLShape> = {
-    newPoint: Vec2dModel;
+    newPoint: Vec2d;
     handle: TLResizeHandle;
     mode: TLResizeMode;
     scaleX: number;

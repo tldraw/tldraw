@@ -47,6 +47,9 @@ export class LineSegment2d extends BaseSegment2d<LineSegment2dModel> {
 	getPoint(t: number) {
 		const { a, b } = this.values
 
+		if (t <= 0) return Vec2d.From(a)
+		if (t >= 1) return Vec2d.From(b)
+
 		return Vec2d.Lrp(a, b, t)
 	}
 

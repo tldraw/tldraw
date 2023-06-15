@@ -74,7 +74,7 @@ export function createAssetValidator<Type extends string, Props extends object>(
     props: Props;
 }>;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const createPresenceStateDerivation: ($user: Signal<{
     id: string;
     color: string;
