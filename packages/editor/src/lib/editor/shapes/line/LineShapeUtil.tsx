@@ -105,7 +105,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	getOutlineSegments(shape: TLLineShape) {
-		return getSplineForLineShape(shape).segments.map((s) => s.lut)
+		const spline = getSplineForLineShape(shape)
+		return shape.props.spline === 'cubic'
+			? spline.segments.map((s) => s.lut)
+			: spline.segments.map((s) => [s.getPoint(0), s.getPoint(1)])
 	}
 
 	//   Events
