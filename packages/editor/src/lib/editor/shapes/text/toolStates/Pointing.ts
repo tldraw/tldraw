@@ -21,7 +21,7 @@ export class Pointing extends StateNode {
 
 			this.editor.mark('creating')
 
-			this.editor.createShapes([
+			this.editor.createShapes<TLTextShape>([
 				{
 					id,
 					type: 'text',

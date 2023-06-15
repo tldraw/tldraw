@@ -92,7 +92,8 @@ function getRandomColor() {
 	return USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]
 }
 
-function getFreshUserPreferences(): TLUserPreferences {
+/** @public */
+export function getFreshUserPreferences(): TLUserPreferences {
 	return {
 		id: uniqueId(),
 		locale: typeof window !== 'undefined' ? getDefaultTranslationLocale() : 'en',

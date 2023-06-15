@@ -35,6 +35,7 @@ export {
 } from './lib/config/TLSessionStateSnapshot'
 export {
 	USER_COLORS,
+	getFreshUserPreferences,
 	getUserPreferences,
 	setUserPreferences,
 	type TLUserPreferences,

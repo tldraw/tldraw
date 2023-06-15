@@ -28,38 +28,24 @@ import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 /** @public */
 export type TldrawEditorProps = {
 	children?: any
-	/**
-	 * An array of shape utils to use in the editor.
-	 */
+	/** An array of shape utils to use in the editor. */
 	shapes?: readonly AnyTLShapeInfo[]
-	/**
-	 * An array of tools to use in the editor.
-	 */
+	/** An array of tools to use in the editor. */
 	tools?: readonly TLStateNodeConstructor[]
-	/**
-	 * Urls for where to find fonts and other assets.
-	 */
+	/** Urls for where to find fonts and other assets. */
 	assetUrls?: RecursivePartial<TLEditorAssetUrls>
-	/**
-	 * Whether to automatically focus the editor when it mounts.
-	 */
+	/** Whether to automatically focus the editor when it mounts. */
 	autoFocus?: boolean
-	/**
-	 * Overrides for the tldraw user interface components.
-	 */
+	/** Overrides for the tldraw user interface components. */
 	components?: Partial<TLEditorComponents>
-
 	/**
 	 * Called when the editor has mounted.
-	 *
 	 * @example
-	 *
 	 * ```ts
 	 * function TldrawEditor() {
 	 * 	return <Editor onMount={(editor) => editor.selectAll()} />
 	 * }
 	 * ```
-	 *
 	 * @param editor - The editor instance.
 	 */
 	onMount?: (editor: Editor) => (() => void) | undefined | void

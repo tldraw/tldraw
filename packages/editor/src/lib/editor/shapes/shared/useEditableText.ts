@@ -1,5 +1,5 @@
 /* eslint-disable no-inner-declarations */
-import { TLShape } from '@tldraw/tlschema'
+import { TLShape, TLUnknownShape } from '@tldraw/tlschema'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { useValue } from 'signia-react'
 import { useEditor } from '../../../hooks/useEditor'
@@ -145,7 +145,9 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 			}
 			// ----------------------------
 
-			editor.updateShapes([{ id, type, props: { text } }])
+			editor.updateShapes<TLUnknownShape & { props: { text: string } }>([
+				{ id, type, props: { text } },
+			])
 		},
 		[editor, id, type]
 	)
