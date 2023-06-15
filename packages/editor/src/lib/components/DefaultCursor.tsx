@@ -10,23 +10,37 @@ export type TLCursorComponent = (props: {
 	zoom: number
 	color?: string
 	name: string | null
+	chatMessage: string
 }) => any | null
 
-const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name }) => {
-	const rDiv = useRef<HTMLDivElement>(null)
-	useTransform(rDiv, point?.x, point?.y, 1 / zoom)
+const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatMessage }) => {
+	const rCursor = useRef<HTMLDivElement>(null)
+	useTransform(rCursor, point?.x, point?.y, 1 / zoom)
 
 	if (!point) return null
 
 	return (
-		<div ref={rDiv} className={classNames('tl-overlays__item', className)}>
+		<div ref={rCursor} className={classNames('tl-overlays__item', className)}>
 			<svg className="tl-cursor">
 				<use href="#cursor" color={color} />
 			</svg>
-			{name !== null && name !== '' && (
-				<div className="tl-nametag" style={{ backgroundColor: color }}>
-					{name}
-				</div>
+			{chatMessage ? (
+				<>
+					{name && (
+						<div className="tl-nametag-title" style={{ color }}>
+							{name}
+						</div>
+					)}
+					<div className="tl-nametag-chat" style={{ backgroundColor: color }}>
+						{chatMessage}
+					</div>
+				</>
+			) : (
+				name && (
+					<div className="tl-nametag" style={{ backgroundColor: color }}>
+						{name}
+					</div>
+				)
 			)}
 		</div>
 	)

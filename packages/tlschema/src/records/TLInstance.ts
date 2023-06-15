@@ -44,6 +44,10 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	exportBackground: boolean
 	screenBounds: Box2dModel
 	zoomBrush: Box2dModel | null
+
+	chatMessage: string
+	isChatting: boolean
+
 	isPenMode: boolean
 	isGridMode: boolean
 }
@@ -87,6 +91,8 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		exportBackground: T.boolean,
 		screenBounds: T.boxModel,
 		zoomBrush: T.boxModel.nullable(),
+		chatMessage: T.string,
+		isChatting: T.boolean,
 		isPenMode: T.boolean,
 		isGridMode: T.boolean,
 	})
@@ -106,13 +112,14 @@ const Versions = {
 	RemoveUserId: 11,
 	AddIsPenModeAndIsGridMode: 12,
 	HoistOpacity: 13,
+	AddChat: 14,
 } as const
 
 export { Versions as instanceTypeVersions }
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: Versions.HoistOpacity,
+	currentVersion: Versions.AddChat,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -281,6 +288,14 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
+		[Versions.AddChat]: {
+			up: (instance: TLInstance) => {
+				return { ...instance, chatMessage: '', isChatting: false }
+			},
+			down: ({ chatMessage: _, isChatting: __, ...instance }: TLInstance) => {
+				return instance
+			},
+		},
 	},
 })
 
@@ -321,6 +336,8 @@ export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 		isToolLocked: false,
 		screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
 		zoomBrush: null,
+		chatMessage: '',
+		isChatting: false,
 		isGridMode: false,
 		isPenMode: false,
 	})

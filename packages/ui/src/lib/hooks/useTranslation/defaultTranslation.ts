@@ -50,6 +50,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.leave-shared-project': 'Leave shared project',
 	'action.new-project': 'New project',
 	'action.new-shared-project': 'New shared project',
+	'action.open-cursor-chat': 'Cursor chat',
 	'action.open-file': 'Open file',
 	'action.pack': 'Pack',
 	'action.paste': 'Paste',
@@ -285,6 +286,7 @@ export const DEFAULT_TRANSLATION = {
 	'shortcuts-dialog.tools': 'Tools',
 	'shortcuts-dialog.transform': 'Transform',
 	'shortcuts-dialog.view': 'View',
+	'shortcuts-dialog.collaboration': 'Collaboration',
 	'home-project-dialog.title': 'Home project',
 	'home-project-dialog.description': "This is your local home project. It's just for you!",
 	'rename-project-dialog.title': 'Rename project',
@@ -354,4 +356,5 @@ export const DEFAULT_TRANSLATION = {
 	'vscode.file-open.backup-saved': 'Backup saved',
 	'vscode.file-open.backup-failed': 'Backup failed: this is not a .tldr file.',
 	'vscode.file-open.dont-show-again': "Don't ask again",
+	'cursor-chat.type-to-chat': 'Type to chat...',
 }

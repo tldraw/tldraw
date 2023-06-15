@@ -27,6 +27,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 		type: TLCursor['type']
 		rotation: number
 	}
+	chatMessage: string
 }
 
 /** @public */
@@ -59,18 +60,20 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		currentPageId: idValidator<TLPageId>('page'),
 		brush: T.boxModel.nullable(),
 		scribble: scribbleValidator.nullable(),
+		chatMessage: T.string,
 	})
 )
 
 const Versions = {
 	AddScribbleDelay: 1,
 	RemoveInstanceId: 2,
+	AddChatMessage: 3,
 } as const
 
 export { Versions as instancePresenceVersions }
 
 export const instancePresenceMigrations = defineMigrations({
-	currentVersion: Versions.RemoveInstanceId,
+	currentVersion: Versions.AddChatMessage,
 	migrators: {
 		[Versions.AddScribbleDelay]: {
 			up: (instance) => {
@@ -93,6 +96,14 @@ export const instancePresenceMigrations = defineMigrations({
 			},
 			down: (instance) => {
 				return { ...instance, instanceId: TLINSTANCE_ID }
+			},
+		},
+		[Versions.AddChatMessage]: {
+			up: (instance) => {
+				return { ...instance, chatMessage: '' }
+			},
+			down: ({ chatMessage: _, ...instance }) => {
+				return instance
 			},
 		},
 	},
@@ -130,4 +141,5 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	selectedIds: [],
 	brush: null,
 	scribble: null,
+	chatMessage: '',
 }))
