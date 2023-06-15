@@ -1998,8 +1998,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getTransform(shape: TLShape) {
-		const util = this.getShapeUtil(shape)
-		return util.transform(shape)
+		return Matrix2d.Compose(Matrix2d.Translate(shape.x, shape.y), Matrix2d.Rotate(shape.rotation))
 	}
 
 	/**
