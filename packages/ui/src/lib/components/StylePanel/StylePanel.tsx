@@ -129,10 +129,6 @@ function CommonStylePickerSet({
 	const dash = styles.get(DefaultDashStyle)
 	const size = styles.get(DefaultSizeStyle)
 
-	if (color === undefined && fill === undefined && dash === undefined && size === undefined) {
-		return null
-	}
-
 	const showPickers = fill !== undefined || dash !== undefined || size !== undefined
 
 	const opacityIndex =
