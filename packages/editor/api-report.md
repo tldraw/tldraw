@@ -375,6 +375,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         ease?: (t: number) => number;
     }): this;
     animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
+    animateToUser(userId: string): void;
     get animationSpeed(): number;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {

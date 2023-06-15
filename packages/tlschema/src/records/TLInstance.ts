@@ -33,6 +33,7 @@ export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
 	followingUserId: string | null
+	highlightedUserIds: string[]
 	brush: Box2dModel | null
 	opacityForNextShape: TLOpacityType
 	propsForNextShape: TLInstancePropsForNextShape
@@ -66,6 +67,7 @@ export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
 		id: idValidator<TLInstanceId>('instance'),
 		currentPageId: pageIdValidator,
 		followingUserId: T.string.nullable(),
+		highlightedUserIds: T.arrayOf(T.string),
 		brush: T.boxModel.nullable(),
 		opacityForNextShape: opacityValidator,
 		propsForNextShape: T.object({
@@ -113,13 +115,14 @@ const Versions = {
 	AddIsPenModeAndIsGridMode: 12,
 	HoistOpacity: 13,
 	AddChat: 14,
+	AddHighlightedUserIds: 15,
 } as const
 
 export { Versions as instanceTypeVersions }
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: Versions.AddChat,
+	currentVersion: Versions.AddHighlightedUserIds,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -296,6 +299,14 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
+		[Versions.AddHighlightedUserIds]: {
+			up: (instance: TLInstance) => {
+				return { ...instance, highlightedUserIds: [] }
+			},
+			down: ({ highlightedUserIds: _, ...instance }: TLInstance) => {
+				return instance
+			},
+		},
 	},
 })
 
@@ -307,6 +318,7 @@ export const InstanceRecordType = createRecordType<TLInstance>('instance', {
 }).withDefaultProperties(
 	(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
 		followingUserId: null,
+		highlightedUserIds: [],
 		opacityForNextShape: 1,
 		propsForNextShape: {
 			color: 'black',

@@ -1110,6 +1110,18 @@ describe('hoist opacity', () => {
 	})
 })
 
+describe('Adds highlightedUserIds to instance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceTypeVersions.AddHighlightedUserIds]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ highlightedUserIds: [] })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ highlightedUserIds: [] })).toEqual({})
+	})
+})
+
 describe('Adds chat message to presence', () => {
 	const { up, down } = instancePresenceMigrations.migrators[3]
 
