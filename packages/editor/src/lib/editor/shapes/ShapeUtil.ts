@@ -3,12 +3,9 @@ import { Box2d, linesIntersect, VecLike } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
 import { TLHandle, TLShape, TLShapePartial, TLUnknownShape, Vec2dModel } from '@tldraw/tlschema'
 import { computed, EMPTY_ARRAY } from 'signia'
-import { WeakMapCache } from '../../utils/WeakMapCache'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
 import { TLExportColors } from './shared/TLExportColors'
-
-const points = new WeakMapCache<TLShape, Vec2dModel>()
 
 /** @public */
 export interface TLShapeUtilConstructor<
@@ -219,16 +216,6 @@ export abstract class ShapeUtil<T extends TLUnknownShape = TLUnknownShape> {
 			return new Box2d(result.x, result.y, Math.max(result.width, 1), Math.max(result.height, 1))
 		}
 		return result
-	}
-
-	/**
-	 * Get the cached point. Do not override this method!
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	point(shape: T): Vec2dModel {
-		return points.get<T>(shape, (shape) => ({ x: shape.x, y: shape.y }))
 	}
 
 	/**

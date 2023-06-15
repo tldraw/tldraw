@@ -1,10 +1,18 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { RecursivePartial, Required, annotateError } from '@tldraw/utils'
-import React, { memo, useCallback, useLayoutEffect, useState, useSyncExternalStore } from 'react'
+import React, {
+	memo,
+	useCallback,
+	useLayoutEffect,
+	useMemo,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
+import { TLUser, createTLUser } from './config/createTLUser'
 import { AnyTLShapeInfo } from './config/defineShape'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
@@ -101,6 +109,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	...rest
 }: TldrawEditorProps) {
 	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
+	const user = useMemo(() => createTLUser(), [])
 
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
@@ -126,14 +135,14 @@ export const TldrawEditor = memo(function TldrawEditor({
 							{store ? (
 								store instanceof Store ? (
 									// Store is ready to go, whether externally synced or not
-									<TldrawEditorWithReadyStore {...withDefaults} store={store} />
+									<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
 								) : (
 									// Store is a synced store, so handle syncing stages internally
-									<TldrawEditorWithLoadingStore {...withDefaults} store={store} />
+									<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
 								)
 							) : (
 								// We have no store (it's undefined) so create one and possibly sync it
-								<TldrawEditorWithOwnStore {...withDefaults} store={store} />
+								<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
 							)}
 						</EditorComponentsProvider>
 					</ContainerProvider>
@@ -144,9 +153,9 @@ export const TldrawEditor = memo(function TldrawEditor({
 })
 
 function TldrawEditorWithOwnStore(
-	props: Required<TldrawEditorProps & { store: undefined }, 'shapes' | 'tools'>
+	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapes' | 'tools'>
 ) {
-	const { defaultName, initialData, shapes, persistenceKey, sessionId } = props
+	const { defaultName, initialData, shapes, persistenceKey, sessionId, user } = props
 
 	const syncedStore = useLocalStore({
 		shapes,
@@ -156,13 +165,23 @@ function TldrawEditorWithOwnStore(
 		defaultName,
 	})
 
-	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} />
+	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
 }
 
 const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	store,
+	user,
 	...rest
-}: Required<TldrawEditorProps & { store: TLStoreWithStatus }, 'shapes' | 'tools'>) {
+}: Required<TldrawEditorProps & { store: TLStoreWithStatus; user: TLUser }, 'shapes' | 'tools'>) {
+	const container = useContainer()
+
+	useLayoutEffect(() => {
+		if (user.userPreferences.value.isDarkMode) {
+			container.classList.remove('tl-theme__light')
+			container.classList.add('tl-theme__dark')
+		}
+	}, [container, user.userPreferences.value.isDarkMode])
+
 	switch (store.status) {
 		case 'error': {
 			// for error handling, we fall back to the default error boundary.
@@ -184,7 +203,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 		}
 	}
 
-	return <TldrawEditorWithReadyStore {...rest} store={store.store} />
+	return <TldrawEditorWithReadyStore {...rest} store={store.store} user={user} />
 })
 
 function TldrawEditorWithReadyStore({
@@ -194,10 +213,12 @@ function TldrawEditorWithReadyStore({
 	tools,
 	shapes,
 	autoFocus,
+	user,
 	assetUrls,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
+		user: TLUser
 	},
 	'shapes' | 'tools'
 >) {
@@ -211,6 +232,7 @@ function TldrawEditorWithReadyStore({
 			shapes,
 			tools,
 			getContainer: () => container,
+			user,
 		})
 		;(window as any).app = editor
 		;(window as any).editor = editor
@@ -219,7 +241,7 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapes, tools, store])
+	}, [container, shapes, tools, store, user])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()
