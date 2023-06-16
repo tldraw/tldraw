@@ -79,7 +79,7 @@ export const createPresenceStateDerivation: ($user: Signal<{
     id: string;
     color: string;
     name: string;
-}>) => (store: TLStore) => Signal<null | TLInstancePresence>;
+}, unknown>, id?: string) => (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
 export function createShapeId(id?: string): TLShapeId;

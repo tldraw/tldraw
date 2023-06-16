@@ -8,7 +8,7 @@ import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPres
 
 /** @internal */
 export const createPresenceStateDerivation =
-	($user: Signal<{ id: string; color: string; name: string }>) =>
+	($user: Signal<{ id: string; color: string; name: string }>, id?: string) =>
 	(store: TLStore): Signal<TLInstancePresence | null> => {
 		return computed('instancePresence', () => {
 			const instance = store.get(TLINSTANCE_ID)
@@ -21,7 +21,7 @@ export const createPresenceStateDerivation =
 			}
 
 			return InstancePresenceRecordType.create({
-				id: InstancePresenceRecordType.createId(store.id),
+				id: InstancePresenceRecordType.createId(id ?? store.id),
 				selectedIds: pageState.selectedIds,
 				brush: instance.brush,
 				scribble: instance.scribble,
