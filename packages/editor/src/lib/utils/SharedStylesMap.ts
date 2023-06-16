@@ -20,7 +20,7 @@ function sharedStyleEquals<T>(a: SharedStyle<T>, b: SharedStyle<T> | undefined) 
 
 /** @public */
 export class ReadonlySharedStyleMap {
-	protected map: Map<StyleProp<unknown>, SharedStyle<unknown>>
+	protected map: Map<StyleProp<any, any, any>, SharedStyle<unknown>>
 	constructor(entries?: Iterable<[StyleProp<unknown>, SharedStyle<unknown>]>) {
 		this.map = new Map(entries)
 	}

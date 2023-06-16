@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Matches a snapshot: Basic SVG 1`] = `
+exports[`basic getSvg tests Matches a snapshot: Basic SVG 1`] = `
 <wrapper>
   <svg
     direction="ltr"
