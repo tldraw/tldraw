@@ -1,7 +1,5 @@
 /* ---------------------- Lists --------------------- */
 
-import React from 'react'
-
 export const UnorderedList = (props: any) => {
 	return <ul {...props} />
 }
@@ -16,10 +14,10 @@ export const ListItem = (props: any) => {
 
 /* ------------------- Typography ------------------- */
 
-type Heading = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
-function heading(heading: Heading, props: any) {
-	const Element = ({ ...props }) => React.createElement(heading, props)
+const Heading = ({ level, ...props }: { level: HeadingTag; [key: string]: any }) => {
+	const Element = level
 	if (props.id) {
 		return (
 			<Element {...props}>
@@ -32,27 +30,27 @@ function heading(heading: Heading, props: any) {
 }
 
 export const Heading1 = (props: any) => {
-	return heading('h1', props)
+	return <Heading level="h1" {...props} />
 }
 
 export const Heading2 = (props: any) => {
-	return heading('h2', props)
+	return <Heading level="h2" {...props} />
 }
 
 export const Heading3 = (props: any) => {
-	return heading('h3', props)
+	return <Heading level="h3" {...props} />
 }
 
 export const Heading4 = (props: any) => {
-	return heading('h4', props)
+	return <Heading level="h4" {...props} />
 }
 
 export const Heading5 = (props: any) => {
-	return heading('h5', props)
+	return <Heading level="h5" {...props} />
 }
 
 export const Heading6 = (props: any) => {
-	return heading('h6', props)
+	return <Heading level="h6" {...props} />
 }
 
 export const Paragraph = (props: any) => {
