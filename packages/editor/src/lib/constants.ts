@@ -110,3 +110,6 @@ export const INTERNAL_POINTER_IDS = {
 
 /** @internal */
 export const CAMERA_MOVING_TIMEOUT = 64
+
+/** @internal */
+export const CAMERA_MAX_RENDERING_INTERVAL = 620
