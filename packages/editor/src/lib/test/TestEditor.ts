@@ -125,7 +125,7 @@ export class TestEditor extends Editor {
 		this.bounds.bottom = bounds.y + bounds.h
 
 		this.updateViewportScreenBounds(center)
-		this.updateCullingBounds()
+		this.updateRenderingBounds()
 		return this
 	}
 

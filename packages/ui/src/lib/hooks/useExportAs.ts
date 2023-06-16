@@ -20,7 +20,7 @@ export function useExportAs() {
 	return useCallback(
 		async function exportAs(ids: TLShapeId[] = editor.selectedIds, format: TLExportType = 'png') {
 			if (ids.length === 0) {
-				ids = [...editor.shapeIds]
+				ids = [...editor.currentPageShapeIds]
 			}
 
 			if (ids.length === 0) {

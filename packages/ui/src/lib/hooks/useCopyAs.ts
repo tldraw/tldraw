@@ -26,7 +26,7 @@ export function useCopyAs() {
 		// little awkward.
 		function copyAs(ids: TLShapeId[] = editor.selectedIds, format: TLCopyType = 'svg') {
 			if (ids.length === 0) {
-				ids = [...editor.shapeIds]
+				ids = [...editor.currentPageShapeIds]
 			}
 
 			if (ids.length === 0) {

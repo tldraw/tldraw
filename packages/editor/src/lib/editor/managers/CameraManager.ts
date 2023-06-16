@@ -15,7 +15,7 @@ export class CameraManager {
 		if (this.timeoutRemaining <= 0) {
 			this.state.set('idle')
 			this.editor.off('tick', this.decay)
-			this.editor.updateCullingBounds()
+			this.editor.updateRenderingBounds()
 		}
 	}
 

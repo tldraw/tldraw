@@ -38,13 +38,13 @@ describe('Editor.moveShapesToPage', () => {
 		// box1 didn't get moved, still on page 1
 		expect(editor.getShapeById(ids.box1)!.parentId).toBe(ids.page1)
 
-		expect([...editor.shapeIds].sort()).toMatchObject([ids.box2, ids.ellipse1])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2, ids.ellipse1])
 
 		expect(editor.currentPageId).toBe(ids.page2)
 
 		editor.setCurrentPageId(ids.page1)
 
-		expect([...editor.shapeIds]).toEqual([ids.box1])
+		expect([...editor.currentPageShapeIds]).toEqual([ids.box1])
 	})
 
 	it('Moves children to page', () => {
@@ -80,23 +80,23 @@ describe('Editor.moveShapesToPage', () => {
 
 	it('Restores on undo / redo', () => {
 		expect(editor.currentPageId).toBe(ids.page1)
-		expect([...editor.shapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
 
 		editor.mark('move shapes to page')
 		editor.moveShapesToPage([ids.box2], ids.page2)
 
 		expect(editor.currentPageId).toBe(ids.page2)
-		expect([...editor.shapeIds].sort()).toMatchObject([ids.box2])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2])
 
 		editor.undo()
 
 		expect(editor.currentPageId).toBe(ids.page1)
-		expect([...editor.shapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
 
 		editor.redo()
 
 		expect(editor.currentPageId).toBe(ids.page2)
-		expect([...editor.shapeIds].sort()).toMatchObject([ids.box2])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2])
 	})
 
 	it('Sets the correct indices', () => {

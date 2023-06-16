@@ -107,3 +107,6 @@ export const COLLABORATOR_CHECK_INTERVAL = 1200
 export const INTERNAL_POINTER_IDS = {
 	CAMERA_MOVE: -10,
 } as const
+
+/** @internal */
+export const CAMERA_MOVING_TIMEOUT = 64
