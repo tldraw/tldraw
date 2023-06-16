@@ -1,10 +1,9 @@
 import {
 	ANIMATION_MEDIUM_MS,
 	BookmarkShapeUtil,
-	DEFAULT_BOOKMARK_HEIGHT,
-	DEFAULT_BOOKMARK_WIDTH,
 	Editor,
 	EmbedShapeUtil,
+	GroupShapeUtil,
 	TLEmbedShape,
 	TLShapeId,
 	TLShapePartial,
@@ -267,12 +266,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
-						newPos.add(
-							new Vec2d(
-								shape.props.w / 2 - DEFAULT_BOOKMARK_WIDTH / 2,
-								shape.props.h / 2 - DEFAULT_BOOKMARK_HEIGHT / 2
-							)
-						)
+						newPos.add(new Vec2d(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
 						newPos.rot(shape.rotation)
 
 						createList.push({
@@ -388,7 +382,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('group-shapes', { source })
-					if (editor.selectedShapes.length === 1 && editor.selectedShapes[0].type === 'group') {
+					const { onlySelectedShape } = editor
+					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, GroupShapeUtil)) {
 						editor.mark('ungroup')
 						editor.ungroupShapes(editor.selectedIds)
 					} else {
@@ -691,7 +686,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'delete',
 				label: 'action.delete',
-				kbd: '⌫',
+				kbd: '⌫,del,backspace',
 				icon: 'trash',
 				readonlyOk: false,
 				onSelect(source) {
@@ -732,7 +727,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-in',
 				label: 'action.zoom-in',
-				kbd: '$=',
+				kbd: '$=,=',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-in', { source })
@@ -742,7 +737,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'zoom-out',
 				label: 'action.zoom-out',
-				kbd: '$-',
+				kbd: '$-,-',
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('zoom-out', { source })

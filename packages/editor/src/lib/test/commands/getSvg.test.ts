@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/tlschema'
+import { DefaultDashStyle, createShapeId } from '@tldraw/tlschema'
 import { SVG_PADDING } from '../../constants'
 import { TestEditor } from '../TestEditor'
 
@@ -12,7 +12,7 @@ const ids = {
 
 beforeEach(() => {
 	editor = new TestEditor()
-	editor.setProp('dash', 'solid')
+	editor.setStyle(DefaultDashStyle, 'solid')
 	editor.createShapes([
 		{
 			id: ids.boxA,

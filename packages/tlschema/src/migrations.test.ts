@@ -1110,6 +1110,42 @@ describe('hoist opacity', () => {
 	})
 })
 
+describe('Adds highlightedUserIds to instance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceTypeVersions.AddHighlightedUserIds]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ highlightedUserIds: [] })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ highlightedUserIds: [] })).toEqual({})
+	})
+})
+
+describe('Adds chat message to presence', () => {
+	const { up, down } = instancePresenceMigrations.migrators[3]
+
+	test('up adds the chatMessage property', () => {
+		expect(up({})).toEqual({ chatMessage: '' })
+	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ chatMessage: '' })).toEqual({})
+	})
+})
+
+describe('Adds chat properties to instance', () => {
+	const { up, down } = instanceMigrations.migrators[14]
+
+	test('up adds the chatMessage property', () => {
+		expect(up({})).toEqual({ chatMessage: '', isChatting: false })
+	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ chatMessage: '', isChatting: true })).toEqual({})
+	})
+})
+
 describe('Removes does resize from embed', () => {
 	const { up, down } = embedShapeMigrations.migrators[2]
 	test('up works as expected', () => {
@@ -1152,6 +1188,47 @@ describe('Removes overridePermissions from embed', () => {
 		expect(down({ props: { url: 'https://tldraw.com' } })).toEqual({
 			props: { url: 'https://tldraw.com' },
 		})
+	})
+})
+
+describe('propsForNextShape -> stylesForNextShape', () => {
+	test('deletes propsForNextShape and adds stylesForNextShape without trying to bring across contents', () => {
+		const { up, down } =
+			instanceMigrations.migrators[
+				instanceTypeVersions.ReplacePropsForNextShapeWithStylesForNextShape
+			]
+		const beforeUp = {
+			isToolLocked: true,
+			propsForNextShape: {
+				color: 'red',
+				size: 'm',
+			},
+		}
+		const afterUp = {
+			isToolLocked: true,
+			stylesForNextShape: {},
+		}
+		const afterDown = {
+			isToolLocked: true,
+			propsForNextShape: {
+				color: 'black',
+				labelColor: 'black',
+				dash: 'draw',
+				fill: 'none',
+				size: 'm',
+				icon: 'file',
+				font: 'draw',
+				align: 'middle',
+				verticalAlign: 'middle',
+				geo: 'rectangle',
+				arrowheadStart: 'none',
+				arrowheadEnd: 'arrow',
+				spline: 'line',
+			},
+		}
+
+		expect(up(beforeUp)).toEqual(afterUp)
+		expect(down(afterUp)).toEqual(afterDown)
 	})
 })
 

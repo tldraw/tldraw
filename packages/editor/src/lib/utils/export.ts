@@ -1,4 +1,3 @@
-import { TLGeoShape, TLNoteShape, TLShape } from '@tldraw/tlschema'
 import { debugFlags } from './debug-flags'
 import { getBrowserCanvasMaxSize } from './getBrowserCanvasMaxSize'
 import { setPhysChunk } from './png'
@@ -169,14 +168,4 @@ export function getTextBoundingBox(text: SVGTextElement) {
 	document.body.removeChild(svg)
 
 	return bbox
-}
-
-/** @public */
-export function isGeoShape(shape: TLShape): shape is TLGeoShape {
-	return shape.type === 'geo'
-}
-
-/** @public */
-export function isNoteShape(shape: TLShape): shape is TLNoteShape {
-	return shape.type === 'note'
 }

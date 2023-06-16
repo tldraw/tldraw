@@ -56,6 +56,11 @@
 		"rehype-slug-custom-id": "^1.1.0",
 		"remark-gfm": "^3.0.1"
 	},
+	"//": [
+		"Anything that starts with @tldraw in devDependencies will get included in the docs site.",
+		"We have to list them here so lazyrepo knows the docs depends on those packages (ie their",
+		"tsdoc comments), even though we don't use any of their code to run the docs site."
+	],
 	"devDependencies": {
 		"@microsoft/api-extractor-model": "^7.26.4",
 		"@tldraw/editor": "workspace:*",
@@ -65,7 +70,6 @@
 		"@tldraw/tldraw": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/ui": "workspace:*",
-		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"lazyrepo": "0.0.0-alpha.27",
 		"rimraf": "^4.4.0",

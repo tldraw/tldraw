@@ -1,8 +1,8 @@
 import { Box2d } from '@tldraw/primitives'
-import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
+import { Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 
 export function getLegacyOffsetX(
-	align: TLAlignType | string,
+	align: TLDefaultHorizontalAlignStyle | string,
 	padding: number,
 	spans: { text: string; box: Box2dModel }[],
 	totalWidth: number
@@ -20,7 +20,7 @@ export function getLegacyOffsetX(
 	}
 }
 
-// sneaky TLAlignType for legacies
-export function isLegacyAlign(align: TLAlignType | string): boolean {
+// sneaky TLDefaultHorizontalAlignStyle for legacies
+export function isLegacyAlign(align: TLDefaultHorizontalAlignStyle | string): boolean {
 	return align === 'start-legacy' || align === 'middle-legacy' || align === 'end-legacy'
 }

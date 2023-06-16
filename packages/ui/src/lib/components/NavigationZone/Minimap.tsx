@@ -55,7 +55,7 @@ export const Minimap = track(function Minimap({
 
 	const onDoubleClick = React.useCallback(
 		(e: React.MouseEvent<HTMLCanvasElement>) => {
-			if (!editor.shapeIds.size) return
+			if (!editor.currentPageShapeIds.size) return
 
 			const { x, y } = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
 
@@ -72,7 +72,7 @@ export const Minimap = track(function Minimap({
 	const onPointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
 			e.currentTarget.setPointerCapture(e.pointerId)
-			if (!editor.shapeIds.size) return
+			if (!editor.currentPageShapeIds.size) return
 
 			rPointing.current = true
 
@@ -197,7 +197,7 @@ export const Minimap = track(function Minimap({
 
 			const allShapeBounds = [] as (Box2d & { id: TLShapeId })[]
 
-			editor.shapeIds.forEach((id) => {
+			editor.currentPageShapeIds.forEach((id) => {
 				let pageBounds = editor.getPageBoundsById(id)! as Box2d & { id: TLShapeId }
 
 				const pageMask = editor.getPageMaskById(id)

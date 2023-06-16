@@ -15,6 +15,7 @@ import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
+import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
 import { useForceSolid } from '../shared/useForceSolid'
@@ -59,7 +60,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	hitTestPoint(shape: TLDrawShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
 		const zoomLevel = this.editor.zoomLevel
-		const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
+		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
 			if (shape.props.segments[0].points.some((pt) => Vec2d.Dist(point, pt) < offsetDist * 1.5)) {
@@ -88,7 +89,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
 			const zoomLevel = this.editor.zoomLevel
-			const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
+			const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
 
 			if (
 				shape.props.segments[0].points.some(
@@ -118,7 +119,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	render(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
+		const strokeWidth = STROKE_SIZES[shape.props.size]
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
@@ -155,7 +156,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					<path
 						d={getSvgPathFromStroke(strokeOutlinePoints, true)}
 						strokeLinecap="round"
-						fill="currentColor"
+						fill={`var(--palette-${shape.props.color})`}
 					/>
 				</SVGContainer>
 			)
@@ -172,7 +173,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					d={solidStrokePath}
 					strokeLinecap="round"
 					fill="none"
-					stroke="currentColor"
+					stroke={`var(--palette-${shape.props.color})`}
 					strokeWidth={strokeWidth}
 					strokeDasharray={getDrawShapeStrokeDashArray(shape, strokeWidth)}
 					strokeDashoffset="0"
@@ -183,7 +184,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	indicator(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
+		const strokeWidth = STROKE_SIZES[shape.props.size]
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		let sw = strokeWidth
@@ -210,7 +211,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors) {
 		const { color } = shape.props
 
-		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
+		const strokeWidth = STROKE_SIZES[shape.props.size]
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 
 		const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
@@ -296,7 +297,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
-		return (this.editor.getStrokeWidth(shape.props.size) * multiplier) / 2
+		return (STROKE_SIZES[shape.props.size] * multiplier) / 2
 	}
 }
 

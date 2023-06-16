@@ -196,7 +196,7 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		expect(Array.from(editor.shapeIds.values()).length).toEqual(2)
+		expect(Array.from(editor.currentPageShapeIds.values()).length).toEqual(2)
 	})
 
 	it('deletes', () => {
@@ -208,7 +208,7 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		let ids = Array.from(editor.shapeIds.values())
+		let ids = Array.from(editor.currentPageShapeIds.values())
 		expect(ids.length).toEqual(2)
 
 		const duplicate = ids.filter((i) => i !== id)[0]
@@ -216,7 +216,7 @@ describe('Misc', () => {
 
 		editor.deleteShapes()
 
-		ids = Array.from(editor.shapeIds.values())
+		ids = Array.from(editor.currentPageShapeIds.values())
 		expect(ids.length).toEqual(1)
 		expect(ids[0]).toEqual(id)
 	})

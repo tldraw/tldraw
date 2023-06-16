@@ -1,18 +1,11 @@
 import { T } from '@tldraw/validate'
-import { SetValue } from '../util-types'
-import { TLBaseStyle } from './TLBaseStyle'
+import { StyleProp } from './StyleProp'
 
 /** @public */
-export const TL_FILL_TYPES = new Set(['none', 'semi', 'solid', 'pattern'] as const)
+export const DefaultFillStyle = StyleProp.defineEnum('tldraw:fill', {
+	defaultValue: 'none',
+	values: ['none', 'semi', 'solid', 'pattern'],
+})
 
 /** @public */
-export type TLFillType = SetValue<typeof TL_FILL_TYPES>
-
-/** @public */
-export interface TLFillStyle extends TLBaseStyle {
-	id: TLFillType
-	type: 'fill'
-}
-
-/** @internal */
-export const fillValidator = T.setEnum(TL_FILL_TYPES)
+export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>

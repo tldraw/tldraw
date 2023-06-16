@@ -62,7 +62,7 @@ export class CardShapeTool extends BaseBoxShapeTool {
 	static override id = 'card'
 	static override initial = 'idle'
 
-	override shapeType = 'card'
+	override shapeType = CardShapeUtil
 }
 
 export const CardShape = defineShape('card', {

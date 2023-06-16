@@ -1,38 +1,32 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
-import { TLColorType, colorValidator } from '../styles/TLColorStyle'
-import { TLFontType, fontValidator } from '../styles/TLFontStyle'
-import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
+import { DefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultFontStyle } from '../styles/TLFontStyle'
+import {
+	DefaultHorizontalAlignStyle,
+	TLDefaultHorizontalAlignStyle,
+} from '../styles/TLHorizontalAlignStyle'
+import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { DefaultVerticalAlignStyle } from '../styles/TLVerticalAlignStyle'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export type TLNoteShapeProps = {
-	color: TLColorType
-	size: TLSizeType
-	font: TLFontType
-	align: TLAlignType
-	verticalAlign: TLVerticalAlignType
-	growY: number
-	url: string
-	text: string
-}
-
-/** @public */
-export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
-
-/** @internal */
-export const noteShapeProps: ShapeProps<TLNoteShape> = {
-	color: colorValidator,
-	size: sizeValidator,
-	font: fontValidator,
-	align: alignValidator,
-	verticalAlign: verticalAlignValidator,
+export const noteShapeProps = {
+	color: DefaultColorStyle,
+	size: DefaultSizeStyle,
+	font: DefaultFontStyle,
+	align: DefaultHorizontalAlignStyle,
+	verticalAlign: DefaultVerticalAlignStyle,
 	growY: T.positiveNumber,
 	url: T.string,
 	text: T.string,
 }
+
+/** @public */
+export type TLNoteShapeProps = ShapePropsType<typeof noteShapeProps>
+
+/** @public */
+export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>
 
 const Versions = {
 	AddUrlProp: 1,
@@ -76,16 +70,16 @@ export const noteShapeMigrations = defineMigrations({
 
 		[Versions.MigrateLegacyAlign]: {
 			up: (shape) => {
-				let newAlign: TLAlignType
+				let newAlign: TLDefaultHorizontalAlignStyle
 				switch (shape.props.align) {
 					case 'start':
-						newAlign = 'start-legacy' as TLAlignType
+						newAlign = 'start-legacy'
 						break
 					case 'end':
-						newAlign = 'end-legacy' as TLAlignType
+						newAlign = 'end-legacy'
 						break
 					default:
-						newAlign = 'middle-legacy' as TLAlignType
+						newAlign = 'middle-legacy'
 						break
 				}
 				return {
@@ -97,7 +91,7 @@ export const noteShapeMigrations = defineMigrations({
 				}
 			},
 			down: (shape) => {
-				let oldAlign: TLAlignType
+				let oldAlign: TLDefaultHorizontalAlignStyle
 				switch (shape.props.align) {
 					case 'start-legacy':
 						oldAlign = 'start'

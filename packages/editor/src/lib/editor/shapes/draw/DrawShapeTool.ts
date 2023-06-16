@@ -1,6 +1,5 @@
-import { TLStyleType } from '@tldraw/tlschema'
-
 import { StateNode } from '../../tools/StateNode'
+import { DrawShapeUtil } from './DrawShapeUtil'
 import { Drawing } from './toolStates/Drawing'
 import { Idle } from './toolStates/Idle'
 
@@ -9,8 +8,7 @@ export class DrawShapeTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Drawing]
 
-	styles = ['color', 'dash', 'fill', 'size'] as TLStyleType[]
-	shapeType = 'draw'
+	shapeType = DrawShapeUtil
 
 	onExit = () => {
 		const drawingState = this.children!['drawing'] as Drawing

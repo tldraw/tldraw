@@ -1,10 +1,10 @@
 import { VecLike } from '@tldraw/primitives'
-import { TLArrowheadType } from '@tldraw/tlschema'
+import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema'
 
 export type ArrowPoint = {
 	handle: VecLike
 	point: VecLike
-	arrowhead: TLArrowheadType
+	arrowhead: TLArrowShapeArrowheadStyle
 }
 
 export interface ArcInfo {

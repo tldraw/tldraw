@@ -35,6 +35,7 @@ export {
 } from './lib/config/TLSessionStateSnapshot'
 export {
 	USER_COLORS,
+	getFreshUserPreferences,
 	getUserPreferences,
 	setUserPreferences,
 	type TLUserPreferences,
@@ -51,22 +52,13 @@ export { defineShape, type TLShapeInfo } from './lib/config/defineShape'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,
-	ARROW_LABEL_FONT_SIZES,
-	BOUND_ARROW_OFFSET,
 	DEFAULT_ANIMATION_OPTIONS,
-	DEFAULT_BOOKMARK_HEIGHT,
-	DEFAULT_BOOKMARK_WIDTH,
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
-	FONT_ALIGNMENT,
-	FONT_FAMILIES,
-	FONT_SIZES,
 	GRID_INCREMENT,
 	GRID_STEPS,
 	HAND_TOOL_FRICTION,
 	HASH_PATERN_ZOOM_NAMES,
-	ICON_SIZES,
-	LABEL_FONT_SIZES,
 	MAJOR_NUDGE_FACTOR,
 	MAX_ASSET_HEIGHT,
 	MAX_ASSET_WIDTH,
@@ -74,15 +66,11 @@ export {
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
 	MINOR_NUDGE_FACTOR,
-	MIN_ARROW_LENGTH,
 	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
 	REMOVE_SYMBOL,
 	RICH_TYPES,
-	STYLES,
 	SVG_PADDING,
-	TEXT_PROPS,
-	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
@@ -198,6 +186,11 @@ export { usePresence } from './lib/hooks/usePresence'
 export { useQuickReactor } from './lib/hooks/useQuickReactor'
 export { useReactor } from './lib/hooks/useReactor'
 export { useTLStore } from './lib/hooks/useTLStore'
+export {
+	ReadonlySharedStyleMap,
+	SharedStyleMap,
+	type SharedStyle,
+} from './lib/utils/SharedStylesMap'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
 export {
 	ACCEPTED_ASSET_TYPE,
@@ -248,14 +241,11 @@ export {
 	getSvgAsImage,
 	getSvgAsString,
 	getTextBoundingBox,
-	isGeoShape,
-	isNoteShape,
 	type TLCopyType,
 	type TLExportType,
 } from './lib/utils/export'
 export { hardResetEditor } from './lib/utils/hard-reset'
 export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
-export { setPropsForNextShape } from './lib/utils/props-for-next-shape'
 export { refreshPage } from './lib/utils/refresh-page'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
 export {

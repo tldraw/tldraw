@@ -6,7 +6,7 @@ import { InstancePageStateRecordType } from './records/TLPageState'
 import { TLPOINTER_ID } from './records/TLPointer'
 import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
 
-/** @internal */
+/** @public */
 export const createPresenceStateDerivation =
 	($user: Signal<{ id: string; color: string; name: string }>, id?: string) =>
 	(store: TLStore): Signal<TLInstancePresence | null> => {
@@ -43,6 +43,7 @@ export const createPresenceStateDerivation =
 				},
 				lastActivityTimestamp: pointer.lastActivityTimestamp,
 				screenBounds: instance.screenBounds,
+				chatMessage: instance.chatMessage,
 			})
 		})
 	}

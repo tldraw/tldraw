@@ -1,21 +1,21 @@
 import { Matrix2d, snapAngle, toFixed, Vec2d } from '@tldraw/primitives'
 import {
 	createShapeId,
+	TLDefaultSizeStyle,
 	TLDrawShape,
 	TLDrawShapeSegment,
 	TLHighlightShape,
 	TLShapePartial,
-	TLSizeType,
 	Vec2dModel,
 } from '@tldraw/tlschema'
 import { last, structuredClone } from '@tldraw/utils'
 import { DRAG_DISTANCE } from '../../../../constants'
 import { uniqueId } from '../../../../utils/data'
-import { DrawShapeUtil } from '../../../shapes/draw/DrawShapeUtil'
-import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
-
-import { HighlightShapeUtil } from '../../../shapes/highlight/HighlightShapeUtil'
 import { StateNode } from '../../../tools/StateNode'
+import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
+import { HighlightShapeUtil } from '../../highlight/HighlightShapeUtil'
+import { STROKE_SIZES } from '../../shared/default-shape-constants'
+import { DrawShapeUtil } from '../DrawShapeUtil'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
 
@@ -26,12 +26,9 @@ export class Drawing extends StateNode {
 
 	initialShape?: DrawableShape
 
-	shapeType: DrawableShape['type'] = this.parent.id === 'highlight' ? 'highlight' : 'draw'
+	shapeType = this.parent.id === 'highlight' ? HighlightShapeUtil : DrawShapeUtil
 
-	util =
-		this.shapeType === 'highlight'
-			? this.editor.getShapeUtil(HighlightShapeUtil)
-			: this.editor.getShapeUtil(DrawShapeUtil)
+	util = this.editor.getShapeUtil(this.shapeType)
 
 	isPen = false
 
@@ -141,13 +138,13 @@ export class Drawing extends StateNode {
 	}
 
 	canClose() {
-		return this.shapeType !== 'highlight'
+		return this.shapeType.type !== 'highlight'
 	}
 
-	getIsClosed(segments: TLDrawShapeSegment[], size: TLSizeType) {
+	getIsClosed(segments: TLDrawShapeSegment[], size: TLDefaultSizeStyle) {
 		if (!this.canClose()) return false
 
-		const strokeWidth = this.editor.getStrokeWidth(size)
+		const strokeWidth = STROKE_SIZES[size]
 		const firstPoint = segments[0].points[0]
 		const lastSegment = segments[segments.length - 1]
 		const lastPoint = lastSegment.points[lastSegment.points.length - 1]
@@ -222,7 +219,7 @@ export class Drawing extends StateNode {
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
 					id: shape.id,
-					type: this.shapeType,
+					type: this.shapeType.type,
 					props: {
 						segments,
 					},
@@ -249,7 +246,7 @@ export class Drawing extends StateNode {
 		this.editor.createShapes<DrawableShape>([
 			{
 				id,
-				type: this.shapeType,
+				type: this.shapeType.type,
 				x: originPagePoint.x,
 				y: originPagePoint.y,
 				props: {
@@ -352,7 +349,7 @@ export class Drawing extends StateNode {
 
 					const shapePartial: TLShapePartial<DrawableShape> = {
 						id,
-						type: this.shapeType,
+						type: this.shapeType.type,
 						props: {
 							segments: [...segments, newSegment],
 						},
@@ -412,7 +409,7 @@ export class Drawing extends StateNode {
 
 					const shapePartial: TLShapePartial<DrawableShape> = {
 						id,
-						type: this.shapeType,
+						type: this.shapeType.type,
 						props: {
 							segments: finalSegments,
 						},
@@ -554,7 +551,7 @@ export class Drawing extends StateNode {
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
 					id,
-					type: this.shapeType,
+					type: this.shapeType.type,
 					props: {
 						segments: newSegments,
 					},
@@ -599,7 +596,7 @@ export class Drawing extends StateNode {
 
 				const shapePartial: TLShapePartial<DrawableShape> = {
 					id,
-					type: this.shapeType,
+					type: this.shapeType.type,
 					props: {
 						segments: newSegments,
 					},
@@ -616,7 +613,7 @@ export class Drawing extends StateNode {
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > 500) {
-					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
+					this.editor.updateShapes([{ id, type: this.shapeType.type, props: { isComplete: true } }])
 
 					const { currentPagePoint } = this.editor.inputs
 
@@ -625,7 +622,7 @@ export class Drawing extends StateNode {
 					this.editor.createShapes<DrawableShape>([
 						{
 							id: newShapeId,
-							type: this.shapeType,
+							type: this.shapeType.type,
 							x: toFixed(currentPagePoint.x),
 							y: toFixed(currentPagePoint.y),
 							props: {

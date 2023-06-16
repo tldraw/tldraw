@@ -1,6 +1,6 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Box2dModel } from '../misc/geometry-types'
+import { Box2dModel, box2dModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
@@ -27,6 +27,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 		type: TLCursor['type']
 		rotation: number
 	}
+	chatMessage: string
 }
 
 /** @public */
@@ -54,23 +55,25 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 			y: T.number,
 			z: T.number,
 		}),
-		screenBounds: T.boxModel,
+		screenBounds: box2dModelValidator,
 		selectedIds: T.arrayOf(idValidator<TLShapeId>('shape')),
 		currentPageId: idValidator<TLPageId>('page'),
-		brush: T.boxModel.nullable(),
+		brush: box2dModelValidator.nullable(),
 		scribble: scribbleValidator.nullable(),
+		chatMessage: T.string,
 	})
 )
 
 const Versions = {
 	AddScribbleDelay: 1,
 	RemoveInstanceId: 2,
+	AddChatMessage: 3,
 } as const
 
 export { Versions as instancePresenceVersions }
 
 export const instancePresenceMigrations = defineMigrations({
-	currentVersion: Versions.RemoveInstanceId,
+	currentVersion: Versions.AddChatMessage,
 	migrators: {
 		[Versions.AddScribbleDelay]: {
 			up: (instance) => {
@@ -93,6 +96,14 @@ export const instancePresenceMigrations = defineMigrations({
 			},
 			down: (instance) => {
 				return { ...instance, instanceId: TLINSTANCE_ID }
+			},
+		},
+		[Versions.AddChatMessage]: {
+			up: (instance) => {
+				return { ...instance, chatMessage: '' }
+			},
+			down: ({ chatMessage: _, ...instance }) => {
+				return instance
 			},
 		},
 	},
@@ -130,4 +141,5 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	selectedIds: [],
 	brush: null,
 	scribble: null,
+	chatMessage: '',
 }))

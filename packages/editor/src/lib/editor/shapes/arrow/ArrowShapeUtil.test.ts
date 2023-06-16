@@ -1,5 +1,5 @@
 import { TAU } from '@tldraw/primitives'
-import { TLArrowShape, TLArrowTerminal, TLShapeId, createShapeId } from '@tldraw/tlschema'
+import { TLArrowShape, TLArrowShapeTerminal, TLShapeId, createShapeId } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
 import { TestEditor } from '../../../test/TestEditor'
 import { ArrowShapeUtil } from './ArrowShapeUtil'
@@ -343,7 +343,7 @@ describe('When a shape it rotated', () => {
 		})
 
 		const anchor = (
-			editor.getShapeById<TLArrowShape>(arrow.id)!.props.end as TLArrowTerminal & {
+			editor.getShapeById<TLArrowShape>(arrow.id)!.props.end as TLArrowShapeTerminal & {
 				type: 'binding'
 			}
 		).normalizedAnchor

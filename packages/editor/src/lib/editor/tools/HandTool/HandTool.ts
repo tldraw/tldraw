@@ -11,8 +11,6 @@ export class HandTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Pointing, Dragging]
 
-	styles = []
-
 	onDoubleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
 			const { currentScreenPoint } = this.editor.inputs
