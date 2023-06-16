@@ -1,95 +1,133 @@
 import {
 	DocumentRecordType,
+	InstancePresenceRecordType,
 	PageRecordType,
 	TLDocument,
 	TLInstancePresence,
 	TLPageId,
 	TLRecord,
 	TLStoreWithStatus,
-	TLUserPreferences,
 	createPresenceStateDerivation,
 	createTLStore,
 	defaultShapes,
-	getFreshUserPreferences,
+	getUserPreferences,
 } from '@tldraw/tldraw'
-import { debounce } from '@tldraw/utils'
-import { useEffect, useState } from 'react'
-import { atom, react } from 'signia'
+import { useEffect, useMemo, useState } from 'react'
+import { computed, react, transact } from 'signia'
 import { WebsocketProvider } from 'y-websocket'
 import * as Y from 'yjs'
 
-const doc = new Y.Doc({ gc: true })
-
 export function useYjsStore({
 	roomId = 'example',
-	version = 1,
 	hostUrl = process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev',
 }: Partial<{ hostUrl: string; roomId: string; version: number }>) {
+	const [store] = useState(() => createTLStore({ shapes: defaultShapes }))
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({ status: 'loading' })
 
+	const { doc, room, yRecords } = useMemo(() => {
+		const doc = new Y.Doc({ gc: true })
+		return {
+			doc,
+			room: new WebsocketProvider(hostUrl, roomId, doc, { connect: true }),
+			yRecords: doc.getMap<TLRecord>(`tl_${roomId}`),
+		}
+	}, [hostUrl, roomId])
+
 	useEffect(() => {
-		const yRecords = doc.getMap<TLRecord>(`tl_${roomId}_${version}`)
-
-		const room = new WebsocketProvider(hostUrl, roomId, doc, { connect: true })
-		const userId = room.awareness.clientID.toString()
-
 		const unsubs: (() => void)[] = []
-		const store = createTLStore({ shapes: defaultShapes })
 
-		room.on('status', (connected: boolean) => {
-			if (connected) {
-				/* ----------------- Initialization ----------------- */
+		// We'll use this flag to prevent repeating subscriptions if our connection drops and reconnects.
+		let didConnect = false
 
-				if (yRecords.size === 0) {
-					doc.transact(() => {
-						store.clear()
-						store.put([
-							DocumentRecordType.create({
-								id: 'document:document' as TLDocument['id'],
-							}),
-							PageRecordType.create({
-								id: 'page:page' as TLPageId,
-								name: 'Page 1',
-								index: 'a1',
-							}),
-						])
-						store.allRecords().forEach((record) => {
-							yRecords.set(record.id, record)
-						})
-					})
-				} else {
-					store.put([...yRecords.values()], 'initialize')
-				}
+		room.on('status', ({ status }: { status: 'connecting' | 'disconnected' | 'connected' }) => {
+			// If we're disconnected, set the store status to 'synced-remote' and the connection status to 'offline'
+			if (status === 'connecting' || status === 'disconnected') {
+				setStoreWithStatus({
+					store,
+					status: 'synced-remote',
+					connectionStatus: 'offline',
+				})
+				return
+			}
 
-				/* -------------------- Document -------------------- */
+			if (status !== 'connected') return
 
-				// Sync store changes to the yjs doc
-				unsubs.push(
-					store.listen(
-						({ changes }) => {
-							doc.transact(() => {
-								Object.values(changes.added).forEach((record) => {
-									yRecords.set(record.id, record)
-								})
+			if (didConnect) {
+				setStoreWithStatus({
+					store,
+					status: 'synced-remote',
+					connectionStatus: 'online',
+				})
+				return
+			}
 
-								Object.values(changes.updated).forEach(([_, record]) => {
-									yRecords.set(record.id, record)
-								})
+			// Ok, we're connecting for the first time. Let's get started!
+			didConnect = true
 
-								Object.values(changes.removed).forEach((record) => {
-									yRecords.delete(record.id)
-								})
+			// Initialize the store with the yjs doc records—or, if the yjs doc
+			// is empty, initialize the yjs doc with the default store records.
+			if (yRecords.size === 0) {
+				// Create the initial store records
+				transact(() => {
+					store.clear()
+					store.put([
+						DocumentRecordType.create({
+							id: 'document:document' as TLDocument['id'],
+						}),
+						PageRecordType.create({
+							id: 'page:page' as TLPageId,
+							name: 'Page 1',
+							index: 'a1',
+						}),
+					])
+				})
+
+				// Sync the store records to the yjs doc
+				doc.transact(() => {
+					for (const record of store.allRecords()) {
+						yRecords.set(record.id, record)
+					}
+				})
+			} else {
+				// Replace the store records with the yjs doc records
+				transact(() => {
+					store.clear()
+					store.put([...yRecords.values()])
+				})
+			}
+
+			/* -------------------- Document -------------------- */
+
+			// Sync store changes to the yjs doc
+			unsubs.push(
+				store.listen(
+					function syncStoreChangesToYjsDoc({ changes }) {
+						doc.transact(() => {
+							Object.values(changes.added).forEach((record) => {
+								yRecords.set(record.id, record)
 							})
-						},
-						{ source: 'user', scope: 'document' }
-					)
+
+							Object.values(changes.updated).forEach(([_, record]) => {
+								yRecords.set(record.id, record)
+							})
+
+							Object.values(changes.removed).forEach((record) => {
+								yRecords.delete(record.id)
+							})
+						})
+					},
+					{ source: 'user', scope: 'document' } // only sync user's document changes
 				)
+			)
 
-				// Sync the yjs doc changes to the store
-				const handleChange = ([event]: Y.YEvent<any>[]) => {
-					const toDelete: TLRecord['id'][] = []
-					const toPut: TLRecord[] = []
+			// Sync the yjs doc changes to the store
+			const handleChange = (events: Y.YEvent<any>[], transaction: Y.Transaction) => {
+				if (transaction.local) return
 
+				const toRemove: TLRecord['id'][] = []
+				const toPut: TLRecord[] = []
+
+				events.forEach((event) => {
 					event.changes.keys.forEach((change, id) => {
 						switch (change.action) {
 							case 'add':
@@ -98,136 +136,96 @@ export function useYjsStore({
 								break
 							}
 							case 'delete': {
-								toDelete.push(id as TLRecord['id'])
+								toRemove.push(id as TLRecord['id'])
 								break
 							}
 						}
 					})
-
-					store.mergeRemoteChanges(() => {
-						store.remove(toDelete)
-						store.put(toPut)
-					})
-				}
-
-				yRecords.observeDeep(handleChange)
-				unsubs.push(() => yRecords.unobserveDeep(handleChange))
-
-				/* -------------------- Awareness ------------------- */
-
-				// Get the persisted user preferences or use the defaults
-
-				let userPreferences: TLUserPreferences = {
-					...getFreshUserPreferences(),
-					id: userId,
-				}
-
-				const persistedUserPreferences = localStorage.getItem(`tldraw-presence-${version}`)
-				if (persistedUserPreferences !== null) {
-					try {
-						userPreferences = JSON.parse(persistedUserPreferences) as TLUserPreferences
-					} catch (e: any) {
-						// Something went wrong, persist the defaults instead
-						localStorage.setItem(`tldraw-presence-${version}`, JSON.stringify(userPreferences))
-					}
-				}
-
-				const debouncedPersist = debounce((presence: TLInstancePresence) => {
-					const preferences: TLUserPreferences = {
-						...userPreferences,
-						name: presence.userName,
-						color: presence.color,
-					}
-
-					localStorage.setItem(`tldraw-presence-${version}`, JSON.stringify(preferences))
-				}, 1000)
-
-				// Create the instance presence derivation
-				const userPreferencesSignal = atom<TLUserPreferences>('user preferences', userPreferences)
-				const presenceDerivation = createPresenceStateDerivation(userPreferencesSignal)(store)
-				room.awareness.setLocalStateField('presence', presenceDerivation.value)
-
-				// Sync the instance presence changes to yjs awareness
-				unsubs.push(
-					react('when presence changes', () => {
-						const presence = presenceDerivation.value
-						if (presence && presence.userId === userId) {
-							room.awareness.setLocalStateField('presence', presence)
-							debouncedPersist(presence)
-						}
-					})
-				)
-
-				// Sync yjs awareness changes to the store
-				const handleUpdate = ({
-					added,
-					updated,
-					removed,
-				}: {
-					added: number[]
-					updated: number[]
-					removed: number[]
-				}) => {
-					const states = room.awareness.getStates()
-
-					store.mergeRemoteChanges(() => {
-						added.forEach((id) => {
-							const state = states.get(id) as { presence: TLInstancePresence }
-							if (state.presence) {
-								if (state.presence.userId !== userId) {
-									store.put([state.presence])
-								}
-							}
-						})
-
-						updated.forEach((id) => {
-							const state = states.get(id) as { presence: TLInstancePresence }
-							if (state.presence) {
-								if (state.presence.userId !== userId) {
-									store.put([state.presence])
-								}
-							}
-						})
-
-						if (removed.length) {
-							const allRecords = store.allRecords()
-
-							removed.forEach((id) => {
-								const stringId = id.toString()
-								const recordsToRemove = allRecords
-									.filter((record) => 'userId' in record && record.userId === stringId)
-									.map((record) => record.id)
-
-								store.remove(recordsToRemove)
-							})
-						}
-					})
-				}
-
-				room.awareness.on('update', handleUpdate)
-				unsubs.push(() => room.awareness.off('update', handleUpdate))
-
-				// And we're done!
-
-				setStoreWithStatus({
-					store,
-					status: 'synced-remote',
-					connectionStatus: 'online',
 				})
-			} else {
-				setStoreWithStatus({
-					store,
-					status: 'synced-remote',
-					connectionStatus: 'offline',
+
+				// put / remove the records in the store
+				store.mergeRemoteChanges(() => {
+					if (toRemove.length) store.remove(toRemove)
+					if (toPut.length) store.put(toPut)
 				})
 			}
+
+			yRecords.observeDeep(handleChange)
+			unsubs.push(() => yRecords.unobserveDeep(handleChange))
+
+			/* -------------------- Awareness ------------------- */
+
+			// Create the instance presence derivation
+			const yClientId = room.awareness.clientID.toString()
+			const presenceId = InstancePresenceRecordType.createId(yClientId)
+			const userPreferencesComputed = computed('ok', () => getUserPreferences())
+			const presenceDerivation = createPresenceStateDerivation(
+				userPreferencesComputed,
+				presenceId
+			)(store)
+
+			// Set our initial presence from the derivation's current value
+			room.awareness.setLocalStateField('presence', presenceDerivation.value)
+
+			// When the derivation change, sync presence to to yjs awareness
+			unsubs.push(
+				react('when presence changes', () => {
+					const presence = presenceDerivation.value
+					requestAnimationFrame(() => {
+						room.awareness.setLocalStateField('presence', presence)
+					})
+				})
+			)
+
+			// Sync yjs awareness changes to the store
+			const handleUpdate = (update: { added: number[]; updated: number[]; removed: number[] }) => {
+				const states = room.awareness.getStates() as Map<number, { presence: TLInstancePresence }>
+
+				const toRemove: TLInstancePresence['id'][] = []
+				const toPut: TLInstancePresence[] = []
+
+				// Connect records to put / remove
+				for (const clientId of update.added) {
+					const state = states.get(clientId)
+					if (state?.presence && state.presence.id !== presenceId) {
+						toPut.push(state.presence)
+					}
+				}
+
+				for (const clientId of update.updated) {
+					const state = states.get(clientId)
+					if (state?.presence && state.presence.id !== presenceId) {
+						toPut.push(state.presence)
+					}
+				}
+
+				for (const clientId of update.removed) {
+					toRemove.push(InstancePresenceRecordType.createId(clientId.toString()))
+				}
+
+				// put / remove the records in the store
+				store.mergeRemoteChanges(() => {
+					if (toRemove.length) store.remove(toRemove)
+					if (toPut.length) store.put(toPut)
+				})
+			}
+
+			room.awareness.on('update', handleUpdate)
+			unsubs.push(() => room.awareness.off('update', handleUpdate))
+
+			// And we're done!
+			setStoreWithStatus({
+				store,
+				status: 'synced-remote',
+				connectionStatus: 'online',
+			})
 		})
 
 		return () => {
 			unsubs.forEach((fn) => fn())
 			unsubs.length = 0
 		}
-	}, [hostUrl, roomId, version])
+	}, [room, doc, store, yRecords])
 
 	return storeWithStatus
 }

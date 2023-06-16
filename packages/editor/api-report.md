@@ -244,6 +244,13 @@ export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | 
 export function createTLStore({ initialData, defaultName, ...rest }: TLStoreOptions): TLStore;
 
 // @public (undocumented)
+export function createTLUser(opts?: {
+    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
+    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
+    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
+}): TLUser;
+
+// @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
 
 // @public (undocumented)

@@ -11,6 +11,10 @@ export class UserPreferencesManager {
 		})
 	}
 
+	get userPreferences() {
+		return this.user.userPreferences
+	}
+
 	get isDarkMode() {
 		return this.user.userPreferences.value.isDarkMode
 	}

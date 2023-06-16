@@ -1674,7 +1674,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	get currentPage(): TLPage {
-		return this.getPageById(this.currentPageId)!
+		const page = this.getPageById(this.currentPageId)
+		if (!page)
+			throw Error(`No current page (id ${this.currentPageId}, ${this.pages.length} pages))`)
+		return page
 	}
 
 	/**
