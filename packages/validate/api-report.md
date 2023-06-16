@@ -49,7 +49,7 @@ const integer: Validator<number>;
 function literal<T extends boolean | number | string>(expectedValue: T): Validator<T>;
 
 // @public (undocumented)
-function literalEnum<
+function literalEnum<const Values extends readonly unknown[]>(...values: Values): Validator<Values[number]>;
 
 // @public
 function model<T extends {

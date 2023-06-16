@@ -37,7 +37,7 @@ export type ErrorResult<E> = {
 // @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
 
-// @internal (undocumented)
+// @public (undocumented)
 export type Expand<T> = T extends infer O ? {
     [K in keyof O]: O[K];
 } : never;

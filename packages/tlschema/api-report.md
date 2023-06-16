@@ -80,7 +80,7 @@ export const assetValidator: T.Validator<TLAsset>;
 // @internal (undocumented)
 export const bookmarkShapeMigrations: Migrations;
 
-// @internal (undocumented)
+// @public (undocumented)
 export const bookmarkShapeProps: {
     w: T.Validator<number>;
     h: T.Validator<number>;
@@ -706,8 +706,7 @@ export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
 
 // @public (undocumented)
 export class StyleProp<Type> implements T.Validatable<Type> {
-    // (undocumented)
-    []
+    protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
     // (undocumented)
     readonly defaultValue: Type;
     // (undocumented)
@@ -716,465 +715,467 @@ export class StyleProp<Type> implements T.Validatable<Type> {
         type?: T.Validatable<Type>;
     }): StyleProp<Type>;
     // (undocumented)
-    static defineEnum<
+    static defineEnum<const Values extends readonly unknown[]>(uniqueId: string, { defaultValue, values }: {
+        defaultValue: Values[number];
+        values: Values;
+    }): EnumStyleProp<Values[number]>;
     // (undocumented)
     readonly id: string;
     // (undocumented)
     readonly type: T.Validatable<Type>;
-    extends // (undocumented)
-    readonly unknown
     // (undocumented)
-    const Values
+    validate(value: unknown): Type;
+}
 
-    // @internal (undocumented)
-    export const textShapeMigrations: Migrations;
+// @internal (undocumented)
+export const textShapeMigrations: Migrations;
 
-    // @public (undocumented)
-    export const textShapeProps: {
-        color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-        size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-        font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-        align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-        w: T.Validator<number>;
-        text: T.Validator<string>;
-        scale: T.Validator<number>;
-        autoSize: T.Validator<boolean>;
+// @public (undocumented)
+export const textShapeProps: {
+    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+    size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+    font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+    align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+    w: T.Validator<number>;
+    text: T.Validator<string>;
+    scale: T.Validator<number>;
+    autoSize: T.Validator<boolean>;
+};
+
+// @public
+export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+
+// @public (undocumented)
+export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>;
+
+// @public (undocumented)
+export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>;
+
+// @public (undocumented)
+export type TLArrowShapeProps = ShapePropsType<typeof arrowShapeProps>;
+
+// @public (undocumented)
+export type TLArrowShapeTerminal = T.TypeOf<typeof ArrowShapeTerminal>;
+
+// @public (undocumented)
+export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
+
+// @public (undocumented)
+export type TLAssetId = RecordId<TLBaseAsset<any, any>>;
+
+// @public (undocumented)
+export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
+    id: TLAssetId;
+    type: T['type'];
+    props?: Partial<T['props']>;
+} & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
+
+// @public (undocumented)
+export type TLAssetShape = Extract<TLShape, {
+    props: {
+        assetId: TLAssetId;
     };
+}>;
 
-    // @public
-    export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
+// @public (undocumented)
+export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
+    // (undocumented)
+    props: Props;
+    // (undocumented)
+    type: Type;
+}
 
-    // @public (undocumented)
-    export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>;
+// @public (undocumented)
+export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
+    // (undocumented)
+    index: string;
+    // (undocumented)
+    isLocked: boolean;
+    // (undocumented)
+    opacity: TLOpacityType;
+    // (undocumented)
+    parentId: TLParentId;
+    // (undocumented)
+    props: Props;
+    // (undocumented)
+    rotation: number;
+    // (undocumented)
+    type: Type;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
 
-    // @public (undocumented)
-    export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>;
+// @public
+export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
+    title: string;
+    description: string;
+    image: string;
+    src: null | string;
+}>;
 
-    // @public (undocumented)
-    export type TLArrowShapeProps = ShapePropsType<typeof arrowShapeProps>;
+// @public (undocumented)
+export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>;
 
-    // @public (undocumented)
-    export type TLArrowShapeTerminal = T.TypeOf<typeof ArrowShapeTerminal>;
+// @public
+export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+    // (undocumented)
+    z: number;
+}
 
-    // @public (undocumented)
-    export type TLAsset = TLBookmarkAsset | TLImageAsset | TLVideoAsset;
+// @public
+export type TLCameraId = RecordId<TLCamera>;
 
-    // @public (undocumented)
-    export type TLAssetId = RecordId<TLBaseAsset<any, any>>;
+// @public
+export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 
-    // @public (undocumented)
-    export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
-        id: TLAssetId;
-        type: T['type'];
-        props?: Partial<T['props']>;
-    } & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
+// @public
+export interface TLCursor {
+    // (undocumented)
+    color: TLCanvasUiColor;
+    // (undocumented)
+    rotation: number;
+    // (undocumented)
+    type: TLCursorType;
+}
 
-    // @public (undocumented)
-    export type TLAssetShape = Extract<TLShape, {
-        props: {
-            assetId: TLAssetId;
-        };
-    }>;
+// @public
+export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
-    // @public (undocumented)
-    export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
-        // (undocumented)
-        props: Props;
-        // (undocumented)
-        type: Type;
-    }
+// @public (undocumented)
+export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 
-    // @public (undocumented)
-    export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
-        // (undocumented)
-        index: string;
-        // (undocumented)
-        isLocked: boolean;
-        // (undocumented)
-        opacity: TLOpacityType;
-        // (undocumented)
-        parentId: TLParentId;
-        // (undocumented)
-        props: Props;
-        // (undocumented)
-        rotation: number;
-        // (undocumented)
-        type: Type;
-        // (undocumented)
+// @public (undocumented)
+export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
+
+// @public (undocumented)
+export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>;
+
+// @public (undocumented)
+export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
+
+// @public (undocumented)
+export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
+
+// @public
+export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
+
+// @public (undocumented)
+export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
+
+// @public (undocumented)
+export type TLDefaultVerticalAlignStyle = T.TypeOf<typeof DefaultVerticalAlignStyle>;
+
+// @public
+export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
+    // (undocumented)
+    gridSize: number;
+    // (undocumented)
+    name: string;
+}
+
+// @public (undocumented)
+export const TLDOCUMENT_ID: RecordId<TLDocument>;
+
+// @public (undocumented)
+export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>;
+
+// @public (undocumented)
+export type TLDrawShapeSegment = T.TypeOf<typeof DrawShapeSegment>;
+
+// @public (undocumented)
+export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
+
+// @public (undocumented)
+export type TLEmbedShapePermissions = {
+    [K in keyof typeof embedShapePermissionDefaults]?: boolean;
+};
+
+// @public (undocumented)
+export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
+
+// @public (undocumented)
+export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>;
+
+// @public (undocumented)
+export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
+
+// @public
+export interface TLHandle {
+    // (undocumented)
+    canBind?: boolean;
+    id: string;
+    // (undocumented)
+    index: string;
+    // (undocumented)
+    type: TLHandleType;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @public
+export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>;
+
+// @public (undocumented)
+export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>;
+
+// @public
+export type TLImageAsset = TLBaseAsset<'image', {
+    w: number;
+    h: number;
+    name: string;
+    isAnimated: boolean;
+    mimeType: null | string;
+    src: null | string;
+}>;
+
+// @public (undocumented)
+export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
+
+// @public (undocumented)
+export type TLImageShapeCrop = T.TypeOf<typeof ImageShapeCrop>;
+
+// @public (undocumented)
+export type TLImageShapeProps = ShapePropsType<typeof imageShapeProps>;
+
+// @public
+export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
+    // (undocumented)
+    brush: Box2dModel | null;
+    // (undocumented)
+    chatMessage: string;
+    // (undocumented)
+    currentPageId: TLPageId;
+    // (undocumented)
+    cursor: TLCursor;
+    // (undocumented)
+    exportBackground: boolean;
+    // (undocumented)
+    followingUserId: null | string;
+    // (undocumented)
+    highlightedUserIds: string[];
+    // (undocumented)
+    isChatting: boolean;
+    // (undocumented)
+    isDebugMode: boolean;
+    // (undocumented)
+    isFocusMode: boolean;
+    // (undocumented)
+    isGridMode: boolean;
+    // (undocumented)
+    isPenMode: boolean;
+    // (undocumented)
+    isToolLocked: boolean;
+    // (undocumented)
+    opacityForNextShape: TLOpacityType;
+    // (undocumented)
+    screenBounds: Box2dModel;
+    // (undocumented)
+    scribble: null | TLScribble;
+    // (undocumented)
+    stylesForNextShape: Record<string, unknown>;
+    // (undocumented)
+    zoomBrush: Box2dModel | null;
+}
+
+// @public (undocumented)
+export const TLINSTANCE_ID: TLInstanceId;
+
+// @public (undocumented)
+export type TLInstanceId = RecordId<TLInstance>;
+
+// @public
+export interface TLInstancePageState extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
+    // (undocumented)
+    croppingId: null | TLShapeId;
+    // (undocumented)
+    editingId: null | TLShapeId;
+    // (undocumented)
+    erasingIds: TLShapeId[];
+    // (undocumented)
+    focusLayerId: null | TLShapeId;
+    // (undocumented)
+    hintingIds: TLShapeId[];
+    // (undocumented)
+    hoveredId: null | TLShapeId;
+    // (undocumented)
+    pageId: RecordId<TLPage>;
+    // (undocumented)
+    selectedIds: TLShapeId[];
+}
+
+// @public (undocumented)
+export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
+    // (undocumented)
+    brush: Box2dModel | null;
+    // (undocumented)
+    camera: {
         x: number;
-        // (undocumented)
         y: number;
-    }
-
-    // @public
-    export type TLBookmarkAsset = TLBaseAsset<'bookmark', {
-        title: string;
-        description: string;
-        image: string;
-        src: null | string;
-    }>;
-
-    // @public (undocumented)
-    export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>;
-
-    // @public
-    export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
-        // (undocumented)
-        x: number;
-        // (undocumented)
-        y: number;
-        // (undocumented)
         z: number;
-    }
-
-    // @public
-    export type TLCameraId = RecordId<TLCamera>;
-
-    // @public
-    export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
-
-    // @public
-    export interface TLCursor {
-        // (undocumented)
-        color: TLCanvasUiColor;
-        // (undocumented)
+    };
+    // (undocumented)
+    chatMessage: string;
+    // (undocumented)
+    color: string;
+    // (undocumented)
+    currentPageId: TLPageId;
+    // (undocumented)
+    cursor: {
+        x: number;
+        y: number;
+        type: TLCursor['type'];
         rotation: number;
-        // (undocumented)
-        type: TLCursorType;
-    }
-
-    // @public
-    export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
-
-    // @public (undocumented)
-    export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
-
-    // @public (undocumented)
-    export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;
-
-    // @public (undocumented)
-    export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>;
-
-    // @public (undocumented)
-    export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>;
-
-    // @public (undocumented)
-    export type TLDefaultHorizontalAlignStyle = T.TypeOf<typeof DefaultHorizontalAlignStyle>;
-
-    // @public
-    export type TLDefaultShape = TLArrowShape | TLBookmarkShape | TLDrawShape | TLEmbedShape | TLFrameShape | TLGeoShape | TLGroupShape | TLHighlightShape | TLImageShape | TLLineShape | TLNoteShape | TLTextShape | TLVideoShape;
-
-    // @public (undocumented)
-    export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>;
-
-    // @public (undocumented)
-    export type TLDefaultVerticalAlignStyle = T.TypeOf<typeof DefaultVerticalAlignStyle>;
-
-    // @public
-    export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
-        // (undocumented)
-        gridSize: number;
-        // (undocumented)
-        name: string;
-    }
-
-    // @public (undocumented)
-    export const TLDOCUMENT_ID: RecordId<TLDocument>;
-
-    // @public (undocumented)
-    export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>;
-
-    // @public (undocumented)
-    export type TLDrawShapeSegment = T.TypeOf<typeof DrawShapeSegment>;
-
-    // @public (undocumented)
-    export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
-
-    // @public (undocumented)
-    export type TLEmbedShapePermissions = {
-        [K in keyof typeof embedShapePermissionDefaults]?: boolean;
     };
+    // (undocumented)
+    followingUserId: null | string;
+    // (undocumented)
+    lastActivityTimestamp: number;
+    // (undocumented)
+    screenBounds: Box2dModel;
+    // (undocumented)
+    scribble: null | TLScribble;
+    // (undocumented)
+    selectedIds: TLShapeId[];
+    // (undocumented)
+    userId: string;
+    // (undocumented)
+    userName: string;
+}
 
-    // @public (undocumented)
-    export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>;
+// @public (undocumented)
+export type TLLanguage = (typeof LANGUAGES)[number];
 
-    // @public (undocumented)
-    export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>;
+// @public (undocumented)
+export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>;
 
-    // @public (undocumented)
-    export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
+// @public (undocumented)
+export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
 
-    // @public
-    export interface TLHandle {
-        // (undocumented)
-        canBind?: boolean;
-        id: string;
-        // (undocumented)
-        index: string;
-        // (undocumented)
-        type: TLHandleType;
-        // (undocumented)
-        x: number;
-        // (undocumented)
-        y: number;
-    }
+// @public (undocumented)
+export type TLOpacityType = number;
 
-    // @public
-    export type TLHandleType = SetValue<typeof TL_HANDLE_TYPES>;
+// @public
+export interface TLPage extends BaseRecord<'page', TLPageId> {
+    // (undocumented)
+    index: string;
+    // (undocumented)
+    name: string;
+}
 
-    // @public (undocumented)
-    export type TLHighlightShape = TLBaseShape<'highlight', TLHighlightShapeProps>;
+// @public (undocumented)
+export type TLPageId = RecordId<TLPage>;
 
-    // @public
-    export type TLImageAsset = TLBaseAsset<'image', {
-        w: number;
-        h: number;
-        name: string;
-        isAnimated: boolean;
-        mimeType: null | string;
-        src: null | string;
-    }>;
+// @public (undocumented)
+export type TLParentId = TLPageId | TLShapeId;
 
-    // @public (undocumented)
-    export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>;
+// @public (undocumented)
+export const TLPOINTER_ID: TLPointerId;
 
-    // @public (undocumented)
-    export type TLImageShapeCrop = T.TypeOf<typeof ImageShapeCrop>;
+// @public (undocumented)
+export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
 
-    // @public (undocumented)
-    export type TLImageShapeProps = ShapePropsType<typeof imageShapeProps>;
+// @public (undocumented)
+export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
 
-    // @public
-    export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
-        // (undocumented)
-        brush: Box2dModel | null;
-        // (undocumented)
-        chatMessage: string;
-        // (undocumented)
-        currentPageId: TLPageId;
-        // (undocumented)
-        cursor: TLCursor;
-        // (undocumented)
-        exportBackground: boolean;
-        // (undocumented)
-        followingUserId: null | string;
-        // (undocumented)
-        highlightedUserIds: string[];
-        // (undocumented)
-        isChatting: boolean;
-        // (undocumented)
-        isDebugMode: boolean;
-        // (undocumented)
-        isFocusMode: boolean;
-        // (undocumented)
-        isGridMode: boolean;
-        // (undocumented)
-        isPenMode: boolean;
-        // (undocumented)
-        isToolLocked: boolean;
-        // (undocumented)
-        opacityForNextShape: TLOpacityType;
-        // (undocumented)
-        screenBounds: Box2dModel;
-        // (undocumented)
-        scribble: null | TLScribble;
-        // (undocumented)
-        stylesForNextShape: Record<string, unknown>;
-        // (undocumented)
-        zoomBrush: Box2dModel | null;
-    }
+// @public
+export type TLScribble = {
+    points: Vec2dModel[];
+    size: number;
+    color: TLCanvasUiColor;
+    opacity: number;
+    state: SetValue<typeof TL_SCRIBBLE_STATES>;
+    delay: number;
+};
 
-    // @public (undocumented)
-    export const TLINSTANCE_ID: TLInstanceId;
+// @public
+export type TLShape = TLDefaultShape | TLUnknownShape;
 
-    // @public (undocumented)
-    export type TLInstanceId = RecordId<TLInstance>;
+// @public (undocumented)
+export type TLShapeId = RecordId<TLUnknownShape>;
 
-    // @public
-    export interface TLInstancePageState extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
-        // (undocumented)
-        croppingId: null | TLShapeId;
-        // (undocumented)
-        editingId: null | TLShapeId;
-        // (undocumented)
-        erasingIds: TLShapeId[];
-        // (undocumented)
-        focusLayerId: null | TLShapeId;
-        // (undocumented)
-        hintingIds: TLShapeId[];
-        // (undocumented)
-        hoveredId: null | TLShapeId;
-        // (undocumented)
-        pageId: RecordId<TLPage>;
-        // (undocumented)
-        selectedIds: TLShapeId[];
-    }
+// @public (undocumented)
+export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
+    id: TLShapeId;
+    type: T['type'];
+    props?: Partial<T['props']>;
+} & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
 
-    // @public (undocumented)
-    export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
-        // (undocumented)
-        brush: Box2dModel | null;
-        // (undocumented)
-        camera: {
-            x: number;
-            y: number;
-            z: number;
-        };
-        // (undocumented)
-        chatMessage: string;
-        // (undocumented)
-        color: string;
-        // (undocumented)
-        currentPageId: TLPageId;
-        // (undocumented)
-        cursor: {
-            x: number;
-            y: number;
-            type: TLCursor['type'];
-            rotation: number;
-        };
-        // (undocumented)
-        followingUserId: null | string;
-        // (undocumented)
-        lastActivityTimestamp: number;
-        // (undocumented)
-        screenBounds: Box2dModel;
-        // (undocumented)
-        scribble: null | TLScribble;
-        // (undocumented)
-        selectedIds: TLShapeId[];
-        // (undocumented)
-        userId: string;
-        // (undocumented)
-        userName: string;
-    }
+// @public (undocumented)
+export type TLShapeProp = keyof TLShapeProps;
 
-    // @public (undocumented)
-    export type TLLanguage = (typeof LANGUAGES)[number];
+// @public (undocumented)
+export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
 
-    // @public (undocumented)
-    export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>;
+// @public (undocumented)
+export type TLStore = Store<TLRecord, TLStoreProps>;
 
-    // @public (undocumented)
-    export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
+// @public (undocumented)
+export type TLStoreProps = {
+    defaultName: string;
+};
 
-    // @public (undocumented)
-    export type TLOpacityType = number;
+// @public (undocumented)
+export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 
-    // @public
-    export interface TLPage extends BaseRecord<'page', TLPageId> {
-        // (undocumented)
-        index: string;
-        // (undocumented)
-        name: string;
-    }
+// @public (undocumented)
+export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
 
-    // @public (undocumented)
-    export type TLPageId = RecordId<TLPage>;
+// @public (undocumented)
+export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
 
-    // @public (undocumented)
-    export type TLParentId = TLPageId | TLShapeId;
+// @public (undocumented)
+export type TLTextShapeProps = ShapePropsType<typeof textShapeProps>;
 
-    // @public (undocumented)
-    export const TLPOINTER_ID: TLPointerId;
+// @public
+export type TLUnknownShape = TLBaseShape<string, object>;
 
-    // @public (undocumented)
-    export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
+// @public
+export type TLVideoAsset = TLBaseAsset<'video', {
+    w: number;
+    h: number;
+    name: string;
+    isAnimated: boolean;
+    mimeType: null | string;
+    src: null | string;
+}>;
 
-    // @public (undocumented)
-    export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
+// @public (undocumented)
+export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
 
-    // @public
-    export type TLScribble = {
-        points: Vec2dModel[];
-        size: number;
-        color: TLCanvasUiColor;
-        opacity: number;
-        state: SetValue<typeof TL_SCRIBBLE_STATES>;
-        delay: number;
-    };
+// @public
+export interface Vec2dModel {
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+    // (undocumented)
+    z?: number;
+}
 
-    // @public
-    export type TLShape = TLDefaultShape | TLUnknownShape;
+// @public (undocumented)
+export const vec2dModelValidator: T.Validator<Vec2dModel>;
 
-    // @public (undocumented)
-    export type TLShapeId = RecordId<TLUnknownShape>;
+// @internal (undocumented)
+export const videoShapeMigrations: Migrations;
 
-    // @public (undocumented)
-    export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
-        id: TLShapeId;
-        type: T['type'];
-        props?: Partial<T['props']>;
-    } & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
+// @public (undocumented)
+export const videoShapeProps: {
+    w: T.Validator<number>;
+    h: T.Validator<number>;
+    time: T.Validator<number>;
+    playing: T.Validator<boolean>;
+    url: T.Validator<string>;
+    assetId: T.Validator<TLAssetId | null>;
+};
 
-    // @public (undocumented)
-    export type TLShapeProp = keyof TLShapeProps;
+// (No @packageDocumentation comment for this package)
 
-    // @public (undocumented)
-    export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
-
-    // @public (undocumented)
-    export type TLStore = Store<TLRecord, TLStoreProps>;
-
-    // @public (undocumented)
-    export type TLStoreProps = {
-        defaultName: string;
-    };
-
-    // @public (undocumented)
-    export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
-
-    // @public (undocumented)
-    export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
-
-    // @public (undocumented)
-    export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
-
-    // @public (undocumented)
-    export type TLTextShapeProps = ShapePropsType<typeof textShapeProps>;
-
-    // @public
-    export type TLUnknownShape = TLBaseShape<string, object>;
-
-    // @public
-    export type TLVideoAsset = TLBaseAsset<'video', {
-        w: number;
-        h: number;
-        name: string;
-        isAnimated: boolean;
-        mimeType: null | string;
-        src: null | string;
-    }>;
-
-    // @public (undocumented)
-    export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>;
-
-    // @public
-    export interface Vec2dModel {
-        // (undocumented)
-        x: number;
-        // (undocumented)
-        y: number;
-        // (undocumented)
-        z?: number;
-    }
-
-    // @public (undocumented)
-    export const vec2dModelValidator: T.Validator<Vec2dModel>;
-
-    // @internal (undocumented)
-    export const videoShapeMigrations: Migrations;
-
-    // @public (undocumented)
-    export const videoShapeProps: {
-        w: T.Validator<number>;
-        h: T.Validator<number>;
-        time: T.Validator<number>;
-        playing: T.Validator<boolean>;
-        url: T.Validator<string>;
-        assetId: T.Validator<TLAssetId | null>;
-    };
-
-    // (No @packageDocumentation comment for this package)
-
-    ```
+```

@@ -3,7 +3,7 @@ import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
-/** @internal */
+/** @public */
 export const bookmarkShapeProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,

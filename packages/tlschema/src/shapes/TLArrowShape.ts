@@ -36,7 +36,7 @@ export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum('tldraw:arrowhea
 /** @public */
 export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>
 
-/** @internal */
+/** @public */
 const ArrowShapeTerminal = T.union('type', {
 	binding: T.object({
 		type: T.literal('binding'),
