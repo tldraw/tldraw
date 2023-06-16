@@ -14,7 +14,7 @@ async function dev() {
 
 	log({ cmd: 'esbuild', args: { entryPoints } })
 	try {
-		esbuild.build({
+		const builder = await esbuild.context({
 			entryPoints,
 			outdir: join(rootDir, 'dist', 'web'),
 			minify: false,
@@ -28,16 +28,21 @@ async function dev() {
 			},
 			tsconfig: './tsconfig.json',
 			external: ['vscode'],
-			incremental: true,
-			watch: {
-				onRebuild(err) {
-					if (err) {
-						log({ cmd: 'esbuild:error', args: { error: err } })
-					} else {
-						log({ cmd: 'esbuild:success', args: {} })
-					}
+			plugins: [
+				{
+					name: 'log-builds',
+					setup(build) {
+						build.onEnd((result) => {
+							if (result.errors.length) {
+								log({ cmd: 'esbuild:error', args: { err: result.errors } })
+							} else {
+								copyEditor({ log })
+								log({ cmd: 'esbuild:success', args: {} })
+							}
+						})
+					},
 				},
-			},
+			],
 			loader: {
 				'.woff2': 'dataurl',
 				'.woff': 'dataurl',
@@ -46,6 +51,7 @@ async function dev() {
 				'.json': 'file',
 			},
 		})
+		await builder.watch()
 	} catch (error) {
 		log({ cmd: 'esbuild:error', args: { error } })
 		throw error

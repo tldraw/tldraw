@@ -33,7 +33,7 @@
 		"@typescript-eslint/utils": "^5.59.0",
 		"ast-types": "^0.14.2",
 		"cross-fetch": "^3.1.5",
-		"esbuild": "^0.16.7",
+		"esbuild": "^0.18.3",
 		"glob": "^8.0.3",
 		"is-ci": "^3.0.1",
 		"kleur": "^4.1.5",
