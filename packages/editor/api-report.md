@@ -393,7 +393,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     bringToFront(ids?: TLShapeId[]): this;
     get brush(): Box2dModel | null;
     get camera(): TLCamera;
-    get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
     get canMoveCamera(): boolean;

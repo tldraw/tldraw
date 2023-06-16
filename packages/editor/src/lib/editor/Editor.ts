@@ -85,7 +85,6 @@ import { AnyTLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
-	CAMERA_MOVING_TIMEOUT,
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
@@ -118,6 +117,7 @@ import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ActiveAreaManager, getActiveAreaScreenSpace } from './managers/ActiveAreaManager'
+import { CameraManager } from './managers/CameraManager'
 import { ClickManager } from './managers/ClickManager'
 import { DprManager } from './managers/DprManager'
 import { ExternalContentManager, TLExternalContent } from './managers/ExternalContentManager'
@@ -370,6 +370,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _dprManager = new DprManager(this)
+
+	/** @internal */
+	private _cameraManager = new CameraManager(this)
 
 	/** @internal */
 	private _activeAreaManager = new ActiveAreaManager(this)
@@ -2372,7 +2375,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this._tickCameraState()
+		this._cameraManager.tick()
 		this.updateRenderingBounds()
 
 		const { editingId } = this
@@ -2652,47 +2655,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._renderingBounds.set(viewportPageBounds.clone())
 		this._renderingBoundsExpanded.set(viewportPageBounds.clone().expandBy(100 / this.zoomLevel))
 		return this
-	}
-
-	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
-
-	/**
-	 * Whether the camera is moving or idle.
-	 *
-	 * @public
-	 */
-	@computed get cameraState() {
-		return this._cameraState.value
-	}
-
-	// Camera state does two things: first, it allows us to subscribe to whether
-	// the camera is moving or not; and second, it allows us to update the rendering
-	// shapes on the canvas. Changing the rendering shapes may cause shapes to
-	// unmount / remount in the DOM, which is expensive; and computing visibility is
-	// also expensive in large projects. For this reason, we use a second bounding
-	// box just for rendering, and we only update after the camera stops moving.
-
-	private _cameraStateTimeoutRemaining = 0
-
-	private _decayCameraStateTimeout = (elapsed: number) => {
-		this._cameraStateTimeoutRemaining -= elapsed
-
-		if (this._cameraStateTimeoutRemaining <= 0) {
-			this.off('tick', this._decayCameraStateTimeout)
-			this._cameraState.set('idle')
-			this.updateRenderingBounds()
-		}
-	}
-
-	private _tickCameraState = () => {
-		// always reset the timeout
-		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
-
-		// If the state is idle, then start the tick
-		if (this._cameraState.__unsafe__getWithoutCapture() === 'idle') {
-			this._cameraState.set('moving')
-			this.on('tick', this._decayCameraStateTimeout)
-		}
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -8498,7 +8460,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				isPen: this.isPenMode ?? false,
 			})
 
-			this._tickCameraState()
+			this._cameraManager.tick()
 		})
 
 		return this
