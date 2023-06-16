@@ -39,9 +39,9 @@ export function useYjsStore({
 		// We'll use this flag to prevent repeating subscriptions if our connection drops and reconnects.
 		let didConnect = false
 
-		room.on('status', (connected: boolean) => {
+		room.on('status', ({ status }: { status: 'connecting' | 'disconnected' | 'connected' }) => {
 			// If we're disconnected, set the store status to 'synced-remote' and the connection status to 'offline'
-			if (!connected) {
+			if (status === 'connecting' || status === 'disconnected') {
 				setStoreWithStatus({
 					store,
 					status: 'synced-remote',
@@ -49,6 +49,8 @@ export function useYjsStore({
 				})
 				return
 			}
+
+			if (status !== 'connected') return
 
 			if (didConnect) {
 				setStoreWithStatus({
@@ -220,7 +222,6 @@ export function useYjsStore({
 		})
 
 		return () => {
-			console.log('clearing store listener', Date.now())
 			unsubs.forEach((fn) => fn())
 			unsubs.length = 0
 		}
