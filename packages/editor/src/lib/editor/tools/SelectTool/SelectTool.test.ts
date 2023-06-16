@@ -46,7 +46,7 @@ describe('TLSelectTool.Translating', () => {
 
 		expect(editor.shapesArray.length).toBe(1)
 		editor.expectShapeToMatch({ id: ids.box1, x: 150, y: 150 })
-		const t1 = [...editor.shapeIds.values()]
+		const t1 = [...editor.currentPageShapeIds.values()]
 
 		editor.keyDown('Alt')
 		expect(editor.shapesArray.length).toBe(2)
@@ -66,7 +66,7 @@ describe('TLSelectTool.Translating', () => {
 
 		editor.expectShapeToMatch({ id: ids.box1, x: 150, y: 150 })
 
-		expect([...editor.shapeIds.values()]).toMatchObject(t1)
+		expect([...editor.currentPageShapeIds.values()]).toMatchObject(t1)
 
 		// todo: Should cloning again duplicate new shapes, or restore the last clone?
 		// editor.keyDown('Alt')

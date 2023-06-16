@@ -435,6 +435,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly _cullingBoundsExpanded: Atom<Box2d, unknown>;
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
+    get currentPageShapeIds(): Set<TLShapeId>;
     get currentToolId(): string;
     get cursor(): TLCursor;
     deleteAssets(ids: TLAssetId[]): this;
@@ -684,7 +685,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     setSnapMode(isSnapMode: boolean): this;
     setToolLocked(isToolLocked: boolean): this;
     setZoomBrush(zoomBrush?: Box2dModel | null): this;
-    get shapeIds(): Set<TLShapeId>;
     get shapesArray(): TLShape[];
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
