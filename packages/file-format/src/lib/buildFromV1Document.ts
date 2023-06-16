@@ -4,22 +4,22 @@ import {
 	Editor,
 	MAX_SHAPES_PER_PAGE,
 	PageRecordType,
-	TLAlignType,
 	TLArrowShape,
-	TLArrowTerminal,
-	TLArrowheadType,
+	TLArrowShapeArrowheadStyle,
+	TLArrowShapeTerminal,
 	TLAsset,
 	TLAssetId,
-	TLColorType,
-	TLDashType,
+	TLDefaultColorStyle,
+	TLDefaultDashStyle,
+	TLDefaultFontStyle,
+	TLDefaultHorizontalAlignStyle,
+	TLDefaultSizeStyle,
 	TLDrawShape,
-	TLFontType,
 	TLGeoShape,
 	TLImageShape,
 	TLNoteShape,
 	TLPageId,
 	TLShapeId,
-	TLSizeType,
 	TLTextShape,
 	TLVideoShape,
 	Vec2dModel,
@@ -563,7 +563,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 								if (change) {
 									if (change.props?.[handleId]) {
-										const terminal = change.props?.[handleId] as TLArrowTerminal
+										const terminal = change.props?.[handleId] as TLArrowShapeTerminal
 										if (terminal.type === 'binding') {
 											terminal.isExact = binding.distance === 0
 
@@ -1076,7 +1076,7 @@ export interface LegacyTldrawDocument {
 
 /* ------------------ Translations ------------------ */
 
-const v1ColorsToV2Colors: Record<ColorStyle, TLColorType> = {
+const v1ColorsToV2Colors: Record<ColorStyle, TLDefaultColorStyle> = {
 	[ColorStyle.White]: 'black',
 	[ColorStyle.Black]: 'black',
 	[ColorStyle.LightGray]: 'grey',
@@ -1091,60 +1091,60 @@ const v1ColorsToV2Colors: Record<ColorStyle, TLColorType> = {
 	[ColorStyle.Violet]: 'light-violet',
 }
 
-const v1FontsToV2Fonts: Record<FontStyle, TLFontType> = {
+const v1FontsToV2Fonts: Record<FontStyle, TLDefaultFontStyle> = {
 	[FontStyle.Mono]: 'mono',
 	[FontStyle.Sans]: 'sans',
 	[FontStyle.Script]: 'draw',
 	[FontStyle.Serif]: 'serif',
 }
 
-const v1AlignsToV2Aligns: Record<AlignStyle, TLAlignType> = {
+const v1AlignsToV2Aligns: Record<AlignStyle, TLDefaultHorizontalAlignStyle> = {
 	[AlignStyle.Start]: 'start',
 	[AlignStyle.Middle]: 'middle',
 	[AlignStyle.End]: 'end',
 	[AlignStyle.Justify]: 'start',
 }
 
-const v1TextSizesToV2TextSizes: Record<SizeStyle, TLSizeType> = {
+const v1TextSizesToV2TextSizes: Record<SizeStyle, TLDefaultSizeStyle> = {
 	[SizeStyle.Small]: 's',
 	[SizeStyle.Medium]: 'l',
 	[SizeStyle.Large]: 'xl',
 }
 
-const v1SizesToV2Sizes: Record<SizeStyle, TLSizeType> = {
+const v1SizesToV2Sizes: Record<SizeStyle, TLDefaultSizeStyle> = {
 	[SizeStyle.Small]: 'm',
 	[SizeStyle.Medium]: 'l',
 	[SizeStyle.Large]: 'xl',
 }
 
-const v1DashesToV2Dashes: Record<DashStyle, TLDashType> = {
+const v1DashesToV2Dashes: Record<DashStyle, TLDefaultDashStyle> = {
 	[DashStyle.Solid]: 'solid',
 	[DashStyle.Dashed]: 'dashed',
 	[DashStyle.Dotted]: 'dotted',
 	[DashStyle.Draw]: 'draw',
 }
 
-function getV2Color(color: ColorStyle | undefined): TLColorType {
+function getV2Color(color: ColorStyle | undefined): TLDefaultColorStyle {
 	return color ? v1ColorsToV2Colors[color] ?? 'black' : 'black'
 }
 
-function getV2Font(font: FontStyle | undefined): TLFontType {
+function getV2Font(font: FontStyle | undefined): TLDefaultFontStyle {
 	return font ? v1FontsToV2Fonts[font] ?? 'draw' : 'draw'
 }
 
-function getV2Align(align: AlignStyle | undefined): TLAlignType {
+function getV2Align(align: AlignStyle | undefined): TLDefaultHorizontalAlignStyle {
 	return align ? v1AlignsToV2Aligns[align] ?? 'middle' : 'middle'
 }
 
-function getV2TextSize(size: SizeStyle | undefined): TLSizeType {
+function getV2TextSize(size: SizeStyle | undefined): TLDefaultSizeStyle {
 	return size ? v1TextSizesToV2TextSizes[size] ?? 'm' : 'm'
 }
 
-function getV2Size(size: SizeStyle | undefined): TLSizeType {
+function getV2Size(size: SizeStyle | undefined): TLDefaultSizeStyle {
 	return size ? v1SizesToV2Sizes[size] ?? 'l' : 'l'
 }
 
-function getV2Dash(dash: DashStyle | undefined): TLDashType {
+function getV2Dash(dash: DashStyle | undefined): TLDefaultDashStyle {
 	return dash ? v1DashesToV2Dashes[dash] ?? 'draw' : 'draw'
 }
 
@@ -1156,7 +1156,7 @@ function getV2Point(point: number[]): Vec2dModel {
 	}
 }
 
-function getV2Arrowhead(decoration: Decoration | undefined): TLArrowheadType {
+function getV2Arrowhead(decoration: Decoration | undefined): TLArrowShapeArrowheadStyle {
 	return decoration === Decoration.Arrow ? 'arrow' : 'none'
 }
 

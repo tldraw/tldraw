@@ -1,9 +1,9 @@
 import { Box2d } from '@tldraw/primitives'
 import { TLGeoShape, TLNoteShape } from '@tldraw/tlschema'
-import { LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { getLegacyOffsetX } from '../../../utils/legacy'
 import { Editor } from '../../Editor'
 import { createTextSvgElementFromSpans } from './createTextSvgElementFromSpans'
+import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
 
 export function getTextLabelSvgElement({
 	bounds,

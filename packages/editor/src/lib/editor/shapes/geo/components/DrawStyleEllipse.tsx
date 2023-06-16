@@ -32,7 +32,7 @@ export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
 	return (
 		<>
 			<ShapeFill d={innerPath} color={color} fill={fill} />
-			<path d={outerPath} fill="currentColor" strokeWidth={0} pointerEvents="all" />
+			<path d={outerPath} fill={`var(--palette-${color})`} strokeWidth={0} pointerEvents="all" />
 		</>
 	)
 })

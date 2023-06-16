@@ -1,4 +1,4 @@
-import { Box2dModel, TLAlignType } from '@tldraw/tlschema'
+import { Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/data'
 import { Editor } from '../Editor'
 import { TextHelpers } from '../shapes/text/TextHelpers'
@@ -23,7 +23,7 @@ type TLMeasureTextSpanOpts = {
 	fontFamily: string
 	fontStyle: string
 	lineHeight: number
-	textAlign: TLAlignType
+	textAlign: TLDefaultHorizontalAlignStyle
 }
 
 const spaceCharacterRegex = /\s/

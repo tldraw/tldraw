@@ -25,14 +25,15 @@ import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	Box2dModel,
 	CameraRecordType,
+	DefaultColorStyle,
+	DefaultFontStyle,
 	InstancePageStateRecordType,
 	PageRecordType,
+	StyleProp,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
-	TLColorStyle,
-	TLColorType,
 	TLCursor,
 	TLCursorType,
 	TLDOCUMENT_ID,
@@ -43,7 +44,6 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
-	TLNullableShapeProps,
 	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
@@ -53,14 +53,12 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLShapeProp,
-	TLSizeStyle,
 	TLStore,
-	TLStyleType,
 	TLUnknownShape,
 	TLVideoAsset,
 	Vec2dModel,
 	createShapeId,
+	getShapePropKeysByStyle,
 	isPageId,
 	isShape,
 	isShapeId,
@@ -73,6 +71,7 @@ import {
 	deepCopy,
 	getOwnProperty,
 	hasOwnProperty,
+	objectMapFromEntries,
 	partition,
 	sortById,
 	structuredClone,
@@ -85,7 +84,8 @@ import { checkShapesAndAddCore } from '../config/defaultShapes'
 import { AnyTLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
-	BLACKLISTED_PROPS,
+	CAMERA_MAX_RENDERING_INTERVAL,
+	CAMERA_MOVING_TIMEOUT,
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
@@ -104,21 +104,19 @@ import {
 	MAX_ZOOM,
 	MINOR_NUDGE_FACTOR,
 	MIN_ZOOM,
-	STYLES,
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
 import { exportPatternSvgDefs } from '../hooks/usePattern'
+import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
-import { setPropsForNextShape } from '../utils/props-for-next-shape'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
-import { shapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ActiveAreaManager, getActiveAreaScreenSpace } from './managers/ActiveAreaManager'
-import { CameraManager } from './managers/CameraManager'
 import { ClickManager } from './managers/ClickManager'
 import { DprManager } from './managers/DprManager'
 import { ExternalContentManager, TLExternalContent } from './managers/ExternalContentManager'
@@ -217,9 +215,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}" is present in the store schema but not provided to the editor`
 			)
 		}
-		this.shapeUtils = Object.fromEntries(
-			allShapes.map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
-		)
+		const shapeUtils = {} as Record<string, ShapeUtil>
+		const allStylesById = new Map<string, StyleProp<unknown>>()
+
+		for (const { util: Util, props } of allShapes) {
+			const propKeysByStyle = getShapePropKeysByStyle(props ?? {})
+			shapeUtils[Util.type] = new Util(this, Util.type, propKeysByStyle)
+
+			for (const style of propKeysByStyle.keys()) {
+				if (!allStylesById.has(style.id)) {
+					allStylesById.set(style.id, style)
+				} else if (allStylesById.get(style.id) !== style) {
+					throw Error(
+						`Multiple style props with id "${style.id}" in use. Style prop IDs must be unique.`
+					)
+				}
+			}
+		}
+
+		this.shapeUtils = shapeUtils
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
@@ -248,9 +262,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.isIos = false
 			this.isChromeForIos = false
 		}
-
-		// Set styles
-		this.colors = new Map(Editor.styles.color.map((c) => [c.id, `var(--palette-${c.id})`]))
 
 		this.store.onBeforeDelete = (record) => {
 			if (record.typeName === 'shape') {
@@ -294,7 +305,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this._shapeIds = shapeIdsInCurrentPage(this.store, () => this.currentPageId)
+		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
 		this._parentIdsToChildIds = parentsToChildrenWithIndexes(this.store)
 
 		this.disposables.add(
@@ -341,7 +352,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
-		this.updateCullingBounds()
+		this.updateRenderingBounds()
 
 		requestAnimationFrame(() => {
 			this._tickManager.start()
@@ -363,13 +374,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly root: RootState
 
 	/**
-	 * A cache of shape ids in the current page.
-	 *
-	 * @internal
-	 */
-	private readonly _shapeIds: ReturnType<typeof shapeIdsInCurrentPage>
-
-	/**
 	 * A set of functions to call when the app is disposed.
 	 *
 	 * @public
@@ -378,9 +382,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _dprManager = new DprManager(this)
-
-	/** @internal */
-	private _cameraManager = new CameraManager(this)
 
 	/** @internal */
 	private _activeAreaManager = new ActiveAreaManager(this)
@@ -429,41 +430,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly isChromeForIos: boolean
 
-	// Flags
-
-	private _canMoveCamera = atom('can move camera', true)
-
-	/**
-	 * Whether the editor's camera can move.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.canMoveCamera = false
-	 * ```
-	 *
-	 * @param canMove - Whether the camera can move.
-	 *
-	 * @public
-	 */
-	get canMoveCamera() {
-		return this._canMoveCamera.value
-	}
-
-	set canMoveCamera(canMove: boolean) {
-		this._canMoveCamera.set(canMove)
-	}
-
-	private _isFocused = atom('_isFocused', false)
-
-	/**
-	 * Whether or not the editor is focused.
-	 *
-	 * @public
-	 */
-	get isFocused() {
-		return this._isFocused.value
-	}
-
 	/**
 	 * The current HTML element containing the editor.
 	 *
@@ -475,245 +441,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
-
-	/** @internal */
-	annotateError(
-		error: unknown,
-		{
-			origin,
-			willCrashApp,
-			tags,
-			extras,
-		}: {
-			origin: string
-			willCrashApp: boolean
-			tags?: Record<string, string | boolean | number>
-			extras?: Record<string, unknown>
-		}
-	) {
-		const defaultAnnotations = this.createErrorAnnotations(origin, willCrashApp)
-		annotateError(error, {
-			tags: { ...defaultAnnotations.tags, ...tags },
-			extras: { ...defaultAnnotations.extras, ...extras },
-		})
-		if (willCrashApp) {
-			this.store.markAsPossiblyCorrupted()
-		}
-	}
-
-	/** @internal */
-	createErrorAnnotations(
-		origin: string,
-		willCrashApp: boolean | 'unknown'
-	): {
-		tags: { origin: string; willCrashApp: boolean | 'unknown' }
-		extras: {
-			activeStateNode?: string
-			selectedShapes?: TLUnknownShape[]
-			editingShape?: TLUnknownShape
-			inputs?: Record<string, unknown>
-		}
-	} {
-		try {
-			return {
-				tags: {
-					origin: origin,
-					willCrashApp,
-				},
-				extras: {
-					activeStateNode: this.root.path.value,
-					selectedShapes: this.selectedShapes,
-					editingShape: this.editingId ? this.getShapeById(this.editingId) : undefined,
-					inputs: this.inputs,
-				},
-			}
-		} catch {
-			return {
-				tags: {
-					origin: origin,
-					willCrashApp,
-				},
-				extras: {},
-			}
-		}
-	}
-
-	/** @internal */
-	private _crashingError: unknown | null = null
-
-	/**
-	 * We can't use an `atom` here because there's a chance that when `crashAndReportError` is called,
-	 * we're in a transaction that's about to be rolled back due to the same error we're currently
-	 * reporting.
-	 *
-	 * Instead, to listen to changes to this value, you need to listen to app's `crash` event.
-	 *
-	 * @internal
-	 */
-	get crashingError() {
-		return this._crashingError
-	}
-
-	/** @internal */
-	crash(error: unknown) {
-		this._crashingError = error
-		this.store.markAsPossiblyCorrupted()
-		this.emit('crash', { error })
-	}
-
-	/**
-	 * The window's device pixel ratio.
-	 *
-	 * @public
-	 */
-	get devicePixelRatio() {
-		return this._dprManager.dpr.value
-	}
-
-	private _openMenus = atom('open-menus', [] as string[])
-
-	/**
-	 * A set of strings representing any open menus. When menus are open,
-	 * certain interactions will behave differently; for example, when a
-	 * draw tool is selected and a menu is open, a pointer-down will not
-	 * create a dot (because the user is probably trying to close the menu)
-	 * however a pointer-down event followed by a drag will begin drawing
-	 * a line (because the user is BOTH trying to close the menu AND start
-	 * drawing a line).
-	 *
-	 * @public
-	 */
-	@computed get openMenus(): string[] {
-		return this._openMenus.value
-	}
-
-	/**
-	 * Add an open menu.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.addOpenMenu('menu-id')
-	 * ```
-	 *
-	 * @public
-	 */
-	addOpenMenu(id: string) {
-		const menus = new Set(this.openMenus)
-		if (!menus.has(id)) {
-			menus.add(id)
-			this._openMenus.set([...menus])
-		}
-		return this
-	}
-
-	/**
-	 * Delete an open menu.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.deleteOpenMenu('menu-id')
-	 * ```
-	 *
-	 * @public
-	 */
-	deleteOpenMenu(id: string) {
-		const menus = new Set(this.openMenus)
-		if (menus.has(id)) {
-			menus.delete(id)
-			this._openMenus.set([...menus])
-		}
-		return this
-	}
-
-	/**
-	 * Get whether any menus are open.
-	 *
-	 * @public
-	 */
-	@computed get isMenuOpen() {
-		return this.openMenus.length > 0
-	}
-
-	/** @internal */
-	private _isCoarsePointer = atom<boolean>('isCoarsePointer', false as any)
-
-	/**
-	 * Whether the user is using a "coarse" pointer, such as on a touch screen. This is automatically set by the canvas.
-	 *
-	 * @public
-	 **/
-	get isCoarsePointer() {
-		return this._isCoarsePointer.value
-	}
-
-	set isCoarsePointer(v) {
-		this._isCoarsePointer.set(v)
-	}
-
-	/** @internal */
-	private _isChangingStyle = atom<boolean>('isChangingStyle', false as any)
-
-	/** @internal */
-	private _isChangingStyleTimeout = -1 as any
-
-	/**
-	 * Whether the user is currently changing the style of a shape. This may cause the UI to change.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.isChangingStyle = true
-	 * ```
-	 *
-	 * @public
-	 */
-	get isChangingStyle() {
-		return this._isChangingStyle.value
-	}
-
-	set isChangingStyle(v) {
-		this._isChangingStyle.set(v)
-		if (v === false) {
-			this.styleChanging = null
-		}
-
-		// Clear any reset timeout
-		clearTimeout(this._isChangingStyleTimeout)
-		if (v) {
-			// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
-			this._isChangingStyleTimeout = setTimeout(() => (this.isChangingStyle = false), 2000)
-		}
-	}
-
-	/** @internal */
-	private _styleChanging = atom<TLStyleType | null>('styleChanging', null)
-
-	/** @internal */
-	private _styleChangingTimeout = -1 as any
-
-	/**
-	 * The specific style the user is currently changing the shape of. This may cause the UI to change.
-	 *
-	 * @example
-	 *
-	 * ```ts
-	 * editor.isChangingStyle = true
-	 * ```
-	 *
-	 * @public
-	 */
-	get styleChanging() {
-		return this._styleChanging.value
-	}
-
-	set styleChanging(v) {
-		this._styleChanging.set(v)
-		// Clear any reset timeout
-		clearTimeout(this._styleChangingTimeout)
-		if (v) {
-			// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
-			this._styleChangingTimeout = setTimeout(() => (this.styleChanging = null), 2000)
-		}
-	}
 
 	/**
 	 * A cache of page transforms.
@@ -754,99 +481,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return result
 		})
 	}
-
-	/**
-	 * A cache of page masks used for clipping.
-	 *
-	 * @internal
-	 */
-	@computed private get _pageMaskCache(): ComputedCache<VecLike[], TLShape> {
-		return this.store.createComputedCache<VecLike[], TLShape>('pageMaskCache', (shape) => {
-			if (isPageId(shape.parentId)) {
-				return undefined
-			}
-
-			const frameAncestors = this.getAncestorsById(shape.id).filter((shape) =>
-				this.isShapeOfType(shape, FrameShapeUtil)
-			)
-
-			if (frameAncestors.length === 0) return undefined
-
-			const pageMask = frameAncestors
-				.map<VecLike[] | undefined>((s) =>
-					// Apply the frame transform to the frame outline to get the frame outline in page space
-					Matrix2d.applyToPoints(this._pageTransformCache.get(s.id)!, this.getOutline(s))
-				)
-				.reduce((acc, b) => (b && acc ? intersectPolygonPolygon(acc, b) ?? undefined : undefined))
-
-			return pageMask
-		})
-	}
-
-	/**
-	 * Get the page mask for a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * const pageMask = editor.getPageMaskById(shape.id)
-	 * ```
-	 *
-	 * @param id - The id of the shape to get the page mask for.
-	 *
-	 * @returns The page mask for the shape.
-	 *
-	 * @public
-	 */
-	getPageMaskById(id: TLShapeId) {
-		return this._pageMaskCache.get(id)
-	}
-
-	/**
-	 * A cache of clip paths used for clipping.
-	 *
-	 * @internal
-	 */
-	@computed private get _clipPathCache(): ComputedCache<string, TLShape> {
-		return this.store.createComputedCache<string, TLShape>('clipPathCache', (shape) => {
-			const pageMask = this._pageMaskCache.get(shape.id)
-			if (!pageMask) return undefined
-			const pageTransform = this._pageTransformCache.get(shape.id)
-			if (!pageTransform) return undefined
-
-			if (pageMask.length === 0) {
-				return `polygon(0px 0px, 0px 0px, 0px 0px)`
-			}
-
-			const localMask = Matrix2d.applyToPoints(Matrix2d.Inverse(pageTransform), pageMask)
-
-			return `polygon(${localMask.map((p) => `${p.x}px ${p.y}px`).join(',')})`
-		})
-	}
-
-	/**
-	 * Get the clip path for a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * const clipPath = editor.getClipPathById(shape.id)
-	 * ```
-	 *
-	 * @param id - The shape id.
-	 *
-	 * @returns The clip path or undefined.
-	 *
-	 * @public
-	 */
-	getClipPathById(id: TLShapeId) {
-		return this._clipPathCache.get(id)
-	}
-
-	/**
-	 * A cache of parents to children.
-	 *
-	 * @internal
-	 */
-	private readonly _parentIdsToChildIds: ReturnType<typeof parentsToChildrenWithIndexes>
 
 	/**
 	 * Dispose the editor.
@@ -1048,200 +682,97 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return shapeUtil as T
 	}
 
+	/* ---------------------- Props --------------------- */
+
 	/**
-	 * A cache of children for each parent.
+	 * Get all the current styles among the users selected shapes
 	 *
 	 * @internal
 	 */
-	private _childIdsCache = new WeakMapCache<any[], TLShapeId[]>()
-
-	/**
-	 * Get an array of all the children of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getSortedChildIds('frame1')
-	 * ```
-	 *
-	 * @param parentId - The id of the parent shape.
-	 *
-	 * @public
-	 */
-	getSortedChildIds(parentId: TLParentId): TLShapeId[] {
-		const withIndices = this._parentIdsToChildIds.value[parentId]
-		if (!withIndices) return EMPTY_ARRAY
-		return this._childIdsCache.get(withIndices, () => withIndices.map(([id]) => id))
-	}
-	/**
-	 * Run a visitor function for all descendants of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.visitDescendants('frame1', myCallback)
-	 * ```
-	 *
-	 * @param parentId - The id of the parent shape.
-	 * @param visitor - The visitor function.
-	 *
-	 * @public
-	 */
-	visitDescendants(parentId: TLParentId, visitor: (id: TLShapeId) => void | false) {
-		const children = this.getSortedChildIds(parentId)
-		for (const id of children) {
-			if (visitor(id) === false) continue
-			this.visitDescendants(id, visitor)
-		}
-	}
-
-	/**
-	 * The editor's current erasing ids.
-	 *
-	 * @public
-	 */
-	@computed get erasingIds() {
-		return this.pageState.erasingIds
-	}
-
-	/**
-	 * The editor's current hinting ids.
-	 *
-	 * @public
-	 */
-	@computed get hintingIds() {
-		return this.pageState.hintingIds
-	}
-
-	/**
-	 * A derived set containing the current erasing ids.
-	 *
-	 * @public
-	 */
-	@computed get erasingIdsSet() {
-		// todo: Make incremental derivation, so that this only gets updated when erasingIds changes: we're creating this too often!
-		return new Set<TLShapeId>(this.erasingIds)
-	}
-
-	/**
-	 * Get all the current props among the users selected shapes
-	 *
-	 * @internal
-	 */
-	private _extractSharedProps(shape: TLShape, sharedProps: TLNullableShapeProps) {
+	private _extractSharedStyles(shape: TLShape, sharedStyleMap: SharedStyleMap) {
 		if (this.isShapeOfType(shape, GroupShapeUtil)) {
-			// For groups, ignore the props of the group shape and instead include
-			// the props of the group's children. These are the shapes that would have
-			// their props changed if the user called `setProp` on the current selection.
+			// For groups, ignore the styles of the group shape and instead include the styles of the
+			// group's children. These are the shapes that would have their styles changed if the
+			// user called `setStyle` on the current selection.
 			const childIds = this._parentIdsToChildIds.value[shape.id]
 			if (!childIds) return
 
 			for (let i = 0, n = childIds.length; i < n; i++) {
-				this._extractSharedProps(this.getShapeById(childIds[i][0])!, sharedProps)
+				this._extractSharedStyles(this.getShapeById(childIds[i][0])!, sharedStyleMap)
 			}
 		} else {
-			const props = Object.entries(shape.props)
-			let prop: [TLShapeProp, any]
-			for (let i = 0, n = props.length; i < n; i++) {
-				prop = props[i] as [TLShapeProp, any]
-
-				// We should probably white list rather than black list here
-				if (BLACKLISTED_PROPS.has(prop[0])) continue
-
-				// Check the value of this prop on the shared props object.
-				switch (sharedProps[prop[0]]) {
-					case undefined: {
-						// If this key hasn't been defined yet in the shared props object,
-						// we can set it to the value from the shape's props object.
-						sharedProps[prop[0]] = prop[1]
-						break
-					}
-					case null:
-					case prop[1]: {
-						// If the value in the shared props object matches the value from
-						// the shape's props object exactly—or if there is already a mixed
-						// value (null) in the shared props object—then this is a noop. We
-						// want to leave the value as it is in the shared props object.
-						continue
-					}
-					default: {
-						// If there's a value in the shared props object that isn't null AND
-						// that isn't undefined AND that doesn't match the shape's props object,
-						// then we've got a conflict, mixed props, so set the value to null.
-						sharedProps[prop[0]] = null
-					}
-				}
+			const util = this.getShapeUtil(shape)
+			for (const [style, value] of util.iterateStyles(shape)) {
+				sharedStyleMap.applyValue(style, value)
 			}
 		}
 	}
 
 	/**
-	 * A derived object containing all current props among the user's selected shapes.
+	 * A derived map containing all current styles among the user's selected shapes.
 	 *
 	 * @internal
 	 */
-	private _selectionSharedProps = computed<TLNullableShapeProps>('_selectionSharedProps', () => {
-		const { selectedShapes } = this
+	private _selectionSharedStyles = computed<ReadonlySharedStyleMap>(
+		'_selectionSharedStyles',
+		() => {
+			const { selectedShapes } = this
 
-		const sharedProps = {} as TLNullableShapeProps
+			const sharedStyles = new SharedStyleMap()
+			for (const selectedShape of selectedShapes) {
+				this._extractSharedStyles(selectedShape, sharedStyles)
+			}
 
-		for (let i = 0, n = selectedShapes.length; i < n; i++) {
-			this._extractSharedProps(selectedShapes[i], sharedProps)
+			return sharedStyles
 		}
+	)
 
-		return sharedProps as TLNullableShapeProps
-	})
+	@computed private get _stylesForNextShape() {
+		return this.instanceState.stylesForNextShape
+	}
 
 	/** @internal */
-	private _prevProps: any = {}
-
-	/**
-	 * A derived object containing either all current props among the user's selected shapes, or else
-	 * the user's most recent prop choices that correspond to the current active state (i.e. the
-	 * selected tool).
-	 *
-	 * @internal
-	 */
-	@computed get props(): TLNullableShapeProps | null {
-		let next: TLNullableShapeProps | null
-
-		// If we're in selecting and if we have a selection,
-		// return the shared props from the current selection
-		if (this.isIn('select') && this.selectedIds.length > 0) {
-			next = this._selectionSharedProps.value
-		} else {
-			// Otherwise, pull the style props from the app state
-			// (the most recent choices made by the user) that are
-			// exposed by the current state (i.e. the active tool).
-			const currentState = this.root.current.value!
-			if (currentState.styles.length === 0) {
-				next = null
-			} else {
-				const { propsForNextShape } = this.instanceState
-				next = Object.fromEntries(
-					currentState.styles.map((k) => {
-						return [k, propsForNextShape[k]]
-					})
-				)
-			}
-		}
-
-		// todo: any way to improve this? still faster than rendering the style panel every frame
-		if (JSON.stringify(this._prevProps) === JSON.stringify(next)) {
-			return this._prevProps
-		}
-
-		this._prevProps = next
-
-		return next
+	getStyleForNextShape<T>(style: StyleProp<T>): T {
+		const value = this._stylesForNextShape[style.id]
+		return value === undefined ? style.defaultValue : (value as T)
 	}
 
 	/**
-	 * Get the currently selected opacity.
-	 * If any shapes are selected, this returns the opacity of the selected shapes.
+	 * A derived object containing either all current styles among the user's selected shapes, or
+	 * else the user's most recent style choices that correspond to the current active state (i.e.
+	 * the selected tool).
+	 *
+	 * @public
+	 */
+	@computed<ReadonlySharedStyleMap>({ isEqual: (a, b) => a.equals(b) })
+	get sharedStyles(): ReadonlySharedStyleMap {
+		// If we're in selecting and if we have a selection, return the shared styles from the
+		// current selection
+		if (this.isIn('select') && this.selectedIds.length > 0) {
+			return this._selectionSharedStyles.value
+		}
+
+		// If the current tool is associated with a shape, return the styles for that shape.
+		// Otherwise, just return an empty map.
+		const currentTool = this.root.current.value!
+		const styles = new SharedStyleMap()
+		if (currentTool.shapeType) {
+			for (const style of this.getShapeUtil(currentTool.shapeType).styleProps.keys()) {
+				styles.applyValue(style, this.getStyleForNextShape(style))
+			}
+		}
+
+		return styles
+	}
+
+	/**
+	 * Get the currently selected shared opacity.
+	 * If any shapes are selected, this returns the shared opacity of the selected shapes.
 	 * Otherwise, this returns the chosen opacity for the next shape.
 	 *
 	 * @public
 	 */
-	@computed get opacity(): number | null {
+	@computed get sharedOpacity(): SharedStyle<number> {
 		if (this.isIn('select') && this.selectedIds.length > 0) {
 			const shapesToCheck: TLShape[] = []
 			const addShape = (shapeId: TLShapeId) => {
@@ -1267,48 +798,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (opacity === null) {
 					opacity = shape.opacity
 				} else if (opacity !== shape.opacity) {
-					return null
+					return { type: 'mixed' }
 				}
 			}
 
-			return opacity
-		} else {
-			return this.instanceState.opacityForNextShape
+			if (opacity !== null) return { type: 'shared', value: opacity }
 		}
-	}
-
-	/**
-	 * An array of all of the shapes on the current page.
-	 *
-	 * @public
-	 */
-	get shapeIds() {
-		return this._shapeIds.value
-	}
-
-	/**
-	 * _invalidParents is used to trigger the 'onChildrenChange' callback that shapes can have.
-	 *
-	 * @internal
-	 */
-	private readonly _invalidParents = new Set<TLShapeId>()
-
-	/** @internal */
-	private _complete() {
-		for (const parentId of this._invalidParents) {
-			this._invalidParents.delete(parentId)
-			const parent = this.getShapeById(parentId)
-			if (!parent) continue
-
-			const util = this.getShapeUtil(parent)
-			const changes = util.onChildrenChange?.(parent)
-
-			if (changes?.length) {
-				this.updateShapes(changes, true)
-			}
-		}
-
-		this.emit('update')
+		return { type: 'shared', value: this.instanceState.opacityForNextShape }
 	}
 
 	/** @internal */
@@ -1336,7 +832,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const startShape = start.type === 'binding' ? this.getShapeById(start.boundShapeId) : undefined
 		const endShape = end.type === 'binding' ? this.getShapeById(end.boundShapeId) : undefined
 
-		const parentPageId = this.getParentPageId(arrow)
+		const parentPageId = this.getAncestorPageId(arrow)
 		if (!parentPageId) return
 
 		let nextParentId: TLParentId
@@ -1357,8 +853,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const reparentedArrow = this.getShapeById<TLArrowShape>(arrowId)
 		if (!reparentedArrow) throw Error('no reparented arrow')
 
-		const startSibling = this.getNearestSiblingShape(reparentedArrow, startShape)
-		const endSibling = this.getNearestSiblingShape(reparentedArrow, endShape)
+		const startSibling = this.getShapeNearestSibling(reparentedArrow, startShape)
+		const endSibling = this.getShapeNearestSibling(reparentedArrow, endShape)
 
 		let highestSibling: TLShape | undefined
 
@@ -1465,7 +961,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (terminal.type !== 'binding') continue
 			const boundShape = this.getShapeById(terminal.boundShapeId)
 			const isShapeInSamePageAsArrow =
-				this.getParentPageId(arrow) === this.getParentPageId(boundShape)
+				this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
 			if (!boundShape || !isShapeInSamePageAsArrow) {
 				this._unbindArrowTerminal(arrow, handle)
 			}
@@ -1473,6 +969,31 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// always check the arrow parents
 		this._reparentArrow(arrow.id)
+	}
+
+	/**
+	 * _invalidParents is used to trigger the 'onChildrenChange' callback that shapes can have.
+	 *
+	 * @internal
+	 */
+	private readonly _invalidParents = new Set<TLShapeId>()
+
+	/** @internal */
+	private _complete() {
+		for (const parentId of this._invalidParents) {
+			this._invalidParents.delete(parentId)
+			const parent = this.getShapeById(parentId)
+			if (!parent) continue
+
+			const util = this.getShapeUtil(parent)
+			const changes = util.onChildrenChange?.(parent)
+
+			if (changes?.length) {
+				this.updateShapes(changes, true)
+			}
+		}
+
+		this.emit('update')
 	}
 
 	/** @internal */
@@ -1606,7 +1127,341 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.remove([cameraId, instancePageStateId])
 	}
 
-	/* -------------------- Shortcuts ------------------- */
+	/* --------------------- Errors --------------------- */
+
+	/** @internal */
+	annotateError(
+		error: unknown,
+		{
+			origin,
+			willCrashApp,
+			tags,
+			extras,
+		}: {
+			origin: string
+			willCrashApp: boolean
+			tags?: Record<string, string | boolean | number>
+			extras?: Record<string, unknown>
+		}
+	) {
+		const defaultAnnotations = this.createErrorAnnotations(origin, willCrashApp)
+		annotateError(error, {
+			tags: { ...defaultAnnotations.tags, ...tags },
+			extras: { ...defaultAnnotations.extras, ...extras },
+		})
+		if (willCrashApp) {
+			this.store.markAsPossiblyCorrupted()
+		}
+	}
+
+	/** @internal */
+	createErrorAnnotations(
+		origin: string,
+		willCrashApp: boolean | 'unknown'
+	): {
+		tags: { origin: string; willCrashApp: boolean | 'unknown' }
+		extras: {
+			activeStateNode?: string
+			selectedShapes?: TLUnknownShape[]
+			editingShape?: TLUnknownShape
+			inputs?: Record<string, unknown>
+		}
+	} {
+		try {
+			return {
+				tags: {
+					origin: origin,
+					willCrashApp,
+				},
+				extras: {
+					activeStateNode: this.root.path.value,
+					selectedShapes: this.selectedShapes,
+					editingShape: this.editingId ? this.getShapeById(this.editingId) : undefined,
+					inputs: this.inputs,
+				},
+			}
+		} catch {
+			return {
+				tags: {
+					origin: origin,
+					willCrashApp,
+				},
+				extras: {},
+			}
+		}
+	}
+
+	/** @internal */
+	private _crashingError: unknown | null = null
+
+	/**
+	 * We can't use an `atom` here because there's a chance that when `crashAndReportError` is called,
+	 * we're in a transaction that's about to be rolled back due to the same error we're currently
+	 * reporting.
+	 *
+	 * Instead, to listen to changes to this value, you need to listen to app's `crash` event.
+	 *
+	 * @internal
+	 */
+	get crashingError() {
+		return this._crashingError
+	}
+
+	/** @internal */
+	crash(error: unknown) {
+		this._crashingError = error
+		this.store.markAsPossiblyCorrupted()
+		this.emit('crash', { error })
+	}
+
+	/* ----------------- Internal State ----------------- */
+
+	private _canMoveCamera = atom('can move camera', true)
+
+	/**
+	 * Whether the editor's camera can move.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.canMoveCamera = false
+	 * ```
+	 *
+	 * @param canMove - Whether the camera can move.
+	 *
+	 * @public
+	 */
+	get canMoveCamera() {
+		return this._canMoveCamera.value
+	}
+
+	set canMoveCamera(canMove: boolean) {
+		this._canMoveCamera.set(canMove)
+	}
+
+	private _isFocused = atom('_isFocused', false)
+
+	/**
+	 * Whether or not the editor is focused.
+	 *
+	 * @public
+	 */
+	get isFocused() {
+		return this._isFocused.value
+	}
+
+	/**
+	 * The window's device pixel ratio.
+	 *
+	 * @public
+	 */
+	get devicePixelRatio() {
+		return this._dprManager.dpr.value
+	}
+
+	// Coarse Pointer
+
+	/** @internal */
+	private _isCoarsePointer = atom<boolean>('isCoarsePointer', false as any)
+
+	/**
+	 * Whether the user is using a "coarse" pointer, such as on a touch screen. This is automatically set by the canvas.
+	 *
+	 * @public
+	 **/
+	get isCoarsePointer() {
+		return this._isCoarsePointer.value
+	}
+
+	set isCoarsePointer(v) {
+		this._isCoarsePointer.set(v)
+	}
+
+	// Menus
+
+	private _openMenus = atom('open-menus', [] as string[])
+
+	/**
+	 * A set of strings representing any open menus. When menus are open,
+	 * certain interactions will behave differently; for example, when a
+	 * draw tool is selected and a menu is open, a pointer-down will not
+	 * create a dot (because the user is probably trying to close the menu)
+	 * however a pointer-down event followed by a drag will begin drawing
+	 * a line (because the user is BOTH trying to close the menu AND start
+	 * drawing a line).
+	 *
+	 * @public
+	 */
+	@computed get openMenus(): string[] {
+		return this._openMenus.value
+	}
+
+	/**
+	 * Add an open menu.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.addOpenMenu('menu-id')
+	 * ```
+	 *
+	 * @public
+	 */
+	addOpenMenu(id: string) {
+		const menus = new Set(this.openMenus)
+		if (!menus.has(id)) {
+			menus.add(id)
+			this._openMenus.set([...menus])
+		}
+		return this
+	}
+
+	/**
+	 * Delete an open menu.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deleteOpenMenu('menu-id')
+	 * ```
+	 *
+	 * @public
+	 */
+	deleteOpenMenu(id: string) {
+		const menus = new Set(this.openMenus)
+		if (menus.has(id)) {
+			menus.delete(id)
+			this._openMenus.set([...menus])
+		}
+		return this
+	}
+
+	/**
+	 * Get whether any menus are open.
+	 *
+	 * @public
+	 */
+	@computed get isMenuOpen() {
+		return this.openMenus.length > 0
+	}
+
+	// Changing style
+
+	/** @internal */
+	private _isChangingStyle = atom<boolean>('isChangingStyle', false as any)
+
+	/** @internal */
+	private _isChangingStyleTimeout = -1 as any
+
+	/**
+	 * Whether the user is currently changing the style of a shape. This may cause the UI to change.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.isChangingStyle = true
+	 * ```
+	 *
+	 * @public
+	 */
+	get isChangingStyle() {
+		return this._isChangingStyle.value
+	}
+
+	set isChangingStyle(v) {
+		this._isChangingStyle.set(v)
+		// Clear any reset timeout
+		clearTimeout(this._isChangingStyleTimeout)
+		if (v) {
+			// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
+			this._isChangingStyleTimeout = setTimeout(() => (this.isChangingStyle = false), 2000)
+		}
+	}
+
+	/** @internal */
+	private _styleChanging = atom<string | null>('styleChanging', null)
+
+	/** @internal */
+	private _styleChangingTimeout = -1 as any
+
+	/**
+	 * The specific style the user is currently changing the shape of. This may cause the UI to change.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * editor.styleChanging = 'color'
+	 * ```
+	 *
+	 * @public
+	 */
+	get styleChanging() {
+		return this._styleChanging.value
+	}
+
+	set styleChanging(v) {
+		this._styleChanging.set(v)
+		// Clear any reset timeout
+		clearTimeout(this._styleChangingTimeout)
+		if (v) {
+			// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
+			this._styleChangingTimeout = setTimeout(() => (this.styleChanging = null), 2000)
+		}
+	}
+
+	// Pen Mode
+
+	/** @internal */
+	private _isPenMode = atom<boolean>('isPenMode', false as any)
+
+	/** @internal */
+	private _touchEventsRemainingBeforeExitingPenMode = 0
+
+	/**
+	 * Whether the editor is in pen mode or not.
+	 *
+	 * @public
+	 **/
+	get isPenMode() {
+		return this._isPenMode.value
+	}
+
+	/**
+	 * Set whether the editor is in pen mode or not.
+	 *
+	 * @public
+	 **/
+	setPenMode(isPenMode: boolean): this {
+		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
+		if (isPenMode !== this.isPenMode) {
+			this._isPenMode.set(isPenMode)
+		}
+		return this
+	}
+
+	// Read only
+
+	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
+
+	/**
+	 * Set whether the editor is in read-only mode or not.
+	 *
+	 * @public
+	 **/
+	setReadOnly(isReadOnly: boolean): this {
+		this._isReadOnly.set(isReadOnly)
+		if (isReadOnly) {
+			this.setSelectedTool('hand')
+		}
+		return this
+	}
+
+	/**
+	 * Whether the editor is in read-only mode or not.
+	 *
+	 * @public
+	 **/
+	get isReadOnly() {
+		return this._isReadOnly.value
+	}
+
+	/* ---------------- Document Settings --------------- */
 
 	/**
 	 * The global document settings that apply to all users.
@@ -1644,6 +1499,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setProjectName(name: string) {
 		this.updateDocumentSettings({ name })
 	}
+
+	/* ---------------------- User ---------------------- */
 
 	/**
 	 * Whether the user has "always snap" mode enabled.
@@ -1710,122 +1567,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/**
-	 * Whether the instance is in focus mode or not.
-	 *
-	 * @public
-	 **/
-	get isFocusMode() {
-		return this.instanceState.isFocusMode
-	}
-
-	/**
-	 * Set whether the instance is in focus mode or not.
-	 *
-	 * @public
-	 **/
-	setFocusMode(isFocusMode: boolean): this {
-		if (isFocusMode !== this.isFocusMode) {
-			this.updateInstanceState({ isFocusMode }, true)
-		}
-		return this
-	}
-
-	/**
-	 * Whether the instance has "tool lock" mode enabled.
-	 *
-	 * @public
-	 **/
-	get isToolLocked() {
-		return this.instanceState.isToolLocked
-	}
-
-	/**
-	 * Set whether the instance has "tool lock" mode enabled.
-	 *
-	 * @public
-	 **/
-	setToolLocked(isToolLocked: boolean): this {
-		if (isToolLocked !== this.isToolLocked) {
-			this.updateInstanceState({ isToolLocked }, true)
-		}
-		return this
-	}
-
-	/**
-	 * Whether the instance's grid is enabled.
-	 *
-	 * @public
-	 **/
-	get isGridMode() {
-		return this.instanceState.isGridMode
-	}
-
-	/**
-	 * Set whether the instance's grid is enabled.
-	 *
-	 * @public
-	 **/
-	setGridMode(isGridMode: boolean): this {
-		if (isGridMode !== this.isGridMode) {
-			this.updateInstanceState({ isGridMode }, true)
-		}
-		return this
-	}
-
-	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
-
-	/**
-	 * Set whether the editor is in read-only mode or not.
-	 *
-	 * @public
-	 **/
-	setReadOnly(isReadOnly: boolean): this {
-		this._isReadOnly.set(isReadOnly)
-		if (isReadOnly) {
-			this.setSelectedTool('hand')
-		}
-		return this
-	}
-
-	/**
-	 * Whether the editor is in read-only mode or not.
-	 *
-	 * @public
-	 **/
-	get isReadOnly() {
-		return this._isReadOnly.value
-	}
-
-	/** @internal */
-	private _isPenMode = atom<boolean>('isPenMode', false as any)
-
-	/** @internal */
-	private _touchEventsRemainingBeforeExitingPenMode = 0
-
-	/**
-	 * Whether the editor is in pen mode or not.
-	 *
-	 * @public
-	 **/
-	get isPenMode() {
-		return this._isPenMode.value
-	}
-
-	/**
-	 * Set whether the editor is in pen mode or not.
-	 *
-	 * @public
-	 **/
-	setPenMode(isPenMode: boolean): this {
-		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
-		if (isPenMode !== this.isPenMode) {
-			this._isPenMode.set(isPenMode)
-		}
-		return this
-	}
-
-	// User / User App State
+	/* ----------------- Instance State ----------------- */
 
 	/**
 	 * The current instance's state.
@@ -1872,6 +1614,192 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.instanceState.scribble
 	}
 
+	// Focus Mode
+
+	/**
+	 * Whether the instance is in focus mode or not.
+	 *
+	 * @public
+	 **/
+	get isFocusMode() {
+		return this.instanceState.isFocusMode
+	}
+
+	/**
+	 * Set whether the instance is in focus mode or not.
+	 *
+	 * @public
+	 **/
+	setFocusMode(isFocusMode: boolean): this {
+		if (isFocusMode !== this.isFocusMode) {
+			this.updateInstanceState({ isFocusMode }, true)
+		}
+		return this
+	}
+
+	// Tool Locked
+
+	/**
+	 * Whether the instance has "tool lock" mode enabled.
+	 *
+	 * @public
+	 **/
+	get isToolLocked() {
+		return this.instanceState.isToolLocked
+	}
+
+	/**
+	 * Set whether the instance has "tool lock" mode enabled.
+	 *
+	 * @public
+	 **/
+	setToolLocked(isToolLocked: boolean): this {
+		if (isToolLocked !== this.isToolLocked) {
+			this.updateInstanceState({ isToolLocked }, true)
+		}
+		return this
+	}
+
+	// Grid Mode
+
+	/**
+	 * Whether the instance's grid is enabled.
+	 *
+	 * @public
+	 **/
+	get isGridMode() {
+		return this.instanceState.isGridMode
+	}
+
+	/**
+	 * Set whether the instance's grid is enabled.
+	 *
+	 * @public
+	 **/
+	setGridMode(isGridMode: boolean): this {
+		if (isGridMode !== this.isGridMode) {
+			this.updateInstanceState({ isGridMode }, true)
+		}
+		return this
+	}
+
+	/* ---------------------- Pages --------------------- */
+
+	/** @internal */
+	@computed private get _pages() {
+		return this.store.query.records('page')
+	}
+
+	/**
+	 * Info about the project's current pages.
+	 *
+	 * @public
+	 */
+	@computed get pages(): TLPage[] {
+		return this._pages.value.sort(sortByIndex)
+	}
+
+	/**
+	 * The current page.
+	 *
+	 * @public
+	 */
+	get currentPage(): TLPage {
+		return this.getPageById(this.currentPageId)!
+	}
+
+	/**
+	 * The current page id.
+	 *
+	 * @public
+	 */
+	get currentPageId(): TLPageId {
+		return this.instanceState.currentPageId
+	}
+
+	/**
+	 * Get a page by its ID.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPageById(myPage.id)
+	 * ```
+	 *
+	 * @public
+	 */
+	getPageById(id: TLPageId): TLPage | undefined {
+		return this.store.get(id)
+	}
+
+	/**
+	 * Get a page by its ID.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPageById(myPage.id)
+	 * ```
+	 *
+	 * @public
+	 */
+	getPageInfoById(id: TLPage['id']) {
+		return this.store.get(id)
+	}
+
+	/**
+	 * A cache of shape ids in the current page.
+	 *
+	 * @internal
+	 */
+	private readonly _currentPageShapeIds: ReturnType<typeof deriveShapeIdsInCurrentPage>
+
+	/**
+	 * An array of all of the shapes on the current page.
+	 *
+	 * @public
+	 */
+	get currentPageShapeIds() {
+		return this._currentPageShapeIds.value
+	}
+
+	/**
+	 * Get the ids of shapes on a page.
+	 *
+	 * @example
+	 * ```ts
+	 * const idsOnPage1 = editor.getShapeIdsInPage('page1')
+	 * const idsOnPage2 = editor.getShapeIdsInPage('page2')
+	 * ```
+	 *
+	 * @param pageId - The id of the page.
+	 *
+	 * @public
+	 **/
+	getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId> {
+		const result = this.store.query.exec('shape', { parentId: { eq: pageId } })
+		return this.getShapeAndDescendantIds(result.map((s) => s.id))
+	}
+
+	/* ------------------- Page State ------------------- */
+
+	/** @internal */
+	@computed private get _pageStates() {
+		return this.store.query.records('instance_page_state')
+	}
+
+	/**
+	 * Get a page state by its id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPageStateByPageId('page1')
+	 * ```
+	 *
+	 * @public
+	 */
+	getPageStateByPageId(id: TLPageId) {
+		return this._pageStates.value.find((p) => p.pageId === id)
+	}
+
 	/** @internal */
 	@computed private get pageStateId() {
 		return InstancePageStateRecordType.createId(this.currentPageId)
@@ -1885,6 +1813,495 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get pageState(): TLInstancePageState {
 		return this.store.get(this.pageStateId)!
 	}
+
+	/**
+	 * Update a page state.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setInstancePageState({ id: 'page1', editingId: 'shape:123' })
+	 * editor.setInstancePageState({ id: 'page1', editingId: 'shape:123' }, true)
+	 * ```
+	 *
+	 * @param partial - The partial of the page state object containing the changes.
+	 * @param ephemeral - Whether the command is ephemeral.
+	 *
+	 * @public
+	 */
+	setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral = false) {
+		this._setInstancePageState(partial, ephemeral)
+	}
+
+	// Selected Ids
+
+	/**
+	 * The current selected ids.
+	 *
+	 * @public
+	 */
+	@computed get selectedIds() {
+		return this.pageState.selectedIds
+	}
+
+	/**
+	 * The current selected ids as a set
+	 *
+	 * @public
+	 */
+	@computed get selectedIdsSet(): ReadonlySet<TLShapeId> {
+		return new Set(this.selectedIds)
+	}
+
+	/**
+	 * Select one or more shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setSelectedIds(['id1'])
+	 * editor.setSelectedIds(['id1', 'id2'])
+	 * ```
+	 *
+	 * @param ids - The ids to select.
+	 * @param squashing - Whether the change should create a new history entry or combine with the
+	 *   previous (if the previous is the same type).
+	 *
+	 * @public
+	 */
+	setSelectedIds(ids: TLShapeId[], squashing = false) {
+		this._setSelectedIds(ids, squashing)
+		return this
+	}
+
+	/** @internal */
+	private _setSelectedIds = this.history.createCommand(
+		'setSelectedIds',
+		(ids: TLShapeId[], squashing = false) => {
+			const prevSelectedIds = this.pageState.selectedIds
+
+			const prevSet = new Set(this.pageState.selectedIds)
+
+			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
+
+			return { data: { ids, prevSelectedIds }, squashing, preservesRedoStack: true }
+		},
+		{
+			do: ({ ids }) => {
+				this.store.update(this.pageState.id, (state) => ({ ...state, selectedIds: ids }))
+			},
+			undo: ({ prevSelectedIds }) => {
+				this.store.update(this.pageState.id, () => ({
+					...this.pageState,
+					selectedIds: prevSelectedIds,
+				}))
+			},
+			squash(prev, next) {
+				return { ids: next.ids, prevSelectedIds: prev.prevSelectedIds }
+			},
+		}
+	)
+
+	/**
+	 * Determine whether or not a shape is selected
+	 *
+	 * @example
+	 * ```ts
+	 * editor.isSelected('id1')
+	 * ```
+	 *
+	 * @param id - The id of the shape to check.
+	 *
+	 * @public
+	 */
+	isSelected(id: TLShapeId) {
+		return this.selectedIdsSet.has(id)
+	}
+
+	/**
+	 * Determine whether a not a shape is within the current selection. A shape is within the
+	 * selection if it or any of its parents is selected.
+	 *
+	 * @param id - The id of the shape to check.
+	 *
+	 * @public
+	 */
+	isWithinSelection(id: TLShapeId) {
+		const shape = this.getShapeById(id)
+		if (!shape) return false
+
+		if (this.isSelected(id)) return true
+
+		return !!this.findAncestor(shape, (parent) => this.isSelected(parent.id))
+	}
+
+	/**
+	 * Select one or more shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.select('id1')
+	 * editor.select('id1', 'id2')
+	 * ```
+	 *
+	 * @param ids - The ids to select.
+	 *
+	 * @public
+	 */
+	select(...ids: TLShapeId[]) {
+		this.setSelectedIds(ids)
+		return this
+	}
+
+	/**
+	 * Remove a shape from the existing set of selected shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deselect(shape.id)
+	 * ```
+	 *
+	 * @public
+	 */
+	deselect(...ids: TLShapeId[]) {
+		const { selectedIds } = this
+		if (selectedIds.length > 0 && ids.length > 0) {
+			this.setSelectedIds(selectedIds.filter((id) => !ids.includes(id)))
+		}
+		return this
+	}
+
+	/**
+	 * Select all direct children of the current page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.selectAll()
+	 * ```
+	 *
+	 * @public
+	 */
+	selectAll() {
+		const ids = this.getSortedChildIds(this.currentPageId)
+		// page might have no shapes
+		if (ids.length <= 0) return this
+		this.setSelectedIds(this._getUnlockedShapeIds(ids))
+
+		return this
+	}
+
+	/**
+	 * Clear the selection.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.selectNone()
+	 * ```
+	 *
+	 * @public
+	 */
+	selectNone(): this {
+		if (this.selectedIds.length > 0) {
+			this.setSelectedIds([])
+		}
+
+		return this
+	}
+
+	// Focus Layer Id
+
+	/**
+	 * The shape id of the current focus layer.
+	 *
+	 * @public
+	 */
+	get focusLayerId() {
+		return this.pageState.focusLayerId ?? this.currentPageId
+	}
+
+	/**
+	 * The shape of the current focus layer.
+	 *
+	 * @public
+	 */
+	get focusLayerShape(): TLShape | undefined {
+		const id = this.pageState.focusLayerId
+		if (!id) {
+			return
+		}
+		return this.getShapeById(id)
+	}
+
+	/**
+	 * Exit the current focus layer, moving up to the next group if there is one.
+	 *
+	 * @public
+	 */
+	popFocusLayer() {
+		const current = this.pageState.focusLayerId
+		const focusedShape = current && this.getShapeById(current)
+
+		if (focusedShape) {
+			// If we have a focused layer, look for an ancestor of the focused shape that is a group
+			const match = this.findAncestor(focusedShape, (shape) =>
+				this.isShapeOfType(shape, GroupShapeUtil)
+			)
+			// If we have an ancestor that can become a focused layer, set it as the focused layer
+			this.setFocusLayer(match?.id ?? null)
+			this.select(focusedShape.id)
+		} else {
+			// If there's no focused shape, then clear the focus layer and clear selection
+			this.setFocusLayer(null)
+			this.selectNone()
+		}
+
+		return this
+	}
+
+	/**
+	 * Set the focus layer to the given shape id.
+	 *
+	 * @param next - The next focus layer id or null to reset the focus layer to the page
+	 *
+	 * @public
+	 */
+	setFocusLayer(next: null | TLShapeId) {
+		this._setFocusLayer(next)
+		return this
+	}
+
+	/** @internal */
+	private _setFocusLayer = this.history.createCommand(
+		'setFocusLayer',
+		(next: null | TLShapeId) => {
+			// When we first click an empty canvas we don't want this to show up in the undo stack
+			if (next === null && !this.canUndo) {
+				return
+			}
+			const prev = this.pageState.focusLayerId
+			return { data: { prev, next }, preservesRedoStack: true, squashing: true }
+		},
+		{
+			do: ({ next }) => {
+				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: next }))
+			},
+			undo: ({ prev }) => {
+				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: prev }))
+			},
+			squash({ prev }, { next }) {
+				return { prev, next }
+			},
+		}
+	)
+
+	// Editing Id
+
+	/**
+	 * The current editing shape's id.
+	 *
+	 * @public
+	 */
+	get editingId() {
+		return this.pageState.editingId
+	}
+
+	/**
+	 * Set the current editing id.
+	 *
+	 * @param id - The id of the shape to edit or null to clear the editing id.
+	 *
+	 * @public
+	 */
+	setEditingId(id: TLShapeId | null): this {
+		if (!id) {
+			this.setInstancePageState({ editingId: null })
+		} else {
+			if (id !== this.editingId) {
+				const shape = this.getShapeById(id)!
+				const util = this.getShapeUtil(shape)
+				if (shape && util.canEdit(shape)) {
+					this.setInstancePageState({ editingId: id, hoveredId: null }, false)
+
+					// todo: remove this camera move
+
+					const { viewportPageBounds } = this
+					const localEditingBounds = util.getEditingBounds(shape)!
+					const pageTransform = this.getPageTransformById(id)!
+					const pageEditingBounds = Box2d.FromPoints(
+						Matrix2d.applyToPoints(pageTransform, localEditingBounds.corners)
+					)
+
+					if (!viewportPageBounds.contains(pageEditingBounds)) {
+						if (
+							pageEditingBounds.width > viewportPageBounds.width ||
+							pageEditingBounds.height > viewportPageBounds.height
+						) {
+							this.zoomToBounds(
+								pageEditingBounds.minX,
+								pageEditingBounds.minY,
+								pageEditingBounds.width,
+								pageEditingBounds.height
+							)
+						} else {
+							this.centerOnPoint(pageEditingBounds.midX, pageEditingBounds.midY)
+						}
+					}
+				}
+			}
+		}
+
+		return this
+	}
+
+	@computed get editingShape() {
+		if (!this.editingId) return null
+		return this.getShapeById(this.editingId) ?? null
+	}
+
+	// Hovered Id
+
+	/**
+	 * The current hovered shape id.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed get hoveredId() {
+		return this.pageState.hoveredId
+	}
+
+	/**
+	 * Set the current hovered shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setHoveredId('box1')
+	 * editor.setHoveredId() // Clears the hovered shape.
+	 * ```
+	 *
+	 * @param id - The id of the page to set as the current page
+	 *
+	 * @public
+	 */
+	setHoveredId(id: TLShapeId | null = null): this {
+		if (id === this.pageState.hoveredId) return this
+
+		this.setInstancePageState({ hoveredId: id }, true)
+		return this
+	}
+
+	/**
+	 * The current hovered shape.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	@computed get hoveredShape() {
+		if (!this.hoveredId) return null
+		return this.getShapeById(this.hoveredId) ?? null
+	}
+
+	// Hinting ids
+
+	/**
+	 * The editor's current hinting ids.
+	 *
+	 * @public
+	 */
+	@computed get hintingIds() {
+		return this.pageState.hintingIds
+	}
+
+	/**
+	 * Set the hinted shape ids.
+	 *
+	 * @param ids - The ids to set as hinted.
+	 *
+	 * @public
+	 */
+	setHintingIds(ids: TLShapeId[]): this {
+		// always ephemeral
+		this.store.update(this.pageState.id, (s) => ({ ...s, hintingIds: dedupe(ids) }))
+		return this
+	}
+
+	// Erasing Ids
+
+	/**
+	 * The editor's current erasing ids.
+	 *
+	 * @public
+	 */
+	@computed get erasingIds() {
+		return this.pageState.erasingIds
+	}
+
+	/**
+	 * A derived set containing the current erasing ids.
+	 *
+	 * @public
+	 */
+	@computed get erasingIdsSet() {
+		// todo: Make incremental derivation, so that this only gets updated when erasingIds changes: we're creating this too often!
+		return new Set<TLShapeId>(this.erasingIds)
+	}
+
+	/**
+	 * Set the current erasing shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setErasingIds(['box1', 'box2'])
+	 * editor.setErasingIds() // Clears the erasing set
+	 * ```
+	 *
+	 * @param ids - The ids of shapes to set as erasing.
+	 *
+	 * @public
+	 */
+	setErasingIds(ids: TLShapeId[] = []): this {
+		const erasingIds = this.erasingIdsSet
+		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return this
+
+		this.setInstancePageState({ erasingIds: ids }, true)
+		return this
+	}
+
+	// Cropping Id
+
+	/**
+	 * The current cropping shape's id.
+	 *
+	 * @public
+	 */
+	get croppingId() {
+		return this.pageState.croppingId
+	}
+
+	/**
+	 * Set the current cropping shape's id.
+	 *
+	 * @param id - The id of the shape to crop or null to clear the cropping id.
+	 *
+	 * @public
+	 */
+	setCroppingId(id: TLShapeId | null): this {
+		if (id !== this.croppingId) {
+			if (!id) {
+				this.setInstancePageState({ croppingId: null })
+				if (this.isInAny('select.crop', 'select.pointing_crop_handle', 'select.cropping')) {
+					this.setSelectedTool('select.idle')
+				}
+			} else {
+				const shape = this.getShapeById(id)!
+				const util = this.getShapeUtil(shape)
+				if (shape && util.canCrop(shape)) {
+					this.setInstancePageState({ croppingId: id, hoveredId: null })
+				}
+			}
+		}
+		return this
+	}
+
+	/* --------------------- Camera --------------------- */
 
 	/** @internal */
 	@computed
@@ -1910,113 +2327,390 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.camera.z
 	}
 
+	/* -------------------- Viewport -------------------- */
+
 	/**
-	 * The current selected ids.
+	 * Update the viewport. The viewport will measure the size and screen position of its container
+	 * element. This should be done whenever the container's position on the screen changes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateViewportScreenBounds()
+	 * editor.updateViewportScreenBounds(true)
+	 * ```
+	 *
+	 * @param center - (optional) Whether to preserve the viewport page center as the viewport changes.
 	 *
 	 * @public
 	 */
-	@computed get selectedIds() {
-		return this.pageState.selectedIds
+	updateViewportScreenBounds(center = false) {
+		const container = this.getContainer()
+
+		if (!container) return this
+		const rect = container.getBoundingClientRect()
+		const screenBounds = new Box2d(0, 0, Math.max(rect.width, 1), Math.max(rect.height, 1))
+
+		const boundsAreEqual = screenBounds.equals(this.viewportScreenBounds)
+
+		// Get the current value
+		const { _willSetInitialBounds } = this
+
+		if (boundsAreEqual) {
+			this._willSetInitialBounds = false
+		} else {
+			if (_willSetInitialBounds) {
+				// If we have just received the initial bounds, don't center the camera.
+				this._willSetInitialBounds = false
+				this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
+			} else {
+				const { zoomLevel } = this
+				if (center) {
+					const before = this.viewportPageCenter
+					this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
+					const after = this.viewportPageCenter
+					if (!this.instanceState.followingUserId) {
+						this.pan((after.x - before.x) * zoomLevel, (after.y - before.y) * zoomLevel)
+					}
+				} else {
+					const before = this.screenToPage(0, 0)
+					this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
+					const after = this.screenToPage(0, 0)
+					if (!this.instanceState.followingUserId) {
+						this.pan((after.x - before.x) * zoomLevel, (after.y - before.y) * zoomLevel)
+					}
+				}
+			}
+		}
+
+		this._tickCameraState()
+		this.updateRenderingBounds()
+
+		const { editingId } = this
+
+		if (editingId) {
+			this.panZoomIntoView([editingId])
+		}
+
+		return this
 	}
 
 	/**
-	 * The current selected ids as a set
+	 * The bounds of the editor's viewport in screen space.
 	 *
 	 * @public
 	 */
-	@computed get selectedIdsSet(): ReadonlySet<TLShapeId> {
-		return new Set(this.selectedIds)
+	@computed get viewportScreenBounds() {
+		const { x, y, w, h } = this.instanceState.screenBounds
+		return new Box2d(x, y, w, h)
+	}
+
+	/**
+	 * The center of the editor's viewport in screen space.
+	 *
+	 * @public
+	 */
+	@computed get viewportScreenCenter() {
+		return this.viewportScreenBounds.center
+	}
+
+	/**
+	 * The current viewport in page space.
+	 *
+	 * @public
+	 */
+	@computed get viewportPageBounds() {
+		const { x, y, w, h } = this.viewportScreenBounds
+		const tl = this.screenToPage(x, y)
+		const br = this.screenToPage(x + w, y + h)
+		return new Box2d(tl.x, tl.y, br.x - tl.x, br.y - tl.y)
+	}
+
+	/**
+	 * The center of the viewport in page space.
+	 *
+	 * @public
+	 */
+	@computed get viewportPageCenter() {
+		return this.viewportPageBounds.center
+	}
+
+	/**
+	 * Convert a point in screen space to a point in page space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.screenToPage(100, 100)
+	 * ```
+	 *
+	 * @param x - The x coordinate of the point in screen space.
+	 * @param y - The y coordinate of the point in screen space.
+	 * @param camera - The camera to use. Defaults to the current camera.
+	 *
+	 * @public
+	 */
+	screenToPage(x: number, y: number, z = 0.5, camera: Vec2dModel = this.camera) {
+		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
+		const { x: cx, y: cy, z: cz = 1 } = camera
+		return {
+			x: (x - screenBounds.x) / cz - cx,
+			y: (y - screenBounds.y) / cz - cy,
+			z,
+		}
+	}
+
+	/**
+	 * Convert a point in page space to a point in screen space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.pageToScreen(100, 100)
+	 * ```
+	 *
+	 * @param x - The x coordinate of the point in screen space.
+	 * @param y - The y coordinate of the point in screen space.
+	 * @param camera - The camera to use. Defaults to the current camera.
+	 *
+	 * @public
+	 */
+	pageToScreen(x: number, y: number, z = 0.5, camera: Vec2dModel = this.camera) {
+		const { x: cx, y: cy, z: cz = 1 } = camera
+		return {
+			x: x + cx * cz,
+			y: y + cy * cz,
+			z,
+		}
+	}
+
+	/* -------- Rendering Shapes / rendering Bounds ------- */
+
+	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
+
+	/**
+	 * Whether the camera is moving or idle.
+	 *
+	 * @public
+	 */
+	@computed get cameraState() {
+		return this._cameraState.value
+	}
+
+	// Camera state does two things: first, it allows us to subscribe to whether
+	// the camera is moving or not; and second, it allows us to update the rendering
+	// shapes on the canvas. Changing the rendering shapes may cause shapes to
+	// unmount / remount in the DOM, which is expensive; and computing visibility is
+	// also expensive in large projects. For this reason, we use a second bounding
+	// box just for rendering, and we only update after the camera stops moving.
+
+	private _cameraStateTimeoutRemaining = 0
+	private _lastUpdateRenderingBoundsTimestamp = Date.now()
+
+	private _decayCameraStateTimeout = (elapsed: number) => {
+		this._cameraStateTimeoutRemaining -= elapsed
+
+		if (this._cameraStateTimeoutRemaining <= 0) {
+			this.off('tick', this._decayCameraStateTimeout)
+			this._cameraState.set('idle')
+			this.updateRenderingBounds()
+		}
+	}
+
+	private _tickCameraState = () => {
+		// always reset the timeout
+		this._cameraStateTimeoutRemaining = CAMERA_MOVING_TIMEOUT
+
+		const now = Date.now()
+
+		// If the state is idle, then start the tick
+		if (this._cameraState.__unsafe__getWithoutCapture() === 'idle') {
+			this._lastUpdateRenderingBoundsTimestamp = now // don't render right away
+			this._cameraState.set('moving')
+			this.on('tick', this._decayCameraStateTimeout)
+		} else {
+			if (now - this._lastUpdateRenderingBoundsTimestamp > CAMERA_MAX_RENDERING_INTERVAL) {
+				this.updateRenderingBounds()
+			}
+		}
+	}
+
+	private computeUnorderedRenderingShapes(
+		ids: TLParentId[],
+		{
+			renderingBounds,
+			renderingBoundsExpanded,
+			erasingIdsSet,
+			editingId,
+		}: {
+			renderingBounds?: Box2d
+			renderingBoundsExpanded?: Box2d
+			erasingIdsSet?: Set<TLShapeId>
+			editingId?: TLShapeId | null
+		} = {}
+	) {
+		// Here we get the shape as well as any of its children, as well as their
+		// opacities. If the shape is being erased, and none of its ancestors are
+		// being erased, then we reduce the opacity of the shape and all of its
+		// ancestors; but we don't apply this effect more than once among a set
+		// of descendants so that it does not compound.
+
+		// This is designed to keep all the shapes in a single list which
+		// allows the DOM nodes to be reused even when they become children
+		// of other nodes.
+
+		const renderingShapes: {
+			id: TLShapeId
+			index: number
+			backgroundIndex: number
+			opacity: number
+			isCulled: boolean
+			isInViewport: boolean
+			maskedPageBounds: Box2d | undefined
+		}[] = []
+
+		let nextIndex = MAX_SHAPES_PER_PAGE
+		let nextBackgroundIndex = 0
+
+		const addShapeById = (id: TLParentId, parentOpacity: number, isAncestorErasing: boolean) => {
+			if (PageRecordType.isId(id)) {
+				for (const childId of this.getSortedChildIds(id)) {
+					addShapeById(childId, parentOpacity, isAncestorErasing)
+				}
+				return
+			}
+
+			const shape = this.getShapeById(id)
+			if (!shape) return
+
+			let opacity = shape.opacity * parentOpacity
+			let isShapeErasing = false
+
+			if (!isAncestorErasing && erasingIdsSet?.has(id)) {
+				isShapeErasing = true
+				opacity *= 0.32
+			}
+
+			// If a child is outside of its parent's clipping bounds, then bounds will be undefined.
+			const maskedPageBounds = this.getMaskedPageBoundsById(id)
+
+			// Whether the shape is on screen. Use the "strict" viewport here.
+			const isInViewport = maskedPageBounds
+				? renderingBounds?.includes(maskedPageBounds) ?? true
+				: false
+
+			// Whether the shape should actually be culled / unmounted.
+			// - Use the "expanded" rendering viewport to include shapes that are just off-screen.
+			// - Editing shapes should never be culled.
+			const isCulled = maskedPageBounds
+				? (editingId !== id && !renderingBoundsExpanded?.includes(maskedPageBounds)) ?? true
+				: true
+
+			renderingShapes.push({
+				id,
+				index: nextIndex,
+				backgroundIndex: nextBackgroundIndex,
+				opacity,
+				isCulled,
+				isInViewport,
+				maskedPageBounds,
+			})
+
+			nextIndex += 1
+			nextBackgroundIndex += 1
+
+			const childIds = this.getSortedChildIds(id)
+			if (!childIds.length) return
+
+			let backgroundIndexToRestore = null
+			if (this.getShapeUtil(shape).providesBackgroundForChildren(shape)) {
+				backgroundIndexToRestore = nextBackgroundIndex
+				nextBackgroundIndex = nextIndex
+				nextIndex += MAX_SHAPES_PER_PAGE
+			}
+
+			for (const childId of childIds) {
+				addShapeById(childId, opacity, isAncestorErasing || isShapeErasing)
+			}
+
+			if (backgroundIndexToRestore !== null) {
+				nextBackgroundIndex = backgroundIndexToRestore
+			}
+		}
+
+		for (const id of ids) {
+			addShapeById(id, 1, false)
+		}
+
+		return renderingShapes
+	}
+
+	/**
+	 * Get the shapes that should be displayed in the current viewport.
+	 *
+	 * @public
+	 */
+	@computed get renderingShapes() {
+		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId], {
+			renderingBounds: this.renderingBounds,
+			renderingBoundsExpanded: this.renderingBoundsExpanded,
+			erasingIdsSet: this.erasingIdsSet,
+			editingId: this.editingId,
+		})
+
+		// Its IMPORTANT that the result be sorted by id AND include the index
+		// that the shape should be displayed at. Steve, this is the past you
+		// telling the present you not to change this.
+
+		// We want to sort by id because moving elements about in the DOM will
+		// cause the element to get removed by react as it moves the DOM node. This
+		// causes <iframes/> to re-render which is hella annoying and a perf
+		// drain. By always sorting by 'id' we keep the shapes always in the
+		// same order; but we later use index to set the element's 'z-index'
+		// to change the "rendered" position in z-space.
+		return renderingShapes.sort(sortById)
+	}
+
+	/**
+	 * The current rendering bounds in page space, used for checking which shapes are "on screen".
+	 *
+	 * @public
+	 */
+	@computed get renderingBounds() {
+		return this._renderingBounds.value
 	}
 
 	/** @internal */
-	@computed private get _pages() {
-		return this.store.query.records('page')
-	}
+	readonly _renderingBounds = atom('rendering viewport', new Box2d())
 
 	/**
-	 * Info about the project's current pages.
+	 * The current rendering bounds in page space, expanded slightly. Used for determining which shapes
+	 * to render and which to "cull".
 	 *
 	 * @public
 	 */
-	@computed get pages() {
-		return this._pages.value.sort(sortByIndex)
-	}
-
-	/**
-	 * The current page.
-	 *
-	 * @public
-	 */
-	get currentPage() {
-		return this.getPageById(this.currentPageId)!
-	}
-
-	/**
-	 * The current page id.
-	 *
-	 * @public
-	 */
-	get currentPageId() {
-		return this.instanceState.currentPageId
-	}
-
-	/**
-	 * Get a page by its ID.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getPageById(myPage.id)
-	 * ```
-	 *
-	 * @public
-	 */
-	getPageById(id: TLPageId) {
-		return this.store.get(id)
+	@computed get renderingBoundsExpanded() {
+		return this._renderingBoundsExpanded.value
 	}
 
 	/** @internal */
-	@computed private get _pageStates() {
-		return this.store.query.records('instance_page_state')
-	}
+	readonly _renderingBoundsExpanded = atom('rendering viewport expanded', new Box2d())
 
 	/**
-	 * Get a page state by its id.
+	 * Update the rendering bounds. This should be called when the viewport has stopped changing, such
+	 * as at the end of a pan, zoom, or animation.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.getPageStateByPageId('page1')
+	 * editor.updateRenderingBounds()
 	 * ```
 	 *
-	 * @public
+	 *
+	 * @internal
 	 */
-	getPageStateByPageId(id: TLPageId) {
-		return this._pageStates.value.find((p) => p.pageId === id)
-	}
-
-	/**
-	 * Get a page by its ID.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getPageById(myPage.id)
-	 * ```
-	 *
-	 * @public
-	 */
-	getPageInfoById(id: TLPage['id']) {
-		return this.store.get(id)
-	}
-
-	/**
-	 * Get the ids of shapes on a page.
-	 *
-	 * @param pageId - The id of the page.
-	 *
-	 * @public
-	 **/
-	getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId> {
-		const result = this.store.query.exec('shape', { parentId: { eq: pageId } })
-		return this.getShapeAndDescendantIds(result.map((s) => s.id))
+	updateRenderingBounds(): this {
+		const { viewportPageBounds } = this
+		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
+		this._renderingBounds.set(viewportPageBounds.clone())
+		this._renderingBoundsExpanded.set(viewportPageBounds.clone().expandBy(100 / this.zoomLevel))
+		return this
 	}
 
 	/* --------------------- Shapes --------------------- */
@@ -2247,6 +2941,92 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * A cache of clip paths used for clipping.
+	 *
+	 * @internal
+	 */
+	@computed private get _clipPathCache(): ComputedCache<string, TLShape> {
+		return this.store.createComputedCache<string, TLShape>('clipPathCache', (shape) => {
+			const pageMask = this._pageMaskCache.get(shape.id)
+			if (!pageMask) return undefined
+			const pageTransform = this._pageTransformCache.get(shape.id)
+			if (!pageTransform) return undefined
+
+			if (pageMask.length === 0) {
+				return `polygon(0px 0px, 0px 0px, 0px 0px)`
+			}
+
+			const localMask = Matrix2d.applyToPoints(Matrix2d.Inverse(pageTransform), pageMask)
+
+			return `polygon(${localMask.map((p) => `${p.x}px ${p.y}px`).join(',')})`
+		})
+	}
+
+	/**
+	 * Get the clip path for a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const clipPath = editor.getClipPathById(shape.id)
+	 * ```
+	 *
+	 * @param id - The shape id.
+	 *
+	 * @returns The clip path or undefined.
+	 *
+	 * @public
+	 */
+	getClipPathById(id: TLShapeId) {
+		return this._clipPathCache.get(id)
+	}
+
+	/**
+	 * A cache of page masks used for clipping.
+	 *
+	 * @internal
+	 */
+	@computed private get _pageMaskCache(): ComputedCache<VecLike[], TLShape> {
+		return this.store.createComputedCache<VecLike[], TLShape>('pageMaskCache', (shape) => {
+			if (isPageId(shape.parentId)) {
+				return undefined
+			}
+
+			const frameAncestors = this.getAncestorsById(shape.id).filter((shape) =>
+				this.isShapeOfType(shape, FrameShapeUtil)
+			)
+
+			if (frameAncestors.length === 0) return undefined
+
+			const pageMask = frameAncestors
+				.map<VecLike[] | undefined>((s) =>
+					// Apply the frame transform to the frame outline to get the frame outline in page space
+					Matrix2d.applyToPoints(this._pageTransformCache.get(s.id)!, this.getOutline(s))
+				)
+				.reduce((acc, b) => (b && acc ? intersectPolygonPolygon(acc, b) ?? undefined : undefined))
+
+			return pageMask
+		})
+	}
+
+	/**
+	 * Get the page mask for a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * const pageMask = editor.getPageMaskById(shape.id)
+	 * ```
+	 *
+	 * @param id - The id of the shape to get the page mask for.
+	 *
+	 * @returns The page mask for the shape.
+	 *
+	 * @public
+	 */
+	getPageMaskById(id: TLShapeId) {
+		return this._pageMaskCache.get(id)
+	}
+
+	/**
 	 * Get the page (or absolute) bounds of a shape, incorporating any masks. For example, if the
 	 * shape were the child of a frame and was half way out of the frame, the bounds would be the half
 	 * of the shape that was in the frame.
@@ -2460,142 +3240,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.isShapeOrAncestorLocked(this.getParentShape(shape))
 	}
 
-	private computeUnorderedRenderingShapes(
-		ids: TLParentId[],
-		{
-			cullingBounds,
-			cullingBoundsExpanded,
-			erasingIdsSet,
-			editingId,
-		}: {
-			cullingBounds?: Box2d
-			cullingBoundsExpanded?: Box2d
-			erasingIdsSet?: Set<TLShapeId>
-			editingId?: TLShapeId | null
-		} = {}
-	) {
-		// Here we get the shape as well as any of its children, as well as their
-		// opacities. If the shape is being erased, and none of its ancestors are
-		// being erased, then we reduce the opacity of the shape and all of its
-		// ancestors; but we don't apply this effect more than once among a set
-		// of descendants so that it does not compound.
-
-		// This is designed to keep all the shapes in a single list which
-		// allows the DOM nodes to be reused even when they become children
-		// of other nodes.
-
-		const renderingShapes: {
-			id: TLShapeId
-			index: number
-			backgroundIndex: number
-			opacity: number
-			isCulled: boolean
-			isInViewport: boolean
-			maskedPageBounds: Box2d | undefined
-		}[] = []
-
-		let nextIndex = MAX_SHAPES_PER_PAGE
-		let nextBackgroundIndex = 0
-
-		const addShapeById = (id: TLParentId, parentOpacity: number, isAncestorErasing: boolean) => {
-			if (PageRecordType.isId(id)) {
-				for (const childId of this.getSortedChildIds(id)) {
-					addShapeById(childId, parentOpacity, isAncestorErasing)
-				}
-				return
-			}
-
-			const shape = this.getShapeById(id)
-			if (!shape) return
-
-			let opacity = shape.opacity * parentOpacity
-			let isShapeErasing = false
-
-			if (!isAncestorErasing && erasingIdsSet?.has(id)) {
-				isShapeErasing = true
-				opacity *= 0.32
-			}
-
-			// If a child is outside of its parent's clipping bounds, then bounds will be undefined.
-			const maskedPageBounds = this.getMaskedPageBoundsById(id)
-
-			// Whether the shape is on screen. Use the "strict" viewport here.
-			const isInViewport = maskedPageBounds
-				? cullingBounds?.includes(maskedPageBounds) ?? true
-				: false
-
-			// Whether the shape should actually be culled / unmounted.
-			// - Use the "expanded" culling viewport to include shapes that are just off-screen.
-			// - Editing shapes should never be culled.
-			const isCulled = maskedPageBounds
-				? (editingId !== id && !cullingBoundsExpanded?.includes(maskedPageBounds)) ?? true
-				: true
-
-			renderingShapes.push({
-				id,
-				index: nextIndex,
-				backgroundIndex: nextBackgroundIndex,
-				opacity,
-				isCulled,
-				isInViewport,
-				maskedPageBounds,
-			})
-
-			nextIndex += 1
-			nextBackgroundIndex += 1
-
-			const childIds = this.getSortedChildIds(id)
-			if (!childIds.length) return
-
-			let backgroundIndexToRestore = null
-			if (this.getShapeUtil(shape).providesBackgroundForChildren(shape)) {
-				backgroundIndexToRestore = nextBackgroundIndex
-				nextBackgroundIndex = nextIndex
-				nextIndex += MAX_SHAPES_PER_PAGE
-			}
-
-			for (const childId of childIds) {
-				addShapeById(childId, opacity, isAncestorErasing || isShapeErasing)
-			}
-
-			if (backgroundIndexToRestore !== null) {
-				nextBackgroundIndex = backgroundIndexToRestore
-			}
-		}
-
-		for (const id of ids) {
-			addShapeById(id, 1, false)
-		}
-
-		return renderingShapes
-	}
-
-	/**
-	 * Get the shapes that should be displayed in the current viewport.
-	 *
-	 * @public
-	 */
-	@computed get renderingShapes() {
-		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId], {
-			cullingBounds: this.cullingBounds,
-			cullingBoundsExpanded: this.cullingBoundsExpanded,
-			erasingIdsSet: this.erasingIdsSet,
-			editingId: this.editingId,
-		})
-
-		// Its IMPORTANT that the result be sorted by id AND include the index
-		// that the shape should be displayed at. Steve, this is the past you
-		// telling the present you not to change this.
-
-		// We want to sort by id because moving elements about in the DOM will
-		// cause the element to get removed by react as it moves the DOM node. This
-		// causes <iframes/> to re-render which is hella annoying and a perf
-		// drain. By always sorting by 'id' we keep the shapes always in the
-		// same order; but we later use index to set the element's 'z-index'
-		// to change the "rendered" position in z-space.
-		return renderingShapes.sort(sortById)
-	}
-
 	/**
 	 * The common bounds of all of the shapes on the page.
 	 *
@@ -2604,7 +3248,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get allShapesCommonBounds(): Box2d | null {
 		let commonBounds = null as Box2d | null
 
-		this.shapeIds.forEach((shapeId) => {
+		this.currentPageShapeIds.forEach((shapeId) => {
 			const bounds = this.getMaskedPageBoundsById(shapeId)
 			if (bounds) {
 				if (commonBounds) {
@@ -2808,502 +3452,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return parents
 	}
 
-	/* -------------------- Viewport -------------------- */
-
 	/**
-	 * Update the viewport. The viewport will measure the size and screen position of its container
-	 * element. This should be done whenever the container's position on the screen changes.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.updateViewportScreenBounds()
-	 * editor.updateViewportScreenBounds(true)
-	 * ```
-	 *
-	 * @param center - (optional) Whether to preserve the viewport page center as the viewport changes.
-	 *
-	 * @public
-	 */
-	updateViewportScreenBounds(center = false) {
-		const container = this.getContainer()
-
-		if (!container) return this
-		const rect = container.getBoundingClientRect()
-		const screenBounds = new Box2d(0, 0, Math.max(rect.width, 1), Math.max(rect.height, 1))
-
-		const boundsAreEqual = screenBounds.equals(this.viewportScreenBounds)
-
-		// Get the current value
-		const { _willSetInitialBounds } = this
-
-		if (boundsAreEqual) {
-			this._willSetInitialBounds = false
-		} else {
-			if (_willSetInitialBounds) {
-				// If we have just received the initial bounds, don't center the camera.
-				this._willSetInitialBounds = false
-				this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
-			} else {
-				const { zoomLevel } = this
-				if (center) {
-					const before = this.viewportPageCenter
-					this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
-					const after = this.viewportPageCenter
-					if (!this.instanceState.followingUserId) {
-						this.pan((after.x - before.x) * zoomLevel, (after.y - before.y) * zoomLevel)
-					}
-				} else {
-					const before = this.screenToPage(0, 0)
-					this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
-					const after = this.screenToPage(0, 0)
-					if (!this.instanceState.followingUserId) {
-						this.pan((after.x - before.x) * zoomLevel, (after.y - before.y) * zoomLevel)
-					}
-				}
-			}
-		}
-
-		this._cameraManager.tick()
-		this.updateCullingBounds()
-
-		const { editingId } = this
-
-		if (editingId) {
-			this.panZoomIntoView([editingId])
-		}
-
-		return this
-	}
-
-	/**
-	 * The bounds of the editor's viewport in screen space.
-	 *
-	 * @public
-	 */
-	@computed get viewportScreenBounds() {
-		const { x, y, w, h } = this.instanceState.screenBounds
-		return new Box2d(x, y, w, h)
-	}
-
-	/**
-	 * The center of the editor's viewport in screen space.
-	 *
-	 * @public
-	 */
-	@computed get viewportScreenCenter() {
-		return this.viewportScreenBounds.center
-	}
-
-	/**
-	 * The current viewport in page space.
-	 *
-	 * @public
-	 */
-	@computed get viewportPageBounds() {
-		const { x, y, w, h } = this.viewportScreenBounds
-		const tl = this.screenToPage(x, y)
-		const br = this.screenToPage(x + w, y + h)
-		return new Box2d(tl.x, tl.y, br.x - tl.x, br.y - tl.y)
-	}
-
-	/**
-	 * The current culling bounds in page space, used for checking which shapes are "on screen".
-	 *
-	 * @public
-	 */
-	@computed get cullingBounds() {
-		return this._cullingBounds.value
-	}
-
-	/** @internal */
-	readonly _cullingBounds = atom('culling viewport', new Box2d())
-
-	/**
-	 * The current culling bounds in page space, expanded slightly. Used for determining which shapes
-	 * to render and which to "cull".
-	 *
-	 * @public
-	 */
-	@computed get cullingBoundsExpanded() {
-		return this._cullingBoundsExpanded.value
-	}
-
-	/** @internal */
-	readonly _cullingBoundsExpanded = atom('culling viewport expanded', new Box2d())
-
-	/**
-	 * Update the culling bounds. This should be called when the viewport has stopped changing, such
-	 * as at the end of a pan, zoom, or animation.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.updateCullingBounds()
-	 * ```
-	 *
-	 *
-	 * @internal
-	 */
-	updateCullingBounds(): this {
-		const { viewportPageBounds } = this
-		if (viewportPageBounds.equals(this._cullingBounds.__unsafe__getWithoutCapture())) return this
-		this._cullingBounds.set(viewportPageBounds.clone())
-		this._cullingBoundsExpanded.set(viewportPageBounds.clone().expandBy(100 / this.zoomLevel))
-		return this
-	}
-
-	/**
-	 * The center of the viewport in page space.
-	 *
-	 * @public
-	 */
-	@computed get viewportPageCenter() {
-		return this.viewportPageBounds.center
-	}
-
-	/**
-	 * Convert a point in screen space to a point in page space.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.screenToPage(100, 100)
-	 * ```
-	 *
-	 * @param x - The x coordinate of the point in screen space.
-	 * @param y - The y coordinate of the point in screen space.
-	 * @param camera - The camera to use. Defaults to the current camera.
-	 *
-	 * @public
-	 */
-	screenToPage(x: number, y: number, z = 0.5, camera: Vec2dModel = this.camera) {
-		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
-		const { x: cx, y: cy, z: cz = 1 } = camera
-		return {
-			x: (x - screenBounds.x) / cz - cx,
-			y: (y - screenBounds.y) / cz - cy,
-			z,
-		}
-	}
-
-	/**
-	 * Convert a point in page space to a point in screen space.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.pageToScreen(100, 100)
-	 * ```
-	 *
-	 * @param x - The x coordinate of the point in screen space.
-	 * @param y - The y coordinate of the point in screen space.
-	 * @param camera - The camera to use. Defaults to the current camera.
-	 *
-	 * @public
-	 */
-	pageToScreen(x: number, y: number, z = 0.5, camera: Vec2dModel = this.camera) {
-		const { x: cx, y: cy, z: cz = 1 } = camera
-		return {
-			x: x + cx * cz,
-			y: y + cy * cz,
-			z,
-		}
-	}
-
-	/* Focus Layers */
-
-	/**
-	 * The shape id of the current focus layer.
-	 *
-	 * @public
-	 */
-	get focusLayerId() {
-		return this.pageState.focusLayerId ?? this.currentPageId
-	}
-
-	/**
-	 * The shape of the current focus layer.
-	 *
-	 * @public
-	 */
-	get focusLayerShape(): TLShape | undefined {
-		const id = this.pageState.focusLayerId
-		if (!id) {
-			return
-		}
-		return this.getShapeById(id)
-	}
-
-	/**
-	 * Exit the current focus layer, moving up to the next group if there is one.
-	 *
-	 * @public
-	 */
-	popFocusLayer() {
-		const current = this.pageState.focusLayerId
-		const focusedShape = current && this.getShapeById(current)
-
-		if (focusedShape) {
-			// If we have a focused layer, look for an ancestor of the focused shape that is a group
-			const match = this.findAncestor(focusedShape, (shape) =>
-				this.isShapeOfType(shape, GroupShapeUtil)
-			)
-			// If we have an ancestor that can become a focused layer, set it as the focused layer
-			this.setFocusLayer(match?.id ?? null)
-			this.select(focusedShape.id)
-		} else {
-			// If there's no focused shape, then clear the focus layer and clear selection
-			this.setFocusLayer(null)
-			this.selectNone()
-		}
-
-		return this
-	}
-
-	/**
-	 * Set the focus layer to the given shape id.
-	 *
-	 * @param next - The next focus layer id or null to reset the focus layer to the page
-	 *
-	 * @public
-	 */
-	setFocusLayer(next: null | TLShapeId) {
-		this._setFocusLayer(next)
-		return this
-	}
-
-	/** @internal */
-	private _setFocusLayer = this.history.createCommand(
-		'setFocusLayer',
-		(next: null | TLShapeId) => {
-			// When we first click an empty canvas we don't want this to show up in the undo stack
-			if (next === null && !this.canUndo) {
-				return
-			}
-			const prev = this.pageState.focusLayerId
-			return { data: { prev, next }, preservesRedoStack: true, squashing: true }
-		},
-		{
-			do: ({ next }) => {
-				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: next }))
-			},
-			undo: ({ prev }) => {
-				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: prev }))
-			},
-			squash({ prev }, { next }) {
-				return { prev, next }
-			},
-		}
-	)
-
-	/**
-	 * Set the hinted shape ids.
-	 *
-	 * @param ids - The ids to set as hinted.
-	 *
-	 * @public
-	 */
-	setHintingIds(ids: TLShapeId[]): this {
-		// always ephemeral
-		this.store.update(this.pageState.id, (s) => ({ ...s, hintingIds: dedupe(ids) }))
-		return this
-	}
-
-	/**
-	 * The current editing shape's id.
-	 *
-	 * @public
-	 */
-	get editingId() {
-		return this.pageState.editingId
-	}
-
-	/**
-	 * The current cropping shape's id.
-	 *
-	 * @public
-	 */
-	get croppingId() {
-		return this.pageState.croppingId
-	}
-
-	@computed get editingShape() {
-		if (!this.editingId) return null
-		return this.getShapeById(this.editingId) ?? null
-	}
-
-	/**
-	 * Set the current editing id.
-	 *
-	 * @param id - The id of the shape to edit or null to clear the editing id.
-	 *
-	 * @public
-	 */
-	setEditingId(id: TLShapeId | null): this {
-		if (!id) {
-			this.setInstancePageState({ editingId: null })
-		} else {
-			if (id !== this.editingId) {
-				const shape = this.getShapeById(id)!
-				const util = this.getShapeUtil(shape)
-				if (shape && util.canEdit(shape)) {
-					this.setInstancePageState({ editingId: id, hoveredId: null }, false)
-					const { viewportPageBounds } = this
-					const localEditingBounds = util.getEditingBounds(shape)!
-					const pageTransform = this.getPageTransformById(id)!
-					const pageEditingBounds = Box2d.FromPoints(
-						Matrix2d.applyToPoints(pageTransform, localEditingBounds.corners)
-					)
-
-					if (!viewportPageBounds.contains(pageEditingBounds)) {
-						if (
-							pageEditingBounds.width > viewportPageBounds.width ||
-							pageEditingBounds.height > viewportPageBounds.height
-						) {
-							this.zoomToBounds(
-								pageEditingBounds.minX,
-								pageEditingBounds.minY,
-								pageEditingBounds.width,
-								pageEditingBounds.height
-							)
-						} else {
-							this.centerOnPoint(pageEditingBounds.midX, pageEditingBounds.midY)
-						}
-					}
-				}
-			}
-		}
-
-		return this
-	}
-
-	/**
-	 * Set the current cropping shape's id.
-	 *
-	 * @param id - The id of the shape to crop or null to clear the cropping id.
-	 *
-	 * @public
-	 */
-	setCroppingId(id: TLShapeId | null): this {
-		if (id !== this.croppingId) {
-			if (!id) {
-				this.setInstancePageState({ croppingId: null })
-				if (this.isInAny('select.crop', 'select.pointing_crop_handle', 'select.cropping')) {
-					this.setSelectedTool('select.idle')
-				}
-			} else {
-				const shape = this.getShapeById(id)!
-				const util = this.getShapeUtil(shape)
-				if (shape && util.canCrop(shape)) {
-					this.setInstancePageState({ croppingId: id, hoveredId: null })
-				}
-			}
-		}
-		return this
-	}
-
-	/**
-	 * Get the id of what should be the parent of a new shape at a given point. The parent can be a page or shape.
-	 *
-	 * @param point - The point to find the parent for.
-	 * @param shapeType - The type of shape that will be created.
-	 *
-	 * @returns The id of the parent.
-	 *
-	 * @public
-	 */
-	getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']) {
-		const shapes = this.sortedShapesArray
-
-		for (let i = shapes.length - 1; i >= 0; i--) {
-			const shape = shapes[i]
-			const util = this.getShapeUtil(shape)
-			if (!util.canReceiveNewChildrenOfType(shape, shapeType)) continue
-			const maskedPageBounds = this.getMaskedPageBoundsById(shape.id)
-			if (
-				maskedPageBounds &&
-				maskedPageBounds.containsPoint(point) &&
-				util.hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
-			) {
-				return shape.id
-			}
-		}
-
-		return this.focusLayerId
-	}
-
-	/**
-	 * Get the shape that some shapes should be dropped on at a given point.
-	 *
-	 * @param point - The point to find the parent for.
-	 * @param droppingShapes - The shapes that are being dropped.
-	 *
-	 * @returns The shape to drop on.
-	 *
-	 * @public
-	 */
-	getDroppingShape(point: VecLike, droppingShapes: TLShape[] = []) {
-		const shapes = this.sortedShapesArray
-
-		for (let i = shapes.length - 1; i >= 0; i--) {
-			const shape = shapes[i]
-			// don't allow dropping a shape on itself or one of it's children
-			if (droppingShapes.find((s) => s.id === shape.id || this.hasAncestor(shape, s.id))) continue
-			const util = this.getShapeUtil(shape)
-			if (!util.canDropShapes(shape, droppingShapes)) continue
-			const maskedPageBounds = this.getMaskedPageBoundsById(shape.id)
-			if (
-				maskedPageBounds &&
-				maskedPageBounds.containsPoint(point) &&
-				util.hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
-			) {
-				return shape
-			}
-		}
-
-		return undefined
-	}
-
-	/**
-	 * Get the shape that should be selected when you click on a given shape, assuming there is
-	 * nothing already selected. It will not return anything higher than or including the current
-	 * focus layer.
-	 *
-	 * @param shape - The shape to get the outermost selectable shape for.
-	 * @param filter - A function to filter the selectable shapes.
-	 *
-	 * @returns The outermost selectable shape.
-	 *
-	 * @public
-	 */
-	getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape {
-		let match = shape
-		let node = shape as TLShape | undefined
-		while (node) {
-			if (
-				this.isShapeOfType(node, GroupShapeUtil) &&
-				this.focusLayerId !== node.id &&
-				!this.hasAncestor(this.focusLayerShape, node.id) &&
-				(filter?.(node) ?? true)
-			) {
-				match = node
-			} else if (this.focusLayerId === node.id) {
-				break
-			}
-			node = this.getParentShape(node)
-		}
-
-		return match
-	}
-
-	/* --------------------- Shapes --------------------- */
-
-	/**
-	 * The app's set of styles.
-	 *
-	 * @public
-	 */
-	static styles = STYLES
-
-	/**
-	 * The current page bounds of all the selected shapes (Not the same thing as the page bounds of the selection bounding box when the selection has been rotated)
+	 * The current page bounds of all the selected shapes (Not the same thing as the page bounds of
+	 * the selection bounding box when the selection has been rotated)
 	 *
 	 * @readonly
 	 *
@@ -3390,279 +3541,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { selectionBounds, selectionRotation } = this
 		if (!selectionBounds) return null
 		return Vec2d.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
-	}
-
-	/**
-	 * An array containing all of the shapes in the current page.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.shapesArray
-	 * ```
-	 *
-	 * @readonly
-	 *
-	 * @public
-	 */
-	@computed get shapesArray() {
-		return Array.from(this.shapeIds, (id) => this.store.get(id)! as TLShape)
-	}
-
-	/**
-	 * An array containing all of the shapes in the current page, sorted in z-index order (accounting
-	 * for nested shapes): e.g. A, B, BA, BB, C.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.sortedShapesArray
-	 * ```
-	 *
-	 * @readonly
-	 *
-	 * @public
-	 */
-	@computed get sortedShapesArray(): TLShape[] {
-		const shapes = new Set(this.shapesArray.sort(sortByIndex))
-
-		const results: TLShape[] = []
-
-		function pushShapeWithDescendants(shape: TLShape): void {
-			results.push(shape)
-			shapes.delete(shape)
-
-			shapes.forEach((otherShape) => {
-				if (otherShape.parentId === shape.id) {
-					pushShapeWithDescendants(otherShape)
-				}
-			})
-		}
-
-		shapes.forEach((shape) => {
-			const parent = this.getShapeById(shape.parentId)
-			if (!isShape(parent)) {
-				pushShapeWithDescendants(shape)
-			}
-		})
-
-		return results
-	}
-
-	/**
-	 * An array containing all of the currently selected shapes.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.selectedShapes
-	 * ```
-	 *
-	 * @public
-	 * @readonly
-	 */
-	@computed get selectedShapes(): TLShape[] {
-		const { selectedIds } = this.pageState
-		return compact(selectedIds.map((id) => this.store.get(id)))
-	}
-
-	/**
-	 * The app's only selected shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.onlySelectedShape
-	 * ```
-	 *
-	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected
-	 *   shape.
-	 *
-	 * @public
-	 * @readonly
-	 */
-	@computed get onlySelectedShape(): TLShape | null {
-		const { selectedShapes } = this
-		return selectedShapes.length === 1 ? selectedShapes[0] : null
-	}
-
-	/**
-	 * Get whether a shape matches the type of a TLShapeUtil.
-	 *
-	 * @example
-	 * ```ts
-	 * const isArrowShape = isShapeOfType(someShape, ArrowShapeUtil)
-	 * ```
-	 *
-	 * @param util - the TLShapeUtil constructor to test against
-	 * @param shape - the shape to test
-	 *
-	 * @public
-	 */
-	isShapeOfType<T extends TLUnknownShape>(
-		shape: TLUnknownShape,
-		util: { new (...args: any): ShapeUtil<T>; type: string }
-	): shape is T {
-		return shape.type === util.type
-	}
-
-	/**
-	 * Get a shape by its id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getShapeById('box1')
-	 * ```
-	 *
-	 * @param id - The id of the shape to get.
-	 *
-	 * @public
-	 */
-	getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined {
-		if (!isShapeId(id)) return undefined
-		return this.store.get(id) as T
-	}
-
-	/**
-	 * Get the parent shape for a given shape. Returns undefined if the shape is the direct child of
-	 * the page.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getParentShape(myShape)
-	 * ```
-	 *
-	 * @public
-	 */
-	getParentShape(shape?: TLShape): TLShape | undefined {
-		if (shape === undefined || !isShapeId(shape.parentId)) return undefined
-		return this.store.get(shape.parentId)
-	}
-
-	/**
-	 * If siblingShape and targetShape are siblings, this returns targetShape. If targetShape has an
-	 * ancestor who is a sibling of siblingShape, this returns that ancestor. Otherwise, this returns
-	 * undefined.
-	 *
-	 * @internal
-	 */
-	private getNearestSiblingShape(
-		siblingShape: TLShape,
-		targetShape: TLShape | undefined
-	): TLShape | undefined {
-		if (!targetShape) {
-			return undefined
-		}
-		if (targetShape.parentId === siblingShape.parentId) {
-			return targetShape
-		}
-
-		const ancestor = this.findAncestor(
-			targetShape,
-			(ancestor) => ancestor.parentId === siblingShape.parentId
-		)
-
-		return ancestor
-	}
-
-	/**
-	 * Get the id of the containing page for a given shape.
-	 *
-	 * @param shape - The shape to get the page id for.
-	 *
-	 * @returns The id of the page that contains the shape, or undefined if the shape is undefined.
-	 *
-	 * @public
-	 */
-	getParentPageId(shape?: TLShape): TLPageId | undefined {
-		if (shape === undefined) return undefined
-		if (isPageId(shape.parentId)) {
-			return shape.parentId
-		} else {
-			return this.getParentPageId(this.getShapeById(shape.parentId))
-		}
-	}
-
-	/**
-	 * Get whether the given shape is the descendant of the given page.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.isShapeInPage(myShape)
-	 * editor.isShapeInPage(myShape, 'page1')
-	 * ```
-	 *
-	 * @param shape - The shape to check.
-	 * @param pageId - The id of the page to check against. Defaults to the current page.
-	 *
-	 * @public
-	 */
-	isShapeInPage(shape: TLShape, pageId = this.currentPageId): boolean {
-		let shapeIsInPage = false
-
-		if (shape.parentId === pageId) {
-			shapeIsInPage = true
-		} else {
-			let parent = this.getShapeById(shape.parentId)
-			isInPageSearch: while (parent) {
-				if (parent.parentId === pageId) {
-					shapeIsInPage = true
-					break isInPageSearch
-				}
-				parent = this.getShapeById(parent.parentId)
-			}
-		}
-
-		return shapeIsInPage
-	}
-
-	/* --------------------- Styles --------------------- */
-
-	/**
-	 * A mapping of color ids to CSS color values.
-	 *
-	 * @internal
-	 */
-	private colors: Map<TLColorStyle['id'], string>
-
-	/**
-	 * A mapping of size ids to size values.
-	 *
-	 * @internal
-	 */
-	private sizes = {
-		s: 2,
-		m: 3.5,
-		l: 5,
-		xl: 10,
-	}
-
-	/**
-	 * Get the CSS color value for a given color id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getCssColor('red')
-	 * ```
-	 *
-	 * @param id - The id of the color to get.
-	 *
-	 * @public
-	 */
-	getCssColor(id: TLColorStyle['id']): string {
-		return this.colors.get(id)!
-	}
-
-	/**
-	 * Get the stroke width value for a given size id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getStrokeWidth('m')
-	 * ```
-	 *
-	 * @param id - The id of the size to get.
-	 *
-	 * @public
-	 */
-	getStrokeWidth(id: TLSizeStyle['id']): number {
-		return this.sizes[id]
 	}
 
 	/* ------------------- Statechart ------------------- */
@@ -4442,7 +4320,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.store.put(shapes, 'initialize')
 			this.history.clear()
 			this.updateViewportScreenBounds()
-			this.updateCullingBounds()
+			this.updateRenderingBounds()
 
 			const bounds = this.allShapesCommonBounds
 			if (bounds) {
@@ -4755,7 +4633,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return newShape
 		})
 
-		if (newShapes.length + this.shapeIds.size > MAX_SHAPES_PER_PAGE) {
+		if (newShapes.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE) {
 			// There's some complexity here involving children
 			// that might be created without their parents, so
 			// if we're going over the limit then just don't paste.
@@ -4913,26 +4791,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/* --------------------- Shapes --------------------- */
-
-	/**
-	 * Get the index above the highest child of a given parent.
-	 *
-	 * @param parentId - The id of the parent.
-	 *
-	 * @returns The index.
-	 *
-	 * @public
-	 */
-	getHighestIndexForParent(parentId: TLShapeId | TLPageId) {
-		const children = this._parentIdsToChildIds.value[parentId]
-
-		if (!children || children.length === 0) {
-			return 'a1'
-		}
-		return getIndexAbove(children[children.length - 1][1])
-	}
-
 	/**
 	 * Create shapes.
 	 *
@@ -4958,7 +4816,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (this.isReadOnly) return null
 			if (partials.length <= 0) return null
 
-			const { shapeIds, selectedIds } = this
+			const { currentPageShapeIds: shapeIds, selectedIds } = this
 
 			const prevSelectedIds = select ? selectedIds : undefined
 
@@ -5058,15 +4916,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// The initial props starts as the shape utility's default props
 					const initialProps = util.defaultProps()
 
-					// We then look up each key in the tab state's props; and if it's there,
-					// we use the value from the tab state's props instead of the default.
-					// Note that props will never include opacity.
-					const { propsForNextShape, opacityForNextShape } = this.instanceState
-					for (const key in initialProps) {
-						if (key in propsForNextShape) {
-							if (key === 'url') continue
-							;(initialProps as any)[key] = (propsForNextShape as any)[key]
-						}
+					// We then look up each key in the tab state's styles; and if it's there,
+					// we use the value from the tab state's styles instead of the default.
+					for (const [style, propKey] of util.styleProps) {
+						;(initialProps as any)[propKey] = this.getStyleForNextShape(style)
 					}
 
 					// When we create the shape, take in the partial (the props coming into the
@@ -5079,7 +4932,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					).create({
 						...partial,
 						index,
-						opacity: partial.opacity ?? opacityForNextShape,
+						opacity: partial.opacity ?? this.instanceState.opacityForNextShape,
 						parentId: partial.parentId ?? focusLayerId,
 						props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
 					})
@@ -5569,7 +5422,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					newTabPageState,
 					{ ...this.instanceState, currentPageId: newPage.id },
 				])
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 			undo: ({ newPage, prevSelectedPageId, newTabPageState, newCamera }) => {
 				if (this.pages.length === 1) return
@@ -5579,7 +5432,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.store.put([{ ...this.instanceState, currentPageId: prevSelectedPageId }])
 				}
 
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 		}
 	)
@@ -5664,33 +5517,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
 				this.store.remove([deletedPage.id]) // remove the page
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 			undo: ({ deletedPage, deletedPageStates }) => {
 				this.store.put([deletedPage])
 				this.store.put(deletedPageStates)
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 		}
 	)
-
-	/**
-	 * Update a page state.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setInstancePageState({ id: 'page1', editingId: 'shape:123' })
-	 * editor.setInstancePageState({ id: 'page1', editingId: 'shape:123' }, true)
-	 * ```
-	 *
-	 * @param partial - The partial of the page state object containing the changes.
-	 * @param ephemeral - Whether the command is ephemeral.
-	 *
-	 * @public
-	 */
-	setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral = false) {
-		this._setInstancePageState(partial, ephemeral)
-	}
 
 	/** @internal */
 	private _setInstancePageState = this.history.createCommand(
@@ -5708,87 +5543,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		}
 	)
-
-	/**
-	 * Select one or more shapes.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setSelectedIds(['id1'])
-	 * editor.setSelectedIds(['id1', 'id2'])
-	 * ```
-	 *
-	 * @param ids - The ids to select.
-	 * @param squashing - Whether the change should create a new history entry or combine with the
-	 *   previous (if the previous is the same type).
-	 *
-	 * @public
-	 */
-	setSelectedIds(ids: TLShapeId[], squashing = false) {
-		this._setSelectedIds(ids, squashing)
-		return this
-	}
-
-	/** @internal */
-	private _setSelectedIds = this.history.createCommand(
-		'setSelectedIds',
-		(ids: TLShapeId[], squashing = false) => {
-			const prevSelectedIds = this.pageState.selectedIds
-
-			const prevSet = new Set(this.pageState.selectedIds)
-
-			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
-
-			return { data: { ids, prevSelectedIds }, squashing, preservesRedoStack: true }
-		},
-		{
-			do: ({ ids }) => {
-				this.store.update(this.pageState.id, (state) => ({ ...state, selectedIds: ids }))
-			},
-			undo: ({ prevSelectedIds }) => {
-				this.store.update(this.pageState.id, () => ({
-					...this.pageState,
-					selectedIds: prevSelectedIds,
-				}))
-			},
-			squash(prev, next) {
-				return { ids: next.ids, prevSelectedIds: prev.prevSelectedIds }
-			},
-		}
-	)
-
-	/**
-	 * Determine whether or not a shape is selected
-	 *
-	 * @example
-	 * ```ts
-	 * editor.isSelected('id1')
-	 * ```
-	 *
-	 * @param id - The id of the shape to check.
-	 *
-	 * @public
-	 */
-	isSelected(id: TLShapeId) {
-		return this.selectedIdsSet.has(id)
-	}
-
-	/**
-	 * Determine whether a not a shape is within the current selection. A shape is within the
-	 * selection if it or any of its parents is selected.
-	 *
-	 * @param id - The id of the shape to check.
-	 *
-	 * @public
-	 */
-	isWithinSelection(id: TLShapeId) {
-		const shape = this.getShapeById(id)
-		if (!shape) return false
-
-		if (this.isSelected(id)) return true
-
-		return !!this.findAncestor(shape, (parent) => this.isSelected(parent.id))
-	}
 
 	/* --------------------- Assets --------------------- */
 
@@ -5959,325 +5713,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getAssetById(id: TLAssetId): TLAsset | undefined {
 		return this.store.get(id) as TLAsset | undefined
-	}
-
-	/* ------------------- SubCommands ------------------ */
-	/**
-	 * Get an exported SVG of the given shapes.
-	 *
-	 * @param ids - The ids of the shapes to export. Defaults to selected shapes.
-	 * @param opts - Options for the export.
-	 *
-	 * @returns The SVG element.
-	 *
-	 * @public
-	 */
-	async getSvg(
-		ids: TLShapeId[] = this.selectedIds.length
-			? this.selectedIds
-			: (Object.keys(this.shapeIds) as TLShapeId[]),
-		opts = {} as Partial<{
-			scale: number
-			background: boolean
-			padding: number
-			darkMode?: boolean
-			preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
-		}>
-	) {
-		if (ids.length === 0) return
-		if (!window.document) throw Error('No document')
-
-		const {
-			scale = 1,
-			background = false,
-			padding = SVG_PADDING,
-			darkMode = this.isDarkMode,
-			preserveAspectRatio = false,
-		} = opts
-
-		const realContainerEl = this.getContainer()
-		const realContainerStyle = getComputedStyle(realContainerEl)
-
-		// Get the styles from the container. We'll use these to pull out colors etc.
-		// NOTE: We can force force a light theme here because we don't want export
-		const fakeContainerEl = document.createElement('div')
-		fakeContainerEl.className = `tl-container tl-theme__${
-			darkMode ? 'dark' : 'light'
-		} tl-theme__force-sRGB`
-		document.body.appendChild(fakeContainerEl)
-
-		const containerStyle = getComputedStyle(fakeContainerEl)
-		const fontsUsedInExport = new Map<string, string>()
-
-		const colors: TLExportColors = {
-			fill: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}`),
-				])
-			) as Record<TLColorType, string>,
-			pattern: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-pattern`),
-				])
-			) as Record<TLColorType, string>,
-			semi: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-semi`),
-				])
-			) as Record<TLColorType, string>,
-			highlight: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-highlight`),
-				])
-			) as Record<TLColorType, string>,
-			text: containerStyle.getPropertyValue(`--color-text`),
-			background: containerStyle.getPropertyValue(`--color-background`),
-			solid: containerStyle.getPropertyValue(`--palette-solid`),
-		}
-
-		// Remove containerEl from DOM (temp DOM node)
-		document.body.removeChild(fakeContainerEl)
-
-		// ---Figure out which shapes we need to include
-		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
-		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
-			({ id }) => shapeIdsToInclude.has(id)
-		)
-
-		// --- Common bounding box of all shapes
-		let bbox = null
-		for (const { maskedPageBounds } of renderingShapes) {
-			if (!maskedPageBounds) continue
-			if (bbox) {
-				bbox.union(maskedPageBounds)
-			} else {
-				bbox = maskedPageBounds.clone()
-			}
-		}
-
-		// no unmasked shapes to export
-		if (!bbox) return
-
-		const singleFrameShapeId =
-			ids.length === 1 && this.isShapeOfType(this.getShapeById(ids[0])!, FrameShapeUtil)
-				? ids[0]
-				: null
-		if (!singleFrameShapeId) {
-			// Expand by an extra 32 pixels
-			bbox.expandBy(padding)
-		}
-
-		// We want the svg image to be BIGGER THAN USUAL to account for image quality
-		const w = bbox.width * scale
-		const h = bbox.height * scale
-
-		// --- Create the SVG
-
-		// Embed our custom fonts
-		const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-
-		if (preserveAspectRatio) {
-			svg.setAttribute('preserveAspectRatio', preserveAspectRatio)
-		}
-
-		svg.setAttribute('direction', 'ltr')
-		svg.setAttribute('width', w + '')
-		svg.setAttribute('height', h + '')
-		svg.setAttribute('viewBox', `${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`)
-		svg.setAttribute('stroke-linecap', 'round')
-		svg.setAttribute('stroke-linejoin', 'round')
-		// Add current background color, or else background will be transparent
-
-		if (background) {
-			if (singleFrameShapeId) {
-				svg.style.setProperty('background', colors.solid)
-			} else {
-				svg.style.setProperty('background-color', colors.background)
-			}
-		} else {
-			svg.style.setProperty('background-color', 'transparent')
-		}
-
-		// Add the defs to the svg
-		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-
-		for (const element of Array.from(exportPatternSvgDefs(colors.solid))) {
-			defs.appendChild(element)
-		}
-
-		try {
-			document.body.focus?.() // weird but necessary
-		} catch (e) {
-			// not implemented
-		}
-
-		svg.append(defs)
-
-		const unorderedShapeElements = (
-			await Promise.all(
-				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
-					// Don't render the frame if we're only exporting a single frame
-					if (id === singleFrameShapeId) return []
-
-					const shape = this.getShapeById(id)!
-
-					if (this.isShapeOfType(shape, GroupShapeUtil)) return []
-
-					const util = this.getShapeUtil(shape)
-
-					let font: string | undefined
-					if ('font' in shape.props) {
-						if (shape.props.font) {
-							if (fontsUsedInExport.has(shape.props.font)) {
-								font = fontsUsedInExport.get(shape.props.font)!
-							} else {
-								// For some reason these styles aren't present in the fake element
-								// so we need to get them from the real element
-								font = realContainerStyle.getPropertyValue(`--tl-font-${shape.props.font}`)
-								fontsUsedInExport.set(shape.props.font, font)
-							}
-						}
-					}
-
-					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
-
-					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
-					if (shapeSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(shapeSvgElement)
-						shapeSvgElement = outerElement
-					}
-
-					if (backgroundSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(backgroundSvgElement)
-						backgroundSvgElement = outerElement
-					}
-
-					if (!shapeSvgElement && !backgroundSvgElement) {
-						const bounds = this.getPageBounds(shape)!
-						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-						elm.setAttribute('width', bounds.width + '')
-						elm.setAttribute('height', bounds.height + '')
-						elm.setAttribute('fill', colors.solid)
-						elm.setAttribute('stroke', colors.pattern.grey)
-						elm.setAttribute('stroke-width', '1')
-						shapeSvgElement = elm
-					}
-
-					let pageTransform = this.getPageTransform(shape)!.toCssString()
-					if ('scale' in shape.props) {
-						if (shape.props.scale !== 1) {
-							pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
-						}
-					}
-
-					shapeSvgElement?.setAttribute('transform', pageTransform)
-					backgroundSvgElement?.setAttribute('transform', pageTransform)
-					shapeSvgElement?.setAttribute('opacity', opacity + '')
-					backgroundSvgElement?.setAttribute('opacity', opacity + '')
-
-					// Create svg mask if shape has a frame as parent
-					const pageMask = this.getPageMaskById(shape.id)
-					if (pageMask) {
-						// Create a clip path and add it to defs
-						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
-						defs.appendChild(clipPathEl)
-						const id = nanoid()
-						clipPathEl.id = id
-
-						// Create a polyline mask that does the clipping
-						const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-						mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
-						clipPathEl.appendChild(mask)
-
-						// Create group that uses the clip path and wraps the shape elements
-						if (shapeSvgElement) {
-							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
-							outerElement.appendChild(shapeSvgElement)
-							shapeSvgElement = outerElement
-						}
-
-						if (backgroundSvgElement) {
-							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
-							outerElement.appendChild(backgroundSvgElement)
-							backgroundSvgElement = outerElement
-						}
-					}
-
-					const elements = []
-					if (shapeSvgElement) {
-						elements.push({ zIndex: index, element: shapeSvgElement })
-					}
-					if (backgroundSvgElement) {
-						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
-					}
-
-					return elements
-				})
-			)
-		).flat()
-
-		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
-			svg.appendChild(element)
-		}
-
-		// Add styles to the defs
-		let styles = ``
-		const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style')
-
-		// Insert fonts into app
-		const fontInstances: FontFace[] = []
-
-		if ('fonts' in document) {
-			document.fonts.forEach((font) => fontInstances.push(font))
-		}
-
-		await Promise.all(
-			fontInstances.map(async (font) => {
-				const fileReader = new FileReader()
-
-				let isUsed = false
-
-				fontsUsedInExport.forEach((fontName) => {
-					if (fontName.includes(font.family)) {
-						isUsed = true
-					}
-				})
-
-				if (!isUsed) return
-
-				const url = (font as any).$$_url
-
-				const fontFaceRule = (font as any).$$_fontface
-
-				if (url) {
-					const fontFile = await (await fetch(url)).blob()
-
-					const base64Font = await new Promise<string>((resolve, reject) => {
-						fileReader.onload = () => resolve(fileReader.result as string)
-						fileReader.onerror = () => reject(fileReader.error)
-						fileReader.readAsDataURL(fontFile)
-					})
-
-					const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
-					styles += newFontFaceRule
-				}
-			})
-		)
-
-		style.textContent = styles
-
-		defs.append(style)
-
-		return svg
 	}
 
 	/**
@@ -7503,6 +6938,235 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * An array containing all of the shapes in the current page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.shapesArray
+	 * ```
+	 *
+	 * @readonly
+	 *
+	 * @public
+	 */
+	@computed get shapesArray() {
+		return Array.from(this.currentPageShapeIds, (id) => this.store.get(id)! as TLShape)
+	}
+
+	/**
+	 * An array containing all of the shapes in the current page, sorted in z-index order (accounting
+	 * for nested shapes): e.g. A, B, BA, BB, C.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.sortedShapesArray
+	 * ```
+	 *
+	 * @readonly
+	 *
+	 * @public
+	 */
+	@computed get sortedShapesArray(): TLShape[] {
+		const shapes = new Set(this.shapesArray.sort(sortByIndex))
+
+		const results: TLShape[] = []
+
+		function pushShapeWithDescendants(shape: TLShape): void {
+			results.push(shape)
+			shapes.delete(shape)
+
+			shapes.forEach((otherShape) => {
+				if (otherShape.parentId === shape.id) {
+					pushShapeWithDescendants(otherShape)
+				}
+			})
+		}
+
+		shapes.forEach((shape) => {
+			const parent = this.getShapeById(shape.parentId)
+			if (!isShape(parent)) {
+				pushShapeWithDescendants(shape)
+			}
+		})
+
+		return results
+	}
+
+	/**
+	 * An array containing all of the currently selected shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.selectedShapes
+	 * ```
+	 *
+	 * @public
+	 * @readonly
+	 */
+	@computed get selectedShapes(): TLShape[] {
+		const { selectedIds } = this.pageState
+		return compact(selectedIds.map((id) => this.store.get(id)))
+	}
+
+	/**
+	 * The app's only selected shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.onlySelectedShape
+	 * ```
+	 *
+	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected
+	 *   shape.
+	 *
+	 * @public
+	 * @readonly
+	 */
+	@computed get onlySelectedShape(): TLShape | null {
+		const { selectedShapes } = this
+		return selectedShapes.length === 1 ? selectedShapes[0] : null
+	}
+
+	/**
+	 * Get whether a shape matches the type of a TLShapeUtil.
+	 *
+	 * @example
+	 * ```ts
+	 * const isArrowShape = isShapeOfType(someShape, ArrowShapeUtil)
+	 * ```
+	 *
+	 * @param util - the TLShapeUtil constructor to test against
+	 * @param shape - the shape to test
+	 *
+	 * @public
+	 */
+	isShapeOfType<T extends TLUnknownShape>(
+		shape: TLUnknownShape,
+		util: { new (...args: any): ShapeUtil<T>; type: string }
+	): shape is T {
+		return shape.type === util.type
+	}
+
+	/**
+	 * Get a shape by its id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeById('box1')
+	 * ```
+	 *
+	 * @param id - The id of the shape to get.
+	 *
+	 * @public
+	 */
+	getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined {
+		if (!isShapeId(id)) return undefined
+		return this.store.get(id) as T
+	}
+
+	/**
+	 * Get the parent shape for a given shape. Returns undefined if the shape is the direct child of
+	 * the page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getParentShape(myShape)
+	 * ```
+	 *
+	 * @public
+	 */
+	getParentShape(shape?: TLShape): TLShape | undefined {
+		if (shape === undefined || !isShapeId(shape.parentId)) return undefined
+		return this.store.get(shape.parentId)
+	}
+
+	/**
+	 * If siblingShape and targetShape are siblings, this returns targetShape. If targetShape has an
+	 * ancestor who is a sibling of siblingShape, this returns that ancestor. Otherwise, this returns
+	 * undefined.
+	 *
+	 * @internal
+	 */
+	private getShapeNearestSibling(
+		siblingShape: TLShape,
+		targetShape: TLShape | undefined
+	): TLShape | undefined {
+		if (!targetShape) {
+			return undefined
+		}
+		if (targetShape.parentId === siblingShape.parentId) {
+			return targetShape
+		}
+
+		const ancestor = this.findAncestor(
+			targetShape,
+			(ancestor) => ancestor.parentId === siblingShape.parentId
+		)
+
+		return ancestor
+	}
+
+	/**
+	 * Get whether the given shape is the descendant of the given page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.isShapeInPage(myShape)
+	 * editor.isShapeInPage(myShape, 'page1')
+	 * ```
+	 *
+	 * @param shape - The shape to check.
+	 * @param pageId - The id of the page to check against. Defaults to the current page.
+	 *
+	 * @public
+	 */
+	isShapeInPage(shape: TLShape, pageId = this.currentPageId): boolean {
+		let shapeIsInPage = false
+
+		if (shape.parentId === pageId) {
+			shapeIsInPage = true
+		} else {
+			let parent = this.getShapeById(shape.parentId)
+			isInPageSearch: while (parent) {
+				if (parent.parentId === pageId) {
+					shapeIsInPage = true
+					break isInPageSearch
+				}
+				parent = this.getShapeById(parent.parentId)
+			}
+		}
+
+		return shapeIsInPage
+	}
+
+	/**
+	 * Get the id of the containing page for a given shape.
+	 *
+	 * @param shape - The shape to get the page id for.
+	 *
+	 * @returns The id of the page that contains the shape, or undefined if the shape is undefined.
+	 *
+	 * @public
+	 */
+	getAncestorPageId(shape?: TLShape): TLPageId | undefined {
+		if (shape === undefined) return undefined
+		if (isPageId(shape.parentId)) {
+			return shape.parentId
+		} else {
+			return this.getAncestorPageId(this.getShapeById(shape.parentId))
+		}
+	}
+
+	// Parents and children
+
+	/**
+	 * A cache of parents to children.
+	 *
+	 * @internal
+	 */
+	private readonly _parentIdsToChildIds: ReturnType<typeof parentsToChildrenWithIndexes>
+
+	/**
 	 * Reparent shapes to a new parent. This operation preserves the shape's current page positions /
 	 * rotations.
 	 *
@@ -7591,58 +7255,67 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Select one or more shapes.
+	 * Get the index above the highest child of a given parent.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.select('id1')
-	 * editor.select('id1', 'id2')
-	 * ```
+	 * @param parentId - The id of the parent.
 	 *
-	 * @param ids - The ids to select.
+	 * @returns The index.
 	 *
 	 * @public
 	 */
-	select(...ids: TLShapeId[]) {
-		this.setSelectedIds(ids)
-		return this
-	}
+	getHighestIndexForParent(parentId: TLShapeId | TLPageId) {
+		const children = this._parentIdsToChildIds.value[parentId]
 
-	/**
-	 * Remove a shape from the existing set of selected shapes.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.deselect(shape.id)
-	 * ```
-	 *
-	 * @public
-	 */
-	deselect(...ids: TLShapeId[]) {
-		const { selectedIds } = this
-		if (selectedIds.length > 0 && ids.length > 0) {
-			this.setSelectedIds(selectedIds.filter((id) => !ids.includes(id)))
+		if (!children || children.length === 0) {
+			return 'a1'
 		}
-		return this
+		return getIndexAbove(children[children.length - 1][1])
 	}
 
 	/**
-	 * Select all direct children of the current page.
+	 * A cache of children for each parent.
+	 *
+	 * @internal
+	 */
+	private _childIdsCache = new WeakMapCache<any[], TLShapeId[]>()
+
+	/**
+	 * Get an array of all the children of a shape.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.selectAll()
+	 * editor.getSortedChildIds('frame1')
 	 * ```
+	 *
+	 * @param parentId - The id of the parent shape.
 	 *
 	 * @public
 	 */
-	selectAll() {
-		const ids = this.getSortedChildIds(this.currentPageId)
-		// page might have no shapes
-		if (ids.length <= 0) return this
-		this.setSelectedIds(this._getUnlockedShapeIds(ids))
+	getSortedChildIds(parentId: TLParentId): TLShapeId[] {
+		const withIndices = this._parentIdsToChildIds.value[parentId]
+		if (!withIndices) return EMPTY_ARRAY
+		return this._childIdsCache.get(withIndices, () => withIndices.map(([id]) => id))
+	}
 
-		return this
+	/**
+	 * Run a visitor function for all descendants of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.visitDescendants('frame1', myCallback)
+	 * ```
+	 *
+	 * @param parentId - The id of the parent shape.
+	 * @param visitor - The visitor function.
+	 *
+	 * @public
+	 */
+	visitDescendants(parentId: TLParentId, visitor: (id: TLShapeId) => void | false) {
+		const children = this.getSortedChildIds(parentId)
+		for (const id of children) {
+			if (visitor(id) === false) continue
+			this.visitDescendants(id, visitor)
+		}
 	}
 
 	/**
@@ -7673,22 +7346,100 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Clear the selection.
+	 * Get the id of what should be the parent of a new shape at a given point. The parent can be a page or shape.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.selectNone()
-	 * ```
+	 * @param point - The point to find the parent for.
+	 * @param shapeType - The type of shape that will be created.
+	 *
+	 * @returns The id of the parent.
 	 *
 	 * @public
 	 */
-	selectNone(): this {
-		if (this.selectedIds.length > 0) {
-			this.setSelectedIds([])
+	getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']) {
+		const shapes = this.sortedShapesArray
+
+		for (let i = shapes.length - 1; i >= 0; i--) {
+			const shape = shapes[i]
+			const util = this.getShapeUtil(shape)
+			if (!util.canReceiveNewChildrenOfType(shape, shapeType)) continue
+			const maskedPageBounds = this.getMaskedPageBoundsById(shape.id)
+			if (
+				maskedPageBounds &&
+				maskedPageBounds.containsPoint(point) &&
+				util.hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
+			) {
+				return shape.id
+			}
 		}
 
-		return this
+		return this.focusLayerId
 	}
+
+	/**
+	 * Get the shape that some shapes should be dropped on at a given point.
+	 *
+	 * @param point - The point to find the parent for.
+	 * @param droppingShapes - The shapes that are being dropped.
+	 *
+	 * @returns The shape to drop on.
+	 *
+	 * @public
+	 */
+	getDroppingShape(point: VecLike, droppingShapes: TLShape[] = []) {
+		const shapes = this.sortedShapesArray
+
+		for (let i = shapes.length - 1; i >= 0; i--) {
+			const shape = shapes[i]
+			// don't allow dropping a shape on itself or one of it's children
+			if (droppingShapes.find((s) => s.id === shape.id || this.hasAncestor(shape, s.id))) continue
+			const util = this.getShapeUtil(shape)
+			if (!util.canDropShapes(shape, droppingShapes)) continue
+			const maskedPageBounds = this.getMaskedPageBoundsById(shape.id)
+			if (
+				maskedPageBounds &&
+				maskedPageBounds.containsPoint(point) &&
+				util.hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
+			) {
+				return shape
+			}
+		}
+
+		return undefined
+	}
+
+	/**
+	 * Get the shape that should be selected when you click on a given shape, assuming there is
+	 * nothing already selected. It will not return anything higher than or including the current
+	 * focus layer.
+	 *
+	 * @param shape - The shape to get the outermost selectable shape for.
+	 * @param filter - A function to filter the selectable shapes.
+	 *
+	 * @returns The outermost selectable shape.
+	 *
+	 * @public
+	 */
+	getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape {
+		let match = shape
+		let node = shape as TLShape | undefined
+		while (node) {
+			if (
+				this.isShapeOfType(node, GroupShapeUtil) &&
+				this.focusLayerId !== node.id &&
+				!this.hasAncestor(this.focusLayerShape, node.id) &&
+				(filter?.(node) ?? true)
+			) {
+				match = node
+			} else if (this.focusLayerId === node.id) {
+				break
+			}
+			node = this.getParentShape(node)
+		}
+
+		return match
+	}
+
+	/* -------------------- Commands -------------------- */
 
 	/**
 	 * Set the current page.
@@ -7748,7 +7499,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this.store.put([{ ...this.instanceState, currentPageId: toId }])
 
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 			undo: ({ fromId }) => {
 				if (!this.store.has(fromId)) {
@@ -7757,7 +7508,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
 
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 			squash: ({ fromId }, { toId }) => {
 				return { toId, fromId }
@@ -7808,68 +7559,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		}
 	)
-
-	/**
-	 * The current hovered shape id.
-	 *
-	 * @readonly
-	 * @public
-	 */
-	@computed get hoveredId() {
-		return this.pageState.hoveredId
-	}
-
-	/**
-	 * The current hovered shape.
-	 *
-	 * @readonly
-	 * @public
-	 */
-	@computed get hoveredShape() {
-		if (!this.hoveredId) return null
-		return this.getShapeById(this.hoveredId) ?? null
-	}
-
-	/**
-	 * Set the current hovered shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setHoveredId('box1')
-	 * editor.setHoveredId() // Clears the hovered shape.
-	 * ```
-	 *
-	 * @param id - The id of the page to set as the current page
-	 *
-	 * @public
-	 */
-	setHoveredId(id: TLShapeId | null = null): this {
-		if (id === this.pageState.hoveredId) return this
-
-		this.setInstancePageState({ hoveredId: id }, true)
-		return this
-	}
-
-	/**
-	 * Set the current erasing shapes.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setErasingIds(['box1', 'box2'])
-	 * editor.setErasingIds() // Clears the erasing set
-	 * ```
-	 *
-	 * @param ids - The ids of shapes to set as erasing.
-	 *
-	 * @public
-	 */
-	setErasingIds(ids: TLShapeId[] = []): this {
-		const erasingIds = this.erasingIdsSet
-		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return this
-
-		this.setInstancePageState({ erasingIds: ids }, true)
-		return this
-	}
 
 	/**
 	 * Set the current cursor.
@@ -8197,14 +7886,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.history.batch(() => {
-			const maxShapesReached = shapesToCreate.length + this.shapeIds.size > MAX_SHAPES_PER_PAGE
+			const maxShapesReached =
+				shapesToCreate.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE
 
 			if (maxShapesReached) {
 				alertMaxShapes(this)
 			}
 
 			const newShapes = maxShapesReached
-				? shapesToCreate.slice(0, MAX_SHAPES_PER_PAGE - this.shapeIds.size)
+				? shapesToCreate.slice(0, MAX_SHAPES_PER_PAGE - this.currentPageShapeIds.size)
 				: shapesToCreate
 
 			const ids = newShapes.map((s) => s.id)
@@ -8291,22 +7981,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the current props (generally styles).
+	 * Set the current styles
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setProp('color', 'red')
-	 * editor.setProp('color', 'red', true)
+	 * editor.setProp(DefaultColorStyle, 'red')
+	 * editor.setProp(DefaultColorStyle, 'red', true)
 	 * ```
 	 *
-	 * @param key - The key to set.
+	 * @param style - The style to set.
 	 * @param value - The value to set.
 	 * @param ephemeral - Whether the style change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
 	 * @param squashing - Whether the style change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
 	 *
 	 * @public
 	 */
-	setProp(key: TLShapeProp, value: any, ephemeral = false, squashing = false): this {
+	setStyle<T>(style: StyleProp<T>, value: T, ephemeral = false, squashing = false): this {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {
@@ -8314,7 +8004,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				} = this
 
 				if (selectedIds.length > 0) {
-					const shapesToUpdate: TLShape[] = []
+					const updates: { originalShape: TLShape; updatePartial: TLShapePartial }[] = []
 
 					// We can have many deep levels of grouped shape
 					// Making a recursive function to look through all the levels
@@ -8326,8 +8016,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 							for (const childId of childIds) {
 								addShapeById(childId)
 							}
-						} else if (shape!.props[key as keyof TLShape['props']] !== undefined) {
-							shapesToUpdate.push(shape)
+						} else {
+							const util = this.getShapeUtil(shape)
+							if (util.hasStyle(style)) {
+								const shapePartial: TLShapePartial = {
+									id: shape.id,
+									type: shape.type,
+									props: {},
+								}
+								updates.push({
+									originalShape: shape,
+									updatePartial: util.setStyleInPartial(style, shapePartial, value),
+								})
+							}
 						}
 					}
 
@@ -8336,77 +8037,62 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 
 					this.updateShapes(
-						shapesToUpdate.map((shape) => {
-							const props = { ...shape.props, [key]: value }
-							if (key === 'color' && 'labelColor' in props) {
-								props.labelColor = 'black'
-							}
-
-							return {
-								id: shape.id,
-								type: shape.type,
-								props,
-							}
-						}),
+						updates.map(({ updatePartial }) => updatePartial),
 						ephemeral
 					)
 
-					if (key !== 'color') {
-						const changes: TLShapePartial[] = []
+					// TODO: find a way to sink this stuff into shape utils directly?
+					const changes: TLShapePartial[] = []
+					for (const { originalShape: originalShape } of updates) {
+						const currentShape = this.getShapeById(originalShape.id)
+						if (!currentShape) continue
+						const util = this.getShapeUtil(currentShape)
 
-						for (const shape of shapesToUpdate) {
-							const currentShape = this.getShapeById(shape.id)
-							if (!currentShape) continue
-							const util = this.getShapeUtil(currentShape)
+						const boundsA = util.bounds(originalShape)
+						const boundsB = util.bounds(currentShape)
 
-							const boundsA = util.bounds(shape)
-							const boundsB = util.bounds(currentShape)
+						const change: TLShapePartial = { id: originalShape.id, type: originalShape.type }
 
-							const change: TLShapePartial = { id: shape.id, type: shape.type }
+						let didChange = false
 
-							let didChange = false
+						if (boundsA.width !== boundsB.width) {
+							didChange = true
 
-							if (boundsA.width !== boundsB.width) {
-								didChange = true
-
-								if (this.isShapeOfType(shape, TextShapeUtil)) {
-									switch (shape.props.align) {
-										case 'middle': {
-											change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
-											break
-										}
-										case 'end': {
-											change.x = currentShape.x + boundsA.width - boundsB.width
-											break
-										}
+							if (this.isShapeOfType(originalShape, TextShapeUtil)) {
+								switch (originalShape.props.align) {
+									case 'middle': {
+										change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
+										break
 									}
-								} else {
-									change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
+									case 'end': {
+										change.x = currentShape.x + boundsA.width - boundsB.width
+										break
+									}
 								}
-							}
-
-							if (boundsA.height !== boundsB.height) {
-								didChange = true
-								change.y = currentShape.y + (boundsA.height - boundsB.height) / 2
-							}
-
-							if (didChange) {
-								changes.push(change)
+							} else {
+								change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
 							}
 						}
 
-						if (changes.length) {
-							this.updateShapes(changes, ephemeral)
+						if (boundsA.height !== boundsB.height) {
+							didChange = true
+							change.y = currentShape.y + (boundsA.height - boundsB.height) / 2
 						}
+
+						if (didChange) {
+							changes.push(change)
+						}
+					}
+
+					if (changes.length) {
+						this.updateShapes(changes, ephemeral)
 					}
 				}
 			}
 
 			this.updateInstanceState(
 				{
-					propsForNextShape: setPropsForNextShape(this.instanceState.propsForNextShape, {
-						[key]: value,
-					}),
+					stylesForNextShape: { ...this._stylesForNextShape, [style.id]: value },
 				},
 				ephemeral,
 				squashing
@@ -8443,7 +8129,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				isPen: this.isPenMode ?? false,
 			})
 
-			this._cameraManager.tick()
+			this._tickCameraState()
 		})
 
 		return this
@@ -8582,7 +8268,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToFit(opts?: TLAnimationOptions): this {
 		if (!this.canMoveCamera) return this
 
-		const ids = [...this.shapeIds]
+		const ids = [...this.currentPageShapeIds]
 		if (ids.length <= 0) return this
 
 		const pageBounds = Box2d.Common(compact(ids.map((id) => this.getPageBoundsById(id))))
@@ -9495,6 +9181,325 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		return this
+	}
+
+	/**
+	 * Get an exported SVG of the given shapes.
+	 *
+	 * @param ids - The ids of the shapes to export. Defaults to selected shapes.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns The SVG element.
+	 *
+	 * @public
+	 */
+	async getSvg(
+		ids: TLShapeId[] = this.selectedIds.length
+			? this.selectedIds
+			: (Object.keys(this.currentPageShapeIds) as TLShapeId[]),
+		opts = {} as Partial<{
+			scale: number
+			background: boolean
+			padding: number
+			darkMode?: boolean
+			preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+		}>
+	) {
+		if (ids.length === 0) return
+		if (!window.document) throw Error('No document')
+
+		const {
+			scale = 1,
+			background = false,
+			padding = SVG_PADDING,
+			darkMode = this.isDarkMode,
+			preserveAspectRatio = false,
+		} = opts
+
+		const realContainerEl = this.getContainer()
+		const realContainerStyle = getComputedStyle(realContainerEl)
+
+		// Get the styles from the container. We'll use these to pull out colors etc.
+		// NOTE: We can force force a light theme here because we don't want export
+		const fakeContainerEl = document.createElement('div')
+		fakeContainerEl.className = `tl-container tl-theme__${
+			darkMode ? 'dark' : 'light'
+		} tl-theme__force-sRGB`
+		document.body.appendChild(fakeContainerEl)
+
+		const containerStyle = getComputedStyle(fakeContainerEl)
+		const fontsUsedInExport = new Map<string, string>()
+
+		const colors: TLExportColors = {
+			fill: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}`),
+				])
+			),
+			pattern: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}-pattern`),
+				])
+			),
+			semi: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}-semi`),
+				])
+			),
+			highlight: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}-highlight`),
+				])
+			),
+			text: containerStyle.getPropertyValue(`--color-text`),
+			background: containerStyle.getPropertyValue(`--color-background`),
+			solid: containerStyle.getPropertyValue(`--palette-solid`),
+		}
+
+		// Remove containerEl from DOM (temp DOM node)
+		document.body.removeChild(fakeContainerEl)
+
+		// ---Figure out which shapes we need to include
+		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
+		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
+			({ id }) => shapeIdsToInclude.has(id)
+		)
+
+		// --- Common bounding box of all shapes
+		let bbox = null
+		for (const { maskedPageBounds } of renderingShapes) {
+			if (!maskedPageBounds) continue
+			if (bbox) {
+				bbox.union(maskedPageBounds)
+			} else {
+				bbox = maskedPageBounds.clone()
+			}
+		}
+
+		// no unmasked shapes to export
+		if (!bbox) return
+
+		const singleFrameShapeId =
+			ids.length === 1 && this.isShapeOfType(this.getShapeById(ids[0])!, FrameShapeUtil)
+				? ids[0]
+				: null
+		if (!singleFrameShapeId) {
+			// Expand by an extra 32 pixels
+			bbox.expandBy(padding)
+		}
+
+		// We want the svg image to be BIGGER THAN USUAL to account for image quality
+		const w = bbox.width * scale
+		const h = bbox.height * scale
+
+		// --- Create the SVG
+
+		// Embed our custom fonts
+		const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+
+		if (preserveAspectRatio) {
+			svg.setAttribute('preserveAspectRatio', preserveAspectRatio)
+		}
+
+		svg.setAttribute('direction', 'ltr')
+		svg.setAttribute('width', w + '')
+		svg.setAttribute('height', h + '')
+		svg.setAttribute('viewBox', `${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`)
+		svg.setAttribute('stroke-linecap', 'round')
+		svg.setAttribute('stroke-linejoin', 'round')
+		// Add current background color, or else background will be transparent
+
+		if (background) {
+			if (singleFrameShapeId) {
+				svg.style.setProperty('background', colors.solid)
+			} else {
+				svg.style.setProperty('background-color', colors.background)
+			}
+		} else {
+			svg.style.setProperty('background-color', 'transparent')
+		}
+
+		// Add the defs to the svg
+		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+
+		for (const element of Array.from(exportPatternSvgDefs(colors.solid))) {
+			defs.appendChild(element)
+		}
+
+		try {
+			document.body.focus?.() // weird but necessary
+		} catch (e) {
+			// not implemented
+		}
+
+		svg.append(defs)
+
+		const unorderedShapeElements = (
+			await Promise.all(
+				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
+					// Don't render the frame if we're only exporting a single frame
+					if (id === singleFrameShapeId) return []
+
+					const shape = this.getShapeById(id)!
+
+					if (this.isShapeOfType(shape, GroupShapeUtil)) return []
+
+					const util = this.getShapeUtil(shape)
+
+					let font: string | undefined
+					// TODO: `Editor` shouldn't know about `DefaultFontStyle`. We need another way
+					// for shapes to register fonts for export.
+					const fontFromShape = util.getStyleIfExists(DefaultFontStyle, shape)
+					if (fontFromShape) {
+						if (fontsUsedInExport.has(fontFromShape)) {
+							font = fontsUsedInExport.get(fontFromShape)!
+						} else {
+							// For some reason these styles aren't present in the fake element
+							// so we need to get them from the real element
+							font = realContainerStyle.getPropertyValue(`--tl-font-${fontFromShape}`)
+							fontsUsedInExport.set(fontFromShape, font)
+						}
+					}
+
+					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
+					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
+
+					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
+					if (shapeSvgElement) {
+						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+						outerElement.appendChild(shapeSvgElement)
+						shapeSvgElement = outerElement
+					}
+
+					if (backgroundSvgElement) {
+						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+						outerElement.appendChild(backgroundSvgElement)
+						backgroundSvgElement = outerElement
+					}
+
+					if (!shapeSvgElement && !backgroundSvgElement) {
+						const bounds = this.getPageBounds(shape)!
+						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+						elm.setAttribute('width', bounds.width + '')
+						elm.setAttribute('height', bounds.height + '')
+						elm.setAttribute('fill', colors.solid)
+						elm.setAttribute('stroke', colors.pattern.grey)
+						elm.setAttribute('stroke-width', '1')
+						shapeSvgElement = elm
+					}
+
+					let pageTransform = this.getPageTransform(shape)!.toCssString()
+					if ('scale' in shape.props) {
+						if (shape.props.scale !== 1) {
+							pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
+						}
+					}
+
+					shapeSvgElement?.setAttribute('transform', pageTransform)
+					backgroundSvgElement?.setAttribute('transform', pageTransform)
+					shapeSvgElement?.setAttribute('opacity', opacity + '')
+					backgroundSvgElement?.setAttribute('opacity', opacity + '')
+
+					// Create svg mask if shape has a frame as parent
+					const pageMask = this.getPageMaskById(shape.id)
+					if (pageMask) {
+						// Create a clip path and add it to defs
+						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+						defs.appendChild(clipPathEl)
+						const id = nanoid()
+						clipPathEl.id = id
+
+						// Create a polyline mask that does the clipping
+						const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+						mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
+						clipPathEl.appendChild(mask)
+
+						// Create group that uses the clip path and wraps the shape elements
+						if (shapeSvgElement) {
+							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+							outerElement.setAttribute('clip-path', `url(#${id})`)
+							outerElement.appendChild(shapeSvgElement)
+							shapeSvgElement = outerElement
+						}
+
+						if (backgroundSvgElement) {
+							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+							outerElement.setAttribute('clip-path', `url(#${id})`)
+							outerElement.appendChild(backgroundSvgElement)
+							backgroundSvgElement = outerElement
+						}
+					}
+
+					const elements = []
+					if (shapeSvgElement) {
+						elements.push({ zIndex: index, element: shapeSvgElement })
+					}
+					if (backgroundSvgElement) {
+						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
+					}
+
+					return elements
+				})
+			)
+		).flat()
+
+		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
+			svg.appendChild(element)
+		}
+
+		// Add styles to the defs
+		let styles = ``
+		const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style')
+
+		// Insert fonts into app
+		const fontInstances: FontFace[] = []
+
+		if ('fonts' in document) {
+			document.fonts.forEach((font) => fontInstances.push(font))
+		}
+
+		await Promise.all(
+			fontInstances.map(async (font) => {
+				const fileReader = new FileReader()
+
+				let isUsed = false
+
+				fontsUsedInExport.forEach((fontName) => {
+					if (fontName.includes(font.family)) {
+						isUsed = true
+					}
+				})
+
+				if (!isUsed) return
+
+				const url = (font as any).$$_url
+
+				const fontFaceRule = (font as any).$$_fontface
+
+				if (url) {
+					const fontFile = await (await fetch(url)).blob()
+
+					const base64Font = await new Promise<string>((resolve, reject) => {
+						fileReader.onload = () => resolve(fileReader.result as string)
+						fileReader.onerror = () => reject(fileReader.error)
+						fileReader.readAsDataURL(fontFile)
+					})
+
+					const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
+					styles += newFontFaceRule
+				}
+			})
+		)
+
+		style.textContent = styles
+
+		defs.append(style)
+
+		return svg
 	}
 }
 

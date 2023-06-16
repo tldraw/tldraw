@@ -1,10 +1,10 @@
-import { TLColorType } from '@tldraw/tlschema'
+import { TLDefaultColorStyle } from '@tldraw/tlschema'
 
 export type TLExportColors = {
-	fill: Record<TLColorType, string>
-	pattern: Record<TLColorType, string>
-	semi: Record<TLColorType, string>
-	highlight: Record<TLColorType, string>
+	fill: Record<TLDefaultColorStyle, string>
+	pattern: Record<TLDefaultColorStyle, string>
+	semi: Record<TLDefaultColorStyle, string>
+	highlight: Record<TLDefaultColorStyle, string>
 	solid: string
 	text: string
 	background: string

@@ -32,12 +32,12 @@ export async function run() {
 		const entryPoints = [`${rootDir}src/index.tsx`]
 
 		log({ cmd: 'esbuild', args: { entryPoints } })
-		esbuild.build({
+
+		const builder = await esbuild.context({
 			entryPoints,
 			outfile: `${rootDir}/dist/index.js`,
 			minify: false,
 			bundle: true,
-			incremental: true,
 			target: 'es6',
 			jsxFactory: 'React.createElement',
 			jsxFragment: 'React.Fragment',
@@ -51,17 +51,23 @@ export async function run() {
 			define: {
 				'process.env.NODE_ENV': '"development"',
 			},
-			watch: {
-				onRebuild(err) {
-					if (err) {
-						log({ cmd: 'esbuild:error', args: { err } })
-					} else {
-						copyEditor({ log })
-						log({ cmd: 'esbuild:success', args: {} })
-					}
+			plugins: [
+				{
+					name: 'log-builds',
+					setup(build) {
+						build.onEnd((result) => {
+							if (result.errors.length) {
+								log({ cmd: 'esbuild:error', args: { err: result.errors } })
+							} else {
+								copyEditor({ log })
+								log({ cmd: 'esbuild:success', args: {} })
+							}
+						})
+					},
 				},
-			},
+			],
 		})
+		await builder.watch()
 	} catch (error) {
 		log({ cmd: 'esbuild:error', args: { error } })
 		throw error

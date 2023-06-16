@@ -3,9 +3,6 @@ import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@t
 import { debounce, getHashForString } from '@tldraw/utils'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 
-const DEFAULT_BOOKMARK_WIDTH = 300
-const DEFAULT_BOOKMARK_HEIGHT = 320
-
 import { isValidUrl } from '../../../utils/data'
 import {
 	getRotatedBoxShadow,
@@ -29,8 +26,8 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	override defaultProps(): TLBookmarkShape['props'] {
 		return {
 			url: '',
-			w: DEFAULT_BOOKMARK_WIDTH,
-			h: DEFAULT_BOOKMARK_HEIGHT,
+			w: 300,
+			h: 320,
 			assetId: null,
 		}
 	}

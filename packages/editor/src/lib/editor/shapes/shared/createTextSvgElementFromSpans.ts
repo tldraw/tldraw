@@ -1,5 +1,9 @@
 import { Box2d } from '@tldraw/primitives'
-import { Box2dModel, TLAlignType, TLVerticalAlignType } from '@tldraw/tlschema'
+import {
+	Box2dModel,
+	TLDefaultHorizontalAlignStyle,
+	TLDefaultVerticalAlignStyle,
+} from '@tldraw/tlschema'
 import { correctSpacesToNbsp } from '../../../utils/string'
 import { Editor } from '../../Editor'
 
@@ -10,8 +14,8 @@ export function createTextSvgElementFromSpans(
 	opts: {
 		fontSize: number
 		fontFamily: string
-		textAlign: TLAlignType
-		verticalTextAlign: TLVerticalAlignType
+		textAlign: TLDefaultHorizontalAlignStyle
+		verticalTextAlign: TLDefaultVerticalAlignStyle
 		fontWeight: string
 		fontStyle: string
 		lineHeight: number

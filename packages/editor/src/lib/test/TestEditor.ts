@@ -9,7 +9,6 @@ import {
 } from '@tldraw/primitives'
 import {
 	Box2dModel,
-	InstanceRecordType,
 	PageRecordType,
 	TLShapeId,
 	TLShapePartial,
@@ -52,7 +51,6 @@ declare global {
 		}
 	}
 }
-export const TEST_INSTANCE_ID = InstanceRecordType.createId('testInstance1')
 
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
@@ -127,7 +125,7 @@ export class TestEditor extends Editor {
 		this.bounds.bottom = bounds.y + bounds.h
 
 		this.updateViewportScreenBounds(center)
-		this.updateCullingBounds()
+		this.updateRenderingBounds()
 		return this
 	}
 

@@ -1,7 +1,7 @@
 import { SelectionHandle, Vec2d } from '@tldraw/primitives'
 import {
 	TLBaseShape,
-	TLImageCrop,
+	TLImageShapeCrop,
 	TLImageShapeProps,
 	TLShape,
 	TLShapePartial,
@@ -72,7 +72,7 @@ export class Cropping extends StateNode {
 		})
 	}
 
-	private getDefaultCrop = (): TLImageCrop => ({
+	private getDefaultCrop = (): TLImageShapeCrop => ({
 		topLeft: { x: 0, y: 0 },
 		bottomRight: { x: 1, y: 1 },
 	})
@@ -187,7 +187,7 @@ export class Cropping extends StateNode {
 		newPoint.add(pointDelta.rot(shape.rotation))
 
 		const partial: TLShapePartial<
-			TLBaseShape<string, { w: number; h: number; crop: TLImageCrop }>
+			TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
 		> = {
 			id: shape.id,
 			type: shape.type,
