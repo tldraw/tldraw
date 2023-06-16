@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 /* ---------------------- Lists --------------------- */
@@ -24,7 +25,7 @@ const Heading = ({ level, ...props }: { level: HeadingLevel; [key: string]: any 
 	if (props.id) {
 		return (
 			<Element {...props}>
-				<a href={`${pathname}#${props.id}`}>{props.children}</a>
+				<Link href={`${pathname}#${props.id}`}>{props.children}</Link>
 			</Element>
 		)
 	}
