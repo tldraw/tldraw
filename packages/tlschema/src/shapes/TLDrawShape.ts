@@ -1,54 +1,37 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Vec2dModel } from '../misc/geometry-types'
-import { TLColorType, colorValidator } from '../styles/TLColorStyle'
-import { TLDashType, dashValidator } from '../styles/TLDashStyle'
-import { TLFillType, fillValidator } from '../styles/TLFillStyle'
-import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { SetValue } from '../util-types'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
+import { vec2dModelValidator } from '../misc/geometry-types'
+import { DefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultDashStyle } from '../styles/TLDashStyle'
+import { DefaultFillStyle } from '../styles/TLFillStyle'
+import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
-/** @public */
-const TL_DRAW_SHAPE_SEGMENT_TYPE = new Set(['free', 'straight'] as const)
-
-/** @public */
-export type TLDrawShapeSegment = {
-	type: SetValue<typeof TL_DRAW_SHAPE_SEGMENT_TYPE>
-	points: Vec2dModel[]
-}
-
-/** @internal */
-export const drawShapeSegmentValidator: T.Validator<TLDrawShapeSegment> = T.object({
-	type: T.setEnum(TL_DRAW_SHAPE_SEGMENT_TYPE),
-	points: T.arrayOf(T.point),
+export const DrawShapeSegment = T.object({
+	type: T.literalEnum('free', 'straight'),
+	points: T.arrayOf(vec2dModelValidator),
 })
 
 /** @public */
-export type TLDrawShapeProps = {
-	color: TLColorType
-	fill: TLFillType
-	dash: TLDashType
-	size: TLSizeType
-	segments: TLDrawShapeSegment[]
-	isComplete: boolean
-	isClosed: boolean
-	isPen: boolean
-}
+export type TLDrawShapeSegment = T.TypeOf<typeof DrawShapeSegment>
 
 /** @public */
-export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
-
-/** @internal */
-export const drawShapeProps: ShapeProps<TLDrawShape> = {
-	color: colorValidator,
-	fill: fillValidator,
-	dash: dashValidator,
-	size: sizeValidator,
-	segments: T.arrayOf(drawShapeSegmentValidator),
+export const drawShapeProps = {
+	color: DefaultColorStyle,
+	fill: DefaultFillStyle,
+	dash: DefaultDashStyle,
+	size: DefaultSizeStyle,
+	segments: T.arrayOf(DrawShapeSegment),
 	isComplete: T.boolean,
 	isClosed: T.boolean,
 	isPen: T.boolean,
 }
+
+/** @public */
+export type TLDrawShapeProps = ShapePropsType<typeof drawShapeProps>
+
+/** @public */
+export type TLDrawShape = TLBaseShape<'draw', TLDrawShapeProps>
 
 const Versions = {
 	AddInPen: 1,

@@ -1,9 +1,10 @@
 import {
-	createShapeId,
+	DefaultColorStyle,
 	Editor,
-	Tldraw,
 	TLGeoShape,
 	TLShapePartial,
+	Tldraw,
+	createShapeId,
 	useEditor,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
@@ -92,7 +93,7 @@ const InsideOfEditorContext = () => {
 		const interval = setInterval(() => {
 			const selection = [...editor.selectedIds]
 			editor.selectAll()
-			editor.setProp('color', i % 2 ? 'blue' : 'light-blue')
+			editor.setStyle(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
 			editor.setSelectedIds(selection)
 			i++
 		}, 1000)

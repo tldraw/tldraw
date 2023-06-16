@@ -1,27 +1,12 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Box2dModel } from '../misc/geometry-types'
+import { Box2dModel, box2dModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorValidator, TLCursor } from '../misc/TLCursor'
+import { opacityValidator, TLOpacityType } from '../misc/TLOpacity'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
-import { alignValidator } from '../styles/TLAlignStyle'
-import { arrowheadValidator } from '../styles/TLArrowheadStyle'
-import { TL_STYLE_TYPES, TLStyleType } from '../styles/TLBaseStyle'
-import { colorValidator } from '../styles/TLColorStyle'
-import { dashValidator } from '../styles/TLDashStyle'
-import { fillValidator } from '../styles/TLFillStyle'
-import { fontValidator } from '../styles/TLFontStyle'
-import { geoValidator } from '../styles/TLGeoStyle'
-import { iconValidator } from '../styles/TLIconStyle'
-import { opacityValidator, TLOpacityType } from '../styles/TLOpacityStyle'
-import { sizeValidator } from '../styles/TLSizeStyle'
-import { splineValidator } from '../styles/TLSplineStyle'
-import { verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
+import { StyleProp } from '../styles/StyleProp'
 import { pageIdValidator, TLPageId } from './TLPage'
-import { TLShapeProps } from './TLShape'
-
-/** @public */
-export type TLInstancePropsForNextShape = Pick<TLShapeProps, TLStyleType>
 
 /**
  * TLInstance
@@ -36,7 +21,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	highlightedUserIds: string[]
 	brush: Box2dModel | null
 	opacityForNextShape: TLOpacityType
-	propsForNextShape: TLInstancePropsForNextShape
+	stylesForNextShape: Record<string, unknown>
 	cursor: TLCursor
 	scribble: TLScribble | null
 	isFocusMode: boolean
@@ -45,10 +30,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	exportBackground: boolean
 	screenBounds: Box2dModel
 	zoomBrush: Box2dModel | null
-
 	chatMessage: string
 	isChatting: boolean
-
 	isPenMode: boolean
 	isGridMode: boolean
 }
@@ -59,46 +42,68 @@ export type TLInstanceId = RecordId<TLInstance>
 /** @internal */
 export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
-/** @internal */
-export const instanceTypeValidator: T.Validator<TLInstance> = T.model(
-	'instance',
-	T.object({
-		typeName: T.literal('instance'),
-		id: idValidator<TLInstanceId>('instance'),
-		currentPageId: pageIdValidator,
-		followingUserId: T.string.nullable(),
-		highlightedUserIds: T.arrayOf(T.string),
-		brush: T.boxModel.nullable(),
-		opacityForNextShape: opacityValidator,
-		propsForNextShape: T.object({
-			color: colorValidator,
-			labelColor: colorValidator,
-			dash: dashValidator,
-			fill: fillValidator,
-			size: sizeValidator,
-			font: fontValidator,
-			align: alignValidator,
-			verticalAlign: verticalAlignValidator,
-			icon: iconValidator,
-			geo: geoValidator,
-			arrowheadStart: arrowheadValidator,
-			arrowheadEnd: arrowheadValidator,
-			spline: splineValidator,
-		}),
-		cursor: cursorValidator,
-		scribble: scribbleValidator.nullable(),
-		isFocusMode: T.boolean,
-		isDebugMode: T.boolean,
-		isToolLocked: T.boolean,
-		exportBackground: T.boolean,
-		screenBounds: T.boxModel,
-		zoomBrush: T.boxModel.nullable(),
-		chatMessage: T.string,
-		isChatting: T.boolean,
-		isPenMode: T.boolean,
-		isGridMode: T.boolean,
-	})
-)
+export function createInstanceRecordType(stylesById: Map<string, StyleProp<unknown>>) {
+	const stylesForNextShapeValidators = {} as Record<string, T.Validator<unknown>>
+	for (const [id, style] of stylesById) {
+		stylesForNextShapeValidators[id] = T.optional(style)
+	}
+
+	const instanceTypeValidator: T.Validator<TLInstance> = T.model(
+		'instance',
+		T.object({
+			typeName: T.literal('instance'),
+			id: idValidator<TLInstanceId>('instance'),
+			currentPageId: pageIdValidator,
+			followingUserId: T.string.nullable(),
+			brush: box2dModelValidator.nullable(),
+			opacityForNextShape: opacityValidator,
+			stylesForNextShape: T.object(stylesForNextShapeValidators),
+			cursor: cursorValidator,
+			scribble: scribbleValidator.nullable(),
+			isFocusMode: T.boolean,
+			isDebugMode: T.boolean,
+			isToolLocked: T.boolean,
+			exportBackground: T.boolean,
+			screenBounds: box2dModelValidator,
+			zoomBrush: box2dModelValidator.nullable(),
+			isPenMode: T.boolean,
+			isGridMode: T.boolean,
+			chatMessage: T.string,
+			isChatting: T.boolean,
+			highlightedUserIds: T.arrayOf(T.string),
+		})
+	)
+
+	return createRecordType<TLInstance>('instance', {
+		migrations: instanceMigrations,
+		validator: instanceTypeValidator,
+		scope: 'session',
+	}).withDefaultProperties(
+		(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
+			followingUserId: null,
+			opacityForNextShape: 1,
+			stylesForNextShape: {},
+			brush: null,
+			scribble: null,
+			cursor: {
+				type: 'default',
+				color: 'black',
+				rotation: 0,
+			},
+			isFocusMode: false,
+			exportBackground: false,
+			isDebugMode: process.env.NODE_ENV === 'development',
+			isToolLocked: false,
+			screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
+			zoomBrush: null,
+			isGridMode: false,
+			isPenMode: false,
+			chatMessage: '',
+			isChatting: false,
+			highlightedUserIds: [],
+		})
+	)
+}
 
 const Versions = {
 	AddTransparentExportBgs: 1,
@@ -116,13 +121,14 @@ const Versions = {
 	HoistOpacity: 13,
 	AddChat: 14,
 	AddHighlightedUserIds: 15,
+	ReplacePropsForNextShapeWithStylesForNextShape: 16,
 } as const
 
 export { Versions as instanceTypeVersions }
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: Versions.AddHighlightedUserIds,
+	currentVersion: Versions.ReplacePropsForNextShapeWithStylesForNextShape,
 	migrators: {
 		[Versions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -154,7 +160,21 @@ export const instanceMigrations = defineMigrations({
 					...instance,
 					propsForNextShape: Object.fromEntries(
 						Object.entries(propsForNextShape).filter(([key]) =>
-							TL_STYLE_TYPES.has(key as TLStyleType)
+							[
+								'color',
+								'labelColor',
+								'dash',
+								'fill',
+								'size',
+								'font',
+								'align',
+								'verticalAlign',
+								'icon',
+								'geo',
+								'arrowheadStart',
+								'arrowheadEnd',
+								'spline',
+							].includes(key)
 						)
 					),
 				}
@@ -174,7 +194,7 @@ export const instanceMigrations = defineMigrations({
 					},
 				}
 			},
-			down: (instance: TLInstance) => {
+			down: (instance) => {
 				const { labelColor: _, ...rest } = instance.propsForNextShape
 				return {
 					...instance,
@@ -220,7 +240,7 @@ export const instanceMigrations = defineMigrations({
 			},
 		},
 		[Versions.AddVerticalAlign]: {
-			up: (instance: TLInstance) => {
+			up: (instance) => {
 				return {
 					...instance,
 					propsForNextShape: {
@@ -229,7 +249,7 @@ export const instanceMigrations = defineMigrations({
 					},
 				}
 			},
-			down: (instance: TLInstance) => {
+			down: (instance) => {
 				const { verticalAlign: _, ...propsForNextShape } = instance.propsForNextShape
 				return {
 					...instance,
@@ -307,53 +327,33 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
+		[Versions.ReplacePropsForNextShapeWithStylesForNextShape]: {
+			up: ({ propsForNextShape: _, ...instance }) => {
+				return { ...instance, stylesForNextShape: {} }
+			},
+			down: ({ stylesForNextShape: _, ...instance }: TLInstance) => {
+				return {
+					...instance,
+					propsForNextShape: {
+						color: 'black',
+						labelColor: 'black',
+						dash: 'draw',
+						fill: 'none',
+						size: 'm',
+						icon: 'file',
+						font: 'draw',
+						align: 'middle',
+						verticalAlign: 'middle',
+						geo: 'rectangle',
+						arrowheadStart: 'none',
+						arrowheadEnd: 'arrow',
+						spline: 'line',
+					},
+				}
+			},
+		},
 	},
 })
 
 /** @public */
-export const InstanceRecordType = createRecordType<TLInstance>('instance', {
-	migrations: instanceMigrations,
-	validator: instanceTypeValidator,
-	scope: 'session',
-}).withDefaultProperties(
-	(): Omit<TLInstance, 'typeName' | 'id' | 'currentPageId'> => ({
-		followingUserId: null,
-		highlightedUserIds: [],
-		opacityForNextShape: 1,
-		propsForNextShape: {
-			color: 'black',
-			labelColor: 'black',
-			dash: 'draw',
-			fill: 'none',
-			size: 'm',
-			icon: 'file',
-			font: 'draw',
-			align: 'middle',
-			verticalAlign: 'middle',
-			geo: 'rectangle',
-			arrowheadStart: 'none',
-			arrowheadEnd: 'arrow',
-			spline: 'line',
-		},
-		brush: null,
-		scribble: null,
-		cursor: {
-			type: 'default',
-			color: 'black',
-			rotation: 0,
-		},
-		isFocusMode: false,
-		exportBackground: false,
-		isDebugMode: process.env.NODE_ENV === 'development',
-		isToolLocked: false,
-		screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
-		zoomBrush: null,
-		chatMessage: '',
-		isChatting: false,
-		isGridMode: false,
-		isPenMode: false,
-	})
-)
-
-/** @public */
-export const TLINSTANCE_ID = InstanceRecordType.createId('instance')
+export const TLINSTANCE_ID = 'instance:instance' as TLInstanceId

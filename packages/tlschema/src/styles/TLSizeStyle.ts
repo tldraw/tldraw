@@ -1,18 +1,11 @@
 import { T } from '@tldraw/validate'
-import { SetValue } from '../util-types'
-import { TLBaseStyle } from './TLBaseStyle'
+import { StyleProp } from './StyleProp'
 
 /** @public */
-export const TL_SIZE_TYPES = new Set(['s', 'm', 'l', 'xl'] as const)
+export const DefaultSizeStyle = StyleProp.defineEnum('tldraw:size', {
+	defaultValue: 'm',
+	values: ['s', 'm', 'l', 'xl'],
+})
 
 /** @public */
-export type TLSizeType = SetValue<typeof TL_SIZE_TYPES>
-
-/** @public */
-export interface TLSizeStyle extends TLBaseStyle {
-	id: TLSizeType
-	type: 'size'
-}
-
-/** @internal */
-export const sizeValidator = T.setEnum(TL_SIZE_TYPES)
+export type TLDefaultSizeStyle = T.TypeOf<typeof DefaultSizeStyle>

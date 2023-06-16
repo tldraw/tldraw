@@ -1,5 +1,6 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { Editor, TLStyleItem, TLStyleType } from '@tldraw/editor'
+import { SharedStyle } from '@tldraw/editor'
+import { StyleProp } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -7,34 +8,33 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from '../primitives/Button'
 import * as DropdownMenu from '../primitives/DropdownMenu'
+import { StyleValuesForUi } from './styles'
 
-type AllStyles = typeof Editor.styles
-
-interface DoubleDropdownPickerProps<T extends AllStyles[keyof AllStyles][number]> {
+interface DoubleDropdownPickerProps<T extends string> {
+	uiTypeA: string
+	uiTypeB: string
 	label: TLUiTranslationKey
 	labelA: TLUiTranslationKey
 	labelB: TLUiTranslationKey
-	itemsA: T[]
-	itemsB: T[]
-	styleTypeA: TLStyleType
-	styleTypeB: TLStyleType
-	valueA: T['id'] | null | undefined
-	valueB: T['id'] | null | undefined
-	onValueChange: (value: TLStyleItem, squashing: boolean) => void
-	'data-testid'?: string
+	itemsA: StyleValuesForUi<T>
+	itemsB: StyleValuesForUi<T>
+	styleA: StyleProp<T>
+	styleB: StyleProp<T>
+	valueA: SharedStyle<T>
+	valueB: SharedStyle<T>
+	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
-export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
-	T extends AllStyles[keyof AllStyles][number]
->({
-	'data-testid': testId,
+export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T extends string>({
 	label,
+	uiTypeA,
+	uiTypeB,
 	labelA,
 	labelB,
 	itemsA,
 	itemsB,
-	styleTypeA,
-	styleTypeB,
+	styleA,
+	styleB,
 	valueA,
 	valueB,
 	onValueChange,
@@ -42,34 +42,35 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 	const msg = useTranslation()
 
 	const iconA = React.useMemo(
-		() => itemsA.find((item) => item.id === valueA)?.icon ?? 'mixed',
+		() =>
+			itemsA.find((item) => valueA.type === 'shared' && valueA.value === item.value)?.icon ??
+			'mixed',
 		[itemsA, valueA]
 	)
 	const iconB = React.useMemo(
-		() => itemsB.find((item) => item.id === valueB)?.icon ?? 'mixed',
+		() =>
+			itemsB.find((item) => valueB.type === 'shared' && valueB.value === item.value)?.icon ??
+			'mixed',
 		[itemsB, valueB]
 	)
 
 	if (valueA === undefined && valueB === undefined) return null
-
-	const startWdPrefix = `${testId}.start`
-	const endWdPrefix = `${testId}.end`
 
 	return (
 		<div className="tlui-style-panel__double-select-picker">
 			<div title={msg(label)} className="tlui-style-panel__double-select-picker-label">
 				{msg(label)}
 			</div>
-			<DropdownMenu.Root id={`style panel ${styleTypeA}`}>
+			<DropdownMenu.Root id={`style panel ${uiTypeA} A`}>
 				<Trigger asChild>
 					<Button
-						data-testid={startWdPrefix}
+						data-testid={`style.${uiTypeA}`}
 						title={
 							msg(labelA) +
 							' — ' +
 							(valueA === null
 								? msg('style-panel.mixed')
-								: msg(`${styleTypeA}-style.${valueA}` as TLUiTranslationKey))
+								: msg(`${uiTypeA}-style.${valueA}` as TLUiTranslationKey))
 						}
 						icon={iconA as any}
 						invertIcon
@@ -90,12 +91,12 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 									title={
 										msg(labelA) +
 										' — ' +
-										msg(`${styleTypeA}-style.${item.id}` as TLUiTranslationKey)
+										msg(`${uiTypeA}-style.${item.value}` as TLUiTranslationKey)
 									}
-									data-testid={`${startWdPrefix}.${item.id}`}
-									key={item.id}
+									data-testid={`style.${uiTypeA}.${item.value}`}
+									key={item.value}
 									icon={item.icon as TLUiIconType}
-									onClick={() => onValueChange(item as TLStyleItem, false)}
+									onClick={() => onValueChange(styleA, item.value, false)}
 									invertIcon
 								/>
 							)
@@ -103,16 +104,16 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 					</div>
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
-			<DropdownMenu.Root id={`style panel ${styleTypeB}`}>
+			<DropdownMenu.Root id={`style panel ${uiTypeB}`}>
 				<Trigger asChild>
 					<Button
-						data-testid={endWdPrefix}
+						data-testid={`style.${uiTypeB}`}
 						title={
 							msg(labelB) +
 							' — ' +
 							(valueB === null
 								? msg('style-panel.mixed')
-								: msg(`${styleTypeB}-style.${valueB}` as TLUiTranslationKey))
+								: msg(`${uiTypeB}-style.${valueB}` as TLUiTranslationKey))
 						}
 						icon={iconB as any}
 						smallIcon
@@ -132,12 +133,12 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<
 									title={
 										msg(labelB) +
 										' — ' +
-										msg(`${styleTypeB}-style.${item.id}` as TLUiTranslationKey)
+										msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)
 									}
-									data-testid={`${endWdPrefix}.${item.id}`}
-									key={item.id}
+									data-testid={`style.${uiTypeB}.${item.value}`}
+									key={item.value}
 									icon={item.icon as TLUiIconType}
-									onClick={() => onValueChange(item as TLStyleItem, false)}
+									onClick={() => onValueChange(styleB, item.value, false)}
 								/>
 							)
 						})}

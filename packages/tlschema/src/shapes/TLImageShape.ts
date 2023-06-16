@@ -1,43 +1,32 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { Vec2dModel } from '../misc/geometry-types'
-import { TLAssetId } from '../records/TLAsset'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
+import { vec2dModelValidator } from '../misc/geometry-types'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export type TLImageCrop = {
-	topLeft: Vec2dModel
-	bottomRight: Vec2dModel
-}
-
-/** @public */
-export type TLImageShapeProps = {
-	url: string
-	playing: boolean
-	w: number
-	h: number
-	assetId: TLAssetId | null
-	crop: TLImageCrop | null
-}
-/** @public */
-export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
-
-/** @internal */
-export const cropValidator = T.object({
-	topLeft: T.point,
-	bottomRight: T.point,
+export const ImageShapeCrop = T.object({
+	topLeft: vec2dModelValidator,
+	bottomRight: vec2dModelValidator,
 })
+/** @public */
+export type TLImageShapeCrop = T.TypeOf<typeof ImageShapeCrop>
 
-/** @internal */
-export const imageShapeProps: ShapeProps<TLImageShape> = {
+/** @public */
+export const imageShapeProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	playing: T.boolean,
 	url: T.string,
 	assetId: assetIdValidator.nullable(),
-	crop: cropValidator.nullable(),
+	crop: ImageShapeCrop.nullable(),
 }
+
+/** @public */
+export type TLImageShapeProps = ShapePropsType<typeof imageShapeProps>
+
+/** @public */
+export type TLImageShape = TLBaseShape<'image', TLImageShapeProps>
 
 const Versions = {
 	AddUrlProp: 1,

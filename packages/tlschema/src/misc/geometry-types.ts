@@ -1,3 +1,5 @@
+import { T } from '@tldraw/validate'
+
 /**
  * A serializable model for 2D boxes.
  *
@@ -18,3 +20,18 @@ export interface Vec2dModel {
 	y: number
 	z?: number
 }
+
+/** @public */
+export const vec2dModelValidator: T.Validator<Vec2dModel> = T.object({
+	x: T.number,
+	y: T.number,
+	z: T.number.optional(),
+})
+
+/** @public */
+export const box2dModelValidator: T.Validator<Box2dModel> = T.object({
+	x: T.number,
+	y: T.number,
+	w: T.number,
+	h: T.number,
+})

@@ -37,6 +37,11 @@ export type ErrorResult<E> = {
 // @internal (undocumented)
 export function exhaustiveSwitchError(value: never, property?: string): never;
 
+// @public (undocumented)
+export type Expand<T> = T extends infer O ? {
+    [K in keyof O]: O[K];
+} : never;
+
 // @internal
 export function filterEntries<Key extends string, Value>(object: {
     [K in Key]: Value;
@@ -64,11 +69,6 @@ export function getOwnProperty(obj: object, key: string): unknown;
 
 // @internal (undocumented)
 export function hasOwnProperty(obj: object, key: string): boolean;
-
-// @internal (undocumented)
-export type Identity<T> = {
-    [K in keyof T]: T[K];
-};
 
 // @public
 export function isDefined<T>(value: T): value is typeof value extends undefined ? never : T;
@@ -151,7 +151,7 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
-type Required_2<T, K extends keyof T> = Identity<Omit<T, K> & _Required<Pick<T, K>>>;
+type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & _Required<Pick<T, K>>>;
 export { Required_2 as Required }
 
 // @public (undocumented)

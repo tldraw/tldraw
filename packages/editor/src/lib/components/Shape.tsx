@@ -66,16 +66,13 @@ export const Shape = track(function Shape({
 	)
 
 	useQuickReactor(
-		'set shape container clip path / color',
+		'set shape container clip path',
 		() => {
 			const shape = editor.getShapeById(id)
 			if (!shape) return null
 
 			const clipPath = editor.getClipPathById(id)
 			setProperty('clip-path', clipPath ?? 'none')
-			if ('color' in shape.props) {
-				setProperty('color', editor.getCssColor(shape.props.color))
-			}
 		},
 		[editor, setProperty]
 	)

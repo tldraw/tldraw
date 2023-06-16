@@ -32,7 +32,12 @@ export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	return (
 		<>
 			<ShapeFill d={innerPathData} fill={fill} color={color} />
-			<path d={strokePathData} stroke="currentColor" strokeWidth={strokeWidth} fill="none" />
+			<path
+				d={strokePathData}
+				stroke={`var(--palette-${color})`}
+				strokeWidth={strokeWidth}
+				fill="none"
+			/>
 		</>
 	)
 })

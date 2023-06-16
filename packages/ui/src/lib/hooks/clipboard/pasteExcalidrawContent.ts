@@ -1,17 +1,17 @@
 import {
 	AssetRecordType,
 	Editor,
-	TLAlignType,
-	TLArrowheadType,
+	TLArrowShapeArrowheadStyle,
 	TLAssetId,
-	TLColorType,
 	TLContent,
-	TLDashType,
-	TLFillType,
-	TLFontType,
+	TLDefaultColorStyle,
+	TLDefaultDashStyle,
+	TLDefaultFillStyle,
+	TLDefaultFontStyle,
+	TLDefaultHorizontalAlignStyle,
+	TLDefaultSizeStyle,
 	TLOpacityType,
 	TLShapeId,
-	TLSizeType,
 	createShapeId,
 	getIndexAbove,
 	getIndices,
@@ -101,7 +101,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 			case 'ellipse':
 			case 'diamond': {
 				let text = ''
-				let align: TLAlignType = 'middle'
+				let align: TLDefaultHorizontalAlignStyle = 'middle'
 
 				if (element.boundElements !== null) {
 					for (const boundElement of element.boundElements) {
@@ -377,21 +377,21 @@ const getOpacity = (opacity: number): TLOpacityType => {
 	return 1
 }
 
-const strokeWidthsToSizes: Record<number, TLSizeType> = {
+const strokeWidthsToSizes: Record<number, TLDefaultSizeStyle> = {
 	1: 's',
 	2: 'm',
 	3: 'l',
 	4: 'xl',
 }
 
-const fontSizesToSizes: Record<number, TLSizeType> = {
+const fontSizesToSizes: Record<number, TLDefaultSizeStyle> = {
 	16: 's',
 	20: 'm',
 	28: 'l',
 	36: 'xl',
 }
 
-function getFontSizeAndScale(fontSize: number): { size: TLSizeType; scale: number } {
+function getFontSizeAndScale(fontSize: number): { size: TLDefaultSizeStyle; scale: number } {
 	const size = fontSizesToSizes[fontSize]
 	if (size) {
 		return { size, scale: 1 }
@@ -405,13 +405,13 @@ function getFontSizeAndScale(fontSize: number): { size: TLSizeType; scale: numbe
 	return { size: 'm', scale: 1 }
 }
 
-const fontFamilyToFontType: Record<number, TLFontType> = {
+const fontFamilyToFontType: Record<number, TLDefaultFontStyle> = {
 	1: 'draw',
 	2: 'sans',
 	3: 'mono',
 }
 
-const colorsToColors: Record<string, TLColorType> = {
+const colorsToColors: Record<string, TLDefaultColorStyle> = {
 	'#ffffff': 'grey',
 	// Strokes
 	'#000000': 'black',
@@ -447,25 +447,25 @@ const colorsToColors: Record<string, TLColorType> = {
 	'#212529': 'grey',
 }
 
-const strokeStylesToStrokeTypes: Record<string, TLDashType> = {
+const strokeStylesToStrokeTypes: Record<string, TLDefaultDashStyle> = {
 	solid: 'draw',
 	dashed: 'dashed',
 	dotted: 'dotted',
 }
 
-const fillStylesToFillType: Record<string, TLFillType> = {
+const fillStylesToFillType: Record<string, TLDefaultFillStyle> = {
 	'cross-hatch': 'pattern',
 	hachure: 'pattern',
 	solid: 'solid',
 }
 
-const textAlignToAlignTypes: Record<string, TLAlignType> = {
+const textAlignToAlignTypes: Record<string, TLDefaultHorizontalAlignStyle> = {
 	left: 'start',
 	center: 'middle',
 	right: 'end',
 }
 
-const arrowheadsToArrowheadTypes: Record<string, TLArrowheadType> = {
+const arrowheadsToArrowheadTypes: Record<string, TLArrowShapeArrowheadStyle> = {
 	arrow: 'arrow',
 	dot: 'dot',
 	triangle: 'triangle',
@@ -492,15 +492,15 @@ function getBend(element: any, startPoint: any, endPoint: any) {
 	return bend
 }
 
-const getDash = (element: any): TLDashType => {
-	let dash: TLDashType = strokeStylesToStrokeTypes[element.strokeStyle] ?? 'draw'
+const getDash = (element: any): TLDefaultDashStyle => {
+	let dash: TLDefaultDashStyle = strokeStylesToStrokeTypes[element.strokeStyle] ?? 'draw'
 	if (dash === 'draw' && element.roughness === 0) {
 		dash = 'solid'
 	}
 	return dash
 }
 
-const getFill = (element: any): TLFillType => {
+const getFill = (element: any): TLDefaultFillStyle => {
 	if (element.backgroundColor === 'transparent') {
 		return 'none'
 	}

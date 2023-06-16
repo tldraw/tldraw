@@ -1191,6 +1191,47 @@ describe('Removes overridePermissions from embed', () => {
 	})
 })
 
+describe('propsForNextShape -> stylesForNextShape', () => {
+	test('deletes propsForNextShape and adds stylesForNextShape without trying to bring across contents', () => {
+		const { up, down } =
+			instanceMigrations.migrators[
+				instanceTypeVersions.ReplacePropsForNextShapeWithStylesForNextShape
+			]
+		const beforeUp = {
+			isToolLocked: true,
+			propsForNextShape: {
+				color: 'red',
+				size: 'm',
+			},
+		}
+		const afterUp = {
+			isToolLocked: true,
+			stylesForNextShape: {},
+		}
+		const afterDown = {
+			isToolLocked: true,
+			propsForNextShape: {
+				color: 'black',
+				labelColor: 'black',
+				dash: 'draw',
+				fill: 'none',
+				size: 'm',
+				icon: 'file',
+				font: 'draw',
+				align: 'middle',
+				verticalAlign: 'middle',
+				geo: 'rectangle',
+				arrowheadStart: 'none',
+				arrowheadEnd: 'arrow',
+				spline: 'line',
+			},
+		}
+
+		expect(up(beforeUp)).toEqual(afterUp)
+		expect(down(afterUp)).toEqual(afterDown)
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

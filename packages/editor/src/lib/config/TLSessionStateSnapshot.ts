@@ -8,7 +8,6 @@ import {
 import {
 	CameraRecordType,
 	InstancePageStateRecordType,
-	InstanceRecordType,
 	TLINSTANCE_ID,
 	TLPageId,
 	TLRecord,
@@ -233,7 +232,7 @@ export function loadSessionStateSnapshotIntoStore(
 		removed: {},
 		updated: {},
 		added: {
-			[TLINSTANCE_ID]: InstanceRecordType.create({
+			[TLINSTANCE_ID]: store.schema.types.instance.create({
 				id: TLINSTANCE_ID,
 				currentPageId: res.currentPageId,
 				isDebugMode: res.isDebugMode,

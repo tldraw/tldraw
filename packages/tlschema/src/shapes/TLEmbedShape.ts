@@ -1,6 +1,6 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 // Only allow multiplayer embeds. If we add additional routes later for example '/help' this won't match
 const TLDRAW_APP_RE = /(^\/r\/[^/]+\/?$)/
@@ -565,21 +565,17 @@ export const embedShapePermissionDefaults = {
 export type TLEmbedShapePermissions = { [K in keyof typeof embedShapePermissionDefaults]?: boolean }
 
 /** @public */
-export type TLEmbedShapeProps = {
-	w: number
-	h: number
-	url: string
-}
-
-/** @public */
-export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
-
-/** @internal */
-export const embedShapeProps: ShapeProps<TLEmbedShape> = {
+export const embedShapeProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	url: T.string,
 }
+
+/** @public */
+export type TLEmbedShapeProps = ShapePropsType<typeof embedShapeProps>
+
+/** @public */
+export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>
 
 /** @public */
 export type EmbedDefinition = {

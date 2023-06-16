@@ -1,4 +1,4 @@
-import { TLArrowShape, TLGeoShape, createShapeId } from '@tldraw/tlschema'
+import { DefaultColorStyle, TLArrowShape, TLGeoShape, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -88,12 +88,12 @@ it('Parents shapes to the current page if the parent is not found', () => {
 })
 
 it('Creates shapes with the current style', () => {
-	expect(editor.instanceState.propsForNextShape!.color).toBe('black')
+	expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe(undefined)
 	editor.createShapes([{ id: ids.box1, type: 'geo' }])
 	expect(editor.getShapeById<TLGeoShape>(ids.box1)!.props.color).toEqual('black')
 
-	editor.setProp('color', 'red')
-	expect(editor.instanceState.propsForNextShape!.color).toBe('red')
+	editor.setStyle(DefaultColorStyle, 'red')
+	expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('red')
 	editor.createShapes([{ id: ids.box2, type: 'geo' }])
 	expect(editor.getShapeById<TLGeoShape>(ids.box2)!.props.color).toEqual('red')
 })
