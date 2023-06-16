@@ -1,4 +1,4 @@
-import { TLShapeId, createShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/tlschema'
 import { assert, assertExists } from '@tldraw/utils'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../jsx'
@@ -48,29 +48,13 @@ function createShapes() {
 	])
 }
 
-it('updates the rendering viewport on every frame when there are < 40 shapes on the page', () => {
+it('updates the rendering viewport when the camera stops moving', () => {
 	const ids = createShapes()
 
 	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
 	editor.pan(-201, -201)
 	jest.advanceTimersByTime(500)
 
-	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
-	expect(editor.renderingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
-	expect(editor.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
-})
-
-it('updates the rendering viewport after the camera stops moving when there are >= 40 shapes on the page', () => {
-	const ids = createShapes()
-
-	// doesn't matter where they are, just that there are >40 of them
-	editor.createShapes(
-		Array.from(Array(50)).map(() => ({ id: createShapeId(), type: 'geo', x: 50, y: 50 }))
-	)
-
-	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
-	editor.pan(-201, -201)
-	jest.advanceTimersByTime(500)
 	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
 	expect(editor.renderingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
 	expect(editor.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
