@@ -1,22 +1,18 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
-
-type TLFrameShapeProps = {
-	w: number
-	h: number
-	name: string
-}
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
-
-/** @internal */
-export const frameShapeProps: ShapeProps<TLFrameShape> = {
+export const frameShapeProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	name: T.string,
 }
+
+type TLFrameShapeProps = ShapePropsType<typeof frameShapeProps>
+
+/** @public */
+export type TLFrameShape = TLBaseShape<'frame', TLFrameShapeProps>
 
 /** @internal */
 export const frameShapeMigrations = defineMigrations({})

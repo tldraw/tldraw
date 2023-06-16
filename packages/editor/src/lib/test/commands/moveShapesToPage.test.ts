@@ -1,4 +1,4 @@
-import { PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
+import { DefaultFillStyle, PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -154,7 +154,7 @@ describe('arrows', () => {
 			.pointerDown(200, 200)
 			.pointerMove(300, 300)
 			.pointerUp(300, 300)
-			.setProp('fill', 'solid')
+			.setStyle(DefaultFillStyle, 'solid')
 		firstBox = editor.onlySelectedShape!
 
 		// draw a second box
@@ -163,7 +163,7 @@ describe('arrows', () => {
 			.pointerDown(400, 400)
 			.pointerMove(500, 500)
 			.pointerUp(500, 500)
-			.setProp('fill', 'solid')
+			.setStyle(DefaultFillStyle, 'solid')
 		secondBox = editor.onlySelectedShape!
 
 		// draw an arrow from the first box to the second box

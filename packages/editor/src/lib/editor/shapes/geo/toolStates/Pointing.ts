@@ -1,5 +1,5 @@
 import { Box2d, getStarBounds } from '@tldraw/primitives'
-import { TLGeoShape, createShapeId } from '@tldraw/tlschema'
+import { GeoShapeGeoStyle, TLGeoShape, createShapeId } from '@tldraw/tlschema'
 import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers } from '../../../types/event-types'
 
@@ -23,7 +23,7 @@ export class Pointing extends StateNode {
 					props: {
 						w: 1,
 						h: 1,
-						geo: this.editor.instanceState.propsForNextShape.geo,
+						geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
 					},
 				},
 			])
@@ -70,7 +70,7 @@ export class Pointing extends StateNode {
 				x: originPagePoint.x,
 				y: originPagePoint.y,
 				props: {
-					geo: this.editor.instanceState.propsForNextShape.geo,
+					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
 					w: 1,
 					h: 1,
 				},
@@ -92,7 +92,7 @@ export class Pointing extends StateNode {
 				x: shape.x - delta.x,
 				y: shape.y - delta.y,
 				props: {
-					geo: this.editor.instanceState.propsForNextShape.geo,
+					geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
 					w: bounds.width,
 					h: bounds.height,
 				},

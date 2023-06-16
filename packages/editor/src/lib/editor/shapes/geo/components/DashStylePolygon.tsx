@@ -31,7 +31,12 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 						d={`M${l[0].x},${l[0].y}L${l[1].x},${l[1].y}`}
 					/>
 				))}
-			<g strokeWidth={strokeWidth} stroke="currentColor" fill="none" pointerEvents="all">
+			<g
+				strokeWidth={strokeWidth}
+				stroke={`var(--palette-${color})`}
+				fill="none"
+				pointerEvents="all"
+			>
 				{Array.from(Array(outline.length)).map((_, i) => {
 					const A = outline[i]
 					const B = outline[(i + 1) % outline.length]
@@ -71,7 +76,7 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 							<path
 								key={`line_fg_${i}`}
 								d={`M${A.x},${A.y}L${B.x},${B.y}`}
-								stroke="currentColor"
+								stroke={`var(--palette-${color})`}
 								strokeWidth={strokeWidth}
 								fill="none"
 								strokeDasharray={strokeDasharray}

@@ -1,8 +1,6 @@
 import {
 	ANIMATION_MEDIUM_MS,
 	BookmarkShapeUtil,
-	DEFAULT_BOOKMARK_HEIGHT,
-	DEFAULT_BOOKMARK_WIDTH,
 	Editor,
 	EmbedShapeUtil,
 	GroupShapeUtil,
@@ -268,12 +266,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
-						newPos.add(
-							new Vec2d(
-								shape.props.w / 2 - DEFAULT_BOOKMARK_WIDTH / 2,
-								shape.props.h / 2 - DEFAULT_BOOKMARK_HEIGHT / 2
-							)
-						)
+						newPos.add(new Vec2d(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
 						newPos.rot(shape.rotation)
 
 						createList.push({

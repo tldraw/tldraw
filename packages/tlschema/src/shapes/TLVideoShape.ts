@@ -1,24 +1,10 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 import { assetIdValidator } from '../assets/TLBaseAsset'
-import { TLAssetId } from '../records/TLAsset'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export type TLVideoShapeProps = {
-	w: number
-	h: number
-	time: number
-	playing: boolean
-	url: string
-	assetId: TLAssetId | null
-}
-
-/** @public */
-export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
-
-/** @internal */
-export const videoShapeProps: ShapeProps<TLVideoShape> = {
+export const videoShapeProps = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	time: T.number,
@@ -26,6 +12,12 @@ export const videoShapeProps: ShapeProps<TLVideoShape> = {
 	url: T.string,
 	assetId: assetIdValidator.nullable(),
 }
+
+/** @public */
+export type TLVideoShapeProps = ShapePropsType<typeof videoShapeProps>
+
+/** @public */
+export type TLVideoShape = TLBaseShape<'video', TLVideoShapeProps>
 
 const Versions = {
 	AddUrlProp: 1,

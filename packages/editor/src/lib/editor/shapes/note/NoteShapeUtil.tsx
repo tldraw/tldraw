@@ -1,8 +1,8 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
 import { TLNoteShape } from '@tldraw/tlschema'
-import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler } from '../ShapeUtil'
+import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
@@ -83,7 +83,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							align={align}
 							verticalAlign={verticalAlign}
 							text={text}
-							labelColor="inherit"
+							labelColor={adjustedColor}
 							wrap
 						/>
 					</div>

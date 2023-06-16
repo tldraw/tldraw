@@ -1,5 +1,5 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { Editor, TLStyleItem, TLStyleType } from '@tldraw/editor'
+import { SharedStyle, StyleProp } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -7,43 +7,43 @@ import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
 import { Button } from '../primitives/Button'
 import * as DropdownMenu from '../primitives/DropdownMenu'
+import { StyleValuesForUi } from './styles'
 
-type AllStyles = typeof Editor.styles
-
-interface DropdownPickerProps<T extends AllStyles[keyof AllStyles][number]> {
+interface DropdownPickerProps<T extends string> {
 	id: string
 	label?: TLUiTranslationKey
-	items: T[]
-	styleType: TLStyleType
-	value: T['id'] | null
-	'data-testid'?: string
-	onValueChange: (value: TLStyleItem, squashing: boolean) => void
+	uiType: string
+	style: StyleProp<T>
+	value: SharedStyle<T>
+	items: StyleValuesForUi<T>
+	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
-export const DropdownPicker = React.memo(function DropdownPicker<
-	T extends AllStyles[keyof AllStyles][number]
->({
+export const DropdownPicker = React.memo(function DropdownPicker<T extends string>({
 	id,
-	items,
-	styleType,
 	label,
+	uiType,
+	style,
+	items,
 	value,
 	onValueChange,
-	'data-testid': testId,
 }: DropdownPickerProps<T>) {
 	const msg = useTranslation()
 
-	const icon = React.useMemo(() => items.find((item) => item.id === value)?.icon, [items, value])
+	const icon = React.useMemo(
+		() => items.find((item) => value.type === 'shared' && item.value === value.value)?.icon,
+		[items, value]
+	)
 
 	return (
 		<DropdownMenu.Root id={`style panel ${id}`}>
 			<Trigger asChild>
 				<Button
-					data-testid={testId}
+					data-testid={`style.${uiType}`}
 					title={
-						value === null
+						value.type === 'mixed'
 							? msg('style-panel.mixed')
-							: msg(`${styleType}-style.${value}` as TLUiTranslationKey)
+							: msg(`${uiType}-style.${value.value}` as TLUiTranslationKey)
 					}
 					label={label}
 					icon={(icon as TLUiIconType) ?? 'mixed'}
@@ -61,11 +61,11 @@ export const DropdownPicker = React.memo(function DropdownPicker<
 						return (
 							<DropdownMenu.Item
 								className="tlui-button-grid__button"
-								data-testid={`${testId}.${item.id}`}
-								title={msg(`${styleType}-style.${item.id}` as TLUiTranslationKey)}
-								key={item.id}
+								data-testid={`style.${uiType}.${item.value}`}
+								title={msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
+								key={item.value}
 								icon={item.icon as TLUiIconType}
-								onClick={() => onValueChange(item as TLStyleItem, false)}
+								onClick={() => onValueChange(style, item.value, false)}
 							/>
 						)
 					})}

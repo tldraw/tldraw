@@ -1,53 +1,69 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLAlignType, alignValidator } from '../styles/TLAlignStyle'
-import { TLColorType, colorValidator } from '../styles/TLColorStyle'
-import { TLDashType, dashValidator } from '../styles/TLDashStyle'
-import { TLFillType, fillValidator } from '../styles/TLFillStyle'
-import { TLFontType, fontValidator } from '../styles/TLFontStyle'
-import { TLGeoType, geoValidator } from '../styles/TLGeoStyle'
-import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { TLVerticalAlignType, verticalAlignValidator } from '../styles/TLVerticalAlignStyle'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
+import { StyleProp } from '../styles/StyleProp'
+import { DefaultColorStyle, DefaultLabelColorStyle } from '../styles/TLColorStyle'
+import { DefaultDashStyle } from '../styles/TLDashStyle'
+import { DefaultFillStyle } from '../styles/TLFillStyle'
+import { DefaultFontStyle } from '../styles/TLFontStyle'
+import {
+	DefaultHorizontalAlignStyle,
+	TLDefaultHorizontalAlignStyle,
+} from '../styles/TLHorizontalAlignStyle'
+import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { DefaultVerticalAlignStyle } from '../styles/TLVerticalAlignStyle'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export type TLGeoShapeProps = {
-	geo: TLGeoType
-	labelColor: TLColorType
-	color: TLColorType
-	fill: TLFillType
-	dash: TLDashType
-	size: TLSizeType
-	font: TLFontType
-	align: TLAlignType
-	verticalAlign: TLVerticalAlignType
-	url: string
-	w: number
-	h: number
-	text: string
-	growY: number
-}
+export const GeoShapeGeoStyle = StyleProp.defineEnum('tldraw:geo', {
+	defaultValue: 'rectangle',
+	values: [
+		'rectangle',
+		'ellipse',
+		'triangle',
+		'diamond',
+		'pentagon',
+		'hexagon',
+		'octagon',
+		'star',
+		'rhombus',
+		'rhombus-2',
+		'oval',
+		'trapezoid',
+		'arrow-right',
+		'arrow-left',
+		'arrow-up',
+		'arrow-down',
+		'x-box',
+		'check-box',
+	],
+})
 
 /** @public */
-export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
+export type TLGeoShapeGeoStyle = T.TypeOf<typeof GeoShapeGeoStyle>
 
-/** @internal */
-export const geoShapeProps: ShapeProps<TLGeoShape> = {
-	geo: geoValidator,
-	labelColor: colorValidator,
-	color: colorValidator,
-	fill: fillValidator,
-	dash: dashValidator,
-	size: sizeValidator,
-	font: fontValidator,
-	align: alignValidator,
-	verticalAlign: verticalAlignValidator,
+/** @public */
+export const geoShapeProps = {
+	geo: GeoShapeGeoStyle,
+	labelColor: DefaultLabelColorStyle,
+	color: DefaultColorStyle,
+	fill: DefaultFillStyle,
+	dash: DefaultDashStyle,
+	size: DefaultSizeStyle,
+	font: DefaultFontStyle,
+	align: DefaultHorizontalAlignStyle,
+	verticalAlign: DefaultVerticalAlignStyle,
 	url: T.string,
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	growY: T.positiveNumber,
 	text: T.string,
 }
+
+/** @public */
+export type TLGeoShapeProps = ShapePropsType<typeof geoShapeProps>
+
+/** @public */
+export type TLGeoShape = TLBaseShape<'geo', TLGeoShapeProps>
 
 const Versions = {
 	AddUrlProp: 1,
@@ -142,16 +158,16 @@ export const geoShapeMigrations = defineMigrations({
 		},
 		[Versions.MigrateLegacyAlign]: {
 			up: (shape) => {
-				let newAlign: TLAlignType
+				let newAlign: TLDefaultHorizontalAlignStyle
 				switch (shape.props.align) {
 					case 'start':
-						newAlign = 'start-legacy' as TLAlignType
+						newAlign = 'start-legacy'
 						break
 					case 'end':
-						newAlign = 'end-legacy' as TLAlignType
+						newAlign = 'end-legacy'
 						break
 					default:
-						newAlign = 'middle-legacy' as TLAlignType
+						newAlign = 'middle-legacy'
 						break
 				}
 				return {
@@ -163,7 +179,7 @@ export const geoShapeMigrations = defineMigrations({
 				}
 			},
 			down: (shape) => {
-				let oldAlign: TLAlignType
+				let oldAlign: TLDefaultHorizontalAlignStyle
 				switch (shape.props.align) {
 					case 'start-legacy':
 						oldAlign = 'start'

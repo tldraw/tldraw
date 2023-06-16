@@ -1,34 +1,35 @@
 import { defineMigrations } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { TLHandle, handleValidator } from '../misc/TLHandle'
-import { TLColorType, colorValidator } from '../styles/TLColorStyle'
-import { TLDashType, dashValidator } from '../styles/TLDashStyle'
-import { TLSizeType, sizeValidator } from '../styles/TLSizeStyle'
-import { TLSplineType, splineValidator } from '../styles/TLSplineStyle'
-import { ShapeProps, TLBaseShape } from './TLBaseShape'
+import { handleValidator } from '../misc/TLHandle'
+import { StyleProp } from '../styles/StyleProp'
+import { DefaultColorStyle } from '../styles/TLColorStyle'
+import { DefaultDashStyle } from '../styles/TLDashStyle'
+import { DefaultSizeStyle } from '../styles/TLSizeStyle'
+import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export type TLLineShapeProps = {
-	color: TLColorType
-	dash: TLDashType
-	size: TLSizeType
-	spline: TLSplineType
-	handles: {
-		[key: string]: TLHandle
-	}
+export const LineShapeSplineStyle = StyleProp.defineEnum('tldraw:spline', {
+	defaultValue: 'line',
+	values: ['cubic', 'line'],
+})
+
+/** @public */
+export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>
+
+/** @public */
+export const lineShapeProps = {
+	color: DefaultColorStyle,
+	dash: DefaultDashStyle,
+	size: DefaultSizeStyle,
+	spline: LineShapeSplineStyle,
+	handles: T.dict(T.string, handleValidator),
 }
+
+/** @public */
+export type TLLineShapeProps = ShapePropsType<typeof lineShapeProps>
 
 /** @public */
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
-
-/** @internal */
-export const lineShapeProps: ShapeProps<TLLineShape> = {
-	color: colorValidator,
-	dash: dashValidator,
-	size: sizeValidator,
-	spline: splineValidator,
-	handles: T.dict(T.string, handleValidator),
-}
 
 /** @internal */
 export const lineShapeMigrations = defineMigrations({})

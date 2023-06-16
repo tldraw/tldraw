@@ -1,4 +1,4 @@
-import { preventDefault, useEditor } from '@tldraw/editor'
+import { GeoShapeGeoStyle, preventDefault, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import React from 'react'
 import { track, useValue } from 'signia-react'
@@ -33,7 +33,9 @@ export const Toolbar = function Toolbar() {
 	const activeToolId = useValue('current tool id', () => editor.currentToolId, [editor])
 
 	const isHandTool = activeToolId === 'hand'
-	const geoState = useValue('geo', () => (editor.props ? editor.props.geo : undefined), [editor])
+	const geoState = useValue('geo', () => editor.sharedStyles.getAsKnownValue(GeoShapeGeoStyle), [
+		editor,
+	])
 
 	const showEditingTools = !isReadOnly
 	const showExtraActions = !(isReadOnly || isHandTool)

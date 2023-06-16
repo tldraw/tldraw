@@ -25,14 +25,15 @@ import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	Box2dModel,
 	CameraRecordType,
+	DefaultColorStyle,
+	DefaultFontStyle,
 	InstancePageStateRecordType,
 	PageRecordType,
+	StyleProp,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
-	TLColorStyle,
-	TLColorType,
 	TLCursor,
 	TLCursorType,
 	TLDOCUMENT_ID,
@@ -43,7 +44,6 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
-	TLNullableShapeProps,
 	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
@@ -53,13 +53,12 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	TLShapeProp,
-	TLSizeStyle,
 	TLStore,
 	TLUnknownShape,
 	TLVideoAsset,
 	Vec2dModel,
 	createShapeId,
+	getShapePropKeysByStyle,
 	isPageId,
 	isShape,
 	isShapeId,
@@ -72,6 +71,7 @@ import {
 	deepCopy,
 	getOwnProperty,
 	hasOwnProperty,
+	objectMapFromEntries,
 	partition,
 	sortById,
 	structuredClone,
@@ -84,7 +84,6 @@ import { checkShapesAndAddCore } from '../config/defaultShapes'
 import { AnyTLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
-	BLACKLISTED_PROPS,
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
@@ -103,15 +102,14 @@ import {
 	MAX_ZOOM,
 	MINOR_NUDGE_FACTOR,
 	MIN_ZOOM,
-	STYLES,
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
 import { exportPatternSvgDefs } from '../hooks/usePattern'
+import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
-import { setPropsForNextShape } from '../utils/props-for-next-shape'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
@@ -216,9 +214,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}" is present in the store schema but not provided to the editor`
 			)
 		}
-		this.shapeUtils = Object.fromEntries(
-			allShapes.map(({ util: Util }) => [Util.type, new Util(this, Util.type)])
-		)
+		const shapeUtils = {} as Record<string, ShapeUtil>
+		const allStylesById = new Map<string, StyleProp<unknown>>()
+
+		for (const { util: Util, props } of allShapes) {
+			const propKeysByStyle = getShapePropKeysByStyle(props ?? {})
+			shapeUtils[Util.type] = new Util(this, Util.type, propKeysByStyle)
+
+			for (const style of propKeysByStyle.keys()) {
+				if (!allStylesById.has(style.id)) {
+					allStylesById.set(style.id, style)
+				} else if (allStylesById.get(style.id) !== style) {
+					throw Error(
+						`Multiple style props with id "${style.id}" in use. Style prop IDs must be unique.`
+					)
+				}
+			}
+		}
+
+		this.shapeUtils = shapeUtils
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
@@ -247,9 +261,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.isIos = false
 			this.isChromeForIos = false
 		}
-
-		// Set styles
-		this.colors = new Map(Editor.styles.color.map((c) => [c.id, `var(--palette-${c.id})`]))
 
 		this.store.onBeforeDelete = (record) => {
 			if (record.typeName === 'shape') {
@@ -676,126 +687,94 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* ---------------------- Props --------------------- */
 
 	/**
-	 * Get all the current props among the users selected shapes
+	 * Get all the current styles among the users selected shapes
 	 *
 	 * @internal
 	 */
-	private _extractSharedProps(shape: TLShape, sharedProps: TLNullableShapeProps) {
+	private _extractSharedStyles(shape: TLShape, sharedStyleMap: SharedStyleMap) {
 		if (this.isShapeOfType(shape, GroupShapeUtil)) {
-			// For groups, ignore the props of the group shape and instead include
-			// the props of the group's children. These are the shapes that would have
-			// their props changed if the user called `setProp` on the current selection.
+			// For groups, ignore the styles of the group shape and instead include the styles of the
+			// group's children. These are the shapes that would have their styles changed if the
+			// user called `setStyle` on the current selection.
 			const childIds = this._parentIdsToChildIds.value[shape.id]
 			if (!childIds) return
 
 			for (let i = 0, n = childIds.length; i < n; i++) {
-				this._extractSharedProps(this.getShapeById(childIds[i][0])!, sharedProps)
+				this._extractSharedStyles(this.getShapeById(childIds[i][0])!, sharedStyleMap)
 			}
 		} else {
-			const props = Object.entries(shape.props)
-			let prop: [TLShapeProp, any]
-			for (let i = 0, n = props.length; i < n; i++) {
-				prop = props[i] as [TLShapeProp, any]
-
-				// We should probably white list rather than black list here
-				if (BLACKLISTED_PROPS.has(prop[0])) continue
-
-				// Check the value of this prop on the shared props object.
-				switch (sharedProps[prop[0]]) {
-					case undefined: {
-						// If this key hasn't been defined yet in the shared props object,
-						// we can set it to the value from the shape's props object.
-						sharedProps[prop[0]] = prop[1]
-						break
-					}
-					case null:
-					case prop[1]: {
-						// If the value in the shared props object matches the value from
-						// the shape's props object exactly—or if there is already a mixed
-						// value (null) in the shared props object—then this is a noop. We
-						// want to leave the value as it is in the shared props object.
-						continue
-					}
-					default: {
-						// If there's a value in the shared props object that isn't null AND
-						// that isn't undefined AND that doesn't match the shape's props object,
-						// then we've got a conflict, mixed props, so set the value to null.
-						sharedProps[prop[0]] = null
-					}
-				}
+			const util = this.getShapeUtil(shape)
+			for (const [style, value] of util.iterateStyles(shape)) {
+				sharedStyleMap.applyValue(style, value)
 			}
 		}
 	}
 
 	/**
-	 * A derived object containing all current props among the user's selected shapes.
+	 * A derived map containing all current styles among the user's selected shapes.
 	 *
 	 * @internal
 	 */
-	private _selectionSharedProps = computed<TLNullableShapeProps>('_selectionSharedProps', () => {
-		const { selectedShapes } = this
+	private _selectionSharedStyles = computed<ReadonlySharedStyleMap>(
+		'_selectionSharedStyles',
+		() => {
+			const { selectedShapes } = this
 
-		const sharedProps = {} as TLNullableShapeProps
+			const sharedStyles = new SharedStyleMap()
+			for (const selectedShape of selectedShapes) {
+				this._extractSharedStyles(selectedShape, sharedStyles)
+			}
 
-		for (let i = 0, n = selectedShapes.length; i < n; i++) {
-			this._extractSharedProps(selectedShapes[i], sharedProps)
+			return sharedStyles
 		}
+	)
 
-		return sharedProps as TLNullableShapeProps
-	})
+	@computed private get _stylesForNextShape() {
+		return this.instanceState.stylesForNextShape
+	}
 
 	/** @internal */
-	private _prevProps: any = {}
-
-	/**
-	 * A derived object containing either all current props among the user's selected shapes, or else
-	 * the user's most recent prop choices that correspond to the current active state (i.e. the
-	 * selected tool).
-	 *
-	 * @internal
-	 */
-	@computed get props(): TLNullableShapeProps | null {
-		let next: TLNullableShapeProps | null
-
-		// If we're in selecting and if we have a selection,
-		// return the shared props from the current selection
-		if (this.isIn('select') && this.selectedIds.length > 0) {
-			next = this._selectionSharedProps.value
-		} else {
-			// Otherwise, pull the style props from the app state
-			// (the most recent choices made by the user) that are
-			// exposed by the current state (i.e. the active tool).
-			const currentState = this.root.current.value!
-			if (currentState.styles.length === 0) {
-				next = null
-			} else {
-				const { propsForNextShape } = this.instanceState
-				next = Object.fromEntries(
-					currentState.styles.map((k) => {
-						return [k, propsForNextShape[k]]
-					})
-				)
-			}
-		}
-
-		// todo: any way to improve this? still faster than rendering the style panel every frame
-		if (JSON.stringify(this._prevProps) === JSON.stringify(next)) {
-			return this._prevProps
-		}
-
-		this._prevProps = next
-
-		return next
+	getStyleForNextShape<T>(style: StyleProp<T>): T {
+		const value = this._stylesForNextShape[style.id]
+		return value === undefined ? style.defaultValue : (value as T)
 	}
 
 	/**
-	 * Get the currently selected opacity.
-	 * If any shapes are selected, this returns the opacity of the selected shapes.
+	 * A derived object containing either all current styles among the user's selected shapes, or
+	 * else the user's most recent style choices that correspond to the current active state (i.e.
+	 * the selected tool).
+	 *
+	 * @public
+	 */
+	@computed<ReadonlySharedStyleMap>({ isEqual: (a, b) => a.equals(b) })
+	get sharedStyles(): ReadonlySharedStyleMap {
+		// If we're in selecting and if we have a selection, return the shared styles from the
+		// current selection
+		if (this.isIn('select') && this.selectedIds.length > 0) {
+			return this._selectionSharedStyles.value
+		}
+
+		// If the current tool is associated with a shape, return the styles for that shape.
+		// Otherwise, just return an empty map.
+		const currentTool = this.root.current.value!
+		const styles = new SharedStyleMap()
+		if (currentTool.shapeType) {
+			for (const style of this.getShapeUtil(currentTool.shapeType).styleProps.keys()) {
+				styles.applyValue(style, this.getStyleForNextShape(style))
+			}
+		}
+
+		return styles
+	}
+
+	/**
+	 * Get the currently selected shared opacity.
+	 * If any shapes are selected, this returns the shared opacity of the selected shapes.
 	 * Otherwise, this returns the chosen opacity for the next shape.
 	 *
 	 * @public
 	 */
-	@computed get opacity(): number | null {
+	@computed get sharedOpacity(): SharedStyle<number> {
 		if (this.isIn('select') && this.selectedIds.length > 0) {
 			const shapesToCheck: TLShape[] = []
 			const addShape = (shapeId: TLShapeId) => {
@@ -821,14 +800,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (opacity === null) {
 					opacity = shape.opacity
 				} else if (opacity !== shape.opacity) {
-					return null
+					return { type: 'mixed' }
 				}
 			}
 
-			return opacity
-		} else {
-			return this.instanceState.opacityForNextShape
+			if (opacity !== null) return { type: 'shared', value: opacity }
 		}
+		return { type: 'shared', value: this.instanceState.opacityForNextShape }
 	}
 
 	/** @internal */
@@ -3397,14 +3375,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The app's set of styles.
-	 *
-	 * @public
-	 */
-	static styles = STYLES
-
-	/**
-	 * The current page bounds of all the selected shapes (Not the same thing as the page bounds of the selection bounding box when the selection has been rotated)
+	 * The current page bounds of all the selected shapes (Not the same thing as the page bounds of
+	 * the selection bounding box when the selection has been rotated)
 	 *
 	 * @readonly
 	 *
@@ -3491,59 +3463,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { selectionBounds, selectionRotation } = this
 		if (!selectionBounds) return null
 		return Vec2d.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
-	}
-
-	/* --------------------- Styles --------------------- */
-
-	/**
-	 * A mapping of color ids to CSS color values.
-	 *
-	 * @internal
-	 */
-	private colors: Map<TLColorStyle['id'], string>
-
-	/**
-	 * A mapping of size ids to size values.
-	 *
-	 * @internal
-	 */
-	private sizes = {
-		s: 2,
-		m: 3.5,
-		l: 5,
-		xl: 10,
-	}
-
-	/**
-	 * Get the CSS color value for a given color id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getCssColor('red')
-	 * ```
-	 *
-	 * @param id - The id of the color to get.
-	 *
-	 * @public
-	 */
-	getCssColor(id: TLColorStyle['id']): string {
-		return this.colors.get(id)!
-	}
-
-	/**
-	 * Get the stroke width value for a given size id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getStrokeWidth('m')
-	 * ```
-	 *
-	 * @param id - The id of the size to get.
-	 *
-	 * @public
-	 */
-	getStrokeWidth(id: TLSizeStyle['id']): number {
-		return this.sizes[id]
 	}
 
 	/* ------------------- Statechart ------------------- */
@@ -4919,15 +4838,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// The initial props starts as the shape utility's default props
 					const initialProps = util.defaultProps()
 
-					// We then look up each key in the tab state's props; and if it's there,
-					// we use the value from the tab state's props instead of the default.
-					// Note that props will never include opacity.
-					const { propsForNextShape, opacityForNextShape } = this.instanceState
-					for (const key in initialProps) {
-						if (key in propsForNextShape) {
-							if (key === 'url') continue
-							;(initialProps as any)[key] = (propsForNextShape as any)[key]
-						}
+					// We then look up each key in the tab state's styles; and if it's there,
+					// we use the value from the tab state's styles instead of the default.
+					for (const [style, propKey] of util.styleProps) {
+						;(initialProps as any)[propKey] = this.getStyleForNextShape(style)
 					}
 
 					// When we create the shape, take in the partial (the props coming into the
@@ -4940,7 +4854,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					).create({
 						...partial,
 						index,
-						opacity: partial.opacity ?? opacityForNextShape,
+						opacity: partial.opacity ?? this.instanceState.opacityForNextShape,
 						parentId: partial.parentId ?? focusLayerId,
 						props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
 					})
@@ -7989,22 +7903,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the current props (generally styles).
+	 * Set the current styles
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setProp('color', 'red')
-	 * editor.setProp('color', 'red', true)
+	 * editor.setProp(DefaultColorStyle, 'red')
+	 * editor.setProp(DefaultColorStyle, 'red', true)
 	 * ```
 	 *
-	 * @param key - The key to set.
+	 * @param style - The style to set.
 	 * @param value - The value to set.
 	 * @param ephemeral - Whether the style change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
 	 * @param squashing - Whether the style change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
 	 *
 	 * @public
 	 */
-	setProp(key: TLShapeProp, value: any, ephemeral = false, squashing = false): this {
+	setStyle<T>(style: StyleProp<T>, value: T, ephemeral = false, squashing = false): this {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {
@@ -8012,7 +7926,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				} = this
 
 				if (selectedIds.length > 0) {
-					const shapesToUpdate: TLShape[] = []
+					const updates: { originalShape: TLShape; updatePartial: TLShapePartial }[] = []
 
 					// We can have many deep levels of grouped shape
 					// Making a recursive function to look through all the levels
@@ -8024,8 +7938,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 							for (const childId of childIds) {
 								addShapeById(childId)
 							}
-						} else if (shape!.props[key as keyof TLShape['props']] !== undefined) {
-							shapesToUpdate.push(shape)
+						} else {
+							const util = this.getShapeUtil(shape)
+							if (util.hasStyle(style)) {
+								const shapePartial: TLShapePartial = {
+									id: shape.id,
+									type: shape.type,
+									props: {},
+								}
+								updates.push({
+									originalShape: shape,
+									updatePartial: util.setStyleInPartial(style, shapePartial, value),
+								})
+							}
 						}
 					}
 
@@ -8034,77 +7959,62 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 
 					this.updateShapes(
-						shapesToUpdate.map((shape) => {
-							const props = { ...shape.props, [key]: value }
-							if (key === 'color' && 'labelColor' in props) {
-								props.labelColor = 'black'
-							}
-
-							return {
-								id: shape.id,
-								type: shape.type,
-								props,
-							}
-						}),
+						updates.map(({ updatePartial }) => updatePartial),
 						ephemeral
 					)
 
-					if (key !== 'color') {
-						const changes: TLShapePartial[] = []
+					// TODO: find a way to sink this stuff into shape utils directly?
+					const changes: TLShapePartial[] = []
+					for (const { originalShape: originalShape } of updates) {
+						const currentShape = this.getShapeById(originalShape.id)
+						if (!currentShape) continue
+						const util = this.getShapeUtil(currentShape)
 
-						for (const shape of shapesToUpdate) {
-							const currentShape = this.getShapeById(shape.id)
-							if (!currentShape) continue
-							const util = this.getShapeUtil(currentShape)
+						const boundsA = util.bounds(originalShape)
+						const boundsB = util.bounds(currentShape)
 
-							const boundsA = util.bounds(shape)
-							const boundsB = util.bounds(currentShape)
+						const change: TLShapePartial = { id: originalShape.id, type: originalShape.type }
 
-							const change: TLShapePartial = { id: shape.id, type: shape.type }
+						let didChange = false
 
-							let didChange = false
+						if (boundsA.width !== boundsB.width) {
+							didChange = true
 
-							if (boundsA.width !== boundsB.width) {
-								didChange = true
-
-								if (this.isShapeOfType(shape, TextShapeUtil)) {
-									switch (shape.props.align) {
-										case 'middle': {
-											change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
-											break
-										}
-										case 'end': {
-											change.x = currentShape.x + boundsA.width - boundsB.width
-											break
-										}
+							if (this.isShapeOfType(originalShape, TextShapeUtil)) {
+								switch (originalShape.props.align) {
+									case 'middle': {
+										change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
+										break
 									}
-								} else {
-									change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
+									case 'end': {
+										change.x = currentShape.x + boundsA.width - boundsB.width
+										break
+									}
 								}
-							}
-
-							if (boundsA.height !== boundsB.height) {
-								didChange = true
-								change.y = currentShape.y + (boundsA.height - boundsB.height) / 2
-							}
-
-							if (didChange) {
-								changes.push(change)
+							} else {
+								change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
 							}
 						}
 
-						if (changes.length) {
-							this.updateShapes(changes, ephemeral)
+						if (boundsA.height !== boundsB.height) {
+							didChange = true
+							change.y = currentShape.y + (boundsA.height - boundsB.height) / 2
 						}
+
+						if (didChange) {
+							changes.push(change)
+						}
+					}
+
+					if (changes.length) {
+						this.updateShapes(changes, ephemeral)
 					}
 				}
 			}
 
 			this.updateInstanceState(
 				{
-					propsForNextShape: setPropsForNextShape(this.instanceState.propsForNextShape, {
-						[key]: value,
-					}),
+					stylesForNextShape: { ...this._stylesForNextShape, [style.id]: value },
 				},
 				ephemeral,
 				squashing
@@ -9243,30 +9153,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const fontsUsedInExport = new Map<string, string>()
 
 		const colors: TLExportColors = {
-			fill: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}`),
+			fill: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}`),
 				])
-			) as Record<TLColorType, string>,
-			pattern: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-pattern`),
+			),
+			pattern: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}-pattern`),
 				])
-			) as Record<TLColorType, string>,
-			semi: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-semi`),
+			),
+			semi: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}-semi`),
 				])
-			) as Record<TLColorType, string>,
-			highlight: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-highlight`),
+			),
+			highlight: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}-highlight`),
 				])
-			) as Record<TLColorType, string>,
+			),
 			text: containerStyle.getPropertyValue(`--color-text`),
 			background: containerStyle.getPropertyValue(`--color-background`),
 			solid: containerStyle.getPropertyValue(`--palette-solid`),
@@ -9363,16 +9273,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const util = this.getShapeUtil(shape)
 
 					let font: string | undefined
-					if ('font' in shape.props) {
-						if (shape.props.font) {
-							if (fontsUsedInExport.has(shape.props.font)) {
-								font = fontsUsedInExport.get(shape.props.font)!
-							} else {
-								// For some reason these styles aren't present in the fake element
-								// so we need to get them from the real element
-								font = realContainerStyle.getPropertyValue(`--tl-font-${shape.props.font}`)
-								fontsUsedInExport.set(shape.props.font, font)
-							}
+					// TODO: `Editor` shouldn't know about `DefaultFontStyle`. We need another way
+					// for shapes to register fonts for export.
+					const fontFromShape = util.getStyleIfExists(DefaultFontStyle, shape)
+					if (fontFromShape) {
+						if (fontsUsedInExport.has(fontFromShape)) {
+							font = fontsUsedInExport.get(fontFromShape)!
+						} else {
+							// For some reason these styles aren't present in the fake element
+							// so we need to get them from the real element
+							font = realContainerStyle.getPropertyValue(`--tl-font-${fontFromShape}`)
+							fontsUsedInExport.set(fontFromShape, font)
 						}
 					}
 

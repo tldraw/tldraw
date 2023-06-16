@@ -1,5 +1,5 @@
-import { TLStyleType } from '@tldraw/tlschema'
 import { StateNode } from '../../tools/StateNode'
+import { NoteShapeUtil } from './NoteShapeUtil'
 import { Idle } from './toolStates/Idle'
 import { Pointing } from './toolStates/Pointing'
 
@@ -8,6 +8,5 @@ export class NoteShapeTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Pointing]
 
-	styles = ['color', 'size', 'align', 'verticalAlign', 'font'] as TLStyleType[]
-	shapeType = 'note'
+	shapeType = NoteShapeUtil
 }

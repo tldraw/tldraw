@@ -11,13 +11,7 @@ import {
 	createShapeId,
 } from '@tldraw/tlschema'
 import { compact, getHashForString } from '@tldraw/utils'
-import {
-	FONT_FAMILIES,
-	FONT_SIZES,
-	MAX_ASSET_HEIGHT,
-	MAX_ASSET_WIDTH,
-	TEXT_PROPS,
-} from '../../constants'
+import { MAX_ASSET_HEIGHT, MAX_ASSET_WIDTH } from '../../constants'
 import {
 	ACCEPTED_IMG_TYPE,
 	ACCEPTED_VID_TYPE,
@@ -31,6 +25,7 @@ import {
 import { truncateStringWithEllipsis } from '../../utils/dom'
 import { getEmbedInfo } from '../../utils/embeds'
 import { Editor } from '../Editor'
+import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shapes/shared/default-shape-constants'
 import { INDENT } from '../shapes/text/TextHelpers'
 import { TextShapeUtil } from '../shapes/text/TextShapeUtil'
 

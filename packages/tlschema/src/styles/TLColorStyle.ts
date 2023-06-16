@@ -1,9 +1,7 @@
 import { T } from '@tldraw/validate'
-import { SetValue } from '../util-types'
-import { TLBaseStyle } from './TLBaseStyle'
+import { StyleProp } from './StyleProp'
 
-/** @public */
-export const TL_COLOR_TYPES = new Set([
+const colors = [
 	'black',
 	'grey',
 	'light-violet',
@@ -16,16 +14,19 @@ export const TL_COLOR_TYPES = new Set([
 	'light-green',
 	'light-red',
 	'red',
-] as const)
+] as const
 
 /** @public */
-export type TLColorType = SetValue<typeof TL_COLOR_TYPES>
+export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', {
+	defaultValue: 'black',
+	values: colors,
+})
 
 /** @public */
-export interface TLColorStyle extends TLBaseStyle {
-	id: TLColorType
-	type: 'color'
-}
+export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', {
+	defaultValue: 'black',
+	values: colors,
+})
 
-/** @internal */
-export const colorValidator = T.setEnum(TL_COLOR_TYPES)
+/** @public */
+export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>

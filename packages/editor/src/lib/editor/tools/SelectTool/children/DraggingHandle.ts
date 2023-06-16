@@ -2,7 +2,7 @@ import { sortByIndex } from '@tldraw/indices'
 import { Matrix2d, snapAngle, Vec2d } from '@tldraw/primitives'
 import {
 	TLArrowShape,
-	TLArrowTerminal,
+	TLArrowShapeTerminal,
 	TLHandle,
 	TLShapeId,
 	TLShapePartial,
@@ -264,7 +264,7 @@ export class DraggingHandle extends StateNode {
 
 		// Arrows
 		if (initialHandle.canBind) {
-			const bindingAfter = (next.props as any)[initialHandle.id] as TLArrowTerminal | undefined
+			const bindingAfter = (next.props as any)[initialHandle.id] as TLArrowShapeTerminal | undefined
 
 			if (bindingAfter?.type === 'binding') {
 				if (hintingIds[0] !== bindingAfter.boundShapeId) {
