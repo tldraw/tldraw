@@ -1,3 +1,5 @@
+import { usePathname } from 'next/navigation'
+
 /* ---------------------- Lists --------------------- */
 
 export const UnorderedList = (props: any) => {
@@ -17,11 +19,12 @@ export const ListItem = (props: any) => {
 type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
 const Heading = ({ level, ...props }: { level: HeadingTag; [key: string]: any }) => {
+	const pathname = usePathname()
 	const Element = level
 	if (props.id) {
 		return (
 			<Element {...props}>
-				<a href={`#${props.id}`}>{props.children}</a>
+				<a href={`${pathname}#${props.id}`}>{props.children}</a>
 			</Element>
 		)
 	}
