@@ -148,8 +148,8 @@ body {
 	padding: 16px 16px 120px 16px;
 	font-weight: 400;
 	max-width: 100%;
-	/* overflow-x: hidden;
-	overflow-y: visible; */
+	overflow-x: hidden;
+	overflow-y: visible;
 }
 
 .article__details {
@@ -159,7 +159,7 @@ body {
 	margin: 40px 0px;
 	gap: 16px;
 	max-width: 100%;
-	/* overflow: hidden; */
+	overflow: hidden;
 }
 
 .article__details__edit {
@@ -200,7 +200,7 @@ body {
 	padding: 10px 16px;
 	border-radius: 4px;
 	white-space: nowrap;
-	/* overflow: hidden; */
+	overflow: hidden;
 	text-overflow: ellipsis;
 }
 
@@ -316,7 +316,7 @@ body {
 	background-color: var(--color-tint-1);
 	border-radius: 8px;
 	font-size: 13px;
-	/* overflow-x: auto; */
+	overflow-x: auto;
 }
 
 .article code {
@@ -364,7 +364,7 @@ body {
 .article table {
 	margin: 32px 0px;
 	border-radius: 4px;
-	/* overflow: hidden; */
+	overflow: hidden;
 	width: 100%;
 	text-align: left;
 	border: 1px solid var(--color-tint-2);
@@ -437,7 +437,7 @@ body {
 	align-self: start;
 	top: 0px;
 	z-index: 1000;
-	/* overflow-y: auto; */
+	overflow-y: auto;
 }
 
 .sidebar .sidebar__list h4 {
@@ -656,7 +656,7 @@ body {
 	border-radius: 8px;
 	box-shadow: var(--shadow-big);
 	max-height: 80vh;
-	/* overflow-y: auto; */
+	overflow-y: auto;
 }
 
 .search__results__list {
