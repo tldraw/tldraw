@@ -375,6 +375,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         ease?: (t: number) => number;
     }): this;
     animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
+    animateToUser(userId: string): void;
     get animationSpeed(): number;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
@@ -1187,17 +1188,11 @@ export const INDENT = "  ";
 // @public
 export function isAnimated(buffer: ArrayBuffer): boolean;
 
-// @public (undocumented)
-export function isGeoShape(shape: TLShape): shape is TLGeoShape;
-
 // @public
 export function isGIF(buffer: ArrayBuffer): boolean;
 
 // @public (undocumented)
 export const isImage: (ext: string) => boolean;
-
-// @public (undocumented)
-export function isNoteShape(shape: TLShape): shape is TLNoteShape;
 
 // @public
 export function isSerializable(value: any): boolean;

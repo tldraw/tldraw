@@ -1110,6 +1110,42 @@ describe('hoist opacity', () => {
 	})
 })
 
+describe('Adds highlightedUserIds to instance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceTypeVersions.AddHighlightedUserIds]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ highlightedUserIds: [] })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ highlightedUserIds: [] })).toEqual({})
+	})
+})
+
+describe('Adds chat message to presence', () => {
+	const { up, down } = instancePresenceMigrations.migrators[3]
+
+	test('up adds the chatMessage property', () => {
+		expect(up({})).toEqual({ chatMessage: '' })
+	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ chatMessage: '' })).toEqual({})
+	})
+})
+
+describe('Adds chat properties to instance', () => {
+	const { up, down } = instanceMigrations.migrators[14]
+
+	test('up adds the chatMessage property', () => {
+		expect(up({})).toEqual({ chatMessage: '', isChatting: false })
+	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ chatMessage: '', isChatting: true })).toEqual({})
+	})
+})
+
 describe('Removes does resize from embed', () => {
 	const { up, down } = embedShapeMigrations.migrators[2]
 	test('up works as expected', () => {

@@ -248,8 +248,6 @@ export {
 	getSvgAsImage,
 	getSvgAsString,
 	getTextBoundingBox,
-	isGeoShape,
-	isNoteShape,
 	type TLCopyType,
 	type TLExportType,
 } from './lib/utils/export'

@@ -5,6 +5,7 @@ import {
 	DEFAULT_BOOKMARK_WIDTH,
 	Editor,
 	EmbedShapeUtil,
+	GroupShapeUtil,
 	TLEmbedShape,
 	TLShapeId,
 	TLShapePartial,
@@ -388,7 +389,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('group-shapes', { source })
-					if (editor.selectedShapes.length === 1 && editor.selectedShapes[0].type === 'group') {
+					const { onlySelectedShape } = editor
+					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, GroupShapeUtil)) {
 						editor.mark('ungroup')
 						editor.ungroupShapes(editor.selectedIds)
 					} else {

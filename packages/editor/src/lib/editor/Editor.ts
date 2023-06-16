@@ -87,6 +87,7 @@ import {
 	ANIMATION_MEDIUM_MS,
 	BLACKLISTED_PROPS,
 	COARSE_DRAG_DISTANCE,
+	COLLABORATOR_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_PAN_SNAP,
@@ -96,6 +97,7 @@ import {
 	FOLLOW_CHASE_ZOOM_UNSNAP,
 	GRID_INCREMENT,
 	HAND_TOOL_FRICTION,
+	INTERNAL_POINTER_IDS,
 	MAJOR_NUDGE_FACTOR,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
@@ -764,7 +766,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return undefined
 			}
 
-			const frameAncestors = this.getAncestorsById(shape.id).filter((s) => s.type === 'frame')
+			const frameAncestors = this.getAncestorsById(shape.id).filter((shape) =>
+				this.isShapeOfType(shape, FrameShapeUtil)
+			)
 
 			if (frameAncestors.length === 0) return undefined
 
@@ -1123,7 +1127,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private _extractSharedProps(shape: TLShape, sharedProps: TLNullableShapeProps) {
-		if (shape.type === 'group') {
+		if (this.isShapeOfType(shape, GroupShapeUtil)) {
 			// For groups, ignore the props of the group shape and instead include
 			// the props of the group's children. These are the shapes that would have
 			// their props changed if the user called `setProp` on the current selection.
@@ -1246,7 +1250,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// For groups, ignore the opacity of the group shape and instead include
 				// the opacity of the group's children. These are the shapes that would have
 				// their opacity changed if the user called `setOpacity` on the current selection.
-				if (shape.type === 'group') {
+				if (this.isShapeOfType(shape, GroupShapeUtil)) {
 					for (const childId of this.getSortedChildIds(shape.id)) {
 						addShape(childId)
 					}
@@ -1310,7 +1314,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	@computed
 	private get _arrowBindingsIndex() {
-		return arrowBindingsIndex(this.store)
+		return arrowBindingsIndex(this)
 	}
 
 	/**
@@ -1577,9 +1581,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const nextFocusLayerId =
 				filtered.length === 0
 					? next?.focusLayerId
-					: this.findCommonAncestor(
-							compact(filtered.map((id) => this.getShapeById(id))),
-							(shape) => shape.type === 'group'
+					: this.findCommonAncestor(compact(filtered.map((id) => this.getShapeById(id))), (shape) =>
+							this.isShapeOfType(shape, GroupShapeUtil)
 					  )
 
 			if (filtered.length !== next.selectedIds.length || nextFocusLayerId != next.focusLayerId) {
@@ -3039,7 +3042,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (focusedShape) {
 			// If we have a focused layer, look for an ancestor of the focused shape that is a group
-			const match = this.findAncestor(focusedShape, (s) => s.type === 'group')
+			const match = this.findAncestor(focusedShape, (shape) =>
+				this.isShapeOfType(shape, GroupShapeUtil)
+			)
 			// If we have an ancestor that can become a focused layer, set it as the focused layer
 			this.setFocusLayer(match?.id ?? null)
 			this.select(focusedShape.id)
@@ -3273,7 +3278,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let node = shape as TLShape | undefined
 		while (node) {
 			if (
-				node.type === 'group' &&
+				this.isShapeOfType(node, GroupShapeUtil) &&
 				this.focusLayerId !== node.id &&
 				!this.hasAncestor(this.focusLayerShape, node.id) &&
 				(filter?.(node) ?? true)
@@ -3835,17 +3840,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		previousScreenPoint.setTo(currentScreenPoint)
 		previousPagePoint.setTo(currentPagePoint)
 
-		const px = (sx - screenBounds.x) / cz - cx
-		const py = (sy - screenBounds.y) / cz - cy
-
 		currentScreenPoint.set(sx, sy)
-		currentPagePoint.set(px, py, sz ?? 0.5)
+		currentPagePoint.set(
+			(sx - screenBounds.x) / cz - cx,
+			(sy - screenBounds.y) / cz - cy,
+			sz ?? 0.5
+		)
 
 		this.inputs.isPen = info.type === 'pointer' && info.isPen
 
 		// Reset velocity on pointer down
 		if (info.name === 'pointer_down') {
-			this.inputs.pointerVelocity = new Vec2d()
+			this.inputs.pointerVelocity.set(0, 0)
 		}
 
 		// todo: We only have to do this if there are multiple users in the document
@@ -3855,7 +3861,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				typeName: 'pointer',
 				x: currentPagePoint.x,
 				y: currentPagePoint.y,
-				lastActivityTimestamp: Date.now(),
+				lastActivityTimestamp:
+					// If our pointer moved only because we're following some other user, then don't
+					// update our last activity timestamp; otherwise, update it to the current timestamp.
+					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
+						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
+						: Date.now(),
 			},
 		])
 	}
@@ -4626,15 +4637,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		for (const shape of this.selectedShapes) {
 			if (lowestDepth === 0) break
 
+			const isFrame = this.isShapeOfType(shape, FrameShapeUtil)
 			const ancestors = this.getAncestors(shape)
-			if (shape.type === 'frame') ancestors.push(shape)
+			if (isFrame) ancestors.push(shape)
 
-			const depth = shape.type === 'frame' ? ancestors.length + 1 : ancestors.length
+			const depth = isFrame ? ancestors.length + 1 : ancestors.length
 
 			if (depth < lowestDepth) {
 				lowestDepth = depth
 				lowestAncestors = ancestors
-				pasteParentId = shape.type === 'frame' ? shape.id : shape.parentId
+				pasteParentId = isFrame ? shape.id : shape.parentId
 			} else if (depth === lowestDepth) {
 				if (lowestAncestors.length !== ancestors.length) {
 					throw Error(`Ancestors: ${lowestAncestors.length} !== ${ancestors.length}`)
@@ -4872,7 +4884,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (rootShapes.length === 1) {
 				const onlyRoot = rootShapes[0] as TLFrameShape
 				// If the old bounds are in the viewport...
-				if (onlyRoot.type === 'frame') {
+				if (this.isShapeOfType(onlyRoot, FrameShapeUtil)) {
 					while (
 						this.getShapesAtPoint(point).some(
 							(shape) =>
@@ -6051,7 +6063,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!bbox) return
 
 		const singleFrameShapeId =
-			ids.length === 1 && this.getShapeById(ids[0])?.type === 'frame' ? ids[0] : null
+			ids.length === 1 && this.isShapeOfType(this.getShapeById(ids[0])!, FrameShapeUtil)
+				? ids[0]
+				: null
 		if (!singleFrameShapeId) {
 			// Expand by an extra 32 pixels
 			bbox.expandBy(padding)
@@ -6656,7 +6670,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapes = compact(
 			shapes
 				.map((shape) => {
-					if (shape.type === 'group') {
+					if (this.isShapeOfType(shape, GroupShapeUtil)) {
 						return this.getSortedChildIds(shape.id).map((id) => this.getShapeById(id))
 					}
 
@@ -8421,7 +8435,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				target: 'canvas',
 				name: 'pointer_move',
 				point: currentScreenPoint,
-				pointerId: 0,
+				pointerId: INTERNAL_POINTER_IDS.CAMERA_MOVE,
 				ctrlKey: this.inputs.ctrlKey,
 				altKey: this.inputs.altKey,
 				shiftKey: this.inputs.shiftKey,
@@ -9044,6 +9058,60 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Animate the camera to a user's cursor position.
+	 * This also briefly show the user's cursor if it's not currently visible.
+	 *
+	 * @param userId - The id of the user to aniamte to.
+	 * @public
+	 */
+	animateToUser(userId: string) {
+		const presences = this.store.query.records('instance_presence', () => ({
+			userId: { eq: userId },
+		}))
+
+		const presence = [...presences.value]
+			.sort((a, b) => {
+				return a.lastActivityTimestamp - b.lastActivityTimestamp
+			})
+			.pop()
+
+		if (!presence) return
+
+		this.batch(() => {
+			// If we're following someone, stop following them
+			if (this.instanceState.followingUserId !== null) {
+				this.stopFollowingUser()
+			}
+
+			// If we're not on the same page, move to the page they're on
+			const isOnSamePage = presence.currentPageId === this.currentPageId
+			if (!isOnSamePage) {
+				this.setCurrentPageId(presence.currentPageId)
+			}
+
+			// Only animate the camera if the user is on the same page as us
+			const options = isOnSamePage ? { duration: 500 } : undefined
+
+			const position = presence.cursor
+
+			this.centerOnPoint(position.x, position.y, options)
+
+			// Highlight the user's cursor
+			const { highlightedUserIds } = this.instanceState
+			this.updateInstanceState({ highlightedUserIds: [...highlightedUserIds, userId] })
+
+			// Unhighlight the user's cursor after a few seconds
+			setTimeout(() => {
+				const highlightedUserIds = [...this.instanceState.highlightedUserIds]
+				const index = highlightedUserIds.indexOf(userId)
+				if (index < 0) return
+				highlightedUserIds.splice(index, 1)
+				this.updateInstanceState({ highlightedUserIds })
+			}, COLLABORATOR_TIMEOUT)
+		})
+	}
+
+	/**
 	 * Start viewport-following a user.
 	 *
 	 * @param userId - The id of the user to follow.
@@ -9051,9 +9119,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	startFollowingUser(userId: string) {
-		// Currently, we get the leader's viewport page bounds from their user presence.
-		// This is a placeholder until the ephemeral PR lands.
-		// After that, we'll be able to get the required data from their instance presence instead.
 		const leaderPresences = this.store.query.records('instance_presence', () => ({
 			userId: { eq: userId },
 		}))

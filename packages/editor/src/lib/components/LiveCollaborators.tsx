@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react'
 import { track } from 'signia-react'
+import { COLLABORATOR_CHECK_INTERVAL, COLLABORATOR_TIMEOUT } from '../constants'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { usePeerIds } from '../hooks/usePeerIds'
@@ -28,12 +30,38 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 	} = useEditorComponents()
 
 	const latestPresence = usePresence(userId)
+
+	const [isTimedOut, setIsTimedOut] = useState(false)
+	const rLastSeen = useRef(-1)
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setIsTimedOut(Date.now() - rLastSeen.current > COLLABORATOR_TIMEOUT)
+		}, COLLABORATOR_CHECK_INTERVAL)
+
+		return () => clearInterval(interval)
+	}, [])
+
 	if (!latestPresence) return null
+
+	// We can do this on every render, it's free and would be the same as running a useEffect with a dependency on the timestamp
+	rLastSeen.current = latestPresence.lastActivityTimestamp
+
+	// If the user has timed out
+	// ... and we're not following them
+	// ... and they're not highlighted
+	// then we'll hide the contributor
+	if (
+		isTimedOut &&
+		editor.instanceState.followingUserId !== userId &&
+		!editor.instanceState.highlightedUserIds.includes(userId)
+	)
+		return null
 
 	// if the collaborator is on another page, ignore them
 	if (latestPresence.currentPageId !== editor.currentPageId) return null
 
-	const { brush, scribble, selectedIds, userName, cursor, color } = latestPresence
+	const { brush, scribble, selectedIds, userName, cursor, color, chatMessage } = latestPresence
 
 	// Add a little padding to the top-left of the viewport
 	// so that the cursor doesn't get cut off
@@ -63,6 +91,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 					color={color}
 					zoom={zoomLevel}
 					name={userName !== 'New User' ? userName : null}
+					chatMessage={chatMessage}
 				/>
 			) : CollaboratorHint ? (
 				<CollaboratorHint

@@ -1,5 +1,7 @@
 import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers } from '../../../types/event-types'
+import { GeoShapeUtil } from '../../geo/GeoShapeUtil'
+import { TextShapeUtil } from '../TextShapeUtil'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -17,7 +19,7 @@ export class Idle extends StateNode {
 					(parent) => !selectedIds.includes(parent.id)
 				)
 				if (hoveringShape.id !== focusLayerId) {
-					if (hoveringShape.type === 'text') {
+					if (this.editor.isShapeOfType(hoveringShape, TextShapeUtil)) {
 						this.editor.setHoveredId(hoveringShape.id)
 					}
 				}
@@ -39,7 +41,7 @@ export class Idle extends StateNode {
 		const { hoveredId } = this.editor
 		if (hoveredId) {
 			const shape = this.editor.getShapeById(hoveredId)!
-			if (shape.type === 'text') {
+			if (this.editor.isShapeOfType(shape, TextShapeUtil)) {
 				requestAnimationFrame(() => {
 					this.editor.setSelectedIds([shape.id])
 					this.editor.setEditingId(shape.id)
@@ -63,7 +65,7 @@ export class Idle extends StateNode {
 	onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		if (info.key === 'Enter') {
 			const shape = this.editor.selectedShapes[0]
-			if (shape && shape.type === 'geo') {
+			if (shape && this.editor.isShapeOfType(shape, GeoShapeUtil)) {
 				this.editor.setSelectedTool('select')
 				this.editor.setEditingId(shape.id)
 				this.editor.root.current.value!.transition('editing_shape', {
