@@ -5723,325 +5723,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.get(id) as TLAsset | undefined
 	}
 
-	/* ------------------- SubCommands ------------------ */
-	/**
-	 * Get an exported SVG of the given shapes.
-	 *
-	 * @param ids - The ids of the shapes to export. Defaults to selected shapes.
-	 * @param opts - Options for the export.
-	 *
-	 * @returns The SVG element.
-	 *
-	 * @public
-	 */
-	async getSvg(
-		ids: TLShapeId[] = this.selectedIds.length
-			? this.selectedIds
-			: (Object.keys(this.currentPageShapeIds) as TLShapeId[]),
-		opts = {} as Partial<{
-			scale: number
-			background: boolean
-			padding: number
-			darkMode?: boolean
-			preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
-		}>
-	) {
-		if (ids.length === 0) return
-		if (!window.document) throw Error('No document')
-
-		const {
-			scale = 1,
-			background = false,
-			padding = SVG_PADDING,
-			darkMode = this.isDarkMode,
-			preserveAspectRatio = false,
-		} = opts
-
-		const realContainerEl = this.getContainer()
-		const realContainerStyle = getComputedStyle(realContainerEl)
-
-		// Get the styles from the container. We'll use these to pull out colors etc.
-		// NOTE: We can force force a light theme here because we don't want export
-		const fakeContainerEl = document.createElement('div')
-		fakeContainerEl.className = `tl-container tl-theme__${
-			darkMode ? 'dark' : 'light'
-		} tl-theme__force-sRGB`
-		document.body.appendChild(fakeContainerEl)
-
-		const containerStyle = getComputedStyle(fakeContainerEl)
-		const fontsUsedInExport = new Map<string, string>()
-
-		const colors: TLExportColors = {
-			fill: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}`),
-				])
-			) as Record<TLColorType, string>,
-			pattern: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-pattern`),
-				])
-			) as Record<TLColorType, string>,
-			semi: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-semi`),
-				])
-			) as Record<TLColorType, string>,
-			highlight: Object.fromEntries(
-				STYLES.color.map((color) => [
-					color.id,
-					containerStyle.getPropertyValue(`--palette-${color.id}-highlight`),
-				])
-			) as Record<TLColorType, string>,
-			text: containerStyle.getPropertyValue(`--color-text`),
-			background: containerStyle.getPropertyValue(`--color-background`),
-			solid: containerStyle.getPropertyValue(`--palette-solid`),
-		}
-
-		// Remove containerEl from DOM (temp DOM node)
-		document.body.removeChild(fakeContainerEl)
-
-		// ---Figure out which shapes we need to include
-		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
-		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
-			({ id }) => shapeIdsToInclude.has(id)
-		)
-
-		// --- Common bounding box of all shapes
-		let bbox = null
-		for (const { maskedPageBounds } of renderingShapes) {
-			if (!maskedPageBounds) continue
-			if (bbox) {
-				bbox.union(maskedPageBounds)
-			} else {
-				bbox = maskedPageBounds.clone()
-			}
-		}
-
-		// no unmasked shapes to export
-		if (!bbox) return
-
-		const singleFrameShapeId =
-			ids.length === 1 && this.isShapeOfType(this.getShapeById(ids[0])!, FrameShapeUtil)
-				? ids[0]
-				: null
-		if (!singleFrameShapeId) {
-			// Expand by an extra 32 pixels
-			bbox.expandBy(padding)
-		}
-
-		// We want the svg image to be BIGGER THAN USUAL to account for image quality
-		const w = bbox.width * scale
-		const h = bbox.height * scale
-
-		// --- Create the SVG
-
-		// Embed our custom fonts
-		const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-
-		if (preserveAspectRatio) {
-			svg.setAttribute('preserveAspectRatio', preserveAspectRatio)
-		}
-
-		svg.setAttribute('direction', 'ltr')
-		svg.setAttribute('width', w + '')
-		svg.setAttribute('height', h + '')
-		svg.setAttribute('viewBox', `${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`)
-		svg.setAttribute('stroke-linecap', 'round')
-		svg.setAttribute('stroke-linejoin', 'round')
-		// Add current background color, or else background will be transparent
-
-		if (background) {
-			if (singleFrameShapeId) {
-				svg.style.setProperty('background', colors.solid)
-			} else {
-				svg.style.setProperty('background-color', colors.background)
-			}
-		} else {
-			svg.style.setProperty('background-color', 'transparent')
-		}
-
-		// Add the defs to the svg
-		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-
-		for (const element of Array.from(exportPatternSvgDefs(colors.solid))) {
-			defs.appendChild(element)
-		}
-
-		try {
-			document.body.focus?.() // weird but necessary
-		} catch (e) {
-			// not implemented
-		}
-
-		svg.append(defs)
-
-		const unorderedShapeElements = (
-			await Promise.all(
-				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
-					// Don't render the frame if we're only exporting a single frame
-					if (id === singleFrameShapeId) return []
-
-					const shape = this.getShapeById(id)!
-
-					if (this.isShapeOfType(shape, GroupShapeUtil)) return []
-
-					const util = this.getShapeUtil(shape)
-
-					let font: string | undefined
-					if ('font' in shape.props) {
-						if (shape.props.font) {
-							if (fontsUsedInExport.has(shape.props.font)) {
-								font = fontsUsedInExport.get(shape.props.font)!
-							} else {
-								// For some reason these styles aren't present in the fake element
-								// so we need to get them from the real element
-								font = realContainerStyle.getPropertyValue(`--tl-font-${shape.props.font}`)
-								fontsUsedInExport.set(shape.props.font, font)
-							}
-						}
-					}
-
-					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
-
-					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
-					if (shapeSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(shapeSvgElement)
-						shapeSvgElement = outerElement
-					}
-
-					if (backgroundSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(backgroundSvgElement)
-						backgroundSvgElement = outerElement
-					}
-
-					if (!shapeSvgElement && !backgroundSvgElement) {
-						const bounds = this.getPageBounds(shape)!
-						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-						elm.setAttribute('width', bounds.width + '')
-						elm.setAttribute('height', bounds.height + '')
-						elm.setAttribute('fill', colors.solid)
-						elm.setAttribute('stroke', colors.pattern.grey)
-						elm.setAttribute('stroke-width', '1')
-						shapeSvgElement = elm
-					}
-
-					let pageTransform = this.getPageTransform(shape)!.toCssString()
-					if ('scale' in shape.props) {
-						if (shape.props.scale !== 1) {
-							pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
-						}
-					}
-
-					shapeSvgElement?.setAttribute('transform', pageTransform)
-					backgroundSvgElement?.setAttribute('transform', pageTransform)
-					shapeSvgElement?.setAttribute('opacity', opacity + '')
-					backgroundSvgElement?.setAttribute('opacity', opacity + '')
-
-					// Create svg mask if shape has a frame as parent
-					const pageMask = this.getPageMaskById(shape.id)
-					if (pageMask) {
-						// Create a clip path and add it to defs
-						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
-						defs.appendChild(clipPathEl)
-						const id = nanoid()
-						clipPathEl.id = id
-
-						// Create a polyline mask that does the clipping
-						const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-						mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
-						clipPathEl.appendChild(mask)
-
-						// Create group that uses the clip path and wraps the shape elements
-						if (shapeSvgElement) {
-							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
-							outerElement.appendChild(shapeSvgElement)
-							shapeSvgElement = outerElement
-						}
-
-						if (backgroundSvgElement) {
-							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
-							outerElement.appendChild(backgroundSvgElement)
-							backgroundSvgElement = outerElement
-						}
-					}
-
-					const elements = []
-					if (shapeSvgElement) {
-						elements.push({ zIndex: index, element: shapeSvgElement })
-					}
-					if (backgroundSvgElement) {
-						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
-					}
-
-					return elements
-				})
-			)
-		).flat()
-
-		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
-			svg.appendChild(element)
-		}
-
-		// Add styles to the defs
-		let styles = ``
-		const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style')
-
-		// Insert fonts into app
-		const fontInstances: FontFace[] = []
-
-		if ('fonts' in document) {
-			document.fonts.forEach((font) => fontInstances.push(font))
-		}
-
-		await Promise.all(
-			fontInstances.map(async (font) => {
-				const fileReader = new FileReader()
-
-				let isUsed = false
-
-				fontsUsedInExport.forEach((fontName) => {
-					if (fontName.includes(font.family)) {
-						isUsed = true
-					}
-				})
-
-				if (!isUsed) return
-
-				const url = (font as any).$$_url
-
-				const fontFaceRule = (font as any).$$_fontface
-
-				if (url) {
-					const fontFile = await (await fetch(url)).blob()
-
-					const base64Font = await new Promise<string>((resolve, reject) => {
-						fileReader.onload = () => resolve(fileReader.result as string)
-						fileReader.onerror = () => reject(fileReader.error)
-						fileReader.readAsDataURL(fontFile)
-					})
-
-					const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
-					styles += newFontFaceRule
-				}
-			})
-		)
-
-		style.textContent = styles
-
-		defs.append(style)
-
-		return svg
-	}
-
 	/**
 	 * Rename a page.
 	 *
@@ -9512,6 +9193,324 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		return this
+	}
+
+	/**
+	 * Get an exported SVG of the given shapes.
+	 *
+	 * @param ids - The ids of the shapes to export. Defaults to selected shapes.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns The SVG element.
+	 *
+	 * @public
+	 */
+	async getSvg(
+		ids: TLShapeId[] = this.selectedIds.length
+			? this.selectedIds
+			: (Object.keys(this.currentPageShapeIds) as TLShapeId[]),
+		opts = {} as Partial<{
+			scale: number
+			background: boolean
+			padding: number
+			darkMode?: boolean
+			preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+		}>
+	) {
+		if (ids.length === 0) return
+		if (!window.document) throw Error('No document')
+
+		const {
+			scale = 1,
+			background = false,
+			padding = SVG_PADDING,
+			darkMode = this.isDarkMode,
+			preserveAspectRatio = false,
+		} = opts
+
+		const realContainerEl = this.getContainer()
+		const realContainerStyle = getComputedStyle(realContainerEl)
+
+		// Get the styles from the container. We'll use these to pull out colors etc.
+		// NOTE: We can force force a light theme here because we don't want export
+		const fakeContainerEl = document.createElement('div')
+		fakeContainerEl.className = `tl-container tl-theme__${
+			darkMode ? 'dark' : 'light'
+		} tl-theme__force-sRGB`
+		document.body.appendChild(fakeContainerEl)
+
+		const containerStyle = getComputedStyle(fakeContainerEl)
+		const fontsUsedInExport = new Map<string, string>()
+
+		const colors: TLExportColors = {
+			fill: Object.fromEntries(
+				STYLES.color.map((color) => [
+					color.id,
+					containerStyle.getPropertyValue(`--palette-${color.id}`),
+				])
+			) as Record<TLColorType, string>,
+			pattern: Object.fromEntries(
+				STYLES.color.map((color) => [
+					color.id,
+					containerStyle.getPropertyValue(`--palette-${color.id}-pattern`),
+				])
+			) as Record<TLColorType, string>,
+			semi: Object.fromEntries(
+				STYLES.color.map((color) => [
+					color.id,
+					containerStyle.getPropertyValue(`--palette-${color.id}-semi`),
+				])
+			) as Record<TLColorType, string>,
+			highlight: Object.fromEntries(
+				STYLES.color.map((color) => [
+					color.id,
+					containerStyle.getPropertyValue(`--palette-${color.id}-highlight`),
+				])
+			) as Record<TLColorType, string>,
+			text: containerStyle.getPropertyValue(`--color-text`),
+			background: containerStyle.getPropertyValue(`--color-background`),
+			solid: containerStyle.getPropertyValue(`--palette-solid`),
+		}
+
+		// Remove containerEl from DOM (temp DOM node)
+		document.body.removeChild(fakeContainerEl)
+
+		// ---Figure out which shapes we need to include
+		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
+		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
+			({ id }) => shapeIdsToInclude.has(id)
+		)
+
+		// --- Common bounding box of all shapes
+		let bbox = null
+		for (const { maskedPageBounds } of renderingShapes) {
+			if (!maskedPageBounds) continue
+			if (bbox) {
+				bbox.union(maskedPageBounds)
+			} else {
+				bbox = maskedPageBounds.clone()
+			}
+		}
+
+		// no unmasked shapes to export
+		if (!bbox) return
+
+		const singleFrameShapeId =
+			ids.length === 1 && this.isShapeOfType(this.getShapeById(ids[0])!, FrameShapeUtil)
+				? ids[0]
+				: null
+		if (!singleFrameShapeId) {
+			// Expand by an extra 32 pixels
+			bbox.expandBy(padding)
+		}
+
+		// We want the svg image to be BIGGER THAN USUAL to account for image quality
+		const w = bbox.width * scale
+		const h = bbox.height * scale
+
+		// --- Create the SVG
+
+		// Embed our custom fonts
+		const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+
+		if (preserveAspectRatio) {
+			svg.setAttribute('preserveAspectRatio', preserveAspectRatio)
+		}
+
+		svg.setAttribute('direction', 'ltr')
+		svg.setAttribute('width', w + '')
+		svg.setAttribute('height', h + '')
+		svg.setAttribute('viewBox', `${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`)
+		svg.setAttribute('stroke-linecap', 'round')
+		svg.setAttribute('stroke-linejoin', 'round')
+		// Add current background color, or else background will be transparent
+
+		if (background) {
+			if (singleFrameShapeId) {
+				svg.style.setProperty('background', colors.solid)
+			} else {
+				svg.style.setProperty('background-color', colors.background)
+			}
+		} else {
+			svg.style.setProperty('background-color', 'transparent')
+		}
+
+		// Add the defs to the svg
+		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+
+		for (const element of Array.from(exportPatternSvgDefs(colors.solid))) {
+			defs.appendChild(element)
+		}
+
+		try {
+			document.body.focus?.() // weird but necessary
+		} catch (e) {
+			// not implemented
+		}
+
+		svg.append(defs)
+
+		const unorderedShapeElements = (
+			await Promise.all(
+				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
+					// Don't render the frame if we're only exporting a single frame
+					if (id === singleFrameShapeId) return []
+
+					const shape = this.getShapeById(id)!
+
+					if (this.isShapeOfType(shape, GroupShapeUtil)) return []
+
+					const util = this.getShapeUtil(shape)
+
+					let font: string | undefined
+					if ('font' in shape.props) {
+						if (shape.props.font) {
+							if (fontsUsedInExport.has(shape.props.font)) {
+								font = fontsUsedInExport.get(shape.props.font)!
+							} else {
+								// For some reason these styles aren't present in the fake element
+								// so we need to get them from the real element
+								font = realContainerStyle.getPropertyValue(`--tl-font-${shape.props.font}`)
+								fontsUsedInExport.set(shape.props.font, font)
+							}
+						}
+					}
+
+					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
+					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
+
+					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
+					if (shapeSvgElement) {
+						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+						outerElement.appendChild(shapeSvgElement)
+						shapeSvgElement = outerElement
+					}
+
+					if (backgroundSvgElement) {
+						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+						outerElement.appendChild(backgroundSvgElement)
+						backgroundSvgElement = outerElement
+					}
+
+					if (!shapeSvgElement && !backgroundSvgElement) {
+						const bounds = this.getPageBounds(shape)!
+						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+						elm.setAttribute('width', bounds.width + '')
+						elm.setAttribute('height', bounds.height + '')
+						elm.setAttribute('fill', colors.solid)
+						elm.setAttribute('stroke', colors.pattern.grey)
+						elm.setAttribute('stroke-width', '1')
+						shapeSvgElement = elm
+					}
+
+					let pageTransform = this.getPageTransform(shape)!.toCssString()
+					if ('scale' in shape.props) {
+						if (shape.props.scale !== 1) {
+							pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
+						}
+					}
+
+					shapeSvgElement?.setAttribute('transform', pageTransform)
+					backgroundSvgElement?.setAttribute('transform', pageTransform)
+					shapeSvgElement?.setAttribute('opacity', opacity + '')
+					backgroundSvgElement?.setAttribute('opacity', opacity + '')
+
+					// Create svg mask if shape has a frame as parent
+					const pageMask = this.getPageMaskById(shape.id)
+					if (pageMask) {
+						// Create a clip path and add it to defs
+						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+						defs.appendChild(clipPathEl)
+						const id = nanoid()
+						clipPathEl.id = id
+
+						// Create a polyline mask that does the clipping
+						const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+						mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
+						clipPathEl.appendChild(mask)
+
+						// Create group that uses the clip path and wraps the shape elements
+						if (shapeSvgElement) {
+							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+							outerElement.setAttribute('clip-path', `url(#${id})`)
+							outerElement.appendChild(shapeSvgElement)
+							shapeSvgElement = outerElement
+						}
+
+						if (backgroundSvgElement) {
+							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+							outerElement.setAttribute('clip-path', `url(#${id})`)
+							outerElement.appendChild(backgroundSvgElement)
+							backgroundSvgElement = outerElement
+						}
+					}
+
+					const elements = []
+					if (shapeSvgElement) {
+						elements.push({ zIndex: index, element: shapeSvgElement })
+					}
+					if (backgroundSvgElement) {
+						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
+					}
+
+					return elements
+				})
+			)
+		).flat()
+
+		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
+			svg.appendChild(element)
+		}
+
+		// Add styles to the defs
+		let styles = ``
+		const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style')
+
+		// Insert fonts into app
+		const fontInstances: FontFace[] = []
+
+		if ('fonts' in document) {
+			document.fonts.forEach((font) => fontInstances.push(font))
+		}
+
+		await Promise.all(
+			fontInstances.map(async (font) => {
+				const fileReader = new FileReader()
+
+				let isUsed = false
+
+				fontsUsedInExport.forEach((fontName) => {
+					if (fontName.includes(font.family)) {
+						isUsed = true
+					}
+				})
+
+				if (!isUsed) return
+
+				const url = (font as any).$$_url
+
+				const fontFaceRule = (font as any).$$_fontface
+
+				if (url) {
+					const fontFile = await (await fetch(url)).blob()
+
+					const base64Font = await new Promise<string>((resolve, reject) => {
+						fileReader.onload = () => resolve(fileReader.result as string)
+						fileReader.onerror = () => reject(fileReader.error)
+						fileReader.readAsDataURL(fontFile)
+					})
+
+					const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
+					styles += newFontFaceRule
+				}
+			})
+		)
+
+		style.textContent = styles
+
+		defs.append(style)
+
+		return svg
 	}
 }
 
