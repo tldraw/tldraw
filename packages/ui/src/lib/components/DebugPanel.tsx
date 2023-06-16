@@ -71,19 +71,7 @@ const ShapeCount = function ShapeCount() {
 	const editor = useEditor()
 	const count = useValue('rendering shapes count', () => editor.renderingShapes.length, [editor])
 
-	// const editor = useEditor()
-	const cameraState = useValue(
-		'cameraState',
-		() => {
-			return editor.cameraState
-		},
-		[editor]
-	)
-	return (
-		<div>
-			{count} Shapes | {cameraState}
-		</div>
-	)
+	return <div>{count} Shapes</div>
 }
 
 const DebugMenuContent = track(function DebugMenuContent({
