@@ -117,7 +117,6 @@ import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
 import { shapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ActiveAreaManager, getActiveAreaScreenSpace } from './managers/ActiveAreaManager'
-import { CameraManager } from './managers/CameraManager'
 import { ClickManager } from './managers/ClickManager'
 import { DprManager } from './managers/DprManager'
 import { ExternalContentManager, TLExternalContent } from './managers/ExternalContentManager'
@@ -377,9 +376,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _dprManager = new DprManager(this)
-
-	/** @internal */
-	private _cameraManager = new CameraManager(this)
 
 	/** @internal */
 	private _activeAreaManager = new ActiveAreaManager(this)
@@ -2772,6 +2768,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return parents
 	}
 
+	/* ------------------ Camera State ------------------ */
+
+	private _cameraState = atom('camera state', 'idle' as 'idle' | 'moving')
+
+	/**
+	 * Whether the camera is moving or idle.
+	 *
+	 * @public
+	 */
+	@computed get cameraState() {
+		return this._cameraState.value
+	}
+
+	private _cameraStateTimeoutRemaining = 0
+
+	private _decayCameraStateTimeout = (elapsed: number) => {
+		this._cameraStateTimeoutRemaining -= elapsed
+		if (this._cameraStateTimeoutRemaining <= 0) {
+			this._cameraState.set('idle')
+			this.updateCullingBounds()
+			this.off('tick', this._decayCameraStateTimeout)
+		}
+	}
+
+	private _tickCameraState = () => {
+		// always reset the timeout
+		this._cameraStateTimeoutRemaining = 16 * 4 // four frames worth at 60fps
+
+		// If the state is idle, then start the tick
+		if (this._cameraState.__unsafe__getWithoutCapture() === 'idle') {
+			this._cameraState.set('moving')
+			this.on('tick', this._decayCameraStateTimeout)
+		}
+	}
+
 	/* -------------------- Viewport -------------------- */
 
 	/**
@@ -2827,7 +2858,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this._cameraManager.tick()
+		this._tickCameraState()
 		this.updateCullingBounds()
 
 		const { editingId } = this
@@ -8407,7 +8438,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				isPen: this.isPenMode ?? false,
 			})
 
-			this._cameraManager.tick()
+			this._tickCameraState()
 		})
 
 		return this
