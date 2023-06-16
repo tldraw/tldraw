@@ -99,7 +99,7 @@ export function useYjsStore({
 			// Sync store changes to the yjs doc
 			unsubs.push(
 				store.listen(
-					({ changes }) => {
+					function syncStoreChangesToYjsDoc({ changes }) {
 						doc.transact(() => {
 							Object.values(changes.added).forEach((record) => {
 								yRecords.set(record.id, record)
@@ -119,7 +119,9 @@ export function useYjsStore({
 			)
 
 			// Sync the yjs doc changes to the store
-			const handleChange = (events: Y.YEvent<any>[]) => {
+			const handleChange = (events: Y.YEvent<any>[], transaction: Y.Transaction) => {
+				if (transaction.local) return
+
 				const toRemove: TLRecord['id'][] = []
 				const toPut: TLRecord[] = []
 
@@ -218,6 +220,7 @@ export function useYjsStore({
 		})
 
 		return () => {
+			console.log('clearing store listener', Date.now())
 			unsubs.forEach((fn) => fn())
 			unsubs.length = 0
 		}
