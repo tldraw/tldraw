@@ -161,7 +161,7 @@ export function useYjsStore({
 			const userPreferencesComputed = computed('ok', () => getUserPreferences())
 			const presenceDerivation = createPresenceStateDerivation(
 				userPreferencesComputed,
-				presenceId
+				yClientId
 			)(store)
 
 			// Set our initial presence from the derivation's current value
