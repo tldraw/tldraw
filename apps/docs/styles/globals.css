@@ -353,7 +353,7 @@ body {
 }
 
 .article hr {
-	margin: 52px 0px;
+	/* margin: 52px 0px; */
 	padding: 0px 4px;
 	height: 1px;
 	width: calc(100% - 8px);
