@@ -427,12 +427,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
     createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select?: boolean): this;
     get croppingId(): null | TLShapeId;
-    get cullingBounds(): Box2d;
-    // @internal (undocumented)
-    readonly _cullingBounds: Atom<Box2d, unknown>;
-    get cullingBoundsExpanded(): Box2d;
-    // @internal (undocumented)
-    readonly _cullingBoundsExpanded: Atom<Box2d, unknown>;
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
     get currentPageShapeIds(): Set<TLShapeId>;
@@ -502,7 +496,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageTransform(shape: TLShape): Matrix2d | undefined;
     getPageTransformById(id: TLShapeId): Matrix2d | undefined;
     getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']): TLPageId | TLShapeId;
-    getParentPageId(shape?: TLShape): TLPageId | undefined;
     getParentShape(shape?: TLShape): TLShape | undefined;
     getParentsMappedToChildren(ids: TLShapeId[]): Map<TLParentId, Set<TLShape>>;
     getParentTransform(shape: TLShape): Matrix2d;
@@ -511,6 +504,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
+    getShapePageAncestor(shape?: TLShape): TLPageId | undefined;
     getShapesAtPoint(point: VecLike): TLShape[];
     getShapeUtil<C extends {
         new (...args: any[]): ShapeUtil<any>;
@@ -615,6 +609,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     putExternalContent(info: TLExternalContent): Promise<void>;
     redo(): this;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
+    get renderingBounds(): Box2d;
+    // @internal (undocumented)
+    readonly _renderingBounds: Atom<Box2d, unknown>;
+    get renderingBoundsExpanded(): Box2d;
+    // @internal (undocumented)
+    readonly _renderingBoundsExpanded: Atom<Box2d, unknown>;
     get renderingShapes(): {
         id: TLShapeId;
         index: number;
@@ -709,11 +709,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     undo(): HistoryManager<this>;
     ungroupShapes(ids?: TLShapeId[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    // @internal
-    updateCullingBounds(): this;
     updateDocumentSettings(settings: Partial<TLDocument>): void;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
+    // @internal
+    updateRenderingBounds(): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;

@@ -340,7 +340,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.stopFollowingUser()
 		}
 
-		this.updateCullingBounds()
+		this.updateRenderingBounds()
 
 		requestAnimationFrame(() => {
 			this._tickManager.start()
@@ -2373,7 +2373,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this._tickCameraState()
-		this.updateCullingBounds()
+		this.updateRenderingBounds()
 
 		const { editingId } = this
 
@@ -2590,8 +2590,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed get renderingShapes() {
 		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId], {
-			cullingBounds: this.cullingBounds,
-			cullingBoundsExpanded: this.cullingBoundsExpanded,
+			cullingBounds: this.renderingBounds,
+			cullingBoundsExpanded: this.renderingBoundsExpanded,
 			erasingIdsSet: this.erasingIdsSet,
 			editingId: this.editingId,
 		})
@@ -2614,12 +2614,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get cullingBounds() {
-		return this._cullingBounds.value
+	@computed get renderingBounds() {
+		return this._renderingBounds.value
 	}
 
 	/** @internal */
-	readonly _cullingBounds = atom('culling viewport', new Box2d())
+	readonly _renderingBounds = atom('rendering viewport', new Box2d())
 
 	/**
 	 * The current culling bounds in page space, expanded slightly. Used for determining which shapes
@@ -2627,12 +2627,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get cullingBoundsExpanded() {
-		return this._cullingBoundsExpanded.value
+	@computed get renderingBoundsExpanded() {
+		return this._renderingBoundsExpanded.value
 	}
 
 	/** @internal */
-	readonly _cullingBoundsExpanded = atom('culling viewport expanded', new Box2d())
+	readonly _renderingBoundsExpanded = atom('culling viewport expanded', new Box2d())
 
 	/**
 	 * Update the culling bounds. This should be called when the viewport has stopped changing, such
@@ -2640,17 +2640,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateCullingBounds()
+	 * editor.updateRenderingBounds()
 	 * ```
 	 *
 	 *
 	 * @internal
 	 */
-	updateCullingBounds(): this {
+	updateRenderingBounds(): this {
 		const { viewportPageBounds } = this
-		if (viewportPageBounds.equals(this._cullingBounds.__unsafe__getWithoutCapture())) return this
-		this._cullingBounds.set(viewportPageBounds.clone())
-		this._cullingBoundsExpanded.set(viewportPageBounds.clone().expandBy(100 / this.zoomLevel))
+		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
+		this._renderingBounds.set(viewportPageBounds.clone())
+		this._renderingBoundsExpanded.set(viewportPageBounds.clone().expandBy(100 / this.zoomLevel))
 		return this
 	}
 
@@ -2680,7 +2680,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this._cameraStateTimeoutRemaining <= 0) {
 			this.off('tick', this._decayCameraStateTimeout)
 			this._cameraState.set('idle')
-			this.updateCullingBounds()
+			this.updateRenderingBounds()
 		}
 	}
 
@@ -4361,7 +4361,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.store.put(shapes, 'initialize')
 			this.history.clear()
 			this.updateViewportScreenBounds()
-			this.updateCullingBounds()
+			this.updateRenderingBounds()
 
 			const bounds = this.allShapesCommonBounds
 			if (bounds) {
@@ -5468,7 +5468,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					newTabPageState,
 					{ ...this.instanceState, currentPageId: newPage.id },
 				])
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 			undo: ({ newPage, prevSelectedPageId, newTabPageState, newCamera }) => {
 				if (this.pages.length === 1) return
@@ -5478,7 +5478,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.store.put([{ ...this.instanceState, currentPageId: prevSelectedPageId }])
 				}
 
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 		}
 	)
@@ -5563,12 +5563,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
 				this.store.remove([deletedPage.id]) // remove the page
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 			undo: ({ deletedPage, deletedPageStates }) => {
 				this.store.put([deletedPage])
 				this.store.put(deletedPageStates)
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 		}
 	)
@@ -7864,7 +7864,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				this.store.put([{ ...this.instanceState, currentPageId: toId }])
 
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 			undo: ({ fromId }) => {
 				if (!this.store.has(fromId)) {
@@ -7873,7 +7873,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
 
-				this.updateCullingBounds()
+				this.updateRenderingBounds()
 			},
 			squash: ({ fromId }, { toId }) => {
 				return { toId, fromId }

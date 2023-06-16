@@ -51,12 +51,12 @@ function createShapes() {
 it('updates the culling viewport on every frame when there are < 40 shapes on the page', () => {
 	const ids = createShapes()
 
-	editor.updateCullingBounds = jest.fn(editor.updateCullingBounds)
+	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
 	editor.pan(-201, -201)
 	jest.advanceTimersByTime(500)
 
-	expect(editor.updateCullingBounds).toHaveBeenCalledTimes(1)
-	expect(editor.cullingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
+	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
+	expect(editor.renderingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
 	expect(editor.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 
@@ -68,11 +68,11 @@ it('updates the culling viewport after the camera stops moving when there are >=
 		Array.from(Array(50)).map(() => ({ id: createShapeId(), type: 'geo', x: 50, y: 50 }))
 	)
 
-	editor.updateCullingBounds = jest.fn(editor.updateCullingBounds)
+	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
 	editor.pan(-201, -201)
 	jest.advanceTimersByTime(500)
-	expect(editor.updateCullingBounds).toHaveBeenCalledTimes(1)
-	expect(editor.cullingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
+	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
+	expect(editor.renderingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
 	expect(editor.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 
