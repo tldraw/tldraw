@@ -1,6 +1,7 @@
-import { Tldraw } from '@tldraw/tldraw'
+import { Tldraw, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/editor.css'
 import '@tldraw/tldraw/ui.css'
+import { track } from 'signia-react'
 import { useYjsStore } from './useYjsStore'
 
 const HOST_URL =
@@ -14,7 +15,35 @@ export default function YjsExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw autoFocus store={store} />
+			<Tldraw autoFocus store={store} shareZone={<NameEditor />} />
 		</div>
 	)
 }
+
+const NameEditor = track(() => {
+	const editor = useEditor()
+
+	const { color, name } = editor.user
+
+	return (
+		<div style={{ pointerEvents: 'all', display: 'flex' }}>
+			<input
+				type="color"
+				value={color}
+				onChange={(e) => {
+					editor.user.updateUserPreferences({
+						color: e.currentTarget.value,
+					})
+				}}
+			/>
+			<input
+				value={name}
+				onChange={(e) => {
+					editor.user.updateUserPreferences({
+						name: e.currentTarget.value,
+					})
+				}}
+			/>
+		</div>
+	)
+})

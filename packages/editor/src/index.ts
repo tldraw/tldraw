@@ -44,6 +44,7 @@ export {
 	type TLStoreEventInfo,
 	type TLStoreOptions,
 } from './lib/config/createTLStore'
+export { createTLUser } from './lib/config/createTLUser'
 export { coreShapes, defaultShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
 export { defineShape, type TLShapeInfo } from './lib/config/defineShape'
