@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Icon } from './Icon'
 
 export function Search({ activeId }: { activeId: string | null }) {
+	return null
 	const [query, setQuery] = useState('')
 	const [results, setResults] = useState<SearchResult[]>([])
 	const rResultsList = useRef<HTMLOListElement>(null)
@@ -15,10 +16,10 @@ export function Search({ activeId }: { activeId: string | null }) {
 
 	// eslint-disable-next-line react-hooks/exhaustive-deps
 	const sendQuery = useCallback(
-		throttle(async (query: string) => {
-			const res = await fetch(`/api/search?q=${query}&s=${activeId}`)
-			const json = await res.json()
-			setResults(json.results)
+		throttle(async (_query: string) => {
+			// const res = await fetch(`/api/search?q=${query}&s=${activeId}`)
+			// const json = await res.json()
+			// setResults(json.results)
 		}, 150),
 		[activeId]
 	)
