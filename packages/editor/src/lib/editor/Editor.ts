@@ -99,6 +99,7 @@ import {
 	INTERNAL_POINTER_IDS,
 	MAJOR_NUDGE_FACTOR,
 	MAX_PAGES,
+	MAX_SHAPES_BEFORE_CULLING_ON_CAMERA_MOVE_END,
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
 	MINOR_NUDGE_FACTOR,
@@ -2785,10 +2786,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _decayCameraStateTimeout = (elapsed: number) => {
 		this._cameraStateTimeoutRemaining -= elapsed
+
+		// If there aren't many shapes on the page then we can cull on every frame,
+		// otherwise we only cull when the camera moves from moving to idle, so that
+		// we don't mount or unmount components while the camera is moving—which can
+		// cause jank or dropped frames on most devices. This is a magic number, it's
+		// just a guess.
+
+		const isSmallEnoughToCullOnEveryFrame =
+			this._shapeIds.__unsafe__getWithoutCapture().size <
+			MAX_SHAPES_BEFORE_CULLING_ON_CAMERA_MOVE_END
+
 		if (this._cameraStateTimeoutRemaining <= 0) {
 			this._cameraState.set('idle')
 			this.updateCullingBounds()
 			this.off('tick', this._decayCameraStateTimeout)
+		} else if (isSmallEnoughToCullOnEveryFrame) {
+			this.updateCullingBounds()
 		}
 	}
 
