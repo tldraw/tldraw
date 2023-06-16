@@ -149,17 +149,17 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 	expect(editor.canUndo).toBe(false)
 })
 
-describe('Editor.opacity', () => {
+describe('Editor.sharedOpacity', () => {
 	it('should return the current opacity', () => {
-		expect(editor.sharedOpacity).toBe(1)
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 1 })
 		editor.setOpacity(0.5)
-		expect(editor.sharedOpacity).toBe(0.5)
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.5 })
 	})
 
 	it('should return opacity for a single selected shape', () => {
 		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
 		editor.setSelectedIds([A])
-		expect(editor.sharedOpacity).toBe(0.3)
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
 	it('should return opacity for multiple selected shapes', () => {
@@ -168,16 +168,16 @@ describe('Editor.opacity', () => {
 			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
 		])
 		editor.setSelectedIds([A, B])
-		expect(editor.sharedOpacity).toBe(0.3)
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
-	it('should return null when multiple selected shapes have different opacity', () => {
+	it('should return mixed when multiple selected shapes have different opacity', () => {
 		const { A, B } = editor.createShapesFromJsx([
 			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
 			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
 		])
 		editor.setSelectedIds([A, B])
-		expect(editor.sharedOpacity).toBe(null)
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'mixed' })
 	})
 
 	it('ignores the opacity of groups and returns the opacity of their children', () => {
@@ -187,7 +187,7 @@ describe('Editor.opacity', () => {
 			</TL.group>,
 		])
 		editor.setSelectedIds([ids.group])
-		expect(editor.sharedOpacity).toBe(0.3)
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 })
 

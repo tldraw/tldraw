@@ -21,14 +21,9 @@ beforeEach(() => {
 })
 
 describe('Editor.styles', () => {
-	it('should a few key styles if nothing is selected', () => {
+	it('should return empty if nothing is selected', () => {
 		editor.selectNone()
-		expect(asPlainObject(editor.sharedStyles)).toStrictEqual({
-			'tldraw:color': { type: 'shared', value: 'black' },
-			'tldraw:dash': { type: 'shared', value: 'draw' },
-			'tldraw:fill': { type: 'shared', value: 'none' },
-			'tldraw:size': { type: 'shared', value: 'm' },
-		})
+		expect(asPlainObject(editor.sharedStyles)).toStrictEqual({})
 	})
 
 	it('should return styles for a single shape', () => {
