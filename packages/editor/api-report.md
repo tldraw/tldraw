@@ -487,6 +487,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
     getShapesAtPoint(point: VecLike): TLShape[];
+    // (undocumented)
+    getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<C extends {
         new (...args: any[]): ShapeUtil<any>;
         type: string;
@@ -1836,11 +1838,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     protected getHandles?(shape: Shape): TLHandle[];
     protected abstract getOutline(shape: Shape): Vec2d[];
     protected getOutlineSegments(shape: Shape): Vec2d[][];
-    // (undocumented)
-    getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined;
     handles(shape: Shape): TLHandle[];
-    // (undocumented)
-    hasStyle(style: StyleProp<unknown>): boolean;
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
@@ -1850,8 +1848,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
     isClosed: TLShapeUtilFlag<Shape>;
-    // (undocumented)
-    iterateStyles(shape: Shape | TLShapePartial<Shape>): Generator<[StyleProp<unknown>, unknown], void, unknown>;
     onBeforeCreate?: TLOnBeforeCreateHandler<Shape>;
     onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>;
     // @internal
@@ -1884,8 +1880,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract render(shape: Shape): any;
     // @internal
     renderBackground?(shape: Shape): any;
-    // (undocumented)
-    setStyleInPartial<T>(style: StyleProp<T>, shape: TLShapePartial<Shape>, value: T): TLShapePartial<Shape>;
     snapPoints(shape: Shape): Vec2d[];
     // (undocumented)
     readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>;

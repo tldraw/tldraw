@@ -27,39 +27,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		public readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>
 	) {}
 
-	hasStyle(style: StyleProp<unknown>) {
-		return this.styleProps.has(style)
-	}
-
-	getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined {
-		const styleKey = this.styleProps.get(style)
-		if (!styleKey) return undefined
-		return (shape.props as any)[styleKey]
-	}
-
-	*iterateStyles(shape: Shape | TLShapePartial<Shape>) {
-		for (const [style, styleKey] of this.styleProps) {
-			const value = (shape.props as any)[styleKey]
-			yield [style, value] as [StyleProp<unknown>, unknown]
-		}
-	}
-
-	setStyleInPartial<T>(
-		style: StyleProp<T>,
-		shape: TLShapePartial<Shape>,
-		value: T
-	): TLShapePartial<Shape> {
-		const styleKey = this.styleProps.get(style)
-		if (!styleKey) return shape
-		return {
-			...shape,
-			props: {
-				...shape.props,
-				[styleKey]: value,
-			},
-		}
-	}
-
 	/**
 	 * The type of the shape util, which should match the shape's type.
 	 *
