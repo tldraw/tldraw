@@ -289,7 +289,4 @@ export const INTERNAL_POINTER_IDS = {
 } as const
 
 /** @internal */
-export const MIN_SHAPES_BEFORE_rendering_ON_CAMERA_MOVE_END = 40
-
-/** @internal */
 export const CAMERA_MOVING_TIMEOUT = 64
