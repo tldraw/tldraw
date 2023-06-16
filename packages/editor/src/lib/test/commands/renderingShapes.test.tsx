@@ -48,7 +48,7 @@ function createShapes() {
 	])
 }
 
-it('updates the culling viewport on every frame when there are < 40 shapes on the page', () => {
+it('updates the rendering viewport on every frame when there are < 40 shapes on the page', () => {
 	const ids = createShapes()
 
 	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
@@ -60,7 +60,7 @@ it('updates the culling viewport on every frame when there are < 40 shapes on th
 	expect(editor.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 
-it('updates the culling viewport after the camera stops moving when there are >= 40 shapes on the page', () => {
+it('updates the rendering viewport after the camera stops moving when there are >= 40 shapes on the page', () => {
 	const ids = createShapes()
 
 	// doesn't matter where they are, just that there are >40 of them
@@ -81,7 +81,7 @@ it('lists shapes in viewport', () => {
 	expect(
 		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
 	).toStrictEqual([
-		[ids.A, false, true], // A is within the expanded culling bounds, so should not be culled; and it's in the regular viewport too, so it's on screen.
+		[ids.A, false, true], // A is within the expanded rendering bounds, so should not be culled; and it's in the regular viewport too, so it's on screen.
 		[ids.B, false, true],
 		[ids.C, false, true],
 		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport

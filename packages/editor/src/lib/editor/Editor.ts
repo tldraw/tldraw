@@ -2471,18 +2471,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	/* -------- Rendering Shapes / Culling Bounds ------- */
+	/* -------- Rendering Shapes / rendering Bounds ------- */
 
 	private computeUnorderedRenderingShapes(
 		ids: TLParentId[],
 		{
-			cullingBounds,
-			cullingBoundsExpanded,
+			renderingBounds,
+			renderingBoundsExpanded,
 			erasingIdsSet,
 			editingId,
 		}: {
-			cullingBounds?: Box2d
-			cullingBoundsExpanded?: Box2d
+			renderingBounds?: Box2d
+			renderingBoundsExpanded?: Box2d
 			erasingIdsSet?: Set<TLShapeId>
 			editingId?: TLShapeId | null
 		} = {}
@@ -2534,14 +2534,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// Whether the shape is on screen. Use the "strict" viewport here.
 			const isInViewport = maskedPageBounds
-				? cullingBounds?.includes(maskedPageBounds) ?? true
+				? renderingBounds?.includes(maskedPageBounds) ?? true
 				: false
 
 			// Whether the shape should actually be culled / unmounted.
-			// - Use the "expanded" culling viewport to include shapes that are just off-screen.
+			// - Use the "expanded" rendering viewport to include shapes that are just off-screen.
 			// - Editing shapes should never be culled.
 			const isCulled = maskedPageBounds
-				? (editingId !== id && !cullingBoundsExpanded?.includes(maskedPageBounds)) ?? true
+				? (editingId !== id && !renderingBoundsExpanded?.includes(maskedPageBounds)) ?? true
 				: true
 
 			renderingShapes.push({
@@ -2590,8 +2590,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed get renderingShapes() {
 		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId], {
-			cullingBounds: this.renderingBounds,
-			cullingBoundsExpanded: this.renderingBoundsExpanded,
+			renderingBounds: this.renderingBounds,
+			renderingBoundsExpanded: this.renderingBoundsExpanded,
 			erasingIdsSet: this.erasingIdsSet,
 			editingId: this.editingId,
 		})
@@ -2610,7 +2610,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The current culling bounds in page space, used for checking which shapes are "on screen".
+	 * The current rendering bounds in page space, used for checking which shapes are "on screen".
 	 *
 	 * @public
 	 */
@@ -2622,7 +2622,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly _renderingBounds = atom('rendering viewport', new Box2d())
 
 	/**
-	 * The current culling bounds in page space, expanded slightly. Used for determining which shapes
+	 * The current rendering bounds in page space, expanded slightly. Used for determining which shapes
 	 * to render and which to "cull".
 	 *
 	 * @public
@@ -2632,10 +2632,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	readonly _renderingBoundsExpanded = atom('culling viewport expanded', new Box2d())
+	readonly _renderingBoundsExpanded = atom('rendering viewport expanded', new Box2d())
 
 	/**
-	 * Update the culling bounds. This should be called when the viewport has stopped changing, such
+	 * Update the rendering bounds. This should be called when the viewport has stopped changing, such
 	 * as at the end of a pan, zoom, or animation.
 	 *
 	 * @example
@@ -2670,7 +2670,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// shapes on the canvas. Changing the rendering shapes may cause shapes to
 	// unmount / remount in the DOM, which is expensive; and computing visibility is
 	// also expensive in large projects. For this reason, we use a second bounding
-	// box just for culling, and we only update after the camera stops moving.
+	// box just for rendering, and we only update after the camera stops moving.
 
 	private _cameraStateTimeoutRemaining = 0
 

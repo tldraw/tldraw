@@ -248,7 +248,7 @@ export class SnapManager {
 	// TODO: make this an incremental derivation
 	@computed get snappableShapes(): GapNode[] {
 		const { editor } = this
-		const { selectedIds, renderingBounds: cullingBounds } = editor
+		const { selectedIds, renderingBounds: renderingBounds } = editor
 
 		const snappableShapes: GapNode[] = []
 
@@ -264,7 +264,7 @@ export class SnapManager {
 				if (!util.canSnap(childShape)) continue
 				// Only consider shapes if they're inside of the viewport page bounds
 				const pageBounds = editor.getPageBoundsById(childId)
-				if (!(pageBounds && cullingBounds.includes(pageBounds))) continue
+				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
 				// Snap to children of groups but not group itself
 				if (editor.isShapeOfType(childShape, GroupShapeUtil)) {
 					collectSnappableShapesFromParent(childId)
