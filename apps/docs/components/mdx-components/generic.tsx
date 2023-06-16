@@ -16,9 +16,9 @@ export const ListItem = (props: any) => {
 
 /* ------------------- Typography ------------------- */
 
-type HeadingTag = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+type HeadingLevel = 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
 
-const Heading = ({ level, ...props }: { level: HeadingTag; [key: string]: any }) => {
+const Heading = ({ level, ...props }: { level: HeadingLevel; [key: string]: any }) => {
 	const pathname = usePathname()
 	const Element = level
 	if (props.id) {
