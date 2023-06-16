@@ -853,7 +853,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const startShape = start.type === 'binding' ? this.getShapeById(start.boundShapeId) : undefined
 		const endShape = end.type === 'binding' ? this.getShapeById(end.boundShapeId) : undefined
 
-		const parentPageId = this.getShapePageAncestor(arrow)
+		const parentPageId = this.getAncestorPageId(arrow)
 		if (!parentPageId) return
 
 		let nextParentId: TLParentId
@@ -982,7 +982,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (terminal.type !== 'binding') continue
 			const boundShape = this.getShapeById(terminal.boundShapeId)
 			const isShapeInSamePageAsArrow =
-				this.getShapePageAncestor(arrow) === this.getShapePageAncestor(boundShape)
+				this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
 			if (!boundShape || !isShapeInSamePageAsArrow) {
 				this._unbindArrowTerminal(arrow, handle)
 			}
@@ -7513,12 +7513,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapePageAncestor(shape?: TLShape): TLPageId | undefined {
+	getAncestorPageId(shape?: TLShape): TLPageId | undefined {
 		if (shape === undefined) return undefined
 		if (isPageId(shape.parentId)) {
 			return shape.parentId
 		} else {
-			return this.getShapePageAncestor(this.getShapeById(shape.parentId))
+			return this.getAncestorPageId(this.getShapeById(shape.parentId))
 		}
 	}
 

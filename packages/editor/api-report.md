@@ -458,6 +458,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     focus(): this;
     get focusLayerId(): TLPageId | TLShapeId;
     get focusLayerShape(): TLShape | undefined;
+    getAncestorPageId(shape?: TLShape): TLPageId | undefined;
     getAncestors(shape: TLShape, acc?: TLShape[]): TLShape[];
     getAncestorsById(id: TLShapeId, acc?: TLShape[]): TLShape[];
     getArrowsBoundTo(shapeId: TLShapeId): {
@@ -504,7 +505,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
-    getShapePageAncestor(shape?: TLShape): TLPageId | undefined;
     getShapesAtPoint(point: VecLike): TLShape[];
     getShapeUtil<C extends {
         new (...args: any[]): ShapeUtil<any>;
