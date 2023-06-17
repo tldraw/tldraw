@@ -1,7 +1,6 @@
 import fs from 'fs'
 import matter from 'gray-matter'
 import path from 'path'
-import apiContent from '../api-content.json'
 import authors from '../content/authors.json'
 import sections from '../content/sections.json'
 import {
@@ -204,7 +203,9 @@ export async function generateContent(): Promise<GeneratedContent> {
 
 		// Write to disk
 
-		const generatedApiContent = apiContent as GeneratedContent
+		const generatedApiContent = (await import(
+			path.join(process.cwd(), 'api-content.json')
+		)) as GeneratedContent
 
 		const contentComplete: GeneratedContent = {
 			sections: generatedApiContent
