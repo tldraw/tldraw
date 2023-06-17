@@ -8,63 +8,42 @@ order: 0
 
 Welcome to the tldraw developer docs.
 
-tldraw is a React component that you can use to create infinite canvas experiences for the web. It is essentially the [tldraw.com](https://www.tldraw.com) application wrapped up and distributed as a React component, but with powerful APIs for creating custom shapes, tools, behaviors, and user interfaces elements.
+Here at tldraw, we make two things: a very good multiplayer whiteboard (at [tldraw.com](https://www.tldraw.com)) and the [open source](https://github.com/tldraw/tldraw) libraries used to create that product. This page is meant to provide documentation and reference for those open source libraries.
 
-![screenshot of tldraw](/images/screenshot.png)
-
-These docs relate to tldraw's **alpha version**, which is [open source](https://github.com/tldraw/tldraw), permissively licensed under Apache 2.0, and available [on npm](https://www.npmjs.com/package/@tldraw/tldraw) under the alpha and canary versions.
-
-- Want to explore the code? Visit the [GitHub repo](https://github.com/tldraw/tldraw)).
-- Want to dive in? Visit the [examples StackBlitz](https://stackblitz.com/github/tldraw/tldraw/tree/examples?file=src%2F1-basic%2FBasicExample.tsx).
-- Found a bug or integration problem? Please create a ticket [here](https://github.com/tldraw/tldraw/issues).
-- Questions or feedback? Let us know on the [Discord](https://discord.gg/JMbeb96jsh).
-
-And if you are just looking for the regular tldraw app, try [tldraw.com](https://www.tldraw.com).
-
-## Installation
-
-First, install the `@tldraw/tldraw` package using `@alpha` for the **latest alpha release**.  The package also has peer dependencies on `signia` and `signia-react` which you will need to install at the same time.
-
-```bash
-yarn add @tldraw/tldraw@alpha signia signia-react
-# or
-npm install @tldraw/tldraw@alpha signia signia-react
-```
-
-To get the very latest version, use the [latest canary release](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions). Docs for the very latest version are also available at [canary.tldraw.dev](https://canary.tldraw.dev).
-
-```bash
-yarn add @tldraw/tldraw@canary signia signia-react
-# or
-npm install @tldraw/tldraw@canary signia signia-react
-```
-
-## Usage
-
-To use the `<Tldraw/>` component, create a file like this one:
-
-```tsx
+```tsx 
 import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 export default function () {
 	return (
-		<div
-			style={{
-				position: 'fixed',
-				inset: 0,
-			}}
-		>
+		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw />
 		</div>
 	)
 }
 ```
 
-To learn more about the `<Tldraw>` component, see the [usage article](/docs/ucg/usage).
+You can use the `<Tldraw>` React component to build on top of the default tldraw experience. It's easy to use and easy to extend with your own [custom shapes](/ucg/shapes), [custom tools](/ucg/tools), and [user interface](/ucg/user-interface) overrides. 
+
+If you want to go even deeper, you can use the `<TldrawEditor>` component as a more minimal engine without the default tldraw shapes or user interface.
+
+And in either case, you can use the [Editor API](/ucg/editor) to drive the experience programatically in order to create or delete shapes, control the camera, or do just about anything you can imagine.
+
+Best of all, you can easily plug tldraw into the [collaboration backend](/ucg/collaboration) of your choice.
+
+- Want to explore the code? Visit the [GitHub repo](https://github.com/tldraw/tldraw)).
+- Want to try it out? Visit the [examples sandbox](https://stackblitz.com/github/tldraw/tldraw/tree/examples?file=src%2F1-basic%2FBasicExample.tsx).
+
+Otherwise, continue on to the [installation](/ucg/installation) and [usage](/ucg/usage) guides.
+
+## Community
+
+Found a bug or want to request a feature? Create a issue [here](https://github.com/tldraw/tldraw/issues). To connect with the team and other users, join us on our [Discord](https://discord.gg/JMbeb96jsh).
+
+If you spot an issue with these docs, please use the links at the bottom of each page to create a. If you would like to contribute, the docs are part of the [tldraw repo](https://github.com/tldraw/tldraw).
 
 ## License
 
-The source code in this repository (as well as our distributions and releases) are currently licensed under Apache-2.0. The examples are licensed under MIT.
+Our open source libraries are licensed and distributed under Apache-2.0. 
 
-These licenses are subject to change in our upcoming 2.0 release. If you are planning to use use tldraw in a commercial product, please reach out at [hello@tldraw.com](mailto://hello@tldraw.com).
+Our plan is to keep these libraries permissively licensed while we develop a commercial offering for teams who want more from tldraw. If you're planning to use use tldraw in a commercial product, please reach out at [hello@tldraw.com](mailto://hello@tldraw.com).
