@@ -7,8 +7,7 @@ import {
 	createShapeId,
 	useEditor,
 } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 import { useEffect } from 'react'
 
 // The tldraw component shares its App instance via its onMount callback prop.

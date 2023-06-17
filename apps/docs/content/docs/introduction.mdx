@@ -8,123 +8,42 @@ order: 0
 
 Welcome to the tldraw developer docs.
 
-tldraw is a React component that you can use to create infinite canvas experiences for the web. It is essentially the [tldraw.com](https://www.tldraw.com) application wrapped up and distributed as a React component, but with powerful APIs for creating custom shapes, tools, behaviors, and user interfaces elements.
+Here at tldraw, we make two things: a very good multiplayer whiteboard (at [tldraw.com](https://www.tldraw.com)) and the [open source](https://github.com/tldraw/tldraw) libraries used to create that product. This page is meant to provide documentation and reference for those open source libraries.
 
-![screenshot of tldraw](/images/screenshot.png)
-
-These docs relate to tldraw's **alpha version**, which is [open source](https://github.com/tldraw/tldraw), permissively licensed under Apache 2.0, and available [on npm](https://www.npmjs.com/package/@tldraw/tldraw) under the alpha and canary versions.
-
-- Want to explore the code? Visit the [GitHub repo](https://github.com/tldraw/tldraw)).
-- Want to dive in? Visit the [examples StackBlitz](https://stackblitz.com/github/tldraw/tldraw/tree/examples?file=src%2F1-basic%2FBasicExample.tsx).
-- Found a bug or integration problem? Please create a ticket [here](https://github.com/tldraw/tldraw/issues).
-- Questions or feedback? Let us know on the [Discord](https://discord.gg/JMbeb96jsh).
-
-And if you are just looking for the regular tldraw app, try [tldraw.com](https://www.tldraw.com).
-
-## Installation
-
-First, install the `@tldraw/tldraw` package using `@alpha` for the **latest alpha release**.  The package also has peer dependencies on `signia` and `signia-react` which you will need to install at the same time.
-
-```bash
-yarn add @tldraw/tldraw@alpha signia signia-react
-# or
-npm install @tldraw/tldraw@alpha signia signia-react
-```
-
-To get the very latest version, use the [latest canary release](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions). Docs for the very latest version are also available at [canary.tldraw.dev](https://canary.tldraw.dev).
-
-```bash
-yarn add @tldraw/tldraw@canary signia signia-react
-# or
-npm install @tldraw/tldraw@canary signia signia-react
-```
-
-## Usage
-
-You should be able to use the `<Tldraw/>` component in any React editor.
-
-To use the `<Tldraw/>` component, create a file like this one:
-
-```tsx
+```tsx 
 import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 
 export default function () {
 	return (
-		<div
-			style={{
-				position: 'fixed',
-				inset: 0,
-			}}
-		>
+		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw />
 		</div>
 	)
 }
 ```
 
-In addition to the library, you will also need to:
+You can use the `<Tldraw>` React component to build on top of the default tldraw experience. It's easy to use and easy to extend with your own [custom shapes](/docs/shapes), [custom tools](/docs/tools), and [user interface](/docs/user-interface) overrides. 
 
-- import the **CSS files** for the editor and UI
-- probably set a `viewport` meta tag in your **html**.
+If you want to go even deeper, you can use the `<TldrawEditor>` component as a more minimal engine without the default tldraw shapes or user interface.
 
-See below for more detail on these.
+And in either case, you can use the [Editor API](/docs/editor) to drive the experience programatically in order to create or delete shapes, control the camera, or do just about anything you can imagine.
 
-#### Next.js / SSR
+Best of all, you can easily plug tldraw into the [collaboration backend](/docs/collaboration) of your choice.
 
-The `<Tldraw/>` component cannot be server-rendered. If you're using the component in a Next.js app, you will need to import it dynamically. The code to do that will look something like this:
+- Want to explore the code? Visit the [GitHub repo](https://github.com/tldraw/tldraw).
+- Want to try it out? Visit the [examples sandbox](https://stackblitz.com/github/tldraw/tldraw/tree/examples?file=src%2F1-basic%2FBasicExample.tsx).
 
-```tsx
-import dynamic from "next/dynamic"
+Otherwise, continue on to the [installation](/docs/installation) and [usage](/docs/usage) guides.
 
-const Editor = dynamic(
-	async () => import('../components/Editor')),
-	{ ssr: false }
-)
+## Community
 
-export default function MyPage() {
-	return <Editor/>
-}
-```
+Found a bug or want to request a feature? Create a issue [here](https://github.com/tldraw/tldraw/issues). To connect with the team and other users, join us on our [Discord](https://discord.gg/JMbeb96jsh).
 
-### `<Tldraw/>`
-
-The `<Tldraw/>` component combines several other pieces:
-
-- the tldraw editor (`@tldraw/editor`)
-- the tldraw UI (`@tldraw/ui`)
-- an engine (`@tldraw/sync-client`) for persistence and cross-tab synchronization
-
-> **Note:** In the future, this library will also include an engine for using our collaboration services.
-
-If you wanted to have more granular control, you could also use those subcomponents directly. See the ["exploded" example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/5-exploded/ExplodedExample.tsx) for what that would look like.
-
-### CSS
-
-In order to use the `<Tldraw/>` component, you must also import a CSS file from the library `@tldraw/editor` library (automatically installed with `@tldraw/tldraw`):
-
-```ts
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
-```
-
-You can overwrite these files with other CSS, customize the styles via package patches, or copy the contents into a different file and import that instead.
-
-In addition to these stylesheets, the root project imports the `src/index.css` file, so its styles are used for every example. Be sure to take a look at this file: you may find some of these styles necessary in your own usage of the `<Tldraw/>` component.
-
-### HTML
-
-You probably also want to update your `index.html`'s meta viewport element as shown below. 
-
-```html
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-```
-
-These may not be critical to `<Tldraw/>` performing correctly, however some features (such as safe area positioning) may not work correctly if these are not set.
+If you spot an issue with these docs, please use the links at the bottom of each page to create a. If you would like to contribute, the docs are part of the [tldraw repo](https://github.com/tldraw/tldraw).
 
 ## License
 
-The source code in this repository (as well as our distributions and releases) are currently licensed under Apache-2.0. The examples are licensed under MIT.
+Our open source libraries are licensed and distributed under Apache-2.0. 
 
-These licenses are subject to change in our upcoming 2.0 release. If you are planning to use use tldraw in a commercial product, please reach out at [hello@tldraw.com](mailto://hello@tldraw.com).
+Our plan is to keep these libraries permissively licensed while we develop a commercial offering for teams who want more from tldraw. If you're planning to use use tldraw in a commercial product, please reach out at [hello@tldraw.com](mailto://hello@tldraw.com).

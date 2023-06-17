@@ -11,7 +11,7 @@
 		'Oxygen Mono', 'Ubuntu Monospace', 'Source Code Pro', 'Fira Mono', 'Droid Sans Mono',
 		'Courier New', monospace;
 
-	--color-tint-1: rgba(144, 144, 144, 0.1);
+	--color-tint-1: rgba(144, 144, 144, 0.08);
 	--color-tint-2: rgba(144, 144, 144, 0.15);
 	--color-tint-3: rgba(144, 144, 144, 0.3);
 	--color-tint-4: rgba(144, 144, 144, 0.5);
@@ -25,6 +25,17 @@
 
 	--shadow-small: 0px 0px 16px -2px rgba(0, 0, 0, 0.12), 0px 0px 4px 0px rgba(0, 0, 0, 0.12);
 	--shadow-big: 0px 0px 16px -2px rgba(0, 0, 0, 0.24), 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+
+	/* Code colors */
+	--hl: #4e484e;
+	--hl-1: rgb(54, 59, 69);
+	--hl-2: rgb(144, 81, 188);
+	--hl-3: rgb(178, 66, 69);
+	--hl-4: rgb(69, 141, 155);
+	--hl-5: rgb(100, 144, 65);
+	--hl-6: rgb(179, 108, 50);
+	--hl-7: rgb(73, 131, 216);
+	--hl-8: rgb(180, 133, 64);
 }
 
 [data-theme='dark'] {
@@ -37,6 +48,17 @@
 
 	--shadow-small: 0px 0px 16px -2px rgba(0, 0, 0, 0.52), 0px 0px 4px 0px rgba(0, 0, 0, 0.62);
 	--shadow-big: 0px 0px 16px -2px rgba(0, 0, 0, 0.54), 0px 0px 4px 0px rgba(0, 0, 0, 0.54);
+
+	/* Code colors */
+	--hl: #c8c5f1;
+	--hl-1: #5c6370;
+	--hl-2: #c678dd;
+	--hl-3: #e06c75;
+	--hl-4: #56b6c2;
+	--hl-5: #98c379;
+	--hl-6: #d19a66;
+	--hl-7: #61aeee;
+	--hl-8: #e6c07b;
 }
 
 /* @media (prefers-color-scheme: dark) {
@@ -828,19 +850,19 @@ body {
 /* ------------------- Code Themes ------------------ */
 
 .hljs {
-	color: var(--color-text);
+	color: var(--hl);
 }
 
 .hljs-comment,
 .hljs-quote {
-	color: #5c6370;
+	color: var(--hl-1);
 	font-style: italic;
 }
 
 .hljs-doctag,
 .hljs-keyword,
 .hljs-formula {
-	color: #c678dd;
+	color: var(--hl-2);
 }
 
 .hljs-section,
@@ -848,11 +870,11 @@ body {
 .hljs-selector-tag,
 .hljs-deletion,
 .hljs-subst {
-	color: #e06c75;
+	color: var(--hl-3);
 }
 
 .hljs-literal {
-	color: #56b6c2;
+	color: var(--hl-4);
 }
 
 .hljs-string,
@@ -860,7 +882,7 @@ body {
 .hljs-addition,
 .hljs-attribute,
 .hljs-meta .hljs-string {
-	color: #98c379;
+	color: var(--hl-5);
 }
 
 .hljs-attr,
@@ -871,7 +893,7 @@ body {
 .hljs-selector-attr,
 .hljs-selector-pseudo,
 .hljs-number {
-	color: #d19a66;
+	color: var(--hl-6);
 }
 
 .hljs-symbol,
@@ -880,13 +902,13 @@ body {
 .hljs-meta,
 .hljs-selector-id,
 .hljs-title {
-	color: #61aeee;
+	color: var(--hl-7);
 }
 
 .hljs-built_in,
 .hljs-title.class_,
 .hljs-class .hljs-title {
-	color: #e6c07b;
+	color: var(--hl-8);
 }
 
 .hljs-emphasis {

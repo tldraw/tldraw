@@ -1,6 +1,5 @@
 import { TLUiMenuGroup, Tldraw, menuItem, toolbarItem, useEditor } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 import { TLUiOverrides } from '@tldraw/ui/src/lib/overrides'
 import { track } from 'signia-react'
 import { CardShape, MyFilterStyle } from './CardShape'

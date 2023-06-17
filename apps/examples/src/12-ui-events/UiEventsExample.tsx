@@ -1,6 +1,5 @@
 import { TLUiEventHandler, Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 import { useCallback, useState } from 'react'
 
 export default function UiEventsExample() {

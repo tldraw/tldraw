@@ -1,6 +1,5 @@
 import { Tldraw, createTLStore, defaultShapes } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 import { throttle } from '@tldraw/utils'
 import { useLayoutEffect, useState } from 'react'
 
