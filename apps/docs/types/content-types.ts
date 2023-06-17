@@ -1,3 +1,17 @@
+export type InputCategory = {
+	id: string
+	title: string
+	description: string
+	groups: Group[]
+}
+
+export type InputSection = {
+	id: string
+	title: string
+	description: string
+	categories: InputCategory[]
+}
+
 export enum Status {
 	Draft = 'draft',
 	Published = 'published',

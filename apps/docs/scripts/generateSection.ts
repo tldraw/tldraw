@@ -1,37 +1,18 @@
 import fs from 'fs'
 import matter from 'gray-matter'
 import path from 'path'
-import apiContent from '../api-content.json'
 import authors from '../content/authors.json'
-import sections from '../content/sections.json'
 import {
 	Article,
 	Articles,
 	Category,
-	GeneratedContent,
-	Group,
+	InputSection,
 	MarkdownContent,
 	Section,
 	Status,
 } from '../types/content-types'
 
-const { log: nicelog } = console
-
-type InputCategory = {
-	id: string
-	title: string
-	description: string
-	groups: Group[]
-}
-
-type InputSection = {
-	id: string
-	title: string
-	description: string
-	categories: InputCategory[]
-}
-
-function generateSection(
+export function generateSection(
 	section: InputSection,
 	content: MarkdownContent,
 	articles: Articles
@@ -186,43 +167,5 @@ function generateSection(
 			},
 			...section.categories.map(({ id }) => _categories[id]).filter((c) => c.articleIds.length > 0),
 		],
-	}
-}
-
-export async function generateContent(): Promise<GeneratedContent> {
-	const content: MarkdownContent = {}
-	const articles: Articles = {}
-
-	nicelog('• Generating site content (content.json)')
-
-	try {
-		const outputSections: Section[] = [...(sections as InputSection[])]
-			.map((section) => generateSection(section, content, articles))
-			.filter((section) => section.categories.some((c) => c.articleIds.length > 0))
-
-		nicelog('✔ Generated site content.')
-
-		// Write to disk
-
-		const generatedApiContent = apiContent as GeneratedContent
-
-		const contentComplete: GeneratedContent = {
-			sections: generatedApiContent
-				? [...outputSections, ...generatedApiContent.sections]
-				: outputSections,
-			content: generatedApiContent ? { ...content, ...generatedApiContent.content } : content,
-			articles: generatedApiContent ? { ...articles, ...generatedApiContent.articles } : articles,
-		}
-
-		fs.writeFileSync(
-			path.join(process.cwd(), 'content.json'),
-			JSON.stringify(contentComplete, null, 2)
-		)
-
-		return contentComplete
-	} catch (error) {
-		nicelog(`x Could not generate site content.`)
-
-		throw error
 	}
 }
