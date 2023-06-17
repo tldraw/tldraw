@@ -35,6 +35,7 @@
 		"content": "lazy docs-content"
 	},
 	"dependencies": {
+		"@codesandbox/sandpack-react": "^2.6.7",
 		"@microsoft/tsdoc": "^0.14.2",
 		"@tldraw/utils": "workspace:*",
 		"@types/node": "18.15.0",

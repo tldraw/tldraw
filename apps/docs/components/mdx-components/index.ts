@@ -1,3 +1,4 @@
+import dynamic from 'next/dynamic'
 import * as customComponents from '../article-components'
 import * as apiComponents from './api-docs'
 import {
@@ -50,4 +51,5 @@ export const components = {
 	Video,
 	...customComponents,
 	...apiComponents,
+	Playground: dynamic(import('./Playground'), { ssr: false }),
 }

@@ -260,13 +260,13 @@ body {
 
 .article h1 {
 	font-size: 2.5em;
-	margin-bottom: 32px;
+	margin-bottom: 24px;
 	line-height: 1.15;
 	word-break: break-all;
 }
 
 .article h2 {
-	margin: 48px 0px 40px 0px;
+	margin: 40px 0px 24px 0px;
 	font-size: 1.8em;
 	/* margin: 24px 0px 40px 0px; */
 }
@@ -280,7 +280,7 @@ body {
 }
 
 .article details {
-	margin: 32px 0px;
+	margin: 24px 0px;
 }
 
 .article details > summary {
@@ -300,7 +300,7 @@ body {
 }
 
 .article p.article__small {
-	margin: 8px 0px 32px 0px;
+	margin: 8px 0px 24px 0px;
 }
 
 .article p.article__small small {
@@ -321,19 +321,19 @@ body {
 }
 
 .article > p {
-	margin: 32px 0px;
+	margin: 24px 0px;
 }
 
 .article > blockquote {
 	max-width: 100%;
-	margin: 32px 0px;
+	margin: 24px 0px;
 	padding-left: 16px;
 	border-left: 2px solid var(--color-tint-2);
 }
 
 .article pre {
 	max-width: 100%;
-	margin: 32px 0px;
+	margin: 24px 0px;
 	padding: 16px;
 	background-color: var(--color-tint-1);
 	border-radius: 8px;
@@ -384,7 +384,7 @@ body {
 }
 
 .article table {
-	margin: 32px 0px;
+	margin: 24px 0px;
 	border-radius: 4px;
 	overflow: hidden;
 	width: 100%;
@@ -820,7 +820,7 @@ body {
 	}
 
 	.article {
-		padding-top: 32px;
+		padding-top: 24px;
 	}
 
 	.article h1 {
@@ -828,6 +828,7 @@ body {
 	}
 
 	.article__links {
+		content-visibility: visible;
 		grid-template-columns: 1fr;
 		grid-auto-rows: 44px;
 		gap: 24px;
@@ -921,4 +922,25 @@ body {
 
 .hljs-link {
 	text-decoration: underline;
+}
+
+/* Sandpack */
+
+.sp-editor {
+	--sp-layout-height: 250px;
+}
+.sp-preview {
+	--sp-layout-height: 480px;
+}
+
+.sp-resize-handler {
+	display: none;
+}
+
+.sp-layout {
+	height: 100%;
+}
+
+.sp-editor {
+	min-width: 100%;
 }
