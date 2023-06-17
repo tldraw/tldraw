@@ -41,14 +41,11 @@ npm install @tldraw/tldraw@canary signia signia-react
 
 ## Usage
 
-You should be able to use the `<Tldraw/>` component in any React editor.
-
 To use the `<Tldraw/>` component, create a file like this one:
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 
 export default function () {
 	return (
@@ -64,64 +61,7 @@ export default function () {
 }
 ```
 
-In addition to the library, you will also need to:
-
-- import the **CSS files** for the editor and UI
-- probably set a `viewport` meta tag in your **html**.
-
-See below for more detail on these.
-
-#### Next.js / SSR
-
-The `<Tldraw/>` component cannot be server-rendered. If you're using the component in a Next.js app, you will need to import it dynamically. The code to do that will look something like this:
-
-```tsx
-import dynamic from "next/dynamic"
-
-const Editor = dynamic(
-	async () => import('../components/Editor')),
-	{ ssr: false }
-)
-
-export default function MyPage() {
-	return <Editor/>
-}
-```
-
-### `<Tldraw/>`
-
-The `<Tldraw/>` component combines several other pieces:
-
-- the tldraw editor (`@tldraw/editor`)
-- the tldraw UI (`@tldraw/ui`)
-- an engine (`@tldraw/sync-client`) for persistence and cross-tab synchronization
-
-> **Note:** In the future, this library will also include an engine for using our collaboration services.
-
-If you wanted to have more granular control, you could also use those subcomponents directly. See the ["exploded" example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/5-exploded/ExplodedExample.tsx) for what that would look like.
-
-### CSS
-
-In order to use the `<Tldraw/>` component, you must also import a CSS file from the library `@tldraw/editor` library (automatically installed with `@tldraw/tldraw`):
-
-```ts
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
-```
-
-You can overwrite these files with other CSS, customize the styles via package patches, or copy the contents into a different file and import that instead.
-
-In addition to these stylesheets, the root project imports the `src/index.css` file, so its styles are used for every example. Be sure to take a look at this file: you may find some of these styles necessary in your own usage of the `<Tldraw/>` component.
-
-### HTML
-
-You probably also want to update your `index.html`'s meta viewport element as shown below. 
-
-```html
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-```
-
-These may not be critical to `<Tldraw/>` performing correctly, however some features (such as safe area positioning) may not work correctly if these are not set.
+To learn more about the `<Tldraw>` component, see the [usage article](/docs/ucg/usage).
 
 ## License
 

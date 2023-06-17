@@ -6,16 +6,15 @@ date: 3/22/2023
 order: 2
 ---
 
-You should be able to use the `<Tldraw/>` component in any React editor.
+The `<Tldraw/>` component is the easiest way to get started with tldraw. It combines several lower-level libraries: the `TldrawEditor` component from `@tldraw/editor` and the `TldrawUi` component from `@tldraw/ui`.
 
 To use the `<Tldraw/>` component, create a file like this one:
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 
-export default function () {
+export default function TldrawExample() {
 	return (
 		<div
 			style={{
@@ -29,49 +28,14 @@ export default function () {
 }
 ```
 
-In addition to the library, you will also need to:
-
-- import the **CSS files** for the editor and UI
-- probably set a `viewport` meta tag in your **html**.
-
-See below for more detail on these.
-
-#### A note on next.js / server-rendered react
-
-The `<Tldraw/>` component cannot be server-rendered. If you're using the component in a Next.js app, you will need to import it dynamically. The code to do that will look something like this:
-
-```tsx
-import dynamic from "next/dynamic"
-
-const Editor = dynamic(
-	async () => import('../components/Editor')),
-	{ ssr: false }
-)
-
-export default function MyPage() {
-	return <Editor/>
-}
-```
-
-### `<Tldraw/>`
-
-The `<Tldraw/>` component combines several other pieces:
-
-- the tldraw editor (`@tldraw/editor`)
-- the tldraw UI (`@tldraw/ui`)
-- an engine (`@tldraw/sync-client`) for persistence and cross-tab syncronization
-
-> **Note:** In the future, this library will also include an engine for using our collaboration services.
-
-If you wanted to have more granular control, you could also use those subcomponents directly. See the ["exploded" example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/5-exploded/ExplodedExample.tsx) for what that would look like.
+Note the imports of the two css files. 
 
 ### CSS
 
-In order to use the `<Tldraw/>` component, you must also import a CSS file from the library `@tldraw/editor` library (automatically installed with `@tldraw/tldraw`):
+In order to use the `<Tldraw/>` component, you must also import CSS from the library `@tldraw/editor` library (automatically installed with `@tldraw/tldraw`):
 
 ```ts
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 ```
 
 You can overwrite these files with other CSS, customize the styles via package patches, or copy the contents into a different file and import that instead.
@@ -87,3 +51,12 @@ You probably also want to update your `index.html`'s meta viewport element as sh
 ```
 
 These may not be critical to `<Tldraw/>` performing correctly, however some features (such as safe area positioning) may not work correctly if these are not set.
+
+
+## Server Rendering
+
+The `<Tldraw/>` component cannot be server-rendered. If you're using the component in a server-rendered framework (such as Next.js) then you will need to import it dynamically. Check the [examples repository](https://github.com/tldraw/examples) to see examples.
+
+## Going deeper
+
+If you wanted to have more granular control, you could also use those lower-level components directly. See [this example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/5-exploded/ExplodedExample.tsx) for reference.
