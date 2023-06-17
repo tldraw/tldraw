@@ -1,5 +1,3 @@
-// @ts-check
-
 import { readFileSync, writeFileSync } from 'fs'
 import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
@@ -14,12 +12,11 @@ let combinedContent = [
 	join(packageDir, '..', 'ui', 'ui.css'),
 ].reduce(
 	(acc, path) => {
-		// read the file contents
 		const content = readFileSync(path, 'utf8')
 		acc += content + '\n'
 		return acc
 	},
-	`/* THIS CSS FILE IS GENERATED! DO NOT EDIT. OR DO. I'M A COMMENT NOT A COP */ 
+	`/* THIS CSS FILE IS GENERATED! DO NOT EDIT. OR EDIT. I'M A COMMENT NOT A COP */ 
 /* This file is created by the copy-css-files.mjs script in @tldraw/tldraw. */
 /* It combines @tldraw/editor/editor.css and @tldraw/ui/ui.css */
 
