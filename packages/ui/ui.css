@@ -27,6 +27,10 @@
 	--sab: env(safe-area-inset-bottom);
 }
 
+.tlui-layout > * {
+	box-sizing: border-box;
+}
+
 .tlui-layout__top {
 	grid-column: 1;
 	grid-row: 1;

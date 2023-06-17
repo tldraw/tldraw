@@ -15,6 +15,7 @@ Here at tldraw, we make two things: a very good multiplayer whiteboard (at [tldr
 		code: `import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/ui.css'
 import '@tldraw/tldraw/editor.css'
+import './styles.css'
 
 export default function App() {
 	return (
@@ -22,7 +23,28 @@ export default function App() {
 			<Tldraw />
 		</div>
 	)
-}`, active: true }
+}`, active: true },
+'styles.css': {
+		code: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+
+html,
+body {
+	padding: 0px;
+	margin: 0px;
+	font-family: 'Inter', sans-serif;
+	overscroll-behavior: none;
+	touch-action: none;
+	overflow: hidden;
+	min-height: 100vh;
+	/* mobile viewport bug fix */
+	min-height: -webkit-fill-available;
+	height: 100%;
+}
+
+html,
+* {
+	box-sizing: border-box;
+}`, active: false }
 }}/>
 
 You can use the `<Tldraw>` React component to build on top of the default tldraw experience. It's easy to use and easy to extend with your own [custom shapes](/ucg/shapes), [custom tools](/ucg/tools), and [user interface](/ucg/user-interface) overrides. 

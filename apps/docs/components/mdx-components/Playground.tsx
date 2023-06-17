@@ -28,11 +28,12 @@ export default function Playground(props: PlaygroundProps) {
 			options={{
 				showLineNumbers: false,
 				showInlineErrors: true,
-				showTabs: false,
+				showTabs: true,
 				closableTabs: false,
 				showRefreshButton: true,
 				showNavigator: false,
 				showConsole: false,
+				autoReload: true,
 			}}
 		/>
 	)

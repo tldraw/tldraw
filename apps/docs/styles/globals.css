@@ -927,8 +927,10 @@ body {
 /* Sandpack */
 
 .sp-editor {
-	--sp-layout-height: 250px;
+	--sp-layout-height: 312px;
+	min-width: 100%;
 }
+
 .sp-preview {
 	--sp-layout-height: 480px;
 }
@@ -939,8 +941,4 @@ body {
 
 .sp-layout {
 	height: 100%;
-}
-
-.sp-editor {
-	min-width: 100%;
 }
