@@ -348,6 +348,36 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
+    // (undocumented)
+    _________________ASSETS: string;
+    // (undocumented)
+    _________________CAMERA: number;
+    // (undocumented)
+    _________________SHAPES: number;
+    // (undocumented)
+    _________________STATECHART: number;
+    // (undocumented)
+    ______________EVENTS: number;
+    // (undocumented)
+    ____________ERRORS: number;
+    // (undocumented)
+    ___________HISTORY: number;
+    // (undocumented)
+    ___________SHAPE_UTILS: number;
+    // (undocumented)
+    __________INTERNAL_STATE: number;
+    // (undocumented)
+    _________CONTENT: number;
+    // (undocumented)
+    _________DOCUMENT_SETTINGS: number;
+    // (undocumented)
+    _________INSTANCE_STATE: number;
+    // (undocumented)
+    _________PAGE_STATE: number;
+    // (undocumented)
+    _________PAGES: number;
+    // (undocumented)
+    _________USER: number;
     constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
@@ -644,6 +674,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setDarkMode(isDarkMode: boolean): this;
+    // (undocumented)
+    setDevicePixelRatio(dpr: number): this;
     setEditingId(id: null | TLShapeId): this;
     setErasingIds(ids?: TLShapeId[]): this;
     setFocusLayer(next: null | TLShapeId): this;
@@ -685,7 +717,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     stopFollowingUser(): this;
     readonly store: TLStore;
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
-    textMeasure: TextManager;
+    readonly textMeasure: TextManager;
     toggleLock(ids?: TLShapeId[]): this;
     undo(): HistoryManager<this>;
     ungroupShapes(ids?: TLShapeId[]): this;
