@@ -4,8 +4,6 @@
 
 ```ts
 
-/// <reference types="react" />
-
 import { TldrawEditorProps } from '@tldraw/editor';
 import { TldrawUiProps } from '@tldraw/ui';
 
