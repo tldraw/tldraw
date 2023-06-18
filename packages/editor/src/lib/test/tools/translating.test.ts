@@ -28,7 +28,7 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 			Vec2d.From({ x: shape.x, y: shape.y + shape.props.height }),
 		]
 	}
-	render() {
+	component() {
 		throw new Error('Method not implemented.')
 	}
 	indicator() {

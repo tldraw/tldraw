@@ -117,7 +117,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return false
 	}
 
-	render(shape: TLDrawShape) {
+	component(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
 		const strokeWidth = STROKE_SIZES[shape.props.size]
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)

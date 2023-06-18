@@ -49,7 +49,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return new Vec2d(NOTE_SIZE / 2, this.getHeight(_shape) / 2)
 	}
 
-	render(shape: TLNoteShape) {
+	component(shape: TLNoteShape) {
 		const {
 			id,
 			type,

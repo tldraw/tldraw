@@ -27,7 +27,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		}
 	}
 
-	render(shape: TLVideoShape) {
+	component(shape: TLVideoShape) {
 		return <TLVideoUtilComponent shape={shape} videoUtil={this} />
 	}
 
