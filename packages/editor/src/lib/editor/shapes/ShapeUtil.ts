@@ -118,14 +118,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canCrop: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Bounds of the shape to edit.
+	 * Does this shape provide a background for its children? If this is true,
+	 * then any children with a `renderBackground` method will have their
+	 * backgrounds rendered _above_ this shape. Otherwise, the children's
+	 * backgrounds will be rendered above either the next ancestor that provides
+	 * a background, or the canvas background.
 	 *
-	 * Note: this could be a text area within a shape for example arrow labels.
-	 *
-	 * @public
+	 * @internal
 	 */
-	getEditingBounds = (shape: Shape) => {
-		return this.bounds(shape)
+	providesBackgroundForChildren(shape: Shape): boolean {
+		return false
 	}
 
 	/**
@@ -175,7 +177,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
-	abstract defaultProps(): Shape['props']
+	abstract getDefaultProps(): Shape['props']
 
 	/**
 	 * Get a JSX element for the shape (as an HTML element).
@@ -443,19 +445,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number {
 		return 0
-	}
-
-	/**
-	 * Does this shape provide a background for its children? If this is true,
-	 * then any children with a `renderBackground` method will have their
-	 * backgrounds rendered _above_ this shape. Otherwise, the children's
-	 * backgrounds will be rendered above either the next ancestor that provides
-	 * a background, or the canvas background.
-	 *
-	 * @internal
-	 */
-	providesBackgroundForChildren(shape: Shape): boolean {
-		return false
 	}
 
 	//  Events

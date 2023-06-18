@@ -2091,31 +2091,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const util = this.getShapeUtil(shape)
 				if (shape && util.canEdit(shape)) {
 					this.setInstancePageState({ editingId: id, hoveredId: null }, false)
-
-					// todo: remove this camera move
-
-					const { viewportPageBounds } = this
-					const localEditingBounds = util.getEditingBounds(shape)!
-					const pageTransform = this.getPageTransformById(id)!
-					const pageEditingBounds = Box2d.FromPoints(
-						Matrix2d.applyToPoints(pageTransform, localEditingBounds.corners)
-					)
-
-					if (!viewportPageBounds.contains(pageEditingBounds)) {
-						if (
-							pageEditingBounds.width > viewportPageBounds.width ||
-							pageEditingBounds.height > viewportPageBounds.height
-						) {
-							this.zoomToBounds(
-								pageEditingBounds.minX,
-								pageEditingBounds.minY,
-								pageEditingBounds.width,
-								pageEditingBounds.height
-							)
-						} else {
-							this.centerOnPoint(pageEditingBounds.midX, pageEditingBounds.midY)
-						}
-					}
 				}
 			}
 		}
@@ -4886,7 +4861,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 
 					// The initial props starts as the shape utility's default props
-					const initialProps = util.defaultProps()
+					const initialProps = util.getDefaultProps()
 
 					// We then look up each key in the tab state's styles; and if it's there,
 					// we use the value from the tab state's styles instead of the default.

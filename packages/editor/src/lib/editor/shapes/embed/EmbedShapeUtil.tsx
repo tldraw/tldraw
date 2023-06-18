@@ -38,7 +38,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return !!getEmbedInfo(shape.props.url)?.definition?.doesResize
 	}
 
-	override defaultProps(): TLEmbedShape['props'] {
+	override getDefaultProps(): TLEmbedShape['props'] {
 		return {
 			w: 300,
 			h: 300,

@@ -109,15 +109,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canSnap: () => boolean;
     // (undocumented)
-    defaultProps(): TLArrowShape['props'];
-    // (undocumented)
     getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
     // (undocumented)
     getBounds(shape: TLArrowShape): Box2d;
     // (undocumented)
     getCenter(shape: TLArrowShape): Vec2d;
     // (undocumented)
-    getEditingBounds: (shape: TLArrowShape) => Box2d;
+    getDefaultProps(): TLArrowShape['props'];
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
     // (undocumented)
@@ -203,7 +201,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize: () => boolean;
     // (undocumented)
-    defaultProps(): TLBookmarkShape['props'];
+    getDefaultProps(): TLBookmarkShape['props'];
     // (undocumented)
     hideSelectionBoundsBg: () => boolean;
     // (undocumented)
@@ -313,13 +311,13 @@ export const DrawShape: TLShapeInfo<TLDrawShape>;
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
-    defaultProps(): TLDrawShape['props'];
-    // (undocumented)
     expandSelectionOutlinePx(shape: TLDrawShape): number;
     // (undocumented)
     getBounds(shape: TLDrawShape): Box2d;
     // (undocumented)
     getCenter(shape: TLDrawShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLDrawShape['props'];
     // (undocumented)
     getOutline(shape: TLDrawShape): Vec2d[];
     // (undocumented)
@@ -727,7 +725,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canUnmount: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
-    defaultProps(): TLEmbedShape['props'];
+    getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
     hideSelectionBoundsBg: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
@@ -792,7 +790,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
     // (undocumented)
-    defaultProps(): TLFrameShape['props'];
+    getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
     indicator(shape: TLFrameShape): JSX.Element;
     // (undocumented)
@@ -821,11 +819,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    defaultProps(): TLGeoShape['props'];
-    // (undocumented)
     getBounds(shape: TLGeoShape): Box2d;
     // (undocumented)
     getCenter(shape: TLGeoShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLGeoShape['props'];
     // (undocumented)
     getOutline(shape: TLGeoShape): Vec2d[];
     // (undocumented)
@@ -1041,11 +1039,11 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
     // (undocumented)
-    defaultProps(): TLGroupShape['props'];
-    // (undocumented)
     getBounds(shape: TLGroupShape): Box2d;
     // (undocumented)
     getCenter(shape: TLGroupShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLGroupShape['props'];
     // (undocumented)
     getOutline(shape: TLGroupShape): Vec2d[];
     // (undocumented)
@@ -1084,13 +1082,13 @@ export const HighlightShape: TLShapeInfo<TLHighlightShape>;
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
-    defaultProps(): TLHighlightShape['props'];
-    // (undocumented)
     expandSelectionOutlinePx(shape: TLHighlightShape): number;
     // (undocumented)
     getBounds(shape: TLHighlightShape): Box2d;
     // (undocumented)
     getCenter(shape: TLHighlightShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLHighlightShape['props'];
     // (undocumented)
     getOutline(shape: TLHighlightShape): Vec2d[];
     // (undocumented)
@@ -1135,7 +1133,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop: () => boolean;
     // (undocumented)
-    defaultProps(): TLImageShape['props'];
+    getDefaultProps(): TLImageShape['props'];
     // (undocumented)
     indicator(shape: TLImageShape): JSX.Element | null;
     // (undocumented)
@@ -1182,11 +1180,11 @@ export const LineShape: TLShapeInfo<TLLineShape>;
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
-    defaultProps(): TLLineShape['props'];
-    // (undocumented)
     getBounds(shape: TLLineShape): Box2d;
     // (undocumented)
     getCenter(shape: TLLineShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLLineShape['props'];
     // (undocumented)
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
@@ -1650,11 +1648,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    defaultProps(): TLNoteShape['props'];
-    // (undocumented)
     getBounds(shape: TLNoteShape): Box2d;
     // (undocumented)
     getCenter(_shape: TLNoteShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
     getHeight(shape: TLNoteShape): number;
     // (undocumented)
@@ -1833,14 +1831,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canSnap: TLShapeUtilFlag<Shape>;
     canUnmount: TLShapeUtilFlag<Shape>;
     center(shape: Shape): Vec2d;
-    abstract defaultProps(): Shape['props'];
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
     protected abstract getBounds(shape: Shape): Box2d;
     getCenter(shape: Shape): Vec2d;
-    getEditingBounds: (shape: Shape) => Box2d;
+    abstract getDefaultProps(): Shape['props'];
     protected getHandles?(shape: Shape): TLHandle[];
     protected getOutline(shape: Shape): Vec2d[];
     protected getOutlineSegments(shape: Shape): Vec2d[][];
@@ -2020,11 +2017,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    defaultProps(): TLTextShape['props'];
-    // (undocumented)
     getBounds(shape: TLTextShape): Box2d;
     // (undocumented)
     getCenter(shape: TLTextShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLTextShape['props'];
     // (undocumented)
     getMinDimensions(shape: TLTextShape): {
         height: number;
@@ -2763,7 +2760,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    defaultProps(): TLVideoShape['props'];
+    getDefaultProps(): TLVideoShape['props'];
     // (undocumented)
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)

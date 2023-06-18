@@ -39,7 +39,7 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 	override canBind = (_shape: CardShape) => true
 
 	// Default props — used for shapes created with the tool
-	override defaultProps(): CardShape['props'] {
+	override getDefaultProps(): CardShape['props'] {
 		return {
 			w: 300,
 			h: 300,

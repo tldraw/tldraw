@@ -24,7 +24,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
 
-	defaultProps(): TLTextShape['props'] {
+	getDefaultProps(): TLTextShape['props'] {
 		return {
 			color: 'black',
 			size: 'm',

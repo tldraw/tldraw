@@ -22,7 +22,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	hideSelectionBoundsBg = (shape: TLHighlightShape) => getIsDot(shape)
 	hideSelectionBoundsFg = (shape: TLHighlightShape) => getIsDot(shape)
 
-	override defaultProps(): TLHighlightShape['props'] {
+	override getDefaultProps(): TLHighlightShape['props'] {
 		return {
 			segments: [],
 			color: 'black',

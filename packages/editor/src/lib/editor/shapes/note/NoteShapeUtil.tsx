@@ -19,7 +19,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	hideSelectionBoundsBg = () => true
 	hideSelectionBoundsFg = () => true
 
-	defaultProps(): TLNoteShape['props'] {
+	getDefaultProps(): TLNoteShape['props'] {
 		return {
 			color: 'black',
 			size: 'm',

@@ -15,7 +15,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 	canBind = () => false
 
-	defaultProps(): TLGroupShape['props'] {
+	getDefaultProps(): TLGroupShape['props'] {
 		return {}
 	}
 

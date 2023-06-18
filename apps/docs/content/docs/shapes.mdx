@@ -46,7 +46,7 @@ import { ShapeUtil } from '@tldraw/tldraw'
 class CardShapeUtil extends ShapeUtil<CardShape> {
   static type = 'card' as const
 
-  defaultProps(): CardShape['props'] {
+  getDefaultProps(): CardShape['props'] {
 		return {
 			w: 100,
 			h: 100,
@@ -56,47 +56,7 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
   getBounds(shape: Shape) {
 		return new Box2d(0, 0, shape.props.w, shape.props.h)
 	}
-
-  getCenter(shape: Shape) {
-		return this.bounds(shape).center
-	}
-
-  getOutline(shape: Shape) {
-		return this.bounds(shape).corners
-	}
-
-  hitTestPoint(shape: Shape, point: VecLike): boolean {
-		return pointInPolygon(point, this.outline(shape))
-	}
-
-	hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
-
-		for (let i = 0; i < outline.length; i++) {
-			const C = outline[i]
-			const D = outline[(i + 1) % outline.length]
-			if (linesIntersect(A, B, C, D)) return true
-		}
-
-		return false
-	}
-
-  onResize: TLOnResizeHandler<any> = (shape, info) => {
-  	const { newPoint, scaleX, scaleY } = info
-
-    let w = Math.max(1, shape.props.w * scaleX)
-    let h = Math.max(1, shape.props.h * scaleY)
-
-    return {
-      x,
-      y,
-      props: {
-        w,
-        h
-      },  
-	  }
-	}
 }
 ```
 
-> It's important that this class have a static type property that matches the type of your shape.
+This is a minimal `ShapeUtil`. We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods `getDefaultProps` and `getBounds`. There are a lot of other methods, such as 

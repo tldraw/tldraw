@@ -30,7 +30,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	hideSelectionBoundsBg = (shape: TLDrawShape) => getIsDot(shape)
 	hideSelectionBoundsFg = (shape: TLDrawShape) => getIsDot(shape)
 
-	override defaultProps(): TLDrawShape['props'] {
+	override getDefaultProps(): TLDrawShape['props'] {
 		return {
 			segments: [],
 			color: 'black',

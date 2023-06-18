@@ -50,7 +50,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	canEdit = () => true
 
-	override defaultProps(): TLGeoShape['props'] {
+	override getDefaultProps(): TLGeoShape['props'] {
 		return {
 			w: 100,
 			h: 100,

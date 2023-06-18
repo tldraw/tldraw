@@ -73,7 +73,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true
 
-	override defaultProps(): TLArrowShape['props'] {
+	override getDefaultProps(): TLArrowShape['props'] {
 		return {
 			dash: 'draw',
 			size: 'm',
@@ -899,10 +899,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	getLabelBounds(shape: TLArrowShape): Box2d | null {
 		return this.labelBoundsCache.get(shape.id) || null
-	}
-
-	getEditingBounds = (shape: TLArrowShape): Box2d => {
-		return this.getLabelBounds(shape) ?? new Box2d()
 	}
 
 	onEditEnd: TLOnEditEndHandler<TLArrowShape> = (shape) => {

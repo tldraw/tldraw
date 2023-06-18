@@ -35,7 +35,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideSelectionBoundsFg = () => true
 	override isClosed = () => false
 
-	override defaultProps(): TLLineShape['props'] {
+	override getDefaultProps(): TLLineShape['props'] {
 		return {
 			dash: 'draw',
 			size: 'm',
