@@ -1,7 +1,7 @@
 import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate } from '@tldraw/utils'
-import React from 'react'
+import * as React from 'react'
 import { react } from 'signia'
 import { track, useValue } from 'signia-react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
@@ -23,7 +23,13 @@ import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
 
 /** @public */
-export const Canvas = track(function Canvas() {
+export const Canvas = track(function Canvas({
+	onDropOverride,
+}: {
+	onDropOverride?: (
+		defaultOnDrop: (e: React.DragEvent<Element>) => Promise<void>
+	) => (e: React.DragEvent<Element>) => Promise<void>
+}) {
 	const editor = useEditor()
 
 	const { Background, SvgDefs } = useEditorComponents()
@@ -65,6 +71,9 @@ export const Canvas = track(function Canvas() {
 	const { context: patternContext, isReady: patternIsReady } = usePattern()
 
 	const events = useCanvasEvents()
+	if (onDropOverride) {
+		events.onDrop = onDropOverride(events.onDrop)
+	}
 
 	React.useEffect(() => {
 		if (patternIsReady && editor.isSafari) {
