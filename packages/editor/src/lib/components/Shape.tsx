@@ -106,7 +106,7 @@ export const Shape = track(function Shape({
 
 	return (
 		<>
-			{util.renderBackground && (
+			{util.backgroundComponent && (
 				<div
 					ref={backgroundContainerRef}
 					className="tl-shape tl-shape-background"
@@ -168,7 +168,7 @@ const InnerShapeBackground = React.memo(
 		shape: T
 		util: ShapeUtil<T>
 	}) {
-		return useStateTracking('InnerShape:' + util.type, () => util.renderBackground?.(shape))
+		return useStateTracking('InnerShape:' + util.type, () => util.backgroundComponent?.(shape))
 	},
 	(prev, next) => prev.shape.props === next.shape.props
 )

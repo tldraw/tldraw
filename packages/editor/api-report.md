@@ -1082,6 +1082,8 @@ export const HighlightShape: TLShapeInfo<TLHighlightShape>;
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
+    backgroundComponent(shape: TLHighlightShape): JSX.Element;
+    // (undocumented)
     expandSelectionOutlinePx(shape: TLHighlightShape): number;
     // (undocumented)
     getBounds(shape: TLHighlightShape): Box2d;
@@ -1109,8 +1111,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     onResize: TLOnResizeHandler<TLHighlightShape>;
     // (undocumented)
     render(shape: TLHighlightShape): JSX.Element;
-    // (undocumented)
-    renderBackground(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
     toBackgroundSvg(shape: TLHighlightShape, font: string | undefined, colors: TLExportColors): SVGPathElement;
     // (undocumented)
@@ -1820,6 +1820,8 @@ export function setUserPreferences(user: TLUserPreferences): void;
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor, type: Shape['type'], styleProps: ReadonlyMap<StyleProp<unknown>, string>);
+    // @internal
+    backgroundComponent?(shape: Shape): any;
     bounds(shape: Shape): Box2d;
     canBind: <K>(_shape: Shape, _otherShape?: K | undefined) => boolean;
     canCrop: TLShapeUtilFlag<Shape>;
@@ -1887,8 +1889,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
     abstract render(shape: Shape): any;
-    // @internal
-    renderBackground?(shape: Shape): any;
     // (undocumented)
     setStyleInPartial<T>(style: StyleProp<T>, shape: TLShapePartial<Shape>, value: T): TLShapePartial<Shape>;
     snapPoints(shape: Shape): Vec2d[];

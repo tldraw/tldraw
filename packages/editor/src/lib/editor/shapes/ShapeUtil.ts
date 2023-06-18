@@ -201,7 +201,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @internal
 	 */
-	renderBackground?(shape: Shape): any
+	backgroundComponent?(shape: Shape): any
 
 	/**
 	 * Get an array of handle models for the shape. This is an optional method.

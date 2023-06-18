@@ -102,7 +102,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		)
 	}
 
-	renderBackground(shape: TLHighlightShape) {
+	backgroundComponent(shape: TLHighlightShape) {
 		return (
 			<HighlightRenderer
 				strokeWidth={getStrokeWidth(shape)}
