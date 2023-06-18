@@ -333,6 +333,11 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		colors: TLExportColors
 	): SVGElement | Promise<SVGElement> | null
 
+	/** @internal */
+	expandSelectionOutlinePx(shape: Shape): number {
+		return 0
+	}
+
 	/**
 	 * Get whether a point intersects the shape.
 	 *
@@ -364,11 +369,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		}
 
 		return false
-	}
-
-	/** @internal */
-	expandSelectionOutlinePx(shape: Shape): number {
-		return 0
 	}
 
 	//  Events
