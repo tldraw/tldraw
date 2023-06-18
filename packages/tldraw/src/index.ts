@@ -1,3 +1,5 @@
+/// <reference types="react" />
+
 /** @internal */
 import '@tldraw/polyfills'
 
