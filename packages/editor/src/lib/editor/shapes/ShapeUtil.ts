@@ -66,6 +66,29 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	static type: string
 
 	/**
+	 * Get the default props for a shape.
+	 *
+	 * @public
+	 */
+	abstract getDefaultProps(): Shape['props']
+
+	/**
+	 * Get a JSX element for the shape (as an HTML element).
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	abstract component(shape: Shape): any
+
+	/**
+	 * Get JSX describing the shape's indicator (as an SVG element).
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	abstract indicator(shape: Shape): any
+
+	/**
 	 * Whether the shape can be snapped to by another shape.
 	 *
 	 * @public
@@ -169,29 +192,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	isAspectRatioLocked: TLShapeUtilFlag<Shape> = () => false
-
-	/**
-	 * Get the default props for a shape.
-	 *
-	 * @public
-	 */
-	abstract getDefaultProps(): Shape['props']
-
-	/**
-	 * Get a JSX element for the shape (as an HTML element).
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	abstract component(shape: Shape): any
-
-	/**
-	 * Get JSX describing the shape's indicator (as an SVG element).
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	abstract indicator(shape: Shape): any
 
 	/**
 	 * Get a JSX element for the shape (as an HTML element) to be rendered as part of the canvas background - behind any other shape content.
