@@ -45,8 +45,8 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.9.0",
-		"signia": "0.1.4",
-		"signia-react": "0.1.4",
+		"signia": "*",
+		"signia-react": "*",
 		"vite": "^4.3.4",
 		"y-websocket": "^1.5.0",
 		"yjs": "^13.6.2"
