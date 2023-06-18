@@ -237,9 +237,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 export const BOUND_ARROW_OFFSET = 10;
 
 // @public (undocumented)
-export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
-    onDropOverride?: ((defaultOnDrop: (e: React_3.DragEvent<Element>) => Promise<void>) => (e: React_3.DragEvent<Element>) => Promise<void>) | undefined;
-}) => JSX.Element>;
+export const Canvas: React_2.MemoExoticComponent<() => JSX.Element>;
 
 // @public (undocumented)
 export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean | undefined;
