@@ -78,7 +78,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return new Vec2d(bounds.width / 2, bounds.height / 2)
 	}
 
-	render(shape: TLTextShape) {
+	component(shape: TLTextShape) {
 		const {
 			id,
 			type,

@@ -48,8 +48,8 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		}
 	}
 
-	// Render method — the React component that will be rendered for the shape
-	render(shape: CardShape) {
+	// The React component that will be rendered for the shape; can return any HTML elements here
+	component(shape: CardShape) {
 		const bounds = this.bounds(shape)
 
 		return (
@@ -71,7 +71,7 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		)
 	}
 
-	// Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here
+	// The indicator shown when hovering over a shape or when it's selected; must return only SVG elements here
 	indicator(shape: CardShape) {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}

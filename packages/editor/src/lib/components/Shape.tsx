@@ -155,7 +155,7 @@ export const Shape = track(function Shape({
 
 const InnerShape = React.memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-		return useStateTracking('InnerShape:' + util.type, () => util.render(shape))
+		return useStateTracking('InnerShape:' + util.type, () => util.component(shape))
 	},
 	(prev, next) => prev.shape.props === next.shape.props
 )
