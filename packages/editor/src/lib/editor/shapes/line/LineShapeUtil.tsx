@@ -177,7 +177,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return intersectLineSegmentPolyline(A, B, this.editor.getOutline(shape)) !== null
 	}
 
-	render(shape: TLLineShape) {
+	component(shape: TLLineShape) {
 		const forceSolid = useForceSolid()
 		const spline = getSplineForLineShape(shape)
 		const strokeWidth = STROKE_SIZES[shape.props.size]

@@ -9,7 +9,7 @@ export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
 	getDefaultProps() {
 		return { message: 'Error!', w: 100, h: 100 }
 	}
-	render(shape: ErrorShape) {
+	component(shape: ErrorShape) {
 		throw new Error(shape.props.message)
 	}
 	indicator() {

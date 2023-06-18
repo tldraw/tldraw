@@ -65,7 +65,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 
-	render(shape: TLImageShape) {
+	component(shape: TLImageShape) {
 		const containerStyle = getContainerStyle(shape)
 		const isCropping = useIsCropping(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()

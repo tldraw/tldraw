@@ -559,7 +559,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return false
 	}
 
-	render(shape: TLArrowShape) {
+	component(shape: TLArrowShape) {
 		// Not a class component, but eslint can't tell that :(
 		const onlySelectedShape = this.editor.onlySelectedShape
 		const shouldDisplayHandles =

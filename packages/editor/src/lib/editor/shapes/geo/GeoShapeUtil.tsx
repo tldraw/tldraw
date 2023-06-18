@@ -335,7 +335,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	render(shape: TLGeoShape) {
+	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
 
 		const forceSolid = useForceSolid()

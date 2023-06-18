@@ -73,7 +73,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		]
 	}
 
-	render(shape: TLTextShape) {
+	component(shape: TLTextShape) {
 		const {
 			id,
 			type,
