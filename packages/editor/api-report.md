@@ -480,20 +480,24 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAssetById(id: TLAssetId): TLAsset | undefined;
     getAssetBySrc(src: string): TLBookmarkAsset | TLImageAsset | TLVideoAsset | undefined;
-    getBounds(shape: TLShape): Box2d;
-    getBoundsById(id: TLShapeId): Box2d | undefined;
+    getBounds<T extends TLShape>(shape: T): Box2d;
+    getBoundsById<T extends TLShape>(id: T['id']): Box2d | undefined;
     getClipPathById(id: TLShapeId): string | undefined;
     getContainer: () => HTMLElement;
     getContent(ids?: TLShapeId[]): TLContent | undefined;
     getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getHandles<T extends TLShape>(shape: T): TLHandle[] | undefined;
+    getHandlesById<T extends TLShape>(id: T['id']): TLHandle[] | undefined;
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
     getMaskedPageBoundsById(id: TLShapeId): Box2d | undefined;
     getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape;
-    getOutline(shape: TLShape): Vec2d[];
+    getOutline<T extends TLShape>(shape: T): Vec2d[];
     getOutlineById(id: TLShapeId): Vec2d[];
+    getOutlineSegments<T extends TLShape>(shape: T): Vec2d[][];
+    getOutlineSegmentsById(id: TLShapeId): Vec2d[][];
     getPageBounds(shape: TLShape): Box2d | undefined;
     getPageBoundsById(id: TLShapeId): Box2d | undefined;
     getPageById(id: TLPageId): TLPage | undefined;
@@ -1214,8 +1218,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     getBounds(shape: TLLineShape): Box2d;
     // (undocumented)
-    getCenter(shape: TLLineShape): Vec2d;
-    // (undocumented)
     getDefaultProps(): TLLineShape['props'];
     // (undocumented)
     getHandles(shape: TLLineShape): TLHandle[];
@@ -1854,7 +1856,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor, type: Shape['type'], styleProps: ReadonlyMap<StyleProp<unknown>, string>);
     // @internal
     backgroundComponent?(shape: Shape): any;
-    bounds(shape: Shape): Box2d;
     canBind: <K>(_shape: Shape, _otherShape?: K | undefined) => boolean;
     canCrop: TLShapeUtilFlag<Shape>;
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;
@@ -1869,15 +1870,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
-    protected abstract getBounds(shape: Shape): Box2d;
+    abstract getBounds(shape: Shape): Box2d;
     getCenter(shape: Shape): Vec2d;
     abstract getDefaultProps(): Shape['props'];
-    protected getHandles?(shape: Shape): TLHandle[];
-    protected getOutline(shape: Shape): Vec2d[];
-    protected getOutlineSegments(shape: Shape): Vec2d[][];
+    getHandles?(shape: Shape): TLHandle[];
+    getOutline(shape: Shape): Vec2d[];
+    getOutlineSegments(shape: Shape): Vec2d[][];
     // (undocumented)
     getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined;
-    handles(shape: Shape): TLHandle[];
     // (undocumented)
     hasStyle(style: StyleProp<unknown>): boolean;
     hideResizeHandles: TLShapeUtilFlag<Shape>;
@@ -1916,8 +1916,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onTranslate?: TLOnTranslateHandler<Shape>;
     onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
     onTranslateStart?: TLOnTranslateStartHandler<Shape>;
-    outline(shape: Shape): Vec2d[];
-    outlineSegments(shape: Shape): Vec2d[][];
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
     abstract render(shape: Shape): any;
@@ -2050,8 +2048,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     canEdit: () => boolean;
     // (undocumented)
     getBounds(shape: TLTextShape): Box2d;
-    // (undocumented)
-    getCenter(shape: TLTextShape): Vec2d;
     // (undocumented)
     getDefaultProps(): TLTextShape['props'];
     // (undocumented)

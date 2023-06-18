@@ -405,7 +405,7 @@ export class Resizing extends StateNode {
 
 		return {
 			shape,
-			bounds: util.bounds(shape),
+			bounds: this.editor.getBounds(shape),
 			pageTransform,
 			pageRotation: Matrix2d.Decompose(pageTransform!).rotation,
 			isAspectRatioLocked: util.isAspectRatioLocked(shape),

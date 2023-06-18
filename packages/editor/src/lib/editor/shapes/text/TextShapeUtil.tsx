@@ -63,7 +63,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getOutline(shape: TLTextShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		return [
 			new Vec2d(0, 0),
@@ -71,11 +71,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			new Vec2d(bounds.width, bounds.height),
 			new Vec2d(0, bounds.height),
 		]
-	}
-
-	getCenter(shape: TLTextShape): Vec2d {
-		const bounds = this.bounds(shape)
-		return new Vec2d(bounds.width / 2, bounds.height / 2)
 	}
 
 	render(shape: TLTextShape) {
@@ -150,12 +145,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	indicator(shape: TLTextShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.getBounds(shape)
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
 	toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors) {
-		const bounds = this.bounds(shape)
+		const bounds = this.getBounds(shape)
 		const text = shape.props.text
 
 		const width = bounds.width / (shape.props.scale ?? 1)

@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box2d, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
-import { ComputedCache } from '@tldraw/store'
 import { StyleProp, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
-import { computed, EMPTY_ARRAY } from 'signia'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
 import { TLExportColors } from './shared/TLExportColors'
@@ -215,25 +213,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected getHandles?(shape: Shape): TLHandle[]
-
-	@computed
-	private get handlesCache(): ComputedCache<TLHandle[], TLShape> {
-		return this.editor.store.createComputedCache('handles:' + this.type, (shape) => {
-			return this.getHandles!(shape as any)
-		})
-	}
-
-	/**
-	 * Get the cached handles (this should not be overridden!)
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	handles(shape: Shape): TLHandle[] {
-		if (!this.getHandles) return EMPTY_ARRAY
-		return this.handlesCache.get(shape.id) ?? EMPTY_ARRAY
-	}
+	getHandles?(shape: Shape): TLHandle[]
 
 	/**
 	 * Get an array of outline segments for the shape. For most shapes,
@@ -250,26 +230,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected getOutlineSegments(shape: Shape): Vec2d[][] {
-		return [this.outline(shape)]
-	}
-
-	@computed
-	private get outlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
-		return this.editor.store.createComputedCache('outline-segments:' + this.type, (shape) => {
-			return this.getOutlineSegments!(shape as any)
-		})
-	}
-
-	/**
-	 * Get the cached outline segments (this should not be overridden!)
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	outlineSegments(shape: Shape): Vec2d[][] {
-		if (!this.getOutlineSegments) return EMPTY_ARRAY
-		return this.outlineSegmentsCache.get(shape.id) ?? EMPTY_ARRAY
+	getOutlineSegments(shape: Shape): Vec2d[][] {
+		return [this.editor.getOutline(shape)]
 	}
 
 	/**
@@ -278,28 +240,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected abstract getBounds(shape: Shape): Box2d
-
-	@computed
-	private get boundsCache(): ComputedCache<Box2d, TLShape> {
-		return this.editor.store.createComputedCache('bounds:' + this.type, (shape) => {
-			return this.getBounds(shape as any)
-		})
-	}
-
-	/**
-	 * Get the cached bounds for the shape.
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	bounds(shape: Shape): Box2d {
-		const result = this.boundsCache.get(shape.id) ?? new Box2d()
-		if (result.width === 0 || result.height === 0) {
-			return new Box2d(result.x, result.y, Math.max(result.width, 1), Math.max(result.height, 1))
-		}
-		return result
-	}
+	abstract getBounds(shape: Shape): Box2d
 
 	/**
 	 * Get the shape's (not cached) outline.
@@ -307,25 +248,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected getOutline(shape: Shape): Vec2d[] {
-		return this.bounds(shape).corners
-	}
-
-	@computed
-	private get outlineCache(): ComputedCache<Vec2d[], TLShape> {
-		return this.editor.store.createComputedCache('outline:' + this.type, (shape) => {
-			return this.getOutline(shape as any)
-		})
-	}
-
-	/**
-	 * Get the shape's (cached) outline. Do not override this method!
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	outline(shape: Shape): Vec2d[] {
-		return this.outlineCache.get(shape.id) ?? EMPTY_ARRAY
+	getOutline(shape: Shape): Vec2d[] {
+		return this.editor.getBounds(shape).corners
 	}
 
 	/**
@@ -335,7 +259,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	snapPoints(shape: Shape) {
-		return this.bounds(shape).snapPoints
+		return this.editor.getBounds(shape).snapPoints
 	}
 
 	/**
@@ -355,7 +279,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	getCenter(shape: Shape) {
-		return this.bounds(shape).center
+		return this.editor.getBounds(shape).center
 	}
 
 	/**
@@ -418,7 +342,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	hitTestPoint(shape: Shape, point: VecLike): boolean {
-		return this.bounds(shape).containsPoint(point)
+		return this.editor.getBounds(shape).containsPoint(point)
 	}
 
 	/**
@@ -431,7 +355,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 
 		for (let i = 0; i < outline.length; i++) {
 			const C = outline[i]

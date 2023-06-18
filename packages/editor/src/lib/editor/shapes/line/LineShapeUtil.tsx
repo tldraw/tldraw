@@ -68,10 +68,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return spline.bounds
 	}
 
-	getCenter(shape: TLLineShape) {
-		return this.bounds(shape).center
-	}
-
 	getHandles(shape: TLLineShape) {
 		return handlesCache.get(shape.props, () => {
 			const handles = shape.props.handles
@@ -174,11 +170,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	hitTestPoint(shape: TLLineShape, point: Vec2d): boolean {
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
-		return pointNearToPolyline(point, this.outline(shape), offsetDist)
+		return pointNearToPolyline(point, this.editor.getOutline(shape), offsetDist)
 	}
 
 	hitTestLineSegment(shape: TLLineShape, A: VecLike, B: VecLike): boolean {
-		return intersectLineSegmentPolyline(A, B, this.outline(shape)) !== null
+		return intersectLineSegmentPolyline(A, B, this.editor.getOutline(shape)) !== null
 	}
 
 	render(shape: TLLineShape) {

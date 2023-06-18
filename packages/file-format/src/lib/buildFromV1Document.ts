@@ -550,7 +550,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 									y: bounds.minY + bounds.height * ny,
 								})
 
-								const handles = util.handles(v2ShapeFresh)
+								const handles = editor.getHandles(v2ShapeFresh)!
 
 								const change = util.onHandleChange!(v2ShapeFresh, {
 									handle: {

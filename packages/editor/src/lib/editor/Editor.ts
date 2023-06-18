@@ -40,6 +40,7 @@ import {
 	TLDocument,
 	TLFrameShape,
 	TLGroupShape,
+	TLHandle,
 	TLINSTANCE_ID,
 	TLImageAsset,
 	TLInstance,
@@ -5136,6 +5137,154 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Shapes --------------------- */
 
+	@computed
+	private get _boundsCache(): ComputedCache<Box2d, TLShape> {
+		return this.store.createComputedCache('bounds', (shape) => {
+			return this.getShapeUtil(shape).getBounds(shape)
+		})
+	}
+
+	/**
+	 * Get the local bounds of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getBounds(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape to get the bounds for.
+	 *
+	 * @public
+	 */
+	getBounds<T extends TLShape>(shape: T): Box2d {
+		const result = this._boundsCache.get(shape.id) ?? new Box2d()
+		if (result.width === 0 || result.height === 0) {
+			return new Box2d(result.x, result.y, Math.max(result.width, 1), Math.max(result.height, 1))
+		}
+		return result
+	}
+
+	/**
+	 * Get the local bounds of a shape by its id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getBoundsById(myShape)
+	 * ```
+	 *
+	 * @param id - The id of the shape to get the bounds for.
+	 *
+	 * @public
+	 */
+	getBoundsById<T extends TLShape>(id: T['id']): Box2d | undefined {
+		return this.getBounds<T>(this.getShapeById<T>(id)!)
+	}
+
+	@computed
+	private get _outlineCache(): ComputedCache<Vec2d[], TLShape> {
+		return this.store.createComputedCache('outline', (shape) => {
+			return this.getShapeUtil(shape).getOutline(shape)
+		})
+	}
+
+	/**
+	 * Get the local outline of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getOutline(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape to get the outline for.
+	 *
+	 * @public
+	 */
+	getOutline<T extends TLShape>(shape: T): Vec2d[] {
+		return this._outlineCache.get(shape.id) ?? EMPTY_ARRAY
+	}
+
+	/**
+	 * Get the local outline of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getOutlineById(myShape)
+	 * ```
+	 *
+	 * @param id - The shape id to get the outline for.
+	 *
+	 * @public
+	 */
+	getOutlineById(id: TLShapeId): Vec2d[] {
+		return this.getOutline(this.getShapeById(id)!)
+	}
+
+	@computed
+	private get _outlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
+		return this.store.createComputedCache('outline-segments', (shape) => {
+			return this.getShapeUtil(shape).getOutlineSegments(shape)
+		})
+	}
+
+	/**
+	 * Get the local outline segments of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getOutlineSegments(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape to get the outline segments for.
+	 *
+	 * @public
+	 */
+	getOutlineSegments<T extends TLShape>(shape: T): Vec2d[][] {
+		return this._outlineSegmentsCache.get(shape.id) ?? EMPTY_ARRAY
+	}
+
+	/**
+	 * Get the local outline segments of a shape by its Id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getOutlineSegmentsById(myShapeId)
+	 * ```
+	 *
+	 * @param shape - The shape to get the outline segments for.
+	 *
+	 * @public
+	 */
+	getOutlineSegmentsById(id: TLShapeId): Vec2d[][] {
+		return this.getOutlineSegments(this.getShapeById(id)!)
+	}
+
+	@computed
+	private get handlesCache(): ComputedCache<TLHandle[] | undefined, TLShape> {
+		return this.store.createComputedCache('handles', (shape) => {
+			return this.getShapeUtil(shape).getHandles?.(shape)
+		})
+	}
+
+	/**
+	 * Get the handles (if any) for a shape by its id.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getHandlesById<T extends TLShape>(id: T['id']): TLHandle[] | undefined {
+		return this.handlesCache.get(id)
+	}
+
+	/**
+	 * Get the handles (if any) for a shape.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getHandles<T extends TLShape>(shape: T): TLHandle[] | undefined {
+		return this.getHandlesById<T>(shape.id)
+	}
+
 	_________________SHAPES = 0
 
 	/**
@@ -5319,40 +5468,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the local bounds of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getBounds(myShape)
-	 * ```
-	 *
-	 * @param shape - The shape to get the bounds for.
-	 *
-	 * @public
-	 */
-	getBounds(shape: TLShape): Box2d {
-		return this.getShapeUtil(shape).bounds(shape)
-	}
-
-	/**
-	 * Get the local bounds of a shape by its id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getBoundsById(myShape)
-	 * ```
-	 *
-	 * @param id - The id of the shape to get the bounds for.
-	 *
-	 * @public
-	 */
-	getBoundsById(id: TLShapeId): Box2d | undefined {
-		const shape = this.getShapeById(id)
-		if (!shape) return undefined
-		return this.getBounds(shape)
-	}
-
-	/**
 	 * A cache of axis aligned page bounding boxes.
 	 *
 	 * @internal
@@ -5363,9 +5478,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (!pageTransform) return new Box2d()
 
-			const result = Box2d.FromPoints(
-				Matrix2d.applyToPoints(pageTransform, this.getShapeUtil(shape).outline(shape))
-			)
+			const result = Box2d.FromPoints(Matrix2d.applyToPoints(pageTransform, this.getOutline(shape)))
 
 			return result
 		})
@@ -5531,38 +5644,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return Box2d.FromPoints(intersection)
 		}
 		return pageBounds
-	}
-
-	/**
-	 * Get the local outline of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getOutline(myShape)
-	 * ```
-	 *
-	 * @param shape - The shape to get the outline for.
-	 *
-	 * @public
-	 */
-	getOutline(shape: TLShape) {
-		return this.getShapeUtil(shape).outline(shape)
-	}
-
-	/**
-	 * Get the local outline of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getOutlineById(myShape)
-	 * ```
-	 *
-	 * @param id - The shape id to get the outline for.
-	 *
-	 * @public
-	 */
-	getOutlineById(id: TLShapeId) {
-		return this.getOutline(this.getShapeById(id)!)
 	}
 
 	/**
@@ -7036,8 +7117,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.batch(() => {
 			for (const shape of shapes) {
-				const util = this.getShapeUtil(shape)
-				const bounds = util.bounds(shape)
+				const bounds = this.getBounds(shape)
 				const initialPageTransform = this.getPageTransformById(shape.id)
 				if (!initialPageTransform) continue
 				this.resizeShape(
@@ -8718,10 +8798,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					for (const { originalShape: originalShape } of updates) {
 						const currentShape = this.getShapeById(originalShape.id)
 						if (!currentShape) continue
-						const util = this.getShapeUtil(currentShape)
-
-						const boundsA = util.bounds(originalShape)
-						const boundsB = util.bounds(currentShape)
+						const boundsA = this.getBounds(originalShape)
+						const boundsB = this.getBounds(currentShape)
 
 						const change: TLShapePartial = { id: originalShape.id, type: originalShape.type }
 

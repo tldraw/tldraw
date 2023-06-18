@@ -1,5 +1,4 @@
 import { TLNoteShape, createShapeId } from '@tldraw/tlschema'
-import { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers, TLInterruptEvent, TLPointerEventInfo } from '../../../types/event-types'
 
@@ -97,9 +96,8 @@ export class Pointing extends StateNode {
 			true
 		)
 
-		const util = this.editor.getShapeUtil(NoteShapeUtil)
 		const shape = this.editor.getShapeById<TLNoteShape>(id)!
-		const bounds = util.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		// Center the text around the created point
 		this.editor.updateShapes([

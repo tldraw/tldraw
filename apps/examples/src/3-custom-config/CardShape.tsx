@@ -44,7 +44,7 @@ export class CardShapeUtil extends ShapeUtil<CardShape> {
 
 	// Render method — the React component that will be rendered for the shape
 	render(shape: CardShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		return (
 			<HTMLContainer

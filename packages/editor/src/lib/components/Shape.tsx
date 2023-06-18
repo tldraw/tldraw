@@ -83,8 +83,7 @@ export const Shape = track(function Shape({
 			const shape = editor.getShapeById(id)
 			if (!shape) return null
 
-			const util = editor.getShapeUtil(shape)
-			const bounds = util.bounds(shape)
+			const bounds = editor.getBounds(shape)
 			setProperty('width', Math.ceil(bounds.width) + 'px')
 			setProperty('height', Math.ceil(bounds.height) + 'px')
 		},
@@ -137,7 +136,7 @@ export const Shape = track(function Shape({
 				onPointerLeave={events.onPointerLeave}
 			>
 				{isCulled && util.canUnmount(shape) ? (
-					<CulledShape shape={shape} util={util} />
+					<CulledShape shape={shape} />
 				) : (
 					<OptionalErrorBoundary
 						fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
@@ -174,8 +173,10 @@ const InnerShapeBackground = React.memo(
 )
 
 const CulledShape = React.memo(
-	function CulledShap<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-		const bounds = util.bounds(shape)
+	function CulledShape<T extends TLShape>({ shape }: { shape: T }) {
+		const editor = useEditor()
+		const bounds = editor.getBounds(shape)
+
 		return (
 			<div
 				className="tl-shape__culled"

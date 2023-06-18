@@ -42,7 +42,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	getOutline(shape: TLNoteShape) {
-		return this.bounds(shape).corners
+		return this.editor.getBounds(shape).corners
 	}
 
 	getCenter(_shape: TLNoteShape) {
@@ -106,7 +106,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	}
 
 	toSvg(shape: TLNoteShape, font: string, colors: TLExportColors) {
-		const bounds = this.bounds(shape)
+		const bounds = this.getBounds(shape)
 
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 

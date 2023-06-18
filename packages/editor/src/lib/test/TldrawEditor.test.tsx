@@ -283,7 +283,7 @@ describe('Custom shapes', () => {
 		}
 
 		render(shape: CardShape) {
-			const bounds = this.bounds(shape)
+			const bounds = this.getBounds(shape)
 
 			return (
 				<HTMLContainer
