@@ -221,8 +221,9 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 }
 
 // @public (undocumented)
-export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
+export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, className }: {
     onDropOverride?: ((defaultOnDrop: (e: React_3.DragEvent<Element>) => Promise<void>) => (e: React_3.DragEvent<Element>) => Promise<void>) | undefined;
+    className?: string | undefined;
 }) => JSX.Element>;
 
 // @public (undocumented)
