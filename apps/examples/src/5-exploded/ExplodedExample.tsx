@@ -6,8 +6,7 @@ import {
 	defaultShapes,
 	defaultTools,
 } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 
 export default function ExplodedExample() {
 	return (

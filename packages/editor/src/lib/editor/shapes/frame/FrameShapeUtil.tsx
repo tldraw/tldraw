@@ -22,7 +22,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return { w: 160 * 2, h: 90 * 2, name: '' }
 	}
 
-	override render(shape: TLFrameShape) {
+	override component(shape: TLFrameShape) {
 		const bounds = this.bounds(shape)
 
 		return (

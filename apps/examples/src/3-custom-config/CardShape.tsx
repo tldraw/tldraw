@@ -31,8 +31,8 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		}
 	}
 
-	// Render method — the React component that will be rendered for the shape
-	render(shape: CardShape) {
+	// The React component that will be rendered for the shape; can return any HTML elements here
+	component(shape: CardShape) {
 		const bounds = this.bounds(shape)
 
 		return (
@@ -62,7 +62,7 @@ export class CardShapeTool extends BaseBoxShapeTool {
 	static override id = 'card'
 	static override initial = 'idle'
 
-	override shapeType = 'card'
+	override shapeType = CardShapeUtil
 }
 
 export const CardShape = defineShape('card', {

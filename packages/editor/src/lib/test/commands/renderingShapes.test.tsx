@@ -48,13 +48,15 @@ function createShapes() {
 	])
 }
 
-it('updates the culling viewport', () => {
+it('updates the rendering viewport when the camera stops moving', () => {
 	const ids = createShapes()
-	editor.updateCullingBounds = jest.fn(editor.updateCullingBounds)
+
+	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
 	editor.pan(-201, -201)
 	jest.advanceTimersByTime(500)
-	expect(editor.updateCullingBounds).toHaveBeenCalledTimes(1)
-	expect(editor.cullingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
+
+	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
+	expect(editor.renderingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
 	expect(editor.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 
@@ -63,7 +65,7 @@ it('lists shapes in viewport', () => {
 	expect(
 		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
 	).toStrictEqual([
-		[ids.A, false, true], // A is within the expanded culling bounds, so should not be culled; and it's in the regular viewport too, so it's on screen.
+		[ids.A, false, true], // A is within the expanded rendering bounds, so should not be culled; and it's in the regular viewport too, so it's on screen.
 		[ids.B, false, true],
 		[ids.C, false, true],
 		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport

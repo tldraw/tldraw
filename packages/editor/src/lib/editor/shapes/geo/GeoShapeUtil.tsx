@@ -12,12 +12,17 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDashType, TLGeoShape } from '@tldraw/tlschema'
+import { TLDefaultDashStyle, TLGeoShape } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { Editor } from '../../Editor'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { TLOnEditEndHandler, TLOnResizeHandler } from '../ShapeUtil'
+import {
+	FONT_FAMILIES,
+	LABEL_FONT_SIZES,
+	STROKE_SIZES,
+	TEXT_PROPS,
+} from '../shared/default-shape-constants'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
@@ -90,7 +95,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		if (shape.props.fill === 'none') {
 			const zoomLevel = this.editor.zoomLevel
-			const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
+			const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
 			// Check the outline
 			for (let i = 0; i < outline.length; i++) {
 				const C = outline[i]
@@ -330,11 +335,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	render(shape: TLGeoShape) {
+	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
 
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.editor.getStrokeWidth(props.size)
+		const strokeWidth = STROKE_SIZES[props.size]
 
 		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
 			props
@@ -444,7 +449,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					align={align}
 					verticalAlign={verticalAlign}
 					text={text}
-					labelColor={this.editor.getCssColor(labelColor)}
+					labelColor={labelColor}
 					wrap
 				/>
 				{shape.props.url && (
@@ -459,7 +464,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { w, h, growY, size } = props
 
 		const forceSolid = useForceSolid()
-		const strokeWidth = this.editor.getStrokeWidth(size)
+		const strokeWidth = STROKE_SIZES[size]
 
 		switch (props.geo) {
 			case 'ellipse': {
@@ -499,7 +504,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	toSvg(shape: TLGeoShape, font: string, colors: TLExportColors) {
 		const { id, props } = shape
-		const strokeWidth = this.editor.getStrokeWidth(props.size)
+		const strokeWidth = STROKE_SIZES[props.size]
 
 		let svgElm: SVGElement
 
@@ -954,7 +959,7 @@ function getLines(props: TLGeoShape['props'], sw: number) {
 	}
 }
 
-function getXBoxLines(w: number, h: number, sw: number, dash: TLDashType) {
+function getXBoxLines(w: number, h: number, sw: number, dash: TLDefaultDashStyle) {
 	const inset = dash === 'draw' ? 0.62 : 0
 
 	if (dash === 'dashed') {

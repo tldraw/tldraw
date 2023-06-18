@@ -33,7 +33,7 @@ const isShapeInPage = (store: TLStore, pageId: TLPageId, shape: TLShape): boolea
  * @param store - The tldraw store.
  * @param getCurrentPageId - A function that returns the current page id.
  */
-export const shapeIdsInCurrentPage = (store: TLStore, getCurrentPageId: () => TLPageId) => {
+export const deriveShapeIdsInCurrentPage = (store: TLStore, getCurrentPageId: () => TLPageId) => {
 	const shapesIndex = store.query.ids('shape')
 	let lastPageId: null | TLPageId = null
 	function fromScratch() {

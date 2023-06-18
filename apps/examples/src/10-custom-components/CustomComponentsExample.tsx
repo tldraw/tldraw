@@ -1,6 +1,5 @@
 import { Tldraw, TLEditorComponents } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 
 const components: Partial<TLEditorComponents> = {
 	Brush: ({ brush }) => (

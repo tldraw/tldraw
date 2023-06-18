@@ -2,12 +2,12 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
 import { TLTextShape } from '@tldraw/tlschema'
 import { HTMLContainer } from '../../../components/HTMLContainer'
-import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../../../constants'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { resizeScaled } from '../shared/resizeScaled'
 import { TLExportColors } from '../shared/TLExportColors'
 import { useEditableText } from '../shared/useEditableText'
@@ -78,7 +78,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return new Vec2d(bounds.width / 2, bounds.height / 2)
 	}
 
-	render(shape: TLTextShape) {
+	component(shape: TLTextShape) {
 		const {
 			id,
 			type,

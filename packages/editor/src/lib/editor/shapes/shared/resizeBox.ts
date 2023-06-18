@@ -11,7 +11,7 @@ export type ResizeBoxOptions = Partial<{
 	maxHeight: number
 }>
 
-export const resizeBox = (
+export function resizeBox(
 	shape: TLBaseBoxShape,
 	info: {
 		newPoint: Vec2dModel
@@ -23,7 +23,7 @@ export const resizeBox = (
 		initialShape: TLBaseBoxShape
 	},
 	opts = {} as ResizeBoxOptions
-) => {
+) {
 	const { newPoint, handle, scaleX, scaleY } = info
 	const { minWidth = 1, maxWidth = Infinity, minHeight = 1, maxHeight = Infinity } = opts
 

@@ -282,7 +282,7 @@ describe('Custom shapes', () => {
 			}
 		}
 
-		render(shape: CardShape) {
+		component(shape: CardShape) {
 			const bounds = this.bounds(shape)
 
 			return (
@@ -307,10 +307,12 @@ describe('Custom shapes', () => {
 		}
 	}
 
+	const CardShape = defineShape('card', { util: CardUtil })
+
 	class CardTool extends BaseBoxShapeTool {
 		static override id = 'card'
 		static override initial = 'idle'
-		override shapeType = 'card'
+		override shapeType = CardUtil
 	}
 
 	const tools = [CardTool]

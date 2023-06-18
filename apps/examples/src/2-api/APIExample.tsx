@@ -1,13 +1,13 @@
 import {
-	createShapeId,
+	DefaultColorStyle,
 	Editor,
-	Tldraw,
 	TLGeoShape,
 	TLShapePartial,
+	Tldraw,
+	createShapeId,
 	useEditor,
 } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 import { useEffect } from 'react'
 
 // The tldraw component shares its App instance via its onMount callback prop.
@@ -92,7 +92,7 @@ const InsideOfEditorContext = () => {
 		const interval = setInterval(() => {
 			const selection = [...editor.selectedIds]
 			editor.selectAll()
-			editor.setProp('color', i % 2 ? 'blue' : 'light-blue')
+			editor.setStyle(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
 			editor.setSelectedIds(selection)
 			i++
 		}, 1000)

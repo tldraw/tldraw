@@ -85,7 +85,7 @@
 		"typescript": "^5.0.2"
 	},
 	"devDependencies": {
-		"@microsoft/api-extractor": "^7.34.1",
+		"@microsoft/api-extractor": "^7.35.4",
 		"@swc/core": "^1.3.55",
 		"@swc/jest": "^0.2.26",
 		"@types/glob": "^8.1.0",
@@ -97,6 +97,6 @@
 		"vercel": "^28.16.15"
 	},
 	"resolutions": {
-		"@microsoft/api-extractor@^7.34.1": "patch:@microsoft/api-extractor@npm%3A7.34.1#./.yarn/patches/@microsoft-api-extractor-npm-7.34.1-af268a32f8.patch"
+		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch"
 	}
 }

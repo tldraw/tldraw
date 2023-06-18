@@ -1,4 +1,4 @@
-import { TLColorType, TLFillType } from '@tldraw/tlschema'
+import { TLDefaultColorStyle, TLDefaultFillStyle } from '@tldraw/tlschema'
 import * as React from 'react'
 import { useValue } from 'signia-react'
 import { HASH_PATERN_ZOOM_NAMES } from '../../../constants'
@@ -7,8 +7,8 @@ import { TLExportColors } from './TLExportColors'
 
 export interface ShapeFillProps {
 	d: string
-	fill: TLFillType
-	color: TLColorType
+	fill: TLDefaultFillStyle
+	color: TLDefaultColorStyle
 }
 
 export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: ShapeFillProps) {

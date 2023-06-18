@@ -1,6 +1,6 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
 import { T } from '@tldraw/validate'
-import { Box2dModel } from '../misc/geometry-types'
+import { Box2dModel, box2dModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
 import { cursorTypeValidator, TLCursor } from '../misc/TLCursor'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
@@ -55,10 +55,10 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 			y: T.number,
 			z: T.number,
 		}),
-		screenBounds: T.boxModel,
+		screenBounds: box2dModelValidator,
 		selectedIds: T.arrayOf(idValidator<TLShapeId>('shape')),
 		currentPageId: idValidator<TLPageId>('page'),
-		brush: T.boxModel.nullable(),
+		brush: box2dModelValidator.nullable(),
 		scribble: scribbleValidator.nullable(),
 		chatMessage: T.string,
 	})

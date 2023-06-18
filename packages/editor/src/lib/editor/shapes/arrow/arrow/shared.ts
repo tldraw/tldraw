@@ -1,5 +1,5 @@
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
-import { TLArrowShape, TLArrowTerminal, TLShape } from '@tldraw/tlschema'
+import { TLArrowShape, TLArrowShapeTerminal, TLShape } from '@tldraw/tlschema'
 import { Editor } from '../../../Editor'
 import { ShapeUtil } from '../../ShapeUtil'
 
@@ -13,13 +13,11 @@ export type BoundShapeInfo<T extends TLShape = TLShape> = {
 	didIntersect: boolean
 	isExact: boolean
 	transform: Matrix2d
-	// toLocalPoint: (v: VecLike) => Vec2d
-	// toPagePoint: (v: VecLike) => Vec2d
 }
 
 export function getBoundShapeInfoForTerminal(
 	editor: Editor,
-	terminal: TLArrowTerminal
+	terminal: TLArrowShapeTerminal
 ): BoundShapeInfo | undefined {
 	if (terminal.type === 'point') {
 		return
@@ -41,7 +39,7 @@ export function getBoundShapeInfoForTerminal(
 export function getArrowTerminalInArrowSpace(
 	editor: Editor,
 	arrowPageTransform: Matrix2d,
-	terminal: TLArrowTerminal
+	terminal: TLArrowShapeTerminal
 ) {
 	if (terminal.type === 'point') {
 		return Vec2d.From(terminal)
@@ -72,3 +70,10 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 
 	return { start, end }
 }
+
+/** @internal */
+export const MIN_ARROW_LENGTH = 48
+/** @internal */
+export const BOUND_ARROW_OFFSET = 10
+/** @internal */
+export const WAY_TOO_BIG_ARROW_BEND_FACTOR = 10

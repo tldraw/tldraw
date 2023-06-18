@@ -28,7 +28,7 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 			Vec2d.From({ x: shape.x, y: shape.y + shape.props.height }),
 		]
 	}
-	render() {
+	component() {
 		throw new Error('Method not implemented.')
 	}
 	indicator() {
@@ -211,15 +211,15 @@ describe('When cloning...', () => {
 		])
 	})
 	it('clones a single shape and restores when stopping cloning', () => {
-		expect(editor.shapeIds.size).toBe(3)
-		expect(editor.shapeIds.size).toBe(3)
+		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.currentPageShapeIds.size).toBe(3)
 		editor.select(ids.box1).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
-		expect(editor.shapeIds.size).toBe(3)
+		expect(editor.currentPageShapeIds.size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 
 		// Start cloning!
 		editor.keyDown('Alt')
-		expect(editor.shapeIds.size).toBe(4)
+		expect(editor.currentPageShapeIds.size).toBe(4)
 		const newShape = editor.selectedShapes[0]
 		expect(newShape.id).not.toBe(ids.box1)
 
@@ -240,13 +240,13 @@ describe('When cloning...', () => {
 
 	it('clones multiple single shape and restores when stopping cloning', () => {
 		editor.select(ids.box1, ids.box2).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
-		expect(editor.shapeIds.size).toBe(3)
+		expect(editor.currentPageShapeIds.size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 		editor.expectShapeToMatch({ id: ids.box2, x: 200, y: 190 }) // Translated B...
 
 		// Start cloning!
 		editor.keyDown('Alt')
-		expect(editor.shapeIds.size).toBe(5) // Two new shapes!
+		expect(editor.currentPageShapeIds.size).toBe(5) // Two new shapes!
 		const newShapeA = editor.getShapeById(editor.selectedIds[0])!
 		const newShapeB = editor.getShapeById(editor.selectedIds[1])!
 		expect(newShapeA).toBeDefined()
@@ -280,9 +280,9 @@ describe('When cloning...', () => {
 		expect(editor.getShapeById(ids.line1)!.parentId).toBe(ids.box2)
 		editor.select(ids.box2).pointerDown(250, 250, ids.box2).pointerMove(250, 240) // [0, -10]
 
-		expect(editor.shapeIds.size).toBe(3)
+		expect(editor.currentPageShapeIds.size).toBe(3)
 		editor.keyDown('Alt', { altKey: true })
-		expect(editor.shapeIds.size).toBe(5) // Creates a clone of B and C (its descendant)
+		expect(editor.currentPageShapeIds.size).toBe(5) // Creates a clone of B and C (its descendant)
 
 		const newShapeA = editor.getShapeById(editor.selectedIds[0])!
 		const newShapeB = editor.getShapeById(editor.getSortedChildIds(newShapeA.id)[0])!

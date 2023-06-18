@@ -12,10 +12,10 @@ import {
 } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
 import {
-	TLArrowheadType,
 	TLArrowShape,
-	TLColorType,
-	TLFillType,
+	TLArrowShapeArrowheadStyle,
+	TLDefaultColorStyle,
+	TLDefaultFillStyle,
 	TLHandle,
 	TLShapeId,
 	TLShapePartial,
@@ -25,7 +25,6 @@ import { deepCopy, last, minBy } from '@tldraw/utils'
 import * as React from 'react'
 import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { ARROW_LABEL_FONT_SIZES, FONT_FAMILIES, TEXT_PROPS } from '../../../constants'
 import {
 	ShapeUtil,
 	TLOnEditEndHandler,
@@ -35,6 +34,12 @@ import {
 	TLShapeUtilFlag,
 } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
+import {
+	ARROW_LABEL_FONT_SIZES,
+	FONT_FAMILIES,
+	STROKE_SIZES,
+	TEXT_PROPS,
+} from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
@@ -530,7 +535,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
 		const outline = this.outline(shape)
 		const zoomLevel = this.editor.zoomLevel
-		const offsetDist = this.editor.getStrokeWidth(shape.props.size) / zoomLevel
+		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
 
 		for (let i = 0; i < outline.length - 1; i++) {
 			const C = outline[i]
@@ -554,7 +559,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return false
 	}
 
-	render(shape: TLArrowShape) {
+	component(shape: TLArrowShape) {
 		// Not a class component, but eslint can't tell that :(
 		const onlySelectedShape = this.editor.onlySelectedShape
 		const shouldDisplayHandles =
@@ -577,7 +582,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		if (!info?.isValid) return null
 
-		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
+		const strokeWidth = STROKE_SIZES[shape.props.size]
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -692,7 +697,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					)}
 					<g
 						fill="none"
-						stroke="currentColor"
+						stroke={`var(--palette-${shape.props.color})`}
 						strokeWidth={strokeWidth}
 						strokeLinejoin="round"
 						strokeLinecap="round"
@@ -735,7 +740,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					size={shape.props.size}
 					position={info.middle}
 					width={labelSize?.w ?? 0}
-					labelColor={this.editor.getCssColor(shape.props.labelColor)}
+					labelColor={shape.props.labelColor}
 				/>
 			</>
 		)
@@ -751,7 +756,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (!info) return null
 		if (Vec2d.Equals(start, end)) return null
 
-		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
+		const strokeWidth = STROKE_SIZES[shape.props.size]
 
 		const as = info.start.arrowhead && getArrowheadPathForType(info, 'start', strokeWidth)
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
@@ -925,7 +930,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const info = this.getArrowInfo(shape)
 
-		const strokeWidth = this.editor.getStrokeWidth(shape.props.size)
+		const strokeWidth = STROKE_SIZES[shape.props.size]
 
 		// Group for arrow
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
@@ -1088,7 +1093,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 }
 
-function getArrowheadSvgMask(d: string, arrowhead: TLArrowheadType) {
+function getArrowheadSvgMask(d: string, arrowhead: TLArrowShapeArrowheadStyle) {
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	path.setAttribute('d', d)
 	path.setAttribute('fill', arrowhead === 'arrow' ? 'none' : 'black')
@@ -1107,9 +1112,9 @@ function getArrowSvgPath(d: string, color: string, strokeWidth: number) {
 
 function getArrowheadSvgPath(
 	d: string,
-	color: TLColorType,
+	color: TLDefaultColorStyle,
 	strokeWidth: number,
-	fill: TLFillType,
+	fill: TLDefaultFillStyle,
 	colors: TLExportColors
 ) {
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')

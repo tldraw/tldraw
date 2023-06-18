@@ -43,7 +43,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return this.bounds(shape).corners
 	}
 
-	render(shape: TLGroupShape) {
+	component(shape: TLGroupShape) {
 		// Not a class component, but eslint can't tell that :(
 		const {
 			erasingIdsSet,

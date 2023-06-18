@@ -103,10 +103,7 @@ export class Validator<T> implements Validatable<T> {
 	 * null.
 	 */
 	nullable(): Validator<T | null> {
-		return new Validator((value) => {
-			if (value === null) return null
-			return this.validate(value)
-		})
+		return nullable(this)
 	}
 
 	/**
@@ -114,10 +111,7 @@ export class Validator<T> implements Validatable<T> {
 	 * null.
 	 */
 	optional(): Validator<T | undefined> {
-		return new Validator((value) => {
-			if (value === undefined) return undefined
-			return this.validate(value)
-		})
+		return optional(this)
 	}
 
 	/**
@@ -544,16 +538,24 @@ export function setEnum<T>(values: ReadonlySet<T>): Validator<T> {
 }
 
 /** @public */
-export const point = object({
-	x: number,
-	y: number,
-	z: number.optional(),
-})
+export function optional<T>(validator: Validatable<T>): Validator<T | undefined> {
+	return new Validator((value) => {
+		if (value === undefined) return undefined
+		return validator.validate(value)
+	})
+}
 
 /** @public */
-export const boxModel = object({
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-})
+export function nullable<T>(validator: Validatable<T>): Validator<T | null> {
+	return new Validator((value) => {
+		if (value === null) return null
+		return validator.validate(value)
+	})
+}
+
+/** @public */
+export function literalEnum<const Values extends readonly unknown[]>(
+	...values: Values
+): Validator<Values[number]> {
+	return setEnum(new Set(values))
+}
