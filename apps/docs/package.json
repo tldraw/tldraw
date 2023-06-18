@@ -35,6 +35,7 @@
 		"content": "lazy docs-content"
 	},
 	"dependencies": {
+		"@microsoft/api-extractor-model": "^7.27.3",
 		"@microsoft/tsdoc": "^0.14.2",
 		"@tldraw/utils": "workspace:*",
 		"@types/node": "18.15.0",

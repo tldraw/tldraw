@@ -2863,7 +2863,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor-model@npm:7.27.3":
+"@microsoft/api-extractor-model@npm:7.27.3, @microsoft/api-extractor-model@npm:^7.27.3":
   version: 7.27.3
   resolution: "@microsoft/api-extractor-model@npm:7.27.3"
   dependencies:
@@ -4358,6 +4358,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/docs@workspace:apps/docs"
   dependencies:
+    "@microsoft/api-extractor-model": ^7.27.3
     "@microsoft/tsdoc": ^0.14.2
     "@tldraw/editor": "workspace:*"
     "@tldraw/file-format": "workspace:*"
