@@ -2874,17 +2874,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@microsoft/api-extractor-model@npm:^7.26.4":
-  version: 7.26.4
-  resolution: "@microsoft/api-extractor-model@npm:7.26.4"
-  dependencies:
-    "@microsoft/tsdoc": 0.14.2
-    "@microsoft/tsdoc-config": ~0.16.1
-    "@rushstack/node-core-library": 3.55.2
-  checksum: 0b27f9b248396422f3044f2472d86c111a6a4d34b4fd2c67d9995e96e5b144ec41ac35dbf2a005f144766814b824518bc42b424d93e3075d3dc1b17c2f8791d6
-  languageName: node
-  linkType: hard
-
 "@microsoft/api-extractor@npm:7.35.4":
   version: 7.35.4
   resolution: "@microsoft/api-extractor@npm:7.35.4"
@@ -4046,26 +4035,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@rushstack/node-core-library@npm:3.55.2":
-  version: 3.55.2
-  resolution: "@rushstack/node-core-library@npm:3.55.2"
-  dependencies:
-    colors: ~1.2.1
-    fs-extra: ~7.0.1
-    import-lazy: ~4.0.0
-    jju: ~1.4.0
-    resolve: ~1.22.1
-    semver: ~7.3.0
-    z-schema: ~5.0.2
-  peerDependencies:
-    "@types/node": "*"
-  peerDependenciesMeta:
-    "@types/node":
-      optional: true
-  checksum: b6b289315cd6a3544471f534405479b7c80f3906b7506590d5eb83a605a0a5b65861bf678f3e6c2277c8db116b8e05f8e7b6864fdc75e0f1514c9ff224b83fe6
-  languageName: node
-  linkType: hard
-
 "@rushstack/node-core-library@npm:3.59.4":
   version: 3.59.4
   resolution: "@rushstack/node-core-library@npm:3.59.4"
@@ -4389,7 +4358,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/docs@workspace:apps/docs"
   dependencies:
-    "@microsoft/api-extractor-model": ^7.26.4
     "@microsoft/tsdoc": ^0.14.2
     "@tldraw/editor": "workspace:*"
     "@tldraw/file-format": "workspace:*"

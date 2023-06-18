@@ -62,7 +62,6 @@
 		"tsdoc comments), even though we don't use any of their code to run the docs site."
 	],
 	"devDependencies": {
-		"@microsoft/api-extractor-model": "^7.26.4",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/file-format": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
