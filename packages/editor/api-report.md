@@ -348,36 +348,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    // (undocumented)
-    _________________ASSETS: string;
-    // (undocumented)
-    _________________CAMERA: number;
-    // (undocumented)
-    _________________SHAPES: number;
-    // (undocumented)
-    _________________STATECHART: number;
-    // (undocumented)
-    ______________EVENTS: number;
-    // (undocumented)
-    ____________ERRORS: number;
-    // (undocumented)
-    ___________HISTORY: number;
-    // (undocumented)
-    ___________SHAPE_UTILS: number;
-    // (undocumented)
-    __________INTERNAL_STATE: number;
-    // (undocumented)
-    _________CONTENT: number;
-    // (undocumented)
-    _________DOCUMENT_SETTINGS: number;
-    // (undocumented)
-    _________INSTANCE_STATE: number;
-    // (undocumented)
-    _________PAGE_STATE: number;
-    // (undocumented)
-    _________PAGES: number;
-    // (undocumented)
-    _________USER: number;
     constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
@@ -687,9 +657,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     setGridMode(isGridMode: boolean): this;
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
-    setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     setLocale(locale: string): void;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
+    setPageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     setPenMode(isPenMode: boolean): this;
     // @internal (undocumented)
     setProjectName(name: string): void;

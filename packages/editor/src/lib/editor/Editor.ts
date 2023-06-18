@@ -336,7 +336,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.ensureStoreIsUsable()
 
 		// clear ephemeral state
-		this.setInstancePageState(
+		this.setPageState(
 			{
 				editingId: null,
 				hoveredId: null,
@@ -450,8 +450,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/* --------------------- History -------------------- */
-
-	___________HISTORY = 0
 
 	/**
 	 * A manager for the app's history.
@@ -925,8 +923,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Errors --------------------- */
 
-	____________ERRORS = 0
-
 	/** @internal */
 	annotateError(
 		error: unknown,
@@ -1013,7 +1009,50 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/* ------------------- Statechart ------------------- */
-	_________________STATECHART = 0
+
+	/**
+	 * Get whether a certain tool (or other state node) is currently active.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.isIn('select')
+	 * editor.isIn('select.brushing')
+	 * ```
+	 *
+	 * @param path - The path of active states, separated by periods.
+	 *
+	 * @public
+	 */
+	isIn(path: string): boolean {
+		const ids = path.split('.').reverse()
+		let state = this.root as StateNode
+		while (ids.length > 0) {
+			const id = ids.pop()
+			if (!id) return true
+			const current = state.current.value
+			if (current?.id === id) {
+				if (ids.length === 0) return true
+				state = current
+				continue
+			} else return false
+		}
+		return false
+	}
+
+	/**
+	 * Get whether the state node is in any of the given active paths.
+	 *
+	 * @example
+	 * ```ts
+	 * state.isInAny('select', 'erase')
+	 * state.isInAny('select.brushing', 'erase.idle')
+	 * ```
+	 *
+	 * @public
+	 */
+	isInAny(...paths: string[]): boolean {
+		return paths.some((path) => this.isIn(path))
+	}
 
 	/**
 	 * The id of the current selected tool.
@@ -1082,53 +1121,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return state
 	}
 
-	/**
-	 * Get whether a certain tool (or other state node) is currently active.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.isIn('select')
-	 * editor.isIn('select.brushing')
-	 * ```
-	 *
-	 * @param path - The path of active states, separated by periods.
-	 *
-	 * @public
-	 */
-	isIn(path: string): boolean {
-		const ids = path.split('.').reverse()
-		let state = this.root as StateNode
-		while (ids.length > 0) {
-			const id = ids.pop()
-			if (!id) return true
-			const current = state.current.value
-			if (current?.id === id) {
-				if (ids.length === 0) return true
-				state = current
-				continue
-			} else return false
-		}
-		return false
-	}
-
-	/**
-	 * Get whether the state node is in any of the given active paths.
-	 *
-	 * @example
-	 * ```ts
-	 * state.isInAny('select', 'erase')
-	 * state.isInAny('select.brushing', 'erase.idle')
-	 * ```
-	 *
-	 * @public
-	 */
-	isInAny(...paths: string[]): boolean {
-		return paths.some((path) => this.isIn(path))
-	}
-
 	/* ----------------- Internal State ----------------- */
-
-	__________INTERNAL_STATE = 0
 
 	/**
 	 * Blur the app, cancelling any interaction state.
@@ -1390,8 +1383,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* ---------------- Document Settings --------------- */
 
-	_________DOCUMENT_SETTINGS = 0
-
 	/**
 	 * The global document settings that apply to all users.
 	 *
@@ -1430,8 +1421,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/* ---------------------- User ---------------------- */
-
-	_________USER = 0
 
 	/**
 	 * Get the user's locale.
@@ -1523,8 +1512,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* ----------------- Instance State ----------------- */
 
-	_________INSTANCE_STATE = 0
-
 	/**
 	 * The current instance's state.
 	 *
@@ -1550,6 +1537,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 **/
 	get brush() {
 		return this.instanceState.brush
+	}
+
+	/**
+	 * Set the current brush.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setBrush({ x: 0, y: 0, w: 100, h: 100 })
+	 * editor.setBrush() // Clears the brush
+	 * ```
+	 *
+	 * @param brush - The brush box model to set, or null for no brush model.
+	 *
+	 * @public
+	 */
+	setBrush(brush: Box2dModel | null = null): this {
+		if (!brush && !this.brush) return this
+		this.updateInstanceState({ brush }, true)
+		return this
 	}
 
 	/**
@@ -1587,6 +1593,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 **/
 	get scribble() {
 		return this.instanceState.scribble
+	}
+
+	/**
+	 * Set the current scribble.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setScribble(nextScribble)
+	 * editor.setScribble() // clears the scribble
+	 * ```
+	 *
+	 * @param scribble - The new scribble object.
+	 *
+	 * @public
+	 */
+	setScribble(scribble: TLScribble | null = null): this {
+		this.updateInstanceState({ scribble }, true)
+		return this
 	}
 
 	// Focus Mode
@@ -1736,46 +1760,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/**
-	 * Set the current scribble.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setScribble(nextScribble)
-	 * editor.setScribble() // clears the scribble
-	 * ```
-	 *
-	 * @param scribble - The new scribble object.
-	 *
-	 * @public
-	 */
-	setScribble(scribble: TLScribble | null = null): this {
-		this.updateInstanceState({ scribble }, true)
-		return this
-	}
-
-	/**
-	 * Set the current brush.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setBrush({ x: 0, y: 0, w: 100, h: 100 })
-	 * editor.setBrush() // Clears the brush
-	 * ```
-	 *
-	 * @param brush - The brush box model to set, or null for no brush model.
-	 *
-	 * @public
-	 */
-	setBrush(brush: Box2dModel | null = null): this {
-		if (!brush && !this.brush) return this
-		this.updateInstanceState({ brush }, true)
-		return this
-	}
-
 	/* ------------------- Page State ------------------- */
-
-	_________PAGE_STATE = 0
 
 	/** @internal */
 	@computed private get _pageStates() {
@@ -1815,8 +1800,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setInstancePageState({ id: 'page1', editingId: 'shape:123' })
-	 * editor.setInstancePageState({ id: 'page1', editingId: 'shape:123' }, true)
+	 * editor.setPageState({ id: 'page1', editingId: 'shape:123' })
+	 * editor.setPageState({ id: 'page1', editingId: 'shape:123' }, true)
 	 * ```
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
@@ -1824,7 +1809,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral = false) {
+	setPageState(partial: Partial<TLInstancePageState>, ephemeral = false) {
 		this._setInstancePageState(partial, ephemeral)
 	}
 
@@ -2251,13 +2236,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setEditingId(id: TLShapeId | null): this {
 		if (!id) {
-			this.setInstancePageState({ editingId: null })
+			this.setPageState({ editingId: null })
 		} else {
 			if (id !== this.editingId) {
 				const shape = this.getShapeById(id)!
 				const util = this.getShapeUtil(shape)
 				if (shape && util.canEdit(shape)) {
-					this.setInstancePageState({ editingId: id, hoveredId: null }, false)
+					this.setPageState({ editingId: id, hoveredId: null }, false)
 				}
 			}
 		}
@@ -2298,7 +2283,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setHoveredId(id: TLShapeId | null = null): this {
 		if (id === this.pageState.hoveredId) return this
 
-		this.setInstancePageState({ hoveredId: id }, true)
+		this.setPageState({ hoveredId: id }, true)
 		return this
 	}
 
@@ -2375,7 +2360,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const erasingIds = this.erasingIdsSet
 		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return this
 
-		this.setInstancePageState({ erasingIds: ids }, true)
+		this.setPageState({ erasingIds: ids }, true)
 		return this
 	}
 
@@ -2400,7 +2385,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setCroppingId(id: TLShapeId | null): this {
 		if (id !== this.croppingId) {
 			if (!id) {
-				this.setInstancePageState({ croppingId: null })
+				this.setPageState({ croppingId: null })
 				if (this.isInAny('select.crop', 'select.pointing_crop_handle', 'select.cropping')) {
 					this.setSelectedTool('select.idle')
 				}
@@ -2408,7 +2393,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const shape = this.getShapeById(id)!
 				const util = this.getShapeUtil(shape)
 				if (shape && util.canCrop(shape)) {
-					this.setInstancePageState({ croppingId: id, hoveredId: null })
+					this.setPageState({ croppingId: id, hoveredId: null })
 				}
 			}
 		}
@@ -2458,8 +2443,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/* --------------------- Camera --------------------- */
-
-	_________________CAMERA = 0
 
 	/** @internal */
 	@computed
@@ -3727,827 +3710,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/* --------------------- Content -------------------- */
-
-	_________CONTENT = 0
-
-	/** @public */
-	externalContentManager = new ExternalContentManager(this)
-
-	/**
-	 * Get content that can be exported for the given shape ids.
-	 *
-	 * @param ids - The ids of the shapes to get content for. Defaults to the selected shape ids.
-	 *
-	 * @returns The exported content.
-	 *
-	 * @public
-	 */
-	getContent(ids: TLShapeId[] = this.selectedIds): TLContent | undefined {
-		if (!ids) return
-		if (ids.length === 0) return
-
-		const pageTransforms: Record<string, Matrix2dModel> = {}
-
-		let shapes = dedupe(
-			ids
-				.map((id) => this.getShapeById(id)!)
-				.sort(sortByIndex)
-				.flatMap((shape) => {
-					const allShapes = [shape]
-					this.visitDescendants(shape.id, (descendant) => {
-						allShapes.push(this.getShapeById(descendant)!)
-					})
-					return allShapes
-				})
-		)
-
-		shapes = shapes.map((shape) => {
-			pageTransforms[shape.id] = this.getPageTransformById(shape.id)!
-
-			shape = structuredClone(shape) as typeof shape
-
-			if (this.isShapeOfType(shape, ArrowShapeUtil)) {
-				const startBindingId =
-					shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : undefined
-
-				const endBindingId =
-					shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : undefined
-
-				const info = this.getShapeUtil(ArrowShapeUtil).getArrowInfo(shape)
-
-				if (shape.props.start.type === 'binding') {
-					if (!shapes.some((s) => s.id === startBindingId)) {
-						// Uh oh, the arrow's bound-to shape isn't among the shapes
-						// that we're getting the content for. We should try to adjust
-						// the arrow so that it appears in the place it would be
-						if (info?.isValid) {
-							const { x, y } = info.start.point
-							shape.props.start = {
-								type: 'point',
-								x,
-								y,
-							}
-						} else {
-							const { start } = getArrowTerminalsInArrowSpace(this, shape)
-							shape.props.start = {
-								type: 'point',
-								x: start.x,
-								y: start.y,
-							}
-						}
-					}
-				}
-
-				if (shape.props.end.type === 'binding') {
-					if (!shapes.some((s) => s.id === endBindingId)) {
-						if (info?.isValid) {
-							const { x, y } = info.end.point
-							shape.props.end = {
-								type: 'point',
-								x,
-								y,
-							}
-						} else {
-							const { end } = getArrowTerminalsInArrowSpace(this, shape)
-							shape.props.end = {
-								type: 'point',
-								x: end.x,
-								y: end.y,
-							}
-						}
-					}
-				}
-
-				const infoAfter = getIsArrowStraight(shape)
-					? getStraightArrowInfo(this, shape)
-					: getCurvedArrowInfo(this, shape)
-
-				if (info?.isValid && infoAfter?.isValid && !getIsArrowStraight(shape)) {
-					const mpA = Vec2d.Med(info.start.handle, info.end.handle)
-					const distA = Vec2d.Dist(info.middle, mpA)
-					const distB = Vec2d.Dist(infoAfter.middle, mpA)
-					if (shape.props.bend < 0) {
-						shape.props.bend += distB - distA
-					} else {
-						shape.props.bend -= distB - distA
-					}
-				}
-
-				return shape
-			}
-
-			return shape
-		})
-
-		const rootShapeIds: TLShapeId[] = []
-
-		shapes.forEach((shape) => {
-			if (shapes.find((s) => s.id === shape.parentId) === undefined) {
-				// Need to get page point and rotation of the shape because shapes in
-				// groups use local position/rotation
-
-				const pagePoint = this.getPagePointById(shape.id)!
-				const pageRotation = this.getPageRotationById(shape.id)!
-				shape.x = pagePoint.x
-				shape.y = pagePoint.y
-				shape.rotation = pageRotation
-				shape.parentId = this.currentPageId
-
-				rootShapeIds.push(shape.id)
-			}
-		})
-
-		const assetsSet = new Set<TLAssetId>()
-
-		shapes.forEach((shape) => {
-			if ('assetId' in shape.props) {
-				if (shape.props.assetId !== null) {
-					assetsSet.add(shape.props.assetId)
-				}
-			}
-		})
-
-		return {
-			shapes,
-			rootShapeIds,
-			schema: this.store.schema.serialize(),
-			assets: compact(Array.from(assetsSet).map((id) => this.getAssetById(id))),
-		}
-	}
-
-	/**
-	 * Place content into the editor.
-	 *
-	 * @param content - The content.
-	 * @param options - Options for placing the content.
-	 *
-	 * @public
-	 */
-	putContent(
-		content: TLContent,
-		options: {
-			point?: VecLike
-			select?: boolean
-			preservePosition?: boolean
-			preserveIds?: boolean
-		} = {}
-	): this {
-		if (this.isReadOnly) return this
-
-		if (!content.schema) {
-			throw Error('Could not put content: content is missing a schema.')
-		}
-
-		const { select = false, preserveIds = false, preservePosition = false } = options
-		let { point = undefined } = options
-
-		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
-
-		const { currentPageId } = this
-		const { assets, shapes, rootShapeIds } = content
-
-		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
-
-		// By default, the paste parent will be the current page.
-		let pasteParentId = this.currentPageId as TLPageId | TLShapeId
-		let lowestDepth = Infinity
-		let lowestAncestors: TLShape[] = []
-
-		// Among the selected shapes, find the shape with the fewest ancestors and use its first ancestor.
-		for (const shape of this.selectedShapes) {
-			if (lowestDepth === 0) break
-
-			const isFrame = this.isShapeOfType(shape, FrameShapeUtil)
-			const ancestors = this.getAncestors(shape)
-			if (isFrame) ancestors.push(shape)
-
-			const depth = isFrame ? ancestors.length + 1 : ancestors.length
-
-			if (depth < lowestDepth) {
-				lowestDepth = depth
-				lowestAncestors = ancestors
-				pasteParentId = isFrame ? shape.id : shape.parentId
-			} else if (depth === lowestDepth) {
-				if (lowestAncestors.length !== ancestors.length) {
-					throw Error(`Ancestors: ${lowestAncestors.length} !== ${ancestors.length}`)
-				}
-
-				if (lowestAncestors.length === 0) {
-					pasteParentId = currentPageId
-					break
-				} else {
-					pasteParentId = currentPageId
-					for (let i = 0; i < lowestAncestors.length; i++) {
-						if (ancestors[i] !== lowestAncestors[i]) break
-						pasteParentId = ancestors[i].id
-					}
-				}
-			}
-		}
-
-		let isDuplicating = false
-
-		if (!isPageId(pasteParentId)) {
-			const parent = this.getShapeById(pasteParentId)
-			if (parent) {
-				if (!this.viewportPageBounds.includes(this.getPageBounds(parent)!)) {
-					pasteParentId = currentPageId
-				} else {
-					if (rootShapeIds.length === 1) {
-						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
-						if (
-							this.isShapeOfType(parent, FrameShapeUtil) &&
-							this.isShapeOfType(rootShape, FrameShapeUtil) &&
-							rootShape.props.w === parent?.props.w &&
-							rootShape.props.h === parent?.props.h
-						) {
-							isDuplicating = true
-						}
-					}
-				}
-			} else {
-				pasteParentId = currentPageId
-			}
-		}
-
-		if (!isDuplicating) {
-			isDuplicating = idMap.has(pasteParentId)
-		}
-
-		if (isDuplicating) {
-			pasteParentId = this.getShapeById(pasteParentId)!.parentId
-		}
-
-		let index = this.getHighestIndexForParent(pasteParentId)
-
-		const rootShapes: TLShape[] = []
-
-		const newShapes: TLShape[] = shapes.map((shape): TLShape => {
-			let newShape: TLShape
-
-			if (preserveIds) {
-				newShape = deepCopy(shape)
-				idMap.set(shape.id, shape.id)
-			} else {
-				const id = idMap.get(shape.id)!
-
-				// Create the new shape (new except for the id)
-				newShape = deepCopy({ ...shape, id })
-			}
-
-			if (rootShapeIds.includes(shape.id)) {
-				newShape.parentId = currentPageId
-				rootShapes.push(newShape)
-			}
-
-			// Assign the child to its new parent.
-
-			// If the child's parent is among the putting shapes, then assign
-			// it to the new parent's id.
-			if (idMap.has(newShape.parentId)) {
-				newShape.parentId = idMap.get(shape.parentId)!
-			} else {
-				rootShapeIds.push(newShape.id)
-				// newShape.parentId = pasteParentId
-				newShape.index = index
-				index = getIndexAbove(index)
-			}
-
-			if (this.isShapeOfType(newShape, ArrowShapeUtil)) {
-				if (newShape.props.start.type === 'binding') {
-					const mappedId = idMap.get(newShape.props.start.boundShapeId)
-					newShape.props.start = mappedId
-						? { ...newShape.props.start, boundShapeId: mappedId }
-						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-						  // convert the binding to a point at the time of copying
-						  { type: 'point', x: 0, y: 0 }
-				}
-				if (newShape.props.end.type === 'binding') {
-					const mappedId = idMap.get(newShape.props.end.boundShapeId)
-					newShape.props.end = mappedId
-						? { ...newShape.props.end, boundShapeId: mappedId }
-						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
-						  // convert the binding to a point at the time of copying
-						  { type: 'point', x: 0, y: 0 }
-				}
-			}
-
-			return newShape
-		})
-
-		if (newShapes.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE) {
-			// There's some complexity here involving children
-			// that might be created without their parents, so
-			// if we're going over the limit then just don't paste.
-			alertMaxShapes(this)
-			return this
-		}
-
-		// Migrate the new shapes
-
-		let assetsToCreate: TLAsset[] = []
-
-		if (assets) {
-			for (let i = 0; i < assets.length; i++) {
-				const asset = assets[i]
-				const result = this.store.schema.migratePersistedRecord(asset, content.schema)
-				if (result.type === 'success') {
-					assets[i] = result.value as TLAsset
-				} else {
-					throw Error(
-						`Could not put content: could not migrate content for asset:\n${JSON.stringify(
-							asset,
-							null,
-							2
-						)}`
-					)
-				}
-			}
-
-			const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
-
-			assetsToCreate = assets
-				.filter((asset) => !this.store.has(asset.id))
-				.map((asset) => {
-					if (asset.type === 'image' || asset.type === 'video') {
-						if (asset.props.src && asset.props.src?.startsWith('data:image')) {
-							assetsToUpdate.push(structuredClone(asset))
-							asset.props.src = null
-						} else {
-							assetsToUpdate.push(structuredClone(asset))
-						}
-					}
-
-					return asset
-				})
-
-			Promise.allSettled(
-				assetsToUpdate.map(async (asset) => {
-					const file = await dataUrlToFile(
-						asset.props.src!,
-						asset.props.name,
-						asset.props.mimeType ?? 'image/png'
-					)
-
-					const newAsset = await this.externalContentManager.createAssetFromFile(this, file)
-
-					return [asset, newAsset] as const
-				})
-			).then((assets) => {
-				this.updateAssets(
-					compact(
-						assets.map((result) =>
-							result.status === 'fulfilled'
-								? { ...result.value[1], id: result.value[0].id }
-								: undefined
-						)
-					)
-				)
-			})
-		}
-
-		for (let i = 0; i < newShapes.length; i++) {
-			const shape = newShapes[i]
-			const result = this.store.schema.migratePersistedRecord(shape, content.schema)
-			if (result.type === 'success') {
-				newShapes[i] = result.value as TLShape
-			} else {
-				throw Error(
-					`Could not put content: could not migrate content for shape:\n${JSON.stringify(
-						shape,
-						null,
-						2
-					)}`
-				)
-			}
-		}
-
-		this.batch(() => {
-			// Create any assets that need to be created
-			if (assetsToCreate.length > 0) {
-				this.createAssets(assetsToCreate)
-			}
-
-			// Create the shapes with root shapes as children of the page
-			this.createShapes(newShapes, select)
-
-			// And then, if needed, reparent the root shapes to the paste parent
-			if (pasteParentId !== currentPageId) {
-				this.reparentShapesById(
-					rootShapes.map((s) => s.id),
-					pasteParentId
-				)
-			}
-
-			const newCreatedShapes = newShapes.map((s) => this.getShapeById(s.id)!)
-			const bounds = Box2d.Common(newCreatedShapes.map((s) => this.getPageBounds(s)!))
-
-			if (point === undefined) {
-				if (!isPageId(pasteParentId)) {
-					// Put the shapes in the middle of the (on screen) parent
-					const shape = this.getShapeById(pasteParentId)!
-					const util = this.getShapeUtil(shape)
-					point = util.center(shape)
-				} else {
-					const { viewportPageBounds } = this
-					if (preservePosition || viewportPageBounds.includes(Box2d.From(bounds))) {
-						// Otherwise, put shapes where they used to be
-						point = bounds.center
-					} else {
-						// If the old bounds are outside of the viewport...
-						// put the shapes in the middle of the viewport
-						point = viewportPageBounds.center
-					}
-				}
-			}
-
-			if (rootShapes.length === 1) {
-				const onlyRoot = rootShapes[0] as TLFrameShape
-				// If the old bounds are in the viewport...
-				if (this.isShapeOfType(onlyRoot, FrameShapeUtil)) {
-					while (
-						this.getShapesAtPoint(point).some(
-							(shape) =>
-								this.isShapeOfType(shape, FrameShapeUtil) &&
-								shape.props.w === onlyRoot.props.w &&
-								shape.props.h === onlyRoot.props.h
-						)
-					) {
-						point.x += bounds.w + 16
-					}
-				}
-			}
-
-			this.updateShapes(
-				rootShapes.map((s) => {
-					const delta = {
-						x: (s.x ?? 0) - (bounds.x + bounds.w / 2),
-						y: (s.y ?? 0) - (bounds.y + bounds.h / 2),
-					}
-
-					return { id: s.id, type: s.type, x: point!.x + delta.x, y: point!.y + delta.y }
-				})
-			)
-		})
-
-		return this
-	}
-
-	/**
-	 * Replace the store's contents with the given records.
-	 *
-	 * @param records - The records to replace the store's contents with.
-	 */
-	replaceStoreContentsWithRecordsForOtherDocument(records: TLRecord[]) {
-		transact(() => {
-			this.store.clear()
-			const [shapes, nonShapes] = partition(records, (record) => record.typeName === 'shape')
-			this.store.put(nonShapes, 'initialize')
-			this.store.ensureStoreIsUsable()
-			this.store.put(shapes, 'initialize')
-			this.history.clear()
-			this.updateViewportScreenBounds()
-			this.updateRenderingBounds()
-
-			const bounds = this.allShapesCommonBounds
-			if (bounds) {
-				this.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
-			}
-		})
-	}
-
-	/**
-	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
-	 *
-	 * @param info - Info about the external content.
-	 */
-	async putExternalContent(info: TLExternalContent): Promise<void> {
-		this.externalContentManager.handleContent(info)
-	}
-
-	/**
-	 * Get an exported SVG of the given shapes.
-	 *
-	 * @param ids - The ids of the shapes to export. Defaults to selected shapes.
-	 * @param opts - Options for the export.
-	 *
-	 * @returns The SVG element.
-	 *
-	 * @public
-	 */
-	async getSvg(
-		ids: TLShapeId[] = this.selectedIds.length
-			? this.selectedIds
-			: (Object.keys(this.currentPageShapeIds) as TLShapeId[]),
-		opts = {} as Partial<{
-			scale: number
-			background: boolean
-			padding: number
-			darkMode?: boolean
-			preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
-		}>
-	) {
-		if (ids.length === 0) return
-		if (!window.document) throw Error('No document')
-
-		const {
-			scale = 1,
-			background = false,
-			padding = SVG_PADDING,
-			darkMode = this.isDarkMode,
-			preserveAspectRatio = false,
-		} = opts
-
-		const realContainerEl = this.getContainer()
-		const realContainerStyle = getComputedStyle(realContainerEl)
-
-		// Get the styles from the container. We'll use these to pull out colors etc.
-		// NOTE: We can force force a light theme here because we don't want export
-		const fakeContainerEl = document.createElement('div')
-		fakeContainerEl.className = `tl-container tl-theme__${
-			darkMode ? 'dark' : 'light'
-		} tl-theme__force-sRGB`
-		document.body.appendChild(fakeContainerEl)
-
-		const containerStyle = getComputedStyle(fakeContainerEl)
-		const fontsUsedInExport = new Map<string, string>()
-
-		const colors: TLExportColors = {
-			fill: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}`),
-				])
-			),
-			pattern: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-pattern`),
-				])
-			),
-			semi: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-semi`),
-				])
-			),
-			highlight: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-highlight`),
-				])
-			),
-			text: containerStyle.getPropertyValue(`--color-text`),
-			background: containerStyle.getPropertyValue(`--color-background`),
-			solid: containerStyle.getPropertyValue(`--palette-solid`),
-		}
-
-		// Remove containerEl from DOM (temp DOM node)
-		document.body.removeChild(fakeContainerEl)
-
-		// ---Figure out which shapes we need to include
-		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
-		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
-			({ id }) => shapeIdsToInclude.has(id)
-		)
-
-		// --- Common bounding box of all shapes
-		let bbox = null
-		for (const { maskedPageBounds } of renderingShapes) {
-			if (!maskedPageBounds) continue
-			if (bbox) {
-				bbox.union(maskedPageBounds)
-			} else {
-				bbox = maskedPageBounds.clone()
-			}
-		}
-
-		// no unmasked shapes to export
-		if (!bbox) return
-
-		const singleFrameShapeId =
-			ids.length === 1 && this.isShapeOfType(this.getShapeById(ids[0])!, FrameShapeUtil)
-				? ids[0]
-				: null
-		if (!singleFrameShapeId) {
-			// Expand by an extra 32 pixels
-			bbox.expandBy(padding)
-		}
-
-		// We want the svg image to be BIGGER THAN USUAL to account for image quality
-		const w = bbox.width * scale
-		const h = bbox.height * scale
-
-		// --- Create the SVG
-
-		// Embed our custom fonts
-		const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-
-		if (preserveAspectRatio) {
-			svg.setAttribute('preserveAspectRatio', preserveAspectRatio)
-		}
-
-		svg.setAttribute('direction', 'ltr')
-		svg.setAttribute('width', w + '')
-		svg.setAttribute('height', h + '')
-		svg.setAttribute('viewBox', `${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`)
-		svg.setAttribute('stroke-linecap', 'round')
-		svg.setAttribute('stroke-linejoin', 'round')
-		// Add current background color, or else background will be transparent
-
-		if (background) {
-			if (singleFrameShapeId) {
-				svg.style.setProperty('background', colors.solid)
-			} else {
-				svg.style.setProperty('background-color', colors.background)
-			}
-		} else {
-			svg.style.setProperty('background-color', 'transparent')
-		}
-
-		// Add the defs to the svg
-		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-
-		for (const element of Array.from(exportPatternSvgDefs(colors.solid))) {
-			defs.appendChild(element)
-		}
-
-		try {
-			document.body.focus?.() // weird but necessary
-		} catch (e) {
-			// not implemented
-		}
-
-		svg.append(defs)
-
-		const unorderedShapeElements = (
-			await Promise.all(
-				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
-					// Don't render the frame if we're only exporting a single frame
-					if (id === singleFrameShapeId) return []
-
-					const shape = this.getShapeById(id)!
-
-					if (this.isShapeOfType(shape, GroupShapeUtil)) return []
-
-					const util = this.getShapeUtil(shape)
-
-					let font: string | undefined
-					// TODO: `Editor` shouldn't know about `DefaultFontStyle`. We need another way
-					// for shapes to register fonts for export.
-					const fontFromShape = util.getStyleIfExists(DefaultFontStyle, shape)
-					if (fontFromShape) {
-						if (fontsUsedInExport.has(fontFromShape)) {
-							font = fontsUsedInExport.get(fontFromShape)!
-						} else {
-							// For some reason these styles aren't present in the fake element
-							// so we need to get them from the real element
-							font = realContainerStyle.getPropertyValue(`--tl-font-${fontFromShape}`)
-							fontsUsedInExport.set(fontFromShape, font)
-						}
-					}
-
-					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
-
-					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
-					if (shapeSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(shapeSvgElement)
-						shapeSvgElement = outerElement
-					}
-
-					if (backgroundSvgElement) {
-						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-						outerElement.appendChild(backgroundSvgElement)
-						backgroundSvgElement = outerElement
-					}
-
-					if (!shapeSvgElement && !backgroundSvgElement) {
-						const bounds = this.getPageBounds(shape)!
-						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-						elm.setAttribute('width', bounds.width + '')
-						elm.setAttribute('height', bounds.height + '')
-						elm.setAttribute('fill', colors.solid)
-						elm.setAttribute('stroke', colors.pattern.grey)
-						elm.setAttribute('stroke-width', '1')
-						shapeSvgElement = elm
-					}
-
-					let pageTransform = this.getPageTransform(shape)!.toCssString()
-					if ('scale' in shape.props) {
-						if (shape.props.scale !== 1) {
-							pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
-						}
-					}
-
-					shapeSvgElement?.setAttribute('transform', pageTransform)
-					backgroundSvgElement?.setAttribute('transform', pageTransform)
-					shapeSvgElement?.setAttribute('opacity', opacity + '')
-					backgroundSvgElement?.setAttribute('opacity', opacity + '')
-
-					// Create svg mask if shape has a frame as parent
-					const pageMask = this.getPageMaskById(shape.id)
-					if (pageMask) {
-						// Create a clip path and add it to defs
-						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
-						defs.appendChild(clipPathEl)
-						const id = nanoid()
-						clipPathEl.id = id
-
-						// Create a polyline mask that does the clipping
-						const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-						mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
-						clipPathEl.appendChild(mask)
-
-						// Create group that uses the clip path and wraps the shape elements
-						if (shapeSvgElement) {
-							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
-							outerElement.appendChild(shapeSvgElement)
-							shapeSvgElement = outerElement
-						}
-
-						if (backgroundSvgElement) {
-							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-							outerElement.setAttribute('clip-path', `url(#${id})`)
-							outerElement.appendChild(backgroundSvgElement)
-							backgroundSvgElement = outerElement
-						}
-					}
-
-					const elements = []
-					if (shapeSvgElement) {
-						elements.push({ zIndex: index, element: shapeSvgElement })
-					}
-					if (backgroundSvgElement) {
-						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
-					}
-
-					return elements
-				})
-			)
-		).flat()
-
-		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
-			svg.appendChild(element)
-		}
-
-		// Add styles to the defs
-		let styles = ``
-		const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style')
-
-		// Insert fonts into app
-		const fontInstances: FontFace[] = []
-
-		if ('fonts' in document) {
-			document.fonts.forEach((font) => fontInstances.push(font))
-		}
-
-		await Promise.all(
-			fontInstances.map(async (font) => {
-				const fileReader = new FileReader()
-
-				let isUsed = false
-
-				fontsUsedInExport.forEach((fontName) => {
-					if (fontName.includes(font.family)) {
-						isUsed = true
-					}
-				})
-
-				if (!isUsed) return
-
-				const url = (font as any).$$_url
-
-				const fontFaceRule = (font as any).$$_fontface
-
-				if (url) {
-					const fontFile = await (await fetch(url)).blob()
-
-					const base64Font = await new Promise<string>((resolve, reject) => {
-						fileReader.onload = () => resolve(fileReader.result as string)
-						fileReader.onerror = () => reject(fileReader.error)
-						fileReader.readAsDataURL(fontFile)
-					})
-
-					const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
-					styles += newFontFaceRule
-				}
-			})
-		)
-
-		style.textContent = styles
-
-		defs.append(style)
-
-		return svg
-	}
-
 	/* --------------------- Pages ---------------------- */
-
-	_________PAGES = 0
 
 	/** @internal */
 	@computed private get _pages() {
@@ -4961,8 +4124,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Assets --------------------- */
 
-	_________________ASSETS = 'ASSETS'
-
 	/** @internal */
 	@computed private get _assets() {
 		return this.store.query.records('asset')
@@ -5281,8 +4442,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getHandles<T extends TLShape>(shape: T): TLHandle[] | undefined {
 		return this.getHandlesById<T>(shape.id)
 	}
-
-	_________________SHAPES = 0
 
 	/**
 	 * Get the local transform for a shape as a matrix model. This transform reflects both its
@@ -8849,9 +8008,823 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/* --------------------- Events --------------------- */
+	/* --------------------- Content -------------------- */
 
-	______________EVENTS = 0
+	/** @public */
+	externalContentManager = new ExternalContentManager(this)
+
+	/**
+	 * Get content that can be exported for the given shape ids.
+	 *
+	 * @param ids - The ids of the shapes to get content for. Defaults to the selected shape ids.
+	 *
+	 * @returns The exported content.
+	 *
+	 * @public
+	 */
+	getContent(ids: TLShapeId[] = this.selectedIds): TLContent | undefined {
+		if (!ids) return
+		if (ids.length === 0) return
+
+		const pageTransforms: Record<string, Matrix2dModel> = {}
+
+		let shapes = dedupe(
+			ids
+				.map((id) => this.getShapeById(id)!)
+				.sort(sortByIndex)
+				.flatMap((shape) => {
+					const allShapes = [shape]
+					this.visitDescendants(shape.id, (descendant) => {
+						allShapes.push(this.getShapeById(descendant)!)
+					})
+					return allShapes
+				})
+		)
+
+		shapes = shapes.map((shape) => {
+			pageTransforms[shape.id] = this.getPageTransformById(shape.id)!
+
+			shape = structuredClone(shape) as typeof shape
+
+			if (this.isShapeOfType(shape, ArrowShapeUtil)) {
+				const startBindingId =
+					shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : undefined
+
+				const endBindingId =
+					shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : undefined
+
+				const info = this.getShapeUtil(ArrowShapeUtil).getArrowInfo(shape)
+
+				if (shape.props.start.type === 'binding') {
+					if (!shapes.some((s) => s.id === startBindingId)) {
+						// Uh oh, the arrow's bound-to shape isn't among the shapes
+						// that we're getting the content for. We should try to adjust
+						// the arrow so that it appears in the place it would be
+						if (info?.isValid) {
+							const { x, y } = info.start.point
+							shape.props.start = {
+								type: 'point',
+								x,
+								y,
+							}
+						} else {
+							const { start } = getArrowTerminalsInArrowSpace(this, shape)
+							shape.props.start = {
+								type: 'point',
+								x: start.x,
+								y: start.y,
+							}
+						}
+					}
+				}
+
+				if (shape.props.end.type === 'binding') {
+					if (!shapes.some((s) => s.id === endBindingId)) {
+						if (info?.isValid) {
+							const { x, y } = info.end.point
+							shape.props.end = {
+								type: 'point',
+								x,
+								y,
+							}
+						} else {
+							const { end } = getArrowTerminalsInArrowSpace(this, shape)
+							shape.props.end = {
+								type: 'point',
+								x: end.x,
+								y: end.y,
+							}
+						}
+					}
+				}
+
+				const infoAfter = getIsArrowStraight(shape)
+					? getStraightArrowInfo(this, shape)
+					: getCurvedArrowInfo(this, shape)
+
+				if (info?.isValid && infoAfter?.isValid && !getIsArrowStraight(shape)) {
+					const mpA = Vec2d.Med(info.start.handle, info.end.handle)
+					const distA = Vec2d.Dist(info.middle, mpA)
+					const distB = Vec2d.Dist(infoAfter.middle, mpA)
+					if (shape.props.bend < 0) {
+						shape.props.bend += distB - distA
+					} else {
+						shape.props.bend -= distB - distA
+					}
+				}
+
+				return shape
+			}
+
+			return shape
+		})
+
+		const rootShapeIds: TLShapeId[] = []
+
+		shapes.forEach((shape) => {
+			if (shapes.find((s) => s.id === shape.parentId) === undefined) {
+				// Need to get page point and rotation of the shape because shapes in
+				// groups use local position/rotation
+
+				const pagePoint = this.getPagePointById(shape.id)!
+				const pageRotation = this.getPageRotationById(shape.id)!
+				shape.x = pagePoint.x
+				shape.y = pagePoint.y
+				shape.rotation = pageRotation
+				shape.parentId = this.currentPageId
+
+				rootShapeIds.push(shape.id)
+			}
+		})
+
+		const assetsSet = new Set<TLAssetId>()
+
+		shapes.forEach((shape) => {
+			if ('assetId' in shape.props) {
+				if (shape.props.assetId !== null) {
+					assetsSet.add(shape.props.assetId)
+				}
+			}
+		})
+
+		return {
+			shapes,
+			rootShapeIds,
+			schema: this.store.schema.serialize(),
+			assets: compact(Array.from(assetsSet).map((id) => this.getAssetById(id))),
+		}
+	}
+
+	/**
+	 * Place content into the editor.
+	 *
+	 * @param content - The content.
+	 * @param options - Options for placing the content.
+	 *
+	 * @public
+	 */
+	putContent(
+		content: TLContent,
+		options: {
+			point?: VecLike
+			select?: boolean
+			preservePosition?: boolean
+			preserveIds?: boolean
+		} = {}
+	): this {
+		if (this.isReadOnly) return this
+
+		if (!content.schema) {
+			throw Error('Could not put content: content is missing a schema.')
+		}
+
+		const { select = false, preserveIds = false, preservePosition = false } = options
+		let { point = undefined } = options
+
+		// decide on a parent for the put shapes; if the parent is among the put shapes(?) then use its parent
+
+		const { currentPageId } = this
+		const { assets, shapes, rootShapeIds } = content
+
+		const idMap = new Map<any, TLShapeId>(shapes.map((shape) => [shape.id, createShapeId()]))
+
+		// By default, the paste parent will be the current page.
+		let pasteParentId = this.currentPageId as TLPageId | TLShapeId
+		let lowestDepth = Infinity
+		let lowestAncestors: TLShape[] = []
+
+		// Among the selected shapes, find the shape with the fewest ancestors and use its first ancestor.
+		for (const shape of this.selectedShapes) {
+			if (lowestDepth === 0) break
+
+			const isFrame = this.isShapeOfType(shape, FrameShapeUtil)
+			const ancestors = this.getAncestors(shape)
+			if (isFrame) ancestors.push(shape)
+
+			const depth = isFrame ? ancestors.length + 1 : ancestors.length
+
+			if (depth < lowestDepth) {
+				lowestDepth = depth
+				lowestAncestors = ancestors
+				pasteParentId = isFrame ? shape.id : shape.parentId
+			} else if (depth === lowestDepth) {
+				if (lowestAncestors.length !== ancestors.length) {
+					throw Error(`Ancestors: ${lowestAncestors.length} !== ${ancestors.length}`)
+				}
+
+				if (lowestAncestors.length === 0) {
+					pasteParentId = currentPageId
+					break
+				} else {
+					pasteParentId = currentPageId
+					for (let i = 0; i < lowestAncestors.length; i++) {
+						if (ancestors[i] !== lowestAncestors[i]) break
+						pasteParentId = ancestors[i].id
+					}
+				}
+			}
+		}
+
+		let isDuplicating = false
+
+		if (!isPageId(pasteParentId)) {
+			const parent = this.getShapeById(pasteParentId)
+			if (parent) {
+				if (!this.viewportPageBounds.includes(this.getPageBounds(parent)!)) {
+					pasteParentId = currentPageId
+				} else {
+					if (rootShapeIds.length === 1) {
+						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
+						if (
+							this.isShapeOfType(parent, FrameShapeUtil) &&
+							this.isShapeOfType(rootShape, FrameShapeUtil) &&
+							rootShape.props.w === parent?.props.w &&
+							rootShape.props.h === parent?.props.h
+						) {
+							isDuplicating = true
+						}
+					}
+				}
+			} else {
+				pasteParentId = currentPageId
+			}
+		}
+
+		if (!isDuplicating) {
+			isDuplicating = idMap.has(pasteParentId)
+		}
+
+		if (isDuplicating) {
+			pasteParentId = this.getShapeById(pasteParentId)!.parentId
+		}
+
+		let index = this.getHighestIndexForParent(pasteParentId)
+
+		const rootShapes: TLShape[] = []
+
+		const newShapes: TLShape[] = shapes.map((shape): TLShape => {
+			let newShape: TLShape
+
+			if (preserveIds) {
+				newShape = deepCopy(shape)
+				idMap.set(shape.id, shape.id)
+			} else {
+				const id = idMap.get(shape.id)!
+
+				// Create the new shape (new except for the id)
+				newShape = deepCopy({ ...shape, id })
+			}
+
+			if (rootShapeIds.includes(shape.id)) {
+				newShape.parentId = currentPageId
+				rootShapes.push(newShape)
+			}
+
+			// Assign the child to its new parent.
+
+			// If the child's parent is among the putting shapes, then assign
+			// it to the new parent's id.
+			if (idMap.has(newShape.parentId)) {
+				newShape.parentId = idMap.get(shape.parentId)!
+			} else {
+				rootShapeIds.push(newShape.id)
+				// newShape.parentId = pasteParentId
+				newShape.index = index
+				index = getIndexAbove(index)
+			}
+
+			if (this.isShapeOfType(newShape, ArrowShapeUtil)) {
+				if (newShape.props.start.type === 'binding') {
+					const mappedId = idMap.get(newShape.props.start.boundShapeId)
+					newShape.props.start = mappedId
+						? { ...newShape.props.start, boundShapeId: mappedId }
+						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
+						  // convert the binding to a point at the time of copying
+						  { type: 'point', x: 0, y: 0 }
+				}
+				if (newShape.props.end.type === 'binding') {
+					const mappedId = idMap.get(newShape.props.end.boundShapeId)
+					newShape.props.end = mappedId
+						? { ...newShape.props.end, boundShapeId: mappedId }
+						: // this shouldn't happen, if you copy an arrow but not it's bound shape it should
+						  // convert the binding to a point at the time of copying
+						  { type: 'point', x: 0, y: 0 }
+				}
+			}
+
+			return newShape
+		})
+
+		if (newShapes.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE) {
+			// There's some complexity here involving children
+			// that might be created without their parents, so
+			// if we're going over the limit then just don't paste.
+			alertMaxShapes(this)
+			return this
+		}
+
+		// Migrate the new shapes
+
+		let assetsToCreate: TLAsset[] = []
+
+		if (assets) {
+			for (let i = 0; i < assets.length; i++) {
+				const asset = assets[i]
+				const result = this.store.schema.migratePersistedRecord(asset, content.schema)
+				if (result.type === 'success') {
+					assets[i] = result.value as TLAsset
+				} else {
+					throw Error(
+						`Could not put content: could not migrate content for asset:\n${JSON.stringify(
+							asset,
+							null,
+							2
+						)}`
+					)
+				}
+			}
+
+			const assetsToUpdate: (TLImageAsset | TLVideoAsset)[] = []
+
+			assetsToCreate = assets
+				.filter((asset) => !this.store.has(asset.id))
+				.map((asset) => {
+					if (asset.type === 'image' || asset.type === 'video') {
+						if (asset.props.src && asset.props.src?.startsWith('data:image')) {
+							assetsToUpdate.push(structuredClone(asset))
+							asset.props.src = null
+						} else {
+							assetsToUpdate.push(structuredClone(asset))
+						}
+					}
+
+					return asset
+				})
+
+			Promise.allSettled(
+				assetsToUpdate.map(async (asset) => {
+					const file = await dataUrlToFile(
+						asset.props.src!,
+						asset.props.name,
+						asset.props.mimeType ?? 'image/png'
+					)
+
+					const newAsset = await this.externalContentManager.createAssetFromFile(this, file)
+
+					return [asset, newAsset] as const
+				})
+			).then((assets) => {
+				this.updateAssets(
+					compact(
+						assets.map((result) =>
+							result.status === 'fulfilled'
+								? { ...result.value[1], id: result.value[0].id }
+								: undefined
+						)
+					)
+				)
+			})
+		}
+
+		for (let i = 0; i < newShapes.length; i++) {
+			const shape = newShapes[i]
+			const result = this.store.schema.migratePersistedRecord(shape, content.schema)
+			if (result.type === 'success') {
+				newShapes[i] = result.value as TLShape
+			} else {
+				throw Error(
+					`Could not put content: could not migrate content for shape:\n${JSON.stringify(
+						shape,
+						null,
+						2
+					)}`
+				)
+			}
+		}
+
+		this.batch(() => {
+			// Create any assets that need to be created
+			if (assetsToCreate.length > 0) {
+				this.createAssets(assetsToCreate)
+			}
+
+			// Create the shapes with root shapes as children of the page
+			this.createShapes(newShapes, select)
+
+			// And then, if needed, reparent the root shapes to the paste parent
+			if (pasteParentId !== currentPageId) {
+				this.reparentShapesById(
+					rootShapes.map((s) => s.id),
+					pasteParentId
+				)
+			}
+
+			const newCreatedShapes = newShapes.map((s) => this.getShapeById(s.id)!)
+			const bounds = Box2d.Common(newCreatedShapes.map((s) => this.getPageBounds(s)!))
+
+			if (point === undefined) {
+				if (!isPageId(pasteParentId)) {
+					// Put the shapes in the middle of the (on screen) parent
+					const shape = this.getShapeById(pasteParentId)!
+					const util = this.getShapeUtil(shape)
+					point = util.center(shape)
+				} else {
+					const { viewportPageBounds } = this
+					if (preservePosition || viewportPageBounds.includes(Box2d.From(bounds))) {
+						// Otherwise, put shapes where they used to be
+						point = bounds.center
+					} else {
+						// If the old bounds are outside of the viewport...
+						// put the shapes in the middle of the viewport
+						point = viewportPageBounds.center
+					}
+				}
+			}
+
+			if (rootShapes.length === 1) {
+				const onlyRoot = rootShapes[0] as TLFrameShape
+				// If the old bounds are in the viewport...
+				if (this.isShapeOfType(onlyRoot, FrameShapeUtil)) {
+					while (
+						this.getShapesAtPoint(point).some(
+							(shape) =>
+								this.isShapeOfType(shape, FrameShapeUtil) &&
+								shape.props.w === onlyRoot.props.w &&
+								shape.props.h === onlyRoot.props.h
+						)
+					) {
+						point.x += bounds.w + 16
+					}
+				}
+			}
+
+			this.updateShapes(
+				rootShapes.map((s) => {
+					const delta = {
+						x: (s.x ?? 0) - (bounds.x + bounds.w / 2),
+						y: (s.y ?? 0) - (bounds.y + bounds.h / 2),
+					}
+
+					return { id: s.id, type: s.type, x: point!.x + delta.x, y: point!.y + delta.y }
+				})
+			)
+		})
+
+		return this
+	}
+
+	/**
+	 * Replace the store's contents with the given records.
+	 *
+	 * @param records - The records to replace the store's contents with.
+	 */
+	replaceStoreContentsWithRecordsForOtherDocument(records: TLRecord[]) {
+		transact(() => {
+			this.store.clear()
+			const [shapes, nonShapes] = partition(records, (record) => record.typeName === 'shape')
+			this.store.put(nonShapes, 'initialize')
+			this.store.ensureStoreIsUsable()
+			this.store.put(shapes, 'initialize')
+			this.history.clear()
+			this.updateViewportScreenBounds()
+			this.updateRenderingBounds()
+
+			const bounds = this.allShapesCommonBounds
+			if (bounds) {
+				this.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
+			}
+		})
+	}
+
+	/**
+	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
+	 *
+	 * @param info - Info about the external content.
+	 */
+	async putExternalContent(info: TLExternalContent): Promise<void> {
+		this.externalContentManager.handleContent(info)
+	}
+
+	/**
+	 * Get an exported SVG of the given shapes.
+	 *
+	 * @param ids - The ids of the shapes to export. Defaults to selected shapes.
+	 * @param opts - Options for the export.
+	 *
+	 * @returns The SVG element.
+	 *
+	 * @public
+	 */
+	async getSvg(
+		ids: TLShapeId[] = this.selectedIds.length
+			? this.selectedIds
+			: (Object.keys(this.currentPageShapeIds) as TLShapeId[]),
+		opts = {} as Partial<{
+			scale: number
+			background: boolean
+			padding: number
+			darkMode?: boolean
+			preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+		}>
+	) {
+		if (ids.length === 0) return
+		if (!window.document) throw Error('No document')
+
+		const {
+			scale = 1,
+			background = false,
+			padding = SVG_PADDING,
+			darkMode = this.isDarkMode,
+			preserveAspectRatio = false,
+		} = opts
+
+		const realContainerEl = this.getContainer()
+		const realContainerStyle = getComputedStyle(realContainerEl)
+
+		// Get the styles from the container. We'll use these to pull out colors etc.
+		// NOTE: We can force force a light theme here because we don't want export
+		const fakeContainerEl = document.createElement('div')
+		fakeContainerEl.className = `tl-container tl-theme__${
+			darkMode ? 'dark' : 'light'
+		} tl-theme__force-sRGB`
+		document.body.appendChild(fakeContainerEl)
+
+		const containerStyle = getComputedStyle(fakeContainerEl)
+		const fontsUsedInExport = new Map<string, string>()
+
+		const colors: TLExportColors = {
+			fill: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}`),
+				])
+			),
+			pattern: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}-pattern`),
+				])
+			),
+			semi: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}-semi`),
+				])
+			),
+			highlight: objectMapFromEntries(
+				DefaultColorStyle.values.map((color) => [
+					color,
+					containerStyle.getPropertyValue(`--palette-${color}-highlight`),
+				])
+			),
+			text: containerStyle.getPropertyValue(`--color-text`),
+			background: containerStyle.getPropertyValue(`--color-background`),
+			solid: containerStyle.getPropertyValue(`--palette-solid`),
+		}
+
+		// Remove containerEl from DOM (temp DOM node)
+		document.body.removeChild(fakeContainerEl)
+
+		// ---Figure out which shapes we need to include
+		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
+		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
+			({ id }) => shapeIdsToInclude.has(id)
+		)
+
+		// --- Common bounding box of all shapes
+		let bbox = null
+		for (const { maskedPageBounds } of renderingShapes) {
+			if (!maskedPageBounds) continue
+			if (bbox) {
+				bbox.union(maskedPageBounds)
+			} else {
+				bbox = maskedPageBounds.clone()
+			}
+		}
+
+		// no unmasked shapes to export
+		if (!bbox) return
+
+		const singleFrameShapeId =
+			ids.length === 1 && this.isShapeOfType(this.getShapeById(ids[0])!, FrameShapeUtil)
+				? ids[0]
+				: null
+		if (!singleFrameShapeId) {
+			// Expand by an extra 32 pixels
+			bbox.expandBy(padding)
+		}
+
+		// We want the svg image to be BIGGER THAN USUAL to account for image quality
+		const w = bbox.width * scale
+		const h = bbox.height * scale
+
+		// --- Create the SVG
+
+		// Embed our custom fonts
+		const svg = window.document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+
+		if (preserveAspectRatio) {
+			svg.setAttribute('preserveAspectRatio', preserveAspectRatio)
+		}
+
+		svg.setAttribute('direction', 'ltr')
+		svg.setAttribute('width', w + '')
+		svg.setAttribute('height', h + '')
+		svg.setAttribute('viewBox', `${bbox.minX} ${bbox.minY} ${bbox.width} ${bbox.height}`)
+		svg.setAttribute('stroke-linecap', 'round')
+		svg.setAttribute('stroke-linejoin', 'round')
+		// Add current background color, or else background will be transparent
+
+		if (background) {
+			if (singleFrameShapeId) {
+				svg.style.setProperty('background', colors.solid)
+			} else {
+				svg.style.setProperty('background-color', colors.background)
+			}
+		} else {
+			svg.style.setProperty('background-color', 'transparent')
+		}
+
+		// Add the defs to the svg
+		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
+
+		for (const element of Array.from(exportPatternSvgDefs(colors.solid))) {
+			defs.appendChild(element)
+		}
+
+		try {
+			document.body.focus?.() // weird but necessary
+		} catch (e) {
+			// not implemented
+		}
+
+		svg.append(defs)
+
+		const unorderedShapeElements = (
+			await Promise.all(
+				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
+					// Don't render the frame if we're only exporting a single frame
+					if (id === singleFrameShapeId) return []
+
+					const shape = this.getShapeById(id)!
+
+					if (this.isShapeOfType(shape, GroupShapeUtil)) return []
+
+					const util = this.getShapeUtil(shape)
+
+					let font: string | undefined
+					// TODO: `Editor` shouldn't know about `DefaultFontStyle`. We need another way
+					// for shapes to register fonts for export.
+					const fontFromShape = util.getStyleIfExists(DefaultFontStyle, shape)
+					if (fontFromShape) {
+						if (fontsUsedInExport.has(fontFromShape)) {
+							font = fontsUsedInExport.get(fontFromShape)!
+						} else {
+							// For some reason these styles aren't present in the fake element
+							// so we need to get them from the real element
+							font = realContainerStyle.getPropertyValue(`--tl-font-${fontFromShape}`)
+							fontsUsedInExport.set(fontFromShape, font)
+						}
+					}
+
+					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
+					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
+
+					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
+					if (shapeSvgElement) {
+						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+						outerElement.appendChild(shapeSvgElement)
+						shapeSvgElement = outerElement
+					}
+
+					if (backgroundSvgElement) {
+						const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+						outerElement.appendChild(backgroundSvgElement)
+						backgroundSvgElement = outerElement
+					}
+
+					if (!shapeSvgElement && !backgroundSvgElement) {
+						const bounds = this.getPageBounds(shape)!
+						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
+						elm.setAttribute('width', bounds.width + '')
+						elm.setAttribute('height', bounds.height + '')
+						elm.setAttribute('fill', colors.solid)
+						elm.setAttribute('stroke', colors.pattern.grey)
+						elm.setAttribute('stroke-width', '1')
+						shapeSvgElement = elm
+					}
+
+					let pageTransform = this.getPageTransform(shape)!.toCssString()
+					if ('scale' in shape.props) {
+						if (shape.props.scale !== 1) {
+							pageTransform = `${pageTransform} scale(${shape.props.scale}, ${shape.props.scale})`
+						}
+					}
+
+					shapeSvgElement?.setAttribute('transform', pageTransform)
+					backgroundSvgElement?.setAttribute('transform', pageTransform)
+					shapeSvgElement?.setAttribute('opacity', opacity + '')
+					backgroundSvgElement?.setAttribute('opacity', opacity + '')
+
+					// Create svg mask if shape has a frame as parent
+					const pageMask = this.getPageMaskById(shape.id)
+					if (pageMask) {
+						// Create a clip path and add it to defs
+						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
+						defs.appendChild(clipPathEl)
+						const id = nanoid()
+						clipPathEl.id = id
+
+						// Create a polyline mask that does the clipping
+						const mask = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+						mask.setAttribute('d', `M${pageMask.map(({ x, y }) => `${x},${y}`).join('L')}Z`)
+						clipPathEl.appendChild(mask)
+
+						// Create group that uses the clip path and wraps the shape elements
+						if (shapeSvgElement) {
+							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+							outerElement.setAttribute('clip-path', `url(#${id})`)
+							outerElement.appendChild(shapeSvgElement)
+							shapeSvgElement = outerElement
+						}
+
+						if (backgroundSvgElement) {
+							const outerElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+							outerElement.setAttribute('clip-path', `url(#${id})`)
+							outerElement.appendChild(backgroundSvgElement)
+							backgroundSvgElement = outerElement
+						}
+					}
+
+					const elements = []
+					if (shapeSvgElement) {
+						elements.push({ zIndex: index, element: shapeSvgElement })
+					}
+					if (backgroundSvgElement) {
+						elements.push({ zIndex: backgroundIndex, element: backgroundSvgElement })
+					}
+
+					return elements
+				})
+			)
+		).flat()
+
+		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
+			svg.appendChild(element)
+		}
+
+		// Add styles to the defs
+		let styles = ``
+		const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style')
+
+		// Insert fonts into app
+		const fontInstances: FontFace[] = []
+
+		if ('fonts' in document) {
+			document.fonts.forEach((font) => fontInstances.push(font))
+		}
+
+		await Promise.all(
+			fontInstances.map(async (font) => {
+				const fileReader = new FileReader()
+
+				let isUsed = false
+
+				fontsUsedInExport.forEach((fontName) => {
+					if (fontName.includes(font.family)) {
+						isUsed = true
+					}
+				})
+
+				if (!isUsed) return
+
+				const url = (font as any).$$_url
+
+				const fontFaceRule = (font as any).$$_fontface
+
+				if (url) {
+					const fontFile = await (await fetch(url)).blob()
+
+					const base64Font = await new Promise<string>((resolve, reject) => {
+						fileReader.onload = () => resolve(fileReader.result as string)
+						fileReader.onerror = () => reject(fileReader.error)
+						fileReader.readAsDataURL(fontFile)
+					})
+
+					const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
+					styles += newFontFaceRule
+				}
+			})
+		)
+
+		style.textContent = styles
+
+		defs.append(style)
+
+		return svg
+	}
+
+	/* --------------------- Events --------------------- */
 
 	/**
 	 * The app's current input state.
