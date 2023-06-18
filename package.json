@@ -62,9 +62,10 @@
 		]
 	},
 	"dependencies": {
+		"@babel/parser": "^7.22.5",
 		"@next/eslint-plugin-next": "^13.3.0",
 		"@types/jest": "^28.1.2",
-		"@types/node": "18.7.3",
+		"@types/node": "18.15.0",
 		"@types/react": "^18.0.24",
 		"@types/react-dom": "^18.0.6",
 		"@typescript-eslint/eslint-plugin": "^5.57.0",
@@ -80,7 +81,7 @@
 		"husky": "^8.0.0",
 		"jest": "^28.1.1",
 		"lint-staged": ">=10",
-		"prettier": "^2.8.6",
+		"prettier": "^2.8.7",
 		"prettier-plugin-organize-imports": "^3.2.2",
 		"typescript": "^5.0.2"
 	},
@@ -93,7 +94,7 @@
 		"json5": "^2.2.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"rimraf": "^4.4.0",
-		"tsx": "^3.12.2",
+		"tsx": "^3.12.6",
 		"vercel": "^28.16.15"
 	},
 	"resolutions": {

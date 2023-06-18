@@ -63,18 +63,18 @@
 		"lz-string": "^1.4.4"
 	},
 	"peerDependencies": {
-		"react": "^18",
-		"react-dom": "^18",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
 		"signia": "*",
 		"signia-react": "*"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
-		"@testing-library/jest-dom": "^5.14.1",
-		"@testing-library/react": "^12.0.0",
+		"@testing-library/jest-dom": "^5.16.5",
+		"@testing-library/react": "^14.0.0",
 		"@types/lz-string": "^1.3.34",
-		"jest-canvas-mock": "^2.4.0",
-		"jest-environment-jsdom": "^28.1.2",
+		"jest-canvas-mock": "^2.5.1",
+		"jest-environment-jsdom": "^29.4.3",
 		"lazyrepo": "0.0.0-alpha.27",
 		"resize-observer-polyfill": "^1.5.1"
 	},
