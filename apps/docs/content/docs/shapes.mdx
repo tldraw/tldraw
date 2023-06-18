@@ -11,6 +11,92 @@ keywords:
   - utils
 ---
 
-Coming soon.
+In tldraw, **shapes** are the things that are on the canvas. This article is about shapes: what they are, how they work, and how to create your own shapes. If you'd prefer to see an example, see the tldraw repository's [examples app](https://github.com/tldraw/tldraw/tree/main/apps/examples) for examples of how to create custom shapes in tldraw.
 
-See the [tldraw repository](https://github.com/tldraw/tldraw/tree/main/apps/examples) for an example of how to create custom shapes in tldraw.
+## Custom shapes
+
+Let's create a custom "card" shape.
+
+### Shape type
+
+In tldraw's data model, each shape is represented by a JSON object. Let's first create a type that describes what this object will look like. 
+
+```ts
+import { TLBaseShape } from '@tldraw/tldraw'
+
+type CardShape = TLBaseShape<
+  'card', 
+  { w: number, h: number }
+>
+```
+
+With the `TLBaseShape` helper, we define the shape's `type` property (`card`) and the shape's `props` property (`{ w: number, h: number }`). The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
+
+The `TLBaseShape` helper adds the other default properties of a shape, such as `parentId`, `x`, `y`, and `rotation`.
+
+### Shape Util
+
+While tldraw's shapes themselves are simple JSON objects, we use `ShapeUtil` classes to answer questions about shapes. For example, when the editor needs to know the bounding box of our card shape, it will find a `ShapeUtil` for the `card` type and call that util's `bounds` method, passing in the `CardShape` object as an argument.
+
+Let's create a `ShapeUtil` class for the shape.
+
+```tsx
+import { ShapeUtil } from '@tldraw/tldraw'
+
+class CardShapeUtil extends ShapeUtil<CardShape> {
+  static type = 'card' as const
+
+  defaultProps(): CardShape['props'] {
+		return {
+			w: 100,
+			h: 100,
+		}
+	}
+
+  getBounds(shape: Shape) {
+		return new Box2d(0, 0, shape.props.w, shape.props.h)
+	}
+
+  getCenter(shape: Shape) {
+		return this.bounds(shape).center
+	}
+
+  getOutline(shape: Shape) {
+		return this.bounds(shape).corners
+	}
+
+  hitTestPoint(shape: Shape, point: VecLike): boolean {
+		return pointInPolygon(point, this.outline(shape))
+	}
+
+	hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
+		const outline = this.outline(shape)
+
+		for (let i = 0; i < outline.length; i++) {
+			const C = outline[i]
+			const D = outline[(i + 1) % outline.length]
+			if (linesIntersect(A, B, C, D)) return true
+		}
+
+		return false
+	}
+
+  onResize: TLOnResizeHandler<any> = (shape, info) => {
+  	const { newPoint, scaleX, scaleY } = info
+
+    let w = Math.max(1, shape.props.w * scaleX)
+    let h = Math.max(1, shape.props.h * scaleY)
+
+    return {
+      x,
+      y,
+      props: {
+        w,
+        h
+      },  
+	  }
+	}
+}
+```
+
+> It's important that this class have a static type property that matches the type of your shape.

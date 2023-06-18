@@ -20,11 +20,11 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 		return this.bounds(shape).corners
 	}
 
-	hitTestPoint(shape: Shape, point: VecLike): boolean {
+	override hitTestPoint(shape: Shape, point: VecLike): boolean {
 		return pointInPolygon(point, this.outline(shape))
 	}
 
-	hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
+	override hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
 		const outline = this.outline(shape)
 
 		for (let i = 0; i < outline.length; i++) {
@@ -36,7 +36,7 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 		return false
 	}
 
-	onResize: TLOnResizeHandler<any> = (shape, info) => {
+	override onResize: TLOnResizeHandler<any> = (shape, info) => {
 		return resizeBox(shape, info)
 	}
 }

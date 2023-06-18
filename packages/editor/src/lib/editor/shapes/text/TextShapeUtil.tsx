@@ -204,7 +204,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const { initialBounds, initialShape, scaleX, handle } = info
 
 		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
-			return resizeScaled(shape, info)
+			return {
+				id: shape.id,
+				type: shape.type,
+				...resizeScaled(shape, info),
+			}
 		} else {
 			const prevWidth = initialBounds.width
 			let nextWidth = prevWidth * scaleX
@@ -227,6 +231,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			const { x, y } = offset.rot(shape.rotation).add(initialShape)
 
 			return {
+				id: shape.id,
+				type: shape.type,
 				x,
 				y,
 				props: {

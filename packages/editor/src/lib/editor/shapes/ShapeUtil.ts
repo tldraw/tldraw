@@ -300,12 +300,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Get the shape's (not cached) outline. Do not override this method!
+	 * Get the shape's (not cached) outline.
 	 *
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected abstract getOutline(shape: Shape): Vec2d[]
+	protected getOutline(shape: Shape): Vec2d[] {
+		return this.bounds(shape).corners
+	}
 
 	@computed
 	private get outlineCache(): ComputedCache<Vec2d[], TLShape> {
@@ -315,7 +317,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Get the shape's outline. Do not override this method!
+	 * Get the shape's (cached) outline. Do not override this method!
 	 *
 	 * @param shape - The shape.
 	 * @public
@@ -350,7 +352,9 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract getCenter(shape: Shape): Vec2d
+	getCenter(shape: Shape) {
+		return this.bounds(shape).center
+	}
 
 	/**
 	 * Get whether the shape can receive children of a given type.
@@ -745,7 +749,7 @@ export type TLResizeInfo<T extends TLShape> = {
 export type TLOnResizeHandler<T extends TLShape> = (
 	shape: T,
 	info: TLResizeInfo<T>
-) => Partial<TLShapePartial<T>> | undefined | void
+) => Omit<TLShapePartial<T>, 'id' | 'type'> | undefined | void
 
 /** @public */
 export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>

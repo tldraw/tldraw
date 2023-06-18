@@ -1839,10 +1839,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
     protected abstract getBounds(shape: Shape): Box2d;
-    abstract getCenter(shape: Shape): Vec2d;
+    getCenter(shape: Shape): Vec2d;
     getEditingBounds: (shape: Shape) => Box2d;
     protected getHandles?(shape: Shape): TLHandle[];
-    protected abstract getOutline(shape: Shape): Vec2d[];
+    protected getOutline(shape: Shape): Vec2d[];
     protected getOutlineSegments(shape: Shape): Vec2d[][];
     // (undocumented)
     getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined;
@@ -2491,7 +2491,7 @@ export type TLOnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
 export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
 
 // @public (undocumented)
-export type TLOnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo<T>) => Partial<TLShapePartial<T>> | undefined | void;
+export type TLOnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo<T>) => Omit<TLShapePartial<T>, 'id' | 'type'> | undefined | void;
 
 // @public (undocumented)
 export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>;

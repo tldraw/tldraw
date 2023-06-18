@@ -4626,6 +4626,7 @@ __metadata:
     "@testing-library/react": ^14.0.0
     "@tldraw/editor": "workspace:*"
     "@tldraw/polyfills": "workspace:*"
+    "@tldraw/primitives": "workspace:*"
     "@tldraw/ui": "workspace:*"
     chokidar-cli: ^3.0.0
     jest-canvas-mock: ^2.4.0

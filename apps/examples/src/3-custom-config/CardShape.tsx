@@ -1,8 +1,11 @@
+import { resizeBox } from '@tldraw/editor/src/lib/editor/shapes/shared/resizeBox'
 import {
 	BaseBoxShapeTool,
-	BaseBoxShapeUtil,
+	Box2d,
 	HTMLContainer,
+	ShapeUtil,
 	TLBaseShape,
+	TLOnResizeHandler,
 	defineShape,
 } from '@tldraw/tldraw'
 
@@ -14,9 +17,17 @@ export type CardShape = TLBaseShape<
 	}
 >
 
-export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
+export class CardShapeUtil extends ShapeUtil<CardShape> {
 	// Id — the shape util's id
 	static override type = 'card' as const
+
+	override getBounds(shape: CardShape) {
+		return new Box2d(0, 0, shape.props.w, shape.props.h)
+	}
+
+	override onResize: TLOnResizeHandler<CardShape> = (shape, info) => {
+		return resizeBox(shape, info)
+	}
 
 	// Flags — there are a LOT of other flags!
 	override isAspectRatioLocked = (_shape: CardShape) => false
