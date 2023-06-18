@@ -5,6 +5,7 @@ let editor: TestEditor
 
 const ids = {
 	box1: createShapeId('box1'),
+	line1: createShapeId('line1'),
 	embed1: createShapeId('embed1'),
 }
 
@@ -135,7 +136,8 @@ describe('PointingHandle', () => {
 
 describe('DraggingHandle', () => {
 	it('Enters from pointing_handle and exits to idle', () => {
-		const shape = editor.getShapeById(ids.box1)
+		editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
+		const shape = editor.getShapeById(ids.line1)
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
@@ -149,7 +151,8 @@ describe('DraggingHandle', () => {
 	})
 
 	it('Bails on escape', () => {
-		const shape = editor.getShapeById(ids.box1)
+		editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
+		const shape = editor.getShapeById(ids.line1)
 
 		editor.pointerDown(150, 150, {
 			target: 'handle',
