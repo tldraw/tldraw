@@ -1839,10 +1839,10 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
     protected abstract getBounds(shape: Shape): Box2d;
-    getCenter(shape: Shape): Vec2d;
+    abstract getCenter(shape: Shape): Vec2d;
     getEditingBounds: (shape: Shape) => Box2d;
     protected getHandles?(shape: Shape): TLHandle[];
-    protected getOutline(shape: Shape): Vec2d[];
+    protected abstract getOutline(shape: Shape): Vec2d[];
     protected getOutlineSegments(shape: Shape): Vec2d[][];
     // (undocumented)
     getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined;
