@@ -53,7 +53,7 @@ export function filterEntries<Key extends string, Value>(object: {
 export function getErrorAnnotations(error: Error): ErrorAnnotations;
 
 // @public
-export function getFirstFromIterable<T = unknown>(set: Map<any, T> | Set<T>): T;
+export function getFirstFromIterable<T = unknown>(set: Set<T> | Map<any, T>): T;
 
 // @public
 export function getHashForObject(obj: any): string;
@@ -62,7 +62,7 @@ export function getHashForObject(obj: any): string;
 export function getHashForString(string: string): string;
 
 // @internal (undocumented)
-export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): undefined | V;
+export function getOwnProperty<K extends string, V>(obj: Partial<Record<K, V>>, key: K): V | undefined;
 
 // @internal (undocumented)
 export function getOwnProperty(obj: object, key: string): unknown;
@@ -155,7 +155,7 @@ type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & _Required<Pick<T, K>
 export { Required_2 as Required }
 
 // @public (undocumented)
-export type Result<T, E> = ErrorResult<E> | OkResult<T>;
+export type Result<T, E> = OkResult<T> | ErrorResult<E>;
 
 // @public (undocumented)
 export const Result: {
@@ -172,7 +172,7 @@ export function rotateArray<T>(arr: T[], offset: number): T[];
 // @public (undocumented)
 export function sortById<T extends {
     id: any;
-}>(a: T, b: T): -1 | 1;
+}>(a: T, b: T): 1 | -1;
 
 // @public (undocumented)
 const structuredClone_2: <T>(i: T) => T;
