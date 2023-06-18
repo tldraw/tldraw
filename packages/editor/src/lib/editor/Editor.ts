@@ -588,8 +588,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* ------------------- Shape Utils ------------------ */
 
-	___________SHAPE_UTILS = 0
-
 	/**
 	 * A map of shape utility classes (TLShapeUtils) by shape type.
 	 *
@@ -2843,8 +2841,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			return this
 		} else {
-			// TODO: This buffer should calculate the 'active area' of the UI
-			const insetViewport = this.viewportPageBounds.clone().expandBy(10 / this.zoomLevel)
+			const insetViewport = this.viewportPageBounds.clone().expandBy(-32 / this.zoomLevel)
 
 			let offsetX = 0
 			let offsetY = 0
@@ -3180,7 +3177,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	animateToShape(shapeId: TLShapeId, opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
 		if (!this.canMoveCamera) return this
 
-		const activeArea = this.viewportScreenBounds.clone().expandBy(-10)
+		const activeArea = this.viewportScreenBounds.clone().expandBy(-32)
 		const viewportAspectRatio = activeArea.width / activeArea.height
 
 		const shapePageBounds = this.getPageBoundsById(shapeId)
