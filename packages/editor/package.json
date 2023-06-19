@@ -45,8 +45,8 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
-		"signia": "*",
-		"signia-react": "*",
+		"signia": "0.1.4",
+		"signia-react": "0.1.4",
 		"@tldraw/indices": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
 		"@tldraw/store": "workspace:*",
