@@ -15,8 +15,10 @@ import { GetStaticPaths, GetStaticProps } from 'next'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
+import { ArticleProps } from './[articleId]'
 
-type Props = {
+type CategoryProps = {
+	type: 'category'
 	sidebar: SidebarContentList
 	section: Section
 	category: Category
@@ -24,14 +26,16 @@ type Props = {
 	mdxSource: MDXRemoteSerializeResult | null
 }
 
-export default function CategoryListPage({
-	sidebar,
-	mdxSource,
-	articles,
-	section,
-	category,
-}: Props) {
+type ChildProps = CategoryProps | ArticleProps
+
+export default function CategoryListPage(props: ChildProps) {
 	const theme = useTheme()
+
+	if (props.type === 'article') {
+		return null
+	}
+
+	const { sidebar, section, category, articles, mdxSource } = props
 
 	const ungrouped: Article[] = []
 	const groupedArticles = Object.fromEntries(
@@ -105,7 +109,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	return { paths, fallback: false }
 }
 
-export const getStaticProps: GetStaticProps<Props> = async (ctx) => {
+export const getStaticProps: GetStaticProps<ChildProps> = async (ctx) => {
 	const sectionId = ctx.params?.sectionId?.toString() as string
 	const categoryId = ctx.params?.categoryId?.toString()
 	if (!categoryId || !sectionId) throw Error()
@@ -123,5 +127,14 @@ export const getStaticProps: GetStaticProps<Props> = async (ctx) => {
 	const article = articles[categoryId + '_index'] ?? null
 	const mdxSource = article ? await getArticleSource(categoryId + '_index') : null
 
-	return { props: { sidebar, section, category, articles: categoryArticles, mdxSource } }
+	return {
+		props: {
+			type: 'category',
+			sidebar,
+			section,
+			category,
+			articles: categoryArticles,
+			mdxSource,
+		},
+	}
 }

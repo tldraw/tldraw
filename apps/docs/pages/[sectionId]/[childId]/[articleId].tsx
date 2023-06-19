@@ -18,7 +18,8 @@ import { GetStaticPaths, GetStaticProps } from 'next'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { useTheme } from 'next-themes'
 
-interface Props {
+export type ArticleProps = {
+	type: 'article'
 	sidebar: SidebarContentList
 	section: Section
 	category: Category
@@ -34,7 +35,7 @@ export default function ArticlePage({
 	article,
 	links,
 	sidebar,
-}: Props) {
+}: ArticleProps) {
 	const theme = useTheme()
 	return (
 		<>
@@ -68,7 +69,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	return { paths, fallback: false }
 }
 
-export const getStaticProps: GetStaticProps<Props> = async (ctx) => {
+export const getStaticProps: GetStaticProps<ArticleProps> = async (ctx) => {
 	const sectionId = ctx.params?.sectionId?.toString() as string
 	const categoryId = ctx.params?.categoryId?.toString() as string
 	const articleId = ctx.params?.articleId?.toString()
@@ -81,5 +82,15 @@ export const getStaticProps: GetStaticProps<Props> = async (ctx) => {
 	const links = await getLinks(articleId)
 	const mdxSource = await getArticleSource(articleId)
 
-	return { props: { article, section, category, sidebar, links, mdxSource } }
+	return {
+		props: {
+			type: 'article',
+			article,
+			section,
+			category,
+			sidebar,
+			links,
+			mdxSource,
+		},
+	}
 }
