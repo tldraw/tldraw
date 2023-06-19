@@ -45,6 +45,8 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
+		"signia": "*",
+		"signia-react": "*",
 		"@tldraw/indices": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
 		"@tldraw/store": "workspace:*",
@@ -66,9 +68,7 @@
 	},
 	"peerDependencies": {
 		"react": "^18",
-		"react-dom": "^18",
-		"signia": "*",
-		"signia-react": "*"
+		"react-dom": "^18"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
