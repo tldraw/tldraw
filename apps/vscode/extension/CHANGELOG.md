@@ -1,5 +1,4 @@
 ## 2.0.8
-
 - New highlighter tool!
 - You can now lock shapes.
 - Added vertical align setting to Note shapes.
@@ -8,8 +7,7 @@
 - Improved translations.
 - Fixed a problem where arrows might cause the extension to crash.
 
-## 2.0.7
-
+## 2.0.7 
 - New laser tool!
 - New checkbox shape!
 - Add veritcal alignment options to Notes and Geo shapes.
@@ -17,7 +15,6 @@
 - Improve exporting and saving to svgs.
 
 ## 2.0.6
-
 - Improved appearance of selection for single draw shapes.
 - Improve handling of pixel scale when pasting images.
 - Fixed a bug where pasted tabs wouldn't get converted into spaces.
@@ -28,6 +25,7 @@
 - Fixed a bug where the wrong default language option could be chosen.
 - Fixed a minor consistency bug when re-doing a shape update.
 - Re-doing a deletion of the current page now correctly navigates back to that page.
+
 
 ## 2.0.5
 

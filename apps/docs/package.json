@@ -35,13 +35,12 @@
 		"content": "lazy docs-content"
 	},
 	"dependencies": {
-		"@microsoft/api-extractor-model": "^7.27.3",
 		"@microsoft/tsdoc": "^0.14.2",
 		"@tldraw/utils": "workspace:*",
 		"@types/node": "18.15.0",
 		"@types/react": "^18.0.24",
 		"@types/react-dom": "^18.0.6",
-		"eslint": "^8.37.0",
+		"eslint": "8.36.0",
 		"eslint-config-next": "13.2.4",
 		"gray-matter": "^4.0.3",
 		"next": "13.2.4",
@@ -49,8 +48,8 @@
 		"next-remote-watch": "^2.0.0",
 		"next-themes": "^0.2.1",
 		"prettier": "^2.8.7",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0",
+		"react": "18.2.0",
+		"react-dom": "18.2.0",
 		"rehype-autolink-headings": "^6.1.1",
 		"rehype-highlight": "^6.0.0",
 		"rehype-slug": "^5.1.0",
@@ -63,6 +62,7 @@
 		"tsdoc comments), even though we don't use any of their code to run the docs site."
 	],
 	"devDependencies": {
+		"@microsoft/api-extractor-model": "^7.26.4",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/file-format": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
