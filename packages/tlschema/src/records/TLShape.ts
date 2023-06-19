@@ -155,10 +155,10 @@ export function createShapeId(id?: string): TLShapeId {
 export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>) {
 	const propKeysByStyle = new Map<StyleProp<unknown>, string>()
 	for (const [key, prop] of Object.entries(props)) {
-		if (prop instanceof StyleProp) {
+		if (StyleProp.isStyleProp(prop)) {
 			if (propKeysByStyle.has(prop)) {
 				throw new Error(
-					`Duplicate style prop ${prop.id}. Each style prop can only be used once within a shape.`
+					`Duplicate style prop ${prop.uniqueStylePropId}. Each style prop can only be used once within a shape.`
 				)
 			}
 			propKeysByStyle.set(prop, key)

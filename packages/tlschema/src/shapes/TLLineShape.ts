@@ -8,9 +8,8 @@ import { DefaultSizeStyle } from '../styles/TLSizeStyle'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export const LineShapeSplineStyle = StyleProp.defineEnum('tldraw:spline', {
+export const LineShapeSplineStyle = StyleProp.defineEnum('tldraw:spline', ['cubic', 'line'], {
 	defaultValue: 'line',
-	values: ['cubic', 'line'],
 })
 
 /** @public */

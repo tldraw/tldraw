@@ -2,10 +2,11 @@ import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
 
 /** @public */
-export const DefaultFontStyle = StyleProp.defineEnum('tldraw:font', {
-	defaultValue: 'draw',
-	values: ['draw', 'sans', 'serif', 'mono'],
-})
+export const DefaultFontStyle = StyleProp.defineEnum(
+	'tldraw:font',
+	['draw', 'sans', 'serif', 'mono'],
+	{ defaultValue: 'draw' }
+)
 
 /** @public */
 export type TLDefaultFontStyle = T.TypeOf<typeof DefaultFontStyle>

@@ -33,10 +33,13 @@ export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeI
 	const stylesById = new Map<string, StyleProp<unknown>>()
 	for (const shape of objectMapValues(shapes)) {
 		for (const style of getShapePropKeysByStyle(shape.props ?? {}).keys()) {
-			if (stylesById.has(style.id) && stylesById.get(style.id) !== style) {
-				throw new Error(`Multiple StyleProp instances with the same id: ${style.id}`)
+			if (
+				stylesById.has(style.uniqueStylePropId) &&
+				stylesById.get(style.uniqueStylePropId) !== style
+			) {
+				throw new Error(`Multiple StyleProp instances with the same id: ${style.uniqueStylePropId}`)
 			}
-			stylesById.set(style.id, style)
+			stylesById.set(style.uniqueStylePropId, style)
 		}
 	}
 
