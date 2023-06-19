@@ -2,12 +2,14 @@ import { Breadcrumb } from '@/components/Breadcrumb'
 import { Mdx } from '@/components/Mdx'
 import { MetaHead } from '@/components/MetaHead'
 import { Sidebar } from '@/components/Sidebar'
-import ArticlePage from '@/pages'
+import ArticlePage from '@/pages/[sectionId]/[childId]/[articleId]'
 import { Article, Category, Section, SidebarContentList } from '@/types/content-types'
 import {
+	getArticle,
 	getArticleSource,
 	getArticles,
 	getCategory,
+	getLinks,
 	getSection,
 	getSections,
 } from '@/utils/content'
@@ -103,6 +105,12 @@ export const getStaticPaths: GetStaticPaths = async () => {
 		if (section.categories) {
 			for (const category of section.categories) {
 				paths.push({ params: { sectionId: section.id, childId: category.id } })
+
+				// Add paths for uncategorized articles as well
+				if (category.id !== 'ucg') continue
+				for (const articleId of category.articleIds) {
+					paths.push({ params: { sectionId: section.id, childId: articleId } })
+				}
 			}
 		}
 	}
@@ -112,16 +120,37 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps<ChildProps> = async (ctx) => {
 	const sectionId = ctx.params?.sectionId?.toString() as string
-	const categoryId = ctx.params?.childId?.toString()
-	if (!categoryId || !sectionId) throw Error()
-
-	const sidebar = await getSidebarContentList({
-		sectionId,
-		categoryId,
-	})
+	const childId = ctx.params?.childId?.toString()
+	if (!childId || !sectionId) throw Error()
 
 	const articles = await getArticles()
 	const section = await getSection(sectionId)
+
+	// If the path goes to an uncategorized article, show the article page
+	if (!section.categories.some((c) => c.id === childId)) {
+		const categoryId = 'ucg'
+		const articleId = childId
+		const sidebar = await getSidebarContentList({ sectionId, categoryId, articleId })
+		const category = await getCategory(sectionId, categoryId)
+		const article = await getArticle(articleId)
+		const links = await getLinks(articleId)
+		const mdxSource = await getArticleSource(articleId)
+		return {
+			props: {
+				type: 'article',
+				sidebar,
+				section,
+				category,
+				article,
+				links,
+				mdxSource,
+			},
+		}
+	}
+
+	// Otherwise, show the category page
+	const categoryId = childId
+	const sidebar = await getSidebarContentList({ sectionId, categoryId })
 	const category = await getCategory(sectionId, categoryId)
 	const categoryArticles = category.articleIds.map((id) => articles[id])
 
