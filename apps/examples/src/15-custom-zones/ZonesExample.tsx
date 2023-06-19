@@ -14,7 +14,7 @@ function CustomShareZone() {
 	return (
 		<div
 			style={{
-				backgroundColor: 'var(--palette-light-blue)',
+				backgroundColor: 'lightblue',
 				width: '100%',
 				textAlign: 'center',
 				minWidth: '80px',
@@ -30,7 +30,7 @@ function CustomTopZone() {
 		<div
 			style={{
 				width: '100%',
-				backgroundColor: 'var(--palette-light-green)',
+				backgroundColor: 'lightgreen',
 				textAlign: 'center',
 			}}
 		>

@@ -5,7 +5,6 @@ import { StyleProp, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@t
 import { computed, EMPTY_ARRAY } from 'signia'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
-import { TLExportColors } from './shared/TLExportColors'
 
 /** @public */
 export interface TLShapeUtilConstructor<
@@ -349,11 +348,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(
-		shape: Shape,
-		font: string | undefined,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement>
+	toSvg?(shape: Shape, font: string | undefined): SVGElement | Promise<SVGElement>
 
 	/**
 	 * Get the shape's background layer as an SVG object.
@@ -364,11 +359,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(
-		shape: Shape,
-		font: string | undefined,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement> | null
+	toBackgroundSvg?(shape: Shape, font: string | undefined): SVGElement | Promise<SVGElement> | null
 
 	/**
 	 * Get whether a point intersects the shape.

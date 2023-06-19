@@ -102,7 +102,7 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 					title={title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
 					className={classNames('tlui-button-grid__button')}
 					style={
-						style === (DefaultColorStyle as StyleProp<unknown>)
+						style === (DefaultColorStyle as unknown)
 							? { color: `var(--palette-${item.value})` }
 							: undefined
 					}

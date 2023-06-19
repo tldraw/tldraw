@@ -1,5 +1,5 @@
 import { Store, StoreSnapshot } from '@tldraw/store'
-import { TLRecord, TLStore } from '@tldraw/tlschema'
+import { StylePropInstance, TLRecord, TLStore } from '@tldraw/tlschema'
 import { RecursivePartial, Required, annotateError } from '@tldraw/utils'
 import React, {
 	memo,
@@ -40,6 +40,20 @@ export type TldrawEditorProps = {
 	shapes?: readonly AnyTLShapeInfo[]
 	/** An array of tools to use in the editor. */
 	tools?: readonly TLStateNodeConstructor[]
+	/**
+	 * An array of style props to use in the editor. For example, to replace tldraw's colors with a
+	 * custom theme:
+	 *
+	 * @example
+	 * ```ts
+	 * const colorWithCustomTheme = new DefaultColorStyle(customColorThemeGoesHere)
+	 * const styles = [colorWithCustomTheme]
+	 * function MyApp() {
+	 *   return <TldrawEditor styles={styles} />
+	 * }
+	 * ```
+	 */
+	styles?: readonly StylePropInstance<unknown>[]
 	/** Urls for where to find fonts and other assets. */
 	assetUrls?: RecursivePartial<TLEditorAssetUrls>
 	/** Whether to automatically focus the editor when it mounts. */
@@ -214,6 +228,7 @@ function TldrawEditorWithReadyStore({
 	shapes,
 	autoFocus,
 	user,
+	styles,
 	assetUrls,
 }: Required<
 	TldrawEditorProps & {
@@ -231,6 +246,7 @@ function TldrawEditorWithReadyStore({
 			store,
 			shapes,
 			tools,
+			styles,
 			getContainer: () => container,
 			user,
 		})
@@ -241,7 +257,7 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapes, tools, store, user])
+	}, [container, shapes, tools, store, user, styles])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()

@@ -9,7 +9,12 @@ export { type TLBookmarkAsset } from './assets/TLBookmarkAsset'
 export { type TLImageAsset } from './assets/TLImageAsset'
 export { type TLVideoAsset } from './assets/TLVideoAsset'
 export { createPresenceStateDerivation } from './createPresenceStateDerivation'
-export { createTLSchema, type SchemaShapeInfo, type TLSchema } from './createTLSchema'
+export {
+	createTLSchema,
+	getStyleInstances,
+	type SchemaShapeInfo,
+	type TLSchema,
+} from './createTLSchema'
 export { CLIENT_FIXUP_SCRIPT, fixupRecord } from './fixup'
 export {
 	TL_CANVAS_UI_COLOR_TYPES,
@@ -52,7 +57,7 @@ export { InstancePresenceRecordType, type TLInstancePresence } from './records/T
 export { type TLRecord } from './records/TLRecord'
 export {
 	createShapeId,
-	getShapePropKeysByStyle,
+	// getShapePropKeysByStyle,
 	isShape,
 	isShapeId,
 	rootShapeMigrations,
@@ -61,8 +66,6 @@ export {
 	type TLShape,
 	type TLShapeId,
 	type TLShapePartial,
-	type TLShapeProp,
-	type TLShapeProps,
 	type TLUnknownShape,
 } from './records/TLShape'
 export {
@@ -136,8 +139,13 @@ export {
 	type TLTextShapeProps,
 } from './shapes/TLTextShape'
 export { videoShapeMigrations, videoShapeProps, type TLVideoShape } from './shapes/TLVideoShape'
-export { STYLE_PROP_SYMBOL, StyleProp } from './styles/StyleProp'
-export { DefaultColorStyle, type TLDefaultColorStyle } from './styles/TLColorStyle'
+export { StyleProp, StylePropInstance, type StylePropInstances } from './styles/StyleProp'
+export {
+	DefaultColorStyle,
+	type TLDefaultColorStyle,
+	type TLDefaultColorTheme,
+	type TLDefaultColorThemeColor,
+} from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'
 export { DefaultFontStyle, type TLDefaultFontStyle } from './styles/TLFontStyle'

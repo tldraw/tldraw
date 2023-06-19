@@ -22,18 +22,18 @@ const arrowheadTypes = [
 ] as const
 
 /** @public */
-export const ArrowShapeArrowheadStartStyle = StyleProp.defineEnum(
-	'tldraw:arrowheadStart',
-	arrowheadTypes,
-	{ defaultValue: 'none' }
-)
+export const ArrowShapeArrowheadStartStyle = StyleProp.defineEnum({
+	id: 'tldraw:arrowheadStart',
+	values: arrowheadTypes,
+	defaultValue: 'none',
+})
 
 /** @public */
-export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum(
-	'tldraw:arrowheadEnd',
-	arrowheadTypes,
-	{ defaultValue: 'arrow' }
-)
+export const ArrowShapeArrowheadEndStyle = StyleProp.defineEnum({
+	id: 'tldraw:arrowheadEnd',
+	values: arrowheadTypes,
+	defaultValue: 'arrow',
+})
 
 /** @public */
 export type TLArrowShapeArrowheadStyle = T.TypeOf<typeof ArrowShapeArrowheadStartStyle>

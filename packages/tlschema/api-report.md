@@ -17,24 +17,114 @@ import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
 // @public (undocumented)
-export const ArrowShapeArrowheadEndStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+export const ArrowShapeArrowheadEndStyle: {
+    new (): {
+        values: readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"];
+        id: string;
+        type: T.Validatable<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+        defaultValue: "arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle";
+        validate(value: unknown): "arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle";
+    };
+    values: readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"];
+    id: string;
+};
 
 // @public (undocumented)
-export const ArrowShapeArrowheadStartStyle: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+export const ArrowShapeArrowheadStartStyle: {
+    new (): {
+        values: readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"];
+        id: string;
+        type: T.Validatable<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+        defaultValue: "arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle";
+        validate(value: unknown): "arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle";
+    };
+    values: readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"];
+    id: string;
+};
 
 // @internal (undocumented)
 export const arrowShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const arrowShapeProps: {
-    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
-    dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-    size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    arrowheadStart: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-    arrowheadEnd: EnumStyleProp<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
-    font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+    labelColor: {
+        new (): {
+            values: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red"];
+            id: string;
+            type: T.Validatable<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+            defaultValue: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+            validate(value: unknown): "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+        };
+        values: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red"];
+        id: string;
+    };
+    color: typeof DefaultColorStyle;
+    fill: {
+        new (): {
+            values: readonly ["none", "semi", "solid", "pattern"];
+            id: string;
+            type: T.Validatable<"none" | "pattern" | "semi" | "solid">;
+            defaultValue: "none" | "pattern" | "semi" | "solid";
+            validate(value: unknown): "none" | "pattern" | "semi" | "solid";
+        };
+        values: readonly ["none", "semi", "solid", "pattern"];
+        id: string;
+    };
+    dash: {
+        new (): {
+            values: readonly ["draw", "solid", "dashed", "dotted"];
+            id: string;
+            type: T.Validatable<"dashed" | "dotted" | "draw" | "solid">;
+            defaultValue: "dashed" | "dotted" | "draw" | "solid";
+            validate(value: unknown): "dashed" | "dotted" | "draw" | "solid";
+        };
+        values: readonly ["draw", "solid", "dashed", "dotted"];
+        id: string;
+    };
+    size: {
+        new (): {
+            values: readonly ["s", "m", "l", "xl"];
+            id: string;
+            type: T.Validatable<"l" | "m" | "s" | "xl">;
+            defaultValue: "l" | "m" | "s" | "xl";
+            validate(value: unknown): "l" | "m" | "s" | "xl";
+        };
+        values: readonly ["s", "m", "l", "xl"];
+        id: string;
+    };
+    arrowheadStart: {
+        new (): {
+            values: readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"];
+            id: string;
+            type: T.Validatable<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+            defaultValue: "arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle";
+            validate(value: unknown): "arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle";
+        };
+        values: readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"];
+        id: string;
+    };
+    arrowheadEnd: {
+        new (): {
+            values: readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"];
+            id: string;
+            type: T.Validatable<"arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle">;
+            defaultValue: "arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle";
+            validate(value: unknown): "arrow" | "bar" | "diamond" | "dot" | "inverted" | "none" | "pipe" | "square" | "triangle";
+        };
+        values: readonly ["arrow", "triangle", "square", "dot", "pipe", "diamond", "inverted", "bar", "none"];
+        id: string;
+    };
+    font: {
+        new (): {
+            values: readonly ["draw", "sans", "serif", "mono"];
+            id: string;
+            type: T.Validatable<"draw" | "mono" | "sans" | "serif">;
+            defaultValue: "draw" | "mono" | "sans" | "serif";
+            validate(value: unknown): "draw" | "mono" | "sans" | "serif";
+        };
+        values: readonly ["draw", "sans", "serif", "mono"];
+        id: string;
+    };
     start: T.UnionValidator<"type", {
         binding: T.ObjectValidator<{
             type: "binding";
@@ -130,10 +220,10 @@ export const createPresenceStateDerivation: ($user: Signal<{
 // @public (undocumented)
 export function createShapeId(id?: string): TLShapeId;
 
-// @public (undocumented)
-export function createShapeValidator<Type extends string, Props extends object>(type: Type, props?: {
-    [K in keyof Props]: T.Validatable<Props[K]>;
-}): T.ObjectValidator<{
+// @internal (undocumented)
+export function createShapeValidator<Type extends string, Props extends object>(type: Type, props: {
+    [K in keyof Props]: ShapeDefProp<Props[K]>;
+} | undefined, styleInstances: StylePropInstances): T.ObjectValidator<{
     id: TLShapeId;
     typeName: "shape";
     x: number;
@@ -144,34 +234,102 @@ export function createShapeValidator<Type extends string, Props extends object>(
     type: Type;
     isLocked: boolean;
     opacity: number;
-    props: Props | Record<string, unknown>;
+    props: {
+        [x: string]: any;
+    };
 }>;
 
 // @public
-export function createTLSchema({ shapes }: {
-    shapes: Record<string, SchemaShapeInfo>;
-}): TLSchema;
+export function createTLSchema(opts: SchemaOpts): TLSchema;
 
 // @public (undocumented)
-export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+export class DefaultColorStyle extends DefaultColorStyle_base {
+    constructor(colorTheme?: typeof theme);
+    // (undocumented)
+    getValue(editor: {
+        isDarkMode: boolean;
+    }, value: TLDefaultColorStyle): Color;
+    // (undocumented)
+    readonly theme: typeof theme;
+}
 
 // @public (undocumented)
-export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
+export const DefaultDashStyle: {
+    new (): {
+        values: readonly ["draw", "solid", "dashed", "dotted"];
+        id: string;
+        type: T.Validatable<"dashed" | "dotted" | "draw" | "solid">;
+        defaultValue: "dashed" | "dotted" | "draw" | "solid";
+        validate(value: unknown): "dashed" | "dotted" | "draw" | "solid";
+    };
+    values: readonly ["draw", "solid", "dashed", "dotted"];
+    id: string;
+};
 
 // @public (undocumented)
-export const DefaultFillStyle: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
+export const DefaultFillStyle: {
+    new (): {
+        values: readonly ["none", "semi", "solid", "pattern"];
+        id: string;
+        type: T.Validatable<"none" | "pattern" | "semi" | "solid">;
+        defaultValue: "none" | "pattern" | "semi" | "solid";
+        validate(value: unknown): "none" | "pattern" | "semi" | "solid";
+    };
+    values: readonly ["none", "semi", "solid", "pattern"];
+    id: string;
+};
 
 // @public (undocumented)
-export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
+export const DefaultFontStyle: {
+    new (): {
+        values: readonly ["draw", "sans", "serif", "mono"];
+        id: string;
+        type: T.Validatable<"draw" | "mono" | "sans" | "serif">;
+        defaultValue: "draw" | "mono" | "sans" | "serif";
+        validate(value: unknown): "draw" | "mono" | "sans" | "serif";
+    };
+    values: readonly ["draw", "sans", "serif", "mono"];
+    id: string;
+};
 
 // @public (undocumented)
-export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+export const DefaultHorizontalAlignStyle: {
+    new (): {
+        values: readonly ["start", "middle", "end", "start-legacy", "end-legacy", "middle-legacy"];
+        id: string;
+        type: T.Validatable<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+        defaultValue: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+        validate(value: unknown): "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+    };
+    values: readonly ["start", "middle", "end", "start-legacy", "end-legacy", "middle-legacy"];
+    id: string;
+};
 
 // @public (undocumented)
-export const DefaultSizeStyle: EnumStyleProp<"l" | "m" | "s" | "xl">;
+export const DefaultSizeStyle: {
+    new (): {
+        values: readonly ["s", "m", "l", "xl"];
+        id: string;
+        type: T.Validatable<"l" | "m" | "s" | "xl">;
+        defaultValue: "l" | "m" | "s" | "xl";
+        validate(value: unknown): "l" | "m" | "s" | "xl";
+    };
+    values: readonly ["s", "m", "l", "xl"];
+    id: string;
+};
 
 // @public (undocumented)
-export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
+export const DefaultVerticalAlignStyle: {
+    new (): {
+        values: readonly ["start", "middle", "end"];
+        id: string;
+        type: T.Validatable<"end" | "middle" | "start">;
+        defaultValue: "end" | "middle" | "start";
+        validate(value: unknown): "end" | "middle" | "start";
+    };
+    values: readonly ["start", "middle", "end"];
+    id: string;
+};
 
 // @public (undocumented)
 export const DocumentRecordType: RecordType<TLDocument, never>;
@@ -181,10 +339,40 @@ export const drawShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const drawShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
-    dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-    size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+    color: typeof DefaultColorStyle;
+    fill: {
+        new (): {
+            values: readonly ["none", "semi", "solid", "pattern"];
+            id: string;
+            type: T.Validatable<"none" | "pattern" | "semi" | "solid">;
+            defaultValue: "none" | "pattern" | "semi" | "solid";
+            validate(value: unknown): "none" | "pattern" | "semi" | "solid";
+        };
+        values: readonly ["none", "semi", "solid", "pattern"];
+        id: string;
+    };
+    dash: {
+        new (): {
+            values: readonly ["draw", "solid", "dashed", "dotted"];
+            id: string;
+            type: T.Validatable<"dashed" | "dotted" | "draw" | "solid">;
+            defaultValue: "dashed" | "dotted" | "draw" | "solid";
+            validate(value: unknown): "dashed" | "dotted" | "draw" | "solid";
+        };
+        values: readonly ["draw", "solid", "dashed", "dotted"];
+        id: string;
+    };
+    size: {
+        new (): {
+            values: readonly ["s", "m", "l", "xl"];
+            id: string;
+            type: T.Validatable<"l" | "m" | "s" | "xl">;
+            defaultValue: "l" | "m" | "s" | "xl";
+            validate(value: unknown): "l" | "m" | "s" | "xl";
+        };
+        values: readonly ["s", "m", "l", "xl"];
+        id: string;
+    };
     segments: T.ArrayOfValidator<{
         type: "free" | "straight";
         points: Vec2dModel[];
@@ -426,14 +614,6 @@ export const embedShapeProps: {
     url: T.Validator<string>;
 };
 
-// @public (undocumented)
-export class EnumStyleProp<T> extends StyleProp<T> {
-    // @internal
-    constructor(id: string, defaultValue: T, values: readonly T[]);
-    // (undocumented)
-    readonly values: readonly T[];
-}
-
 // @internal (undocumented)
 export function fixupRecord(oldRecord: TLRecord): {
     record: any;
@@ -451,22 +631,112 @@ export const frameShapeProps: {
 };
 
 // @public (undocumented)
-export const GeoShapeGeoStyle: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+export const GeoShapeGeoStyle: {
+    new (): {
+        values: readonly ["rectangle", "ellipse", "triangle", "diamond", "pentagon", "hexagon", "octagon", "star", "rhombus", "rhombus-2", "oval", "trapezoid", "arrow-right", "arrow-left", "arrow-up", "arrow-down", "x-box", "check-box"];
+        id: string;
+        type: T.Validatable<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+        defaultValue: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+        validate(value: unknown): "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+    };
+    values: readonly ["rectangle", "ellipse", "triangle", "diamond", "pentagon", "hexagon", "octagon", "star", "rhombus", "rhombus-2", "oval", "trapezoid", "arrow-right", "arrow-left", "arrow-up", "arrow-down", "x-box", "check-box"];
+    id: string;
+};
 
 // @internal (undocumented)
 export const geoShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const geoShapeProps: {
-    geo: EnumStyleProp<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
-    labelColor: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    fill: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
-    dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-    size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-    align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-    verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
+    geo: {
+        new (): {
+            values: readonly ["rectangle", "ellipse", "triangle", "diamond", "pentagon", "hexagon", "octagon", "star", "rhombus", "rhombus-2", "oval", "trapezoid", "arrow-right", "arrow-left", "arrow-up", "arrow-down", "x-box", "check-box"];
+            id: string;
+            type: T.Validatable<"arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box">;
+            defaultValue: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+            validate(value: unknown): "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
+        };
+        values: readonly ["rectangle", "ellipse", "triangle", "diamond", "pentagon", "hexagon", "octagon", "star", "rhombus", "rhombus-2", "oval", "trapezoid", "arrow-right", "arrow-left", "arrow-up", "arrow-down", "x-box", "check-box"];
+        id: string;
+    };
+    labelColor: {
+        new (): {
+            values: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red"];
+            id: string;
+            type: T.Validatable<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
+            defaultValue: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+            validate(value: unknown): "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
+        };
+        values: readonly ["black", "grey", "light-violet", "violet", "blue", "light-blue", "yellow", "orange", "green", "light-green", "light-red", "red"];
+        id: string;
+    };
+    color: typeof DefaultColorStyle;
+    fill: {
+        new (): {
+            values: readonly ["none", "semi", "solid", "pattern"];
+            id: string;
+            type: T.Validatable<"none" | "pattern" | "semi" | "solid">;
+            defaultValue: "none" | "pattern" | "semi" | "solid";
+            validate(value: unknown): "none" | "pattern" | "semi" | "solid";
+        };
+        values: readonly ["none", "semi", "solid", "pattern"];
+        id: string;
+    };
+    dash: {
+        new (): {
+            values: readonly ["draw", "solid", "dashed", "dotted"];
+            id: string;
+            type: T.Validatable<"dashed" | "dotted" | "draw" | "solid">;
+            defaultValue: "dashed" | "dotted" | "draw" | "solid";
+            validate(value: unknown): "dashed" | "dotted" | "draw" | "solid";
+        };
+        values: readonly ["draw", "solid", "dashed", "dotted"];
+        id: string;
+    };
+    size: {
+        new (): {
+            values: readonly ["s", "m", "l", "xl"];
+            id: string;
+            type: T.Validatable<"l" | "m" | "s" | "xl">;
+            defaultValue: "l" | "m" | "s" | "xl";
+            validate(value: unknown): "l" | "m" | "s" | "xl";
+        };
+        values: readonly ["s", "m", "l", "xl"];
+        id: string;
+    };
+    font: {
+        new (): {
+            values: readonly ["draw", "sans", "serif", "mono"];
+            id: string;
+            type: T.Validatable<"draw" | "mono" | "sans" | "serif">;
+            defaultValue: "draw" | "mono" | "sans" | "serif";
+            validate(value: unknown): "draw" | "mono" | "sans" | "serif";
+        };
+        values: readonly ["draw", "sans", "serif", "mono"];
+        id: string;
+    };
+    align: {
+        new (): {
+            values: readonly ["start", "middle", "end", "start-legacy", "end-legacy", "middle-legacy"];
+            id: string;
+            type: T.Validatable<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+            defaultValue: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            validate(value: unknown): "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+        };
+        values: readonly ["start", "middle", "end", "start-legacy", "end-legacy", "middle-legacy"];
+        id: string;
+    };
+    verticalAlign: {
+        new (): {
+            values: readonly ["start", "middle", "end"];
+            id: string;
+            type: T.Validatable<"end" | "middle" | "start">;
+            defaultValue: "end" | "middle" | "start";
+            validate(value: unknown): "end" | "middle" | "start";
+        };
+        values: readonly ["start", "middle", "end"];
+        id: string;
+    };
     url: T.Validator<string>;
     w: T.Validator<number>;
     h: T.Validator<number>;
@@ -478,7 +748,7 @@ export const geoShapeProps: {
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
 
 // @internal (undocumented)
-export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>): Map<StyleProp<unknown>, string>;
+export function getStyleInstances(shapes: readonly SchemaShapeInfo[], styles?: readonly StylePropInstance<unknown>[]): StylePropInstances;
 
 // @internal (undocumented)
 export const groupShapeMigrations: Migrations;
@@ -491,8 +761,18 @@ export const highlightShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const highlightShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    size: EnumStyleProp<"l" | "m" | "s" | "xl">;
+    color: typeof DefaultColorStyle;
+    size: {
+        new (): {
+            values: readonly ["s", "m", "l", "xl"];
+            id: string;
+            type: T.Validatable<"l" | "m" | "s" | "xl">;
+            defaultValue: "l" | "m" | "s" | "xl";
+            validate(value: unknown): "l" | "m" | "s" | "xl";
+        };
+        values: readonly ["s", "m", "l", "xl"];
+        id: string;
+    };
     segments: T.ArrayOfValidator<{
         type: "free" | "straight";
         points: Vec2dModel[];
@@ -642,26 +922,106 @@ export const lineShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const lineShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    dash: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
-    size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    spline: EnumStyleProp<"cubic" | "line">;
+    color: typeof DefaultColorStyle;
+    dash: {
+        new (): {
+            values: readonly ["draw", "solid", "dashed", "dotted"];
+            id: string;
+            type: T.Validatable<"dashed" | "dotted" | "draw" | "solid">;
+            defaultValue: "dashed" | "dotted" | "draw" | "solid";
+            validate(value: unknown): "dashed" | "dotted" | "draw" | "solid";
+        };
+        values: readonly ["draw", "solid", "dashed", "dotted"];
+        id: string;
+    };
+    size: {
+        new (): {
+            values: readonly ["s", "m", "l", "xl"];
+            id: string;
+            type: T.Validatable<"l" | "m" | "s" | "xl">;
+            defaultValue: "l" | "m" | "s" | "xl";
+            validate(value: unknown): "l" | "m" | "s" | "xl";
+        };
+        values: readonly ["s", "m", "l", "xl"];
+        id: string;
+    };
+    spline: {
+        new (): {
+            values: readonly ["cubic", "line"];
+            id: string;
+            type: T.Validatable<"cubic" | "line">;
+            defaultValue: "cubic" | "line";
+            validate(value: unknown): "cubic" | "line";
+        };
+        values: readonly ["cubic", "line"];
+        id: string;
+    };
     handles: T.DictValidator<string, TLHandle>;
 };
 
 // @public (undocumented)
-export const LineShapeSplineStyle: EnumStyleProp<"cubic" | "line">;
+export const LineShapeSplineStyle: {
+    new (): {
+        values: readonly ["cubic", "line"];
+        id: string;
+        type: T.Validatable<"cubic" | "line">;
+        defaultValue: "cubic" | "line";
+        validate(value: unknown): "cubic" | "line";
+    };
+    values: readonly ["cubic", "line"];
+    id: string;
+};
 
 // @internal (undocumented)
 export const noteShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const noteShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-    align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
-    verticalAlign: EnumStyleProp<"end" | "middle" | "start">;
+    color: typeof DefaultColorStyle;
+    size: {
+        new (): {
+            values: readonly ["s", "m", "l", "xl"];
+            id: string;
+            type: T.Validatable<"l" | "m" | "s" | "xl">;
+            defaultValue: "l" | "m" | "s" | "xl";
+            validate(value: unknown): "l" | "m" | "s" | "xl";
+        };
+        values: readonly ["s", "m", "l", "xl"];
+        id: string;
+    };
+    font: {
+        new (): {
+            values: readonly ["draw", "sans", "serif", "mono"];
+            id: string;
+            type: T.Validatable<"draw" | "mono" | "sans" | "serif">;
+            defaultValue: "draw" | "mono" | "sans" | "serif";
+            validate(value: unknown): "draw" | "mono" | "sans" | "serif";
+        };
+        values: readonly ["draw", "sans", "serif", "mono"];
+        id: string;
+    };
+    align: {
+        new (): {
+            values: readonly ["start", "middle", "end", "start-legacy", "end-legacy", "middle-legacy"];
+            id: string;
+            type: T.Validatable<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+            defaultValue: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            validate(value: unknown): "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+        };
+        values: readonly ["start", "middle", "end", "start-legacy", "end-legacy", "middle-legacy"];
+        id: string;
+    };
+    verticalAlign: {
+        new (): {
+            values: readonly ["start", "middle", "end"];
+            id: string;
+            type: T.Validatable<"end" | "middle" | "start">;
+            defaultValue: "end" | "middle" | "start";
+            validate(value: unknown): "end" | "middle" | "start";
+        };
+        values: readonly ["start", "middle", "end"];
+        id: string;
+    };
     growY: T.Validator<number>;
     url: T.Validator<string>;
     text: T.Validator<string>;
@@ -687,10 +1047,9 @@ export const rootShapeMigrations: Migrations;
 
 // @public (undocumented)
 export type SchemaShapeInfo = {
+    type: string;
     migrations?: Migrations;
-    props?: Record<string, {
-        validate: (prop: any) => any;
-    }>;
+    props?: Record<string, ShapeDefProp<any>>;
 };
 
 // @internal (undocumented)
@@ -701,41 +1060,104 @@ export const shapeIdValidator: T.Validator<TLShapeId>;
 
 // @public (undocumented)
 export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
-    [K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>;
+    [K in keyof Shape['props']]: ShapeDefProp<Shape['props'][K]>;
 };
 
 // @public (undocumented)
-export class StyleProp<Type> implements T.Validatable<Type> {
-    protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
-    // (undocumented)
-    readonly defaultValue: Type;
-    // (undocumented)
-    static define<Type>(uniqueId: string, { defaultValue, type }: {
-        defaultValue: Type;
-        type?: T.Validatable<Type>;
-    }): StyleProp<Type>;
-    // (undocumented)
-    static defineEnum<const Values extends readonly unknown[]>(uniqueId: string, { defaultValue, values }: {
-        defaultValue: Values[number];
-        values: Values;
-    }): EnumStyleProp<Values[number]>;
-    // (undocumented)
+export type StyleProp<T> = {
     readonly id: string;
+    new (): StylePropInstance<T>;
+};
+
+// @public (undocumented)
+export const StyleProp: {
+    define<T>({ id, type, defaultValue }: {
+        id: string;
+        type: T.Validatable<T>;
+        defaultValue: T;
+    }): {
+        new (): {
+            id: string;
+            type: T.Validatable<T>;
+            defaultValue: T;
+            validate(value: unknown): T;
+        };
+        id: string;
+    };
+    defineEnum<const Values extends readonly unknown[]>({ id, values, defaultValue, }: {
+        id: string;
+        values: Values;
+        defaultValue: Values[number];
+    }): {
+        new (): {
+            values: Values;
+            id: string;
+            type: T.Validatable<Values[number]>;
+            defaultValue: Values[number];
+            validate(value: unknown): Values[number];
+        };
+        values: Values;
+        id: string;
+    };
+};
+
+// @public (undocumented)
+export abstract class StylePropInstance<T> implements T.Validatable<T> {
     // (undocumented)
-    readonly type: T.Validatable<Type>;
+    abstract readonly defaultValue: T;
     // (undocumented)
-    validate(value: unknown): Type;
+    abstract readonly id: string;
+    // (undocumented)
+    abstract readonly type: T.Validatable<T>;
+    // (undocumented)
+    validate(value: unknown): T;
 }
+
+// @internal (undocumented)
+export type StylePropInstances = {
+    stylePropsById: ReadonlyMap<string, StylePropInstance<unknown>>;
+    stylePropsByConstructor: ReadonlyMap<StyleProp<unknown>, StylePropInstance<unknown>>;
+};
 
 // @internal (undocumented)
 export const textShapeMigrations: Migrations;
 
 // @public (undocumented)
 export const textShapeProps: {
-    color: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
-    size: EnumStyleProp<"l" | "m" | "s" | "xl">;
-    font: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
-    align: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+    color: typeof DefaultColorStyle;
+    size: {
+        new (): {
+            values: readonly ["s", "m", "l", "xl"];
+            id: string;
+            type: T.Validatable<"l" | "m" | "s" | "xl">;
+            defaultValue: "l" | "m" | "s" | "xl";
+            validate(value: unknown): "l" | "m" | "s" | "xl";
+        };
+        values: readonly ["s", "m", "l", "xl"];
+        id: string;
+    };
+    font: {
+        new (): {
+            values: readonly ["draw", "sans", "serif", "mono"];
+            id: string;
+            type: T.Validatable<"draw" | "mono" | "sans" | "serif">;
+            defaultValue: "draw" | "mono" | "sans" | "serif";
+            validate(value: unknown): "draw" | "mono" | "sans" | "serif";
+        };
+        values: readonly ["draw", "sans", "serif", "mono"];
+        id: string;
+    };
+    align: {
+        new (): {
+            values: readonly ["start", "middle", "end", "start-legacy", "end-legacy", "middle-legacy"];
+            id: string;
+            type: T.Validatable<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+            defaultValue: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+            validate(value: unknown): "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
+        };
+        values: readonly ["start", "middle", "end", "start-legacy", "end-legacy", "middle-legacy"];
+        id: string;
+    };
     w: T.Validator<number>;
     text: T.Validator<string>;
     scale: T.Validator<number>;
@@ -1107,12 +1529,6 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     type: T['type'];
     props?: Partial<T['props']>;
 } & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
-
-// @public (undocumented)
-export type TLShapeProp = keyof TLShapeProps;
-
-// @public (undocumented)
-export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
 
 // @public (undocumented)
 export type TLStore = Store<TLRecord, TLStoreProps>;

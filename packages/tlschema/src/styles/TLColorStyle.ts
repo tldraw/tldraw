@@ -1,3 +1,4 @@
+import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { StyleProp } from './StyleProp'
 
@@ -16,7 +17,7 @@ const colors = [
 	'red',
 ] as const
 
-type Color = {
+export type TLDefaultColorThemeColor = {
 	solid: string
 	semi: string
 	pattern: string
@@ -26,8 +27,20 @@ type Color = {
 	}
 }
 
-const theme = {
+export type TLDefaultColorTheme = Expand<
+	{
+		text: string
+		background: string
+		solid: string
+	} & Record<(typeof colors)[number], TLDefaultColorThemeColor>
+>
+
+const theme: { darkMode: TLDefaultColorTheme; lightMode: TLDefaultColorTheme } = {
 	lightMode: {
+		text: '#000000',
+		background: 'rgb(249, 250, 251)',
+		solid: '#fcfffe',
+
 		black: {
 			solid: '#1d1d1d',
 			semi: '#e8e8e8',
@@ -138,6 +151,10 @@ const theme = {
 		},
 	},
 	darkMode: {
+		text: '#f8f9fa',
+		background: '#212529',
+		solid: '#28292e',
+
 		black: {
 			solid: '#e1e1e1',
 			semi: '#2c3036',
@@ -247,16 +264,30 @@ const theme = {
 			},
 		},
 	},
-} satisfies Record<string, Record<(typeof colors)[number], Color>>
+}
 
 /** @public */
-export const DefaultColorStyle = StyleProp.defineEnum('tldraw:color', colors, {
+export class DefaultColorStyle extends StyleProp.defineEnum({
+	id: 'tldraw:color',
+	values: colors,
 	defaultValue: 'black',
-	theme,
-})
+}) {
+	constructor(colorTheme?: typeof theme) {
+		super()
+		this.theme = colorTheme ?? theme
+	}
+
+	readonly theme: typeof theme
+
+	getTheme(editor: { isDarkMode: boolean }) {
+		return editor.isDarkMode ? this.theme.darkMode : this.theme.lightMode
+	}
+}
 
 /** @public */
-export const DefaultLabelColorStyle = StyleProp.defineEnum('tldraw:labelColor', colors, {
+export const DefaultLabelColorStyle = StyleProp.defineEnum({
+	id: 'tldraw:labelColor',
+	values: colors,
 	defaultValue: 'black',
 })
 

@@ -12,7 +12,8 @@ import { T } from '@tldraw/validate'
 
 // Define a style that can be used across multiple shapes. The ID (myApp:filter) must be globally
 // unique, so we recommend prefixing it with a namespace.
-export const MyFilterStyle = StyleProp.defineEnum('myApp:filter', {
+export const MyFilterStyle = StyleProp.defineEnum({
+	id: 'myApp:filter',
 	defaultValue: 'none',
 	values: ['none', 'invert', 'grayscale', 'blur'],
 })
@@ -52,18 +53,25 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 	render(shape: CardShape) {
 		const bounds = this.bounds(shape)
 
+		const color = this.editor
+			// Some styles have extra information that can be accessed via the style instance
+			.getStyleInstance(DefaultColorStyle)
+			// For example, the default color style maps the color names like 'black' and 'green' to
+			// actual hex values.
+			.getColor(this.editor, shape.props.color)
+
 		return (
 			<HTMLContainer
 				id={shape.id}
 				style={{
-					border: `4px solid var(--palette-${shape.props.color})`,
+					border: `4px solid ${color.solid}`,
 					borderRadius: 4,
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
 					filter: this.filterStyleToCss(shape.props.filter),
-					backgroundColor: `var(--palette-${shape.props.color}-semi)`,
+					backgroundColor: color.semi,
 				}}
 			>
 				🍇🫐🍏🍋🍊🍒 {bounds.w.toFixed()}x{bounds.h.toFixed()} 🍒🍊🍋🍏🫐🍇

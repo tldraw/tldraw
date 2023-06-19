@@ -14,9 +14,9 @@ import { DefaultVerticalAlignStyle } from '../styles/TLVerticalAlignStyle'
 import { ShapePropsType, TLBaseShape } from './TLBaseShape'
 
 /** @public */
-export const GeoShapeGeoStyle = StyleProp.defineEnum(
-	'tldraw:geo',
-	[
+export const GeoShapeGeoStyle = StyleProp.defineEnum({
+	id: 'tldraw:geo',
+	values: [
 		'rectangle',
 		'ellipse',
 		'triangle',
@@ -36,8 +36,8 @@ export const GeoShapeGeoStyle = StyleProp.defineEnum(
 		'x-box',
 		'check-box',
 	],
-	{ defaultValue: 'rectangle' }
-)
+	defaultValue: 'rectangle',
+})
 
 /** @public */
 export type TLGeoShapeGeoStyle = T.TypeOf<typeof GeoShapeGeoStyle>

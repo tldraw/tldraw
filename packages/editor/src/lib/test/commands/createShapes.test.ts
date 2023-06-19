@@ -88,12 +88,12 @@ it('Parents shapes to the current page if the parent is not found', () => {
 })
 
 it('Creates shapes with the current style', () => {
-	expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe(undefined)
+	expect(editor.instanceState.stylesForNextShape['tldraw:color']).toBe(undefined)
 	editor.createShapes([{ id: ids.box1, type: 'geo' }])
 	expect(editor.getShapeById<TLGeoShape>(ids.box1)!.props.color).toEqual('black')
 
 	editor.setStyle(DefaultColorStyle, 'red')
-	expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('red')
+	expect(editor.instanceState.stylesForNextShape['tldraw:color']).toBe('red')
 	editor.createShapes([{ id: ids.box2, type: 'geo' }])
 	expect(editor.getShapeById<TLGeoShape>(ids.box2)!.props.color).toEqual('red')
 })

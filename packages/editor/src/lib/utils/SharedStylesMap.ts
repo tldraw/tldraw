@@ -20,12 +20,12 @@ function sharedStyleEquals<T>(a: SharedStyle<T>, b: SharedStyle<T> | undefined) 
 
 /** @public */
 export class ReadonlySharedStyleMap {
-	protected map: Map<UnknownStyleProp, SharedStyle<unknown>>
+	protected map: Map<StyleProp<unknown>, SharedStyle<unknown>>
 	constructor(entries?: Iterable<[StyleProp<unknown>, SharedStyle<unknown>]>) {
 		this.map = new Map(entries)
 	}
 
-	get<T>(prop: StyleProp<T, any, any>): SharedStyle<T> | undefined {
+	get<T>(prop: StyleProp<T>): SharedStyle<T> | undefined {
 		return this.map.get(prop) as SharedStyle<T> | undefined
 	}
 

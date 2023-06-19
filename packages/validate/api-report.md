@@ -143,7 +143,11 @@ declare namespace T {
 export { T }
 
 // @public (undocumented)
-type TypeOf<V extends Validatable<unknown>> = V extends Validatable<infer T> ? T : never;
+type TypeOf<V extends {
+    new (...args: any[]): Validatable<unknown>;
+} | Validatable<unknown>> = V extends Validatable<infer T> ? T : V extends {
+    new (...args: any[]): Validatable<infer T>;
+} ? T : never;
 
 // @public
 function union<Key extends string, Config extends UnionValidatorConfig<Key, Config>>(key: Key, config: Config): UnionValidator<Key, Config>;

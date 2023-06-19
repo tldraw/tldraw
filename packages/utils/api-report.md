@@ -133,6 +133,10 @@ export type OkResult<T> = {
 // @internal
 export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...args: Args) => Return): (...args: Args) => Return;
 
+// @public (undocumented)
+type Partial_2<T, K extends keyof T = keyof T> = Expand<Omit<T, K> & _Partial<Pick<T, K>>>;
+export { Partial_2 as Partial }
+
 // @internal
 export function partition<T>(arr: T[], predicate: (item: T) => boolean): [T[], T[]];
 
@@ -151,7 +155,7 @@ export type RecursivePartial<T> = {
 };
 
 // @internal (undocumented)
-type Required_2<T, K extends keyof T> = Expand<Omit<T, K> & _Required<Pick<T, K>>>;
+type Required_2<T, K extends keyof T = keyof T> = Expand<Omit<T, K> & _Required<Pick<T, K>>>;
 export { Required_2 as Required }
 
 // @public (undocumented)

@@ -12,6 +12,7 @@ import {
 } from '@tldraw/primitives'
 import { ComputedCache } from '@tldraw/store'
 import {
+	DefaultColorStyle,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
@@ -42,7 +43,6 @@ import {
 } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
 import {
@@ -925,8 +925,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	toSvg(shape: TLArrowShape, font: string, colors: TLExportColors) {
-		const color = colors.fill[shape.props.color]
+	toSvg(shape: TLArrowShape, font: string) {
+		const color = this.editor
+			.getStyleInstance(DefaultColorStyle)
+			.getColor(this.editor, shape.props.color)
 
 		const info = this.getArrowInfo(shape)
 
@@ -1005,7 +1007,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// Arrowhead body path
 		const path = getArrowSvgPath(
 			info.isStraight ? getSolidStraightArrowPath(info) : getSolidCurvedArrowPath(info),
-			color,
+			color.solid,
 			strokeWidth
 		)
 
@@ -1114,13 +1116,12 @@ function getArrowheadSvgPath(
 	d: string,
 	color: TLDefaultColorStyle,
 	strokeWidth: number,
-	fill: TLDefaultFillStyle,
-	colors: TLExportColors
+	fill: TLDefaultFillStyle
 ) {
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	path.setAttribute('d', d)
 	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', colors.fill[color])
+	path.setAttribute('stroke', color.solid)
 	path.setAttribute('stroke-width', strokeWidth + '')
 
 	// Get the fill element, if any
@@ -1128,7 +1129,6 @@ function getArrowheadSvgPath(
 		d,
 		fill,
 		color,
-		colors,
 	})
 
 	if (shapeFill) {

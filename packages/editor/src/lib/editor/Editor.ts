@@ -25,11 +25,12 @@ import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	Box2dModel,
 	CameraRecordType,
-	DefaultColorStyle,
 	DefaultFontStyle,
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
+	StylePropInstance,
+	StylePropInstances,
 	TLArrowShape,
 	TLAsset,
 	TLAssetId,
@@ -58,20 +59,22 @@ import {
 	TLVideoAsset,
 	Vec2dModel,
 	createShapeId,
-	getShapePropKeysByStyle,
+	getStyleInstances,
 	isPageId,
 	isShape,
 	isShapeId,
 } from '@tldraw/tlschema'
+import { isStyleProp } from '@tldraw/tlschema/src/styles/StyleProp'
 import {
 	annotateError,
 	assert,
+	assertExists,
 	compact,
 	dedupe,
 	deepCopy,
 	getOwnProperty,
 	hasOwnProperty,
-	objectMapFromEntries,
+	objectMapEntries,
 	partition,
 	sortById,
 	structuredClone,
@@ -131,7 +134,6 @@ import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/arro
 import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
 import { FrameShapeUtil } from './shapes/frame/FrameShapeUtil'
 import { GroupShapeUtil } from './shapes/group/GroupShapeUtil'
-import { TLExportColors } from './shapes/shared/TLExportColors'
 import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -169,6 +171,11 @@ export interface TLEditorOptions {
 	 */
 	tools: readonly TLStateNodeConstructor[]
 	/**
+	 * An array of style prop instances. These can be used to override how a style prop gets used by the editor.
+	 * See <TldrawEditor /> for details.
+	 */
+	styles?: readonly StylePropInstance<unknown>[]
+	/**
 	 * A user defined externally to replace the default user.
 	 */
 	user?: TLUser
@@ -181,7 +188,7 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions) {
+	constructor({ store, user, shapes, tools, styles, getContainer }: TLEditorOptions) {
 		super()
 
 		this.store = store
@@ -196,6 +203,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const allShapes = checkShapesAndAddCore(shapes)
 
+		this.styleProps = getStyleInstances(allShapes, styles)
 		const shapeTypesInSchema = new Set(
 			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
 		)
@@ -215,21 +223,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 		const shapeUtils = {} as Record<string, ShapeUtil>
-		const allStylesById = new Map<string, StyleProp<unknown>>()
 
-		for (const { util: Util, props } of allShapes) {
-			const propKeysByStyle = getShapePropKeysByStyle(props ?? {})
-			shapeUtils[Util.type] = new Util(this, Util.type, propKeysByStyle)
-
-			for (const style of propKeysByStyle.keys()) {
-				if (!allStylesById.has(style.id)) {
-					allStylesById.set(style.id, style)
-				} else if (allStylesById.get(style.id) !== style) {
+		for (const { util: Util, props, type } of allShapes) {
+			const propKeysByStyle = new Map<StyleProp<unknown>, string>()
+			for (const [key, prop] of objectMapEntries(props ?? {})) {
+				if (!isStyleProp(prop)) continue
+				if (propKeysByStyle.has(prop)) {
 					throw Error(
-						`Multiple style props with id "${style.id}" in use. Style prop IDs must be unique.`
+						`Multiple '${prop.id}' styles on the ${type} shape. Each shape can only have one style of each type.`
 					)
 				}
+				propKeysByStyle.set(prop, key)
 			}
+			shapeUtils[Util.type] = new Util(this, Util.type, propKeysByStyle)
 		}
 
 		this.shapeUtils = shapeUtils
@@ -417,6 +423,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly user: UserPreferencesManager
+
+	/** @internal */
+	private readonly styleProps: StylePropInstances
 
 	/**
 	 * Whether the editor is running in Safari.
@@ -1146,7 +1155,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	getStyleForNextShape<T>(style: StyleProp<T>): T {
 		const value = this._stylesForNextShape[style.id]
-		return value === undefined ? style.defaultValue : (value as T)
+		return value === undefined ? this.getStyleInstance(style).defaultValue : (value as T)
 	}
 
 	/** @public */
@@ -1155,6 +1164,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const styleKey = util.styleProps.get(style)
 		if (styleKey === undefined) return undefined
 		return getOwnProperty(shape.props, styleKey) as T | undefined
+	}
+
+	/** @public */
+	getStyleInstance<T extends StyleProp<unknown>>(prop: T): InstanceType<T> {
+		return assertExists(this.styleProps.stylePropsByConstructor.get(prop)) as InstanceType<T>
 	}
 
 	/**
@@ -5892,38 +5906,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} tl-theme__force-sRGB`
 		document.body.appendChild(fakeContainerEl)
 
-		const containerStyle = getComputedStyle(fakeContainerEl)
 		const fontsUsedInExport = new Map<string, string>()
-
-		const colors: TLExportColors = {
-			fill: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}`),
-				])
-			),
-			pattern: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-pattern`),
-				])
-			),
-			semi: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-semi`),
-				])
-			),
-			highlight: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-highlight`),
-				])
-			),
-			text: containerStyle.getPropertyValue(`--color-text`),
-			background: containerStyle.getPropertyValue(`--color-background`),
-			solid: containerStyle.getPropertyValue(`--palette-solid`),
-		}
 
 		// Remove containerEl from DOM (temp DOM node)
 		document.body.removeChild(fakeContainerEl)
@@ -6030,8 +6013,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 					}
 
-					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
+					let shapeSvgElement = await util.toSvg?.(shape, font)
+					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font)
 
 					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
 					if (shapeSvgElement) {
@@ -8292,7 +8275,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			this.updateInstanceState(
 				{
-					stylesForNextShape: { ...this._stylesForNextShape, [style.id]: value },
+					stylesForNextShape: {
+						...this._stylesForNextShape,
+						[style.id]: value,
+					},
 				},
 				ephemeral,
 				squashing

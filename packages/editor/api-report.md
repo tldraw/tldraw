@@ -36,6 +36,7 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';
 import { StyleProp } from '@tldraw/tlschema';
+import { StylePropInstance } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
@@ -343,7 +344,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions);
+    constructor({ store, user, shapes, tools, styles, getContainer }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -498,6 +499,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStateDescendant(path: string): StateNode | undefined;
     // @internal (undocumented)
     getStyleForNextShape<T>(style: StyleProp<T>): T;
+    // (undocumented)
+    getStyleInstance<T extends StyleProp<unknown>>(prop: T): InstanceType<T>;
     getSvg(ids?: TLShapeId[], opts?: Partial<{
         scale: number;
         background: boolean;
@@ -2194,6 +2197,7 @@ export type TldrawEditorProps = {
     children?: any;
     shapes?: readonly AnyTLShapeInfo[];
     tools?: readonly TLStateNodeConstructor[];
+    styles?: readonly StylePropInstance<unknown>[];
     assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
     components?: Partial<TLEditorComponents>;
@@ -2263,6 +2267,7 @@ export interface TLEditorOptions {
     getContainer: () => HTMLElement;
     shapes: readonly AnyTLShapeInfo[];
     store: TLStore;
+    styles?: readonly StylePropInstance<unknown>[];
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }

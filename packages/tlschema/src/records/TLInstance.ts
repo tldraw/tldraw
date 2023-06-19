@@ -5,7 +5,7 @@ import { idValidator } from '../misc/id-validator'
 import { cursorValidator, TLCursor } from '../misc/TLCursor'
 import { opacityValidator, TLOpacityType } from '../misc/TLOpacity'
 import { scribbleValidator, TLScribble } from '../misc/TLScribble'
-import { StyleProp } from '../styles/StyleProp'
+import { StylePropInstances } from '../styles/StyleProp'
 import { pageIdValidator, TLPageId } from './TLPage'
 
 /**
@@ -42,9 +42,9 @@ export type TLInstanceId = RecordId<TLInstance>
 /** @internal */
 export const instanceIdValidator = idValidator<TLInstanceId>('instance')
 
-export function createInstanceRecordType(stylesById: Map<string, StyleProp<unknown>>) {
+export function createInstanceRecordType(styleInstances: StylePropInstances) {
 	const stylesForNextShapeValidators = {} as Record<string, T.Validator<unknown>>
-	for (const [id, style] of stylesById) {
+	for (const [id, style] of styleInstances.stylePropsById) {
 		stylesForNextShapeValidators[id] = T.optional(style.type)
 	}
 

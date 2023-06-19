@@ -1,15 +1,15 @@
 import { DefaultColorStyle, TLGeoShape, TLGroupShape } from '@tldraw/tlschema'
-import { ReadonlySharedStyleMap, SharedStyle } from '../utils/SharedStylesMap'
+import { SharedStyle } from '../utils/SharedStylesMap'
 import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
 import { TL } from './jsx'
 
 let editor: TestEditor
 
-function asPlainObject(styles: ReadonlySharedStyleMap | null) {
-	if (!styles) return null
+function stylesAsPlainObject(editor: TestEditor) {
+	if (!editor.sharedStyles) return null
 	const object: Record<string, SharedStyle<unknown>> = {}
-	for (const [key, value] of styles) {
-		object[key.id] = value
+	for (const [style, value] of editor.sharedStyles) {
+		object[style.id] = value
 	}
 	return object
 }
@@ -23,12 +23,12 @@ beforeEach(() => {
 describe('Editor.styles', () => {
 	it('should return empty if nothing is selected', () => {
 		editor.selectNone()
-		expect(asPlainObject(editor.sharedStyles)).toStrictEqual({})
+		expect(stylesAsPlainObject(editor)).toStrictEqual({})
 	})
 
 	it('should return styles for a single shape', () => {
 		editor.select(defaultShapesIds.box1)
-		expect(asPlainObject(editor.sharedStyles)).toStrictEqual({
+		expect(stylesAsPlainObject(editor)).toStrictEqual({
 			'tldraw:horizontalAlign': { type: 'shared', value: 'middle' },
 			'tldraw:labelColor': { type: 'shared', value: 'black' },
 			'tldraw:color': { type: 'shared', value: 'black' },
@@ -43,7 +43,7 @@ describe('Editor.styles', () => {
 
 	it('should return styles for two matching shapes', () => {
 		editor.select(defaultShapesIds.box1, defaultShapesIds.box2)
-		expect(asPlainObject(editor.sharedStyles)).toStrictEqual({
+		expect(stylesAsPlainObject(editor)).toStrictEqual({
 			'tldraw:horizontalAlign': { type: 'shared', value: 'middle' },
 			'tldraw:labelColor': { type: 'shared', value: 'black' },
 			'tldraw:color': { type: 'shared', value: 'black' },
@@ -67,7 +67,7 @@ describe('Editor.styles', () => {
 
 		editor.select(defaultShapesIds.box1, defaultShapesIds.box2)
 
-		expect(asPlainObject(editor.sharedStyles)).toStrictEqual({
+		expect(stylesAsPlainObject(editor)).toStrictEqual({
 			'tldraw:horizontalAlign': { type: 'shared', value: 'middle' },
 			'tldraw:labelColor': { type: 'shared', value: 'black' },
 			'tldraw:color': { type: 'mixed' },
@@ -107,7 +107,7 @@ describe('Editor.styles', () => {
 
 		editor.selectAll()
 
-		expect(asPlainObject(editor.sharedStyles)).toStrictEqual({
+		expect(stylesAsPlainObject(editor)).toStrictEqual({
 			'tldraw:color': { type: 'mixed' },
 			'tldraw:dash': { type: 'mixed' },
 			'tldraw:fill': { type: 'mixed' },

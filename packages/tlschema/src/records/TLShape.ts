@@ -17,7 +17,7 @@ import { TLLineShape } from '../shapes/TLLineShape'
 import { TLNoteShape } from '../shapes/TLNoteShape'
 import { TLTextShape } from '../shapes/TLTextShape'
 import { TLVideoShape } from '../shapes/TLVideoShape'
-import { StyleProp } from '../styles/StyleProp'
+import { StylePropInstances } from '../styles/StyleProp'
 import { TLPageId } from './TLPage'
 
 /**
@@ -64,19 +64,6 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 
 /** @public */
 export type TLShapeId = RecordId<TLUnknownShape>
-
-// evil type shit that will get deleted in the next PR
-type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
-	? I
-	: never
-
-type Identity<T> = { [K in keyof T]: T[K] }
-
-/** @public */
-export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>
-
-/** @public */
-export type TLShapeProp = keyof TLShapeProps
 
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
@@ -152,23 +139,10 @@ export function createShapeId(id?: string): TLShapeId {
 }
 
 /** @internal */
-export function getShapePropKeysByStyle(props: Record<string, T.Validatable<any>>) {
-	const propKeysByStyle = new Map<StyleProp<unknown>, string>()
-	for (const [key, prop] of Object.entries(props)) {
-		if (StyleProp.isStyleProp(prop)) {
-			if (propKeysByStyle.has(prop)) {
-				throw new Error(
-					`Duplicate style prop ${prop.uniqueStylePropId}. Each style prop can only be used once within a shape.`
-				)
-			}
-			propKeysByStyle.set(prop, key)
-		}
-	}
-	return propKeysByStyle
-}
-
-/** @internal */
-export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
+export function createShapeRecordType(
+	shapes: Record<string, SchemaShapeInfo>,
+	styleInstances: StylePropInstances
+) {
 	return createRecordType<TLShape>('shape', {
 		migrations: defineMigrations({
 			currentVersion: rootShapeMigrations.currentVersion,
@@ -182,7 +156,9 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 			'shape',
 			T.union(
 				'type',
-				mapObjectMapValues(shapes, (type, { props }) => createShapeValidator(type, props))
+				mapObjectMapValues(shapes, (type, { props }) =>
+					createShapeValidator(type, props, styleInstances)
+				)
 			)
 		),
 	}).withDefaultProperties(() => ({

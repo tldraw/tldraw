@@ -80,7 +80,13 @@ function typeToString(value: unknown): string {
 }
 
 /** @public */
-export type TypeOf<V extends Validatable<unknown>> = V extends Validatable<infer T> ? T : never
+export type TypeOf<
+	V extends Validatable<unknown> | { new (...args: any[]): Validatable<unknown> }
+> = V extends Validatable<infer T>
+	? T
+	: V extends { new (...args: any[]): Validatable<infer T> }
+	? T
+	: never
 
 /** @public */
 export class Validator<T> implements Validatable<T> {
