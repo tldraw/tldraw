@@ -1204,6 +1204,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._dpr.value
 	}
 
+	/**
+	 * Set the window's device pixel ratio. This should usually only be set by the Canvas component.
+	 *
+	 * ```ts
+	 * editor.setDevicePixelRatio(2)
+	 * ```
+	 *
+	 * @public
+	 */
 	setDevicePixelRatio(dpr: number) {
 		this._dpr.set(dpr)
 		return this

@@ -651,7 +651,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setDarkMode(isDarkMode: boolean): this;
-    // (undocumented)
     setDevicePixelRatio(dpr: number): this;
     setEditingId(id: null | TLShapeId): this;
     setErasingIds(ids?: TLShapeId[]): this;
