@@ -1,7 +1,8 @@
 import { defineShape } from '@tldraw/tldraw'
 import { CardShapeTool } from './CardShapeTool'
 import { CardShapeUtil } from './CardShapeUtil'
-import { cardShapeMigrations, cardShapeProps } from './MyCardShape'
+import { cardShapeMigrations } from './card-shape-migrations'
+import { cardShapeProps } from './card-shape-props'
 
 // A custom shape is a bundle of a shape util, a tool, and props
 export const CardShape = defineShape('card', {

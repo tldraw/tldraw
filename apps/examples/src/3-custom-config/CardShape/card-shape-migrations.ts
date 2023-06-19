@@ -1,28 +1,4 @@
-import {
-	DefaultColorStyle,
-	ShapeProps,
-	TLBaseShape,
-	TLDefaultColorStyle,
-	defineMigrations,
-} from '@tldraw/tldraw'
-import { T } from '@tldraw/validate'
-
-// A type for our custom card shape
-export type MyCardShape = TLBaseShape<
-	'card',
-	{
-		w: number
-		h: number
-		color: TLDefaultColorStyle
-	}
->
-
-// Validation for our custom card shape's props (optional but recommended)
-export const cardShapeProps: ShapeProps<MyCardShape> = {
-	w: T.number,
-	h: T.number,
-	color: DefaultColorStyle,
-}
+import { defineMigrations } from '@tldraw/tldraw'
 
 // Migrations for the custom card shape (optional but very helpful)
 export const cardShapeMigrations = defineMigrations({

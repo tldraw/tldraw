@@ -706,7 +706,7 @@ export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
 
 // @public (undocumented)
 export class StyleProp<Type> implements T.Validatable<Type> {
-    protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
+    constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
     // (undocumented)
     readonly defaultValue: Type;
     // (undocumented)
