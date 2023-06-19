@@ -1,11 +1,10 @@
 import { Matrix2d } from '@tldraw/primitives'
-import { track, useStateTracking } from '@tldraw/state'
+import { track, useQuickReactor, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { useEditor } from '../..'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
-import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useShapeEvents } from '../hooks/useShapeEvents'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 

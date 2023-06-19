@@ -26,11 +26,10 @@ For example, the store contains a `page` record for each page in the current doc
 
 The editor also exposes many _computed_ values which are derived from other records in the store. For example, `editor.selectedIds` is a computed property that will return the editor's current selected shape ids for its current page.
 
-You can use these properties directly or you can use them in [signia](https://github.com/tldraw/signia) signals.
+You can use these properties directly or you can use them in signals.
 
 ```tsx
-import { track } from "@tldraw/signia"
-import { useEditor } from "@tldraw/tldraw"
+import { track, useEditor } from "@tldraw/tldraw"
 
 export const SelectedIdsCount = track(() => {
   const editor = useEditor()
@@ -151,8 +150,7 @@ Note that the paths you pass to `isIn` or `isInAny` can be the full path or a pa
 > If all you're interested in is the state below `root`, there is a convenience property, `editor.currentToolId`, that can help with the editor's currently selected tool.
 
 ```tsx
-import { track } from "@tldraw/signia"
-import { useEditor } from "@tldraw/tldraw"
+import { track, useEditor } from "@tldraw/tldraw"
 
 export const CreatingBubbleToolUi = track(() => {
   const editor = useEditor()

@@ -4,7 +4,7 @@ import { Atom, AtomOptions, atom } from '../core'
 /**
  * Creates a new atom and returns it. The atom will be created only once.
  *
- * See [[signia.atom]]
+ * See [[atom]]
  *
  * @example
  * ```ts

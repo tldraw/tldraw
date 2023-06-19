@@ -228,7 +228,7 @@ function computedAnnotation(
 	descriptor: PropertyDescriptor
 ) {
 	const originalMethod = descriptor.get
-	const derivationKey = Symbol.for('__signia__computed__' + key)
+	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
 
 	descriptor.get = function (this: any) {
 		let d = this[derivationKey] as _Computed<any> | undefined
@@ -279,7 +279,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 	propertyName: Prop
 ): Computed<Obj[Prop]> {
 	// deref to make sure it exists first
-	const key = Symbol.for('__signia__computed__' + propertyName.toString())
+	const key = Symbol.for('__@tldraw/state__computed__' + propertyName.toString())
 	let inst = obj[key as keyof typeof obj] as _Computed<Obj[Prop]> | undefined
 	if (!inst) {
 		// deref to make sure it exists first

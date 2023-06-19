@@ -144,6 +144,12 @@ export function useComputed<Value>(name: string, compute: () => Value, deps: any
 // @public (undocumented)
 export function useComputed<Value, Diff = unknown>(name: string, compute: () => Value, opts: ComputedOptions<Value, Diff>, deps: any[]): Computed<Value>;
 
+// @public (undocumented)
+export function useQuickReactor(name: string, reactFn: () => void, deps?: any[]): void;
+
+// @public (undocumented)
+export function useReactor(name: string, reactFn: () => void, deps?: any[] | undefined): void;
+
 // @internal (undocumented)
 export function useStateTracking<T>(name: string, render: () => T): T;
 

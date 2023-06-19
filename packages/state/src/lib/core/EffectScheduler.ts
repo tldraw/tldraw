@@ -40,7 +40,7 @@ interface EffectSchedulerOptions {
 /**
  * An EffectScheduler is responsible for executing side effects in response to changes in state.
  *
- * You probably don't need to use this directly unless you're integrating Signia with a framework of some kind.
+ * You probably don't need to use this directly unless you're integrating this library with a framework of some kind.
  *
  * Instead, use the [[react]] and [[reactor]] functions.
  *

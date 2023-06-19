@@ -5,9 +5,7 @@ import { Signal, computed, react } from '../core'
 /**
  * Extracts the value from a signal and subscribes to it.
  *
- * Note that you do not need to use this hook if you are doing one of the following:
- *   - Wrapping the component with [[track]],
- * 	 - Installing the jsx integration with [[signia-react-jsx.install]]
+ * Note that you do not need to use this hook if you are wrapping the component with [[track]]
  *
  * @example
  * ```ts

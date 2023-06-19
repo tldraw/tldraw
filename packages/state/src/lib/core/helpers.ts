@@ -71,7 +71,7 @@ export const attach = (parent: Signal<any>, child: Child) => {
 }
 
 /**
- * Get whether two values are equal (insofar as signia is concerned).
+ * Get whether two values are equal (insofar as @tldraw/state is concerned).
  *
  * @param a The first value.
  * @param b The second value.

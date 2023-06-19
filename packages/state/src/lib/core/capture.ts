@@ -1,15 +1,15 @@
 import { attach, detach } from './helpers.js'
 import { Child, Signal } from './types.js'
 
-const signiaKey = Symbol.for('__signia__')
-const global = globalThis as { [signiaKey]?: true }
+const globalKey = Symbol.for('__@tldraw/state__')
+const global = globalThis as { [globalKey]?: true }
 
-if (global[signiaKey]) {
+if (global[globalKey]) {
 	console.error(
-		'Multiple versions of signia detected. This will cause unexpected behavior. Please add "resolutions" (yarn/pnpm) or "overrides" (npm) in your package.json to ensure only one version of signia is loaded.'
+		'Multiple versions of @tldraw/state detected. This will cause unexpected behavior. Please add "resolutions" (yarn/pnpm) or "overrides" (npm) in your package.json to ensure only one version of @tldraw/state is loaded.'
 	)
 } else {
-	global[signiaKey] = true
+	global[globalKey] = true
 }
 
 class CaptureStackFrame {

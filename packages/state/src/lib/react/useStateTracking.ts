@@ -24,7 +24,7 @@ export function useStateTracking<T>(name: string, render: () => T): T {
 			`useStateTracking(${name})`,
 			// this is what `scheduler.execute()` will call
 			() => renderRef.current?.(),
-			// this is what will be invoked when signia detects a change in an upstream reactive value
+			// this is what will be invoked when @tldraw/state detects a change in an upstream reactive value
 			{
 				scheduleEffect() {
 					scheduleUpdate?.()
