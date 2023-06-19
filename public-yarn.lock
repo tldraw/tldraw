@@ -4627,6 +4627,7 @@ __metadata:
     "@tldraw/editor": "workspace:*"
     "@tldraw/polyfills": "workspace:*"
     "@tldraw/primitives": "workspace:*"
+    "@tldraw/store": "workspace:*"
     "@tldraw/ui": "workspace:*"
     chokidar-cli: ^3.0.0
     jest-canvas-mock: ^2.4.0

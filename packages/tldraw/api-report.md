@@ -4,8 +4,11 @@
 
 ```ts
 
+import { defineMigrations } from '@tldraw/store';
 import { TldrawEditorProps } from '@tldraw/editor';
 import { TldrawUiProps } from '@tldraw/ui';
+
+export { defineMigrations }
 
 // @public (undocumented)
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps): JSX.Element;
