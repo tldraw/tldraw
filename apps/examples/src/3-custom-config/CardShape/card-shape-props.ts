@@ -1,8 +1,8 @@
 import { DefaultColorStyle, ShapeProps, StyleProp } from '@tldraw/tldraw'
 import { T } from '@tldraw/validate'
-import { ICardShape } from './card-shape-types'
+import { ICardShape, IWeightStyle } from './card-shape-types'
 
-export const WeightStyle = new StyleProp<ICardShape['props']['weight']>(
+export const WeightStyle = new StyleProp<IWeightStyle>(
 	'myApp:weight',
 	'regular',
 	T.literalEnum('regular', 'bold')
