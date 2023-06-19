@@ -60,6 +60,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 	for (const section of sections) {
 		for (const category of section.categories) {
+			if (category.id === 'ucg') continue
 			for (const articleId of category.articleIds) {
 				paths.push({ params: { sectionId: section.id, childId: category.id, articleId } })
 			}
