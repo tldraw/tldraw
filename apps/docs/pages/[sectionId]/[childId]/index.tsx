@@ -2,6 +2,7 @@ import { Breadcrumb } from '@/components/Breadcrumb'
 import { Mdx } from '@/components/Mdx'
 import { MetaHead } from '@/components/MetaHead'
 import { Sidebar } from '@/components/Sidebar'
+import ArticlePage from '@/pages'
 import { Article, Category, Section, SidebarContentList } from '@/types/content-types'
 import {
 	getArticleSource,
@@ -32,7 +33,7 @@ export default function CategoryListPage(props: ChildProps) {
 	const theme = useTheme()
 
 	if (props.type === 'article') {
-		return null
+		return <ArticlePage {...props} />
 	}
 
 	const { sidebar, section, category, articles, mdxSource } = props
@@ -96,12 +97,12 @@ export default function CategoryListPage(props: ChildProps) {
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	const sections = await getSections()
-	const paths: { params: { sectionId: string; categoryId: string } }[] = []
+	const paths: { params: { sectionId: string; childId: string } }[] = []
 
 	for (const section of sections) {
 		if (section.categories) {
 			for (const category of section.categories) {
-				paths.push({ params: { sectionId: section.id, categoryId: category.id } })
+				paths.push({ params: { sectionId: section.id, childId: category.id } })
 			}
 		}
 	}
@@ -111,7 +112,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps<ChildProps> = async (ctx) => {
 	const sectionId = ctx.params?.sectionId?.toString() as string
-	const categoryId = ctx.params?.categoryId?.toString()
+	const categoryId = ctx.params?.childId?.toString()
 	if (!categoryId || !sectionId) throw Error()
 
 	const sidebar = await getSidebarContentList({

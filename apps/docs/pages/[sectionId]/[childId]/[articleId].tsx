@@ -56,12 +56,12 @@ export default function ArticlePage({
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	const sections = await getSections()
-	const paths: { params: { sectionId: string; categoryId: string; articleId: string } }[] = []
+	const paths: { params: { sectionId: string; childId: string; articleId: string } }[] = []
 
 	for (const section of sections) {
 		for (const category of section.categories) {
 			for (const articleId of category.articleIds) {
-				paths.push({ params: { sectionId: section.id, categoryId: category.id, articleId } })
+				paths.push({ params: { sectionId: section.id, childId: category.id, articleId } })
 			}
 		}
 	}
@@ -71,7 +71,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 export const getStaticProps: GetStaticProps<ArticleProps> = async (ctx) => {
 	const sectionId = ctx.params?.sectionId?.toString() as string
-	const categoryId = ctx.params?.categoryId?.toString() as string
+	const categoryId = ctx.params?.childId?.toString() as string
 	const articleId = ctx.params?.articleId?.toString()
 	if (!articleId) throw Error()
 
