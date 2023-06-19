@@ -75,7 +75,7 @@ export const getStaticProps: GetStaticProps<ArticleProps> = async (ctx) => {
 	const articleId = ctx.params?.articleId?.toString()
 	if (!articleId) throw Error()
 
-	if (categoryId === 'ucg') {
+	if (process.env.npm_lifecycle_event !== 'build' && categoryId === 'ucg') {
 		return {
 			redirect: {
 				destination: `/${sectionId}/${articleId}`,
