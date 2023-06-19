@@ -207,8 +207,7 @@ const HandlesWrapper = track(function HandlesWrapper() {
 
 	if (!(onlySelectedShape && shouldDisplayHandles)) return null
 
-	const util = editor.getShapeUtil(onlySelectedShape)
-	const handles = util.handles?.(onlySelectedShape)
+	const handles = editor.getHandles(onlySelectedShape)
 
 	if (!handles) return null
 

@@ -16,7 +16,7 @@ export class StyleProp<Type> implements T.Validatable<Type> {
 		return new EnumStyleProp<Values[number]>(uniqueId, defaultValue, values)
 	}
 
-	protected constructor(
+	constructor(
 		readonly id: string,
 		readonly defaultValue: Type,
 		readonly type: T.Validatable<Type>

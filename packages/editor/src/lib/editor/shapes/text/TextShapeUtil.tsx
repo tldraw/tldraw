@@ -24,7 +24,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
 
-	defaultProps(): TLTextShape['props'] {
+	getDefaultProps(): TLTextShape['props'] {
 		return {
 			color: 'black',
 			size: 'm',
@@ -63,7 +63,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getOutline(shape: TLTextShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		return [
 			new Vec2d(0, 0),
@@ -71,11 +71,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			new Vec2d(bounds.width, bounds.height),
 			new Vec2d(0, bounds.height),
 		]
-	}
-
-	getCenter(shape: TLTextShape): Vec2d {
-		const bounds = this.bounds(shape)
-		return new Vec2d(bounds.width / 2, bounds.height / 2)
 	}
 
 	component(shape: TLTextShape) {
@@ -150,12 +145,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	indicator(shape: TLTextShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.getBounds(shape)
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
 	toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors) {
-		const bounds = this.bounds(shape)
+		const bounds = this.getBounds(shape)
 		const text = shape.props.text
 
 		const width = bounds.width / (shape.props.scale ?? 1)
@@ -204,7 +199,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const { initialBounds, initialShape, scaleX, handle } = info
 
 		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
-			return resizeScaled(shape, info)
+			return {
+				id: shape.id,
+				type: shape.type,
+				...resizeScaled(shape, info),
+			}
 		} else {
 			const prevWidth = initialBounds.width
 			let nextWidth = prevWidth * scaleX
@@ -227,6 +226,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			const { x, y } = offset.rot(shape.rotation).add(initialShape)
 
 			return {
+				id: shape.id,
+				type: shape.type,
 				x,
 				y,
 				props: {

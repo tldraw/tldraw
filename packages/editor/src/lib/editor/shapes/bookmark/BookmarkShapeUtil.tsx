@@ -23,7 +23,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	override hideSelectionBoundsBg = () => true
 	override hideSelectionBoundsFg = () => true
 
-	override defaultProps(): TLBookmarkShape['props'] {
+	override getDefaultProps(): TLBookmarkShape['props'] {
 		return {
 			url: '',
 			w: 300,
