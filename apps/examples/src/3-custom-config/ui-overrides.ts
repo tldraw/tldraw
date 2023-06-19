@@ -1,5 +1,7 @@
 import { TLUiMenuGroup, TLUiOverrides, menuItem, toolbarItem } from '@tldraw/tldraw'
 
+// In order to see select our custom shape tool, we need to add it to the ui.
+
 export const uiOverrides: TLUiOverrides = {
 	tools(editor, tools) {
 		// Create a tool item in the ui's context.
