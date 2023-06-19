@@ -211,7 +211,13 @@ function Title({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
-export const TldrawUi: React_2.NamedExoticComponent<TldrawUiProps>;
+export const TldrawUi: React_2.NamedExoticComponent<{
+    children?: ReactNode;
+    hideUi?: boolean | undefined;
+    shareZone?: ReactNode;
+    topZone?: ReactNode;
+    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
+} & TldrawUiContextProviderProps>;
 
 // @public (undocumented)
 export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, children, }: TldrawUiContextProviderProps): JSX.Element;
