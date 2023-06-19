@@ -3,6 +3,7 @@
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/indices'
+export { defineMigrations } from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/tlschema'
 export { getHashForString } from '@tldraw/utils'

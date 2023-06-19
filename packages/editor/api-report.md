@@ -12,6 +12,7 @@ import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from 'signia';
 import { ComputedCache } from '@tldraw/store';
 import { CubicSpline2d } from '@tldraw/primitives';
+import { defineMigrations } from '@tldraw/store';
 import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
@@ -292,6 +293,8 @@ export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGe
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
+
+export { defineMigrations }
 
 // @public (undocumented)
 export function defineShape<T extends TLUnknownShape>(type: T['type'], opts: Omit<TLShapeInfo<T>, 'type'>): TLShapeInfo<T>;
