@@ -75,6 +75,15 @@ export const getStaticProps: GetStaticProps<ArticleProps> = async (ctx) => {
 	const articleId = ctx.params?.articleId?.toString()
 	if (!articleId) throw Error()
 
+	if (categoryId === 'ucg') {
+		return {
+			redirect: {
+				destination: `/${sectionId}/${articleId}`,
+				permanent: true,
+			},
+		}
+	}
+
 	const sidebar = await getSidebarContentList({ sectionId, categoryId, articleId })
 	const section = await getSection(sectionId)
 	const category = await getCategory(sectionId, categoryId)
