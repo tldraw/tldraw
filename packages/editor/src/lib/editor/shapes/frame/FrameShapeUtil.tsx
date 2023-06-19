@@ -18,12 +18,12 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override canEdit = () => true
 
-	override defaultProps(): TLFrameShape['props'] {
+	override getDefaultProps(): TLFrameShape['props'] {
 		return { w: 160 * 2, h: 90 * 2, name: '' }
 	}
 
 	override component(shape: TLFrameShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		return (
 			<>
@@ -137,7 +137,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	indicator(shape: TLFrameShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		return (
 			<rect

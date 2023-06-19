@@ -12,6 +12,21 @@ export function useDocumentEvents() {
 	const isAppFocused = useValue('isFocused', () => editor.isFocused, [editor])
 
 	useEffect(() => {
+		if (typeof matchMedia !== undefined) return
+
+		function updateDevicePixelRatio() {
+			editor.setDevicePixelRatio(window.devicePixelRatio)
+		}
+
+		const MM = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
+
+		MM.addEventListener('change', updateDevicePixelRatio)
+		return () => {
+			MM.removeEventListener('change', updateDevicePixelRatio)
+		}
+	}, [editor])
+
+	useEffect(() => {
 		if (!isAppFocused) return
 
 		const handleKeyDown = (e: KeyboardEvent) => {

@@ -275,7 +275,7 @@ describe('Custom shapes', () => {
 		override canResize = (_shape: CardShape) => true
 		override canBind = (_shape: CardShape) => true
 
-		override defaultProps(): CardShape['props'] {
+		override getDefaultProps(): CardShape['props'] {
 			return {
 				w: 300,
 				h: 300,
@@ -283,7 +283,7 @@ describe('Custom shapes', () => {
 		}
 
 		component(shape: CardShape) {
-			const bounds = this.bounds(shape)
+			const bounds = this.getBounds(shape)
 
 			return (
 				<HTMLContainer

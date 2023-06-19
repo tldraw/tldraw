@@ -235,7 +235,7 @@ export class ExternalContentManager {
 		const p =
 			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
 
-		const defaultProps = editor.getShapeUtil(TextShapeUtil).defaultProps()
+		const defaultProps = editor.getShapeUtil(TextShapeUtil).getDefaultProps()
 
 		const textToPaste = stripTrailingWhitespace(
 			stripCommonMinimumIndentation(replaceTabsWithSpaces(text))

@@ -50,7 +50,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	canEdit = () => true
 
-	override defaultProps(): TLGeoShape['props'] {
+	override getDefaultProps(): TLGeoShape['props'] {
 		return {
 			w: 100,
 			h: 100,
@@ -70,7 +70,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 
 		// Check the outline
 		for (let i = 0; i < outline.length; i++) {
@@ -91,7 +91,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	hitTestPoint(shape: TLGeoShape, point: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 
 		if (shape.props.fill === 'none') {
 			const zoomLevel = this.editor.zoomLevel
@@ -397,7 +397,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					break
 				}
 				default: {
-					const outline = this.outline(shape)
+					const outline = this.editor.getOutline(shape)
 					const lines = getLines(shape.props, strokeWidth)
 
 					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
@@ -479,7 +479,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 
 			default: {
-				const outline = this.outline(shape)
+				const outline = this.editor.getOutline(shape)
 				let path: string
 
 				if (props.dash === 'draw' && !forceSolid) {
@@ -591,7 +591,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				break
 			}
 			default: {
-				const outline = this.outline(shape)
+				const outline = this.editor.getOutline(shape)
 				const lines = getLines(shape.props, strokeWidth)
 
 				switch (props.dash) {
@@ -635,7 +635,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (props.text) {
-			const bounds = this.bounds(shape)
+			const bounds = this.editor.getBounds(shape)
 
 			const rootTextElm = getTextLabelSvgElement({
 				editor: this.editor,
