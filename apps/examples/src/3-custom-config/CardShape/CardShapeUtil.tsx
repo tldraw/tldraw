@@ -18,6 +18,7 @@ export class CardShapeUtil extends ShapeUtil<MyCardShape> {
 		return {
 			w: 300,
 			h: 300,
+			color: 'black',
 		}
 	}
 
@@ -38,6 +39,7 @@ export class CardShapeUtil extends ShapeUtil<MyCardShape> {
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
+					color: `var(--palette-${shape.props.color})`,
 				}}
 			>
 				{bounds.w.toFixed()}x{bounds.h.toFixed()}

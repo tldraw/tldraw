@@ -1,4 +1,10 @@
-import { ShapeProps, TLBaseShape, defineMigrations } from '@tldraw/tldraw'
+import {
+	DefaultColorStyle,
+	ShapeProps,
+	TLBaseShape,
+	TLDefaultColorStyle,
+	defineMigrations,
+} from '@tldraw/tldraw'
 import { T } from '@tldraw/validate'
 
 // A type for our custom card shape
@@ -7,6 +13,7 @@ export type MyCardShape = TLBaseShape<
 	{
 		w: number
 		h: number
+		color: TLDefaultColorStyle
 	}
 >
 
@@ -14,22 +21,24 @@ export type MyCardShape = TLBaseShape<
 export const cardShapeProps: ShapeProps<MyCardShape> = {
 	w: T.number,
 	h: T.number,
+	color: DefaultColorStyle,
 }
 
-// Migrations for the custom card shape (optional)
+// Migrations for the custom card shape (optional but very helpful)
 export const cardShapeMigrations = defineMigrations({
 	currentVersion: 1,
 	migrators: {
 		1: {
+			// for example, removing a property from the shape
 			up(shape) {
-				const { _somePropertyToRemove, ...rest } = shape
-				return rest
+				const migratedUpShape = { ...shape }
+				delete migratedUpShape._somePropertyToRemove
+				return migratedUpShape
 			},
 			down(shape) {
-				return {
-					_somePropertyToRemove: 'some value',
-					...shape,
-				}
+				const migratedDownShape = { ...shape }
+				migratedDownShape._somePropertyToRemove = 'some value'
+				return migratedDownShape
 			},
 		},
 	},
