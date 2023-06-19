@@ -186,6 +186,7 @@ export function getAssetUrls(opts) {
 		translations: {
 			ar: formatAssetUrl('./translations/ar.json', opts),
 			ca: formatAssetUrl('./translations/ca.json', opts),
+			cs: formatAssetUrl('./translations/cs.json', opts),
 			da: formatAssetUrl('./translations/da.json', opts),
 			de: formatAssetUrl('./translations/de.json', opts),
 			en: formatAssetUrl('./translations/en.json', opts),
