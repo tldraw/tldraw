@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import ReactTestRenderer from 'react-test-renderer'
-import { Atom, atom } from '../core/Atom.js'
-import { Computed } from '../core/Computed.js'
-import { useAtom } from './useAtom.js'
-import { useComputed } from './useComputed.js'
-import { useValue } from './useValue.js'
+import { Atom, atom } from '../core/Atom'
+import { Computed } from '../core/Computed'
+import { useAtom } from './useAtom'
+import { useComputed } from './useComputed'
+import { useValue } from './useValue'
 
 test('useValue returns a value from a computed', async () => {
 	let theComputed = null as null | Computed<number>

@@ -5,7 +5,7 @@ import { Computed, ComputedOptions, computed } from '../core'
 /**
  * Creates a new computed signal and returns it. The computed signal will be created only once.
  *
- * See [[signia.computed]]
+ * See [[computed]]
  *
  * @example
  * ```ts

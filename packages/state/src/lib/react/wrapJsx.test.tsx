@@ -13,8 +13,8 @@ import {
 	useImperativeHandle,
 } from 'react'
 import { act, create, ReactTestRenderer } from 'react-test-renderer'
-import { atom } from '../core/Atom.js'
-import { wrapJsx } from './wrapJsx.js'
+import { atom } from '../core/Atom'
+import { wrapJsx } from './wrapJsx'
 
 // assign this to an unused variable to prevent editors from removing it
 const _Fragment = Fragment
