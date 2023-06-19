@@ -4490,11 +4490,11 @@ __metadata:
     nanoid: 4.0.2
     react-test-renderer: ^18.2.0
     resize-observer-polyfill: ^1.5.1
+    signia: 0.1.4
+    signia-react: 0.1.4
   peerDependencies:
     react: ^18
     react-dom: ^18
-    signia: "*"
-    signia-react: "*"
   languageName: unknown
   linkType: soft
 
