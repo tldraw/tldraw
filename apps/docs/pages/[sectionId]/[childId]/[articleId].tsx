@@ -75,17 +75,6 @@ export const getStaticProps: GetStaticProps<ArticleProps> = async (ctx) => {
 	const articleId = ctx.params?.articleId?.toString()
 	if (!articleId) throw Error()
 
-	// Redirect old uncategorized links to new ones
-	// Don't do it during the build step though, because it will break the build
-	if (process.env.npm_lifecycle_event !== 'build' && categoryId === 'ucg') {
-		return {
-			redirect: {
-				destination: `/${sectionId}/${articleId}`,
-				permanent: true,
-			},
-		}
-	}
-
 	const sidebar = await getSidebarContentList({ sectionId, categoryId, articleId })
 	const section = await getSection(sectionId)
 	const category = await getCategory(sectionId, categoryId)
