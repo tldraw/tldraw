@@ -41,12 +41,13 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"files": [
-		"editor.css",
-		"ui.css"
+		"tldraw.css"
 	],
 	"dependencies": {
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/polyfills": "workspace:*",
+		"@tldraw/primitives": "workspace:*",
+		"@tldraw/store": "workspace:*",
 		"@tldraw/ui": "workspace:*"
 	},
 	"peerDependencies": {

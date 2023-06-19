@@ -14,7 +14,7 @@ type __TopLeftSnapOnlyShape = any
 class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 	static override type = '__test_top_left_snap_only' as const
 
-	defaultProps(): __TopLeftSnapOnlyShape['props'] {
+	getDefaultProps(): __TopLeftSnapOnlyShape['props'] {
 		return { width: 10, height: 10 }
 	}
 	getBounds(shape: __TopLeftSnapOnlyShape): Box2d {
@@ -28,7 +28,7 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 			Vec2d.From({ x: shape.x, y: shape.y + shape.props.height }),
 		]
 	}
-	render() {
+	component() {
 		throw new Error('Method not implemented.')
 	}
 	indicator() {

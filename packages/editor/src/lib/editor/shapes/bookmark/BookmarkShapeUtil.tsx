@@ -23,7 +23,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	override hideSelectionBoundsBg = () => true
 	override hideSelectionBoundsFg = () => true
 
-	override defaultProps(): TLBookmarkShape['props'] {
+	override getDefaultProps(): TLBookmarkShape['props'] {
 		return {
 			url: '',
 			w: 300,
@@ -32,7 +32,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		}
 	}
 
-	override render(shape: TLBookmarkShape) {
+	override component(shape: TLBookmarkShape) {
 		const asset = (
 			shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : null
 		) as TLBookmarkAsset

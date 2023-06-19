@@ -35,7 +35,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideSelectionBoundsFg = () => true
 	override isClosed = () => false
 
-	override defaultProps(): TLLineShape['props'] {
+	override getDefaultProps(): TLLineShape['props'] {
 		return {
 			dash: 'draw',
 			size: 'm',
@@ -66,10 +66,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		// todo: should we have min size?
 		const spline = getSplineForLineShape(shape)
 		return spline.bounds
-	}
-
-	getCenter(shape: TLLineShape) {
-		return this.bounds(shape).center
 	}
 
 	getHandles(shape: TLLineShape) {
@@ -174,14 +170,14 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	hitTestPoint(shape: TLLineShape, point: Vec2d): boolean {
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
-		return pointNearToPolyline(point, this.outline(shape), offsetDist)
+		return pointNearToPolyline(point, this.editor.getOutline(shape), offsetDist)
 	}
 
 	hitTestLineSegment(shape: TLLineShape, A: VecLike, B: VecLike): boolean {
-		return intersectLineSegmentPolyline(A, B, this.outline(shape)) !== null
+		return intersectLineSegmentPolyline(A, B, this.editor.getOutline(shape)) !== null
 	}
 
-	render(shape: TLLineShape) {
+	component(shape: TLLineShape) {
 		const forceSolid = useForceSolid()
 		const spline = getSplineForLineShape(shape)
 		const strokeWidth = STROKE_SIZES[shape.props.size]

@@ -12,6 +12,7 @@ export function Tldraw(props: TldrawEditorProps & TldrawUiProps): JSX.Element;
 
 
 export * from "@tldraw/editor";
+export * from "@tldraw/primitives";
 export * from "@tldraw/ui";
 
 // (No @packageDocumentation comment for this package)

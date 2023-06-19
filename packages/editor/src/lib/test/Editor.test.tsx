@@ -455,10 +455,10 @@ describe('getShapeUtil', () => {
 		class MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
 			static type = 'fake'
 
-			defaultProps() {
+			getDefaultProps() {
 				throw new Error('Method not implemented.')
 			}
-			render() {
+			component() {
 				throw new Error('Method not implemented.')
 			}
 			indicator() {
@@ -475,10 +475,10 @@ describe('getShapeUtil', () => {
 		class MyFakeGeoShapeUtil extends BaseBoxShapeUtil<any> {
 			static type = 'geo'
 
-			defaultProps() {
+			getDefaultProps() {
 				throw new Error('Method not implemented.')
 			}
-			render() {
+			component() {
 				throw new Error('Method not implemented.')
 			}
 			indicator() {

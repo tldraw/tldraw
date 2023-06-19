@@ -125,7 +125,7 @@ export const createPresenceStateDerivation: ($user: Signal<{
     id: string;
     color: string;
     name: string;
-}>) => (store: TLStore) => Signal<null | TLInstancePresence>;
+}>, instanceId?: TLInstancePresence['id']) => (store: TLStore) => Signal<null | TLInstancePresence>;
 
 // @public (undocumented)
 export function createShapeId(id?: string): TLShapeId;
@@ -706,7 +706,7 @@ export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
 
 // @public (undocumented)
 export class StyleProp<Type> implements T.Validatable<Type> {
-    protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
+    constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
     // (undocumented)
     readonly defaultValue: Type;
     // (undocumented)

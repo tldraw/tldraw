@@ -1,7 +1,6 @@
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
 import { TLArrowShape, TLArrowShapeTerminal, TLShape } from '@tldraw/tlschema'
 import { Editor } from '../../../Editor'
-import { ShapeUtil } from '../../ShapeUtil'
 
 export function getIsArrowStraight(shape: TLArrowShape) {
 	return Math.abs(shape.props.bend) < 8 // snap to +-8px
@@ -9,10 +8,11 @@ export function getIsArrowStraight(shape: TLArrowShape) {
 
 export type BoundShapeInfo<T extends TLShape = TLShape> = {
 	shape: T
-	util: ShapeUtil<T>
 	didIntersect: boolean
 	isExact: boolean
+	isClosed: boolean
 	transform: Matrix2d
+	outline: Vec2d[]
 }
 
 export function getBoundShapeInfoForTerminal(
@@ -29,10 +29,11 @@ export function getBoundShapeInfoForTerminal(
 
 	return {
 		shape,
-		util,
 		transform,
+		isClosed: util.isClosed(shape),
 		isExact: terminal.isExact,
 		didIntersect: false,
+		outline: editor.getOutline(shape),
 	}
 }
 

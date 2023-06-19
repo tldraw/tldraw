@@ -27,7 +27,7 @@
 		"infinite"
 	],
 	"scripts": {
-		"dev": "next dev",
+		"dev": "yarn docs-content && NODE_ENV=development next-remote-watch ./content/**/*.mdx -c 'yarn run -T tsx ./scripts/generate-on-reload.ts'",
 		"build": "next build",
 		"start": "next start",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",

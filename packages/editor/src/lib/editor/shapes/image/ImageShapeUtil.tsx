@@ -54,7 +54,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override isAspectRatioLocked = () => true
 	override canCrop = () => true
 
-	override defaultProps(): TLImageShape['props'] {
+	override getDefaultProps(): TLImageShape['props'] {
 		return {
 			w: 100,
 			h: 100,
@@ -65,7 +65,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		}
 	}
 
-	render(shape: TLImageShape) {
+	component(shape: TLImageShape) {
 		const containerStyle = getContainerStyle(shape)
 		const isCropping = useIsCropping(shape.id)
 		const prefersReducedMotion = usePrefersReducedMotion()

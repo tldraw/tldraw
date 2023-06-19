@@ -38,7 +38,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return !!getEmbedInfo(shape.props.url)?.definition?.doesResize
 	}
 
-	override defaultProps(): TLEmbedShape['props'] {
+	override getDefaultProps(): TLEmbedShape['props'] {
 		return {
 			w: 300,
 			h: 300,
@@ -72,7 +72,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return resizeBox(shape, info, { minWidth, minHeight })
 	}
 
-	override render(shape: TLEmbedShape) {
+	override component(shape: TLEmbedShape) {
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const embedInfo = useMemo(() => getEmbedInfoUnsafely(url), [url])

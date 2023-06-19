@@ -6,84 +6,47 @@ date: 3/22/2023
 order: 2
 ---
 
-You should be able to use the `<Tldraw/>` component in any React editor.
+The `<Tldraw/>` component is the easiest way to get started with tldraw. It combines several lower-level libraries: the `TldrawEditor` component from `@tldraw/editor` and the `TldrawUi` component from `@tldraw/ui`.
 
 To use the `<Tldraw/>` component, create a file like this one:
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 
-export default function () {
+export default function TldrawExample() {
 	return (
-		<div
-			style={{
-				position: 'fixed',
-				inset: 0,
-			}}
-		>
+		<div style={{ position: 'fixed', inset: 0 }} >
 			<Tldraw />
 		</div>
 	)
 }
 ```
 
-In addition to the library, you will also need to:
-
-- import the **CSS files** for the editor and UI
-- probably set a `viewport` meta tag in your **html**.
-
-See below for more detail on these.
-
-#### A note on next.js / server-rendered react
-
-The `<Tldraw/>` component cannot be server-rendered. If you're using the component in a Next.js app, you will need to import it dynamically. The code to do that will look something like this:
-
-```tsx
-import dynamic from "next/dynamic"
-
-const Editor = dynamic(
-	async () => import('../components/Editor')),
-	{ ssr: false }
-)
-
-export default function MyPage() {
-	return <Editor/>
-}
-```
-
-### `<Tldraw/>`
-
-The `<Tldraw/>` component combines several other pieces:
-
-- the tldraw editor (`@tldraw/editor`)
-- the tldraw UI (`@tldraw/ui`)
-- an engine (`@tldraw/sync-client`) for persistence and cross-tab syncronization
-
-> **Note:** In the future, this library will also include an engine for using our collaboration services.
-
-If you wanted to have more granular control, you could also use those subcomponents directly. See the ["exploded" example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/5-exploded/ExplodedExample.tsx) for what that would look like.
-
 ### CSS
 
-In order to use the `<Tldraw/>` component, you must also import a CSS file from the library `@tldraw/editor` library (automatically installed with `@tldraw/tldraw`):
+In order to use the `<Tldraw/>` component, you should also import the `tldraw.css` file from the `@tldraw/tldraw` library. You can alternatively import this file inside of another CSS file using the `@import` syntax.
 
-```ts
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
-```
-
-You can overwrite these files with other CSS, customize the styles via package patches, or copy the contents into a different file and import that instead.
-
-In addition to these stylesheets, the root project imports the `src/index.css` file, so its styles are used for every example. Be sure to take a look at this file: you may find some of these styles necessary in your own usage of the `<Tldraw/>` component.
+You can overwrite these files with other CSS or copy the contents into a different file and import that instead.
 
 ### HTML
 
-You probably also want to update your `index.html`'s meta viewport element as shown below. 
+If you're using the tldraw component in a full-screen app, you probably also want to updte your `index.html`'s meta viewport element as shown below. 
 
 ```html
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 ```
 
-These may not be critical to `<Tldraw/>` performing correctly, however some features (such as safe area positioning) may not work correctly if these are not set.
+This change may not be critical to `<Tldraw/>` performing correctly, however some features (such as safe area positioning) will not work correctly if these viewport options are not set.
+
+## Server rendering
+
+The `<Tldraw/>` component can't be server-rendered. If you're using the component in a server-rendered framework (such as Next.js) then you will need to import it dynamically. Check the [examples repository](https://github.com/tldraw/examples) to see examples.
+
+## Using in Next.js, Create React App, Vite, etc.
+
+Check the [examples repository](https://github.com/tldraw/examples) to see examples of the tldraw component being used in various frameworks.
+
+## Going deeper
+
+If you wanted to have more granular control, you could also use those lower-level components directly. See [this example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/5-exploded/ExplodedExample.tsx) for reference.

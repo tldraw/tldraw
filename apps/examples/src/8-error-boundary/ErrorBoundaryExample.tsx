@@ -1,6 +1,5 @@
 import { createShapeId, Tldraw, TLShapePartial } from '@tldraw/tldraw'
-import '@tldraw/tldraw/editor.css'
-import '@tldraw/tldraw/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 import { ErrorShape } from './ErrorShape'
 
 const shapes = [ErrorShape]

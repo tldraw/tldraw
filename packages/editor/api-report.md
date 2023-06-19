@@ -12,6 +12,7 @@ import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from 'signia';
 import { ComputedCache } from '@tldraw/store';
 import { CubicSpline2d } from '@tldraw/primitives';
+import { defineMigrations } from '@tldraw/store';
 import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
@@ -109,7 +110,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canSnap: () => boolean;
     // (undocumented)
-    defaultProps(): TLArrowShape['props'];
+    component(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
     getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
     // (undocumented)
@@ -117,7 +118,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getCenter(shape: TLArrowShape): Vec2d;
     // (undocumented)
-    getEditingBounds: (shape: TLArrowShape) => Box2d;
+    getDefaultProps(): TLArrowShape['props'];
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
     // (undocumented)
@@ -154,8 +155,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     onResize: TLOnResizeHandler<TLArrowShape>;
     // (undocumented)
     onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
-    // (undocumented)
-    render(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
     snapPoints(_shape: TLArrowShape): Vec2d[];
     // (undocumented)
@@ -203,7 +202,9 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     canResize: () => boolean;
     // (undocumented)
-    defaultProps(): TLBookmarkShape['props'];
+    component(shape: TLBookmarkShape): JSX.Element;
+    // (undocumented)
+    getDefaultProps(): TLBookmarkShape['props'];
     // (undocumented)
     hideSelectionBoundsBg: () => boolean;
     // (undocumented)
@@ -215,15 +216,11 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
     // (undocumented)
     onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
     // (undocumented)
-    render(shape: TLBookmarkShape): JSX.Element;
-    // (undocumented)
     static type: "bookmark";
 }
 
 // @public (undocumented)
-export const Canvas: React_3.MemoExoticComponent<({ onDropOverride, }: {
-    onDropOverride?: ((defaultOnDrop: (e: React_3.DragEvent<Element>) => Promise<void>) => (e: React_3.DragEvent<Element>) => Promise<void>) | undefined;
-}) => JSX.Element>;
+export const Canvas: React_2.MemoExoticComponent<() => JSX.Element>;
 
 // @public (undocumented)
 export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean | undefined;
@@ -242,6 +239,13 @@ export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | 
 
 // @public
 export function createTLStore({ initialData, defaultName, ...rest }: TLStoreOptions): TLStore;
+
+// @public (undocumented)
+export function createTLUser(opts?: {
+    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
+    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
+    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
+}): TLUser;
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -288,6 +292,8 @@ export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGe
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
 
+export { defineMigrations }
+
 // @public (undocumented)
 export function defineShape<T extends TLUnknownShape>(type: T['type'], opts: Omit<TLShapeInfo<T>, 'type'>): TLShapeInfo<T>;
 
@@ -306,13 +312,15 @@ export const DrawShape: TLShapeInfo<TLDrawShape>;
 // @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
-    defaultProps(): TLDrawShape['props'];
+    component(shape: TLDrawShape): JSX.Element;
     // (undocumented)
     expandSelectionOutlinePx(shape: TLDrawShape): number;
     // (undocumented)
     getBounds(shape: TLDrawShape): Box2d;
     // (undocumented)
     getCenter(shape: TLDrawShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLDrawShape['props'];
     // (undocumented)
     getOutline(shape: TLDrawShape): Vec2d[];
     // (undocumented)
@@ -333,8 +341,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     isClosed: (shape: TLDrawShape) => boolean;
     // (undocumented)
     onResize: TLOnResizeHandler<TLDrawShape>;
-    // (undocumented)
-    render(shape: TLDrawShape): JSX.Element;
     // (undocumented)
     toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors): SVGGElement;
     // (undocumented)
@@ -445,20 +451,24 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAssetById(id: TLAssetId): TLAsset | undefined;
     getAssetBySrc(src: string): TLBookmarkAsset | TLImageAsset | TLVideoAsset | undefined;
-    getBounds(shape: TLShape): Box2d;
-    getBoundsById(id: TLShapeId): Box2d | undefined;
+    getBounds<T extends TLShape>(shape: T): Box2d;
+    getBoundsById<T extends TLShape>(id: T['id']): Box2d | undefined;
     getClipPathById(id: TLShapeId): string | undefined;
     getContainer: () => HTMLElement;
     getContent(ids?: TLShapeId[]): TLContent | undefined;
     getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getHandles<T extends TLShape>(shape: T): TLHandle[] | undefined;
+    getHandlesById<T extends TLShape>(id: T['id']): TLHandle[] | undefined;
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
     getMaskedPageBoundsById(id: TLShapeId): Box2d | undefined;
     getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape;
-    getOutline(shape: TLShape): Vec2d[];
+    getOutline<T extends TLShape>(shape: T): Vec2d[];
     getOutlineById(id: TLShapeId): Vec2d[];
+    getOutlineSegments<T extends TLShape>(shape: T): Vec2d[][];
+    getOutlineSegmentsById(id: TLShapeId): Vec2d[][];
     getPageBounds(shape: TLShape): Box2d | undefined;
     getPageBoundsById(id: TLShapeId): Box2d | undefined;
     getPageById(id: TLPageId): TLPage | undefined;
@@ -639,6 +649,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
     setCursor(cursor: Partial<TLCursor>): this;
     setDarkMode(isDarkMode: boolean): this;
+    setDevicePixelRatio(dpr: number): this;
     setEditingId(id: null | TLShapeId): this;
     setErasingIds(ids?: TLShapeId[]): this;
     setFocusLayer(next: null | TLShapeId): this;
@@ -646,9 +657,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     setGridMode(isGridMode: boolean): this;
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
-    setInstancePageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     setLocale(locale: string): void;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
+    setPageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
     setPenMode(isPenMode: boolean): this;
     // @internal (undocumented)
     setProjectName(name: string): void;
@@ -680,9 +691,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     stopFollowingUser(): this;
     readonly store: TLStore;
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
-    get styleChanging(): null | string;
-    set styleChanging(v: null | string);
-    textMeasure: TextManager;
+    readonly textMeasure: TextManager;
     toggleLock(ids?: TLShapeId[]): this;
     undo(): HistoryManager<this>;
     ungroupShapes(ids?: TLShapeId[]): this;
@@ -722,7 +731,9 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     canUnmount: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
-    defaultProps(): TLEmbedShape['props'];
+    component(shape: TLEmbedShape): JSX.Element;
+    // (undocumented)
+    getDefaultProps(): TLEmbedShape['props'];
     // (undocumented)
     hideSelectionBoundsBg: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
@@ -733,8 +744,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLEmbedShape>;
-    // (undocumented)
-    render(shape: TLEmbedShape): JSX.Element;
     // (undocumented)
     static type: "embed";
 }
@@ -787,7 +796,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
     // (undocumented)
-    defaultProps(): TLFrameShape['props'];
+    component(shape: TLFrameShape): JSX.Element;
+    // (undocumented)
+    getDefaultProps(): TLFrameShape['props'];
     // (undocumented)
     indicator(shape: TLFrameShape): JSX.Element;
     // (undocumented)
@@ -800,8 +811,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     onResizeEnd: TLOnResizeEndHandler<TLFrameShape>;
     // (undocumented)
     providesBackgroundForChildren(): boolean;
-    // (undocumented)
-    render(shape: TLFrameShape): JSX.Element;
     // (undocumented)
     toSvg(shape: TLFrameShape, font: string, colors: TLExportColors): Promise<SVGElement> | SVGElement;
     // (undocumented)
@@ -816,11 +825,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    defaultProps(): TLGeoShape['props'];
+    component(shape: TLGeoShape): JSX.Element;
     // (undocumented)
     getBounds(shape: TLGeoShape): Box2d;
     // (undocumented)
     getCenter(shape: TLGeoShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLGeoShape['props'];
     // (undocumented)
     getOutline(shape: TLGeoShape): Vec2d[];
     // (undocumented)
@@ -921,8 +932,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     onEditEnd: TLOnEditEndHandler<TLGeoShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLGeoShape>;
-    // (undocumented)
-    render(shape: TLGeoShape): JSX.Element;
     // (undocumented)
     toSvg(shape: TLGeoShape, font: string, colors: TLExportColors): SVGElement;
     // (undocumented)
@@ -1036,11 +1045,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
     // (undocumented)
-    defaultProps(): TLGroupShape['props'];
+    component(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
     getBounds(shape: TLGroupShape): Box2d;
     // (undocumented)
     getCenter(shape: TLGroupShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLGroupShape['props'];
     // (undocumented)
     getOutline(shape: TLGroupShape): Vec2d[];
     // (undocumented)
@@ -1051,8 +1062,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     indicator(shape: TLGroupShape): JSX.Element;
     // (undocumented)
     onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape>;
-    // (undocumented)
-    render(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
     static type: "group";
     // (undocumented)
@@ -1079,13 +1088,17 @@ export const HighlightShape: TLShapeInfo<TLHighlightShape>;
 // @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
-    defaultProps(): TLHighlightShape['props'];
+    backgroundComponent(shape: TLHighlightShape): JSX.Element;
+    // (undocumented)
+    component(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
     expandSelectionOutlinePx(shape: TLHighlightShape): number;
     // (undocumented)
     getBounds(shape: TLHighlightShape): Box2d;
     // (undocumented)
     getCenter(shape: TLHighlightShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLHighlightShape['props'];
     // (undocumented)
     getOutline(shape: TLHighlightShape): Vec2d[];
     // (undocumented)
@@ -1104,10 +1117,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     indicator(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
     onResize: TLOnResizeHandler<TLHighlightShape>;
-    // (undocumented)
-    render(shape: TLHighlightShape): JSX.Element;
-    // (undocumented)
-    renderBackground(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
     toBackgroundSvg(shape: TLHighlightShape, font: string | undefined, colors: TLExportColors): SVGPathElement;
     // (undocumented)
@@ -1130,7 +1139,9 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop: () => boolean;
     // (undocumented)
-    defaultProps(): TLImageShape['props'];
+    component(shape: TLImageShape): JSX.Element;
+    // (undocumented)
+    getDefaultProps(): TLImageShape['props'];
     // (undocumented)
     indicator(shape: TLImageShape): JSX.Element | null;
     // (undocumented)
@@ -1139,8 +1150,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     onDoubleClick: (shape: TLImageShape) => void;
     // (undocumented)
     onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>;
-    // (undocumented)
-    render(shape: TLImageShape): JSX.Element;
     // (undocumented)
     toSvg(shape: TLImageShape): Promise<SVGGElement>;
     // (undocumented)
@@ -1177,11 +1186,11 @@ export const LineShape: TLShapeInfo<TLLineShape>;
 // @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
-    defaultProps(): TLLineShape['props'];
+    component(shape: TLLineShape): JSX.Element | undefined;
     // (undocumented)
     getBounds(shape: TLLineShape): Box2d;
     // (undocumented)
-    getCenter(shape: TLLineShape): Vec2d;
+    getDefaultProps(): TLLineShape['props'];
     // (undocumented)
     getHandles(shape: TLLineShape): TLHandle[];
     // (undocumented)
@@ -1208,8 +1217,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     onHandleChange: TLOnHandleChangeHandler<TLLineShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLLineShape>;
-    // (undocumented)
-    render(shape: TLLineShape): JSX.Element | undefined;
     // (undocumented)
     toSvg(shape: TLLineShape, _font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
@@ -1645,11 +1652,13 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    defaultProps(): TLNoteShape['props'];
+    component(shape: TLNoteShape): JSX.Element;
     // (undocumented)
     getBounds(shape: TLNoteShape): Box2d;
     // (undocumented)
     getCenter(_shape: TLNoteShape): Vec2d;
+    // (undocumented)
+    getDefaultProps(): TLNoteShape['props'];
     // (undocumented)
     getHeight(shape: TLNoteShape): number;
     // (undocumented)
@@ -1710,8 +1719,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     } | undefined;
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
-    // (undocumented)
-    render(shape: TLNoteShape): JSX.Element;
     // (undocumented)
     toSvg(shape: TLNoteShape, font: string, colors: TLExportColors): SVGGElement;
     // (undocumented)
@@ -1817,7 +1824,8 @@ export function setUserPreferences(user: TLUserPreferences): void;
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor, type: Shape['type'], styleProps: ReadonlyMap<StyleProp<unknown>, string>);
-    bounds(shape: Shape): Box2d;
+    // @internal
+    backgroundComponent?(shape: Shape): any;
     canBind: <K>(_shape: Shape, _otherShape?: K | undefined) => boolean;
     canCrop: TLShapeUtilFlag<Shape>;
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;
@@ -1828,20 +1836,19 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canSnap: TLShapeUtilFlag<Shape>;
     canUnmount: TLShapeUtilFlag<Shape>;
     center(shape: Shape): Vec2d;
-    abstract defaultProps(): Shape['props'];
+    abstract component(shape: Shape): any;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
-    protected abstract getBounds(shape: Shape): Box2d;
-    abstract getCenter(shape: Shape): Vec2d;
-    getEditingBounds: (shape: Shape) => Box2d;
-    protected getHandles?(shape: Shape): TLHandle[];
-    protected abstract getOutline(shape: Shape): Vec2d[];
-    protected getOutlineSegments(shape: Shape): Vec2d[][];
+    abstract getBounds(shape: Shape): Box2d;
+    getCenter(shape: Shape): Vec2d;
+    abstract getDefaultProps(): Shape['props'];
+    getHandles?(shape: Shape): TLHandle[];
+    getOutline(shape: Shape): Vec2d[];
+    getOutlineSegments(shape: Shape): Vec2d[][];
     // (undocumented)
     getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined;
-    handles(shape: Shape): TLHandle[];
     // (undocumented)
     hasStyle(style: StyleProp<unknown>): boolean;
     hideResizeHandles: TLShapeUtilFlag<Shape>;
@@ -1880,13 +1887,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onTranslate?: TLOnTranslateHandler<Shape>;
     onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
     onTranslateStart?: TLOnTranslateStartHandler<Shape>;
-    outline(shape: Shape): Vec2d[];
-    outlineSegments(shape: Shape): Vec2d[][];
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
-    abstract render(shape: Shape): any;
-    // @internal
-    renderBackground?(shape: Shape): any;
     // (undocumented)
     setStyleInPartial<T>(style: StyleProp<T>, shape: TLShapePartial<Shape>, value: T): TLShapePartial<Shape>;
     snapPoints(shape: Shape): Vec2d[];
@@ -2015,11 +2017,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    defaultProps(): TLTextShape['props'];
+    component(shape: TLTextShape): JSX.Element;
     // (undocumented)
     getBounds(shape: TLTextShape): Box2d;
     // (undocumented)
-    getCenter(shape: TLTextShape): Vec2d;
+    getDefaultProps(): TLTextShape['props'];
     // (undocumented)
     getMinDimensions(shape: TLTextShape): {
         height: number;
@@ -2097,8 +2099,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     onEditEnd: TLOnEditEndHandler<TLTextShape>;
     // (undocumented)
     onResize: TLOnResizeHandler<TLTextShape>;
-    // (undocumented)
-    render(shape: TLTextShape): JSX.Element;
     // (undocumented)
     toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors): SVGGElement;
     // (undocumented)
@@ -2486,7 +2486,7 @@ export type TLOnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
 export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
 
 // @public (undocumented)
-export type TLOnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo<T>) => Partial<TLShapePartial<T>> | undefined | void;
+export type TLOnResizeHandler<T extends TLShape> = (shape: T, info: TLResizeInfo<T>) => Omit<TLShapePartial<T>, 'id' | 'type'> | undefined | void;
 
 // @public (undocumented)
 export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>;
@@ -2758,13 +2758,13 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit: () => boolean;
     // (undocumented)
-    defaultProps(): TLVideoShape['props'];
+    component(shape: TLVideoShape): JSX.Element;
+    // (undocumented)
+    getDefaultProps(): TLVideoShape['props'];
     // (undocumented)
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)
     isAspectRatioLocked: () => boolean;
-    // (undocumented)
-    render(shape: TLVideoShape): JSX.Element;
     // (undocumented)
     toSvg(shape: TLVideoShape): SVGGElement;
     // (undocumented)

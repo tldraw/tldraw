@@ -1,8 +1,5 @@
-import { join } from 'path'
-
-import { existsSync, rmSync } from 'fs'
-import { copy } from 'fs-extra'
-import { dirname } from 'path'
+import { readFileSync, writeFileSync } from 'fs'
+import { dirname, join } from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
@@ -10,21 +7,21 @@ const __dirname = dirname(__filename)
 
 const packageDir = join(__dirname, '..')
 
-const files = [
-	{
-		from: join(packageDir, '..', 'editor', 'editor.css'),
-		to: join(packageDir, 'editor.css'),
+let combinedContent = [
+	join(packageDir, '..', 'editor', 'editor.css'),
+	join(packageDir, '..', 'ui', 'ui.css'),
+].reduce(
+	(acc, path) => {
+		const content = readFileSync(path, 'utf8')
+		acc += content + '\n'
+		return acc
 	},
-	{
-		from: join(packageDir, '..', 'ui', 'ui.css'),
-		to: join(packageDir, 'ui.css'),
-	},
-]
+	`/* THIS CSS FILE IS GENERATED! DO NOT EDIT. OR EDIT. I'M A COMMENT NOT A COP */ 
+/* This file is created by the copy-css-files.mjs script in @tldraw/tldraw. */
+/* It combines @tldraw/editor/editor.css and @tldraw/ui/ui.css */
 
-for (const { from, to } of files) {
-	if (existsSync(to)) {
-		rmSync(to)
-	}
+`
+)
 
-	await copy(from, to)
-}
+const destination = join(packageDir, 'tldraw.css')
+writeFileSync(destination, combinedContent)

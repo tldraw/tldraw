@@ -30,7 +30,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	hideSelectionBoundsBg = (shape: TLDrawShape) => getIsDot(shape)
 	hideSelectionBoundsFg = (shape: TLDrawShape) => getIsDot(shape)
 
-	override defaultProps(): TLDrawShape['props'] {
+	override getDefaultProps(): TLDrawShape['props'] {
 		return {
 			segments: [],
 			color: 'black',
@@ -46,7 +46,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	isClosed = (shape: TLDrawShape) => shape.props.isClosed
 
 	getBounds(shape: TLDrawShape) {
-		return Box2d.FromPoints(this.outline(shape))
+		return Box2d.FromPoints(this.editor.getOutline(shape))
 	}
 
 	getOutline(shape: TLDrawShape) {
@@ -54,11 +54,11 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	getCenter(shape: TLDrawShape): Vec2d {
-		return this.bounds(shape).center
+		return this.editor.getBounds(shape).center
 	}
 
 	hitTestPoint(shape: TLDrawShape, point: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
 
@@ -72,7 +72,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			return pointInPolygon(point, outline)
 		}
 
-		if (this.bounds(shape).containsPoint(point)) {
+		if (this.editor.getBounds(shape).containsPoint(point)) {
 			for (let i = 0; i < outline.length; i++) {
 				const C = outline[i]
 				const D = outline[(i + 1) % outline.length]
@@ -85,7 +85,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	hitTestLineSegment(shape: TLDrawShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
 			const zoomLevel = this.editor.zoomLevel
@@ -117,7 +117,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return false
 	}
 
-	render(shape: TLDrawShape) {
+	component(shape: TLDrawShape) {
 		const forceSolid = useForceSolid()
 		const strokeWidth = STROKE_SIZES[shape.props.size]
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)

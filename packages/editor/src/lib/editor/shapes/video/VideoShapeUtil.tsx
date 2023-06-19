@@ -16,7 +16,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	override canEdit = () => true
 	override isAspectRatioLocked = () => true
 
-	override defaultProps(): TLVideoShape['props'] {
+	override getDefaultProps(): TLVideoShape['props'] {
 		return {
 			w: 100,
 			h: 100,
@@ -27,7 +27,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		}
 	}
 
-	render(shape: TLVideoShape) {
+	component(shape: TLVideoShape) {
 		return <TLVideoUtilComponent shape={shape} videoUtil={this} />
 	}
 
