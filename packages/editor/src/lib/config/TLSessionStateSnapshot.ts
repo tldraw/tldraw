@@ -1,3 +1,4 @@
+import { Signal, computed, transact } from '@tldraw/state'
 import {
 	RecordsDiff,
 	UnknownRecord,
@@ -18,7 +19,6 @@ import {
 } from '@tldraw/tlschema'
 import { objectMapFromEntries } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { Signal, computed, transact } from 'signia'
 import { uniqueId } from '../utils/data'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const

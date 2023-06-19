@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
 import * as React from 'react'
-import { track } from 'signia-react'
 import { useAssetUrls } from '../useAssetUrls'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
 import { DEFAULT_TRANSLATION } from './defaultTranslation'

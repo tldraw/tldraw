@@ -6,10 +6,10 @@
 
 /// <reference types="react" />
 
-import { Atom } from 'signia';
+import { Atom } from '@tldraw/state';
 import { Box2d } from '@tldraw/primitives';
 import { Box2dModel } from '@tldraw/tlschema';
-import { Computed } from 'signia';
+import { Computed } from '@tldraw/state';
 import { ComputedCache } from '@tldraw/store';
 import { CubicSpline2d } from '@tldraw/primitives';
 import { defineMigrations } from '@tldraw/store';
@@ -32,7 +32,7 @@ import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
-import { Signal } from 'signia';
+import { Signal } from '@tldraw/state';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';

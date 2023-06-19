@@ -4461,6 +4461,7 @@ __metadata:
     "@testing-library/react": ^14.0.0
     "@tldraw/indices": "workspace:*"
     "@tldraw/primitives": "workspace:*"
+    "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
@@ -4490,8 +4491,6 @@ __metadata:
     nanoid: 4.0.2
     react-test-renderer: ^18.2.0
     resize-observer-polyfill: ^1.5.1
-    signia: 0.1.4
-    signia-react: 0.1.4
   peerDependencies:
     react: ^18
     react-dom: ^18
@@ -4601,19 +4600,32 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/state@workspace:*, @tldraw/state@workspace:packages/state":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/state@workspace:packages/state"
+  dependencies:
+    "@types/lodash": ^4.14.188
+    "@types/react": ^18.0.24
+    "@types/react-test-renderer": ^18.0.0
+    lodash: ^4.17.21
+    react-test-renderer: ^18.2.0
+  peerDependencies:
+    react: ^18
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/store@workspace:*, @tldraw/store@workspace:packages/store":
   version: 0.0.0-use.local
   resolution: "@tldraw/store@workspace:packages/store"
   dependencies:
     "@peculiar/webcrypto": ^1.4.0
+    "@tldraw/state": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/lodash.isequal": ^4.5.6
     lazyrepo: 0.0.0-alpha.27
     lodash.isequal: ^4.5.0
     nanoid: 4.0.2
     raf: ^3.4.1
-  peerDependencies:
-    signia: "*"
   languageName: unknown
   linkType: soft
 
@@ -4644,14 +4656,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@tldraw/tlschema@workspace:packages/tlschema"
   dependencies:
+    "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
     kleur: ^4.1.5
     lazyrepo: 0.0.0-alpha.27
     nanoid: 4.0.2
-  peerDependencies:
-    signia: "*"
   languageName: unknown
   linkType: soft
 
@@ -4672,6 +4683,7 @@ __metadata:
     "@testing-library/react": ^12.0.0
     "@tldraw/editor": "workspace:*"
     "@tldraw/primitives": "workspace:*"
+    "@tldraw/state": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@types/lz-string": ^1.3.34
@@ -4687,8 +4699,6 @@ __metadata:
   peerDependencies:
     react: ^18
     react-dom: ^18
-    signia: "*"
-    signia-react: "*"
   languageName: unknown
   linkType: soft
 
@@ -5160,6 +5170,13 @@ __metadata:
   version: 4.14.194
   resolution: "@types/lodash@npm:4.14.194"
   checksum: 113f34831c461469d91feca2dde737f88487732898b4d25e9eb23b087bb193985f864d1e1e0f3b777edc5022e460443588b6000a3b2348c966f72d17eedc35ea
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:^4.14.188":
+  version: 4.14.195
+  resolution: "@types/lodash@npm:4.14.195"
+  checksum: 39b75ca635b3fa943d17d3d3aabc750babe4c8212485a4df166fe0516e39288e14b0c60afc6e21913cc0e5a84734633c71e617e2bd14eaa1cf51b8d7799c432e
   languageName: node
   linkType: hard
 
@@ -9583,6 +9600,7 @@ __metadata:
     "@babel/plugin-proposal-decorators": ^7.21.0
     "@playwright/test": ^1.34.3
     "@tldraw/assets": "workspace:*"
+    "@tldraw/state": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
     "@tldraw/utils": "workspace:*"
     "@tldraw/validate": "workspace:*"
@@ -9593,8 +9611,6 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-router-dom: ^6.9.0
-    signia: 0.1.4
-    signia-react: 0.1.4
     vite: ^4.3.4
     y-websocket: ^1.5.0
     yjs: ^13.6.2
@@ -16903,24 +16919,6 @@ __metadata:
     figures: ^2.0.0
     pkg-conf: ^2.1.0
   checksum: a6a540e054096a1f4cf8b1f21fea62ca3e44a19faa63bd486723b736348609caab1fa59a87f16559de347dde8ae1fdebfc25a8b6723c88ae8239f176ffb0dda5
-  languageName: node
-  linkType: hard
-
-"signia-react@npm:0.1.4":
-  version: 0.1.4
-  resolution: "signia-react@npm:0.1.4"
-  dependencies:
-    signia: 0.1.4
-  peerDependencies:
-    react: ^18
-  checksum: 7e443c9b94e60cd1eeb3726d048d66ab4ff6b26c14b4ca0fc9542ce2cd5997071b1d7a870481e5d88e7d0442332d65a14239a831b1f987463f4a9ca196d7de45
-  languageName: node
-  linkType: hard
-
-"signia@npm:0.1.4":
-  version: 0.1.4
-  resolution: "signia@npm:0.1.4"
-  checksum: 0daab872c3e335c74a464a3b592cfa0fc5e1e0b65e61eecdf4e0476830791543add8a661b9b33ce9e0f6c3f0f8093ef1965955a64ec510cfcaaf15066bd25e94
   languageName: node
   linkType: hard
 

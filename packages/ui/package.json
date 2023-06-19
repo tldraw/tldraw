@@ -54,6 +54,7 @@
 		"@radix-ui/react-toast": "^1.1.1",
 		"@tldraw/editor": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
+		"@tldraw/state": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"browser-fs-access": "^0.31.0",
@@ -64,9 +65,7 @@
 	},
 	"peerDependencies": {
 		"react": "^18",
-		"react-dom": "^18",
-		"signia": "*",
-		"signia-react": "*"
+		"react-dom": "^18"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",

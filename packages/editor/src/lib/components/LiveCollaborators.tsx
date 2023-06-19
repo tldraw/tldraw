@@ -1,5 +1,5 @@
+import { track } from '@tldraw/state'
 import { useEffect, useRef, useState } from 'react'
-import { track } from 'signia-react'
 import { COLLABORATOR_CHECK_INTERVAL, COLLABORATOR_TIMEOUT } from '../constants'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'

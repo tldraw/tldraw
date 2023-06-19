@@ -1,6 +1,6 @@
+import { useValue } from '@tldraw/state'
 import { TLDefaultColorStyle, TLDefaultFillStyle } from '@tldraw/tlschema'
 import * as React from 'react'
-import { useValue } from 'signia-react'
 import { HASH_PATERN_ZOOM_NAMES } from '../../../constants'
 import { useEditor } from '../../../hooks/useEditor'
 import { TLExportColors } from './TLExportColors'

@@ -1,5 +1,5 @@
+import { atom, transact } from '@tldraw/state'
 import { devFreeze } from '@tldraw/store'
-import { atom, transact } from 'signia'
 import { uniqueId } from '../../utils/data'
 import { TLCommandHandler, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'

@@ -4,8 +4,8 @@
 
 ```ts
 
-import { Atom } from 'signia';
-import { Computed } from 'signia';
+import { Atom } from '@tldraw/state';
+import { Computed } from '@tldraw/state';
 
 // @public
 export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;

@@ -10,6 +10,7 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
+import { computed, EMPTY_ARRAY } from '@tldraw/state'
 import { ComputedCache } from '@tldraw/store'
 import {
 	TLArrowShape,
@@ -23,7 +24,6 @@ import {
 } from '@tldraw/tlschema'
 import { deepCopy, last, minBy } from '@tldraw/utils'
 import * as React from 'react'
-import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
 import {
 	ShapeUtil,

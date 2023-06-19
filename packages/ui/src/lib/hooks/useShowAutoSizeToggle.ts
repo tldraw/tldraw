@@ -1,5 +1,5 @@
 import { TextShapeUtil, useEditor } from '@tldraw/editor'
-import { useValue } from 'signia-react'
+import { useValue } from '@tldraw/state'
 
 export function useShowAutoSizeToggle() {
 	const editor = useEditor()

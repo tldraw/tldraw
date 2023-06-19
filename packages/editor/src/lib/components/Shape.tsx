@@ -1,11 +1,7 @@
 import { Matrix2d } from '@tldraw/primitives'
+import { track, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
-import {
-	track,
-	// @ts-expect-error 'private' export
-	useStateTracking,
-} from 'signia-react'
 import { useEditor } from '../..'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'

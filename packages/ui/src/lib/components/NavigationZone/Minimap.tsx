@@ -8,8 +8,8 @@ import {
 	useQuickReactor,
 } from '@tldraw/editor'
 import { Box2d, Vec2d, intersectPolygonPolygon } from '@tldraw/primitives'
+import { track } from '@tldraw/state'
 import * as React from 'react'
-import { track } from 'signia-react'
 import { MinimapManager } from './MinimapManager'
 
 export interface MinimapProps {

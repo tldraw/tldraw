@@ -1,7 +1,7 @@
 import { GeoShapeGeoStyle, preventDefault, useEditor } from '@tldraw/editor'
+import { track, useValue } from '@tldraw/state'
 import classNames from 'classnames'
 import React from 'react'
-import { track, useValue } from 'signia-react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'

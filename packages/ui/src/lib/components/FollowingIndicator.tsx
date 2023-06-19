@@ -1,5 +1,5 @@
 import { useEditor, usePresence } from '@tldraw/editor'
-import { useValue } from 'signia-react'
+import { useValue } from '@tldraw/state'
 
 export function FollowingIndicator() {
 	const editor = useEditor()

@@ -1,5 +1,5 @@
+import { Computed, RESET_VALUE, computed, isUninitialized } from '@tldraw/state'
 import { TLArrowShape, TLShape, TLShapeId } from '@tldraw/tlschema'
-import { Computed, RESET_VALUE, computed, isUninitialized } from 'signia'
 import { Editor } from '../Editor'
 import { ArrowShapeUtil } from '../shapes/arrow/ArrowShapeUtil'
 

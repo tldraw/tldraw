@@ -47,6 +47,7 @@
 	"dependencies": {
 		"@tldraw/indices": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
+		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
@@ -62,9 +63,7 @@
 		"is-plain-object": "^5.0.0",
 		"lodash.throttle": "^4.1.1",
 		"lodash.uniq": "^4.5.0",
-		"nanoid": "4.0.2",
-		"signia": "0.1.4",
-		"signia-react": "0.1.4"
+		"nanoid": "4.0.2"
 	},
 	"peerDependencies": {
 		"react": "^18",
