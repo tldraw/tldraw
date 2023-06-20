@@ -15,8 +15,12 @@ export function Breadcrumb({
 			<Link href={`/`}>tldraw</Link>
 			{section && (
 				<>
-					{` / `}
-					<Link href={`/${section.id}`}>{section.title}</Link>
+					{section.title && (
+						<>
+							{` / `}
+							<Link href={`/${section.id}`}>{section.title}</Link>
+						</>
+					)}
 					{category && (
 						<>
 							{category.id === 'ucg' ? null : (

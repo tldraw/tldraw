@@ -106,11 +106,13 @@ function SidebarLink(props: SidebarContentLink) {
 function SidebarSection({ title, url, children }: SidebarContentSectionLink) {
 	return (
 		<li className="sidebar__section">
-			<Link href={url}>
-				<div className="sidebar__link sidebar__section__title" data-active={false}>
-					{title}
-				</div>
-			</Link>
+			{title && (
+				<Link href={url}>
+					<div className="sidebar__link sidebar__section__title" data-active={false}>
+						{title}
+					</div>
+				</Link>
+			)}
 			<ul className="sidebar__list sidebar__section__list">
 				{children.map((link) => (
 					<SidebarLink key={link.url} {...link} />

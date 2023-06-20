@@ -101,7 +101,7 @@ export type ArticleLinks = {
 
 export type SidebarContentSectionLink = {
 	type: 'section'
-	title: string
+	title: string | null
 	url: string
 	children: SidebarContentLink[]
 }
