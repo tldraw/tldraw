@@ -506,6 +506,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
     getShapesAtPoint(point: VecLike): TLShape[];
+    // (undocumented)
+    getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<C extends {
         new (...args: any[]): ShapeUtil<any>;
         type: string;
@@ -1862,10 +1864,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getHandles?(shape: Shape): TLHandle[];
     getOutline(shape: Shape): Vec2d[];
     getOutlineSegments(shape: Shape): Vec2d[][];
-    // (undocumented)
-    getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined;
-    // (undocumented)
-    hasStyle(style: StyleProp<unknown>): boolean;
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
@@ -1875,8 +1873,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
     isClosed: TLShapeUtilFlag<Shape>;
-    // (undocumented)
-    iterateStyles(shape: Shape | TLShapePartial<Shape>): Generator<[StyleProp<unknown>, unknown], void, unknown>;
     onBeforeCreate?: TLOnBeforeCreateHandler<Shape>;
     onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>;
     // @internal

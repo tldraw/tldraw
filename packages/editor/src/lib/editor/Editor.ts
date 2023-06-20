@@ -7730,8 +7730,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		} else {
 			const util = this.getShapeUtil(shape)
-			for (const [style, value] of util.iterateStyles(shape)) {
-				sharedStyleMap.applyValue(style, value)
+			for (const [style, propKey] of util.styleProps) {
+				sharedStyleMap.applyValue(style, getOwnProperty(shape.props, propKey))
 			}
 		}
 	}
@@ -7763,6 +7763,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getStyleForNextShape<T>(style: StyleProp<T>): T {
 		const value = this._stylesForNextShape[style.id]
 		return value === undefined ? style.defaultValue : (value as T)
+	}
+
+	getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined {
+		const util = this.getShapeUtil(shape)
+		const styleKey = util.styleProps.get(style)
+		if (styleKey === undefined) return undefined
+		return getOwnProperty(shape.props, styleKey) as T | undefined
 	}
 
 	/**
@@ -7935,15 +7942,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 						} else {
 							const util = this.getShapeUtil(shape)
-							if (util.hasStyle(style)) {
+							const stylePropKey = util.styleProps.get(style)
+							if (stylePropKey) {
 								const shapePartial: TLShapePartial = {
 									id: shape.id,
 									type: shape.type,
-									props: {},
+									props: { [stylePropKey]: value },
 								}
 								updates.push({
 									originalShape: shape,
-									updatePartial: util.setStyleInPartial(style, shapePartial, value),
+									updatePartial: shapePartial,
 								})
 							}
 						}
@@ -8684,7 +8692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					let font: string | undefined
 					// TODO: `Editor` shouldn't know about `DefaultFontStyle`. We need another way
 					// for shapes to register fonts for export.
-					const fontFromShape = util.getStyleIfExists(DefaultFontStyle, shape)
+					const fontFromShape = this.getShapeStyleIfExists(shape, DefaultFontStyle)
 					if (fontFromShape) {
 						if (fontsUsedInExport.has(fontFromShape)) {
 							font = fontsUsedInExport.get(fontFromShape)!
