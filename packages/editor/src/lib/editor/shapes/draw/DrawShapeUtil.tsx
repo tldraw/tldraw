@@ -10,7 +10,7 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
+import { getDefaultColorTheme, TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
@@ -118,6 +118,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	component(shape: TLDrawShape) {
+		const theme = getDefaultColorTheme(this.editor)
 		const forceSolid = useForceSolid()
 		const strokeWidth = STROKE_SIZES[shape.props.size]
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
@@ -152,11 +153,12 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 						fill={shape.props.isClosed ? shape.props.fill : 'none'}
 						color={shape.props.color}
 						d={solidStrokePath}
+						theme={theme}
 					/>
 					<path
 						d={getSvgPathFromStroke(strokeOutlinePoints, true)}
 						strokeLinecap="round"
-						fill={`var(--palette-${shape.props.color})`}
+						fill={theme[shape.props.color].solid}
 					/>
 				</SVGContainer>
 			)
@@ -168,12 +170,13 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					color={shape.props.color}
 					fill={shape.props.isClosed ? shape.props.fill : 'none'}
 					d={solidStrokePath}
+					theme={theme}
 				/>
 				<path
 					d={solidStrokePath}
 					strokeLinecap="round"
 					fill="none"
-					stroke={`var(--palette-${shape.props.color})`}
+					stroke={theme[shape.props.color].solid}
 					strokeWidth={strokeWidth}
 					strokeDasharray={getDrawShapeStrokeDashArray(shape, strokeWidth)}
 					strokeDashoffset="0"

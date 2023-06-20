@@ -13,6 +13,7 @@ import {
 import { computed, EMPTY_ARRAY } from '@tldraw/state'
 import { ComputedCache } from '@tldraw/store'
 import {
+	getDefaultColorTheme,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
@@ -560,6 +561,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
+		const theme = getDefaultColorTheme(this.editor)
 		// Not a class component, but eslint can't tell that :(
 		const onlySelectedShape = this.editor.onlySelectedShape
 		const shouldDisplayHandles =
@@ -697,7 +699,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					)}
 					<g
 						fill="none"
-						stroke={`var(--palette-${shape.props.color})`}
+						stroke={theme[shape.props.color].solid}
 						strokeWidth={strokeWidth}
 						strokeLinejoin="round"
 						strokeLinecap="round"
@@ -723,10 +725,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							/>
 						</g>
 						{as && maskStartArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={as} color={shape.props.color} fill={shape.props.fill} />
+							<ShapeFill d={as} color={shape.props.color} fill={shape.props.fill} theme={theme} />
 						)}
 						{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={ae} color={shape.props.color} fill={shape.props.fill} />
+							<ShapeFill d={ae} color={shape.props.color} fill={shape.props.fill} theme={theme} />
 						)}
 						{as && <path d={as} />}
 						{ae && <path d={ae} />}

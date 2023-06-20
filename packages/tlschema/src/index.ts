@@ -137,7 +137,14 @@ export {
 } from './shapes/TLTextShape'
 export { videoShapeMigrations, videoShapeProps, type TLVideoShape } from './shapes/TLVideoShape'
 export { EnumStyleProp, StyleProp } from './styles/StyleProp'
-export { DefaultColorStyle, type TLDefaultColorStyle } from './styles/TLColorStyle'
+export {
+	DefaultColorStyle,
+	DefaultColorThemePalette,
+	getDefaultColorTheme,
+	type TLDefaultColorStyle,
+	type TLDefaultColorTheme,
+	type TLDefaultColorThemeColor,
+} from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'
 export { DefaultFontStyle, type TLDefaultFontStyle } from './styles/TLFontStyle'
