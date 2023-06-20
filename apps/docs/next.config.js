@@ -12,6 +12,21 @@ const nextConfig = {
 				destination: '/:sectionId/:articleId',
 				permanent: true,
 			},
+			{
+				source: '/docs/introduction',
+				destination: '/introduction',
+				permanent: true,
+			},
+			{
+				source: '/docs/installation',
+				destination: '/installation',
+				permanent: true,
+			},
+			{
+				source: '/docs/usage',
+				destination: '/usage',
+				permanent: true,
+			},
 		]
 	},
 }
