@@ -79,10 +79,13 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	const paths: { params: { sectionId: string } }[] = []
 
 	for (const section of sections) {
-		paths.push({ params: { sectionId: section.id } })
+		if (section.id !== 'getting-started') {
+			paths.push({ params: { sectionId: section.id } })
+			continue
+		}
 
-		// Add paths for uncategorized articles as well
-		if (section.id !== 'ucg') continue
+		// Add paths for getting-started articles (not the section itself)
+		// ... because we keep those at the top level of the sidebar
 		for (const category of section.categories) {
 			if (category.id !== 'ucg') continue
 			for (const articleId of category.articleIds) {
@@ -98,10 +101,12 @@ export const getStaticProps: GetStaticProps<Props> = async (ctx) => {
 	const id = ctx.params?.sectionId?.toString()
 	if (!id) throw Error()
 
-	// If the path goes to an uncategorized article, show the article page instead
+	// If the path goes to an article in the getting-started section
+	// ... show the article page instead
+	// ... because we keep those ones at the top level
 	const sections = await getSections()
 	if (!sections.some((section) => section.id === id)) {
-		const sectionId = 'ucg'
+		const sectionId = 'getting-started'
 		const categoryId = 'ucg'
 		const articleId = id
 		const sidebar = await getSidebarContentList({ sectionId, categoryId, articleId })

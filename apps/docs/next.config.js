@@ -31,6 +31,12 @@ const nextConfig = {
 				destination: '/usage',
 				permanent: true,
 			},
+			{
+				// To reflect that these are at the top level of the sidebar
+				source: '/getting-started/:childId',
+				destination: '/:childId',
+				permanent: true,
+			},
 		]
 	},
 }

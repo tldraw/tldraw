@@ -19,24 +19,14 @@ export async function getSidebarContentList({
 
 		if (section.id === 'gen') {
 			links.push({ type: 'article', title: 'API Reference', url: '/gen' })
-
-			// for (const category of section.categories) {
-			// 	if (category.id === 'ucg') {
-			// 		continue
-			// 	} else {
-			// 		children.push({
-			// 			type: 'article',
-			// 			title: category.title,
-			// 			url: `/${section.id}/${category.id}`,
-			// 		})
-			// 	}
-			// }
-
-			// links.push({ type: 'section', title: 'API Reference', url: '/gen', children })
 			continue
 		}
 
-		const sectionUrl = section.id === 'ucg' ? '' : `/${section.id}`
+		// If the article is in the getting-started section
+		// ... we place it at the top level of the sidebar
+		// ... so let's simplify its URL to reflect that
+		const sectionUrl = section.id === 'getting-started' ? '' : `/${section.id}`
+
 		for (const category of section.categories) {
 			if (category.id === 'ucg') {
 				continue
