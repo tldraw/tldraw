@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
 import * as React from 'react'
-import { track } from 'signia-react'
 
 /** @internal */
 export const HTMLCanvas = track(function HTMLCanvas() {

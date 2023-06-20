@@ -1,7 +1,7 @@
 import { RotateCorner, toDomPrecision } from '@tldraw/primitives'
+import { track } from '@tldraw/state'
 import classNames from 'classnames'
 import { useRef } from 'react'
-import { track } from 'signia-react'
 import { EmbedShapeUtil } from '../editor/shapes/embed/EmbedShapeUtil'
 import { TextShapeUtil } from '../editor/shapes/text/TextShapeUtil'
 import { getCursor } from '../hooks/useCursor'

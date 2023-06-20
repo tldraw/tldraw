@@ -1,4 +1,4 @@
-import { Computed, react, RESET_VALUE, transact } from 'signia'
+import { Computed, react, RESET_VALUE, transact } from '@tldraw/state'
 import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { CollectionDiff, RecordsDiff, Store } from '../Store'

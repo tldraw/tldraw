@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import { useCallback, useEffect, useRef } from 'react'
-import { useValue } from 'signia-react'
 import { useEvents } from './useEventsProvider'
 
 /** @public */

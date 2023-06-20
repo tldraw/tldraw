@@ -1,3 +1,4 @@
+import { computed, react, transact } from '@tldraw/state'
 import {
 	DocumentRecordType,
 	InstancePresenceRecordType,
@@ -13,7 +14,6 @@ import {
 	getUserPreferences,
 } from '@tldraw/tldraw'
 import { useEffect, useMemo, useState } from 'react'
-import { computed, react, transact } from 'signia'
 import { WebsocketProvider } from 'y-websocket'
 import * as Y from 'yjs'
 

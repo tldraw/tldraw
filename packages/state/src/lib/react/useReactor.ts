@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react'
-import { EffectScheduler } from 'signia'
+import { EffectScheduler } from '../core'
 
 /** @public */
 export function useReactor(name: string, reactFn: () => void, deps: undefined | any[] = []) {

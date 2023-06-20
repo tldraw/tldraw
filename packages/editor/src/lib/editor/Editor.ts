@@ -21,6 +21,7 @@ import {
 	intersectPolygonPolygon,
 	pointInPolygon,
 } from '@tldraw/primitives'
+import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	Box2dModel,
@@ -79,7 +80,6 @@ import {
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
-import { EMPTY_ARRAY, atom, computed, transact } from 'signia'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import { AnyTLShapeInfo } from '../config/defineShape'

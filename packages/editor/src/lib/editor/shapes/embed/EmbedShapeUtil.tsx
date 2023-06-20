@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { toDomPrecision } from '@tldraw/primitives'
+import { useValue } from '@tldraw/state'
 import {
 	TLEmbedShape,
 	TLEmbedShapePermissions,
@@ -7,7 +8,6 @@ import {
 } from '@tldraw/tlschema'
 import * as React from 'react'
 import { useMemo } from 'react'
-import { useValue } from 'signia-react'
 import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { useIsEditing } from '../../../hooks/useIsEditing'

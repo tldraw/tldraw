@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { EffectScheduler, EMPTY_ARRAY } from 'signia'
+import { EMPTY_ARRAY, EffectScheduler } from '../core'
 
 /** @public */
 export function useQuickReactor(name: string, reactFn: () => void, deps: any[] = EMPTY_ARRAY) {
