@@ -6,6 +6,7 @@
 
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
+import { JsonObject } from '@tldraw/utils';
 import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
@@ -113,7 +114,7 @@ export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser
 export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
     id: TLAssetId;
     typeName: 'asset';
     type: Type;
@@ -131,21 +132,11 @@ export const createPresenceStateDerivation: ($user: Signal<{
 export function createShapeId(id?: string): TLShapeId;
 
 // @public (undocumented)
-export function createShapeValidator<Type extends string, Props extends object>(type: Type, props?: {
+export function createShapeValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject>(type: Type, props?: {
     [K in keyof Props]: T.Validatable<Props[K]>;
-}): T.ObjectValidator<{
-    id: TLShapeId;
-    typeName: "shape";
-    x: number;
-    y: number;
-    rotation: number;
-    index: string;
-    parentId: TLParentId;
-    type: Type;
-    isLocked: boolean;
-    opacity: number;
-    props: Props | Record<string, unknown>;
-}>;
+}, meta?: {
+    [K in keyof Meta]: T.Validatable<Meta[K]>;
+}): T.ObjectValidator<TLBaseShape<Type, Props>>;
 
 // @public
 export function createTLSchema({ shapes }: {
@@ -691,6 +682,9 @@ export type SchemaShapeInfo = {
     props?: Record<string, {
         validate: (prop: any) => any;
     }>;
+    meta?: Record<string, {
+        validate: (prop: any) => any;
+    }>;
 };
 
 // @internal (undocumented)
@@ -788,9 +782,13 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 // @public (undocumented)
 export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
+    createdBy: string;
+    // (undocumented)
     index: string;
     // (undocumented)
     isLocked: boolean;
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     opacity: TLOpacityType;
     // (undocumented)
@@ -1106,7 +1104,8 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     id: TLShapeId;
     type: T['type'];
     props?: Partial<T['props']>;
-} & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
+    meta?: Partial<T['meta']>;
+} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public (undocumented)
 export type TLShapeProp = keyof TLShapeProps;

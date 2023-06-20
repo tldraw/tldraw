@@ -66,6 +66,7 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
+	JsonObject,
 	annotateError,
 	assert,
 	compact,
@@ -7569,9 +7570,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (v === undefined) continue
 						switch (k) {
 							case 'id':
-							case 'type':
-							case 'typeName': {
+							case 'type': {
 								continue
+							}
+							case 'typeName': {
+								throw Error(`Cannot update a shape typeName with Editor.updateShapes`)
 							}
 							default: {
 								if (v !== (prev as any)[k]) {
@@ -7580,14 +7583,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 									}
 
 									if (k === 'props') {
-										const nextProps = { ...prev.props } as Record<string, unknown>
+										const nextProps = { ...prev.props } as JsonObject
 										for (const [propKey, propValue] of Object.entries(v as object)) {
 											if (propValue === undefined) continue
 											nextProps[propKey] = propValue
 										}
 										newRecord!.props = nextProps
 									} else {
-										;(newRecord as any)[k] = v
+										;(newRecord as any).props = v
+									}
+
+									if (k === 'meta') {
+										const nextMeta = { ...prev.meta } as JsonObject
+										for (const [metaKey, metaValue] of Object.entries(v as object)) {
+											if (metaValue === undefined) continue
+											nextMeta[metaKey] = metaValue
+										}
+										newRecord!.meta = nextMeta
+									} else {
+										;(newRecord as any).meta = v
 									}
 								}
 							}

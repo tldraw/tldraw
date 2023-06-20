@@ -20,6 +20,7 @@ import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
 import { getHashForString } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
+import { JsonObject } from '@tldraw/utils';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
@@ -879,6 +880,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        createdBy: string;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -908,6 +911,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        createdBy: string;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -924,6 +929,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        createdBy: string;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | {
@@ -938,6 +945,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        createdBy: string;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1704,6 +1713,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        createdBy: string;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1727,6 +1738,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        createdBy: string;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -2068,6 +2081,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             scale: number;
             autoSize: boolean;
         };
+        createdBy: string;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -2091,6 +2106,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        createdBy: string;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;

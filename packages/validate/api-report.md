@@ -4,6 +4,8 @@
 
 ```ts
 
+import { JsonValue } from '@tldraw/utils';
+
 // @public
 const any: Validator<any>;
 
@@ -44,6 +46,12 @@ class DictValidator<Key extends string, Value> extends Validator<Record<Key, Val
 
 // @public
 const integer: Validator<number>;
+
+// @public
+function jsonDict(): DictValidator<string, any>;
+
+// @public
+const jsonValue: Validator<JsonValue>;
 
 // @public
 function literal<T extends boolean | number | string>(expectedValue: T): Validator<T>;
@@ -109,6 +117,7 @@ declare namespace T {
         literal,
         arrayOf,
         object,
+        jsonDict,
         dict,
         union,
         model,
@@ -137,7 +146,8 @@ declare namespace T {
         boolean,
         bigint,
         array,
-        unknownObject
+        unknownObject,
+        jsonValue
     }
 }
 export { T }

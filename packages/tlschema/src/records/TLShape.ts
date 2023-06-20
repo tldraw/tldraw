@@ -59,7 +59,8 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 			id: TLShapeId
 			type: T['type']
 			props?: Partial<T['props']>
-	  } & Partial<Omit<T, 'type' | 'id' | 'props'>>
+			meta?: Partial<T['meta']>
+	  } & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
 	: never
 
 /** @public */
@@ -84,11 +85,12 @@ export type TLParentId = TLPageId | TLShapeId
 export const Versions = {
 	AddIsLocked: 1,
 	HoistOpacity: 2,
+	AddMeta: 3,
 } as const
 
 /** @internal */
 export const rootShapeMigrations = defineMigrations({
-	currentVersion: Versions.HoistOpacity,
+	currentVersion: Versions.AddMeta,
 	migrators: {
 		[Versions.AddIsLocked]: {
 			up: (record) => {
@@ -128,6 +130,19 @@ export const rootShapeMigrations = defineMigrations({
 								? '0.75'
 								: '1',
 					},
+				}
+			},
+		},
+		[Versions.AddMeta]: {
+			up: (record) => {
+				return {
+					...record,
+					meta: {},
+				}
+			},
+			down: ({ meta: _, ...record }) => {
+				return {
+					...record,
 				}
 			},
 		},
@@ -182,7 +197,9 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 			'shape',
 			T.union(
 				'type',
-				mapObjectMapValues(shapes, (type, { props }) => createShapeValidator(type, props))
+				mapObjectMapValues(shapes, (type, { props, meta }) =>
+					createShapeValidator(type, props, meta)
+				)
 			)
 		),
 	}).withDefaultProperties(() => ({

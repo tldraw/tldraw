@@ -80,6 +80,8 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 			rotation: 0,
 			isLocked: element.locked,
 			opacity: getOpacity(element.opacity),
+			meta: {},
+			createdBy: '',
 		} as const
 
 		if (element.angle !== 0) {
