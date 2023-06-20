@@ -106,7 +106,6 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	return (
 		<ToastProvider>
 			<main
-				data-tldraw-area="active-drawing"
 				className={classNames('tlui-layout', {
 					'tlui-layout__mobile': breakpoint < 5,
 				})}

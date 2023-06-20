@@ -54,6 +54,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 	if (
 		isTimedOut &&
 		editor.instanceState.followingUserId !== userId &&
+		!latestPresence.chatMessage &&
 		!editor.instanceState.highlightedUserIds.includes(userId)
 	)
 		return null
