@@ -1,6 +1,6 @@
 import { Range, Root, Thumb, Track } from '@radix-ui/react-slider'
 import { useEditor } from '@tldraw/editor'
-import { useCallback } from 'react'
+import { memo, useCallback } from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 
@@ -15,7 +15,7 @@ export interface SliderProps {
 }
 
 /** @internal */
-export function Slider(props: SliderProps) {
+export const Slider = memo(function Slider(props: SliderProps) {
 	const { title, steps, value, label, onValueChange } = props
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -59,4 +59,4 @@ export function Slider(props: SliderProps) {
 			</Root>
 		</div>
 	)
-}
+})

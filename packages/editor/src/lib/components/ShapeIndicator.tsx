@@ -31,11 +31,7 @@ export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }
 	if (!shape.shape) return null
 	return (
 		<OptionalErrorBoundary
-			fallback={
-				ShapeIndicatorErrorFallback
-					? (error) => <ShapeIndicatorErrorFallback error={error} />
-					: null
-			}
+			fallback={ShapeIndicatorErrorFallback}
 			onError={(error) =>
 				editor.annotateError(error, { origin: 'react.shapeIndicator', willCrashApp: false })
 			}

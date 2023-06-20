@@ -94,6 +94,13 @@ export const Shape = track(function Shape({
 
 	const shape = editor.getShapeById(id)
 
+	const annotateError = React.useCallback(
+		(error: any) => {
+			editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+		},
+		[editor]
+	)
+
 	if (!shape) return null
 
 	const util = editor.getShapeUtil(shape)
@@ -108,12 +115,7 @@ export const Shape = track(function Shape({
 					draggable={false}
 				>
 					{!isCulled && (
-						<OptionalErrorBoundary
-							fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
-							onError={(error) =>
-								editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
-							}
-						>
+						<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 							<InnerShapeBackground shape={shape} util={util} />
 						</OptionalErrorBoundary>
 					)}
@@ -133,12 +135,7 @@ export const Shape = track(function Shape({
 				{isCulled && util.canUnmount(shape) ? (
 					<CulledShape shape={shape} />
 				) : (
-					<OptionalErrorBoundary
-						fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
-						onError={(error) =>
-							editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
-						}
-					>
+					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 						<InnerShape shape={shape} util={util} />
 					</OptionalErrorBoundary>
 				)}

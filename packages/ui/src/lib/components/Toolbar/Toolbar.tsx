@@ -1,7 +1,7 @@
 import { GeoShapeGeoStyle, preventDefault, useEditor } from '@tldraw/editor'
 import { track, useValue } from '@tldraw/state'
 import classNames from 'classnames'
-import React from 'react'
+import React, { memo } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useReadonly } from '../../hooks/useReadonly'
 import { TLUiToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'
@@ -19,7 +19,7 @@ import { kbdStr } from '../primitives/shared'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
 
 /** @public */
-export const Toolbar = function Toolbar() {
+export const Toolbar = memo(function Toolbar() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
@@ -217,7 +217,7 @@ export const Toolbar = function Toolbar() {
 			</div>
 		</div>
 	)
-}
+})
 
 const OverflowToolsContent = track(function OverflowToolsContent({
 	toolbarItems,
