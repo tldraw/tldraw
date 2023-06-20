@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 import { Atom, AtomOptions, atom } from '../core'
 
 /**
@@ -31,10 +31,10 @@ export function useAtom<Value, Diff = unknown>(
 	 */
 	options?: AtomOptions<Value, Diff>
 ): Atom<Value, Diff> {
-	return useMemo(() => {
+	return useState(() => {
 		const initialValue =
 			typeof valueOrInitialiser === 'function' ? (valueOrInitialiser as any)() : valueOrInitialiser
 
 		return atom(`useAtom(${name})`, initialValue, options)
-	}, [])
+	})[0]
 }

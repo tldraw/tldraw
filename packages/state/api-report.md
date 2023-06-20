@@ -165,9 +165,6 @@ export function whyAmIRunning(): void;
 // @public
 export function withDiff<Value, Diff>(value: Value, diff: Diff): WithDiff<Value, Diff>;
 
-// @internal (undocumented)
-export function wrapJsx<T>(jsx: T): T;
-
 // (No @packageDocumentation comment for this package)
 
 ```

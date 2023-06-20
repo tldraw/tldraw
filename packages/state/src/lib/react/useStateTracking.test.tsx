@@ -46,6 +46,7 @@ describe('useStateTracking', () => {
 		const Component = () => {
 			let height
 			const age = useStateTracking('', () => {
+				// eslint-disable-next-line react-hooks/rules-of-hooks
 				;[height, setHeight] = React.useState(20)
 				return _age.value
 			})

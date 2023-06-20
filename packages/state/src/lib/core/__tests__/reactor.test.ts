@@ -179,7 +179,7 @@ test('react() with a custom scheduler only schedules an effect, it does not exec
 	let numSchedules = 0
 	let numExecutes = 0
 
-	const stop = react(
+	react(
 		'',
 		() => {
 			numExecutes++
