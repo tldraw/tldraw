@@ -6,9 +6,9 @@ date: 3/22/2023
 order: 2
 ---
 
-The `<Tldraw/>` component is the easiest way to get started with tldraw. It combines several lower-level libraries: the `TldrawEditor` component from `@tldraw/editor` and the `TldrawUi` component from `@tldraw/ui`.
+The `<Tldraw>` component is the easiest way to get started because it combines several lower-level components.
 
-To use the `<Tldraw/>` component, create a file like this one:
+To use it, create a file like this one:
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'
@@ -25,23 +25,23 @@ export default function () {
 
 ### CSS
 
-In order to use the `<Tldraw/>` component, you should also import the `tldraw.css` file from the `@tldraw/tldraw` library. You can alternatively import this file inside of another CSS file using the `@import` syntax.
+In order to use the `<Tldraw>` component, you should also import the `tldraw.css` file from the `@tldraw/tldraw` package. You can alternatively import this file inside of another CSS file using the `@import` syntax.
 
 You can overwrite these files with other CSS or copy the contents into a different file and import that instead.
 
 ### HTML
 
-If you're using the tldraw component in a full-screen app, you probably also want to updte your `index.html`'s meta viewport element as shown below. 
+If you're using the `<Tldraw>` component in a full-screen app, you probably also want to update your `index.html`'s meta viewport element as shown below. 
 
 ```html
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 ```
 
-This change may not be critical to `<Tldraw/>` performing correctly, however some features (such as safe area positioning) will not work correctly if these viewport options are not set.
+This change may not be critical to `<Tldraw>` performing correctly, however some features (such as safe area positioning) will not work correctly if these viewport options are not set.
 
 ## Server rendering
 
-The `<Tldraw/>` component can't be server-rendered. If you're using the component in a server-rendered framework (such as Next.js) then you will need to import it dynamically. Check the [examples repository](https://github.com/tldraw/examples) to see examples.
+The `<Tldraw>` component can't be server-rendered. If you're using the component in a server-rendered framework (such as Next.js) then you will need to import it dynamically. Check the [examples repository](https://github.com/tldraw/examples) to see examples.
 
 ## Using in Next.js, Create React App, Vite, etc.
 
@@ -49,4 +49,6 @@ Check the [examples repository](https://github.com/tldraw/examples) to see examp
 
 ## Going deeper
 
-If you wanted to have more granular control, you could also use those lower-level components directly. See [this example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/5-exploded/ExplodedExample.tsx) for reference.
+The `<Tldraw>` component combines two lower-level components: `<TldrawEditor>` and `<TldrawUi>`.
+
+If you want to have more granular control, you can also use those lower-level components directly. See [this example](https://github.com/tldraw/tldraw/blob/main/apps/examples/src/5-exploded/ExplodedExample.tsx) for reference.
