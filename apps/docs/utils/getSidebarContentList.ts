@@ -36,6 +36,7 @@ export async function getSidebarContentList({
 			continue
 		}
 
+		const sectionUrl = section.id === 'ucg' ? '' : `/${section.id}`
 		for (const category of section.categories) {
 			if (category.id === 'ucg') {
 				continue
@@ -43,13 +44,13 @@ export async function getSidebarContentList({
 				children.push({
 					type: 'category',
 					title: category.title,
-					url: `/${section.id}/${category.id}`,
+					url: `${sectionUrl}/${category.id}`,
 					children: category.articleIds.map((articleId) => {
 						const article = articles[articleId]
 						return {
 							type: 'article' as const,
 							title: article.title,
-							url: `/${section.id}/${category.id}/${articleId}`,
+							url: `${sectionUrl}/${category.id}/${articleId}`,
 						}
 					}),
 				})
@@ -64,14 +65,14 @@ export async function getSidebarContentList({
 						return {
 							type: 'article' as const,
 							title: article.title,
-							url: `/${section.id}/${category.id}/${articleId}`,
+							url: `${sectionUrl}/${articleId}`,
 						}
 					})
 				)
 			}
 		}
 
-		links.push({ type: 'section', title: section.title, url: `/${section.id}`, children })
+		links.push({ type: 'section', title: section.title, url: sectionUrl, children })
 	}
 
 	return {
