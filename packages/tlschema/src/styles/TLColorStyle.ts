@@ -1,6 +1,5 @@
 import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { TLDefaultColorTheme } from '..'
 import { StyleProp } from './StyleProp'
 
 const colors = [

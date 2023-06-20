@@ -7,6 +7,7 @@ import {
 	TLBaseShape,
 	TLDefaultColorStyle,
 	defineShape,
+	getDefaultColorTheme,
 } from '@tldraw/tldraw'
 import { T } from '@tldraw/validate'
 
@@ -47,19 +48,20 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 
 	component(shape: CardShape) {
 		const bounds = this.editor.getBounds(shape)
+		const theme = getDefaultColorTheme(this.editor)
 
 		return (
 			<HTMLContainer
 				id={shape.id}
 				style={{
-					border: `4px solid var(--palette-${shape.props.color})`,
+					border: `4px solid ${theme[shape.props.color].solid}`,
 					borderRadius: 4,
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
 					filter: this.filterStyleToCss(shape.props.filter),
-					backgroundColor: `var(--palette-${shape.props.color}-semi)`,
+					backgroundColor: theme[shape.props.color].semi,
 				}}
 			>
 				🍇🫐🍏🍋🍊🍒 {bounds.w.toFixed()}x{bounds.h.toFixed()} 🍒🍊🍋🍏🫐🍇

@@ -1,3 +1,4 @@
+import { DefaultColorThemePalette } from '@tldraw/tlschema'
 import { useEffect, useMemo, useState } from 'react'
 import { HASH_PATERN_ZOOM_NAMES, MAX_ZOOM } from '../constants'
 import { debugFlags } from '../utils/debug-flags'
@@ -64,13 +65,11 @@ const getDefaultPatterns = () => {
 	const defaultPatterns: PatternDef[] = []
 	for (let i = 1; i <= Math.ceil(MAX_ZOOM); i++) {
 		const whitePixelBlob = canvasBlob([1, 1], (ctx) => {
-			// Hard coded '--palette-black-semi'
-			ctx.fillStyle = '#e8e8e8'
+			ctx.fillStyle = DefaultColorThemePalette.lightMode.black.semi
 			ctx.fillRect(0, 0, 1, 1)
 		})
 		const blackPixelBlob = canvasBlob([1, 1], (ctx) => {
-			// Hard coded '--palette-black-semi'
-			ctx.fillStyle = '#2c3036'
+			ctx.fillStyle = DefaultColorThemePalette.darkMode.black.semi
 			ctx.fillRect(0, 0, 1, 1)
 		})
 		defaultPatterns.push({

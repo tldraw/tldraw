@@ -156,6 +156,12 @@ export function createTLSchema({ shapes }: {
 export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
 
 // @public (undocumented)
+export const DefaultColorThemePalette: {
+    lightMode: TLDefaultColorTheme;
+    darkMode: TLDefaultColorTheme;
+};
+
+// @public (undocumented)
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
@@ -473,6 +479,11 @@ export const geoShapeProps: {
     growY: T.Validator<number>;
     text: T.Validator<string>;
 };
+
+// @public (undocumented)
+export function getDefaultColorTheme(opts: {
+    isDarkMode: boolean;
+}): TLDefaultColorTheme;
 
 // @public (undocumented)
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
@@ -849,6 +860,24 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
 // @public (undocumented)
 export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+
+// @public (undocumented)
+export type TLDefaultColorTheme = Expand<{
+    text: string;
+    background: string;
+    solid: string;
+} & Record<(typeof colors)[number], TLDefaultColorThemeColor>>;
+
+// @public (undocumented)
+export type TLDefaultColorThemeColor = {
+    solid: string;
+    semi: string;
+    pattern: string;
+    highlight: {
+        srgb: string;
+        p3: string;
+    };
+};
 
 // @public (undocumented)
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;

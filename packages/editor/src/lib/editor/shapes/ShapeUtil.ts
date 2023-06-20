@@ -3,7 +3,6 @@ import { Box2d, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
 import { StyleProp, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
-import { TLExportColors } from './shared/TLExportColors'
 
 /** @public */
 export interface TLShapeUtilConstructor<
@@ -295,11 +294,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(
-		shape: Shape,
-		font: string | undefined,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement>
+	toSvg?(shape: Shape, font: string | undefined): SVGElement | Promise<SVGElement>
 
 	/**
 	 * Get the shape's background layer as an SVG object.
@@ -310,11 +305,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(
-		shape: Shape,
-		font: string | undefined,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement> | null
+	toBackgroundSvg?(shape: Shape, font: string | undefined): SVGElement | Promise<SVGElement> | null
 
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number {

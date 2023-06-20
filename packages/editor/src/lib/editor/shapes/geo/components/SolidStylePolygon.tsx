@@ -1,8 +1,12 @@
 import { VecLike } from '@tldraw/primitives'
-import { TLGeoShape } from '@tldraw/tlschema'
+import { TLDefaultColorTheme, TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
-import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import {
+	ShapeFill,
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+	useDefaultColorTheme,
+} from '../../shared/ShapeFill'
 
 export const SolidStylePolygon = React.memo(function SolidStylePolygon({
 	outline,
@@ -15,6 +19,7 @@ export const SolidStylePolygon = React.memo(function SolidStylePolygon({
 	lines?: VecLike[][]
 	strokeWidth: number
 }) {
+	const theme = useDefaultColorTheme()
 	let path = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
 
 	if (lines) {
@@ -26,7 +31,7 @@ export const SolidStylePolygon = React.memo(function SolidStylePolygon({
 	return (
 		<>
 			<ShapeFill d={path} fill={fill} color={color} />
-			<path d={path} stroke={`var(--palette-${color}`} strokeWidth={strokeWidth} fill="none" />
+			<path d={path} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 		</>
 	)
 })
@@ -37,11 +42,11 @@ export function SolidStylePolygonSvg({
 	fill,
 	color,
 	strokeWidth,
-	colors,
+	theme,
 }: Pick<TLGeoShape['props'], 'fill' | 'color'> & {
 	outline: VecLike[]
 	strokeWidth: number
-	colors: TLExportColors
+	theme: TLDefaultColorTheme
 	lines?: VecLike[][]
 }) {
 	const pathData = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
@@ -58,7 +63,7 @@ export function SolidStylePolygonSvg({
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', strokePathData)
 	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', theme[color].solid)
 	strokeElement.setAttribute('fill', 'none')
 
 	// Get the fill element, if any
@@ -66,7 +71,7 @@ export function SolidStylePolygonSvg({
 		d: fillPathData,
 		fill,
 		color,
-		colors,
+		theme,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

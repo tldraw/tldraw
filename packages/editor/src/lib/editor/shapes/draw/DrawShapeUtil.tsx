@@ -16,8 +16,7 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
+import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -118,7 +117,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	component(shape: TLDrawShape) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = useDefaultColorTheme()
 		const forceSolid = useForceSolid()
 		const strokeWidth = STROKE_SIZES[shape.props.size]
 		const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
@@ -153,7 +152,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 						fill={shape.props.isClosed ? shape.props.fill : 'none'}
 						color={shape.props.color}
 						d={solidStrokePath}
-						theme={theme}
 					/>
 					<path
 						d={getSvgPathFromStroke(strokeOutlinePoints, true)}
@@ -170,7 +168,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					color={shape.props.color}
 					fill={shape.props.isClosed ? shape.props.fill : 'none'}
 					d={solidStrokePath}
-					theme={theme}
 				/>
 				<path
 					d={solidStrokePath}
@@ -211,7 +208,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return <path d={solidStrokePath} />
 	}
 
-	toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors) {
+	toSvg(shape: TLDrawShape, _font: string | undefined) {
+		const theme = getDefaultColorTheme(this.editor)
 		const { color } = shape.props
 
 		const strokeWidth = STROKE_SIZES[shape.props.size]
@@ -239,14 +237,14 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 			const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 			p.setAttribute('d', getSvgPathFromStroke(strokeOutlinePoints, true))
-			p.setAttribute('fill', colors.fill[color])
+			p.setAttribute('fill', theme[color].solid)
 			p.setAttribute('stroke-linecap', 'round')
 
 			foregroundPath = p
 		} else {
 			const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 			p.setAttribute('d', solidStrokePath)
-			p.setAttribute('stroke', colors.fill[color])
+			p.setAttribute('stroke', theme[color].solid)
 			p.setAttribute('fill', 'none')
 			p.setAttribute('stroke-linecap', 'round')
 			p.setAttribute('stroke-width', strokeWidth.toString())
@@ -260,7 +258,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			fill: shape.props.isClosed ? shape.props.fill : 'none',
 			d: solidStrokePath,
 			color: shape.props.color,
-			colors,
+			theme,
 		})
 
 		if (fillPath) {

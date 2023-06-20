@@ -26,7 +26,6 @@ import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	Box2dModel,
 	CameraRecordType,
-	DefaultColorStyle,
 	DefaultFontStyle,
 	InstancePageStateRecordType,
 	PageRecordType,
@@ -60,6 +59,7 @@ import {
 	TLVideoAsset,
 	Vec2dModel,
 	createShapeId,
+	getDefaultColorTheme,
 	getShapePropKeysByStyle,
 	isPageId,
 	isShape,
@@ -73,7 +73,6 @@ import {
 	deepCopy,
 	getOwnProperty,
 	hasOwnProperty,
-	objectMapFromEntries,
 	partition,
 	sortById,
 	structuredClone,
@@ -131,7 +130,6 @@ import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/arro
 import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
 import { FrameShapeUtil } from './shapes/frame/FrameShapeUtil'
 import { GroupShapeUtil } from './shapes/group/GroupShapeUtil'
-import { TLExportColors } from './shapes/shared/TLExportColors'
 import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -8551,56 +8549,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 			scale = 1,
 			background = false,
 			padding = SVG_PADDING,
-			darkMode = this.isDarkMode,
 			preserveAspectRatio = false,
 		} = opts
+
+		// todo: we shouldn't depend on the public theme here
+		const theme = getDefaultColorTheme(this)
 
 		const realContainerEl = this.getContainer()
 		const realContainerStyle = getComputedStyle(realContainerEl)
 
-		// Get the styles from the container. We'll use these to pull out colors etc.
-		// NOTE: We can force force a light theme here because we don't want export
-		const fakeContainerEl = document.createElement('div')
-		fakeContainerEl.className = `tl-container tl-theme__${
-			darkMode ? 'dark' : 'light'
-		} tl-theme__force-sRGB`
-		document.body.appendChild(fakeContainerEl)
-
-		const containerStyle = getComputedStyle(fakeContainerEl)
 		const fontsUsedInExport = new Map<string, string>()
-
-		const colors: TLExportColors = {
-			fill: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}`),
-				])
-			),
-			pattern: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-pattern`),
-				])
-			),
-			semi: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-semi`),
-				])
-			),
-			highlight: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-highlight`),
-				])
-			),
-			text: containerStyle.getPropertyValue(`--color-text`),
-			background: containerStyle.getPropertyValue(`--color-background`),
-			solid: containerStyle.getPropertyValue(`--palette-solid`),
-		}
-
-		// Remove containerEl from DOM (temp DOM node)
-		document.body.removeChild(fakeContainerEl)
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
@@ -8654,9 +8612,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (background) {
 			if (singleFrameShapeId) {
-				svg.style.setProperty('background', colors.solid)
+				svg.style.setProperty('background', theme.solid)
 			} else {
-				svg.style.setProperty('background-color', colors.background)
+				svg.style.setProperty('background-color', theme.background)
 			}
 		} else {
 			svg.style.setProperty('background-color', 'transparent')
@@ -8665,7 +8623,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Add the defs to the svg
 		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
 
-		for (const element of Array.from(exportPatternSvgDefs(colors.solid))) {
+		for (const element of Array.from(exportPatternSvgDefs(theme.solid))) {
 			defs.appendChild(element)
 		}
 
@@ -8704,8 +8662,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 					}
 
-					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
+					let shapeSvgElement = await util.toSvg?.(shape, font)
+					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font)
 
 					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
 					if (shapeSvgElement) {
@@ -8725,8 +8683,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 						elm.setAttribute('width', bounds.width + '')
 						elm.setAttribute('height', bounds.height + '')
-						elm.setAttribute('fill', colors.solid)
-						elm.setAttribute('stroke', colors.pattern.grey)
+						elm.setAttribute('fill', theme.solid)
+						elm.setAttribute('stroke', theme.grey.pattern)
 						elm.setAttribute('stroke-width', '1')
 						shapeSvgElement = elm
 					}
