@@ -114,7 +114,16 @@ describe('<TldrawEditor />', () => {
 		const spy = jest.spyOn(console, 'error').mockImplementation(noop)
 		expect(() =>
 			render(
-				<TldrawEditor shapes={defaultShapes} store={createTLStore({ shapes: [] })} autoFocus>
+				<TldrawEditor
+					shapes={defaultShapes}
+					store={createTLStore({ shapes: [] })}
+					autoFocus
+					components={{
+						ErrorFallback: ({ error }) => {
+							throw error
+						},
+					}}
+				>
 					<div data-testid="canvas-1" />
 				</TldrawEditor>
 			)
@@ -124,7 +133,15 @@ describe('<TldrawEditor />', () => {
 
 		expect(() =>
 			render(
-				<TldrawEditor store={createTLStore({ shapes: defaultShapes })} autoFocus>
+				<TldrawEditor
+					store={createTLStore({ shapes: defaultShapes })}
+					autoFocus
+					components={{
+						ErrorFallback: ({ error }) => {
+							throw error
+						},
+					}}
+				>
 					<div data-testid="canvas-1" />
 				</TldrawEditor>
 			)
