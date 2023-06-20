@@ -8796,6 +8796,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		defs.append(style)
 
+		const foundFonts = new Set<string>()
+		function walk(el: Element) {
+			const style = window.getComputedStyle(el)
+			const font = style.getPropertyValue('font-family')
+			if (foundFonts.has(font)) return
+			console.log('found', font, 'in', el)
+			foundFonts.add(font)
+
+			for (const child of el.children) {
+				walk(child)
+			}
+		}
+
+		walk(svg)
+
 		return svg
 	}
 

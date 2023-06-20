@@ -1,6 +1,16 @@
-import { DefaultDashStyle, createShapeId } from '@tldraw/tlschema'
+import {
+	DefaultColorStyle,
+	DefaultDashStyle,
+	DefaultFillStyle,
+	DefaultFontStyle,
+	TLDefaultColorStyle,
+	TLDefaultFillStyle,
+	TLDefaultFontStyle,
+	createShapeId,
+} from '@tldraw/tlschema'
 import { SVG_PADDING } from '../../constants'
 import { TestEditor } from '../TestEditor'
+import { TL } from '../jsx'
 
 let editor: TestEditor
 
@@ -106,4 +116,33 @@ it('Accepts a background option', async () => {
 	const svg2 = (await editor.getSvg(editor.selectedIds, { background: false }))!
 
 	expect(svg2.style.backgroundColor).toBe('transparent')
+})
+
+const snapshots: [TLDefaultColorStyle, TLDefaultFillStyle, TLDefaultFontStyle][] = []
+
+for (const color of DefaultColorStyle.values) {
+	for (const fill of DefaultFillStyle.values) {
+		for (const font of DefaultFontStyle.values) {
+			snapshots.push([color, fill, font])
+		}
+	}
+}
+
+it.each(snapshots)('Matches snapshot for color=%s fill=%s font=%s', async (color, fill, font) => {
+	const { shapeId } = editor.createShapesFromJsx(
+		<TL.geo
+			ref="shapeId"
+			x={0}
+			y={0}
+			w={100}
+			h={100}
+			text="Hello world"
+			color={color}
+			fill={fill}
+			font={font}
+		/>
+	)
+
+	const svg = (await editor.getSvg([shapeId]))!
+	expect(svg).toMatchSnapshot()
 })
