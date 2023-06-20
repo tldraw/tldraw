@@ -1,7 +1,7 @@
-import { _Atom } from './Atom.js'
-import { GLOBAL_START_EPOCH } from './constants.js'
-import { EffectScheduler } from './EffectScheduler.js'
-import { Child, Signal } from './types.js'
+import { _Atom } from './Atom'
+import { GLOBAL_START_EPOCH } from './constants'
+import { EffectScheduler } from './EffectScheduler'
+import { Child, Signal } from './types'
 
 // The current epoch (global to all atoms).
 export let globalEpoch = GLOBAL_START_EPOCH + 1

@@ -1,9 +1,9 @@
-import { ArraySet } from './ArraySet.js'
-import { maybeCaptureParent } from './capture.js'
-import { EMPTY_ARRAY, equals } from './helpers.js'
-import { HistoryBuffer } from './HistoryBuffer.js'
-import { advanceGlobalEpoch, atomDidChange, globalEpoch } from './transactions.js'
-import { Child, ComputeDiff, RESET_VALUE, Signal } from './types.js'
+import { ArraySet } from './ArraySet'
+import { maybeCaptureParent } from './capture'
+import { EMPTY_ARRAY, equals } from './helpers'
+import { HistoryBuffer } from './HistoryBuffer'
+import { advanceGlobalEpoch, atomDidChange, globalEpoch } from './transactions'
+import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 
 /**
  * The options to configure an atom, passed into the [[atom]] function.

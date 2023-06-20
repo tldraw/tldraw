@@ -1,4 +1,4 @@
-import { Child, Signal } from './types.js'
+import { Child, Signal } from './types'
 
 /**
  * Get whether the given value is a child.

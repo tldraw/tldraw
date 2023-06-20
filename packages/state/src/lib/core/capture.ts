@@ -1,5 +1,5 @@
-import { attach, detach } from './helpers.js'
-import { Child, Signal } from './types.js'
+import { attach, detach } from './helpers'
+import { Child, Signal } from './types'
 
 const globalKey = Symbol.for('__@tldraw/state__')
 const global = globalThis as { [globalKey]?: true }

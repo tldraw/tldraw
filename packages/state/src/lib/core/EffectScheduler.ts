@@ -1,8 +1,8 @@
-import { startCapturingParents, stopCapturingParents } from './capture.js'
-import { GLOBAL_START_EPOCH } from './constants.js'
-import { attach, detach, haveParentsChanged } from './helpers.js'
-import { globalEpoch } from './transactions.js'
-import { Signal } from './types.js'
+import { startCapturingParents, stopCapturingParents } from './capture'
+import { GLOBAL_START_EPOCH } from './constants'
+import { attach, detach, haveParentsChanged } from './helpers'
+import { globalEpoch } from './transactions'
+import { Signal } from './types'
 
 interface EffectSchedulerOptions {
 	/**

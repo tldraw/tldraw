@@ -1,6 +1,6 @@
-import { _Atom } from './Atom.js'
-import { _Computed } from './Computed.js'
-import { Signal } from './types.js'
+import { _Atom } from './Atom'
+import { _Computed } from './Computed'
+import { Signal } from './types'
 
 /**
  * Returns true if the given value is a signal (either an Atom or a Computed).

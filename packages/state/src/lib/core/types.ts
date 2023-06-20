@@ -1,6 +1,6 @@
-import { ArraySet } from './ArraySet.js'
-import { _Computed } from './Computed.js'
-import { EffectScheduler } from './EffectScheduler.js'
+import { ArraySet } from './ArraySet'
+import { _Computed } from './Computed'
+import { EffectScheduler } from './EffectScheduler'
 
 /** @public */
 export const RESET_VALUE: unique symbol = Symbol('RESET_VALUE')
