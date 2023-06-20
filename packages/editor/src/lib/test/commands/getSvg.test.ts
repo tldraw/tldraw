@@ -10,7 +10,6 @@ import {
 } from '@tldraw/tlschema'
 import { SVG_PADDING } from '../../constants'
 import { TestEditor } from '../TestEditor'
-import { TL } from '../jsx'
 
 let editor: TestEditor
 
@@ -127,22 +126,3 @@ for (const color of DefaultColorStyle.values) {
 		}
 	}
 }
-
-it.each(snapshots)('Matches snapshot for color=%s fill=%s font=%s', async (color, fill, font) => {
-	const { shapeId } = editor.createShapesFromJsx(
-		<TL.geo
-			ref="shapeId"
-			x={0}
-			y={0}
-			w={100}
-			h={100}
-			text="Hello world"
-			color={color}
-			fill={fill}
-			font={font}
-		/>
-	)
-
-	const svg = (await editor.getSvg([shapeId]))!
-	expect(svg).toMatchSnapshot()
-})

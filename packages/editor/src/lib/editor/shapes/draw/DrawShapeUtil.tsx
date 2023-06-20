@@ -208,7 +208,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return <path d={solidStrokePath} />
 	}
 
-	toSvg(shape: TLDrawShape, _font: string | undefined) {
+	toSvg(shape: TLDrawShape) {
 		const theme = getDefaultColorTheme(this.editor)
 		const { color } = shape.props
 

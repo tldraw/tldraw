@@ -13,6 +13,7 @@ import {
 import { computed, EMPTY_ARRAY } from '@tldraw/state'
 import { ComputedCache } from '@tldraw/store'
 import {
+	DefaultFontFamilies,
 	getDefaultColorTheme,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
@@ -42,8 +43,10 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
 import {
@@ -924,7 +927,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	toSvg(shape: TLArrowShape, font: string) {
+	toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme(this.editor)
 		const color = theme[shape.props.color].solid
 
@@ -1049,10 +1052,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// Text Label
 		if (labelSize) {
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
+
 			const opts = {
 				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
 				lineHeight: TEXT_PROPS.lineHeight,
-				fontFamily: font,
+				fontFamily: DefaultFontFamilies[shape.props.font],
 				padding: 0,
 				textAlign: 'middle' as const,
 				width: labelSize.w - 8,

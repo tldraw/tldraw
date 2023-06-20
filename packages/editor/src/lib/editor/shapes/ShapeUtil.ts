@@ -290,31 +290,21 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the shape as an SVG object.
 	 *
 	 * @param shape - The shape.
-	 * @param color - The shape's CSS color (actual).
-	 * @param font - The shape's CSS font (actual).
+	 * @param ctx - The export context for the SVG - used for added e.g. <def>s
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(
-		shape: Shape,
-		font: string | undefined,
-		ctx: SvgExportContext
-	): SVGElement | Promise<SVGElement>
+	toSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement>
 
 	/**
 	 * Get the shape's background layer as an SVG object.
 	 *
 	 * @param shape - The shape.
-	 * @param color - The shape's CSS color (actual).
-	 * @param font - The shape's CSS font (actual).
+	 * @param ctx - ctx - The export context for the SVG - used for added e.g. <def>s
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(
-		shape: Shape,
-		font: string | undefined,
-		ctx: SvgExportContext
-	): SVGElement | Promise<SVGElement> | null
+	toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> | null
 
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number {

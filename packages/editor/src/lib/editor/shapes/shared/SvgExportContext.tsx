@@ -1,3 +1,8 @@
+export interface SvgExportDef {
+	uniqueId: string
+	getElement: () => Promise<SVGElement | null> | SVGElement | null
+}
+
 export interface SvgExportContext {
-	addDefById(uniqueId: string, def: () => Promise<SVGElement> | SVGElement): void
+	addExportDef(def: SvgExportDef): void
 }

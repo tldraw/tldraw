@@ -166,7 +166,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     snapPoints(_shape: TLArrowShape): Vec2d[];
     // (undocumented)
-    toSvg(shape: TLArrowShape, font: string): SVGGElement;
+    toSvg(shape: TLArrowShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "arrow";
 }
@@ -354,7 +354,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLDrawShape>;
     // (undocumented)
-    toSvg(shape: TLDrawShape, _font: string | undefined): SVGGElement;
+    toSvg(shape: TLDrawShape): SVGGElement;
     // (undocumented)
     static type: "draw";
 }
@@ -947,7 +947,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLGeoShape>;
     // (undocumented)
-    toSvg(shape: TLGeoShape, font: string): SVGElement;
+    toSvg(shape: TLGeoShape, ctx: SvgExportContext): SVGElement;
     // (undocumented)
     static type: "geo";
 }
@@ -1232,7 +1232,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLLineShape>;
     // (undocumented)
-    toSvg(shape: TLLineShape, _font: string): SVGGElement;
+    toSvg(shape: TLLineShape): SVGGElement;
     // (undocumented)
     static type: "line";
 }
@@ -1734,7 +1734,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
-    toSvg(shape: TLNoteShape, font: string): SVGGElement;
+    toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "note";
 }
@@ -1904,8 +1904,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     snapPoints(shape: Shape): Vec2d[];
     // (undocumented)
     readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>;
-    toBackgroundSvg?(shape: Shape, font: string | undefined): null | Promise<SVGElement> | SVGElement;
-    toSvg?(shape: Shape, font: string | undefined): Promise<SVGElement> | SVGElement;
+    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<SVGElement> | SVGElement;
+    toSvg?(shape: Shape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
     // (undocumented)
     readonly type: Shape['type'];
     static type: string;
@@ -2110,7 +2110,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLTextShape>;
     // (undocumented)
-    toSvg(shape: TLTextShape, font: string | undefined): SVGGElement;
+    toSvg(shape: TLTextShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "text";
 }

@@ -168,6 +168,14 @@ export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "sol
 export const DefaultFillStyle: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
 
 // @public (undocumented)
+export const DefaultFontFamilies: {
+    draw: string;
+    sans: string;
+    serif: string;
+    mono: string;
+};
+
+// @public (undocumented)
 export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
 
 // @public (undocumented)

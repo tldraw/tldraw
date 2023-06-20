@@ -1,11 +1,13 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { getDefaultColorTheme, TLNoteShape } from '@tldraw/tlschema'
+import { DefaultFontFamilies, getDefaultColorTheme, TLNoteShape } from '@tldraw/tlschema'
 import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler } from '../ShapeUtil'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
 
 const NOTE_SIZE = 200
@@ -107,7 +109,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	toSvg(shape: TLNoteShape, font: string) {
+	toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
+		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme(this.editor)
 		const bounds = this.getBounds(shape)
 
@@ -135,7 +138,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const textElm = getTextLabelSvgElement({
 			editor: this.editor,
 			shape,
-			font,
+			font: DefaultFontFamilies[shape.props.font],
 			bounds,
 		})
 

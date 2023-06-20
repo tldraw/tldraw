@@ -26,7 +26,6 @@ import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	Box2dModel,
 	CameraRecordType,
-	DefaultFontStyle,
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
@@ -130,6 +129,7 @@ import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/arro
 import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
 import { FrameShapeUtil } from './shapes/frame/FrameShapeUtil'
 import { GroupShapeUtil } from './shapes/group/GroupShapeUtil'
+import { SvgExportContext, SvgExportDef } from './shapes/shared/SvgExportContext'
 import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -8635,6 +8635,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		svg.append(defs)
 
+		const exportDefPromisesById = new Map<string, Promise<void>>()
+		const exportContext: SvgExportContext = {
+			addExportDef: (def: SvgExportDef) => {
+				if (exportDefPromisesById.has(def.uniqueId)) return
+				const promise = (async () => {
+					const element = await def.getElement()
+					if (!element) return
+
+					const comment = document.createComment(`def: ${def.uniqueId}`)
+					defs.appendChild(comment)
+					defs.appendChild(element)
+				})()
+				exportDefPromisesById.set(def.uniqueId, promise)
+			},
+		}
+
 		const unorderedShapeElements = (
 			await Promise.all(
 				renderingShapes.map(async ({ id, opacity, index, backgroundIndex }) => {
@@ -8647,23 +8663,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					const util = this.getShapeUtil(shape)
 
-					let font: string | undefined
-					// TODO: `Editor` shouldn't know about `DefaultFontStyle`. We need another way
-					// for shapes to register fonts for export.
-					const fontFromShape = this.getShapeStyleIfExists(shape, DefaultFontStyle)
-					if (fontFromShape) {
-						if (fontsUsedInExport.has(fontFromShape)) {
-							font = fontsUsedInExport.get(fontFromShape)!
-						} else {
-							// For some reason these styles aren't present in the fake element
-							// so we need to get them from the real element
-							font = realContainerStyle.getPropertyValue(`--tl-font-${fontFromShape}`)
-							fontsUsedInExport.set(fontFromShape, font)
-						}
-					}
-
-					let shapeSvgElement = await util.toSvg?.(shape, font)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font)
+					let shapeSvgElement = await util.toSvg?.(shape, exportContext)
+					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, exportContext)
 
 					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
 					if (shapeSvgElement) {
@@ -8744,72 +8745,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		).flat()
 
+		await Promise.all(exportDefPromisesById.values())
+
 		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
 			svg.appendChild(element)
 		}
-
-		// Add styles to the defs
-		let styles = ``
-		const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style')
-
-		// Insert fonts into app
-		const fontInstances: FontFace[] = []
-
-		if ('fonts' in document) {
-			document.fonts.forEach((font) => fontInstances.push(font))
-		}
-
-		await Promise.all(
-			fontInstances.map(async (font) => {
-				const fileReader = new FileReader()
-
-				let isUsed = false
-
-				fontsUsedInExport.forEach((fontName) => {
-					if (fontName.includes(font.family)) {
-						isUsed = true
-					}
-				})
-
-				if (!isUsed) return
-
-				const url = (font as any).$$_url
-
-				const fontFaceRule = (font as any).$$_fontface
-
-				if (url) {
-					const fontFile = await (await fetch(url)).blob()
-
-					const base64Font = await new Promise<string>((resolve, reject) => {
-						fileReader.onload = () => resolve(fileReader.result as string)
-						fileReader.onerror = () => reject(fileReader.error)
-						fileReader.readAsDataURL(fontFile)
-					})
-
-					const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
-					styles += newFontFaceRule
-				}
-			})
-		)
-
-		style.textContent = styles
-
-		defs.append(style)
-
-		const foundFonts = new Set<string>()
-		function walk(el: Element) {
-			const style = window.getComputedStyle(el)
-			const font = style.getPropertyValue('font-family')
-			if (foundFonts.has(font)) return
-			console.log('found', font, 'in', el)
-			foundFonts.add(font)
-
-			for (const child of el.children) {
-				walk(child)
-			}
-		}
-
-		walk(svg)
+		console.log(new XMLSerializer().serializeToString(svg))
 
 		return svg
 	}

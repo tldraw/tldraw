@@ -147,7 +147,11 @@ export {
 } from './styles/TLColorStyle'
 export { DefaultDashStyle, type TLDefaultDashStyle } from './styles/TLDashStyle'
 export { DefaultFillStyle, type TLDefaultFillStyle } from './styles/TLFillStyle'
-export { DefaultFontStyle, type TLDefaultFontStyle } from './styles/TLFontStyle'
+export {
+	DefaultFontFamilies,
+	DefaultFontStyle,
+	type TLDefaultFontStyle,
+} from './styles/TLFontStyle'
 export {
 	DefaultHorizontalAlignStyle,
 	type TLDefaultHorizontalAlignStyle,

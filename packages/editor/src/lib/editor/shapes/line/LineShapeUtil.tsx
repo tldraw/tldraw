@@ -337,7 +337,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return <path d={path} />
 	}
 
-	toSvg(shape: TLLineShape, _font: string) {
+	toSvg(shape: TLLineShape) {
 		const theme = getDefaultColorTheme(this.editor)
 		const color = theme[shape.props.color].solid
 		const spline = getSplineForLineShape(shape)
