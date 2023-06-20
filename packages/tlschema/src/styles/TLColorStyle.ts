@@ -1,5 +1,6 @@
 import { Expand } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
+import { TLDefaultColorTheme } from '..'
 import { StyleProp } from './StyleProp'
 
 const colors = [
@@ -273,7 +274,7 @@ export const DefaultColorThemePalette: {
 }
 
 /** @public */
-export function getDefaultColorTheme(opts: { isDarkMode: boolean }) {
+export function getDefaultColorTheme(opts: { isDarkMode: boolean }): TLDefaultColorTheme {
 	return opts.isDarkMode ? DefaultColorThemePalette.darkMode : DefaultColorThemePalette.lightMode
 }
 

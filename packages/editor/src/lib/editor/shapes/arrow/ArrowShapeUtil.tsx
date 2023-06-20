@@ -13,7 +13,6 @@ import {
 import { computed, EMPTY_ARRAY } from '@tldraw/state'
 import { ComputedCache } from '@tldraw/store'
 import {
-	getDefaultColorTheme,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
@@ -42,7 +41,7 @@ import {
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
+import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { TLExportColors } from '../shared/TLExportColors'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
@@ -561,7 +560,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	component(shape: TLArrowShape) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = useDefaultColorTheme()
 		// Not a class component, but eslint can't tell that :(
 		const onlySelectedShape = this.editor.onlySelectedShape
 		const shouldDisplayHandles =
@@ -725,10 +724,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							/>
 						</g>
 						{as && maskStartArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={as} color={shape.props.color} fill={shape.props.fill} theme={theme} />
+							<ShapeFill d={as} color={shape.props.color} fill={shape.props.fill} />
 						)}
 						{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={ae} color={shape.props.color} fill={shape.props.fill} theme={theme} />
+							<ShapeFill d={ae} color={shape.props.color} fill={shape.props.fill} />
 						)}
 						{as && <path d={as} />}
 						{ae && <path d={ae} />}
