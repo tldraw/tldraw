@@ -27,6 +27,11 @@ const nextConfig = {
 				destination: '/usage',
 				permanent: true,
 			},
+			{
+				source: '/ucg/:childId',
+				destination: '/:childId',
+				permanent: true,
+			},
 		]
 	},
 }

@@ -3,22 +3,39 @@ import { Mdx } from '@/components/Mdx'
 import { MetaHead } from '@/components/MetaHead'
 import { Sidebar } from '@/components/Sidebar'
 import { Article, Category, Section, SidebarContentList } from '@/types/content-types'
-import { getArticleSource, getArticles, getSection, getSections } from '@/utils/content'
+import {
+	getArticle,
+	getArticleSource,
+	getArticles,
+	getCategory,
+	getLinks,
+	getSection,
+	getSections,
+} from '@/utils/content'
 import { getSidebarContentList } from '@/utils/getSidebarContentList'
 import { GetStaticPaths, GetStaticProps } from 'next'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { useTheme } from 'next-themes'
 import Link from 'next/link'
+import ArticlePage, { ArticleProps } from './[childId]/[articleId]'
 
-type Props = {
+type SectionProps = {
+	type: 'section'
 	sidebar: SidebarContentList
 	section: Section
 	categories: { category: Category; articles: Article[] }[]
 	mdxSource: MDXRemoteSerializeResult | null
 }
 
-export default function SectionListPage({ sidebar, section, categories, mdxSource }: Props) {
+type Props = SectionProps | ArticleProps
+
+export default function SectionListPage(props: Props) {
 	const theme = useTheme()
+	if (props.type === 'article') {
+		return <ArticlePage {...props} />
+	}
+
+	const { sidebar, section, categories, mdxSource } = props
 	const ucg = categories.find((category) => category.category.id === 'ucg')!
 	return (
 		<>
@@ -63,19 +80,52 @@ export const getStaticPaths: GetStaticPaths = async () => {
 
 	for (const section of sections) {
 		paths.push({ params: { sectionId: section.id } })
+
+		// Add paths for uncategorized articles as well
+		if (section.id !== 'ucg') continue
+		for (const category of section.categories) {
+			if (category.id !== 'ucg') continue
+			for (const articleId of category.articleIds) {
+				paths.push({ params: { sectionId: articleId } })
+			}
+		}
 	}
 
 	return { paths, fallback: false }
 }
 
 export const getStaticProps: GetStaticProps<Props> = async (ctx) => {
-	const sectionId = ctx.params?.sectionId?.toString()
-	if (!sectionId) throw Error()
+	const id = ctx.params?.sectionId?.toString()
+	if (!id) throw Error()
 
-	const sidebar = await getSidebarContentList({
-		sectionId,
-	})
+	// If the path goes to an uncategorized article, show the article page instead
+	const sections = await getSections()
+	if (!sections.some((section) => section.id === id)) {
+		const sectionId = 'ucg'
+		const categoryId = 'ucg'
+		const articleId = id
+		const sidebar = await getSidebarContentList({ sectionId, categoryId, articleId })
+		const section = await getSection(sectionId)
+		const category = await getCategory(sectionId, categoryId)
+		const article = await getArticle(articleId)
+		const links = await getLinks(articleId)
+		const mdxSource = await getArticleSource(articleId)
+		return {
+			props: {
+				type: 'article',
+				sidebar,
+				section,
+				category,
+				article,
+				links,
+				mdxSource,
+			},
+		}
+	}
 
+	// Otherwise, show the section page
+	const sectionId = id
+	const sidebar = await getSidebarContentList({ sectionId })
 	const articles = await getArticles()
 	const section = await getSection(sectionId)
 	const categories = [] as { category: Category; articles: Article[] }[]
@@ -87,5 +137,5 @@ export const getStaticProps: GetStaticProps<Props> = async (ctx) => {
 	const article = articles[sectionId + '_index'] ?? null
 	const mdxSource = article ? await getArticleSource(sectionId + '_index') : null
 
-	return { props: { sidebar, section, categories, mdxSource } }
+	return { props: { type: 'section', sidebar, section, categories, mdxSource } }
 }
