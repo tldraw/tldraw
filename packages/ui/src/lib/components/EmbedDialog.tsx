@@ -1,7 +1,7 @@
 import { TLEmbedResult, getEmbedInfo, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
 import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 import { useRef, useState } from 'react'
-import { track } from 'signia-react'
 import { useAssetUrls } from '../hooks/useAssetUrls'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'

@@ -1,5 +1,5 @@
+import { Atom, Computed, atom, computed } from '@tldraw/state'
 import { TLBaseShape } from '@tldraw/tlschema'
-import { Atom, Computed, atom, computed } from 'signia'
 import type { Editor } from '../Editor'
 import { TLShapeUtilConstructor } from '../shapes/ShapeUtil'
 import {

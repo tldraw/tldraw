@@ -1,5 +1,3 @@
-import { objectMapValues } from '@tldraw/utils'
-import isEqual from 'lodash.isequal'
 import {
 	Atom,
 	computed,
@@ -8,7 +6,9 @@ import {
 	isUninitialized,
 	RESET_VALUE,
 	withDiff,
-} from 'signia'
+} from '@tldraw/state'
+import { objectMapValues } from '@tldraw/utils'
+import isEqual from 'lodash.isequal'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { executeQuery, objectMatchesQuery, QueryExpression } from './executeQuery'
 import { IncrementalSetConstructor } from './IncrementalSetConstructor'

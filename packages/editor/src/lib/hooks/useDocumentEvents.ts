@@ -1,5 +1,5 @@
+import { useValue } from '@tldraw/state'
 import { useEffect } from 'react'
-import { useValue } from 'signia-react'
 import { TLKeyboardEventInfo, TLPointerEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
 import { useContainer } from './useContainer'

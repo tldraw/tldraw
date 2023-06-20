@@ -1,3 +1,4 @@
+import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tldraw/state'
 import {
 	filterEntries,
 	objectMapEntries,
@@ -7,7 +8,6 @@ import {
 	throttledRaf,
 } from '@tldraw/utils'
 import { nanoid } from 'nanoid'
-import { Atom, Computed, Reactor, atom, computed, reactor, transact } from 'signia'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { Cache } from './Cache'
 import { RecordScope } from './RecordType'

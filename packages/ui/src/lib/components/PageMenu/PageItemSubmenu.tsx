@@ -1,7 +1,7 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
 import { MAX_PAGES, PageRecordType, TLPageId, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
 import { useCallback } from 'react'
-import { track } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import * as M from '../primitives/DropdownMenu'

@@ -1,3 +1,4 @@
+import { Signal, transact } from '@tldraw/state'
 import {
 	RecordsDiff,
 	SerializedSchema,
@@ -7,7 +8,6 @@ import {
 } from '@tldraw/store'
 import { TLStore } from '@tldraw/tlschema'
 import { assert } from '@tldraw/utils'
-import { Signal, transact } from 'signia'
 import {
 	TAB_ID,
 	TLSessionStateSnapshot,

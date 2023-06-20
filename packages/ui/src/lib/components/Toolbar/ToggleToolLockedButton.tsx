@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import classNames from 'classnames'
-import { useValue } from 'signia-react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'

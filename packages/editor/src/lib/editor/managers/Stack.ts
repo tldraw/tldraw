@@ -1,4 +1,4 @@
-import { EMPTY_ARRAY } from 'signia'
+import { EMPTY_ARRAY } from '@tldraw/state'
 
 export type Stack<T> = StackItem<T> | EmptyStackItem<T>
 
