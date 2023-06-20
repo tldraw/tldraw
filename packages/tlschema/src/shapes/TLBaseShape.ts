@@ -17,7 +17,6 @@ export interface TLBaseShape<Type extends string, Props extends object>
 	isLocked: boolean
 	opacity: TLOpacityType
 	props: Props
-	createdBy: string
 	meta: JsonObject // anything you like! we don't know
 }
 
@@ -47,7 +46,6 @@ export function createShapeValidator<
 		typeName: T.literal('shape'),
 		x: T.number,
 		y: T.number,
-		createdBy: T.string,
 		rotation: T.number,
 		index: T.string,
 		parentId: parentIdValidator,

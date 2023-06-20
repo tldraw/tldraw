@@ -880,7 +880,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
-        createdBy: string;
         meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
@@ -911,7 +910,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
-        createdBy: string;
         meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
@@ -929,7 +927,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
-        createdBy: string;
         meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
@@ -945,7 +942,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
-        createdBy: string;
         meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
@@ -1713,7 +1709,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
-        createdBy: string;
         meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
@@ -1738,7 +1733,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
-        createdBy: string;
         meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
@@ -2081,7 +2075,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             scale: number;
             autoSize: boolean;
         };
-        createdBy: string;
         meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
@@ -2106,7 +2099,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
-        createdBy: string;
         meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";

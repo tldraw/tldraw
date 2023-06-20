@@ -782,8 +782,6 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 // @public (undocumented)
 export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
-    createdBy: string;
-    // (undocumented)
     index: string;
     // (undocumented)
     isLocked: boolean;
