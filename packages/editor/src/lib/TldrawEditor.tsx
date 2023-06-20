@@ -126,7 +126,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	return (
 		<div ref={setContainer} draggable={false} className="tl-container tl-theme__light" tabIndex={0}>
 			<OptionalErrorBoundary
-				fallback={ErrorFallback ? (error) => <ErrorFallback error={error} /> : null}
+				fallback={ErrorFallback}
 				onError={(error) => annotateError(error, { tags: { origin: 'react.tldraw-before-app' } })}
 			>
 				{container && (
@@ -297,7 +297,7 @@ function TldrawEditorWithReadyStore({
 		// document in the event of an error to reassure them that their work is
 		// not lost.
 		<OptionalErrorBoundary
-			fallback={ErrorFallback ? (error) => <ErrorFallback error={error} editor={editor} /> : null}
+			fallback={ErrorFallback}
 			onError={(error) =>
 				editor.annotateError(error, { origin: 'react.tldraw', willCrashApp: true })
 			}

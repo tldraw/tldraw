@@ -757,7 +757,7 @@ export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_
         error: Error;
     };
     // (undocumented)
-    render(): React_3.ReactNode;
+    render(): boolean | JSX.Element | null | number | React_3.ReactFragment | string | undefined;
     // (undocumented)
     state: TLErrorBoundaryState;
 }
@@ -1730,7 +1730,7 @@ export function openWindow(url: string, target?: string): void;
 
 // @internal (undocumented)
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
-    fallback: ((error: unknown) => React_3.ReactNode) | null;
+    fallback: TLErrorFallbackComponent;
 }): JSX.Element;
 
 // @public (undocumented)
@@ -2246,7 +2246,7 @@ export interface TLEditorComponents {
     // (undocumented)
     Cursor: null | TLCursorComponent;
     // (undocumented)
-    ErrorFallback: null | TLErrorFallbackComponent;
+    ErrorFallback: TLErrorFallbackComponent;
     // (undocumented)
     Grid: null | TLGridComponent;
     // (undocumented)
@@ -2254,9 +2254,9 @@ export interface TLEditorComponents {
     // (undocumented)
     Scribble: null | TLScribbleComponent;
     // (undocumented)
-    ShapeErrorFallback: null | TLShapeErrorFallbackComponent;
+    ShapeErrorFallback: TLShapeErrorFallbackComponent;
     // (undocumented)
-    ShapeIndicatorErrorFallback: null | TLShapeIndicatorErrorFallback;
+    ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallback;
     // (undocumented)
     SnapLine: null | TLSnapLineComponent;
     // (undocumented)
@@ -2291,7 +2291,9 @@ export interface TLErrorBoundaryProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
-    fallback: (error: unknown) => React_3.ReactNode;
+    fallback: (props: {
+        error: unknown;
+    }) => any;
     // (undocumented)
     onError?: ((error: unknown) => void) | null;
 }

@@ -38,7 +38,7 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
 		render(
-			<TldrawEditor autoFocus components={{ ErrorFallback: null }}>
+			<TldrawEditor autoFocus>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -49,7 +49,6 @@ describe('<TldrawEditor />', () => {
 		let editor: Editor
 		render(
 			<TldrawEditor
-				components={{ ErrorFallback: null }}
 				onMount={(e) => {
 					editor = e
 				}}
@@ -66,7 +65,6 @@ describe('<TldrawEditor />', () => {
 		let editor: Editor
 		render(
 			<TldrawEditor
-				components={{ ErrorFallback: null }}
 				shapes={defaultShapes}
 				onMount={(e) => {
 					editor = e
@@ -100,7 +98,6 @@ describe('<TldrawEditor />', () => {
 		const store = createTLStore({ shapes: [] })
 		render(
 			<TldrawEditor
-				components={{ ErrorFallback: null }}
 				store={store}
 				onMount={(editor) => {
 					expect(editor.store).toBe(store)
@@ -117,12 +114,7 @@ describe('<TldrawEditor />', () => {
 		const spy = jest.spyOn(console, 'error').mockImplementation(noop)
 		expect(() =>
 			render(
-				<TldrawEditor
-					shapes={defaultShapes}
-					components={{ ErrorFallback: null }}
-					store={createTLStore({ shapes: [] })}
-					autoFocus
-				>
+				<TldrawEditor shapes={defaultShapes} store={createTLStore({ shapes: [] })} autoFocus>
 					<div data-testid="canvas-1" />
 				</TldrawEditor>
 			)
@@ -132,11 +124,7 @@ describe('<TldrawEditor />', () => {
 
 		expect(() =>
 			render(
-				<TldrawEditor
-					components={{ ErrorFallback: null }}
-					store={createTLStore({ shapes: defaultShapes })}
-					autoFocus
-				>
+				<TldrawEditor store={createTLStore({ shapes: defaultShapes })} autoFocus>
 					<div data-testid="canvas-1" />
 				</TldrawEditor>
 			)
@@ -150,12 +138,7 @@ describe('<TldrawEditor />', () => {
 		const initialStore = createTLStore({ shapes: [] })
 		const onMount = jest.fn()
 		const rendered = render(
-			<TldrawEditor
-				components={{ ErrorFallback: null }}
-				store={initialStore}
-				onMount={onMount}
-				autoFocus
-			>
+			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -165,12 +148,7 @@ describe('<TldrawEditor />', () => {
 		expect(initialEditor.store).toBe(initialStore)
 		// re-render with the same store:
 		rendered.rerender(
-			<TldrawEditor
-				components={{ ErrorFallback: null }}
-				store={initialStore}
-				onMount={onMount}
-				autoFocus
-			>
+			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
 		)
@@ -180,12 +158,7 @@ describe('<TldrawEditor />', () => {
 		// re-render with a new store:
 		const newStore = createTLStore({ shapes: [] })
 		rendered.rerender(
-			<TldrawEditor
-				components={{ ErrorFallback: null }}
-				store={newStore}
-				onMount={onMount}
-				autoFocus
-			>
+			<TldrawEditor store={newStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)
@@ -199,7 +172,6 @@ describe('<TldrawEditor />', () => {
 		let editor = {} as Editor
 		render(
 			<TldrawEditor
-				components={{ ErrorFallback: null }}
 				shapes={defaultShapes}
 				tools={defaultTools}
 				autoFocus
@@ -322,7 +294,6 @@ describe('Custom shapes', () => {
 		let editor = {} as Editor
 		render(
 			<TldrawEditor
-				components={{ ErrorFallback: null }}
 				shapes={shapes}
 				tools={tools}
 				autoFocus
