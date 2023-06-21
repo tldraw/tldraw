@@ -18,7 +18,8 @@ import { GetStaticPaths, GetStaticProps } from 'next'
 import { MDXRemoteSerializeResult } from 'next-mdx-remote'
 import { useTheme } from 'next-themes'
 
-interface Props {
+export type ArticleProps = {
+	type: 'article'
 	sidebar: SidebarContentList
 	section: Section
 	category: Category
@@ -34,7 +35,7 @@ export default function ArticlePage({
 	article,
 	links,
 	sidebar,
-}: Props) {
+}: ArticleProps) {
 	const theme = useTheme()
 	return (
 		<>
@@ -55,12 +56,13 @@ export default function ArticlePage({
 
 export const getStaticPaths: GetStaticPaths = async () => {
 	const sections = await getSections()
-	const paths: { params: { sectionId: string; categoryId: string; articleId: string } }[] = []
+	const paths: { params: { sectionId: string; childId: string; articleId: string } }[] = []
 
 	for (const section of sections) {
 		for (const category of section.categories) {
+			if (category.id === 'ucg') continue
 			for (const articleId of category.articleIds) {
-				paths.push({ params: { sectionId: section.id, categoryId: category.id, articleId } })
+				paths.push({ params: { sectionId: section.id, childId: category.id, articleId } })
 			}
 		}
 	}
@@ -68,9 +70,9 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	return { paths, fallback: false }
 }
 
-export const getStaticProps: GetStaticProps<Props> = async (ctx) => {
+export const getStaticProps: GetStaticProps<ArticleProps> = async (ctx) => {
 	const sectionId = ctx.params?.sectionId?.toString() as string
-	const categoryId = ctx.params?.categoryId?.toString() as string
+	const categoryId = ctx.params?.childId?.toString() as string
 	const articleId = ctx.params?.articleId?.toString()
 	if (!articleId) throw Error()
 
@@ -81,5 +83,15 @@ export const getStaticProps: GetStaticProps<Props> = async (ctx) => {
 	const links = await getLinks(articleId)
 	const mdxSource = await getArticleSource(articleId)
 
-	return { props: { article, section, category, sidebar, links, mdxSource } }
+	return {
+		props: {
+			type: 'article',
+			article,
+			section,
+			category,
+			sidebar,
+			links,
+			mdxSource,
+		},
+	}
 }

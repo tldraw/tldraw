@@ -74,7 +74,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		const endInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 		const centerInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
 
-		const isClosed = startShapeInfo.util.isClosed(startShapeInfo.shape)
+		const { isClosed } = startShapeInfo
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
 
 		let point: VecLike | undefined
@@ -82,7 +82,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		let intersections = fn(
 			centerInStartShapeLocalSpace,
 			handleArc.radius,
-			startShapeInfo.util.outline(startShapeInfo.shape)
+			editor.getOutline(startShapeInfo.shape)
 		)
 
 		if (intersections) {
@@ -150,7 +150,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		const endInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 		const centerInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
 
-		const isClosed = endShapeInfo.util.isClosed(endShapeInfo.shape)
+		const isClosed = endShapeInfo.isClosed
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
 
 		const angleToMiddle = Vec2d.Angle(handleArc.center, middle)
@@ -162,7 +162,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		let intersections = fn(
 			centerInEndShapeLocalSpace,
 			handleArc.radius,
-			endShapeInfo.util.outline(endShapeInfo.shape)
+			editor.getOutline(endShapeInfo.shape)
 		)
 
 		if (intersections) {

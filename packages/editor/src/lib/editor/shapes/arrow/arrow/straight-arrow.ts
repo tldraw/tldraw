@@ -67,14 +67,14 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 		if (endShapeInfo.didIntersect && !startShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, then make it
 			// a short arrow ending at the end shape intersection.
-			if (startShapeInfo.util.isClosed(startShapeInfo.shape)) {
+			if (startShapeInfo.isClosed) {
 				a.setTo(Vec2d.Nudge(b, a, minDist))
 			}
 		} else if (!endShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, or if neither
 			// shape intersected, then make it a short arrow starting
 			// at the start shape intersection.
-			if (endShapeInfo.util.isClosed(endShapeInfo.shape)) {
+			if (endShapeInfo.isClosed) {
 				b.setTo(Vec2d.Nudge(a, b, minDist))
 			}
 		}
@@ -179,10 +179,10 @@ function updateArrowheadPointWithBoundShape(
 	const targetFrom = Matrix2d.applyToPoint(Matrix2d.Inverse(targetShapeInfo.transform), pageFrom)
 	const targetTo = Matrix2d.applyToPoint(Matrix2d.Inverse(targetShapeInfo.transform), pageTo)
 
-	const isClosed = targetShapeInfo.util.isClosed(targetShapeInfo.shape)
+	const isClosed = targetShapeInfo.isClosed
 	const fn = isClosed ? intersectLineSegmentPolygon : intersectLineSegmentPolyline
 
-	const intersection = fn(targetFrom, targetTo, targetShapeInfo.util.outline(targetShapeInfo.shape))
+	const intersection = fn(targetFrom, targetTo, targetShapeInfo.outline)
 
 	let targetInt: VecLike | undefined
 

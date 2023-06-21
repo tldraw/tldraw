@@ -97,7 +97,7 @@
 	left: 0px;
 	width: 100%;
 	height: 100%;
-	overflow: hidden;
+	overflow: clip;
 }
 
 .tl-theme__light {
@@ -778,7 +778,7 @@ input,
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-size: 12px;
-	font-family: var(--font-family);
+	font-family: var(--font-body);
 	border-radius: var(--radius-2);
 	color: var(--color-selected-contrast);
 }
@@ -796,7 +796,7 @@ input,
 	overflow: hidden;
 	text-overflow: ellipsis;
 	font-size: 12px;
-	font-family: var(--font-family);
+	font-family: var(--font-body);
 	text-shadow: var(--tl-text-outline);
 	color: var(--color-selected-contrast);
 }
@@ -812,7 +812,7 @@ input,
 	position: absolute;
 	padding: 3px 6px;
 	font-size: 12px;
-	font-family: var(--font-family);
+	font-family: var(--font-body);
 	opacity: 1;
 	border-radius: var(--radius-2);
 }
@@ -823,7 +823,7 @@ input,
 	white-space: nowrap;
 	padding: 3px 6px;
 	font-size: 12px;
-	font-family: var(--font-family);
+	font-family: var(--font-body);
 	pointer-events: none;
 	z-index: var(--layer-cursor);
 	margin-top: 16px;
@@ -832,6 +832,10 @@ input,
 	border: none;
 	user-select: text;
 	border-radius: var(--radius-2);
+}
+
+.tl-cursor-chat .tl-cursor-chat__bubble {
+	padding-right: 12px;
 }
 
 .tl-cursor-chat::selection {

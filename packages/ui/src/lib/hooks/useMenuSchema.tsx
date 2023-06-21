@@ -1,7 +1,7 @@
 import { Editor, useEditor } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
-import { useValue } from 'signia-react'
 import {
 	TLUiMenuSchema,
 	menuCustom,

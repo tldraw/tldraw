@@ -1,10 +1,9 @@
 import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
+import { react, track, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate } from '@tldraw/utils'
 import classNames from 'classnames'
-import * as React from 'react'
-import { react } from 'signia'
-import { track, useValue } from 'signia-react'
+import React from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
 import { useDocumentEvents } from '../hooks/useDocumentEvents'
@@ -14,7 +13,6 @@ import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoub
 import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
 import { usePattern } from '../hooks/usePattern'
-import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useScreenBounds } from '../hooks/useScreenBounds'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
@@ -219,8 +217,7 @@ const HandlesWrapper = track(function HandlesWrapper() {
 
 	if (!(onlySelectedShape && shouldDisplayHandles)) return null
 
-	const util = editor.getShapeUtil(onlySelectedShape)
-	const handles = util.handles?.(onlySelectedShape)
+	const handles = editor.getHandles(onlySelectedShape)
 
 	if (!handles) return null
 

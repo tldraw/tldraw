@@ -1,6 +1,6 @@
+import { useValue } from '@tldraw/state'
 import classNames from 'classnames'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useValue } from 'signia-react'
 import { Editor } from '../editor/Editor'
 import { EditorContext } from '../hooks/useEditor'
 import { hardResetEditor } from '../utils/hard-reset'

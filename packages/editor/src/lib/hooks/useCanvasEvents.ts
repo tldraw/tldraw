@@ -102,9 +102,7 @@ export function useCanvasEvents() {
 				preventDefault(e)
 				if (!e.dataTransfer?.files?.length) return
 
-				const files = Array.from(e.dataTransfer.files).filter(
-					(file) => !file.name.endsWith('.tldr')
-				)
+				const files = Array.from(e.dataTransfer.files)
 
 				const rect = editor.getContainer().getBoundingClientRect()
 

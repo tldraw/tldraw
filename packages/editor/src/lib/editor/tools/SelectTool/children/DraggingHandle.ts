@@ -58,7 +58,7 @@ export class DraggingHandle extends StateNode {
 		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
 
 		// <!-- Only relevant to arrows
-		const handles = this.editor.getShapeUtil(shape).handles(shape).sort(sortByIndex)
+		const handles = this.editor.getHandles(shape)!.sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
 
 		// Find the adjacent handle
@@ -227,14 +227,14 @@ export class DraggingHandle extends StateNode {
 
 			// Get all the outline segments from the shape
 			const additionalSegments = util
-				.outlineSegments(shape)
+				.getOutlineSegments(shape)
 				.map((segment) => Matrix2d.applyToPoints(pageTransform, segment))
 
 			// We want to skip the segments that include the handle, so
 			// find the index of the handle that shares the same index property
 			// as the initial dragging handle; this catches a quirk of create handles
-			const handleIndex = util
-				.handles(shape)
+			const handleIndex = editor
+				.getHandles(shape)!
 				.filter(({ type }) => type === 'vertex')
 				.sort(sortByIndex)
 				.findIndex(({ index }) => initialHandle.index === index)

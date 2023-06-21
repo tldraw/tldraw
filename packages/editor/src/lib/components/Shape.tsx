@@ -1,15 +1,10 @@
 import { Matrix2d } from '@tldraw/primitives'
+import { track, useQuickReactor, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
-import {
-	track,
-	// @ts-expect-error 'private' export
-	useStateTracking,
-} from 'signia-react'
 import { useEditor } from '../..'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
-import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useShapeEvents } from '../hooks/useShapeEvents'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -83,8 +78,7 @@ export const Shape = track(function Shape({
 			const shape = editor.getShapeById(id)
 			if (!shape) return null
 
-			const util = editor.getShapeUtil(shape)
-			const bounds = util.bounds(shape)
+			const bounds = editor.getBounds(shape)
 			setProperty('width', Math.ceil(bounds.width) + 'px')
 			setProperty('height', Math.ceil(bounds.height) + 'px')
 		},
@@ -100,13 +94,20 @@ export const Shape = track(function Shape({
 
 	const shape = editor.getShapeById(id)
 
+	const annotateError = React.useCallback(
+		(error: any) => {
+			editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+		},
+		[editor]
+	)
+
 	if (!shape) return null
 
 	const util = editor.getShapeUtil(shape)
 
 	return (
 		<>
-			{util.renderBackground && (
+			{util.backgroundComponent && (
 				<div
 					ref={backgroundContainerRef}
 					className="tl-shape tl-shape-background"
@@ -114,12 +115,7 @@ export const Shape = track(function Shape({
 					draggable={false}
 				>
 					{!isCulled && (
-						<OptionalErrorBoundary
-							fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
-							onError={(error) =>
-								editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
-							}
-						>
+						<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 							<InnerShapeBackground shape={shape} util={util} />
 						</OptionalErrorBoundary>
 					)}
@@ -137,14 +133,9 @@ export const Shape = track(function Shape({
 				onPointerLeave={events.onPointerLeave}
 			>
 				{isCulled && util.canUnmount(shape) ? (
-					<CulledShape shape={shape} util={util} />
+					<CulledShape shape={shape} />
 				) : (
-					<OptionalErrorBoundary
-						fallback={ShapeErrorFallback ? (error) => <ShapeErrorFallback error={error} /> : null}
-						onError={(error) =>
-							editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
-						}
-					>
+					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
 						<InnerShape shape={shape} util={util} />
 					</OptionalErrorBoundary>
 				)}
@@ -168,14 +159,16 @@ const InnerShapeBackground = React.memo(
 		shape: T
 		util: ShapeUtil<T>
 	}) {
-		return useStateTracking('InnerShape:' + util.type, () => util.renderBackground?.(shape))
+		return useStateTracking('InnerShape:' + util.type, () => util.backgroundComponent?.(shape))
 	},
 	(prev, next) => prev.shape.props === next.shape.props
 )
 
 const CulledShape = React.memo(
-	function CulledShap<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-		const bounds = util.bounds(shape)
+	function CulledShape<T extends TLShape>({ shape }: { shape: T }) {
+		const editor = useEditor()
+		const bounds = editor.getBounds(shape)
+
 		return (
 			<div
 				className="tl-shape__culled"

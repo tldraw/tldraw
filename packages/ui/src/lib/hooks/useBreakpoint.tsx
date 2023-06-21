@@ -1,6 +1,6 @@
 import { useEditor } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import React, { useContext } from 'react'
-import { useValue } from 'signia-react'
 import { PORTRAIT_BREAKPOINTS } from '../constants'
 
 const BreakpointContext = React.createContext(0)

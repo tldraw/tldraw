@@ -47,7 +47,7 @@ export class Pointing extends StateNode {
 		const shape = this.editor.getShapeById<TLArrowShape>(id)
 		if (!shape) return
 
-		const handles = util.handles?.(shape)
+		const handles = this.editor.getHandles(shape)
 
 		if (handles) {
 			// start precise
@@ -82,8 +82,7 @@ export class Pointing extends StateNode {
 		if (!this.shape) return
 
 		if (this.editor.inputs.isDragging) {
-			const util = this.editor.getShapeUtil(this.shape)
-			const handles = util.handles?.(this.shape)
+			const handles = this.editor.getHandles(this.shape)
 
 			if (!handles) {
 				this.editor.bailToMark('creating')
@@ -95,8 +94,6 @@ export class Pointing extends StateNode {
 				const shape = this.editor.getShapeById<TLArrowShape>(this.shape.id)
 
 				if (!shape) return
-
-				const handles = util.handles(shape)
 
 				if (handles) {
 					const { x, y } = this.editor.getPointInShapeSpace(

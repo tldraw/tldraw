@@ -39,9 +39,9 @@ export interface TLEditorComponents {
 	CollaboratorScribble: TLScribbleComponent | null
 	SnapLine: TLSnapLineComponent | null
 	Handle: TLHandleComponent | null
-	ErrorFallback: TLErrorFallbackComponent | null
-	ShapeErrorFallback: TLShapeErrorFallbackComponent | null
-	ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent | null
+	ErrorFallback: TLErrorFallbackComponent
+	ShapeErrorFallback: TLShapeErrorFallbackComponent
+	ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent
 	Spinner: TLSpinnerComponent | null
 }
 

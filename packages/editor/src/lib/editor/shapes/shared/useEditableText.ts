@@ -1,7 +1,7 @@
 /* eslint-disable no-inner-declarations */
+import { useValue } from '@tldraw/state'
 import { TLShape, TLUnknownShape } from '@tldraw/tlschema'
 import React, { useCallback, useEffect, useRef } from 'react'
-import { useValue } from 'signia-react'
 import { useEditor } from '../../../hooks/useEditor'
 import { preventDefault, stopEventPropagation } from '../../../utils/dom'
 import { INDENT, TextHelpers } from '../text/TextHelpers'

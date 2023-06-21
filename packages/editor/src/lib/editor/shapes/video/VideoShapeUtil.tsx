@@ -1,7 +1,7 @@
 import { toDomPrecision } from '@tldraw/primitives'
+import { track } from '@tldraw/state'
 import { TLVideoShape } from '@tldraw/tlschema'
 import * as React from 'react'
-import { track } from 'signia-react'
 import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { useIsEditing } from '../../../hooks/useIsEditing'
@@ -16,7 +16,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	override canEdit = () => true
 	override isAspectRatioLocked = () => true
 
-	override defaultProps(): TLVideoShape['props'] {
+	override getDefaultProps(): TLVideoShape['props'] {
 		return {
 			w: 100,
 			h: 100,

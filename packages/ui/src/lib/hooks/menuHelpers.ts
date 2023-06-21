@@ -1,6 +1,6 @@
 import { ArrowShapeUtil, Editor, useEditor } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import { assert, exhaustiveSwitchError } from '@tldraw/utils'
-import { useValue } from 'signia-react'
 import { TLUiActionItem } from './useActions'
 import { TLUiToolItem } from './useTools'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'

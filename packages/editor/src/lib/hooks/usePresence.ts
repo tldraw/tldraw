@@ -1,6 +1,6 @@
+import { useValue } from '@tldraw/state'
 import { TLInstancePresence } from '@tldraw/tlschema'
 import { useMemo } from 'react'
-import { useValue } from 'signia-react'
 import { useEditor } from './useEditor'
 
 // TODO: maybe move this to a computed property on the App class?

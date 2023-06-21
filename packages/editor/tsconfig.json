@@ -16,6 +16,7 @@
 		{ "path": "../store" },
 		{ "path": "../validate" },
 		{ "path": "../utils" },
-		{ "path": "../indices" }
+		{ "path": "../indices" },
+		{ "path": "../state" }
 	]
 }

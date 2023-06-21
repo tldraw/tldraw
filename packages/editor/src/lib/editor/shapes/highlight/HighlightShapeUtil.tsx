@@ -22,7 +22,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	hideSelectionBoundsBg = (shape: TLHighlightShape) => getIsDot(shape)
 	hideSelectionBoundsFg = (shape: TLHighlightShape) => getIsDot(shape)
 
-	override defaultProps(): TLHighlightShape['props'] {
+	override getDefaultProps(): TLHighlightShape['props'] {
 		return {
 			segments: [],
 			color: 'black',
@@ -33,7 +33,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	getBounds(shape: TLHighlightShape) {
-		return Box2d.FromPoints(this.outline(shape))
+		return Box2d.FromPoints(this.editor.getOutline(shape))
 	}
 
 	getOutline(shape: TLHighlightShape) {
@@ -41,11 +41,11 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	getCenter(shape: TLHighlightShape): Vec2d {
-		return this.bounds(shape).center
+		return this.editor.getBounds(shape).center
 	}
 
 	hitTestPoint(shape: TLHighlightShape, point: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = getStrokeWidth(shape) / zoomLevel
 
@@ -55,7 +55,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			}
 		}
 
-		if (this.bounds(shape).containsPoint(point)) {
+		if (this.editor.getBounds(shape).containsPoint(point)) {
 			for (let i = 0; i < outline.length; i++) {
 				const C = outline[i]
 				const D = outline[(i + 1) % outline.length]
@@ -68,7 +68,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	hitTestLineSegment(shape: TLHighlightShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
 			const zoomLevel = this.editor.zoomLevel
@@ -102,7 +102,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		)
 	}
 
-	renderBackground(shape: TLHighlightShape) {
+	backgroundComponent(shape: TLHighlightShape) {
 		return (
 			<HighlightRenderer
 				strokeWidth={getStrokeWidth(shape)}

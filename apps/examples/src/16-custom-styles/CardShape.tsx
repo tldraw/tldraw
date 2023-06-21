@@ -10,8 +10,8 @@ import {
 } from '@tldraw/tldraw'
 import { T } from '@tldraw/validate'
 
-// Define a style that can be used across multiple shapes. The ID (myApp:filter) must be globally
-// unique, so we recommend prefixing it with a namespace.
+// Define a style that can be used across multiple shapes.
+// The ID (myApp:filter) must be globally unique, so we recommend prefixing it with a namespace.
 export const MyFilterStyle = StyleProp.defineEnum('myApp:filter', {
 	defaultValue: 'none',
 	values: ['none', 'invert', 'grayscale', 'blur'],
@@ -30,16 +30,13 @@ export type CardShape = TLBaseShape<
 >
 
 export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
-	// Id — the shape util's id
 	static override type = 'card' as const
 
-	// Flags — there are a LOT of other flags!
 	override isAspectRatioLocked = (_shape: CardShape) => false
 	override canResize = (_shape: CardShape) => true
 	override canBind = (_shape: CardShape) => true
 
-	// Default props — used for shapes created with the tool
-	override defaultProps(): CardShape['props'] {
+	override getDefaultProps(): CardShape['props'] {
 		return {
 			w: 300,
 			h: 300,
@@ -48,9 +45,8 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		}
 	}
 
-	// The React component that will be rendered for the shape; can return any HTML elements here
 	component(shape: CardShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		return (
 			<HTMLContainer
@@ -71,7 +67,7 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 		)
 	}
 
-	// The indicator shown when hovering over a shape or when it's selected; must return only SVG elements here
+	// Indicator — used when hovering over a shape or when it's selected; must return only SVG elements here
 	indicator(shape: CardShape) {
 		return <rect width={shape.props.w} height={shape.props.h} />
 	}

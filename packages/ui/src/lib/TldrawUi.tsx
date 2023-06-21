@@ -1,8 +1,8 @@
 import { ToastProvider } from '@radix-ui/react-toast'
 import { useEditor } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
-import { useValue } from 'signia-react'
 import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawUiContextProvider'
 import { BackToContent } from './components/BackToContent'
 import { DebugPanel } from './components/DebugPanel'
@@ -106,7 +106,6 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	return (
 		<ToastProvider>
 			<main
-				data-tldraw-area="active-drawing"
 				className={classNames('tlui-layout', {
 					'tlui-layout__mobile': breakpoint < 5,
 				})}

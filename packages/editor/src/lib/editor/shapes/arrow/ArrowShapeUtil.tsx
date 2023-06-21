@@ -10,6 +10,7 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
+import { computed, EMPTY_ARRAY } from '@tldraw/state'
 import { ComputedCache } from '@tldraw/store'
 import {
 	TLArrowShape,
@@ -23,7 +24,6 @@ import {
 } from '@tldraw/tlschema'
 import { deepCopy, last, minBy } from '@tldraw/utils'
 import * as React from 'react'
-import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
 import {
 	ShapeUtil,
@@ -73,7 +73,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true
 
-	override defaultProps(): TLArrowShape['props'] {
+	override getDefaultProps(): TLArrowShape['props'] {
 		return {
 			dash: 'draw',
 			size: 'm',
@@ -91,7 +91,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	getCenter(shape: TLArrowShape): Vec2d {
-		return this.bounds(shape).center
+		return this.editor.getBounds(shape).center
 	}
 
 	getBounds(shape: TLArrowShape) {
@@ -292,7 +292,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 							if (util.isClosed(hitShape)) {
 								// Test the polygon
-								return pointInPolygon(pointInTargetSpace, util.outline(hitShape))
+								return pointInPolygon(pointInTargetSpace, this.editor.getOutline(hitShape))
 							}
 
 							// Test the point using the shape's idea of what a hit is
@@ -533,7 +533,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
 
@@ -548,7 +548,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	hitTestLineSegment(shape: TLArrowShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 
 		for (let i = 0; i < outline.length - 1; i++) {
 			const C = outline[i]
@@ -571,7 +571,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			) && !this.editor.isReadOnly
 
 		const info = this.getArrowInfo(shape)
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 		const labelSize = this.getLabelBounds(shape)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -750,7 +750,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
 		const info = this.getArrowInfo(shape)
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 		const labelSize = this.getLabelBounds(shape)
 
 		if (!info) return null
@@ -844,7 +844,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	@computed get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape> {
 		return this.editor.store.createComputedCache('labelBoundsCache', (shape) => {
 			const info = this.getArrowInfo(shape)
-			const bounds = this.bounds(shape)
+			const bounds = this.editor.getBounds(shape)
 			const { text, font, size } = shape.props
 
 			if (!info) return null
@@ -901,10 +901,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return this.labelBoundsCache.get(shape.id) || null
 	}
 
-	getEditingBounds = (shape: TLArrowShape): Box2d => {
-		return this.getLabelBounds(shape) ?? new Box2d()
-	}
-
 	onEditEnd: TLOnEditEndHandler<TLArrowShape> = (shape) => {
 		const {
 			id,
@@ -941,7 +937,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// Arrowhead end path
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 		const labelSize = this.getLabelBounds(shape)
 
 		const maskId = (shape.id + '_clip').replace(':', '_')

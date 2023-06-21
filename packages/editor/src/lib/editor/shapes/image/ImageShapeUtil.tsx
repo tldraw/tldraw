@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Vec2d, toDomPrecision } from '@tldraw/primitives'
+import { useValue } from '@tldraw/state'
 import { TLImageShape, TLShapePartial } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
-import { useValue } from 'signia-react'
 import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { useIsCropping } from '../../../hooks/useIsCropping'
@@ -54,7 +54,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	override isAspectRatioLocked = () => true
 	override canCrop = () => true
 
-	override defaultProps(): TLImageShape['props'] {
+	override getDefaultProps(): TLImageShape['props'] {
 		return {
 			w: 100,
 			h: 100,

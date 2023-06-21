@@ -1,6 +1,6 @@
+import { EffectScheduler } from '@tldraw/state'
 import { debounce } from '@tldraw/utils'
 import * as React from 'react'
-import { EffectScheduler } from 'signia'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 

@@ -1,7 +1,7 @@
+import { track } from '@tldraw/state'
 import { Canvas, TldrawEditor, defaultShapes, defaultTools, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useEffect } from 'react'
-import { track } from 'signia-react'
 import './custom-ui.css'
 
 export default function CustomUiExample() {

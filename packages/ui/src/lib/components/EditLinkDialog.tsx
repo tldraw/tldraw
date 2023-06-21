@@ -1,6 +1,6 @@
 import { TLBaseShape, isValidUrl, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { track } from 'signia-react'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'

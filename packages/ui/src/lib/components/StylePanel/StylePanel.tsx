@@ -17,9 +17,9 @@ import {
 	StyleProp,
 	useEditor,
 } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import { minBy } from '@tldraw/utils'
 import React, { useCallback } from 'react'
-import { useValue } from 'signia-react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'

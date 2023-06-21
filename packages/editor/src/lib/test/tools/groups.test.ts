@@ -11,7 +11,6 @@ import {
 } from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
 import { ArrowShapeTool } from '../../editor/shapes/arrow/ArrowShapeTool'
-import { ArrowShapeUtil } from '../../editor/shapes/arrow/ArrowShapeUtil'
 import { DrawShapeTool } from '../../editor/shapes/draw/DrawShapeTool'
 import { GroupShapeUtil } from '../../editor/shapes/group/GroupShapeUtil'
 import { LineShapeTool } from '../../editor/shapes/line/LineShapeTool'
@@ -1679,10 +1678,7 @@ describe('moving handles within a group', () => {
 		editor.pointerDown(60, 60, {
 			target: 'handle',
 			shape: arrow,
-			handle: editor
-				.getShapeUtil(ArrowShapeUtil)
-				.handles(arrow)
-				.find((h) => h.id === 'end'),
+			handle: editor.getHandles<TLArrowShape>(arrow)!.find((h) => h.id === 'end'),
 		})
 
 		editor.expectToBeIn('select.pointing_handle')

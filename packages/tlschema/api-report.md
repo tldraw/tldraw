@@ -9,7 +9,7 @@ import { Expand } from '@tldraw/utils';
 import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
-import { Signal } from 'signia';
+import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
@@ -706,7 +706,7 @@ export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
 
 // @public (undocumented)
 export class StyleProp<Type> implements T.Validatable<Type> {
-    protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
+    constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
     // (undocumented)
     readonly defaultValue: Type;
     // (undocumented)

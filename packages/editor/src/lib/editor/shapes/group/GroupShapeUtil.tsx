@@ -15,7 +15,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 	canBind = () => false
 
-	defaultProps(): TLGroupShape['props'] {
+	getDefaultProps(): TLGroupShape['props'] {
 		return {}
 	}
 
@@ -36,11 +36,11 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	}
 
 	getCenter(shape: TLGroupShape): Vec2d {
-		return this.bounds(shape).center
+		return this.editor.getBounds(shape).center
 	}
 
 	getOutline(shape: TLGroupShape): Vec2d[] {
-		return this.bounds(shape).corners
+		return this.editor.getBounds(shape).corners
 	}
 
 	component(shape: TLGroupShape) {
@@ -71,7 +71,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			return null
 		}
 
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		return (
 			<SVGContainer id={shape.id}>
@@ -86,7 +86,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			camera: { z: zoomLevel },
 		} = this.editor
 
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		return <DashedOutlineBox className="" bounds={bounds} zoomLevel={zoomLevel} />
 	}
