@@ -655,7 +655,6 @@ body {
 .search__input:disabled {
 	background-color: var(--color-tint-1);
 	color: var(--color-tint-5);
-	user-select: none;
 }
 
 .search__input::placeholder {
