@@ -34,7 +34,3 @@ export function mergeDeep(
 
 	return output
 }
-
-type ExtractStorage<E extends EditorExtension> = E extends EditorExtension<infer _, infer S>
-	? Record<E['name'] extends any ? E['name'] : never, S>
-	: never

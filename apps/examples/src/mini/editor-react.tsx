@@ -4,7 +4,7 @@ import { DependencyList, createContext, useContext, useEffect, useRef, useState 
 import { Editor, EditorEvents, EditorOptions } from './Editor'
 import { EditorExtension } from './EditorExtension'
 
-export interface EditorEventOptions<E extends EditorExtension> {
+export interface EditorEventOptions<E extends EditorExtension[]> {
 	onBeforeCreate?: (props: EditorEvents<E>['beforeCreate']) => void | null
 	onCreate?: (props: EditorEvents<E>['create']) => void | null
 	onUpdate?: (props: EditorEvents<E>['update']) => void | null
@@ -15,9 +15,9 @@ export interface EditorEventOptions<E extends EditorExtension> {
 }
 
 // Editor
-export type UseEditorOptions<E extends EditorExtension> = EditorOptions<E> & EditorEventOptions<E>
+export type UseEditorOptions<E extends EditorExtension[]> = EditorOptions<E> & EditorEventOptions<E>
 
-export function useEditor<E extends EditorExtension>(
+export function useEditor<E extends EditorExtension[]>(
 	options = {} as UseEditorOptions<E>,
 	deps: DependencyList = []
 ) {
@@ -105,7 +105,7 @@ export function useEditor<E extends EditorExtension>(
 
 const editorContext = createContext(undefined as any as Editor<any>)
 
-export function EditorProvider<E extends EditorExtension>({
+export function EditorProvider<E extends EditorExtension[]>({
 	editor,
 	children,
 }: {
@@ -116,6 +116,6 @@ export function EditorProvider<E extends EditorExtension>({
 	return <editorContext.Provider value={editor}>{children}</editorContext.Provider>
 }
 
-export function useEditorContext<E extends EditorExtension>() {
+export function useEditorContext<E extends EditorExtension[]>() {
 	return useContext(editorContext) as Editor<E>
 }

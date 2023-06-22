@@ -4,7 +4,7 @@
 import { atom, computed } from '@tldraw/state'
 import { EditorEventOptions } from './editor-react'
 
-export type EditorExtensionConfig<Options = any, Storage = any> = {
+export type EditorExtensionConfig<Name, Options = any, Storage = any> = {
 	/**
 	 * Additional options
 	 */
@@ -13,19 +13,19 @@ export type EditorExtensionConfig<Options = any, Storage = any> = {
 	/**
 	 * Name
 	 */
-	name: string
+	name: Name
 
-	addOptions?: (this: { name: string }) => Options
+	addOptions?: (this: { name: Name }) => Options
 
-	addStorage?: (this: { name: string }) => Storage
-} & EditorEventOptions<any>
+	addStorage?: (this: { name: Name }) => Storage
+} & EditorEventOptions<EditorExtension<unknown, any, any>[]>
 
-export class EditorExtension<Options = any, Storage = any> {
+export class EditorExtension<Name, Options = any, Storage = any> {
 	type = 'extension'
 
-	name = 'extension'
+	name = 'extension' as Name
 
-	config: EditorExtensionConfig<Options> = {
+	config: EditorExtensionConfig<Name, Options, Storage> = {
 		name: this.name,
 		defaultOptions: {} as Options,
 	}
@@ -34,7 +34,7 @@ export class EditorExtension<Options = any, Storage = any> {
 
 	_storage = atom(this.name + '_storage', {} as Storage)
 
-	constructor(config = {} as EditorExtensionConfig<Options, Storage>) {
+	constructor(config = {} as EditorExtensionConfig<Name, Options, Storage>) {
 		this.config = { ...this.config, ...config }
 
 		// Options
@@ -60,20 +60,15 @@ export class EditorExtension<Options = any, Storage = any> {
 		this._storage.set(storage)
 	}
 
-	static create<O = any, S = any>(config = {} as EditorExtensionConfig<O, S>) {
-		return new EditorExtension<O, S>(config)
-	}
-
-	configure(options: Partial<Options>) {
-		const extension = new EditorExtension()
-		extension.options = options
-
-		// todo
-
-		return extension
+	static create<Name, O = any, S = any>(config = {} as EditorExtensionConfig<Name, O, S>) {
+		return new EditorExtension(config)
 	}
 }
 
-export type ExtractStorage<E extends EditorExtension> = E extends EditorExtension<infer _, infer S>
-	? Record<E['name'] extends any ? E['name'] : never, S>
+export type ExtractStorage<E extends EditorExtension<string>> = E extends EditorExtension<
+	infer N,
+	infer _,
+	infer S
+>
+	? Record<N extends string ? N : never, S>
 	: never

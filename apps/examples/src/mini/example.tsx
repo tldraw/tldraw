@@ -15,16 +15,32 @@ const MyAnimalExtension = EditorExtension.create({
 	},
 })
 
+const MyPersonExtension = EditorExtension.create({
+	name: 'person' as const,
+	addOptions() {
+		return {
+			email: 'person@aol.com',
+		}
+	},
+	addStorage() {
+		return {
+			clicks: 0,
+		}
+	},
+})
+
 function Example() {
 	const editor = useEditor({
-		extensions: [MyAnimalExtension],
+		extensions: [MyAnimalExtension, MyPersonExtension],
 	})
 
 	if (editor) {
 		const storage = editor?.storage
-		type C = typeof storage extends any ? never : 'k'
+		storage.animal
+		storage.person
+		storage.rat
 
-		const test: C = 1
+		const t = editor.getStorage('person')
 	}
 
 	return <EditorProvider editor={editor}></EditorProvider>

@@ -2,14 +2,20 @@
 
 import { Computed, computed } from '@tldraw/state'
 import { Editor } from './Editor'
-import { EditorExtension, ExtractStorage } from './EditorExtension'
+import { EditorExtension } from './EditorExtension'
 
-export class EditorExtensionManager<E extends EditorExtension> {
-	storage = {} as Computed<ExtractStorage<E>>
+export class EditorExtensionManager<E extends EditorExtension[]> {
+	storage = {} as Computed<
+		E[number]['name'] extends string ? Record<E[number]['name'], E[number]['storage']> : never
+	>
 
-	constructor(public readonly editor: Editor<E>, public readonly extensions: E[]) {
+	constructor(public readonly editor: Editor<E>, public readonly extensions: E) {
 		this.storage = computed('extension storage', () => {
-			return Object.fromEntries(extensions.map((e) => [e.name, e.storage])) as ExtractStorage<E>
+			return Object.fromEntries(
+				extensions.map((e) => [e.name, e.storage])
+			) as E[number]['name'] extends string
+				? Record<E[number]['name'], E[number]['storage']>
+				: never
 		})
 
 		for (const extension of extensions) {
