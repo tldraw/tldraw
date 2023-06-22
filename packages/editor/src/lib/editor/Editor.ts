@@ -8591,19 +8591,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const exportDefPromisesById = new Map<string, Promise<void>>()
 		const exportContext: SvgExportContext = {
 			addExportDef: (def: SvgExportDef) => {
-				if (exportDefPromisesById.has(def.uniqueId)) return
+				if (exportDefPromisesById.has(def.key)) return
 				const promise = (async () => {
 					const elements = await def.getElement()
 					if (!elements) return
 
-					const comment = document.createComment(`def: ${def.uniqueId}`)
+					const comment = document.createComment(`def: ${def.key}`)
 					defs.appendChild(comment)
 
 					for (const element of Array.isArray(elements) ? elements : [elements]) {
 						defs.appendChild(element)
 					}
 				})()
-				exportDefPromisesById.set(def.uniqueId, promise)
+				exportDefPromisesById.set(def.key, promise)
 			},
 		}
 

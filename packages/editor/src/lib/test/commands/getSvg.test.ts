@@ -1,13 +1,4 @@
-import {
-	DefaultColorStyle,
-	DefaultDashStyle,
-	DefaultFillStyle,
-	DefaultFontStyle,
-	TLDefaultColorStyle,
-	TLDefaultFillStyle,
-	TLDefaultFontStyle,
-	createShapeId,
-} from '@tldraw/tlschema'
+import { DefaultDashStyle, createShapeId } from '@tldraw/tlschema'
 import { SVG_PADDING } from '../../constants'
 import { TestEditor } from '../TestEditor'
 
@@ -52,6 +43,7 @@ beforeEach(() => {
 			props: {
 				w: 100,
 				h: 100,
+				fill: 'pattern',
 			},
 		},
 	])
@@ -116,13 +108,3 @@ it('Accepts a background option', async () => {
 
 	expect(svg2.style.backgroundColor).toBe('transparent')
 })
-
-const snapshots: [TLDefaultColorStyle, TLDefaultFillStyle, TLDefaultFontStyle][] = []
-
-for (const color of DefaultColorStyle.values) {
-	for (const fill of DefaultFillStyle.values) {
-		for (const font of DefaultFontStyle.values) {
-			snapshots.push([color, fill, font])
-		}
-	}
-}

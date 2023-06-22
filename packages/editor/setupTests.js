@@ -6,3 +6,10 @@ global.FontFace = class FontFace {
 		return Promise.resolve()
 	}
 }
+
+document.fonts = {
+	add: () => {},
+	delete: () => {},
+	forEach: () => {},
+	[Symbol.iterator]: () => [][Symbol.iterator](),
+}

@@ -1864,7 +1864,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
     abstract getBounds(shape: Shape): Box2d;
-    // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     getCenter(shape: Shape): Vec2d;
     abstract getDefaultProps(): Shape['props'];

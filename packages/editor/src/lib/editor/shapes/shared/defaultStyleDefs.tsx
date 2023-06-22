@@ -16,7 +16,7 @@ import { SvgExportDef } from './SvgExportContext'
 /** @public */
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {
 	return {
-		uniqueId: `${DefaultFontStyle.id}:${fontStyle}`,
+		key: `${DefaultFontStyle.id}:${fontStyle}`,
 		getElement: async () => {
 			const font = findFont(fontStyle)
 			if (!font) return null
@@ -57,7 +57,7 @@ export function getFillDefForExport(
 	theme: TLDefaultColorTheme
 ): SvgExportDef {
 	return {
-		uniqueId: `${DefaultFontStyle.id}:${fill}`,
+		key: `${DefaultFontStyle.id}:${fill}`,
 		getElement: async () => {
 			if (fill !== 'pattern') return null
 

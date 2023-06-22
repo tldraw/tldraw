@@ -109,8 +109,7 @@
 			"<rootDir>/setupTests.js"
 		],
 		"setupFilesAfterEnv": [
-			"../../config/setupJest.ts",
-			"<rootDir>/src/lib/test/globalSetup.ts"
+			"../../config/setupJest.ts"
 		]
 	}
 }
