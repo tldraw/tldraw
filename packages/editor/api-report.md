@@ -124,6 +124,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getBounds(shape: TLArrowShape): Box2d;
     // (undocumented)
+    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
+    // (undocumented)
     getCenter(shape: TLArrowShape): Vec2d;
     // (undocumented)
     getDefaultProps(): TLArrowShape['props'];
@@ -330,6 +332,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getBounds(shape: TLDrawShape): Box2d;
     // (undocumented)
+    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
+    // (undocumented)
     getCenter(shape: TLDrawShape): Vec2d;
     // (undocumented)
     getDefaultProps(): TLDrawShape['props'];
@@ -354,7 +358,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLDrawShape>;
     // (undocumented)
-    toSvg(shape: TLDrawShape): SVGGElement;
+    toSvg(shape: TLDrawShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "draw";
 }
@@ -843,6 +847,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     getBounds(shape: TLGeoShape): Box2d;
     // (undocumented)
+    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
+    // (undocumented)
     getCenter(shape: TLGeoShape): Vec2d;
     // (undocumented)
     getDefaultProps(): TLGeoShape['props'];
@@ -1094,7 +1100,7 @@ export function hardReset({ shouldReload }?: {
 export function hardResetEditor(): void;
 
 // @internal (undocumented)
-export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
+export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
 
 // @public (undocumented)
 export const HighlightShape: TLShapeInfo<TLHighlightShape>;
@@ -1858,6 +1864,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
     abstract getBounds(shape: Shape): Box2d;
+    // (undocumented)
+    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     getCenter(shape: Shape): Vec2d;
     abstract getDefaultProps(): Shape['props'];
     getHandles?(shape: Shape): TLHandle[];

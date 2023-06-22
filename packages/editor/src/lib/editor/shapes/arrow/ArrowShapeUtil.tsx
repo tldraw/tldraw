@@ -34,6 +34,7 @@ import {
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
 	TLOnTranslateStartHandler,
+	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
@@ -43,7 +44,11 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFillDefForExport, getFontDefForExport } from '../shared/defaultStyleDefs'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	getFontDefForExport,
+} from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgExportContext } from '../shared/SvgExportContext'
@@ -930,7 +935,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme(this.editor)
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
-		
+
 		const color = theme[shape.props.color].solid
 
 		const info = this.getArrowInfo(shape)
@@ -1097,6 +1102,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		return g
+	}
+
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return [getFillDefForCanvas()]
 	}
 }
 

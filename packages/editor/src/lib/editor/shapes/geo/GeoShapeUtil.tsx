@@ -21,14 +21,18 @@ import {
 import { SVGContainer } from '../../../components/SVGContainer'
 import { Editor } from '../../Editor'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnEditEndHandler, TLOnResizeHandler } from '../ShapeUtil'
+import { TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilCanvasSvgDef } from '../ShapeUtil'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFillDefForExport, getFontDefForExport } from '../shared/defaultStyleDefs'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	getFontDefForExport,
+} from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgExportContext } from '../shared/SvgExportContext'
@@ -679,6 +683,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		return svgElm
+	}
+
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return [getFillDefForCanvas()]
 	}
 
 	onResize: TLOnResizeHandler<TLGeoShape> = (

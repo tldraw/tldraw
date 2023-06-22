@@ -14,9 +14,9 @@ import { getDefaultColorTheme, TLDrawShape, TLDrawShapeSegment } from '@tldraw/t
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
-import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
+import { ShapeUtil, TLOnResizeHandler, TLShapeUtilCanvasSvgDef } from '../ShapeUtil'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { getFillDefForExport } from '../shared/defaultStyleDefs'
+import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgExportContext } from '../shared/SvgExportContext'
 import { useForceSolid } from '../shared/useForceSolid'
@@ -273,6 +273,10 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		}
 
 		return foregroundPath
+	}
+
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return [getFillDefForCanvas()]
 	}
 
 	override onResize: TLOnResizeHandler<TLDrawShape> = (shape, info) => {

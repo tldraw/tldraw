@@ -1,7 +1,7 @@
 import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import { react, track, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
-import { dedupe, modulate } from '@tldraw/utils'
+import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import React from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
@@ -11,7 +11,6 @@ import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoubleTapZoomPencilEvents'
 import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
-import { usePattern } from '../hooks/usePattern'
 import { useScreenBounds } from '../hooks/useScreenBounds'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
@@ -60,31 +59,28 @@ export const Canvas = track(function Canvas() {
 		[editor]
 	)
 
-	const { context: patternContext, isReady: patternIsReady } = usePattern()
-
 	const events = useCanvasEvents()
-
-	React.useEffect(() => {
-		if (patternIsReady && editor.isSafari) {
-			const htmlElm = rHtmlLayer.current
-
-			if (htmlElm) {
-				// Wait for `patternContext` to be picked up
-				requestAnimationFrame(() => {
-					htmlElm.style.display = 'none'
-
-					// Wait for 'display = "none"' to take effect
-					requestAnimationFrame(() => {
-						htmlElm.style.display = ''
-					})
-				})
-			}
-		}
-	}, [editor, patternIsReady])
 
 	React.useEffect(() => {
 		rCanvas.current?.focus()
 	}, [])
+
+	const shapeSvgDefs = useValue(
+		'shapeSvgDefs',
+		() => {
+			const shapeSvgDefsByKey = new Map<string, JSX.Element>()
+			for (const util of objectMapValues(editor.shapeUtils)) {
+				if (!util) return
+				const defs = util.getCanvasSvgDefs()
+				for (const { key, component: Component } of defs) {
+					if (shapeSvgDefsByKey.has(key)) continue
+					shapeSvgDefsByKey.set(key, <Component key={key} />)
+				}
+			}
+			return [...shapeSvgDefsByKey.values()]
+		},
+		[editor]
+	)
 
 	return (
 		<div ref={rCanvas} draggable={false} className="tl-canvas" data-testid="canvas" {...events}>
@@ -94,7 +90,7 @@ export const Canvas = track(function Canvas() {
 			<div ref={rHtmlLayer} className="tl-html-layer" draggable={false}>
 				<svg className="tl-svg-context">
 					<defs>
-						{patternContext}
+						{shapeSvgDefs}
 						{Cursor && <Cursor />}
 						<CollaboratorHint />
 						<ArrowheadDot />

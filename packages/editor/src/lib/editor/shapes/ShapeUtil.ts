@@ -17,6 +17,11 @@ export interface TLShapeUtilConstructor<
 /** @public */
 export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
+export interface TLShapeUtilCanvasSvgDef {
+	key: string
+	component: React.ComponentType
+}
+
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(
@@ -342,6 +347,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		}
 
 		return false
+	}
+
+	/**
+	 *
+	 */
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return []
 	}
 
 	//  Events

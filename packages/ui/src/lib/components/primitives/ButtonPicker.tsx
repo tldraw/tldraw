@@ -5,12 +5,12 @@ import {
 	TLDefaultColorStyle,
 	getDefaultColorTheme,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import { clamp } from '@tldraw/primitives'
 import classNames from 'classnames'
 import * as React from 'react'
 import { useRef } from 'react'
-import { useValue } from 'signia-react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'
