@@ -652,6 +652,11 @@ body {
 	background: none;
 }
 
+.search__input:disabled {
+	background-color: var(--color-tint-1);
+	color: var(--color-tint-5);
+}
+
 .search__input::placeholder {
 	color: var(--color-tint-4);
 }

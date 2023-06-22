@@ -8,6 +8,7 @@ export function Search({ activeId }: { activeId: string | null }) {
 	const [query, setQuery] = useState('')
 	const [results, setResults] = useState<SearchResult[]>([])
 	const rResultsList = useRef<HTMLOListElement>(null)
+	const [isDisabled, setIsDisabled] = useState(false)
 
 	const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
 		setQuery(e.target.value)
@@ -63,6 +64,7 @@ export function Search({ activeId }: { activeId: string | null }) {
 	useEffect(() => {
 		setQuery('')
 		setResults([])
+		setIsDisabled(false)
 	}, [router.asPath])
 
 	const handleFocus = useCallback(() => {
@@ -74,6 +76,7 @@ export function Search({ activeId }: { activeId: string | null }) {
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent) => {
 			if (e.key === 'Enter') {
+				setIsDisabled(true)
 				router.push(`/search-results?q=${rInput.current!.value}`)
 			}
 		},
@@ -96,6 +99,7 @@ export function Search({ activeId }: { activeId: string | null }) {
 					autoCapitalize="off"
 					autoComplete="off"
 					autoCorrect="off"
+					disabled={isDisabled}
 				/>
 			</div>
 			{results.length > 0 && (
