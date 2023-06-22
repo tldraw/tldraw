@@ -8513,11 +8513,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// todo: we shouldn't depend on the public theme here
 		const theme = getDefaultColorTheme(this)
 
-		const realContainerEl = this.getContainer()
-		const realContainerStyle = getComputedStyle(realContainerEl)
-
-		const fontsUsedInExport = new Map<string, string>()
-
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
 		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
@@ -8706,7 +8701,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
 			svg.appendChild(element)
 		}
-		console.log(new XMLSerializer().serializeToString(svg))
 
 		return svg
 	}
