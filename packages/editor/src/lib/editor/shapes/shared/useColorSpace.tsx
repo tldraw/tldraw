@@ -1,5 +1,5 @@
+import { useValue } from '@tldraw/state'
 import { useEffect, useState } from 'react'
-import { useValue } from 'signia-react'
 import { debugFlags } from '../../../utils/debug-flags'
 
 export function useColorSpace(): 'srgb' | 'p3' {

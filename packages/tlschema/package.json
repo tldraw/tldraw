@@ -42,6 +42,10 @@
 		"pack-tarball": "yarn pack",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
+	"peerDependencies": {
+		"react": "^18",
+		"react-dom": "^18"
+	},
 	"devDependencies": {
 		"kleur": "^4.1.5",
 		"lazyrepo": "0.0.0-alpha.27"

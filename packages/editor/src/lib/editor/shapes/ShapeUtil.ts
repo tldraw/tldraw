@@ -3,7 +3,6 @@ import { Box2d, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
 import { StyleProp, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
-import { SvgExportContext } from './shared/SvgExportContext'
 
 /** @public */
 export interface TLShapeUtilConstructor<
@@ -24,22 +23,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		public readonly type: Shape['type'],
 		public readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>
 	) {}
-
-	setStyleInPartial<T>(
-		style: StyleProp<T>,
-		shape: TLShapePartial<Shape>,
-		value: T
-	): TLShapePartial<Shape> {
-		const styleKey = this.styleProps.get(style)
-		if (!styleKey) return shape
-		return {
-			...shape,
-			props: {
-				...shape.props,
-				[styleKey]: value,
-			},
-		}
-	}
 
 	/**
 	 * The type of the shape util, which should match the shape's type.
@@ -294,7 +277,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement>
+	toSvg?(shape: Shape): SVGElement | Promise<SVGElement>
 
 	/**
 	 * Get the shape's background layer as an SVG object.
@@ -304,7 +287,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> | null
+	toBackgroundSvg?(shape: Shape): SVGElement | Promise<SVGElement> | null
 
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number {

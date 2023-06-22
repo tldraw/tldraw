@@ -16,9 +16,7 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
-import { SvgExportContext } from '../shared/SvgExportContext'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -210,9 +208,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return <path d={solidStrokePath} />
 	}
 
-	toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
+	toSvg(shape: TLDrawShape) {
 		const theme = getDefaultColorTheme(this.editor)
-		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		const { color } = shape.props
 

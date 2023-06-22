@@ -128,7 +128,6 @@ import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/arro
 import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
 import { FrameShapeUtil } from './shapes/frame/FrameShapeUtil'
 import { GroupShapeUtil } from './shapes/group/GroupShapeUtil'
-import { SvgExportContext, SvgExportDef } from './shapes/shared/SvgExportContext'
 import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -8629,24 +8628,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
 		svg.append(defs)
 
-		const exportDefPromisesById = new Map<string, Promise<void>>()
-		const exportContext: SvgExportContext = {
-			addExportDef: (def: SvgExportDef) => {
-				if (exportDefPromisesById.has(def.uniqueId)) return
-				const promise = (async () => {
-					const elements = await def.getElement()
-					if (!elements) return
-
-					const comment = document.createComment(`def: ${def.uniqueId}`)
-					defs.appendChild(comment)
-
-					for (const element of Array.isArray(elements) ? elements : [elements]) {
-						defs.appendChild(element)
-					}
-				})()
-				exportDefPromisesById.set(def.uniqueId, promise)
-			},
-		}
+		const exportDefPromisesByValueByStyle = new Map<
+			StyleProp<unknown>,
+			Map<unknown, Promise<void>>
+		>()
 
 		const unorderedShapeElements = (
 			await Promise.all(
@@ -8660,8 +8645,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					const util = this.getShapeUtil(shape)
 
-					let shapeSvgElement = await util.toSvg?.(shape, exportContext)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, exportContext)
+					for (const [styleProp, propKey] of util.styleProps) {
+						let exportDefPromisesByValue = exportDefPromisesByValueByStyle.get(styleProp)
+						if (!exportDefPromisesByValue) {
+							exportDefPromisesByValue = new Map<unknown, Promise<void>>()
+							exportDefPromisesByValueByStyle.set(styleProp, exportDefPromisesByValue)
+						}
+
+						const styleValue = getOwnProperty(shape.props, propKey)
+						if (exportDefPromisesByValue.has(styleValue)) continue
+
+						exportDefPromisesByValue.set(
+							styleValue,
+							(async (): Promise<void> => {
+								const elements = await styleProp.getSvgExportDefs(styleValue, this)
+								if (!elements) return
+
+								const comment = document.createComment(
+									`StyleProp ${styleProp.id} = ${String(styleValue)}`
+								)
+								defs.appendChild(comment)
+								for (const element of Array.isArray(elements) ? elements : [elements]) {
+									defs.appendChild(element)
+								}
+							})()
+						)
+					}
+
+					let shapeSvgElement = await util.toSvg?.(shape)
+					let backgroundSvgElement = await util.toBackgroundSvg?.(shape)
 
 					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
 					if (shapeSvgElement) {
@@ -8742,7 +8754,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		).flat()
 
-		await Promise.all(exportDefPromisesById.values())
+		await Promise.all(
+			[...exportDefPromisesByValueByStyle.values()].flatMap((exportDefPromisesByValue) => [
+				...exportDefPromisesByValue.values(),
+			])
+		)
 
 		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
 			svg.appendChild(element)
