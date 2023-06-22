@@ -81,6 +81,7 @@ import {
 } from '@tldraw/utils'
 import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
+import { ShapeMeta } from '../config/ShapeMeta'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import { AnyTLShapeInfo } from '../config/defineShape'
@@ -7510,6 +7511,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	getShapeMeta<T>(shape: TLShape, meta: ShapeMeta<T>): T {
+		if (hasOwnProperty(shape.meta ?? {}, meta.id)) {
+			return getOwnProperty(shape.meta, meta.id) as T
+		}
+		return meta.getDefaultValue(shape)
+	}
+
+	updateShapeMeta<T>(shape: TLShape, meta: ShapeMeta<T>, update: T | ((prev: T) => T)): this {
+		let nextValue
+		if (typeof update === 'function') {
+			nextValue = (update as (prev: T) => T)(this.getShapeMeta(shape, meta))
+		} else {
+			nextValue = update
+		}
+
+		return this.updateShapes([
+			{ type: shape.type, id: shape.id, meta: { [meta.id]: nextValue } as any },
+		])
+	}
+
 	/**
 	 * Update shapes using partials of each shape.
 	 *
@@ -7589,8 +7610,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 											nextProps[propKey] = propValue
 										}
 										newRecord!.props = nextProps
-									} else {
-										;(newRecord as any).props = v
 									}
 
 									if (k === 'meta') {
@@ -7600,8 +7619,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 											nextMeta[metaKey] = metaValue
 										}
 										newRecord!.meta = nextMeta
-									} else {
-										;(newRecord as any).meta = v
 									}
 								}
 							}
@@ -7611,6 +7628,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return newRecord ?? prev
 				})
 			)
+			console.log(updated)
 
 			const updates = Object.fromEntries(updated.map((shape) => [shape.id, shape]))
 

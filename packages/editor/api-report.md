@@ -41,6 +41,7 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';
 import { StyleProp } from '@tldraw/tlschema';
+import { T } from '@tldraw/validate';
 import { TLArrowShape } from '@tldraw/tlschema';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
@@ -506,6 +507,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
+    // (undocumented)
+    getShapeMeta<T>(shape: TLShape, meta: ShapeMeta<T>): T;
     getShapesAtPoint(point: VecLike): TLShape[];
     getShapeUtil<C extends {
         new (...args: any[]): ShapeUtil<any>;
@@ -715,6 +718,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal
     updateRenderingBounds(): this;
+    // (undocumented)
+    updateShapeMeta<T>(shape: TLShape, meta: ShapeMeta<T>, update: ((prev: T) => T) | T): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
@@ -1842,6 +1847,21 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 
 // @public (undocumented)
 export function setUserPreferences(user: TLUserPreferences): void;
+
+// @public (undocumented)
+export class ShapeMeta<T> {
+    // (undocumented)
+    static define<T>(id: string, { type, getDefaultValue, }: {
+        type?: T.Validatable<T>;
+        getDefaultValue: (shape: TLShape) => T;
+    }): ShapeMeta<T>;
+    // (undocumented)
+    readonly getDefaultValue: (shape: TLShape) => T;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly type: T.Validatable<T>;
+}
 
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {

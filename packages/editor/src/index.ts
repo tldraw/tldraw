@@ -38,6 +38,7 @@ export {
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
+export { ShapeMeta } from './lib/config/ShapeMeta'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,

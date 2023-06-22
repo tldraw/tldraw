@@ -469,6 +469,7 @@ export function object<Shape extends object>(config: {
 function isValidJson(value: any): value is JsonValue {
 	if (
 		value === null ||
+		value === undefined ||
 		typeof value === 'number' ||
 		typeof value === 'string' ||
 		typeof value === 'boolean'
