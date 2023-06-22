@@ -79,4 +79,4 @@ apps/examples/www/index.js
 apps/examples/build.esbuild.json
 
 apps/examples/e2e/test-results
-apps/examples/playwright-report/index.html
+apps/examples/playwright-report
