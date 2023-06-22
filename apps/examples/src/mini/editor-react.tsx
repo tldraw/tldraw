@@ -1,29 +1,29 @@
 /* ---------------------- React --------------------- */
 
-import { DependencyList, createContext, useEffect, useRef, useState } from 'react'
-import { Editor, EditorEvents, EditorOptions } from './editor-core'
+import { DependencyList, createContext, useContext, useEffect, useRef, useState } from 'react'
+import { Editor, EditorEvents, EditorOptions } from './Editor'
+import { EditorExtension } from './EditorExtension'
 
-export interface EditorEventOptions {
-	onBeforeCreate?: (props: EditorEvents['beforeCreate']) => void | null
-	onCreate?: (props: EditorEvents['create']) => void | null
-	onUpdate?: (props: EditorEvents['update']) => void | null
-	onChange?: (props: EditorEvents['change']) => void | null
-	onFocus?: (props: EditorEvents['focus']) => void | null
-	onBlur?: (props: EditorEvents['blur']) => void | null
-	onDestroy?: (props: EditorEvents['destroy']) => void | null
+export interface EditorEventOptions<E extends EditorExtension> {
+	onBeforeCreate?: (props: EditorEvents<E>['beforeCreate']) => void | null
+	onCreate?: (props: EditorEvents<E>['create']) => void | null
+	onUpdate?: (props: EditorEvents<E>['update']) => void | null
+	onChange?: (props: EditorEvents<E>['change']) => void | null
+	onFocus?: (props: EditorEvents<E>['focus']) => void | null
+	onBlur?: (props: EditorEvents<E>['blur']) => void | null
+	onDestroy?: (props: EditorEvents<E>['destroy']) => void | null
 }
 
 // Editor
-export type UseEditorOptions = EditorOptions & EditorEventOptions
+export type UseEditorOptions<E extends EditorExtension> = EditorOptions<E> & EditorEventOptions<E>
 
-export function useEditor(options = {} as UseEditorOptions, deps: DependencyList = []) {
-	const [editor, setEditor] = useState<Editor | null>(null)
+export function useEditor<E extends EditorExtension>(
+	options = {} as UseEditorOptions<E>,
+	deps: DependencyList = []
+) {
+	const [editor, setEditor] = useState<Editor<E> | null>(null)
 
-	useEffect(() => {
-		const instance = new Editor({ initialData })
-		setEditor(instance)
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, deps)
+	const { initialData, extensions } = options
 
 	// Set up options
 	const { onBeforeCreate, onBlur, onCreate, onDestroy, onFocus, onChange, onUpdate } = options
@@ -84,12 +84,12 @@ export function useEditor(options = {} as UseEditorOptions, deps: DependencyList
 		}
 	}, [onBeforeCreate, onBlur, onCreate, onDestroy, onFocus, onChange, onUpdate, editor])
 
-	const { initialData } = options
-
 	useEffect(() => {
-		const instance = new Editor({
+		const instance = Editor.create({
 			initialData,
+			extensions,
 		})
+
 		setEditor(instance)
 
 		return () => {
@@ -103,9 +103,19 @@ export function useEditor(options = {} as UseEditorOptions, deps: DependencyList
 
 // Editor context
 
-const editorContext = createContext(undefined as any as Editor)
+const editorContext = createContext(undefined as any as Editor<any>)
 
-export function EditorProvider({ editor, children }: { editor: Editor | null; children?: any }) {
+export function EditorProvider<E extends EditorExtension>({
+	editor,
+	children,
+}: {
+	editor: Editor<E> | null
+	children?: any
+}) {
 	if (!editor) return null
 	return <editorContext.Provider value={editor}>{children}</editorContext.Provider>
+}
+
+export function useEditorContext<E extends EditorExtension>() {
+	return useContext(editorContext) as Editor<E>
 }
