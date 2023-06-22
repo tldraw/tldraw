@@ -28,7 +28,7 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
-import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { getFillDefForExport, getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgExportContext } from '../shared/SvgExportContext'
@@ -512,6 +512,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { id, props } = shape
 		const strokeWidth = STROKE_SIZES[props.size]
 		const theme = getDefaultColorTheme(this.editor)
+		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		let svgElm: SVGElement
 

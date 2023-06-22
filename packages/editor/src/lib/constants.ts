@@ -70,11 +70,11 @@ export const DRAG_DISTANCE = 4
 export const SVG_PADDING = 32
 
 /** @internal */
-export const HASH_PATERN_ZOOM_NAMES: Record<string, string> = {}
+export const HASH_PATTERN_ZOOM_NAMES: Record<string, string> = {}
 
 for (let zoom = 1; zoom <= Math.ceil(MAX_ZOOM); zoom++) {
-	HASH_PATERN_ZOOM_NAMES[zoom + '_dark'] = `hash_pattern_zoom_${zoom}_dark`
-	HASH_PATERN_ZOOM_NAMES[zoom + '_light'] = `hash_pattern_zoom_${zoom}_light`
+	HASH_PATTERN_ZOOM_NAMES[zoom + '_dark'] = `hash_pattern_zoom_${zoom}_dark`
+	HASH_PATTERN_ZOOM_NAMES[zoom + '_light'] = `hash_pattern_zoom_${zoom}_light`
 }
 
 /** @internal */

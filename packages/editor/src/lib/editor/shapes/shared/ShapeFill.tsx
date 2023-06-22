@@ -6,7 +6,7 @@ import {
 	getDefaultColorTheme,
 } from '@tldraw/tlschema'
 import * as React from 'react'
-import { HASH_PATERN_ZOOM_NAMES } from '../../../constants'
+import { HASH_PATTERN_ZOOM_NAMES } from '../../../constants'
 import { useEditor } from '../../../hooks/useEditor'
 
 export interface ShapeFillProps {
@@ -54,7 +54,7 @@ const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
 				fill={
 					teenyTiny
 						? theme[color].semi
-						: `url(#${HASH_PATERN_ZOOM_NAMES[intZoom + (isDarkMode ? '_dark' : '_light')]})`
+						: `url(#${HASH_PATTERN_ZOOM_NAMES[intZoom + (isDarkMode ? '_dark' : '_light')]})`
 				}
 				d={d}
 			/>

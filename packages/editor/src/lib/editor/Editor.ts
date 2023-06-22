@@ -106,7 +106,6 @@ import {
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
-import { exportPatternSvgDefs } from '../hooks/usePattern'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
@@ -8620,19 +8619,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			svg.style.setProperty('background-color', 'transparent')
 		}
 
-		// Add the defs to the svg
-		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-
-		for (const element of Array.from(exportPatternSvgDefs(theme.solid))) {
-			defs.appendChild(element)
-		}
-
 		try {
 			document.body.focus?.() // weird but necessary
 		} catch (e) {
 			// not implemented
 		}
 
+		// Add the defs to the svg
+		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
 		svg.append(defs)
 
 		const exportDefPromisesById = new Map<string, Promise<void>>()
@@ -8640,12 +8634,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			addExportDef: (def: SvgExportDef) => {
 				if (exportDefPromisesById.has(def.uniqueId)) return
 				const promise = (async () => {
-					const element = await def.getElement()
-					if (!element) return
+					const elements = await def.getElement()
+					if (!elements) return
 
 					const comment = document.createComment(`def: ${def.uniqueId}`)
 					defs.appendChild(comment)
-					defs.appendChild(element)
+
+					for (const element of Array.isArray(elements) ? elements : [elements]) {
+						defs.appendChild(element)
+					}
 				})()
 				exportDefPromisesById.set(def.uniqueId, promise)
 			},
