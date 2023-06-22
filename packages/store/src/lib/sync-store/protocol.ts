@@ -3,6 +3,9 @@ import { SerializedSchema } from '../StoreSchema'
 import { NetworkDiff } from './diff'
 
 /** @public */
+export const TLSYNC_PROTOCOL_VERSION = 4
+
+/** @public */
 export enum TLIncompatibilityReason {
 	ClientTooOld = 'clientTooOld',
 	ServerTooOld = 'serverTooOld',
@@ -10,19 +13,28 @@ export enum TLIncompatibilityReason {
 	InvalidOperation = 'invalidOperation',
 }
 
+export type GoingUpstreamConnectMessage = {
+	type: 'connect'
+	spanId: string
+	lastUpstreamClock: number
+	protocolVersion: number
+	schema: SerializedSchema
+}
+
+export type GoingUpstreamPushMessage<R extends UnknownRecord> = {
+	type: 'push'
+	pushId: string
+	diff: NetworkDiff<R>
+}
+
+export type GoingUpstreamPingMessage = {
+	type: 'ping'
+}
+
 export type GoingUpstreamMessage<R extends UnknownRecord> =
-	| {
-			type: 'push'
-			diff: NetworkDiff<R>
-			clock: number
-	  }
-	| {
-			type: 'connect'
-			spanId: string
-			lastUpstreamClock: number
-			protocolVersion: number
-			schema: SerializedSchema
-	  }
+	| GoingUpstreamPushMessage<R>
+	| GoingUpstreamConnectMessage
+	| GoingUpstreamPingMessage
 
 export type GoingDownstreamPatchMessage<R extends UnknownRecord> = {
 	type: 'patch'
@@ -31,28 +43,36 @@ export type GoingDownstreamPatchMessage<R extends UnknownRecord> = {
 	satisfiedPushIds?: string[]
 }
 
+export type GoingDownstreamConnectMessage<R extends UnknownRecord> = {
+	type: 'connect'
+	hydrationType: 'wipe_all' | 'wipe_presence'
+	protocolVersion: number
+	schema: SerializedSchema
+	diff: NetworkDiff<R>
+	upstreamClock: number
+	spanId: string
+}
+
+export type GoingDownstreamIncompatibilityMessage = {
+	type: 'incompatibility_error'
+	reason: TLIncompatibilityReason
+}
+
+export type GoingDownstreamErrorMessage = {
+	type: 'error'
+	error?: any
+}
+
+export type GoingDownstreamPongMessage = {
+	type: 'pong'
+}
+
 export type GoingDownstreamMessage<R extends UnknownRecord> =
-	| {
-			type: 'connect'
-			hydrationType: 'wipe_all' | 'wipe_presence'
-			protocolVersion: number
-			schema: SerializedSchema
-			diff: NetworkDiff<R>
-			upstreamClock: number
-			spanId: string
-	  }
-	| {
-			type: 'incompatibility_error'
-			reason: TLIncompatibilityReason
-	  }
 	| GoingDownstreamPatchMessage<R>
-	| {
-			type: 'error'
-			error?: any
-	  }
-	| {
-			type: 'pong'
-	  }
+	| GoingDownstreamConnectMessage<R>
+	| GoingDownstreamIncompatibilityMessage
+	| GoingDownstreamErrorMessage
+	| GoingDownstreamPongMessage
 
 export interface GoingUpstreamSocket<R extends UnknownRecord> {
 	isOpen(): boolean

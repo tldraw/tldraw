@@ -1,9 +1,12 @@
-import { Atom, atom, transact } from '@tldraw/state'
-import { exhaustiveSwitchError, objectMapValues } from '@tldraw/utils'
+import { Atom, atom, transact, transaction } from '@tldraw/state'
+import { Result, exhaustiveSwitchError, objectMapValues, rafThrottle } from '@tldraw/utils'
+import isEqual from 'lodash.isequal'
 import { nanoid } from 'nanoid'
 import { IdOf, UnknownRecord } from '../BaseRecord'
+import { RecordType } from '../RecordType'
 import { ChangeSource } from '../Store'
 import { SerializedSchema, StoreSchema } from '../StoreSchema'
+import { MigrationFailureReason, compareRecordVersions, getRecordVersion } from '../migrate'
 import {
 	ChangeOp,
 	ChangeOpType,
@@ -12,8 +15,17 @@ import {
 	addSetChange,
 	mergeChanges,
 } from './changes'
-import { NetworkDiff, RecordOpType, applyObjectDiff, diffRecord } from './diff'
-import { GoingDownstreamPatchMessage, GoingDownstreamSocket, GoingUpstreamSocket } from './protocol'
+import { NetworkDiff, ObjectDiff, RecordOpType, applyObjectDiff, diffRecord } from './diff'
+import {
+	GoingDownstreamMessage,
+	GoingDownstreamPatchMessage,
+	GoingDownstreamSocket,
+	GoingUpstreamMessage,
+	GoingUpstreamPushMessage,
+	GoingUpstreamSocket,
+	TLIncompatibilityReason,
+	TLSYNC_PROTOCOL_VERSION,
+} from './protocol'
 
 export enum PushOpStatus {
 	Unsent = 'unsent',
@@ -24,12 +36,25 @@ export type PushOp<R extends UnknownRecord> = {
 	pushId: string
 	status: PushOpStatus.Unsent | PushOpStatus.Sent
 	changes: Changes<R>
-	downstreamPushes: Array<{ clientId: string; pushId: string }>
+	downstreamPushes: PushId[]
 }
 
 type ClockSnapshot = {
 	id: string
 	epoch: number
+}
+
+type SatisfiedPushes = { [clientId: string]: string[] }
+type PushId = {
+	clientId: string
+	pushId: string
+}
+
+function addPush(satisfiedPushes: SatisfiedPushes, pushId?: PushId) {
+	if (!pushId) return satisfiedPushes
+	const satisfied = satisfiedPushes[pushId.clientId]?.slice(0) ?? []
+	satisfied.push(pushId.pushId)
+	return { ...satisfiedPushes, [pushId.clientId]: satisfied }
 }
 
 type RecordAtom<R extends UnknownRecord> = Atom<{ state: R; lastUpdatedAt: number }>
@@ -49,7 +74,10 @@ export type SyncStoreSnapshot<R extends UnknownRecord> = {
 	synced: {
 		upstreamClock: number
 		records: Record<string, { state: R; lastUpdatedAt: number }>
-		tombstones: Record<string, number>
+		tombstones: {
+			deletions: Record<string, number>
+			historyStartsAt: number
+		}
 	}
 	pending?: Changes<R>
 	clock: ClockSnapshot
@@ -58,34 +86,36 @@ export type SyncStoreSnapshot<R extends UnknownRecord> = {
 /** @internal */
 export type StoreRecord<S extends SyncStore<any>> = S extends SyncStore<infer R> ? R : never
 
-export enum DownstreamSessionState {
+export enum DownstreamClientState {
 	AWAITING_CONNECT_MESSAGE = 'awaiting-connect-message',
 	AWAITING_REMOVAL = 'awaiting-removal',
 	CONNECTED = 'connected',
 }
 
+const timeSince = (time: number) => Date.now() - time
+
 export const SESSION_START_WAIT_TIME = 10000
 export const SESSION_REMOVAL_WAIT_TIME = 10000
 export const SESSION_IDLE_TIMEOUT = 20000
 
-export type DownstreamSession<R extends UnknownRecord> =
+export type DownstreamClient<R extends UnknownRecord> =
 	| {
-			state: DownstreamSessionState.AWAITING_CONNECT_MESSAGE
-			sessionKey: string
+			state: DownstreamClientState.AWAITING_CONNECT_MESSAGE
+			clientId: string
 			presenceId: string
 			socket: GoingDownstreamSocket<R>
 			sessionStartTime: number
 	  }
 	| {
-			state: DownstreamSessionState.AWAITING_REMOVAL
-			sessionKey: string
+			state: DownstreamClientState.AWAITING_REMOVAL
+			clientId: string
 			presenceId: string
 			socket: GoingDownstreamSocket<R>
 			cancellationTime: number
 	  }
 	| {
-			state: DownstreamSessionState.CONNECTED
-			sessionKey: string
+			state: DownstreamClientState.CONNECTED
+			clientId: string
 			presenceId: string
 			socket: GoingDownstreamSocket<R>
 			serializedSchema: SerializedSchema
@@ -97,12 +127,13 @@ export type DownstreamSession<R extends UnknownRecord> =
  *
  * @public
  */
-export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object = object> {
+export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	readonly scopedTypes: {
 		document: ReadonlySet<string>
 		session: ReadonlySet<string>
-		presence: ReadonlySet<string>
 	}
+	readonly presenceType: RecordType<R, never>
+	readonly serializedSchema: SerializedSchema
 	constructor(
 		private readonly schema: StoreSchema<R>,
 		private readonly upstream: GoingUpstreamSocket<R> | undefined,
@@ -124,12 +155,17 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 					.filter((t) => t.scope === 'session')
 					.map((t) => t.typeName)
 			),
-			presence: new Set(
-				objectMapValues(this.schema.types)
-					.filter((t) => t.scope === 'presence')
-					.map((t) => t.typeName)
-			),
 		}
+		const presenceTypes = new Set(
+			objectMapValues(this.schema.types)
+				.filter((t) => t.scope === 'presence')
+				.map((t) => t.typeName)
+		)
+		if (presenceTypes.size > 1) {
+			throw new Error('Only one presence type is allowed')
+		}
+		this.presenceType = schema.types[[...presenceTypes][0]] as any
+		this.serializedSchema = this.schema.serialize()
 	}
 
 	private readonly prevSyncClock: ClockSnapshot | undefined
@@ -137,7 +173,10 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 	private readonly synced = {
 		upstreamClock: atom('store.synced.clock', 0),
 		records: atom('store.synced.records', {} as Record<string, RecordAtom<R>>),
-		tombstones: atom('synced.tombstones', {} as Record<string, number>), // todo: this should be a cheap sorted map
+		tombstones: atom('synced.tombstones', {
+			historyStartsAt: 0,
+			deletions: {} as Record<string, number>,
+		}), // todo: this should be a cheap sorted map
 		clock: atom('store.clock', 0),
 		clockId: nanoid(),
 	}
@@ -146,20 +185,510 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 		tombstones: atom('store.pending.tombstones', {} as Record<string, true>), // todo: this should be a cheap sorted map
 		pushes: atom('store.pending.pushes', [] as PushOp<R>[]),
 	}
-	private readonly upstreamPresences = atom('store.upstreamPresences', {} as Record<string, P>)
-	private readonly downstreamPresences = atom('store.downstreamPresences', {} as Record<string, P>)
-	private readonly downstreamClients = [] as number[]
+	private readonly downstreamClients = new Map<string, DownstreamClient<R>>()
+	private readonly disposables = new Set<() => void>()
 
-	private readonly incomingPatchBuffer = atom(
+	pruneSessions = () => {
+		for (const client of this.downstreamClients.values()) {
+			switch (client.state) {
+				case DownstreamClientState.CONNECTED: {
+					const hasTimedOut = timeSince(client.lastInteractionTime) > SESSION_IDLE_TIMEOUT
+					if (hasTimedOut || !client.socket.isOpen) {
+						this.markClientForRemoval(client.clientId)
+					}
+					break
+				}
+				case DownstreamClientState.AWAITING_CONNECT_MESSAGE: {
+					const hasTimedOut = timeSince(client.sessionStartTime) > SESSION_START_WAIT_TIME
+					if (hasTimedOut || !client.socket.isOpen) {
+						// remove immediately
+						this.removeClient(client.clientId)
+					}
+					break
+				}
+				case DownstreamClientState.AWAITING_REMOVAL: {
+					const hasTimedOut = timeSince(client.cancellationTime) > SESSION_REMOVAL_WAIT_TIME
+					if (hasTimedOut) {
+						this.removeClient(client.clientId)
+					}
+					break
+				}
+				default: {
+					exhaustiveSwitchError(client)
+				}
+			}
+		}
+	}
+
+	close() {
+		this.disposables.forEach((d) => d())
+	}
+
+	/**
+	 * When a client connects to the room, add them to the list of clients and then merge the history
+	 * down into the snapshots.
+	 *
+	 * @param client - The client that connected to the room.
+	 */
+	addClient = (clientId: string, socket: GoingDownstreamSocket<R>) => {
+		const existing = this.downstreamClients.get(clientId)
+		const unlisten = socket.onMessage((message) => {
+			this.handleMessageFromDownstream(clientId, message)
+		})
+		this.downstreamClients.set(clientId, {
+			state: DownstreamClientState.AWAITING_CONNECT_MESSAGE,
+			clientId,
+			socket,
+			presenceId: existing?.presenceId ?? this.presenceType.createId(),
+			sessionStartTime: Date.now(),
+			// TODO unlisten,
+		})
+		this.disposables.add(unlisten)
+		return this
+	}
+
+	/**
+	 * When the server receives a message from the clients Currently supports connect and patches.
+	 * Invalid messages types log a warning. Currently doesn't validate data.
+	 *
+	 * @param client - The client that sent the message
+	 * @param message - The message that was sent
+	 */
+	handleMessageFromDownstream = async (clientId: string, message: GoingUpstreamMessage<R>) => {
+		const client = this.downstreamClients.get(clientId)
+		if (!client) {
+			console.warn('Received message from unknown client')
+			return
+		}
+		switch (message.type) {
+			case 'connect': {
+				return this.handleConnectRequest(client, message)
+			}
+			case 'push': {
+				return this.handlePushRequest(client, message)
+			}
+			case 'ping': {
+				if (client.state === DownstreamClientState.CONNECTED) {
+					client.lastInteractionTime = Date.now()
+				}
+				return this.sendDownstreamMessage(clientId, { type: 'pong' })
+			}
+			default: {
+				exhaustiveSwitchError(message)
+			}
+		}
+	}
+
+	/** If the client is out of date or we are out of date, we need to let them know */
+	private rejectClient(client: DownstreamClient<R>, reason: TLIncompatibilityReason) {
+		try {
+			if (client.socket.isOpen()) {
+				client.socket.sendMessage({
+					type: 'incompatibility_error',
+					reason,
+				})
+			}
+		} catch (e) {
+			// noop
+		} finally {
+			this.removeClient(client.clientId)
+		}
+	}
+
+	/**
+	 * When we send a diff to a client, if that client is on a lower version than us, we need to make
+	 * the diff compatible with their version. At the moment this means migrating each affected record
+	 * to the client's version and sending the whole record again. We can optimize this later by
+	 * keeping the previous versions of records around long enough to recalculate these diffs for
+	 * older client versions.
+	 */
+	private migrateDiffForClient(
+		serializedSchema: SerializedSchema,
+		diff: NetworkDiff<R>
+	): Result<NetworkDiff<R>, MigrationFailureReason> {
+		// TODO: optimize this by recalculating patches using the previous versions of records
+
+		// when the client connects we check whether the schema is identical and make sure
+		// to use the same object reference so that === works on this line
+		if (serializedSchema === this.serializedSchema) {
+			return Result.ok(diff)
+		}
+
+		const result: NetworkDiff<R> = {}
+		for (const [id, op] of Object.entries(diff)) {
+			if (op[0] === RecordOpType.Delete) {
+				result[id] = op
+				continue
+			}
+
+			const migrationResult = this.schema.migratePersistedRecord(
+				this.synced.records.value[id]?.value.state,
+				serializedSchema,
+				'down'
+			)
+
+			if (migrationResult.type === 'error') {
+				return Result.err(migrationResult.reason)
+			}
+
+			result[id] = [RecordOpType.Set, migrationResult.value]
+		}
+
+		return Result.ok(result)
+	}
+
+	private handleConnectRequest(
+		client: DownstreamClient<R>,
+		message: Extract<GoingUpstreamMessage<R>, { type: 'connect' }>
+	) {
+		// if the protocol versions don't match, disconnect the client
+		// we will eventually want to try to make our protocol backwards compatible to some degree
+		// and have a MIN_PROTOCOL_VERSION constant that the TLSyncRoom implements support for
+		if (message.protocolVersion == null || message.protocolVersion < TLSYNC_PROTOCOL_VERSION) {
+			this.rejectClient(client, TLIncompatibilityReason.ClientTooOld)
+			return
+		} else if (message.protocolVersion > TLSYNC_PROTOCOL_VERSION) {
+			this.rejectClient(client, TLIncompatibilityReason.ServerTooOld)
+			return
+		}
+		// If the client's store is at a different version to ours, it could cause corruption.
+		// We should disconnect the client and ask them to refresh.
+		if (message.schema == null || message.schema.storeVersion < this.schema.currentStoreVersion) {
+			this.rejectClient(client, TLIncompatibilityReason.ClientTooOld)
+			return
+		} else if (message.schema.storeVersion > this.schema.currentStoreVersion) {
+			this.rejectClient(client, TLIncompatibilityReason.ServerTooOld)
+			return
+		}
+
+		const sessionSchema = isEqual(message.schema, this.serializedSchema)
+			? this.serializedSchema
+			: message.schema
+
+		const connect = (msg: GoingDownstreamMessage<R>) => {
+			this.downstreamClients.set(client.clientId, {
+				state: DownstreamClientState.CONNECTED,
+				clientId: client.clientId,
+				presenceId: client.presenceId,
+				socket: client.socket,
+				serializedSchema: sessionSchema,
+				lastInteractionTime: Date.now(),
+			})
+			this.sendDownstreamMessage(client.clientId, msg)
+		}
+
+		transaction((rollback) => {
+			if (
+				// if the client requests changes since a time before we have tombstone history, send them the full state
+				message.lastUpstreamClock < this.synced.tombstones.value.historyStartsAt ||
+				// similarly, if they ask for a time we haven't reached yet, send them the full state
+				// this will only happen if the DB is reset (or there is no db) and the server restarts
+				// or if the server exits/crashes with unpersisted changes
+				message.lastUpstreamClock > this.synced.clock.value
+			) {
+				const migrated = this.migrateDiffForClient(
+					sessionSchema,
+					Object.fromEntries(
+						Object.values(this.synced.records.value).map((doc) => [
+							doc.value.state.id,
+							[RecordOpType.Set, doc.value.state],
+						])
+					)
+				)
+				if (!migrated.ok) {
+					rollback()
+					this.rejectClient(
+						client,
+						migrated.error === MigrationFailureReason.TargetVersionTooNew
+							? TLIncompatibilityReason.ServerTooOld
+							: TLIncompatibilityReason.ClientTooOld
+					)
+					return
+				}
+				connect({
+					type: 'connect',
+					spanId: message.spanId,
+					hydrationType: 'wipe_all',
+					protocolVersion: TLSYNC_PROTOCOL_VERSION,
+					schema: this.schema.serialize(),
+					upstreamClock: this.synced.clock.value,
+					diff: migrated.value,
+				})
+			} else {
+				// calculate the changes since the time the client last saw
+				const diff: NetworkDiff<R> = {}
+				for (const doc of Object.values(this.synced.records.value)) {
+					const { state, lastUpdatedAt } = doc.value
+					if (
+						state.typeName === this.presenceType.typeName ||
+						lastUpdatedAt > message.lastUpstreamClock
+					) {
+						diff[state.id] = [RecordOpType.Set, state]
+					}
+				}
+
+				for (const [id, deletedAt] of Object.entries(this.synced.tombstones.value.deletions)) {
+					if (deletedAt > message.lastUpstreamClock) {
+						diff[id] = [RecordOpType.Delete]
+					}
+				}
+				const migrated = this.migrateDiffForClient(sessionSchema, diff)
+				if (!migrated.ok) {
+					rollback()
+					this.rejectClient(
+						client,
+						migrated.error === MigrationFailureReason.TargetVersionTooNew
+							? TLIncompatibilityReason.ServerTooOld
+							: TLIncompatibilityReason.ClientTooOld
+					)
+					return
+				}
+
+				connect({
+					type: 'connect',
+					spanId: message.spanId,
+					hydrationType: 'wipe_presence',
+					schema: this.schema.serialize(),
+					protocolVersion: TLSYNC_PROTOCOL_VERSION,
+					upstreamClock: this.synced.clock.value,
+					diff: migrated.value,
+				})
+			}
+		})
+	}
+
+	private handlePushRequest(client: DownstreamClient<R>, message: GoingUpstreamPushMessage<R>) {
+		if (client.state !== DownstreamClientState.CONNECTED) {
+			return
+		}
+		client.lastInteractionTime = Date.now()
+
+		// increment the clock for this push
+		transaction((rollback) => {
+			const fail = (reason: TLIncompatibilityReason): Result<void, void> => {
+				rollback()
+				this.rejectClient(client, reason)
+				if (typeof process !== 'undefined' && process.env.NODE_ENV !== 'test') {
+					console.error('failed to apply push', reason, message)
+				}
+				return Result.err(undefined)
+			}
+
+			const addDocument = (_state: R): Result<void, void> => {
+				const res = this.schema.migratePersistedRecord(_state, client.serializedSchema, 'up')
+				if (res.type === 'error') {
+					return fail(
+						res.reason === MigrationFailureReason.TargetVersionTooOld // target version is our version
+							? TLIncompatibilityReason.ServerTooOld
+							: TLIncompatibilityReason.ClientTooOld
+					)
+				}
+				const state = res.value
+				try {
+					this.set(state)
+				} catch (e) {
+					return fail(TLIncompatibilityReason.InvalidRecord)
+				}
+
+				return Result.ok(undefined)
+			}
+
+			const patchDocument = (id: string, patch: ObjectDiff): Result<void, void> => {
+				// if it was already deleted, there's no need to apply the patch
+				const state = this.get(id)
+				if (!state) return Result.ok(undefined)
+				const theirVersion = getRecordVersion(state, client.serializedSchema)
+				const ourVersion = getRecordVersion(state, this.serializedSchema)
+				if (compareRecordVersions(ourVersion, theirVersion) === 1) {
+					// if the client's version of the record is older than ours, we apply the patch to the downgraded version of the record
+					const downgraded = this.schema.migratePersistedRecord(
+						state,
+						client.serializedSchema,
+						'down'
+					)
+					if (downgraded.type === 'error') {
+						return fail(TLIncompatibilityReason.ClientTooOld)
+					}
+					const patched = applyObjectDiff(downgraded.value, patch)
+					// then upgrade the patched version and use that as the new state
+					const upgraded = this.schema.migratePersistedRecord(
+						patched,
+						client.serializedSchema,
+						'up'
+					)
+					if (upgraded.type === 'error') {
+						return fail(TLIncompatibilityReason.ClientTooOld)
+					}
+					try {
+						this.set(upgraded.value)
+					} catch (e) {
+						return fail(TLIncompatibilityReason.InvalidRecord)
+					}
+				} else if (compareRecordVersions(ourVersion, theirVersion) === -1) {
+					// if the client's version of the record is newer than ours, we can't apply the patch
+					return fail(TLIncompatibilityReason.ServerTooOld)
+				} else {
+					// otherwise apply the patch and propagate the patch op if needed
+					try {
+						this.set(applyObjectDiff(state, patch))
+					} catch (e) {
+						return fail(TLIncompatibilityReason.InvalidRecord)
+					}
+				}
+
+				return Result.ok(undefined)
+			}
+
+			const diff = message.diff
+			for (const [id, op] of Object.entries(diff)) {
+				const typeName = id.slice(0, id.indexOf(':'))
+				if (!this.scopedTypes.document.has(typeName) && this.presenceType.typeName !== typeName) {
+					fail(TLIncompatibilityReason.InvalidRecord)
+					return
+				}
+				if (op[0] === RecordOpType.Set) {
+					// if it's not a document record, fail
+					let record = op[1]
+					if (typeName === this.presenceType.typeName) {
+						// make sure presence ids are anonymized
+						record = { ...op[1], id: client.presenceId }
+					}
+					if (!addDocument(record).ok) return
+				} else if (op[0] === RecordOpType.Delete) {
+					this.delete(id)
+				} else if (op[0] === RecordOpType.Patch) {
+					if (
+						!patchDocument(typeName === this.presenceType.typeName ? client.presenceId : id, op[1])
+							.ok
+					)
+						return
+				}
+			}
+		})
+	}
+
+	private markClientForRemoval(clientId: string) {
+		const client = this.downstreamClients.get(clientId)
+		if (!client) {
+			return
+		}
+
+		if (client.state === DownstreamClientState.AWAITING_REMOVAL) {
+			console.warn('Tried to cancel session that is already awaiting removal')
+			return
+		}
+
+		this.downstreamClients.set(clientId, {
+			state: DownstreamClientState.AWAITING_REMOVAL,
+			clientId,
+			presenceId: client.presenceId,
+			socket: client.socket,
+			cancellationTime: Date.now(),
+		})
+	}
+
+	private removeClient(clientId: string) {
+		const client = this.downstreamClients.get(clientId)
+		if (!client) {
+			console.warn('Tried to remove unknown session')
+			return
+		}
+
+		this.downstreamClients.delete(clientId)
+
+		try {
+			if (client.socket.isOpen()) {
+				client.socket.close()
+			}
+		} catch (_e) {
+			// noop
+		}
+
+		this.deleteSynced(client.presenceId, this.synced.clock.value + 1)
+
+		// this.events.emit('session_removed', { sessionKey: clientId })
+		// if (this.sessions.size === 0) {
+		// 	this.events.emit('room_became_empty')
+		// }
+	}
+
+	/**
+	 * Send a message to a particular client.
+	 *
+	 * @param client - The client to send the message to.
+	 * @param message - The message to send.
+	 */
+	private sendDownstreamMessage(clientId: string, message: GoingDownstreamMessage<R>) {
+		const session = this.downstreamClients.get(clientId)
+		if (!session) {
+			console.warn('Tried to send message to unknown session', message.type)
+			return
+		}
+		if (session.state !== DownstreamClientState.CONNECTED) {
+			console.warn('Tried to send message to disconnected client', message.type)
+			return
+		}
+		if (session.socket.isOpen()) {
+			session.socket.sendMessage(message)
+		} else {
+			this.markClientForRemoval(session.clientId)
+		}
+	}
+
+	/**
+	 * Broadcast a message to all connected clients except the clientId provided.
+	 *
+	 * @param message - The message to broadcast.
+	 * @param clientId - The client to exclude.
+	 */
+	broadcastPatch({
+		diff,
+		sourceSessionKey: sourceSessionKey,
+	}: {
+		diff: NetworkDiff<R>
+		sourceSessionKey: string
+	}) {
+		this.downstreamClients.forEach((client) => {
+			if (client.state !== DownstreamClientState.CONNECTED) return
+			if (sourceSessionKey === client.clientId) return
+			if (!client.socket.isOpen) {
+				this.markClientForRemoval(client.clientId)
+				return
+			}
+
+			const res = this.migrateDiffForClient(client.serializedSchema, diff)
+
+			if (!res.ok) {
+				// disconnect client and send incompatibility error
+				this.rejectClient(
+					client,
+					res.error === MigrationFailureReason.TargetVersionTooNew
+						? TLIncompatibilityReason.ServerTooOld
+						: TLIncompatibilityReason.ClientTooOld
+				)
+				return
+			}
+
+			this.sendDownstreamMessage(client.clientId, {
+				type: 'patch',
+				diff: res.value,
+				serverClock: this.synced.clock.value,
+			})
+		})
+		return this
+	}
+
+	private readonly incomingFromUpstreamPatchBuffer = atom(
 		'store.incomingPatchBuffer',
 		[] as GoingDownstreamPatchMessage<R>[]
 	)
 
-	private readonly outgoingPatchBuffer = atom<{
+	private readonly goingDownstreamPatchBuffer = atom<{
 		changes: Changes<R>
-		satisfiedPushes: { [clientId: string]: string[] }
+		satisfiedPushes: SatisfiedPushes
 	}>('store.outgoingPatchBuffer', { changes: {}, satisfiedPushes: {} })
 
+	get(key: string): R | undefined
 	get(key: IdOf<R>): R | undefined {
 		if (!this.upstream) {
 			return this.synced.records.value[key]?.value.state
@@ -172,7 +701,11 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 		return this.synced.records.value[key]?.value.state
 	}
 
-	private setSynced(record: R, nextClock: number) {
+	private setSynced(record: R, nextClock?: number, pushId?: PushId) {
+		if (nextClock === undefined) {
+			nextClock = this.synced.clock.value + 1
+			this.synced.clock.set(nextClock)
+		}
 		const id = record.id
 		const existingAtom = this.synced.records.value[id]
 		if (existingAtom) {
@@ -180,25 +713,27 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 		} else {
 			const newAtom = atom('synced.records.' + id, { state: record, lastUpdatedAt: nextClock })
 			this.synced.records.set({ ...this.synced.records.value, [id]: newAtom })
-			if (this.synced.tombstones.value[id]) {
-				this.synced.tombstones.update(({ [id]: _, ...tombstones }) => tombstones)
+			if (this.synced.tombstones.value.deletions[id]) {
+				this.synced.tombstones.update(
+					({ deletions: { [id]: _, ...deletions }, historyStartsAt }) => ({
+						historyStartsAt,
+						deletions,
+					})
+				)
 			}
 		}
-		if (this.downstreamClients.length) {
+		if (this.downstreamClients.size) {
 			const prevRecord = existingAtom?.value.state as R | undefined
-			this.outgoingPatchBuffer.update((prev) => {
+			this.goingDownstreamPatchBuffer.update((prev) => {
 				return {
 					changes: addSetChange(prev.changes, prevRecord, record),
-					satisfiedPushes: prev.satisfiedPushes,
+					satisfiedPushes: addPush(prev.satisfiedPushes, pushId),
 				}
 			})
 		}
 	}
 
-	private addPushOp(
-		cb: (changes: Changes<R>) => Changes<R>,
-		downstreamPushes: { clientId: string; pushId: string }[]
-	) {
+	private addPushOp(cb: (changes: Changes<R>) => Changes<R>, pushId?: PushId) {
 		this.pending.pushes.update((prev) => {
 			const prevOp = prev[prev.length - 1]
 			const ops = prev.slice(0)
@@ -207,14 +742,14 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 					pushId: prevOp.pushId,
 					changes: cb(prevOp.changes),
 					status: PushOpStatus.Unsent,
-					downstreamPushes: [...prevOp.downstreamPushes, ...downstreamPushes],
+					downstreamPushes: pushId ? [...prevOp.downstreamPushes, pushId] : prevOp.downstreamPushes,
 				}
 			} else {
 				ops.push({
 					pushId: nanoid(),
 					changes: cb({}),
 					status: PushOpStatus.Unsent,
-					downstreamPushes,
+					downstreamPushes: pushId ? [pushId] : [],
 				})
 			}
 
@@ -224,7 +759,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 		this.schedulePush()
 	}
 
-	private setPending(record: R, push: boolean) {
+	private setPending(record: R, push: boolean, pushId?: PushId) {
 		const id = record.id
 		const existingAtom = this.pending.records.value[id]
 		const prevState = existingAtom?.value as R | undefined
@@ -239,19 +774,17 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 		}
 		if (!push) return
 
-		this.addPushOp((changes) => addSetChange(changes, prevState, record), [])
+		this.addPushOp((changes) => addSetChange(changes, prevState, record), pushId)
 	}
 
-	set(record: R): void {
+	set(record: R, pushId?: PushId): void {
 		transact(() => {
 			if (!this.upstream || this.scopedTypes.session.has(record.typeName)) {
-				const nextClock = this.synced.clock.value + 1
-				this.synced.clock.set(nextClock)
-				this.setSynced(record, nextClock)
+				this.setSynced(record, undefined, pushId)
 				return
 			}
 
-			this.setPending(record, true)
+			this.setPending(record, true, pushId)
 		})
 	}
 
@@ -259,25 +792,32 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 		// do the thing
 	}
 
-	private deleteSynced(id: string, nextClock: number) {
+	private deleteSynced(id: string, nextClock?: number, sourcePush?: PushId) {
+		if (nextClock === undefined) {
+			nextClock = this.synced.clock.value + 1
+			this.synced.clock.set(nextClock)
+		}
 		const existingAtom = this.synced.records.value[id]
 		if (!existingAtom) return
 
 		this.synced.records.update(({ [id]: _, ...records }) => records)
-		this.synced.tombstones.set({ ...this.synced.tombstones.value, [id]: nextClock })
+		this.synced.tombstones.set({
+			deletions: { ...this.synced.tombstones.value.deletions, [id]: nextClock },
+			historyStartsAt: this.synced.tombstones.value.historyStartsAt,
+		})
 
-		if (this.downstreamClients.length) {
+		if (this.downstreamClients.size) {
 			const prevRecord = existingAtom.value.state
-			this.outgoingPatchBuffer.update((prev) => {
+			this.goingDownstreamPatchBuffer.update((prev) => {
 				return {
 					changes: addDeleteChange(prev.changes, prevRecord),
-					satisfiedPushes: prev.satisfiedPushes,
+					satisfiedPushes: addPush(prev.satisfiedPushes, sourcePush),
 				}
 			})
 		}
 	}
 
-	private deletePending(id: string, push: boolean) {
+	private deletePending(id: string, push: boolean, pushId?: PushId) {
 		const pendingRecordAtom = this.pending.records.value[id]
 		const syncedRecordAtom = this.synced.records.value[id]
 		// check whether there is anything to delete
@@ -296,20 +836,18 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 
 		if (!push) return
 
-		this.addPushOp((changes) => addDeleteChange(changes, record), [])
+		this.addPushOp((changes) => addDeleteChange(changes, record), pushId)
 	}
 
-	delete(id: IdOf<R>): void {
+	delete(id: string, pushId?: PushId): void {
 		const typeName = id.slice(0, id.indexOf(':'))
 		transact(() => {
 			if (!this.upstream || this.scopedTypes.session.has(typeName)) {
-				const nextClock = this.synced.clock.value + 1
-				this.synced.clock.set(nextClock)
-				this.deleteSynced(id, nextClock)
+				this.deleteSynced(id, undefined, pushId)
 				return
 			}
 
-			this.deletePending(id, true)
+			this.deletePending(id, true, pushId)
 		})
 	}
 
@@ -334,39 +872,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 			},
 		}
 	}
-
-	scheduleRebase() {
-		// do the thing
-	}
-
-	// private applyPatch(diff: NetworkDiff<R>) {
-	// 	const changes: Changes<R> = {}
-	// 	for (const [id, op] of Object.entries(diff)) {
-	// 		const existingRecord = this.synced.records.value[id]?.value.state as R | undefined
-	// 		switch (op[0]) {
-	// 			case RecordOpType.Set: {
-	// 				changes[id] = existingRecord
-	// 					? [ChangeOpType.Update, existingRecord, op[1]]
-	// 					: [ChangeOpType.Create, op[1]]
-	// 				break
-	// 			}
-	// 			case RecordOpType.Patch: {
-	// 				const existing = this.synced.records.value[id]?.value.state
-	// 				if (!existing) throw new Error(`Cannot patch non-existent record ${id}`)
-	// 				changes[id] = [ChangeOpType.Update, existing, applyObjectDiff(existing, op[1])]
-	// 				break
-	// 			}
-	// 			case RecordOpType.Delete: {
-	// 				if (!existingRecord) throw new Error(`Cannot delete non-existent record ${id}`)
-	// 				changes[id] = [ChangeOpType.Delete, existingRecord]
-	// 				break
-	// 			}
-	// 			default:
-	// 				exhaustiveSwitchError(op)
-	// 		}
-	// 	}
-	// 	this.applyChanges(changes, 'remote')
-	// }
 
 	private syncUpstreamPatch(diff: NetworkDiff<R>) {
 		transact(() => {
@@ -462,13 +967,15 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 		}
 	}
 
+	private scheduleRebase = rafThrottle(this.rebase)
+
 	private rebase() {
-		const incomingPatches = this.incomingPatchBuffer.value
+		const incomingPatches = this.incomingFromUpstreamPatchBuffer.value
 		if (incomingPatches.length === 0) return
 
 		transact(() => {
 			let lastServerClock = this.synced.upstreamClock.value
-			this.incomingPatchBuffer.set([])
+			this.incomingFromUpstreamPatchBuffer.set([])
 
 			let pendingPushOps = null as null | PushOp<R>[]
 
@@ -489,6 +996,16 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, P extends object
 					}
 					if (nextOp.status === PushOpStatus.Unsent) {
 						throw new Error('Unexpected upstream push result while rebasing.')
+					}
+					if (nextOp.downstreamPushes.length) {
+						const satisfiedPushes = nextOp.downstreamPushes.reduce(
+							(satisfied, pushId) => addPush(satisfied, pushId),
+							this.goingDownstreamPatchBuffer.value.satisfiedPushes
+						)
+						this.goingDownstreamPatchBuffer.set({
+							changes: this.goingDownstreamPatchBuffer.value.changes,
+							satisfiedPushes,
+						})
 					}
 					// all good
 				}
