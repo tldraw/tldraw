@@ -296,7 +296,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the shape as an SVG object.
 	 *
 	 * @param shape - The shape.
-	 * @param ctx - The export context for the SVG - used for adding e.g. <def>s
+	 * @param ctx - The export context for the SVG - used for adding e.g. \<def\>s
 	 * @returns An SVG element.
 	 * @public
 	 */
@@ -306,7 +306,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the shape's background layer as an SVG object.
 	 *
 	 * @param shape - The shape.
-	 * @param ctx - ctx - The export context for the SVG - used for adding e.g. <def>s
+	 * @param ctx - ctx - The export context for the SVG - used for adding e.g. \<def\>s
 	 * @returns An SVG element.
 	 * @public
 	 */
@@ -351,7 +351,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Return elements to be added to the <defs> section of the canvases SVG context. This can be
+	 * Return elements to be added to the \<defs\> section of the canvases SVG context. This can be
 	 * used to define SVG content (e.g. patterns & masks) that can be referred to by ID from svg
 	 * elements returned by `component`.
 	 *
