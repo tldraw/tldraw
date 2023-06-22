@@ -129,7 +129,6 @@ import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
 import { FrameShapeUtil } from './shapes/frame/FrameShapeUtil'
 import { GroupShapeUtil } from './shapes/group/GroupShapeUtil'
 import { SvgExportContext, SvgExportDef } from './shapes/shared/SvgExportContext'
-import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -7925,7 +7924,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				} = this
 
 				if (selectedIds.length > 0) {
-					const updates: { originalShape: TLShape; updatePartial: TLShapePartial }[] = []
+					const updates: {
+						util: ShapeUtil
+						originalShape: TLShape
+						updatePartial: TLShapePartial
+					}[] = []
 
 					// We can have many deep levels of grouped shape
 					// Making a recursive function to look through all the levels
@@ -7947,6 +7950,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 									props: { [stylePropKey]: value },
 								}
 								updates.push({
+									util,
 									originalShape: shape,
 									updatePartial: shapePartial,
 								})
@@ -7962,51 +7966,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						updates.map(({ updatePartial }) => updatePartial),
 						ephemeral
 					)
-
-					// TODO: find a way to sink this stuff into shape utils directly?
-					const changes: TLShapePartial[] = []
-					for (const { originalShape: originalShape } of updates) {
-						const currentShape = this.getShapeById(originalShape.id)
-						if (!currentShape) continue
-						const boundsA = this.getBounds(originalShape)
-						const boundsB = this.getBounds(currentShape)
-
-						const change: TLShapePartial = { id: originalShape.id, type: originalShape.type }
-
-						let didChange = false
-
-						if (boundsA.width !== boundsB.width) {
-							didChange = true
-
-							if (this.isShapeOfType(originalShape, TextShapeUtil)) {
-								switch (originalShape.props.align) {
-									case 'middle': {
-										change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
-										break
-									}
-									case 'end': {
-										change.x = currentShape.x + boundsA.width - boundsB.width
-										break
-									}
-								}
-							} else {
-								change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
-							}
-						}
-
-						if (boundsA.height !== boundsB.height) {
-							didChange = true
-							change.y = currentShape.y + (boundsA.height - boundsB.height) / 2
-						}
-
-						if (didChange) {
-							changes.push(change)
-						}
-					}
-
-					if (changes.length) {
-						this.updateShapes(changes, ephemeral)
-					}
 				}
 			}
 

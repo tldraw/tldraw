@@ -87,7 +87,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							align={align}
 							verticalAlign={verticalAlign}
 							text={text}
-							labelColor={adjustedColor}
+							labelColor="black"
 							wrap
 						/>
 					</div>
