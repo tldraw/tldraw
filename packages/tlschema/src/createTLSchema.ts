@@ -43,17 +43,17 @@ export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeI
 	const ShapeRecordType = createShapeRecordType(shapes)
 	const InstanceRecordType = createInstanceRecordType(stylesById)
 
-	return StoreSchema.create(
+	return StoreSchema.create<TLRecord, TLStoreProps>(
 		{
-			asset: AssetRecordType,
-			camera: CameraRecordType,
-			document: DocumentRecordType,
-			instance: InstanceRecordType,
-			instance_page_state: InstancePageStateRecordType,
-			page: PageRecordType,
-			shape: ShapeRecordType,
-			instance_presence: InstancePresenceRecordType,
-			pointer: PointerRecordType,
+			[AssetRecordType.typeName]: AssetRecordType,
+			[CameraRecordType.typeName]: CameraRecordType,
+			[DocumentRecordType.typeName]: DocumentRecordType,
+			[InstanceRecordType.typeName]: InstanceRecordType,
+			[InstancePageStateRecordType.typeName]: InstancePageStateRecordType,
+			[PageRecordType.typeName]: PageRecordType,
+			[ShapeRecordType.typeName]: ShapeRecordType,
+			[InstancePresenceRecordType.typeName]: InstancePresenceRecordType,
+			[PointerRecordType.typeName]: PointerRecordType,
 		},
 		{
 			snapshotMigrations: storeMigrations,
