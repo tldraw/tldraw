@@ -43,8 +43,10 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import { getFillDefForExport, getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
 import {
@@ -925,9 +927,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	toSvg(shape: TLArrowShape) {
+	toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme(this.editor)
-
+		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
+		
 		const color = theme[shape.props.color].solid
 
 		const info = this.getArrowInfo(shape)
@@ -1051,6 +1054,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// Text Label
 		if (labelSize) {
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
+
 			const opts = {
 				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
 				lineHeight: TEXT_PROPS.lineHeight,

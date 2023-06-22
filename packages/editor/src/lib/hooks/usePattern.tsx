@@ -1,61 +1,10 @@
-import { T } from '@tldraw/validate'
+import { DefaultColorThemePalette } from '@tldraw/tlschema'
 import { useEffect, useMemo, useState } from 'react'
-import { StyleProp } from './StyleProp'
-import { DefaultColorThemePalette, getDefaultColorTheme } from './TLColorStyle'
-
-/** @public */
-export const DefaultFillStyle = StyleProp.defineEnum('tldraw:fill', {
-	defaultValue: 'none',
-	values: ['none', 'semi', 'solid', 'pattern'],
-	getSvgExportDefs(value, editor) {
-		if (value !== 'pattern') return null
-
-		const theme = getDefaultColorTheme(editor)
-
-		const t = 8 / 12
-		const divEl = document.createElement('div')
-		divEl.innerHTML = `
-			<svg>
-				<defs>
-					<mask id="hash_pattern_mask">
-						<rect x="0" y="0" width="8" height="8" fill="white" />
-						<g
-							strokeLinecap="round"
-							stroke="black"
-						>
-							<line x1="${t * 1}" y1="${t * 3}" x2="${t * 3}" y2="${t * 1}" />
-							<line x1="${t * 5}" y1="${t * 7}" x2="${t * 7}" y2="${t * 5}" />
-							<line x1="${t * 9}" y1="${t * 11}" x2="${t * 11}" y2="${t * 9}" />
-						</g>
-					</mask>
-					<pattern
-						id="hash_pattern"
-						width="8"
-						height="8"
-						patternUnits="userSpaceOnUse"
-					>
-						<rect x="0" y="0" width="8" height="8" fill="${theme.solid}" mask="url(#hash_pattern_mask)" />
-					</pattern>
-				</defs>
-			</svg>
-		`
-		return Array.from(divEl.querySelectorAll('defs > *'))
-	},
-})
-
-/** @public */
-export type TLDefaultFillStyle = T.TypeOf<typeof DefaultFillStyle>
+import { HASH_PATTERN_ZOOM_NAMES, MAX_ZOOM } from '../constants'
+import { debugFlags } from '../utils/debug-flags'
+import { useEditor } from './useEditor'
 
 const TILE_PATTERN_SIZE = 8
-const MAX_ZOOM = 8
-
-/** @internal */
-export const HASH_PATTERN_ZOOM_NAMES: Record<string, string> = {}
-
-for (let zoom = 1; zoom <= Math.ceil(MAX_ZOOM); zoom++) {
-	HASH_PATTERN_ZOOM_NAMES[zoom + '_dark'] = `hash_pattern_zoom_${zoom}_dark`
-	HASH_PATTERN_ZOOM_NAMES[zoom + '_light'] = `hash_pattern_zoom_${zoom}_light`
-}
 
 const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 	return new Promise<Blob>((resolve, reject) => {
@@ -92,7 +41,7 @@ const generateImage = (dpr: number, currentZoom: number, darkMode: boolean) => {
 		ctx.stroke()
 
 		canvasEl.toBlob((blob) => {
-			if (!blob) {
+			if (!blob || debugFlags.throwToBlob.value) {
 				reject()
 			} else {
 				resolve(blob)
@@ -137,7 +86,7 @@ const getDefaultPatterns = () => {
 	return defaultPatterns
 }
 
-function FillStyleCanvasDefs() {
+export const usePattern = () => {
 	const editor = useEditor()
 	const dpr = editor.devicePixelRatio
 	const [isReady, setIsReady] = useState(false)
@@ -196,5 +145,5 @@ function FillStyleCanvasDefs() {
 		</>
 	)
 
-	// return { context, isReady }
+	return { context, isReady }
 }

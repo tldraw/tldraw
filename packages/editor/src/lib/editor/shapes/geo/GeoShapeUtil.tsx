@@ -28,8 +28,10 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import { getFillDefForExport, getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
 import { useForceSolid } from '../shared/useForceSolid'
 import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
@@ -506,10 +508,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	toSvg(shape: TLGeoShape) {
+	toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
 		const { id, props } = shape
 		const strokeWidth = STROKE_SIZES[props.size]
 		const theme = getDefaultColorTheme(this.editor)
+		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		let svgElm: SVGElement
 
@@ -641,6 +644,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		if (props.text) {
 			const bounds = this.editor.getBounds(shape)
+
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
 
 			const rootTextElm = getTextLabelSvgElement({
 				editor: this.editor,

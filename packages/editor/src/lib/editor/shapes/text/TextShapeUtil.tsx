@@ -8,7 +8,9 @@ import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { useEditableText } from '../shared/useEditableText'
 
 export { INDENT } from './TextHelpers'
@@ -133,7 +135,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
-	toSvg(shape: TLTextShape) {
+	toSvg(shape: TLTextShape, ctx: SvgExportContext) {
+		ctx.addExportDef(getFontDefForExport(shape.props.font))
+
 		const theme = getDefaultColorTheme(this.editor)
 		const bounds = this.getBounds(shape)
 		const text = shape.props.text
