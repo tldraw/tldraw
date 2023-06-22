@@ -1,0 +1,107 @@
+---
+title: Store
+status: published
+author: steveruizok
+date: 6/22/2023
+order: 4
+keywords:
+  - ui
+  - app
+  - editor
+  - control
+  - select
+---
+
+The editor holds the raw state of the document in its `store` property. Data is kept here as a table of JSON serializable records. 
+
+For example, the store contains a `page` record for each page in the current document, as well as an `instancePageState` record for each page that stores information about the editor's state for that page, and a single `instanceState` for each editor instance which stores the id of the user's current page.
+
+The editor also exposes many _computed_ values which are derived from other records in the store. For example, `editor.selectedIds` is a computed property that will return the editor's current selected shape ids for its current page.
+
+You can use these properties directly or you can use them in signals.
+
+```tsx
+import { track, useEditor } from "@tldraw/tldraw"
+
+export const SelectedIdsCount = track(() => {
+  const editor = useEditor()
+  
+  return (
+    <div>{editor.selectedIds.length}</div>
+  )
+})
+```
+
+## Changing the state
+
+The `Editor` class has many methods for updating its state. For example, you can change the current page's selection using `editor.setSelectedIds`. You can also use other convenience methods, such as `editor.select`, `editor.deselect`, `editor.selectAll`, or `editor.selectNone`.
+
+```ts
+editor.selectNone()
+editor.select(myShapeId, myOtherShapeId)
+editor.selectedIds // [myShapeId, myOtherShapeId]
+```
+
+Each change to the state happens within a transaction. You can batch changes into a single transaction using the `editor.batch` method. It's a good idea to batch wherever possible, as this reduces the overhead for persisting or distributing those changes.
+
+### Listening for changes
+
+You can subscribe to changes using `editor.store.listen`. Each time a transaction completes, the editor will call the callback with a history entry. This entry contains information about the records that were added, changed, or deleted, as well as whether the change was caused by the user or from a remote change.
+
+```ts
+editor.store.listen(entry => {
+  entry // { changes, source }
+})
+```
+
+## Remote changes
+
+By default, changes to the editor's store are assumed to have come from the editor itself. You can use `editor.store.mergeRemoteChanges` to make changes in the store that will be emitted via `store.listen` with the `source` property as `'remote'`. 
+
+If you're setting up some kind of multiplayer backend, you would want to send only the `'user'` changes to the server and merge the changes from the server using `editor.store.mergeRemoteChanges`. (We'll have more information about this soon.)
+
+## Undo and redo
+
+The history stack in tldraw contains two types of data: "marks" and "commands". Commands have their own `undo` and `redo` methods that describe how the state should change when the command is undone or redone. 
+
+You can call `editor.mark(id)` to add a mark to the history stack with the given `id`. 
+
+When you call `editor.undo()`, the editor will undo each command until it finds either a mark or the start of the stack. When you call `editor.redo()`, the editor will redo each command until it finds either a mark or the end of the stack. 
+
+```ts
+// A
+editor.mark("duplicate everything")
+editor.selectAll()
+editor.duplicateShapes(editor.selectedIds)
+// B
+
+editor.undo() // will return to A
+editor.redo() // will return to B
+```
+
+You can call `editor.bail()` to undo and delete all commands in the stack until the first mark. 
+
+```ts
+// A
+editor.mark("duplicate everything")
+editor.selectAll()
+editor.duplicateShapes(editor.selectedIds)
+// B
+
+editor.bail() // will return to A
+editor.redo() // will do nothing 
+```
+
+You can use `editor.bailToMark(id)` to undo and delete all commands and marks until you reach a mark with the given `id`.
+
+```ts
+// A
+editor.mark("first")
+editor.selectAll()
+// B
+editor.mark("second")
+editor.duplicateShapes(editor.selectedIds)
+// C
+
+editor.bailToMark("first") // will to A
+```
