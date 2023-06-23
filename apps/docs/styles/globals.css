@@ -103,7 +103,6 @@ body {
 	column-gap: 28px;
 	row-gap: 0px;
 	margin: 0px auto;
-	padding-top: 40px;
 }
 
 .icon-button {
@@ -118,6 +117,7 @@ body {
 	border: none;
 	--bg: transparent;
 	color: var(--color-text);
+	cursor: pointer;
 }
 
 .icon-button::after {
@@ -167,7 +167,7 @@ body {
 }
 
 .article {
-	padding: 16px 16px 120px 16px;
+	padding: 56px 16px 120px 16px;
 	font-weight: 400;
 	max-width: 100%;
 	overflow-x: hidden;
@@ -458,8 +458,10 @@ body {
 	padding: 8px;
 	align-self: start;
 	top: 0px;
+	max-height: calc(100vh);
 	z-index: 1000;
 	overflow-y: auto;
+	padding-top: 40px;
 }
 
 .sidebar .sidebar__list h4 {
@@ -650,6 +652,11 @@ body {
 	font-size: 14px;
 	background-color: none;
 	background: none;
+}
+
+.search__input:disabled {
+	background-color: var(--color-tint-1);
+	color: var(--color-tint-5);
 }
 
 .search__input::placeholder {
