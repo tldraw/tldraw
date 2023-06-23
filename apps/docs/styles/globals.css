@@ -118,6 +118,7 @@ body {
 	border: none;
 	--bg: transparent;
 	color: var(--color-text);
+	cursor: pointer;
 }
 
 .icon-button::after {
