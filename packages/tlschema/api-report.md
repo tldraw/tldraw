@@ -440,7 +440,7 @@ export const embedShapeProps: {
     url: T.Validator<string>;
 };
 
-// @public (undocumented)
+// @public
 export class EnumStyleProp<T> extends StyleProp<T> {
     // @internal
     constructor(id: string, defaultValue: T, values: readonly T[]);
@@ -723,18 +723,17 @@ export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
     [K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>;
 };
 
-// @public (undocumented)
+// @public
 export class StyleProp<Type> implements T.Validatable<Type> {
-    constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
+    // @internal
+    protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
     // (undocumented)
     readonly defaultValue: Type;
-    // (undocumented)
-    static define<Type>(uniqueId: string, { defaultValue, type }: {
+    static define<Type>(uniqueId: string, options: {
         defaultValue: Type;
         type?: T.Validatable<Type>;
     }): StyleProp<Type>;
-    // (undocumented)
-    static defineEnum<const Values extends readonly unknown[]>(uniqueId: string, { defaultValue, values }: {
+    static defineEnum<const Values extends readonly unknown[]>(uniqueId: string, options: {
         defaultValue: Values[number];
         values: Values;
     }): EnumStyleProp<Values[number]>;

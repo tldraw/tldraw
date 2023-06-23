@@ -1786,7 +1786,7 @@ export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
 
 export { react }
 
-// @public (undocumented)
+// @public
 export class ReadonlySharedStyleMap {
     // (undocumented)
     [Symbol.iterator](): IterableIterator<[StyleProp<unknown>, SharedStyle<unknown>]>;
@@ -1801,7 +1801,7 @@ export class ReadonlySharedStyleMap {
     getAsKnownValue<T>(prop: StyleProp<T>): T | undefined;
     // (undocumented)
     keys(): IterableIterator<StyleProp<unknown>>;
-    // (undocumented)
+    // @internal (undocumented)
     protected map: Map<StyleProp<unknown>, SharedStyle<unknown>>;
     // (undocumented)
     get size(): number;
@@ -1918,7 +1918,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     static type: string;
 }
 
-// @public (undocumented)
+// @public
 export type SharedStyle<T> = {
     readonly type: 'mixed';
 } | {

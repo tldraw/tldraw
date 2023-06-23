@@ -33,6 +33,8 @@ async function generateApiDocs() {
 	)
 
 	const model = new ApiModel()
+	const packageModels = []
+
 	for (const packageName of tldrawPackagesToIncludeInDocs) {
 		// Get the file contents
 		const filePath = path.join(
@@ -45,8 +47,10 @@ async function generateApiDocs() {
 			'api.json'
 		)
 
-		const packageModel = model.loadPackage(filePath)
+		packageModels.push(model.loadPackage(filePath))
+	}
 
+	for (const packageModel of packageModels) {
 		const categoryName = packageModel.name.replace(`@tldraw/`, '')
 
 		if (!addedCategories.has(categoryName)) {

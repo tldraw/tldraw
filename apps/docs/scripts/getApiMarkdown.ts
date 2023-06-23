@@ -22,7 +22,7 @@ import {
 	Excerpt,
 	ReleaseTag,
 } from '@microsoft/api-extractor-model'
-import { assert, exhaustiveSwitchError } from '@tldraw/utils'
+import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from './utils'
 
 type Result = { markdown: string }
@@ -171,7 +171,10 @@ async function addDocComment(result: Result, member: ApiItem) {
 	}
 
 	if (member.tsdocComment) {
-		result.markdown += await MarkdownWriter.docNodeToMarkdown(member.tsdocComment.summarySection)
+		result.markdown += await MarkdownWriter.docNodeToMarkdown(
+			member,
+			member.tsdocComment.summarySection
+		)
 
 		const exampleBlocks = member.tsdocComment.customBlocks.filter(
 			(block) => block.blockTag.tagNameWithUpperCase === '@EXAMPLE'
@@ -181,7 +184,7 @@ async function addDocComment(result: Result, member: ApiItem) {
 			result.markdown += `\n\n`
 			result.markdown += `##### Example\n\n`
 			for (const example of exampleBlocks) {
-				result.markdown += await MarkdownWriter.docNodeToMarkdown(example.content)
+				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, example.content)
 			}
 		}
 	}
@@ -214,7 +217,10 @@ async function addDocComment(result: Result, member: ApiItem) {
 				})
 				result.markdown += `\n\n`
 				if (param.tsdocParamBlock) {
-					result.markdown += await MarkdownWriter.docNodeToMarkdown(param.tsdocParamBlock.content)
+					result.markdown += await MarkdownWriter.docNodeToMarkdown(
+						member,
+						param.tsdocParamBlock.content
+					)
 				}
 				result.markdown += `\n\n</ParametersTableDescription>\n`
 				result.markdown += `</ParametersTableRow>\n`
@@ -230,6 +236,7 @@ async function addDocComment(result: Result, member: ApiItem) {
 			result.markdown += `\n\n`
 			if (member.tsdocComment && member.tsdocComment.returnsBlock) {
 				result.markdown += await MarkdownWriter.docNodeToMarkdown(
+					member,
 					member.tsdocComment.returnsBlock.content
 				)
 			}
@@ -254,7 +261,7 @@ async function addDocComment(result: Result, member: ApiItem) {
 				result.markdown += `\`${block.parameterName}\`\n\n`
 				result.markdown += `</ParametersTableName>\n`
 				result.markdown += `<ParametersTableDescription>\n\n`
-				result.markdown += await MarkdownWriter.docNodeToMarkdown(block.content)
+				result.markdown += await MarkdownWriter.docNodeToMarkdown(member, block.content)
 				result.markdown += `\n\n</ParametersTableDescription>\n`
 				result.markdown += `</ParametersTableRow>\n`
 			}
@@ -347,7 +354,15 @@ function addReferences(result: Result, member: ApiItem) {
 
 	member.excerptTokens.forEach((token) => {
 		if (token.kind !== 'Reference') return
-		const url = `/gen/${getPath(token as { canonicalReference: ApiItem['canonicalReference'] })}`
+		const apiItemResult = assertExists(member.getAssociatedModel()).resolveDeclarationReference(
+			assertExists(token.canonicalReference),
+			member
+		)
+		if (apiItemResult.errorMessage) {
+			return
+		}
+		const apiItem = assertExists(apiItemResult.resolvedApiItem)
+		const url = `/gen/${getPath(apiItem)}`
 		references.add(`[${token.text}](${url})`)
 	})
 
