@@ -3,7 +3,6 @@
 
 import { atom, computed } from '@tldraw/state'
 import { Editor } from './Editor'
-import { CommandFn, EditorCommandHandler, ExtractData } from './EditorHistoryManager/history-types'
 import { EditorEventOptions } from './editor-react'
 
 export type EditorExtensionConfigOf<
@@ -27,12 +26,6 @@ export type EditorExtensionConfig<Name extends string = any, Options = any, Stor
 	addOptions?: () => Options
 
 	addStorage?: () => Storage
-
-	addCommands?: () => (<Name extends string, Constructor extends CommandFn<any>>(
-		name: Name,
-		constructor: Constructor,
-		handle: EditorCommandHandler<ExtractData<Constructor>>
-	) => void)[]
 }
 
 export class EditorExtension<Name extends string = any, Options = any, Storage = any> {
@@ -114,6 +107,12 @@ export type ExtractExtensions<T extends readonly EditorExtension[]> = Compute<
 			[K in keyof T]: { [R in T[K]['name']]: T[K] }
 		}[number]
 	>
+>
+
+export type ExtractCommands<T extends readonly EditorExtension[]> = Compute<
+	{
+		[K in keyof T]: { [R in T[K]['name']]: T[K]['storage'] }
+	}[number]
 >
 
 export type ExtractStorageKey<T extends readonly EditorExtension[]> = keyof ExtractStorage<T>

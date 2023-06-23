@@ -34,7 +34,7 @@ const MyExtensions = [MyAnimalExtension, MyPersonExtension] as const
 
 type MyEditorType = Editor<typeof MyExtensions>
 
-function Example() {
+export function Example() {
 	const editor = useEditor({
 		extensions: [MyAnimalExtension, MyPersonExtension],
 	})

@@ -2,7 +2,12 @@
 import { atom, computed } from '@tldraw/state'
 import { HistoryEntry, Store, StoreSchema, StoreSnapshot } from '@tldraw/store'
 import { EventEmitter } from 'eventemitter3'
-import { EditorExtension, ExtractExtensions, ExtractStorage } from './EditorExtension'
+import {
+	EditorExtension,
+	ExtractCommands,
+	ExtractExtensions,
+	ExtractStorage,
+} from './EditorExtension'
 import { EditorExtensionManager } from './EditorExtensionManager'
 import { EditorHistoryManager } from './EditorHistoryManager/EditorHistoryManager'
 import {
@@ -30,6 +35,8 @@ export type EditorEvents<X extends Editor<any>> = {
 		| { editor: X; reason: 'bail'; markId?: string }
 }
 
+export type EditorCommands<E extends readonly EditorExtension[]> = ExtractCommands<E>
+
 export interface EditorOptions<E extends readonly EditorExtension[]> {
 	initialData?: StoreSnapshot<EditorRecord>
 	extensions?: E
@@ -43,6 +50,8 @@ export class Editor<const E extends readonly EditorExtension[]> extends EventEmi
 	extensions: EditorExtensionManager<E>
 
 	history: EditorHistoryManager<E>
+
+	commands = {} as EditorCommands<E>
 
 	constructor(opts: EditorOptions<E>) {
 		super()
