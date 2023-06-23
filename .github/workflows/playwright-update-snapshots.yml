@@ -1,0 +1,82 @@
+# Adapted from https://mmazzarolo.com/blog/2022-09-09-visual-regression-testing-with-playwright-and-github-actions/
+
+# This workflow's goal is forcing an update of the reference snapshots used
+# by Playwright tests. Add the 'update-snapshots' label to a PR.
+# From a high-level perspective, it works like this:
+# 1. Because of a GitHub Action limitation, this workflow is triggered on every
+#    label added to a PR. We manually interrupt it unless the label is
+#    "update-snapshots".
+# 2. Use the GitHub API to grab the information about the branch name and SHA of
+#    the latest commit of the current pull request.
+# 3. Remove the label from the PR.
+# 4. Update the Playwright reference snapshots based on the UI of this branch.
+# 5. Commit the newly generated Playwright reference snapshots into this branch.
+name: Update playwright snapshots
+
+on:
+  pull_request:
+    types: [labeled]
+
+env:
+  CI: 1
+  PRINT_GITHUB_ANNOTATIONS: 1
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  update_snapshots:
+    name: 'Run'
+    timeout-minutes: 60
+    runs-on: ubuntu-latest-16-cores-open
+    if: github.event.label.name == 'update-snapshots'
+
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+      pull-requests: write
+
+    steps:
+      - name: Remove the update-snapshots label
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          labels: update-snapshots
+
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 5
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'yarn'
+          cache-dependency-path: 'public-yarn.lock'
+
+      - name: Enable corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium chrome
+
+      - name: Run Playwright tests & update snapshots
+        run: 'yarn e2e --update-snapshots'
+        working-directory: 'apps/examples'
+
+      - name: Commit and push changes
+        if: always()
+        run: |
+          git config --global user.name 'huppy-bot[bot]'
+          git config --global user.email '128400622+huppy-bot[bot]@users.noreply.github.com'
+          git add -A
+          git commit --no-verify -m '[automated] update snapshots'
+          git pull --rebase
+          git push

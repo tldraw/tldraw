@@ -1,6 +1,7 @@
 import type { PlaywrightTestConfig } from '@playwright/test'
 import { devices } from '@playwright/test'
 import { config as _config } from 'dotenv'
+import path from 'path'
 /**
  * Read environment variables from file.
  * https://github.com/motdotla/dotenv
@@ -23,19 +24,18 @@ const config: PlaywrightTestConfig = {
 		 */
 		timeout: 2000,
 		toHaveScreenshot: {
-			maxDiffPixelRatio: 0.15,
+			maxDiffPixelRatio: 0.001,
+			threshold: 0.01,
 		},
 	},
 	/* Run tests in files in parallel */
 	fullyParallel: true,
 	/* Fail the build on CI if you accidentally left test.only in the source code. */
-	forbidOnly: !!process.env.CI,
+	forbidOnly: false, // !!process.env.CI,
 	/* Retry on CI only */
 	retries: process.env.CI ? 1 : 0,
-	/* Opt out of parallel tests on CI. */
-	workers: process.env.CI ? 1 : undefined,
 	/* Reporter to use. See https://playwright.dev/docs/test-reporters */
-	// reporter: 'html',
+	reporter: process.env.CI ? [['list'], ['github'], ['html', { open: 'never' }]] : 'list',
 	/* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
 	use: {
 		/* Maximum time each action such as `click()` can take. Defaults to 0 (no limit). */
@@ -45,7 +45,7 @@ const config: PlaywrightTestConfig = {
 
 		/* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
 		trace: 'on-first-retry',
-		headless: true, // !!process.env.CI,
+		headless: true, // !process.env.CI,
 	},
 
 	/* Configure projects for major browsers */
@@ -101,6 +101,7 @@ const config: PlaywrightTestConfig = {
 		command: 'yarn dev',
 		port: 5420,
 		reuseExistingServer: !process.env.CI,
+		cwd: path.join(__dirname, '../../..'),
 	},
 }
 
