@@ -1,0 +1,14 @@
+[
+	{
+		"id": "docs",
+		"title": "Docs",
+		"description": "Developer documentation for tldraw.",
+		"categories": []
+	},
+	{
+		"id": "community",
+		"title": "Community",
+		"description": "Guides for contributing to tldraw's open source project.",
+		"categories": []
+	}
+]

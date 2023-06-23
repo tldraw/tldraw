@@ -1,0 +1,44 @@
+---
+title: TldrawFileParseError
+status: published
+category: file-format
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 7
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TldrawFileParseError =
+  | {
+      type: 'fileFormatVersionTooNew'
+      version: number
+    }
+  | {
+      type: 'invalidRecords'
+      cause: unknown
+    }
+  | {
+      type: 'migrationFailed'
+      reason: MigrationFailureReason
+    }
+  | {
+      type: 'notATldrawFile'
+      cause: unknown
+    }
+  | {
+      type: 'v1File'
+      data: any
+    }
+```
+
+##### References
+
+[MigrationFailureReason](/gen/store/MigrationFailureReason-enum)
+

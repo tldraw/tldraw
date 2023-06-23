@@ -1,0 +1,42 @@
+---
+title: useTranslation
+status: published
+category: ui
+group: Function
+author: api
+date: 06/23/2023
+order: 79
+---<Small>Public Function</Small>
+
+Returns a function to translate a translation key into a string based on the current translation.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const msg = useTranslation()
+const label = msg('style-panel.styles')
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+(id: TLUiTranslationKey) => string
+```
+
+##### References
+
+[TLUiTranslationKey](/gen/ui/TLUiTranslationKey-type)
+
