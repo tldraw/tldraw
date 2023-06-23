@@ -6,8 +6,10 @@ import { idValidator } from '../misc/id-validator'
 import { TLParentId, TLShapeId } from '../records/TLShape'
 
 /** @public */
-export interface TLBaseShape<Type extends string, Props extends object>
-	extends BaseRecord<'shape', TLShapeId> {
+export interface TLBaseShape<
+	Type extends string,
+	Props extends object | Record<string, T.Validatable<any>>
+> extends BaseRecord<'shape', TLShapeId> {
 	type: Type
 	x: number
 	y: number
@@ -16,7 +18,7 @@ export interface TLBaseShape<Type extends string, Props extends object>
 	parentId: TLParentId
 	isLocked: boolean
 	opacity: TLOpacityType
-	props: Props
+	props: Expand<{ [K in keyof Props]: Props[K] extends T.Validatable<infer U> ? U : Props[K] }>
 }
 
 /** @public */
