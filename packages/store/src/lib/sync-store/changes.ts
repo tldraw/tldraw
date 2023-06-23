@@ -12,8 +12,8 @@ export enum ChangeOpType {
 	Delete = 'delete',
 }
 export type ChangeOp<R extends UnknownRecord> =
-	| { op: ChangeOpType.Set; prev?: R; record: R }
-	| { op: ChangeOpType.Delete; record: R }
+	| { op: ChangeOpType.Set; prev?: R; record: R; clock: number }
+	| { op: ChangeOpType.Delete; record: R; clock: number }
 
 export type Changes<R extends UnknownRecord> = {
 	[key: string]: ChangeOp<R>
@@ -23,23 +23,25 @@ export function addSetChange<R extends UnknownRecord>(
 	changes: Changes<R>,
 	prev: R | undefined,
 	record: R,
+	clock: number,
 	mutate = false
 ): Changes<R> {
 	const result = mutate ? changes : { ...changes }
 	const existing = result[record.id]?.record ?? prev
 	result[record.id] = existing
-		? { op: ChangeOpType.Set, prev: existing, record }
-		: { op: ChangeOpType.Set, record }
+		? { op: ChangeOpType.Set, prev: existing, record, clock }
+		: { op: ChangeOpType.Set, record, clock }
 	return result
 }
 export function addDeleteChange<R extends UnknownRecord>(
 	changes: Changes<R>,
 	record: R,
+	clock: number,
 	mutate = false
 ): Changes<R> {
 	const result = mutate ? changes : { ...changes }
 	const existing = result[record.id]?.record ?? record
-	result[record.id] = { op: ChangeOpType.Delete, record: existing }
+	result[record.id] = { op: ChangeOpType.Delete, record: existing, clock }
 	return result
 }
 export function mergeChanges<R extends UnknownRecord>(
@@ -51,10 +53,10 @@ export function mergeChanges<R extends UnknownRecord>(
 	for (const op of Object.values(b)) {
 		switch (op.op) {
 			case ChangeOpType.Set:
-				addSetChange(result, op.prev, op.record, true)
+				addSetChange(result, op.prev, op.record, op.clock, true)
 				break
 			case ChangeOpType.Delete:
-				addDeleteChange(result, op.record, true)
+				addDeleteChange(result, op.record, op.clock, true)
 				break
 			default:
 				exhaustiveSwitchError(op)

@@ -36,7 +36,6 @@ export type PushOp<R extends UnknownRecord> = {
 	pushId: string
 	status: PushOpStatus.Unsent | PushOpStatus.Sent
 	changes: Changes<R>
-	downstreamPushes: PushId[]
 }
 
 type ClockSnapshot = {
@@ -50,14 +49,19 @@ type PushId = {
 	pushId: string
 }
 
-function addPush(satisfiedPushes: SatisfiedPushes, pushId?: PushId) {
+function addPush(satisfiedPushes: SatisfiedPushes, pushId?: PushId): SatisfiedPushes {
 	if (!pushId) return satisfiedPushes
-	const satisfied = satisfiedPushes[pushId.clientId]?.slice(0) ?? []
-	satisfied.push(pushId.pushId)
-	return { ...satisfiedPushes, [pushId.clientId]: satisfied }
+	const satisfied = satisfiedPushes[pushId.clientId] as string[] | undefined
+	if (satisfied?.includes(pushId.pushId)) return satisfiedPushes
+
+	return { ...satisfiedPushes, [pushId.clientId]: [...(satisfied ?? []), pushId.pushId] }
 }
 
-type RecordAtom<R extends UnknownRecord> = Atom<{ state: R; lastUpdatedAt: number }>
+type RecordWithTimestamp<R extends UnknownRecord> = {
+	state: R
+	lastUpdatedAt: number
+}
+type RecordAtom<R extends UnknownRecord> = Atom<RecordWithTimestamp<R>>
 
 type ApplyStack<R extends UnknownRecord> = {
 	changes: Changes<R>
@@ -141,7 +145,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	) {
 		if (snapshot) {
 			// TODO: migrations
-			this.prevSyncClock = snapshot.clock
+			this.prevClock = snapshot.clock
 		}
 
 		this.scopedTypes = {
@@ -168,7 +172,9 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		this.serializedSchema = this.schema.serialize()
 	}
 
-	private readonly prevSyncClock: ClockSnapshot | undefined
+	private readonly prevClock: ClockSnapshot | undefined
+	private readonly clock = atom('store.clock', 0)
+	private readonly clockId = nanoid()
 
 	private readonly synced = {
 		upstreamClock: atom('store.synced.clock', 0),
@@ -177,12 +183,10 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			historyStartsAt: 0,
 			deletions: {} as Record<string, number>,
 		}), // todo: this should be a cheap sorted map
-		clock: atom('store.clock', 0),
-		clockId: nanoid(),
 	}
 	private readonly pending = {
-		records: atom('store.pending.records', {} as Record<string, Atom<R>>),
-		tombstones: atom('store.pending.tombstones', {} as Record<string, true>), // todo: this should be a cheap sorted map
+		records: atom('store.pending.records', {} as Record<string, RecordAtom<R>>),
+		tombstones: atom('store.pending.tombstones', {} as Record<string, number>), // todo: this should be a cheap sorted map
 		pushes: atom('store.pending.pushes', [] as PushOp<R>[]),
 	}
 	private readonly downstreamClients = new Map<string, DownstreamClient<R>>()
@@ -384,7 +388,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				// similarly, if they ask for a time we haven't reached yet, send them the full state
 				// this will only happen if the DB is reset (or there is no db) and the server restarts
 				// or if the server exits/crashes with unpersisted changes
-				message.lastUpstreamClock > this.synced.clock.value
+				message.lastUpstreamClock > this.clock.value
 			) {
 				const migrated = this.migrateDiffForClient(
 					sessionSchema,
@@ -411,7 +415,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 					hydrationType: 'wipe_all',
 					protocolVersion: TLSYNC_PROTOCOL_VERSION,
 					schema: this.schema.serialize(),
-					upstreamClock: this.synced.clock.value,
+					upstreamClock: this.clock.value,
 					diff: migrated.value,
 				})
 			} else {
@@ -450,7 +454,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 					hydrationType: 'wipe_presence',
 					schema: this.schema.serialize(),
 					protocolVersion: TLSYNC_PROTOCOL_VERSION,
-					upstreamClock: this.synced.clock.value,
+					upstreamClock: this.clock.value,
 					diff: migrated.value,
 				})
 			}
@@ -462,6 +466,11 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			return
 		}
 		client.lastInteractionTime = Date.now()
+
+		const pushId: PushId = {
+			pushId: message.pushId,
+			clientId: client.clientId,
+		}
 
 		// increment the clock for this push
 		transaction((rollback) => {
@@ -485,7 +494,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				}
 				const state = res.value
 				try {
-					this.set(state)
+					this.set(state, pushId)
 				} catch (e) {
 					return fail(TLIncompatibilityReason.InvalidRecord)
 				}
@@ -520,7 +529,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 						return fail(TLIncompatibilityReason.ClientTooOld)
 					}
 					try {
-						this.set(upgraded.value)
+						this.set(upgraded.value, pushId)
 					} catch (e) {
 						return fail(TLIncompatibilityReason.InvalidRecord)
 					}
@@ -530,7 +539,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				} else {
 					// otherwise apply the patch and propagate the patch op if needed
 					try {
-						this.set(applyObjectDiff(state, patch))
+						this.set(applyObjectDiff(state, patch), pushId)
 					} catch (e) {
 						return fail(TLIncompatibilityReason.InvalidRecord)
 					}
@@ -555,7 +564,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 					}
 					if (!addDocument(record).ok) return
 				} else if (op[0] === RecordOpType.Delete) {
-					this.delete(id)
+					this.delete(id, pushId)
 				} else if (op[0] === RecordOpType.Patch) {
 					if (
 						!patchDocument(typeName === this.presenceType.typeName ? client.presenceId : id, op[1])
@@ -604,7 +613,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			// noop
 		}
 
-		this.deleteSynced(client.presenceId, this.synced.clock.value + 1)
+		this.deleteSynced(client.presenceId, this.clock.value + 1)
 
 		// this.events.emit('session_removed', { sessionKey: clientId })
 		// if (this.sessions.size === 0) {
@@ -629,7 +638,11 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			return
 		}
 		if (session.socket.isOpen()) {
-			session.socket.sendMessage(message)
+			try {
+				session.socket.sendMessage(message)
+			} catch (e) {
+				this.markClientForRemoval(session.clientId)
+			}
 		} else {
 			this.markClientForRemoval(session.clientId)
 		}
@@ -672,7 +685,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			this.sendDownstreamMessage(client.clientId, {
 				type: 'patch',
 				diff: res.value,
-				serverClock: this.synced.clock.value,
+				serverClock: this.clock.value,
 			})
 		})
 		return this
@@ -684,29 +697,57 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	)
 
 	private readonly goingDownstreamPatchBuffer = atom<{
-		changes: Changes<R>
+		touchedRecords: Record<string, null | R>
 		satisfiedPushes: SatisfiedPushes
-	}>('store.outgoingPatchBuffer', { changes: {}, satisfiedPushes: {} })
+	}>('store.outgoingPatchBuffer', { touchedRecords: {}, satisfiedPushes: {} })
 
-	get(key: string): R | undefined
-	get(key: IdOf<R>): R | undefined {
-		if (!this.upstream) {
-			return this.synced.records.value[key]?.value.state
-		}
-		const pendingRecord = this.pending.records.value[key]?.value
-		if (pendingRecord) return pendingRecord
-		const hasPendingDeletion = !!this.pending.tombstones.value[key]
-		if (hasPendingDeletion) return undefined
+	private recordWillBeTouched(id: string, pushId?: PushId) {
+		if (this.downstreamClients.size === 0) return
 
-		return this.synced.records.value[key]?.value.state
+		const hasIdBeenTouchedAlready =
+			typeof this.goingDownstreamPatchBuffer.value.touchedRecords[id] === 'undefined'
+
+		this.goingDownstreamPatchBuffer.update(({ touchedRecords, satisfiedPushes }) => {
+			return {
+				touchedRecords: hasIdBeenTouchedAlready
+					? touchedRecords
+					: {
+							...touchedRecords,
+							[id]: this.get(id) ?? null,
+					  },
+				satisfiedPushes: addPush(satisfiedPushes, pushId),
+			}
+		})
 	}
 
-	private setSynced(record: R, nextClock?: number, pushId?: PushId) {
-		if (nextClock === undefined) {
-			nextClock = this.synced.clock.value + 1
-			this.synced.clock.set(nextClock)
+	private getLastChangedTimestamp(id: string): undefined | number {
+		const recordTimestamp = this.getRecordWithTimestamp(id)?.lastUpdatedAt
+		if (recordTimestamp) return recordTimestamp
+		const tombstoneTimestamp =
+			this.pending.tombstones.value[id] ?? this.synced.tombstones.value.deletions[id]
+		return tombstoneTimestamp
+	}
+
+	private getRecordWithTimestamp(id: string): RecordWithTimestamp<R> | undefined {
+		if (!this.upstream) {
+			return this.synced.records.value[id].value
 		}
+		const pendingRecord = this.pending.records.value[id]?.value
+		if (pendingRecord) return pendingRecord
+		const hasPendingDeletion = !!this.pending.tombstones.value[id]
+		if (hasPendingDeletion) return undefined
+
+		return this.synced.records.value[id]?.value
+	}
+
+	get(id: string): R | undefined
+	get(id: IdOf<R>): R | undefined {
+		return this.getRecordWithTimestamp(id)?.state
+	}
+
+	private setSynced(record: R, nextClock: number, pushId?: PushId) {
 		const id = record.id
+		this.recordWillBeTouched(id, pushId)
 		const existingAtom = this.synced.records.value[id]
 		if (existingAtom) {
 			existingAtom.set({ state: record, lastUpdatedAt: nextClock })
@@ -722,18 +763,9 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				)
 			}
 		}
-		if (this.downstreamClients.size) {
-			const prevRecord = existingAtom?.value.state as R | undefined
-			this.goingDownstreamPatchBuffer.update((prev) => {
-				return {
-					changes: addSetChange(prev.changes, prevRecord, record),
-					satisfiedPushes: addPush(prev.satisfiedPushes, pushId),
-				}
-			})
-		}
 	}
 
-	private addPushOp(cb: (changes: Changes<R>) => Changes<R>, pushId?: PushId) {
+	private addPushOp(cb: (changes: Changes<R>) => Changes<R>) {
 		this.pending.pushes.update((prev) => {
 			const prevOp = prev[prev.length - 1]
 			const ops = prev.slice(0)
@@ -742,14 +774,12 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 					pushId: prevOp.pushId,
 					changes: cb(prevOp.changes),
 					status: PushOpStatus.Unsent,
-					downstreamPushes: pushId ? [...prevOp.downstreamPushes, pushId] : prevOp.downstreamPushes,
 				}
 			} else {
 				ops.push({
 					pushId: nanoid(),
 					changes: cb({}),
 					status: PushOpStatus.Unsent,
-					downstreamPushes: pushId ? [pushId] : [],
 				})
 			}
 
@@ -759,32 +789,39 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		this.schedulePush()
 	}
 
-	private setPending(record: R, push: boolean, pushId?: PushId) {
+	private incrementClock(): number {
+		return this.clock.update((prev) => prev + 1)
+	}
+
+	private setPending(record: R, nextClock: number, push: boolean, pushId?: PushId) {
 		const id = record.id
+		this.recordWillBeTouched(id, pushId)
 		const existingAtom = this.pending.records.value[id]
-		const prevState = existingAtom?.value as R | undefined
+		const prevState = existingAtom?.value.state as R | undefined
 		if (existingAtom) {
-			existingAtom.set(record)
+			existingAtom.set({ state: record, lastUpdatedAt: nextClock })
 		} else {
-			const newAtom = atom('pending.records.' + id, record)
-			this.pending.records.set({ ...this.pending.records.value, [id]: newAtom })
+			this.pending.records.set({
+				...this.pending.records.value,
+				[id]: atom('pending.records.' + id, { state: record, lastUpdatedAt: nextClock }),
+			})
 			if (this.pending.tombstones.value[id]) {
 				this.pending.tombstones.update(({ [id]: _, ...tombstones }) => tombstones)
 			}
 		}
 		if (!push) return
 
-		this.addPushOp((changes) => addSetChange(changes, prevState, record), pushId)
+		this.addPushOp((changes) => addSetChange(changes, prevState, record, nextClock))
 	}
 
 	set(record: R, pushId?: PushId): void {
 		transact(() => {
 			if (!this.upstream || this.scopedTypes.session.has(record.typeName)) {
-				this.setSynced(record, undefined, pushId)
+				this.setSynced(record, this.incrementClock(), pushId)
 				return
 			}
 
-			this.setPending(record, true, pushId)
+			this.setPending(record, this.incrementClock(), true, pushId)
 		})
 	}
 
@@ -792,11 +829,8 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		// do the thing
 	}
 
-	private deleteSynced(id: string, nextClock?: number, sourcePush?: PushId) {
-		if (nextClock === undefined) {
-			nextClock = this.synced.clock.value + 1
-			this.synced.clock.set(nextClock)
-		}
+	private deleteSynced(id: string, nextClock: number, pushId?: PushId) {
+		this.recordWillBeTouched(id, pushId)
 		const existingAtom = this.synced.records.value[id]
 		if (!existingAtom) return
 
@@ -805,25 +839,16 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			deletions: { ...this.synced.tombstones.value.deletions, [id]: nextClock },
 			historyStartsAt: this.synced.tombstones.value.historyStartsAt,
 		})
-
-		if (this.downstreamClients.size) {
-			const prevRecord = existingAtom.value.state
-			this.goingDownstreamPatchBuffer.update((prev) => {
-				return {
-					changes: addDeleteChange(prev.changes, prevRecord),
-					satisfiedPushes: addPush(prev.satisfiedPushes, sourcePush),
-				}
-			})
-		}
 	}
 
-	private deletePending(id: string, push: boolean, pushId?: PushId) {
+	private deletePending(id: string, nextClock: number, push: boolean, pushId?: PushId) {
+		this.recordWillBeTouched(id, pushId)
 		const pendingRecordAtom = this.pending.records.value[id]
 		const syncedRecordAtom = this.synced.records.value[id]
 		// check whether there is anything to delete
 		if (!pendingRecordAtom && !syncedRecordAtom) return
 
-		const record = pendingRecordAtom?.value || syncedRecordAtom?.value.state
+		const record = pendingRecordAtom?.value.state || syncedRecordAtom?.value.state
 
 		if (pendingRecordAtom) {
 			// remove the pending atom
@@ -831,23 +856,23 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		}
 		if (syncedRecordAtom) {
 			// add a pending tombstone if there is a synced atom so we know it has been deleted
-			this.pending.tombstones.set({ ...this.pending.tombstones.value, [id]: true })
+			this.pending.tombstones.set({ ...this.pending.tombstones.value, [id]: nextClock })
 		}
 
 		if (!push) return
 
-		this.addPushOp((changes) => addDeleteChange(changes, record), pushId)
+		this.addPushOp((changes) => addDeleteChange(changes, record, nextClock))
 	}
 
 	delete(id: string, pushId?: PushId): void {
 		const typeName = id.slice(0, id.indexOf(':'))
 		transact(() => {
 			if (!this.upstream || this.scopedTypes.session.has(typeName)) {
-				this.deleteSynced(id, undefined, pushId)
+				this.deleteSynced(id, this.incrementClock(), pushId)
 				return
 			}
 
-			this.deletePending(id, true, pushId)
+			this.deletePending(id, this.incrementClock(), true, pushId)
 		})
 	}
 
@@ -867,16 +892,15 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				  )
 				: undefined,
 			clock: {
-				id: this.synced.clockId,
-				epoch: this.synced.clock.value,
+				id: this.clockId,
+				epoch: this.clock.value,
 			},
 		}
 	}
 
 	private syncUpstreamPatch(diff: NetworkDiff<R>) {
 		transact(() => {
-			const nextClock = this.synced.clock.value + 1
-			this.synced.clock.set(nextClock)
+			const nextClock = this.incrementClock()
 
 			for (const [id, op] of Object.entries(diff)) {
 				const existingRecord = this.synced.records.value[id]?.value.state as R | undefined
@@ -945,7 +969,20 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	}
 
 	private reapplyPendingChanges(changes: Changes<R>) {
+		let nextClock = undefined as undefined | number
+		const getNextClock = () => {
+			if (nextClock === undefined) {
+				nextClock = this.incrementClock()
+			}
+			return nextClock
+		}
+
 		for (const change of Object.values(changes)) {
+			// if the record was altered beneath this pending change, we need to update the timestamp to make sure
+			// it remains up-to-date after the change is applied
+			const lastChanged = this.getLastChangedTimestamp(change.record.id)
+			let clock =
+				lastChanged !== undefined && lastChanged > change.clock ? getNextClock() : change.clock
 			switch (change.op) {
 				case ChangeOpType.Set: {
 					let record = change.record
@@ -954,12 +991,17 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 						if (diff) {
 							record = applyObjectDiff(this.get(record.id) ?? change.prev, diff)
 						}
+						// if applying the diff to the current state produces a different record, we need to make sure the timestamp
+						// is bumped
+						if (!isEqual(record, change.record)) {
+							clock = getNextClock()
+						}
 					}
-					this.setPending(record, false)
+					this.setPending(record, clock, false)
 					break
 				}
 				case ChangeOpType.Delete:
-					this.deletePending(change.record.id, false)
+					this.deletePending(change.record.id, clock, false)
 					break
 				default:
 					exhaustiveSwitchError(change)
@@ -967,9 +1009,42 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		}
 	}
 
-	private scheduleRebase = rafThrottle(this.rebase)
+	private broadcastPatches = () => {
+		if (this.downstreamClients.size === 0) {
+			this.goingDownstreamPatchBuffer.set({ touchedRecords: {}, satisfiedPushes: {} })
+			return
+		}
 
-	private rebase() {
+		const { touchedRecords, satisfiedPushes } = this.goingDownstreamPatchBuffer.value
+		this.goingDownstreamPatchBuffer.set({ touchedRecords: {}, satisfiedPushes: {} })
+
+		const diff: NetworkDiff<R> = {}
+
+		for (const [id, prev] of Object.entries(touchedRecords)) {
+			const next = this.get(id)
+			if (prev && !next) {
+				diff[id] = [RecordOpType.Delete]
+			} else if (!prev && next) {
+				diff[id] = [RecordOpType.Set, next]
+			} else if (prev && next) {
+				const patch = diffRecord(prev, next)
+				if (patch) {
+					diff[id] = [RecordOpType.Patch, patch]
+				}
+			}
+		}
+
+		for (const client of this.downstreamClients.values()) {
+			this.sendDownstreamMessage(client.clientId, {
+				type: 'patch',
+				diff,
+				serverClock: this.clock.value,
+				satisfiedPushIds: satisfiedPushes[client.clientId],
+			})
+		}
+	}
+
+	private rebase = () => {
 		const incomingPatches = this.incomingFromUpstreamPatchBuffer.value
 		if (incomingPatches.length === 0) return
 
@@ -997,16 +1072,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 					if (nextOp.status === PushOpStatus.Unsent) {
 						throw new Error('Unexpected upstream push result while rebasing.')
 					}
-					if (nextOp.downstreamPushes.length) {
-						const satisfiedPushes = nextOp.downstreamPushes.reduce(
-							(satisfied, pushId) => addPush(satisfied, pushId),
-							this.goingDownstreamPatchBuffer.value.satisfiedPushes
-						)
-						this.goingDownstreamPatchBuffer.set({
-							changes: this.goingDownstreamPatchBuffer.value.changes,
-							satisfiedPushes,
-						})
-					}
 					// all good
 				}
 
@@ -1027,4 +1092,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			}
 		})
 	}
+
+	private scheduleBroadcastPatches = rafThrottle(this.broadcastPatches)
+	private scheduleRebase = rafThrottle(this.rebase)
 }
