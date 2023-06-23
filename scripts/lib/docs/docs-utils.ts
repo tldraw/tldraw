@@ -1,29 +1,67 @@
-import { ApiItem } from '@microsoft/api-extractor-model'
+import { ApiItem, ApiItemKind, ApiModel } from '@microsoft/api-extractor-model'
 import {
 	DocCodeSpan,
 	DocEscapedText,
 	DocFencedCode,
+	DocLinkTag,
 	DocNode,
 	DocParagraph,
 	DocPlainText,
 	DocSection,
 	DocSoftBreak,
 } from '@microsoft/tsdoc'
+import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
 import prettier from 'prettier'
 
-export function getPath(item: { canonicalReference: ApiItem['canonicalReference'] }): string {
-	return item.canonicalReference
-		.toString()
-		.replace(/^@tldraw\/([^!]+)/, '$1/')
-		.replace(/[!:()#.]/g, '-')
+function isOnParentPage(itemKind: ApiItemKind) {
+	switch (itemKind) {
+		case ApiItemKind.CallSignature:
+		case ApiItemKind.Class:
+		case ApiItemKind.EntryPoint:
+		case ApiItemKind.Enum:
+		case ApiItemKind.Function:
+		case ApiItemKind.Interface:
+		case ApiItemKind.Model:
+		case ApiItemKind.Namespace:
+		case ApiItemKind.Package:
+		case ApiItemKind.TypeAlias:
+		case ApiItemKind.Variable:
+		case ApiItemKind.None:
+			return false
+		case ApiItemKind.Constructor:
+		case ApiItemKind.ConstructSignature:
+		case ApiItemKind.EnumMember:
+		case ApiItemKind.Method:
+		case ApiItemKind.MethodSignature:
+		case ApiItemKind.Property:
+		case ApiItemKind.PropertySignature:
+		case ApiItemKind.IndexSignature:
+			return true
+		default:
+			exhaustiveSwitchError(itemKind)
+	}
+}
+
+function sanitizeReference(reference: string) {
+	return reference
+		.replace(/[!:()#.[\]]/g, '-')
 		.replace(/-+/g, '-')
 		.replace(/^-/, '')
 		.replace(/\/-/, '/')
 		.replace(/-$/, '')
 }
 
-export function getSlug(item: { canonicalReference: ApiItem['canonicalReference'] }): string {
-	return getPath(item).replace(/^[^/]+\//, '')
+export function getSlug(item: ApiItem): string {
+	return sanitizeReference(item.canonicalReference.toString().replace(/^@tldraw\/[^!]+!/, ''))
+}
+
+export function getPath(item: ApiItem): string {
+	if (isOnParentPage(item.kind)) {
+		const parentPath = getPath(assertExists(item.parent))
+		const childSlug = getSlug(item)
+		return `${parentPath}#${childSlug}`
+	}
+	return sanitizeReference(item.canonicalReference.toString().replace(/^@tldraw\/([^!]+)/, '$1/'))
 }
 
 const prettierConfigPromise = prettier.resolveConfig(__dirname)
@@ -57,11 +95,13 @@ export async function formatWithPrettier(
 }
 
 export class MarkdownWriter {
-	static async docNodeToMarkdown(docNode: DocNode) {
-		const writer = new MarkdownWriter()
+	static async docNodeToMarkdown(apiContext: ApiItem, docNode: DocNode) {
+		const writer = new MarkdownWriter(apiContext)
 		await writer.writeDocNode(docNode)
 		return writer.toString()
 	}
+
+	private constructor(private readonly apiContext: ApiItem) {}
 
 	private result = ''
 
@@ -102,6 +142,38 @@ export class MarkdownWriter {
 			)
 		} else if (docNode instanceof DocEscapedText) {
 			this.write(docNode.encodedText)
+		} else if (docNode instanceof DocLinkTag) {
+			if (docNode.urlDestination) {
+				this.write(
+					'[',
+					docNode.linkText ?? docNode.urlDestination,
+					'](',
+					docNode.urlDestination,
+					')'
+				)
+			} else {
+				assert(docNode.codeDestination)
+				const apiModel = getTopLevelModel(this.apiContext)
+				const refResult = apiModel.resolveDeclarationReference(
+					docNode.codeDestination,
+					this.apiContext
+				)
+
+				if (refResult.errorMessage) {
+					console.log(apiModel, apiModel.packages)
+					throw new Error(refResult.errorMessage)
+				}
+				const linkedItem = assertExists(refResult.resolvedApiItem)
+				const path = getPath(linkedItem)
+
+				this.write(
+					'[',
+					docNode.linkText ?? getDefaultReferenceText(linkedItem),
+					'](/gen/',
+					path,
+					')'
+				)
+			}
 		} else {
 			throw new Error(`Unknown docNode kind: ${docNode.kind}`)
 		}
@@ -117,4 +189,50 @@ export class MarkdownWriter {
 	toString() {
 		return this.result
 	}
+}
+
+function getDefaultReferenceText(item: ApiItem): string {
+	function parentPrefix(str: string, sep = '.'): string {
+		if (!item.parent) return str
+		return `${getDefaultReferenceText(item.parent)}${sep}${str}`
+	}
+	switch (item.kind) {
+		case ApiItemKind.CallSignature:
+			return parentPrefix(`${item.displayName}()`)
+		case ApiItemKind.Constructor:
+		case ApiItemKind.ConstructSignature: {
+			const parent = assertExists(item.parent)
+			return `new ${getDefaultReferenceText(parent)}()`
+		}
+		case ApiItemKind.EnumMember:
+		case ApiItemKind.Method:
+		case ApiItemKind.MethodSignature:
+		case ApiItemKind.Property:
+		case ApiItemKind.PropertySignature:
+			return parentPrefix(item.displayName)
+		case ApiItemKind.IndexSignature:
+			return parentPrefix(`[${item.displayName}]`, '')
+		case ApiItemKind.Class:
+		case ApiItemKind.EntryPoint:
+		case ApiItemKind.Enum:
+		case ApiItemKind.Function:
+		case ApiItemKind.Interface:
+		case ApiItemKind.Model:
+		case ApiItemKind.Namespace:
+		case ApiItemKind.Package:
+		case ApiItemKind.TypeAlias:
+		case ApiItemKind.Variable:
+		case ApiItemKind.None:
+			return item.displayName
+		default:
+			exhaustiveSwitchError(item.kind)
+	}
+}
+
+function getTopLevelModel(item: ApiItem): ApiModel {
+	const model = assertExists(item.getAssociatedModel())
+	if (model.parent) {
+		return getTopLevelModel(model.parent)
+	}
+	return model
 }

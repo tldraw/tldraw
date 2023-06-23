@@ -7769,9 +7769,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * A derived object containing either all current styles among the user's selected shapes, or
-	 * else the user's most recent style choices that correspond to the current active state (i.e.
-	 * the selected tool).
+	 * A map of all the current styles either in the current selection, or that are relevant to the
+	 * current tool.
+	 *
+	 * @example
+	 * ```ts
+	 * const color = editor.sharedStyles.get(DefaultColorStyle)
+	 * if (color && color.type === 'shared') {
+	 *   console.log('All selected shapes have the same color:', color.value)
+	 * }
+	 * ```
 	 *
 	 * @public
 	 */
@@ -7901,7 +7908,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the current styles
+	 * Set the value of a {@link @tldraw/tlschema#StyleProp}. This change will be applied to any
+	 * selected shapes, and any subsequently created shapes.
 	 *
 	 * @example
 	 * ```ts
@@ -7911,8 +7919,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param style - The style to set.
 	 * @param value - The value to set.
-	 * @param ephemeral - Whether the style change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
-	 * @param squashing - Whether the style change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
+	 * @param ephemeral - Whether the style change is ephemeral. Ephemeral changes don't get added
+	 * to the undo/redo stack. Defaults to false.
+	 * @param squashing - Whether the style change will be squashed into the existing history entry
+	 * rather than creating a new one. Defaults to false.
 	 *
 	 * @public
 	 */
