@@ -19,22 +19,13 @@ export async function getSidebarContentList({
 
 		if (section.id === 'gen') {
 			links.push({ type: 'article', title: 'API Reference', url: '/gen' })
-
-			// for (const category of section.categories) {
-			// 	if (category.id === 'ucg') {
-			// 		continue
-			// 	} else {
-			// 		children.push({
-			// 			type: 'article',
-			// 			title: category.title,
-			// 			url: `/${section.id}/${category.id}`,
-			// 		})
-			// 	}
-			// }
-
-			// links.push({ type: 'section', title: 'API Reference', url: '/gen', children })
 			continue
 		}
+
+		// If the article is in the getting-started section
+		// ... we place it at the top level of the sidebar
+		// ... so let's simplify its URL to reflect that
+		const sectionUrl = section.id === 'getting-started' ? '' : `/${section.id}`
 
 		for (const category of section.categories) {
 			if (category.id === 'ucg') {
@@ -43,13 +34,13 @@ export async function getSidebarContentList({
 				children.push({
 					type: 'category',
 					title: category.title,
-					url: `/${section.id}/${category.id}`,
+					url: `${sectionUrl}/${category.id}`,
 					children: category.articleIds.map((articleId) => {
 						const article = articles[articleId]
 						return {
 							type: 'article' as const,
 							title: article.title,
-							url: `/${section.id}/${category.id}/${articleId}`,
+							url: `${sectionUrl}/${category.id}/${articleId}`,
 						}
 					}),
 				})
@@ -64,14 +55,14 @@ export async function getSidebarContentList({
 						return {
 							type: 'article' as const,
 							title: article.title,
-							url: `/${section.id}/${category.id}/${articleId}`,
+							url: `${sectionUrl}/${articleId}`,
 						}
 					})
 				)
 			}
 		}
 
-		links.push({ type: 'section', title: section.title, url: `/${section.id}`, children })
+		links.push({ type: 'section', title: section.title, url: sectionUrl, children })
 	}
 
 	return {
