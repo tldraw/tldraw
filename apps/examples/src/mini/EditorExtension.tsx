@@ -4,7 +4,7 @@
 import { atom, computed } from '@tldraw/state'
 import { EditorEventOptions } from './editor-react'
 
-export type EditorExtensionConfig<Name, Options = any, Storage = any> = {
+export type EditorExtensionConfig<Name extends string = any, Options = any, Storage = any> = {
 	/**
 	 * Additional options
 	 */
@@ -15,12 +15,12 @@ export type EditorExtensionConfig<Name, Options = any, Storage = any> = {
 	 */
 	name: Name
 
-	addOptions?: (this: { name: Name }) => Options
+	addOptions?: () => Options
 
-	addStorage?: (this: { name: Name }) => Storage
-} & EditorEventOptions<EditorExtension<unknown, any, any>[]>
+	addStorage?: () => Storage
+} & EditorEventOptions<EditorExtension<Name, Options, Storage>[]>
 
-export class EditorExtension<Name, Options = any, Storage = any> {
+export class EditorExtension<Name extends string = any, Options = any, Storage = any> {
 	type = 'extension'
 
 	name = 'extension' as Name
@@ -60,15 +60,32 @@ export class EditorExtension<Name, Options = any, Storage = any> {
 		this._storage.set(storage)
 	}
 
-	static create<Name, O = any, S = any>(config = {} as EditorExtensionConfig<Name, O, S>) {
+	static create<N extends string = any, O = any, S = any>(
+		config = {} as EditorExtensionConfig<N, O, S>
+	) {
 		return new EditorExtension(config)
 	}
 }
 
-export type ExtractStorage<E extends EditorExtension<string>> = E extends EditorExtension<
-	infer N,
-	infer _,
-	infer S
->
-	? Record<N extends string ? N : never, S>
+// export type ExtractStorage<E extends EditorExtension<string>> = E extends EditorExtension<
+// 	infer N,
+// 	infer _,
+// 	infer S
+// >
+// 	? Record<N extends string ? N : never, S>
+// 	: never
+
+type Compute<T> = { [K in keyof T]: T[K] } & unknown
+type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
+	? I
 	: never
+
+export type ExtractStorage<T extends readonly EditorExtension[]> = Compute<
+	UnionToIntersection<
+		{
+			[K in keyof T]: { [R in T[K]['name']]: T[K]['storage'] }
+		}[number]
+	>
+>
+
+export type ExtractStorageKey<T extends readonly EditorExtension[]> = keyof ExtractStorage<T>

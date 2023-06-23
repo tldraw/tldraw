@@ -2,45 +2,46 @@
 
 import { Computed, computed } from '@tldraw/state'
 import { Editor } from './Editor'
-import { EditorExtension } from './EditorExtension'
+import { EditorExtension, ExtractStorage } from './EditorExtension'
 
-export class EditorExtensionManager<E extends EditorExtension[]> {
-	storage = {} as Computed<
-		E[number]['name'] extends string ? Record<E[number]['name'], E[number]['storage']> : never
-	>
+export class EditorExtensionManager<E extends readonly EditorExtension[]> {
+	storage = {} as Computed<ExtractStorage<E>>
 
 	constructor(public readonly editor: Editor<E>, public readonly extensions: E) {
 		this.storage = computed('extension storage', () => {
-			return Object.fromEntries(
-				extensions.map((e) => [e.name, e.storage])
-			) as E[number]['name'] extends string
-				? Record<E[number]['name'], E[number]['storage']>
-				: never
+			return Object.fromEntries(extensions.map((e) => [e.name, e.storage])) as ExtractStorage<E>
 		})
 
 		for (const extension of extensions) {
 			const { config } = extension
 
 			if (config.onBeforeCreate) {
-				this.editor.addListener('beforeCreate', config.onBeforeCreate)
+				const handler = config.onBeforeCreate.bind(this.editor)
+				this.editor.addListener('beforeCreate', handler)
 			}
 			if (config.onCreate) {
-				this.editor.addListener('create', config.onCreate)
+				const handler = config.onCreate.bind(this.editor)
+				this.editor.addListener('create', handler)
 			}
 			if (config.onUpdate) {
-				this.editor.addListener('update', config.onUpdate)
+				const handler = config.onUpdate.bind(this.editor)
+				this.editor.addListener('update', handler)
 			}
 			if (config.onChange) {
-				this.editor.addListener('change', config.onChange)
+				const handler = config.onChange.bind(this.editor)
+				this.editor.addListener('change', handler)
 			}
 			if (config.onFocus) {
-				this.editor.addListener('focus', config.onFocus)
+				const handler = config.onFocus.bind(this.editor)
+				this.editor.addListener('focus', handler)
 			}
 			if (config.onBlur) {
-				this.editor.addListener('blur', config.onBlur)
+				const handler = config.onBlur.bind(this.editor)
+				this.editor.addListener('blur', handler)
 			}
 			if (config.onDestroy) {
-				this.editor.addListener('destroy', config.onDestroy)
+				const handler = config.onDestroy.bind(this.editor)
+				this.editor.addListener('destroy', handler)
 			}
 		}
 	}

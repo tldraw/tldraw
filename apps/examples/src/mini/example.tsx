@@ -1,4 +1,4 @@
-import { EditorExtension } from './EditorExtension'
+import { EditorExtension, ExtractStorage } from './EditorExtension'
 import { EditorProvider, useEditor } from './editor-react'
 
 const MyAnimalExtension = EditorExtension.create({
@@ -33,6 +33,9 @@ function Example() {
 	const editor = useEditor({
 		extensions: [MyAnimalExtension, MyPersonExtension],
 	})
+
+	type E = [typeof MyAnimalExtension, typeof MyPersonExtension]
+	type K = ExtractStorage<E>
 
 	if (editor) {
 		const storage = editor?.storage

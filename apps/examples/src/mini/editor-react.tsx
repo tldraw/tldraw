@@ -1,10 +1,10 @@
-/* ---------------------- React --------------------- */
+/* eslint-disable import/no-extraneous-dependencies */
 
 import { DependencyList, createContext, useContext, useEffect, useRef, useState } from 'react'
 import { Editor, EditorEvents, EditorOptions } from './Editor'
 import { EditorExtension } from './EditorExtension'
 
-export interface EditorEventOptions<E extends EditorExtension[]> {
+export interface EditorEventOptions<E extends readonly EditorExtension[]> {
 	onBeforeCreate?: (props: EditorEvents<E>['beforeCreate']) => void | null
 	onCreate?: (props: EditorEvents<E>['create']) => void | null
 	onUpdate?: (props: EditorEvents<E>['update']) => void | null
@@ -15,9 +15,10 @@ export interface EditorEventOptions<E extends EditorExtension[]> {
 }
 
 // Editor
-export type UseEditorOptions<E extends EditorExtension[]> = EditorOptions<E> & EditorEventOptions<E>
+export type UseEditorOptions<E extends readonly EditorExtension[]> = EditorOptions<E> &
+	EditorEventOptions<E>
 
-export function useEditor<E extends EditorExtension[]>(
+export function useEditor<const E extends readonly EditorExtension[]>(
 	options = {} as UseEditorOptions<E>,
 	deps: DependencyList = []
 ) {

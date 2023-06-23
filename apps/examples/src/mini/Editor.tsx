@@ -1,7 +1,8 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import { atom, computed } from '@tldraw/state'
 import { HistoryEntry, Store, StoreSchema, StoreSnapshot } from '@tldraw/store'
 import { EventEmitter } from 'eventemitter3'
-import { EditorExtension } from './EditorExtension'
+import { EditorExtension, ExtractStorage } from './EditorExtension'
 import { EditorExtensionManager } from './EditorExtensionManager'
 import {
 	EditorRecord,
@@ -14,7 +15,7 @@ import {
 
 // Editor events
 
-export type EditorEvents<E extends EditorExtension<any>[]> = {
+export type EditorEvents<E extends readonly EditorExtension[]> = {
 	beforeCreate: { editor: Editor<E> }
 	create: { editor: Editor<E> }
 	update: { editor: Editor<E> }
@@ -24,12 +25,12 @@ export type EditorEvents<E extends EditorExtension<any>[]> = {
 	destroy: { editor: Editor<E> }
 }
 
-export interface EditorOptions<E extends EditorExtension<any>[]> {
+export interface EditorOptions<E extends readonly EditorExtension[]> {
 	initialData?: StoreSnapshot<EditorRecord>
 	extensions?: E
 }
 
-export class Editor<E extends EditorExtension<any>[]> extends EventEmitter<{
+export class Editor<const E extends readonly EditorExtension[]> extends EventEmitter<{
 	[K in keyof EditorEvents<E>]: [EditorEvents<E>[K]]
 }> {
 	store: Store<EditorRecord, EditorStoreProps>
@@ -55,7 +56,7 @@ export class Editor<E extends EditorExtension<any>[]> extends EventEmitter<{
 		this.extensions = new EditorExtensionManager<E>(this, (opts.extensions ?? []) as E)
 	}
 
-	static create<E extends EditorExtension<any>[]>(config: {
+	static create<E extends readonly EditorExtension[]>(config: {
 		initialData?: StoreSnapshot<EditorRecord>
 		extensions?: E
 	}) {
@@ -66,23 +67,19 @@ export class Editor<E extends EditorExtension<any>[]> extends EventEmitter<{
 
 	private _extensionStorage = atom(
 		'extension-storage',
-		{} as E[number]['name'] extends string ? Record<E[number]['name'], E[number]['storage']> : never // Record<string, E extends EditorExtension[]<infer _, infer S> ? S : never>
+		{} as ExtractStorage<E> // Record<string, E extends EditorExtension[]<infer _, infer S> ? S : never>
 	)
 
 	@computed public get storage() {
 		return this._extensionStorage.value
 	}
 
-	public set storage(
-		value: E[number]['name'] extends string
-			? Record<E[number]['name'], E[number]['storage']>
-			: never
-	) {
+	public set storage(value: ExtractStorage<E>) {
 		this._extensionStorage.set(value)
 	}
 
-	getStorage<T extends E[number]>(name: T['name']) {
-		return this.storage[name] as Extract<E[number], { name: typeof name }>
+	getStorage<Name extends keyof ExtractStorage<E>>(name: Name) {
+		return this.storage[name] as ExtractStorage<E>[Name]
 	}
 
 	/**

@@ -1,3 +1,5 @@
+/* eslint-disable import/no-extraneous-dependencies */
+
 import { BaseRecord, IdOf, RecordId, UnknownRecord, createRecordType } from '@tldraw/store'
 import { T } from '@tldraw/validate'
 
