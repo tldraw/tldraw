@@ -1,5 +1,6 @@
-import { EditorExtension, ExtractStorage } from './EditorExtension'
-import { EditorProvider, useEditor } from './editor-react'
+import { Editor } from './Editor'
+import { EditorExtension } from './EditorExtension'
+import { EditorProvider, useEditor, useEditorContext } from './editor-react'
 
 const MyAnimalExtension = EditorExtension.create({
 	name: 'animal',
@@ -29,22 +30,50 @@ const MyPersonExtension = EditorExtension.create({
 	},
 })
 
+const MyExtensions = [MyAnimalExtension, MyPersonExtension] as const
+
+type MyEditorType = Editor<typeof MyExtensions>
+
 function Example() {
 	const editor = useEditor({
 		extensions: [MyAnimalExtension, MyPersonExtension],
 	})
 
-	type E = [typeof MyAnimalExtension, typeof MyPersonExtension]
-	type K = ExtractStorage<E>
-
 	if (editor) {
+		// Works!
+		const compatibilityTest: MyEditorType = editor
+		compatibilityTest
+
+		editor.extensions.extensions.animal
+
 		const storage = editor?.storage
 		storage.animal
-		storage.person
+		storage.person.clicks
+		// @ts-expect-error person does not have tweets property
+		storage.person.tweets
+		// @ts-expect-error rat does not exist in storage
 		storage.rat
 
-		const t = editor.getStorage('person')
+		const person = editor.getExtension('person')
+		person.storage.clicks
+		// @ts-expect-error
+		person.storage.tweets
+
+		// @ts-expect-error
+		const rat = editor.getExtension('rat')
+		// @ts-expect-error
+		rat.storage.beeps
 	}
 
-	return <EditorProvider editor={editor}></EditorProvider>
+	return (
+		<EditorProvider editor={editor}>
+			<InsideEditor />
+		</EditorProvider>
+	)
+}
+
+function InsideEditor() {
+	const editor = useEditorContext<MyEditorType>()
+
+	return <div>{editor.storage.person.clicks}</div>
 }

@@ -117,6 +117,6 @@ export function EditorProvider<E extends readonly EditorExtension[]>({
 	return <editorContext.Provider value={editor}>{children}</editorContext.Provider>
 }
 
-export function useEditorContext<E extends EditorExtension[]>() {
-	return useContext(editorContext) as Editor<E>
+export function useEditorContext<X extends Editor<any>>() {
+	return useContext(editorContext) as X
 }

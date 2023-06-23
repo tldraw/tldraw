@@ -2,8 +2,9 @@
 import { atom, computed } from '@tldraw/state'
 import { HistoryEntry, Store, StoreSchema, StoreSnapshot } from '@tldraw/store'
 import { EventEmitter } from 'eventemitter3'
-import { EditorExtension, ExtractStorage } from './EditorExtension'
+import { EditorExtension, ExtractExtensions, ExtractStorage } from './EditorExtension'
 import { EditorExtensionManager } from './EditorExtensionManager'
+import { EditorHistoryManager } from './EditorHistoryManager/EditorHistoryManager'
 import {
 	EditorRecord,
 	EditorStoreProps,
@@ -23,6 +24,10 @@ export type EditorEvents<X extends Editor<any>> = {
 	focus: { editor: X }
 	blur: { editor: X }
 	destroy: { editor: X }
+	'mark-history': { editor: X; id: string }
+	'change-history':
+		| { editor: X; reason: 'undo' | 'redo' | 'push' }
+		| { editor: X; reason: 'bail'; markId?: string }
 }
 
 export interface EditorOptions<E extends readonly EditorExtension[]> {
@@ -36,6 +41,8 @@ export class Editor<const E extends readonly EditorExtension[]> extends EventEmi
 	store: Store<EditorRecord, EditorStoreProps>
 
 	extensions: EditorExtensionManager<E>
+
+	history: EditorHistoryManager<E>
 
 	constructor(opts: EditorOptions<E>) {
 		super()
@@ -53,6 +60,18 @@ export class Editor<const E extends readonly EditorExtension[]> extends EventEmi
 			props: {},
 		})
 
+		this.store.listen((change) => {
+			this.emit('change', { editor: this, change })
+		})
+
+		this.history = new EditorHistoryManager<E>(
+			this,
+			// on complete
+			() => void null,
+			// on error
+			() => void null
+		)
+
 		this.extensions = new EditorExtensionManager<E>(this, (opts.extensions ?? []) as E)
 	}
 
@@ -63,6 +82,20 @@ export class Editor<const E extends readonly EditorExtension[]> extends EventEmi
 		return new Editor(config)
 	}
 
+	/** Get an extension by its name.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getExtension('chart')
+	 * ```
+	 *
+	 * @returns The extension with the given name.
+	 * @public
+	 */
+	getExtension<Name extends keyof ExtractExtensions<E>>(name: Name) {
+		return this.extensions.extensions[name]
+	}
+
 	// Extension storage, set by extension manager
 
 	private _extensionStorage = atom(
@@ -70,16 +103,22 @@ export class Editor<const E extends readonly EditorExtension[]> extends EventEmi
 		{} as ExtractStorage<E> // Record<string, E extends EditorExtension[]<infer _, infer S> ? S : never>
 	)
 
+	/** Get a map of all storage from all extensions.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.storage
+	 * ```
+	 *
+	 * @returns The editor's extension storage.
+	 * @public
+	 */
 	@computed public get storage() {
 		return this._extensionStorage.value
 	}
 
 	public set storage(value: ExtractStorage<E>) {
 		this._extensionStorage.set(value)
-	}
-
-	getStorage<Name extends keyof ExtractStorage<E>>(name: Name) {
-		return this.storage[name] as ExtractStorage<E>[Name]
 	}
 
 	/**
