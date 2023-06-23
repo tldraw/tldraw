@@ -54,7 +54,7 @@ test.describe('smoke tests', () => {
 
 		expect(await getAllShapeTypes(page)).toEqual(['geo'])
 		expect(await page.getByTestId('main.undo').isDisabled()).not.toBe(true)
-		expect(await page.getByTestId('main.redo').isDisabled()).toBe(true)
+		expect(await page.getByTestId('main.redo').isDisabled()).toBe(false)
 	})
 
 	test('style panel + undo and redo squashing', async ({ page }) => {
