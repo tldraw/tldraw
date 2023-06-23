@@ -4,19 +4,19 @@ import { DependencyList, createContext, useContext, useEffect, useRef, useState 
 import { Editor, EditorEvents, EditorOptions } from './Editor'
 import { EditorExtension } from './EditorExtension'
 
-export interface EditorEventOptions<E extends readonly EditorExtension[]> {
-	onBeforeCreate?: (props: EditorEvents<E>['beforeCreate']) => void | null
-	onCreate?: (props: EditorEvents<E>['create']) => void | null
-	onUpdate?: (props: EditorEvents<E>['update']) => void | null
-	onChange?: (props: EditorEvents<E>['change']) => void | null
-	onFocus?: (props: EditorEvents<E>['focus']) => void | null
-	onBlur?: (props: EditorEvents<E>['blur']) => void | null
-	onDestroy?: (props: EditorEvents<E>['destroy']) => void | null
+export interface EditorEventOptions<X extends Editor<any>> {
+	onBeforeCreate?: (props: EditorEvents<X>['beforeCreate']) => void | null
+	onCreate?: (props: EditorEvents<X>['create']) => void | null
+	onUpdate?: (props: EditorEvents<X>['update']) => void | null
+	onChange?: (props: EditorEvents<X>['change']) => void | null
+	onFocus?: (props: EditorEvents<X>['focus']) => void | null
+	onBlur?: (props: EditorEvents<X>['blur']) => void | null
+	onDestroy?: (props: EditorEvents<X>['destroy']) => void | null
 }
 
 // Editor
 export type UseEditorOptions<E extends readonly EditorExtension[]> = EditorOptions<E> &
-	EditorEventOptions<E>
+	EditorEventOptions<Editor<E>>
 
 export function useEditor<const E extends readonly EditorExtension[]>(
 	options = {} as UseEditorOptions<E>,
@@ -106,7 +106,7 @@ export function useEditor<const E extends readonly EditorExtension[]>(
 
 const editorContext = createContext(undefined as any as Editor<any>)
 
-export function EditorProvider<E extends EditorExtension[]>({
+export function EditorProvider<E extends readonly EditorExtension[]>({
 	editor,
 	children,
 }: {

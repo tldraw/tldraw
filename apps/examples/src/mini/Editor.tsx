@@ -15,14 +15,14 @@ import {
 
 // Editor events
 
-export type EditorEvents<E extends readonly EditorExtension[]> = {
-	beforeCreate: { editor: Editor<E> }
-	create: { editor: Editor<E> }
-	update: { editor: Editor<E> }
-	change: { editor: Editor<E>; change: HistoryEntry<EditorRecord> }
-	focus: { editor: Editor<E> }
-	blur: { editor: Editor<E> }
-	destroy: { editor: Editor<E> }
+export type EditorEvents<X extends Editor<any>> = {
+	beforeCreate: { editor: X }
+	create: { editor: X }
+	update: { editor: X }
+	change: { editor: X; change: HistoryEntry<EditorRecord> }
+	focus: { editor: X }
+	blur: { editor: X }
+	destroy: { editor: X }
 }
 
 export interface EditorOptions<E extends readonly EditorExtension[]> {
@@ -31,7 +31,7 @@ export interface EditorOptions<E extends readonly EditorExtension[]> {
 }
 
 export class Editor<const E extends readonly EditorExtension[]> extends EventEmitter<{
-	[K in keyof EditorEvents<E>]: [EditorEvents<E>[K]]
+	[K in keyof EditorEvents<Editor<E>>]: [EditorEvents<Editor<E>>[K]]
 }> {
 	store: Store<EditorRecord, EditorStoreProps>
 

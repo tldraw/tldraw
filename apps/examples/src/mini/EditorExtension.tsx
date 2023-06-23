@@ -2,6 +2,7 @@
 // editor, set keyboard shortcuts, etc. Maybe we can scope this down further...
 
 import { atom, computed } from '@tldraw/state'
+import { Editor } from './Editor'
 import { EditorEventOptions } from './editor-react'
 
 export type EditorExtensionConfig<Name extends string = any, Options = any, Storage = any> = {
@@ -18,7 +19,7 @@ export type EditorExtensionConfig<Name extends string = any, Options = any, Stor
 	addOptions?: () => Options
 
 	addStorage?: () => Storage
-} & EditorEventOptions<EditorExtension<Name, Options, Storage>[]>
+} & EditorEventOptions<Editor<EditorExtension<Name, Options, Storage>[]>>
 
 export class EditorExtension<Name extends string = any, Options = any, Storage = any> {
 	type = 'extension'
