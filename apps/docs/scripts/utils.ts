@@ -160,7 +160,6 @@ export class MarkdownWriter {
 				)
 
 				if (refResult.errorMessage) {
-					console.log(apiModel, apiModel.packages)
 					throw new Error(refResult.errorMessage)
 				}
 				const linkedItem = assertExists(refResult.resolvedApiItem)
