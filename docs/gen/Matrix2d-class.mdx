@@ -1,0 +1,1530 @@
+---
+title: Matrix2d
+status: published
+category: primitives
+group: Class
+author: api
+date: 06/23/2023
+order: 55
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [a](#Matrix2d-a-member)
+  - [b](#Matrix2d-b-member)
+  - [c](#Matrix2d-c-member)
+  - [d](#Matrix2d-d-member)
+  - [e](#Matrix2d-e-member)
+  - [f](#Matrix2d-f-member)
+  - [Scale](#Matrix2d-Scale-member)
+- [Methods](#methods)
+  - [Absolute](#Matrix2d-Absolute-member-1)
+  - [applyToBounds](#Matrix2d-applyToBounds-member-1)
+  - [applyToPoint](#Matrix2d-applyToPoint-member-1)
+  - [applyToPoint](#Matrix2d-applyToPoint-member-1)
+  - [applyToPoints](#Matrix2d-applyToPoints-member-1)
+  - [applyToPoints](#Matrix2d-applyToPoints-member-1)
+  - [applyToXY](#Matrix2d-applyToXY-member-1)
+  - [clone](#Matrix2d-clone-member-1)
+  - [Compose](#Matrix2d-Compose-member-1)
+  - [decompose](#Matrix2d-decompose-member-1)
+  - [Decompose](#Matrix2d-Decompose-member-1)
+  - [decomposed](#Matrix2d-decomposed-member-1)
+  - [equals](#Matrix2d-equals-member-1)
+  - [From](#Matrix2d-From-member-1)
+  - [identity](#Matrix2d-identity-member-1)
+  - [Identity](#Matrix2d-Identity-member-1)
+  - [Inverse](#Matrix2d-Inverse-member-1)
+  - [invert](#Matrix2d-invert-member-1)
+  - [multiply](#Matrix2d-multiply-member-1)
+  - [Multiply](#Matrix2d-Multiply-member-1)
+  - [rotate](#Matrix2d-rotate-member-1)
+  - [Rotate](#Matrix2d-Rotate-member-1)
+  - [scale](#Matrix2d-scale-member-1)
+  - [setTo](#Matrix2d-setTo-member-1)
+  - [Smooth](#Matrix2d-Smooth-member-1)
+  - [toCssString](#Matrix2d-toCssString-member-1)
+  - [toCssString](#Matrix2d-toCssString-member-1)
+  - [translate](#Matrix2d-translate-member-1)
+  - [Translate](#Matrix2d-Translate-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class Matrix2d {}
+```
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `Matrix2d` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`a`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`b`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`c`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`d`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`e`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`f`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+---
+
+## Properties
+
+### `a` \{#Matrix2d-a-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+a: number
+```
+
+---
+
+### `b` \{#Matrix2d-b-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+b: number
+```
+
+---
+
+### `c` \{#Matrix2d-c-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+c: number
+```
+
+---
+
+### `d` \{#Matrix2d-d-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+d: number
+```
+
+---
+
+### `e` \{#Matrix2d-e-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+e: number
+```
+
+---
+
+### `f` \{#Matrix2d-f-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+f: number
+```
+
+---
+
+### `Scale` \{#Matrix2d-Scale-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static Scale: {
+  (x: number, y: number): Matrix2dModel
+  (x: number, y: number, cx: number, cy: number): Matrix2dModel
+}
+```
+
+##### References
+
+[Matrix2dModel](/gen/primitives/Matrix2dModel-interface)
+
+---
+
+## Methods
+
+### `Absolute()` \{#Matrix2d-Absolute-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2dModel
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type), [Matrix2dModel](/gen/primitives/Matrix2dModel-interface)
+
+---
+
+### `applyToBounds()` \{#Matrix2d-applyToBounds-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`box`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `applyToPoint()` \{#Matrix2d-applyToPoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `applyToPoint()` \{#Matrix2d-applyToPoint-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type), [VecLike](/gen/primitives/VecLike-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `applyToPoints()` \{#Matrix2d-applyToPoints-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `applyToPoints()` \{#Matrix2d-applyToPoints-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type), [VecLike](/gen/primitives/VecLike-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `applyToXY()` \{#Matrix2d-applyToXY-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number[]
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type)
+
+---
+
+### `clone()` \{#Matrix2d-clone-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `Compose()` \{#Matrix2d-Compose-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`matrices`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type), [Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `decompose()` \{#Matrix2d-decompose-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+MatrixInfo
+```
+
+##### References
+
+[MatrixInfo](/gen/primitives/MatrixInfo-interface)
+
+---
+
+### `Decompose()` \{#Matrix2d-Decompose-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+MatrixInfo
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type), [MatrixInfo](/gen/primitives/MatrixInfo-interface)
+
+---
+
+### `decomposed()` \{#Matrix2d-decomposed-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+MatrixInfo
+```
+
+##### References
+
+[MatrixInfo](/gen/primitives/MatrixInfo-interface)
+
+---
+
+### `equals()` \{#Matrix2d-equals-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Matrix2d | Matrix2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[Matrix2d](/gen/primitives/Matrix2d-class), [Matrix2dModel](/gen/primitives/Matrix2dModel-interface)
+
+---
+
+### `From()` \{#Matrix2d-From-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type), [Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `identity()` \{#Matrix2d-identity-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `Identity()` \{#Matrix2d-Identity-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `Inverse()` \{#Matrix2d-Inverse-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Matrix2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2dModel
+```
+
+##### References
+
+[Matrix2dModel](/gen/primitives/Matrix2dModel-interface)
+
+---
+
+### `invert()` \{#Matrix2d-invert-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `multiply()` \{#Matrix2d-multiply-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Matrix2d | Matrix2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Matrix2d](/gen/primitives/Matrix2d-class), [Matrix2dModel](/gen/primitives/Matrix2dModel-interface)
+
+---
+
+### `Multiply()` \{#Matrix2d-Multiply-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m1`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Matrix2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`m2`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Matrix2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2dModel
+```
+
+##### References
+
+[Matrix2dModel](/gen/primitives/Matrix2dModel-interface)
+
+---
+
+### `rotate()` \{#Matrix2d-rotate-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`r`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`cx`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`cy`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `Rotate()` \{#Matrix2d-Rotate-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`r`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`cx`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`cy`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `scale()` \{#Matrix2d-scale-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setTo()` \{#Matrix2d-setTo-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`model`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Matrix2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Matrix2dModel](/gen/primitives/Matrix2dModel-interface)
+
+---
+
+### `Smooth()` \{#Matrix2d-Smooth-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`precision`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+MatLike
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type)
+
+---
+
+### `toCssString()` \{#Matrix2d-toCssString-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+string
+```
+
+---
+
+### `toCssString()` \{#Matrix2d-toCssString-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`m`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+MatLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+string
+```
+
+##### References
+
+[MatLike](/gen/primitives/MatLike-type)
+
+---
+
+### `translate()` \{#Matrix2d-translate-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `Translate()` \{#Matrix2d-Translate-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+

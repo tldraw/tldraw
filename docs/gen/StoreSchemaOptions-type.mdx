@@ -1,0 +1,34 @@
+---
+title: StoreSchemaOptions
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 30
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type StoreSchemaOptions<R extends UnknownRecord, P> = {
+  snapshotMigrations?: Migrations
+  onValidationFailure?: (data: {
+    error: unknown
+    store: Store<R>
+    record: R
+    phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'
+    recordBefore: null | R
+  }) => R
+  createIntegrityChecker?: (store: Store<R, P>) => void
+}
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [Migrations](/gen/store/Migrations-interface), [Store](/gen/store/Store-class)
+
