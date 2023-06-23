@@ -2,7 +2,7 @@
 
 import { Computed, computed } from '@tldraw/state'
 import { Editor } from './Editor'
-import { EditorExtension, ExtractStorage } from './EditorExtension'
+import { EditorExtension, EditorExtensionConfigOf, ExtractStorage } from './EditorExtension'
 
 export class EditorExtensionManager<E extends readonly EditorExtension[]> {
 	storage = {} as Computed<ExtractStorage<E>>
@@ -13,7 +13,7 @@ export class EditorExtensionManager<E extends readonly EditorExtension[]> {
 		})
 
 		for (const extension of extensions) {
-			const { config } = extension
+			const config = extension.config as EditorExtensionConfigOf<E[number], Editor<E>>
 
 			if (config.onBeforeCreate) {
 				const handler = config.onBeforeCreate.bind(this.editor)

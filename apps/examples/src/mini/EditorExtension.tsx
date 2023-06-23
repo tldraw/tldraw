@@ -5,6 +5,13 @@ import { atom, computed } from '@tldraw/state'
 import { Editor } from './Editor'
 import { EditorEventOptions } from './editor-react'
 
+export type EditorExtensionConfigOf<
+	E extends EditorExtension,
+	X extends Editor<any>
+> = E extends EditorExtension<infer Name, infer Options, infer Storage>
+	? EditorExtensionConfig<Name, Options, Storage> & EditorEventOptions<X>
+	: never
+
 export type EditorExtensionConfig<Name extends string = any, Options = any, Storage = any> = {
 	/**
 	 * Additional options
@@ -19,14 +26,15 @@ export type EditorExtensionConfig<Name extends string = any, Options = any, Stor
 	addOptions?: () => Options
 
 	addStorage?: () => Storage
-} & EditorEventOptions<Editor<EditorExtension<Name, Options, Storage>[]>>
+}
 
 export class EditorExtension<Name extends string = any, Options = any, Storage = any> {
 	type = 'extension'
 
 	name = 'extension' as Name
 
-	config: EditorExtensionConfig<Name, Options, Storage> = {
+	config: EditorExtensionConfig<Name, Options, Storage> &
+		EditorEventOptions<Editor<EditorExtension<Name, Options, Storage>[]>> = {
 		name: this.name,
 		defaultOptions: {} as Options,
 	}
@@ -35,7 +43,10 @@ export class EditorExtension<Name extends string = any, Options = any, Storage =
 
 	_storage = atom(this.name + '_storage', {} as Storage)
 
-	constructor(config = {} as EditorExtensionConfig<Name, Options, Storage>) {
+	constructor(
+		config = {} as EditorExtensionConfig<Name, Options, Storage> &
+			EditorEventOptions<Editor<EditorExtension<Name, Options, Storage>[]>>
+	) {
 		this.config = { ...this.config, ...config }
 
 		// Options
@@ -62,7 +73,8 @@ export class EditorExtension<Name extends string = any, Options = any, Storage =
 	}
 
 	static create<N extends string = any, O = any, S = any>(
-		config = {} as EditorExtensionConfig<N, O, S>
+		config = {} as EditorExtensionConfig<N, O, S> &
+			EditorEventOptions<Editor<EditorExtension<N, O, S>[]>>
 	) {
 		return new EditorExtension(config)
 	}
