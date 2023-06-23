@@ -804,7 +804,7 @@ export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'ass
 }
 
 // @public (undocumented)
-export interface TLBaseShape<Type extends string, Props extends object> extends BaseRecord<'shape', TLShapeId> {
+export interface TLBaseShape<Type extends string, Props extends object | Record<string, T.Validatable<any>>> extends BaseRecord<'shape', TLShapeId> {
     // (undocumented)
     index: string;
     // (undocumented)
@@ -814,7 +814,9 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     // (undocumented)
     parentId: TLParentId;
     // (undocumented)
-    props: Props;
+    props: Expand<{
+        [K in keyof Props]: Props[K] extends T.Validatable<infer U> ? U : Props[K];
+    }>;
     // (undocumented)
     rotation: number;
     // (undocumented)
