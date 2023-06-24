@@ -56,7 +56,6 @@ packages/assets/embed-icons
 packages/assets/fonts
 packages/assets/icons
 packages/assets/translations
-apps/webdriver/www/
 apps/examples/www/embed-icons
 apps/examples/www/fonts
 apps/examples/www/icons
@@ -80,3 +79,5 @@ apps/examples/build.esbuild.json
 
 apps/examples/e2e/test-results
 apps/examples/playwright-report
+
+docs/gen
