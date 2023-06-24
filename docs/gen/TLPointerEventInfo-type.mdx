@@ -1,0 +1,31 @@
+---
+title: TLPointerEventInfo
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 167
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLPointerEventInfo = TLBaseEventInfo & {
+  type: 'pointer'
+  name: TLPointerEventName
+  point: VecLike
+  pointerId: number
+  button: number
+  isPen: boolean
+} & TLPointerEventTarget
+```
+
+##### References
+
+[TLBaseEventInfo](/gen/editor/TLBaseEventInfo-interface), [TLPointerEventName](/gen/editor/TLPointerEventName-type), [VecLike](/gen/primitives/VecLike-type), [TLPointerEventTarget](/gen/editor/TLPointerEventTarget-type)
+

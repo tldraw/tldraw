@@ -8,7 +8,7 @@ import { nicelog } from './nicelog'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 const isBublic = basename(join(__dirname, '../..')) === 'bublic'
-export const REPO_ROOT = join(__dirname, isBublic ? '../../..' : '../..')
+export const REPO_ROOT = join(__dirname, isBublic ? '../../../' : '../..')
 export const BUBLIC_ROOT = join(__dirname, '../..')
 
 export async function readJsonIfExists(file: string) {

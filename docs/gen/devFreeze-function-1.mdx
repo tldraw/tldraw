@@ -1,0 +1,61 @@
+---
+title: devFreeze
+status: published
+category: store
+group: Function
+author: api
+date: 06/23/2023
+order: 9
+---<Small>Public Function</Small>
+
+Freeze an object when in development mode. Copied from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/freeze
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const frozen = devFreeze({ a: 1 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`object`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+The object to freeze.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+T
+```
+
+ The frozen object when in development mode, or else the object when in other modes.
+
+

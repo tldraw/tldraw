@@ -1,0 +1,31 @@
+---
+title: TLScribble
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 109
+---<Small>Public TypeAlias</Small>
+
+A type for the scribble used by tldraw.
+
+
+##### Signature
+
+
+```ts
+type TLScribble = {
+  points: Vec2dModel[]
+  size: number
+  color: TLCanvasUiColor
+  opacity: number
+  state: SetValue<typeof TL_SCRIBBLE_STATES>
+  delay: number
+}
+```
+
+##### References
+
+[Vec2dModel](/gen/tlschema/Vec2dModel-interface), [TLCanvasUiColor](/gen/tlschema/TLCanvasUiColor-type), [SetValue](/gen/tlschema/~SetValue-type), [TL_SCRIBBLE_STATES](/gen/tlschema/~TL_SCRIBBLE_STATES-var)
+

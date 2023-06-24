@@ -18,7 +18,7 @@ jobs:
   build:
     name: 'End to end tests'
     timeout-minutes: 60
-    runs-on: ubuntu-latest-16-cores-open # TODO: this should probably run on multiple OSes
+    runs-on: ubuntu-latest-16-cores-open
 
     steps:
       - name: Check out code
@@ -37,20 +37,34 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Build all projects
-        # the sed pipe makes sure that github annotations come through without
-        # turbo's prefix
-        run: "yarn build | sed -E 's/^.*? ::/::/'"
-
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium chrome
 
       - name: Run Playwright tests
-        run: yarn e2e
+        run: 'yarn e2e'
+        working-directory: apps/examples
 
       - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: playwright-report
-          path: playwright-report/
+          path: apps/examples/playwright-report
           retention-days: 30
+
+      - uses: shallwefootball/s3-upload-action@master
+        if: always()
+        name: Upload S3
+        id: s3
+        with:
+          aws_key_id: ${{ secrets.AWS_S3_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_S3_SECRET_KEY}}
+          aws_bucket: playwright-reports.tldraw.xyz
+          source_dir: apps/examples/playwright-report
+
+      - name: Log report to summary
+        if: always()
+        run: |
+          report_url="https://playwright-reports.tldraw.xyz/${{ steps.s3.outputs.object_key }}/index.html"
+          echo "Report: $report_url"
+          echo "## Playwright report" >> $GITHUB_STEP_SUMMARY
+          echo "* $report_url" >> $GITHUB_STEP_SUMMARY

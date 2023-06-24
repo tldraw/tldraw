@@ -1,0 +1,61 @@
+---
+title: isSerializable
+status: published
+category: editor
+group: Function
+author: api
+date: 06/23/2023
+order: 74
+---<Small>Public Function</Small>
+
+Get whether a value is serializable.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const A = isSerializable(1) // true
+const B = isSerializable('a') // true
+const C = isSerializable(true) // true
+const D = isSerializable(undefined) // false
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`value`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+any
+```
+
+The value to check.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
