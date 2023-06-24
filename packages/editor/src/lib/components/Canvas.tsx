@@ -61,10 +61,6 @@ export const Canvas = track(function Canvas() {
 
 	const events = useCanvasEvents()
 
-	React.useEffect(() => {
-		rCanvas.current?.focus()
-	}, [])
-
 	const shapeSvgDefs = useValue(
 		'shapeSvgDefs',
 		() => {
@@ -82,6 +78,9 @@ export const Canvas = track(function Canvas() {
 		[editor]
 	)
 
+	React.useEffect(() => {
+		rCanvas.current?.focus()
+	}, [])
 	return (
 		<div ref={rCanvas} draggable={false} className="tl-canvas" data-testid="canvas" {...events}>
 			{Background && <Background />}
