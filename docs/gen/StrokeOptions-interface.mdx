@@ -1,0 +1,187 @@
+---
+title: StrokeOptions
+status: published
+category: primitives
+group: Interface
+author: api
+date: 06/23/2023
+order: 86
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [easing](#StrokeOptions-easing-member)
+  - [end](#StrokeOptions-end-member)
+  - [last](#StrokeOptions-last-member)
+  - [simulatePressure](#StrokeOptions-simulatePressure-member)
+  - [size](#StrokeOptions-size-member)
+  - [smoothing](#StrokeOptions-smoothing-member)
+  - [start](#StrokeOptions-start-member)
+  - [streamline](#StrokeOptions-streamline-member)
+  - [thinning](#StrokeOptions-thinning-member)
+</details>
+
+The options object for `getStroke` or `getStrokePoints`.
+
+
+##### Signature
+
+
+```ts
+interface StrokeOptions {}
+```
+
+---
+
+## Properties
+
+### `easing` \{#StrokeOptions-easing-member}
+
+<Small>Public PropertySignature</Small>
+
+An easing function to apply to each point's pressure.
+
+
+##### Signature
+
+
+```ts
+easing?: (pressure: number) => number
+```
+
+---
+
+### `end` \{#StrokeOptions-end-member}
+
+<Small>Public PropertySignature</Small>
+
+Cap, taper and easing for the end of the line.
+
+
+##### Signature
+
+
+```ts
+end?: {
+  cap?: boolean
+  taper?: boolean | number
+  easing?: (distance: number) => number
+}
+```
+
+---
+
+### `last` \{#StrokeOptions-last-member}
+
+<Small>Public PropertySignature</Small>
+
+Whether to handle the points as a completed stroke.
+
+
+##### Signature
+
+
+```ts
+last?: boolean
+```
+
+---
+
+### `simulatePressure` \{#StrokeOptions-simulatePressure-member}
+
+<Small>Public PropertySignature</Small>
+
+Whether to simulate pressure based on velocity.
+
+
+##### Signature
+
+
+```ts
+simulatePressure?: boolean
+```
+
+---
+
+### `size` \{#StrokeOptions-size-member}
+
+<Small>Public PropertySignature</Small>
+
+The base size (diameter) of the stroke.
+
+
+##### Signature
+
+
+```ts
+size?: number
+```
+
+---
+
+### `smoothing` \{#StrokeOptions-smoothing-member}
+
+<Small>Public PropertySignature</Small>
+
+How much to soften the stroke's edges.
+
+
+##### Signature
+
+
+```ts
+smoothing?: number
+```
+
+---
+
+### `start` \{#StrokeOptions-start-member}
+
+<Small>Public PropertySignature</Small>
+
+Cap, taper and easing for the start of the line.
+
+
+##### Signature
+
+
+```ts
+start?: {
+  cap?: boolean
+  taper?: boolean | number
+  easing?: (distance: number) => number
+}
+```
+
+---
+
+### `streamline` \{#StrokeOptions-streamline-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+streamline?: number
+```
+
+---
+
+### `thinning` \{#StrokeOptions-thinning-member}
+
+<Small>Public PropertySignature</Small>
+
+The effect of pressure on the stroke's size.
+
+
+##### Signature
+
+
+```ts
+thinning?: number
+```
+
+---
+

@@ -1,0 +1,26 @@
+---
+title: TLCommand
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 116
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLCommand<Name extends string = any, Data = any> = {
+  type: 'command'
+  id: string
+  data: Data
+  name: Name
+  preservesRedoStack?: boolean
+}
+```
+

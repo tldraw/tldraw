@@ -1,0 +1,30 @@
+---
+title: TLShapeInfo
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 175
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
+  type: T['type']
+  util: TLShapeUtilConstructor<T>
+  props?: ShapeProps<T>
+  migrations?: Migrations
+  tool?: TLStateNodeConstructor
+}
+```
+
+##### References
+
+[TLUnknownShape](/gen/tlschema/TLUnknownShape-type), [TLShapeUtilConstructor](/gen/editor/TLShapeUtilConstructor-interface), [ShapeProps](/gen/tlschema/ShapeProps-type), [Migrations](/gen/store/Migrations-interface), [TLStateNodeConstructor](/gen/editor/TLStateNodeConstructor-interface)
+
