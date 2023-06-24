@@ -23,7 +23,7 @@ import {
 	ReleaseTag,
 } from '@microsoft/api-extractor-model'
 import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
-import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from './utils'
+import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from './docs-utils'
 
 type Result = { markdown: string }
 
