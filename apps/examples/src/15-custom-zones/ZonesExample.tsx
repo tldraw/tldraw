@@ -1,5 +1,6 @@
-import { DefaultColorThemePalette, Tldraw } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
+
 export default function Example() {
 	return (
 		<div className="tldraw__editor">
@@ -12,7 +13,7 @@ function CustomShareZone() {
 	return (
 		<div
 			style={{
-				backgroundColor: DefaultColorThemePalette.lightMode['light-blue'].solid,
+				backgroundColor: 'thistle',
 				width: '100%',
 				textAlign: 'center',
 				minWidth: '80px',
@@ -28,7 +29,7 @@ function CustomTopZone() {
 		<div
 			style={{
 				width: '100%',
-				backgroundColor: DefaultColorThemePalette.lightMode['light-green'].solid,
+				backgroundColor: 'dodgerblue',
 				textAlign: 'center',
 			}}
 		>
