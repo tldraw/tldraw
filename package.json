@@ -89,7 +89,8 @@
 		"prettier-plugin-organize-imports": "^3.2.2",
 		"rimraf": "^4.4.0",
 		"tsx": "^3.12.2",
-		"typescript": "^5.0.2"
+		"typescript": "^5.0.2",
+		"vercel": "^28.16.15"
 	},
 	"resolutions": {
 		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch"
