@@ -1,0 +1,31 @@
+---
+title: TLClickEventInfo
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 114
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLClickEventInfo = TLBaseEventInfo & {
+  type: 'click'
+  name: TLCLickEventName
+  point: VecLike
+  pointerId: number
+  button: number
+  phase: 'down' | 'settle' | 'up'
+} & TLPointerEventTarget
+```
+
+##### References
+
+[TLBaseEventInfo](/gen/editor/TLBaseEventInfo-interface), [TLCLickEventName](/gen/editor/TLCLickEventName-type), [VecLike](/gen/primitives/VecLike-type), [TLPointerEventTarget](/gen/editor/TLPointerEventTarget-type)
+

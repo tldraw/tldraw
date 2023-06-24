@@ -1,0 +1,231 @@
+---
+title: TLEventMap
+status: published
+category: editor
+group: Interface
+author: api
+date: 06/23/2023
+order: 132
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - ["change-history"](#TLEventMap-"change-history"-member)
+  - ["mark-history"](#TLEventMap-"mark-history"-member)
+  - ["max-shapes"](#TLEventMap-"max-shapes"-member)
+  - ["stop-camera-animation"](#TLEventMap-"stop-camera-animation"-member)
+  - ["stop-following"](#TLEventMap-"stop-following"-member)
+  - [change](#TLEventMap-change-member)
+  - [crash](#TLEventMap-crash-member)
+  - [event](#TLEventMap-event-member)
+  - [frame](#TLEventMap-frame-member)
+  - [mount](#TLEventMap-mount-member)
+  - [tick](#TLEventMap-tick-member)
+  - [update](#TLEventMap-update-member)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+interface TLEventMap {}
+```
+
+---
+
+## Properties
+
+### `"change-history"` \{#TLEventMap-"change-history"-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+'change-history': [
+  | {
+      reason: 'bail'
+      markId?: string
+    }
+  | {
+      reason: 'push' | 'redo' | 'undo'
+    }
+]
+```
+
+---
+
+### `"mark-history"` \{#TLEventMap-"mark-history"-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+'mark-history': [
+  {
+    id: string
+  }
+]
+```
+
+---
+
+### `"max-shapes"` \{#TLEventMap-"max-shapes"-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+'max-shapes': [
+  {
+    name: string
+    pageId: TLPageId
+    count: number
+  }
+]
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `"stop-camera-animation"` \{#TLEventMap-"stop-camera-animation"-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+'stop-camera-animation': []
+```
+
+---
+
+### `"stop-following"` \{#TLEventMap-"stop-following"-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+'stop-following': []
+```
+
+---
+
+### `change` \{#TLEventMap-change-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+change: [HistoryEntry<TLRecord>]
+```
+
+##### References
+
+[HistoryEntry](/gen/store/HistoryEntry-type), [TLRecord](/gen/tlschema/TLRecord-type)
+
+---
+
+### `crash` \{#TLEventMap-crash-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+crash: [
+  {
+    error: unknown
+  }
+]
+```
+
+---
+
+### `event` \{#TLEventMap-event-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+event: [TLEventInfo]
+```
+
+##### References
+
+[TLEventInfo](/gen/editor/TLEventInfo-type)
+
+---
+
+### `frame` \{#TLEventMap-frame-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+frame: [number]
+```
+
+---
+
+### `mount` \{#TLEventMap-mount-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+mount: []
+```
+
+---
+
+### `tick` \{#TLEventMap-tick-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+tick: [number]
+```
+
+---
+
+### `update` \{#TLEventMap-update-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+update: []
+```
+
+---
+

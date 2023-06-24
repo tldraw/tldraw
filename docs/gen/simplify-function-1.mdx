@@ -1,0 +1,74 @@
+---
+title: simplify
+status: published
+category: primitives
+group: Function
+author: api
+date: 06/23/2023
+order: 82
+---<Small>Public Function</Small>
+
+Simplify a line (using Ramer-Douglas-Peucker algorithm).
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+An array of points as [x, y, ...][]
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`tolerance`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The minimum line distance (also called epsilon).
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+VecLike[]
+```
+
+ Simplified array as [x, y, ...][]
+
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+

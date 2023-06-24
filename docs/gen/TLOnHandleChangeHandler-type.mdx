@@ -1,0 +1,30 @@
+---
+title: TLOnHandleChangeHandler
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 153
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLOnHandleChangeHandler<T extends TLShape> = (
+  shape: T,
+  info: {
+    handle: TLHandle
+    isPrecise: boolean
+  }
+) => TLShapePartial<T> | void
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLHandle](/gen/tlschema/TLHandle-interface), [TLShapePartial](/gen/tlschema/TLShapePartial-type)
+

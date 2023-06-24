@@ -1,0 +1,144 @@
+---
+title: TLResizeInfo
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 171
+---<Small>Public TypeAlias</Small>
+
+Info about a resize.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`newPoint`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The new local position of the shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`handle`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The handle being dragged.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`mode`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The type of resize.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`scaleX`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The scale in the x-axis.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`scaleY`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The scale in the y-axis.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`initialBounds`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The bounds of the shape at the start of the resize.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`initialShape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape at the start of the resize.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+type TLResizeInfo<T extends TLShape> = {
+  newPoint: Vec2d
+  handle: TLResizeHandle
+  mode: TLResizeMode
+  scaleX: number
+  scaleY: number
+  initialBounds: Box2d
+  initialShape: T
+}
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Vec2d](/gen/primitives/Vec2d-class), [TLResizeHandle](/gen/editor/TLResizeHandle-type), [TLResizeMode](/gen/editor/TLResizeMode-type), [Box2d](/gen/primitives/Box2d-class)
+

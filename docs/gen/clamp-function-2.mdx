@@ -1,0 +1,98 @@
+---
+title: clamp
+status: published
+category: primitives
+group: Function
+author: api
+date: 06/23/2023
+order: 6
+---<Small>Public Function</Small>
+
+Clamp a value into a range.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const A = clamp(0, 1, 10) // 1
+const B = clamp(11, 1, 10) // 10
+const C = clamp(5, 1, 10) // 5
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`n`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The number to clamp.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`min`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The minimum value.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`max`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The maximum value.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
