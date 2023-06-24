@@ -11,6 +11,5 @@
 **/_archive/*
 apps/docs/api-content.json
 apps/docs/content.json
-apps/webdriver/www/index.js
 apps/vscode/extension/editor/*
 apps/examples/www
