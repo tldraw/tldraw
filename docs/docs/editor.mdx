@@ -12,6 +12,16 @@ keywords:
   - select
 ---
 
+##### Table of Contents
+
+- [Introduction](#introduction)
+- [State](#state)
+- [Events and Tools](#events-and-tools)
+- [Inputs](#inputs)
+- [Common things to do with the editor](#common-things-to-do-with-the-editor)
+
+## Introduction
+
 The `Editor` class is the main way of controlling tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
 
 By design, the `Editor`'s surface area is [very large](/gen/editor/Editor-class). Almost everything is available through it. Need to create some shapes? Use `editor.createShapes()`. Need to delete them? Use `editor.deleteShapes()`. Need a sorted array of every shape on the current page? Use `editor.sortedShapesArray`.
