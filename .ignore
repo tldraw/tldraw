@@ -17,5 +17,4 @@ apps/example/www/index.css
 **/dist/*
 *.cjs
 
-bublic/packages/tldraw/ui.css
-bublic/packages/tldraw/editor.css
+packages/tldraw/tldraw.css
