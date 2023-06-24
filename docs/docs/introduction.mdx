@@ -10,18 +10,41 @@ Welcome to the tldraw developer docs.
 
 Here at tldraw, we make two things: a very good multiplayer whiteboard (at [tldraw.com](https://tldraw.com)), and the [open source library](https://github.com/tldraw/tldraw) that powers it. This page provides documentation and reference for that open source library.
 
-```tsx 
-import { Tldraw } from '@tldraw/tldraw'
+<Playground files={{
+	'App.tsx': {
+		code: `import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
+import './styles.css'
 
-export default function () {
+export default function App() {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
 			<Tldraw />
 		</div>
 	)
+}`, active: true },
+'styles.css': {
+		code: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+
+html,
+body {
+	padding: 0px;
+	margin: 0px;
+	font-family: 'Inter', sans-serif;
+	overscroll-behavior: none;
+	touch-action: none;
+	overflow: hidden;
+	min-height: 100vh;
+	/* mobile viewport bug fix */
+	min-height: -webkit-fill-available;
+	height: 100%;
 }
-```
+
+html,
+* {
+	box-sizing: border-box;
+}`, active: false }
+}}/>
 
 You can use the `<Tldraw>` React component to build on top of the default tldraw experience. It's easy to use and easy to extend with your own [custom shapes](/docs/shapes), [custom tools](/docs/tools), and [user interface](/docs/user-interface) overrides. 
 
