@@ -26,8 +26,6 @@ import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	Box2dModel,
 	CameraRecordType,
-	DefaultColorStyle,
-	DefaultFontStyle,
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
@@ -60,6 +58,7 @@ import {
 	TLVideoAsset,
 	Vec2dModel,
 	createShapeId,
+	getDefaultColorTheme,
 	getShapePropKeysByStyle,
 	isPageId,
 	isShape,
@@ -73,7 +72,6 @@ import {
 	deepCopy,
 	getOwnProperty,
 	hasOwnProperty,
-	objectMapFromEntries,
 	partition,
 	sortById,
 	structuredClone,
@@ -108,7 +106,6 @@ import {
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
-import { exportPatternSvgDefs } from '../hooks/usePattern'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
@@ -131,8 +128,7 @@ import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/arro
 import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
 import { FrameShapeUtil } from './shapes/frame/FrameShapeUtil'
 import { GroupShapeUtil } from './shapes/group/GroupShapeUtil'
-import { TLExportColors } from './shapes/shared/TLExportColors'
-import { TextShapeUtil } from './shapes/text/TextShapeUtil'
+import { SvgExportContext, SvgExportDef } from './shapes/shared/SvgExportContext'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
@@ -7730,8 +7726,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		} else {
 			const util = this.getShapeUtil(shape)
-			for (const [style, value] of util.iterateStyles(shape)) {
-				sharedStyleMap.applyValue(style, value)
+			for (const [style, propKey] of util.styleProps) {
+				sharedStyleMap.applyValue(style, getOwnProperty(shape.props, propKey))
 			}
 		}
 	}
@@ -7763,6 +7759,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getStyleForNextShape<T>(style: StyleProp<T>): T {
 		const value = this._stylesForNextShape[style.id]
 		return value === undefined ? style.defaultValue : (value as T)
+	}
+
+	getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined {
+		const util = this.getShapeUtil(shape)
+		const styleKey = util.styleProps.get(style)
+		if (styleKey === undefined) return undefined
+		return getOwnProperty(shape.props, styleKey) as T | undefined
 	}
 
 	/**
@@ -7921,7 +7924,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				} = this
 
 				if (selectedIds.length > 0) {
-					const updates: { originalShape: TLShape; updatePartial: TLShapePartial }[] = []
+					const updates: {
+						util: ShapeUtil
+						originalShape: TLShape
+						updatePartial: TLShapePartial
+					}[] = []
 
 					// We can have many deep levels of grouped shape
 					// Making a recursive function to look through all the levels
@@ -7935,15 +7942,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 						} else {
 							const util = this.getShapeUtil(shape)
-							if (util.hasStyle(style)) {
+							const stylePropKey = util.styleProps.get(style)
+							if (stylePropKey) {
 								const shapePartial: TLShapePartial = {
 									id: shape.id,
 									type: shape.type,
-									props: {},
+									props: { [stylePropKey]: value },
 								}
 								updates.push({
+									util,
 									originalShape: shape,
-									updatePartial: util.setStyleInPartial(style, shapePartial, value),
+									updatePartial: shapePartial,
 								})
 							}
 						}
@@ -7957,51 +7966,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 						updates.map(({ updatePartial }) => updatePartial),
 						ephemeral
 					)
-
-					// TODO: find a way to sink this stuff into shape utils directly?
-					const changes: TLShapePartial[] = []
-					for (const { originalShape: originalShape } of updates) {
-						const currentShape = this.getShapeById(originalShape.id)
-						if (!currentShape) continue
-						const boundsA = this.getBounds(originalShape)
-						const boundsB = this.getBounds(currentShape)
-
-						const change: TLShapePartial = { id: originalShape.id, type: originalShape.type }
-
-						let didChange = false
-
-						if (boundsA.width !== boundsB.width) {
-							didChange = true
-
-							if (this.isShapeOfType(originalShape, TextShapeUtil)) {
-								switch (originalShape.props.align) {
-									case 'middle': {
-										change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
-										break
-									}
-									case 'end': {
-										change.x = currentShape.x + boundsA.width - boundsB.width
-										break
-									}
-								}
-							} else {
-								change.x = currentShape.x + (boundsA.width - boundsB.width) / 2
-							}
-						}
-
-						if (boundsA.height !== boundsB.height) {
-							didChange = true
-							change.y = currentShape.y + (boundsA.height - boundsB.height) / 2
-						}
-
-						if (didChange) {
-							changes.push(change)
-						}
-					}
-
-					if (changes.length) {
-						this.updateShapes(changes, ephemeral)
-					}
 				}
 			}
 
@@ -8543,56 +8507,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			scale = 1,
 			background = false,
 			padding = SVG_PADDING,
-			darkMode = this.isDarkMode,
 			preserveAspectRatio = false,
 		} = opts
 
-		const realContainerEl = this.getContainer()
-		const realContainerStyle = getComputedStyle(realContainerEl)
-
-		// Get the styles from the container. We'll use these to pull out colors etc.
-		// NOTE: We can force force a light theme here because we don't want export
-		const fakeContainerEl = document.createElement('div')
-		fakeContainerEl.className = `tl-container tl-theme__${
-			darkMode ? 'dark' : 'light'
-		} tl-theme__force-sRGB`
-		document.body.appendChild(fakeContainerEl)
-
-		const containerStyle = getComputedStyle(fakeContainerEl)
-		const fontsUsedInExport = new Map<string, string>()
-
-		const colors: TLExportColors = {
-			fill: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}`),
-				])
-			),
-			pattern: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-pattern`),
-				])
-			),
-			semi: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-semi`),
-				])
-			),
-			highlight: objectMapFromEntries(
-				DefaultColorStyle.values.map((color) => [
-					color,
-					containerStyle.getPropertyValue(`--palette-${color}-highlight`),
-				])
-			),
-			text: containerStyle.getPropertyValue(`--color-text`),
-			background: containerStyle.getPropertyValue(`--color-background`),
-			solid: containerStyle.getPropertyValue(`--palette-solid`),
-		}
-
-		// Remove containerEl from DOM (temp DOM node)
-		document.body.removeChild(fakeContainerEl)
+		// todo: we shouldn't depend on the public theme here
+		const theme = getDefaultColorTheme(this)
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
@@ -8646,19 +8565,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (background) {
 			if (singleFrameShapeId) {
-				svg.style.setProperty('background', colors.solid)
+				svg.style.setProperty('background', theme.solid)
 			} else {
-				svg.style.setProperty('background-color', colors.background)
+				svg.style.setProperty('background-color', theme.background)
 			}
 		} else {
 			svg.style.setProperty('background-color', 'transparent')
-		}
-
-		// Add the defs to the svg
-		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
-
-		for (const element of Array.from(exportPatternSvgDefs(colors.solid))) {
-			defs.appendChild(element)
 		}
 
 		try {
@@ -8667,7 +8579,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// not implemented
 		}
 
+		// Add the defs to the svg
+		const defs = window.document.createElementNS('http://www.w3.org/2000/svg', 'defs')
 		svg.append(defs)
+
+		const exportDefPromisesById = new Map<string, Promise<void>>()
+		const exportContext: SvgExportContext = {
+			addExportDef: (def: SvgExportDef) => {
+				if (exportDefPromisesById.has(def.key)) return
+				const promise = (async () => {
+					const elements = await def.getElement()
+					if (!elements) return
+
+					const comment = document.createComment(`def: ${def.key}`)
+					defs.appendChild(comment)
+
+					for (const element of Array.isArray(elements) ? elements : [elements]) {
+						defs.appendChild(element)
+					}
+				})()
+				exportDefPromisesById.set(def.key, promise)
+			},
+		}
 
 		const unorderedShapeElements = (
 			await Promise.all(
@@ -8681,23 +8614,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					const util = this.getShapeUtil(shape)
 
-					let font: string | undefined
-					// TODO: `Editor` shouldn't know about `DefaultFontStyle`. We need another way
-					// for shapes to register fonts for export.
-					const fontFromShape = util.getStyleIfExists(DefaultFontStyle, shape)
-					if (fontFromShape) {
-						if (fontsUsedInExport.has(fontFromShape)) {
-							font = fontsUsedInExport.get(fontFromShape)!
-						} else {
-							// For some reason these styles aren't present in the fake element
-							// so we need to get them from the real element
-							font = realContainerStyle.getPropertyValue(`--tl-font-${fontFromShape}`)
-							fontsUsedInExport.set(fontFromShape, font)
-						}
-					}
-
-					let shapeSvgElement = await util.toSvg?.(shape, font, colors)
-					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, font, colors)
+					let shapeSvgElement = await util.toSvg?.(shape, exportContext)
+					let backgroundSvgElement = await util.toBackgroundSvg?.(shape, exportContext)
 
 					// wrap the shapes in groups so we can apply properties without overwriting ones from the shape util
 					if (shapeSvgElement) {
@@ -8717,8 +8635,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const elm = window.document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 						elm.setAttribute('width', bounds.width + '')
 						elm.setAttribute('height', bounds.height + '')
-						elm.setAttribute('fill', colors.solid)
-						elm.setAttribute('stroke', colors.pattern.grey)
+						elm.setAttribute('fill', theme.solid)
+						elm.setAttribute('stroke', theme.grey.pattern)
 						elm.setAttribute('stroke-width', '1')
 						shapeSvgElement = elm
 					}
@@ -8778,57 +8696,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		).flat()
 
+		await Promise.all(exportDefPromisesById.values())
+
 		for (const { element } of unorderedShapeElements.sort((a, b) => a.zIndex - b.zIndex)) {
 			svg.appendChild(element)
 		}
-
-		// Add styles to the defs
-		let styles = ``
-		const style = window.document.createElementNS('http://www.w3.org/2000/svg', 'style')
-
-		// Insert fonts into app
-		const fontInstances: FontFace[] = []
-
-		if ('fonts' in document) {
-			document.fonts.forEach((font) => fontInstances.push(font))
-		}
-
-		await Promise.all(
-			fontInstances.map(async (font) => {
-				const fileReader = new FileReader()
-
-				let isUsed = false
-
-				fontsUsedInExport.forEach((fontName) => {
-					if (fontName.includes(font.family)) {
-						isUsed = true
-					}
-				})
-
-				if (!isUsed) return
-
-				const url = (font as any).$$_url
-
-				const fontFaceRule = (font as any).$$_fontface
-
-				if (url) {
-					const fontFile = await (await fetch(url)).blob()
-
-					const base64Font = await new Promise<string>((resolve, reject) => {
-						fileReader.onload = () => resolve(fileReader.result as string)
-						fileReader.onerror = () => reject(fileReader.error)
-						fileReader.readAsDataURL(fontFile)
-					})
-
-					const newFontFaceRule = '\n' + fontFaceRule.replaceAll(url, base64Font)
-					styles += newFontFaceRule
-				}
-			})
-		)
-
-		style.textContent = styles
-
-		defs.append(style)
 
 		return svg
 	}

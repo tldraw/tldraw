@@ -12,21 +12,31 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
-import { TLDefaultDashStyle, TLGeoShape } from '@tldraw/tlschema'
+import {
+	DefaultFontFamilies,
+	getDefaultColorTheme,
+	TLDefaultDashStyle,
+	TLGeoShape,
+} from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { Editor } from '../../Editor'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnEditEndHandler, TLOnResizeHandler } from '../ShapeUtil'
+import { TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilCanvasSvgDef } from '../ShapeUtil'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	getFontDefForExport,
+} from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
-import { TLExportColors } from '../shared/TLExportColors'
 import { useForceSolid } from '../shared/useForceSolid'
 import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
 import { DashStyleOval, DashStyleOvalSvg } from './components/DashStyleOval'
@@ -502,9 +512,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	toSvg(shape: TLGeoShape, font: string, colors: TLExportColors) {
+	toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
 		const { id, props } = shape
 		const strokeWidth = STROKE_SIZES[props.size]
+		const theme = getDefaultColorTheme(this.editor)
+		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		let svgElm: SVGElement
 
@@ -519,7 +531,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							color: props.color,
 							fill: props.fill,
 							strokeWidth,
-							colors,
+							theme,
 						})
 						break
 
@@ -530,7 +542,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							h: props.h,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							theme,
 						})
 						break
 
@@ -543,7 +555,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							dash: props.dash,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							theme,
 						})
 						break
 				}
@@ -561,7 +573,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							dash: props.dash,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							theme,
 						})
 						break
 
@@ -572,7 +584,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							h: props.h,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							theme,
 						})
 						break
 
@@ -585,7 +597,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							dash: props.dash,
 							color: props.color,
 							fill: props.fill,
-							colors,
+							theme,
 						})
 				}
 				break
@@ -603,7 +615,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							strokeWidth,
 							outline,
 							lines,
-							colors,
+							theme,
 						})
 						break
 
@@ -614,7 +626,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							strokeWidth,
 							outline,
 							lines,
-							colors,
+							theme,
 						})
 						break
 
@@ -626,7 +638,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							strokeWidth,
 							outline,
 							lines,
-							colors,
+							theme,
 						})
 						break
 				}
@@ -637,21 +649,23 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		if (props.text) {
 			const bounds = this.editor.getBounds(shape)
 
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
+
 			const rootTextElm = getTextLabelSvgElement({
 				editor: this.editor,
 				shape,
-				font,
+				font: DefaultFontFamilies[shape.props.font],
 				bounds,
 			})
 
 			const textElm = rootTextElm.cloneNode(true) as SVGTextElement
-			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
+			textElm.setAttribute('fill', theme[shape.props.labelColor].solid)
 			textElm.setAttribute('stroke', 'none')
 
 			const textBgEl = rootTextElm.cloneNode(true) as SVGTextElement
 			textBgEl.setAttribute('stroke-width', '2')
-			textBgEl.setAttribute('fill', colors.background)
-			textBgEl.setAttribute('stroke', colors.background)
+			textBgEl.setAttribute('fill', theme.background)
+			textBgEl.setAttribute('stroke', theme.background)
 
 			const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 			groupEl.append(textBgEl)
@@ -669,6 +683,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		return svgElm
+	}
+
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return [getFillDefForCanvas()]
 	}
 
 	onResize: TLOnResizeHandler<TLGeoShape> = (

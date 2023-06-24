@@ -35,7 +35,9 @@ export async function cleanup({ page }: PlaywrightTestArgs) {
 export async function setupPage(page: PlaywrightTestArgs['page']) {
 	await page.goto('http://localhost:5420/end-to-end')
 	await page.waitForSelector('.tl-canvas')
-	await page.evaluate(() => editor.setAnimationSpeed(0))
+	await page.evaluate(() => {
+		editor.setAnimationSpeed(0)
+	})
 }
 
 export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
@@ -45,7 +47,9 @@ export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
 	await page.mouse.click(200, 250)
 	await page.keyboard.press('r')
 	await page.mouse.click(250, 300)
-	await page.evaluate(() => editor.selectNone())
+	await page.evaluate(() => {
+		editor.selectNone()
+	})
 }
 
 export async function cleanupPage(page: PlaywrightTestArgs['page']) {

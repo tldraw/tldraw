@@ -50,7 +50,6 @@ import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLBookmarkShape } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
-import { TLDefaultColorStyle } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLDrawShape } from '@tldraw/tlschema';
@@ -125,6 +124,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getBounds(shape: TLArrowShape): Box2d;
     // (undocumented)
+    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
+    // (undocumented)
     getCenter(shape: TLArrowShape): Vec2d;
     // (undocumented)
     getDefaultProps(): TLArrowShape['props'];
@@ -167,7 +168,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     snapPoints(_shape: TLArrowShape): Vec2d[];
     // (undocumented)
-    toSvg(shape: TLArrowShape, font: string, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLArrowShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "arrow";
 }
@@ -331,6 +332,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     getBounds(shape: TLDrawShape): Box2d;
     // (undocumented)
+    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
+    // (undocumented)
     getCenter(shape: TLDrawShape): Vec2d;
     // (undocumented)
     getDefaultProps(): TLDrawShape['props'];
@@ -355,7 +358,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLDrawShape>;
     // (undocumented)
-    toSvg(shape: TLDrawShape, _font: string | undefined, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLDrawShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "draw";
 }
@@ -506,6 +509,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
     getShapesAtPoint(point: VecLike): TLShape[];
+    // (undocumented)
+    getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<C extends {
         new (...args: any[]): ShapeUtil<any>;
         type: string;
@@ -825,7 +830,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     providesBackgroundForChildren(): boolean;
     // (undocumented)
-    toSvg(shape: TLFrameShape, font: string, colors: TLExportColors): Promise<SVGElement> | SVGElement;
+    toSvg(shape: TLFrameShape): Promise<SVGElement> | SVGElement;
     // (undocumented)
     static type: "frame";
 }
@@ -841,6 +846,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     component(shape: TLGeoShape): JSX.Element;
     // (undocumented)
     getBounds(shape: TLGeoShape): Box2d;
+    // (undocumented)
+    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     // (undocumented)
     getCenter(shape: TLGeoShape): Vec2d;
     // (undocumented)
@@ -946,7 +953,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLGeoShape>;
     // (undocumented)
-    toSvg(shape: TLGeoShape, font: string, colors: TLExportColors): SVGElement;
+    toSvg(shape: TLGeoShape, ctx: SvgExportContext): SVGElement;
     // (undocumented)
     static type: "geo";
 }
@@ -1093,7 +1100,7 @@ export function hardReset({ shouldReload }?: {
 export function hardResetEditor(): void;
 
 // @internal (undocumented)
-export const HASH_PATERN_ZOOM_NAMES: Record<string, string>;
+export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
 
 // @public (undocumented)
 export const HighlightShape: TLShapeInfo<TLHighlightShape>;
@@ -1131,9 +1138,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLHighlightShape>;
     // (undocumented)
-    toBackgroundSvg(shape: TLHighlightShape, font: string | undefined, colors: TLExportColors): SVGPathElement;
+    toBackgroundSvg(shape: TLHighlightShape): SVGPathElement;
     // (undocumented)
-    toSvg(shape: TLHighlightShape, _font: string | undefined, colors: TLExportColors): SVGPathElement;
+    toSvg(shape: TLHighlightShape): SVGPathElement;
     // (undocumented)
     static type: "highlight";
 }
@@ -1231,7 +1238,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLLineShape>;
     // (undocumented)
-    toSvg(shape: TLLineShape, _font: string, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLLineShape): SVGGElement;
     // (undocumented)
     static type: "line";
 }
@@ -1733,7 +1740,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
     // (undocumented)
     onEditEnd: TLOnEditEndHandler<TLNoteShape>;
     // (undocumented)
-    toSvg(shape: TLNoteShape, font: string, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "note";
 }
@@ -1857,15 +1864,12 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
     abstract getBounds(shape: Shape): Box2d;
+    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
     getCenter(shape: Shape): Vec2d;
     abstract getDefaultProps(): Shape['props'];
     getHandles?(shape: Shape): TLHandle[];
     getOutline(shape: Shape): Vec2d[];
     getOutlineSegments(shape: Shape): Vec2d[][];
-    // (undocumented)
-    getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined;
-    // (undocumented)
-    hasStyle(style: StyleProp<unknown>): boolean;
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
@@ -1875,8 +1879,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
     isClosed: TLShapeUtilFlag<Shape>;
-    // (undocumented)
-    iterateStyles(shape: Shape | TLShapePartial<Shape>): Generator<[StyleProp<unknown>, unknown], void, unknown>;
     onBeforeCreate?: TLOnBeforeCreateHandler<Shape>;
     onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>;
     // @internal
@@ -1909,8 +1911,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     snapPoints(shape: Shape): Vec2d[];
     // (undocumented)
     readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>;
-    toBackgroundSvg?(shape: Shape, font: string | undefined, colors: TLExportColors): null | Promise<SVGElement> | SVGElement;
-    toSvg?(shape: Shape, font: string | undefined, colors: TLExportColors): Promise<SVGElement> | SVGElement;
+    toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<SVGElement> | SVGElement;
+    toSvg?(shape: Shape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
     // (undocumented)
     readonly type: Shape['type'];
     static type: string;
@@ -2115,7 +2117,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
     // (undocumented)
     onResize: TLOnResizeHandler<TLTextShape>;
     // (undocumented)
-    toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors): SVGGElement;
+    toSvg(shape: TLTextShape, ctx: SvgExportContext): SVGGElement;
     // (undocumented)
     static type: "text";
 }

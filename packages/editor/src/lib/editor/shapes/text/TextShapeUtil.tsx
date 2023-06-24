@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { TLTextShape } from '@tldraw/tlschema'
+import { DefaultFontFamilies, getDefaultColorTheme, TLTextShape } from '@tldraw/tlschema'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
@@ -8,8 +8,9 @@ import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
-import { TLExportColors } from '../shared/TLExportColors'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { useEditableText } from '../shared/useEditableText'
 
 export { INDENT } from './TextHelpers'
@@ -36,21 +37,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			scale: 1,
 		}
 	}
-
-	// @computed
-	// private get minDimensionsCache() {
-	// 	return this.editor.store.createSelectedComputedCache<
-	// 		TLTextShape['props'],
-	// 		{ width: number; height: number },
-	// 		TLTextShape
-	// 	>(
-	// 		'text measure cache',
-	// 		(shape) => {
-	// 			return shape.props
-	// 		},
-	// 		(props) => getTextSize(this.editor, props)
-	// 	)
-	// }
 
 	getMinDimensions(shape: TLTextShape) {
 		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
@@ -149,7 +135,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
-	toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors) {
+	toSvg(shape: TLTextShape, ctx: SvgExportContext) {
+		ctx.addExportDef(getFontDefForExport(shape.props.font))
+
+		const theme = getDefaultColorTheme(this.editor)
 		const bounds = this.getBounds(shape)
 		const text = shape.props.text
 
@@ -158,7 +147,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const opts = {
 			fontSize: FONT_SIZES[shape.props.size],
-			fontFamily: font!,
+			fontFamily: DefaultFontFamilies[shape.props.font],
 			textAlign: shape.props.align,
 			verticalTextAlign: 'middle' as const,
 			width,
@@ -170,7 +159,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			overflow: 'wrap' as const,
 		}
 
-		const color = colors.fill[shape.props.color]
+		const color = theme[shape.props.color].solid
 		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const textBgEl = createTextSvgElementFromSpans(
@@ -178,9 +167,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			this.editor.textMeasure.measureTextSpans(text, opts),
 			{
 				...opts,
-				stroke: colors.background,
+				stroke: theme.background,
 				strokeWidth: 2,
-				fill: colors.background,
+				fill: theme.background,
 				padding: 0,
 			}
 		)

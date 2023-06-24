@@ -11,6 +11,7 @@ import React from 'react'
 import { stopEventPropagation } from '../../../utils/dom'
 import { isLegacyAlign } from '../../../utils/legacy'
 import { TextHelpers } from '../text/TextHelpers'
+import { useDefaultColorTheme } from './ShapeFill'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
 import { useEditableText } from './useEditableText'
 
@@ -53,6 +54,7 @@ export const TextLabel = React.memo(function TextLabel<
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.trim().length > 0
 	const legacyAlign = isLegacyAlign(align)
+	const theme = useDefaultColorTheme()
 
 	return (
 		<div
@@ -78,7 +80,7 @@ export const TextLabel = React.memo(function TextLabel<
 					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
 					minHeight: isEmpty ? LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 32 : 0,
 					minWidth: isEmpty ? 33 : 0,
-					color: `var(--palette-${labelColor})`,
+					color: theme[labelColor].solid,
 				}}
 			>
 				<div className="tl-text tl-text-content" dir="ltr">

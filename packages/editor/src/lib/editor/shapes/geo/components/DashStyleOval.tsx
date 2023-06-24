@@ -1,8 +1,12 @@
 import { toDomPrecision } from '@tldraw/primitives'
-import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
+import { TLDefaultColorTheme, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
-import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import {
+	ShapeFill,
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+	useDefaultColorTheme,
+} from '../../shared/ShapeFill'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import { getOvalPerimeter, getOvalSolidPath } from '../helpers'
 
@@ -17,6 +21,7 @@ export const DashStyleOval = React.memo(function DashStyleOval({
 	strokeWidth: number
 	id: TLShapeId
 }) {
+	const theme = useDefaultColorTheme()
 	const d = getOvalSolidPath(w, h)
 	const perimeter = getOvalPerimeter(w, h)
 
@@ -41,7 +46,7 @@ export const DashStyleOval = React.memo(function DashStyleOval({
 				width={toDomPrecision(w)}
 				height={toDomPrecision(h)}
 				fill="none"
-				stroke={`var(--palette-${color})`}
+				stroke={theme[color].solid}
 				strokeDasharray={strokeDasharray}
 				strokeDashoffset={strokeDashoffset}
 				pointerEvents="all"
@@ -56,12 +61,12 @@ export function DashStyleOvalSvg({
 	strokeWidth: sw,
 	dash,
 	color,
-	colors,
+	theme,
 	fill,
 }: Pick<TLGeoShape['props'], 'w' | 'h' | 'dash' | 'color' | 'fill'> & {
 	strokeWidth: number
 	id: TLShapeId
-	colors: TLExportColors
+	theme: TLDefaultColorTheme
 }) {
 	const d = getOvalSolidPath(w, h)
 	const perimeter = getOvalPerimeter(w, h)
@@ -82,7 +87,7 @@ export function DashStyleOvalSvg({
 	strokeElement.setAttribute('width', w.toString())
 	strokeElement.setAttribute('height', h.toString())
 	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', theme[color].solid)
 	strokeElement.setAttribute('stroke-dasharray', strokeDasharray)
 	strokeElement.setAttribute('stroke-dashoffset', strokeDashoffset)
 
@@ -91,7 +96,7 @@ export function DashStyleOvalSvg({
 		d,
 		fill,
 		color,
-		colors,
+		theme,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)
