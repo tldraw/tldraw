@@ -1,3 +1,5 @@
+// HEY THIS IS COPIED FROM THE WWW FODLER
+
 export type InputCategory = {
 	id: string
 	title: string

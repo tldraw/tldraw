@@ -1,36 +1,18 @@
 import fs from 'fs'
 import matter from 'gray-matter'
 import path from 'path'
-import authors from '../content/authors.json'
-import sections from '../content/sections.json'
+import authors from '../../../docs/authors.json'
 import {
 	Article,
 	Articles,
 	Category,
-	GeneratedContent,
-	Group,
+	InputSection,
 	MarkdownContent,
 	Section,
 	Status,
-} from '../types/content-types'
+} from './docs-types'
 
-const { log: nicelog } = console
-
-type InputCategory = {
-	id: string
-	title: string
-	description: string
-	groups: Group[]
-}
-
-type InputSection = {
-	id: string
-	title: string
-	description: string
-	categories: InputCategory[]
-}
-
-function generateSection(
+export function generateSection(
 	section: InputSection,
 	content: MarkdownContent,
 	articles: Articles
@@ -47,7 +29,7 @@ function generateSection(
 	)
 
 	// The file directory for this section
-	const dir = path.join(process.cwd(), 'content', section.id)
+	const dir = path.join(process.cwd(), '..', '..', 'bublic', 'docs', section.id)
 
 	fs.readdirSync(dir, { withFileTypes: false }).forEach((result: string | Buffer) => {
 		try {
@@ -185,45 +167,5 @@ function generateSection(
 			},
 			...section.categories.map(({ id }) => _categories[id]).filter((c) => c.articleIds.length > 0),
 		],
-	}
-}
-
-export async function generateContent(): Promise<GeneratedContent> {
-	const content: MarkdownContent = {}
-	const articles: Articles = {}
-
-	nicelog('• Generating site content (content.json)')
-
-	try {
-		const outputSections: Section[] = [...(sections as InputSection[])]
-			.map((section) => generateSection(section, content, articles))
-			.filter((section) => section.categories.some((c) => c.articleIds.length > 0))
-
-		nicelog('✔ Generated site content.')
-
-		// Write to disk
-
-		const generatedApiContent = (await import(
-			path.join(process.cwd(), 'api-content.json')
-		)) as GeneratedContent
-
-		const contentComplete: GeneratedContent = {
-			sections: generatedApiContent
-				? [...outputSections, ...generatedApiContent.sections]
-				: outputSections,
-			content: generatedApiContent ? { ...content, ...generatedApiContent.content } : content,
-			articles: generatedApiContent ? { ...articles, ...generatedApiContent.articles } : articles,
-		}
-
-		fs.writeFileSync(
-			path.join(process.cwd(), 'content.json'),
-			JSON.stringify(contentComplete, null, 2)
-		)
-
-		return contentComplete
-	} catch (error) {
-		nicelog(`x Could not generate site content.`)
-
-		throw error
 	}
 }
