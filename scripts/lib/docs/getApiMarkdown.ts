@@ -22,7 +22,7 @@ import {
 	Excerpt,
 	ReleaseTag,
 } from '@microsoft/api-extractor-model'
-import { assert, assertExists, exhaustiveSwitchError } from '@tldraw/utils'
+import { assert, assertExists } from '@tldraw/utils'
 import { MarkdownWriter, formatWithPrettier, getPath, getSlug } from './docs-utils'
 
 type Result = { markdown: string }
@@ -327,7 +327,7 @@ async function typeExcerptToMarkdown(
 			code = code.replace(/^ {2}/gm, '')
 			break
 		default:
-			exhaustiveSwitchError(kind)
+			throw Error()
 	}
 
 	return ['```ts', code, '```'].join('\n')
