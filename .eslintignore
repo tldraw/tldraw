@@ -17,7 +17,6 @@
 **/next.config.js
 **/setupTests.js
 **/setupJest.js
-apps/webdriver/www
 apps/vscode/extension/editor
 apps/examples/www
 apps/docs/api-content.json

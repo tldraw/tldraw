@@ -21,10 +21,6 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 			cache: 'none',
 			workspaceOverrides: {
 				'{bublic/,}apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
-				'{bublic/,}apps/webdriver': {
-					runsAfter: { 'refresh-assets': {}, prebuild: {} },
-					cache: 'none',
-				},
 			},
 		},
 		test: {
