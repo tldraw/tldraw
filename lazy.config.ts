@@ -6,7 +6,6 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 			baseCommand: 'exit 0',
 			runsAfter: { prebuild: {}, 'refresh-assets': {} },
 			workspaceOverrides: {
-				'{bublic/,}apps/docs': { runsAfter: { 'docs-content': {} } },
 				'{bublic/,}apps/vscode/*': { runsAfter: { 'refresh-assets': {} } },
 				'{bublic/,}packages/*': {
 					runsAfter: { 'build-api': { in: 'self-only' }, prebuild: { in: 'self-only' } },
@@ -21,7 +20,6 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 			runsAfter: { 'refresh-assets': {} },
 			cache: 'none',
 			workspaceOverrides: {
-				'{bublic/,}apps/docs': { runsAfter: { 'docs-content': { in: 'self-only' } } },
 				'{bublic/,}apps/vscode/*': { runsAfter: { build: { in: 'self-only' } } },
 				'{bublic/,}apps/webdriver': {
 					runsAfter: { 'refresh-assets': {}, prebuild: {} },
@@ -92,17 +90,6 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 				},
 			},
 		},
-		'docs-content': {
-			runsAfter: { 'build-api': {} },
-			cache: {
-				inputs: [
-					'content/**',
-					'scripts/**',
-					`${bublic}/packages/*/api/api.json`,
-					`${bublic}/packages/*/package.json`,
-				],
-			},
-		},
 		'api-check': {
 			execution: 'top-level',
 			baseCommand: `tsx ${bublic}/scripts/api-check.ts`,
@@ -127,7 +114,7 @@ const config = {
 			'<allWorkspaceDirs>/coverage/**/*',
 			'<allWorkspaceDirs>/dist*/**/*',
 			'**/*.tsbuildinfo',
-			'<rootDir>/{,bublic/}apps/docs/content/gen/**/*',
+			'<rootDir>/{,bublic/}docs/gen/**/*',
 		],
 	},
 	scripts: {

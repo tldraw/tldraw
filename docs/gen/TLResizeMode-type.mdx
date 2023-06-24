@@ -1,0 +1,26 @@
+---
+title: TLResizeMode
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 172
+---<Small>Public TypeAlias</Small>
+
+The type of resize.
+
+
+'scale_shape' - The shape is being scaled, usually as part of a larger selection.
+
+
+'resize_bounds' - The user is directly manipulating an individual shape's bounds using a resize handle. It is up to shape util implementers to decide how they want to handle the two situations.
+
+
+##### Signature
+
+
+```ts
+type TLResizeMode = 'resize_bounds' | 'scale_shape'
+```
+

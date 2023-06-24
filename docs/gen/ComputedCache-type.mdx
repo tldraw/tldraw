@@ -1,0 +1,26 @@
+---
+title: ComputedCache
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 6
+---<Small>Public TypeAlias</Small>
+
+A record store is a collection of records of different types.
+
+
+##### Signature
+
+
+```ts
+type ComputedCache<Data, R extends UnknownRecord> = {
+  get(id: IdOf<R>): Data | undefined
+}
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [IdOf](/gen/store/IdOf-type)
+
