@@ -1,7 +1,11 @@
-import { TLGeoShape } from '@tldraw/tlschema'
+import { TLDefaultColorTheme, TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
-import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import {
+	ShapeFill,
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+	useDefaultColorTheme,
+} from '../../shared/ShapeFill'
 
 export const SolidStyleEllipse = React.memo(function SolidStyleEllipse({
 	w,
@@ -10,6 +14,7 @@ export const SolidStyleEllipse = React.memo(function SolidStyleEllipse({
 	fill,
 	color,
 }: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & { strokeWidth: number }) {
+	const theme = useDefaultColorTheme()
 	const cx = w / 2
 	const cy = h / 2
 	const rx = Math.max(0, cx)
@@ -20,7 +25,7 @@ export const SolidStyleEllipse = React.memo(function SolidStyleEllipse({
 	return (
 		<>
 			<ShapeFill d={d} color={color} fill={fill} />
-			<path d={d} stroke={`var(--palette-${color})`} strokeWidth={sw} fill="none" />
+			<path d={d} stroke={theme[color].solid} strokeWidth={sw} fill="none" />
 		</>
 	)
 })
@@ -31,10 +36,10 @@ export function SolidStyleEllipseSvg({
 	strokeWidth: sw,
 	fill,
 	color,
-	colors,
+	theme,
 }: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & {
 	strokeWidth: number
-	colors: TLExportColors
+	theme: TLDefaultColorTheme
 }) {
 	const cx = w / 2
 	const cy = h / 2
@@ -49,14 +54,14 @@ export function SolidStyleEllipseSvg({
 	strokeElement.setAttribute('width', w.toString())
 	strokeElement.setAttribute('height', h.toString())
 	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', theme[color].solid)
 
 	// Get the fill element, if any
 	const fillElement = getShapeFillSvg({
 		d,
 		fill,
 		color,
-		colors,
+		theme,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

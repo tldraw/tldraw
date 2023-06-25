@@ -3,7 +3,7 @@ import { Box2d, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
 import { StyleProp, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
-import { TLExportColors } from './shared/TLExportColors'
+import { SvgExportContext } from './shared/SvgExportContext'
 
 /** @public */
 export interface TLShapeUtilConstructor<
@@ -18,29 +18,18 @@ export interface TLShapeUtilConstructor<
 export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
 /** @public */
+export interface TLShapeUtilCanvasSvgDef {
+	key: string
+	component: React.ComponentType
+}
+
+/** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(
 		public editor: Editor,
 		public readonly type: Shape['type'],
 		public readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>
 	) {}
-
-	hasStyle(style: StyleProp<unknown>) {
-		return this.styleProps.has(style)
-	}
-
-	getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined {
-		const styleKey = this.styleProps.get(style)
-		if (!styleKey) return undefined
-		return (shape.props as any)[styleKey]
-	}
-
-	*iterateStyles(shape: Shape | TLShapePartial<Shape>) {
-		for (const [style, styleKey] of this.styleProps) {
-			const value = (shape.props as any)[styleKey]
-			yield [style, value] as [StyleProp<unknown>, unknown]
-		}
-	}
 
 	setStyleInPartial<T>(
 		style: StyleProp<T>,
@@ -307,31 +296,21 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the shape as an SVG object.
 	 *
 	 * @param shape - The shape.
-	 * @param color - The shape's CSS color (actual).
-	 * @param font - The shape's CSS font (actual).
+	 * @param ctx - The export context for the SVG - used for adding e.g. \<def\>s
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(
-		shape: Shape,
-		font: string | undefined,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement>
+	toSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement>
 
 	/**
 	 * Get the shape's background layer as an SVG object.
 	 *
 	 * @param shape - The shape.
-	 * @param color - The shape's CSS color (actual).
-	 * @param font - The shape's CSS font (actual).
+	 * @param ctx - ctx - The export context for the SVG - used for adding e.g. \<def\>s
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(
-		shape: Shape,
-		font: string | undefined,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement> | null
+	toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> | null
 
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number {
@@ -369,6 +348,18 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		}
 
 		return false
+	}
+
+	/**
+	 * Return elements to be added to the \<defs\> section of the canvases SVG context. This can be
+	 * used to define SVG content (e.g. patterns & masks) that can be referred to by ID from svg
+	 * elements returned by `component`.
+	 *
+	 * Each def should have a unique `key`. If multiple defs from different shapes all have the same
+	 * key, only one will be used.
+	 */
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return []
 	}
 
 	//  Events

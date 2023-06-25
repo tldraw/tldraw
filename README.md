@@ -105,8 +105,6 @@ The source code for various apps and packages in this repository (as well as our
 
 Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
-Note: we are currently unable to accept contributions on the `@tldraw/tldraw` or `@tldraw/editor` packages while we work out our final licensing.
-
 ## Contact
 
 Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [hello@tldraw.com](mailto://hello@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.

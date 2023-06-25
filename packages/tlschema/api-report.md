@@ -156,10 +156,24 @@ export function createTLSchema({ shapes }: {
 export const DefaultColorStyle: EnumStyleProp<"black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow">;
 
 // @public (undocumented)
+export const DefaultColorThemePalette: {
+    lightMode: TLDefaultColorTheme;
+    darkMode: TLDefaultColorTheme;
+};
+
+// @public (undocumented)
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "solid">;
 
 // @public (undocumented)
 export const DefaultFillStyle: EnumStyleProp<"none" | "pattern" | "semi" | "solid">;
+
+// @public (undocumented)
+export const DefaultFontFamilies: {
+    draw: string;
+    sans: string;
+    serif: string;
+    mono: string;
+};
 
 // @public (undocumented)
 export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">;
@@ -426,7 +440,7 @@ export const embedShapeProps: {
     url: T.Validator<string>;
 };
 
-// @public (undocumented)
+// @public
 export class EnumStyleProp<T> extends StyleProp<T> {
     // @internal
     constructor(id: string, defaultValue: T, values: readonly T[]);
@@ -473,6 +487,11 @@ export const geoShapeProps: {
     growY: T.Validator<number>;
     text: T.Validator<string>;
 };
+
+// @public (undocumented)
+export function getDefaultColorTheme(opts: {
+    isDarkMode: boolean;
+}): TLDefaultColorTheme;
 
 // @public (undocumented)
 export function getDefaultTranslationLocale(): TLLanguage['locale'];
@@ -704,18 +723,17 @@ export type ShapeProps<Shape extends TLBaseShape<any, any>> = {
     [K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>;
 };
 
-// @public (undocumented)
+// @public
 export class StyleProp<Type> implements T.Validatable<Type> {
-    constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
+    // @internal
+    protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
     // (undocumented)
     readonly defaultValue: Type;
-    // (undocumented)
-    static define<Type>(uniqueId: string, { defaultValue, type }: {
+    static define<Type>(uniqueId: string, options: {
         defaultValue: Type;
         type?: T.Validatable<Type>;
     }): StyleProp<Type>;
-    // (undocumented)
-    static defineEnum<const Values extends readonly unknown[]>(uniqueId: string, { defaultValue, values }: {
+    static defineEnum<const Values extends readonly unknown[]>(uniqueId: string, options: {
         defaultValue: Values[number];
         values: Values;
     }): EnumStyleProp<Values[number]>;
@@ -849,6 +867,24 @@ export type TLCursorType = SetValue<typeof TL_CURSOR_TYPES>;
 
 // @public (undocumented)
 export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
+
+// @public (undocumented)
+export type TLDefaultColorTheme = Expand<{
+    text: string;
+    background: string;
+    solid: string;
+} & Record<(typeof colors)[number], TLDefaultColorThemeColor>>;
+
+// @public (undocumented)
+export type TLDefaultColorThemeColor = {
+    solid: string;
+    semi: string;
+    pattern: string;
+    highlight: {
+        srgb: string;
+        p3: string;
+    };
+};
 
 // @public (undocumented)
 export type TLDefaultDashStyle = T.TypeOf<typeof DefaultDashStyle>;

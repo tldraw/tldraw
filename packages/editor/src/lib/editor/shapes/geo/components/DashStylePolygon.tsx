@@ -1,8 +1,12 @@
 import { Vec2d, VecLike } from '@tldraw/primitives'
-import { TLGeoShape } from '@tldraw/tlschema'
+import { TLDefaultColorTheme, TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
-import { ShapeFill, getShapeFillSvg, getSvgWithShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import {
+	ShapeFill,
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+	useDefaultColorTheme,
+} from '../../shared/ShapeFill'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 
 export const DashStylePolygon = React.memo(function DashStylePolygon({
@@ -17,6 +21,7 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 	outline: VecLike[]
 	lines?: VecLike[][]
 }) {
+	const theme = useDefaultColorTheme()
 	const innerPath = 'M' + outline[0] + 'L' + outline.slice(1) + 'Z'
 
 	return (
@@ -31,12 +36,7 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 						d={`M${l[0].x},${l[0].y}L${l[1].x},${l[1].y}`}
 					/>
 				))}
-			<g
-				strokeWidth={strokeWidth}
-				stroke={`var(--palette-${color})`}
-				fill="none"
-				pointerEvents="all"
-			>
+			<g strokeWidth={strokeWidth} stroke={theme[color].solid} fill="none" pointerEvents="all">
 				{Array.from(Array(outline.length)).map((_, i) => {
 					const A = outline[i]
 					const B = outline[(i + 1) % outline.length]
@@ -76,7 +76,7 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 							<path
 								key={`line_fg_${i}`}
 								d={`M${A.x},${A.y}L${B.x},${B.y}`}
-								stroke={`var(--palette-${color})`}
+								stroke={theme[color].solid}
 								strokeWidth={strokeWidth}
 								fill="none"
 								strokeDasharray={strokeDasharray}
@@ -93,19 +93,19 @@ export function DashStylePolygonSvg({
 	dash,
 	fill,
 	color,
-	colors,
+	theme,
 	strokeWidth,
 	outline,
 	lines,
 }: Pick<TLGeoShape['props'], 'dash' | 'fill' | 'color'> & {
 	outline: VecLike[]
 	strokeWidth: number
-	colors: TLExportColors
+	theme: TLDefaultColorTheme
 	lines?: VecLike[][]
 }) {
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', theme[color].solid)
 	strokeElement.setAttribute('fill', 'none')
 
 	Array.from(Array(outline.length)).forEach((_, i) => {
@@ -155,7 +155,7 @@ export function DashStylePolygonSvg({
 		d: 'M' + outline[0] + 'L' + outline.slice(1) + 'Z',
 		fill,
 		color,
-		colors,
+		theme,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

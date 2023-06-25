@@ -1,9 +1,13 @@
 import { useValue } from '@tldraw/state'
-import { TLDefaultColorStyle, TLDefaultFillStyle } from '@tldraw/tlschema'
+import {
+	TLDefaultColorStyle,
+	TLDefaultColorTheme,
+	TLDefaultFillStyle,
+	getDefaultColorTheme,
+} from '@tldraw/tlschema'
 import * as React from 'react'
-import { HASH_PATERN_ZOOM_NAMES } from '../../../constants'
+import { HASH_PATTERN_ZOOM_NAMES } from '../../../constants'
 import { useEditor } from '../../../hooks/useEditor'
-import { TLExportColors } from './TLExportColors'
 
 export interface ShapeFillProps {
 	d: string
@@ -11,18 +15,22 @@ export interface ShapeFillProps {
 	color: TLDefaultColorStyle
 }
 
+export function useDefaultColorTheme() {
+	const editor = useEditor()
+	return getDefaultColorTheme(editor)
+}
+
 export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: ShapeFillProps) {
+	const theme = useDefaultColorTheme()
 	switch (fill) {
 		case 'none': {
 			return <path className={'tl-hitarea-stroke'} fill="none" d={d} />
 		}
 		case 'solid': {
-			return (
-				<path className={'tl-hitarea-fill-solid'} fill={`var(--palette-${color}-semi)`} d={d} />
-			)
+			return <path className={'tl-hitarea-fill-solid'} fill={theme[color].semi} d={d} />
 		}
 		case 'semi': {
-			return <path className={'tl-hitarea-fill-solid'} fill={`var(--palette-solid)`} d={d} />
+			return <path className={'tl-hitarea-fill-solid'} fill={theme.solid} d={d} />
 		}
 		case 'pattern': {
 			return <PatternFill color={color} fill={fill} d={d} />
@@ -32,6 +40,7 @@ export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: Shape
 
 const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
 	const editor = useEditor()
+	const theme = useDefaultColorTheme()
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const isDarkMode = useValue('isDarkMode', () => editor.isDarkMode, [editor])
 
@@ -40,12 +49,12 @@ const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
 
 	return (
 		<>
-			<path className={'tl-hitarea-fill-solid'} fill={`var(--palette-${color}-pattern)`} d={d} />
+			<path className={'tl-hitarea-fill-solid'} fill={theme[color].pattern} d={d} />
 			<path
 				fill={
 					teenyTiny
-						? `var(--palette-${color}-semi)`
-						: `url(#${HASH_PATERN_ZOOM_NAMES[intZoom + (isDarkMode ? '_dark' : '_light')]})`
+						? theme[color].semi
+						: `url(#${HASH_PATTERN_ZOOM_NAMES[intZoom + (isDarkMode ? '_dark' : '_light')]})`
 				}
 				d={d}
 			/>
@@ -57,8 +66,8 @@ export function getShapeFillSvg({
 	d,
 	color,
 	fill,
-	colors,
-}: ShapeFillProps & { colors: TLExportColors }) {
+	theme,
+}: ShapeFillProps & { theme: TLDefaultColorTheme }) {
 	if (fill === 'none') {
 		return
 	}
@@ -67,7 +76,7 @@ export function getShapeFillSvg({
 		const gEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const path1El = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 		path1El.setAttribute('d', d)
-		path1El.setAttribute('fill', colors.pattern[color])
+		path1El.setAttribute('fill', theme[color].pattern)
 
 		const path2El = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 		path2El.setAttribute('d', d)
@@ -83,12 +92,12 @@ export function getShapeFillSvg({
 
 	switch (fill) {
 		case 'semi': {
-			path.setAttribute('fill', colors.solid)
+			path.setAttribute('fill', theme.solid)
 			break
 		}
 		case 'solid': {
 			{
-				path.setAttribute('fill', colors.semi[color])
+				path.setAttribute('fill', theme[color].semi)
 			}
 			break
 		}

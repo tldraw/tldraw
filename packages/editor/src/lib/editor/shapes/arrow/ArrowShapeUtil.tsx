@@ -13,9 +13,12 @@ import {
 import { computed, EMPTY_ARRAY } from '@tldraw/state'
 import { ComputedCache } from '@tldraw/store'
 import {
+	DefaultFontFamilies,
+	getDefaultColorTheme,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
+	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLHandle,
 	TLShapeId,
@@ -31,6 +34,7 @@ import {
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
 	TLOnTranslateStartHandler,
+	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
@@ -40,9 +44,14 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	getFontDefForExport,
+} from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
+import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
 import {
@@ -561,6 +570,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	component(shape: TLArrowShape) {
 		// Not a class component, but eslint can't tell that :(
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const theme = useDefaultColorTheme()
 		const onlySelectedShape = this.editor.onlySelectedShape
 		const shouldDisplayHandles =
 			this.editor.isInAny(
@@ -697,7 +708,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					)}
 					<g
 						fill="none"
-						stroke={`var(--palette-${shape.props.color})`}
+						stroke={theme[shape.props.color].solid}
 						strokeWidth={strokeWidth}
 						strokeLinejoin="round"
 						strokeLinecap="round"
@@ -921,8 +932,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	toSvg(shape: TLArrowShape, font: string, colors: TLExportColors) {
-		const color = colors.fill[shape.props.color]
+	toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
+		const theme = getDefaultColorTheme(this.editor)
+		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
+
+		const color = theme[shape.props.color].solid
 
 		const info = this.getArrowInfo(shape)
 
@@ -1026,7 +1040,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					shape.props.color,
 					strokeWidth,
 					shape.props.arrowheadStart === 'arrow' ? 'none' : shape.props.fill,
-					colors
+					theme
 				)
 			)
 		}
@@ -1038,17 +1052,19 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					shape.props.color,
 					strokeWidth,
 					shape.props.arrowheadEnd === 'arrow' ? 'none' : shape.props.fill,
-					colors
+					theme
 				)
 			)
 		}
 
 		// Text Label
 		if (labelSize) {
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
+
 			const opts = {
 				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
 				lineHeight: TEXT_PROPS.lineHeight,
-				fontFamily: font,
+				fontFamily: DefaultFontFamilies[shape.props.font],
 				padding: 0,
 				textAlign: 'middle' as const,
 				width: labelSize.w - 8,
@@ -1064,7 +1080,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				this.editor.textMeasure.measureTextSpans(shape.props.text, opts),
 				opts
 			)
-			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
+			textElm.setAttribute('fill', theme[shape.props.labelColor].solid)
 
 			const children = Array.from(textElm.children) as unknown as SVGTSpanElement[]
 
@@ -1078,14 +1094,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 			const textBgEl = textElm.cloneNode(true) as SVGTextElement
 			textBgEl.setAttribute('stroke-width', '2')
-			textBgEl.setAttribute('fill', colors.background)
-			textBgEl.setAttribute('stroke', colors.background)
+			textBgEl.setAttribute('fill', theme.background)
+			textBgEl.setAttribute('stroke', theme.background)
 
 			g.appendChild(textBgEl)
 			g.appendChild(textElm)
 		}
 
 		return g
+	}
+
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return [getFillDefForCanvas()]
 	}
 }
 
@@ -1111,12 +1131,12 @@ function getArrowheadSvgPath(
 	color: TLDefaultColorStyle,
 	strokeWidth: number,
 	fill: TLDefaultFillStyle,
-	colors: TLExportColors
+	theme: TLDefaultColorTheme
 ) {
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	path.setAttribute('d', d)
 	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', colors.fill[color])
+	path.setAttribute('stroke', theme[color].solid)
 	path.setAttribute('stroke-width', strokeWidth + '')
 
 	// Get the fill element, if any
@@ -1124,7 +1144,7 @@ function getArrowheadSvgPath(
 		d,
 		fill,
 		color,
-		colors,
+		theme,
 	})
 
 	if (shapeFill) {

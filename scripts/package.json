@@ -35,6 +35,7 @@
 		"cross-fetch": "^3.1.5",
 		"esbuild": "^0.18.3",
 		"glob": "^8.0.3",
+		"gray-matter": "^4.0.3",
 		"is-ci": "^3.0.1",
 		"kleur": "^4.1.5",
 		"lazyrepo": "0.0.0-alpha.27",
