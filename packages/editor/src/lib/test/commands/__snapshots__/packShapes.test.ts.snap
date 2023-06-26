@@ -6,6 +6,7 @@ Array [
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
+    "meta": Object {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": Object {
@@ -34,6 +35,7 @@ Array [
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
+    "meta": Object {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": Object {
@@ -62,6 +64,7 @@ Array [
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
+    "meta": Object {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": Object {
@@ -95,6 +98,7 @@ Array [
     "id": "shape:boxA",
     "index": "a1",
     "isLocked": false,
+    "meta": Object {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": Object {
@@ -123,6 +127,7 @@ Array [
     "id": "shape:boxB",
     "index": "a2",
     "isLocked": false,
+    "meta": Object {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": Object {
@@ -151,6 +156,7 @@ Array [
     "id": "shape:boxC",
     "index": "a3",
     "isLocked": false,
+    "meta": Object {},
     "opacity": 1,
     "parentId": "wahtever",
     "props": Object {
