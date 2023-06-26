@@ -19,9 +19,9 @@ export default function ShapeMetaExample() {
 	)
 }
 
-type WithMeta<T extends TLShape, Meta extends { [key: string]: any }> = T & { meta: Meta }
-
-type ShapeWithMyMeta = WithMeta<TLShape, { label: string }>
+// By default, the TLShape type's meta property is { [key: string]: any }, but we can type it
+// by unioning the type with a new type that has a meta property of our choosing.
+type ShapeWithMyMeta = TLShape & { meta: { label: string } }
 
 export const ShapeLabelUiWithHelper = track(function ShapeLabelUiWithHelper() {
 	const editor = useEditor()

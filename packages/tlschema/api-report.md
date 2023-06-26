@@ -804,7 +804,9 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     // (undocumented)
     isLocked: boolean;
     // (undocumented)
-    meta: object;
+    meta: {
+        [key: string]: any;
+    };
     // (undocumented)
     opacity: TLOpacityType;
     // (undocumented)
