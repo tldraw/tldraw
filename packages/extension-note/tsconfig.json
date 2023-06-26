@@ -1,0 +1,18 @@
+{
+	"extends": "../../config/tsconfig.base.json",
+	"include": ["../starterkit/src"],
+	"exclude": [
+		"../starterkit/node_modules",
+		"../starterkit/dist",
+		"../starterkit/**/*.css",
+		"../starterkit/.tsbuild*",
+		"../starterkit/scripts/legacy-translations"
+	],
+	"compilerOptions": {
+		"outDir": "../starterkit/.tsbuild",
+		// TODO: Enable noImplicitReturns
+		"noImplicitReturns": false,
+		"rootDir": "../starterkit/src"
+	},
+	"references": [{ "path": "../editor" }, { "path": "../primitives" }, { "path": "../utils" }]
+}

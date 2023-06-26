@@ -4350,6 +4350,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@tldraw/starterkit@workspace:packages/starterkit":
+  version: 0.0.0-use.local
+  resolution: "@tldraw/starterkit@workspace:packages/starterkit"
+  dependencies:
+    "@peculiar/webcrypto": ^1.4.0
+    "@testing-library/jest-dom": ^5.14.1
+    "@testing-library/react": ^12.0.0
+    "@tldraw/tldraw": "workspace:*"
+    "@types/lz-string": ^1.3.34
+    jest-canvas-mock: ^2.4.0
+    jest-environment-jsdom: ^28.1.2
+    lazyrepo: 0.0.0-alpha.27
+  peerDependencies:
+    react: ^18
+    react-dom: ^18
+  languageName: unknown
+  linkType: soft
+
 "@tldraw/state@workspace:*, @tldraw/state@workspace:packages/state":
   version: 0.0.0-use.local
   resolution: "@tldraw/state@workspace:packages/state"

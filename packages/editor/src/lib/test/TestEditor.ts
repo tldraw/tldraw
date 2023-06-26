@@ -52,6 +52,7 @@ declare global {
 	}
 }
 
+/** @public */
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')

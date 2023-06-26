@@ -117,6 +117,7 @@ export {
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
+export type { TLShapeUtilCanvasSvgDef } from './lib/editor/shapes/ShapeUtil'
 export { ArrowShape } from './lib/editor/shapes/arrow/ArrowShape'
 export { ArrowShapeUtil } from './lib/editor/shapes/arrow/ArrowShapeUtil'
 export { BookmarkShape } from './lib/editor/shapes/bookmark/BookmarkShape'
@@ -192,10 +193,13 @@ export { normalizeWheel } from './lib/hooks/shared'
 export { useContainer } from './lib/hooks/useContainer'
 export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useTLStore } from './lib/hooks/useTLStore'
+export { TestEditor } from './lib/test/TestEditor'
+export { TL } from './lib/test/jsx'
 export {
 	ReadonlySharedStyleMap,
 	SharedStyleMap,
