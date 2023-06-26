@@ -7591,12 +7591,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (v === undefined) continue
 						switch (k) {
 							case 'id':
-							case 'type': {
+							case 'type':
 								continue
-							}
-							case 'typeName': {
-								throw Error(`Cannot update a shape typeName with Editor.updateShapes`)
-							}
 							default: {
 								if (v !== (prev as any)[k]) {
 									if (!newRecord) {
@@ -7607,21 +7603,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 										// props property
 										const nextProps = { ...prev.props } as JsonObject
 										for (const [propKey, propValue] of Object.entries(v as object)) {
-											if (propValue === undefined) continue
-											nextProps[propKey] = propValue
+											if (propValue !== undefined) {
+												nextProps[propKey] = propValue
+											}
 										}
 										newRecord!.props = nextProps
 									} else if (k === 'meta') {
 										// meta property
 										const nextMeta = { ...prev.meta } as JsonObject
 										for (const [metaKey, metaValue] of Object.entries(v as object)) {
-											if (metaValue === undefined) continue
-											nextMeta[metaKey] = metaValue
+											if (metaValue !== undefined) {
+												nextMeta[metaKey] = metaValue
+											}
 										}
 										newRecord!.meta = nextMeta
 									} else {
 										// base property
-										;(newRecord as any).meta = v
+										;(newRecord as any)[k] = v
 									}
 								}
 							}
