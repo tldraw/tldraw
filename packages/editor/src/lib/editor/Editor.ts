@@ -7098,6 +7098,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get the initial meta value for a shape. Override this method to add custom meta to shapes
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getInitialMetaForShape = (shape) => {
+	 *   if (shape.type === 'note') {
+	 *     return { createdBy: myCurrentUser.id }
+	 *   }
+	 * }
+	 * ```
+	 *
+	 * @param shape - The shape to get the initial meta for.
+	 *
+	 * @public
+	 */
+	getInitialMetaForShape(_shape: TLShape) {
+		return {}
+	}
+
+	/**
 	 * Create shapes.
 	 *
 	 * @example
@@ -7255,6 +7275,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					shapeRecordsToCreate.push(shapeRecordToCreate)
 				}
+
+				// Add meta properties, if any, to the shapes
+				shapeRecordsToCreate.forEach((shape) => {
+					shape.meta = this.getInitialMetaForShape(shape)
+				})
 
 				this.store.put(shapeRecordsToCreate)
 
@@ -7579,17 +7604,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 									}
 
 									if (k === 'props') {
+										// props property
 										const nextProps = { ...prev.props } as JsonObject
 										for (const [propKey, propValue] of Object.entries(v as object)) {
 											if (propValue === undefined) continue
 											nextProps[propKey] = propValue
 										}
 										newRecord!.props = nextProps
-									} else {
-										;(newRecord as any).props = v
-									}
-
-									if (k === 'meta') {
+									} else if (k === 'meta') {
+										// meta property
 										const nextMeta = { ...prev.meta } as JsonObject
 										for (const [metaKey, metaValue] of Object.entries(v as object)) {
 											if (metaValue === undefined) continue
@@ -7597,6 +7620,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 										}
 										newRecord!.meta = nextMeta
 									} else {
+										// base property
 										;(newRecord as any).meta = v
 									}
 								}

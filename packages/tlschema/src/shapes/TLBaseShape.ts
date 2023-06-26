@@ -17,7 +17,7 @@ export interface TLBaseShape<Type extends string, Props extends object>
 	isLocked: boolean
 	opacity: TLOpacityType
 	props: Props
-	meta: JsonObject // anything you like! we don't know
+	meta: object // anything you like! we don't know
 }
 
 /** @public */
