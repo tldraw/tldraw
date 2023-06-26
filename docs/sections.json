@@ -1,7 +1,13 @@
 [
 	{
+		"id": "getting-started",
+		"title": "",
+		"description": "",
+		"categories": []
+	},
+	{
 		"id": "docs",
-		"title": "Docs",
+		"title": "Documentation",
 		"description": "Developer documentation for tldraw.",
 		"categories": []
 	},
