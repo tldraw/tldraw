@@ -7098,7 +7098,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the initial meta value for a shape. Override this method to add custom meta to shapes
+	 * Get the initial meta value for a shape.
 	 *
 	 * @example
 	 * ```ts
@@ -7113,7 +7113,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getInitialMetaForShape(_shape: TLShape) {
+	getInitialMetaForShape(_shape: TLShape): JsonObject {
 		return {}
 	}
 
