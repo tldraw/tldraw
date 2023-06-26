@@ -1,10 +1,16 @@
-import { Atom, atom, transact, transaction } from '@tldraw/state'
-import { Result, exhaustiveSwitchError, objectMapValues, rafThrottle } from '@tldraw/utils'
+import { Atom, Signal, atom, react, transact, transaction } from '@tldraw/state'
+import {
+	Result,
+	exhaustiveSwitchError,
+	objectMapEntries,
+	objectMapValues,
+	rafThrottle,
+} from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import { nanoid } from 'nanoid'
 import { IdOf, UnknownRecord } from '../BaseRecord'
 import { RecordType } from '../RecordType'
-import { ChangeSource } from '../Store'
+import { ChangeSource, reverseRecordsDiff } from '../Store'
 import { SerializedSchema, StoreSchema } from '../StoreSchema'
 import { MigrationFailureReason, compareRecordVersions, getRecordVersion } from '../migrate'
 import {
@@ -15,8 +21,16 @@ import {
 	addSetChange,
 	mergeChanges,
 } from './changes'
-import { NetworkDiff, ObjectDiff, RecordOpType, applyObjectDiff, diffRecord } from './diff'
 import {
+	NetworkDiff,
+	ObjectDiff,
+	RecordOpType,
+	applyObjectDiff,
+	diffRecord,
+	getNetworkDiff,
+} from './diff'
+import {
+	GoingDownstreamConnectMessage,
 	GoingDownstreamMessage,
 	GoingDownstreamPatchMessage,
 	GoingDownstreamSocket,
@@ -34,8 +48,8 @@ export enum PushOpStatus {
 
 export type PushOp<R extends UnknownRecord> = {
 	pushId: string
-	status: PushOpStatus.Unsent | PushOpStatus.Sent
 	changes: Changes<R>
+	diff: NetworkDiff<R>
 }
 
 type ClockSnapshot = {
@@ -68,6 +82,20 @@ type ApplyStack<R extends UnknownRecord> = {
 	source: ChangeSource
 	below: ApplyStack<R> | null
 }
+
+type UpstreamConnectionState =
+	| {
+			type: 'connected'
+			lastPongTime: number
+	  }
+	| {
+			type: 'awaiting-reconnect'
+			spanId: string
+	  }
+	| {
+			type: 'offline'
+			lastCheckTime: number
+	  }
 
 /**
  * A serialized snapshot of the record store's values.
@@ -116,6 +144,7 @@ export type DownstreamClient<R extends UnknownRecord> =
 			presenceId: string
 			socket: GoingDownstreamSocket<R>
 			cancellationTime: number
+			presenceIds: Atom<Set<string>>
 	  }
 	| {
 			state: DownstreamClientState.CONNECTED
@@ -124,6 +153,7 @@ export type DownstreamClient<R extends UnknownRecord> =
 			socket: GoingDownstreamSocket<R>
 			serializedSchema: SerializedSchema
 			lastInteractionTime: number
+			presenceIds: Atom<Set<string>>
 	  }
 
 /**
@@ -137,10 +167,12 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		session: ReadonlySet<string>
 	}
 	readonly presenceType: RecordType<R, never>
+	readonly presenceTypePrefix: string
 	readonly serializedSchema: SerializedSchema
 	constructor(
 		private readonly schema: StoreSchema<R>,
 		private readonly upstream: GoingUpstreamSocket<R> | undefined,
+		private readonly localPresence: Signal<R>,
 		snapshot: SyncStoreSnapshot<R>
 	) {
 		if (snapshot) {
@@ -165,16 +197,27 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				.filter((t) => t.scope === 'presence')
 				.map((t) => t.typeName)
 		)
-		if (presenceTypes.size > 1) {
-			throw new Error('Only one presence type is allowed')
+		if (presenceTypes.size !== 1) {
+			throw new Error('Exactly one presence type must be defined')
 		}
 		this.presenceType = schema.types[[...presenceTypes][0]] as any
+		this.presenceTypePrefix = `${this.presenceType.typeName}:`
 		this.serializedSchema = this.schema.serialize()
+		const presenceId = this.presenceType.createId(this.storeInstanceId)
+		this.disposables.add(
+			react('store.localPresence', () =>
+				this.set({
+					...this.localPresence.value,
+					id: presenceId,
+					typeName: this.presenceType.typeName,
+				})
+			)
+		)
 	}
 
 	private readonly prevClock: ClockSnapshot | undefined
 	private readonly clock = atom('store.clock', 0)
-	private readonly clockId = nanoid()
+	private readonly storeInstanceId = nanoid()
 
 	private readonly synced = {
 		upstreamClock: atom('store.synced.clock', 0),
@@ -188,6 +231,16 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		records: atom('store.pending.records', {} as Record<string, RecordAtom<R>>),
 		tombstones: atom('store.pending.tombstones', {} as Record<string, number>), // todo: this should be a cheap sorted map
 		pushes: atom('store.pending.pushes', [] as PushOp<R>[]),
+		pendingPushChanges: atom('store.pending.pendingPushChanges', {} as Changes<R>),
+	}
+	private readonly presence = {
+		// presence records synced from upstream peers
+		// we wipe these whenever we go offline
+		upstream: atom('store.presence.upstream', {} as Record<string, Atom<R>>),
+		// presence records synced from downstream peers and local
+		downstream: atom('store.presence.downstream', {} as Record<string, { ownerClientId: string, record: R}>),
+		// buffer of touched presences used to push presence updates to upstream peers at the end of a push spree
+		touchedPresences: atom('store.presence.touched', {} as Record<string, R | null>),
 	}
 	private readonly downstreamClients = new Map<string, DownstreamClient<R>>()
 	private readonly disposables = new Set<() => void>()
@@ -258,29 +311,149 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	 * @param client - The client that sent the message
 	 * @param message - The message that was sent
 	 */
-	handleMessageFromDownstream = async (clientId: string, message: GoingUpstreamMessage<R>) => {
+	private handleMessageFromDownstream(clientId: string, message: GoingUpstreamMessage<R>) {
 		const client = this.downstreamClients.get(clientId)
 		if (!client) {
 			console.warn('Received message from unknown client')
 			return
 		}
 		switch (message.type) {
-			case 'connect': {
+			case 'connect':
 				return this.handleConnectRequest(client, message)
-			}
-			case 'push': {
+			case 'push':
 				return this.handlePushRequest(client, message)
-			}
 			case 'ping': {
 				if (client.state === DownstreamClientState.CONNECTED) {
 					client.lastInteractionTime = Date.now()
 				}
 				return this.sendDownstreamMessage(clientId, { type: 'pong' })
 			}
+			default:
+				exhaustiveSwitchError(message)
+		}
+	}
+
+	handleMessageFromUpstream = async (message: GoingDownstreamMessage<R>) => {
+		switch (message.type) {
+			case 'error': {
+				console.error('Received error from upstream', message)
+				// todo: handle error
+				break
+			}
+			case 'incompatibility_error': {
+				console.error('Received incompatibility error from upstream', message)
+				// todo: handle error
+				break
+			}
+			case 'connect': {
+				this.didReconnect(message)
+				break
+			}
+			case 'patch': {
+				this.incomingFromUpstreamPatchBuffer.update((buffer) => [...buffer, message])
+				this.scheduleRebase()
+				break
+			}
+			case 'pong': {
+				// noop
+				break
+			}
 			default: {
 				exhaustiveSwitchError(message)
 			}
 		}
+	}
+
+	readonly upstreamConnectionState = atom<UpstreamConnectionState>('upstream.connectionState', {
+		type: 'offline',
+		lastCheckTime: 0,
+	})
+
+	/** Switch to offline mode */
+	private resetConnection(hard = false) {
+		transact(() => {
+			if (!this.upstream) {
+				console.error('resetConnection called while not connected to upstream')
+				return
+			}
+			if (hard) {
+				// reset the clock so that next time we get the full history
+				this.synced.upstreamClock.set(0)
+			}
+			this.upstreamConnectionState.set({
+				type: 'offline',
+				lastCheckTime: Date.now(),
+			})
+			// apply any unapplied incoming patches to clear the incoming buffer
+			this.rebase()
+			// squash pending ops into one unsent push so that next time we reconnect we send the full state
+			const sentChanges = this.pending.pushes.value.reduce(
+				(acc, push) => mergeChanges(acc, push.changes, true),
+				{}
+			)
+			this.pending.pendingPushChanges.set(mergeChanges(sentChanges, this.pending.pendingPushChanges.value))
+			this.pending.pushes.set([])
+			if (this.upstream.isOpen()) {
+				this.upstream.reopen()
+			}
+		})
+	}
+
+	private didReconnect(message: GoingDownstreamConnectMessage<R>) {
+		const upstreamConnectionState = this.upstreamConnectionState.value
+		if (upstreamConnectionState.type !== 'awaiting-reconnect') {
+			console.error('didReconnect called while not awaiting reconnect')
+			this.resetConnection()
+			return
+		}
+		if (upstreamConnectionState.spanId !== message.spanId) {
+			// ignore connect events for old connect requests
+			console.warn('Ignoring connect event for old connect request')
+			return
+		}
+
+		// at the end of this process we want to have at most one pending push request
+		// based on anything inside this.speculativeChanges
+		transact(() => {
+			// Now our goal is to rebase on the server's state.
+			// This means wiping away any peer presence data, which the server will replace in full on every connect.
+			// If the server does not have enough history to give us a partial document state hydration we will
+			// also need to wipe away all of our document state before hydrating with the server's state from scratch.
+
+			this.store.mergeRemoteChanges(() => {
+				// gather records to delete in a NetworkDiff
+				const wipeDiff: NetworkDiff<R> = {}
+				const wipeAll = event.hydrationType === 'wipe_all'
+				if (!wipeAll) {
+					// if we're only wiping presence data, undo the speculative changes first
+					this.store.applyDiff(reverseRecordsDiff(stashedChanges), false)
+				}
+
+				// now wipe all presence data and, if needed, all document data
+				for (const [id, record] of objectMapEntries(this.store.serialize('all'))) {
+					if (
+						(wipeAll && this.store.scopedTypes.document.has(record.typeName)) ||
+						record.typeName === this.presenceType
+					) {
+						wipeDiff[id] = [RecordOpType.Remove]
+					}
+				}
+
+				// then apply the upstream changes
+				this.applyNetworkDiff({ ...wipeDiff, ...event.diff }, true)
+			})
+
+			// now re-apply the speculative changes as a 'user' to trigger
+			// creating a new push request with the appropriate diff
+			this.isConnectedToRoom = true
+			this.store.applyDiff(stashedChanges)
+
+			this.store.ensureStoreIsUsable()
+			// TODO: reinstate isNew
+			this.onAfterConnect?.(this, false)
+		})
+
+		this.lastServerClock = event.serverClock
 	}
 
 	/** If the client is out of date or we are out of date, we need to let them know */
@@ -461,16 +634,22 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		})
 	}
 
-	private handlePushRequest(client: DownstreamClient<R>, message: GoingUpstreamPushMessage<R>) {
+	private handlePushRequest(
+		client: DownstreamClient<R>,
+		message: GoingUpstreamPushMessage<R> | GoingUpstreamPresenceMessage<R>
+	) {
 		if (client.state !== DownstreamClientState.CONNECTED) {
 			return
 		}
 		client.lastInteractionTime = Date.now()
 
-		const pushId: PushId = {
-			pushId: message.pushId,
-			clientId: client.clientId,
-		}
+		const pushId: PushId | undefined =
+			message.type === 'push'
+				? {
+						pushId: message.pushId,
+						clientId: client.clientId,
+				  }
+				: undefined
 
 		// increment the clock for this push
 		transaction((rollback) => {
@@ -557,12 +736,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				}
 				if (op[0] === RecordOpType.Set) {
 					// if it's not a document record, fail
-					let record = op[1]
-					if (typeName === this.presenceType.typeName) {
-						// make sure presence ids are anonymized
-						record = { ...op[1], id: client.presenceId }
-					}
-					if (!addDocument(record).ok) return
+					if (!addDocument(op[1]).ok) return
 				} else if (op[0] === RecordOpType.Delete) {
 					this.delete(id, pushId)
 				} else if (op[0] === RecordOpType.Patch) {
@@ -693,7 +867,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 
 	private readonly incomingFromUpstreamPatchBuffer = atom(
 		'store.incomingPatchBuffer',
-		[] as GoingDownstreamPatchMessage<R>[]
+		[] as Array<GoingDownstreamPatchMessage<R> | GoingUpstreamPresenceMessage<R>>
 	)
 
 	private readonly goingDownstreamPatchBuffer = atom<{
@@ -718,6 +892,8 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				satisfiedPushes: addPush(satisfiedPushes, pushId),
 			}
 		})
+
+		this.scheduleBroadcastPatches()
 	}
 
 	private getLastChangedTimestamp(id: string): undefined | number {
@@ -814,8 +990,92 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		this.addPushOp((changes) => addSetChange(changes, prevState, record, nextClock))
 	}
 
+	private setPresence(record: R, push: boolean, pushId?: PushId) {
+		const id = record.id
+		this.recordWillBeTouched(id, pushId)
+		const existingAtom = this.presence.downstream.value[id]
+		if (existingAtom) {
+			existingAtom.set(record)
+		} else {
+			this.presence.downstream.set({
+				...this.presence.downstream.value,
+				[id]: atom('presence.downstream.' + id, record),
+			})
+		}
+		if (push) {
+			this.schedulePush()
+		}
+	}
+
+	private push = () => {
+		// todo: try/catch
+		transact(() => {
+			if (!this.upstream) {
+				console.error('push called while not connected to upstream')
+				return
+			}
+			while (true) {
+				const nextOpIndex = this.pending.pushes.value.findIndex(
+					(op) => op.status === PushOpStatus.Unsent
+				)
+				if (nextOpIndex >= 0) {
+					// do the push
+					const op = this.pending.pushes.value[nextOpIndex]
+					const patch = getNetworkDiff(op.changes)
+					if (!patch) {
+						// remove op if noop
+						this.pending.pushes.update((prev) => prev.filter((op) => op !== prev[nextOpIndex]))
+						continue
+					}
+					// otherwise mark it as sent and send it
+					this.pending.pushes.update((prev) => {
+						const ops = prev.slice(0)
+						ops[nextOpIndex] = { ...op, status: PushOpStatus.Sent }
+						return ops
+					})
+					this.upstream?.sendMessage({
+						type: 'push',
+						diff: patch,
+						pushId: op.pushId,
+					})
+				} else {
+					break
+				}
+			}
+
+			// finally do a presence push if needed
+			const touchedPresences = Object.entries(this.presence.touchedPresences.value)
+			if (touchedPresences.length === 0) return
+			this.presence.touchedPresences.set({})
+
+			const diff: NetworkDiff<R> = {}
+
+			for (const [id, prev] of touchedPresences) {
+				const next = this.presence.downstream.value[id].value
+				if (!prev && next) {
+					diff[id] = [RecordOpType.Set, next]
+				} else if (prev && !next) {
+					diff[id] = [RecordOpType.Delete]
+				} else if (prev && next) {
+					const patch = diffRecord(prev, next)
+					if (patch) {
+						diff[id] = [RecordOpType.Patch, patch]
+					}
+				}
+			}
+
+			this.upstream.sendMessage({ type: 'presence', diff })
+		})
+	}
+
+	private readonly schedulePush = rafThrottle(this.push)
+
 	set(record: R, pushId?: PushId): void {
 		transact(() => {
+			if (record.typeName === this.presenceType.typeName) {
+				this.setPresence(record, true, pushId)
+				return
+			}
 			if (!this.upstream || this.scopedTypes.session.has(record.typeName)) {
 				this.setSynced(record, this.incrementClock(), pushId)
 				return
@@ -823,10 +1083,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 
 			this.setPending(record, this.incrementClock(), true, pushId)
 		})
-	}
-
-	schedulePush() {
-		// do the thing
 	}
 
 	private deleteSynced(id: string, nextClock: number, pushId?: PushId) {
@@ -892,7 +1148,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				  )
 				: undefined,
 			clock: {
-				id: this.clockId,
+				id: this.storeInstanceId,
 				epoch: this.clock.value,
 			},
 		}
@@ -1056,6 +1312,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 
 			for (const msg of incomingPatches) {
 				this.syncUpstreamPatch(msg.diff)
+				if (msg.type === 'presence') continue
 				if (!msg.satisfiedPushIds) continue
 
 				if (!pendingPushOps) {

@@ -13,12 +13,13 @@ export enum TLIncompatibilityReason {
 	InvalidOperation = 'invalidOperation',
 }
 
-export type GoingUpstreamConnectMessage = {
+export type GoingUpstreamConnectMessage<R extends UnknownRecord> = {
 	type: 'connect'
 	spanId: string
 	lastUpstreamClock: number
 	protocolVersion: number
 	schema: SerializedSchema
+	presences: R[]
 }
 
 export type GoingUpstreamPushMessage<R extends UnknownRecord> = {
@@ -33,7 +34,7 @@ export type GoingUpstreamPingMessage = {
 
 export type GoingUpstreamMessage<R extends UnknownRecord> =
 	| GoingUpstreamPushMessage<R>
-	| GoingUpstreamConnectMessage
+	| GoingUpstreamConnectMessage<R>
 	| GoingUpstreamPingMessage
 
 export type GoingDownstreamPatchMessage<R extends UnknownRecord> = {

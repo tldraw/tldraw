@@ -35,13 +35,11 @@ export type NetworkDiff<R extends UnknownRecord> = {
  * @public
  */
 export const getNetworkDiff = <R extends UnknownRecord>(
-	changes: Changes<R>,
-	typeNameAllowList: ReadonlySet<string>
+	changes: Changes<R>
 ): NetworkDiff<R> | null => {
 	let res: NetworkDiff<R> | null = null
 
 	for (const op of Object.values(changes)) {
-		if (!typeNameAllowList.has(op.record.typeName)) continue
 		switch (op.op) {
 			case ChangeOpType.Set:
 				if (op.prev) {
