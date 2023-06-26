@@ -1110,6 +1110,18 @@ describe('hoist opacity', () => {
 	})
 })
 
+describe('adds meta to base shape', () => {
+	const { up, down } = rootShapeMigrations.migrators[rootShapeVersions.AddMeta]
+
+	test('up works as expected', () => {
+		expect(up({})).toStrictEqual({ meta: {} })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ meta: {} })).toStrictEqual({})
+	})
+})
+
 describe('Adds highlightedUserIds to instance', () => {
 	const { up, down } = instanceMigrations.migrators[instanceTypeVersions.AddHighlightedUserIds]
 
