@@ -1,5 +1,5 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
-import { TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { getDefaultColorTheme, TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defaultEmptyAs } from '../../../utils/string'
@@ -7,7 +7,7 @@ import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
 import { GroupShapeUtil } from '../group/GroupShapeUtil'
 import { TLOnResizeEndHandler } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
-import { TLExportColors } from '../shared/TLExportColors'
+import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { FrameHeading } from './components/FrameHeading'
 
 /** @public */
@@ -24,6 +24,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override component(shape: TLFrameShape) {
 		const bounds = this.editor.getBounds(shape)
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const theme = useDefaultColorTheme()
 
 		return (
 			<>
@@ -33,7 +35,8 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 						className="tl-frame__body"
 						width={bounds.width}
 						height={bounds.height}
-						fill="none"
+						fill={theme.solid}
+						stroke={theme.text}
 					/>
 				</SVGContainer>
 				<FrameHeading
@@ -46,18 +49,15 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		)
 	}
 
-	override toSvg(
-		shape: TLFrameShape,
-		font: string,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement> {
+	override toSvg(shape: TLFrameShape): SVGElement | Promise<SVGElement> {
+		const theme = getDefaultColorTheme(this.editor)
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
 		rect.setAttribute('width', shape.props.w.toString())
 		rect.setAttribute('height', shape.props.h.toString())
-		rect.setAttribute('fill', colors.solid)
-		rect.setAttribute('stroke', colors.fill.black)
+		rect.setAttribute('fill', theme.solid)
+		rect.setAttribute('stroke', theme.black.solid)
 		rect.setAttribute('stroke-width', '1')
 		rect.setAttribute('rx', '1')
 		rect.setAttribute('ry', '1')
@@ -128,7 +128,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		textBg.setAttribute('height', `${opts.height}px`)
 		textBg.setAttribute('rx', 4 + 'px')
 		textBg.setAttribute('ry', 4 + 'px')
-		textBg.setAttribute('fill', colors.background)
+		textBg.setAttribute('fill', theme.background)
 
 		g.appendChild(textBg)
 		g.appendChild(text)

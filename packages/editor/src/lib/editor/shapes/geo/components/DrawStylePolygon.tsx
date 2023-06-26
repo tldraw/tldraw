@@ -1,8 +1,12 @@
 import { getRoundedInkyPolygonPath, getRoundedPolygonPoints, VecLike } from '@tldraw/primitives'
-import { TLGeoShape } from '@tldraw/tlschema'
+import { TLDefaultColorTheme, TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
-import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import {
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+	ShapeFill,
+	useDefaultColorTheme,
+} from '../../shared/ShapeFill'
 
 export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	id,
@@ -17,6 +21,7 @@ export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	strokeWidth: number
 	lines?: VecLike[][]
 }) {
+	const theme = useDefaultColorTheme()
 	const polygonPoints = getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
 	let strokePathData = getRoundedInkyPolygonPath(polygonPoints)
 
@@ -32,12 +37,7 @@ export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	return (
 		<>
 			<ShapeFill d={innerPathData} fill={fill} color={color} />
-			<path
-				d={strokePathData}
-				stroke={`var(--palette-${color})`}
-				strokeWidth={strokeWidth}
-				fill="none"
-			/>
+			<path d={strokePathData} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 		</>
 	)
 })
@@ -48,14 +48,14 @@ export function DrawStylePolygonSvg({
 	lines,
 	fill,
 	color,
-	colors,
+	theme,
 	strokeWidth,
 }: Pick<TLGeoShape['props'], 'fill' | 'color'> & {
 	id: TLGeoShape['id']
 	outline: VecLike[]
 	lines?: VecLike[][]
 	strokeWidth: number
-	colors: TLExportColors
+	theme: TLDefaultColorTheme
 }) {
 	const polygonPoints = getRoundedPolygonPoints(id, outline, strokeWidth / 3, strokeWidth * 2, 2)
 
@@ -73,7 +73,7 @@ export function DrawStylePolygonSvg({
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', strokePathData)
 	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', colors.fill[color])
+	strokeElement.setAttribute('stroke', theme[color].solid)
 	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
 
 	// Get the fill element, if any
@@ -81,7 +81,7 @@ export function DrawStylePolygonSvg({
 		d: innerPathData,
 		fill,
 		color,
-		colors,
+		theme,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

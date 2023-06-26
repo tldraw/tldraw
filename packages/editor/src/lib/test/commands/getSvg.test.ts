@@ -43,6 +43,7 @@ beforeEach(() => {
 			props: {
 				w: 100,
 				h: 100,
+				fill: 'pattern',
 			},
 		},
 	])

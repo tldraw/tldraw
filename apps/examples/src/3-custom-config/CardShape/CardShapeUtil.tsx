@@ -1,5 +1,11 @@
 import { resizeBox } from '@tldraw/editor/src/lib/editor/shapes/shared/resizeBox'
-import { Box2d, HTMLContainer, ShapeUtil, TLOnResizeHandler } from '@tldraw/tldraw'
+import {
+	Box2d,
+	HTMLContainer,
+	ShapeUtil,
+	TLOnResizeHandler,
+	getDefaultColorTheme,
+} from '@tldraw/tldraw'
 import { ICardShape } from './card-shape-types'
 
 // A utility class for the card shape. This is where you define
@@ -30,6 +36,7 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	// Render method — the React component that will be rendered for the shape
 	component(shape: ICardShape) {
 		const bounds = this.editor.getBounds(shape)
+		const theme = getDefaultColorTheme(this.editor)
 
 		return (
 			<HTMLContainer
@@ -41,7 +48,7 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 					justifyContent: 'center',
 					pointerEvents: 'all',
 					fontWeight: shape.props.weight,
-					color: `var(--palette-${shape.props.color})`,
+					color: theme[shape.props.color].solid,
 				}}
 			>
 				{bounds.w.toFixed()}x{bounds.h.toFixed()}

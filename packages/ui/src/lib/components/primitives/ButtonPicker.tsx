@@ -1,4 +1,12 @@
-import { DefaultColorStyle, SharedStyle, StyleProp, useEditor } from '@tldraw/editor'
+import {
+	DefaultColorStyle,
+	SharedStyle,
+	StyleProp,
+	TLDefaultColorStyle,
+	getDefaultColorTheme,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import { clamp } from '@tldraw/primitives'
 import classNames from 'classnames'
 import * as React from 'react'
@@ -84,6 +92,8 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 		}
 	}, [value, editor, onValueChange, style])
 
+	const theme = useValue('theme', () => getDefaultColorTheme(editor), [editor])
+
 	return (
 		<div
 			className={classNames('tlui-button-grid', {
@@ -103,7 +113,7 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 					className={classNames('tlui-button-grid__button')}
 					style={
 						style === (DefaultColorStyle as StyleProp<unknown>)
-							? { color: `var(--palette-${item.value})` }
+							? { color: theme[item.value as TLDefaultColorStyle].solid }
 							: undefined
 					}
 					onPointerEnter={handleButtonPointerEnter}

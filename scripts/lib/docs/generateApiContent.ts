@@ -28,25 +28,22 @@ async function generateApiDocs() {
 	fs.mkdirSync(OUTPUT_DIR)
 
 	// to include more packages in docs, add them to devDependencies in package.json
-	const tldrawPackagesToIncludeInDocs = [
-		'@tldraw/editor',
-		'@tldraw/file-format',
-		'@tldraw/primitives',
-		'@tldraw/store',
-		'@tldraw/tldraw',
-		'@tldraw/tlschema',
-		'@tldraw/ui',
-		'@tldraw/validate',
-	]
-
+	const packageJson = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'package.json'), 'utf8'))
+	const tldrawPackagesToIncludeInDocs = Object.keys(packageJson.devDependencies).filter((dep) =>
+		dep.startsWith('@tldraw/')
+	)
 	const model = new ApiModel()
+	const packageModels = []
+
 	for (const packageName of tldrawPackagesToIncludeInDocs) {
 		// Get the file contents
 		const filePath = path.join(INPUT_DIR, packageName.replace('@tldraw/', ''), 'api', 'api.json')
 
-		try {
-			const packageModel = model.loadPackage(filePath)
+		packageModels.push(model.loadPackage(filePath))
+	}
 
+	for (const packageModel of packageModels) {
+		try {
 			const categoryName = packageModel.name.replace(`@tldraw/`, '')
 
 			if (!addedCategories.has(categoryName)) {
@@ -97,7 +94,7 @@ async function generateApiDocs() {
 				fs.writeFileSync(path.join(OUTPUT_DIR, outputFileName), result.markdown)
 			}
 		} catch (e: any) {
-			throw Error(`Could not create API docs for ${packageName}: ${e.message}`)
+			throw Error(`Could not create API docs for ${packageModel.name}: ${e.message}`)
 		}
 	}
 

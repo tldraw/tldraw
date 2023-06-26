@@ -35,7 +35,7 @@
 	},
 	"dependencies": {
 		"@babel/plugin-proposal-decorators": "^7.21.0",
-		"@playwright/test": "^1.34.3",
+		"@playwright/test": "^1.35.1",
 		"@tldraw/assets": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/tldraw": "workspace:*",

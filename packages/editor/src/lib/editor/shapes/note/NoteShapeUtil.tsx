@@ -1,12 +1,14 @@
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { TLNoteShape } from '@tldraw/tlschema'
+import { DefaultFontFamilies, getDefaultColorTheme, TLNoteShape } from '@tldraw/tlschema'
 import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler } from '../ShapeUtil'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
-import { TLExportColors } from '../shared/TLExportColors'
 
 const NOTE_SIZE = 200
 
@@ -56,6 +58,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 			props: { color, font, size, align, text, verticalAlign },
 		} = shape
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const theme = useDefaultColorTheme()
 		const adjustedColor = color === 'black' ? 'yellow' : color
 
 		return (
@@ -70,8 +74,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					<div
 						className="tl-note__container tl-hitarea-fill"
 						style={{
-							color: `var(--palette-${adjustedColor})`,
-							backgroundColor: `var(--palette-${adjustedColor})`,
+							color: theme[adjustedColor].solid,
+							backgroundColor: theme[adjustedColor].solid,
 						}}
 					>
 						<div className="tl-note__scrim" />
@@ -83,7 +87,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							align={align}
 							verticalAlign={verticalAlign}
 							text={text}
-							labelColor={adjustedColor}
+							labelColor="black"
 							wrap
 						/>
 					</div>
@@ -105,7 +109,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	toSvg(shape: TLNoteShape, font: string, colors: TLExportColors) {
+	toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
+		ctx.addExportDef(getFontDefForExport(shape.props.font))
+		const theme = getDefaultColorTheme(this.editor)
 		const bounds = this.getBounds(shape)
 
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
@@ -116,8 +122,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		rect1.setAttribute('rx', '10')
 		rect1.setAttribute('width', NOTE_SIZE.toString())
 		rect1.setAttribute('height', bounds.height.toString())
-		rect1.setAttribute('fill', colors.fill[adjustedColor])
-		rect1.setAttribute('stroke', colors.fill[adjustedColor])
+		rect1.setAttribute('fill', theme[adjustedColor].solid)
+		rect1.setAttribute('stroke', theme[adjustedColor].solid)
 		rect1.setAttribute('stroke-width', '1')
 		g.appendChild(rect1)
 
@@ -125,18 +131,18 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		rect2.setAttribute('rx', '10')
 		rect2.setAttribute('width', NOTE_SIZE.toString())
 		rect2.setAttribute('height', bounds.height.toString())
-		rect2.setAttribute('fill', colors.background)
+		rect2.setAttribute('fill', theme.background)
 		rect2.setAttribute('opacity', '.28')
 		g.appendChild(rect2)
 
 		const textElm = getTextLabelSvgElement({
 			editor: this.editor,
 			shape,
-			font,
+			font: DefaultFontFamilies[shape.props.font],
 			bounds,
 		})
 
-		textElm.setAttribute('fill', colors.text)
+		textElm.setAttribute('fill', theme.text)
 		textElm.setAttribute('stroke', 'none')
 		g.appendChild(textElm)
 
