@@ -3,6 +3,7 @@
 
 import { atom, computed } from '@tldraw/state'
 import { Editor } from './Editor'
+import { CommandFn, EditorCommandHandler, ExtractData } from './EditorHistoryManager/history-types'
 import { EditorEventOptions } from './editor-react'
 
 export type EditorExtensionConfigOf<
@@ -12,7 +13,12 @@ export type EditorExtensionConfigOf<
 	? EditorExtensionConfig<Name, Options, Storage> & EditorEventOptions<X>
 	: never
 
-export type EditorExtensionConfig<Name extends string = any, Options = any, Storage = any> = {
+export type EditorExtensionConfig<
+	Name extends string = any,
+	Options = any,
+	Storage = any,
+	Commands = any
+> = {
 	/**
 	 * Additional options
 	 */
@@ -26,22 +32,67 @@ export type EditorExtensionConfig<Name extends string = any, Options = any, Stor
 	addOptions?: () => Options
 
 	addStorage?: () => Storage
+
+	// Add record types to the store, possibly a duplicate of addStorage
+	addRecords?: () => any
+	// Add commands to the store. This is a hard one to get right in TypeScript
+	// as commands may need to access other commands, and I don't really know
+	// how to do that. Maybe we can just have a generic type that is the
+	// commands object, and then the user can type it themselves.
+	addCommands?: (
+		editor: Editor<EditorExtension<Name, Options, Storage>[]>,
+		createCommand: <Name extends string, Constructor extends CommandFn<any>>(
+			name: Name,
+			constructor: Constructor,
+			handle: EditorCommandHandler<ExtractData<Constructor>>
+		) => void
+	) => Commands
 }
 
 export class EditorExtension<Name extends string = any, Options = any, Storage = any> {
-	type = 'extension'
+	/**
+	 * The extension's type.
+	 *
+	 * @public
+	 * @readonly
+	 */
+	readonly type = 'extension'
 
-	name = 'extension' as Name
+	/**
+	 * The extension's name.
+	 *
+	 * @public
+	 * @readonly
+	 */
+	readonly name = 'extension' as Name
 
-	config: EditorExtensionConfig<Name, Options, Storage> &
+	/**
+	 * The extension's configuration.
+	 *
+	 * @public
+	 * @readonly
+	 */
+	readonly config: EditorExtensionConfig<Name, Options, Storage> &
 		EditorEventOptions<Editor<EditorExtension<Name, Options, Storage>[]>> = {
 		name: this.name,
 		defaultOptions: {} as Options,
 	}
 
-	options = {} as Options
+	/**
+	 * The extension's options.
+	 *
+	 * @public
+	 * @readonly
+	 */
+	readonly options = {} as Options
 
-	_storage = atom(this.name + '_storage', {} as Storage)
+	/**
+	 * A local in-memory atom, not part of the editor's store.
+	 *
+	 * @private
+	 * @readonly
+	 */
+	private readonly _storage = atom(this.name + '_storage', {} as Storage)
 
 	constructor(
 		config = {} as EditorExtensionConfig<Name, Options, Storage> &
@@ -49,21 +100,59 @@ export class EditorExtension<Name extends string = any, Options = any, Storage =
 	) {
 		this.config = { ...this.config, ...config }
 
-		// Options
-
 		this.options = this.config.defaultOptions ?? ({} as Options)
 
 		if (config.addOptions) {
 			this.options = config.addOptions.bind(this)()
 		}
 
-		// Storage
-
 		if (config.addStorage) {
 			this.storage = config.addStorage.bind(this)()
 		}
 	}
 
+	/**
+	 * Create a new extension.
+	 *
+	 * @example
+	 * ```ts
+	 * const myExtension = EditorExtension.create({
+	 *   name: "my-extension",
+	 *   addOptions() {
+	 * 	   return {
+	 *       kind: "banner",
+	 *     }
+	 *   },
+	 *   addStorage() {
+	 * 	   return {
+	 *       clicks: 0,
+	 *     }
+	 *   }
+	 * })
+	 *```
+
+	 * @param config - The extension's configuration
+	 *
+	 * @public
+	 * @readonly
+	 */
+	static create<N extends string = any, O = any, S = any>(
+		config = {} as EditorExtensionConfig<N, O, S> &
+			EditorEventOptions<Editor<EditorExtension<N, O, S>[]>>
+	) {
+		return new EditorExtension(config)
+	}
+
+	/**
+	 * The extension's storage.
+	 *
+	 * @example
+	 * ```ts
+	 * myExtension.storage
+	 * ```
+	 *
+	 * @public
+	 */
 	@computed get storage() {
 		return this._storage.value
 	}
@@ -72,23 +161,40 @@ export class EditorExtension<Name extends string = any, Options = any, Storage =
 		this._storage.set(storage)
 	}
 
-	static create<N extends string = any, O = any, S = any>(
-		config = {} as EditorExtensionConfig<N, O, S> &
-			EditorEventOptions<Editor<EditorExtension<N, O, S>[]>>
-	) {
-		return new EditorExtension(config)
+	/**
+	 * Get the extension's current storage.
+	 *
+	 * @example
+	 * ```ts
+	 * myExtension.getStorage()
+	 * ```
+	 *
+	 * @public
+	 * @returns The extension's storage
+	 */
+	getStorage() {
+		return this.storage
+	}
+
+	/**
+	 * Set the extension's storage.
+	 *
+	 * @example
+	 * ```ts
+	 * myExtension.setStorage({ age: 32 })
+	 * ```
+	 *
+	 * @public
+	 * @returns The extension
+	 */
+	setStorage(storage: Storage) {
+		this.storage = storage
+		return this
 	}
 }
 
-// export type ExtractStorage<E extends EditorExtension<string>> = E extends EditorExtension<
-// 	infer N,
-// 	infer _,
-// 	infer S
-// >
-// 	? Record<N extends string ? N : never, S>
-// 	: never
-
 type Compute<T> = { [K in keyof T]: T[K] } & unknown
+
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (k: infer I) => void
 	? I
 	: never
@@ -114,5 +220,3 @@ export type ExtractCommands<T extends readonly EditorExtension[]> = Compute<
 		[K in keyof T]: { [R in T[K]['name']]: T[K]['storage'] }
 	}[number]
 >
-
-export type ExtractStorageKey<T extends readonly EditorExtension[]> = keyof ExtractStorage<T>

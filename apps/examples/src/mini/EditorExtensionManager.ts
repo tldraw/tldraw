@@ -55,6 +55,20 @@ export class EditorExtensionManager<E extends readonly EditorExtension[]> {
 		}
 	}
 
+	/** Get an extension by its name.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getExtension('chart')
+	 * ```
+	 *
+	 * @returns The extension with the given name.
+	 * @public
+	 */
+	getExtension<Name extends keyof ExtractExtensions<E>>(name: Name) {
+		return this.extensions[name]
+	}
+
 	static dedupe(extensions: EditorExtension[]) {
 		const names = new Set()
 		for (const {

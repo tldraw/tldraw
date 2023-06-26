@@ -1,6 +1,5 @@
 import { atom, transact } from '@tldraw/state'
-import { devFreeze } from '@tldraw/store'
-import { uniqueId } from '@tldraw/tldraw'
+import { devFreeze, uniqueId } from '@tldraw/tldraw'
 import { Editor } from '../Editor'
 import { EditorExtension } from '../EditorExtension'
 import { Stack, stack } from './Stack'
@@ -38,10 +37,10 @@ export class EditorHistoryManager<E extends readonly EditorExtension[]> {
 		constructor: Constructor,
 		handle: EditorCommandHandler<ExtractData<Constructor>>
 	) => {
-		// if (this._commands[name]) {
-		// 	throw new Error(`Duplicate command: ${name}`)
-		// }
-		// this._commands[name] = handle
+		if (this._commands[name]) {
+			throw new Error(`Duplicate command: ${name}`)
+		}
+		this._commands[name] = handle
 
 		const exec = (...args: ExtractArgs<Constructor>) => {
 			if (!this._batchDepth) {

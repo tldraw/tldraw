@@ -14,7 +14,7 @@ export {
 	useValue,
 	whyAmIRunning,
 } from '@tldraw/state'
-export { defineMigrations } from '@tldraw/store'
+export { defineMigrations, devFreeze } from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/tlschema'
 export { getHashForString } from '@tldraw/utils'

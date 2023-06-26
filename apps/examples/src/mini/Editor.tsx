@@ -1,13 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { atom, computed } from '@tldraw/state'
 import { HistoryEntry, Store, StoreSchema, StoreSnapshot } from '@tldraw/store'
 import { EventEmitter } from 'eventemitter3'
-import {
-	EditorExtension,
-	ExtractCommands,
-	ExtractExtensions,
-	ExtractStorage,
-} from './EditorExtension'
+import { EditorExtension, ExtractCommands } from './EditorExtension'
 import { EditorExtensionManager } from './EditorExtensionManager'
 import { EditorHistoryManager } from './EditorHistoryManager/EditorHistoryManager'
 import {
@@ -84,6 +78,17 @@ export class Editor<const E extends readonly EditorExtension[]> extends EventEmi
 		this.extensions = new EditorExtensionManager<E>(this, (opts.extensions ?? []) as E)
 	}
 
+	/**
+	 * Create a new editor.
+	 *
+	 * @example
+	 * ```ts
+	 * const editor = Editor.create()
+	 * ```
+	 *
+	 * @static
+	 * @public
+	 */
 	static create<E extends readonly EditorExtension[]>(config: {
 		initialData?: StoreSnapshot<EditorRecord>
 		extensions?: E
@@ -91,44 +96,21 @@ export class Editor<const E extends readonly EditorExtension[]> extends EventEmi
 		return new Editor(config)
 	}
 
-	/** Get an extension by its name.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getExtension('chart')
-	 * ```
-	 *
-	 * @returns The extension with the given name.
-	 * @public
-	 */
-	getExtension<Name extends keyof ExtractExtensions<E>>(name: Name) {
-		return this.extensions.extensions[name]
-	}
+	// createRecords = (records: EditorRecord[]) => {
+	// 	this.store.put(records)
+	// }
 
-	// Extension storage, set by extension manager
+	// updateRecords = (records: EditorRecord[]) => {
+	// 	this.store.put(records)
+	// }
 
-	private _extensionStorage = atom(
-		'extension-storage',
-		{} as ExtractStorage<E> // Record<string, E extends EditorExtension[]<infer _, infer S> ? S : never>
-	)
-
-	/** Get a map of all storage from all extensions.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.storage
-	 * ```
-	 *
-	 * @returns The editor's extension storage.
-	 * @public
-	 */
-	@computed public get storage() {
-		return this._extensionStorage.value
-	}
-
-	public set storage(value: ExtractStorage<E>) {
-		this._extensionStorage.set(value)
-	}
+	// deleteRecords = (records: EditorRecord[] | EditorRecord['id'][]) => {
+	// 	if (typeof records[0] === 'string') {
+	// 		this.store.remove(records as EditorRecord['id'][])
+	// 	} else {
+	// 		this.store.remove((records as EditorRecord[]).map((r) => r.id))
+	// 	}
+	// }
 
 	/**
 	 * Destroy the editor.
