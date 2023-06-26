@@ -9,8 +9,8 @@ import {
 	uniqueId,
 	useEditor,
 } from '@tldraw/editor'
+import { track, useValue } from '@tldraw/state'
 import * as React from 'react'
-import { track, useValue } from 'signia-react'
 import { useDialogs } from '../hooks/useDialogsProvider'
 import { useToasts } from '../hooks/useToastsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'

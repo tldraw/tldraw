@@ -1,6 +1,6 @@
+import { useValue } from '@tldraw/state'
 import classNames from 'classnames'
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useValue } from 'signia-react'
 import { Editor } from '../editor/Editor'
 import { EditorContext } from '../hooks/useEditor'
 import { hardResetEditor } from '../utils/hard-reset'
@@ -69,7 +69,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 
 		// if we can't find a theme class from the app or from a parent, we have
 		// to fall back on using a media query:
-		setIsDarkMode(window.matchMedia('(prefetl-color-scheme: dark)').matches)
+		setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches)
 	}, [isDarkModeFromApp])
 
 	useEffect(() => {

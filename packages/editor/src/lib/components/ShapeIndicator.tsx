@@ -1,11 +1,7 @@
+import { useStateTracking, useValue } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import * as React from 'react'
-import {
-	// @ts-expect-error 'private' export
-	useStateTracking,
-	useValue,
-} from 'signia-react'
 import { useEditor } from '../..'
 import type { Editor } from '../editor/Editor'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
@@ -35,11 +31,7 @@ export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }
 	if (!shape.shape) return null
 	return (
 		<OptionalErrorBoundary
-			fallback={
-				ShapeIndicatorErrorFallback
-					? (error) => <ShapeIndicatorErrorFallback error={error} />
-					: null
-			}
+			fallback={ShapeIndicatorErrorFallback}
 			onError={(error) =>
 				editor.annotateError(error, { origin: 'react.shapeIndicator', willCrashApp: false })
 			}

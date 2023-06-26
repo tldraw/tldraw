@@ -56,12 +56,10 @@
 		]
 	},
 	"dependencies": {
+		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
 		"nanoid": "4.0.2"
-	},
-	"peerDependencies": {
-		"signia": "*"
 	}
 }

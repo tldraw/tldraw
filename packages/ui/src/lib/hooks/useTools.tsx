@@ -1,6 +1,6 @@
 import { Editor, GeoShapeGeoStyle, featureFlags, useEditor } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import * as React from 'react'
-import { useValue } from 'signia-react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './useDialogsProvider'

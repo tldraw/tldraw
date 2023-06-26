@@ -1,4 +1,4 @@
-import { Signal, computed } from 'signia'
+import { Signal, computed } from '@tldraw/state'
 import { TLStore } from './TLStore'
 import { CameraRecordType } from './records/TLCamera'
 import { TLINSTANCE_ID } from './records/TLInstance'

@@ -3,6 +3,18 @@
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/indices'
+export {
+	atom,
+	computed,
+	react,
+	track,
+	useComputed,
+	useQuickReactor,
+	useReactor,
+	useValue,
+	whyAmIRunning,
+} from '@tldraw/state'
+export { defineMigrations } from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/tlschema'
 export { getHashForString } from '@tldraw/utils'
@@ -58,7 +70,7 @@ export {
 	GRID_INCREMENT,
 	GRID_STEPS,
 	HAND_TOOL_FRICTION,
-	HASH_PATERN_ZOOM_NAMES,
+	HASH_PATTERN_ZOOM_NAMES,
 	MAJOR_NUDGE_FACTOR,
 	MAX_ASSET_HEIGHT,
 	MAX_ASSET_WIDTH,
@@ -183,8 +195,6 @@ export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
-export { useQuickReactor } from './lib/hooks/useQuickReactor'
-export { useReactor } from './lib/hooks/useReactor'
 export { useTLStore } from './lib/hooks/useTLStore'
 export {
 	ReadonlySharedStyleMap,

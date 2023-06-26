@@ -8,12 +8,16 @@ import {
 	TAU,
 	Vec2d,
 } from '@tldraw/primitives'
-import { TLGeoShape, TLShapeId } from '@tldraw/tlschema'
+import { TLDefaultColorTheme, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
 import * as React from 'react'
 import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
-import { getShapeFillSvg, getSvgWithShapeFill, ShapeFill } from '../../shared/ShapeFill'
-import { TLExportColors } from '../../shared/TLExportColors'
+import {
+	getShapeFillSvg,
+	getSvgWithShapeFill,
+	ShapeFill,
+	useDefaultColorTheme,
+} from '../../shared/ShapeFill'
 
 export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
 	id,
@@ -26,13 +30,14 @@ export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
 	strokeWidth: number
 	id: TLShapeId
 }) {
+	const theme = useDefaultColorTheme()
 	const innerPath = getEllipseIndicatorPath(id, w, h, sw)
 	const outerPath = getEllipsePath(id, w, h, sw)
 
 	return (
 		<>
 			<ShapeFill d={innerPath} color={color} fill={fill} />
-			<path d={outerPath} fill={`var(--palette-${color})`} strokeWidth={0} pointerEvents="all" />
+			<path d={outerPath} fill={theme[color].solid} strokeWidth={0} pointerEvents="all" />
 		</>
 	)
 })
@@ -44,22 +49,22 @@ export function DrawStyleEllipseSvg({
 	strokeWidth: sw,
 	fill,
 	color,
-	colors,
+	theme,
 }: Pick<TLGeoShape['props'], 'w' | 'h' | 'fill' | 'color'> & {
 	strokeWidth: number
 	id: TLShapeId
-	colors: TLExportColors
+	theme: TLDefaultColorTheme
 }) {
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', getEllipsePath(id, w, h, sw))
-	strokeElement.setAttribute('fill', colors.fill[color])
+	strokeElement.setAttribute('fill', theme[color].solid)
 
 	// Get the fill element, if any
 	const fillElement = getShapeFillSvg({
 		d: getEllipseIndicatorPath(id, w, h, sw),
 		fill,
 		color,
-		colors,
+		theme,
 	})
 
 	return getSvgWithShapeFill(strokeElement, fillElement)

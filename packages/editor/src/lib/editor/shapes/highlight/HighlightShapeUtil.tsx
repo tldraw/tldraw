@@ -1,13 +1,19 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, getStrokePoints, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
-import { TLDrawShapeSegment, TLHighlightShape } from '@tldraw/tlschema'
+import {
+	getDefaultColorTheme,
+	TLDefaultColorTheme,
+	TLDrawShapeSegment,
+	TLHighlightShape,
+} from '@tldraw/tlschema'
 import { last, rng } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
 import { FONT_SIZES } from '../shared/default-shape-constants'
-import { TLExportColors } from '../shared/TLExportColors'
+import { useDefaultColorTheme } from '../shared/ShapeFill'
+import { useColorSpace } from '../shared/useColorSpace'
 import { useForceSolid } from '../shared/useForceSolid'
 
 const OVERLAY_OPACITY = 0.35
@@ -22,7 +28,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	hideSelectionBoundsBg = (shape: TLHighlightShape) => getIsDot(shape)
 	hideSelectionBoundsFg = (shape: TLHighlightShape) => getIsDot(shape)
 
-	override defaultProps(): TLHighlightShape['props'] {
+	override getDefaultProps(): TLHighlightShape['props'] {
 		return {
 			segments: [],
 			color: 'black',
@@ -33,7 +39,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	getBounds(shape: TLHighlightShape) {
-		return Box2d.FromPoints(this.outline(shape))
+		return Box2d.FromPoints(this.editor.getOutline(shape))
 	}
 
 	getOutline(shape: TLHighlightShape) {
@@ -41,11 +47,11 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	getCenter(shape: TLHighlightShape): Vec2d {
-		return this.bounds(shape).center
+		return this.editor.getBounds(shape).center
 	}
 
 	hitTestPoint(shape: TLHighlightShape, point: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = getStrokeWidth(shape) / zoomLevel
 
@@ -55,7 +61,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			}
 		}
 
-		if (this.bounds(shape).containsPoint(point)) {
+		if (this.editor.getBounds(shape).containsPoint(point)) {
 			for (let i = 0; i < outline.length; i++) {
 				const C = outline[i]
 				const D = outline[(i + 1) % outline.length]
@@ -68,7 +74,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	hitTestLineSegment(shape: TLHighlightShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
 			const zoomLevel = this.editor.zoomLevel
@@ -102,7 +108,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		)
 	}
 
-	renderBackground(shape: TLHighlightShape) {
+	backgroundComponent(shape: TLHighlightShape) {
 		return (
 			<HighlightRenderer
 				strokeWidth={getStrokeWidth(shape)}
@@ -144,16 +150,14 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return getStrokeWidth(shape) / 2
 	}
 
-	override toSvg(shape: TLHighlightShape, _font: string | undefined, colors: TLExportColors) {
-		return highlighterToSvg(getStrokeWidth(shape), shape, OVERLAY_OPACITY, colors)
+	override toSvg(shape: TLHighlightShape) {
+		const theme = getDefaultColorTheme(this.editor)
+		return highlighterToSvg(getStrokeWidth(shape), shape, OVERLAY_OPACITY, theme)
 	}
 
-	override toBackgroundSvg(
-		shape: TLHighlightShape,
-		font: string | undefined,
-		colors: TLExportColors
-	) {
-		return highlighterToSvg(getStrokeWidth(shape), shape, UNDERLAY_OPACITY, colors)
+	override toBackgroundSvg(shape: TLHighlightShape) {
+		const theme = getDefaultColorTheme(this.editor)
+		return highlighterToSvg(getStrokeWidth(shape), shape, UNDERLAY_OPACITY, theme)
 	}
 
 	override onResize: TLOnResizeHandler<TLHighlightShape> = (shape, info) => {
@@ -228,8 +232,11 @@ function HighlightRenderer({
 	shape: TLHighlightShape
 	opacity?: number
 }) {
+	const theme = useDefaultColorTheme()
 	const forceSolid = useForceSolid()
 	const { solidStrokePath, sw } = getHighlightSvgPath(shape, strokeWidth, forceSolid)
+	const colorSpace = useColorSpace()
+	const color = theme[shape.props.color].highlight[colorSpace]
 
 	return (
 		<SVGContainer id={shape.id} style={{ opacity }}>
@@ -238,7 +245,7 @@ function HighlightRenderer({
 				strokeLinecap="round"
 				fill="none"
 				pointerEvents="all"
-				stroke={`var(--palette-${shape.props.color}-highlight)`}
+				stroke={color}
 				strokeWidth={sw}
 			/>
 		</SVGContainer>
@@ -249,14 +256,14 @@ function highlighterToSvg(
 	strokeWidth: number,
 	shape: TLHighlightShape,
 	opacity: number,
-	colors: TLExportColors
+	theme: TLDefaultColorTheme
 ) {
 	const { solidStrokePath, sw } = getHighlightSvgPath(shape, strokeWidth, false)
 
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	path.setAttribute('d', solidStrokePath)
 	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', colors.highlight[shape.props.color])
+	path.setAttribute('stroke', theme[shape.props.color].highlight.srgb)
 	path.setAttribute('stroke-width', `${sw}`)
 	path.setAttribute('opacity', `${opacity}`)
 

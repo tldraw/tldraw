@@ -10,11 +10,15 @@ import {
 	Vec2d,
 	VecLike,
 } from '@tldraw/primitives'
+import { computed, EMPTY_ARRAY } from '@tldraw/state'
 import { ComputedCache } from '@tldraw/store'
 import {
+	DefaultFontFamilies,
+	getDefaultColorTheme,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
+	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLHandle,
 	TLShapeId,
@@ -23,7 +27,6 @@ import {
 } from '@tldraw/tlschema'
 import { deepCopy, last, minBy } from '@tldraw/utils'
 import * as React from 'react'
-import { computed, EMPTY_ARRAY } from 'signia'
 import { SVGContainer } from '../../../components/SVGContainer'
 import {
 	ShapeUtil,
@@ -31,6 +34,7 @@ import {
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
 	TLOnTranslateStartHandler,
+	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
@@ -40,9 +44,14 @@ import {
 	STROKE_SIZES,
 	TEXT_PROPS,
 } from '../shared/default-shape-constants'
+import {
+	getFillDefForCanvas,
+	getFillDefForExport,
+	getFontDefForExport,
+} from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getShapeFillSvg, ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
+import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
 import {
@@ -73,7 +82,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true
 
-	override defaultProps(): TLArrowShape['props'] {
+	override getDefaultProps(): TLArrowShape['props'] {
 		return {
 			dash: 'draw',
 			size: 'm',
@@ -91,7 +100,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	getCenter(shape: TLArrowShape): Vec2d {
-		return this.bounds(shape).center
+		return this.editor.getBounds(shape).center
 	}
 
 	getBounds(shape: TLArrowShape) {
@@ -292,7 +301,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 							if (util.isClosed(hitShape)) {
 								// Test the polygon
-								return pointInPolygon(pointInTargetSpace, util.outline(hitShape))
+								return pointInPolygon(pointInTargetSpace, this.editor.getOutline(hitShape))
 							}
 
 							// Test the point using the shape's idea of what a hit is
@@ -533,7 +542,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
 
@@ -548,7 +557,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	hitTestLineSegment(shape: TLArrowShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 
 		for (let i = 0; i < outline.length - 1; i++) {
 			const C = outline[i]
@@ -561,6 +570,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	component(shape: TLArrowShape) {
 		// Not a class component, but eslint can't tell that :(
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const theme = useDefaultColorTheme()
 		const onlySelectedShape = this.editor.onlySelectedShape
 		const shouldDisplayHandles =
 			this.editor.isInAny(
@@ -571,7 +582,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			) && !this.editor.isReadOnly
 
 		const info = this.getArrowInfo(shape)
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 		const labelSize = this.getLabelBounds(shape)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -697,7 +708,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					)}
 					<g
 						fill="none"
-						stroke={`var(--palette-${shape.props.color})`}
+						stroke={theme[shape.props.color].solid}
 						strokeWidth={strokeWidth}
 						strokeLinejoin="round"
 						strokeLinecap="round"
@@ -750,7 +761,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
 		const info = this.getArrowInfo(shape)
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 		const labelSize = this.getLabelBounds(shape)
 
 		if (!info) return null
@@ -844,7 +855,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	@computed get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape> {
 		return this.editor.store.createComputedCache('labelBoundsCache', (shape) => {
 			const info = this.getArrowInfo(shape)
-			const bounds = this.bounds(shape)
+			const bounds = this.editor.getBounds(shape)
 			const { text, font, size } = shape.props
 
 			if (!info) return null
@@ -901,10 +912,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return this.labelBoundsCache.get(shape.id) || null
 	}
 
-	getEditingBounds = (shape: TLArrowShape): Box2d => {
-		return this.getLabelBounds(shape) ?? new Box2d()
-	}
-
 	onEditEnd: TLOnEditEndHandler<TLArrowShape> = (shape) => {
 		const {
 			id,
@@ -925,8 +932,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	toSvg(shape: TLArrowShape, font: string, colors: TLExportColors) {
-		const color = colors.fill[shape.props.color]
+	toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
+		const theme = getDefaultColorTheme(this.editor)
+		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
+
+		const color = theme[shape.props.color].solid
 
 		const info = this.getArrowInfo(shape)
 
@@ -941,7 +951,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// Arrowhead end path
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 		const labelSize = this.getLabelBounds(shape)
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
@@ -1030,7 +1040,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					shape.props.color,
 					strokeWidth,
 					shape.props.arrowheadStart === 'arrow' ? 'none' : shape.props.fill,
-					colors
+					theme
 				)
 			)
 		}
@@ -1042,17 +1052,19 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					shape.props.color,
 					strokeWidth,
 					shape.props.arrowheadEnd === 'arrow' ? 'none' : shape.props.fill,
-					colors
+					theme
 				)
 			)
 		}
 
 		// Text Label
 		if (labelSize) {
+			ctx.addExportDef(getFontDefForExport(shape.props.font))
+
 			const opts = {
 				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
 				lineHeight: TEXT_PROPS.lineHeight,
-				fontFamily: font,
+				fontFamily: DefaultFontFamilies[shape.props.font],
 				padding: 0,
 				textAlign: 'middle' as const,
 				width: labelSize.w - 8,
@@ -1068,7 +1080,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				this.editor.textMeasure.measureTextSpans(shape.props.text, opts),
 				opts
 			)
-			textElm.setAttribute('fill', colors.fill[shape.props.labelColor])
+			textElm.setAttribute('fill', theme[shape.props.labelColor].solid)
 
 			const children = Array.from(textElm.children) as unknown as SVGTSpanElement[]
 
@@ -1082,14 +1094,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 			const textBgEl = textElm.cloneNode(true) as SVGTextElement
 			textBgEl.setAttribute('stroke-width', '2')
-			textBgEl.setAttribute('fill', colors.background)
-			textBgEl.setAttribute('stroke', colors.background)
+			textBgEl.setAttribute('fill', theme.background)
+			textBgEl.setAttribute('stroke', theme.background)
 
 			g.appendChild(textBgEl)
 			g.appendChild(textElm)
 		}
 
 		return g
+	}
+
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return [getFillDefForCanvas()]
 	}
 }
 
@@ -1115,12 +1131,12 @@ function getArrowheadSvgPath(
 	color: TLDefaultColorStyle,
 	strokeWidth: number,
 	fill: TLDefaultFillStyle,
-	colors: TLExportColors
+	theme: TLDefaultColorTheme
 ) {
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	path.setAttribute('d', d)
 	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', colors.fill[color])
+	path.setAttribute('stroke', theme[color].solid)
 	path.setAttribute('stroke-width', strokeWidth + '')
 
 	// Get the fill element, if any
@@ -1128,7 +1144,7 @@ function getArrowheadSvgPath(
 		d,
 		fill,
 		color,
-		colors,
+		theme,
 	})
 
 	if (shapeFill) {

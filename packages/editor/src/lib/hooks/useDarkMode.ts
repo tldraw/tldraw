@@ -1,5 +1,5 @@
+import { useValue } from '@tldraw/state'
 import React from 'react'
-import { useValue } from 'signia-react'
 import { debugFlags } from '../utils/debug-flags'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'

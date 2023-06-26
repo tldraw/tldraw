@@ -1,7 +1,7 @@
 import { MAX_PAGES, useEditor } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import { PageRecordType, TLPageId } from '@tldraw/tlschema'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useValue } from 'signia-react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'

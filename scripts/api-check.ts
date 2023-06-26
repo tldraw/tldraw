@@ -11,7 +11,6 @@ const packagesOurTypesCanDependOn = [
 	'eventemitter3',
 	// todo: external types shouldn't depend on this
 	'@types/ws',
-	'signia',
 ]
 
 main()

@@ -1,5 +1,5 @@
+import { track } from '@tldraw/state'
 import { useEffect, useRef, useState } from 'react'
-import { track } from 'signia-react'
 import { COLLABORATOR_CHECK_INTERVAL, COLLABORATOR_TIMEOUT } from '../constants'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
@@ -54,6 +54,7 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 	if (
 		isTimedOut &&
 		editor.instanceState.followingUserId !== userId &&
+		!latestPresence.chatMessage &&
 		!editor.instanceState.highlightedUserIds.includes(userId)
 	)
 		return null

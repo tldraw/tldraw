@@ -1,10 +1,8 @@
 import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
+import { react, track, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
-import { dedupe, modulate } from '@tldraw/utils'
+import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
 import classNames from 'classnames'
-import * as React from 'react'
-import { react } from 'signia'
-import { track, useValue } from 'signia-react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
 import { useDocumentEvents } from '../hooks/useDocumentEvents'
@@ -13,8 +11,6 @@ import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoubleTapZoomPencilEvents'
 import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
-import { usePattern } from '../hooks/usePattern'
-import { useQuickReactor } from '../hooks/useQuickReactor'
 import { useScreenBounds } from '../hooks/useScreenBounds'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
@@ -26,11 +22,11 @@ import { ShapeIndicator } from './ShapeIndicator'
 /** @public */
 export const Canvas = track(function Canvas({
 	onDropOverride,
-	className
+	className,
 }: {
 	onDropOverride?: (
 		defaultOnDrop: (e: React.DragEvent<Element>) => Promise<void>
-	) => (e: React.DragEvent<Element>) => Promise<void>,
+	) => (e: React.DragEvent<Element>) => Promise<void>
 	className?: string
 }) {
 	const editor = useEditor()
@@ -71,44 +67,46 @@ export const Canvas = track(function Canvas({
 		[editor]
 	)
 
-	const { context: patternContext, isReady: patternIsReady } = usePattern()
-
 	const events = useCanvasEvents()
 	if (onDropOverride) {
 		events.onDrop = onDropOverride(events.onDrop)
 	}
 
-	React.useEffect(() => {
-		if (patternIsReady && editor.isSafari) {
-			const htmlElm = rHtmlLayer.current
-
-			if (htmlElm) {
-				// Wait for `patternContext` to be picked up
-				requestAnimationFrame(() => {
-					htmlElm.style.display = 'none'
-
-					// Wait for 'display = "none"' to take effect
-					requestAnimationFrame(() => {
-						htmlElm.style.display = ''
-					})
-				})
+	const shapeSvgDefs = useValue(
+		'shapeSvgDefs',
+		() => {
+			const shapeSvgDefsByKey = new Map<string, JSX.Element>()
+			for (const util of objectMapValues(editor.shapeUtils)) {
+				if (!util) return
+				const defs = util.getCanvasSvgDefs()
+				for (const { key, component: Component } of defs) {
+					if (shapeSvgDefsByKey.has(key)) continue
+					shapeSvgDefsByKey.set(key, <Component key={key} />)
+				}
 			}
-		}
-	}, [editor, patternIsReady])
+			return [...shapeSvgDefsByKey.values()]
+		},
+		[editor]
+	)
 
 	React.useEffect(() => {
 		rCanvas.current?.focus()
 	}, [])
-
 	return (
-		<div ref={rCanvas} draggable={false} className={classNames("tl-canvas", className)} data-testid="canvas" {...events}>
+		<div
+			ref={rCanvas}
+			draggable={false}
+			className={classNames('tl-canvas', className)}
+			data-testid="canvas"
+			{...events}
+		>
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />
 			<div ref={rHtmlLayer} className="tl-html-layer" draggable={false}>
 				<svg className="tl-svg-context">
 					<defs>
-						{patternContext}
+						{shapeSvgDefs}
 						{Cursor && <Cursor />}
 						<CollaboratorHint />
 						<ArrowheadDot />
@@ -219,8 +217,7 @@ const HandlesWrapper = track(function HandlesWrapper() {
 
 	if (!(onlySelectedShape && shouldDisplayHandles)) return null
 
-	const util = editor.getShapeUtil(onlySelectedShape)
-	const handles = util.handles?.(onlySelectedShape)
+	const handles = editor.getHandles(onlySelectedShape)
 
 	if (!handles) return null
 

@@ -9,13 +9,12 @@ import {
 	intersectLineSegmentPolyline,
 	pointNearToPolyline,
 } from '@tldraw/primitives'
-import { TLHandle, TLLineShape } from '@tldraw/tlschema'
+import { TLHandle, TLLineShape, getDefaultColorTheme } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
 import { ShapeUtil, TLOnHandleChangeHandler, TLOnResizeHandler } from '../ShapeUtil'
-import { ShapeFill } from '../shared/ShapeFill'
-import { TLExportColors } from '../shared/TLExportColors'
+import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { useForceSolid } from '../shared/useForceSolid'
@@ -35,7 +34,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideSelectionBoundsFg = () => true
 	override isClosed = () => false
 
-	override defaultProps(): TLLineShape['props'] {
+	override getDefaultProps(): TLLineShape['props'] {
 		return {
 			dash: 'draw',
 			size: 'm',
@@ -66,10 +65,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		// todo: should we have min size?
 		const spline = getSplineForLineShape(shape)
 		return spline.bounds
-	}
-
-	getCenter(shape: TLLineShape) {
-		return this.bounds(shape).center
 	}
 
 	getHandles(shape: TLLineShape) {
@@ -174,14 +169,15 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	hitTestPoint(shape: TLLineShape, point: Vec2d): boolean {
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
-		return pointNearToPolyline(point, this.outline(shape), offsetDist)
+		return pointNearToPolyline(point, this.editor.getOutline(shape), offsetDist)
 	}
 
 	hitTestLineSegment(shape: TLLineShape, A: VecLike, B: VecLike): boolean {
-		return intersectLineSegmentPolyline(A, B, this.outline(shape)) !== null
+		return intersectLineSegmentPolyline(A, B, this.editor.getOutline(shape)) !== null
 	}
 
 	component(shape: TLLineShape) {
+		const theme = useDefaultColorTheme()
 		const forceSolid = useForceSolid()
 		const spline = getSplineForLineShape(shape)
 		const strokeWidth = STROKE_SIZES[shape.props.size]
@@ -197,12 +193,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={pathData} fill={'none'} color={color} />
-						<path
-							d={pathData}
-							stroke={`var(--palette-${color})`}
-							strokeWidth={strokeWidth}
-							fill="none"
-						/>
+						<path d={pathData} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</SVGContainer>
 				)
 			}
@@ -214,7 +205,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={pathData} fill={'none'} color={color} />
-						<g stroke={`var(--palette-${color})`} strokeWidth={strokeWidth}>
+						<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
 							{spline.segments.map((segment, i) => {
 								const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 									segment.length,
@@ -250,7 +241,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 						<ShapeFill d={innerPathData} fill={'none'} color={color} />
 						<path
 							d={outerPathData}
-							stroke={`var(--palette-${color})`}
+							stroke={theme[color].solid}
 							strokeWidth={strokeWidth}
 							fill="none"
 						/>
@@ -269,7 +260,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 						<ShapeFill d={splinePath} fill={'none'} color={color} />
 						<path
 							strokeWidth={strokeWidth}
-							stroke={`var(--palette-${color})`}
+							stroke={theme[color].solid}
 							fill="none"
 							d={splinePath}
 						/>
@@ -281,7 +272,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={splinePath} fill={'none'} color={color} />
-						<g stroke={`var(--palette-${color})`} strokeWidth={strokeWidth}>
+						<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
 							{spline.segments.map((segment, i) => {
 								const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
 									segment.length,
@@ -315,8 +306,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 						<path
 							d={getLineDrawPath(shape, spline, strokeWidth)}
 							strokeWidth={1}
-							stroke={`var(--palette-${color})`}
-							fill={`var(--palette-${color})`}
+							stroke={theme[color].solid}
+							fill={theme[color].solid}
 						/>
 					</SVGContainer>
 				)
@@ -346,11 +337,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return <path d={path} />
 	}
 
-	toSvg(shape: TLLineShape, _font: string, colors: TLExportColors) {
-		const { color: _color, size } = shape.props
-		const color = colors.fill[_color]
+	toSvg(shape: TLLineShape) {
+		const theme = getDefaultColorTheme(this.editor)
+		const color = theme[shape.props.color].solid
 		const spline = getSplineForLineShape(shape)
-		return getLineSvg(shape, spline, color, STROKE_SIZES[size])
+		return getLineSvg(shape, spline, color, STROKE_SIZES[shape.props.size])
 	}
 }
 

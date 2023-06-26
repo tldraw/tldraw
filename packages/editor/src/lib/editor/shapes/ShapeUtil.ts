@@ -1,11 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box2d, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
-import { ComputedCache } from '@tldraw/store'
 import { StyleProp, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
-import { computed, EMPTY_ARRAY } from 'signia'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
-import { TLExportColors } from './shared/TLExportColors'
+import { SvgExportContext } from './shared/SvgExportContext'
 
 /** @public */
 export interface TLShapeUtilConstructor<
@@ -20,29 +18,18 @@ export interface TLShapeUtilConstructor<
 export type TLShapeUtilFlag<T> = (shape: T) => boolean
 
 /** @public */
+export interface TLShapeUtilCanvasSvgDef {
+	key: string
+	component: React.ComponentType
+}
+
+/** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(
 		public editor: Editor,
 		public readonly type: Shape['type'],
 		public readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>
 	) {}
-
-	hasStyle(style: StyleProp<unknown>) {
-		return this.styleProps.has(style)
-	}
-
-	getStyleIfExists<T>(style: StyleProp<T>, shape: Shape | TLShapePartial<Shape>): T | undefined {
-		const styleKey = this.styleProps.get(style)
-		if (!styleKey) return undefined
-		return (shape.props as any)[styleKey]
-	}
-
-	*iterateStyles(shape: Shape | TLShapePartial<Shape>) {
-		for (const [style, styleKey] of this.styleProps) {
-			const value = (shape.props as any)[styleKey]
-			yield [style, value] as [StyleProp<unknown>, unknown]
-		}
-	}
 
 	setStyleInPartial<T>(
 		style: StyleProp<T>,
@@ -66,6 +53,29 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	static type: string
+
+	/**
+	 * Get the default props for a shape.
+	 *
+	 * @public
+	 */
+	abstract getDefaultProps(): Shape['props']
+
+	/**
+	 * Get a JSX element for the shape (as an HTML element).
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	abstract component(shape: Shape): any
+
+	/**
+	 * Get JSX describing the shape's indicator (as an SVG element).
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	abstract indicator(shape: Shape): any
 
 	/**
 	 * Whether the shape can be snapped to by another shape.
@@ -118,14 +128,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canCrop: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Bounds of the shape to edit.
+	 * Does this shape provide a background for its children? If this is true,
+	 * then any children with a `renderBackground` method will have their
+	 * backgrounds rendered _above_ this shape. Otherwise, the children's
+	 * backgrounds will be rendered above either the next ancestor that provides
+	 * a background, or the canvas background.
 	 *
-	 * Note: this could be a text area within a shape for example arrow labels.
-	 *
-	 * @public
+	 * @internal
 	 */
-	getEditingBounds = (shape: Shape) => {
-		return this.bounds(shape)
+	providesBackgroundForChildren(shape: Shape): boolean {
+		return false
 	}
 
 	/**
@@ -171,35 +183,12 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	isAspectRatioLocked: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Get the default props for a shape.
-	 *
-	 * @public
-	 */
-	abstract defaultProps(): Shape['props']
-
-	/**
-	 * Get a JSX element for the shape (as an HTML element).
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	abstract component(shape: Shape): any
-
-	/**
-	 * Get JSX describing the shape's indicator (as an SVG element).
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	abstract indicator(shape: Shape): any
-
-	/**
 	 * Get a JSX element for the shape (as an HTML element) to be rendered as part of the canvas background - behind any other shape content.
 	 *
 	 * @param shape - The shape.
 	 * @internal
 	 */
-	renderBackground?(shape: Shape): any
+	backgroundComponent?(shape: Shape): any
 
 	/**
 	 * Get an array of handle models for the shape. This is an optional method.
@@ -213,25 +202,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected getHandles?(shape: Shape): TLHandle[]
-
-	@computed
-	private get handlesCache(): ComputedCache<TLHandle[], TLShape> {
-		return this.editor.store.createComputedCache('handles:' + this.type, (shape) => {
-			return this.getHandles!(shape as any)
-		})
-	}
-
-	/**
-	 * Get the cached handles (this should not be overridden!)
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	handles(shape: Shape): TLHandle[] {
-		if (!this.getHandles) return EMPTY_ARRAY
-		return this.handlesCache.get(shape.id) ?? EMPTY_ARRAY
-	}
+	getHandles?(shape: Shape): TLHandle[]
 
 	/**
 	 * Get an array of outline segments for the shape. For most shapes,
@@ -248,26 +219,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected getOutlineSegments(shape: Shape): Vec2d[][] {
-		return [this.outline(shape)]
-	}
-
-	@computed
-	private get outlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
-		return this.editor.store.createComputedCache('outline-segments:' + this.type, (shape) => {
-			return this.getOutlineSegments!(shape as any)
-		})
-	}
-
-	/**
-	 * Get the cached outline segments (this should not be overridden!)
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	outlineSegments(shape: Shape): Vec2d[][] {
-		if (!this.getOutlineSegments) return EMPTY_ARRAY
-		return this.outlineSegmentsCache.get(shape.id) ?? EMPTY_ARRAY
+	getOutlineSegments(shape: Shape): Vec2d[][] {
+		return [this.editor.getOutline(shape)]
 	}
 
 	/**
@@ -276,52 +229,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	protected abstract getBounds(shape: Shape): Box2d
-
-	@computed
-	private get boundsCache(): ComputedCache<Box2d, TLShape> {
-		return this.editor.store.createComputedCache('bounds:' + this.type, (shape) => {
-			return this.getBounds(shape as any)
-		})
-	}
+	abstract getBounds(shape: Shape): Box2d
 
 	/**
-	 * Get the cached bounds for the shape.
+	 * Get the shape's (not cached) outline.
 	 *
 	 * @param shape - The shape.
 	 * @public
 	 */
-	bounds(shape: Shape): Box2d {
-		const result = this.boundsCache.get(shape.id) ?? new Box2d()
-		if (result.width === 0 || result.height === 0) {
-			return new Box2d(result.x, result.y, Math.max(result.width, 1), Math.max(result.height, 1))
-		}
-		return result
-	}
-
-	/**
-	 * Get the shape's (not cached) outline. Do not override this method!
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	protected abstract getOutline(shape: Shape): Vec2d[]
-
-	@computed
-	private get outlineCache(): ComputedCache<Vec2d[], TLShape> {
-		return this.editor.store.createComputedCache('outline:' + this.type, (shape) => {
-			return this.getOutline(shape as any)
-		})
-	}
-
-	/**
-	 * Get the shape's outline. Do not override this method!
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	outline(shape: Shape): Vec2d[] {
-		return this.outlineCache.get(shape.id) ?? EMPTY_ARRAY
+	getOutline(shape: Shape): Vec2d[] {
+		return this.editor.getBounds(shape).corners
 	}
 
 	/**
@@ -331,7 +248,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	snapPoints(shape: Shape) {
-		return this.bounds(shape).snapPoints
+		return this.editor.getBounds(shape).snapPoints
 	}
 
 	/**
@@ -350,7 +267,9 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @param shape - The shape.
 	 * @public
 	 */
-	abstract getCenter(shape: Shape): Vec2d
+	getCenter(shape: Shape) {
+		return this.editor.getBounds(shape).center
+	}
 
 	/**
 	 * Get whether the shape can receive children of a given type.
@@ -377,31 +296,26 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * Get the shape as an SVG object.
 	 *
 	 * @param shape - The shape.
-	 * @param color - The shape's CSS color (actual).
-	 * @param font - The shape's CSS font (actual).
+	 * @param ctx - The export context for the SVG - used for adding e.g. \<def\>s
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toSvg?(
-		shape: Shape,
-		font: string | undefined,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement>
+	toSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement>
 
 	/**
 	 * Get the shape's background layer as an SVG object.
 	 *
 	 * @param shape - The shape.
-	 * @param color - The shape's CSS color (actual).
-	 * @param font - The shape's CSS font (actual).
+	 * @param ctx - ctx - The export context for the SVG - used for adding e.g. \<def\>s
 	 * @returns An SVG element.
 	 * @public
 	 */
-	toBackgroundSvg?(
-		shape: Shape,
-		font: string | undefined,
-		colors: TLExportColors
-	): SVGElement | Promise<SVGElement> | null
+	toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): SVGElement | Promise<SVGElement> | null
+
+	/** @internal */
+	expandSelectionOutlinePx(shape: Shape): number {
+		return 0
+	}
 
 	/**
 	 * Get whether a point intersects the shape.
@@ -412,7 +326,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	hitTestPoint(shape: Shape, point: VecLike): boolean {
-		return this.bounds(shape).containsPoint(point)
+		return this.editor.getBounds(shape).containsPoint(point)
 	}
 
 	/**
@@ -425,7 +339,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
+		const outline = this.editor.getOutline(shape)
 
 		for (let i = 0; i < outline.length; i++) {
 			const C = outline[i]
@@ -436,22 +350,16 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 		return false
 	}
 
-	/** @internal */
-	expandSelectionOutlinePx(shape: Shape): number {
-		return 0
-	}
-
 	/**
-	 * Does this shape provide a background for its children? If this is true,
-	 * then any children with a `renderBackground` method will have their
-	 * backgrounds rendered _above_ this shape. Otherwise, the children's
-	 * backgrounds will be rendered above either the next ancestor that provides
-	 * a background, or the canvas background.
+	 * Return elements to be added to the \<defs\> section of the canvases SVG context. This can be
+	 * used to define SVG content (e.g. patterns & masks) that can be referred to by ID from svg
+	 * elements returned by `component`.
 	 *
-	 * @internal
+	 * Each def should have a unique `key`. If multiple defs from different shapes all have the same
+	 * key, only one will be used.
 	 */
-	providesBackgroundForChildren(shape: Shape): boolean {
-		return false
+	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+		return []
 	}
 
 	//  Events
@@ -745,7 +653,7 @@ export type TLResizeInfo<T extends TLShape> = {
 export type TLOnResizeHandler<T extends TLShape> = (
 	shape: T,
 	info: TLResizeInfo<T>
-) => Partial<TLShapePartial<T>> | undefined | void
+) => Omit<TLShapePartial<T>, 'id' | 'type'> | undefined | void
 
 /** @public */
 export type TLOnResizeStartHandler<T extends TLShape> = TLEventStartHandler<T>

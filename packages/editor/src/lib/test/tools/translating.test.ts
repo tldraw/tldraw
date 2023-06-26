@@ -14,7 +14,7 @@ type __TopLeftSnapOnlyShape = any
 class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 	static override type = '__test_top_left_snap_only' as const
 
-	defaultProps(): __TopLeftSnapOnlyShape['props'] {
+	getDefaultProps(): __TopLeftSnapOnlyShape['props'] {
 		return { width: 10, height: 10 }
 	}
 	getBounds(shape: __TopLeftSnapOnlyShape): Box2d {

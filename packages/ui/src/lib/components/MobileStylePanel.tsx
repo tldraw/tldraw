@@ -1,6 +1,6 @@
-import { DefaultColorStyle, useEditor } from '@tldraw/editor'
+import { DefaultColorStyle, getDefaultColorTheme, useEditor } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import { useCallback } from 'react'
-import { useValue } from 'signia-react'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { StylePanel } from './StylePanel/StylePanel'
 import { Button } from './primitives/Button'
@@ -17,7 +17,8 @@ export function MobileStylePanel() {
 			const color = editor.sharedStyles.get(DefaultColorStyle)
 			if (!color) return 'var(--color-muted-1)'
 			if (color.type === 'mixed') return null
-			return `var(--palette-${color})`
+			const theme = getDefaultColorTheme(editor)
+			return theme[color.value].solid
 		},
 		[editor]
 	)

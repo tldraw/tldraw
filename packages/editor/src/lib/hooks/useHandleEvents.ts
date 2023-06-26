@@ -7,8 +7,7 @@ import { useEditor } from './useEditor'
 
 function getHandle(editor: Editor, id: TLShapeId, handleId: string) {
 	const shape = editor.getShapeById<TLArrowShape | TLLineShape>(id)!
-	const util = editor.getShapeUtil(shape)
-	const handles = util.handles(shape)
+	const handles = editor.getHandles(shape)!
 	return { shape, handle: handles.find((h) => h.id === handleId) }
 }
 

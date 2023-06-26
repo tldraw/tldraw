@@ -17,15 +17,15 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 	}
 
 	override getOutline(shape: Shape) {
-		return this.bounds(shape).corners
+		return this.editor.getBounds(shape).corners
 	}
 
-	hitTestPoint(shape: Shape, point: VecLike): boolean {
-		return pointInPolygon(point, this.outline(shape))
+	override hitTestPoint(shape: Shape, point: VecLike): boolean {
+		return pointInPolygon(point, this.editor.getOutline(shape))
 	}
 
-	hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
-		const outline = this.outline(shape)
+	override hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
+		const outline = this.editor.getOutline(shape)
 
 		for (let i = 0; i < outline.length; i++) {
 			const C = outline[i]
@@ -36,7 +36,7 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 		return false
 	}
 
-	onResize: TLOnResizeHandler<any> = (shape, info) => {
+	override onResize: TLOnResizeHandler<any> = (shape, info) => {
 		return resizeBox(shape, info)
 	}
 }

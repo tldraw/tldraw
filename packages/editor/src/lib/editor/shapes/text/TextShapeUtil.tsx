@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { TLTextShape } from '@tldraw/tlschema'
+import { DefaultFontFamilies, getDefaultColorTheme, TLTextShape } from '@tldraw/tlschema'
 import { HTMLContainer } from '../../../components/HTMLContainer'
 import { stopEventPropagation } from '../../../utils/dom'
 import { WeakMapCache } from '../../../utils/WeakMapCache'
@@ -8,8 +8,9 @@ import { Editor } from '../../Editor'
 import { ShapeUtil, TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
-import { TLExportColors } from '../shared/TLExportColors'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { useEditableText } from '../shared/useEditableText'
 
 export { INDENT } from './TextHelpers'
@@ -24,7 +25,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 	isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
 
-	defaultProps(): TLTextShape['props'] {
+	getDefaultProps(): TLTextShape['props'] {
 		return {
 			color: 'black',
 			size: 'm',
@@ -37,21 +38,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	// @computed
-	// private get minDimensionsCache() {
-	// 	return this.editor.store.createSelectedComputedCache<
-	// 		TLTextShape['props'],
-	// 		{ width: number; height: number },
-	// 		TLTextShape
-	// 	>(
-	// 		'text measure cache',
-	// 		(shape) => {
-	// 			return shape.props
-	// 		},
-	// 		(props) => getTextSize(this.editor, props)
-	// 	)
-	// }
-
 	getMinDimensions(shape: TLTextShape) {
 		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
 	}
@@ -63,7 +49,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getOutline(shape: TLTextShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.editor.getBounds(shape)
 
 		return [
 			new Vec2d(0, 0),
@@ -73,18 +59,14 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		]
 	}
 
-	getCenter(shape: TLTextShape): Vec2d {
-		const bounds = this.bounds(shape)
-		return new Vec2d(bounds.width / 2, bounds.height / 2)
-	}
-
 	component(shape: TLTextShape) {
 		const {
 			id,
 			type,
-			props: { text },
+			props: { text, color },
 		} = shape
 
+		const theme = getDefaultColorTheme(this.editor)
 		const { width, height } = this.getMinDimensions(shape)
 
 		const {
@@ -114,6 +96,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 						transformOrigin: 'top left',
 						width: Math.max(1, width),
 						height: Math.max(FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight, height),
+						color: theme[color].solid,
 					}}
 				>
 					<div className="tl-text tl-text-content" dir="ltr">
@@ -150,12 +133,15 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	indicator(shape: TLTextShape) {
-		const bounds = this.bounds(shape)
+		const bounds = this.getBounds(shape)
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
-	toSvg(shape: TLTextShape, font: string | undefined, colors: TLExportColors) {
-		const bounds = this.bounds(shape)
+	toSvg(shape: TLTextShape, ctx: SvgExportContext) {
+		ctx.addExportDef(getFontDefForExport(shape.props.font))
+
+		const theme = getDefaultColorTheme(this.editor)
+		const bounds = this.getBounds(shape)
 		const text = shape.props.text
 
 		const width = bounds.width / (shape.props.scale ?? 1)
@@ -163,7 +149,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 
 		const opts = {
 			fontSize: FONT_SIZES[shape.props.size],
-			fontFamily: font!,
+			fontFamily: DefaultFontFamilies[shape.props.font],
 			textAlign: shape.props.align,
 			verticalTextAlign: 'middle' as const,
 			width,
@@ -175,7 +161,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			overflow: 'wrap' as const,
 		}
 
-		const color = colors.fill[shape.props.color]
+		const color = theme[shape.props.color].solid
 		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const textBgEl = createTextSvgElementFromSpans(
@@ -183,9 +169,9 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			this.editor.textMeasure.measureTextSpans(text, opts),
 			{
 				...opts,
-				stroke: colors.background,
+				stroke: theme.background,
 				strokeWidth: 2,
-				fill: colors.background,
+				fill: theme.background,
 				padding: 0,
 			}
 		)
@@ -204,7 +190,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const { initialBounds, initialShape, scaleX, handle } = info
 
 		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
-			return resizeScaled(shape, info)
+			return {
+				id: shape.id,
+				type: shape.type,
+				...resizeScaled(shape, info),
+			}
 		} else {
 			const prevWidth = initialBounds.width
 			let nextWidth = prevWidth * scaleX
@@ -227,6 +217,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			const { x, y } = offset.rot(shape.rotation).add(initialShape)
 
 			return {
+				id: shape.id,
+				type: shape.type,
 				x,
 				y,
 				props: {

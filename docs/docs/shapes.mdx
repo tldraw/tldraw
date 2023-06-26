@@ -1,0 +1,136 @@
+---
+title: Shapes
+status: published
+author: steveruizok
+date: 3/22/2023
+order: 4
+keywords:
+  - custom
+  - shapes
+  - shapeutils
+  - utils
+---
+
+In tldraw, **shapes** are the things that are on the canvas. This article is about shapes: what they are, how they work, and how to create your own shapes. If you'd prefer to see an example, see the tldraw repository's [examples app](https://github.com/tldraw/tldraw/tree/main/apps/examples) for examples of how to create custom shapes in tldraw.
+
+## Custom shapes
+
+Let's create a custom "card" shape.
+
+### Shape type
+
+In tldraw's data model, each shape is represented by a JSON object. Let's first create a type that describes what this object will look like. 
+
+```ts
+import { TLBaseShape } from '@tldraw/tldraw'
+
+type CardShape = TLBaseShape<
+  'card', 
+  { w: number, h: number }
+>
+```
+
+With the `TLBaseShape` helper, we define the shape's `type` property (`card`) and the shape's `props` property (`{ w: number, h: number }`). The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
+
+The `TLBaseShape` helper adds the other default properties of a shape, such as `parentId`, `x`, `y`, and `rotation`.
+
+### Shape Util
+
+While tldraw's shapes themselves are simple JSON objects, we use `ShapeUtil` classes to answer questions about shapes. For example, when the editor needs to know the bounding box of our card shape, it will find a `ShapeUtil` for the `card` type and call that util's `bounds` method, passing in the `CardShape` object as an argument.
+
+Let's create a `ShapeUtil` class for the shape.
+
+```tsx
+import { ShapeUtil, HTMLContainer } from '@tldraw/tldraw'
+
+class CardShapeUtil extends ShapeUtil<CardShape> {
+  static type = 'card' as const
+
+  getDefaultProps(): CardShape['props'] {
+		return {
+			w: 100,
+			h: 100,
+		}
+	}
+
+  getBounds(shape: Shape) {
+		return new Box2d(0, 0, shape.props.w, shape.props.h)
+	}
+
+  component(shape: Shape) {
+    return (
+      <HTMLContainer>Hello</HTMLContainer>
+    )
+  }
+
+  indicator(shape: Shape) {
+    return (
+      <rect width={shape.props.w} height={shape.props.h}/>
+    )
+  }
+}
+```
+
+This is a minimal `ShapeUtil`. We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods `getDefaultProps`, `getBounds`, `component`, and `indicator`.
+
+We still have work to do on the `CardShapeUtil` class, but we'll come back to it later. For now, let's put the shape onto the canvas by passing it to the `<Tldraw>` component.
+
+### Defining the shape
+
+Before we pass the shape down, we need to package it up in a way using the `defineShape` function. We can then create an array of our defined shapes and pass them into the `<Tldraw>` component's `shapes` prop. 
+
+```tsx
+import { Tldraw } from '@tldraw/tldraw'
+import '@tldraw/tldraw/tldraw.css'
+
+const MyCardShape = defineShape('card', { util: CardShapeUtil })
+const MyCustomShapes = [MyCardShape]
+
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw shapes={MyCustomShapes}/>
+		</div>
+	)
+}
+```
+
+The `defineShape` function can also be used to include a tool that we can use to create this type of shape. For now, let's create it using the `Editor` API.
+
+```tsx
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw shapes={MyCustomShapes} onMount={editor => {
+        editor.createShapes([{  type: "card" }])
+      }}/>
+		</div>
+	)
+}
+```
+
+Once the page refreshes, we should now have our custom shape on the canvas.
+
+## Using starter shapes
+
+You can use "starter" shape utils like `BaseBoxShapeUtil` to get regular rectangular shape behavior.
+
+> todo
+
+## Flags
+
+You can use flags like `hideRotateHandle` to hide different parts of the UI when the shape is selected, or else to control different behaviors of the shape.
+
+> todo
+
+## Interaction
+
+You can turn on `pointer-events` to allow users to interact inside of the shape.
+
+> todo
+
+## Editing
+
+You can make shapes "editable" to help decide when they're interactive or not.
+
+> todo

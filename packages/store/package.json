@@ -41,12 +41,10 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"dependencies": {
+		"@tldraw/state": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"lodash.isequal": "^4.5.0",
 		"nanoid": "4.0.2"
-	},
-	"peerDependencies": {
-		"signia": "*"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",

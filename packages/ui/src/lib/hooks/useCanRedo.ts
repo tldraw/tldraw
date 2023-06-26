@@ -1,5 +1,5 @@
 import { useEditor } from '@tldraw/editor'
-import { useValue } from 'signia-react'
+import { useValue } from '@tldraw/state'
 
 /** @public */
 export function useCanRedo() {

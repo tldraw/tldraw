@@ -6,7 +6,7 @@ export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
 	static override type = 'error' as const
 	override type = 'error' as const
 
-	defaultProps() {
+	getDefaultProps() {
 		return { message: 'Error!', w: 100, h: 100 }
 	}
 	component(shape: ErrorShape) {

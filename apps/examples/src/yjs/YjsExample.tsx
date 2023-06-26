@@ -1,6 +1,6 @@
+import { track } from '@tldraw/state'
 import { Tldraw, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { track } from 'signia-react'
 import { useYjsStore } from './useYjsStore'
 
 const HOST_URL =
