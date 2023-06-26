@@ -52,7 +52,7 @@ function sanitizeReference(reference: string) {
 }
 
 export function getSlug(item: ApiItem): string {
-	return sanitizeReference(item.canonicalReference.toString().replace(/^@tldraw\/[^!]+!/, ''))
+	return sanitizeReference(item.displayName.toString().replace(/^@tldraw\/[^!]+!/, ''))
 }
 
 export function getPath(item: ApiItem): string {
@@ -61,7 +61,7 @@ export function getPath(item: ApiItem): string {
 		const childSlug = getSlug(item)
 		return `${parentPath}#${childSlug}`
 	}
-	return sanitizeReference(item.canonicalReference.toString().replace(/^@tldraw\/([^!]+)/, '$1/'))
+	return sanitizeReference(item.displayName.toString().replace(/^@tldraw\/([^!]+)/, '$1/'))
 }
 
 const prettierConfigPromise = prettier.resolveConfig(__dirname)
