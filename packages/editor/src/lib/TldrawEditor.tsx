@@ -1,4 +1,4 @@
-import { Store, StoreSnapshot } from '@tldraw/store'
+import { StoreSnapshot, SyncStore } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { RecursivePartial, Required, annotateError } from '@tldraw/utils'
 import React, {
@@ -133,7 +133,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 					<ContainerProvider container={container}>
 						<EditorComponentsProvider overrides={components}>
 							{store ? (
-								store instanceof Store ? (
+								store instanceof SyncStore ? (
 									// Store is ready to go, whether externally synced or not
 									<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
 								) : (

@@ -29,4 +29,5 @@ export {
 	type Migrations,
 	type RecordVersion,
 } from './lib/migrate'
+export { SyncStore } from './lib/sync-store/SyncStore'
 export type { AllRecords } from './lib/type-utils'

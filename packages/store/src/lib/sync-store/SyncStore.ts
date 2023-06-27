@@ -1,12 +1,20 @@
-import { Atom, Signal, atom, react, transact, transaction } from '@tldraw/state'
+import { Atom, Computed, Signal, atom, computed, react, transact, transaction } from '@tldraw/state'
 import { Result, exhaustiveSwitchError, objectMapValues, omit, rafThrottle } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import { nanoid } from 'nanoid'
-import { IdOf, UnknownRecord } from '../BaseRecord'
+import { IdOf, RecordId, UnknownRecord } from '../BaseRecord'
+import { Cache } from '../Cache'
 import { RecordType } from '../RecordType'
-import { ChangeSource } from '../Store'
+import {
+	ChangeSource,
+	ComputedCache,
+	RecordsDiff,
+	StoreListener,
+	StoreListenerFilters,
+} from '../Store'
 import { SerializedSchema, StoreSchema } from '../StoreSchema'
 import { MigrationFailureReason, compareRecordVersions, getRecordVersion } from '../migrate'
+import { SyncStoreQueries } from './SyncStoreQueries'
 import {
 	ChangeOp,
 	ChangeOpType,
@@ -34,6 +42,8 @@ import {
 	TLIncompatibilityReason,
 	TLSYNC_PROTOCOL_VERSION,
 } from './protocol'
+
+type RecFromId<K extends RecordId<UnknownRecord>> = K extends RecordId<infer R> ? R : never
 
 export type PushOp<R extends UnknownRecord> = {
 	pushId: string
@@ -237,7 +247,7 @@ export type DownstreamClient<R extends UnknownRecord> =
  *
  * @public
  */
-export class SyncStore<R extends UnknownRecord = UnknownRecord> {
+export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	readonly scopedTypes: {
 		document: ReadonlySet<string>
 		session: ReadonlySet<string>
@@ -246,12 +256,44 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	readonly presenceTypePrefix: string
 	readonly serializedSchema: SerializedSchema
 	readonly myPresenceId: string
+	readonly query: SyncStoreQueries<R>
+
+	/**
+	 * A callback fired after a record is created. Use this to perform related updates to other
+	 * records in the store.
+	 *
+	 * @param record - The record to be created
+	 */
+	onAfterCreate?: (record: R) => void
+
+	/**
+	 * A callback fired after each record's change.
+	 *
+	 * @param prev - The previous value, if any.
+	 * @param next - The next value.
+	 */
+	onAfterChange?: (prev: R, next: R) => void
+
+	/**
+	 * A callback fired before a record is deleted.
+	 *
+	 * @param prev - The record that will be deleted.
+	 */
+	onBeforeDelete?: (prev: R) => void
+
+	/**
+	 * A callback fired after a record is deleted.
+	 *
+	 * @param prev - The record that will be deleted.
+	 */
+	onAfterDelete?: (prev: R) => void
+
 	constructor(
-		private readonly schema: StoreSchema<R>,
+		readonly schema: StoreSchema<R, Props>,
+		readonly props: Props,
 		private readonly upstream: GoingUpstreamSocket<R> | undefined,
-		private readonly localPresence: Signal<R>,
-		private readonly onAfterConnect: ((store: SyncStore<R>) => void) | undefined,
-		snapshot: SyncStoreSnapshot<R>
+		private readonly localPresence: Signal<R> | undefined,
+		snapshot: SyncStoreSnapshot<R> | undefined
 	) {
 		if (snapshot) {
 			// TODO: migrations
@@ -281,16 +323,19 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		this.presenceType = schema.types[[...presenceTypes][0]] as any
 		this.presenceTypePrefix = `${this.presenceType.typeName}:`
 		this.serializedSchema = this.schema.serialize()
-		this.myPresenceId = this.presenceType.createId(this.storeInstanceId)
-		this.disposables.add(
-			react('store.localPresence', () =>
-				this.set({
-					...this.localPresence.value,
-					id: this.myPresenceId,
-					typeName: this.presenceType.typeName,
-				})
+		this.myPresenceId = this.presenceType.createId(this.id)
+		if (this.localPresence) {
+			this.disposables.add(
+				react('store.localPresence', () =>
+					this.set({
+						...this.localPresence!.value,
+						id: this.myPresenceId,
+						typeName: this.presenceType.typeName,
+					})
+				)
 			)
-		)
+		}
+
 		if (this.upstream) {
 			this.disposables.add(
 				this.upstream.onStatusChange((isOpen) => {
@@ -302,11 +347,13 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				})
 			)
 		}
+		this.query = new SyncStoreQueries(this)
 	}
 
+	// TODO: use this when checking connect requests
 	private readonly prevClock: ClockSnapshot | undefined
 	private readonly clock = atom('store.clock', 0)
-	private readonly storeInstanceId = nanoid()
+	readonly id = nanoid()
 
 	private readonly synced = {
 		upstreamClock: atom('store.synced.clock', 0),
@@ -536,7 +583,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 					id !== this.myPresenceId && id.startsWith(this.presenceTypePrefix) && !presenceInfo[id]
 				const isDocumentState = this.scopedTypes.document.has(recordAtom.value.state.typeName)
 				if (isUpstreamPresence || (deleteAll && isDocumentState)) {
-					this.deleteSynced(id, nextClock)
+					this.deleteSynced(id, nextClock, undefined, false)
 				}
 			}
 
@@ -548,8 +595,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				lastPongTime: Date.now(),
 			})
 			this.synced.upstreamClock.set(message.upstreamClock)
-
-			this.onAfterConnect?.(this)
 		})
 	}
 
@@ -946,7 +991,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 
 	private getRecordWithTimestamp(id: string): RecordWithTimestamp<R> | undefined {
 		if (!this.upstream) {
-			return this.synced.records.value[id].value
+			return this.synced.records.value[id]?.value
 		}
 		const pendingRecord = this.pending.records.value[id]?.value
 		if (pendingRecord) return pendingRecord
@@ -956,9 +1001,27 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		return this.synced.records.value[id]?.value
 	}
 
-	get(id: string): R | undefined
-	get(id: IdOf<R>): R | undefined {
+	/**
+	 * Get the value of a store record by its id.
+	 *
+	 * @param id - The id of the record to get.
+	 * @public
+	 */
+	get: {
+		<K extends IdOf<R>>(id: K): RecFromId<K> | undefined
+		(id: string): R | undefined
+	} = (id: any) => {
 		return this.getRecordWithTimestamp(id)?.state
+	}
+
+	/**
+	 * Get the value of a store record by its id without updating its epoch.
+	 *
+	 * @param id - The id of the record to get.
+	 * @public
+	 */
+	unsafeGetWithoutCapture = <K extends IdOf<R>>(id: K): RecFromId<K> | undefined => {
+		return this.get(id)
 	}
 
 	private maskDownstreamPresence(record: R, clientId: string): R {
@@ -976,10 +1039,16 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		return record.id === presenceInfo.maskedId ? record : { ...record, id: presenceInfo.maskedId }
 	}
 
-	private setSynced(record: R, nextClock: number, pushId?: PushId) {
+	private setSynced(
+		record: R,
+		nextClock: number,
+		pushId: PushId | undefined,
+		runCallbacks: boolean
+	) {
 		const id = record.id
 		this.recordWillBeTouched(id, pushId)
 		const existingAtom = this.synced.records.value[id]
+		const prevRecord = existingAtom?.value.state as R | undefined
 		if (existingAtom) {
 			existingAtom.set({ state: record, lastUpdatedAt: nextClock })
 		} else {
@@ -994,6 +1063,17 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				)
 			}
 		}
+
+		this.updateHistory(prevRecord, record)
+
+		// TODO: replace these callbacks with an 'onBeforeHistory' and an 'onAfterHistory' callback and then move them into the updateHistory function
+		if (runCallbacks) {
+			if (!prevRecord && record && this.onAfterCreate) {
+				this.onAfterCreate(record)
+			} else if (prevRecord && this.onAfterChange) {
+				this.onAfterChange(prevRecord, record)
+			}
+		}
 	}
 
 	private addPushOp(cb: (changes: Changes<R>) => Changes<R>) {
@@ -1005,11 +1085,41 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		return this.clock.update((prev) => prev + 1)
 	}
 
-	private setPending(record: R, nextClock: number, push: boolean, pushId?: PushId) {
+	private updateHistory(prev?: R, next?: R) {
+		if (!prev && !next) return
+		if (!prev && next) {
+			this.history.set(this.history.value + 1, {
+				added: { [next.id]: next } as any,
+				removed: {} as any,
+				updated: {} as any,
+			})
+		} else if (prev && !next) {
+			this.history.set(this.history.value + 1, {
+				added: {} as any,
+				updated: {} as any,
+				removed: { [prev.id]: prev } as any,
+			})
+		} else {
+			this.history.set(this.history.value + 1, {
+				added: {} as any,
+				updated: { [prev!.id]: [prev, next] } as any,
+				removed: {} as any,
+			})
+		}
+	}
+
+	private setPending(
+		record: R,
+		nextClock: number,
+		push: boolean,
+		pushId: PushId | undefined,
+		runCallbacks: boolean
+	) {
 		const id = record.id
 		this.recordWillBeTouched(id, pushId)
 		const existingAtom = this.pending.records.value[id]
-		const prevState = existingAtom?.value.state as R | undefined
+		const prevRecord = existingAtom?.value.state as R | undefined
+
 		if (existingAtom) {
 			existingAtom.set({ state: record, lastUpdatedAt: nextClock })
 		} else {
@@ -1021,9 +1131,20 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				this.pending.tombstones.update(({ [id]: _, ...tombstones }) => tombstones)
 			}
 		}
+
+		this.updateHistory(prevRecord, record)
+
+		if (runCallbacks) {
+			if (!prevRecord && record && this.onAfterCreate) {
+				this.onAfterCreate(record)
+			} else if (prevRecord && this.onAfterChange) {
+				this.onAfterChange(prevRecord, record)
+			}
+		}
+
 		if (!push) return
 
-		this.addPushOp((changes) => addSetChange(changes, prevState, record, nextClock))
+		this.addPushOp((changes) => addSetChange(changes, prevRecord, record, nextClock))
 	}
 
 	private getInitialPresenceDiff() {
@@ -1085,33 +1206,74 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 
 	private readonly schedulePush = rafThrottle(this.push)
 
+	put(records: R[]) {
+		transact(() => {
+			for (const record of records) {
+				this.set(record)
+			}
+		})
+	}
+
+	has(id: string): boolean {
+		return !!this.get(id)
+	}
+
+	remove(ids: string[]) {
+		transact(() => {
+			for (const id of ids) {
+				this.delete(id)
+			}
+		})
+	}
+
 	set(record: R, pushId?: PushId): void {
 		transact(() => {
 			if (pushId) {
 				record = this.maskDownstreamPresence(record, pushId.clientId)
 			}
 			if (!this.upstream || this.scopedTypes.session.has(record.typeName)) {
-				this.setSynced(record, this.incrementClock(), pushId)
+				this.setSynced(record, this.incrementClock(), pushId, true)
 				return
 			}
 
-			this.setPending(record, this.incrementClock(), true, pushId)
+			this.setPending(record, this.incrementClock(), true, pushId, true)
 		})
 	}
 
-	private deleteSynced(id: string, nextClock: number, pushId?: PushId) {
+	private deleteSynced(
+		id: string,
+		nextClock: number,
+		pushId: PushId | undefined,
+		runCallbacks: boolean
+	) {
 		this.recordWillBeTouched(id, pushId)
 		const existingAtom = this.synced.records.value[id]
 		if (!existingAtom) return
+
+		if (runCallbacks && this.onBeforeDelete) {
+			this.onBeforeDelete(existingAtom.value.state)
+		}
 
 		this.synced.records.update(({ [id]: _, ...records }) => records)
 		this.synced.tombstones.set({
 			deletions: { ...this.synced.tombstones.value.deletions, [id]: nextClock },
 			historyStartsAt: this.synced.tombstones.value.historyStartsAt,
 		})
+
+		this.updateHistory(existingAtom.value.state, undefined)
+
+		if (runCallbacks && this.onAfterDelete) {
+			this.onAfterDelete(existingAtom.value.state)
+		}
 	}
 
-	private deletePending(id: string, nextClock: number, push: boolean, pushId?: PushId) {
+	private deletePending(
+		id: string,
+		nextClock: number,
+		push: boolean,
+		pushId: PushId | undefined,
+		runCallbacks: boolean
+	) {
 		this.recordWillBeTouched(id, pushId)
 		const pendingRecordAtom = this.pending.records.value[id]
 		const syncedRecordAtom = this.synced.records.value[id]
@@ -1120,6 +1282,10 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 
 		const record = pendingRecordAtom?.value.state || syncedRecordAtom?.value.state
 
+		if (runCallbacks && this.onBeforeDelete) {
+			this.onBeforeDelete(record)
+		}
+
 		if (pendingRecordAtom) {
 			// remove the pending atom
 			this.pending.records.update(({ [id]: _, ...recordAtoms }) => recordAtoms)
@@ -1127,6 +1293,12 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		if (syncedRecordAtom) {
 			// add a pending tombstone if there is a synced atom so we know it has been deleted
 			this.pending.tombstones.set({ ...this.pending.tombstones.value, [id]: nextClock })
+		}
+
+		this.updateHistory(record, undefined)
+
+		if (runCallbacks && this.onAfterDelete) {
+			this.onAfterDelete(record)
 		}
 
 		if (!push) return
@@ -1147,11 +1319,11 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			}
 			const typeName = id.slice(0, id.indexOf(':'))
 			if (!this.upstream || this.scopedTypes.session.has(typeName)) {
-				this.deleteSynced(id, this.incrementClock(), pushId)
+				this.deleteSynced(id, this.incrementClock(), pushId, true)
 				return
 			}
 
-			this.deletePending(id, this.incrementClock(), true, pushId)
+			this.deletePending(id, this.incrementClock(), true, pushId, true)
 		})
 	}
 
@@ -1171,7 +1343,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				  )
 				: undefined,
 			clock: {
-				id: this.storeInstanceId,
+				id: this.id,
 				epoch: this.clock.value,
 			},
 		}
@@ -1185,23 +1357,25 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				const existingRecord = this.synced.records.value[id]?.value.state as R | undefined
 				switch (op[0]) {
 					case RecordOpType.Set: {
-						this.setSynced(op[1], nextClock)
+						this.setSynced(op[1], nextClock, undefined, false)
 						break
 					}
 					case RecordOpType.Patch: {
 						if (!existingRecord) throw new Error(`Cannot patch non-existent record ${id}`)
-						this.setSynced(applyObjectDiff(existingRecord, op[1]), nextClock)
+						this.setSynced(applyObjectDiff(existingRecord, op[1]), nextClock, undefined, false)
 						break
 					}
 					case RecordOpType.Delete: {
 						if (!existingRecord) throw new Error(`Cannot delete non-existent record ${id}`)
-						this.deleteSynced(id, nextClock)
+						this.deleteSynced(id, nextClock, undefined, false)
 						break
 					}
 					default:
 						exhaustiveSwitchError(op)
 				}
 			}
+
+			this.ensureStoreIsUsable()
 		})
 	}
 
@@ -1247,6 +1421,30 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		}
 	}
 
+	entries() {
+		const entries = {} as Record<string, R>
+
+		for (const [id, atom] of Object.entries(this.synced.records.value)) {
+			entries[id] = atom.value.state
+		}
+
+		for (const [id, atom] of Object.entries(this.pending.records.value)) {
+			entries[id] = atom.value.state
+		}
+
+		return Object.entries(entries)
+	}
+
+	/**
+	 * An atom containing the store's history.
+	 *
+	 * @public
+	 * @readonly
+	 */
+	readonly history: Atom<number, RecordsDiff<R>> = atom('store.history', 0, {
+		historyLength: 10000,
+	})
+
 	private reapplyPendingChanges(changes: Changes<R>) {
 		let nextClock = undefined as undefined | number
 		const getNextClock = () => {
@@ -1268,7 +1466,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 					if (change.prev) {
 						const diff = diffRecord(change.prev, change.record)
 						if (diff) {
-							record = applyObjectDiff(this.get(record.id) ?? change.prev, diff)
+							record = applyObjectDiff(this.get(record.id) ?? change.prev, diff) as R
 						}
 						// if applying the diff to the current state produces a different record, we need to make sure the timestamp
 						// is bumped
@@ -1276,11 +1474,11 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 							clock = getNextClock()
 						}
 					}
-					this.setPending(record, clock, false)
+					this.setPending(record, clock, false, undefined, true)
 					break
 				}
 				case ChangeOpType.Delete:
-					this.deletePending(change.record.id, clock, false)
+					this.deletePending(change.record.id, clock, false, undefined, true)
 					break
 				default:
 					exhaustiveSwitchError(change)
@@ -1362,9 +1560,9 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 					// all good, apply any presence changes directly
 					for (const change of Object.values(nextOp.changes)) {
 						if (change.op === ChangeOpType.Set) {
-							this.setSynced(change.record, change.clock)
+							this.setSynced(change.record, change.clock, undefined, false)
 						} else {
-							this.deleteSynced(change.record.id, change.clock)
+							this.deleteSynced(change.record.id, change.clock, undefined, false)
 						}
 					}
 				}
@@ -1384,9 +1582,132 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			for (const pushOp of pendingPushOps) {
 				this.reapplyPendingChanges(pushOp.changes)
 			}
+
+			this.ensureStoreIsUsable()
 		})
+	}
+
+	private _integrityChecker?: () => void | undefined
+
+	/** @internal */
+	ensureStoreIsUsable() {
+		this._integrityChecker ??= this.schema.createIntegrityChecker(this as any)
+		this._integrityChecker?.()
 	}
 
 	private scheduleBroadcastPatches = rafThrottle(this.broadcastPatches)
 	private scheduleRebase = rafThrottle(this.rebase)
+
+	/**
+	 * Add a new listener to the store.
+	 *
+	 * @param onHistory - The listener to call when the store updates.
+	 * @param filters - Filters to apply to the listener.
+	 * @returns A function to remove the listener.
+	 */
+	listen = (_onHistory: StoreListener<R>, _filters?: Partial<StoreListenerFilters>) => {
+		return () => {
+			// noop just for now
+		}
+	}
+
+	/**
+	 * Update a record. To update multiple records at once, use the `update` method of the
+	 * `TypedStore` class.
+	 *
+	 * @param id - The id of the record to update.
+	 * @param updater - A function that updates the record.
+	 */
+	update = <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => {
+		const record = this.get(id)
+		if (!record) {
+			console.error(`Record ${id} not found. This is probably an error`)
+			return
+		}
+		this.put([updater(record as any as RecFromId<K>) as any])
+	}
+
+	/**
+	 * Create a computed cache.
+	 *
+	 * @param name - The name of the derivation cache.
+	 * @param derive - A function used to derive the value of the cache.
+	 * @public
+	 */
+	createComputedCache = <T, V extends R = R>(
+		name: string,
+		derive: (record: V) => T | undefined
+	): ComputedCache<T, V> => {
+		const cache = new Cache<Atom<any>, Computed<T | undefined>>()
+		return {
+			get: (id: IdOf<V>) => {
+				const atom = this.pending.records.value[id] ?? this.synced.records.value[id]
+				if (!atom) {
+					return undefined
+				}
+				return cache.get(atom, () =>
+					computed<T | undefined>(name + ':' + id, () => derive(atom.value.state as V))
+				).value
+			},
+		}
+	}
+
+	/**
+	 * Create a computed cache from a selector
+	 *
+	 * @param name - The name of the derivation cache.
+	 * @param selector - A function that returns a subset of the original shape
+	 * @param derive - A function used to derive the value of the cache.
+	 * @public
+	 */
+	createSelectedComputedCache = <T, J, V extends R = R>(
+		name: string,
+		selector: (record: V) => T | undefined,
+		derive: (input: T) => J | undefined
+	): ComputedCache<J, V> => {
+		const cache = new Cache<Atom<any>, Computed<J | undefined>>()
+		return {
+			get: (id: IdOf<V>) => {
+				const atom = this.pending.records.value[id] ?? this.synced.records.value[id]
+				if (!atom) {
+					return undefined
+				}
+
+				const d = computed<T | undefined>(name + ':' + id + ':selector', () =>
+					selector(atom.value.state as V)
+				)
+				return cache.get(atom, () =>
+					computed<J | undefined>(name + ':' + id, () => derive(d.value as T))
+				).value
+			},
+		}
+	}
+
+	applyDiff(diff: RecordsDiff<R>) {
+		transact(() => {
+			// @ts-expect-error
+			this.put(Object.values(diff.added).concat(Object.values(diff.updated).map((v) => v[1])))
+			this.remove(Object.keys(diff.removed))
+		})
+	}
+
+	mergeRemoteChanges(fn: () => void) {
+		fn()
+	}
+
+	isPossiblyCorrupted() {
+		return false
+	}
+
+	serialize() {
+		return Object.fromEntries(this.entries())
+	}
+
+	allRecords() {
+		return this.entries().map(([_id, record]) => record)
+	}
+
+	clear() {
+		this.remove(this.allRecords().map((r) => r.id))
+	}
 }

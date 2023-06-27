@@ -2,7 +2,7 @@ import { Atom, Computed, Reactor, atom, computed, reactor, transact } from '@tld
 import {
 	filterEntries,
 	objectMapEntries,
-	objectMapFromEntries,
+	// objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
 	throttledRaf,
@@ -177,14 +177,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.props = config.props
 
 		if (initialData) {
-			this.atoms.set(
-				objectMapFromEntries(
-					objectMapEntries(initialData).map(([id, record]) => [
-						id,
-						atom('atom:' + id, this.schema.validateRecord(this, record, 'initialize', null)),
-					])
-				)
-			)
+			// this.atoms.set(
+			// 	objectMapFromEntries(
+			// 		objectMapEntries(initialData).map(([id, record]) => [
+			// 			id,
+			// 			atom('atom:' + id, this.schema.validateRecord(this, record, 'initialize', null)),
+			// 		])
+			// 	)
+			// )
 		}
 
 		this.historyReactor = reactor(
@@ -287,8 +287,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.history.set(this.history.value + 1, changes)
 	}
 
-	validate(phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {
-		this.allRecords().forEach((record) => this.schema.validateRecord(this, record, phase, null))
+	validate(_phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests') {
+		// this.allRecords().forEach((record) => this.schema.validateRecord(this, record, phase, null))
 	}
 
 	/**
@@ -330,7 +330,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param records - The records to add.
 	 * @public
 	 */
-	put = (records: R[], phaseOverride?: 'initialize'): void => {
+	put = (records: R[], _phaseOverride?: 'initialize'): void => {
 		transact(() => {
 			const updates: Record<IdOf<UnknownRecord>, [from: R, to: R]> = {}
 			const additions: Record<IdOf<UnknownRecord>, R> = {}
@@ -358,12 +358,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					const initialValue = recordAtom.__unsafe__getWithoutCapture()
 
 					// Validate the record
-					record = this.schema.validateRecord(
-						this,
-						record,
-						phaseOverride ?? 'updateRecord',
-						initialValue
-					)
+					// record = this.schema.validateRecord(
+					// 	this,
+					// 	record,
+					// 	phaseOverride ?? 'updateRecord',
+					// 	initialValue
+					// )
 
 					recordAtom.set(devFreeze(record))
 
@@ -381,12 +381,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					// If we don't have an atom, create one.
 
 					// Validate the record
-					record = this.schema.validateRecord(
-						this,
-						record as R,
-						phaseOverride ?? 'createRecord',
-						null
-					)
+					// record = this.schema.validateRecord(
+					// 	this,
+					// 	record as R,
+					// 	phaseOverride ?? 'createRecord',
+					// 	null
+					// )
 
 					// Mark the change as a new addition.
 					additions[record.id] = record
@@ -750,8 +750,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	/** @internal */
 	ensureStoreIsUsable() {
-		this._integrityChecker ??= this.schema.createIntegrityChecker(this)
-		this._integrityChecker?.()
+		// this._integrityChecker ??= this.schema.createIntegrityChecker(this)
+		// this._integrityChecker?.()
 	}
 
 	private _isPossiblyCorrupted = false

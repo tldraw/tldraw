@@ -58,7 +58,7 @@ export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeI
 		{
 			snapshotMigrations: storeMigrations,
 			onValidationFailure,
-			createIntegrityChecker: createIntegrityChecker,
+			createIntegrityChecker,
 		}
 	)
 }

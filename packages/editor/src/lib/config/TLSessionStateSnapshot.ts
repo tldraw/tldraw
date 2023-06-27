@@ -214,7 +214,8 @@ export function loadSessionStateSnapshotIntoStore(
 
 	// remove all page states and cameras and the instance state
 	const allPageStatesAndCameras = store
-		.allRecords()
+		.entries()
+		.map((r) => r[1])
 		.filter((r) => r.typeName === 'instance_page_state' || r.typeName === 'camera')
 
 	const removeDiff: RecordsDiff<TLRecord> = {

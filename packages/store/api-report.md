@@ -6,6 +6,7 @@
 
 import { Atom } from '@tldraw/state';
 import { Computed } from '@tldraw/state';
+import { Signal } from '@tldraw/state';
 
 // @public
 export type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>;
@@ -240,7 +241,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     } | null;
     // (undocumented)
     _flushHistory(): void;
-    get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
+    get: <K extends IdOf<R>>(id: K) => RecFromId_2<K> | undefined;
     getSnapshot(scope?: 'all' | RecordScope): {
         store: StoreSnapshot<R>;
         schema: SerializedSchema;
@@ -264,7 +265,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     onBeforeDelete?: (prev: R) => void;
     // (undocumented)
     readonly props: Props;
-    put: (records: R[], phaseOverride?: 'initialize') => void;
+    put: (records: R[], _phaseOverride?: 'initialize') => void;
     readonly query: StoreQueries<R>;
     remove: (ids: IdOf<R>[]) => void;
     // (undocumented)
@@ -274,10 +275,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
     };
     serialize: (scope?: 'all' | RecordScope) => StoreSnapshot<R>;
-    unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
-    update: <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
+    unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecFromId_2<K> | undefined;
+    update: <K extends IdOf<R>>(id: K, updater: (record: RecFromId_2<K>) => RecFromId_2<K>) => void;
     // (undocumented)
-    validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
+    validate(_phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
 }
 
 // @public (undocumented)
@@ -301,7 +302,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
         };
     }, options?: StoreSchemaOptions<R, P>): StoreSchema<R, P>;
     // @internal (undocumented)
-    createIntegrityChecker(store: Store<R, P>): (() => void) | undefined;
+    createIntegrityChecker(store: SyncStore<R, P>): (() => void) | undefined;
     // (undocumented)
     get currentStoreVersion(): number;
     // (undocumented)
@@ -317,7 +318,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
         [Record in R as Record['typeName']]: RecordType<R, any>;
     };
     // (undocumented)
-    validateRecord(store: Store<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
+    validateRecord(store: SyncStore<R>, record: R, phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord', recordBefore: null | R): R;
 }
 
 // @public (undocumented)
@@ -325,12 +326,12 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
     snapshotMigrations?: Migrations;
     onValidationFailure?: (data: {
         error: unknown;
-        store: Store<R>;
+        store: SyncStore<R>;
         record: R;
         phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
         recordBefore: null | R;
     }) => R;
-    createIntegrityChecker?: (store: Store<R, P>) => void;
+    createIntegrityChecker?: (store: SyncStore<R, P>) => () => void;
 };
 
 // @public
@@ -347,6 +348,87 @@ export type StoreValidators<R extends UnknownRecord> = {
         typeName: K;
     }>>;
 };
+
+// @public
+export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown> {
+    constructor(schema: StoreSchema<R, Props>, props: Props, upstream: GoingUpstreamSocket<R> | undefined, localPresence: Signal<R> | undefined, snapshot: SyncStoreSnapshot<R> | undefined);
+    addClient: (clientId: string, socket: GoingDownstreamSocket<R>) => this;
+    // (undocumented)
+    allRecords(): R[];
+    // (undocumented)
+    applyDiff(diff: RecordsDiff<R>): void;
+    // (undocumented)
+    applyStack: ApplyStack<R> | null;
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    close(): void;
+    createComputedCache: <T, V extends R = R>(name: string, derive: (record: V) => T | undefined) => ComputedCache<T, V>;
+    createSelectedComputedCache: <T, J, V extends R = R>(name: string, selector: (record: V) => T | undefined, derive: (input: T) => J | undefined) => ComputedCache<J, V>;
+    // (undocumented)
+    delete(id: string, pushId?: PushId): void;
+    // @internal (undocumented)
+    ensureStoreIsUsable(): void;
+    // (undocumented)
+    entries(): [string, R][];
+    get: {
+        <K extends IdOf<R>>(id: K): RecFromId<K> | undefined;
+        (id: string): R | undefined;
+    };
+    // (undocumented)
+    getSnapshot(): SyncStoreSnapshot<R>;
+    // (undocumented)
+    handleMessageFromUpstream: (message: GoingDownstreamMessage<R>) => Promise<void>;
+    // (undocumented)
+    has(id: string): boolean;
+    readonly history: Atom<number, RecordsDiff<R>>;
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    isPossiblyCorrupted(): boolean;
+    listen: (_onHistory: StoreListener<R>, _filters?: Partial<StoreListenerFilters>) => () => void;
+    // (undocumented)
+    mergeRemoteChanges(fn: () => void): void;
+    // (undocumented)
+    readonly myPresenceId: string;
+    onAfterChange?: (prev: R, next: R) => void;
+    onAfterCreate?: (record: R) => void;
+    onAfterDelete?: (prev: R) => void;
+    onBeforeDelete?: (prev: R) => void;
+    // (undocumented)
+    readonly presenceType: RecordType<R, never>;
+    // (undocumented)
+    readonly presenceTypePrefix: string;
+    // (undocumented)
+    readonly props: Props;
+    // (undocumented)
+    pruneSessions: () => void;
+    // (undocumented)
+    put(records: R[]): void;
+    // (undocumented)
+    readonly query: SyncStoreQueries<R>;
+    // (undocumented)
+    remove(ids: string[]): void;
+    // (undocumented)
+    readonly schema: StoreSchema<R, Props>;
+    // (undocumented)
+    readonly scopedTypes: {
+        document: ReadonlySet<string>;
+        session: ReadonlySet<string>;
+    };
+    // (undocumented)
+    serialize(): {
+        [k: string]: R;
+    };
+    // (undocumented)
+    readonly serializedSchema: SerializedSchema;
+    // (undocumented)
+    set(record: R, pushId?: PushId): void;
+    unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
+    update: <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
+    // (undocumented)
+    readonly upstreamConnectionState: Atom<UpstreamConnectionState, unknown>;
+}
 
 // @public (undocumented)
 export type UnknownRecord = BaseRecord<string, RecordId<UnknownRecord>>;

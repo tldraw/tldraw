@@ -944,7 +944,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			extras: { ...defaultAnnotations.extras, ...extras },
 		})
 		if (willCrashApp) {
-			this.store.markAsPossiblyCorrupted()
+			// this.store.markAsPossiblyCorrupted()
 		}
 	}
 
@@ -1004,7 +1004,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	crash(error: unknown) {
 		this._crashingError = error
-		this.store.markAsPossiblyCorrupted()
+		// this.store.markAsPossiblyCorrupted()
 		this.emit('crash', { error })
 	}
 
@@ -3111,7 +3111,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Animate the camera to a user's cursor position.
 	 * This also briefly show the user's cursor if it's not currently visible.
 	 *
-	 * @param userId - The id of the user to aniamte to.
+	 * @param userId - The id of the user to animate to.
 	 * @public
 	 */
 	animateToUser(userId: string) {
@@ -8491,9 +8491,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		transact(() => {
 			this.store.clear()
 			const [shapes, nonShapes] = partition(records, (record) => record.typeName === 'shape')
-			this.store.put(nonShapes, 'initialize')
+			this.store.put(nonShapes)
 			this.store.ensureStoreIsUsable()
-			this.store.put(shapes, 'initialize')
+			this.store.put(shapes)
+			this.store.ensureStoreIsUsable()
 			this.history.clear()
 			this.updateViewportScreenBounds()
 			this.updateRenderingBounds()

@@ -1,7 +1,7 @@
 import { getOwnProperty, objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
-import { Store, StoreSnapshot } from './Store'
+import { StoreSnapshot } from './Store'
 import {
 	MigrationFailureReason,
 	MigrationResult,
@@ -9,6 +9,7 @@ import {
 	migrate,
 	migrateRecord,
 } from './migrate'
+import { SyncStore } from './sync-store/SyncStore'
 
 /** @public */
 export interface SerializedSchema {
@@ -41,13 +42,13 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
 	/** @public */
 	onValidationFailure?: (data: {
 		error: unknown
-		store: Store<R>
+		store: SyncStore<R>
 		record: R
 		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests'
 		recordBefore: R | null
 	}) => R
 	/** @internal */
-	createIntegrityChecker?: (store: Store<R, P>) => void
+	createIntegrityChecker?: (store: SyncStore<R, P>) => () => void
 }
 
 /** @public */
@@ -74,7 +75,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	}
 
 	validateRecord(
-		store: Store<R>,
+		store: SyncStore<R>,
 		record: R,
 		phase: 'initialize' | 'createRecord' | 'updateRecord' | 'tests',
 		recordBefore: R | null
@@ -237,7 +238,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	}
 
 	/** @internal */
-	createIntegrityChecker(store: Store<R, P>): (() => void) | undefined {
+	createIntegrityChecker(store: SyncStore<R, P>): (() => void) | undefined {
 		return this.options.createIntegrityChecker?.(store) ?? undefined
 	}
 

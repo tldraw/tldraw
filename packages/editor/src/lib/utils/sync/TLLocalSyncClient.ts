@@ -196,8 +196,7 @@ export class TLLocalSyncClient {
 				this.store.mergeRemoteChanges(() => {
 					// Calling put will validate the records!
 					this.store.put(
-						Object.values(migrationResult.value).filter((r) => this.documentTypes.has(r.typeName)),
-						'initialize'
+						Object.values(migrationResult.value).filter((r) => this.documentTypes.has(r.typeName))
 					)
 				})
 

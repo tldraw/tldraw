@@ -131,6 +131,9 @@ export type OkResult<T> = {
 };
 
 // @internal
+export function omit<T extends object, K extends keyof T>(obj: T, keys: K | K[]): Omit<T, K>;
+
+// @internal
 export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...args: Args) => Return): (...args: Args) => Return;
 
 // @internal

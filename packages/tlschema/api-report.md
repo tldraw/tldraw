@@ -10,9 +10,9 @@ import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
-import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
+import { SyncStore } from '@tldraw/store';
 import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
@@ -1115,7 +1115,7 @@ export type TLShapeProp = keyof TLShapeProps;
 export type TLShapeProps = Identity<UnionToIntersection<TLDefaultShape['props']>>;
 
 // @public (undocumented)
-export type TLStore = Store<TLRecord, TLStoreProps>;
+export type TLStore = SyncStore<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
 export type TLStoreProps = {

@@ -1,4 +1,4 @@
-import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/store'
+import { StoreSchema, StoreSchemaOptions, StoreSnapshot, SyncStore } from '@tldraw/store'
 import { annotateError, structuredClone } from '@tldraw/utils'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
@@ -41,7 +41,7 @@ export type TLStoreProps = {
 }
 
 /** @public */
-export type TLStore = Store<TLRecord, TLStoreProps>
+export type TLStore = SyncStore<TLRecord, TLStoreProps>
 
 /** @public */
 export const onValidationFailure: StoreSchemaOptions<

@@ -251,7 +251,7 @@ export function correctSpacesToNbsp(input: string): string;
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
 // @public
-export function createTLStore({ initialData, defaultName, ...rest }: TLStoreOptions): TLStore;
+export function createTLStore({ defaultName, ...rest }: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export function createTLUser(opts?: {
@@ -2661,6 +2661,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 export type TLStoreOptions = {
     initialData?: StoreSnapshot<TLRecord>;
     defaultName?: string;
+    presence?: Signal<TLInstancePresence>;
 } & ({
     schema: StoreSchema<TLRecord, TLStoreProps>;
 } | {
