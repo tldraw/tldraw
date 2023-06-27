@@ -1131,6 +1131,9 @@ export type TLScribble = {
     delay: number;
 };
 
+// @public (undocumented)
+export type TLSerializedStore = SerializedStore<TLRecord>;
+
 // @public
 export type TLShape = TLDefaultShape | TLUnknownShape;
 

@@ -33,7 +33,7 @@ function redactRecordForErrorReporting(record: any) {
 export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>
 
 /** @public */
-export type TLSeralizedStore = SerializedStore<TLRecord>
+export type TLSerializedStore = SerializedStore<TLRecord>
 
 /** @public */
 export type TLStoreSnapshot = SerializedStore<TLRecord>
