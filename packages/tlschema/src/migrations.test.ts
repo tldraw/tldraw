@@ -1242,8 +1242,6 @@ describe('adds meta ', () => {
 		instancePageStateMigrations.migrators[instancePageStateVersions.AddMeta],
 		instancePresenceMigrations.migrators[instancePresenceVersions.AddMeta],
 		pageMigrations.migrators[pageVersions.AddMeta],
-		pageMigrations.migrators[pageVersions.AddMeta],
-		pointerMigrations.migrators[pointerVersions.AddMeta],
 		pointerMigrations.migrators[pointerVersions.AddMeta],
 		rootShapeMigrations.migrators[rootShapeVersions.AddMeta],
 	]
