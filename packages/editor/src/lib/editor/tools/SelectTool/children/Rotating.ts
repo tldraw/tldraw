@@ -25,7 +25,9 @@ export class Rotating extends StateNode {
 
 		this.markId = this.editor.mark('rotate start')
 
-		this.snapshot = getRotationSnapshot({ editor: this.editor })
+		const snapshot = getRotationSnapshot({ editor: this.editor })
+		if (!snapshot) return this.parent.transition('idle', this.info)
+		this.snapshot = snapshot
 
 		// Trigger a pointer move
 		this.handleStart()

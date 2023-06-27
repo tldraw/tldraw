@@ -1,10 +1,10 @@
 import { canolicalizeRotation, Matrix2d, Vec2d } from '@tldraw/primitives'
-import { isShapeId, TLShapePartial } from '@tldraw/tlschema'
+import { isShapeId, TLShape, TLShapePartial } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
 
 /** @internal */
-export function getRotationSnapshot({ editor }: { editor: Editor }) {
+export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationSnapshot | null {
 	const {
 		selectionRotation,
 		selectionPageCenter,
@@ -14,12 +14,16 @@ export function getRotationSnapshot({ editor }: { editor: Editor }) {
 
 	// todo: this assumes we're rotating the selected shapes
 	// if we try to rotate shapes that aren't selected, this
-	// will produce the wrong results if there are other shapes
-	// selected or else break if there are none.
+	// will produce the wrong results
+
+	// Return null if there are no selected shapes
+	if (!selectionPageCenter) {
+		return null
+	}
 
 	return {
-		selectionPageCenter: selectionPageCenter!,
-		initialCursorAngle: selectionPageCenter!.angle(originPagePoint),
+		selectionPageCenter: selectionPageCenter,
+		initialCursorAngle: selectionPageCenter.angle(originPagePoint),
 		initialSelectionRotation: selectionRotation,
 		shapeSnapshots: selectedShapes.map((shape) => ({
 			shape: structuredClone(shape),
@@ -29,7 +33,15 @@ export function getRotationSnapshot({ editor }: { editor: Editor }) {
 }
 
 /** @internal */
-export type TLRotationSnapshot = ReturnType<typeof getRotationSnapshot>
+export type TLRotationSnapshot = {
+	selectionPageCenter: Vec2d
+	initialCursorAngle: number
+	initialSelectionRotation: number
+	shapeSnapshots: {
+		shape: TLShape
+		initialPagePoint: Vec2d
+	}[]
+}
 
 /** @internal */
 export function applyRotationToSnapshotShapes({
