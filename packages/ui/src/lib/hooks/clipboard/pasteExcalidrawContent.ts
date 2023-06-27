@@ -299,6 +299,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 						mimeType: file.mimeType,
 						src: file.dataURL,
 					},
+					meta: {},
 				})
 
 				tldrawContent.shapes.push({
