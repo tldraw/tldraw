@@ -550,7 +550,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @public
 	 */
-	loadSnapshot(snapshot: { store: SerializedStore<R>; schema: SerializedSchema }): void {
+	loadSnapshot(snapshot: StoreSnapshot<R>): void {
 		const migrationResult = this.schema.migrateStoreSnapshot(snapshot.store, snapshot.schema)
 
 		if (migrationResult.type === 'error') {

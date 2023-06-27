@@ -251,10 +251,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
     listen: (onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) => () => void;
-    loadSnapshot(snapshot: {
-        store: SerializedStore<R>;
-        schema: SerializedSchema;
-    }): void;
+    loadSnapshot(snapshot: StoreSnapshot<R>): void;
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;
     mergeRemoteChanges: (fn: () => void) => void;
