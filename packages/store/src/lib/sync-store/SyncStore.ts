@@ -1,16 +1,10 @@
 import { Atom, Signal, atom, react, transact, transaction } from '@tldraw/state'
-import {
-	Result,
-	exhaustiveSwitchError,
-	objectMapEntries,
-	objectMapValues,
-	rafThrottle,
-} from '@tldraw/utils'
+import { Result, exhaustiveSwitchError, objectMapValues, omit, rafThrottle } from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import { nanoid } from 'nanoid'
 import { IdOf, UnknownRecord } from '../BaseRecord'
 import { RecordType } from '../RecordType'
-import { ChangeSource, reverseRecordsDiff } from '../Store'
+import { ChangeSource } from '../Store'
 import { SerializedSchema, StoreSchema } from '../StoreSchema'
 import { MigrationFailureReason, compareRecordVersions, getRecordVersion } from '../migrate'
 import {
@@ -40,11 +34,6 @@ import {
 	TLIncompatibilityReason,
 	TLSYNC_PROTOCOL_VERSION,
 } from './protocol'
-
-export enum PushOpStatus {
-	Unsent = 'unsent',
-	Sent = 'sent',
-}
 
 export type PushOp<R extends UnknownRecord> = {
 	pushId: string
@@ -86,6 +75,7 @@ type ApplyStack<R extends UnknownRecord> = {
 type UpstreamConnectionState =
 	| {
 			type: 'connected'
+			hasSentFirstMessage: boolean
 			lastPongTime: number
 	  }
 	| {
@@ -96,6 +86,97 @@ type UpstreamConnectionState =
 			type: 'offline'
 			lastCheckTime: number
 	  }
+	| {
+			type: 'initial'
+	  }
+
+type PresenceRecordInfo<R extends UnknownRecord> = {
+	clientId: string
+	maskedId: IdOf<R>
+	unmaskedId: IdOf<R>
+}
+type PresenceOwnership<R extends UnknownRecord> = {
+	clientId2MaskedIds: Record<string, IdOf<R>[]>
+	presenceId2Info: Record<string, PresenceRecordInfo<R>>
+}
+
+function addPresenceOwnership<R extends UnknownRecord>(
+	presenceOwnership: PresenceOwnership<R>,
+	clientId: string,
+	unmaskedPresenceId: IdOf<R>
+): [PresenceOwnership<R>, IdOf<R>] {
+	{
+		const info = presenceOwnership.presenceId2Info[unmaskedPresenceId]
+		if (info) {
+			return [presenceOwnership, info.maskedId]
+		}
+	}
+	const typename = unmaskedPresenceId.split(':')[0]
+	const maskedId = (typename + ':' + nanoid()) as IdOf<R>
+
+	const info: PresenceRecordInfo<R> = {
+		clientId,
+		maskedId,
+		unmaskedId: unmaskedPresenceId,
+	}
+	return [
+		{
+			clientId2MaskedIds: {
+				...presenceOwnership.clientId2MaskedIds,
+				[clientId]: [...(presenceOwnership.clientId2MaskedIds[clientId] ?? []), maskedId],
+			},
+			presenceId2Info: {
+				...presenceOwnership.presenceId2Info,
+				[unmaskedPresenceId]: info,
+				[maskedId]: info,
+			},
+		},
+		maskedId,
+	]
+}
+
+function removePresenceOwnership<R extends UnknownRecord>(
+	presenceOwnership: PresenceOwnership<R>,
+	presenceId: IdOf<R>
+): PresenceOwnership<R> {
+	const info = presenceOwnership.presenceId2Info[presenceId]
+	if (!info) return presenceOwnership
+	const presenceId2Info = omit(presenceOwnership.presenceId2Info, [info.unmaskedId, info.maskedId])
+	const maskedIdsForClient = presenceOwnership.clientId2MaskedIds[info.clientId].filter(
+		(id) => id !== info.maskedId
+	)
+
+	if (maskedIdsForClient.length === 0) {
+		return {
+			clientId2MaskedIds: omit(presenceOwnership.clientId2MaskedIds, info.clientId),
+			presenceId2Info,
+		}
+	} else {
+		return {
+			clientId2MaskedIds: {
+				...presenceOwnership.clientId2MaskedIds,
+				[info.clientId]: maskedIdsForClient,
+			},
+			presenceId2Info,
+		}
+	}
+}
+
+function removeClientOwnership<R extends UnknownRecord>(
+	presenceOwnership: PresenceOwnership<R>,
+	clientId: string
+): PresenceOwnership<R> {
+	const maskedIds = presenceOwnership.clientId2MaskedIds[clientId]
+	if (!maskedIds) return presenceOwnership
+	const infos = maskedIds.map((id) => presenceOwnership.presenceId2Info[id])
+	return {
+		clientId2MaskedIds: omit(presenceOwnership.clientId2MaskedIds, clientId),
+		presenceId2Info: omit(presenceOwnership.presenceId2Info, [
+			...maskedIds,
+			...infos.map((i) => i.unmaskedId),
+		]),
+	}
+}
 
 /**
  * A serialized snapshot of the record store's values.
@@ -134,26 +215,21 @@ export type DownstreamClient<R extends UnknownRecord> =
 	| {
 			state: DownstreamClientState.AWAITING_CONNECT_MESSAGE
 			clientId: string
-			presenceId: string
 			socket: GoingDownstreamSocket<R>
 			sessionStartTime: number
 	  }
 	| {
 			state: DownstreamClientState.AWAITING_REMOVAL
 			clientId: string
-			presenceId: string
 			socket: GoingDownstreamSocket<R>
 			cancellationTime: number
-			presenceIds: Atom<Set<string>>
 	  }
 	| {
 			state: DownstreamClientState.CONNECTED
 			clientId: string
-			presenceId: string
 			socket: GoingDownstreamSocket<R>
 			serializedSchema: SerializedSchema
 			lastInteractionTime: number
-			presenceIds: Atom<Set<string>>
 	  }
 
 /**
@@ -169,10 +245,12 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	readonly presenceType: RecordType<R, never>
 	readonly presenceTypePrefix: string
 	readonly serializedSchema: SerializedSchema
+	readonly myPresenceId: string
 	constructor(
 		private readonly schema: StoreSchema<R>,
 		private readonly upstream: GoingUpstreamSocket<R> | undefined,
 		private readonly localPresence: Signal<R>,
+		private readonly onAfterConnect: ((store: SyncStore<R>) => void) | undefined,
 		snapshot: SyncStoreSnapshot<R>
 	) {
 		if (snapshot) {
@@ -203,16 +281,27 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		this.presenceType = schema.types[[...presenceTypes][0]] as any
 		this.presenceTypePrefix = `${this.presenceType.typeName}:`
 		this.serializedSchema = this.schema.serialize()
-		const presenceId = this.presenceType.createId(this.storeInstanceId)
+		this.myPresenceId = this.presenceType.createId(this.storeInstanceId)
 		this.disposables.add(
 			react('store.localPresence', () =>
 				this.set({
 					...this.localPresence.value,
-					id: presenceId,
+					id: this.myPresenceId,
 					typeName: this.presenceType.typeName,
 				})
 			)
 		)
+		if (this.upstream) {
+			this.disposables.add(
+				this.upstream.onStatusChange((isOpen) => {
+					if (isOpen) {
+						this.sendUpstreamConnectRequest()
+					} else {
+						this.resetConnection()
+					}
+				})
+			)
+		}
 	}
 
 	private readonly prevClock: ClockSnapshot | undefined
@@ -233,15 +322,10 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		pushes: atom('store.pending.pushes', [] as PushOp<R>[]),
 		pendingPushChanges: atom('store.pending.pendingPushChanges', {} as Changes<R>),
 	}
-	private readonly presence = {
-		// presence records synced from upstream peers
-		// we wipe these whenever we go offline
-		upstream: atom('store.presence.upstream', {} as Record<string, Atom<R>>),
-		// presence records synced from downstream peers and local
-		downstream: atom('store.presence.downstream', {} as Record<string, { ownerClientId: string, record: R}>),
-		// buffer of touched presences used to push presence updates to upstream peers at the end of a push spree
-		touchedPresences: atom('store.presence.touched', {} as Record<string, R | null>),
-	}
+	private readonly presenceOwnership = atom<PresenceOwnership<R>>('store.presenceOwnership', {
+		clientId2MaskedIds: {},
+		presenceId2Info: {},
+	})
 	private readonly downstreamClients = new Map<string, DownstreamClient<R>>()
 	private readonly disposables = new Set<() => void>()
 
@@ -288,7 +372,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	 * @param client - The client that connected to the room.
 	 */
 	addClient = (clientId: string, socket: GoingDownstreamSocket<R>) => {
-		const existing = this.downstreamClients.get(clientId)
 		const unlisten = socket.onMessage((message) => {
 			this.handleMessageFromDownstream(clientId, message)
 		})
@@ -296,7 +379,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			state: DownstreamClientState.AWAITING_CONNECT_MESSAGE,
 			clientId,
 			socket,
-			presenceId: existing?.presenceId ?? this.presenceType.createId(),
 			sessionStartTime: Date.now(),
 			// TODO unlisten,
 		})
@@ -365,9 +447,31 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	}
 
 	readonly upstreamConnectionState = atom<UpstreamConnectionState>('upstream.connectionState', {
-		type: 'offline',
-		lastCheckTime: 0,
+		type: 'initial',
 	})
+
+	private sendUpstreamConnectRequest() {
+		transact(() => {
+			if (!this.upstream) {
+				console.error('sendUpstreamConnectRequest called while not connected to upstream')
+				return
+			}
+			const spanId = nanoid()
+
+			this.upstreamConnectionState.set({
+				type: 'awaiting-reconnect',
+				spanId,
+			})
+
+			this.upstream.sendMessage({
+				type: 'connect',
+				protocolVersion: TLSYNC_PROTOCOL_VERSION,
+				schema: this.serializedSchema,
+				lastUpstreamClock: this.synced.upstreamClock.value,
+				spanId,
+			})
+		})
+	}
 
 	/** Switch to offline mode */
 	private resetConnection(hard = false) {
@@ -391,7 +495,9 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 				(acc, push) => mergeChanges(acc, push.changes, true),
 				{}
 			)
-			this.pending.pendingPushChanges.set(mergeChanges(sentChanges, this.pending.pendingPushChanges.value))
+			this.pending.pendingPushChanges.set(
+				mergeChanges(sentChanges, this.pending.pendingPushChanges.value)
+			)
 			this.pending.pushes.set([])
 			if (this.upstream.isOpen()) {
 				this.upstream.reopen()
@@ -416,44 +522,35 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		// based on anything inside this.speculativeChanges
 		transact(() => {
 			// Now our goal is to rebase on the server's state.
-			// This means wiping away any peer presence data, which the server will replace in full on every connect.
+			// This means wiping away any upstream presence data, which the server will replace in full on every connect.
 			// If the server does not have enough history to give us a partial document state hydration we will
 			// also need to wipe away all of our document state before hydrating with the server's state from scratch.
 
-			this.store.mergeRemoteChanges(() => {
-				// gather records to delete in a NetworkDiff
-				const wipeDiff: NetworkDiff<R> = {}
-				const wipeAll = event.hydrationType === 'wipe_all'
-				if (!wipeAll) {
-					// if we're only wiping presence data, undo the speculative changes first
-					this.store.applyDiff(reverseRecordsDiff(stashedChanges), false)
-				}
+			const nextClock = this.incrementClock()
+			const presenceInfo = this.presenceOwnership.value.presenceId2Info
 
-				// now wipe all presence data and, if needed, all document data
-				for (const [id, record] of objectMapEntries(this.store.serialize('all'))) {
-					if (
-						(wipeAll && this.store.scopedTypes.document.has(record.typeName)) ||
-						record.typeName === this.presenceType
-					) {
-						wipeDiff[id] = [RecordOpType.Remove]
-					}
-				}
+			const deleteAll = message.hydrationType === 'wipe_all'
 
-				// then apply the upstream changes
-				this.applyNetworkDiff({ ...wipeDiff, ...event.diff }, true)
+			for (const [id, recordAtom] of Object.entries(this.synced.records.value)) {
+				const isUpstreamPresence =
+					id !== this.myPresenceId && id.startsWith(this.presenceTypePrefix) && !presenceInfo[id]
+				const isDocumentState = this.scopedTypes.document.has(recordAtom.value.state.typeName)
+				if (isUpstreamPresence || (deleteAll && isDocumentState)) {
+					this.deleteSynced(id, nextClock)
+				}
+			}
+
+			this.syncUpstreamPatch(message.diff)
+
+			this.upstreamConnectionState.set({
+				type: 'connected',
+				hasSentFirstMessage: false,
+				lastPongTime: Date.now(),
 			})
+			this.synced.upstreamClock.set(message.upstreamClock)
 
-			// now re-apply the speculative changes as a 'user' to trigger
-			// creating a new push request with the appropriate diff
-			this.isConnectedToRoom = true
-			this.store.applyDiff(stashedChanges)
-
-			this.store.ensureStoreIsUsable()
-			// TODO: reinstate isNew
-			this.onAfterConnect?.(this, false)
+			this.onAfterConnect?.(this)
 		})
-
-		this.lastServerClock = event.serverClock
 	}
 
 	/** If the client is out of date or we are out of date, we need to let them know */
@@ -546,7 +643,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			this.downstreamClients.set(client.clientId, {
 				state: DownstreamClientState.CONNECTED,
 				clientId: client.clientId,
-				presenceId: client.presenceId,
 				socket: client.socket,
 				serializedSchema: sessionSchema,
 				lastInteractionTime: Date.now(),
@@ -634,10 +730,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		})
 	}
 
-	private handlePushRequest(
-		client: DownstreamClient<R>,
-		message: GoingUpstreamPushMessage<R> | GoingUpstreamPresenceMessage<R>
-	) {
+	private handlePushRequest(client: DownstreamClient<R>, message: GoingUpstreamPushMessage<R>) {
 		if (client.state !== DownstreamClientState.CONNECTED) {
 			return
 		}
@@ -729,22 +822,13 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 
 			const diff = message.diff
 			for (const [id, op] of Object.entries(diff)) {
-				const typeName = id.slice(0, id.indexOf(':'))
-				if (!this.scopedTypes.document.has(typeName) && this.presenceType.typeName !== typeName) {
-					fail(TLIncompatibilityReason.InvalidRecord)
-					return
-				}
 				if (op[0] === RecordOpType.Set) {
 					// if it's not a document record, fail
 					if (!addDocument(op[1]).ok) return
 				} else if (op[0] === RecordOpType.Delete) {
 					this.delete(id, pushId)
 				} else if (op[0] === RecordOpType.Patch) {
-					if (
-						!patchDocument(typeName === this.presenceType.typeName ? client.presenceId : id, op[1])
-							.ok
-					)
-						return
+					if (!patchDocument(id, op[1]).ok) return
 				}
 			}
 		})
@@ -764,7 +848,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		this.downstreamClients.set(clientId, {
 			state: DownstreamClientState.AWAITING_REMOVAL,
 			clientId,
-			presenceId: client.presenceId,
 			socket: client.socket,
 			cancellationTime: Date.now(),
 		})
@@ -787,7 +870,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 			// noop
 		}
 
-		this.deleteSynced(client.presenceId, this.clock.value + 1)
+		this.presenceOwnership.update((ownership) => removeClientOwnership(ownership, clientId))
 
 		// this.events.emit('session_removed', { sessionKey: clientId })
 		// if (this.sessions.size === 0) {
@@ -822,52 +905,9 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		}
 	}
 
-	/**
-	 * Broadcast a message to all connected clients except the clientId provided.
-	 *
-	 * @param message - The message to broadcast.
-	 * @param clientId - The client to exclude.
-	 */
-	broadcastPatch({
-		diff,
-		sourceSessionKey: sourceSessionKey,
-	}: {
-		diff: NetworkDiff<R>
-		sourceSessionKey: string
-	}) {
-		this.downstreamClients.forEach((client) => {
-			if (client.state !== DownstreamClientState.CONNECTED) return
-			if (sourceSessionKey === client.clientId) return
-			if (!client.socket.isOpen) {
-				this.markClientForRemoval(client.clientId)
-				return
-			}
-
-			const res = this.migrateDiffForClient(client.serializedSchema, diff)
-
-			if (!res.ok) {
-				// disconnect client and send incompatibility error
-				this.rejectClient(
-					client,
-					res.error === MigrationFailureReason.TargetVersionTooNew
-						? TLIncompatibilityReason.ServerTooOld
-						: TLIncompatibilityReason.ClientTooOld
-				)
-				return
-			}
-
-			this.sendDownstreamMessage(client.clientId, {
-				type: 'patch',
-				diff: res.value,
-				serverClock: this.clock.value,
-			})
-		})
-		return this
-	}
-
 	private readonly incomingFromUpstreamPatchBuffer = atom(
 		'store.incomingPatchBuffer',
-		[] as Array<GoingDownstreamPatchMessage<R> | GoingUpstreamPresenceMessage<R>>
+		[] as GoingDownstreamPatchMessage<R>[]
 	)
 
 	private readonly goingDownstreamPatchBuffer = atom<{
@@ -921,6 +961,21 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		return this.getRecordWithTimestamp(id)?.state
 	}
 
+	private maskDownstreamPresence(record: R, clientId: string): R {
+		if (record.typeName !== this.presenceType.typeName) return record
+		const presenceInfo = this.presenceOwnership.value.presenceId2Info[record.id]
+		if (!presenceInfo) {
+			const [nextOwnership, maskedId] = addPresenceOwnership(
+				this.presenceOwnership.value,
+				clientId,
+				record.id
+			)
+			this.presenceOwnership.set(nextOwnership)
+			return { ...record, id: maskedId }
+		}
+		return record.id === presenceInfo.maskedId ? record : { ...record, id: presenceInfo.maskedId }
+	}
+
 	private setSynced(record: R, nextClock: number, pushId?: PushId) {
 		const id = record.id
 		this.recordWillBeTouched(id, pushId)
@@ -942,26 +997,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	}
 
 	private addPushOp(cb: (changes: Changes<R>) => Changes<R>) {
-		this.pending.pushes.update((prev) => {
-			const prevOp = prev[prev.length - 1]
-			const ops = prev.slice(0)
-			if (prevOp?.status === PushOpStatus.Unsent) {
-				ops[ops.length - 1] = {
-					pushId: prevOp.pushId,
-					changes: cb(prevOp.changes),
-					status: PushOpStatus.Unsent,
-				}
-			} else {
-				ops.push({
-					pushId: nanoid(),
-					changes: cb({}),
-					status: PushOpStatus.Unsent,
-				})
-			}
-
-			return ops
-		})
-
+		this.pending.pendingPushChanges.update((prev) => cb(prev))
 		this.schedulePush()
 	}
 
@@ -990,81 +1026,60 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		this.addPushOp((changes) => addSetChange(changes, prevState, record, nextClock))
 	}
 
-	private setPresence(record: R, push: boolean, pushId?: PushId) {
-		const id = record.id
-		this.recordWillBeTouched(id, pushId)
-		const existingAtom = this.presence.downstream.value[id]
-		if (existingAtom) {
-			existingAtom.set(record)
-		} else {
-			this.presence.downstream.set({
-				...this.presence.downstream.value,
-				[id]: atom('presence.downstream.' + id, record),
-			})
+	private getInitialPresenceDiff() {
+		const allMaskedIds = Object.values(this.presenceOwnership.value.clientId2MaskedIds).flat()
+
+		if (allMaskedIds.length === 0) return null
+
+		const result: NetworkDiff<R> = {}
+
+		for (const maskedId of allMaskedIds) {
+			const record = this.getRecordWithTimestamp(maskedId)
+			if (!record) continue
+			result[maskedId] = [RecordOpType.Set, record.state]
 		}
-		if (push) {
-			this.schedulePush()
-		}
+
+		return result
 	}
 
 	private push = () => {
-		// todo: try/catch
 		transact(() => {
 			if (!this.upstream) {
 				console.error('push called while not connected to upstream')
 				return
 			}
-			while (true) {
-				const nextOpIndex = this.pending.pushes.value.findIndex(
-					(op) => op.status === PushOpStatus.Unsent
-				)
-				if (nextOpIndex >= 0) {
-					// do the push
-					const op = this.pending.pushes.value[nextOpIndex]
-					const patch = getNetworkDiff(op.changes)
-					if (!patch) {
-						// remove op if noop
-						this.pending.pushes.update((prev) => prev.filter((op) => op !== prev[nextOpIndex]))
-						continue
-					}
-					// otherwise mark it as sent and send it
-					this.pending.pushes.update((prev) => {
-						const ops = prev.slice(0)
-						ops[nextOpIndex] = { ...op, status: PushOpStatus.Sent }
-						return ops
-					})
-					this.upstream?.sendMessage({
-						type: 'push',
-						diff: patch,
-						pushId: op.pushId,
-					})
-				} else {
-					break
-				}
+			const connectionState = this.upstreamConnectionState.value
+			if (connectionState.type !== 'connected') {
+				return
+			}
+			// if we have not sent a first message yet, make sure we send full pushes for all presence records
+			const changes = this.pending.pendingPushChanges.value
+			this.pending.pendingPushChanges.set({})
+			const docDiff = getNetworkDiff(changes)
+			const initialPresenceDiff = connectionState.hasSentFirstMessage
+				? null
+				: this.getInitialPresenceDiff()
+			if (!docDiff && !initialPresenceDiff) return
+
+			const diff: NetworkDiff<R> = {
+				...(docDiff ?? {}),
+				...(initialPresenceDiff ?? {}),
 			}
 
-			// finally do a presence push if needed
-			const touchedPresences = Object.entries(this.presence.touchedPresences.value)
-			if (touchedPresences.length === 0) return
-			this.presence.touchedPresences.set({})
-
-			const diff: NetworkDiff<R> = {}
-
-			for (const [id, prev] of touchedPresences) {
-				const next = this.presence.downstream.value[id].value
-				if (!prev && next) {
-					diff[id] = [RecordOpType.Set, next]
-				} else if (prev && !next) {
-					diff[id] = [RecordOpType.Delete]
-				} else if (prev && next) {
-					const patch = diffRecord(prev, next)
-					if (patch) {
-						diff[id] = [RecordOpType.Patch, patch]
-					}
-				}
-			}
-
-			this.upstream.sendMessage({ type: 'presence', diff })
+			const pushId = nanoid()
+			this.pending.pushes.update((prev) => [
+				...prev,
+				{
+					pushId,
+					changes,
+					diff,
+				},
+			])
+			this.upstream.sendMessage({
+				type: 'push',
+				diff,
+				pushId,
+			})
 		})
 	}
 
@@ -1072,9 +1087,8 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 
 	set(record: R, pushId?: PushId): void {
 		transact(() => {
-			if (record.typeName === this.presenceType.typeName) {
-				this.setPresence(record, true, pushId)
-				return
+			if (pushId) {
+				record = this.maskDownstreamPresence(record, pushId.clientId)
 			}
 			if (!this.upstream || this.scopedTypes.session.has(record.typeName)) {
 				this.setSynced(record, this.incrementClock(), pushId)
@@ -1121,8 +1135,17 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 	}
 
 	delete(id: string, pushId?: PushId): void {
-		const typeName = id.slice(0, id.indexOf(':'))
 		transact(() => {
+			if (pushId && id.startsWith(this.presenceTypePrefix)) {
+				const info = this.presenceOwnership.value.presenceId2Info[id]
+				if (info) {
+					id = info.maskedId
+					this.presenceOwnership.update((ownership) =>
+						removePresenceOwnership(ownership, id as IdOf<R>)
+					)
+				}
+			}
+			const typeName = id.slice(0, id.indexOf(':'))
 			if (!this.upstream || this.scopedTypes.session.has(typeName)) {
 				this.deleteSynced(id, this.incrementClock(), pushId)
 				return
@@ -1291,9 +1314,20 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 		}
 
 		for (const client of this.downstreamClients.values()) {
+			let clientSpecificDiff = undefined as undefined | NetworkDiff<R>
+
+			// remove any of the client's own presence records from the diff
+			for (const maskedId of this.presenceOwnership.value.clientId2MaskedIds[client.clientId] ??
+				[]) {
+				if (maskedId in diff) {
+					clientSpecificDiff ??= { ...diff }
+					delete clientSpecificDiff[maskedId]
+				}
+			}
+
 			this.sendDownstreamMessage(client.clientId, {
 				type: 'patch',
-				diff,
+				diff: clientSpecificDiff ?? diff,
 				serverClock: this.clock.value,
 				satisfiedPushIds: satisfiedPushes[client.clientId],
 			})
@@ -1312,7 +1346,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 
 			for (const msg of incomingPatches) {
 				this.syncUpstreamPatch(msg.diff)
-				if (msg.type === 'presence') continue
 				if (!msg.satisfiedPushIds) continue
 
 				if (!pendingPushOps) {
@@ -1326,10 +1359,14 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord> {
 					if (pushId !== nextOp.pushId) {
 						throw new Error('pushId mismatch while rebasing.')
 					}
-					if (nextOp.status === PushOpStatus.Unsent) {
-						throw new Error('Unexpected upstream push result while rebasing.')
+					// all good, apply any presence changes directly
+					for (const change of Object.values(nextOp.changes)) {
+						if (change.op === ChangeOpType.Set) {
+							this.setSynced(change.record, change.clock)
+						} else {
+							this.deleteSynced(change.record.id, change.clock)
+						}
 					}
-					// all good
 				}
 
 				lastServerClock = msg.serverClock

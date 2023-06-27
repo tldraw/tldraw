@@ -24,6 +24,7 @@ export {
 	objectMapFromEntries,
 	objectMapKeys,
 	objectMapValues,
+	omit
 } from './lib/object'
 export { rafThrottle, throttledRaf } from './lib/raf'
 export { sortById } from './lib/sort'
