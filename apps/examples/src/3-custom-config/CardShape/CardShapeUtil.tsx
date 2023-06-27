@@ -1,11 +1,12 @@
-import { resizeBox } from '@tldraw/editor/src/lib/editor/shapes/shared/resizeBox'
 import {
 	Box2d,
 	HTMLContainer,
 	ShapeUtil,
 	TLOnResizeHandler,
 	getDefaultColorTheme,
+	resizeBox,
 } from '@tldraw/tldraw'
+import { useState } from 'react'
 import { ICardShape } from './card-shape-types'
 
 // A utility class for the card shape. This is where you define
@@ -38,20 +39,34 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 		const bounds = this.editor.getBounds(shape)
 		const theme = getDefaultColorTheme(this.editor)
 
+		// Unfortunately eslint will think this is a class components
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const [count, setCount] = useState(0)
+
 		return (
 			<HTMLContainer
 				id={shape.id}
 				style={{
 					border: '1px solid black',
 					display: 'flex',
+					flexDirection: 'column',
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
+					backgroundColor: theme[shape.props.color].semi,
 					fontWeight: shape.props.weight,
 					color: theme[shape.props.color].solid,
 				}}
 			>
-				{bounds.w.toFixed()}x{bounds.h.toFixed()}
+				<h2>Clicks: {count}</h2>
+				<button
+					onClick={() => setCount((count) => count + 1)}
+					// You need to stop the pointer down event on buttons
+					// that should prevent shape selection or click and drag
+					onPointerDown={(e) => e.stopPropagation()}
+				>
+					{bounds.w.toFixed()}x{bounds.h.toFixed()}
+				</button>
 			</HTMLContainer>
 		)
 	}

@@ -1821,6 +1821,37 @@ export const REMOVE_SYMBOL: unique symbol;
 // @public (undocumented)
 export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
 
+// @public (undocumented)
+export function resizeBox(shape: TLBaseBoxShape, info: {
+    newPoint: Vec2dModel;
+    handle: TLResizeHandle;
+    mode: TLResizeMode;
+    scaleX: number;
+    scaleY: number;
+    initialBounds: Box2d;
+    initialShape: TLBaseBoxShape;
+}, opts?: Partial<{
+    minWidth: number;
+    maxWidth: number;
+    minHeight: number;
+    maxHeight: number;
+}>): {
+    x: number;
+    y: number;
+    props: {
+        w: number;
+        h: number;
+    };
+};
+
+// @public (undocumented)
+export type ResizeBoxOptions = Partial<{
+    minWidth: number;
+    maxWidth: number;
+    minHeight: number;
+    maxHeight: number;
+}>;
+
 // @internal (undocumented)
 export const RICH_TYPES: Record<string, boolean>;
 
