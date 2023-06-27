@@ -1,4 +1,5 @@
 export {
+	type TLSerializedStore,
 	type TLStore,
 	type TLStoreProps,
 	type TLStoreSchema,

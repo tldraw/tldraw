@@ -214,12 +214,15 @@ export interface SerializedSchema {
 }
 
 // @public
+export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>;
+
+// @public
 export function squashRecordDiffs<T extends UnknownRecord>(diffs: RecordsDiff<T>[]): RecordsDiff<T>;
 
 // @public
 export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     constructor(config: {
-        initialData?: StoreSnapshot<R>;
+        initialData?: SerializedStore<R>;
         schema: StoreSchema<R, Props>;
         props: Props;
     });
@@ -241,20 +244,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
-    getSnapshot(scope?: 'all' | RecordScope): {
-        store: StoreSnapshot<R>;
-        schema: SerializedSchema;
-    };
+    getSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has: <K extends IdOf<R>>(id: K) => boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
     readonly id: string;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
     listen: (onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) => () => void;
-    loadSnapshot(snapshot: {
-        store: StoreSnapshot<R>;
-        schema: SerializedSchema;
-    }): void;
+    loadSnapshot(snapshot: StoreSnapshot<R>): void;
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;
     mergeRemoteChanges: (fn: () => void) => void;
@@ -273,7 +270,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     readonly scopedTypes: {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
     };
-    serialize: (scope?: 'all' | RecordScope) => StoreSnapshot<R>;
+    serialize: (scope?: 'all' | RecordScope) => SerializedStore<R>;
     unsafeGetWithoutCapture: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
     update: <K extends IdOf<R>>(id: K, updater: (record: RecFromId<K>) => RecFromId<K>) => void;
     // (undocumented)
@@ -307,7 +304,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // (undocumented)
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
-    migrateStoreSnapshot(storeSnapshot: StoreSnapshot<R>, persistedSchema: SerializedSchema): MigrationResult<StoreSnapshot<R>>;
+    migrateStoreSnapshot(storeSnapshot: SerializedStore<R>, persistedSchema: SerializedSchema): MigrationResult<SerializedStore<R>>;
     // (undocumented)
     serialize(): SerializedSchema;
     // (undocumented)
@@ -333,8 +330,11 @@ export type StoreSchemaOptions<R extends UnknownRecord, P> = {
     createIntegrityChecker?: (store: Store<R, P>) => void;
 };
 
-// @public
-export type StoreSnapshot<R extends UnknownRecord> = Record<IdOf<R>, R>;
+// @public (undocumented)
+export type StoreSnapshot<R extends UnknownRecord> = {
+    store: SerializedStore<R>;
+    schema: SerializedSchema;
+};
 
 // @public (undocumented)
 export type StoreValidator<R extends UnknownRecord> = {

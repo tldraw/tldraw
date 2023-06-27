@@ -1,9 +1,9 @@
-import { StoreSnapshot } from '@tldraw/store'
+import { SerializedStore } from '@tldraw/store'
 import { Vec2dModel } from './misc/geometry-types'
 import { TLRecord } from './records/TLRecord'
 
 /** @internal */
-export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>) {
+export function CLIENT_FIXUP_SCRIPT(persistedStore: SerializedStore<TLRecord>) {
 	const records = Object.values(persistedStore)
 
 	for (let i = 0; i < records.length; i++) {

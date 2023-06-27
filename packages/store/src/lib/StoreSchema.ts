@@ -1,7 +1,7 @@
 import { getOwnProperty, objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
-import { Store, StoreSnapshot } from './Store'
+import { SerializedStore, Store } from './Store'
 import {
 	MigrationFailureReason,
 	MigrationResult,
@@ -189,9 +189,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	}
 
 	migrateStoreSnapshot(
-		storeSnapshot: StoreSnapshot<R>,
+		storeSnapshot: SerializedStore<R>,
 		persistedSchema: SerializedSchema
-	): MigrationResult<StoreSnapshot<R>> {
+	): MigrationResult<SerializedStore<R>> {
 		const migrations = this.options.snapshotMigrations
 		if (!migrations) {
 			return { type: 'success', value: storeSnapshot }
@@ -205,7 +205,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 
 		if (ourStoreVersion > persistedStoreVersion) {
-			const result = migrate<StoreSnapshot<R>>({
+			const result = migrate<SerializedStore<R>>({
 				value: storeSnapshot,
 				migrations,
 				fromVersion: persistedStoreVersion,

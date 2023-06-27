@@ -1,4 +1,4 @@
-import { RecordsDiff, SerializedSchema, StoreSnapshot } from '@tldraw/store'
+import { RecordsDiff, SerializedSchema, SerializedStore } from '@tldraw/store'
 import { TLRecord, TLStoreSchema } from '@tldraw/tlschema'
 import { IDBPDatabase, openDB } from 'idb'
 import { TLSessionStateSnapshot } from '../../config/TLSessionStateSnapshot'
@@ -156,7 +156,7 @@ export async function storeSnapshotInIndexedDb({
 }: {
 	persistenceKey: string
 	schema: TLStoreSchema
-	snapshot: StoreSnapshot<any>
+	snapshot: SerializedStore<any>
 	sessionId?: string | null
 	sessionStateSnapshot?: TLSessionStateSnapshot | null
 	didCancel?: () => boolean
