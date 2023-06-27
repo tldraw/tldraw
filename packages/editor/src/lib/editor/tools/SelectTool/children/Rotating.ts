@@ -132,7 +132,8 @@ export class Rotating extends StateNode {
 		const { initialCursorAngle, initialSelectionRotation } = this.snapshot
 
 		// The delta is the difference between the current angle and the initial angle
-		const preSnapRotationDelta = selectionPageCenter!.angle(currentPagePoint) - initialCursorAngle
+		if (!selectionPageCenter) return initialSelectionRotation
+		const preSnapRotationDelta = selectionPageCenter.angle(currentPagePoint) - initialCursorAngle
 		let newSelectionRotation = initialSelectionRotation + preSnapRotationDelta
 
 		if (shiftKey) {
