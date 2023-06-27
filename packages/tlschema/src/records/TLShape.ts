@@ -209,5 +209,6 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 		rotation: 0,
 		isLocked: false,
 		opacity: 1,
+		meta: {},
 	}))
 }

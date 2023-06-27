@@ -158,4 +158,5 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	brush: null,
 	scribble: null,
 	chatMessage: '',
+	meta: {},
 }))

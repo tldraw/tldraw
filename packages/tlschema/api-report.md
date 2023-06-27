@@ -535,7 +535,7 @@ export const imageShapeProps: {
 export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageId">;
 
 // @public (undocumented)
-export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "meta" | "userId" | "userName">;
+export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "userId" | "userName">;
 
 // @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
