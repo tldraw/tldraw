@@ -32,7 +32,16 @@ export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationS
 	}
 }
 
-/** @internal */
+/**
+ * Info about a rotation that can be applied to the editor's selected shapes.
+ *
+ * @param selectionPageCenter - The center of the selection in page coordinates
+ * @param initialCursorAngle - The angle of the cursor relative to the selection center when the rotation started
+ * @param initialSelectionRotation - The rotation of the selection when the rotation started
+ * @param shapeSnapshots - Info about each shape that is being rotated
+ *
+ * @public
+ **/
 export type TLRotationSnapshot = {
 	selectionPageCenter: Vec2d
 	initialCursorAngle: number
