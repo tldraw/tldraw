@@ -34,10 +34,10 @@ import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
+import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
 import { Signal } from '@tldraw/state';
 import { StoreSchema } from '@tldraw/store';
-import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';
 import { StyleProp } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
@@ -2228,7 +2228,7 @@ export type TldrawEditorProps = {
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;
-    initialData?: StoreSnapshot<TLRecord>;
+    initialData?: SerializedStore<TLRecord>;
     persistenceKey?: string;
     sessionId?: string;
     defaultName?: string;
@@ -2661,7 +2661,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
 export type TLStoreOptions = {
-    initialData?: StoreSnapshot<TLRecord>;
+    initialData?: SerializedStore<TLRecord>;
     defaultName?: string;
 } & ({
     schema: StoreSchema<TLRecord, TLStoreProps>;

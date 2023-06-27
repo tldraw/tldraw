@@ -9,10 +9,10 @@ import { Expand } from '@tldraw/utils';
 import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
+import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
-import { StoreSnapshot } from '@tldraw/store';
 import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
@@ -110,7 +110,7 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @internal (undocumented)
-export function CLIENT_FIXUP_SCRIPT(persistedStore: StoreSnapshot<TLRecord>): StoreSnapshot<TLRecord>;
+export function CLIENT_FIXUP_SCRIPT(persistedStore: SerializedStore<TLRecord>): SerializedStore<TLRecord>;
 
 // @public
 export function createAssetValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
@@ -1162,7 +1162,7 @@ export type TLStoreProps = {
 export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
-export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
+export type TLStoreSnapshot = SerializedStore<TLRecord>;
 
 // @public (undocumented)
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;

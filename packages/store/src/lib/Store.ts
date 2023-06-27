@@ -73,7 +73,13 @@ export type ComputedCache<Data, R extends UnknownRecord> = {
  *
  * @public
  */
-export type StoreSnapshot<R extends UnknownRecord> = Record<IdOf<R>, R>
+export type SerializedStore<R extends UnknownRecord> = Record<IdOf<R>, R>
+
+/** @public */
+export type StoreSnapshot<R extends UnknownRecord> = {
+	store: SerializedStore<R>
+	schema: SerializedSchema
+}
 
 /** @public */
 export type StoreValidator<R extends UnknownRecord> = {
@@ -163,7 +169,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	constructor(config: {
 		/** The store's initial data. */
-		initialData?: StoreSnapshot<R>
+		initialData?: SerializedStore<R>
 		/**
 		 * A map of validators for each record type. A record's validator will be called when the record
 		 * is created or updated. It should throw an error if the record is invalid.
@@ -503,8 +509,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param scope - The scope of records to serialize. Defaults to 'document'.
 	 * @returns The record store snapshot as a JSON payload.
 	 */
-	serialize = (scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> => {
-		const result = {} as StoreSnapshot<R>
+	serialize = (scope: RecordScope | 'all' = 'document'): SerializedStore<R> => {
+		const result = {} as SerializedStore<R>
 		for (const [id, atom] of objectMapEntries(this.atoms.value)) {
 			const record = atom.value
 			if (scope === 'all' || this.scopedTypes[scope].has(record.typeName)) {
@@ -525,7 +531,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param scope - The scope of records to serialize. Defaults to 'document'.
 	 * @public
 	 */
-	getSnapshot(scope: RecordScope | 'all' = 'document') {
+	getSnapshot(scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> {
 		return {
 			store: this.serialize(scope),
 			schema: this.schema.serialize(),
@@ -544,7 +550,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @public
 	 */
-	loadSnapshot(snapshot: { store: StoreSnapshot<R>; schema: SerializedSchema }): void {
+	loadSnapshot(snapshot: { store: SerializedStore<R>; schema: SerializedSchema }): void {
 		const migrationResult = this.schema.migrateStoreSnapshot(snapshot.store, snapshot.schema)
 
 		if (migrationResult.type === 'error') {

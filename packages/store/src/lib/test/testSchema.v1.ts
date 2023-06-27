@@ -1,7 +1,7 @@
 import { assert } from '@tldraw/utils'
 import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
-import { StoreSnapshot } from '../Store'
+import { SerializedStore } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 import { defineMigrations } from '../migrate'
 
@@ -203,10 +203,10 @@ const snapshotMigrations = defineMigrations({
 	currentVersion: StoreVersions.RemoveOrg,
 	migrators: {
 		[StoreVersions.RemoveOrg]: {
-			up: (store: StoreSnapshot<any>) => {
+			up: (store: SerializedStore<any>) => {
 				return Object.fromEntries(Object.entries(store).filter(([_, r]) => r.typeName !== 'org'))
 			},
-			down: (store: StoreSnapshot<any>) => {
+			down: (store: SerializedStore<any>) => {
 				// noop
 				return store
 			},

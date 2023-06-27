@@ -1,11 +1,11 @@
-import { HistoryEntry, Store, StoreSchema, StoreSnapshot } from '@tldraw/store'
+import { HistoryEntry, SerializedStore, Store, StoreSchema } from '@tldraw/store'
 import { TLRecord, TLStore, TLStoreProps, createTLSchema } from '@tldraw/tlschema'
 import { checkShapesAndAddCore } from './defaultShapes'
 import { AnyTLShapeInfo, TLShapeInfo } from './defineShape'
 
 /** @public */
 export type TLStoreOptions = {
-	initialData?: StoreSnapshot<TLRecord>
+	initialData?: SerializedStore<TLRecord>
 	defaultName?: string
 } & ({ shapes: readonly AnyTLShapeInfo[] } | { schema: StoreSchema<TLRecord, TLStoreProps> })
 

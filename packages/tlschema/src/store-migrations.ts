@@ -1,4 +1,4 @@
-import { defineMigrations, StoreSnapshot } from '@tldraw/store'
+import { defineMigrations, SerializedStore } from '@tldraw/store'
 import { TLRecord } from './records/TLRecord'
 
 const Versions = {
@@ -15,47 +15,47 @@ export const storeMigrations = defineMigrations({
 	currentVersion: Versions.RemoveUserDocument,
 	migrators: {
 		[Versions.RemoveCodeAndIconShapeTypes]: {
-			up: (store: StoreSnapshot<TLRecord>) => {
+			up: (store: SerializedStore<TLRecord>) => {
 				return Object.fromEntries(
 					Object.entries(store).filter(
 						([_, v]) => v.typeName !== 'shape' || (v.type !== 'icon' && v.type !== 'code')
 					)
 				)
 			},
-			down: (store: StoreSnapshot<TLRecord>) => {
+			down: (store: SerializedStore<TLRecord>) => {
 				// noop
 				return store
 			},
 		},
 		[Versions.AddInstancePresenceType]: {
-			up: (store: StoreSnapshot<TLRecord>) => {
+			up: (store: SerializedStore<TLRecord>) => {
 				return store
 			},
-			down: (store: StoreSnapshot<TLRecord>) => {
+			down: (store: SerializedStore<TLRecord>) => {
 				return Object.fromEntries(
 					Object.entries(store).filter(([_, v]) => v.typeName !== 'instance_presence')
 				)
 			},
 		},
 		[Versions.RemoveTLUserAndPresenceAndAddPointer]: {
-			up: (store: StoreSnapshot<TLRecord>) => {
+			up: (store: SerializedStore<TLRecord>) => {
 				return Object.fromEntries(
 					Object.entries(store).filter(([_, v]) => !v.typeName.match(/^(user|user_presence)$/))
 				)
 			},
-			down: (store: StoreSnapshot<TLRecord>) => {
+			down: (store: SerializedStore<TLRecord>) => {
 				return Object.fromEntries(
 					Object.entries(store).filter(([_, v]) => v.typeName !== 'pointer')
 				)
 			},
 		},
 		[Versions.RemoveUserDocument]: {
-			up: (store: StoreSnapshot<TLRecord>) => {
+			up: (store: SerializedStore<TLRecord>) => {
 				return Object.fromEntries(
 					Object.entries(store).filter(([_, v]) => !v.typeName.match('user_document'))
 				)
 			},
-			down: (store: StoreSnapshot<TLRecord>) => {
+			down: (store: SerializedStore<TLRecord>) => {
 				return store
 			},
 		},
