@@ -22,15 +22,15 @@ keywords:
 
 ## Introduction
 
-The `Editor` class is the main way of controlling tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
+The [`Editor`](/gen/editor/Editor) class is the main way of controlling tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
 
-By design, the `Editor`'s surface area is [very large](/gen/editor/Editor). Almost everything is available through it. Need to create some shapes? Use `editor.createShapes()`. Need to delete them? Use `editor.deleteShapes()`. Need a sorted array of every shape on the current page? Use `editor.sortedShapesArray`.
+By design, the [`Editor`](/gen/editor/Editor)'s surface area is very large. Almost everything is available through it. Need to create some shapes? Use [`editor.createShapes()`](/gen/editor/Editor#createShapes). Need to delete them? Use [`editor.deleteShapes()`](/gen/editor/Editor#deleteShapes). Need a sorted array of every shape on the current page? Use [`editor.sortedShapesArray`](/gen/editor/Editor#sortedShapesArray).
 
-This page gives a broad idea of how the `Editor` class is organized and some of the architectural concepts involved. The full reference is available in the [Editor API](/gen/editor/Editor).
+This page gives a broad idea of how the [`Editor`](/gen/editor/Editor) class is organized and some of the architectural concepts involved. The full reference is available in the [Editor API](/gen/editor/Editor).
 
 ## State
 
-The editor holds the raw state of the document in its `store` property. Data is kept here as a table of JSON serializable records. 
+The editor holds the raw state of the document in its [`store`](/gen/editor/Editor#store) property. Data is kept here as a table of JSON serializable records. 
 
 For example, the store contains a `page` record for each page in the current document, as well as an `instancePageState` record for each page that stores information about the editor's state for that page, and a single `instanceState` for each editor instance which stores the id of the user's current page.
 
@@ -52,7 +52,7 @@ export const SelectedIdsCount = track(() => {
 
 ### Changing the state
 
-The `Editor` class has many methods for updating its state. For example, you can change the current page's selection using `editor.setSelectedIds`. You can also use other convenience methods, such as `editor.select`, `editor.deselect`, `editor.selectAll`, or `editor.selectNone`.
+The [`Editor`](/gen/editor/Editor) class has many methods for updating its state. For example, you can change the current page's selection using `editor.setSelectedIds`. You can also use other convenience methods, such as `editor.select`, `editor.deselect`, `editor.selectAll`, or `editor.selectNone`.
 
 ```ts
 editor.selectNone()
@@ -126,13 +126,13 @@ editor.bailToMark("first") // will to A
 
 ## Events and Tools
 
-The `Editor` class receives events from the user interface via its `dispatch` method. When the `Editor` receives an event, it is first handled internally to update `editor.inputs` and other state before, and then sent into to the editor's state chart.
+The [`Editor`](/gen/editor/Editor) class receives events from the user interface via its `dispatch` method. When the [`Editor`](/gen/editor/Editor) receives an event, it is first handled internally to update `editor.inputs` and other state before, and then sent into to the editor's state chart.
 
 You shouldn't need to use the `dispatch` method directly, however you may write code in the state chart that responds to these events.
 
 ### State Chart
 
-The `Editor` class has a "state chart", or a tree of `StateNode` instances, that contain the logic for the editor's tools such as the select tool or the draw tool. User interactions such as moving the cursor will produce different changes to the state depending on which nodes are active.
+The [`Editor`](/gen/editor/Editor) class has a "state chart", or a tree of `StateNode` instances, that contain the logic for the editor's tools such as the select tool or the draw tool. User interactions such as moving the cursor will produce different changes to the state depending on which nodes are active.
 
 Each node be active or inactive. Each state node may also have zero or more children. When a state is active, and if the state has children, one (and only one) of its children must also be active. When a state node receives an event from its parent, it has the opportunity to handle the event before passing the event to its active child. The node can handle an event in any way: it can ignore the event, update records in the store, or run a _transition_ that changes which states nodes are active.
 
