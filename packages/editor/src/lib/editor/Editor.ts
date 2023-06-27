@@ -5624,11 +5624,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Rotate shapes by a delta in radians.
+	 * Note: Currently, this assumes that the shapes are your currently selected shapes.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.rotateShapesBy(['box1', 'box2'], Math.PI)
-	 * editor.rotateShapesBy(['box1', 'box2'], Math.PI / 2)
+	 * editor.rotateShapesBy(editor.selectedIds, Math.PI)
+	 * editor.rotateShapesBy(editor.selectedIds, Math.PI / 2)
 	 * ```
 	 *
 	 * @param ids - The ids of the shapes to move.
@@ -5638,6 +5639,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 
 		const snapshot = getRotationSnapshot({ editor: this })
+		if (!snapshot) return this
 		applyRotationToSnapshotShapes({ delta, snapshot, editor: this, stage: 'one-off' })
 
 		return this

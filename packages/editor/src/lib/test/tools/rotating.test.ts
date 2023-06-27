@@ -273,6 +273,34 @@ describe('When rotating...', () => {
 
 		expect(centerBefore.toFixed().toJson()).toMatchObject(centerAfter.toFixed().toJson())
 	})
+
+	it("doesn't crash when rotating a deleted shape", () => {
+		editor.select(ids.box1)
+
+		editor.deleteShapes([ids.box1])
+
+		editor
+			.pointerDown(0, 0, {
+				target: 'selection',
+				handle: 'top_left_rotate',
+			})
+			.pointerMove(50, 100)
+			.pointerUp()
+
+		expect(editor.getShapeById(ids.box1)).toBeUndefined()
+	})
+
+	// todo
+	it.skip("rotates shapes that aren't the currently selected ones", () => {
+		editor.select(ids.box1)
+
+		editor.rotateShapesBy([ids.box2], Math.PI * 0.5)
+
+		editor.expectShapeToMatch(
+			{ id: ids.box1, rotation: 0 },
+			{ id: ids.box2, rotation: Math.PI * 0.5 }
+		)
+	})
 })
 
 describe('Rotation math', () => {
