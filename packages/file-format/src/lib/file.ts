@@ -122,7 +122,7 @@ export function parseTldrawJsonFile({
 	let migrationResult: MigrationResult<SerializedStore<TLRecord>>
 	try {
 		const storeSnapshot = Object.fromEntries(data.records.map((r) => [r.id, r as TLRecord]))
-		migrationResult = schema.migrateStoreSnapshot(storeSnapshot, data.schema)
+		migrationResult = schema.migrateStoreSnapshot({ store: storeSnapshot, schema: data.schema })
 	} catch (e) {
 		// junk data in the migration
 		return Result.err({ type: 'invalidRecords', cause: e })

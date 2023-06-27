@@ -551,7 +551,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	loadSnapshot(snapshot: StoreSnapshot<R>): void {
-		const migrationResult = this.schema.migrateStoreSnapshot(snapshot.store, snapshot.schema)
+		const migrationResult = this.schema.migrateStoreSnapshot(snapshot)
 
 		if (migrationResult.type === 'error') {
 			throw new Error(`Failed to migrate snapshot: ${migrationResult.reason}`)

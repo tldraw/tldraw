@@ -181,10 +181,10 @@ export class TLLocalSyncClient {
 				const documentSnapshot = Object.fromEntries(data.records.map((r) => [r.id, r]))
 				const sessionStateSnapshot =
 					data.sessionStateSnapshot ?? extractSessionStateFromLegacySnapshot(documentSnapshot)
-				const migrationResult = this.store.schema.migrateStoreSnapshot(
-					documentSnapshot,
-					data.schema ?? this.store.schema.serializeEarliestVersion()
-				)
+				const migrationResult = this.store.schema.migrateStoreSnapshot({
+					store: documentSnapshot,
+					schema: data.schema ?? this.store.schema.serializeEarliestVersion(),
+				})
 
 				if (migrationResult.type === 'error') {
 					console.error('failed to migrate store', migrationResult)
