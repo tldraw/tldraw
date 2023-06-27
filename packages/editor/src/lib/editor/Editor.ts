@@ -1335,9 +1335,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _isPenMode = atom<boolean>('isPenMode', false as any)
 
-	/** @internal */
-	private _touchEventsRemainingBeforeExitingPenMode = 0
-
 	/**
 	 * Whether the editor is in pen mode or not.
 	 *
@@ -1353,7 +1350,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	setPenMode(isPenMode: boolean): this {
-		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
 		if (isPenMode !== this.isPenMode) {
 			this._isPenMode.set(isPenMode)
 		}
@@ -9169,20 +9165,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing = true
 							inputs.isDragging = false
 
-							if (this.isPenMode) {
-								if (!isPen) {
-									// decrement the remaining taps before exiting pen mode
-									this._touchEventsRemainingBeforeExitingPenMode--
-									if (this._touchEventsRemainingBeforeExitingPenMode === 0) {
-										this.setPenMode(false)
-									} else {
-										return
-									}
-								} else {
-									// reset the remaining taps before exiting pen mode
-									this._touchEventsRemainingBeforeExitingPenMode = 3
-								}
-							} else {
+							if (!this.isPenMode) {
 								if (isPen) {
 									this.setPenMode(true)
 								}
