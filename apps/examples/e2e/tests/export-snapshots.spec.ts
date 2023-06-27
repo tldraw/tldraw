@@ -179,7 +179,7 @@ test.describe('Export snapshots', () => {
 					.selectAll()
 					.deleteShapes()
 					.createShapes(shapes)
-			}, shapes)
+			}, shapes as any)
 
 			const downloadEvent = page.waitForEvent('download')
 			await page.click('[data-testid="main.menu"]')

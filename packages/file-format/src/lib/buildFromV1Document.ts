@@ -70,6 +70,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							mimeType: null,
 							src: v1Asset.src,
 						},
+						meta: {},
 					}
 					editor.createAssets([placeholderAsset])
 					tryMigrateAsset(editor, placeholderAsset)
@@ -92,6 +93,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 									mimeType: null,
 									src: v1Asset.src,
 								},
+								meta: {},
 							},
 						])
 					}
