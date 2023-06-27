@@ -8,6 +8,7 @@ import { TLAssetId } from '../records/TLAsset'
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
 	type: Type
 	props: Props
+	meta: JsonObject
 }
 
 /**
@@ -31,11 +32,13 @@ export function createAssetValidator<Type extends string, Props extends JsonObje
 	typeName: 'asset'
 	type: Type
 	props: Props
+	meta: JsonObject
 }> {
 	return T.object({
 		id: assetIdValidator,
 		typeName: T.literal('asset'),
 		type: T.literal(type),
 		props,
+		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 }

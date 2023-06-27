@@ -1,4 +1,5 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { Box2dModel, box2dModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
@@ -28,6 +29,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 		rotation: number
 	}
 	chatMessage: string
+	meta: JsonObject
 }
 
 /** @public */
@@ -61,21 +63,22 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		brush: box2dModelValidator.nullable(),
 		scribble: scribbleValidator.nullable(),
 		chatMessage: T.string,
+		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 )
 
-const Versions = {
+/** @internal */
+export const instancePresenceVersions = {
 	AddScribbleDelay: 1,
 	RemoveInstanceId: 2,
 	AddChatMessage: 3,
+	AddMeta: 4,
 } as const
 
-export { Versions as instancePresenceVersions }
-
 export const instancePresenceMigrations = defineMigrations({
-	currentVersion: Versions.AddChatMessage,
+	currentVersion: instancePresenceVersions.AddMeta,
 	migrators: {
-		[Versions.AddScribbleDelay]: {
+		[instancePresenceVersions.AddScribbleDelay]: {
 			up: (instance) => {
 				if (instance.scribble !== null) {
 					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
@@ -90,7 +93,7 @@ export const instancePresenceMigrations = defineMigrations({
 				return { ...instance }
 			},
 		},
-		[Versions.RemoveInstanceId]: {
+		[instancePresenceVersions.RemoveInstanceId]: {
 			up: ({ instanceId: _, ...instance }) => {
 				return instance
 			},
@@ -98,12 +101,25 @@ export const instancePresenceMigrations = defineMigrations({
 				return { ...instance, instanceId: TLINSTANCE_ID }
 			},
 		},
-		[Versions.AddChatMessage]: {
+		[instancePresenceVersions.AddChatMessage]: {
 			up: (instance) => {
 				return { ...instance, chatMessage: '' }
 			},
 			down: ({ chatMessage: _, ...instance }) => {
 				return instance
+			},
+		},
+		[instancePresenceVersions.AddMeta]: {
+			up: (record) => {
+				return {
+					...record,
+					meta: {},
+				}
+			},
+			down: ({ meta: _, ...record }) => {
+				return {
+					...record,
+				}
 			},
 		},
 	},

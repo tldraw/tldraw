@@ -24,12 +24,33 @@ export const assetValidator: T.Validator<TLAsset> = T.model(
 )
 
 /** @internal */
+export const assetVersions = {
+	AddMeta: 1,
+}
+
+/** @internal */
 export const assetMigrations = defineMigrations({
 	subTypeKey: 'type',
 	subTypeMigrations: {
 		image: imageAssetMigrations,
 		video: videoAssetMigrations,
 		bookmark: bookmarkAssetMigrations,
+	},
+	currentVersion: assetVersions.AddMeta,
+	migrators: {
+		[assetVersions.AddMeta]: {
+			up: (record) => {
+				return {
+					...record,
+					meta: {},
+				}
+			},
+			down: ({ meta: _, ...record }) => {
+				return {
+					...record,
+				}
+			},
+		},
 	},
 })
 
@@ -39,7 +60,8 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
 			id: TLAssetId
 			type: T['type']
 			props?: Partial<T['props']>
-	  } & Partial<Omit<T, 'type' | 'id' | 'props'>>
+			meta?: Partial<T['meta']>
+	  } & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
 	: never
 
 /** @public */
@@ -47,7 +69,9 @@ export const AssetRecordType = createRecordType<TLAsset>('asset', {
 	migrations: assetMigrations,
 	validator: assetValidator,
 	scope: 'document',
-})
+}).withDefaultProperties(() => ({
+	meta: {},
+}))
 
 /** @public */
 export type TLAssetId = RecordId<TLBaseAsset<any, any>>

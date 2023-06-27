@@ -82,7 +82,8 @@ export type TLShapeProp = keyof TLShapeProps
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
 
-export const Versions = {
+/** @internal */
+export const rootShapeVersions = {
 	AddIsLocked: 1,
 	HoistOpacity: 2,
 	AddMeta: 3,
@@ -90,9 +91,9 @@ export const Versions = {
 
 /** @internal */
 export const rootShapeMigrations = defineMigrations({
-	currentVersion: Versions.AddMeta,
+	currentVersion: rootShapeVersions.AddMeta,
 	migrators: {
-		[Versions.AddIsLocked]: {
+		[rootShapeVersions.AddIsLocked]: {
 			up: (record) => {
 				return {
 					...record,
@@ -106,7 +107,7 @@ export const rootShapeMigrations = defineMigrations({
 				}
 			},
 		},
-		[Versions.HoistOpacity]: {
+		[rootShapeVersions.HoistOpacity]: {
 			up: ({ props: { opacity, ...props }, ...record }) => {
 				return {
 					...record,
@@ -133,7 +134,7 @@ export const rootShapeMigrations = defineMigrations({
 				}
 			},
 		},
-		[Versions.AddMeta]: {
+		[rootShapeVersions.AddMeta]: {
 			up: (record) => {
 				return {
 					...record,

@@ -3976,6 +3976,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					bottomIndex && topIndex !== bottomIndex
 						? getIndexBetween(topIndex, bottomIndex)
 						: getIndexAbove(topIndex),
+				meta: {},
 			})
 
 			const newCamera = CameraRecordType.create({
@@ -8840,6 +8841,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
 						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
 						: Date.now(),
+				meta: {},
 			},
 		])
 	}

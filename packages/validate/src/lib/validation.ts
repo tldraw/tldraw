@@ -499,13 +499,14 @@ export const jsonValue = new Validator<JsonValue>((value): JsonValue => {
 
 	throw new ValidationError(`Expected json serializable value, got ${typeof value}`)
 })
+
 /**
  * Validate an object has a particular shape.
  *
  * @public
  */
-export function jsonDict(): DictValidator<string, any> {
-	return dict(string, any)
+export function jsonDict(): DictValidator<string, JsonValue> {
+	return dict(string, jsonValue)
 }
 
 /**

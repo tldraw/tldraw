@@ -48,7 +48,7 @@ class DictValidator<Key extends string, Value> extends Validator<Record<Key, Val
 const integer: Validator<number>;
 
 // @public
-function jsonDict(): DictValidator<string, any>;
+function jsonDict(): DictValidator<string, JsonValue>;
 
 // @public
 const jsonValue: Validator<JsonValue>;

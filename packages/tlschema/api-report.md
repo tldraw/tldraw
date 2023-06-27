@@ -119,6 +119,7 @@ export function createAssetValidator<Type extends string, Props extends JsonObje
     typeName: 'asset';
     type: Type;
     props: Props;
+    meta: JsonObject;
 }>;
 
 // @public (undocumented)
@@ -534,7 +535,7 @@ export const imageShapeProps: {
 export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageId">;
 
 // @public (undocumented)
-export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "userId" | "userName">;
+export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "meta" | "userId" | "userName">;
 
 // @public (undocumented)
 export function isPageId(id: string): id is TLPageId;
@@ -780,7 +781,8 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
     id: TLAssetId;
     type: T['type'];
     props?: Partial<T['props']>;
-} & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
+    meta?: Partial<T['meta']>;
+} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public (undocumented)
 export type TLAssetShape = Extract<TLShape, {
@@ -791,6 +793,8 @@ export type TLAssetShape = Extract<TLShape, {
 
 // @public (undocumented)
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     props: Props;
     // (undocumented)
@@ -804,9 +808,7 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     // (undocumented)
     isLocked: boolean;
     // (undocumented)
-    meta: {
-        [key: string]: any;
-    };
+    meta: JsonObject;
     // (undocumented)
     opacity: TLOpacityType;
     // (undocumented)
@@ -836,6 +838,8 @@ export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>;
 
 // @public
 export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     x: number;
     // (undocumented)
@@ -909,6 +913,8 @@ export type TLDefaultVerticalAlignStyle = T.TypeOf<typeof DefaultVerticalAlignSt
 export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
     // (undocumented)
     gridSize: number;
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     name: string;
 }
@@ -1008,6 +1014,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     isToolLocked: boolean;
     // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
     opacityForNextShape: TLOpacityType;
     // (undocumented)
     screenBounds: Box2dModel;
@@ -1039,6 +1047,8 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
     hintingIds: TLShapeId[];
     // (undocumented)
     hoveredId: null | TLShapeId;
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     pageId: RecordId<TLPage>;
     // (undocumented)
@@ -1073,6 +1083,8 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     lastActivityTimestamp: number;
     // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
     screenBounds: Box2dModel;
     // (undocumented)
     scribble: null | TLScribble;
@@ -1100,6 +1112,8 @@ export type TLOpacityType = number;
 export interface TLPage extends BaseRecord<'page', TLPageId> {
     // (undocumented)
     index: string;
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     name: string;
 }
