@@ -12,13 +12,6 @@ jobs:
     runs-on: ubuntu-latest-16-cores-open
 
     steps:
-      - name: Generate a token
-        id: generate_token
-        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
-        with:
-          app_id: ${{ secrets.HUPPY_APP_ID }}
-          private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
-
       - name: tldraw-repo-sync token
         id: tldraw-repo-sync
         uses: getsentry/action-github-app-token@v2
@@ -51,6 +44,6 @@ jobs:
       - name: Publish
         run: yarn tsx ./scripts/publish-new.ts
         env:
-          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GH_TOKEN: ${{ secrets.STEVES_PUBLISH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUPPY_TOKEN: ${{ secrets.HUPPY_TOKEN }}
