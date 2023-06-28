@@ -11,7 +11,7 @@ import { OptionalErrorBoundary } from './ErrorBoundary'
 class ShapeWithPropsEquality {
 	constructor(public shape: TLShape | undefined) {}
 	equals(other: ShapeWithPropsEquality) {
-		return this.shape?.props === other?.shape?.props
+		return this.shape?.props === other?.shape?.props || this.shape?.meta === other?.shape?.meta
 	}
 }
 

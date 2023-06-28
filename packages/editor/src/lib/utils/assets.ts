@@ -170,6 +170,7 @@ export async function getMediaAssetFromFile(file: File): Promise<TLAsset> {
 					mimeType: file.type,
 					isAnimated: metadata.isAnimated,
 				},
+				meta: {},
 			}
 
 			resolve(asset)

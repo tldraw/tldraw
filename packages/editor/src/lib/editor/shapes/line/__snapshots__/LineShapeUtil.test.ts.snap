@@ -5,6 +5,7 @@ Object {
   "id": "shape:line1",
   "index": "a1",
   "isLocked": false,
+  "meta": Object {},
   "opacity": 1,
   "parentId": "page:id50",
   "props": Object {

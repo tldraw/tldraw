@@ -79,6 +79,20 @@ export function isNonNull<T>(value: T): value is typeof value extends null ? nev
 // @public
 export function isNonNullish<T>(value: T): value is typeof value extends undefined ? never : typeof value extends null ? never : T;
 
+// @public (undocumented)
+export type JsonArray = JsonValue[];
+
+// @public (undocumented)
+export type JsonObject = {
+    [key: string]: JsonValue | undefined;
+};
+
+// @public (undocumented)
+export type JsonPrimitive = boolean | null | number | string;
+
+// @public (undocumented)
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
 // @internal (undocumented)
 export function last<T>(arr: readonly T[]): T | undefined;
 

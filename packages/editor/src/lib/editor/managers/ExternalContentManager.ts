@@ -500,6 +500,7 @@ export class ExternalContentManager {
 						mimeType: file.type,
 						isAnimated: metadata.isAnimated,
 					},
+					meta: {},
 				}
 
 				resolve(asset)
@@ -546,6 +547,7 @@ export class ExternalContentManager {
 				image: meta.image,
 				title: meta.title,
 			},
+			meta: {},
 		}
 	}
 }

@@ -74,7 +74,7 @@ export const onValidationFailure: StoreSchemaOptions<
 }
 
 function getDefaultPages() {
-	return [PageRecordType.create({ name: 'Page 1', index: 'a1' })]
+	return [PageRecordType.create({ name: 'Page 1', index: 'a1', meta: {} })]
 }
 
 /** @internal */
