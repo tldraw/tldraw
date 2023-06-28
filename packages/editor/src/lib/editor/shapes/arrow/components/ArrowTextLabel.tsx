@@ -1,6 +1,7 @@
 import { VecLike } from '@tldraw/primitives'
 import { TLArrowShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
+import { useLabelEvents } from '../../../../hooks/useLabelEvents'
 import { stopEventPropagation } from '../../../../utils/dom'
 import { ARROW_LABEL_FONT_SIZES, TEXT_PROPS } from '../../shared/default-shape-constants'
 import { useEditableText } from '../../shared/useEditableText'
@@ -21,6 +22,8 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	const { rInput, isEditing, handleFocus, handleBlur, handleKeyDown, handleChange, isEmpty } =
 		useEditableText(id, 'arrow', text)
 
+	const events = useLabelEvents(id)
+
 	if (!isEditing && isEmpty) {
 		return null
 	}
@@ -40,7 +43,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 				color: labelColor,
 			}}
 		>
-			<div className="tl-arrow-label__inner">
+			<div className="tl-arrow-label__inner" {...events}>
 				<p style={{ width: width ? width : '9px' }}>
 					{text ? TextHelpers.normalizeTextForDom(text) : ' '}
 				</p>

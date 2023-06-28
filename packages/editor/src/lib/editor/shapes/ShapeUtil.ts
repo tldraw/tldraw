@@ -205,6 +205,20 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	getHandles?(shape: Shape): TLHandle[]
 
 	/**
+	 * Get the shape's label position.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * util.getLabelPosition(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getLabelPosition?(shape: Shape): Vec2d
+
+	/**
 	 * Get an array of outline segments for the shape. For most shapes,
 	 * this will be a single segment that includes the entire outline.
 	 * For shapes with handles, this might be segments of the outline

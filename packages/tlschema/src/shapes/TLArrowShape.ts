@@ -68,6 +68,7 @@ export const arrowShapeProps = {
 	end: ArrowShapeTerminal,
 	bend: T.number,
 	text: T.string,
+	labelPosition: T.number,
 }
 
 /** @public */
@@ -78,6 +79,7 @@ export type TLArrowShape = TLBaseShape<'arrow', TLArrowShapeProps>
 
 const Versions = {
 	AddLabelColor: 1,
+	AddLabelPosition: 3,
 } as const
 
 /** @internal */
@@ -96,6 +98,24 @@ export const arrowShapeMigrations = defineMigrations({
 			},
 			down: (record) => {
 				const { labelColor: _, ...props } = record.props
+				return {
+					...record,
+					props,
+				}
+			},
+		},
+		[Versions.AddLabelColor]: {
+			up: (record) => {
+				return {
+					...record,
+					props: {
+						...record.props,
+						labelPosition: 0.5,
+					},
+				}
+			},
+			down: (record) => {
+				const { labelPosition: _, ...props } = record.props
 				return {
 					...record,
 					props,

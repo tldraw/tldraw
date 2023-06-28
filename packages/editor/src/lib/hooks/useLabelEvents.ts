@@ -4,7 +4,7 @@ import { preventDefault } from '../utils/dom'
 import { getShapePointerEventHandler } from './shared'
 import { useEditor } from './useEditor'
 
-export function useShapeEvents(id: TLShapeId) {
+export function useLabelEvents(id: TLShapeId) {
 	const editor = useEditor()
 
 	return React.useMemo(() => {
@@ -18,7 +18,7 @@ export function useShapeEvents(id: TLShapeId) {
 			preventDefault(e)
 		}
 
-		const handlePointerMove = getShapePointerEventHandler(editor, id, 'shape', 'pointer_move')
+		const handlePointerMove = getShapePointerEventHandler(editor, id, 'label', 'pointer_move')
 
 		// Track the last screen point
 		let lastX: number, lastY: number
@@ -33,10 +33,10 @@ export function useShapeEvents(id: TLShapeId) {
 		}
 
 		return {
-			onPointerDown: getShapePointerEventHandler(editor, id, 'shape', 'pointer_down'),
-			onPointerUp: getShapePointerEventHandler(editor, id, 'shape', 'pointer_up'),
-			onPointerEnter: getShapePointerEventHandler(editor, id, 'shape', 'pointer_enter'),
-			onPointerLeave: getShapePointerEventHandler(editor, id, 'shape', 'pointer_leave'),
+			onPointerDown: getShapePointerEventHandler(editor, id, 'label', 'pointer_down'),
+			onPointerUp: getShapePointerEventHandler(editor, id, 'label', 'pointer_up'),
+			onPointerEnter: getShapePointerEventHandler(editor, id, 'label', 'pointer_enter'),
+			onPointerLeave: getShapePointerEventHandler(editor, id, 'label', 'pointer_leave'),
 			onPointerMove,
 			onTouchStart,
 			onTouchEnd,

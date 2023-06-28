@@ -1,20 +1,20 @@
 import {
 	Box2d,
+	Matrix2d,
+	Vec2d,
+	VecLike,
+	getPointOnArc,
 	getPointOnCircle,
 	linesIntersect,
 	longAngleDist,
-	Matrix2d,
 	pointInPolygon,
 	shortAngleDist,
 	toDomPrecision,
-	Vec2d,
-	VecLike,
 } from '@tldraw/primitives'
-import { computed, EMPTY_ARRAY } from '@tldraw/state'
+import { EMPTY_ARRAY, computed } from '@tldraw/state'
 import { ComputedCache } from '@tldraw/store'
 import {
 	DefaultFontFamilies,
-	getDefaultColorTheme,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
@@ -24,6 +24,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec2dModel,
+	getDefaultColorTheme,
 } from '@tldraw/tlschema'
 import { deepCopy, last, minBy } from '@tldraw/utils'
 import * as React from 'react'
@@ -37,6 +38,8 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 } from '../ShapeUtil'
+import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import {
 	ARROW_LABEL_FONT_SIZES,
@@ -50,8 +53,6 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
-import { SvgExportContext } from '../shared/SvgExportContext'
 import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
 import {
@@ -96,6 +97,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			arrowheadEnd: 'arrow',
 			text: '',
 			font: 'draw',
+			labelPosition: 0.5,
 		}
 	}
 
@@ -583,7 +585,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const info = this.getArrowInfo(shape)
 		const bounds = this.editor.getBounds(shape)
-		const labelSize = this.getLabelBounds(shape)
+		const labelBounds = this.getLabelBounds(shape)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const changeIndex = React.useMemo<number>(() => {
@@ -659,7 +661,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
 		)
 		const maskEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
-		const includeMask = maskStartArrowhead || maskEndArrowhead || labelSize
+		const includeMask = maskStartArrowhead || maskEndArrowhead || labelBounds
 
 		// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
 		// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
@@ -678,12 +680,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 									height={toDomPrecision(bounds.height + 200)}
 									fill="white"
 								/>
-								{labelSize && (
+								{labelBounds && (
 									<rect
-										x={toDomPrecision(labelSize.x)}
-										y={toDomPrecision(labelSize.y)}
-										width={toDomPrecision(labelSize.w)}
-										height={toDomPrecision(labelSize.h)}
+										x={toDomPrecision(labelBounds.x)}
+										y={toDomPrecision(labelBounds.y)}
+										width={toDomPrecision(labelBounds.w)}
+										height={toDomPrecision(labelBounds.h)}
 										fill="black"
 										rx={4}
 										ry={4}
@@ -749,8 +751,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					text={shape.props.text}
 					font={shape.props.font}
 					size={shape.props.size}
-					position={info.middle}
-					width={labelSize?.w ?? 0}
+					position={labelBounds?.center ?? info.middle}
+					width={labelBounds?.w ?? 0}
 					labelColor={shape.props.labelColor}
 				/>
 			</>
@@ -899,12 +901,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				height = squishedHeight
 			}
 
-			return new Box2d(
-				info.middle.x - (width + 8) / 2,
-				info.middle.y - (height + 8) / 2,
-				width + 8,
-				height + 8
-			)
+			const point = this.getLabelPosition(shape)
+
+			return new Box2d(point.x - (width + 8) / 2, point.y - (height + 8) / 2, width + 8, height + 8)
 		})
 	}
 
@@ -1106,6 +1105,35 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return [getFillDefForCanvas()]
+	}
+
+	getLabelPosition(shape: TLArrowShape): Vec2d {
+		const { labelPosition } = shape.props
+		const info = this.getArrowInfo(shape)
+
+		if (!info) {
+			throw Error()
+		}
+
+		if (!info.isValid) {
+			return Vec2d.From(info.start.point).clone().lrp(info.end.point, 0.5)
+		}
+
+		if (info.isStraight) {
+			return Vec2d.From(info.start.point).clone().lrp(info.end.point, labelPosition)
+		}
+
+		// todo: fixme
+
+		return getPointOnArc(
+			info.start.point,
+			info.end.point,
+			info.bodyArc.center,
+			info.bodyArc.radius,
+			info.bodyArc.sweepFlag,
+			info.bodyArc.largeArcFlag,
+			labelPosition
+		)
 	}
 }
 

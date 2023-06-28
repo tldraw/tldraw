@@ -63,6 +63,7 @@ export const arrowShapeProps: {
     }, never>;
     bend: T.Validator<number>;
     text: T.Validator<string>;
+    labelPosition: T.Validator<number>;
 };
 
 // @public

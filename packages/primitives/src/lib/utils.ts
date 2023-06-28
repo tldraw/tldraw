@@ -256,6 +256,38 @@ export function getArcLength(C: VecLike, r: number, A: VecLike, B: VecLike): num
 export function getPointOnCircle(cx: number, cy: number, r: number, a: number) {
 	return new Vec2d(cx + r * Math.cos(a), cy + r * Math.sin(a))
 }
+
+/**
+ * Get a point on an arc.
+ *
+ * @param start - The start point of the arc.
+ * @param end - The end point of the arc.
+ * @param center - The center point of the arc.
+ * @param radius - The radius of the arc.
+ * @param sweepFlag - The sweep flag of the arc.
+ * @param largeArcFlag - The large arc flag of the arc.
+ * @param t - The normalized point on the arc.
+ * @public
+ */
+export function getPointOnArc(
+	start: VecLike,
+	end: VecLike,
+	center: VecLike,
+	radius: number,
+	sweepFlag: number,
+	largeArcFlag: number,
+	t: number
+) {
+	const startAngle = Vec2d.Angle(center, start)
+	const endAngle = Vec2d.Angle(center, end)
+	const a = startAngle
+	const b = endAngle
+	const l = largeArcFlag ? longAngleDist(a, b) : shortAngleDist(a, b)
+	const r = Math.max(1, radius)
+	const angle = a + l * t
+	return getPointOnCircle(center.x, center.y, r, angle)
+}
+
 /** @public */
 export function getPolygonVertices(width: number, height: number, sides: number) {
 	const cx = width / 2

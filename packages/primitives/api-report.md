@@ -256,6 +256,9 @@ export function getMinX(pts: VecLike[]): number;
 export function getMinY(pts: VecLike[]): number;
 
 // @public
+export function getPointOnArc(start: VecLike, end: VecLike, center: VecLike, radius: number, sweepFlag: number, largeArcFlag: number, t: number): Vec2d;
+
+// @public
 export function getPointOnCircle(cx: number, cy: number, r: number, a: number): Vec2d;
 
 // @public (undocumented)
@@ -717,6 +720,8 @@ export class Vec2d {
     equalsXY(x: number, y: number): boolean;
     // (undocumented)
     static From({ x, y, z }: Vec2dModel): Vec2d;
+    // (undocumented)
+    static FromAngle(angle: number): Vec2d;
     // (undocumented)
     static FromArray(v: number[]): Vec2d;
     // (undocumented)

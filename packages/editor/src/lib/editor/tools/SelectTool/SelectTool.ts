@@ -2,9 +2,11 @@ import { StateNode } from '../StateNode'
 import { Brushing } from './children/Brushing'
 import { Crop } from './children/Crop/Crop'
 import { Cropping } from './children/Cropping'
+import { DraggingArrowLabel } from './children/DraggingArrowLabel'
 import { DraggingHandle } from './children/DraggingHandle'
 import { EditingShape } from './children/EditingShape'
 import { Idle } from './children/Idle'
+import { PointingArrowLabel } from './children/PointingArrowLabel'
 import { PointingCanvas } from './children/PointingCanvas'
 import { PointingCropHandle } from './children/PointingCropHandle'
 import { PointingHandle } from './children/PointingHandle'
@@ -38,6 +40,8 @@ export class SelectTool extends StateNode {
 		PointingRotateHandle,
 		PointingHandle,
 		DraggingHandle,
+		PointingArrowLabel,
+		DraggingArrowLabel,
 	]
 
 	onExit = () => {

@@ -1232,6 +1232,21 @@ describe('propsForNextShape -> stylesForNextShape', () => {
 	})
 })
 
+describe('Arrow shape label position', () => {
+	const { up, down } = arrowShapeMigrations.migrators[3]
+
+	test('up works as expected', () => {
+		expect(up({ props: {} })).toEqual({
+			props: { labelPosition: 0.5 },
+		})
+	})
+	test('down works as expected', () => {
+		expect(down({ props: { labelPosition: 0.5 } })).toEqual({
+			props: {},
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

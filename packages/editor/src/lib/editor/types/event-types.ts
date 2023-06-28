@@ -10,6 +10,7 @@ export type TLPointerEventTarget =
 	| { target: 'canvas'; shape?: undefined }
 	| { target: 'selection'; handle?: TLSelectionHandle; shape?: undefined }
 	| { target: 'shape'; shape: TLShape }
+	| { target: 'label'; shape: TLShape }
 	| { target: 'handle'; shape: TLShape; handle: TLHandle }
 
 /** @public */

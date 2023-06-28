@@ -493,6 +493,10 @@ export class Vec2d {
 		return { x, y, z }
 	}
 
+	static FromAngle(angle: number) {
+		return new Vec2d(Math.cos(angle), Math.sin(angle))
+	}
+
 	static Average(arr: VecLike[]) {
 		const len = arr.length
 		const avg = new Vec2d(0, 0)

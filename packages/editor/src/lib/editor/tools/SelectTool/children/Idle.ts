@@ -80,6 +80,11 @@ export class Idle extends StateNode {
 				this.parent.transition('pointing_canvas', info)
 				break
 			}
+			case 'label': {
+				if (this.editor.isShapeOrAncestorLocked(info.shape)) break
+				this.parent.transition('pointing_arrow_label', info)
+				break
+			}
 			case 'shape': {
 				if (this.editor.isShapeOrAncestorLocked(info.shape)) break
 				this.parent.transition('pointing_shape', info)

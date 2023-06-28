@@ -67,6 +67,7 @@ export {
 	getMidY,
 	getMinX,
 	getMinY,
+	getPointOnArc,
 	getPointOnCircle,
 	getPolygonVertices,
 	getStarBounds,

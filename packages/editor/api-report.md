@@ -134,6 +134,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getLabelBounds(shape: TLArrowShape): Box2d | null;
     // (undocumented)
+    getLabelPosition(shape: TLArrowShape): Vec2d;
+    // (undocumented)
     getOutline(shape: TLArrowShape): Vec2d[];
     // (undocumented)
     getOutlineWithoutLabel(shape: TLArrowShape): Vec2d[];
@@ -1899,6 +1901,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getCenter(shape: Shape): Vec2d;
     abstract getDefaultProps(): Shape['props'];
     getHandles?(shape: Shape): TLHandle[];
+    getLabelPosition?(shape: Shape): Vec2d;
     getOutline(shape: Shape): Vec2d[];
     getOutlineSegments(shape: Shape): Vec2d[][];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
@@ -2597,6 +2600,9 @@ export type TLPointerEventTarget = {
     target: 'handle';
     shape: TLShape;
     handle: TLHandle;
+} | {
+    target: 'label';
+    shape: TLShape;
 } | {
     target: 'selection';
     handle?: TLSelectionHandle;
