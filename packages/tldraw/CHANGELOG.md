@@ -1,3 +1,88 @@
+# v2.0.0-alpha.13 (Wed Jun 28 2023)
+
+### Release Notes
+
+#### `ShapeUtil` refactor, `Editor` cleanup ([#1611](https://github.com/tldraw/tldraw/pull/1611))
+
+- [editor] renames `defaultProps` to `getDefaultProps`
+- [editor] removes `outline`, `outlineSegments`, `handles`, `bounds`
+- [editor] renames `renderBackground` to `backgroundComponent`
+
+#### Revert "Update dependencies (#1613)" ([#1617](https://github.com/tldraw/tldraw/pull/1617))
+
+-
+
+#### tldraw.css ([#1607](https://github.com/tldraw/tldraw/pull/1607))
+
+- [tldraw] Removes `editor.css` and `ui.css` exports, replaces with `tldraw.css`
+
+#### mini `defineShape` API ([#1563](https://github.com/tldraw/tldraw/pull/1563))
+
+[dev-facing, notes to come]
+
+#### rename app to editor ([#1503](https://github.com/tldraw/tldraw/pull/1503))
+
+- Rename `App` to `Editor` and many other things that reference `app` to `editor`.
+
+#### [chore] refactor user preferences ([#1435](https://github.com/tldraw/tldraw/pull/1435))
+
+- Add a brief release note for your PR here.
+
+#### [refactor] restore createTLSchema ([#1444](https://github.com/tldraw/tldraw/pull/1444))
+
+- [editor] Simplifies custom shape definition
+- [tldraw] Updates props for <TldrawEditor> component to require a `TldrawEditorConfig`.
+
+#### avoid lazy race conditions ([#1364](https://github.com/tldraw/tldraw/pull/1364))
+
+[internal only]
+
+---
+
+#### 💥 Breaking Change
+
+- `ShapeUtil` refactor, `Editor` cleanup [#1611](https://github.com/tldraw/tldraw/pull/1611) ([@steveruizok](https://github.com/steveruizok))
+- tldraw.css [#1607](https://github.com/tldraw/tldraw/pull/1607) ([@steveruizok](https://github.com/steveruizok))
+- mini `defineShape` API [#1563](https://github.com/tldraw/tldraw/pull/1563) ([@SomeHats](https://github.com/SomeHats))
+- rename app to editor [#1503](https://github.com/tldraw/tldraw/pull/1503) ([@steveruizok](https://github.com/steveruizok))
+- [refactor] User-facing APIs [#1478](https://github.com/tldraw/tldraw/pull/1478) ([@steveruizok](https://github.com/steveruizok))
+- [chore] refactor user preferences [#1435](https://github.com/tldraw/tldraw/pull/1435) ([@ds300](https://github.com/ds300))
+- [refactor] restore createTLSchema [#1444](https://github.com/tldraw/tldraw/pull/1444) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- [fix] tldraw api report [#1615](https://github.com/tldraw/tldraw/pull/1615) ([@steveruizok](https://github.com/steveruizok))
+- New vite-based examples app [#1226](https://github.com/tldraw/tldraw/pull/1226) ([@SomeHats](https://github.com/SomeHats))
+- readmes [#1195](https://github.com/tldraw/tldraw/pull/1195) ([@steveruizok](https://github.com/steveruizok))
+- [chore] update lazyrepo [#1211](https://github.com/tldraw/tldraw/pull/1211) ([@ds300](https://github.com/ds300))
+- derived presence state [#1204](https://github.com/tldraw/tldraw/pull/1204) ([@ds300](https://github.com/ds300))
+- Fix to not ignore the `userId` option for `<Tldraw/>` component in `@tldraw/tldraw` [#1205](https://github.com/tldraw/tldraw/pull/1205) ([@orangemug](https://github.com/orangemug))
+- [lite] upgrade lazyrepo [#1198](https://github.com/tldraw/tldraw/pull/1198) ([@ds300](https://github.com/ds300))
+- transfer-out: transfer out [#1195](https://github.com/tldraw/tldraw/pull/1195) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `main`
+
+- update lazyrepo ([@ds300](https://github.com/ds300))
+
+#### 🏠 Internal
+
+- [chore] remove benchmark [#1489](https://github.com/tldraw/tldraw/pull/1489) ([@steveruizok](https://github.com/steveruizok))
+- avoid lazy race conditions [#1364](https://github.com/tldraw/tldraw/pull/1364) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🔩 Dependency Updates
+
+- Revert "Update dependencies (#1613)" [#1617](https://github.com/tldraw/tldraw/pull/1617) ([@SomeHats](https://github.com/SomeHats))
+- Update dependencies [#1613](https://github.com/tldraw/tldraw/pull/1613) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 4
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Orange Mug ([@orangemug](https://github.com/orangemug))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.12 (Mon Apr 03 2023)
 
 #### 🐛 Bug Fix
