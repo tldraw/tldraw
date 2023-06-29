@@ -63,9 +63,10 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		const {
 			id,
 			type,
-			props: { text },
+			props: { text, color },
 		} = shape
 
+		const theme = getDefaultColorTheme(this.editor)
 		const { width, height } = this.getMinDimensions(shape)
 
 		const {
@@ -95,6 +96,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 						transformOrigin: 'top left',
 						width: Math.max(1, width),
 						height: Math.max(FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight, height),
+						color: theme[color].solid,
 					}}
 				>
 					<div className="tl-text tl-text-content" dir="ltr">

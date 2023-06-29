@@ -22,7 +22,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          token: ${{ github.token }}
+          token: ${{ secrets.STEVES_PUBLISH_TOKEN }}
 
       - name: Prepare repository
         # Fetch full git history and tags for auto
@@ -44,6 +44,6 @@ jobs:
       - name: Publish
         run: yarn tsx ./scripts/publish-new.ts
         env:
-          GH_TOKEN: ${{ github.token }}
+          GH_TOKEN: ${{ secrets.STEVES_PUBLISH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUPPY_TOKEN: ${{ secrets.HUPPY_TOKEN }}

@@ -13,7 +13,7 @@ import {
 	MigrationResult,
 	RecordId,
 	SerializedSchema,
-	StoreSnapshot,
+	SerializedStore,
 	UnknownRecord,
 } from '@tldraw/store'
 import { TLUiToastsContextType, TLUiTranslationKey } from '@tldraw/ui'
@@ -119,10 +119,10 @@ export function parseTldrawJsonFile({
 	// even if the file version is up to date, it might contain old-format
 	// records. lets create a store with the records and migrate it to the
 	// latest version
-	let migrationResult: MigrationResult<StoreSnapshot<TLRecord>>
+	let migrationResult: MigrationResult<SerializedStore<TLRecord>>
 	try {
 		const storeSnapshot = Object.fromEntries(data.records.map((r) => [r.id, r as TLRecord]))
-		migrationResult = schema.migrateStoreSnapshot(storeSnapshot, data.schema)
+		migrationResult = schema.migrateStoreSnapshot({ store: storeSnapshot, schema: data.schema })
 	} catch (e) {
 		// junk data in the migration
 		return Result.err({ type: 'invalidRecords', cause: e })

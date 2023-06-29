@@ -18,6 +18,7 @@ import { StyleProp } from './styles/StyleProp'
 export type SchemaShapeInfo = {
 	migrations?: Migrations
 	props?: Record<string, { validate: (prop: any) => any }>
+	meta?: Record<string, { validate: (prop: any) => any }>
 }
 
 /** @public */

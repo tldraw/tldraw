@@ -1,3 +1,68 @@
+# v2.0.0-alpha.13 (Wed Jun 28 2023)
+
+### Release Notes
+
+#### Styles API ([#1580](https://github.com/tldraw/tldraw/pull/1580))
+
+-
+
+#### mini `defineShape` API ([#1563](https://github.com/tldraw/tldraw/pull/1563))
+
+[dev-facing, notes to come]
+
+#### Stricter ID types ([#1439](https://github.com/tldraw/tldraw/pull/1439))
+
+[internal only, covered by #1432 changelog]
+
+#### Create @tldraw/indices package ([#1426](https://github.com/tldraw/tldraw/pull/1426))
+
+- [@tldraw/editor] Remove fractional indices code into `@tldraw/indices`
+- [@tldraw/indices] Create library for fractional indices code
+
+#### avoid lazy race conditions ([#1364](https://github.com/tldraw/tldraw/pull/1364))
+
+[internal only]
+
+#### presence-related fixes ([#1361](https://github.com/tldraw/tldraw/pull/1361))
+
+- Fix a bug where creating a page could throw an error in some multiplayer contexts.
+
+---
+
+#### 💥 Breaking Change
+
+- Styles API [#1580](https://github.com/tldraw/tldraw/pull/1580) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- mini `defineShape` API [#1563](https://github.com/tldraw/tldraw/pull/1563) ([@SomeHats](https://github.com/SomeHats))
+- Create @tldraw/indices package [#1426](https://github.com/tldraw/tldraw/pull/1426) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Asset improvements [#1557](https://github.com/tldraw/tldraw/pull/1557) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Stricter ID types [#1439](https://github.com/tldraw/tldraw/pull/1439) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- presence-related fixes [#1361](https://github.com/tldraw/tldraw/pull/1361) ([@ds300](https://github.com/ds300))
+- readmes [#1195](https://github.com/tldraw/tldraw/pull/1195) ([@steveruizok](https://github.com/steveruizok))
+- [chore] update lazyrepo [#1211](https://github.com/tldraw/tldraw/pull/1211) ([@ds300](https://github.com/ds300))
+- derived presence state [#1204](https://github.com/tldraw/tldraw/pull/1204) ([@ds300](https://github.com/ds300))
+- [lite] upgrade lazyrepo [#1198](https://github.com/tldraw/tldraw/pull/1198) ([@ds300](https://github.com/ds300))
+- transfer-out: transfer out [#1195](https://github.com/tldraw/tldraw/pull/1195) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `main`
+
+- update lazyrepo ([@ds300](https://github.com/ds300))
+
+#### 🏠 Internal
+
+- avoid lazy race conditions [#1364](https://github.com/tldraw/tldraw/pull/1364) ([@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 4
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.12 (Mon Apr 03 2023)
 
 #### 🐛 Bug Fix

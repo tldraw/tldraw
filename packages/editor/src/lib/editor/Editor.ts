@@ -65,6 +65,7 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
+	JsonObject,
 	annotateError,
 	assert,
 	compact,
@@ -1335,9 +1336,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _isPenMode = atom<boolean>('isPenMode', false as any)
 
-	/** @internal */
-	private _touchEventsRemainingBeforeExitingPenMode = 0
-
 	/**
 	 * Whether the editor is in pen mode or not.
 	 *
@@ -1353,7 +1351,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	setPenMode(isPenMode: boolean): this {
-		if (isPenMode) this._touchEventsRemainingBeforeExitingPenMode = 3
 		if (isPenMode !== this.isPenMode) {
 			this._isPenMode.set(isPenMode)
 		}
@@ -3975,6 +3972,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					bottomIndex && topIndex !== bottomIndex
 						? getIndexBetween(topIndex, bottomIndex)
 						: getIndexAbove(topIndex),
+				meta: {},
 			})
 
 			const newCamera = CameraRecordType.create({
@@ -5628,11 +5626,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Rotate shapes by a delta in radians.
+	 * Note: Currently, this assumes that the shapes are your currently selected shapes.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.rotateShapesBy(['box1', 'box2'], Math.PI)
-	 * editor.rotateShapesBy(['box1', 'box2'], Math.PI / 2)
+	 * editor.rotateShapesBy(editor.selectedIds, Math.PI)
+	 * editor.rotateShapesBy(editor.selectedIds, Math.PI / 2)
 	 * ```
 	 *
 	 * @param ids - The ids of the shapes to move.
@@ -5642,6 +5641,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 
 		const snapshot = getRotationSnapshot({ editor: this })
+		if (!snapshot) return this
 		applyRotationToSnapshotShapes({ delta, snapshot, editor: this, stage: 'one-off' })
 
 		return this
@@ -7097,6 +7097,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get the initial meta value for a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getInitialMetaForShape = (shape) => {
+	 *   if (shape.type === 'note') {
+	 *     return { createdBy: myCurrentUser.id }
+	 *   }
+	 * }
+	 * ```
+	 *
+	 * @param shape - The shape to get the initial meta for.
+	 *
+	 * @public
+	 */
+	getInitialMetaForShape(_shape: TLShape): JsonObject {
+		return {}
+	}
+
+	/**
 	 * Create shapes.
 	 *
 	 * @example
@@ -7254,6 +7274,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					shapeRecordsToCreate.push(shapeRecordToCreate)
 				}
+
+				// Add meta properties, if any, to the shapes
+				shapeRecordsToCreate.forEach((shape) => {
+					shape.meta = this.getInitialMetaForShape(shape)
+				})
 
 				this.store.put(shapeRecordsToCreate)
 
@@ -7566,9 +7591,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						switch (k) {
 							case 'id':
 							case 'type':
-							case 'typeName': {
 								continue
-							}
 							default: {
 								if (v !== (prev as any)[k]) {
 									if (!newRecord) {
@@ -7576,13 +7599,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 									}
 
 									if (k === 'props') {
-										const nextProps = { ...prev.props } as Record<string, unknown>
+										// props property
+										const nextProps = { ...prev.props } as JsonObject
 										for (const [propKey, propValue] of Object.entries(v as object)) {
-											if (propValue === undefined) continue
-											nextProps[propKey] = propValue
+											if (propValue !== undefined) {
+												nextProps[propKey] = propValue
+											}
 										}
 										newRecord!.props = nextProps
+									} else if (k === 'meta') {
+										// meta property
+										const nextMeta = { ...prev.meta } as JsonObject
+										for (const [metaKey, metaValue] of Object.entries(v as object)) {
+											if (metaValue !== undefined) {
+												nextMeta[metaKey] = metaValue
+											}
+										}
+										newRecord!.meta = nextMeta
 									} else {
+										// base property
 										;(newRecord as any)[k] = v
 									}
 								}
@@ -8804,6 +8839,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
 						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
 						: Date.now(),
+				meta: {},
 			},
 		])
 	}
@@ -9169,20 +9205,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing = true
 							inputs.isDragging = false
 
-							if (this.isPenMode) {
-								if (!isPen) {
-									// decrement the remaining taps before exiting pen mode
-									this._touchEventsRemainingBeforeExitingPenMode--
-									if (this._touchEventsRemainingBeforeExitingPenMode === 0) {
-										this.setPenMode(false)
-									} else {
-										return
-									}
-								} else {
-									// reset the remaining taps before exiting pen mode
-									this._touchEventsRemainingBeforeExitingPenMode = 3
-								}
-							} else {
+							if (!this.isPenMode) {
 								if (isPen) {
 									this.setPenMode(true)
 								}

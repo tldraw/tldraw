@@ -1,4 +1,4 @@
-import { exhaustiveSwitchError, getOwnProperty, hasOwnProperty } from '@tldraw/utils'
+import { JsonValue, exhaustiveSwitchError, getOwnProperty, hasOwnProperty } from '@tldraw/utils'
 
 /** @public */
 export type ValidatorFn<T> = (value: unknown) => T
@@ -464,6 +464,49 @@ export function object<Shape extends object>(config: {
 	readonly [K in keyof Shape]: Validatable<Shape[K]>
 }): ObjectValidator<Shape> {
 	return new ObjectValidator(config)
+}
+
+function isValidJson(value: any): value is JsonValue {
+	if (
+		value === null ||
+		typeof value === 'number' ||
+		typeof value === 'string' ||
+		typeof value === 'boolean'
+	) {
+		return true
+	}
+
+	if (Array.isArray(value)) {
+		return value.every(isValidJson)
+	}
+
+	if (typeof value === 'object') {
+		return Object.values(value).every(isValidJson)
+	}
+
+	return false
+}
+
+/**
+ * Validate that a value is valid JSON.
+ *
+ * @public
+ */
+export const jsonValue = new Validator<JsonValue>((value): JsonValue => {
+	if (isValidJson(value)) {
+		return value as JsonValue
+	}
+
+	throw new ValidationError(`Expected json serializable value, got ${typeof value}`)
+})
+
+/**
+ * Validate an object has a particular shape.
+ *
+ * @public
+ */
+export function jsonDict(): DictValidator<string, JsonValue> {
+	return dict(string, jsonValue)
 }
 
 /**

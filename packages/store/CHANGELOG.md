@@ -1,3 +1,46 @@
+# v2.0.0-alpha.13 (Wed Jun 28 2023)
+
+### Release Notes
+
+#### [improvement] store snapshot types ([#1657](https://github.com/tldraw/tldraw/pull/1657))
+
+- [dev] Rename `StoreSnapshot` to `SerializedStore`
+- [dev] Create new `StoreSnapshot` as type related to `getSnapshot`/`loadSnapshot`
+
+#### tlschema cleanup ([#1509](https://github.com/tldraw/tldraw/pull/1509))
+
+- [editor] Remove `app.createShapeId`
+- [tlschema] Cleans up exports
+
+#### Rename tlstore to store ([#1507](https://github.com/tldraw/tldraw/pull/1507))
+
+- Replace @tldraw/tlstore with @tldraw/store
+
+---
+
+#### 💥 Breaking Change
+
+- [tweak] migrate store snapshot arguments [#1659](https://github.com/tldraw/tldraw/pull/1659) ([@steveruizok](https://github.com/steveruizok))
+- [improvement] store snapshot types [#1657](https://github.com/tldraw/tldraw/pull/1657) ([@steveruizok](https://github.com/steveruizok))
+- Independent instance state persistence [#1493](https://github.com/tldraw/tldraw/pull/1493) ([@ds300](https://github.com/ds300))
+- tlschema cleanup [#1509](https://github.com/tldraw/tldraw/pull/1509) ([@steveruizok](https://github.com/steveruizok))
+- Rename tlstore to store [#1507](https://github.com/tldraw/tldraw/pull/1507) ([@steveruizok](https://github.com/steveruizok))
+
+#### ⚠️ Pushed to `main`
+
+- update lazyrepo ([@ds300](https://github.com/ds300))
+
+#### 🔩 Dependency Updates
+
+- Incorporate signia as @tldraw/state [#1620](https://github.com/tldraw/tldraw/pull/1620) ([@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.12 (Mon Apr 03 2023)
 
 #### 🐛 Bug Fix

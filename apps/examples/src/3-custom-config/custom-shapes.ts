@@ -1,3 +1,3 @@
-import { CardShape } from '../16-custom-styles/CardShape'
+import { CardShape } from './CardShape/CardShape'
 
 export const customShapes = [CardShape]

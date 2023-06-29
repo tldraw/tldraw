@@ -25,7 +25,9 @@ export class Rotating extends StateNode {
 
 		this.markId = this.editor.mark('rotate start')
 
-		this.snapshot = getRotationSnapshot({ editor: this.editor })
+		const snapshot = getRotationSnapshot({ editor: this.editor })
+		if (!snapshot) return this.parent.transition('idle', this.info)
+		this.snapshot = snapshot
 
 		// Trigger a pointer move
 		this.handleStart()
@@ -132,7 +134,8 @@ export class Rotating extends StateNode {
 		const { initialCursorAngle, initialSelectionRotation } = this.snapshot
 
 		// The delta is the difference between the current angle and the initial angle
-		const preSnapRotationDelta = selectionPageCenter!.angle(currentPagePoint) - initialCursorAngle
+		if (!selectionPageCenter) return initialSelectionRotation
+		const preSnapRotationDelta = selectionPageCenter.angle(currentPagePoint) - initialCursorAngle
 		let newSelectionRotation = initialSelectionRotation + preSnapRotationDelta
 
 		if (shiftKey) {

@@ -13,6 +13,7 @@ export { annotateError, getErrorAnnotations } from './lib/error'
 export { noop, omitFromStackTrace, throttle } from './lib/function'
 export { getHashForObject, getHashForString, lns } from './lib/hash'
 export { getFirstFromIterable } from './lib/iterable'
+export type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from './lib/json-value'
 export { lerp, modulate, rng } from './lib/number'
 export {
 	deepCopy,

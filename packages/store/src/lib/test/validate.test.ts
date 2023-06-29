@@ -1,6 +1,6 @@
 import { BaseRecord, IdOf, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
-import { Store, StoreSnapshot } from '../Store'
+import { SerializedStore, Store } from '../Store'
 import { StoreSchema } from '../StoreSchema'
 
 interface Book extends BaseRecord<'book', RecordId<Book>> {
@@ -90,7 +90,7 @@ describe('Store with validation', () => {
 })
 
 describe('Validating initial data', () => {
-	let snapshot: StoreSnapshot<Book | Author>
+	let snapshot: SerializedStore<Book | Author>
 
 	beforeEach(() => {
 		const authorId = Author.createId('tolkein')

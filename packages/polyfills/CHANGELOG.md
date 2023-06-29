@@ -1,3 +1,45 @@
+# v2.0.0-alpha.13 (Wed Jun 28 2023)
+
+### Release Notes
+
+#### Revert "Update dependencies (#1613)" ([#1617](https://github.com/tldraw/tldraw/pull/1617))
+
+-
+
+#### avoid lazy race conditions ([#1364](https://github.com/tldraw/tldraw/pull/1364))
+
+[internal only]
+
+---
+
+#### 🐛 Bug Fix
+
+- readmes [#1195](https://github.com/tldraw/tldraw/pull/1195) ([@steveruizok](https://github.com/steveruizok))
+- [chore] update lazyrepo [#1211](https://github.com/tldraw/tldraw/pull/1211) ([@ds300](https://github.com/ds300))
+- [lite] upgrade lazyrepo [#1198](https://github.com/tldraw/tldraw/pull/1198) ([@ds300](https://github.com/ds300))
+- transfer-out: transfer out [#1195](https://github.com/tldraw/tldraw/pull/1195) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `main`
+
+- update lazyrepo ([@ds300](https://github.com/ds300))
+
+#### 🏠 Internal
+
+- avoid lazy race conditions [#1364](https://github.com/tldraw/tldraw/pull/1364) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🔩 Dependency Updates
+
+- Revert "Update dependencies (#1613)" [#1617](https://github.com/tldraw/tldraw/pull/1617) ([@SomeHats](https://github.com/SomeHats))
+- Update dependencies [#1613](https://github.com/tldraw/tldraw/pull/1613) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.12 (Mon Apr 03 2023)
 
 #### 🐛 Bug Fix

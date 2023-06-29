@@ -1,5 +1,5 @@
 import { MigrationFailureReason } from '../migrate'
-import { StoreSnapshot } from '../Store'
+import { SerializedStore } from '../Store'
 import { testSchemaV0 } from './testSchema.v0'
 import { testSchemaV1 } from './testSchema.v1'
 
@@ -305,7 +305,7 @@ test('subtype versions in the future fail', () => {
 })
 
 test('migrating a whole store snapshot works', () => {
-	const snapshot: StoreSnapshot<any> = {
+	const serializedStore: SerializedStore<any> = {
 		'user-1': {
 			id: 'user-1',
 			typeName: 'user',
@@ -329,7 +329,10 @@ test('migrating a whole store snapshot works', () => {
 		},
 	}
 
-	const result = testSchemaV1.migrateStoreSnapshot(snapshot, serializedV0Schenma)
+	const result = testSchemaV1.migrateStoreSnapshot({
+		store: serializedStore,
+		schema: serializedV0Schenma,
+	})
 
 	if (result.type !== 'success') {
 		console.error(result)

@@ -59,7 +59,8 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T
 			id: TLShapeId
 			type: T['type']
 			props?: Partial<T['props']>
-	  } & Partial<Omit<T, 'type' | 'id' | 'props'>>
+			meta?: Partial<T['meta']>
+	  } & Partial<Omit<T, 'type' | 'id' | 'props' | 'meta'>>
 	: never
 
 /** @public */
@@ -81,16 +82,18 @@ export type TLShapeProp = keyof TLShapeProps
 /** @public */
 export type TLParentId = TLPageId | TLShapeId
 
-export const Versions = {
+/** @internal */
+export const rootShapeVersions = {
 	AddIsLocked: 1,
 	HoistOpacity: 2,
+	AddMeta: 3,
 } as const
 
 /** @internal */
 export const rootShapeMigrations = defineMigrations({
-	currentVersion: Versions.HoistOpacity,
+	currentVersion: rootShapeVersions.AddMeta,
 	migrators: {
-		[Versions.AddIsLocked]: {
+		[rootShapeVersions.AddIsLocked]: {
 			up: (record) => {
 				return {
 					...record,
@@ -104,7 +107,7 @@ export const rootShapeMigrations = defineMigrations({
 				}
 			},
 		},
-		[Versions.HoistOpacity]: {
+		[rootShapeVersions.HoistOpacity]: {
 			up: ({ props: { opacity, ...props }, ...record }) => {
 				return {
 					...record,
@@ -128,6 +131,19 @@ export const rootShapeMigrations = defineMigrations({
 								? '0.75'
 								: '1',
 					},
+				}
+			},
+		},
+		[rootShapeVersions.AddMeta]: {
+			up: (record) => {
+				return {
+					...record,
+					meta: {},
+				}
+			},
+			down: ({ meta: _, ...record }) => {
+				return {
+					...record,
 				}
 			},
 		},
@@ -182,7 +198,9 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 			'shape',
 			T.union(
 				'type',
-				mapObjectMapValues(shapes, (type, { props }) => createShapeValidator(type, props))
+				mapObjectMapValues(shapes, (type, { props, meta }) =>
+					createShapeValidator(type, props, meta)
+				)
 			)
 		),
 	}).withDefaultProperties(() => ({
@@ -191,5 +209,6 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 		rotation: 0,
 		isLocked: false,
 		opacity: 1,
+		meta: {},
 	}))
 }

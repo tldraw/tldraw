@@ -1,4 +1,4 @@
-import { Store, StoreSnapshot } from '@tldraw/store'
+import { SerializedStore, Store } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { RecursivePartial, Required, annotateError } from '@tldraw/utils'
 import React, {
@@ -70,7 +70,7 @@ export type TldrawEditorProps = {
 			/**
 			 * The editor's initial data.
 			 */
-			initialData?: StoreSnapshot<TLRecord>
+			initialData?: SerializedStore<TLRecord>
 			/**
 			 * The id under which to sync and persist the editor's data. If none is given tldraw will not sync or persist
 			 * the editor's data.

@@ -20,6 +20,7 @@ import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
 import { getHashForString } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
+import { JsonObject } from '@tldraw/utils';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
@@ -34,10 +35,10 @@ import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
+import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
 import { Signal } from '@tldraw/state';
 import { StoreSchema } from '@tldraw/store';
-import { StoreSnapshot } from '@tldraw/store';
 import { StrokePoint } from '@tldraw/primitives';
 import { StyleProp } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
@@ -478,6 +479,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHandles<T extends TLShape>(shape: T): TLHandle[] | undefined;
     getHandlesById<T extends TLShape>(id: T['id']): TLHandle[] | undefined;
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
+    getInitialMetaForShape(_shape: TLShape): JsonObject;
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
     getMaskedPageBoundsById(id: TLShapeId): Box2d | undefined;
     getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape;
@@ -886,6 +888,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -915,6 +918,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -931,6 +935,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | {
@@ -945,6 +950,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1711,6 +1717,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1734,6 +1741,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1820,6 +1828,37 @@ export const REMOVE_SYMBOL: unique symbol;
 
 // @public (undocumented)
 export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
+
+// @public (undocumented)
+export function resizeBox(shape: TLBaseBoxShape, info: {
+    newPoint: Vec2dModel;
+    handle: TLResizeHandle;
+    mode: TLResizeMode;
+    scaleX: number;
+    scaleY: number;
+    initialBounds: Box2d;
+    initialShape: TLBaseBoxShape;
+}, opts?: Partial<{
+    minWidth: number;
+    maxWidth: number;
+    minHeight: number;
+    maxHeight: number;
+}>): {
+    x: number;
+    y: number;
+    props: {
+        w: number;
+        h: number;
+    };
+};
+
+// @public (undocumented)
+export type ResizeBoxOptions = Partial<{
+    minWidth: number;
+    maxWidth: number;
+    minHeight: number;
+    maxHeight: number;
+}>;
 
 // @internal (undocumented)
 export const RICH_TYPES: Record<string, boolean>;
@@ -2070,6 +2109,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             scale: number;
             autoSize: boolean;
         };
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -2093,6 +2133,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -2228,7 +2269,7 @@ export type TldrawEditorProps = {
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;
-    initialData?: StoreSnapshot<TLRecord>;
+    initialData?: SerializedStore<TLRecord>;
     persistenceKey?: string;
     sessionId?: string;
     defaultName?: string;
@@ -2661,7 +2702,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
 export type TLStoreOptions = {
-    initialData?: StoreSnapshot<TLRecord>;
+    initialData?: SerializedStore<TLRecord>;
     defaultName?: string;
 } & ({
     schema: StoreSchema<TLRecord, TLStoreProps>;
