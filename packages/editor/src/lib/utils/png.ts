@@ -1,4 +1,4 @@
-import crc32 from 'crc/crc32'
+import { crc } from './crc'
 
 export function isPng(view: DataView, offset: number) {
 	if (
@@ -23,10 +23,6 @@ function getChunkType(view: DataView, offset: number) {
 		String.fromCharCode(view.getUint8(offset + 2)),
 		String.fromCharCode(view.getUint8(offset + 3)),
 	].join('')
-}
-
-export function crc(arrayBuffer: ArrayBuffer) {
-	return crc32(arrayBuffer)
 }
 
 const LEN_SIZE = 4
