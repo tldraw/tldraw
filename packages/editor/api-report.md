@@ -1870,6 +1870,43 @@ export const runtime: {
     hardReset: () => void;
 };
 
+// @public (undocumented)
+export class ScribbleManager implements TLScribble {
+    constructor(opts: {
+        onUpdate: (scribble: TLScribble) => void;
+        onComplete: () => void;
+        size?: TLScribble['size'];
+        color?: TLScribble['color'];
+        opacity?: TLScribble['opacity'];
+        delay?: TLScribble['delay'];
+    });
+    addPoint: (x: number, y: number) => void;
+    // (undocumented)
+    color: "accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white";
+    // (undocumented)
+    delay: number;
+    // (undocumented)
+    delayRemaining: number;
+    getScribble(): TLScribble;
+    // (undocumented)
+    opacity: number;
+    // (undocumented)
+    pause: () => void;
+    // (undocumented)
+    points: Vec2dModel[];
+    // (undocumented)
+    resume: () => void;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    state: "active" | "paused" | "starting" | "stopping";
+    stop: () => void;
+    // (undocumented)
+    tick: TLTickEvent;
+    // (undocumented)
+    timeoutMs: number;
+}
+
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
