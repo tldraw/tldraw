@@ -80,7 +80,8 @@ export interface GoingUpstreamSocket<R extends UnknownRecord> {
 	sendMessage(message: GoingUpstreamMessage<R>): void
 	onMessage(callback: (message: GoingDownstreamMessage<R>) => void): () => void
 	onStatusChange(cb: (isOpen: boolean) => void): () => void
-	reopen(): void
+	open(): void
+	close(): void
 }
 
 export interface GoingDownstreamSocket<R extends UnknownRecord> {

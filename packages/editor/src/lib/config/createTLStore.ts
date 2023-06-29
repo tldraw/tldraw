@@ -34,7 +34,6 @@ export function createTLStore({ defaultName = '', ...rest }: TLStoreOptions): TL
 	return new SyncStore<TLRecord, TLStoreProps>(
 		schema,
 		{ defaultName },
-		undefined,
 		rest.presence,
 		undefined
 	)

@@ -1,17 +1,18 @@
 import { Atom, Computed, Signal, atom, computed, react, transact, transaction } from '@tldraw/state'
-import { Result, exhaustiveSwitchError, objectMapValues, omit, rafThrottle } from '@tldraw/utils'
+import {
+	Result,
+	exhaustiveSwitchError,
+	objectMapValues,
+	omit,
+	rafThrottle,
+	throttledRaf,
+} from '@tldraw/utils'
 import isEqual from 'lodash.isequal'
 import { nanoid } from 'nanoid'
 import { IdOf, RecordId, UnknownRecord } from '../BaseRecord'
 import { Cache } from '../Cache'
-import { RecordType } from '../RecordType'
-import {
-	ChangeSource,
-	ComputedCache,
-	RecordsDiff,
-	StoreListener,
-	StoreListenerFilters,
-} from '../Store'
+import { RecordScope, RecordType } from '../RecordType'
+import { ComputedCache, RecordsDiff } from '../Store'
 import { SerializedSchema, StoreSchema } from '../StoreSchema'
 import { MigrationFailureReason, compareRecordVersions, getRecordVersion } from '../migrate'
 import { SyncStoreQueries } from './SyncStoreQueries'
@@ -44,6 +45,23 @@ import {
 } from './protocol'
 
 type RecFromId<K extends RecordId<UnknownRecord>> = K extends RecordId<infer R> ? R : never
+
+export type ChangeSource = 'user' | 'remote'
+
+export type StoreListenerFilters = {
+	source: ChangeSource | 'all'
+	scope: RecordScope | 'all'
+}
+
+/**
+ * An entry containing changes that originated either by user actions or remote changes.
+ *
+ * @public
+ */
+export type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
+	changes: RecordsDiff<R>
+	source: ChangeSource
+}
 
 export type PushOp<R extends UnknownRecord> = {
 	pushId: string
@@ -82,22 +100,28 @@ type ApplyStack<R extends UnknownRecord> = {
 	below: ApplyStack<R> | null
 }
 
-type UpstreamConnectionState =
+type UpstreamConnectionState<R extends UnknownRecord> =
 	| {
 			type: 'connected'
 			hasSentFirstMessage: boolean
 			lastPongTime: number
+			socket: GoingUpstreamSocket<R>
+			dispose: () => void
 	  }
 	| {
 			type: 'awaiting-reconnect'
 			spanId: string
+			socket: GoingUpstreamSocket<R>
+			dispose: () => void
 	  }
 	| {
 			type: 'offline'
 			lastCheckTime: number
+			socket: GoingUpstreamSocket<R>
+			dispose: () => void
 	  }
 	| {
-			type: 'initial'
+			type: 'no-upstream'
 	  }
 
 type PresenceRecordInfo<R extends UnknownRecord> = {
@@ -251,6 +275,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 	readonly scopedTypes: {
 		document: ReadonlySet<string>
 		session: ReadonlySet<string>
+		presence: ReadonlySet<string>
 	}
 	readonly presenceType: RecordType<R, never>
 	readonly presenceTypePrefix: string
@@ -288,10 +313,17 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 	 */
 	onAfterDelete?: (prev: R) => void
 
+	get upstream() {
+		const state = this.upstreamConnectionState.value
+		if (state.type !== 'no-upstream') {
+			return state.socket
+		}
+		return undefined
+	}
+
 	constructor(
 		readonly schema: StoreSchema<R, Props>,
 		readonly props: Props,
-		private readonly upstream: GoingUpstreamSocket<R> | undefined,
 		private readonly localPresence: Signal<R> | undefined,
 		snapshot: SyncStoreSnapshot<R> | undefined
 	) {
@@ -311,16 +343,17 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 					.filter((t) => t.scope === 'session')
 					.map((t) => t.typeName)
 			),
+			presence: new Set(
+				objectMapValues(this.schema.types)
+					.filter((t) => t.scope === 'presence')
+					.map((t) => t.typeName)
+			),
 		}
-		const presenceTypes = new Set(
-			objectMapValues(this.schema.types)
-				.filter((t) => t.scope === 'presence')
-				.map((t) => t.typeName)
-		)
-		if (presenceTypes.size !== 1) {
+		if (this.scopedTypes.presence.size !== 1) {
 			throw new Error('Exactly one presence type must be defined')
 		}
-		this.presenceType = schema.types[[...presenceTypes][0]] as any
+		const presenceTypeName = [...this.scopedTypes.presence][0] as R['typeName']
+		this.presenceType = schema.types[presenceTypeName] as RecordType<R, never>
 		this.presenceTypePrefix = `${this.presenceType.typeName}:`
 		this.serializedSchema = this.schema.serialize()
 		this.myPresenceId = this.presenceType.createId(this.id)
@@ -336,17 +369,13 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 			)
 		}
 
-		if (this.upstream) {
-			this.disposables.add(
-				this.upstream.onStatusChange((isOpen) => {
-					if (isOpen) {
-						this.sendUpstreamConnectRequest()
-					} else {
-						this.resetConnection()
-					}
-				})
-			)
-		}
+		this.disposables.add(() => {
+			const state = this.upstreamConnectionState.value
+			if (state.type !== 'no-upstream') {
+				state.dispose()
+			}
+		})
+
 		this.query = new SyncStoreQueries(this)
 	}
 
@@ -493,24 +522,69 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 		}
 	}
 
-	readonly upstreamConnectionState = atom<UpstreamConnectionState>('upstream.connectionState', {
-		type: 'initial',
-	})
+	private readonly upstreamConnectionState = atom<UpstreamConnectionState<R>>(
+		'upstream.connectionState',
+		{
+			type: 'no-upstream',
+		}
+	)
+
+	public setUpstream(socket: GoingUpstreamSocket<R> | null) {
+		const state = this.upstreamConnectionState.value
+		if (state.type !== 'no-upstream') {
+			this.closeUpstreamConnection(true)
+		}
+
+		if (socket === null) {
+			this.upstreamConnectionState.set({
+				type: 'no-upstream',
+			})
+			return
+		}
+
+		const disposeStatusListener = socket.onStatusChange((isOpen) => {
+			if (isOpen) {
+				this.sendUpstreamConnectRequest()
+			} else {
+				this.resetConnection()
+			}
+		})
+		const disposeMessageListener = socket.onMessage(this.handleMessageFromUpstream)
+
+		this.upstreamConnectionState.set({
+			type: 'offline',
+			lastCheckTime: 0,
+			socket,
+			dispose: () => {
+				disposeStatusListener()
+				disposeMessageListener()
+			},
+		})
+
+		if (!socket.isOpen()) {
+			socket.open()
+		} else {
+			this.sendUpstreamConnectRequest()
+		}
+	}
 
 	private sendUpstreamConnectRequest() {
+		const state = this.upstreamConnectionState.value
+		if (state.type === 'no-upstream') {
+			console.error('sendUpstreamConnectRequest called while not connected to upstream')
+			return
+		}
 		transact(() => {
-			if (!this.upstream) {
-				console.error('sendUpstreamConnectRequest called while not connected to upstream')
-				return
-			}
 			const spanId = nanoid()
 
 			this.upstreamConnectionState.set({
 				type: 'awaiting-reconnect',
 				spanId,
+				socket: state.socket,
+				dispose: state.dispose,
 			})
 
-			this.upstream.sendMessage({
+			state.socket.sendMessage({
 				type: 'connect',
 				protocolVersion: TLSYNC_PROTOCOL_VERSION,
 				schema: this.serializedSchema,
@@ -520,13 +594,13 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 		})
 	}
 
-	/** Switch to offline mode */
-	private resetConnection(hard = false) {
+	private closeUpstreamConnection(hard = false) {
+		const state = this.upstreamConnectionState.value
+		if (state.type === 'no-upstream') {
+			console.error('resetConnection called while not connected to upstream')
+			return
+		}
 		transact(() => {
-			if (!this.upstream) {
-				console.error('resetConnection called while not connected to upstream')
-				return
-			}
 			if (hard) {
 				// reset the clock so that next time we get the full history
 				this.synced.upstreamClock.set(0)
@@ -534,6 +608,8 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 			this.upstreamConnectionState.set({
 				type: 'offline',
 				lastCheckTime: Date.now(),
+				socket: state.socket,
+				dispose: state.dispose,
 			})
 			// apply any unapplied incoming patches to clear the incoming buffer
 			this.rebase()
@@ -546,20 +622,32 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 				mergeChanges(sentChanges, this.pending.pendingPushChanges.value)
 			)
 			this.pending.pushes.set([])
-			if (this.upstream.isOpen()) {
-				this.upstream.reopen()
-			}
+			state.socket.close()
 		})
 	}
 
+	/** Switch to offline mode */
+	private resetConnection(hard = false) {
+		const state = this.upstreamConnectionState.value
+		if (state.type === 'no-upstream') {
+			console.error('resetConnection called while not connected to upstream')
+			return
+		}
+		this.closeUpstreamConnection(hard)
+		if (state.socket.isOpen()) {
+			state.socket.close()
+		}
+		state.socket.open()
+	}
+
 	private didReconnect(message: GoingDownstreamConnectMessage<R>) {
-		const upstreamConnectionState = this.upstreamConnectionState.value
-		if (upstreamConnectionState.type !== 'awaiting-reconnect') {
+		const state = this.upstreamConnectionState.value
+		if (state.type !== 'awaiting-reconnect') {
 			console.error('didReconnect called while not awaiting reconnect')
 			this.resetConnection()
 			return
 		}
-		if (upstreamConnectionState.spanId !== message.spanId) {
+		if (state.spanId !== message.spanId) {
 			// ignore connect events for old connect requests
 			console.warn('Ignoring connect event for old connect request')
 			return
@@ -593,6 +681,8 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 				type: 'connected',
 				hasSentFirstMessage: false,
 				lastPongTime: Date.now(),
+				socket: state.socket,
+				dispose: state.dispose,
 			})
 			this.synced.upstreamClock.set(message.upstreamClock)
 		})
@@ -707,10 +797,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 				const migrated = this.migrateDiffForClient(
 					sessionSchema,
 					Object.fromEntries(
-						Object.values(this.synced.records.value).map((doc) => [
-							doc.value.state.id,
-							[RecordOpType.Set, doc.value.state],
-						])
+						this.entries().filter(([_, r]) => !this.scopedTypes.session.has(r.typeName)) as any
 					)
 				)
 				if (!migrated.ok) {
@@ -735,8 +822,17 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 			} else {
 				// calculate the changes since the time the client last saw
 				const diff: NetworkDiff<R> = {}
-				for (const doc of Object.values(this.synced.records.value)) {
-					const { state, lastUpdatedAt } = doc.value
+				for (const [id, deletedAt] of Object.entries(this.synced.tombstones.value.deletions)) {
+					const typeName = id.split(':')[0]
+					if (!this.scopedTypes.document.has(typeName)) continue
+					if (deletedAt > message.lastUpstreamClock) {
+						diff[id] = [RecordOpType.Delete]
+					}
+				}
+
+				for (const [id] of this.entries()) {
+					const { state, lastUpdatedAt } = this.getRecordWithTimestamp(id)!
+					if (this.scopedTypes.session.has(state.typeName)) continue
 					if (
 						state.typeName === this.presenceType.typeName ||
 						lastUpdatedAt > message.lastUpstreamClock
@@ -745,11 +841,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 					}
 				}
 
-				for (const [id, deletedAt] of Object.entries(this.synced.tombstones.value.deletions)) {
-					if (deletedAt > message.lastUpstreamClock) {
-						diff[id] = [RecordOpType.Delete]
-					}
-				}
 				const migrated = this.migrateDiffForClient(sessionSchema, diff)
 				if (!migrated.ok) {
 					rollback()
@@ -960,11 +1051,13 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 		satisfiedPushes: SatisfiedPushes
 	}>('store.outgoingPatchBuffer', { touchedRecords: {}, satisfiedPushes: {} })
 
-	private recordWillBeTouched(id: string, pushId?: PushId) {
+	private recordWasTouched(id: string, prevValue: R | null, pushId?: PushId) {
 		if (this.downstreamClients.size === 0) return
+		const typeName = id.slice(0, id.indexOf(':'))
+		if (this.scopedTypes.session.has(typeName)) return
 
 		const hasIdBeenTouchedAlready =
-			typeof this.goingDownstreamPatchBuffer.value.touchedRecords[id] === 'undefined'
+			typeof this.goingDownstreamPatchBuffer.value.touchedRecords[id] !== 'undefined'
 
 		this.goingDownstreamPatchBuffer.update(({ touchedRecords, satisfiedPushes }) => {
 			return {
@@ -972,7 +1065,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 					? touchedRecords
 					: {
 							...touchedRecords,
-							[id]: this.get(id) ?? null,
+							[id]: prevValue,
 					  },
 				satisfiedPushes: addPush(satisfiedPushes, pushId),
 			}
@@ -1046,7 +1139,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 		runCallbacks: boolean
 	) {
 		const id = record.id
-		this.recordWillBeTouched(id, pushId)
 		const existingAtom = this.synced.records.value[id]
 		const prevRecord = existingAtom?.value.state as R | undefined
 		if (existingAtom) {
@@ -1064,7 +1156,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 			}
 		}
 
-		this.updateHistory(prevRecord, record)
+		this.updateHistory(prevRecord, record, pushId)
 
 		// TODO: replace these callbacks with an 'onBeforeHistory' and an 'onAfterHistory' callback and then move them into the updateHistory function
 		if (runCallbacks) {
@@ -1085,29 +1177,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 		return this.clock.update((prev) => prev + 1)
 	}
 
-	private updateHistory(prev?: R, next?: R) {
-		if (!prev && !next) return
-		if (!prev && next) {
-			this.history.set(this.history.value + 1, {
-				added: { [next.id]: next } as any,
-				removed: {} as any,
-				updated: {} as any,
-			})
-		} else if (prev && !next) {
-			this.history.set(this.history.value + 1, {
-				added: {} as any,
-				updated: {} as any,
-				removed: { [prev.id]: prev } as any,
-			})
-		} else {
-			this.history.set(this.history.value + 1, {
-				added: {} as any,
-				updated: { [prev!.id]: [prev, next] } as any,
-				removed: {} as any,
-			})
-		}
-	}
-
 	private setPending(
 		record: R,
 		nextClock: number,
@@ -1116,7 +1185,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 		runCallbacks: boolean
 	) {
 		const id = record.id
-		this.recordWillBeTouched(id, pushId)
 		const existingAtom = this.pending.records.value[id]
 		const prevRecord = existingAtom?.value.state as R | undefined
 
@@ -1132,7 +1200,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 			}
 		}
 
-		this.updateHistory(prevRecord, record)
+		this.updateHistory(prevRecord, record, pushId)
 
 		if (runCallbacks) {
 			if (!prevRecord && record && this.onAfterCreate) {
@@ -1246,7 +1314,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 		pushId: PushId | undefined,
 		runCallbacks: boolean
 	) {
-		this.recordWillBeTouched(id, pushId)
 		const existingAtom = this.synced.records.value[id]
 		if (!existingAtom) return
 
@@ -1260,7 +1327,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 			historyStartsAt: this.synced.tombstones.value.historyStartsAt,
 		})
 
-		this.updateHistory(existingAtom.value.state, undefined)
+		this.updateHistory(existingAtom.value.state, undefined, pushId)
 
 		if (runCallbacks && this.onAfterDelete) {
 			this.onAfterDelete(existingAtom.value.state)
@@ -1274,7 +1341,6 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 		pushId: PushId | undefined,
 		runCallbacks: boolean
 	) {
-		this.recordWillBeTouched(id, pushId)
 		const pendingRecordAtom = this.pending.records.value[id]
 		const syncedRecordAtom = this.synced.records.value[id]
 		// check whether there is anything to delete
@@ -1295,7 +1361,7 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 			this.pending.tombstones.set({ ...this.pending.tombstones.value, [id]: nextClock })
 		}
 
-		this.updateHistory(record, undefined)
+		this.updateHistory(record, undefined, pushId)
 
 		if (runCallbacks && this.onAfterDelete) {
 			this.onAfterDelete(record)
@@ -1598,6 +1664,9 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 	private scheduleBroadcastPatches = rafThrottle(this.broadcastPatches)
 	private scheduleRebase = rafThrottle(this.rebase)
 
+	private readonly listeners: Set<HistoryAccumulator<R>> = new Set()
+	private source: ChangeSource = 'user'
+
 	/**
 	 * Add a new listener to the store.
 	 *
@@ -1605,9 +1674,46 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 	 * @param filters - Filters to apply to the listener.
 	 * @returns A function to remove the listener.
 	 */
-	listen = (_onHistory: StoreListener<R>, _filters?: Partial<StoreListenerFilters>) => {
+	listen = (onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>) => {
+		const accumulator = new HistoryAccumulator<R>(
+			this,
+			{
+				scope: filters?.scope ?? 'all',
+				source: filters?.source ?? 'all',
+			},
+			onHistory
+		)
+		this.listeners.add(accumulator)
 		return () => {
-			// noop just for now
+			accumulator.dispose()
+			this.listeners.delete(accumulator)
+		}
+	}
+
+	private updateHistory(prev: R | undefined, next: R | undefined, pushId: PushId | undefined) {
+		if (!prev && !next) return
+		this.recordWasTouched(prev?.id ?? next!.id, prev ?? null, pushId)
+		this.listeners.forEach((l) => {
+			l.addChange(prev, next, this.source)
+		})
+		if (!prev && next) {
+			this.history.set(this.history.value + 1, {
+				added: { [next.id]: next } as any,
+				removed: {} as any,
+				updated: {} as any,
+			})
+		} else if (prev && !next) {
+			this.history.set(this.history.value + 1, {
+				added: {} as any,
+				updated: {} as any,
+				removed: { [prev.id]: prev } as any,
+			})
+		} else {
+			this.history.set(this.history.value + 1, {
+				added: {} as any,
+				updated: { [prev!.id]: [prev, next] } as any,
+				removed: {} as any,
+			})
 		}
 	}
 
@@ -1692,7 +1798,13 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 	}
 
 	mergeRemoteChanges(fn: () => void) {
-		fn()
+		const _source = this.source
+		try {
+			this.source = 'remote'
+			transact(fn)
+		} finally {
+			this.source = _source
+		}
 	}
 
 	isPossiblyCorrupted() {
@@ -1709,5 +1821,74 @@ export class SyncStore<R extends UnknownRecord = UnknownRecord, Props = unknown>
 
 	clear() {
 		this.remove(this.allRecords().map((r) => r.id))
+	}
+}
+
+const EMPTY_OBJECT = Object.freeze({})
+
+type StoreListener<R extends UnknownRecord> = (args: { changes: RecordsDiff<R> }) => void
+
+class HistoryAccumulator<R extends UnknownRecord> {
+	readonly changes = atom<Changes<R>>('historyAccumulator.changes', EMPTY_OBJECT)
+	readonly flushChanges = () => {
+		const changes = this.changes.value
+		this.changes.set(EMPTY_OBJECT)
+		const diff: RecordsDiff<R> = {
+			added: {} as any,
+			updated: {} as any,
+			removed: {} as any,
+		}
+		for (const [id, change] of Object.entries(changes)) {
+			switch (change.op) {
+				case ChangeOpType.Set:
+					if (change.prev) {
+						diff.updated[id as IdOf<R>] = [change.prev, change.record]
+					} else {
+						diff.added[id as IdOf<R>] = change.record
+					}
+					break
+				case ChangeOpType.Delete:
+					diff.removed[id as IdOf<R>] = change.record
+					break
+				default:
+					exhaustiveSwitchError(change)
+			}
+		}
+		return diff
+	}
+	readonly notify = rafThrottle(() => {
+		this.cb({ changes: this.flushChanges() })
+	})
+	readonly dispose: () => void
+	constructor(
+		readonly store: SyncStore<R>,
+		readonly filters: StoreListenerFilters,
+		readonly cb: StoreListener<R>
+	) {
+		this.dispose = react(
+			'historyAccumulator.reactor',
+			() => {
+				const changes = this.changes.value
+				if (changes === EMPTY_OBJECT || Object.keys(changes).length === 0) return
+				this.notify()
+			},
+			{
+				scheduleEffect: throttledRaf,
+			}
+		)
+	}
+
+	addChange(prev: R | undefined, next: R | undefined, source: ChangeSource) {
+		if (!prev && !next) return
+		const typeName = (prev?.typeName ?? next?.typeName)!
+		const scopeMatch =
+			this.filters.scope === 'all' || this.store.scopedTypes[this.filters.scope].has(typeName)
+		const sourceMatch = this.filters.source === 'all' || source === this.filters.source
+		if (!scopeMatch || !sourceMatch) return
+
+		this.changes.update((changes) =>
+			// clock doesn't matter for this
+			next ? addSetChange(changes, prev, next, 0, false) : addDeleteChange(changes, prev!, 0, false)
+		)
 	}
 }

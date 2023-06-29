@@ -30,4 +30,10 @@ export {
 	type RecordVersion,
 } from './lib/migrate'
 export { SyncStore } from './lib/sync-store/SyncStore'
+export type {
+	GoingDownstreamMessage,
+	GoingDownstreamSocket,
+	GoingUpstreamMessage,
+	GoingUpstreamSocket,
+} from './lib/sync-store/protocol'
 export type { AllRecords } from './lib/type-utils'

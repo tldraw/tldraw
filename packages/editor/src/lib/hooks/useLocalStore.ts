@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { TLStoreOptions } from '../config/createTLStore'
 import { uniqueId } from '../utils/data'
 import { TLStoreWithStatus } from '../utils/sync/StoreWithStatus'
-import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
 import { useTLStore } from './useTLStore'
+import { TLLocalSyncClient2 } from '../utils/sync/TLLocalSyncClient2'
 
 /** @internal */
 export function useLocalStore({
@@ -41,7 +41,7 @@ export function useLocalStore({
 			})
 		}
 
-		const client = new TLLocalSyncClient(store, {
+		const client = new TLLocalSyncClient2(store, {
 			sessionId,
 			persistenceKey,
 			onLoad() {

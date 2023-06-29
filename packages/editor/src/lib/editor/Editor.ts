@@ -307,11 +307,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
 		this._parentIdsToChildIds = parentsToChildrenWithIndexes(this.store)
 
-		this.disposables.add(
-			this.store.listen((changes) => {
-				this.emit('change', changes)
-			})
-		)
+		// this.disposables.add(
+		// 	this.store.listen((changes) => {
+		// 		this.emit('change', changes)
+		// 	})
+		// )
 
 		const container = this.getContainer()
 		const focusin = () => {
@@ -3575,7 +3575,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let nextIndex = MAX_SHAPES_PER_PAGE
 		let nextBackgroundIndex = 0
 
+		const addedIds = new Set<TLParentId>()
 		const addShapeById = (id: TLParentId, parentOpacity: number, isAncestorErasing: boolean) => {
+			if (addedIds.has(id)) return
+			addedIds.add(id)
 			if (PageRecordType.isId(id)) {
 				for (const childId of this.getSortedChildIds(id)) {
 					addShapeById(childId, parentOpacity, isAncestorErasing)
