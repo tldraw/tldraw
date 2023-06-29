@@ -240,13 +240,14 @@ export function useDocumentEvents() {
 
 		container.addEventListener('touchstart', handleTouchStart, { passive: false })
 
-		document.addEventListener('wheel', handleWheel, { passive: false })
+		container.addEventListener('wheel', handleWheel, { passive: false })
+
 		document.addEventListener('gesturestart', preventDefault)
 		document.addEventListener('gesturechange', preventDefault)
 		document.addEventListener('gestureend', preventDefault)
 
-		document.addEventListener('keydown', handleKeyDown)
-		document.addEventListener('keyup', handleKeyUp)
+		container.addEventListener('keydown', handleKeyDown)
+		container.addEventListener('keyup', handleKeyUp)
 
 		window.addEventListener('blur', handleBlur)
 		window.addEventListener('focus', handleFocus)
@@ -254,13 +255,14 @@ export function useDocumentEvents() {
 		return () => {
 			container.removeEventListener('touchstart', handleTouchStart)
 
-			document.removeEventListener('wheel', handleWheel)
+			container.removeEventListener('wheel', handleWheel)
+
 			document.removeEventListener('gesturestart', preventDefault)
 			document.removeEventListener('gesturechange', preventDefault)
 			document.removeEventListener('gestureend', preventDefault)
 
-			document.removeEventListener('keydown', handleKeyDown)
-			document.removeEventListener('keyup', handleKeyUp)
+			container.removeEventListener('keydown', handleKeyDown)
+			container.removeEventListener('keyup', handleKeyUp)
 
 			window.removeEventListener('blur', handleBlur)
 			window.removeEventListener('focus', handleFocus)
