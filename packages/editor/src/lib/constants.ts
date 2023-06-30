@@ -95,7 +95,7 @@ export const GRID_STEPS = [
 ]
 
 /** @internal */
-export const COLLABORATOR_INACTIVE_TIMEOUT = 3000
+export const COLLABORATOR_INACTIVE_TIMEOUT = 60000
 
 /** @internal */
 export const COLLABORATOR_IDLE_TIMEOUT = 3000
