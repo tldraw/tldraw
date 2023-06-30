@@ -16,15 +16,19 @@ export const LiveCollaborators = track(function Collaborators() {
 	return (
 		<>
 			{peerIds.map((id) => (
-				<CollaboratorGuard key={id} userId={id} />
+				<CollaboratorGuard key={id} collaboratorId={id} />
 			))}
 		</>
 	)
 })
 
-const CollaboratorGuard = track(function CollaboratorGuard({ userId }: { userId: string }) {
+const CollaboratorGuard = track(function CollaboratorGuard({
+	collaboratorId,
+}: {
+	collaboratorId: string
+}) {
 	const editor = useEditor()
-	const presence = usePresence(userId)
+	const presence = usePresence(collaboratorId)
 	const collaboratorState = useCollaboratorState(presence)
 
 	if (!(presence && presence.currentPageId === editor.currentPageId)) {
@@ -36,7 +40,7 @@ const CollaboratorGuard = track(function CollaboratorGuard({ userId }: { userId:
 		case 'inactive': {
 			const { followingUserId, highlightedUserIds } = editor.instanceState
 			// If they're inactive and unless we're following them or they're highlighted, hide them
-			if (!(followingUserId === userId || highlightedUserIds.includes(userId))) {
+			if (!(followingUserId === presence.userId || highlightedUserIds.includes(presence.userId))) {
 				return null
 			}
 			break
@@ -46,7 +50,7 @@ const CollaboratorGuard = track(function CollaboratorGuard({ userId }: { userId:
 			// If they're idle and following us and unless they have a chat message or are highlighted, hide them
 			if (
 				presence.followingUserId === editor.user.id &&
-				!(presence.chatMessage || highlightedUserIds.includes(userId))
+				!(presence.chatMessage || highlightedUserIds.includes(presence.userId))
 			) {
 				return null
 			}
