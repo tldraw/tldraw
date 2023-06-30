@@ -1,13 +1,10 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
-set -eux
 
 # if the folder we're in is called bublic, it means we're a submodule in the brivate repo.
 # We need to grab .envrc to set up yarn correctly.
 current_file="$(readlink -f "$0")"
-echo "current_file: $current_file"
 if [[ $current_file == */bublic/.husky/pre-commit ]]; then
-	echo "grabbing .envrc"
 	source "$(dirname -- "$0")/../../.envrc"
 fi
 
