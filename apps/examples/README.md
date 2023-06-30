@@ -16,7 +16,7 @@ Start the development server:
 yarn dev
 ```
 
-Then you can try individual examples by using different paths listed below. eg: `localhost:5420/basic`.
+Then you can try individual examples by using different paths listed below. eg: `localhost:5420/basic`. You can explore their source code in the [`src`](src) folder.
 
 | Path | Description |
 | ---- | ----------- |
