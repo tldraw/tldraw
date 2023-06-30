@@ -12,9 +12,9 @@ jobs:
     runs-on: ubuntu-latest-16-cores-open
 
     steps:
-      - name: tldraw-repo-sync token
-        id: tldraw-repo-sync
-        uses: getsentry/action-github-app-token@v2
+      - name: Generate GH token
+        id: generate_token
+        uses: tibdex/github-app-token@b62528385c34dbc9f38e5f4225ac829252d1ea92
         with:
           app_id: ${{ secrets.HUPPY_APP_ID }}
           private_key: ${{ secrets.HUPPY_APP_PRIVATE_KEY }}
@@ -22,7 +22,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.STEVES_PUBLISH_TOKEN }}
+          token: ${{ steps.generate_token.outputs.token }}
 
       - name: Prepare repository
         # Fetch full git history and tags for auto
@@ -44,6 +44,6 @@ jobs:
       - name: Publish
         run: yarn tsx ./scripts/publish-new.ts
         env:
-          GH_TOKEN: ${{ secrets.STEVES_PUBLISH_TOKEN }}
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           HUPPY_TOKEN: ${{ secrets.HUPPY_TOKEN }}
