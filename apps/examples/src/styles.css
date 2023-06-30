@@ -8,6 +8,7 @@ body {
 	overscroll-behavior: none;
 	touch-action: none;
 	min-height: 100vh;
+	font-size: 16px;
 	/* mobile viewport bug fix */
 	min-height: -webkit-fill-available;
 	height: 100%;
@@ -22,4 +23,34 @@ html,
 	position: fixed;
 	inset: 0px;
 	overflow: hidden;
+}
+
+.examples {
+	padding: 16px;
+}
+
+.examples__lockup {
+	height: 64px;
+}
+
+.examples__list {
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	margin: 0;
+	list-style: none;
+}
+
+.examples__list__item {
+	padding: 8px 12px;
+	margin: 0px -12px;
+}
+
+.examples__list__item a {
+	text-decoration: none;
+	color: inherit;
+}
+
+.examples__list__item a:hover {
+	text-decoration: underline;
 }
