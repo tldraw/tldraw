@@ -34,8 +34,11 @@ const CollaboratorGuard = track(function CollaboratorGuard({ userId }: { userId:
 
 	switch (collaboratorState) {
 		case 'inactive': {
-			// we always hide inactive collaborators
-			return null
+			// we hide inactive collaborators unless they're highlighted
+			if (!editor.instanceState.highlightedUserIds.includes(userId)) {
+				return null
+			}
+			break
 		}
 		case 'idle': {
 			if (
