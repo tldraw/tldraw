@@ -1,4 +1,5 @@
 import { track } from '@tldraw/state'
+import { TLInstancePresence } from '@tldraw/tlschema'
 import { useEffect, useRef, useState } from 'react'
 import { COLLABORATOR_CHECK_INTERVAL, COLLABORATOR_TIMEOUT } from '../constants'
 import { useEditor } from '../hooks/useEditor'
@@ -19,7 +20,6 @@ export const LiveCollaborators = track(function Collaborators() {
 
 const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
 	const editor = useEditor()
-	const { viewportPageBounds, zoomLevel } = editor
 
 	const {
 		CollaboratorBrush,
@@ -31,38 +31,39 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 
 	const latestPresence = usePresence(userId)
 
-	const [isTimedOut, setIsTimedOut] = useState(false)
-	const rLastSeen = useRef(-1)
-
-	useEffect(() => {
-		const interval = setInterval(() => {
-			setIsTimedOut(Date.now() - rLastSeen.current > COLLABORATOR_TIMEOUT)
-		}, COLLABORATOR_CHECK_INTERVAL)
-
-		return () => clearInterval(interval)
-	}, [])
+	const isTimedOut = useCollaboratorTimeout(latestPresence)
 
 	if (!latestPresence) return null
 
-	// We can do this on every render, it's free and would be the same as running a useEffect with a dependency on the timestamp
-	rLastSeen.current = latestPresence.lastActivityTimestamp
+	const {
+		followingUserId,
+		currentPageId,
+		brush,
+		scribble,
+		selectedIds,
+		userName,
+		cursor,
+		color,
+		chatMessage,
+	} = latestPresence
 
-	// If the user has timed out
-	// ... and we're not following them
-	// ... and they're not highlighted
-	// then we'll hide the contributor
-	if (
-		isTimedOut &&
-		editor.instanceState.followingUserId !== userId &&
-		!latestPresence.chatMessage &&
-		!editor.instanceState.highlightedUserIds.includes(userId)
-	)
-		return null
+	// If a collaborator is following me...
+	// Then we want to hide the cursor UNLESS the collaborator
+	// - has a chat message,
+	// - is highlighted; or
+	// - is moving their cursor around
+	if (followingUserId === userId && isTimedOut && !chatMessage) {
+		// nest this to avoid dereferencing instance state if not necessary
+		const { followingUserId, highlightedUserIds } = editor.instanceState
+		if (!(followingUserId === userId || highlightedUserIds.includes(userId))) {
+			return null
+		}
+	}
 
 	// if the collaborator is on another page, ignore them
-	if (latestPresence.currentPageId !== editor.currentPageId) return null
+	if (currentPageId !== editor.currentPageId) return null
 
-	const { brush, scribble, selectedIds, userName, cursor, color, chatMessage } = latestPresence
+	const { viewportPageBounds, zoomLevel } = editor
 
 	// Add a little padding to the top-left of the viewport
 	// so that the cursor doesn't get cut off
@@ -127,3 +128,23 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 		</>
 	)
 })
+
+function useCollaboratorTimeout(latestPresence: TLInstancePresence | null) {
+	const [isTimedOut, setIsTimedOut] = useState(false)
+	const rLastSeen = useRef(-1)
+
+	useEffect(() => {
+		const interval = setInterval(() => {
+			setIsTimedOut(Date.now() - rLastSeen.current > COLLABORATOR_TIMEOUT)
+		}, COLLABORATOR_CHECK_INTERVAL)
+
+		return () => clearInterval(interval)
+	}, [])
+
+	if (latestPresence) {
+		// We can do this on every render, it's free and would be the same as running a useEffect with a dependency on the timestamp
+		rLastSeen.current = latestPresence.lastActivityTimestamp
+	}
+
+	return isTimedOut
+}
