@@ -16,31 +16,21 @@ export const LiveCollaborators = track(function Collaborators() {
 	return (
 		<>
 			{peerIds.map((id) => (
-				<Collaborator key={id} userId={id} />
+				<CollaboratorGuard key={id} userId={id} />
 			))}
 		</>
 	)
 })
 
-const Collaborator = track(function Collaborator({ userId }: { userId: string }) {
+const CollaboratorGuard = track(function CollaboratorGuard({ userId }: { userId: string }) {
 	const editor = useEditor()
-
-	const {
-		CollaboratorBrush,
-		CollaboratorScribble,
-		CollaboratorCursor,
-		CollaboratorHint,
-		CollaboratorShapeIndicator,
-	} = useEditorComponents()
-
 	const latestPresence = usePresence(userId)
-
 	const collaboratorState = useCollaboratorState(latestPresence)
 
-	if (!latestPresence) return null
-
-	// if the collaborator is on another page, ignore them
-	if (latestPresence.currentPageId !== editor.currentPageId) return null
+	if (!(latestPresence && latestPresence.currentPageId === editor.currentPageId)) {
+		// No need to render if we don't have a presence or if they're on a different page
+		return null
+	}
 
 	switch (collaboratorState) {
 		case 'inactive': {
@@ -65,8 +55,27 @@ const Collaborator = track(function Collaborator({ userId }: { userId: string })
 		}
 	}
 
-	const { chatMessage, brush, scribble, selectedIds, userName, cursor, color } = latestPresence
+	return <Collaborator latestPresence={latestPresence} />
+})
+
+const Collaborator = track(function Collaborator({
+	latestPresence,
+}: {
+	latestPresence: TLInstancePresence
+}) {
+	const editor = useEditor()
+
+	const {
+		CollaboratorBrush,
+		CollaboratorScribble,
+		CollaboratorCursor,
+		CollaboratorHint,
+		CollaboratorShapeIndicator,
+	} = useEditorComponents()
+
 	const { viewportPageBounds, zoomLevel } = editor
+	const { userId, chatMessage, brush, scribble, selectedIds, userName, cursor, color } =
+		latestPresence
 
 	// Add a little padding to the top-left of the viewport
 	// so that the cursor doesn't get cut off
