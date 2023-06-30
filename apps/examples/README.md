@@ -1,4 +1,4 @@
-# tldraw Examples
+# Examples
 
 This folder contains examples of how to use the tldraw library.
 
@@ -16,9 +16,7 @@ Start the development server:
 yarn dev
 ```
 
-Then you can try individual examples by using different paths. eg: `localhost:5420/basic`, `localhost:5420/custom-config`, etc.
-
-## Individual Examples
+Then you can try individual examples by using different paths listed below. eg: `localhost:5420/basic`.
 
 | Path | Description |
 | ---- | ----------- |
