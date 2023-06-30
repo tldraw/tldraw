@@ -141,30 +141,33 @@ const Collaborator = track(function Collaborator({
 	)
 })
 
-function useCollaboratorState(latestPresence: TLInstancePresence | null) {
-	const [state, setState] = useState<'active' | 'idle' | 'inactive'>('active')
+function getStateFromElapsedTime(elapsed: number) {
+	return elapsed > COLLABORATOR_INACTIVE_TIMEOUT
+		? 'inactive'
+		: elapsed > COLLABORATOR_IDLE_TIMEOUT
+		? 'idle'
+		: 'active'
+}
 
-	const rLastSeen = useRef(-1)
+function useCollaboratorState(latestPresence: TLInstancePresence | null) {
+	const rLastActivityTimestamp = useRef(latestPresence?.lastActivityTimestamp ?? -1)
+
+	const [state, setState] = useState<'active' | 'idle' | 'inactive'>(() =>
+		getStateFromElapsedTime(Date.now() - rLastActivityTimestamp.current)
+	)
 
 	useEffect(() => {
-		let elapsed: number
 		const interval = setInterval(() => {
-			elapsed = Date.now() - rLastSeen.current
-			setState(
-				elapsed > COLLABORATOR_INACTIVE_TIMEOUT
-					? 'inactive'
-					: elapsed > COLLABORATOR_IDLE_TIMEOUT
-					? 'idle'
-					: 'active'
-			)
+			setState(getStateFromElapsedTime(Date.now() - rLastActivityTimestamp.current))
 		}, COLLABORATOR_CHECK_INTERVAL)
 
 		return () => clearInterval(interval)
 	}, [])
 
 	if (latestPresence) {
-		// We can do this on every render, it's free and would be the same as running a useEffect with a dependency on the timestamp
-		rLastSeen.current = latestPresence.lastActivityTimestamp
+		// We can do this on every render, it's free and cheaper than an effect
+		// remember, there can be lots and lots of cursors moving around all the time
+		rLastActivityTimestamp.current = latestPresence.lastActivityTimestamp
 	}
 
 	return state
