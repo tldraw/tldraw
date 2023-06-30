@@ -19,7 +19,7 @@ export default function MultipleExample() {
 
 			<h2>Second Example</h2>
 			<p>This is the second example.</p>
-			<div style={{ width: '100%', height: '600px', padding: 60 }} tabIndex={-1}>
+			<div style={{ width: '100%', height: '600px' }} tabIndex={-1}>
 				<Tldraw persistenceKey="david" autoFocus={false} />
 			</div>
 
