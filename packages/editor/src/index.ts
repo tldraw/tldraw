@@ -90,6 +90,7 @@ export {
 	ExternalContentManager as PlopManager,
 	type TLExternalContent,
 } from './lib/editor/managers/ExternalContentManager'
+export { ScribbleManager } from './lib/editor/managers/ScribbleManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,

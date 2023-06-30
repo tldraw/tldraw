@@ -189,9 +189,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	}
 
 	migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>> {
+		let { store } = snapshot
+
 		const migrations = this.options.snapshotMigrations
 		if (!migrations) {
-			return { type: 'success', value: snapshot.store }
+			return { type: 'success', value: store }
 		}
 		// apply store migrations first
 		const ourStoreVersion = migrations.currentVersion
@@ -203,7 +205,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 		if (ourStoreVersion > persistedStoreVersion) {
 			const result = migrate<SerializedStore<R>>({
-				value: snapshot.store,
+				value: store,
 				migrations,
 				fromVersion: persistedStoreVersion,
 				toVersion: ourStoreVersion,
@@ -212,11 +214,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			if (result.type === 'error') {
 				return result
 			}
-			snapshot.store = result.value
+			store = result.value
 		}
 
 		const updated: R[] = []
-		for (const r of objectMapValues(snapshot.store)) {
+		for (const r of objectMapValues(store)) {
 			const result = this.migratePersistedRecord(r, snapshot.schema)
 			if (result.type === 'error') {
 				return result
@@ -225,12 +227,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			}
 		}
 		if (updated.length) {
-			snapshot.store = { ...snapshot.store }
+			store = { ...store }
 			for (const r of updated) {
-				snapshot.store[r.id as IdOf<R>] = r
+				store[r.id as IdOf<R>] = r
 			}
 		}
-		return { type: 'success', value: snapshot.store }
+		return { type: 'success', value: store }
 	}
 
 	/** @internal */

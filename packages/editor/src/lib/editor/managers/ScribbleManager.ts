@@ -2,6 +2,7 @@ import { Vec2d, VecLike } from '@tldraw/primitives'
 import { TLScribble, Vec2dModel } from '@tldraw/tlschema'
 import { TLTickEvent } from '../types/event-types'
 
+/** @public */
 export class ScribbleManager implements TLScribble {
 	// Scribble properties
 	state

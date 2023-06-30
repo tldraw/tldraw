@@ -224,6 +224,7 @@ editor.updateShapes([
 ])
 ```
 
+
 ### Delete shapes
 
 ```ts
@@ -243,6 +244,46 @@ editor.getShapeById(myShapeId)
 ```ts
 editor.setCamera(0, 0, 1)
 ```
+
+## Meta
+
+Shapes have a `meta` property that you can fill with your own data. This should feel like a bit of a hack, however it's intended to be an escape hatch for applications where you want to use tldraw's shapes but also want to attach a bit of extra data to the shape.
+
+Note that tldraw's regular shape definitions have an unknown object for the shape's `meta` property. To type your shape's meta, use a union like this:
+
+```ts
+type MyShapeWithMeta = TLGeoShape & { meta: { createdBy: string } }
+
+const shape = editor.getShapeById<MyShapeWithMeta>(myGeoShape.id)
+```
+
+You can update a shape's `meta` property in the same way you would update its props, using `Editor.updateShapes`.
+
+```ts
+editor.updateShapes<MyShapeWithMeta>([{
+  id: myGeoShape.id,
+  type: "geo",
+  meta: {
+    createdBy: "Steve"
+  }
+}])
+```
+
+Like `props`, the data in a shape's `meta` object must be JSON serializable.
+
+In addition to setting meta properties this way, you can also set the default meta data for shapes using the Editor's `getShapeInitialMeta` method.
+
+```tsx
+editor.getShapeInitialMeta = (shape: TLShape) => {
+  if (shape.type === 'text') {
+    return { createdBy: currentUser.id, lastModified: Date.now() } 
+  } else {
+    return { createdBy: currentUser.id }
+  }
+}
+```
+
+Whenever new shapes are created using the `createShapes` method, the shape's meta property will be set using the `getShapeInitialMeta` method. By default this method returns an empty object.
 
 ---
 

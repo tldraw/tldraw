@@ -4217,7 +4217,6 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     "@types/benchmark": ^2.1.2
     "@types/canvas-size": ^1.2.0
-    "@types/crc": ^3.8.0
     "@types/lodash.throttle": ^4.1.7
     "@types/lodash.uniq": ^4.5.7
     "@types/react-test-renderer": ^18.0.0
@@ -4226,7 +4225,6 @@ __metadata:
     benchmark: ^2.1.4
     canvas-size: ^1.2.6
     classnames: ^2.3.2
-    crc: ^4.3.2
     escape-string-regexp: ^5.0.0
     eventemitter3: ^4.0.7
     fake-indexeddb: ^4.0.0
@@ -4666,15 +4664,6 @@ __metadata:
   version: 0.4.1
   resolution: "@types/cookie@npm:0.4.1"
   checksum: 3275534ed69a76c68eb1a77d547d75f99fedc80befb75a3d1d03662fb08d697e6f8b1274e12af1a74c6896071b11510631ba891f64d30c78528d0ec45a9c1a18
-  languageName: node
-  linkType: hard
-
-"@types/crc@npm:^3.8.0":
-  version: 3.8.0
-  resolution: "@types/crc@npm:3.8.0"
-  dependencies:
-    "@types/node": "*"
-  checksum: bcf040c3026ec812f4ac87423f42e7ef869483e8b87967184bd2bd26c9a9c358fce41217383adf83a36b53e821a608e784f6a973fd02192b540f55a5395c9180
   languageName: node
   linkType: hard
 
@@ -7239,18 +7228,6 @@ __metadata:
     path-type: ^4.0.0
     yaml: ^1.10.0
   checksum: 6801feaa0249e9b9fdde5b3d70dc33b4f9c69095bec94d67e3fe08b66eac24dc7e2099f053597cfbc94b743de269aa5d2cfa7da3fde765433423b06bd122941a
-  languageName: node
-  linkType: hard
-
-"crc@npm:^4.3.2":
-  version: 4.3.2
-  resolution: "crc@npm:4.3.2"
-  peerDependencies:
-    buffer: ">=6.0.3"
-  peerDependenciesMeta:
-    buffer:
-      optional: true
-  checksum: 8231cc25331727083ffd22da3575110fc49b4dc8725de973bd43261d4426aba134ed3a75cc247f7c5e97a6e171f87dffc3325b82890e86d032de2e6bcef09c32
   languageName: node
   linkType: hard
 

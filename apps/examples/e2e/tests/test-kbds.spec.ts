@@ -299,6 +299,12 @@ test.describe('Keyboard Shortcuts', () => {
 
 			/* ---------------------- Misc ---------------------- */
 
+			// toggle lock
+			await page.keyboard.press('Shift+l')
+			expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
+				name: 'toggle-lock',
+			})
+
 			// await page.keyboard.press('Control+i')
 			// expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			// 	name: 'open-menu',
