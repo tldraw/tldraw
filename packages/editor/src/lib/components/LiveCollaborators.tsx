@@ -24,41 +24,41 @@ export const LiveCollaborators = track(function Collaborators() {
 
 const CollaboratorGuard = track(function CollaboratorGuard({ userId }: { userId: string }) {
 	const editor = useEditor()
-	const latestPresence = usePresence(userId)
-	const collaboratorState = useCollaboratorState(latestPresence)
+	const presence = usePresence(userId)
+	const collaboratorState = useCollaboratorState(presence)
 
-	if (!(latestPresence && latestPresence.currentPageId === editor.currentPageId)) {
+	if (!(presence && presence.currentPageId === editor.currentPageId)) {
 		// No need to render if we don't have a presence or if they're on a different page
 		return null
 	}
 
 	switch (collaboratorState) {
 		case 'inactive': {
-			// we hide inactive collaborators unless they're highlighted
-			if (!editor.instanceState.highlightedUserIds.includes(userId)) {
+			const { followingUserId, highlightedUserIds } = editor.instanceState
+			// If they're inactive and unless we're following them or they're highlighted, hide them
+			if (!(followingUserId === userId || highlightedUserIds.includes(userId))) {
 				return null
 			}
 			break
 		}
 		case 'idle': {
+			const { highlightedUserIds } = editor.instanceState
+			// If they're idle and following us and unless they have a chat message or are highlighted, hide them
 			if (
-				// If they're following us
-				latestPresence.followingUserId === userId &&
-				// and unless they have a chat message or are highlighted
-				!(latestPresence.chatMessage || editor.instanceState.highlightedUserIds.includes(userId))
+				presence.followingUserId === editor.user.id &&
+				!(presence.chatMessage || highlightedUserIds.includes(userId))
 			) {
-				// then hide them
 				return null
 			}
 			break
 		}
 		case 'active': {
-			// we always show active collaborator cursors
+			// If they're active, show them
 			break
 		}
 	}
 
-	return <Collaborator latestPresence={latestPresence} />
+	return <Collaborator latestPresence={presence} />
 })
 
 const Collaborator = track(function Collaborator({
