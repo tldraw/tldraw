@@ -87,7 +87,7 @@ import {
 	CAMERA_MAX_RENDERING_INTERVAL,
 	CAMERA_MOVING_TIMEOUT,
 	COARSE_DRAG_DISTANCE,
-	COLLABORATOR_TIMEOUT,
+	COLLABORATOR_IDLE_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_PAN_SNAP,
@@ -3150,7 +3150,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (index < 0) return
 				highlightedUserIds.splice(index, 1)
 				this.updateInstanceState({ highlightedUserIds })
-			}, COLLABORATOR_TIMEOUT)
+			}, COLLABORATOR_IDLE_TIMEOUT)
 		})
 	}
 
