@@ -145,7 +145,7 @@ function App() {
 	return (
 		<div className="examples">
 			<div className="examples__header">
-				<img src="./tldraw.svg" alt="tldraw logo" className="examples__lockup" />
+				<img src="tldraw.svg" alt="tldraw logo" className="examples__lockup" />
 				<p>
 					See docs at <a href="https://tldraw.dev">tldraw.dev</a>
 				</p>
