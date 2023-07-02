@@ -37,7 +37,7 @@ export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
 	return (
 		<>
 			<ShapeFill d={innerPath} color={color} fill={fill} />
-			<path d={outerPath} fill={theme[color].solid} strokeWidth={0} pointerEvents="all" />
+			<path d={outerPath} fill={color in theme ? theme[color].solid : color} strokeWidth={0} pointerEvents="all" />
 		</>
 	)
 })
@@ -57,7 +57,7 @@ export function DrawStyleEllipseSvg({
 }) {
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', getEllipsePath(id, w, h, sw))
-	strokeElement.setAttribute('fill', theme[color].solid)
+	strokeElement.setAttribute('fill', color in theme ? theme[color].solid : color)
 
 	// Get the fill element, if any
 	const fillElement = getShapeFillSvg({

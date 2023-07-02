@@ -74,8 +74,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					<div
 						className="tl-note__container tl-hitarea-fill"
 						style={{
-							color: theme[adjustedColor].solid,
-							backgroundColor: theme[adjustedColor].solid,
+							color: adjustedColor in theme ? theme[adjustedColor].solid : adjustedColor,
+							backgroundColor: adjustedColor in theme ? theme[adjustedColor].solid : adjustedColor,
 						}}
 					>
 						<div className="tl-note__scrim" />
@@ -122,8 +122,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		rect1.setAttribute('rx', '10')
 		rect1.setAttribute('width', NOTE_SIZE.toString())
 		rect1.setAttribute('height', bounds.height.toString())
-		rect1.setAttribute('fill', theme[adjustedColor].solid)
-		rect1.setAttribute('stroke', theme[adjustedColor].solid)
+		rect1.setAttribute('fill', adjustedColor in theme ? theme[adjustedColor].solid : adjustedColor)
+		rect1.setAttribute('stroke', adjustedColor in theme ? theme[adjustedColor].solid : adjustedColor)
 		rect1.setAttribute('stroke-width', '1')
 		g.appendChild(rect1)
 

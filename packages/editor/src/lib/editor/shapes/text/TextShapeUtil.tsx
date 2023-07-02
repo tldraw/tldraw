@@ -96,7 +96,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 						transformOrigin: 'top left',
 						width: Math.max(1, width),
 						height: Math.max(FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight, height),
-						color: theme[color].solid,
+						color: color in theme ? theme[color].solid : color,
 					}}
 				>
 					<div className="tl-text tl-text-content" dir="ltr">
@@ -161,7 +161,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			overflow: 'wrap' as const,
 		}
 
-		const color = theme[shape.props.color].solid
+		const color = shape.props.color in theme ? theme[shape.props.color].solid : shape.props.color
 		const groupEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const textBgEl = createTextSvgElementFromSpans(

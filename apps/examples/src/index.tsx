@@ -25,6 +25,7 @@ import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
 import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
+import CustomColorsExample from './18-custom-colors/CustomColorsExample'
 import EndToEnd from './end-to-end/end-to-end'
 import YjsExample from './yjs/YjsExample'
 
@@ -117,6 +118,10 @@ export const allExamples: Example[] = [
 	{
 		path: '/shape-meta',
 		element: <ShapeMetaExample />,
+	},
+	{
+		path: '/custom-colors',
+		element: <CustomColorsExample />,
 	},
 ]
 

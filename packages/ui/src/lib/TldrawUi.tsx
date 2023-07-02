@@ -34,6 +34,7 @@ export type TldrawUiProps = {
 	topZone?: ReactNode
 	/** Additional items to add to the debug menu  (will be deprecated)*/
 	renderDebugMenuItems?: () => React.ReactNode
+	customColors?: string[]
 } & TldrawUiContextProviderProps
 
 /**

@@ -158,7 +158,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					<path
 						d={getSvgPathFromStroke(strokeOutlinePoints, true)}
 						strokeLinecap="round"
-						fill={theme[shape.props.color].solid}
+						fill={shape.props.color in theme ? theme[shape.props.color].solid : shape.props.color}
 					/>
 				</SVGContainer>
 			)
@@ -175,7 +175,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					d={solidStrokePath}
 					strokeLinecap="round"
 					fill="none"
-					stroke={theme[shape.props.color].solid}
+					stroke={shape.props.color in theme ? theme[shape.props.color].solid : shape.props.color}
 					strokeWidth={strokeWidth}
 					strokeDasharray={getDrawShapeStrokeDashArray(shape, strokeWidth)}
 					strokeDashoffset="0"
@@ -241,14 +241,14 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 			const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 			p.setAttribute('d', getSvgPathFromStroke(strokeOutlinePoints, true))
-			p.setAttribute('fill', theme[color].solid)
+			p.setAttribute('fill', color in theme ? theme[color].solid : color)
 			p.setAttribute('stroke-linecap', 'round')
 
 			foregroundPath = p
 		} else {
 			const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 			p.setAttribute('d', solidStrokePath)
-			p.setAttribute('stroke', theme[color].solid)
+			p.setAttribute('stroke', color in theme ? theme[color].solid : color)
 			p.setAttribute('fill', 'none')
 			p.setAttribute('stroke-linecap', 'round')
 			p.setAttribute('stroke-width', strokeWidth.toString())

@@ -16,6 +16,7 @@ export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
 		...rest,
 		shapes: useMemo(() => [...defaultShapes, ...(rest.shapes ?? [])], [rest.shapes]),
 		tools: useMemo(() => [...defaultTools, ...(rest.tools ?? [])], [rest.tools]),
+		customColors: rest.customColors || [],
 	}
 
 	return (

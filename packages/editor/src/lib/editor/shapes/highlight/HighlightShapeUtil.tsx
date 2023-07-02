@@ -236,7 +236,7 @@ function HighlightRenderer({
 	const forceSolid = useForceSolid()
 	const { solidStrokePath, sw } = getHighlightSvgPath(shape, strokeWidth, forceSolid)
 	const colorSpace = useColorSpace()
-	const color = theme[shape.props.color].highlight[colorSpace]
+	const color = shape.props.color in theme ? theme[shape.props.color].highlight[colorSpace] : shape.props.color
 
 	return (
 		<SVGContainer id={shape.id} style={{ opacity }}>

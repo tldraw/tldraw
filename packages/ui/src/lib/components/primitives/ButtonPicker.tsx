@@ -109,11 +109,11 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 					data-testid={`style.${uiType}.${item.value}`}
 					aria-label={item.value}
 					data-state={value.type === 'shared' && value.value === item.value ? 'hinted' : undefined}
-					title={title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
+					title={title + ' — ' + item.title !== undefined ? item.title : msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)}
 					className={classNames('tlui-button-grid__button')}
 					style={
 						style === (DefaultColorStyle as StyleProp<unknown>)
-							? { color: theme[item.value as TLDefaultColorStyle].solid }
+							? { color: theme[item.value as TLDefaultColorStyle]?.solid || item.value }
 							: undefined
 					}
 					onPointerEnter={handleButtonPointerEnter}

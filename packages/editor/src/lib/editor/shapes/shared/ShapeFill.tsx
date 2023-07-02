@@ -27,7 +27,7 @@ export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: Shape
 			return <path className={'tl-hitarea-stroke'} fill="none" d={d} />
 		}
 		case 'solid': {
-			return <path className={'tl-hitarea-fill-solid'} fill={theme[color].semi} d={d} />
+			return <path className={'tl-hitarea-fill-solid'} fill={color in theme ? theme[color].semi : color} d={d} />
 		}
 		case 'semi': {
 			return <path className={'tl-hitarea-fill-solid'} fill={theme.solid} d={d} />
@@ -49,11 +49,11 @@ const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
 
 	return (
 		<>
-			<path className={'tl-hitarea-fill-solid'} fill={theme[color].pattern} d={d} />
+			<path className={'tl-hitarea-fill-solid'} fill={color in theme ? theme[color].pattern : color} d={d} />
 			<path
 				fill={
 					teenyTiny
-						? theme[color].semi
+						? color in theme ? theme[color].semi : color
 						: `url(#${HASH_PATTERN_ZOOM_NAMES[intZoom + (isDarkMode ? '_dark' : '_light')]})`
 				}
 				d={d}
@@ -76,7 +76,7 @@ export function getShapeFillSvg({
 		const gEl = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const path1El = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 		path1El.setAttribute('d', d)
-		path1El.setAttribute('fill', theme[color].pattern)
+		path1El.setAttribute('fill', color in theme ? theme[color].pattern : color)
 
 		const path2El = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 		path2El.setAttribute('d', d)
@@ -97,7 +97,7 @@ export function getShapeFillSvg({
 		}
 		case 'solid': {
 			{
-				path.setAttribute('fill', theme[color].semi)
+				path.setAttribute('fill', color in theme ? theme[color].semi : color)
 			}
 			break
 		}

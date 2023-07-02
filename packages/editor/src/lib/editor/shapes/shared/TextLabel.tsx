@@ -80,7 +80,7 @@ export const TextLabel = React.memo(function TextLabel<
 					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
 					minHeight: isEmpty ? LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 32 : 0,
 					minWidth: isEmpty ? 33 : 0,
-					color: theme[labelColor].solid,
+					color: labelColor in theme ? theme[labelColor].solid : labelColor,
 				}}
 			>
 				<div className="tl-text tl-text-content" dir="ltr">

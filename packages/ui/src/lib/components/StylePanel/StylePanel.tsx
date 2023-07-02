@@ -27,6 +27,7 @@ import { Slider } from '../primitives/Slider'
 import { DoubleDropdownPicker } from './DoubleDropdownPicker'
 import { DropdownPicker } from './DropdownPicker'
 import { STYLES } from './styles'
+import { useCustomColors } from '../../hooks/useCustomColors'
 
 interface StylePanelProps {
 	isMobile?: boolean
@@ -103,6 +104,34 @@ function useStyleChangeCallback() {
 
 const tldrawSupportedOpacities = [0.1, 0.25, 0.5, 0.75, 1] as const
 
+function ColorPicker({ styles }: { styles: ReadonlySharedStyleMap }) {
+	const msg = useTranslation()
+
+	const handleValueChange = useStyleChangeCallback()
+
+	const color = styles.get(DefaultColorStyle)
+	const customColors = useCustomColors()
+	const customColorMenuItems = [...customColors].map((customColor) =>
+		({ icon: 'color', value: customColor, title: customColor }))
+
+	if (color === undefined) {
+		return null;
+	}
+
+	return (
+		<>
+			<ButtonPicker
+				title={msg('style-panel.color')}
+				uiType="color"
+				style={DefaultColorStyle}
+				items={[...STYLES.color, ...customColorMenuItems]}
+				value={color}
+				onValueChange={handleValueChange}
+			/>
+		</>
+	);
+}
+
 function CommonStylePickerSet({
 	styles,
 	opacity,
@@ -124,7 +153,6 @@ function CommonStylePickerSet({
 		[editor]
 	)
 
-	const color = styles.get(DefaultColorStyle)
 	const fill = styles.get(DefaultFillStyle)
 	const dash = styles.get(DefaultDashStyle)
 	const size = styles.get(DefaultSizeStyle)
@@ -143,16 +171,7 @@ function CommonStylePickerSet({
 	return (
 		<>
 			<div className="tlui-style-panel__section__common" aria-label="style panel styles">
-				{color === undefined ? null : (
-					<ButtonPicker
-						title={msg('style-panel.color')}
-						uiType="color"
-						style={DefaultColorStyle}
-						items={STYLES.color}
-						value={color}
-						onValueChange={handleValueChange}
-					/>
-				)}
+				<ColorPicker styles={styles} />
 				{opacity === undefined ? null : (
 					<Slider
 						data-testid="style.opacity"

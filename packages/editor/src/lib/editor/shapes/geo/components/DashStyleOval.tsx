@@ -46,7 +46,7 @@ export const DashStyleOval = React.memo(function DashStyleOval({
 				width={toDomPrecision(w)}
 				height={toDomPrecision(h)}
 				fill="none"
-				stroke={theme[color].solid}
+				stroke={color in theme ? theme[color].solid : color}
 				strokeDasharray={strokeDasharray}
 				strokeDashoffset={strokeDashoffset}
 				pointerEvents="all"
@@ -87,7 +87,7 @@ export function DashStyleOvalSvg({
 	strokeElement.setAttribute('width', w.toString())
 	strokeElement.setAttribute('height', h.toString())
 	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', theme[color].solid)
+	strokeElement.setAttribute('stroke', color in theme ? theme[color].solid : color)
 	strokeElement.setAttribute('stroke-dasharray', strokeDasharray)
 	strokeElement.setAttribute('stroke-dashoffset', strokeDashoffset)
 

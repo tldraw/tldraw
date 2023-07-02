@@ -708,7 +708,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					)}
 					<g
 						fill="none"
-						stroke={theme[shape.props.color].solid}
+						stroke={shape.props.color in theme ? theme[shape.props.color].solid : shape.props.color}
 						strokeWidth={strokeWidth}
 						strokeLinejoin="round"
 						strokeLinecap="round"
@@ -936,7 +936,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const theme = getDefaultColorTheme(this.editor)
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
-		const color = theme[shape.props.color].solid
+		const color = shape.props.color in theme ? theme[shape.props.color].solid : shape.props.color
 
 		const info = this.getArrowInfo(shape)
 
@@ -1136,7 +1136,7 @@ function getArrowheadSvgPath(
 	const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	path.setAttribute('d', d)
 	path.setAttribute('fill', 'none')
-	path.setAttribute('stroke', theme[color].solid)
+	path.setAttribute('stroke', color in theme ? theme[color].solid : color)
 	path.setAttribute('stroke-width', strokeWidth + '')
 
 	// Get the fill element, if any

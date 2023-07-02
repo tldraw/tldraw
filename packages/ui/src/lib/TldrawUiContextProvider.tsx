@@ -15,12 +15,14 @@ import { ToolbarSchemaProvider } from './hooks/useToolbarSchema'
 import { ToolsProvider } from './hooks/useTools'
 import { TranslationProvider } from './hooks/useTranslation/useTranslation'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from './overrides'
+import { CustomColorsProvider } from './hooks/useCustomColors'
 
 /** @public */
 export interface TldrawUiContextProviderProps {
 	assetUrls?: RecursivePartial<TLUiAssetUrls>
 	overrides?: TLUiOverrides | TLUiOverrides[]
 	onUiEvent?: TLUiEventHandler
+	customColors?: string[]
 	children?: any
 }
 
@@ -29,6 +31,7 @@ export function TldrawUiContextProvider({
 	overrides,
 	assetUrls,
 	onUiEvent,
+	customColors,
 	children,
 }: TldrawUiContextProviderProps) {
 	return (
@@ -38,7 +41,7 @@ export function TldrawUiContextProvider({
 					<ToastsProvider>
 						<DialogsProvider>
 							<BreakPointProvider>
-								<InternalProviders overrides={overrides}>{children}</InternalProviders>
+								<InternalProviders overrides={overrides} customColors={customColors}>{children}</InternalProviders>
 							</BreakPointProvider>
 						</DialogsProvider>
 					</ToastsProvider>
@@ -49,6 +52,7 @@ export function TldrawUiContextProvider({
 }
 function InternalProviders({
 	overrides,
+	customColors,
 	children,
 }: Omit<TldrawUiContextProviderProps, 'assetBaseUrl'>) {
 	const mergedOverrides = useMergedOverrides(overrides)
@@ -61,7 +65,9 @@ function InternalProviders({
 							<TLUiContextMenuSchemaProvider overrides={mergedOverrides.contextMenu}>
 								<HelpMenuSchemaProvider overrides={mergedOverrides.helpMenu}>
 									<TLUiMenuSchemaProvider overrides={mergedOverrides.menu}>
-										{children}
+										<CustomColorsProvider customColors={customColors}>
+											{children}
+										</CustomColorsProvider>
 									</TLUiMenuSchemaProvider>
 								</HelpMenuSchemaProvider>
 							</TLUiContextMenuSchemaProvider>

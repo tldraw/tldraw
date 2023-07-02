@@ -38,6 +38,8 @@ export type TldrawEditorProps = {
 	children?: any
 	/** An array of shape utils to use in the editor. */
 	shapes?: readonly AnyTLShapeInfo[]
+	/** An array of additional custom colors in hex format to use in the editor. */
+	customColors?: readonly string[]
 	/** An array of tools to use in the editor. */
 	tools?: readonly TLStateNodeConstructor[]
 	/** Urls for where to find fonts and other assets. */
@@ -100,6 +102,7 @@ declare global {
 }
 
 const EMPTY_SHAPES_ARRAY = [] as const
+const EMPTY_CUSTOM_COLORS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
 
 /** @public */
@@ -120,6 +123,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const withDefaults = {
 		...rest,
 		shapes: rest.shapes ?? EMPTY_SHAPES_ARRAY,
+		customColors: rest.customColors ?? EMPTY_CUSTOM_COLORS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 	}
 
@@ -153,12 +157,13 @@ export const TldrawEditor = memo(function TldrawEditor({
 })
 
 function TldrawEditorWithOwnStore(
-	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapes' | 'tools'>
+	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapes' | 'customColors' | 'tools'>
 ) {
-	const { defaultName, initialData, shapes, persistenceKey, sessionId, user } = props
+	const { defaultName, initialData, shapes, customColors, persistenceKey, sessionId, user } = props
 
 	const syncedStore = useLocalStore({
 		shapes,
+		customColors,
 		initialData,
 		persistenceKey,
 		sessionId,

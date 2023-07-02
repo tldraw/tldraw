@@ -21,7 +21,7 @@ export const SolidStyleOval = React.memo(function SolidStyleOval({
 	return (
 		<>
 			<ShapeFill d={d} color={color} fill={fill} />
-			<path d={d} stroke={theme[color].solid} strokeWidth={sw} fill="none" />
+			<path d={d} stroke={color in theme ? theme[color].solid : color} strokeWidth={sw} fill="none" />
 		</>
 	)
 })
@@ -44,7 +44,7 @@ export function SolidStyleOvalSvg({
 	strokeElement.setAttribute('width', w.toString())
 	strokeElement.setAttribute('height', h.toString())
 	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', theme[color].solid)
+	strokeElement.setAttribute('stroke', color in theme ? theme[color].solid : color)
 
 	// Get the fill element, if any
 	const fillElement = getShapeFillSvg({

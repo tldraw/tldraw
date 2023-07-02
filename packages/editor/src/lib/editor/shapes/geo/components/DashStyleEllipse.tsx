@@ -49,7 +49,7 @@ export const DashStyleEllipse = React.memo(function DashStyleEllipse({
 				width={toDomPrecision(w)}
 				height={toDomPrecision(h)}
 				fill="none"
-				stroke={theme[color].solid}
+				stroke={color in theme ? theme[color].solid : color}
 				strokeDasharray={strokeDasharray}
 				strokeDashoffset={strokeDashoffset}
 				pointerEvents="all"
@@ -96,7 +96,7 @@ export function DashStyleEllipseSvg({
 	strokeElement.setAttribute('width', w.toString())
 	strokeElement.setAttribute('height', h.toString())
 	strokeElement.setAttribute('fill', 'none')
-	strokeElement.setAttribute('stroke', theme[color].solid)
+	strokeElement.setAttribute('stroke', color in theme ? theme[color].solid : color)
 	strokeElement.setAttribute('stroke-dasharray', strokeDasharray)
 	strokeElement.setAttribute('stroke-dashoffset', strokeDashoffset)
 

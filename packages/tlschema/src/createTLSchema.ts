@@ -30,7 +30,7 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
  * @param opts - Options
  *
  * @public */
-export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeInfo> }): TLSchema {
+export function createTLSchema({ shapes, colors }: { shapes: Record<string, SchemaShapeInfo>, colors: string[] }): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
 	for (const shape of objectMapValues(shapes)) {
 		for (const style of getShapePropKeysByStyle(shape.props ?? {}).keys()) {
@@ -39,6 +39,14 @@ export function createTLSchema({ shapes }: { shapes: Record<string, SchemaShapeI
 			}
 			stylesById.set(style.id, style)
 		}
+	}
+
+	const color = stylesById.get('tldraw:color')
+	if (color) {
+		stylesById.set('tldraw:color', StyleProp.defineEnum('tldraw:color', {
+			defaultValue: 'black',
+			values: colors,
+		}))
 	}
 
 	const ShapeRecordType = createShapeRecordType(shapes)

@@ -31,7 +31,7 @@ export const SolidStylePolygon = React.memo(function SolidStylePolygon({
 	return (
 		<>
 			<ShapeFill d={path} fill={fill} color={color} />
-			<path d={path} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
+			<path d={path} stroke={color in theme ? theme[color].solid : color} strokeWidth={strokeWidth} fill="none" />
 		</>
 	)
 })
@@ -63,7 +63,7 @@ export function SolidStylePolygonSvg({
 	const strokeElement = document.createElementNS('http://www.w3.org/2000/svg', 'path')
 	strokeElement.setAttribute('d', strokePathData)
 	strokeElement.setAttribute('stroke-width', strokeWidth.toString())
-	strokeElement.setAttribute('stroke', theme[color].solid)
+	strokeElement.setAttribute('stroke', color in theme ? theme[color].solid : color)
 	strokeElement.setAttribute('fill', 'none')
 
 	// Get the fill element, if any
