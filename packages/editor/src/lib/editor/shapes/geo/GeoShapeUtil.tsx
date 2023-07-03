@@ -38,6 +38,7 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
 import { useForceSolid } from '../shared/useForceSolid'
+import { cloudOutline } from './cloudOutline'
 import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
 import { DashStyleOval, DashStyleOvalSvg } from './components/DashStyleOval'
 import { DashStylePolygon, DashStylePolygonSvg } from './components/DashStylePolygon'
@@ -142,6 +143,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const cy = h / 2
 
 		switch (shape.props.geo) {
+			case 'cloud': {
+				return cloudOutline(w, h)
+			}
 			case 'triangle': {
 				return [new Vec2d(cx, 0), new Vec2d(w, h), new Vec2d(0, h)]
 			}
