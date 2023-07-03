@@ -80,6 +80,7 @@ import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
+import { coreTools } from '../config/defaultTools'
 import { AnyTLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
@@ -190,6 +191,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root = new RootState(this)
 
+		const allTools = [...coreTools, ...tools]
 		const allShapes = checkShapesAndAddCore(shapes)
 
 		const shapeTypesInSchema = new Set(
@@ -233,15 +235,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		for (const { tool: Tool } of allShapes) {
-			if (Tool) {
-				if (hasOwnProperty(this.root.children!, Tool.id)) {
-					throw Error(`Can't override tool with id "${Tool.id}"`)
-				}
-				this.root.children![Tool.id] = new Tool(this)
-			}
-		}
-		for (const Tool of tools) {
+		for (const Tool of allTools) {
 			if (hasOwnProperty(this.root.children!, Tool.id)) {
 				throw Error(`Can't override tool with id "${Tool.id}"`)
 			}
