@@ -344,6 +344,7 @@ export class Resizing extends StateNode {
 	}
 
 	onExit = () => {
+		this.editor.setCursor({ type: 'default' })
 		this.editor.snaps.clear()
 	}
 
