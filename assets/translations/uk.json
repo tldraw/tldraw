@@ -335,5 +335,6 @@
 	"home-project-dialog.description": "Це ваш локальний домашній проєкт. Це тільки для вас!",
 	"rename-project-dialog.title": "Перейменувати проєкт",
 	"rename-project-dialog.cancel": "Скасувати",
-	"rename-project-dialog.rename": "Перейменувати"
+	"rename-project-dialog.rename": "Перейменувати",
+	"home-project-dialog.ok": "Гаразд"
 }
