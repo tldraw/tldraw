@@ -10,7 +10,7 @@ export default function ScrollExample() {
 				display: 'flex',
 				justifyContent: 'center',
 				alignItems: 'center',
-				backgroundImage: 'url(https://source.unsplash.com/random/2000x2000)',
+				backgroundColor: '#fff',
 			}}
 		>
 			<div style={{ width: '60vw', height: '80vh' }}>
