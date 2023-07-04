@@ -1,14 +1,19 @@
-import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { DefaultFontFamilies, getDefaultColorTheme, TLNoteShape } from '@tldraw/tlschema'
-import { Editor } from '../../Editor'
-import { ShapeUtil, TLOnEditEndHandler } from '../ShapeUtil'
-import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
-import { getFontDefForExport } from '../shared/defaultStyleDefs'
-import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
+import {
+	DefaultFontFamilies,
+	Editor,
+	ShapeUtil,
+	TLNoteShape,
+	TLOnEditEndHandler,
+	getDefaultColorTheme,
+} from '@tldraw/editor'
+import { Box2d, Vec2d, toDomPrecision } from '@tldraw/primitives'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
+import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
+import { getFontDefForExport } from '../shared/defaultStyleDefs'
+import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 
 const NOTE_SIZE = 200
 
@@ -16,10 +21,10 @@ const NOTE_SIZE = 200
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override type = 'note' as const
 
-	canEdit = () => true
-	hideResizeHandles = () => true
-	hideSelectionBoundsBg = () => true
-	hideSelectionBoundsFg = () => true
+	override canEdit = () => true
+	override hideResizeHandles = () => true
+	override hideSelectionBoundsBg = () => true
+	override hideSelectionBoundsFg = () => true
 
 	getDefaultProps(): TLNoteShape['props'] {
 		return {
@@ -43,11 +48,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return new Box2d(0, 0, NOTE_SIZE, height)
 	}
 
-	getOutline(shape: TLNoteShape) {
+	override getOutline(shape: TLNoteShape) {
 		return this.editor.getBounds(shape).corners
 	}
 
-	getCenter(_shape: TLNoteShape) {
+	override getCenter(_shape: TLNoteShape) {
 		return new Vec2d(NOTE_SIZE / 2, this.getHeight(_shape) / 2)
 	}
 
@@ -109,7 +114,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		)
 	}
 
-	toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
+	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme(this.editor)
 		const bounds = this.getBounds(shape)
@@ -149,11 +154,11 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return g
 	}
 
-	onBeforeCreate = (next: TLNoteShape) => {
+	override onBeforeCreate = (next: TLNoteShape) => {
 		return getGrowY(this.editor, next, next.props.growY)
 	}
 
-	onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
+	override onBeforeUpdate = (prev: TLNoteShape, next: TLNoteShape) => {
 		if (
 			prev.props.text === next.props.text &&
 			prev.props.font === next.props.font &&
@@ -165,7 +170,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return getGrowY(this.editor, next, prev.props.growY)
 	}
 
-	onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
+	override onEditEnd: TLOnEditEndHandler<TLNoteShape> = (shape) => {
 		const {
 			id,
 			type,

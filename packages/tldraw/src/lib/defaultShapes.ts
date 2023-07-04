@@ -5,7 +5,6 @@ import {
 	FrameShape,
 	GroupShape,
 	ImageShape,
-	NoteShape,
 	TLBaseShape,
 	TLShapeInfo,
 	TextShape,
@@ -15,6 +14,7 @@ import { DrawShape } from './shapes/draw/DrawShape'
 import { GeoShape } from './shapes/geo/GeoShape'
 import { HighlightShape } from './shapes/highlight/HighlightShape'
 import { LineShape } from './shapes/line/LineShape'
+import { NoteShape } from './shapes/note/NoteShape'
 
 /** @public */
 export const coreShapes = [

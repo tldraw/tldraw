@@ -12,7 +12,6 @@ import {
 import { assert, compact } from '@tldraw/utils'
 import { ArrowShapeTool } from '../../editor/shapes/arrow/ArrowShapeTool'
 import { GroupShapeUtil } from '../../editor/shapes/group/GroupShapeUtil'
-import { NoteShapeTool } from '../../editor/shapes/note/NoteShapeTool'
 import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
 import { TestEditor } from '../TestEditor'
 
@@ -1329,7 +1328,7 @@ describe('creating new shapes', () => {
 				editor.select(groupA.id)
 				expect(editor.focusLayerId === editor.currentPageId).toBe(true)
 
-				editor.setSelectedTool(NoteShapeTool.id)
+				editor.setSelectedTool('note')
 				editor.pointerDown(20, 20).pointerUp()
 
 				const postit = onlySelectedShape()
@@ -1340,7 +1339,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool(NoteShapeTool.id)
+				editor.setSelectedTool('note')
 				editor.pointerDown(20, 20).pointerUp()
 
 				const postit = onlySelectedShape()
@@ -1358,7 +1357,7 @@ describe('creating new shapes', () => {
 					h: 100,
 				})
 
-				editor.setSelectedTool(NoteShapeTool.id)
+				editor.setSelectedTool('note')
 				editor.pointerDown(80, 80)
 				editor.pointerUp()
 				// default size is 200x200, and it centers it, so add 100px around the pointer
@@ -1383,7 +1382,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool(NoteShapeTool.id)
+				editor.setSelectedTool('note')
 				expect(editor.getPageBoundsById(groupA.id)).toCloselyMatchObject({
 					x: 0,
 					y: 0,

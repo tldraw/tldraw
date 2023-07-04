@@ -1,6 +1,11 @@
-import { TLNoteShape, createShapeId } from '@tldraw/tlschema'
-import { StateNode } from '../../../tools/StateNode'
-import { TLEventHandlers, TLInterruptEvent, TLPointerEventInfo } from '../../../types/event-types'
+import {
+	StateNode,
+	TLEventHandlers,
+	TLInterruptEvent,
+	TLNoteShape,
+	TLPointerEventInfo,
+	createShapeId,
+} from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -13,11 +18,11 @@ export class Pointing extends StateNode {
 
 	markPointId = 'creating'
 
-	onEnter = () => {
+	override onEnter = () => {
 		this.wasFocusedOnEnter = !this.editor.isMenuOpen
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			this.editor.mark(this.markPointId)
 			const shape = this.createShape()
@@ -34,19 +39,19 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt: TLInterruptEvent = () => {
 		this.cancel()
 	}
 
-	onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete: TLEventHandlers['onComplete'] = () => {
 		this.complete()
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.cancel()
 	}
 

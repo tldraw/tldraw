@@ -62,7 +62,6 @@ import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
-import { TLNoteShape } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
@@ -296,7 +295,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: readonly [TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLVideoShape>];
+export const defaultShapes: readonly [TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLVideoShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -1403,89 +1402,6 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
     y: number;
     z: number;
 };
-
-// @public (undocumented)
-export const NoteShape: TLShapeInfo<TLNoteShape>;
-
-// @public (undocumented)
-export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
-    // (undocumented)
-    canEdit: () => boolean;
-    // (undocumented)
-    component(shape: TLNoteShape): JSX.Element;
-    // (undocumented)
-    getBounds(shape: TLNoteShape): Box2d;
-    // (undocumented)
-    getCenter(_shape: TLNoteShape): Vec2d;
-    // (undocumented)
-    getDefaultProps(): TLNoteShape['props'];
-    // (undocumented)
-    getHeight(shape: TLNoteShape): number;
-    // (undocumented)
-    getOutline(shape: TLNoteShape): Vec2d[];
-    // (undocumented)
-    hideResizeHandles: () => boolean;
-    // (undocumented)
-    hideSelectionBoundsBg: () => boolean;
-    // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
-    // (undocumented)
-    indicator(shape: TLNoteShape): JSX.Element;
-    // (undocumented)
-    onBeforeCreate: (next: TLNoteShape) => {
-        props: {
-            growY: number;
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            size: "l" | "m" | "s" | "xl";
-            font: "draw" | "mono" | "sans" | "serif";
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            verticalAlign: "end" | "middle" | "start";
-            url: string;
-            text: string;
-        };
-        type: "note";
-        x: number;
-        y: number;
-        rotation: number;
-        index: string;
-        parentId: TLParentId;
-        isLocked: boolean;
-        opacity: number;
-        meta: JsonObject;
-        id: TLShapeId;
-        typeName: "shape";
-    } | undefined;
-    // (undocumented)
-    onBeforeUpdate: (prev: TLNoteShape, next: TLNoteShape) => {
-        props: {
-            growY: number;
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            size: "l" | "m" | "s" | "xl";
-            font: "draw" | "mono" | "sans" | "serif";
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            verticalAlign: "end" | "middle" | "start";
-            url: string;
-            text: string;
-        };
-        type: "note";
-        x: number;
-        y: number;
-        rotation: number;
-        index: string;
-        parentId: TLParentId;
-        isLocked: boolean;
-        opacity: number;
-        meta: JsonObject;
-        id: TLShapeId;
-        typeName: "shape";
-    } | undefined;
-    // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLNoteShape>;
-    // (undocumented)
-    toSvg(shape: TLNoteShape, ctx: SvgExportContext): SVGGElement;
-    // (undocumented)
-    static type: "note";
-}
 
 // @public (undocumented)
 export function openWindow(url: string, target?: string): void;

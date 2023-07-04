@@ -1,11 +1,10 @@
-import { StateNode } from '../../tools/StateNode'
+import { StateNode } from '@tldraw/editor'
 import { Idle } from './toolStates/Idle'
 import { Pointing } from './toolStates/Pointing'
 
 export class NoteShapeTool extends StateNode {
 	static override id = 'note'
-	static initial = 'idle'
-	static children = () => [Idle, Pointing]
-
-	shapeType = 'note'
+	static override initial = 'idle'
+	static override children = () => [Idle, Pointing]
+	override shapeType = 'note'
 }

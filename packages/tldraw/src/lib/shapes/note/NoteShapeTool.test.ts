@@ -1,4 +1,4 @@
-import { TestEditor } from '../../../test/TestEditor'
+import { TestEditor } from '@tldraw/editor'
 import { NoteShapeTool } from './NoteShapeTool'
 
 let editor: TestEditor

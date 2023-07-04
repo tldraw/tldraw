@@ -1,5 +1,4 @@
-import { noteShapeMigrations, noteShapeProps } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/defineShape'
+import { defineShape, noteShapeMigrations, noteShapeProps } from '@tldraw/editor'
 import { NoteShapeTool } from './NoteShapeTool'
 import { NoteShapeUtil } from './NoteShapeUtil'
 
