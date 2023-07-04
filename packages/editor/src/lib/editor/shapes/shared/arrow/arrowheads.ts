@@ -106,6 +106,7 @@ export function getPipeHead() {
 	return ''
 }
 
+/** @public */
 export function getArrowheadPathForType(
 	info: ArrowInfo,
 	side: 'start' | 'end',

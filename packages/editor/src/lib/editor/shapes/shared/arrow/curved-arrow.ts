@@ -291,6 +291,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
  * Get a solid path for a curved arrow's handles.
  *
  * @param info - The arrow info.
+ * @public
  */
 export function getCurvedArrowHandlePath(info: ArrowInfo & { isStraight: false }) {
 	const {
@@ -305,6 +306,7 @@ export function getCurvedArrowHandlePath(info: ArrowInfo & { isStraight: false }
  * Get a solid path for a curved arrow's body.
  *
  * @param info - The arrow info.
+ * @public
  */
 export function getSolidCurvedArrowPath(info: ArrowInfo & { isStraight: false }) {
 	const {

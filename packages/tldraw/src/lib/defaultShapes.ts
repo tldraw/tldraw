@@ -1,4 +1,5 @@
-import { ArrowShape, FrameShape, TLBaseShape, TLShapeInfo, coreShapes } from '@tldraw/editor'
+import { FrameShape, TLBaseShape, TLShapeInfo, coreShapes } from '@tldraw/editor'
+import { ArrowShape } from './shapes/arrow/ArrowShape'
 import { BookmarkShape } from './shapes/bookmark/BookmarkShape'
 import { DrawShape } from './shapes/draw/DrawShape'
 import { GeoShape } from './shapes/geo/GeoShape'

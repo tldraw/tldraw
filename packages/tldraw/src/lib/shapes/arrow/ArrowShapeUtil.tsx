@@ -1,42 +1,49 @@
 import {
-	Box2d,
-	getPointOnCircle,
-	linesIntersect,
-	longAngleDist,
-	Matrix2d,
-	pointInPolygon,
-	shortAngleDist,
-	toDomPrecision,
-	Vec2d,
-	VecLike,
-} from '@tldraw/primitives'
-import { computed, EMPTY_ARRAY } from '@tldraw/state'
-import { ComputedCache } from '@tldraw/store'
-import {
 	DefaultFontFamilies,
-	getDefaultColorTheme,
+	EMPTY_ARRAY,
+	SVGContainer,
+	ShapeUtil,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLHandle,
-	TLShapeId,
-	TLShapePartial,
-	Vec2dModel,
-} from '@tldraw/tlschema'
-import { deepCopy, last, minBy } from '@tldraw/utils'
-import * as React from 'react'
-import { SVGContainer } from '../../../components/SVGContainer'
-import {
-	ShapeUtil,
 	TLOnEditEndHandler,
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
 	TLOnTranslateStartHandler,
+	TLShapeId,
+	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
-} from '../ShapeUtil'
+	Vec2dModel,
+	computed,
+	getArrowTerminalsInArrowSpace,
+	getArrowheadPathForType,
+	getCurvedArrowHandlePath,
+	getDefaultColorTheme,
+	getSolidCurvedArrowPath,
+	getSolidStraightArrowPath,
+	getStraightArrowHandlePath,
+} from '@tldraw/editor'
+import {
+	Box2d,
+	Matrix2d,
+	Vec2d,
+	VecLike,
+	getPointOnCircle,
+	linesIntersect,
+	longAngleDist,
+	pointInPolygon,
+	shortAngleDist,
+	toDomPrecision,
+} from '@tldraw/primitives'
+import { ComputedCache } from '@tldraw/store'
+import { deepCopy, last, minBy } from '@tldraw/utils'
+import React from 'react'
+import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import {
 	ARROW_LABEL_FONT_SIZES,
@@ -50,12 +57,6 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
-import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
-import { SvgExportContext } from '../shared/SvgExportContext'
-import { getArrowheadPathForType } from './arrow/arrowheads'
-import { getCurvedArrowHandlePath, getSolidCurvedArrowPath } from './arrow/curved-arrow'
-import { getArrowTerminalsInArrowSpace } from './arrow/shared'
-import { getSolidStraightArrowPath, getStraightArrowHandlePath } from './arrow/straight-arrow'
 import { ArrowTextLabel } from './components/ArrowTextLabel'
 
 let globalRenderIndex = 0
@@ -88,10 +89,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			text: '',
 			font: 'draw',
 		}
-	}
-
-	getCenter(shape: TLArrowShape): Vec2d {
-		return this.editor.getBounds(shape).center
 	}
 
 	getBounds(shape: TLArrowShape) {
@@ -144,7 +141,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return results
 	}
 
-	getOutline(shape: TLArrowShape): Vec2d[] {
+	override getOutline(shape: TLArrowShape): Vec2d[] {
 		const outlineWithoutLabel = this.getOutlineWithoutLabel(shape)
 
 		const labelBounds = this.getLabelBounds(shape)
@@ -200,11 +197,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return result
 	}
 
-	snapPoints(_shape: TLArrowShape): Vec2d[] {
+	override snapPoints(_shape: TLArrowShape): Vec2d[] {
 		return EMPTY_ARRAY
 	}
 
-	getHandles(shape: TLArrowShape): TLHandle[] {
+	override getHandles(shape: TLArrowShape): TLHandle[] {
 		const info = this.editor.getArrowInfo(shape)!
 		return [
 			{
@@ -234,7 +231,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		]
 	}
 
-	onHandleChange: TLOnHandleChangeHandler<TLArrowShape> = (shape, { handle, isPrecise }) => {
+	override onHandleChange: TLOnHandleChangeHandler<TLArrowShape> = (
+		shape,
+		{ handle, isPrecise }
+	) => {
 		const next = deepCopy(shape)
 
 		switch (handle.id) {
@@ -365,7 +365,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return next
 	}
 
-	onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {
+	override onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {
 		let startBinding: TLShapeId | null =
 			shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : null
 		let endBinding: TLShapeId | null =
@@ -405,7 +405,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
+	override onResize: TLOnResizeHandler<TLArrowShape> = (shape, info) => {
 		const { scaleX, scaleY } = info
 
 		const terminals = getArrowTerminalsInArrowSpace(this.editor, shape)
@@ -488,7 +488,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return next
 	}
 
-	onDoubleClickHandle = (
+	override onDoubleClickHandle = (
 		shape: TLArrowShape,
 		handle: TLHandle
 	): TLShapePartial<TLArrowShape> | void => {
@@ -516,7 +516,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
+	override hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
 		const outline = this.editor.getOutline(shape)
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
@@ -531,7 +531,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return false
 	}
 
-	hitTestLineSegment(shape: TLArrowShape, A: VecLike, B: VecLike): boolean {
+	override hitTestLineSegment(shape: TLArrowShape, A: VecLike, B: VecLike): boolean {
 		const outline = this.editor.getOutline(shape)
 
 		for (let i = 0; i < outline.length - 1; i++) {
@@ -887,7 +887,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return this.labelBoundsCache.get(shape.id) || null
 	}
 
-	onEditEnd: TLOnEditEndHandler<TLArrowShape> = (shape) => {
+	override onEditEnd: TLOnEditEndHandler<TLArrowShape> = (shape) => {
 		const {
 			id,
 			type,
@@ -907,7 +907,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
+	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme(this.editor)
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
@@ -1079,7 +1079,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return g
 	}
 
-	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return [getFillDefForCanvas()]
 	}
 }

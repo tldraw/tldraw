@@ -1,6 +1,4 @@
-import { createShapeId, TLArrowShape } from '@tldraw/tlschema'
-import { StateNode } from '../../../tools/StateNode'
-import { TLEventHandlers } from '../../../types/event-types'
+import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -22,7 +20,7 @@ export class Pointing extends StateNode {
 		clearTimeout(this.preciseTimeout)
 	}
 
-	onEnter = () => {
+	override onEnter = () => {
 		const {
 			inputs: { currentPagePoint },
 		} = this.editor
@@ -73,11 +71,11 @@ export class Pointing extends StateNode {
 		this.startPreciseTimeout()
 	}
 
-	onExit = () => {
+	override onExit = () => {
 		this.clearPreciseTimeout()
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (!this.shape) return
 
 		if (this.editor.inputs.isDragging) {

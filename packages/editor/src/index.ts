@@ -4,6 +4,7 @@
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/indices'
 export {
+	EMPTY_ARRAY,
 	atom,
 	computed,
 	react,
@@ -119,14 +120,22 @@ export {
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
-export { ArrowShape } from './lib/editor/shapes/arrow/ArrowShape'
-export { ArrowShapeUtil } from './lib/editor/shapes/arrow/ArrowShapeUtil'
 export { FrameShape } from './lib/editor/shapes/frame/FrameShape'
 export { FrameShapeUtil } from './lib/editor/shapes/frame/FrameShapeUtil'
 export { GroupShape } from './lib/editor/shapes/group/GroupShape'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export { ImageShape } from './lib/editor/shapes/image/ImageShape'
 export { ImageShapeUtil } from './lib/editor/shapes/image/ImageShapeUtil'
+export { getArrowheadPathForType } from './lib/editor/shapes/shared/arrow/arrowheads'
+export {
+	getCurvedArrowHandlePath,
+	getSolidCurvedArrowPath,
+} from './lib/editor/shapes/shared/arrow/curved-arrow'
+export { getArrowTerminalsInArrowSpace } from './lib/editor/shapes/shared/arrow/shared'
+export {
+	getSolidStraightArrowPath,
+	getStraightArrowHandlePath,
+} from './lib/editor/shapes/shared/arrow/straight-arrow'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
 export { VideoShape } from './lib/editor/shapes/video/VideoShape'
 export { VideoShapeUtil } from './lib/editor/shapes/video/VideoShapeUtil'

@@ -63,6 +63,7 @@ export function getArrowTerminalInArrowSpace(
 	}
 }
 
+/** @public */
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape) {
 	const arrowPageTransform = editor.getPageTransform(shape)!
 

@@ -1,5 +1,4 @@
-import { arrowShapeMigrations, arrowShapeProps } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/defineShape'
+import { arrowShapeMigrations, arrowShapeProps, defineShape } from '@tldraw/editor'
 import { ArrowShapeTool } from './ArrowShapeTool'
 import { ArrowShapeUtil } from './ArrowShapeUtil'
 

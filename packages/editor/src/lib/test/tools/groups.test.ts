@@ -10,7 +10,6 @@ import {
 	TLShapePartial,
 } from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
-import { ArrowShapeTool } from '../../editor/shapes/arrow/ArrowShapeTool'
 import { GroupShapeUtil } from '../../editor/shapes/group/GroupShapeUtil'
 import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
 import { TestEditor } from '../TestEditor'
@@ -1529,7 +1528,7 @@ describe('bindings', () => {
 	})
 
 	it('can not be made from some sibling shape to a group shape', () => {
-		editor.setSelectedTool(ArrowShapeTool.id)
+		editor.setSelectedTool('arrow')
 		// go from E to group C (not hovering over a leaf box)
 		editor.pointerDown(5, 25).pointerMove(35, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
@@ -1539,7 +1538,7 @@ describe('bindings', () => {
 	})
 
 	it('can not be made from a group shape to some sibling shape', () => {
-		editor.setSelectedTool(ArrowShapeTool.id)
+		editor.setSelectedTool('arrow')
 		// go from group C (not hovering over a leaf box) to E
 		editor.pointerDown(35, 5).pointerMove(5, 25).pointerUp()
 
@@ -1549,7 +1548,7 @@ describe('bindings', () => {
 		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxE })
 	})
 	it('can be made from a shape within a group to some shape outside of the group', () => {
-		editor.setSelectedTool(ArrowShapeTool.id)
+		editor.setSelectedTool('arrow')
 		// go from A to E
 		editor.pointerDown(5, 5).pointerMove(5, 25).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
@@ -1561,7 +1560,7 @@ describe('bindings', () => {
 	})
 
 	it('can be made from a shape within a group to another shape within the group', () => {
-		editor.setSelectedTool(ArrowShapeTool.id)
+		editor.setSelectedTool('arrow')
 		// go from A to B
 		editor.pointerDown(5, 5).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
@@ -1572,7 +1571,7 @@ describe('bindings', () => {
 	})
 
 	it('can be made from a shape outside of a group to a shape within the group', () => {
-		editor.setSelectedTool(ArrowShapeTool.id)
+		editor.setSelectedTool('arrow')
 		// go from E to B
 		editor.pointerDown(5, 25).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape

@@ -16,6 +16,7 @@ import { ComputedCache } from '@tldraw/store';
 import { defineMigrations } from '@tldraw/store';
 import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
+import { EMPTY_ARRAY } from '@tldraw/state';
 import { EventEmitter } from 'eventemitter3';
 import { getHashForString } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
@@ -97,71 +98,6 @@ export const ANIMATION_MEDIUM_MS = 320;
 
 // @internal (undocumented)
 export const ANIMATION_SHORT_MS = 80;
-
-// @public (undocumented)
-export const ArrowShape: TLShapeInfo<TLArrowShape>;
-
-// @public (undocumented)
-export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
-    // (undocumented)
-    canBind: () => boolean;
-    // (undocumented)
-    canEdit: () => boolean;
-    // (undocumented)
-    canSnap: () => boolean;
-    // (undocumented)
-    component(shape: TLArrowShape): JSX.Element | null;
-    // (undocumented)
-    getBounds(shape: TLArrowShape): Box2d;
-    // (undocumented)
-    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
-    // (undocumented)
-    getCenter(shape: TLArrowShape): Vec2d;
-    // (undocumented)
-    getDefaultProps(): TLArrowShape['props'];
-    // (undocumented)
-    getHandles(shape: TLArrowShape): TLHandle[];
-    // (undocumented)
-    getLabelBounds(shape: TLArrowShape): Box2d | null;
-    // (undocumented)
-    getOutline(shape: TLArrowShape): Vec2d[];
-    // (undocumented)
-    getOutlineWithoutLabel(shape: TLArrowShape): Vec2d[];
-    // (undocumented)
-    hideResizeHandles: TLShapeUtilFlag<TLArrowShape>;
-    // (undocumented)
-    hideRotateHandle: TLShapeUtilFlag<TLArrowShape>;
-    // (undocumented)
-    hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape>;
-    // (undocumented)
-    hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape>;
-    // (undocumented)
-    hitTestLineSegment(shape: TLArrowShape, A: VecLike, B: VecLike): boolean;
-    // (undocumented)
-    hitTestPoint(shape: TLArrowShape, point: VecLike): boolean;
-    // (undocumented)
-    indicator(shape: TLArrowShape): JSX.Element | null;
-    // (undocumented)
-    isClosed: () => boolean;
-    // (undocumented)
-    get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape>;
-    // (undocumented)
-    onDoubleClickHandle: (shape: TLArrowShape, handle: TLHandle) => TLShapePartial<TLArrowShape> | void;
-    // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLArrowShape>;
-    // (undocumented)
-    onHandleChange: TLOnHandleChangeHandler<TLArrowShape>;
-    // (undocumented)
-    onResize: TLOnResizeHandler<TLArrowShape>;
-    // (undocumented)
-    onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>;
-    // (undocumented)
-    snapPoints(_shape: TLArrowShape): Vec2d[];
-    // (undocumented)
-    toSvg(shape: TLArrowShape, ctx: SvgExportContext): SVGGElement;
-    // (undocumented)
-    static type: "arrow";
-}
 
 export { atom }
 
@@ -266,7 +202,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: readonly [TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>];
+export const defaultShapes: readonly [TLShapeInfo<TLFrameShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -659,6 +595,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToSelection(opts?: TLAnimationOptions): this;
 }
 
+export { EMPTY_ARRAY }
+
 // @public (undocumented)
 export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_3.PropsWithChildren<TLErrorBoundaryProps>>, TLErrorBoundaryState> {
     // (undocumented)
@@ -728,6 +666,20 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     static type: "frame";
 }
 
+// @public (undocumented)
+export function getArrowheadPathForType(info: ArrowInfo, side: 'end' | 'start', strokeWidth: number): string | undefined;
+
+// @public (undocumented)
+export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape): {
+    start: Vec2d;
+    end: Vec2d;
+};
+
+// @public
+export function getCurvedArrowHandlePath(info: ArrowInfo & {
+    isStraight: false;
+}): string;
+
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
@@ -776,6 +728,21 @@ export function getResizedImageDataUrl(dataURLForImage: string, width: number, h
 
 // @public (undocumented)
 export function getRotatedBoxShadow(rotation: number): string;
+
+// @public
+export function getSolidCurvedArrowPath(info: ArrowInfo & {
+    isStraight: false;
+}): string;
+
+// @public (undocumented)
+export function getSolidStraightArrowPath(info: ArrowInfo & {
+    isStraight: true;
+}): string;
+
+// @public (undocumented)
+export function getStraightArrowHandlePath(info: ArrowInfo & {
+    isStraight: true;
+}): string;
 
 // @public (undocumented)
 export function getSvgAsDataUrl(svg: SVGElement): Promise<string>;

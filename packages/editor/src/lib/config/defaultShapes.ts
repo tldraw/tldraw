@@ -1,4 +1,3 @@
-import { ArrowShape } from '../editor/shapes/arrow/ArrowShape'
 import { FrameShape } from '../editor/shapes/frame/FrameShape'
 import { GroupShape } from '../editor/shapes/group/GroupShape'
 import { ImageShape } from '../editor/shapes/image/ImageShape'
@@ -15,7 +14,7 @@ export const coreShapes = [
 ] as const
 
 /** @public */
-export const defaultShapes = [FrameShape, ArrowShape] as const
+export const defaultShapes = [FrameShape] as const
 
 const coreShapeTypes = new Set<string>(coreShapes.map((s) => s.type))
 export function checkShapesAndAddCore(customShapes: readonly TLShapeInfo[]) {
