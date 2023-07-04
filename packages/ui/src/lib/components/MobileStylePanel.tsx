@@ -25,7 +25,7 @@ export function MobileStylePanel() {
 
 	const disableStylePanel = useValue(
 		'isHandOrEraserToolActive',
-		() => editor.isInAny('hand', 'zoom', 'eraser'),
+		() => editor.isInAny('hand', 'zoom', 'eraser', 'laser'),
 		[editor]
 	)
 
