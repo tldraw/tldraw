@@ -38,12 +38,15 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
 import { useForceSolid } from '../shared/useForceSolid'
-import { cloudOutline } from './cloudOutline'
+import { cloudOutline, cloudSvgPath } from './cloudOutline'
+import { DashStyleCloud } from './components/DashStyleCloud'
 import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
 import { DashStyleOval, DashStyleOvalSvg } from './components/DashStyleOval'
 import { DashStylePolygon, DashStylePolygonSvg } from './components/DashStylePolygon'
+import { DrawStyleCloud } from './components/DrawStyleCloud'
 import { DrawStyleEllipseSvg, getEllipseIndicatorPath } from './components/DrawStyleEllipse'
 import { DrawStylePolygon, DrawStylePolygonSvg } from './components/DrawStylePolygon'
+import { SolidStyleCloud } from './components/SolidStyleCloud'
 import { SolidStyleEllipse, SolidStyleEllipseSvg } from './components/SolidStyleEllipse'
 import {
 	getOvalIndicatorPath,
@@ -144,7 +147,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		switch (shape.props.geo) {
 			case 'cloud': {
-				return cloudOutline(w, h)
+				return cloudOutline(w, h, shape.id, shape.props.size)
 			}
 			case 'triangle': {
 				return [new Vec2d(cx, 0), new Vec2d(w, h), new Vec2d(0, h)]
@@ -362,6 +365,48 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			const h = props.h + growY
 
 			switch (props.geo) {
+				case 'cloud': {
+					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
+						return (
+							<SolidStyleCloud
+								color={color}
+								fill={fill}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								id={id}
+								size={size}
+							/>
+						)
+					} else if (dash === 'dashed' || dash === 'dotted') {
+						return (
+							<DashStyleCloud
+								color={color}
+								fill={fill}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								id={id}
+								size={size}
+								dash={dash === 'dashed' ? dash : size === 's' && forceSolid ? 'dashed' : dash}
+							/>
+						)
+					} else if (dash === 'draw') {
+						return (
+							<DrawStyleCloud
+								color={color}
+								fill={fill}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								id={id}
+								size={size}
+							/>
+						)
+					}
+
+					break
+				}
 				case 'ellipse': {
 					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
 						return (
@@ -490,6 +535,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 			case 'oval': {
 				return <path d={getOvalIndicatorPath(w, h + growY)} />
+			}
+			case 'cloud': {
+				return <path d={cloudSvgPath(w, h, id, size)} />
 			}
 
 			default: {

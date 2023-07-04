@@ -145,6 +145,7 @@ export type TLUiTranslationKey =
 	| 'geo-style.hexagon'
 	| 'geo-style.octagon'
 	| 'geo-style.oval'
+	| 'geo-style.cloud'
 	| 'geo-style.pentagon'
 	| 'geo-style.rectangle'
 	| 'geo-style.rhombus-2'

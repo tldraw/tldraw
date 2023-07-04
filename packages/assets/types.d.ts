@@ -87,6 +87,7 @@ export type AssetUrls = {
 		'geo-arrow-right': string
 		'geo-arrow-up': string
 		'geo-check-box': string
+		'geo-cloud': string
 		'geo-diamond': string
 		'geo-ellipse': string
 		'geo-hexagon': string

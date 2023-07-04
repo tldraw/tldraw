@@ -130,7 +130,7 @@ export class Box2d {
 }
 
 // @public (undocumented)
-export function canolicalizeRotation(a: number): number;
+export function canonicalizeRotation(a: number): number;
 
 // @public
 export function clamp(n: number, min: number): number;
@@ -717,6 +717,8 @@ export class Vec2d {
     equalsXY(x: number, y: number): boolean;
     // (undocumented)
     static From({ x, y, z }: Vec2dModel): Vec2d;
+    // (undocumented)
+    static FromAngle(r: number, length?: number): Vec2d;
     // (undocumented)
     static FromArray(v: number[]): Vec2d;
     // (undocumented)

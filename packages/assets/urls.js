@@ -286,6 +286,10 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/geo-check-box.svg', import.meta.url).href,
 				opts
 			),
+			'geo-cloud': formatAssetUrl(
+				new URL('./icons/icon/geo-cloud.svg', import.meta.url).href,
+				opts
+			),
 			'geo-diamond': formatAssetUrl(
 				new URL('./icons/icon/geo-diamond.svg', import.meta.url).href,
 				opts

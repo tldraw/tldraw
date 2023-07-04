@@ -1,4 +1,4 @@
-import { canolicalizeRotation, Matrix2d, Vec2d } from '@tldraw/primitives'
+import { canonicalizeRotation, Matrix2d, Vec2d } from '@tldraw/primitives'
 import { isShapeId, TLShape, TLShapePartial } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
@@ -83,7 +83,7 @@ export function applyRotationToSnapshotShapes({
 				Matrix2d.Inverse(parentTransform),
 				newPagePoint
 			)
-			const newRotation = canolicalizeRotation(shape.rotation + delta)
+			const newRotation = canonicalizeRotation(shape.rotation + delta)
 
 			return {
 				id: shape.id,
