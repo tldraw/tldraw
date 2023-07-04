@@ -14,7 +14,6 @@ import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { ComputedCache } from '@tldraw/store';
-import { CubicSpline2d } from '@tldraw/primitives';
 import { defineMigrations } from '@tldraw/store';
 import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
@@ -26,7 +25,6 @@ import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
 import { Migrations } from '@tldraw/store';
-import { Polyline2d } from '@tldraw/primitives';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
@@ -66,7 +64,6 @@ import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
-import { TLLineShape } from '@tldraw/tlschema';
 import { TLNoteShape } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
@@ -301,7 +298,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>, TLShapeInfo<TLVideoShape>];
+export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>, TLShapeInfo<TLVideoShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -885,9 +882,6 @@ export function getResizedImageDataUrl(dataURLForImage: string, width: number, h
 export function getRotatedBoxShadow(rotation: number): string;
 
 // @public (undocumented)
-export function getSplineForLineShape(shape: TLLineShape): NonNullable<CubicSpline2d | Polyline2d>;
-
-// @public (undocumented)
 export function getSvgAsDataUrl(svg: SVGElement): Promise<string>;
 
 // @public (undocumented)
@@ -1076,49 +1070,6 @@ export const isValidHttpURL: (url: string) => boolean;
 
 // @public (undocumented)
 export function isValidUrl(url: string): boolean;
-
-// @public (undocumented)
-export const LineShape: TLShapeInfo<TLLineShape>;
-
-// @public (undocumented)
-export class LineShapeUtil extends ShapeUtil<TLLineShape> {
-    // (undocumented)
-    component(shape: TLLineShape): JSX.Element | undefined;
-    // (undocumented)
-    getBounds(shape: TLLineShape): Box2d;
-    // (undocumented)
-    getDefaultProps(): TLLineShape['props'];
-    // (undocumented)
-    getHandles(shape: TLLineShape): TLHandle[];
-    // (undocumented)
-    getOutline(shape: TLLineShape): Vec2d[];
-    // (undocumented)
-    getOutlineSegments(shape: TLLineShape): Vec2d[][];
-    // (undocumented)
-    hideResizeHandles: () => boolean;
-    // (undocumented)
-    hideRotateHandle: () => boolean;
-    // (undocumented)
-    hideSelectionBoundsBg: () => boolean;
-    // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
-    // (undocumented)
-    hitTestLineSegment(shape: TLLineShape, A: VecLike, B: VecLike): boolean;
-    // (undocumented)
-    hitTestPoint(shape: TLLineShape, point: Vec2d): boolean;
-    // (undocumented)
-    indicator(shape: TLLineShape): JSX.Element;
-    // (undocumented)
-    isClosed: () => boolean;
-    // (undocumented)
-    onHandleChange: TLOnHandleChangeHandler<TLLineShape>;
-    // (undocumented)
-    onResize: TLOnResizeHandler<TLLineShape>;
-    // (undocumented)
-    toSvg(shape: TLLineShape): SVGGElement;
-    // (undocumented)
-    static type: "line";
-}
 
 // @public (undocumented)
 export function LoadingScreen({ children }: {

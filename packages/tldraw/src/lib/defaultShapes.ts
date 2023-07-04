@@ -7,7 +7,6 @@ import {
 	GroupShape,
 	HighlightShape,
 	ImageShape,
-	LineShape,
 	NoteShape,
 	TLBaseShape,
 	TLShapeInfo,
@@ -15,6 +14,7 @@ import {
 	VideoShape,
 } from '@tldraw/editor'
 import { GeoShape } from './shapes/geo/GeoShape'
+import { LineShape } from './shapes/line/LineShape'
 
 /** @public */
 export const coreShapes = [
@@ -34,8 +34,9 @@ export const coreShapes = [
 export const defaultShapes = [
 	DrawShape,
 	GeoShape,
-	LineShape,
 	NoteShape,
+	LineShape,
+	GeoShape,
 	FrameShape,
 	ArrowShape,
 	HighlightShape,

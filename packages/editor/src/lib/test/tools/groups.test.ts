@@ -13,7 +13,6 @@ import { assert, compact } from '@tldraw/utils'
 import { ArrowShapeTool } from '../../editor/shapes/arrow/ArrowShapeTool'
 import { DrawShapeTool } from '../../editor/shapes/draw/DrawShapeTool'
 import { GroupShapeUtil } from '../../editor/shapes/group/GroupShapeUtil'
-import { LineShapeTool } from '../../editor/shapes/line/LineShapeTool'
 import { NoteShapeTool } from '../../editor/shapes/note/NoteShapeTool'
 import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
 import { TestEditor } from '../TestEditor'
@@ -1274,7 +1273,7 @@ describe('creating new shapes', () => {
 			it('does not draw inside the group if the group is only selected and not focused', () => {
 				editor.select(groupA.id)
 
-				editor.setSelectedTool(LineShapeTool.id)
+				editor.setSelectedTool('line')
 				editor.pointerDown(20, 20)
 				editor.pointerMove(80, 80)
 				editor.pointerUp(80, 80)
@@ -1288,7 +1287,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool(LineShapeTool.id)
+				editor.setSelectedTool('line')
 				editor.pointerDown(20, 20).pointerMove(80, 80).pointerUp(80, 80)
 
 				const lineC = onlySelectedShape() as TLLineShape
@@ -1300,7 +1299,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool(LineShapeTool.id)
+				editor.setSelectedTool('line')
 				editor.pointerDown(20, 20).pointerMove(-10, -10)
 
 				expect(editor.getPageBoundsById(groupA.id)).toMatchSnapshot('group with line shape')
@@ -1316,7 +1315,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool(LineShapeTool.id)
+				editor.setSelectedTool('line')
 				editor.pointerDown(-50, -50).pointerMove(-100, -100).pointerUp()
 
 				expect(editor.getPageBoundsById(groupA.id)).toMatchSnapshot('group with line')

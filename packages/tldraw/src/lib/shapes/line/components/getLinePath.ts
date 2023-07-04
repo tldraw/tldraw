@@ -1,13 +1,12 @@
+import { TLLineShape, getSvgPathFromStroke, getSvgPathFromStrokePoints } from '@tldraw/editor'
 import {
 	CubicSpline2d,
+	Polyline2d,
+	Vec2d,
 	getStrokeOutlinePoints,
 	getStrokePoints,
-	Polyline2d,
 	setStrokePointRadii,
-	Vec2d,
 } from '@tldraw/primitives'
-import { TLLineShape } from '@tldraw/tlschema'
-import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
 
 export function getLinePoints(spline: CubicSpline2d | Polyline2d) {
 	const { segments } = spline

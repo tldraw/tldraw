@@ -1,9 +1,16 @@
-import { getIndexAbove, sortByIndex } from '@tldraw/indices'
+import {
+	StateNode,
+	TLEventHandlers,
+	TLHandle,
+	TLInterruptEvent,
+	TLLineShape,
+	TLShapeId,
+	createShapeId,
+	getIndexAbove,
+	sortByIndex,
+} from '@tldraw/editor'
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
-import { TLHandle, TLLineShape, TLShapeId, createShapeId } from '@tldraw/tlschema'
-import { last, structuredClone } from '@tldraw/utils'
-import { StateNode } from '../../../tools/StateNode'
-import { TLEventHandlers, TLInterruptEvent } from '../../../types/event-types'
+import { last } from '@tldraw/utils'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -12,7 +19,7 @@ export class Pointing extends StateNode {
 
 	markPointId = ''
 
-	onEnter = (info: { shapeId?: TLShapeId }) => {
+	override onEnter = (info: { shapeId?: TLShapeId }) => {
 		const { inputs } = this.editor
 		const { currentPagePoint } = inputs
 
@@ -93,7 +100,7 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (!this.shape) return
 
 		if (this.editor.inputs.isDragging) {

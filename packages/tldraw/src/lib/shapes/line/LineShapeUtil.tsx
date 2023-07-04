@@ -1,5 +1,16 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { getIndexBetween, sortByIndex } from '@tldraw/indices'
+import {
+	SVGContainer,
+	ShapeUtil,
+	TLHandle,
+	TLLineShape,
+	TLOnHandleChangeHandler,
+	TLOnResizeHandler,
+	WeakMapCache,
+	getDefaultColorTheme,
+	getIndexBetween,
+	sortByIndex,
+} from '@tldraw/editor'
 import {
 	CubicSpline2d,
 	Polyline2d,
@@ -9,11 +20,7 @@ import {
 	intersectLineSegmentPolyline,
 	pointNearToPolyline,
 } from '@tldraw/primitives'
-import { TLHandle, TLLineShape, getDefaultColorTheme } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { WeakMapCache } from '../../../utils/WeakMapCache'
-import { ShapeUtil, TLOnHandleChangeHandler, TLOnResizeHandler } from '../ShapeUtil'
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
@@ -67,7 +74,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return spline.bounds
 	}
 
-	getHandles(shape: TLLineShape) {
+	override getHandles(shape: TLLineShape) {
 		return handlesCache.get(shape.props, () => {
 			const handles = shape.props.handles
 
@@ -94,11 +101,11 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		})
 	}
 
-	getOutline(shape: TLLineShape) {
+	override getOutline(shape: TLLineShape) {
 		return getLinePoints(getSplineForLineShape(shape))
 	}
 
-	getOutlineSegments(shape: TLLineShape) {
+	override getOutlineSegments(shape: TLLineShape) {
 		const spline = getSplineForLineShape(shape)
 		return shape.props.spline === 'cubic'
 			? spline.segments.map((s) => s.lut)
@@ -107,7 +114,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	//   Events
 
-	onResize: TLOnResizeHandler<TLLineShape> = (shape, info) => {
+	override onResize: TLOnResizeHandler<TLLineShape> = (shape, info) => {
 		const { scaleX, scaleY } = info
 
 		const handles = deepCopy(shape.props.handles)
@@ -124,7 +131,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 	}
 
-	onHandleChange: TLOnHandleChangeHandler<TLLineShape> = (shape, { handle }) => {
+	override onHandleChange: TLOnHandleChangeHandler<TLLineShape> = (shape, { handle }) => {
 		const next = deepCopy(shape)
 
 		switch (handle.id) {
@@ -166,13 +173,13 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return next
 	}
 
-	hitTestPoint(shape: TLLineShape, point: Vec2d): boolean {
+	override hitTestPoint(shape: TLLineShape, point: Vec2d): boolean {
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
 		return pointNearToPolyline(point, this.editor.getOutline(shape), offsetDist)
 	}
 
-	hitTestLineSegment(shape: TLLineShape, A: VecLike, B: VecLike): boolean {
+	override hitTestLineSegment(shape: TLLineShape, A: VecLike, B: VecLike): boolean {
 		return intersectLineSegmentPolyline(A, B, this.editor.getOutline(shape)) !== null
 	}
 
@@ -337,7 +344,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		return <path d={path} />
 	}
 
-	toSvg(shape: TLLineShape) {
+	override toSvg(shape: TLLineShape) {
 		const theme = getDefaultColorTheme(this.editor)
 		const color = theme[shape.props.color].solid
 		const spline = getSplineForLineShape(shape)

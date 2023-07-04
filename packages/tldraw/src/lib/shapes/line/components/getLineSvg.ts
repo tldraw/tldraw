@@ -1,5 +1,5 @@
+import { TLDefaultDashStyle, TLLineShape } from '@tldraw/editor'
 import { CubicSpline2d, Polyline2d } from '@tldraw/primitives'
-import { TLDefaultDashStyle, TLLineShape } from '@tldraw/tlschema'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import { getLineDrawPath } from './getLinePath'
 

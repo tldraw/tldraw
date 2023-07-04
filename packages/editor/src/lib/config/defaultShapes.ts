@@ -6,7 +6,6 @@ import { FrameShape } from '../editor/shapes/frame/FrameShape'
 import { GroupShape } from '../editor/shapes/group/GroupShape'
 import { HighlightShape } from '../editor/shapes/highlight/HighlightShape'
 import { ImageShape } from '../editor/shapes/image/ImageShape'
-import { LineShape } from '../editor/shapes/line/LineShape'
 import { NoteShape } from '../editor/shapes/note/NoteShape'
 import { TextShape } from '../editor/shapes/text/TextShape'
 import { VideoShape } from '../editor/shapes/video/VideoShape'
@@ -29,7 +28,6 @@ export const coreShapes = [
 /** @public */
 export const defaultShapes = [
 	DrawShape,
-	LineShape,
 	NoteShape,
 	FrameShape,
 	ArrowShape,

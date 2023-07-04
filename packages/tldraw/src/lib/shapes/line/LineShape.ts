@@ -1,5 +1,4 @@
-import { lineShapeMigrations, lineShapeProps } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/defineShape'
+import { defineShape, lineShapeMigrations, lineShapeProps } from '@tldraw/editor'
 import { LineShapeTool } from './LineShapeTool'
 import { LineShapeUtil } from './LineShapeUtil'
 

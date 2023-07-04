@@ -48,8 +48,8 @@
 		"@tldraw/polyfills": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
 		"@tldraw/store": "workspace:*",
-		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/ui": "workspace:*",
+		"@tldraw/utils": "workspace:*",
 		"classnames": "^2.3.2"
 	},
 	"peerDependencies": {
