@@ -15,7 +15,7 @@ keywords:
 ##### Table of Contents
 
 - [Introduction](#introduction)
-- [State](#state)
+- [Store](#store)
 - [Events and Tools](#events-and-tools)
 - [Inputs](#inputs)
 - [Common things to do with the editor](#common-things-to-do-with-the-editor)
@@ -28,7 +28,7 @@ By design, the `Editor`'s surface area is [very large](/gen/editor/Editor). Almo
 
 This page gives a broad idea of how the `Editor` class is organized and some of the architectural concepts involved. The full reference is available in the [Editor API](/gen/editor/Editor).
 
-## State
+## Store
 
 The editor holds the raw state of the document in its `store` property. Data is kept here as a table of JSON serializable records. 
 
