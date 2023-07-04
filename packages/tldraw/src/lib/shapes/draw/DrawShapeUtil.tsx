@@ -1,24 +1,32 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	SVGContainer,
+	ShapeUtil,
+	TLDrawShape,
+	TLDrawShapeSegment,
+	TLOnResizeHandler,
+	TLShapeUtilCanvasSvgDef,
+	getDefaultColorTheme,
+	getSvgPathFromStroke,
+	getSvgPathFromStrokePoints,
+	rng,
+} from '@tldraw/editor'
+import {
 	Box2d,
+	Vec2d,
+	VecLike,
 	getStrokeOutlinePoints,
 	getStrokePoints,
 	linesIntersect,
 	pointInPolygon,
 	setStrokePointRadii,
 	toFixed,
-	Vec2d,
-	VecLike,
 } from '@tldraw/primitives'
-import { getDefaultColorTheme, TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
-import { last, rng } from '@tldraw/utils'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../utils/svg'
-import { ShapeUtil, TLOnResizeHandler, TLShapeUtilCanvasSvgDef } from '../ShapeUtil'
+import { last } from '@tldraw/utils'
+import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
-import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
-import { SvgExportContext } from '../shared/SvgExportContext'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 
@@ -26,10 +34,10 @@ import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments 
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	static override type = 'draw' as const
 
-	hideResizeHandles = (shape: TLDrawShape) => getIsDot(shape)
-	hideRotateHandle = (shape: TLDrawShape) => getIsDot(shape)
-	hideSelectionBoundsBg = (shape: TLDrawShape) => getIsDot(shape)
-	hideSelectionBoundsFg = (shape: TLDrawShape) => getIsDot(shape)
+	override hideResizeHandles = (shape: TLDrawShape) => getIsDot(shape)
+	override hideRotateHandle = (shape: TLDrawShape) => getIsDot(shape)
+	override hideSelectionBoundsBg = (shape: TLDrawShape) => getIsDot(shape)
+	override hideSelectionBoundsFg = (shape: TLDrawShape) => getIsDot(shape)
 
 	override getDefaultProps(): TLDrawShape['props'] {
 		return {
@@ -44,21 +52,21 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		}
 	}
 
-	isClosed = (shape: TLDrawShape) => shape.props.isClosed
+	override isClosed = (shape: TLDrawShape) => shape.props.isClosed
 
 	getBounds(shape: TLDrawShape) {
 		return Box2d.FromPoints(this.editor.getOutline(shape))
 	}
 
-	getOutline(shape: TLDrawShape) {
+	override getOutline(shape: TLDrawShape) {
 		return getPointsFromSegments(shape.props.segments)
 	}
 
-	getCenter(shape: TLDrawShape): Vec2d {
+	override getCenter(shape: TLDrawShape): Vec2d {
 		return this.editor.getBounds(shape).center
 	}
 
-	hitTestPoint(shape: TLDrawShape, point: VecLike): boolean {
+	override hitTestPoint(shape: TLDrawShape, point: VecLike): boolean {
 		const outline = this.editor.getOutline(shape)
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
@@ -85,7 +93,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return false
 	}
 
-	hitTestLineSegment(shape: TLDrawShape, A: VecLike, B: VecLike): boolean {
+	override hitTestLineSegment(shape: TLDrawShape, A: VecLike, B: VecLike): boolean {
 		const outline = this.editor.getOutline(shape)
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
@@ -210,7 +218,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return <path d={solidStrokePath} />
 	}
 
-	toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
+	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
 		const theme = getDefaultColorTheme(this.editor)
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
@@ -275,7 +283,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return foregroundPath
 	}
 
-	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return [getFillDefForCanvas()]
 	}
 
@@ -304,7 +312,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		}
 	}
 
-	expandSelectionOutlinePx(shape: TLDrawShape): number {
+	override expandSelectionOutlinePx(shape: TLDrawShape): number {
 		const multiplier = shape.props.dash === 'draw' ? 1.6 : 1
 		return (STROKE_SIZES[shape.props.size] * multiplier) / 2
 	}

@@ -1,11 +1,9 @@
 import {
 	ArrowShape,
 	BookmarkShape,
-	DrawShape,
 	EmbedShape,
 	FrameShape,
 	GroupShape,
-	HighlightShape,
 	ImageShape,
 	NoteShape,
 	TLBaseShape,
@@ -13,7 +11,9 @@ import {
 	TextShape,
 	VideoShape,
 } from '@tldraw/editor'
+import { DrawShape } from './shapes/draw/DrawShape'
 import { GeoShape } from './shapes/geo/GeoShape'
+import { HighlightShape } from './shapes/highlight/HighlightShape'
 import { LineShape } from './shapes/line/LineShape'
 
 /** @public */

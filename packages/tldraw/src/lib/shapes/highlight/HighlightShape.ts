@@ -1,5 +1,4 @@
-import { highlightShapeMigrations, highlightShapeProps } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/defineShape'
+import { defineShape, highlightShapeMigrations, highlightShapeProps } from '@tldraw/editor'
 import { HighlightShapeTool } from './HighlightShapeTool'
 import { HighlightShapeUtil } from './HighlightShapeUtil'
 

@@ -1,16 +1,16 @@
-import { StateNode } from '../../tools/StateNode'
 // shared custody
+import { StateNode } from '@tldraw/editor'
 import { Drawing } from '../draw/toolStates/Drawing'
 import { Idle } from '../draw/toolStates/Idle'
 
 export class HighlightShapeTool extends StateNode {
 	static override id = 'highlight'
-	static initial = 'idle'
-	static children = () => [Idle, Drawing]
+	static override initial = 'idle'
+	static override children = () => [Idle, Drawing]
 
-	shapeType = 'highlight'
+	override shapeType = 'highlight'
 
-	onExit = () => {
+	override onExit = () => {
 		const drawingState = this.children!['drawing'] as Drawing
 		drawingState.initialShape = undefined
 	}

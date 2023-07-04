@@ -11,7 +11,6 @@ import {
 } from '@tldraw/tlschema'
 import { assert, compact } from '@tldraw/utils'
 import { ArrowShapeTool } from '../../editor/shapes/arrow/ArrowShapeTool'
-import { DrawShapeTool } from '../../editor/shapes/draw/DrawShapeTool'
 import { GroupShapeUtil } from '../../editor/shapes/group/GroupShapeUtil'
 import { NoteShapeTool } from '../../editor/shapes/note/NoteShapeTool'
 import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
@@ -1195,7 +1194,7 @@ describe('creating new shapes', () => {
 		it('does not draw inside the group if the group is only selected and not focused', () => {
 			editor.select(groupA.id)
 
-			editor.setSelectedTool(DrawShapeTool.id)
+			editor.setSelectedTool('draw')
 			editor.pointerDown(20, 20).pointerMove(80, 80).pointerUp(80, 80)
 
 			const lineC = onlySelectedShape()
@@ -1206,7 +1205,7 @@ describe('creating new shapes', () => {
 			editor.select(ids.boxA)
 			expect(editor.focusLayerId === groupA.id).toBe(true)
 
-			editor.setSelectedTool(DrawShapeTool.id)
+			editor.setSelectedTool('draw')
 			editor.pointerDown(20, 20).pointerMove(80, 80).pointerUp(80, 80)
 
 			const lineC = onlySelectedShape()
@@ -1217,7 +1216,7 @@ describe('creating new shapes', () => {
 			editor.select(ids.boxA)
 			expect(editor.focusLayerId === groupA.id).toBe(true)
 
-			editor.setSelectedTool(DrawShapeTool.id)
+			editor.setSelectedTool('draw')
 			editor.pointerDown(20, 20)
 			for (let i = 20; i >= -20; i--) {
 				editor.pointerMove(i, i)
@@ -1245,7 +1244,7 @@ describe('creating new shapes', () => {
 			editor.select(ids.boxA)
 			expect(editor.focusLayerId === groupA.id).toBe(true)
 
-			editor.setSelectedTool(DrawShapeTool.id)
+			editor.setSelectedTool('draw')
 			editor.pointerDown(-20, -20)
 			for (let i = -20; i >= -100; i--) {
 				editor.pointerMove(i, i)

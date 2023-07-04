@@ -1,5 +1,5 @@
+import { TLDefaultDashStyle, TLDrawShape, TLDrawShapeSegment } from '@tldraw/editor'
 import { EASINGS, PI, SIN, StrokeOptions, Vec2d } from '@tldraw/primitives'
-import { TLDefaultDashStyle, TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
 
 const PEN_EASING = (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35
 

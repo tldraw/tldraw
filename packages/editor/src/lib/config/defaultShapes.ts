@@ -1,10 +1,8 @@
 import { ArrowShape } from '../editor/shapes/arrow/ArrowShape'
 import { BookmarkShape } from '../editor/shapes/bookmark/BookmarkShape'
-import { DrawShape } from '../editor/shapes/draw/DrawShape'
 import { EmbedShape } from '../editor/shapes/embed/EmbedShape'
 import { FrameShape } from '../editor/shapes/frame/FrameShape'
 import { GroupShape } from '../editor/shapes/group/GroupShape'
-import { HighlightShape } from '../editor/shapes/highlight/HighlightShape'
 import { ImageShape } from '../editor/shapes/image/ImageShape'
 import { NoteShape } from '../editor/shapes/note/NoteShape'
 import { TextShape } from '../editor/shapes/text/TextShape'
@@ -26,14 +24,7 @@ export const coreShapes = [
 ] as const
 
 /** @public */
-export const defaultShapes = [
-	DrawShape,
-	NoteShape,
-	FrameShape,
-	ArrowShape,
-	HighlightShape,
-	VideoShape,
-] as const
+export const defaultShapes = [NoteShape, FrameShape, ArrowShape, VideoShape] as const
 
 const coreShapeTypes = new Set<string>(coreShapes.map((s) => s.type))
 export function checkShapesAndAddCore(customShapes: readonly TLShapeInfo[]) {

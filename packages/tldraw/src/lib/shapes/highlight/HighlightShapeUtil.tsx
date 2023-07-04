@@ -1,18 +1,19 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { Box2d, getStrokePoints, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
 import {
-	getDefaultColorTheme,
+	SVGContainer,
+	ShapeUtil,
 	TLDefaultColorTheme,
 	TLDrawShapeSegment,
 	TLHighlightShape,
-} from '@tldraw/tlschema'
+	TLOnResizeHandler,
+	getDefaultColorTheme,
+	getSvgPathFromStrokePoints,
+} from '@tldraw/editor'
+import { Box2d, Vec2d, VecLike, getStrokePoints, linesIntersect } from '@tldraw/primitives'
 import { last, rng } from '@tldraw/utils'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { getSvgPathFromStrokePoints } from '../../../utils/svg'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
-import { ShapeUtil, TLOnResizeHandler } from '../ShapeUtil'
-import { FONT_SIZES } from '../shared/default-shape-constants'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
+import { FONT_SIZES } from '../shared/default-shape-constants'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useForceSolid } from '../shared/useForceSolid'
 
@@ -21,12 +22,12 @@ const UNDERLAY_OPACITY = 0.82
 
 /** @public */
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
-	static type = 'highlight' as const
+	static override type = 'highlight' as const
 
-	hideResizeHandles = (shape: TLHighlightShape) => getIsDot(shape)
-	hideRotateHandle = (shape: TLHighlightShape) => getIsDot(shape)
-	hideSelectionBoundsBg = (shape: TLHighlightShape) => getIsDot(shape)
-	hideSelectionBoundsFg = (shape: TLHighlightShape) => getIsDot(shape)
+	override hideResizeHandles = (shape: TLHighlightShape) => getIsDot(shape)
+	override hideRotateHandle = (shape: TLHighlightShape) => getIsDot(shape)
+	override hideSelectionBoundsBg = (shape: TLHighlightShape) => getIsDot(shape)
+	override hideSelectionBoundsFg = (shape: TLHighlightShape) => getIsDot(shape)
 
 	override getDefaultProps(): TLHighlightShape['props'] {
 		return {
@@ -42,15 +43,15 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return Box2d.FromPoints(this.editor.getOutline(shape))
 	}
 
-	getOutline(shape: TLHighlightShape) {
+	override getOutline(shape: TLHighlightShape) {
 		return getPointsFromSegments(shape.props.segments)
 	}
 
-	getCenter(shape: TLHighlightShape): Vec2d {
+	override getCenter(shape: TLHighlightShape): Vec2d {
 		return this.editor.getBounds(shape).center
 	}
 
-	hitTestPoint(shape: TLHighlightShape, point: VecLike): boolean {
+	override hitTestPoint(shape: TLHighlightShape, point: VecLike): boolean {
 		const outline = this.editor.getOutline(shape)
 		const zoomLevel = this.editor.zoomLevel
 		const offsetDist = getStrokeWidth(shape) / zoomLevel
@@ -73,7 +74,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return false
 	}
 
-	hitTestLineSegment(shape: TLHighlightShape, A: VecLike, B: VecLike): boolean {
+	override hitTestLineSegment(shape: TLHighlightShape, A: VecLike, B: VecLike): boolean {
 		const outline = this.editor.getOutline(shape)
 
 		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
@@ -108,7 +109,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		)
 	}
 
-	backgroundComponent(shape: TLHighlightShape) {
+	override backgroundComponent(shape: TLHighlightShape) {
 		return (
 			<HighlightRenderer
 				strokeWidth={getStrokeWidth(shape)}

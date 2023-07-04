@@ -1,18 +1,19 @@
-import { Matrix2d, snapAngle, toFixed, Vec2d } from '@tldraw/primitives'
 import {
-	createShapeId,
+	DRAG_DISTANCE,
+	StateNode,
 	TLDefaultSizeStyle,
 	TLDrawShape,
 	TLDrawShapeSegment,
+	TLEventHandlers,
 	TLHighlightShape,
+	TLPointerEventInfo,
 	TLShapePartial,
 	Vec2dModel,
-} from '@tldraw/tlschema'
-import { last, structuredClone } from '@tldraw/utils'
-import { DRAG_DISTANCE } from '../../../../constants'
-import { uniqueId } from '../../../../utils/data'
-import { StateNode } from '../../../tools/StateNode'
-import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
+	createShapeId,
+	uniqueId,
+} from '@tldraw/editor'
+import { Matrix2d, Vec2d, snapAngle, toFixed } from '@tldraw/primitives'
+import { last } from '@tldraw/utils'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 
 type DrawableShape = TLDrawShape | TLHighlightShape
@@ -24,7 +25,7 @@ export class Drawing extends StateNode {
 
 	initialShape?: DrawableShape
 
-	shapeType = this.parent.id === 'highlight' ? ('highlight' as const) : ('draw' as const)
+	override shapeType = this.parent.id === 'highlight' ? ('highlight' as const) : ('draw' as const)
 
 	util = this.editor.getShapeUtil(this.shapeType)
 
@@ -44,7 +45,7 @@ export class Drawing extends StateNode {
 
 	canDraw = false
 
-	onEnter = (info: TLPointerEventInfo) => {
+	override onEnter = (info: TLPointerEventInfo) => {
 		this.info = info
 		this.canDraw = !this.editor.isMenuOpen
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
@@ -53,7 +54,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		const {
 			editor: { inputs },
 		} = this
@@ -91,7 +92,7 @@ export class Drawing extends StateNode {
 		}
 	}
 
-	onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		if (info.key === 'Shift') {
 			switch (this.segmentMode) {
 				case 'free': {
@@ -108,7 +109,7 @@ export class Drawing extends StateNode {
 		this.updateShapes()
 	}
 
-	onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		if (info.key === 'Shift') {
 			this.editor.snaps.clear()
 
@@ -130,7 +131,7 @@ export class Drawing extends StateNode {
 		this.updateShapes()
 	}
 
-	onExit? = () => {
+	override onExit? = () => {
 		this.editor.snaps.clear()
 		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 	}

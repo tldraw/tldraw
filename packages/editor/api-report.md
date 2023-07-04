@@ -53,12 +53,10 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
-import { TLDrawShape } from '@tldraw/tlschema';
 import { TLEmbedShape } from '@tldraw/tlschema';
 import { TLFrameShape } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
-import { TLHighlightShape } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
@@ -298,7 +296,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>, TLShapeInfo<TLVideoShape>];
+export const defaultShapes: readonly [TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLVideoShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -316,49 +314,6 @@ export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
 
 // @internal (undocumented)
 export const DRAG_DISTANCE = 4;
-
-// @public (undocumented)
-export const DrawShape: TLShapeInfo<TLDrawShape>;
-
-// @public (undocumented)
-export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
-    // (undocumented)
-    component(shape: TLDrawShape): JSX.Element;
-    // (undocumented)
-    expandSelectionOutlinePx(shape: TLDrawShape): number;
-    // (undocumented)
-    getBounds(shape: TLDrawShape): Box2d;
-    // (undocumented)
-    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
-    // (undocumented)
-    getCenter(shape: TLDrawShape): Vec2d;
-    // (undocumented)
-    getDefaultProps(): TLDrawShape['props'];
-    // (undocumented)
-    getOutline(shape: TLDrawShape): Vec2d[];
-    // (undocumented)
-    hideResizeHandles: (shape: TLDrawShape) => boolean;
-    // (undocumented)
-    hideRotateHandle: (shape: TLDrawShape) => boolean;
-    // (undocumented)
-    hideSelectionBoundsBg: (shape: TLDrawShape) => boolean;
-    // (undocumented)
-    hideSelectionBoundsFg: (shape: TLDrawShape) => boolean;
-    // (undocumented)
-    hitTestLineSegment(shape: TLDrawShape, A: VecLike, B: VecLike): boolean;
-    // (undocumented)
-    hitTestPoint(shape: TLDrawShape, point: VecLike): boolean;
-    // (undocumented)
-    indicator(shape: TLDrawShape): JSX.Element;
-    // (undocumented)
-    isClosed: (shape: TLDrawShape) => boolean;
-    // (undocumented)
-    onResize: TLOnResizeHandler<TLDrawShape>;
-    // (undocumented)
-    toSvg(shape: TLDrawShape, ctx: SvgExportContext): SVGGElement;
-    // (undocumented)
-    static type: "draw";
-}
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
@@ -972,49 +927,6 @@ export function hardResetEditor(): void;
 
 // @internal (undocumented)
 export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
-
-// @public (undocumented)
-export const HighlightShape: TLShapeInfo<TLHighlightShape>;
-
-// @public (undocumented)
-export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
-    // (undocumented)
-    backgroundComponent(shape: TLHighlightShape): JSX.Element;
-    // (undocumented)
-    component(shape: TLHighlightShape): JSX.Element;
-    // (undocumented)
-    expandSelectionOutlinePx(shape: TLHighlightShape): number;
-    // (undocumented)
-    getBounds(shape: TLHighlightShape): Box2d;
-    // (undocumented)
-    getCenter(shape: TLHighlightShape): Vec2d;
-    // (undocumented)
-    getDefaultProps(): TLHighlightShape['props'];
-    // (undocumented)
-    getOutline(shape: TLHighlightShape): Vec2d[];
-    // (undocumented)
-    hideResizeHandles: (shape: TLHighlightShape) => boolean;
-    // (undocumented)
-    hideRotateHandle: (shape: TLHighlightShape) => boolean;
-    // (undocumented)
-    hideSelectionBoundsBg: (shape: TLHighlightShape) => boolean;
-    // (undocumented)
-    hideSelectionBoundsFg: (shape: TLHighlightShape) => boolean;
-    // (undocumented)
-    hitTestLineSegment(shape: TLHighlightShape, A: VecLike, B: VecLike): boolean;
-    // (undocumented)
-    hitTestPoint(shape: TLHighlightShape, point: VecLike): boolean;
-    // (undocumented)
-    indicator(shape: TLHighlightShape): JSX.Element;
-    // (undocumented)
-    onResize: TLOnResizeHandler<TLHighlightShape>;
-    // (undocumented)
-    toBackgroundSvg(shape: TLHighlightShape): SVGPathElement;
-    // (undocumented)
-    toSvg(shape: TLHighlightShape): SVGPathElement;
-    // (undocumented)
-    static type: "highlight";
-}
 
 // @public (undocumented)
 export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX.Element;
