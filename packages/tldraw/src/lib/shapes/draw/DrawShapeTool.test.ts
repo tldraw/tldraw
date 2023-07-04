@@ -1,5 +1,6 @@
-import { TestEditor } from '@tldraw/editor'
 import { DrawShapeTool } from './DrawShapeTool'
+// eslint-disable-next-line import/no-internal-modules
+import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 
 let editor: TestEditor
 

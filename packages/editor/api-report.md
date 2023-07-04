@@ -4,7 +4,6 @@
 
 ```ts
 
-/// <reference types="@types/jest" />
 /// <reference types="react" />
 
 import { Atom } from '@tldraw/state';
@@ -1696,99 +1695,6 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 
 // @public
 export const TAB_ID: string;
-
-// @public (undocumented)
-export class TestEditor extends Editor {
-    constructor(options?: Partial<Omit<TLEditorOptions, 'store'>>);
-    // (undocumented)
-    bounds: {
-        x: number;
-        y: number;
-        top: number;
-        left: number;
-        width: number;
-        height: number;
-        bottom: number;
-        right: number;
-    };
-    // (undocumented)
-    click: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
-    // (undocumented)
-    clipboard: null | TLContent;
-    // (undocumented)
-    copy: (ids?: TLShapeId[]) => this;
-    // (undocumented)
-    static CreateShapeId(id?: string): TLShapeId;
-    // (undocumented)
-    createShapesFromJsx(shapesJsx: JSX.Element | JSX.Element[]): Record<string, TLShapeId>;
-    // (undocumented)
-    cut: (ids?: TLShapeId[]) => this;
-    // (undocumented)
-    doubleClick: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
-    // (undocumented)
-    elm: HTMLDivElement;
-    // (undocumented)
-    expectCameraToBe(x: number, y: number, z: number): void;
-    // (undocumented)
-    expectPathToBe: (path: string) => this;
-    // (undocumented)
-    expectShapeToMatch: (...model: RequiredKeys<TLShapePartial, 'id'>[]) => this;
-    // (undocumented)
-    expectToBeIn: (path: string) => this;
-    // (undocumented)
-    protected getInfo: <T extends TLEventInfo>(info: string | T) => T;
-    // (undocumented)
-    protected getKeyboardEventInfo: (key: string, name: TLKeyboardEventInfo['name'], options?: Partial<TLKeyboardEventInfo>) => TLKeyboardEventInfo;
-    // (undocumented)
-    protected getPointerEventInfo: (x?: number, y?: number, options?: Partial<TLPointerEventInfo> | TLShapeId, modifiers?: EventModifiers) => TLPointerEventInfo;
-    // (undocumented)
-    keyDown: (key: string, options?: Partial<TLKeyboardEventInfo>) => this;
-    // (undocumented)
-    keyRepeat: (key: string, options?: Partial<TLKeyboardEventInfo>) => this;
-    // (undocumented)
-    keyUp: (key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>) => this;
-    // (undocumented)
-    paste: (point?: VecLike) => this;
-    // (undocumented)
-    pinchEnd: (x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, "delta" | "offset" | "point">>) => this;
-    // (undocumented)
-    pinchStart: (x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, "delta" | "offset" | "point">>) => this;
-    // (undocumented)
-    pinchTo: (x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, "delta" | "offset" | "point">>) => this;
-    // (undocumented)
-    pointerDown: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
-    // (undocumented)
-    pointerEnter: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
-    // (undocumented)
-    pointerLeave: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
-    // (undocumented)
-    pointerMove: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
-    // (undocumented)
-    pointerUp: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
-    // (undocumented)
-    resizeSelection({ scaleX, scaleY }: {
-        scaleX?: number | undefined;
-        scaleY?: number | undefined;
-    }, handle: SelectionHandle, options?: Partial<TLPointerEventInfo>): this;
-    // (undocumented)
-    rotateSelection(angleRadians: number, { handle, shiftKey, }?: {
-        handle?: RotateCorner;
-        shiftKey?: boolean;
-    }): this;
-    // (undocumented)
-    setScreenBounds(bounds: Box2dModel, center?: boolean): this;
-    // (undocumented)
-    testPageID(id: string): TLPageId;
-    // (undocumented)
-    testShapeID(id: string): TLShapeId;
-    _transformPointerDownSpy: jest.SpyInstance<TLClickEventInfo | TLPointerEventInfo, [info: TLPointerEventInfo]>;
-    // (undocumented)
-    _transformPointerUpSpy: jest.SpyInstance<TLClickEventInfo | TLPointerEventInfo, [info: TLPointerEventInfo]>;
-    // (undocumented)
-    translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>): this;
-    // (undocumented)
-    wheel: (dx: number, dy: number, options?: Partial<Omit<TLWheelEventInfo, "delta">>) => this;
-}
 
 // @public (undocumented)
 export type TLAnimationOptions = Partial<{

@@ -86,7 +86,6 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
-export { TestEditor } from './lib/editor/TestEditor'
 export {
 	ExternalContentManager as PlopManager,
 	type TLExternalContent,

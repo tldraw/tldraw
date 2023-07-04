@@ -1,5 +1,5 @@
 import { MAX_PAGES } from '../../constants'
-import { TestEditor } from '../../editor/TestEditor'
+import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 

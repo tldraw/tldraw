@@ -1,9 +1,9 @@
 import { PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
 import { defaultShapes } from '../config/defaultShapes'
 import { defineShape } from '../config/defineShape'
-import { TestEditor } from '../editor/TestEditor'
 import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
-import { TL } from '../editor/test-jsx'
+import { TestEditor } from './TestEditor'
+import { TL } from './test-jsx'
 
 let editor: TestEditor
 

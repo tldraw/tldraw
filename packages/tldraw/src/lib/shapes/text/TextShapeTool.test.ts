@@ -1,4 +1,5 @@
-import { TestEditor } from '@tldraw/editor'
+// eslint-disable-next-line import/no-internal-modules
+import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 import { TextShapeTool } from './TextShapeTool'
 
 let editor: TestEditor

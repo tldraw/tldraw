@@ -1,7 +1,7 @@
 import { DefaultColorStyle, TLGeoShape, TLGroupShape } from '@tldraw/tlschema'
-import { TestEditor, createDefaultShapes, defaultShapesIds } from '../editor/TestEditor'
-import { TL } from '../editor/test-jsx'
 import { ReadonlySharedStyleMap, SharedStyle } from '../utils/SharedStylesMap'
+import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
+import { TL } from './test-jsx'
 
 let editor: TestEditor
 

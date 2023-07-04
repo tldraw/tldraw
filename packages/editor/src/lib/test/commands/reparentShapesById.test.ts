@@ -1,5 +1,5 @@
 import { createShapeId } from '@tldraw/tlschema'
-import { createDefaultShapes, defaultShapesIds, TestEditor } from '../../editor/TestEditor'
+import { createDefaultShapes, defaultShapesIds, TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 

@@ -1,5 +1,5 @@
 import { atom } from '@tldraw/state'
-import { TestEditor } from '../editor/TestEditor'
+import { TestEditor } from '../test/TestEditor'
 import { TLUserPreferences } from './TLUserPreferences'
 import { createTLUser } from './createTLUser'
 

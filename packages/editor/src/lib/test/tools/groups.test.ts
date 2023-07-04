@@ -12,8 +12,8 @@ import {
 import { assert, compact } from '@tldraw/utils'
 import { ArrowShapeTool } from '../../editor/shapes/arrow/ArrowShapeTool'
 import { GroupShapeUtil } from '../../editor/shapes/group/GroupShapeUtil'
-import { TestEditor } from '../../editor/TestEditor'
 import { EraserTool } from '../../editor/tools/EraserTool/EraserTool'
+import { TestEditor } from '../TestEditor'
 
 jest.mock('nanoid', () => {
 	let i = 0

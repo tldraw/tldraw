@@ -1,6 +1,6 @@
-import { TestEditor } from '../../editor/TestEditor'
-import { TL } from '../../editor/test-jsx'
 import { SelectTool } from '../../editor/tools/SelectTool/SelectTool'
+import { TestEditor } from '../TestEditor'
+import { TL } from '../test-jsx'
 
 let editor: TestEditor
 

@@ -1,5 +1,7 @@
-import { TestEditor, TLLineShape } from '@tldraw/editor'
+import { TLLineShape } from '@tldraw/editor'
 import { assert } from '@tldraw/utils'
+// eslint-disable-next-line import/no-internal-modules
+import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 
 let editor: TestEditor
 

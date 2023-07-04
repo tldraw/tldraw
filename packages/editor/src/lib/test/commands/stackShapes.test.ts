@@ -1,5 +1,5 @@
 import { createShapeId } from '@tldraw/tlschema'
-import { TestEditor } from '../../editor/TestEditor'
+import { TestEditor } from '../TestEditor'
 
 jest.useFakeTimers()
 

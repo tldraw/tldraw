@@ -1,4 +1,6 @@
-import { TLBookmarkShape, TestEditor, createShapeId } from '@tldraw/editor'
+import { TLBookmarkShape, createShapeId } from '@tldraw/editor'
+// eslint-disable-next-line import/no-internal-modules
+import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 import {
 	BookmarkShapeUtil,
 	getHumanReadableAddress,

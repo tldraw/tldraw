@@ -1,7 +1,7 @@
 import { Box2d } from '@tldraw/primitives'
 import { TLGeoShape, createShapeId } from '@tldraw/tlschema'
-import { TestEditor } from '../editor/TestEditor'
 import { resizeBox } from '../editor/shapes/shared/resizeBox'
+import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 let shape: TLGeoShape

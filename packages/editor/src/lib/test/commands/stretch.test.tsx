@@ -1,7 +1,7 @@
 import { PI } from '@tldraw/primitives'
 import { TLShapeId } from '@tldraw/tlschema'
-import { TestEditor } from '../../editor/TestEditor'
-import { TL } from '../../editor/test-jsx'
+import { TestEditor } from '../TestEditor'
+import { TL } from '../test-jsx'
 
 let editor: TestEditor
 let ids: Record<string, TLShapeId>

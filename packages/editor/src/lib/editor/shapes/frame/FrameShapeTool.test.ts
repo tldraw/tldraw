@@ -1,4 +1,4 @@
-import { TestEditor } from '../../TestEditor'
+import { TestEditor } from '../../../test/TestEditor'
 import { FrameShapeTool } from './FrameShapeTool'
 
 let editor: TestEditor
