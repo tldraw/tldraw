@@ -34,7 +34,7 @@ import { useZoomCss } from './hooks/useZoomCss'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
- * Attributes for the {@link TldrawEditor} component.
+ * Attributes for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
  *
  * @param children - The editor's children.
  * @param shapes - An array of shape utils to use in the editor.
