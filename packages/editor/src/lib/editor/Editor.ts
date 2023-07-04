@@ -9205,7 +9205,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing = true
 							inputs.isDragging = false
 
-							if (!this.isPenMode) {
+							if (this.isPenMode) {
+								if (!isPen) {
+									return
+								}
+							} else {
 								if (isPen) {
 									this.setPenMode(true)
 								}
