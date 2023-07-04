@@ -1,7 +1,7 @@
 import { Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/data'
 import { Editor } from '../Editor'
-import { TextHelpers } from '../shapes/text/TextHelpers'
+import { TextHelpers } from '../shapes/shared/TextHelpers'
 
 const textAlignmentsForLtr = {
 	start: 'left',

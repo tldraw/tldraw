@@ -10,8 +10,8 @@ import {
 import React from 'react'
 import { stopEventPropagation } from '../../../utils/dom'
 import { isLegacyAlign } from '../../../utils/legacy'
-import { TextHelpers } from '../text/TextHelpers'
 import { useDefaultColorTheme } from './ShapeFill'
+import { TextHelpers } from './TextHelpers'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
 import { useEditableText } from './useEditableText'
 

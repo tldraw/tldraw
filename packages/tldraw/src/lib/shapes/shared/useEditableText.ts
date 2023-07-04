@@ -1,7 +1,6 @@
 /* eslint-disable no-inner-declarations */
 
 import {
-	INDENT,
 	TLShape,
 	TLUnknownShape,
 	preventDefault,
@@ -10,7 +9,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
-import { TextHelpers } from './TextHelpers'
+import { INDENT, TextHelpers } from './TextHelpers'
 
 export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(
 	id: T['id'],

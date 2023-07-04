@@ -1,17 +1,15 @@
-import { createShapeId, TLTextShape } from '@tldraw/tlschema'
-import { StateNode } from '../../../tools/StateNode'
-import { TLEventHandlers } from '../../../types/event-types'
+import { StateNode, TLEventHandlers, TLTextShape, createShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	shape?: TLTextShape
 
-	onExit = () => {
+	override onExit = () => {
 		this.editor.setHintingIds([])
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			const {
 				inputs: { originPagePoint },
@@ -52,22 +50,23 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	onPointerUp = () => {
+	override onPointerUp = () => {
 		this.complete()
 	}
 
-	onComplete = () => {
-		this.cancel()
-	}
-	onCancel = () => {
+	override onComplete = () => {
 		this.cancel()
 	}
 
-	onInterrupt = () => {
+	override onCancel = () => {
 		this.cancel()
 	}
 
-	complete() {
+	override onInterrupt = () => {
+		this.cancel()
+	}
+
+	private complete() {
 		this.editor.mark('creating text shape')
 		const id = createShapeId()
 		const { x, y } = this.editor.inputs.currentPagePoint
@@ -92,7 +91,7 @@ export class Pointing extends StateNode {
 		this.editor.root.current.value?.transition('editing_shape', {})
 	}
 
-	cancel() {
+	private cancel() {
 		this.parent.transition('idle', {})
 		this.editor.bailToMark('creating')
 	}

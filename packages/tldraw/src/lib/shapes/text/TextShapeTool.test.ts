@@ -1,4 +1,4 @@
-import { TestEditor } from '../../../test/TestEditor'
+import { TestEditor } from '@tldraw/editor'
 import { TextShapeTool } from './TextShapeTool'
 
 let editor: TestEditor
@@ -6,6 +6,7 @@ let editor: TestEditor
 beforeEach(() => {
 	editor = new TestEditor()
 })
+
 afterEach(() => {
 	editor?.dispose()
 })

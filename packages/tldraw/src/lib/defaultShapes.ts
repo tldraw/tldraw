@@ -1,37 +1,16 @@
-import {
-	ArrowShape,
-	EmbedShape,
-	FrameShape,
-	GroupShape,
-	ImageShape,
-	TLBaseShape,
-	TLShapeInfo,
-	TextShape,
-	VideoShape,
-} from '@tldraw/editor'
+import { ArrowShape, FrameShape, TLBaseShape, TLShapeInfo, coreShapes } from '@tldraw/editor'
 import { BookmarkShape } from './shapes/bookmark/BookmarkShape'
 import { DrawShape } from './shapes/draw/DrawShape'
 import { GeoShape } from './shapes/geo/GeoShape'
 import { HighlightShape } from './shapes/highlight/HighlightShape'
 import { LineShape } from './shapes/line/LineShape'
 import { NoteShape } from './shapes/note/NoteShape'
-
-/** @public */
-export const coreShapes = [
-	// created by grouping interactions, probably the corest core shape that we have
-	GroupShape,
-	// created by embed menu / url drop
-	EmbedShape,
-	// created by copy and paste / url drop
-	BookmarkShape,
-	// created by copy and paste / file drop
-	ImageShape,
-	// created by copy and paste
-	TextShape,
-] as const
+import { TextShape } from './shapes/text/TextShape'
 
 /** @public */
 export const defaultShapes = [
+	TextShape,
+	BookmarkShape,
 	DrawShape,
 	GeoShape,
 	NoteShape,
@@ -40,7 +19,6 @@ export const defaultShapes = [
 	FrameShape,
 	ArrowShape,
 	HighlightShape,
-	VideoShape,
 ] as const
 
 const coreShapeTypes = new Set<string>(coreShapes.map((s) => s.type))

@@ -71,7 +71,6 @@ import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
-import { TLTextShape } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { TLVideoShape } from '@tldraw/tlschema';
@@ -211,7 +210,7 @@ export { computed }
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
-export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLEmbedShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLTextShape>];
+export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLEmbedShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLVideoShape>];
 
 // @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
@@ -269,7 +268,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: readonly [TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLVideoShape>];
+export const defaultShapes: readonly [TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -931,9 +930,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     static type: "image";
 }
-
-// @public (undocumented)
-export const INDENT = "  ";
 
 // @public
 export function isAnimated(buffer: ArrayBuffer): boolean;
@@ -1822,104 +1818,6 @@ export class TestEditor extends Editor {
     translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>): this;
     // (undocumented)
     wheel: (dx: number, dy: number, options?: Partial<Omit<TLWheelEventInfo, "delta">>) => this;
-}
-
-// @public (undocumented)
-export const TextShape: TLShapeInfo<TLTextShape>;
-
-// @public (undocumented)
-export class TextShapeUtil extends ShapeUtil<TLTextShape> {
-    // (undocumented)
-    canEdit: () => boolean;
-    // (undocumented)
-    component(shape: TLTextShape): JSX.Element;
-    // (undocumented)
-    getBounds(shape: TLTextShape): Box2d;
-    // (undocumented)
-    getDefaultProps(): TLTextShape['props'];
-    // (undocumented)
-    getMinDimensions(shape: TLTextShape): {
-        height: number;
-        width: number;
-    };
-    // (undocumented)
-    getOutline(shape: TLTextShape): Vec2d[];
-    // (undocumented)
-    indicator(shape: TLTextShape): JSX.Element;
-    // (undocumented)
-    isAspectRatioLocked: TLShapeUtilFlag<TLTextShape>;
-    // (undocumented)
-    onBeforeCreate: (shape: TLTextShape) => {
-        x: number;
-        y: number;
-        type: "text";
-        rotation: number;
-        index: string;
-        parentId: TLParentId;
-        isLocked: boolean;
-        opacity: number;
-        props: {
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            size: "l" | "m" | "s" | "xl";
-            font: "draw" | "mono" | "sans" | "serif";
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            w: number;
-            text: string;
-            scale: number;
-            autoSize: boolean;
-        };
-        meta: JsonObject;
-        id: TLShapeId;
-        typeName: "shape";
-    } | undefined;
-    // (undocumented)
-    onBeforeUpdate: (prev: TLTextShape, next: TLTextShape) => {
-        x: number;
-        y: number;
-        props: {
-            w: number;
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            size: "l" | "m" | "s" | "xl";
-            font: "draw" | "mono" | "sans" | "serif";
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            text: string;
-            scale: number;
-            autoSize: boolean;
-        };
-        type: "text";
-        rotation: number;
-        index: string;
-        parentId: TLParentId;
-        isLocked: boolean;
-        opacity: number;
-        meta: JsonObject;
-        id: TLShapeId;
-        typeName: "shape";
-    } | undefined;
-    // (undocumented)
-    onDoubleClickEdge: (shape: TLTextShape) => {
-        id: TLShapeId;
-        type: "text";
-        props: {
-            autoSize: boolean;
-            scale?: undefined;
-        };
-    } | {
-        id: TLShapeId;
-        type: "text";
-        props: {
-            scale: number;
-            autoSize?: undefined;
-        };
-    } | undefined;
-    // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLTextShape>;
-    // (undocumented)
-    onResize: TLOnResizeHandler<TLTextShape>;
-    // (undocumented)
-    toSvg(shape: TLTextShape, ctx: SvgExportContext): SVGGElement;
-    // (undocumented)
-    static type: "text";
 }
 
 // @public (undocumented)

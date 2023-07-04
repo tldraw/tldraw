@@ -25,8 +25,8 @@ import {
 import { truncateStringWithEllipsis } from '../../utils/dom'
 import { getEmbedInfo } from '../../utils/embeds'
 import { Editor } from '../Editor'
+import { INDENT } from '../shapes/shared/TextHelpers'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shapes/shared/default-shape-constants'
-import { INDENT } from '../shapes/text/TextHelpers'
 
 /** @public */
 export type TLExternalContent =

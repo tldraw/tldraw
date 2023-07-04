@@ -1,5 +1,4 @@
-import { textShapeMigrations, textShapeProps } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/defineShape'
+import { defineShape, textShapeMigrations, textShapeProps } from '@tldraw/editor'
 import { TextShapeTool } from './TextShapeTool'
 import { TextShapeUtil } from './TextShapeUtil'
 

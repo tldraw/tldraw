@@ -4,7 +4,7 @@ import { TLShape, TLUnknownShape } from '@tldraw/tlschema'
 import React, { useCallback, useEffect, useRef } from 'react'
 import { useEditor } from '../../../hooks/useEditor'
 import { preventDefault, stopEventPropagation } from '../../../utils/dom'
-import { INDENT, TextHelpers } from '../text/TextHelpers'
+import { INDENT, TextHelpers } from './TextHelpers'
 
 export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(
 	id: T['id'],

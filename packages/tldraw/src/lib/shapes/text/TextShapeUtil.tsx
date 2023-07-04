@@ -1,29 +1,30 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { Box2d, toDomPrecision, Vec2d } from '@tldraw/primitives'
-import { DefaultFontFamilies, getDefaultColorTheme, TLTextShape } from '@tldraw/tlschema'
-import { HTMLContainer } from '../../../components/HTMLContainer'
-import { stopEventPropagation } from '../../../utils/dom'
-import { WeakMapCache } from '../../../utils/WeakMapCache'
-import { Editor } from '../../Editor'
-import { ShapeUtil, TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
+import {
+	DefaultFontFamilies,
+	Editor,
+	HTMLContainer,
+	ShapeUtil,
+	TLOnEditEndHandler,
+	TLOnResizeHandler,
+	TLShapeUtilFlag,
+	TLTextShape,
+	WeakMapCache,
+	getDefaultColorTheme,
+	stopEventPropagation,
+} from '@tldraw/editor'
+import { Box2d, Vec2d, toDomPrecision } from '@tldraw/primitives'
+import { SvgExportContext } from '../shared/SvgExportContext'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'
 import { resizeScaled } from '../shared/resizeScaled'
-import { SvgExportContext } from '../shared/SvgExportContext'
 import { useEditableText } from '../shared/useEditableText'
-
-export { INDENT } from './TextHelpers'
 
 const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width: number }>()
 
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	static override type = 'text' as const
-
-	canEdit = () => true
-
-	isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
 
 	getDefaultProps(): TLTextShape['props'] {
 		return {
@@ -48,7 +49,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return new Box2d(0, 0, width * scale, height * scale)
 	}
 
-	getOutline(shape: TLTextShape) {
+	override canEdit = () => true
+
+	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
+
+	override getOutline(shape: TLTextShape) {
 		const bounds = this.editor.getBounds(shape)
 
 		return [
@@ -137,7 +142,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
-	toSvg(shape: TLTextShape, ctx: SvgExportContext) {
+	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 
 		const theme = getDefaultColorTheme(this.editor)
@@ -186,7 +191,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return groupEl
 	}
 
-	onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {
+	override onResize: TLOnResizeHandler<TLTextShape> = (shape, info) => {
 		const { initialBounds, initialShape, scaleX, handle } = info
 
 		if (info.mode === 'scale_shape' || (handle !== 'right' && handle !== 'left')) {
@@ -229,7 +234,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	onBeforeCreate = (shape: TLTextShape) => {
+	override onBeforeCreate = (shape: TLTextShape) => {
 		// When a shape is created, center the text at the created point.
 
 		// Only center if the shape is set to autosize.
@@ -247,7 +252,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	onEditEnd: TLOnEditEndHandler<TLTextShape> = (shape) => {
+	override onEditEnd: TLOnEditEndHandler<TLTextShape> = (shape) => {
 		const {
 			id,
 			type,
@@ -273,7 +278,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	onBeforeUpdate = (prev: TLTextShape, next: TLTextShape) => {
+	override onBeforeUpdate = (prev: TLTextShape, next: TLTextShape) => {
 		if (!next.props.autoSize) return
 
 		const styleDidChange =
@@ -334,7 +339,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		}
 	}
 
-	onDoubleClickEdge = (shape: TLTextShape) => {
+	override onDoubleClickEdge = (shape: TLTextShape) => {
 		// If the shape has a fixed width, set it to autoSize.
 		if (!shape.props.autoSize) {
 			return {
