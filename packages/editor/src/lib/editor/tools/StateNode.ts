@@ -1,7 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
-import { TLBaseShape } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
-import { TLShapeUtilConstructor } from '../shapes/ShapeUtil'
 import {
 	EVENT_NAME_MAP,
 	TLEnterEventHandler,
@@ -69,7 +67,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	id: string
 	current: Atom<StateNode | undefined>
 	type: TLStateNodeType
-	shapeType?: TLShapeUtilConstructor<TLBaseShape<any, any>>
+	shapeType?: string
 	initial?: string
 	children?: Record<string, StateNode>
 	parent: StateNode

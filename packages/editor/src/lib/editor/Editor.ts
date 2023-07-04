@@ -124,6 +124,7 @@ import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
 import { ArrowShapeUtil } from './shapes/arrow/ArrowShapeUtil'
+import { ArrowInfo } from './shapes/arrow/arrow/arrow-types'
 import { getCurvedArrowInfo } from './shapes/arrow/arrow/curved-arrow'
 import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/arrow/arrow/shared'
 import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
@@ -591,53 +592,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
 
 	/**
-	 * Get a shape util by its definition.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getShapeUtil(ArrowShapeUtil)
-	 * ```
-	 *
-	 * @param util - The shape util.
-	 *
-	 * @public
-	 */
-	getShapeUtil<C extends { new (...args: any[]): ShapeUtil<any>; type: string }>(
-		util: C
-	): InstanceType<C>
-	/**
 	 * Get a shape util from a shape itself.
 	 *
 	 * @example
 	 * ```ts
-	 * const util = editor.getShapeUtil(myShape)
-	 * const util = editor.getShapeUtil<ArrowShapeUtil>(myShape)
-	 * const util = editor.getShapeUtil(ArrowShapeUtil)
+	 * const util = editor.getShapeUtil(myArrowShape)
+	 * const util = editor.getShapeUtil('arrow')
+	 * const util = editor.getShapeUtil<TLArrowShape>(myArrowShape)
+	 * const util = editor.getShapeUtil(TLArrowShape)('arrow')
 	 * ```
 	 *
-	 * @param shape - A shape or shape partial.
+	 * @param shape - A shape, shape partial, or shape type.
 	 *
 	 * @public
 	 */
 	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
-	getShapeUtil<T extends ShapeUtil>(shapeUtilConstructor: {
-		type: T extends ShapeUtil<infer R> ? R['type'] : string
-	}): T {
-		const shapeUtil = getOwnProperty(this.shapeUtils, shapeUtilConstructor.type) as T | undefined
-		assert(shapeUtil, `No shape util found for type "${shapeUtilConstructor.type}"`)
-
-		// does shapeUtilConstructor extends ShapeUtil?
-		if (
-			'prototype' in shapeUtilConstructor &&
-			shapeUtilConstructor.prototype instanceof ShapeUtil
-		) {
-			assert(
-				shapeUtil instanceof (shapeUtilConstructor as any),
-				`Shape util found for type "${shapeUtilConstructor.type}" is not an instance of the provided constructor`
-			)
-		}
-
-		return shapeUtil as T
+	getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>
+	getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T
+	getShapeUtil(arg: string | { type: string }) {
+		const type = typeof arg === 'string' ? arg : arg.type
+		const shapeUtil = getOwnProperty(this.shapeUtils, type)
+		assert(shapeUtil, `No shape util found for type "${type}"`)
+		return shapeUtil
 	}
 
 	/** @internal */
@@ -744,6 +720,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _unbindArrowTerminal(arrow: TLArrowShape, handleId: 'start' | 'end') {
 		const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
 		this.store.put([{ ...arrow, props: { ...arrow.props, [handleId]: { type: 'point', x, y } } }])
+	}
+
+	@computed
+	private get arrowInfoCache() {
+		return this.store.createComputedCache<ArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
+			return getIsArrowStraight(shape)
+				? getStraightArrowInfo(this, shape)
+				: getCurvedArrowInfo(this, shape)
+		})
+	}
+
+	getArrowInfo(shape: TLArrowShape) {
+		return this.arrowInfoCache.get(shape.id)
 	}
 
 	// private _shapeWillUpdate = (prev: TLShape, next: TLShape) => {
@@ -5776,7 +5765,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.isShapeOfType(shape, ArrowShapeUtil) &&
 					this.isShapeOfType(newShape, ArrowShapeUtil)
 				) {
-					const info = this.getShapeUtil(ArrowShapeUtil).getArrowInfo(shape)
+					const info = this.getArrowInfo(shape)
 					let newStartShapeId: TLShapeId | undefined = undefined
 					let newEndShapeId: TLShapeId | undefined = undefined
 
@@ -8071,7 +8060,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const endBindingId =
 					shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : undefined
 
-				const info = this.getShapeUtil(ArrowShapeUtil).getArrowInfo(shape)
+				const info = this.getArrowInfo(shape)
 
 				if (shape.props.start.type === 'binding') {
 					if (!shapes.some((s) => s.id === startBindingId)) {

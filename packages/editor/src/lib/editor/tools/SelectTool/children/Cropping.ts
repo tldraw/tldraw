@@ -1,14 +1,7 @@
 import { SelectionHandle, Vec2d } from '@tldraw/primitives'
-import {
-	TLBaseShape,
-	TLImageShapeCrop,
-	TLImageShapeProps,
-	TLShape,
-	TLShapePartial,
-} from '@tldraw/tlschema'
+import { TLBaseShape, TLImageShape, TLImageShapeCrop, TLShapePartial } from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { MIN_CROP_SIZE } from '../../../../constants'
-import { ImageShapeUtil } from '../../../shapes/image/ImageShapeUtil'
 import {
 	TLEnterEventHandler,
 	TLEventHandlers,
@@ -81,10 +74,10 @@ export class Cropping extends StateNode {
 		const { shape, cursorHandleOffset } = this.snapshot
 
 		if (!shape) return
-		const util = this.editor.getShapeUtil(ImageShapeUtil)
+		const util = this.editor.getShapeUtil<TLImageShape>('image')
 		if (!util) return
 
-		const props = shape.props as TLImageShapeProps
+		const props = shape.props
 
 		const currentPagePoint = this.editor.inputs.currentPagePoint.clone().sub(cursorHandleOffset)
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
@@ -229,7 +222,7 @@ export class Cropping extends StateNode {
 			inputs: { originPagePoint },
 		} = this.editor
 
-		const shape = this.editor.onlySelectedShape as TLShape
+		const shape = this.editor.onlySelectedShape as TLImageShape
 
 		const selectionBounds = this.editor.selectionBounds!
 

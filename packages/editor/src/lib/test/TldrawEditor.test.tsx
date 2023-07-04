@@ -301,7 +301,7 @@ describe('Custom shapes', () => {
 	class CardTool extends BaseBoxShapeTool {
 		static override id = 'card'
 		static override initial = 'idle'
-		override shapeType = CardUtil
+		override shapeType = 'card'
 	}
 
 	const tools = [CardTool]

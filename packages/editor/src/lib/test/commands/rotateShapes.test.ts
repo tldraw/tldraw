@@ -1,5 +1,4 @@
 import { createShapeId } from '@tldraw/tlschema'
-import { GeoShapeUtil } from '../../editor/shapes/geo/GeoShapeUtil'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -43,7 +42,7 @@ beforeEach(() => {
 describe('editor.rotateShapes', () => {
 	it('Rotates shapes and fires events', () => {
 		// Set start / change / end events on only the geo shape
-		const util = editor.getShapeUtil(GeoShapeUtil)
+		const util = editor.getShapeUtil('geo')
 
 		// Bad! who did this (did I do this)
 		const fnStart = jest.fn()

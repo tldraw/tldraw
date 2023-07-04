@@ -1,5 +1,4 @@
-import { DefaultFillStyle, TLArrowShape, createShapeId } from '@tldraw/tlschema'
-import { FrameShapeUtil } from '../../editor/shapes/frame/FrameShapeUtil'
+import { DefaultFillStyle, TLArrowShape, TLFrameShape, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -33,7 +32,7 @@ describe('creating frames', () => {
 		editor.setSelectedTool('frame')
 		editor.pointerDown(100, 100).pointerUp(100, 100)
 		expect(editor.onlySelectedShape?.type).toBe('frame')
-		const { w, h } = editor.getShapeUtil(FrameShapeUtil).getDefaultProps()
+		const { w, h } = editor.getShapeUtil<TLFrameShape>('frame').getDefaultProps()
 		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 100 - w / 2,
 			y: 100 - h / 2,

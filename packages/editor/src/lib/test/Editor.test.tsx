@@ -1,6 +1,7 @@
 import { PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
+import { defaultShapes } from '../config/defaultShapes'
+import { defineShape } from '../config/defineShape'
 import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
-import { GeoShapeUtil } from '../editor/shapes/geo/GeoShapeUtil'
 import { TestEditor } from './TestEditor'
 import { TL } from './jsx'
 
@@ -435,58 +436,66 @@ describe('isFocused', () => {
 })
 
 describe('getShapeUtil', () => {
-	it('accepts shapes', () => {
-		const geoShape = editor.getShapeById(ids.box1)!
-		const geoUtil = editor.getShapeUtil(geoShape)
-		expect(geoUtil).toBeInstanceOf(GeoShapeUtil)
+	let myUtil: any
+
+	beforeEach(() => {
+		class _MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
+			static type = 'blorg'
+			type = 'blorg'
+
+			getDefaultProps() {
+				return {
+					w: 100,
+					h: 100,
+				}
+			}
+			component() {
+				throw new Error('Method not implemented.')
+			}
+			indicator() {
+				throw new Error('Method not implemented.')
+			}
+		}
+
+		myUtil = _MyFakeShapeUtil
+
+		const myShapeDef = defineShape('blorg', {
+			util: _MyFakeShapeUtil,
+		})
+
+		editor = new TestEditor({
+			shapes: [...defaultShapes, myShapeDef],
+		})
+
+		editor.createShapes([
+			{ id: ids.box1, type: 'blorg', x: 100, y: 100, props: { w: 100, h: 100 } },
+		])
+		const page1 = editor.currentPageId
+		editor.createPage('page 2', ids.page2)
+		editor.setCurrentPageId(page1)
 	})
 
-	it('accepts shape utils', () => {
-		const geoUtil = editor.getShapeUtil(GeoShapeUtil)
-		expect(geoUtil).toBeInstanceOf(GeoShapeUtil)
+	it('accepts shapes', () => {
+		const shape = editor.getShapeById(ids.box1)!
+		const util = editor.getShapeUtil(shape)
+		expect(util).toBeInstanceOf(myUtil)
+	})
+
+	it('accepts shape types', () => {
+		const util = editor.getShapeUtil('blorg')
+		expect(util).toBeInstanceOf(myUtil)
 	})
 
 	it('throws if that shape type isnt registered', () => {
-		const myFakeShape = { type: 'fake' } as TLShape
-		expect(() => editor.getShapeUtil(myFakeShape)).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type \\"fake\\""`
-		)
-
-		class MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
-			static type = 'fake'
-
-			getDefaultProps() {
-				throw new Error('Method not implemented.')
-			}
-			component() {
-				throw new Error('Method not implemented.')
-			}
-			indicator() {
-				throw new Error('Method not implemented.')
-			}
-		}
-
-		expect(() => editor.getShapeUtil(MyFakeShapeUtil)).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type \\"fake\\""`
+		const myMissingShape = { type: 'missing' } as TLShape
+		expect(() => editor.getShapeUtil(myMissingShape)).toThrowErrorMatchingInlineSnapshot(
+			`"No shape util found for type \\"missing\\""`
 		)
 	})
 
-	it("throws if a shape util that isn't the one registered is passed in", () => {
-		class MyFakeGeoShapeUtil extends BaseBoxShapeUtil<any> {
-			static type = 'geo'
-
-			getDefaultProps() {
-				throw new Error('Method not implemented.')
-			}
-			component() {
-				throw new Error('Method not implemented.')
-			}
-			indicator() {
-				throw new Error('Method not implemented.')
-			}
-		}
-		expect(() => editor.getShapeUtil(MyFakeGeoShapeUtil)).toThrowErrorMatchingInlineSnapshot(
-			`"Shape util found for type \\"geo\\" is not an instance of the provided constructor"`
+	it('throws if that type isnt registered', () => {
+		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
+			`"No shape util found for type \\"missing\\""`
 		)
 	})
 })

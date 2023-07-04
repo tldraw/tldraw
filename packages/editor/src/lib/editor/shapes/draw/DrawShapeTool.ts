@@ -1,5 +1,4 @@
 import { StateNode } from '../../tools/StateNode'
-import { DrawShapeUtil } from './DrawShapeUtil'
 import { Drawing } from './toolStates/Drawing'
 import { Idle } from './toolStates/Idle'
 
@@ -8,7 +7,7 @@ export class DrawShapeTool extends StateNode {
 	static initial = 'idle'
 	static children = () => [Idle, Drawing]
 
-	shapeType = DrawShapeUtil
+	shapeType = 'draw'
 
 	onExit = () => {
 		const drawingState = this.children!['drawing'] as Drawing
