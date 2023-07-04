@@ -1,0 +1,633 @@
+---
+title: DrawShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 27
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [hideResizeHandles](#DrawShapeUtil-hideResizeHandles-member)
+  - [hideRotateHandle](#DrawShapeUtil-hideRotateHandle-member)
+  - [hideSelectionBoundsBg](#DrawShapeUtil-hideSelectionBoundsBg-member)
+  - [hideSelectionBoundsFg](#DrawShapeUtil-hideSelectionBoundsFg-member)
+  - [isClosed](#DrawShapeUtil-isClosed-member)
+  - [onResize](#DrawShapeUtil-onResize-member)
+  - [type](#DrawShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#DrawShapeUtil-component-member-1)
+  - [expandSelectionOutlinePx](#DrawShapeUtil-expandSelectionOutlinePx-member-1)
+  - [getBounds](#DrawShapeUtil-getBounds-member-1)
+  - [getCanvasSvgDefs](#DrawShapeUtil-getCanvasSvgDefs-member-1)
+  - [getCenter](#DrawShapeUtil-getCenter-member-1)
+  - [getDefaultProps](#DrawShapeUtil-getDefaultProps-member-1)
+  - [getOutline](#DrawShapeUtil-getOutline-member-1)
+  - [hitTestLineSegment](#DrawShapeUtil-hitTestLineSegment-member-1)
+  - [hitTestPoint](#DrawShapeUtil-hitTestPoint-member-1)
+  - [indicator](#DrawShapeUtil-indicator-member-1)
+  - [toSvg](#DrawShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class DrawShapeUtil extends ShapeUtil<TLDrawShape> {}
+```
+
+##### References
+
+[ShapeUtil](/gen/editor/ShapeUtil-class), [TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+## Properties
+
+### `hideResizeHandles` \{#DrawShapeUtil-hideResizeHandles-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideResizeHandles: (shape: TLDrawShape) => boolean
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `hideRotateHandle` \{#DrawShapeUtil-hideRotateHandle-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideRotateHandle: (shape: TLDrawShape) => boolean
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `hideSelectionBoundsBg` \{#DrawShapeUtil-hideSelectionBoundsBg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsBg: (shape: TLDrawShape) => boolean
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `hideSelectionBoundsFg` \{#DrawShapeUtil-hideSelectionBoundsFg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsFg: (shape: TLDrawShape) => boolean
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `isClosed` \{#DrawShapeUtil-isClosed-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+isClosed: (shape: TLDrawShape) => boolean
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `onResize` \{#DrawShapeUtil-onResize-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onResize: TLOnResizeHandler<TLDrawShape>
+```
+
+##### References
+
+[TLOnResizeHandler](/gen/editor/TLOnResizeHandler-type), [TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `type` \{#DrawShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'draw'
+```
+
+---
+
+## Methods
+
+### `component()` \{#DrawShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLDrawShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `expandSelectionOutlinePx()` \{#DrawShapeUtil-expandSelectionOutlinePx-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLDrawShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `getBounds()` \{#DrawShapeUtil-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLDrawShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getCanvasSvgDefs()` \{#DrawShapeUtil-getCanvasSvgDefs-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLShapeUtilCanvasSvgDef[]
+```
+
+---
+
+### `getCenter()` \{#DrawShapeUtil-getCenter-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLDrawShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getDefaultProps()` \{#DrawShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLDrawShape['props']
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `getOutline()` \{#DrawShapeUtil-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLDrawShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `hitTestLineSegment()` \{#DrawShapeUtil-hitTestLineSegment-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLDrawShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `hitTestPoint()` \{#DrawShapeUtil-hitTestPoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLDrawShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `indicator()` \{#DrawShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLDrawShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+
+### `toSvg()` \{#DrawShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLDrawShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ctx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SvgExportContext
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+SVGGElement
+```
+
+##### References
+
+[TLDrawShape](/gen/tlschema/TLDrawShape-type)
+
+---
+

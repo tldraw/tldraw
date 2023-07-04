@@ -1,0 +1,122 @@
+---
+title: TLEditorOptions
+status: published
+category: editor
+group: Interface
+author: api
+date: 06/23/2023
+order: 126
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [getContainer](#TLEditorOptions-getContainer-member)
+  - [shapes](#TLEditorOptions-shapes-member)
+  - [store](#TLEditorOptions-store-member)
+  - [tools](#TLEditorOptions-tools-member)
+  - [user](#TLEditorOptions-user-member)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+interface TLEditorOptions {}
+```
+
+---
+
+## Properties
+
+### `getContainer` \{#TLEditorOptions-getContainer-member}
+
+<Small>Public PropertySignature</Small>
+
+Should return a containing html element which has all the styles applied to the editor. If not given, the body element will be used.
+
+
+##### Signature
+
+
+```ts
+getContainer: () => HTMLElement
+```
+
+---
+
+### `shapes` \{#TLEditorOptions-shapes-member}
+
+<Small>Public PropertySignature</Small>
+
+An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
+
+
+##### Signature
+
+
+```ts
+shapes: readonly AnyTLShapeInfo[]
+```
+
+---
+
+### `store` \{#TLEditorOptions-store-member}
+
+<Small>Public PropertySignature</Small>
+
+The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading from a server or database.
+
+
+##### Signature
+
+
+```ts
+store: TLStore
+```
+
+##### References
+
+[TLStore](/gen/tlschema/TLStore-type)
+
+---
+
+### `tools` \{#TLEditorOptions-tools-member}
+
+<Small>Public PropertySignature</Small>
+
+An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
+
+
+##### Signature
+
+
+```ts
+tools: readonly TLStateNodeConstructor[]
+```
+
+##### References
+
+[TLStateNodeConstructor](/gen/editor/TLStateNodeConstructor-interface)
+
+---
+
+### `user` \{#TLEditorOptions-user-member}
+
+<Small>Public PropertySignature</Small>
+
+A user defined externally to replace the default user.
+
+
+##### Signature
+
+
+```ts
+user?: TLUser
+```
+
+---
+

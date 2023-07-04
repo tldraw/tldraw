@@ -1,0 +1,260 @@
+---
+title: ImageShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 69
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canCrop](#ImageShapeUtil-canCrop-member)
+  - [isAspectRatioLocked](#ImageShapeUtil-isAspectRatioLocked-member)
+  - [onDoubleClick](#ImageShapeUtil-onDoubleClick-member)
+  - [onDoubleClickEdge](#ImageShapeUtil-onDoubleClickEdge-member)
+  - [type](#ImageShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#ImageShapeUtil-component-member-1)
+  - [getDefaultProps](#ImageShapeUtil-getDefaultProps-member-1)
+  - [indicator](#ImageShapeUtil-indicator-member-1)
+  - [toSvg](#ImageShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {}
+```
+
+##### References
+
+[BaseBoxShapeUtil](/gen/editor/BaseBoxShapeUtil-class), [TLImageShape](/gen/tlschema/TLImageShape-type)
+
+---
+
+## Properties
+
+### `canCrop` \{#ImageShapeUtil-canCrop-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canCrop: () => boolean
+```
+
+---
+
+### `isAspectRatioLocked` \{#ImageShapeUtil-isAspectRatioLocked-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+isAspectRatioLocked: () => boolean
+```
+
+---
+
+### `onDoubleClick` \{#ImageShapeUtil-onDoubleClick-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onDoubleClick: (shape: TLImageShape) => void
+```
+
+##### References
+
+[TLImageShape](/gen/tlschema/TLImageShape-type)
+
+---
+
+### `onDoubleClickEdge` \{#ImageShapeUtil-onDoubleClickEdge-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>
+```
+
+##### References
+
+[TLOnDoubleClickHandler](/gen/editor/TLOnDoubleClickHandler-type), [TLImageShape](/gen/tlschema/TLImageShape-type)
+
+---
+
+### `type` \{#ImageShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'image'
+```
+
+---
+
+## Methods
+
+### `component()` \{#ImageShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLImageShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLImageShape](/gen/tlschema/TLImageShape-type)
+
+---
+
+### `getDefaultProps()` \{#ImageShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLImageShape['props']
+```
+
+##### References
+
+[TLImageShape](/gen/tlschema/TLImageShape-type)
+
+---
+
+### `indicator()` \{#ImageShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLImageShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element | null
+```
+
+##### References
+
+[TLImageShape](/gen/tlschema/TLImageShape-type)
+
+---
+
+### `toSvg()` \{#ImageShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLImageShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<SVGGElement>
+```
+
+##### References
+
+[TLImageShape](/gen/tlschema/TLImageShape-type)
+
+---
+

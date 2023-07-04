@@ -1,0 +1,562 @@
+---
+title: TextShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 107
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canEdit](#TextShapeUtil-canEdit-member)
+  - [isAspectRatioLocked](#TextShapeUtil-isAspectRatioLocked-member)
+  - [onBeforeCreate](#TextShapeUtil-onBeforeCreate-member)
+  - [onBeforeUpdate](#TextShapeUtil-onBeforeUpdate-member)
+  - [onDoubleClickEdge](#TextShapeUtil-onDoubleClickEdge-member)
+  - [onEditEnd](#TextShapeUtil-onEditEnd-member)
+  - [onResize](#TextShapeUtil-onResize-member)
+  - [type](#TextShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#TextShapeUtil-component-member-1)
+  - [getBounds](#TextShapeUtil-getBounds-member-1)
+  - [getDefaultProps](#TextShapeUtil-getDefaultProps-member-1)
+  - [getMinDimensions](#TextShapeUtil-getMinDimensions-member-1)
+  - [getOutline](#TextShapeUtil-getOutline-member-1)
+  - [indicator](#TextShapeUtil-indicator-member-1)
+  - [toSvg](#TextShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class TextShapeUtil extends ShapeUtil<TLTextShape> {}
+```
+
+##### References
+
+[ShapeUtil](/gen/editor/ShapeUtil-class), [TLTextShape](/gen/tlschema/TLTextShape-type)
+
+---
+
+## Properties
+
+### `canEdit` \{#TextShapeUtil-canEdit-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canEdit: () => boolean
+```
+
+---
+
+### `isAspectRatioLocked` \{#TextShapeUtil-isAspectRatioLocked-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+isAspectRatioLocked: TLShapeUtilFlag<TLTextShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLTextShape](/gen/tlschema/TLTextShape-type)
+
+---
+
+### `onBeforeCreate` \{#TextShapeUtil-onBeforeCreate-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onBeforeCreate: (shape: TLTextShape) =>
+  | {
+      x: number
+      y: number
+      type: 'text'
+      rotation: number
+      index: string
+      parentId: import('@tldraw/tlschema').TLParentId
+      isLocked: boolean
+      opacity: number
+      props: {
+        color:
+          | 'black'
+          | 'blue'
+          | 'green'
+          | 'grey'
+          | 'light-blue'
+          | 'light-green'
+          | 'light-red'
+          | 'light-violet'
+          | 'orange'
+          | 'red'
+          | 'violet'
+          | 'yellow'
+        size: 'l' | 'm' | 's' | 'xl'
+        font: 'draw' | 'mono' | 'sans' | 'serif'
+        align:
+          | 'end-legacy'
+          | 'end'
+          | 'middle-legacy'
+          | 'middle'
+          | 'start-legacy'
+          | 'start'
+        w: number
+        text: string
+        scale: number
+        autoSize: boolean
+      }
+      id: import('@tldraw/tlschema').TLShapeId
+      typeName: 'shape'
+    }
+  | undefined
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type), [TLParentId](/gen/tlschema/TLParentId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `onBeforeUpdate` \{#TextShapeUtil-onBeforeUpdate-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onBeforeUpdate: (
+  prev: TLTextShape,
+  next: TLTextShape
+) =>
+  | {
+      x: number
+      y: number
+      props: {
+        w: number
+        color:
+          | 'black'
+          | 'blue'
+          | 'green'
+          | 'grey'
+          | 'light-blue'
+          | 'light-green'
+          | 'light-red'
+          | 'light-violet'
+          | 'orange'
+          | 'red'
+          | 'violet'
+          | 'yellow'
+        size: 'l' | 'm' | 's' | 'xl'
+        font: 'draw' | 'mono' | 'sans' | 'serif'
+        align:
+          | 'end-legacy'
+          | 'end'
+          | 'middle-legacy'
+          | 'middle'
+          | 'start-legacy'
+          | 'start'
+        text: string
+        scale: number
+        autoSize: boolean
+      }
+      type: 'text'
+      rotation: number
+      index: string
+      parentId: import('@tldraw/tlschema').TLParentId
+      isLocked: boolean
+      opacity: number
+      id: import('@tldraw/tlschema').TLShapeId
+      typeName: 'shape'
+    }
+  | undefined
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type), [TLParentId](/gen/tlschema/TLParentId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `onDoubleClickEdge` \{#TextShapeUtil-onDoubleClickEdge-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onDoubleClickEdge: (shape: TLTextShape) =>
+  | {
+      id: import('@tldraw/tlschema').TLShapeId
+      type: 'text'
+      props: {
+        autoSize: boolean
+        scale?: undefined
+      }
+    }
+  | {
+      id: import('@tldraw/tlschema').TLShapeId
+      type: 'text'
+      props: {
+        scale: number
+        autoSize?: undefined
+      }
+    }
+  | undefined
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `onEditEnd` \{#TextShapeUtil-onEditEnd-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onEditEnd: TLOnEditEndHandler<TLTextShape>
+```
+
+##### References
+
+[TLOnEditEndHandler](/gen/editor/TLOnEditEndHandler-type), [TLTextShape](/gen/tlschema/TLTextShape-type)
+
+---
+
+### `onResize` \{#TextShapeUtil-onResize-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onResize: TLOnResizeHandler<TLTextShape>
+```
+
+##### References
+
+[TLOnResizeHandler](/gen/editor/TLOnResizeHandler-type), [TLTextShape](/gen/tlschema/TLTextShape-type)
+
+---
+
+### `type` \{#TextShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'text'
+```
+
+---
+
+## Methods
+
+### `component()` \{#TextShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLTextShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type)
+
+---
+
+### `getBounds()` \{#TextShapeUtil-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLTextShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getDefaultProps()` \{#TextShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLTextShape['props']
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type)
+
+---
+
+### `getMinDimensions()` \{#TextShapeUtil-getMinDimensions-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLTextShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+{
+  height: number
+  width: number
+}
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type)
+
+---
+
+### `getOutline()` \{#TextShapeUtil-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLTextShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `indicator()` \{#TextShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLTextShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type)
+
+---
+
+### `toSvg()` \{#TextShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLTextShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ctx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SvgExportContext
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+SVGGElement
+```
+
+##### References
+
+[TLTextShape](/gen/tlschema/TLTextShape-type)
+
+---
+

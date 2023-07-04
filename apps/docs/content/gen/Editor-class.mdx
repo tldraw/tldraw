@@ -1,0 +1,12539 @@
+---
+title: Editor
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 28
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [allShapesCommonBounds](#Editor-allShapesCommonBounds-member)
+  - [animationSpeed](#Editor-animationSpeed-member)
+  - [assets](#Editor-assets-member)
+  - [brush](#Editor-brush-member)
+  - [camera](#Editor-camera-member)
+  - [cameraState](#Editor-cameraState-member)
+  - [canMoveCamera](#Editor-canMoveCamera-member)
+  - [canRedo](#Editor-canRedo-member)
+  - [canUndo](#Editor-canUndo-member)
+  - [croppingId](#Editor-croppingId-member)
+  - [currentPage](#Editor-currentPage-member)
+  - [currentPageId](#Editor-currentPageId-member)
+  - [currentPageShapeIds](#Editor-currentPageShapeIds-member)
+  - [currentToolId](#Editor-currentToolId-member)
+  - [cursor](#Editor-cursor-member)
+  - [devicePixelRatio](#Editor-devicePixelRatio-member)
+  - [disposables](#Editor-disposables-member)
+  - [documentSettings](#Editor-documentSettings-member)
+  - [editingId](#Editor-editingId-member)
+  - [editingShape](#Editor-editingShape-member)
+  - [erasingIds](#Editor-erasingIds-member)
+  - [erasingIdsSet](#Editor-erasingIdsSet-member)
+  - [externalContentManager](#Editor-externalContentManager-member)
+  - [focusLayerId](#Editor-focusLayerId-member)
+  - [focusLayerShape](#Editor-focusLayerShape-member)
+  - [getContainer](#Editor-getContainer-member)
+  - [gridSize](#Editor-gridSize-member)
+  - [hintingIds](#Editor-hintingIds-member)
+  - [history](#Editor-history-member)
+  - [hoveredId](#Editor-hoveredId-member)
+  - [hoveredShape](#Editor-hoveredShape-member)
+  - [inputs](#Editor-inputs-member)
+  - [instanceState](#Editor-instanceState-member)
+  - [isChangingStyle](#Editor-isChangingStyle-member)
+  - [isChromeForIos](#Editor-isChromeForIos-member)
+  - [isCoarsePointer](#Editor-isCoarsePointer-member)
+  - [isDarkMode](#Editor-isDarkMode-member)
+  - [isFocused](#Editor-isFocused-member)
+  - [isFocusMode](#Editor-isFocusMode-member)
+  - [isGridMode](#Editor-isGridMode-member)
+  - [isIos](#Editor-isIos-member)
+  - [isMenuOpen](#Editor-isMenuOpen-member)
+  - [isPenMode](#Editor-isPenMode-member)
+  - [isReadOnly](#Editor-isReadOnly-member)
+  - [isSafari](#Editor-isSafari-member)
+  - [isSnapMode](#Editor-isSnapMode-member)
+  - [isToolLocked](#Editor-isToolLocked-member)
+  - [locale](#Editor-locale-member)
+  - [onlySelectedShape](#Editor-onlySelectedShape-member)
+  - [openMenus](#Editor-openMenus-member)
+  - [pages](#Editor-pages-member)
+  - [pageState](#Editor-pageState-member)
+  - [renderingBounds](#Editor-renderingBounds-member)
+  - [renderingBoundsExpanded](#Editor-renderingBoundsExpanded-member)
+  - [renderingShapes](#Editor-renderingShapes-member)
+  - [root](#Editor-root-member)
+  - [scribble](#Editor-scribble-member)
+  - [selectedIds](#Editor-selectedIds-member)
+  - [selectedIdsSet](#Editor-selectedIdsSet-member)
+  - [selectedPageBounds](#Editor-selectedPageBounds-member)
+  - [selectedShapes](#Editor-selectedShapes-member)
+  - [selectionBounds](#Editor-selectionBounds-member)
+  - [selectionPageCenter](#Editor-selectionPageCenter-member)
+  - [selectionRotation](#Editor-selectionRotation-member)
+  - [shapesArray](#Editor-shapesArray-member)
+  - [shapeUtils](#Editor-shapeUtils-member)
+  - [sharedOpacity](#Editor-sharedOpacity-member)
+  - [sharedStyles](#Editor-sharedStyles-member)
+  - [snaps](#Editor-snaps-member)
+  - [sortedShapesArray](#Editor-sortedShapesArray-member)
+  - [store](#Editor-store-member)
+  - [textMeasure](#Editor-textMeasure-member)
+  - [user](#Editor-user-member)
+  - [viewportPageBounds](#Editor-viewportPageBounds-member)
+  - [viewportPageCenter](#Editor-viewportPageCenter-member)
+  - [viewportScreenBounds](#Editor-viewportScreenBounds-member)
+  - [viewportScreenCenter](#Editor-viewportScreenCenter-member)
+  - [zoomBrush](#Editor-zoomBrush-member)
+  - [zoomLevel](#Editor-zoomLevel-member)
+- [Methods](#methods)
+  - [addOpenMenu](#Editor-addOpenMenu-member-1)
+  - [alignShapes](#Editor-alignShapes-member-1)
+  - [animateCamera](#Editor-animateCamera-member-1)
+  - [animateShapes](#Editor-animateShapes-member-1)
+  - [animateToShape](#Editor-animateToShape-member-1)
+  - [animateToUser](#Editor-animateToUser-member-1)
+  - [bail](#Editor-bail-member-1)
+  - [bailToMark](#Editor-bailToMark-member-1)
+  - [batch](#Editor-batch-member-1)
+  - [blur](#Editor-blur-member-1)
+  - [bringForward](#Editor-bringForward-member-1)
+  - [bringToFront](#Editor-bringToFront-member-1)
+  - [cancel](#Editor-cancel-member-1)
+  - [cancelDoubleClick](#Editor-cancelDoubleClick-member-1)
+  - [centerOnPoint](#Editor-centerOnPoint-member-1)
+  - [complete](#Editor-complete-member-1)
+  - [createAssets](#Editor-createAssets-member-1)
+  - [createPage](#Editor-createPage-member-1)
+  - [createShapes](#Editor-createShapes-member-1)
+  - [deleteAssets](#Editor-deleteAssets-member-1)
+  - [deleteOpenMenu](#Editor-deleteOpenMenu-member-1)
+  - [deletePage](#Editor-deletePage-member-1)
+  - [deleteShapes](#Editor-deleteShapes-member-1)
+  - [deselect](#Editor-deselect-member-1)
+  - [dispatch](#Editor-dispatch-member-1)
+  - [dispose](#Editor-dispose-member-1)
+  - [distributeShapes](#Editor-distributeShapes-member-1)
+  - [duplicatePage](#Editor-duplicatePage-member-1)
+  - [duplicateShapes](#Editor-duplicateShapes-member-1)
+  - [findAncestor](#Editor-findAncestor-member-1)
+  - [findCommonAncestor](#Editor-findCommonAncestor-member-1)
+  - [flipShapes](#Editor-flipShapes-member-1)
+  - [focus](#Editor-focus-member-1)
+  - [getAncestorPageId](#Editor-getAncestorPageId-member-1)
+  - [getAncestors](#Editor-getAncestors-member-1)
+  - [getAncestorsById](#Editor-getAncestorsById-member-1)
+  - [getArrowsBoundTo](#Editor-getArrowsBoundTo-member-1)
+  - [getAssetById](#Editor-getAssetById-member-1)
+  - [getAssetBySrc](#Editor-getAssetBySrc-member-1)
+  - [getBounds](#Editor-getBounds-member-1)
+  - [getBoundsById](#Editor-getBoundsById-member-1)
+  - [getClipPathById](#Editor-getClipPathById-member-1)
+  - [getContent](#Editor-getContent-member-1)
+  - [getDeltaInParentSpace](#Editor-getDeltaInParentSpace-member-1)
+  - [getDeltaInShapeSpace](#Editor-getDeltaInShapeSpace-member-1)
+  - [getDroppingShape](#Editor-getDroppingShape-member-1)
+  - [getHandles](#Editor-getHandles-member-1)
+  - [getHandlesById](#Editor-getHandlesById-member-1)
+  - [getHighestIndexForParent](#Editor-getHighestIndexForParent-member-1)
+  - [getMaskedPageBounds](#Editor-getMaskedPageBounds-member-1)
+  - [getMaskedPageBoundsById](#Editor-getMaskedPageBoundsById-member-1)
+  - [getOutermostSelectableShape](#Editor-getOutermostSelectableShape-member-1)
+  - [getOutline](#Editor-getOutline-member-1)
+  - [getOutlineById](#Editor-getOutlineById-member-1)
+  - [getOutlineSegments](#Editor-getOutlineSegments-member-1)
+  - [getOutlineSegmentsById](#Editor-getOutlineSegmentsById-member-1)
+  - [getPageBounds](#Editor-getPageBounds-member-1)
+  - [getPageBoundsById](#Editor-getPageBoundsById-member-1)
+  - [getPageById](#Editor-getPageById-member-1)
+  - [getPageCenter](#Editor-getPageCenter-member-1)
+  - [getPageCenterById](#Editor-getPageCenterById-member-1)
+  - [getPageCorners](#Editor-getPageCorners-member-1)
+  - [getPageInfoById](#Editor-getPageInfoById-member-1)
+  - [getPageMaskById](#Editor-getPageMaskById-member-1)
+  - [getPagePointById](#Editor-getPagePointById-member-1)
+  - [getPageRotation](#Editor-getPageRotation-member-1)
+  - [getPageRotationById](#Editor-getPageRotationById-member-1)
+  - [getPageStateByPageId](#Editor-getPageStateByPageId-member-1)
+  - [getPageTransform](#Editor-getPageTransform-member-1)
+  - [getPageTransformById](#Editor-getPageTransformById-member-1)
+  - [getParentIdForNewShapeAtPoint](#Editor-getParentIdForNewShapeAtPoint-member-1)
+  - [getParentShape](#Editor-getParentShape-member-1)
+  - [getParentsMappedToChildren](#Editor-getParentsMappedToChildren-member-1)
+  - [getParentTransform](#Editor-getParentTransform-member-1)
+  - [getPointInParentSpace](#Editor-getPointInParentSpace-member-1)
+  - [getPointInShapeSpace](#Editor-getPointInShapeSpace-member-1)
+  - [getShapeAndDescendantIds](#Editor-getShapeAndDescendantIds-member-1)
+  - [getShapeById](#Editor-getShapeById-member-1)
+  - [getShapeIdsInPage](#Editor-getShapeIdsInPage-member-1)
+  - [getShapesAtPoint](#Editor-getShapesAtPoint-member-1)
+  - [getShapeStyleIfExists](#Editor-getShapeStyleIfExists-member-1)
+  - [getShapeUtil](#Editor-getShapeUtil-member-1)
+  - [getShapeUtil](#Editor-getShapeUtil-member-2)
+  - [getSortedChildIds](#Editor-getSortedChildIds-member-1)
+  - [getStateDescendant](#Editor-getStateDescendant-member-1)
+  - [getSvg](#Editor-getSvg-member-1)
+  - [getTransform](#Editor-getTransform-member-1)
+  - [groupShapes](#Editor-groupShapes-member-1)
+  - [hasAncestor](#Editor-hasAncestor-member-1)
+  - [interrupt](#Editor-interrupt-member-1)
+  - [isIn](#Editor-isIn-member-1)
+  - [isInAny](#Editor-isInAny-member-1)
+  - [isPointInShape](#Editor-isPointInShape-member-1)
+  - [isSelected](#Editor-isSelected-member-1)
+  - [isShapeInPage](#Editor-isShapeInPage-member-1)
+  - [isShapeOfType](#Editor-isShapeOfType-member-1)
+  - [isShapeOrAncestorLocked](#Editor-isShapeOrAncestorLocked-member-1)
+  - [isWithinSelection](#Editor-isWithinSelection-member-1)
+  - [mark](#Editor-mark-member-1)
+  - [moveShapesToPage](#Editor-moveShapesToPage-member-1)
+  - [nudgeShapes](#Editor-nudgeShapes-member-1)
+  - [packShapes](#Editor-packShapes-member-1)
+  - [pageToScreen](#Editor-pageToScreen-member-1)
+  - [pan](#Editor-pan-member-1)
+  - [panZoomIntoView](#Editor-panZoomIntoView-member-1)
+  - [popFocusLayer](#Editor-popFocusLayer-member-1)
+  - [putContent](#Editor-putContent-member-1)
+  - [putExternalContent](#Editor-putExternalContent-member-1)
+  - [redo](#Editor-redo-member-1)
+  - [renamePage](#Editor-renamePage-member-1)
+  - [reorderShapes](#Editor-reorderShapes-member-1)
+  - [reparentShapesById](#Editor-reparentShapesById-member-1)
+  - [replaceStoreContentsWithRecordsForOtherDocument](#Editor-replaceStoreContentsWithRecordsForOtherDocument-member-1)
+  - [resetZoom](#Editor-resetZoom-member-1)
+  - [resizeShape](#Editor-resizeShape-member-1)
+  - [rotateShapesBy](#Editor-rotateShapesBy-member-1)
+  - [screenToPage](#Editor-screenToPage-member-1)
+  - [select](#Editor-select-member-1)
+  - [selectAll](#Editor-selectAll-member-1)
+  - [selectNone](#Editor-selectNone-member-1)
+  - [sendBackward](#Editor-sendBackward-member-1)
+  - [sendToBack](#Editor-sendToBack-member-1)
+  - [setAnimationSpeed](#Editor-setAnimationSpeed-member-1)
+  - [setBrush](#Editor-setBrush-member-1)
+  - [setCamera](#Editor-setCamera-member-1)
+  - [setCroppingId](#Editor-setCroppingId-member-1)
+  - [setCurrentPageId](#Editor-setCurrentPageId-member-1)
+  - [setCursor](#Editor-setCursor-member-1)
+  - [setDarkMode](#Editor-setDarkMode-member-1)
+  - [setDevicePixelRatio](#Editor-setDevicePixelRatio-member-1)
+  - [setEditingId](#Editor-setEditingId-member-1)
+  - [setErasingIds](#Editor-setErasingIds-member-1)
+  - [setFocusLayer](#Editor-setFocusLayer-member-1)
+  - [setFocusMode](#Editor-setFocusMode-member-1)
+  - [setGridMode](#Editor-setGridMode-member-1)
+  - [setHintingIds](#Editor-setHintingIds-member-1)
+  - [setHoveredId](#Editor-setHoveredId-member-1)
+  - [setLocale](#Editor-setLocale-member-1)
+  - [setOpacity](#Editor-setOpacity-member-1)
+  - [setPageState](#Editor-setPageState-member-1)
+  - [setPenMode](#Editor-setPenMode-member-1)
+  - [setReadOnly](#Editor-setReadOnly-member-1)
+  - [setScribble](#Editor-setScribble-member-1)
+  - [setSelectedIds](#Editor-setSelectedIds-member-1)
+  - [setSelectedTool](#Editor-setSelectedTool-member-1)
+  - [setSnapMode](#Editor-setSnapMode-member-1)
+  - [setStyle](#Editor-setStyle-member-1)
+  - [setToolLocked](#Editor-setToolLocked-member-1)
+  - [setZoomBrush](#Editor-setZoomBrush-member-1)
+  - [slideCamera](#Editor-slideCamera-member-1)
+  - [stackShapes](#Editor-stackShapes-member-1)
+  - [startFollowingUser](#Editor-startFollowingUser-member-1)
+  - [stopCameraAnimation](#Editor-stopCameraAnimation-member-1)
+  - [stopFollowingUser](#Editor-stopFollowingUser-member-1)
+  - [stretchShapes](#Editor-stretchShapes-member-1)
+  - [toggleLock](#Editor-toggleLock-member-1)
+  - [undo](#Editor-undo-member-1)
+  - [ungroupShapes](#Editor-ungroupShapes-member-1)
+  - [updateAssets](#Editor-updateAssets-member-1)
+  - [updateDocumentSettings](#Editor-updateDocumentSettings-member-1)
+  - [updateInstanceState](#Editor-updateInstanceState-member-1)
+  - [updatePage](#Editor-updatePage-member-1)
+  - [updateShapes](#Editor-updateShapes-member-1)
+  - [updateViewportScreenBounds](#Editor-updateViewportScreenBounds-member-1)
+  - [visitDescendants](#Editor-visitDescendants-member-1)
+  - [zoomIn](#Editor-zoomIn-member-1)
+  - [zoomOut](#Editor-zoomOut-member-1)
+  - [zoomToBounds](#Editor-zoomToBounds-member-1)
+  - [zoomToContent](#Editor-zoomToContent-member-1)
+  - [zoomToFit](#Editor-zoomToFit-member-1)
+  - [zoomToSelection](#Editor-zoomToSelection-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class Editor extends EventEmitter<TLEventMap> {}
+```
+
+##### References
+
+[TLEventMap](/gen/editor/TLEventMap-interface)
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `Editor` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`{ store, user, shapes, tools, getContainer }`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLEditorOptions
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[TLEditorOptions](/gen/editor/TLEditorOptions-interface)
+
+---
+
+## Properties
+
+### `allShapesCommonBounds` \{#Editor-allShapesCommonBounds-member}
+
+<Small>Public Readonly Property</Small>
+
+The common bounds of all of the shapes on the page.
+
+
+##### Signature
+
+
+```ts
+get allShapesCommonBounds(): Box2d | null
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `animationSpeed` \{#Editor-animationSpeed-member}
+
+<Small>Public Readonly Property</Small>
+
+The user's chosen animation speed.
+
+
+##### Signature
+
+
+```ts
+get animationSpeed(): number
+```
+
+---
+
+### `assets` \{#Editor-assets-member}
+
+<Small>Public Readonly Property</Small>
+
+Get all assets in the editor.
+
+
+##### Signature
+
+
+```ts
+get assets(): (
+  | import('@tldraw/tlschema').TLBookmarkAsset
+  | TLImageAsset
+  | TLVideoAsset
+)[]
+```
+
+##### References
+
+[TLBookmarkAsset](/gen/tlschema/TLBookmarkAsset-type), [TLImageAsset](/gen/tlschema/TLImageAsset-type), [TLVideoAsset](/gen/tlschema/TLVideoAsset-type)
+
+---
+
+### `brush` \{#Editor-brush-member}
+
+<Small>Public Readonly Property</Small>
+
+The instance's brush state.
+
+
+##### Signature
+
+
+```ts
+get brush(): Box2dModel | null
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `camera` \{#Editor-camera-member}
+
+<Small>Public Readonly Property</Small>
+
+The current camera.
+
+
+##### Signature
+
+
+```ts
+get camera(): import('@tldraw/tlschema').TLCamera
+```
+
+##### References
+
+[TLCamera](/gen/tlschema/TLCamera-interface)
+
+---
+
+### `cameraState` \{#Editor-cameraState-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the camera is moving or idle.
+
+
+##### Signature
+
+
+```ts
+get cameraState(): 'idle' | 'moving'
+```
+
+---
+
+### `canMoveCamera` \{#Editor-canMoveCamera-member}
+
+<Small>Public Property</Small>
+
+Whether the editor's camera can move.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.canMoveCamera = false
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`canMove`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+Whether the camera can move.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+get canMoveCamera(): boolean
+
+set canMoveCamera(canMove: boolean)
+```
+
+---
+
+### `canRedo` \{#Editor-canRedo-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the app can redo.
+
+
+##### Signature
+
+
+```ts
+get canRedo(): boolean
+```
+
+---
+
+### `canUndo` \{#Editor-canUndo-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the app can undo.
+
+
+##### Signature
+
+
+```ts
+get canUndo(): boolean
+```
+
+---
+
+### `croppingId` \{#Editor-croppingId-member}
+
+<Small>Public Readonly Property</Small>
+
+The current cropping shape's id.
+
+
+##### Signature
+
+
+```ts
+get croppingId(): null | TLShapeId
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `currentPage` \{#Editor-currentPage-member}
+
+<Small>Public Readonly Property</Small>
+
+The current page.
+
+
+##### Signature
+
+
+```ts
+get currentPage(): TLPage
+```
+
+##### References
+
+[TLPage](/gen/tlschema/TLPage-interface)
+
+---
+
+### `currentPageId` \{#Editor-currentPageId-member}
+
+<Small>Public Readonly Property</Small>
+
+The current page id.
+
+
+##### Signature
+
+
+```ts
+get currentPageId(): TLPageId
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `currentPageShapeIds` \{#Editor-currentPageShapeIds-member}
+
+<Small>Public Readonly Property</Small>
+
+An array of all of the shapes on the current page.
+
+
+##### Signature
+
+
+```ts
+get currentPageShapeIds(): Set<TLShapeId>
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `currentToolId` \{#Editor-currentToolId-member}
+
+<Small>Public Readonly Property</Small>
+
+The id of the current selected tool.
+
+
+##### Signature
+
+
+```ts
+get currentToolId(): string
+```
+
+---
+
+### `cursor` \{#Editor-cursor-member}
+
+<Small>Public Readonly Property</Small>
+
+The instance's cursor state.
+
+
+##### Signature
+
+
+```ts
+get cursor(): TLCursor
+```
+
+##### References
+
+[TLCursor](/gen/tlschema/TLCursor-interface)
+
+---
+
+### `devicePixelRatio` \{#Editor-devicePixelRatio-member}
+
+<Small>Public Readonly Property</Small>
+
+The window's device pixel ratio.
+
+
+##### Signature
+
+
+```ts
+get devicePixelRatio(): number
+```
+
+---
+
+### `disposables` \{#Editor-disposables-member}
+
+<Small>Public Readonly Property</Small>
+
+A set of functions to call when the app is disposed.
+
+
+##### Signature
+
+
+```ts
+readonly disposables: Set<() => void>
+```
+
+---
+
+### `documentSettings` \{#Editor-documentSettings-member}
+
+<Small>Public Readonly Property</Small>
+
+The global document settings that apply to all users.
+
+
+##### Signature
+
+
+```ts
+get documentSettings(): TLDocument
+```
+
+##### References
+
+[TLDocument](/gen/tlschema/TLDocument-interface)
+
+---
+
+### `editingId` \{#Editor-editingId-member}
+
+<Small>Public Readonly Property</Small>
+
+The current editing shape's id.
+
+
+##### Signature
+
+
+```ts
+get editingId(): null | TLShapeId
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `editingShape` \{#Editor-editingShape-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get editingShape(): null | TLUnknownShape
+```
+
+##### References
+
+[TLUnknownShape](/gen/tlschema/TLUnknownShape-type)
+
+---
+
+### `erasingIds` \{#Editor-erasingIds-member}
+
+<Small>Public Readonly Property</Small>
+
+The editor's current erasing ids.
+
+
+##### Signature
+
+
+```ts
+get erasingIds(): TLShapeId[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `erasingIdsSet` \{#Editor-erasingIdsSet-member}
+
+<Small>Public Readonly Property</Small>
+
+A derived set containing the current erasing ids.
+
+
+##### Signature
+
+
+```ts
+get erasingIdsSet(): Set<TLShapeId>
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `externalContentManager` \{#Editor-externalContentManager-member}
+
+<Small>Public Property</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+externalContentManager: ExternalContentManager
+```
+
+##### References
+
+[ExternalContentManager](/gen/editor/PlopManager-class)
+
+---
+
+### `focusLayerId` \{#Editor-focusLayerId-member}
+
+<Small>Public Readonly Property</Small>
+
+The shape id of the current focus layer.
+
+
+##### Signature
+
+
+```ts
+get focusLayerId(): TLPageId | TLShapeId
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `focusLayerShape` \{#Editor-focusLayerShape-member}
+
+<Small>Public Readonly Property</Small>
+
+The shape of the current focus layer.
+
+
+##### Signature
+
+
+```ts
+get focusLayerShape(): TLShape | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `getContainer` \{#Editor-getContainer-member}
+
+<Small>Public Property</Small>
+
+The current HTML element containing the editor.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const container = editor.getContainer()
+```
+
+
+##### Signature
+
+
+```ts
+getContainer: () => HTMLElement
+```
+
+---
+
+### `gridSize` \{#Editor-gridSize-member}
+
+<Small>Public Readonly Property</Small>
+
+The document's grid size.
+
+
+##### Signature
+
+
+```ts
+get gridSize(): number
+```
+
+---
+
+### `hintingIds` \{#Editor-hintingIds-member}
+
+<Small>Public Readonly Property</Small>
+
+The editor's current hinting ids.
+
+
+##### Signature
+
+
+```ts
+get hintingIds(): TLShapeId[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `history` \{#Editor-history-member}
+
+<Small>Public Readonly Property</Small>
+
+A manager for the app's history.
+
+
+##### Signature
+
+
+```ts
+readonly history: HistoryManager<this>
+```
+
+---
+
+### `hoveredId` \{#Editor-hoveredId-member}
+
+<Small>Public Readonly Property</Small>
+
+The current hovered shape id.
+ 
+
+
+##### Signature
+
+
+```ts
+get hoveredId(): null | TLShapeId
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `hoveredShape` \{#Editor-hoveredShape-member}
+
+<Small>Public Readonly Property</Small>
+
+The current hovered shape.
+ 
+
+
+##### Signature
+
+
+```ts
+get hoveredShape(): null | TLUnknownShape
+```
+
+##### References
+
+[TLUnknownShape](/gen/tlschema/TLUnknownShape-type)
+
+---
+
+### `inputs` \{#Editor-inputs-member}
+
+<Small>Public Property</Small>
+
+The app's current input state.
+
+
+##### Signature
+
+
+```ts
+inputs: {
+  originPagePoint: Vec2d
+  originScreenPoint: Vec2d
+  previousPagePoint: Vec2d
+  previousScreenPoint: Vec2d
+  currentPagePoint: Vec2d
+  currentScreenPoint: Vec2d
+  keys: Set<string>
+  buttons: Set<number>
+  isPen: boolean
+  shiftKey: boolean
+  ctrlKey: boolean
+  altKey: boolean
+  isDragging: boolean
+  isPointing: boolean
+  isPinching: boolean
+  isEditing: boolean
+  isPanning: boolean
+  pointerVelocity: Vec2d
+}
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `instanceState` \{#Editor-instanceState-member}
+
+<Small>Public Readonly Property</Small>
+
+The current instance's state.
+
+
+##### Signature
+
+
+```ts
+get instanceState(): TLInstance
+```
+
+##### References
+
+[TLInstance](/gen/tlschema/TLInstance-interface)
+
+---
+
+### `isChangingStyle` \{#Editor-isChangingStyle-member}
+
+<Small>Public Property</Small>
+
+Whether the user is currently changing the style of a shape. This may cause the UI to change.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.isChangingStyle = true
+```
+
+
+##### Signature
+
+
+```ts
+get isChangingStyle(): boolean
+
+set isChangingStyle(v: boolean)
+```
+
+---
+
+### `isChromeForIos` \{#Editor-isChromeForIos-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the editor is running on iOS.
+
+
+##### Signature
+
+
+```ts
+readonly isChromeForIos: boolean
+```
+
+---
+
+### `isCoarsePointer` \{#Editor-isCoarsePointer-member}
+
+<Small>Public Property</Small>
+
+Whether the user is using a "coarse" pointer, such as on a touch screen. This is automatically set by the canvas.
+
+
+##### Signature
+
+
+```ts
+get isCoarsePointer(): boolean
+
+set isCoarsePointer(v: boolean)
+```
+
+---
+
+### `isDarkMode` \{#Editor-isDarkMode-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the user has dark mode enabled.
+
+
+##### Signature
+
+
+```ts
+get isDarkMode(): boolean
+```
+
+---
+
+### `isFocused` \{#Editor-isFocused-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether or not the editor is focused.
+
+
+##### Signature
+
+
+```ts
+get isFocused(): boolean
+```
+
+---
+
+### `isFocusMode` \{#Editor-isFocusMode-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the instance is in focus mode or not.
+
+
+##### Signature
+
+
+```ts
+get isFocusMode(): boolean
+```
+
+---
+
+### `isGridMode` \{#Editor-isGridMode-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the instance's grid is enabled.
+
+
+##### Signature
+
+
+```ts
+get isGridMode(): boolean
+```
+
+---
+
+### `isIos` \{#Editor-isIos-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the editor is running on iOS.
+
+
+##### Signature
+
+
+```ts
+readonly isIos: boolean
+```
+
+---
+
+### `isMenuOpen` \{#Editor-isMenuOpen-member}
+
+<Small>Public Readonly Property</Small>
+
+Get whether any menus are open.
+
+
+##### Signature
+
+
+```ts
+get isMenuOpen(): boolean
+```
+
+---
+
+### `isPenMode` \{#Editor-isPenMode-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the editor is in pen mode or not.
+
+
+##### Signature
+
+
+```ts
+get isPenMode(): boolean
+```
+
+---
+
+### `isReadOnly` \{#Editor-isReadOnly-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the editor is in read-only mode or not.
+
+
+##### Signature
+
+
+```ts
+get isReadOnly(): boolean
+```
+
+---
+
+### `isSafari` \{#Editor-isSafari-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the editor is running in Safari.
+
+
+##### Signature
+
+
+```ts
+readonly isSafari: boolean
+```
+
+---
+
+### `isSnapMode` \{#Editor-isSnapMode-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the user has "always snap" mode enabled.
+
+
+##### Signature
+
+
+```ts
+get isSnapMode(): boolean
+```
+
+---
+
+### `isToolLocked` \{#Editor-isToolLocked-member}
+
+<Small>Public Readonly Property</Small>
+
+Whether the instance has "tool lock" mode enabled.
+
+
+##### Signature
+
+
+```ts
+get isToolLocked(): boolean
+```
+
+---
+
+### `locale` \{#Editor-locale-member}
+
+<Small>Public Readonly Property</Small>
+
+Get the user's locale.
+
+
+##### Signature
+
+
+```ts
+get locale(): string
+```
+
+---
+
+### `onlySelectedShape` \{#Editor-onlySelectedShape-member}
+
+<Small>Public Readonly Property</Small>
+
+The app's only selected shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.onlySelectedShape
+```
+ 
+
+
+##### Signature
+
+
+```ts
+get onlySelectedShape(): null | TLShape
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `openMenus` \{#Editor-openMenus-member}
+
+<Small>Public Readonly Property</Small>
+
+A set of strings representing any open menus. When menus are open, certain interactions will behave differently; for example, when a draw tool is selected and a menu is open, a pointer-down will not create a dot (because the user is probably trying to close the menu) however a pointer-down event followed by a drag will begin drawing a line (because the user is BOTH trying to close the menu AND start drawing a line).
+
+
+##### Signature
+
+
+```ts
+get openMenus(): string[]
+```
+
+---
+
+### `pages` \{#Editor-pages-member}
+
+<Small>Public Readonly Property</Small>
+
+Info about the project's current pages.
+
+
+##### Signature
+
+
+```ts
+get pages(): TLPage[]
+```
+
+##### References
+
+[TLPage](/gen/tlschema/TLPage-interface)
+
+---
+
+### `pageState` \{#Editor-pageState-member}
+
+<Small>Public Readonly Property</Small>
+
+The current page state.
+
+
+##### Signature
+
+
+```ts
+get pageState(): TLInstancePageState
+```
+
+##### References
+
+[TLInstancePageState](/gen/tlschema/TLInstancePageState-interface)
+
+---
+
+### `renderingBounds` \{#Editor-renderingBounds-member}
+
+<Small>Public Readonly Property</Small>
+
+The current rendering bounds in page space, used for checking which shapes are "on screen".
+
+
+##### Signature
+
+
+```ts
+get renderingBounds(): Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `renderingBoundsExpanded` \{#Editor-renderingBoundsExpanded-member}
+
+<Small>Public Readonly Property</Small>
+
+The current rendering bounds in page space, expanded slightly. Used for determining which shapes to render and which to "cull".
+
+
+##### Signature
+
+
+```ts
+get renderingBoundsExpanded(): Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `renderingShapes` \{#Editor-renderingShapes-member}
+
+<Small>Public Readonly Property</Small>
+
+Get the shapes that should be displayed in the current viewport.
+
+
+##### Signature
+
+
+```ts
+get renderingShapes(): {
+  id: TLShapeId
+  index: number
+  backgroundIndex: number
+  opacity: number
+  isCulled: boolean
+  isInViewport: boolean
+  maskedPageBounds: Box2d | undefined
+}[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `root` \{#Editor-root-member}
+
+<Small>Public Readonly Property</Small>
+
+The root state of the statechart.
+
+
+##### Signature
+
+
+```ts
+readonly root: RootState
+```
+
+---
+
+### `scribble` \{#Editor-scribble-member}
+
+<Small>Public Readonly Property</Small>
+
+The instance's scribble state.
+
+
+##### Signature
+
+
+```ts
+get scribble(): null | TLScribble
+```
+
+##### References
+
+[TLScribble](/gen/tlschema/TLScribble-type)
+
+---
+
+### `selectedIds` \{#Editor-selectedIds-member}
+
+<Small>Public Readonly Property</Small>
+
+The current selected ids.
+
+
+##### Signature
+
+
+```ts
+get selectedIds(): TLShapeId[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `selectedIdsSet` \{#Editor-selectedIdsSet-member}
+
+<Small>Public Readonly Property</Small>
+
+The current selected ids as a set
+
+
+##### Signature
+
+
+```ts
+get selectedIdsSet(): ReadonlySet<TLShapeId>
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `selectedPageBounds` \{#Editor-selectedPageBounds-member}
+
+<Small>Public Readonly Property</Small>
+
+The current page bounds of all the selected shapes (Not the same thing as the page bounds of the selection bounding box when the selection has been rotated)
+ 
+
+
+##### Signature
+
+
+```ts
+get selectedPageBounds(): Box2d | null
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `selectedShapes` \{#Editor-selectedShapes-member}
+
+<Small>Public Readonly Property</Small>
+
+An array containing all of the currently selected shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.selectedShapes
+```
+ 
+
+
+##### Signature
+
+
+```ts
+get selectedShapes(): TLShape[]
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `selectionBounds` \{#Editor-selectionBounds-member}
+
+<Small>Public Readonly Property</Small>
+
+The bounds of the selection bounding box.
+ 
+
+
+##### Signature
+
+
+```ts
+get selectionBounds(): Box2d | undefined
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `selectionPageCenter` \{#Editor-selectionPageCenter-member}
+
+<Small>Public Readonly Property</Small>
+
+The center of the selection bounding box.
+ 
+
+
+##### Signature
+
+
+```ts
+get selectionPageCenter(): null | Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `selectionRotation` \{#Editor-selectionRotation-member}
+
+<Small>Public Readonly Property</Small>
+
+The rotation of the selection bounding box.
+ 
+
+
+##### Signature
+
+
+```ts
+get selectionRotation(): number
+```
+
+---
+
+### `shapesArray` \{#Editor-shapesArray-member}
+
+<Small>Public Readonly Property</Small>
+
+An array containing all of the shapes in the current page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.shapesArray
+```
+ 
+
+
+##### Signature
+
+
+```ts
+get shapesArray(): TLShape[]
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `shapeUtils` \{#Editor-shapeUtils-member}
+
+<Small>Public Property</Small>
+
+A map of shape utility classes (TLShapeUtils) by shape type.
+
+
+##### Signature
+
+
+```ts
+shapeUtils: {
+  readonly [K in string]?: ShapeUtil<TLUnknownShape>
+}
+```
+
+##### References
+
+[ShapeUtil](/gen/editor/ShapeUtil-class), [TLUnknownShape](/gen/tlschema/TLUnknownShape-type)
+
+---
+
+### `sharedOpacity` \{#Editor-sharedOpacity-member}
+
+<Small>Public Readonly Property</Small>
+
+Get the currently selected shared opacity. If any shapes are selected, this returns the shared opacity of the selected shapes. Otherwise, this returns the chosen opacity for the next shape.
+
+
+##### Signature
+
+
+```ts
+get sharedOpacity(): SharedStyle<number>
+```
+
+##### References
+
+[SharedStyle](/gen/editor/SharedStyle-type)
+
+---
+
+### `sharedStyles` \{#Editor-sharedStyles-member}
+
+<Small>Public Readonly Property</Small>
+
+A map of all the current styles either in the current selection, or that are relevant to the current tool.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const color = editor.sharedStyles.get(DefaultColorStyle)
+if (color && color.type === 'shared') {
+  console.log('All selected shapes have the same color:', color.value)
+}
+```
+
+
+##### Signature
+
+
+```ts
+get sharedStyles(): ReadonlySharedStyleMap
+```
+
+##### References
+
+[ReadonlySharedStyleMap](/gen/editor/ReadonlySharedStyleMap-class)
+
+---
+
+### `snaps` \{#Editor-snaps-member}
+
+<Small>Public Readonly Property</Small>
+
+A manager for the app's snapping feature.
+
+
+##### Signature
+
+
+```ts
+readonly snaps: SnapManager
+```
+
+---
+
+### `sortedShapesArray` \{#Editor-sortedShapesArray-member}
+
+<Small>Public Readonly Property</Small>
+
+An array containing all of the shapes in the current page, sorted in z-index order (accounting for nested shapes): e.g. A, B, BA, BB, C.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.sortedShapesArray
+```
+ 
+
+
+##### Signature
+
+
+```ts
+get sortedShapesArray(): TLShape[]
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `store` \{#Editor-store-member}
+
+<Small>Public Readonly Property</Small>
+
+The editor's store
+
+
+##### Signature
+
+
+```ts
+readonly store: TLStore
+```
+
+##### References
+
+[TLStore](/gen/tlschema/TLStore-type)
+
+---
+
+### `textMeasure` \{#Editor-textMeasure-member}
+
+<Small>Public Readonly Property</Small>
+
+A helper for measuring text.
+
+
+##### Signature
+
+
+```ts
+readonly textMeasure: TextManager
+```
+
+---
+
+### `user` \{#Editor-user-member}
+
+<Small>Public Readonly Property</Small>
+
+A manager for the user and their preferences.
+
+
+##### Signature
+
+
+```ts
+readonly user: UserPreferencesManager
+```
+
+---
+
+### `viewportPageBounds` \{#Editor-viewportPageBounds-member}
+
+<Small>Public Readonly Property</Small>
+
+The current viewport in page space.
+
+
+##### Signature
+
+
+```ts
+get viewportPageBounds(): Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `viewportPageCenter` \{#Editor-viewportPageCenter-member}
+
+<Small>Public Readonly Property</Small>
+
+The center of the viewport in page space.
+
+
+##### Signature
+
+
+```ts
+get viewportPageCenter(): Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `viewportScreenBounds` \{#Editor-viewportScreenBounds-member}
+
+<Small>Public Readonly Property</Small>
+
+The bounds of the editor's viewport in screen space.
+
+
+##### Signature
+
+
+```ts
+get viewportScreenBounds(): Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `viewportScreenCenter` \{#Editor-viewportScreenCenter-member}
+
+<Small>Public Readonly Property</Small>
+
+The center of the editor's viewport in screen space.
+
+
+##### Signature
+
+
+```ts
+get viewportScreenCenter(): Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `zoomBrush` \{#Editor-zoomBrush-member}
+
+<Small>Public Readonly Property</Small>
+
+The instance's zoom brush state.
+
+
+##### Signature
+
+
+```ts
+get zoomBrush(): Box2dModel | null
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `zoomLevel` \{#Editor-zoomLevel-member}
+
+<Small>Public Readonly Property</Small>
+
+The current camera zoom level.
+
+
+##### Signature
+
+
+```ts
+get zoomLevel(): number
+```
+
+---
+
+## Methods
+
+### `addOpenMenu()` \{#Editor-addOpenMenu-member-1}
+
+<Small>Public Method</Small>
+
+Add an open menu.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.addOpenMenu('menu-id')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `alignShapes()` \{#Editor-alignShapes-member-1}
+
+<Small>Public Method</Small>
+
+Align shape positions.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.alignShapes('left')
+editor.alignShapes('left', ['box1', 'box2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`operation`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+  | 'bottom'
+  | 'center-horizontal'
+  | 'center-vertical'
+  | 'left'
+  | 'right'
+  | 'top'
+```
+
+The align operation to apply.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to align. Defaults to selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `animateCamera()` \{#Editor-animateCamera-member-1}
+
+<Small>Public Method</Small>
+
+Animate the camera.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.animateCamera(0, 0)
+editor.animateCamera(0, 0, 1)
+editor.animateCamera(0, 0, 1, { duration: 1000, easing: (t) => t * t })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The camera's x position.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The camera's y position.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`z`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The camera's z position. Defaults to the current zoom.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+Options for the animation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `animateShapes()` \{#Editor-animateShapes-member-1}
+
+<Small>Public Method</Small>
+
+Animate shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`partials`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+(null | TLShapePartial | undefined)[]
+```
+
+The shape partials to update.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`options`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  duration?: number
+  ease?: (t: number) => number
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapePartial](/gen/tlschema/TLShapePartial-type)
+
+---
+
+### `animateToShape()` \{#Editor-animateToShape-member-1}
+
+<Small>Public Method</Small>
+
+Animate the camera to a shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shapeId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `animateToUser()` \{#Editor-animateToUser-member-1}
+
+<Small>Public Method</Small>
+
+Animate the camera to a user's cursor position. This also briefly show the user's cursor if it's not currently visible.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`userId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The id of the user to aniamte to.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `bail()` \{#Editor-bail-member-1}
+
+<Small>Public Method</Small>
+
+Clear all marks in the undo stack back to the next mark.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.bail()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `bailToMark()` \{#Editor-bailToMark-member-1}
+
+<Small>Public Method</Small>
+
+Clear all marks in the undo stack back to the mark with the provided mark id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.bailToMark('creating')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `batch()` \{#Editor-batch-member-1}
+
+<Small>Public Method</Small>
+
+Run a function in a batch, which will be undone/redone as a single action.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.batch(() => {
+  editor.selectAll()
+  editor.deleteShapes()
+  editor.createShapes(myShapes)
+  editor.selectNone()
+})
+
+editor.undo() // will undo all of the above
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`fn`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+() => void
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `blur()` \{#Editor-blur-member-1}
+
+<Small>Public Method</Small>
+
+Blur the app, cancelling any interaction state.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.blur()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `bringForward()` \{#Editor-bringForward-member-1}
+
+<Small>Public Method</Small>
+
+Bring shapes forward in the page's object list.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.bringForward()
+editor.bringForward(['id1', 'id2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to move. Defaults to the ids of the selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `bringToFront()` \{#Editor-bringToFront-member-1}
+
+<Small>Public Method</Small>
+
+Bring shapes to the front of the page's object list.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.bringToFront()
+editor.bringToFront(['id1', 'id2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to move. Defaults to the ids of the selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `cancel()` \{#Editor-cancel-member-1}
+
+<Small>Public Method</Small>
+
+Dispatch a cancel event.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.cancel()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `cancelDoubleClick()` \{#Editor-cancelDoubleClick-member-1}
+
+<Small>Public Method</Small>
+
+Prevent a double click event from firing the next time the user clicks
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `centerOnPoint()` \{#Editor-centerOnPoint-member-1}
+
+<Small>Public Method</Small>
+
+Center the camera on a point (in page space).
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.centerOnPoint(100, 100)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The x position of the point.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The y position of the point.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+The options for an animation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `complete()` \{#Editor-complete-member-1}
+
+<Small>Public Method</Small>
+
+Dispatch a complete event.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.complete()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `createAssets()` \{#Editor-createAssets-member-1}
+
+<Small>Public Method</Small>
+
+Create one or more assets.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.createAssets([...myAssets])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`assets`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAsset[]
+```
+
+The assets to create.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLAsset](/gen/tlschema/TLAsset-type)
+
+---
+
+### `createPage()` \{#Editor-createPage-member-1}
+
+<Small>Public Method</Small>
+
+Create a page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.createPage('New Page')
+editor.createPage('New Page', 'page1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`title`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The new page's title.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+The new page's id.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`belowPageIndex`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `createShapes()` \{#Editor-createShapes-member-1}
+
+<Small>Public Method</Small>
+
+Create shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.createShapes([{ id: 'box1', type: 'text', props: { text: 'ok' } }])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`partials`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapePartial<T>[]
+```
+
+The shape partials to create.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`select`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether to select the created shapes. Defaults to false.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLUnknownShape](/gen/tlschema/TLUnknownShape-type), [TLShapePartial](/gen/tlschema/TLShapePartial-type)
+
+---
+
+### `deleteAssets()` \{#Editor-deleteAssets-member-1}
+
+<Small>Public Method</Small>
+
+Delete one or more assets.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.deleteAssets(['asset1', 'asset2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAssetId[]
+```
+
+The assets to delete.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLAssetId](/gen/tlschema/TLAssetId-type)
+
+---
+
+### `deleteOpenMenu()` \{#Editor-deleteOpenMenu-member-1}
+
+<Small>Public Method</Small>
+
+Delete an open menu.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.deleteOpenMenu('menu-id')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `deletePage()` \{#Editor-deletePage-member-1}
+
+<Small>Public Method</Small>
+
+Delete a page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.deletePage('page1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+The id of the page to delete.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `deleteShapes()` \{#Editor-deleteShapes-member-1}
+
+<Small>Public Method</Small>
+
+Delete shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.deleteShapes()
+editor.deleteShapes(['box1', 'box2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to delete. Defaults to the selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `deselect()` \{#Editor-deselect-member-1}
+
+<Small>Public Method</Small>
+
+Remove a shape from the existing set of selected shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.deselect(shape.id)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `dispatch()` \{#Editor-dispatch-member-1}
+
+<Small>Public Method</Small>
+
+Dispatch an event to the editor.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.dispatch(myPointerEvent)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLEventInfo
+```
+
+The event info.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLEventInfo](/gen/editor/TLEventInfo-type)
+
+---
+
+### `dispose()` \{#Editor-dispose-member-1}
+
+<Small>Public Method</Small>
+
+Dispose the editor.
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `distributeShapes()` \{#Editor-distributeShapes-member-1}
+
+<Small>Public Method</Small>
+
+Distribute shape positions.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.distributeShapes('left')
+editor.distributeShapes('left', ['box1', 'box2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`operation`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+'horizontal' | 'vertical'
+```
+
+Whether to distribute shapes horizontally or vertically.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to distribute. Defaults to selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `duplicatePage()` \{#Editor-duplicatePage-member-1}
+
+<Small>Public Method</Small>
+
+Duplicate a page.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+The id of the page to duplicate. Defaults to the current page.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`createId`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+The id of the new page. Defaults to a new id.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `duplicateShapes()` \{#Editor-duplicateShapes-member-1}
+
+<Small>Public Method</Small>
+
+Duplicate shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.duplicateShapes()
+editor.duplicateShapes(['id1', 'id2'])
+editor.duplicateShapes(['id1', 'id2'], { x: 8, y: 8 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to duplicate. Defaults to the ids of the selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`offset`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The offset (in pixels) to apply to the duplicated shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `findAncestor()` \{#Editor-findAncestor-member-1}
+
+<Small>Public Method</Small>
+
+Find the first ancestor matching the given predicate
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const ancestor = editor.findAncestor(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to check the ancestors for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`predicate`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+(parent: TLShape) => boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLShape | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `findCommonAncestor()` \{#Editor-findCommonAncestor-member-1}
+
+<Small>Public Method</Small>
+
+Get the common ancestor of two or more shapes that matches a predicate.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shapes`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape[]
+```
+
+The shapes to check.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`predicate`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+(shape: TLShape) => boolean
+```
+
+The predicate to match.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLShapeId | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `flipShapes()` \{#Editor-flipShapes-member-1}
+
+<Small>Public Method</Small>
+
+Flip shape positions.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.flipShapes('horizontal')
+editor.flipShapes('horizontal', ['box1', 'box2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`operation`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+'horizontal' | 'vertical'
+```
+
+Whether to flip horizontally or vertically.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to flip. Defaults to selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `focus()` \{#Editor-focus-member-1}
+
+<Small>Public Method</Small>
+
+Focus the editor.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.focus()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `getAncestorPageId()` \{#Editor-getAncestorPageId-member-1}
+
+<Small>Public Method</Small>
+
+Get the id of the containing page for a given shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the page id for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLPageId | undefined
+```
+
+ The id of the page that contains the shape, or undefined if the shape is undefined.
+
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `getAncestors()` \{#Editor-getAncestors-member-1}
+
+<Small>Public Method</Small>
+
+Get the ancestors of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const ancestors = editor.getAncestors(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the ancestors for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`acc`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLShape[]
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `getAncestorsById()` \{#Editor-getAncestorsById-member-1}
+
+<Small>Public Method</Small>
+
+Get the ancestors of a shape by its id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const ancestors = editor.getAncestorsById(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the shape to get the ancestors for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`acc`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLShape[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `getArrowsBoundTo()` \{#Editor-getArrowsBoundTo-member-1}
+
+<Small>Public Method</Small>
+
+Get all arrows bound to a shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shapeId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+{
+  arrowId: TLShapeId
+  handleId: 'end' | 'start'
+}[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `getAssetById()` \{#Editor-getAssetById-member-1}
+
+<Small>Public Method</Small>
+
+Get an asset by its id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getAssetById('asset1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAssetId
+```
+
+The id of the asset.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLAsset | undefined
+```
+
+##### References
+
+[TLAssetId](/gen/tlschema/TLAssetId-type), [TLAsset](/gen/tlschema/TLAsset-type)
+
+---
+
+### `getAssetBySrc()` \{#Editor-getAssetBySrc-member-1}
+
+<Small>Public Method</Small>
+
+Get an asset by its src property.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getAssetBySource('https://example.com/image.png')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`src`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The source value of the asset.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+  | import('@tldraw/tlschema').TLBookmarkAsset
+  | TLImageAsset
+  | TLVideoAsset
+  | undefined
+```
+
+##### References
+
+[TLBookmarkAsset](/gen/tlschema/TLBookmarkAsset-type), [TLImageAsset](/gen/tlschema/TLImageAsset-type), [TLVideoAsset](/gen/tlschema/TLVideoAsset-type)
+
+---
+
+### `getBounds()` \{#Editor-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+Get the local bounds of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getBounds(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+The shape to get the bounds for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getBoundsById()` \{#Editor-getBoundsById-member-1}
+
+<Small>Public Method</Small>
+
+Get the local bounds of a shape by its id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getBoundsById(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T['id']
+```
+
+The id of the shape to get the bounds for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getClipPathById()` \{#Editor-getClipPathById-member-1}
+
+<Small>Public Method</Small>
+
+Get the clip path for a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const clipPath = editor.getClipPathById(shape.id)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The shape id.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+string | undefined
+```
+
+ The clip path or undefined.
+
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `getContent()` \{#Editor-getContent-member-1}
+
+<Small>Public Method</Small>
+
+Get content that can be exported for the given shape ids.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to get content for. Defaults to the selected shape ids.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLContent | undefined
+```
+
+ The exported content.
+
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [TLContent](/gen/editor/TLContent-interface)
+
+---
+
+### `getDeltaInParentSpace()` \{#Editor-getDeltaInParentSpace-member-1}
+
+<Small>Public Method</Small>
+
+Convert a delta in page space to a delta in the parent space of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getDeltaInParentSpace(myShape, { x: 100, y: 100 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the delta in the parent space of.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`delta`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The page delta to convert.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [VecLike](/gen/primitives/VecLike-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getDeltaInShapeSpace()` \{#Editor-getDeltaInShapeSpace-member-1}
+
+<Small>Public Method</Small>
+
+Convert a delta in page space to a delta in the local space of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getDeltaInShapeSpace(myShape, { x: 100, y: 100 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the delta in the local space of.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`delta`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The page delta to convert.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [VecLike](/gen/primitives/VecLike-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getDroppingShape()` \{#Editor-getDroppingShape-member-1}
+
+<Small>Public Method</Small>
+
+Get the shape that some shapes should be dropped on at a given point.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The point to find the parent for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`droppingShapes`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape[]
+```
+
+The shapes that are being dropped.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLUnknownShape | undefined
+```
+
+ The shape to drop on.
+
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [TLShape](/gen/tlschema/TLShape-type), [TLUnknownShape](/gen/tlschema/TLUnknownShape-type)
+
+---
+
+### `getHandles()` \{#Editor-getHandles-member-1}
+
+<Small>Public Method</Small>
+
+Get the handles (if any) for a shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLHandle[] | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLHandle](/gen/tlschema/TLHandle-interface)
+
+---
+
+### `getHandlesById()` \{#Editor-getHandlesById-member-1}
+
+<Small>Public Method</Small>
+
+Get the handles (if any) for a shape by its id.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T['id']
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLHandle[] | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLHandle](/gen/tlschema/TLHandle-interface)
+
+---
+
+### `getHighestIndexForParent()` \{#Editor-getHighestIndexForParent-member-1}
+
+<Small>Public Method</Small>
+
+Get the index above the highest child of a given parent.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`parentId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId | TLShapeId
+```
+
+The id of the parent.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+string
+```
+
+ The index.
+
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `getMaskedPageBounds()` \{#Editor-getMaskedPageBounds-member-1}
+
+<Small>Public Method</Small>
+
+Get the page (or absolute) bounds of a shape, incorporating any masks. For example, if the shape were the child of a frame and was half way out of the frame, the bounds would be the half of the shape that was in the frame.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getMaskedPageBounds(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the masked bounds for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getMaskedPageBoundsById()` \{#Editor-getMaskedPageBoundsById-member-1}
+
+<Small>Public Method</Small>
+
+Get the page (or absolute) bounds of a shape by its id, incorporating any masks. For example, if the shape were the child of a frame and was half way out of the frame, the bounds would be the half of the shape that was in the frame.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getMaskedPageBoundsById(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the shape to get the masked page bounds for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d | undefined
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getOutermostSelectableShape()` \{#Editor-getOutermostSelectableShape-member-1}
+
+<Small>Public Method</Small>
+
+Get the shape that should be selected when you click on a given shape, assuming there is nothing already selected. It will not return anything higher than or including the current focus layer.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the outermost selectable shape for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`filter`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+(shape: TLShape) => boolean
+```
+
+A function to filter the selectable shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLShape
+```
+
+ The outermost selectable shape.
+
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `getOutline()` \{#Editor-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+Get the local outline of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getOutline(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+The shape to get the outline for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getOutlineById()` \{#Editor-getOutlineById-member-1}
+
+<Small>Public Method</Small>
+
+Get the local outline of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getOutlineById(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The shape id to get the outline for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getOutlineSegments()` \{#Editor-getOutlineSegments-member-1}
+
+<Small>Public Method</Small>
+
+Get the local outline segments of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getOutlineSegments(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+The shape to get the outline segments for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[][]
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getOutlineSegmentsById()` \{#Editor-getOutlineSegmentsById-member-1}
+
+<Small>Public Method</Small>
+
+Get the local outline segments of a shape by its Id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getOutlineSegmentsById(myShapeId)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[][]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getPageBounds()` \{#Editor-getPageBounds-member-1}
+
+<Small>Public Method</Small>
+
+Get the page (or absolute) bounds of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPageBounds(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the bounds for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getPageBoundsById()` \{#Editor-getPageBoundsById-member-1}
+
+<Small>Public Method</Small>
+
+Get the page (or absolute) bounds of a shape by its id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPageBoundsById(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the shape to get the page bounds for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d | undefined
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getPageById()` \{#Editor-getPageById-member-1}
+
+<Small>Public Method</Small>
+
+Get a page by its ID.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPageById(myPage.id)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLPage | undefined
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type), [TLPage](/gen/tlschema/TLPage-interface)
+
+---
+
+### `getPageCenter()` \{#Editor-getPageCenter-member-1}
+
+<Small>Public Method</Small>
+
+Get the page point (or absolute point) of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPagePoint(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the page point for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+null | Vec2d
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getPageCenterById()` \{#Editor-getPageCenterById-member-1}
+
+<Small>Public Method</Small>
+
+Get the page point (or absolute point) of a shape by its id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPagePoint(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The shape id to get the page point for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+null | Vec2d
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getPageCorners()` \{#Editor-getPageCorners-member-1}
+
+<Small>Public Method</Small>
+
+Get the corners of a shape in page space.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const corners = editor.getPageCorners(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the corners for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getPageInfoById()` \{#Editor-getPageInfoById-member-1}
+
+<Small>Public Method</Small>
+
+Get a page by its ID.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPageById(myPage.id)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPage['id']
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLPage | undefined
+```
+
+##### References
+
+[TLPage](/gen/tlschema/TLPage-interface)
+
+---
+
+### `getPageMaskById()` \{#Editor-getPageMaskById-member-1}
+
+<Small>Public Method</Small>
+
+Get the page mask for a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const pageMask = editor.getPageMaskById(shape.id)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the shape to get the page mask for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+undefined | VecLike[]
+```
+
+ The page mask for the shape.
+
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `getPagePointById()` \{#Editor-getPagePointById-member-1}
+
+<Small>Public Method</Small>
+
+Get the page point (or absolute point) of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPagePoint(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+undefined | Vec2d
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getPageRotation()` \{#Editor-getPageRotation-member-1}
+
+<Small>Public Method</Small>
+
+Get the page rotation (or absolute rotation) of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPageRotation(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the page rotation for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `getPageRotationById()` \{#Editor-getPageRotationById-member-1}
+
+<Small>Public Method</Small>
+
+Get the page rotation (or absolute rotation) of a shape by its id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPageRotationById(myShapeId)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the shape to get the page rotation for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `getPageStateByPageId()` \{#Editor-getPageStateByPageId-member-1}
+
+<Small>Public Method</Small>
+
+Get a page state by its id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPageStateByPageId('page1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLInstancePageState | undefined
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type), [TLInstancePageState](/gen/tlschema/TLInstancePageState-interface)
+
+---
+
+### `getPageTransform()` \{#Editor-getPageTransform-member-1}
+
+<Small>Public Method</Small>
+
+Get the page transform (or absolute transform) of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPageTransform(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the page transform for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `getPageTransformById()` \{#Editor-getPageTransformById-member-1}
+
+<Small>Public Method</Small>
+
+Get the page transform (or absolute transform) of a shape by its id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPageTransformById(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The if of the shape to get the page transform for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d | undefined
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `getParentIdForNewShapeAtPoint()` \{#Editor-getParentIdForNewShapeAtPoint-member-1}
+
+<Small>Public Method</Small>
+
+Get the id of what should be the parent of a new shape at a given point. The parent can be a page or shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The point to find the parent for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`shapeType`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape['type']
+```
+
+The type of shape that will be created.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLPageId | TLShapeId
+```
+
+ The id of the parent.
+
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [TLShape](/gen/tlschema/TLShape-type), [TLPageId](/gen/tlschema/TLPageId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `getParentShape()` \{#Editor-getParentShape-member-1}
+
+<Small>Public Method</Small>
+
+Get the parent shape for a given shape. Returns undefined if the shape is the direct child of the page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getParentShape(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLShape | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `getParentsMappedToChildren()` \{#Editor-getParentsMappedToChildren-member-1}
+
+<Small>Public Method</Small>
+
+For a given set of ids, get a map containing the ids of their parents and the children of those parents.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getParentsMappedToChildren(['id1', 'id2', 'id3'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids to get the parents and children of.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Map<TLParentId, Set<TLShape>>
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [TLParentId](/gen/tlschema/TLParentId-type), [TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `getParentTransform()` \{#Editor-getParentTransform-member-1}
+
+<Small>Public Method</Small>
+
+Get the local transform of a shape's parent as a matrix model.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getParentTransform(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the parent transform for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `getPointInParentSpace()` \{#Editor-getPointInParentSpace-member-1}
+
+<Small>Public Method</Small>
+
+Convert a delta in page space to a point in the local space of a shape. For example, if a shape's page point were `{ x: 100, y: 100 }`, a page point at `{ x: 110, y: 110 }` would be at `{ x: 10, y: 10 }` in the shape's local space.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPointInShapeSpace(myShape.id, { x: 100, y: 100 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shapeId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The page point to get in the local space of the shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [VecLike](/gen/primitives/VecLike-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getPointInShapeSpace()` \{#Editor-getPointInShapeSpace-member-1}
+
+<Small>Public Method</Small>
+
+Convert a point in page space to a point in the local space of a shape. For example, if a shape's page point were `{ x: 100, y: 100 }`, a page point at `{ x: 110, y: 110 }` would be at `{ x: 10, y: 10 }` in the shape's local space.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getPointInShapeSpace(myShape, { x: 100, y: 100 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the point in the local space of.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The page point to get in the local space of the shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [VecLike](/gen/primitives/VecLike-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getShapeAndDescendantIds()` \{#Editor-getShapeAndDescendantIds-member-1}
+
+<Small>Public Method</Small>
+
+Get the shape ids of all descendants of the given shapes (including the shapes themselves).
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to get descendants of.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Set<TLShapeId>
+```
+
+ The decscendant ids.
+
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `getShapeById()` \{#Editor-getShapeById-member-1}
+
+<Small>Public Method</Small>
+
+Get a shape by its id.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getShapeById('box1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLParentId
+```
+
+The id of the shape to get.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+T | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLParentId](/gen/tlschema/TLParentId-type)
+
+---
+
+### `getShapeIdsInPage()` \{#Editor-getShapeIdsInPage-member-1}
+
+<Small>Public Method</Small>
+
+Get the ids of shapes on a page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const idsOnPage1 = editor.getShapeIdsInPage('page1')
+const idsOnPage2 = editor.getShapeIdsInPage('page2')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`pageId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+The id of the page.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Set<TLShapeId>
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `getShapesAtPoint()` \{#Editor-getShapesAtPoint-member-1}
+
+<Small>Public Method</Small>
+
+Get the shapes, if any, at a given page point.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getShapesAtPoint({ x: 100, y: 100 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The page point to test.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLShape[]
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `getShapeStyleIfExists()` \{#Editor-getShapeStyleIfExists-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`style`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+StyleProp<T>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+T | undefined
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [StyleProp](/gen/tlschema/StyleProp-class)
+
+---
+
+### `getShapeUtil()` \{#Editor-getShapeUtil-member-1}
+
+<Small>Public Method</Small>
+
+Get a shape util by its definition.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getShapeUtil(ArrowShapeUtil)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`util`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+C
+```
+
+The shape util.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+InstanceType<C>
+```
+
+##### References
+
+[ShapeUtil](/gen/editor/ShapeUtil-class)
+
+---
+
+### `getShapeUtil()` \{#Editor-getShapeUtil-member-2}
+
+<Small>Public Method</Small>
+
+Get a shape util from a shape itself.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const util = editor.getShapeUtil(myShape)
+const util = editor.getShapeUtil<ArrowShapeUtil>(myShape)
+const util = editor.getShapeUtil(ArrowShapeUtil)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+S | TLShapePartial<S>
+```
+
+A shape or shape partial.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+ShapeUtil<S>
+```
+
+##### References
+
+[TLUnknownShape](/gen/tlschema/TLUnknownShape-type), [TLShapePartial](/gen/tlschema/TLShapePartial-type), [ShapeUtil](/gen/editor/ShapeUtil-class)
+
+---
+
+### `getSortedChildIds()` \{#Editor-getSortedChildIds-member-1}
+
+<Small>Public Method</Small>
+
+Get an array of all the children of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getSortedChildIds('frame1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`parentId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLParentId
+```
+
+The id of the parent shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLShapeId[]
+```
+
+##### References
+
+[TLParentId](/gen/tlschema/TLParentId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `getStateDescendant()` \{#Editor-getStateDescendant-member-1}
+
+<Small>Public Method</Small>
+
+Get a descendant by its path.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+state.getStateDescendant('select')
+state.getStateDescendant('select.brushing')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`path`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The descendant's path of state ids, separated by periods.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+StateNode | undefined
+```
+
+##### References
+
+[StateNode](/gen/editor/StateNode-class)
+
+---
+
+### `getSvg()` \{#Editor-getSvg-member-1}
+
+<Small>Public Method</Small>
+
+Get an exported SVG of the given shapes.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to export. Defaults to selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Partial<{
+  scale: number
+  background: boolean
+  padding: number
+  darkMode?: boolean | undefined
+  preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
+}>
+```
+
+Options for the export.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<SVGSVGElement | undefined>
+```
+
+ The SVG element.
+
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `getTransform()` \{#Editor-getTransform-member-1}
+
+<Small>Public Method</Small>
+
+Get the local transform for a shape as a matrix model. This transform reflects both its translation (x, y) from from either its parent's top left corner, if the shape's parent is another shape, or else from the 0,0 of the page, if the shape's parent is the page; and the shape's rotation.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.getTransform(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to get the local transform for.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Matrix2d
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [Matrix2d](/gen/primitives/Matrix2d-class)
+
+---
+
+### `groupShapes()` \{#Editor-groupShapes-member-1}
+
+<Small>Public Method</Small>
+
+Group some shapes together.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+Ids of the shapes to group. Defaults to the selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`groupId`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+Id of the group to create. Defaults to a new shape id.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `hasAncestor()` \{#Editor-hasAncestor-member-1}
+
+<Small>Public Method</Small>
+
+Returns true if the the given shape has the given ancestor.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape | undefined
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ancestorId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the ancestor.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `interrupt()` \{#Editor-interrupt-member-1}
+
+<Small>Public Method</Small>
+
+Dispatch an interrupt event.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.interrupt()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `isIn()` \{#Editor-isIn-member-1}
+
+<Small>Public Method</Small>
+
+Get whether a certain tool (or other state node) is currently active.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.isIn('select')
+editor.isIn('select.brushing')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`path`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The path of active states, separated by periods.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+---
+
+### `isInAny()` \{#Editor-isInAny-member-1}
+
+<Small>Public Method</Small>
+
+Get whether the state node is in any of the given active paths.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+state.isInAny('select', 'erase')
+state.isInAny('select.brushing', 'erase.idle')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`paths`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+---
+
+### `isPointInShape()` \{#Editor-isPointInShape-member-1}
+
+<Small>Public Method</Small>
+
+Test whether a point (in page space) will will a shape. This method takes into account masks, such as when a shape is the child of a frame and is partially clipped by the frame.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.isPointInShape({ x: 100, y: 100 }, myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The page point to test.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to test against.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `isSelected()` \{#Editor-isSelected-member-1}
+
+<Small>Public Method</Small>
+
+Determine whether or not a shape is selected
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.isSelected('id1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the shape to check.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `isShapeInPage()` \{#Editor-isShapeInPage-member-1}
+
+<Small>Public Method</Small>
+
+Get whether the given shape is the descendant of the given page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.isShapeInPage(myShape)
+editor.isShapeInPage(myShape, 'page1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+The shape to check.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`pageId`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+The id of the page to check against. Defaults to the current page.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `isShapeOfType()` \{#Editor-isShapeOfType-member-1}
+
+<Small>Public Method</Small>
+
+Get whether a shape matches the type of a TLShapeUtil.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const isArrowShape = isShapeOfType(someShape, ArrowShapeUtil)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLUnknownShape
+```
+
+the shape to test
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`util`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  new (...args: any): ShapeUtil<T>
+  type: string
+}
+```
+
+the TLShapeUtil constructor to test against
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+shape is T
+```
+
+##### References
+
+[TLUnknownShape](/gen/tlschema/TLUnknownShape-type), [ShapeUtil](/gen/editor/ShapeUtil-class)
+
+---
+
+### `isShapeOrAncestorLocked()` \{#Editor-isShapeOrAncestorLocked-member-1}
+
+<Small>Public Method</Small>
+
+Check whether a shape or its parent is locked.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `isWithinSelection()` \{#Editor-isWithinSelection-member-1}
+
+<Small>Public Method</Small>
+
+Determine whether a not a shape is within the current selection. A shape is within the selection if it or any of its parents is selected.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the shape to check.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `mark()` \{#Editor-mark-member-1}
+
+<Small>Public Method</Small>
+
+Create a new "mark", or stopping point, in the undo redo history. Creating a mark will clear any redos.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.mark()
+editor.mark('flip shapes')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`reason`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The reason for the mark.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`onUndo`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether to stop at the mark when undoing.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`onRedo`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether to stop at the mark when redoing.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+string
+```
+
+---
+
+### `moveShapesToPage()` \{#Editor-moveShapesToPage-member-1}
+
+<Small>Public Method</Small>
+
+Move shapes to page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.moveShapesToPage(['box1', 'box2'], 'page1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to move.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`pageId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+The id of the page where the shapes will be moved.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `nudgeShapes()` \{#Editor-nudgeShapes-member-1}
+
+<Small>Public Method</Small>
+
+Move shapes by a delta.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.nudgeShapes(['box1', 'box2'], { x: 0, y: 1 })
+editor.nudgeShapes(['box1', 'box2'], { x: 0, y: 1 }, true)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to move.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`direction`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Vec2dModel
+```
+
+The direction in which to move the shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`major`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether this is a major nudge, e.g. a shift + arrow nudge.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ephemeral`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [Vec2dModel](/gen/tlschema/Vec2dModel-interface)
+
+---
+
+### `packShapes()` \{#Editor-packShapes-member-1}
+
+<Small>Public Method</Small>
+
+Pack shapes into a grid centered on their current position. Based on potpack (https://github.com/mapbox/potpack)
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to pack. Defaults to selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`padding`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The padding to apply to the packed shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `pageToScreen()` \{#Editor-pageToScreen-member-1}
+
+<Small>Public Method</Small>
+
+Convert a point in page space to a point in screen space.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.pageToScreen(100, 100)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The x coordinate of the point in screen space.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The y coordinate of the point in screen space.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`z`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`camera`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Vec2dModel
+```
+
+The camera to use. Defaults to the current camera.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+{
+  x: number
+  y: number
+  z: number
+}
+```
+
+##### References
+
+[Vec2dModel](/gen/tlschema/Vec2dModel-interface)
+
+---
+
+### `pan()` \{#Editor-pan-member-1}
+
+<Small>Public Method</Small>
+
+Pan the camera.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.pan(100, 100)
+editor.pan(100, 100, { duration: 1000 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`dx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The amount to pan on the x axis.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`dy`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The amount to pan on the y axis.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+The animation options
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `panZoomIntoView()` \{#Editor-panZoomIntoView-member-1}
+
+<Small>Public Method</Small>
+
+Pan or pan/zoom the selected ids into view. This method tries to not change the zoom if possible.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to pan and zoom into view.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+The options for an animation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `popFocusLayer()` \{#Editor-popFocusLayer-member-1}
+
+<Small>Public Method</Small>
+
+Exit the current focus layer, moving up to the next group if there is one.
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `putContent()` \{#Editor-putContent-member-1}
+
+<Small>Public Method</Small>
+
+Place content into the editor.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`content`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLContent
+```
+
+The content.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`options`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  point?: VecLike
+  select?: boolean
+  preservePosition?: boolean
+  preserveIds?: boolean
+}
+```
+
+Options for placing the content.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLContent](/gen/editor/TLContent-interface), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `putExternalContent()` \{#Editor-putExternalContent-member-1}
+
+<Small>Public Method</Small>
+
+Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLExternalContent
+```
+
+Info about the external content.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<void>
+```
+
+##### References
+
+[TLExternalContent](/gen/editor/TLExternalContent-type)
+
+---
+
+### `redo()` \{#Editor-redo-member-1}
+
+<Small>Public Method</Small>
+
+Redo to the next mark.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.redo()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `renamePage()` \{#Editor-renamePage-member-1}
+
+<Small>Public Method</Small>
+
+Rename a page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.renamePage('page1', 'My Page')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+The id of the page to rename.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`name`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The new name.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`squashing`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `reorderShapes()` \{#Editor-reorderShapes-member-1}
+
+<Small>Public Method</Small>
+
+Reorder shapes.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`operation`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+'backward' | 'forward' | 'toBack' | 'toFront'
+```
+
+The operation to perform.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids to reorder.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `reparentShapesById()` \{#Editor-reparentShapesById-member-1}
+
+<Small>Public Method</Small>
+
+Reparent shapes to a new parent. This operation preserves the shape's current page positions / rotations.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.reparentShapesById(['box1', 'box2'], 'frame1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to reparent.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`parentId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLParentId
+```
+
+The id of the new parent shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`insertIndex`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The index to insert the children.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [TLParentId](/gen/tlschema/TLParentId-type)
+
+---
+
+### `replaceStoreContentsWithRecordsForOtherDocument()` \{#Editor-replaceStoreContentsWithRecordsForOtherDocument-member-1}
+
+<Small>Public Method</Small>
+
+Replace the store's contents with the given records.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`records`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLRecord[]
+```
+
+The records to replace the store's contents with.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+##### References
+
+[TLRecord](/gen/tlschema/TLRecord-type)
+
+---
+
+### `resetZoom()` \{#Editor-resetZoom-member-1}
+
+<Small>Public Method</Small>
+
+Set the zoom back to 100%.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.resetZoom()
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Vec2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+The options for an animation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class), [TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `resizeShape()` \{#Editor-resizeShape-member-1}
+
+<Small>Public Method</Small>
+
+Resize a shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId
+```
+
+The id of the shape to resize.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`scale`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The scale factor to apply to the shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`options`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  initialBounds?: Box2d
+  scaleOrigin?: VecLike
+  scaleAxisRotation?: number
+  initialShape?: TLShape
+  initialPageTransform?: MatLike
+  dragHandle?: TLResizeHandle
+  mode?: TLResizeMode
+}
+```
+
+Additional options.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [VecLike](/gen/primitives/VecLike-type), [Box2d](/gen/primitives/Box2d-class), [TLShape](/gen/tlschema/TLShape-type), [MatLike](/gen/primitives/MatLike-type), [TLResizeHandle](/gen/editor/TLResizeHandle-type), [TLResizeMode](/gen/editor/TLResizeMode-type)
+
+---
+
+### `rotateShapesBy()` \{#Editor-rotateShapesBy-member-1}
+
+<Small>Public Method</Small>
+
+Rotate shapes by a delta in radians.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.rotateShapesBy(['box1', 'box2'], Math.PI)
+editor.rotateShapesBy(['box1', 'box2'], Math.PI / 2)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to move.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`delta`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The delta in radians to apply to the selection rotation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `screenToPage()` \{#Editor-screenToPage-member-1}
+
+<Small>Public Method</Small>
+
+Convert a point in screen space to a point in page space.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.screenToPage(100, 100)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The x coordinate of the point in screen space.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The y coordinate of the point in screen space.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`z`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`camera`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Vec2dModel
+```
+
+The camera to use. Defaults to the current camera.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+{
+  x: number
+  y: number
+  z: number
+}
+```
+
+##### References
+
+[Vec2dModel](/gen/tlschema/Vec2dModel-interface)
+
+---
+
+### `select()` \{#Editor-select-member-1}
+
+<Small>Public Method</Small>
+
+Select one or more shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.select('id1')
+editor.select('id1', 'id2')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids to select.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `selectAll()` \{#Editor-selectAll-member-1}
+
+<Small>Public Method</Small>
+
+Select all direct children of the current page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.selectAll()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `selectNone()` \{#Editor-selectNone-member-1}
+
+<Small>Public Method</Small>
+
+Clear the selection.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.selectNone()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `sendBackward()` \{#Editor-sendBackward-member-1}
+
+<Small>Public Method</Small>
+
+Send shapes backward in the page's object list.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.sendBackward()
+editor.sendBackward(['id1', 'id2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to move. Defaults to the ids of the selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `sendToBack()` \{#Editor-sendToBack-member-1}
+
+<Small>Public Method</Small>
+
+Send shapes to the back of the page's object list.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.sendToBack()
+editor.sendToBack(['id1', 'id2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to move. Defaults to the ids of the selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `setAnimationSpeed()` \{#Editor-setAnimationSpeed-member-1}
+
+<Small>Public Method</Small>
+
+Set the user's chosen animation speed. Set to 0.0 to disable animations. Set to 1.0 for full speed.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`animationSpeed`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setBrush()` \{#Editor-setBrush-member-1}
+
+<Small>Public Method</Small>
+
+Set the current brush.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setBrush({ x: 0, y: 0, w: 100, h: 100 })
+editor.setBrush() // Clears the brush
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`brush`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2dModel | null
+```
+
+The brush box model to set, or null for no brush model.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `setCamera()` \{#Editor-setCamera-member-1}
+
+<Small>Public Method</Small>
+
+Set the current camera.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setCamera(0, 0)
+editor.setCamera(0, 0, 1)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The camera's x position.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The camera's y position.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`z`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The camera's z position. Defaults to the current zoom.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`{ stopFollowing }`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLViewportOptions
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setCroppingId()` \{#Editor-setCroppingId-member-1}
+
+<Small>Public Method</Small>
+
+Set the current cropping shape's id.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+null | TLShapeId
+```
+
+The id of the shape to crop or null to clear the cropping id.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `setCurrentPageId()` \{#Editor-setCurrentPageId-member-1}
+
+<Small>Public Method</Small>
+
+Set the current page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setCurrentPageId('page1')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`pageId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLPageId
+```
+
+The id of the page to set as the current page.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`{ stopFollowing }`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLViewportOptions
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `setCursor()` \{#Editor-setCursor-member-1}
+
+<Small>Public Method</Small>
+
+Set the current cursor.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setCursor({ type: 'default' })
+editor.setCursor({ type: 'default', rotation: Math.PI / 2, color: 'red' })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`cursor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Partial<TLCursor>
+```
+
+A partial of the cursor object.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLCursor](/gen/tlschema/TLCursor-interface)
+
+---
+
+### `setDarkMode()` \{#Editor-setDarkMode-member-1}
+
+<Small>Public Method</Small>
+
+Set whether the user has dark mode enabled.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`isDarkMode`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setDevicePixelRatio()` \{#Editor-setDevicePixelRatio-member-1}
+
+<Small>Public Method</Small>
+
+Set the window's device pixel ratio. This should usually only be set by the Canvas component.
+
+
+```ts
+editor.setDevicePixelRatio(2)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`dpr`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setEditingId()` \{#Editor-setEditingId-member-1}
+
+<Small>Public Method</Small>
+
+Set the current editing id.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+null | TLShapeId
+```
+
+The id of the shape to edit or null to clear the editing id.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `setErasingIds()` \{#Editor-setErasingIds-member-1}
+
+<Small>Public Method</Small>
+
+Set the current erasing shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setErasingIds(['box1', 'box2'])
+editor.setErasingIds() // Clears the erasing set
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of shapes to set as erasing.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `setFocusLayer()` \{#Editor-setFocusLayer-member-1}
+
+<Small>Public Method</Small>
+
+Set the focus layer to the given shape id.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`next`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+null | TLShapeId
+```
+
+The next focus layer id or null to reset the focus layer to the page
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `setFocusMode()` \{#Editor-setFocusMode-member-1}
+
+<Small>Public Method</Small>
+
+Set whether the instance is in focus mode or not.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`isFocusMode`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setGridMode()` \{#Editor-setGridMode-member-1}
+
+<Small>Public Method</Small>
+
+Set whether the instance's grid is enabled.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`isGridMode`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setHintingIds()` \{#Editor-setHintingIds-member-1}
+
+<Small>Public Method</Small>
+
+Set the hinted shape ids.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids to set as hinted.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `setHoveredId()` \{#Editor-setHoveredId-member-1}
+
+<Small>Public Method</Small>
+
+Set the current hovered shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setHoveredId('box1')
+editor.setHoveredId() // Clears the hovered shape.
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+null | TLShapeId
+```
+
+The id of the page to set as the current page
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `setLocale()` \{#Editor-setLocale-member-1}
+
+<Small>Public Method</Small>
+
+Update the user's locale. This affects which translations are used when rendering UI elements.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setLocale('fr')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`locale`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `setOpacity()` \{#Editor-setOpacity-member-1}
+
+<Small>Public Method</Small>
+
+Set the current opacity. This will effect any selected shapes, or the next-created shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setOpacity(0.5)
+editor.setOpacity(0.5, true)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`opacity`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The opacity to set. Must be a number between 0 and 1 inclusive.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ephemeral`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether the opacity change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`squashing`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether the opacity change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setPageState()` \{#Editor-setPageState-member-1}
+
+<Small>Public Method</Small>
+
+Update a page state.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setPageState({ id: 'page1', editingId: 'shape:123' })
+editor.setPageState({ id: 'page1', editingId: 'shape:123' }, true)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`partial`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Partial<TLInstancePageState>
+```
+
+The partial of the page state object containing the changes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ephemeral`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether the command is ephemeral.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+##### References
+
+[TLInstancePageState](/gen/tlschema/TLInstancePageState-interface)
+
+---
+
+### `setPenMode()` \{#Editor-setPenMode-member-1}
+
+<Small>Public Method</Small>
+
+Set whether the editor is in pen mode or not.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`isPenMode`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setReadOnly()` \{#Editor-setReadOnly-member-1}
+
+<Small>Public Method</Small>
+
+Set whether the editor is in read-only mode or not.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`isReadOnly`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setScribble()` \{#Editor-setScribble-member-1}
+
+<Small>Public Method</Small>
+
+Set the current scribble.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setScribble(nextScribble)
+editor.setScribble() // clears the scribble
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`scribble`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+null | TLScribble
+```
+
+The new scribble object.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLScribble](/gen/tlschema/TLScribble-type)
+
+---
+
+### `setSelectedIds()` \{#Editor-setSelectedIds-member-1}
+
+<Small>Public Method</Small>
+
+Select one or more shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setSelectedIds(['id1'])
+editor.setSelectedIds(['id1', 'id2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids to select.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`squashing`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether the change should create a new history entry or combine with the previous (if the previous is the same type).
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `setSelectedTool()` \{#Editor-setSelectedTool-member-1}
+
+<Small>Public Method</Small>
+
+Set the selected tool.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setSelectedTool('hand')
+editor.setSelectedTool('hand', { date: Date.now() })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The id of the tool to select.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{}
+```
+
+Arbitrary data to pass along into the transition.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setSnapMode()` \{#Editor-setSnapMode-member-1}
+
+<Small>Public Method</Small>
+
+Set whether the user has "always snap" mode enabled.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`isSnapMode`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setStyle()` \{#Editor-setStyle-member-1}
+
+<Small>Public Method</Small>
+
+Set the value of a [StyleProp](/gen/tlschema/StyleProp-class). This change will be applied to any selected shapes, and any subsequently created shapes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setProp(DefaultColorStyle, 'red')
+editor.setProp(DefaultColorStyle, 'red', true)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`style`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+StyleProp<T>
+```
+
+The style to set.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`value`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+The value to set.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ephemeral`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether the style change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`squashing`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether the style change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class)
+
+---
+
+### `setToolLocked()` \{#Editor-setToolLocked-member-1}
+
+<Small>Public Method</Small>
+
+Set whether the instance has "tool lock" mode enabled.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`isToolLocked`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setZoomBrush()` \{#Editor-setZoomBrush-member-1}
+
+<Small>Public Method</Small>
+
+Set the current zoom brush.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.setZoomBrush({ x: 0, y: 0, w: 100, h: 100 })
+editor.setZoomBrush() // Clears the zoom
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`zoomBrush`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2dModel | null
+```
+
+The zoom box model to set, or null for no zoom model.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `slideCamera()` \{#Editor-slideCamera-member-1}
+
+<Small>Public Method</Small>
+
+Slide the camera in a certain direction.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  speed: number
+  direction: Vec2d
+  friction: number
+  speedThreshold?: number | undefined
+}
+```
+
+Options for the slide
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this | undefined
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `stackShapes()` \{#Editor-stackShapes-member-1}
+
+<Small>Public Method</Small>
+
+Stack shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.stackShapes('horizontal')
+editor.stackShapes('horizontal', ['box1', 'box2'])
+editor.stackShapes('horizontal', ['box1', 'box2'], 20)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`operation`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+'horizontal' | 'vertical'
+```
+
+Whether to stack horizontally or vertically.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to stack. Defaults to selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`gap`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+A specific gap to use when stacking.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `startFollowingUser()` \{#Editor-startFollowingUser-member-1}
+
+<Small>Public Method</Small>
+
+Start viewport-following a user.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`userId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The id of the user to follow.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this | undefined
+```
+
+---
+
+### `stopCameraAnimation()` \{#Editor-stopCameraAnimation-member-1}
+
+<Small>Public Method</Small>
+
+Stop the current camera animation, if any.
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `stopFollowingUser()` \{#Editor-stopFollowingUser-member-1}
+
+<Small>Public Method</Small>
+
+Stop viewport-following a user.
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `stretchShapes()` \{#Editor-stretchShapes-member-1}
+
+<Small>Public Method</Small>
+
+Stretch shape sizes and positions to fill their common bounding box.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.stretchShapes('horizontal')
+editor.stretchShapes('horizontal', ['box1', 'box2'])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`operation`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+'horizontal' | 'vertical'
+```
+
+Whether to stretch shapes horizontally or vertically.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to stretch. Defaults to selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `toggleLock()` \{#Editor-toggleLock-member-1}
+
+<Small>Public Method</Small>
+
+Toggle the lock state of one or more shapes. If there is a mix of locked and unlocked shapes, all shapes will be locked.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+The ids of the shapes to toggle. Defaults to selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `undo()` \{#Editor-undo-member-1}
+
+<Small>Public Method</Small>
+
+Undo to the last mark.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.undo()
+```
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+HistoryManager<this>
+```
+
+---
+
+### `ungroupShapes()` \{#Editor-ungroupShapes-member-1}
+
+<Small>Public Method</Small>
+
+Ungroup some shapes.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapeId[]
+```
+
+Ids of the shapes to ungroup. Defaults to the selected shapes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `updateAssets()` \{#Editor-updateAssets-member-1}
+
+<Small>Public Method</Small>
+
+Update one or more assets.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.updateAssets([{ id: 'asset1', name: 'New name' }])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`assets`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAssetPartial[]
+```
+
+The assets to update.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLAssetPartial](/gen/tlschema/TLAssetPartial-type)
+
+---
+
+### `updateDocumentSettings()` \{#Editor-updateDocumentSettings-member-1}
+
+<Small>Public Method</Small>
+
+Update the global document settings that apply to all users.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`settings`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Partial<TLDocument>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+##### References
+
+[TLDocument](/gen/tlschema/TLDocument-interface)
+
+---
+
+### `updateInstanceState()` \{#Editor-updateInstanceState-member-1}
+
+<Small>Public Method</Small>
+
+Update the instance's state.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`partial`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Partial<Omit<TLInstance, 'currentPageId'>>
+```
+
+A partial object to update the instance state with.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ephemeral`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether the change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`squashing`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether the change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLInstance](/gen/tlschema/TLInstance-interface)
+
+---
+
+### `updatePage()` \{#Editor-updatePage-member-1}
+
+<Small>Public Method</Small>
+
+Update a page.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.updatePage({ id: 'page2', name: 'Page 2' })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`partial`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+RequiredKeys<TLPage, 'id'>
+```
+
+The partial of the shape to update.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`squashing`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[RequiredKeys](/gen/editor/RequiredKeys-type), [TLPage](/gen/tlschema/TLPage-interface)
+
+---
+
+### `updateShapes()` \{#Editor-updateShapes-member-1}
+
+<Small>Public Method</Small>
+
+Update shapes using partials of each shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.updateShapes([{ id: 'box1', type: 'geo', props: { w: 100, h: 100 } }])
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`partials`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+(null | TLShapePartial<T> | undefined)[]
+```
+
+The shape partials to update.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`squashing`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+Whether the change is ephemeral.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLUnknownShape](/gen/tlschema/TLUnknownShape-type), [TLShapePartial](/gen/tlschema/TLShapePartial-type)
+
+---
+
+### `updateViewportScreenBounds()` \{#Editor-updateViewportScreenBounds-member-1}
+
+<Small>Public Method</Small>
+
+Update the viewport. The viewport will measure the size and screen position of its container element. This should be done whenever the container's position on the screen changes.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.updateViewportScreenBounds()
+editor.updateViewportScreenBounds(true)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`center`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+(optional) Whether to preserve the viewport page center as the viewport changes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `visitDescendants()` \{#Editor-visitDescendants-member-1}
+
+<Small>Public Method</Small>
+
+Run a visitor function for all descendants of a shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.visitDescendants('frame1', myCallback)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`parentId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLParentId
+```
+
+The id of the parent shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`visitor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+(id: TLShapeId) => false | void
+```
+
+The visitor function.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+##### References
+
+[TLParentId](/gen/tlschema/TLParentId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `zoomIn()` \{#Editor-zoomIn-member-1}
+
+<Small>Public Method</Small>
+
+Zoom the camera in.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.zoomIn()
+editor.zoomIn(editor.viewportScreenCenter, { duration: 120 })
+editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Vec2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+The options for an animation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class), [TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `zoomOut()` \{#Editor-zoomOut-member-1}
+
+<Small>Public Method</Small>
+
+Zoom the camera out.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.zoomOut()
+editor.zoomOut(editor.viewportScreenCenter, { duration: 120 })
+editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Vec2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+The options for an animation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class), [TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `zoomToBounds()` \{#Editor-zoomToBounds-member-1}
+
+<Small>Public Method</Small>
+
+Zoom the camera to fit a bounding box (in page space).
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.zoomToBounds(0, 0, 100, 100)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The bounding box's x position.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The bounding box's y position.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`width`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The bounding box's width.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`height`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The bounding box's height.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`targetZoom`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+The desired zoom level. Defaults to 0.1.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `zoomToContent()` \{#Editor-zoomToContent-member-1}
+
+<Small>Public Method</Small>
+
+Move the camera to the nearest content.
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `zoomToFit()` \{#Editor-zoomToFit-member-1}
+
+<Small>Public Method</Small>
+
+Zoom the camera to fit the current page's content in the viewport.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.zoomToFit()
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+
+### `zoomToSelection()` \{#Editor-zoomToSelection-member-1}
+
+<Small>Public Method</Small>
+
+Zoom the camera to fit the current selection in the viewport.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.zoomToSelection()
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAnimationOptions
+```
+
+The options for an animation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[TLAnimationOptions](/gen/editor/TLAnimationOptions-type)
+
+---
+

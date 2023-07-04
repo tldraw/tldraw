@@ -1,0 +1,233 @@
+---
+title: BookmarkShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 9
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canResize](#BookmarkShapeUtil-canResize-member)
+  - [hideSelectionBoundsBg](#BookmarkShapeUtil-hideSelectionBoundsBg-member)
+  - [hideSelectionBoundsFg](#BookmarkShapeUtil-hideSelectionBoundsFg-member)
+  - [onBeforeCreate](#BookmarkShapeUtil-onBeforeCreate-member)
+  - [onBeforeUpdate](#BookmarkShapeUtil-onBeforeUpdate-member)
+  - [type](#BookmarkShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#BookmarkShapeUtil-component-member-1)
+  - [getDefaultProps](#BookmarkShapeUtil-getDefaultProps-member-1)
+  - [indicator](#BookmarkShapeUtil-indicator-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {}
+```
+
+##### References
+
+[BaseBoxShapeUtil](/gen/editor/BaseBoxShapeUtil-class), [TLBookmarkShape](/gen/tlschema/TLBookmarkShape-type)
+
+---
+
+## Properties
+
+### `canResize` \{#BookmarkShapeUtil-canResize-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canResize: () => boolean
+```
+
+---
+
+### `hideSelectionBoundsBg` \{#BookmarkShapeUtil-hideSelectionBoundsBg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsBg: () => boolean
+```
+
+---
+
+### `hideSelectionBoundsFg` \{#BookmarkShapeUtil-hideSelectionBoundsFg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsFg: () => boolean
+```
+
+---
+
+### `onBeforeCreate` \{#BookmarkShapeUtil-onBeforeCreate-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onBeforeCreate?: TLOnBeforeCreateHandler<TLBookmarkShape>
+```
+
+##### References
+
+[TLOnBeforeCreateHandler](/gen/editor/TLOnBeforeCreateHandler-type), [TLBookmarkShape](/gen/tlschema/TLBookmarkShape-type)
+
+---
+
+### `onBeforeUpdate` \{#BookmarkShapeUtil-onBeforeUpdate-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>
+```
+
+##### References
+
+[TLOnBeforeUpdateHandler](/gen/editor/TLOnBeforeUpdateHandler-type), [TLBookmarkShape](/gen/tlschema/TLBookmarkShape-type)
+
+---
+
+### `type` \{#BookmarkShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'bookmark'
+```
+
+---
+
+## Methods
+
+### `component()` \{#BookmarkShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLBookmarkShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLBookmarkShape](/gen/tlschema/TLBookmarkShape-type)
+
+---
+
+### `getDefaultProps()` \{#BookmarkShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLBookmarkShape['props']
+```
+
+##### References
+
+[TLBookmarkShape](/gen/tlschema/TLBookmarkShape-type)
+
+---
+
+### `indicator()` \{#BookmarkShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLBookmarkShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLBookmarkShape](/gen/tlschema/TLBookmarkShape-type)
+
+---
+

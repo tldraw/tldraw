@@ -1,0 +1,34 @@
+---
+title: TLVideoAsset
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 127
+---<Small>Public TypeAlias</Small>
+
+An asset used for videos, used by the TLVideoShape.
+
+
+##### Signature
+
+
+```ts
+type TLVideoAsset = TLBaseAsset<
+  'video',
+  {
+    w: number
+    h: number
+    name: string
+    isAnimated: boolean
+    mimeType: null | string
+    src: null | string
+  }
+>
+```
+
+##### References
+
+[TLBaseAsset](/gen/tlschema/TLBaseAsset-interface)
+

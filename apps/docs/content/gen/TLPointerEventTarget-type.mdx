@@ -1,0 +1,42 @@
+---
+title: TLPointerEventTarget
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 169
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLPointerEventTarget =
+  | {
+      target: 'canvas'
+      shape?: undefined
+    }
+  | {
+      target: 'handle'
+      shape: TLShape
+      handle: TLHandle
+    }
+  | {
+      target: 'selection'
+      handle?: TLSelectionHandle
+      shape?: undefined
+    }
+  | {
+      target: 'shape'
+      shape: TLShape
+    }
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLHandle](/gen/tlschema/TLHandle-interface), [TLSelectionHandle](/gen/editor/TLSelectionHandle-type)
+

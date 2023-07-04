@@ -1,0 +1,282 @@
+---
+title: WeakMapCache
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 196
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [items](#WeakMapCache-items-member)
+- [Methods](#methods)
+  - [access](#WeakMapCache-access-member-1)
+  - [bust](#WeakMapCache-bust-member-1)
+  - [get](#WeakMapCache-get-member-1)
+  - [has](#WeakMapCache-has-member-1)
+  - [invalidate](#WeakMapCache-invalidate-member-1)
+  - [set](#WeakMapCache-set-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class WeakMapCache<T extends object, K> {}
+```
+
+---
+
+## Properties
+
+### `items` \{#WeakMapCache-items-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+items: WeakMap<T, K>
+```
+
+---
+
+## Methods
+
+### `access()` \{#WeakMapCache-access-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`item`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+K | undefined
+```
+
+---
+
+### `bust()` \{#WeakMapCache-bust-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `get()` \{#WeakMapCache-get-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`item`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+P
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`cb`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+(item: P) => K
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+NonNullable<K>
+```
+
+---
+
+### `has()` \{#WeakMapCache-has-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`item`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+---
+
+### `invalidate()` \{#WeakMapCache-invalidate-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`item`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `set()` \{#WeakMapCache-set-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`item`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`value`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+K
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+

@@ -1,0 +1,281 @@
+---
+title: EmbedShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 30
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canEdit](#EmbedShapeUtil-canEdit-member)
+  - [canResize](#EmbedShapeUtil-canResize-member)
+  - [canUnmount](#EmbedShapeUtil-canUnmount-member)
+  - [hideSelectionBoundsBg](#EmbedShapeUtil-hideSelectionBoundsBg-member)
+  - [hideSelectionBoundsFg](#EmbedShapeUtil-hideSelectionBoundsFg-member)
+  - [isAspectRatioLocked](#EmbedShapeUtil-isAspectRatioLocked-member)
+  - [onResize](#EmbedShapeUtil-onResize-member)
+  - [type](#EmbedShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#EmbedShapeUtil-component-member-1)
+  - [getDefaultProps](#EmbedShapeUtil-getDefaultProps-member-1)
+  - [indicator](#EmbedShapeUtil-indicator-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {}
+```
+
+##### References
+
+[BaseBoxShapeUtil](/gen/editor/BaseBoxShapeUtil-class), [TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+## Properties
+
+### `canEdit` \{#EmbedShapeUtil-canEdit-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canEdit: TLShapeUtilFlag<TLEmbedShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+### `canResize` \{#EmbedShapeUtil-canResize-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canResize: (shape: TLEmbedShape) => boolean
+```
+
+##### References
+
+[TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+### `canUnmount` \{#EmbedShapeUtil-canUnmount-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canUnmount: TLShapeUtilFlag<TLEmbedShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+### `hideSelectionBoundsBg` \{#EmbedShapeUtil-hideSelectionBoundsBg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsBg: TLShapeUtilFlag<TLEmbedShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+### `hideSelectionBoundsFg` \{#EmbedShapeUtil-hideSelectionBoundsFg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+### `isAspectRatioLocked` \{#EmbedShapeUtil-isAspectRatioLocked-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+### `onResize` \{#EmbedShapeUtil-onResize-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onResize: TLOnResizeHandler<TLEmbedShape>
+```
+
+##### References
+
+[TLOnResizeHandler](/gen/editor/TLOnResizeHandler-type), [TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+### `type` \{#EmbedShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'embed'
+```
+
+---
+
+## Methods
+
+### `component()` \{#EmbedShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLEmbedShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+### `getDefaultProps()` \{#EmbedShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLEmbedShape['props']
+```
+
+##### References
+
+[TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+
+### `indicator()` \{#EmbedShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLEmbedShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLEmbedShape](/gen/tlschema/TLEmbedShape-type)
+
+---
+

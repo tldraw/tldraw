@@ -1,0 +1,776 @@
+---
+title: GeoShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 38
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canEdit](#GeoShapeUtil-canEdit-member)
+  - [onBeforeCreate](#GeoShapeUtil-onBeforeCreate-member)
+  - [onBeforeUpdate](#GeoShapeUtil-onBeforeUpdate-member)
+  - [onDoubleClick](#GeoShapeUtil-onDoubleClick-member)
+  - [onEditEnd](#GeoShapeUtil-onEditEnd-member)
+  - [onResize](#GeoShapeUtil-onResize-member)
+  - [type](#GeoShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#GeoShapeUtil-component-member-1)
+  - [getBounds](#GeoShapeUtil-getBounds-member-1)
+  - [getCanvasSvgDefs](#GeoShapeUtil-getCanvasSvgDefs-member-1)
+  - [getCenter](#GeoShapeUtil-getCenter-member-1)
+  - [getDefaultProps](#GeoShapeUtil-getDefaultProps-member-1)
+  - [getOutline](#GeoShapeUtil-getOutline-member-1)
+  - [hitTestLineSegment](#GeoShapeUtil-hitTestLineSegment-member-1)
+  - [hitTestPoint](#GeoShapeUtil-hitTestPoint-member-1)
+  - [indicator](#GeoShapeUtil-indicator-member-1)
+  - [toSvg](#GeoShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {}
+```
+
+##### References
+
+[BaseBoxShapeUtil](/gen/editor/BaseBoxShapeUtil-class), [TLGeoShape](/gen/tlschema/TLGeoShape-type)
+
+---
+
+## Properties
+
+### `canEdit` \{#GeoShapeUtil-canEdit-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canEdit: () => boolean
+```
+
+---
+
+### `onBeforeCreate` \{#GeoShapeUtil-onBeforeCreate-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onBeforeCreate: (shape: TLGeoShape) =>
+  | {
+      props: {
+        growY: number
+        geo:
+          | 'arrow-down'
+          | 'arrow-left'
+          | 'arrow-right'
+          | 'arrow-up'
+          | 'check-box'
+          | 'diamond'
+          | 'ellipse'
+          | 'hexagon'
+          | 'octagon'
+          | 'oval'
+          | 'pentagon'
+          | 'rectangle'
+          | 'rhombus-2'
+          | 'rhombus'
+          | 'star'
+          | 'trapezoid'
+          | 'triangle'
+          | 'x-box'
+        labelColor:
+          | 'black'
+          | 'blue'
+          | 'green'
+          | 'grey'
+          | 'light-blue'
+          | 'light-green'
+          | 'light-red'
+          | 'light-violet'
+          | 'orange'
+          | 'red'
+          | 'violet'
+          | 'yellow'
+        color:
+          | 'black'
+          | 'blue'
+          | 'green'
+          | 'grey'
+          | 'light-blue'
+          | 'light-green'
+          | 'light-red'
+          | 'light-violet'
+          | 'orange'
+          | 'red'
+          | 'violet'
+          | 'yellow'
+        fill: 'none' | 'pattern' | 'semi' | 'solid'
+        dash: 'dashed' | 'dotted' | 'draw' | 'solid'
+        size: 'l' | 'm' | 's' | 'xl'
+        font: 'draw' | 'mono' | 'sans' | 'serif'
+        align:
+          | 'end-legacy'
+          | 'end'
+          | 'middle-legacy'
+          | 'middle'
+          | 'start-legacy'
+          | 'start'
+        verticalAlign: 'end' | 'middle' | 'start'
+        url: string
+        w: number
+        h: number
+        text: string
+      }
+      type: 'geo'
+      x: number
+      y: number
+      rotation: number
+      index: string
+      parentId: import('@tldraw/tlschema').TLParentId
+      isLocked: boolean
+      opacity: number
+      id: import('@tldraw/tlschema').TLShapeId
+      typeName: 'shape'
+    }
+  | undefined
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type), [TLParentId](/gen/tlschema/TLParentId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `onBeforeUpdate` \{#GeoShapeUtil-onBeforeUpdate-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onBeforeUpdate: (
+  prev: TLGeoShape,
+  next: TLGeoShape
+) =>
+  | {
+      props: {
+        growY: number
+        geo:
+          | 'arrow-down'
+          | 'arrow-left'
+          | 'arrow-right'
+          | 'arrow-up'
+          | 'check-box'
+          | 'diamond'
+          | 'ellipse'
+          | 'hexagon'
+          | 'octagon'
+          | 'oval'
+          | 'pentagon'
+          | 'rectangle'
+          | 'rhombus-2'
+          | 'rhombus'
+          | 'star'
+          | 'trapezoid'
+          | 'triangle'
+          | 'x-box'
+        labelColor:
+          | 'black'
+          | 'blue'
+          | 'green'
+          | 'grey'
+          | 'light-blue'
+          | 'light-green'
+          | 'light-red'
+          | 'light-violet'
+          | 'orange'
+          | 'red'
+          | 'violet'
+          | 'yellow'
+        color:
+          | 'black'
+          | 'blue'
+          | 'green'
+          | 'grey'
+          | 'light-blue'
+          | 'light-green'
+          | 'light-red'
+          | 'light-violet'
+          | 'orange'
+          | 'red'
+          | 'violet'
+          | 'yellow'
+        fill: 'none' | 'pattern' | 'semi' | 'solid'
+        dash: 'dashed' | 'dotted' | 'draw' | 'solid'
+        size: 'l' | 'm' | 's' | 'xl'
+        font: 'draw' | 'mono' | 'sans' | 'serif'
+        align:
+          | 'end-legacy'
+          | 'end'
+          | 'middle-legacy'
+          | 'middle'
+          | 'start-legacy'
+          | 'start'
+        verticalAlign: 'end' | 'middle' | 'start'
+        url: string
+        w: number
+        h: number
+        text: string
+      }
+      type: 'geo'
+      x: number
+      y: number
+      rotation: number
+      index: string
+      parentId: import('@tldraw/tlschema').TLParentId
+      isLocked: boolean
+      opacity: number
+      id: import('@tldraw/tlschema').TLShapeId
+      typeName: 'shape'
+    }
+  | undefined
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type), [TLParentId](/gen/tlschema/TLParentId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `onDoubleClick` \{#GeoShapeUtil-onDoubleClick-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onDoubleClick: (shape: TLGeoShape) =>
+  | {
+      props: {
+        geo: 'check-box'
+      }
+      type: 'geo'
+      x: number
+      y: number
+      rotation: number
+      index: string
+      parentId: import('@tldraw/tlschema').TLParentId
+      isLocked: boolean
+      opacity: number
+      id: import('@tldraw/tlschema').TLShapeId
+      typeName: 'shape'
+    }
+  | {
+      props: {
+        geo: 'rectangle'
+      }
+      type: 'geo'
+      x: number
+      y: number
+      rotation: number
+      index: string
+      parentId: import('@tldraw/tlschema').TLParentId
+      isLocked: boolean
+      opacity: number
+      id: import('@tldraw/tlschema').TLShapeId
+      typeName: 'shape'
+    }
+  | undefined
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type), [TLParentId](/gen/tlschema/TLParentId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `onEditEnd` \{#GeoShapeUtil-onEditEnd-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onEditEnd: TLOnEditEndHandler<TLGeoShape>
+```
+
+##### References
+
+[TLOnEditEndHandler](/gen/editor/TLOnEditEndHandler-type), [TLGeoShape](/gen/tlschema/TLGeoShape-type)
+
+---
+
+### `onResize` \{#GeoShapeUtil-onResize-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onResize: TLOnResizeHandler<TLGeoShape>
+```
+
+##### References
+
+[TLOnResizeHandler](/gen/editor/TLOnResizeHandler-type), [TLGeoShape](/gen/tlschema/TLGeoShape-type)
+
+---
+
+### `type` \{#GeoShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'geo'
+```
+
+---
+
+## Methods
+
+### `component()` \{#GeoShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGeoShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type)
+
+---
+
+### `getBounds()` \{#GeoShapeUtil-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGeoShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getCanvasSvgDefs()` \{#GeoShapeUtil-getCanvasSvgDefs-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLShapeUtilCanvasSvgDef[]
+```
+
+---
+
+### `getCenter()` \{#GeoShapeUtil-getCenter-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGeoShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getDefaultProps()` \{#GeoShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLGeoShape['props']
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type)
+
+---
+
+### `getOutline()` \{#GeoShapeUtil-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGeoShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `hitTestLineSegment()` \{#GeoShapeUtil-hitTestLineSegment-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGeoShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `hitTestPoint()` \{#GeoShapeUtil-hitTestPoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGeoShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `indicator()` \{#GeoShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGeoShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type)
+
+---
+
+### `toSvg()` \{#GeoShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGeoShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ctx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SvgExportContext
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+SVGElement
+```
+
+##### References
+
+[TLGeoShape](/gen/tlschema/TLGeoShape-type)
+
+---
+

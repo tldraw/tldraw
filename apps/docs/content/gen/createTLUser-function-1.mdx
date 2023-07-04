@@ -1,0 +1,61 @@
+---
+title: createTLUser
+status: published
+category: editor
+group: Function
+author: api
+date: 06/23/2023
+order: 17
+---<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  derivePresenceState?:
+    | ((
+        store: TLStore
+      ) => Signal<null | TLInstancePresence>)
+    | undefined
+  userPreferences?:
+    | Signal<TLUserPreferences, unknown>
+    | undefined
+  setUserPreferences?:
+    | ((userPreferences: TLUserPreferences) => void)
+    | undefined
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLUser
+```
+
+##### References
+
+[TLStore](/gen/tlschema/TLStore-type), [TLInstancePresence](/gen/tlschema/TLInstancePresence-interface), [TLUserPreferences](/gen/editor/TLUserPreferences-interface)
+

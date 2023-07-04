@@ -1,0 +1,302 @@
+---
+title: StyleProp
+status: published
+category: tlschema
+group: Class
+author: api
+date: 06/23/2023
+order: 53
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [defaultValue](#StyleProp-defaultValue-member)
+  - [id](#StyleProp-id-member)
+  - [type](#StyleProp-type-member)
+- [Methods](#methods)
+  - [define](#StyleProp-define-member-1)
+  - [defineEnum](#StyleProp-defineEnum-member-1)
+  - [validate](#StyleProp-validate-member-1)
+</details>
+
+A `StyleProp` is a property of a shape that follows some special rules.
+
+
+1. The same value can be set on lots of shapes at the same time.
+
+
+2. The last used value is automatically saved and applied to new shapes.
+
+
+For example, [DefaultColorStyle](/gen/tlschema/DefaultColorStyle-var) is a style prop used by tldraw's default shapes to set their color. If you try selecting several shapes on tldraw.com and changing their color, you'll see that the color is applied to all of them. Then, if you draw a new shape, it'll have the same color as the one you just set.
+
+
+You can use styles in your own shapes by either defining your own (see [StyleProp.define](/gen/tlschema/StyleProp-class#StyleProp-define-member-1) and [StyleProp.defineEnum](/gen/tlschema/StyleProp-class#StyleProp-defineEnum-member-1)) or using tldraw's default ones, like [DefaultColorStyle](/gen/tlschema/DefaultColorStyle-var). When you define a shape, pass a `props` object describing all of your shape's properties, using `StyleProp`s for the ones you want to be styles. See the [custom styles example](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/16-custom-styles) for more.
+
+
+##### Signature
+
+
+```ts
+class StyleProp<Type> implements T.Validatable<Type> {}
+```
+
+---
+
+## Properties
+
+### `defaultValue` \{#StyleProp-defaultValue-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly defaultValue: Type
+```
+
+---
+
+### `id` \{#StyleProp-id-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly id: string
+```
+
+---
+
+### `type` \{#StyleProp-type-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly type: T.Validatable<Type>
+```
+
+---
+
+## Methods
+
+### `define()` \{#StyleProp-define-member-1}
+
+<Small>Public Static Method</Small>
+
+Define a new [StyleProp](/gen/tlschema/StyleProp-class).
+
+
+
+
+##### Example
+
+
+
+
+```ts
+import { StyleProp } from '@tldraw/tlschema'
+import { T } from '@tldraw/validate'
+
+const MyLineWidthProp = StyleProp.define('myApp:lineWidth', {
+  defaultValue: 1,
+  type: T.number,
+})
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`uniqueId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+Each StyleProp must have a unique ID. We recommend you prefix this with your app/library name.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`options`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  defaultValue: Type
+  type?: T.Validatable<Type>
+}
+```
+
+- `defaultValue`: The default value for this style prop.
+
+
+- `type`: Optionally, describe what type of data you expect for this style prop.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+StyleProp<Type>
+```
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class)
+
+---
+
+### `defineEnum()` \{#StyleProp-defineEnum-member-1}
+
+<Small>Public Static Method</Small>
+
+Define a new [StyleProp](/gen/tlschema/StyleProp-class) as a list of possible values.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+import { StyleProp } from '@tldraw/tlschema'
+
+const MySizeProp = StyleProp.defineEnum('myApp:size', {
+  defaultValue: 'medium',
+  values: ['small', 'medium', 'large'],
+})
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`uniqueId`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+Each StyleProp must have a unique ID. We recommend you prefix this with your app/library name.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`options`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  defaultValue: Values[number]
+  values: Values
+}
+```
+
+- `defaultValue`: The default value for this style prop.
+
+
+- `values`: An array of possible values of this style prop.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+EnumStyleProp<Values[number]>
+```
+
+##### References
+
+[EnumStyleProp](/gen/tlschema/EnumStyleProp-class)
+
+---
+
+### `validate()` \{#StyleProp-validate-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`value`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+unknown
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Type
+```
+
+---
+

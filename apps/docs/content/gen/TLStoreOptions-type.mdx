@@ -1,0 +1,34 @@
+---
+title: TLStoreOptions
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 180
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLStoreOptions = {
+  initialData?: StoreSnapshot<TLRecord>
+  defaultName?: string
+} & (
+  | {
+      schema: StoreSchema<TLRecord, TLStoreProps>
+    }
+  | {
+      shapes: readonly AnyTLShapeInfo[]
+    }
+)
+```
+
+##### References
+
+[StoreSnapshot](/gen/store/StoreSnapshot-type), [TLRecord](/gen/tlschema/TLRecord-type), [StoreSchema](/gen/store/StoreSchema-class), [TLStoreProps](/gen/tlschema/TLStoreProps-type)
+

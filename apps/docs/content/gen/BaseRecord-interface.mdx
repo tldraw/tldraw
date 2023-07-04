@@ -1,0 +1,64 @@
+---
+title: BaseRecord
+status: published
+category: store
+group: Interface
+author: api
+date: 06/23/2023
+order: 2
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [id](#BaseRecord-id-member)
+  - [typeName](#BaseRecord-typeName-member)
+</details>
+
+The base record that all records must extend.
+
+
+##### Signature
+
+
+```ts
+interface BaseRecord<
+  TypeName extends string,
+  Id extends RecordId<UnknownRecord>
+> {}
+```
+
+##### References
+
+[RecordId](/gen/store/RecordId-type), [UnknownRecord](/gen/store/UnknownRecord-type)
+
+---
+
+## Properties
+
+### `id` \{#BaseRecord-id-member}
+
+<Small>Public Readonly PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+readonly id: Id
+```
+
+---
+
+### `typeName` \{#BaseRecord-typeName-member}
+
+<Small>Public Readonly PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+readonly typeName: TypeName
+```
+
+---
+

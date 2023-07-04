@@ -1,0 +1,268 @@
+---
+title: TLUiInputProps
+status: published
+category: ui
+group: Interface
+author: api
+date: 06/23/2023
+order: 33
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [autofocus](#TLUiInputProps-autofocus-member)
+  - [autoselect](#TLUiInputProps-autoselect-member)
+  - [children](#TLUiInputProps-children-member)
+  - [className](#TLUiInputProps-className-member)
+  - [defaultValue](#TLUiInputProps-defaultValue-member)
+  - [disabled](#TLUiInputProps-disabled-member)
+  - [icon](#TLUiInputProps-icon-member)
+  - [iconLeft](#TLUiInputProps-iconLeft-member)
+  - [label](#TLUiInputProps-label-member)
+  - [onBlur](#TLUiInputProps-onBlur-member)
+  - [onCancel](#TLUiInputProps-onCancel-member)
+  - [onComplete](#TLUiInputProps-onComplete-member)
+  - [onValueChange](#TLUiInputProps-onValueChange-member)
+  - [placeholder](#TLUiInputProps-placeholder-member)
+  - [shouldManuallyMaintainScrollPositionWhenFocused](#TLUiInputProps-shouldManuallyMaintainScrollPositionWhenFocused-member)
+  - [value](#TLUiInputProps-value-member)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+interface TLUiInputProps {}
+```
+
+---
+
+## Properties
+
+### `autofocus` \{#TLUiInputProps-autofocus-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+autofocus?: boolean
+```
+
+---
+
+### `autoselect` \{#TLUiInputProps-autoselect-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+autoselect?: boolean
+```
+
+---
+
+### `children` \{#TLUiInputProps-children-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+children?: any
+```
+
+---
+
+### `className` \{#TLUiInputProps-className-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+className?: string
+```
+
+---
+
+### `defaultValue` \{#TLUiInputProps-defaultValue-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+defaultValue?: string
+```
+
+---
+
+### `disabled` \{#TLUiInputProps-disabled-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+disabled?: boolean
+```
+
+---
+
+### `icon` \{#TLUiInputProps-icon-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+icon?: TLUiIconType
+```
+
+##### References
+
+[TLUiIconType](/gen/ui/TLUiIconType-type)
+
+---
+
+### `iconLeft` \{#TLUiInputProps-iconLeft-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+iconLeft?: TLUiIconType
+```
+
+##### References
+
+[TLUiIconType](/gen/ui/TLUiIconType-type)
+
+---
+
+### `label` \{#TLUiInputProps-label-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+label?: TLUiTranslationKey
+```
+
+##### References
+
+[TLUiTranslationKey](/gen/ui/TLUiTranslationKey-type)
+
+---
+
+### `onBlur` \{#TLUiInputProps-onBlur-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+onBlur?: (value: string) => void
+```
+
+---
+
+### `onCancel` \{#TLUiInputProps-onCancel-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+onCancel?: (value: string) => void
+```
+
+---
+
+### `onComplete` \{#TLUiInputProps-onComplete-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+onComplete?: (value: string) => void
+```
+
+---
+
+### `onValueChange` \{#TLUiInputProps-onValueChange-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+onValueChange?: (value: string) => void
+```
+
+---
+
+### `placeholder` \{#TLUiInputProps-placeholder-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+placeholder?: string
+```
+
+---
+
+### `shouldManuallyMaintainScrollPositionWhenFocused` \{#TLUiInputProps-shouldManuallyMaintainScrollPositionWhenFocused-member}
+
+<Small>Public PropertySignature</Small>
+
+Usually on iOS when you focus an input, the browser will adjust the viewport to bring the input into view. Sometimes this doesn't work properly though - for example, if the input is newly created, iOS seems to have a hard time adjusting the viewport for it. This prop allows you to opt-in to some extra code to manually bring the input into view when the visual viewport of the browser changes, but we don't want to use it everywhere because generally the native behavior looks nicer in scenarios where it's sufficient.
+
+
+##### Signature
+
+
+```ts
+shouldManuallyMaintainScrollPositionWhenFocused?: boolean
+```
+
+---
+
+### `value` \{#TLUiInputProps-value-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+value?: string
+```
+
+---
+

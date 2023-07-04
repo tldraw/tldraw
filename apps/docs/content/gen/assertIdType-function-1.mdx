@@ -1,0 +1,81 @@
+---
+title: assertIdType
+status: published
+category: store
+group: Function
+author: api
+date: 06/23/2023
+order: 1
+---<Small>Public Function</Small>
+
+Assert whether an id correspond to a record type.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+assertIdType(myId, 'shape')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string | undefined
+```
+
+The id to check.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`type`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+RecordType<R, any>
+```
+
+The type of the record.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+asserts id is IdOf<R>
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [RecordType](/gen/store/RecordType-class), [IdOf](/gen/store/IdOf-type)
+

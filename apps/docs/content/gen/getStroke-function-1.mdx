@@ -1,0 +1,74 @@
+---
+title: getStroke
+status: published
+category: primitives
+group: Function
+author: api
+date: 06/23/2023
+order: 32
+---<Small>Public Function</Small>
+
+## getStroke
+
+
+Get an array of points describing a polygon that surrounds the input points.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+An array of points (as `[x, y, pressure]` or `{x, y, pressure}`). Pressure is optional in both cases.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`options`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+StrokeOptions
+```
+
+An object with options.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [StrokeOptions](/gen/primitives/StrokeOptions-interface), [Vec2d](/gen/primitives/Vec2d-class)
+

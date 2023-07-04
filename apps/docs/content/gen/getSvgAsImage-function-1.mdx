@@ -1,0 +1,67 @@
+---
+title: getSvgAsImage
+status: published
+category: editor
+group: Function
+author: api
+date: 06/23/2023
+order: 51
+---<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`svg`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SVGElement
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`options`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  type: TLCopyType | TLExportType
+  quality: number
+  scale: number
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<Blob | null>
+```
+
+##### References
+
+[TLCopyType](/gen/editor/TLCopyType-type), [TLExportType](/gen/editor/TLExportType-type)
+

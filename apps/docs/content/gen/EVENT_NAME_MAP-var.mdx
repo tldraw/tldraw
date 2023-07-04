@@ -1,0 +1,27 @@
+---
+title: EVENT_NAME_MAP
+status: published
+category: editor
+group: Variable
+author: api
+date: 06/23/2023
+order: 33
+---<Small>Public Readonly Variable</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+EVENT_NAME_MAP: Record<
+  Exclude<TLEventName, TLPinchEventName>,
+  keyof TLEventHandlers
+>
+```
+
+##### References
+
+[TLEventName](/gen/editor/TLEventName-type), [TLPinchEventName](/gen/editor/TLPinchEventName-type), [TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+

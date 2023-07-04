@@ -1,0 +1,32 @@
+---
+title: TLBookmarkAsset
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 66
+---<Small>Public TypeAlias</Small>
+
+An asset used for URL bookmarks, used by the TLBookmarkShape.
+
+
+##### Signature
+
+
+```ts
+type TLBookmarkAsset = TLBaseAsset<
+  'bookmark',
+  {
+    title: string
+    description: string
+    image: string
+    src: null | string
+  }
+>
+```
+
+##### References
+
+[TLBaseAsset](/gen/tlschema/TLBaseAsset-interface)
+

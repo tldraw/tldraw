@@ -1,0 +1,556 @@
+---
+title: LineSegment2d
+status: published
+category: primitives
+group: Class
+author: api
+date: 06/23/2023
+order: 50
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [a](#LineSegment2d-a-member)
+  - [angle](#LineSegment2d-angle-member)
+  - [b](#LineSegment2d-b-member)
+  - [bounds](#LineSegment2d-bounds-member)
+  - [length](#LineSegment2d-length-member)
+  - [tangent](#LineSegment2d-tangent-member)
+- [Methods](#methods)
+  - [Angle](#LineSegment2d-Angle-member-1)
+  - [getClosestPointTo](#LineSegment2d-getClosestPointTo-member-1)
+  - [getNormal](#LineSegment2d-getNormal-member-1)
+  - [getPath](#LineSegment2d-getPath-member-1)
+  - [getPoint](#LineSegment2d-getPoint-member-1)
+  - [getX](#LineSegment2d-getX-member-1)
+  - [getY](#LineSegment2d-getY-member-1)
+  - [Length](#LineSegment2d-Length-member-1)
+  - [Tangent](#LineSegment2d-Tangent-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class LineSegment2d extends BaseSegment2d<LineSegment2dModel> {}
+```
+
+##### References
+
+[LineSegment2dModel](/gen/primitives/LineSegment2dModel-interface)
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `LineSegment2d` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`a`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`b`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`p`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+## Properties
+
+### `a` \{#LineSegment2d-a-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+a: VecLike
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `angle` \{#LineSegment2d-angle-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get angle(): number
+```
+
+---
+
+### `b` \{#LineSegment2d-b-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+b: VecLike
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `bounds` \{#LineSegment2d-bounds-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get bounds(): Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `length` \{#LineSegment2d-length-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get length(): number
+```
+
+---
+
+### `tangent` \{#LineSegment2d-tangent-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get tangent(): Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+## Methods
+
+### `Angle()` \{#LineSegment2d-Angle-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+LineSegment2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+##### References
+
+[LineSegment2d](/gen/primitives/LineSegment2d-class)
+
+---
+
+### `getClosestPointTo()` \{#LineSegment2d-getClosestPointTo-member-1}
+
+<Small>Public Method</Small>
+
+Get the closest point on the segment to an arbitrary point.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The arbitrary point.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+{
+  point: Vec2d
+  distance: number
+}
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getNormal()` \{#LineSegment2d-getNormal-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getPath()` \{#LineSegment2d-getPath-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`head`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+string
+```
+
+---
+
+### `getPoint()` \{#LineSegment2d-getPoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`t`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getX()` \{#LineSegment2d-getX-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`t`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+---
+
+### `getY()` \{#LineSegment2d-getY-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`t`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+---
+
+### `Length()` \{#LineSegment2d-Length-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+LineSegment2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+##### References
+
+[LineSegment2d](/gen/primitives/LineSegment2d-class)
+
+---
+
+### `Tangent()` \{#LineSegment2d-Tangent-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+LineSegment2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[LineSegment2d](/gen/primitives/LineSegment2d-class), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+

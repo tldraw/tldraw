@@ -1,0 +1,838 @@
+---
+title: StateNode
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 102
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [children](#StateNode-children-member)
+  - [children](#StateNode-children-member)
+  - [current](#StateNode-current-member)
+  - [editor](#StateNode-editor-member)
+  - [id](#StateNode-id-member)
+  - [id](#StateNode-id-member)
+  - [initial](#StateNode-initial-member)
+  - [initial](#StateNode-initial-member)
+  - [isActive](#StateNode-isActive-member)
+  - [onCancel](#StateNode-onCancel-member)
+  - [onComplete](#StateNode-onComplete-member)
+  - [onDoubleClick](#StateNode-onDoubleClick-member)
+  - [onEnter](#StateNode-onEnter-member)
+  - [onExit](#StateNode-onExit-member)
+  - [onInterrupt](#StateNode-onInterrupt-member)
+  - [onKeyDown](#StateNode-onKeyDown-member)
+  - [onKeyRepeat](#StateNode-onKeyRepeat-member)
+  - [onKeyUp](#StateNode-onKeyUp-member)
+  - [onMiddleClick](#StateNode-onMiddleClick-member)
+  - [onPointerDown](#StateNode-onPointerDown-member)
+  - [onPointerEnter](#StateNode-onPointerEnter-member)
+  - [onPointerLeave](#StateNode-onPointerLeave-member)
+  - [onPointerMove](#StateNode-onPointerMove-member)
+  - [onPointerUp](#StateNode-onPointerUp-member)
+  - [onQuadrupleClick](#StateNode-onQuadrupleClick-member)
+  - [onRightClick](#StateNode-onRightClick-member)
+  - [onTripleClick](#StateNode-onTripleClick-member)
+  - [onWheel](#StateNode-onWheel-member)
+  - [parent](#StateNode-parent-member)
+  - [path](#StateNode-path-member)
+  - [shapeType](#StateNode-shapeType-member)
+  - [type](#StateNode-type-member)
+- [Methods](#methods)
+  - [enter](#StateNode-enter-member-1)
+  - [exit](#StateNode-exit-member-1)
+  - [handleEvent](#StateNode-handleEvent-member-1)
+  - [transition](#StateNode-transition-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+abstract class StateNode implements Partial<TLEventHandlers> {}
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `StateNode` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`parent`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+StateNode
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [StateNode](/gen/editor/StateNode-class)
+
+---
+
+## Properties
+
+### `children` \{#StateNode-children-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+children?: Record<string, StateNode>
+```
+
+##### References
+
+[StateNode](/gen/editor/StateNode-class)
+
+---
+
+### `children` \{#StateNode-children-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static children?: () => TLStateNodeConstructor[]
+```
+
+##### References
+
+[TLStateNodeConstructor](/gen/editor/TLStateNodeConstructor-interface)
+
+---
+
+### `current` \{#StateNode-current-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+current: Atom<StateNode | undefined>
+```
+
+##### References
+
+[StateNode](/gen/editor/StateNode-class)
+
+---
+
+### `editor` \{#StateNode-editor-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+editor: Editor
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class)
+
+---
+
+### `id` \{#StateNode-id-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+id: string
+```
+
+---
+
+### `id` \{#StateNode-id-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static id: string
+```
+
+---
+
+### `initial` \{#StateNode-initial-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+initial?: string
+```
+
+---
+
+### `initial` \{#StateNode-initial-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static initial?: string
+```
+
+---
+
+### `isActive` \{#StateNode-isActive-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+isActive: boolean
+```
+
+---
+
+### `onCancel` \{#StateNode-onCancel-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onCancel?: TLEventHandlers['onCancel']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onComplete` \{#StateNode-onComplete-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onComplete?: TLEventHandlers['onComplete']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onDoubleClick` \{#StateNode-onDoubleClick-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onDoubleClick?: TLEventHandlers['onDoubleClick']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onEnter` \{#StateNode-onEnter-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onEnter?: TLEnterEventHandler
+```
+
+##### References
+
+[TLEnterEventHandler](/gen/editor/TLEnterEventHandler-type)
+
+---
+
+### `onExit` \{#StateNode-onExit-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onExit?: TLExitEventHandler
+```
+
+##### References
+
+[TLExitEventHandler](/gen/editor/TLExitEventHandler-type)
+
+---
+
+### `onInterrupt` \{#StateNode-onInterrupt-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onInterrupt?: TLEventHandlers['onInterrupt']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onKeyDown` \{#StateNode-onKeyDown-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onKeyDown?: TLEventHandlers['onKeyDown']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onKeyRepeat` \{#StateNode-onKeyRepeat-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onKeyRepeat?: TLEventHandlers['onKeyRepeat']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onKeyUp` \{#StateNode-onKeyUp-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onKeyUp?: TLEventHandlers['onKeyUp']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onMiddleClick` \{#StateNode-onMiddleClick-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onMiddleClick?: TLEventHandlers['onMiddleClick']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onPointerDown` \{#StateNode-onPointerDown-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onPointerDown?: TLEventHandlers['onPointerDown']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onPointerEnter` \{#StateNode-onPointerEnter-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onPointerEnter?: TLEventHandlers['onPointerEnter']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onPointerLeave` \{#StateNode-onPointerLeave-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onPointerLeave?: TLEventHandlers['onPointerLeave']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onPointerMove` \{#StateNode-onPointerMove-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onPointerMove?: TLEventHandlers['onPointerMove']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onPointerUp` \{#StateNode-onPointerUp-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onPointerUp?: TLEventHandlers['onPointerUp']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onQuadrupleClick` \{#StateNode-onQuadrupleClick-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onQuadrupleClick?: TLEventHandlers['onQuadrupleClick']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onRightClick` \{#StateNode-onRightClick-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onRightClick?: TLEventHandlers['onRightClick']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onTripleClick` \{#StateNode-onTripleClick-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onTripleClick?: TLEventHandlers['onTripleClick']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `onWheel` \{#StateNode-onWheel-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onWheel?: TLEventHandlers['onWheel']
+```
+
+##### References
+
+[TLEventHandlers](/gen/editor/TLEventHandlers-interface)
+
+---
+
+### `parent` \{#StateNode-parent-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+parent: StateNode
+```
+
+##### References
+
+[StateNode](/gen/editor/StateNode-class)
+
+---
+
+### `path` \{#StateNode-path-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+path: Computed<string>
+```
+
+---
+
+### `shapeType` \{#StateNode-shapeType-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+shapeType?: TLShapeUtilConstructor<TLBaseShape<any, any>>
+```
+
+##### References
+
+[TLShapeUtilConstructor](/gen/editor/TLShapeUtilConstructor-interface), [TLBaseShape](/gen/tlschema/TLBaseShape-interface)
+
+---
+
+### `type` \{#StateNode-type-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+type: TLStateNodeType
+```
+
+---
+
+## Methods
+
+### `enter()` \{#StateNode-enter-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+any
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`from`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `exit()` \{#StateNode-exit-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+any
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`from`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `handleEvent()` \{#StateNode-handleEvent-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Exclude<TLEventInfo, TLPinchEventInfo>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+##### References
+
+[TLEventInfo](/gen/editor/TLEventInfo-type), [TLPinchEventInfo](/gen/editor/TLPinchEventInfo-type)
+
+---
+
+### `transition()` \{#StateNode-transition-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+any
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+

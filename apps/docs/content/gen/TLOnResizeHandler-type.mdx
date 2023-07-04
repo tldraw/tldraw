@@ -1,0 +1,27 @@
+---
+title: TLOnResizeHandler
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 155
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLOnResizeHandler<T extends TLShape> = (
+  shape: T,
+  info: TLResizeInfo<T>
+) => Omit<TLShapePartial<T>, 'id' | 'type'> | undefined | void
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLResizeInfo](/gen/editor/TLResizeInfo-type), [TLShapePartial](/gen/tlschema/TLShapePartial-type)
+

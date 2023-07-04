@@ -1,0 +1,30 @@
+---
+title: TLDefaultColorTheme
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 74
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLDefaultColorTheme = Expand<
+  {
+    text: string
+    background: string
+    solid: string
+  } & Record<(typeof colors)[number], TLDefaultColorThemeColor>
+>
+```
+
+##### References
+
+[TLDefaultColorThemeColor](/gen/tlschema/TLDefaultColorThemeColor-type)
+

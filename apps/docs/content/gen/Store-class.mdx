@@ -1,0 +1,1284 @@
+---
+title: Store
+status: published
+category: store
+group: Class
+author: api
+date: 06/23/2023
+order: 26
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [allRecords](#Store-allRecords-member)
+  - [clear](#Store-clear-member)
+  - [createComputedCache](#Store-createComputedCache-member)
+  - [createSelectedComputedCache](#Store-createSelectedComputedCache-member)
+  - [get](#Store-get-member)
+  - [has](#Store-has-member)
+  - [history](#Store-history-member)
+  - [id](#Store-id-member)
+  - [listen](#Store-listen-member)
+  - [mergeRemoteChanges](#Store-mergeRemoteChanges-member)
+  - [onAfterChange](#Store-onAfterChange-member)
+  - [onAfterCreate](#Store-onAfterCreate-member)
+  - [onAfterDelete](#Store-onAfterDelete-member)
+  - [onBeforeDelete](#Store-onBeforeDelete-member)
+  - [props](#Store-props-member)
+  - [put](#Store-put-member)
+  - [query](#Store-query-member)
+  - [remove](#Store-remove-member)
+  - [schema](#Store-schema-member)
+  - [scopedTypes](#Store-scopedTypes-member)
+  - [serialize](#Store-serialize-member)
+  - [unsafeGetWithoutCapture](#Store-unsafeGetWithoutCapture-member)
+  - [update](#Store-update-member)
+- [Methods](#methods)
+  - [_flushHistory](#Store-_flushHistory-member-1)
+  - [applyDiff](#Store-applyDiff-member-1)
+  - [extractingChanges](#Store-extractingChanges-member-1)
+  - [filterChangesByScope](#Store-filterChangesByScope-member-1)
+  - [getSnapshot](#Store-getSnapshot-member-1)
+  - [loadSnapshot](#Store-loadSnapshot-member-1)
+  - [validate](#Store-validate-member-1)
+</details>
+
+A store of records.
+
+
+##### Signature
+
+
+```ts
+class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {}
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type)
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `Store` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`config`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  initialData?: StoreSnapshot<R>
+  schema: StoreSchema<R, Props>
+  props: Props
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[StoreSnapshot](/gen/store/StoreSnapshot-type), [StoreSchema](/gen/store/StoreSchema-class)
+
+---
+
+## Properties
+
+### `allRecords` \{#Store-allRecords-member}
+
+<Small>Public Property</Small>
+
+Get an array of all values in the store.
+
+
+##### Signature
+
+
+```ts
+allRecords: () => R[]
+```
+
+---
+
+### `clear` \{#Store-clear-member}
+
+<Small>Public Property</Small>
+
+Removes all records from the store.
+
+
+##### Signature
+
+
+```ts
+clear: () => void
+```
+
+---
+
+### `createComputedCache` \{#Store-createComputedCache-member}
+
+<Small>Public Property</Small>
+
+Create a computed cache.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`name`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The name of the derivation cache.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`derive`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+A function used to derive the value of the cache.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+createComputedCache: <T, V extends R = R>(
+  name: string,
+  derive: (record: V) => T | undefined
+) => ComputedCache<T, V>
+```
+
+##### References
+
+[ComputedCache](/gen/store/ComputedCache-type)
+
+---
+
+### `createSelectedComputedCache` \{#Store-createSelectedComputedCache-member}
+
+<Small>Public Property</Small>
+
+Create a computed cache from a selector
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`name`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The name of the derivation cache.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`selector`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+A function that returns a subset of the original shape
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`derive`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+A function used to derive the value of the cache.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+createSelectedComputedCache: <T, J, V extends R = R>(
+  name: string,
+  selector: (record: V) => T | undefined,
+  derive: (input: T) => J | undefined
+) => ComputedCache<J, V>
+```
+
+##### References
+
+[ComputedCache](/gen/store/ComputedCache-type)
+
+---
+
+### `get` \{#Store-get-member}
+
+<Small>Public Property</Small>
+
+Get the value of a store record by its id.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The id of the record to get.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined
+```
+
+##### References
+
+[IdOf](/gen/store/IdOf-type)
+
+---
+
+### `has` \{#Store-has-member}
+
+<Small>Public Property</Small>
+
+Get whether the record store has a id.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The id of the record to check.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+has: <K extends IdOf<R>>(id: K) => boolean
+```
+
+##### References
+
+[IdOf](/gen/store/IdOf-type)
+
+---
+
+### `history` \{#Store-history-member}
+
+<Small>Public Readonly Property</Small>
+
+An atom containing the store's history.
+ 
+
+
+##### Signature
+
+
+```ts
+readonly history: Atom<number, RecordsDiff<R>>
+```
+
+##### References
+
+[RecordsDiff](/gen/store/RecordsDiff-type)
+
+---
+
+### `id` \{#Store-id-member}
+
+<Small>Public Readonly Property</Small>
+
+The random id of the store.
+
+
+##### Signature
+
+
+```ts
+readonly id: string
+```
+
+---
+
+### `listen` \{#Store-listen-member}
+
+<Small>Public Property</Small>
+
+Add a new listener to the store.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`onHistory`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The listener to call when the store updates.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`filters`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+Filters to apply to the listener.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+listen: (
+  onHistory: StoreListener<R>,
+  filters?: Partial<StoreListenerFilters>
+) => () => void
+```
+
+##### References
+
+[StoreListener](/gen/store/StoreListener-type)
+
+---
+
+### `mergeRemoteChanges` \{#Store-mergeRemoteChanges-member}
+
+<Small>Public Property</Small>
+
+Merge changes from a remote source without triggering listeners.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`fn`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+A function that merges the external changes.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+mergeRemoteChanges: (fn: () => void) => void
+```
+
+---
+
+### `onAfterChange` \{#Store-onAfterChange-member}
+
+<Small>Public Property</Small>
+
+A callback fired after each record's change.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`prev`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The previous value, if any.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`next`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The next value.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onAfterChange?: (prev: R, next: R) => void
+```
+
+---
+
+### `onAfterCreate` \{#Store-onAfterCreate-member}
+
+<Small>Public Property</Small>
+
+A callback fired after a record is created. Use this to perform related updates to other records in the store.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`record`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The record to be created
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onAfterCreate?: (record: R) => void
+```
+
+---
+
+### `onAfterDelete` \{#Store-onAfterDelete-member}
+
+<Small>Public Property</Small>
+
+A callback fired after a record is deleted.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`prev`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The record that will be deleted.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onAfterDelete?: (prev: R) => void
+```
+
+---
+
+### `onBeforeDelete` \{#Store-onBeforeDelete-member}
+
+<Small>Public Property</Small>
+
+A callback fired before a record is deleted.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`prev`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The record that will be deleted.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onBeforeDelete?: (prev: R) => void
+```
+
+---
+
+### `props` \{#Store-props-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly props: Props
+```
+
+---
+
+### `put` \{#Store-put-member}
+
+<Small>Public Property</Small>
+
+Add some records to the store. It's an error if they already exist.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`records`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The records to add.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+put: (records: R[], phaseOverride?: 'initialize') => void
+```
+
+---
+
+### `query` \{#Store-query-member}
+
+<Small>Public Readonly Property</Small>
+
+A StoreQueries instance for this store.
+ 
+
+
+##### Signature
+
+
+```ts
+readonly query: StoreQueries<R>
+```
+
+---
+
+### `remove` \{#Store-remove-member}
+
+<Small>Public Property</Small>
+
+Remove some records from the store via their ids.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`ids`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The ids of the records to remove.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+remove: (ids: IdOf<R>[]) => void
+```
+
+##### References
+
+[IdOf](/gen/store/IdOf-type)
+
+---
+
+### `schema` \{#Store-schema-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly schema: StoreSchema<R, Props>
+```
+
+##### References
+
+[StoreSchema](/gen/store/StoreSchema-class)
+
+---
+
+### `scopedTypes` \{#Store-scopedTypes-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly scopedTypes: {
+  readonly [K in RecordScope]: ReadonlySet<R['typeName']>
+}
+```
+
+---
+
+### `serialize` \{#Store-serialize-member}
+
+<Small>Public Property</Small>
+
+Creates a JSON payload from the record store.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`scope`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The scope of records to serialize. Defaults to 'document'.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+serialize: (scope?: 'all' | RecordScope) => StoreSnapshot<R>
+```
+
+##### References
+
+[StoreSnapshot](/gen/store/StoreSnapshot-type)
+
+---
+
+### `unsafeGetWithoutCapture` \{#Store-unsafeGetWithoutCapture-member}
+
+<Small>Public Property</Small>
+
+Get the value of a store record by its id without updating its epoch.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The id of the record to get.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+unsafeGetWithoutCapture: <K extends IdOf<R>>(
+  id: K
+) => RecFromId<K> | undefined
+```
+
+##### References
+
+[IdOf](/gen/store/IdOf-type)
+
+---
+
+### `update` \{#Store-update-member}
+
+<Small>Public Property</Small>
+
+Update a record. To update multiple records at once, use the `update` method of the `TypedStore` class.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The id of the record to update.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`updater`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+A function that updates the record.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+update: <K extends IdOf<R>>(
+  id: K,
+  updater: (record: RecFromId<K>) => RecFromId<K>
+) => void
+```
+
+##### References
+
+[IdOf](/gen/store/IdOf-type)
+
+---
+
+## Methods
+
+### `_flushHistory()` \{#Store-_flushHistory-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `applyDiff()` \{#Store-applyDiff-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`diff`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+RecordsDiff<R>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`runCallbacks`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+##### References
+
+[RecordsDiff](/gen/store/RecordsDiff-type)
+
+---
+
+### `extractingChanges()` \{#Store-extractingChanges-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`fn`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+() => void
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+RecordsDiff<R>
+```
+
+##### References
+
+[RecordsDiff](/gen/store/RecordsDiff-type)
+
+---
+
+### `filterChangesByScope()` \{#Store-filterChangesByScope-member-1}
+
+<Small>Public Method</Small>
+
+Filters out non-document changes from a diff. Returns null if there are no changes left.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`change`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+RecordsDiff<R>
+```
+
+the records diff
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`scope`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+RecordScope
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+{
+  added: { [K in IdOf<R>]: R }
+  updated: { [K_1 in IdOf<R>]: [from: R, to: R] }
+  removed: { [K in IdOf<R>]: R }
+} | null
+```
+
+
+
+
+##### References
+
+[RecordsDiff](/gen/store/RecordsDiff-type), [IdOf](/gen/store/IdOf-type)
+
+---
+
+### `getSnapshot()` \{#Store-getSnapshot-member-1}
+
+<Small>Public Method</Small>
+
+Get a serialized snapshot of the store and its schema.
+
+
+```ts
+const snapshot = store.getSnapshot()
+store.loadSnapshot(snapshot)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`scope`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+'all' | RecordScope
+```
+
+The scope of records to serialize. Defaults to 'document'.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+{
+  store: StoreSnapshot<R>
+  schema: SerializedSchema
+}
+```
+
+##### References
+
+[StoreSnapshot](/gen/store/StoreSnapshot-type), [SerializedSchema](/gen/store/SerializedSchema-interface)
+
+---
+
+### `loadSnapshot()` \{#Store-loadSnapshot-member-1}
+
+<Small>Public Method</Small>
+
+Load a serialized snapshot.
+
+
+```ts
+const snapshot = store.getSnapshot()
+store.loadSnapshot(snapshot)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`snapshot`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  store: StoreSnapshot<R>
+  schema: SerializedSchema
+}
+```
+
+The snapshot to load.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+##### References
+
+[StoreSnapshot](/gen/store/StoreSnapshot-type), [SerializedSchema](/gen/store/SerializedSchema-interface)
+
+---
+
+### `validate()` \{#Store-validate-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`phase`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+  | 'createRecord'
+  | 'initialize'
+  | 'tests'
+  | 'updateRecord'
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+

@@ -1,0 +1,34 @@
+---
+title: TLUiDialogsContextType
+status: published
+category: ui
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 26
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLUiDialogsContextType = {
+  addDialog: (
+    dialog: Omit<TLUiDialog, 'id'> & {
+      id?: string
+    }
+  ) => string
+  removeDialog: (id: string) => string
+  updateDialog: (id: string, newDialogData: Partial<TLUiDialog>) => string
+  clearDialogs: () => void
+  dialogs: TLUiDialog[]
+}
+```
+
+##### References
+
+[TLUiDialog](/gen/ui/TLUiDialog-interface)
+

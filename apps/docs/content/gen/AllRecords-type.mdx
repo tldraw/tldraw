@@ -1,0 +1,24 @@
+---
+title: AllRecords
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 0
+---<Small>Public TypeAlias</Small>
+
+Get the type of all records in a record store.
+
+
+##### Signature
+
+
+```ts
+type AllRecords<T extends Store<any>> = ExtractR<ExtractRecordType<T>>
+```
+
+##### References
+
+[Store](/gen/store/Store-class)
+

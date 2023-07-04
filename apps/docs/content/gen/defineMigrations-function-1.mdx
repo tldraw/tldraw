@@ -1,0 +1,76 @@
+---
+title: defineMigrations
+status: published
+category: store
+group: Function
+author: api
+date: 06/23/2023
+order: 8
+---<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  firstVersion?: CurrentVersion extends number
+    ? FirstVersion
+    : never
+  currentVersion?: CurrentVersion
+  migrators?: CurrentVersion extends number
+    ? FirstVersion extends number
+      ? CurrentVersion extends FirstVersion
+        ? {
+            [version in Exclude<
+              Range<1, CurrentVersion>,
+              0
+            >]: Migration
+          }
+        : {
+            [version in Exclude<
+              Range<FirstVersion, CurrentVersion>,
+              FirstVersion
+            >]: Migration
+          }
+      : {
+          [version in Exclude<
+            Range<1, CurrentVersion>,
+            0
+          >]: Migration
+        }
+    : never
+  subTypeKey?: string
+  subTypeMigrations?: Record<string, BaseMigrationsInfo>
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Migrations
+```
+
+##### References
+
+[Migration](/gen/store/Migration-type), [Migrations](/gen/store/Migrations-interface)
+

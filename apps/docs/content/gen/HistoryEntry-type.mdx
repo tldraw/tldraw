@@ -1,0 +1,27 @@
+---
+title: HistoryEntry
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 11
+---<Small>Public TypeAlias</Small>
+
+An entry containing changes that originated either by user actions or remote changes.
+
+
+##### Signature
+
+
+```ts
+type HistoryEntry<R extends UnknownRecord = UnknownRecord> = {
+  changes: RecordsDiff<R>
+  source: ChangeSource
+}
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [RecordsDiff](/gen/store/RecordsDiff-type)
+

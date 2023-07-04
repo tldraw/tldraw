@@ -1,0 +1,50 @@
+---
+title: useDefaultHelpers
+status: published
+category: ui
+group: Function
+author: api
+date: 06/23/2023
+order: 63
+---<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+{
+  addToast: (
+    toast: Omit<import('./hooks/useToastsProvider').TLUiToast, 'id'> & {
+      id?: string | undefined
+    }
+  ) => string
+  removeToast: (id: string) => string
+  clearToasts: () => void
+  addDialog: (
+    dialog: Omit<import('./hooks/useDialogsProvider').TLUiDialog, 'id'> & {
+      id?: string | undefined
+    }
+  ) => string
+  clearDialogs: () => void
+  removeDialog: (id: string) => string
+  updateDialog: (
+    id: string,
+    newDialogData: Partial<import('./hooks/useDialogsProvider').TLUiDialog>
+  ) => string
+  msg: (id: import('..').TLUiTranslationKey) => string
+  isMobile: boolean
+}
+```
+
+##### References
+
+[TLUiToast](/gen/ui/TLUiToast-interface), [TLUiDialog](/gen/ui/TLUiDialog-interface), [TLUiTranslationKey](/gen/ui/TLUiTranslationKey-type)
+

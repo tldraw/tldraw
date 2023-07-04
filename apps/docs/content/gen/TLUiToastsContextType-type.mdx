@@ -1,0 +1,33 @@
+---
+title: TLUiToastsContextType
+status: published
+category: ui
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 46
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLUiToastsContextType = {
+  addToast: (
+    toast: Omit<TLUiToast, 'id'> & {
+      id?: string
+    }
+  ) => string
+  removeToast: (id: TLUiToast['id']) => string
+  clearToasts: () => void
+  toasts: TLUiToast[]
+}
+```
+
+##### References
+
+[TLUiToast](/gen/ui/TLUiToast-interface)
+

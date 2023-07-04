@@ -1,0 +1,37 @@
+---
+title: TLUiMenuSchemaProviderProps
+status: published
+category: ui
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 41
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLUiMenuSchemaProviderProps = {
+  overrides?: (
+    editor: Editor,
+    schema: TLUiMenuSchemaContextType,
+    helpers: {
+      actions: ReturnType<typeof useActions>
+      noneSelected: boolean
+      oneSelected: boolean
+      twoSelected: boolean
+      threeSelected: boolean
+    }
+  ) => TLUiMenuSchemaContextType
+  children: any
+}
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [TLUiMenuSchemaContextType](/gen/ui/TLUiMenuSchemaContextType-type)
+

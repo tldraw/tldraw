@@ -1,0 +1,403 @@
+---
+title: StoreSchema
+status: published
+category: store
+group: Class
+author: api
+date: 06/23/2023
+order: 29
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [currentStoreVersion](#StoreSchema-currentStoreVersion-member)
+  - [types](#StoreSchema-types-member)
+- [Methods](#methods)
+  - [create](#StoreSchema-create-member-1)
+  - [migratePersistedRecord](#StoreSchema-migratePersistedRecord-member-1)
+  - [migrateStoreSnapshot](#StoreSchema-migrateStoreSnapshot-member-1)
+  - [serialize](#StoreSchema-serialize-member-1)
+  - [serializeEarliestVersion](#StoreSchema-serializeEarliestVersion-member-1)
+  - [validateRecord](#StoreSchema-validateRecord-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class StoreSchema<R extends UnknownRecord, P = unknown> {}
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type)
+
+---
+
+## Properties
+
+### `currentStoreVersion` \{#StoreSchema-currentStoreVersion-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get currentStoreVersion(): number
+```
+
+---
+
+### `types` \{#StoreSchema-types-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly types: {
+  [Record in R as Record['typeName']]: RecordType<R, any>
+}
+```
+
+##### References
+
+[RecordType](/gen/store/RecordType-class)
+
+---
+
+## Methods
+
+### `create()` \{#StoreSchema-create-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`types`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  [TypeName in R['typeName']]: {
+    createId: any
+  }
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`options`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+StoreSchemaOptions<R, P>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+StoreSchema<R, P>
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [StoreSchemaOptions](/gen/store/StoreSchemaOptions-type), [StoreSchema](/gen/store/StoreSchema-class)
+
+---
+
+### `migratePersistedRecord()` \{#StoreSchema-migratePersistedRecord-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`record`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+R
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`persistedSchema`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SerializedSchema
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`direction`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+'down' | 'up'
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+MigrationResult<R>
+```
+
+##### References
+
+[SerializedSchema](/gen/store/SerializedSchema-interface), [MigrationResult](/gen/store/MigrationResult-type)
+
+---
+
+### `migrateStoreSnapshot()` \{#StoreSchema-migrateStoreSnapshot-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`storeSnapshot`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+StoreSnapshot<R>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`persistedSchema`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SerializedSchema
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+MigrationResult<StoreSnapshot<R>>
+```
+
+##### References
+
+[StoreSnapshot](/gen/store/StoreSnapshot-type), [SerializedSchema](/gen/store/SerializedSchema-interface), [MigrationResult](/gen/store/MigrationResult-type)
+
+---
+
+### `serialize()` \{#StoreSchema-serialize-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+SerializedSchema
+```
+
+##### References
+
+[SerializedSchema](/gen/store/SerializedSchema-interface)
+
+---
+
+### `serializeEarliestVersion()` \{#StoreSchema-serializeEarliestVersion-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+SerializedSchema
+```
+
+##### References
+
+[SerializedSchema](/gen/store/SerializedSchema-interface)
+
+---
+
+### `validateRecord()` \{#StoreSchema-validateRecord-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`store`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Store<R>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`record`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+R
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`phase`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+  | 'createRecord'
+  | 'initialize'
+  | 'tests'
+  | 'updateRecord'
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`recordBefore`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+null | R
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+R
+```
+
+##### References
+
+[Store](/gen/store/Store-class)
+
+---
+

@@ -1,0 +1,26 @@
+---
+title: ShapeProps
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 52
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type ShapeProps<Shape extends TLBaseShape<any, any>> = {
+  [K in keyof Shape['props']]: T.Validatable<Shape['props'][K]>
+}
+```
+
+##### References
+
+[TLBaseShape](/gen/tlschema/TLBaseShape-interface)
+

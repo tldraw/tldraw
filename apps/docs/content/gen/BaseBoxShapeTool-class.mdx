@@ -1,0 +1,93 @@
+---
+title: BaseBoxShapeTool
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 5
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [children](#BaseBoxShapeTool-children-member)
+  - [id](#BaseBoxShapeTool-id-member)
+  - [initial](#BaseBoxShapeTool-initial-member)
+  - [shapeType](#BaseBoxShapeTool-shapeType-member)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+abstract class BaseBoxShapeTool extends StateNode {}
+```
+
+##### References
+
+[StateNode](/gen/editor/StateNode-class)
+
+---
+
+## Properties
+
+### `children` \{#BaseBoxShapeTool-children-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static children: () => (typeof Idle | typeof Pointing)[]
+```
+
+---
+
+### `id` \{#BaseBoxShapeTool-id-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static id: string
+```
+
+---
+
+### `initial` \{#BaseBoxShapeTool-initial-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static initial: string
+```
+
+---
+
+### `shapeType` \{#BaseBoxShapeTool-shapeType-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+abstract shapeType: TLShapeUtilConstructor<any>
+```
+
+##### References
+
+[TLShapeUtilConstructor](/gen/editor/TLShapeUtilConstructor-interface)
+
+---
+

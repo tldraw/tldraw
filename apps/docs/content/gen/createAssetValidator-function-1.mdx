@@ -1,0 +1,74 @@
+---
+title: createAssetValidator
+status: published
+category: tlschema
+group: Function
+author: api
+date: 06/23/2023
+order: 10
+---<Small>Public Function</Small>
+
+Create a validator for an asset record type.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`type`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Type
+```
+
+The type of the asset
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`props`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T.Validator<Props>
+```
+
+The validator for the asset's props
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+T.ObjectValidator<{
+  id: TLAssetId
+  typeName: 'asset'
+  type: Type
+  props: Props
+}>
+```
+
+##### References
+
+[TLAssetId](/gen/tlschema/TLAssetId-type)
+

@@ -1,0 +1,352 @@
+---
+title: GroupShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 61
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canBind](#GroupShapeUtil-canBind-member)
+  - [hideSelectionBoundsBg](#GroupShapeUtil-hideSelectionBoundsBg-member)
+  - [hideSelectionBoundsFg](#GroupShapeUtil-hideSelectionBoundsFg-member)
+  - [onChildrenChange](#GroupShapeUtil-onChildrenChange-member)
+  - [type](#GroupShapeUtil-type-member)
+  - [type](#GroupShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#GroupShapeUtil-component-member-1)
+  - [getBounds](#GroupShapeUtil-getBounds-member-1)
+  - [getCenter](#GroupShapeUtil-getCenter-member-1)
+  - [getDefaultProps](#GroupShapeUtil-getDefaultProps-member-1)
+  - [getOutline](#GroupShapeUtil-getOutline-member-1)
+  - [indicator](#GroupShapeUtil-indicator-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class GroupShapeUtil extends ShapeUtil<TLGroupShape> {}
+```
+
+##### References
+
+[ShapeUtil](/gen/editor/ShapeUtil-class), [TLGroupShape](/gen/tlschema/TLGroupShape-type)
+
+---
+
+## Properties
+
+### `canBind` \{#GroupShapeUtil-canBind-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canBind: () => boolean
+```
+
+---
+
+### `hideSelectionBoundsBg` \{#GroupShapeUtil-hideSelectionBoundsBg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsBg: () => boolean
+```
+
+---
+
+### `hideSelectionBoundsFg` \{#GroupShapeUtil-hideSelectionBoundsFg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsFg: () => boolean
+```
+
+---
+
+### `onChildrenChange` \{#GroupShapeUtil-onChildrenChange-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape>
+```
+
+##### References
+
+[TLOnChildrenChangeHandler](/gen/editor/TLOnChildrenChangeHandler-type), [TLGroupShape](/gen/tlschema/TLGroupShape-type)
+
+---
+
+### `type` \{#GroupShapeUtil-type-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+type: 'group'
+```
+
+---
+
+### `type` \{#GroupShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'group'
+```
+
+---
+
+## Methods
+
+### `component()` \{#GroupShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGroupShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element | null
+```
+
+##### References
+
+[TLGroupShape](/gen/tlschema/TLGroupShape-type)
+
+---
+
+### `getBounds()` \{#GroupShapeUtil-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGroupShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[TLGroupShape](/gen/tlschema/TLGroupShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getCenter()` \{#GroupShapeUtil-getCenter-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGroupShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLGroupShape](/gen/tlschema/TLGroupShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getDefaultProps()` \{#GroupShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLGroupShape['props']
+```
+
+##### References
+
+[TLGroupShape](/gen/tlschema/TLGroupShape-type)
+
+---
+
+### `getOutline()` \{#GroupShapeUtil-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGroupShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLGroupShape](/gen/tlschema/TLGroupShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `indicator()` \{#GroupShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLGroupShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLGroupShape](/gen/tlschema/TLGroupShape-type)
+
+---
+

@@ -1,0 +1,99 @@
+---
+title: geoShapeProps
+status: published
+category: tlschema
+group: Variable
+author: api
+date: 06/23/2023
+order: 33
+---<Small>Public Readonly Variable</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+geoShapeProps: {
+  geo: import('../styles/StyleProp').EnumStyleProp<
+    | 'arrow-down'
+    | 'arrow-left'
+    | 'arrow-right'
+    | 'arrow-up'
+    | 'check-box'
+    | 'diamond'
+    | 'ellipse'
+    | 'hexagon'
+    | 'octagon'
+    | 'oval'
+    | 'pentagon'
+    | 'rectangle'
+    | 'rhombus-2'
+    | 'rhombus'
+    | 'star'
+    | 'trapezoid'
+    | 'triangle'
+    | 'x-box'
+  >
+  labelColor: import('../styles/StyleProp').EnumStyleProp<
+    | 'black'
+    | 'blue'
+    | 'green'
+    | 'grey'
+    | 'light-blue'
+    | 'light-green'
+    | 'light-red'
+    | 'light-violet'
+    | 'orange'
+    | 'red'
+    | 'violet'
+    | 'yellow'
+  >
+  color: import('../styles/StyleProp').EnumStyleProp<
+    | 'black'
+    | 'blue'
+    | 'green'
+    | 'grey'
+    | 'light-blue'
+    | 'light-green'
+    | 'light-red'
+    | 'light-violet'
+    | 'orange'
+    | 'red'
+    | 'violet'
+    | 'yellow'
+  >
+  fill: import('../styles/StyleProp').EnumStyleProp<
+    'none' | 'pattern' | 'semi' | 'solid'
+  >
+  dash: import('../styles/StyleProp').EnumStyleProp<
+    'dashed' | 'dotted' | 'draw' | 'solid'
+  >
+  size: import('../styles/StyleProp').EnumStyleProp<'l' | 'm' | 's' | 'xl'>
+  font: import('../styles/StyleProp').EnumStyleProp<
+    'draw' | 'mono' | 'sans' | 'serif'
+  >
+  align: import('../styles/StyleProp').EnumStyleProp<
+    | 'end-legacy'
+    | 'end'
+    | 'middle-legacy'
+    | 'middle'
+    | 'start-legacy'
+    | 'start'
+  >
+  verticalAlign: import('../styles/StyleProp').EnumStyleProp<
+    'end' | 'middle' | 'start'
+  >
+  url: T.Validator<string>
+  w: T.Validator<number>
+  h: T.Validator<number>
+  growY: T.Validator<number>
+  text: T.Validator<string>
+}
+```
+
+##### References
+
+[EnumStyleProp](/gen/tlschema/EnumStyleProp-class)
+

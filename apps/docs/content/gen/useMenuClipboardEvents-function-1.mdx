@@ -1,0 +1,37 @@
+---
+title: useMenuClipboardEvents
+status: published
+category: ui
+group: Function
+author: api
+date: 06/23/2023
+order: 71
+---<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+{
+  copy: (source: TLUiEventSource) => void
+  cut: (source: TLUiEventSource) => void
+  paste: (
+    data: ClipboardItem[] | DataTransfer,
+    source: TLUiEventSource,
+    point?: VecLike
+  ) => Promise<void>
+}
+```
+
+##### References
+
+[TLUiEventSource](/gen/ui/TLUiEventSource-type), [VecLike](/gen/primitives/VecLike-type)
+

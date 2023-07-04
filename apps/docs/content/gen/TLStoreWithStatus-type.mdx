@@ -1,0 +1,50 @@
+---
+title: TLStoreWithStatus
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 181
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLStoreWithStatus =
+  | {
+      readonly status: 'error'
+      readonly store?: undefined
+      readonly error: Error
+    }
+  | {
+      readonly status: 'loading'
+      readonly store?: undefined
+      readonly error?: undefined
+    }
+  | {
+      readonly status: 'not-synced'
+      readonly store: TLStore
+      readonly error?: undefined
+    }
+  | {
+      readonly status: 'synced-local'
+      readonly store: TLStore
+      readonly error?: undefined
+    }
+  | {
+      readonly status: 'synced-remote'
+      readonly connectionStatus: 'offline' | 'online'
+      readonly store: TLStore
+      readonly error?: undefined
+    }
+```
+
+##### References
+
+[TLStore](/gen/tlschema/TLStore-type)
+

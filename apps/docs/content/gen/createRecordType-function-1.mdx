@@ -1,0 +1,82 @@
+---
+title: createRecordType
+status: published
+category: store
+group: Function
+author: api
+date: 06/23/2023
+order: 7
+---<Small>Public Function</Small>
+
+Create a record type.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const Book = createRecordType<Book>('book')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`typeName`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+R['typeName']
+```
+
+The name of the type to create.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`config`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  migrations?: Migrations
+  validator?: StoreValidator<R>
+  scope: RecordScope
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+RecordType<R, keyof Omit<R, 'id' | 'typeName'>>
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [Migrations](/gen/store/Migrations-interface), [StoreValidator](/gen/store/StoreValidator-type), [RecordType](/gen/store/RecordType-class)
+

@@ -1,0 +1,662 @@
+---
+title: HighlightShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 65
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [hideResizeHandles](#HighlightShapeUtil-hideResizeHandles-member)
+  - [hideRotateHandle](#HighlightShapeUtil-hideRotateHandle-member)
+  - [hideSelectionBoundsBg](#HighlightShapeUtil-hideSelectionBoundsBg-member)
+  - [hideSelectionBoundsFg](#HighlightShapeUtil-hideSelectionBoundsFg-member)
+  - [onResize](#HighlightShapeUtil-onResize-member)
+  - [type](#HighlightShapeUtil-type-member)
+- [Methods](#methods)
+  - [backgroundComponent](#HighlightShapeUtil-backgroundComponent-member-1)
+  - [component](#HighlightShapeUtil-component-member-1)
+  - [expandSelectionOutlinePx](#HighlightShapeUtil-expandSelectionOutlinePx-member-1)
+  - [getBounds](#HighlightShapeUtil-getBounds-member-1)
+  - [getCenter](#HighlightShapeUtil-getCenter-member-1)
+  - [getDefaultProps](#HighlightShapeUtil-getDefaultProps-member-1)
+  - [getOutline](#HighlightShapeUtil-getOutline-member-1)
+  - [hitTestLineSegment](#HighlightShapeUtil-hitTestLineSegment-member-1)
+  - [hitTestPoint](#HighlightShapeUtil-hitTestPoint-member-1)
+  - [indicator](#HighlightShapeUtil-indicator-member-1)
+  - [toBackgroundSvg](#HighlightShapeUtil-toBackgroundSvg-member-1)
+  - [toSvg](#HighlightShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {}
+```
+
+##### References
+
+[ShapeUtil](/gen/editor/ShapeUtil-class), [TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+## Properties
+
+### `hideResizeHandles` \{#HighlightShapeUtil-hideResizeHandles-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideResizeHandles: (shape: TLHighlightShape) => boolean
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `hideRotateHandle` \{#HighlightShapeUtil-hideRotateHandle-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideRotateHandle: (shape: TLHighlightShape) => boolean
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `hideSelectionBoundsBg` \{#HighlightShapeUtil-hideSelectionBoundsBg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsBg: (shape: TLHighlightShape) => boolean
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `hideSelectionBoundsFg` \{#HighlightShapeUtil-hideSelectionBoundsFg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsFg: (shape: TLHighlightShape) => boolean
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `onResize` \{#HighlightShapeUtil-onResize-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onResize: TLOnResizeHandler<TLHighlightShape>
+```
+
+##### References
+
+[TLOnResizeHandler](/gen/editor/TLOnResizeHandler-type), [TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `type` \{#HighlightShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'highlight'
+```
+
+---
+
+## Methods
+
+### `backgroundComponent()` \{#HighlightShapeUtil-backgroundComponent-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `component()` \{#HighlightShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `expandSelectionOutlinePx()` \{#HighlightShapeUtil-expandSelectionOutlinePx-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `getBounds()` \{#HighlightShapeUtil-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getCenter()` \{#HighlightShapeUtil-getCenter-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getDefaultProps()` \{#HighlightShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLHighlightShape['props']
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `getOutline()` \{#HighlightShapeUtil-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `hitTestLineSegment()` \{#HighlightShapeUtil-hitTestLineSegment-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `hitTestPoint()` \{#HighlightShapeUtil-hitTestPoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `indicator()` \{#HighlightShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `toBackgroundSvg()` \{#HighlightShapeUtil-toBackgroundSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+SVGPathElement
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+
+### `toSvg()` \{#HighlightShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLHighlightShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+SVGPathElement
+```
+
+##### References
+
+[TLHighlightShape](/gen/tlschema/TLHighlightShape-type)
+
+---
+

@@ -1,0 +1,301 @@
+---
+title: ReadonlySharedStyleMap
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 91
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [size](#ReadonlySharedStyleMap-size-member)
+- [Methods](#methods)
+  - [[Symbol.iterator]](#ReadonlySharedStyleMap-Symbol-iterator-member-1)
+  - [entries](#ReadonlySharedStyleMap-entries-member-1)
+  - [equals](#ReadonlySharedStyleMap-equals-member-1)
+  - [get](#ReadonlySharedStyleMap-get-member-1)
+  - [getAsKnownValue](#ReadonlySharedStyleMap-getAsKnownValue-member-1)
+  - [keys](#ReadonlySharedStyleMap-keys-member-1)
+  - [values](#ReadonlySharedStyleMap-values-member-1)
+</details>
+
+A map of [StyleProps](/gen/tlschema/StyleProp-class) to their [SharedStyle](/gen/editor/SharedStyle-type) values. See [Editor.sharedStyles](/gen/editor/Editor-class#Editor-sharedStyles-member).
+
+
+##### Signature
+
+
+```ts
+class ReadonlySharedStyleMap {}
+```
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `ReadonlySharedStyleMap` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`entries`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Iterable<
+  [StyleProp<unknown>, SharedStyle<unknown>]
+>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class), [SharedStyle](/gen/editor/SharedStyle-type)
+
+---
+
+## Properties
+
+### `size` \{#ReadonlySharedStyleMap-size-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get size(): number
+```
+
+---
+
+## Methods
+
+### `[Symbol.iterator]()` \{#ReadonlySharedStyleMap-Symbol-iterator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+IterableIterator<[StyleProp<unknown>, SharedStyle<unknown>]>
+```
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class), [SharedStyle](/gen/editor/SharedStyle-type)
+
+---
+
+### `entries()` \{#ReadonlySharedStyleMap-entries-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+IterableIterator<[StyleProp<unknown>, SharedStyle<unknown>]>
+```
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class), [SharedStyle](/gen/editor/SharedStyle-type)
+
+---
+
+### `equals()` \{#ReadonlySharedStyleMap-equals-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`other`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+ReadonlySharedStyleMap
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[ReadonlySharedStyleMap](/gen/editor/ReadonlySharedStyleMap-class)
+
+---
+
+### `get()` \{#ReadonlySharedStyleMap-get-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`prop`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+StyleProp<T>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+SharedStyle<T> | undefined
+```
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class), [SharedStyle](/gen/editor/SharedStyle-type)
+
+---
+
+### `getAsKnownValue()` \{#ReadonlySharedStyleMap-getAsKnownValue-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`prop`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+StyleProp<T>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+T | undefined
+```
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class)
+
+---
+
+### `keys()` \{#ReadonlySharedStyleMap-keys-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+IterableIterator<StyleProp<unknown>>
+```
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class)
+
+---
+
+### `values()` \{#ReadonlySharedStyleMap-values-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+IterableIterator<SharedStyle<unknown>>
+```
+
+##### References
+
+[SharedStyle](/gen/editor/SharedStyle-type)
+
+---
+

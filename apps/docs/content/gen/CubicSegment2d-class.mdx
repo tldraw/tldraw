@@ -1,0 +1,312 @@
+---
+title: CubicSegment2d
+status: published
+category: primitives
+group: Class
+author: api
+date: 06/23/2023
+order: 8
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [[Symbol.iterator]](#CubicSegment2d-Symbol-iterator-member)
+- [Methods](#methods)
+  - [getPath](#CubicSegment2d-getPath-member-1)
+  - [getPoint](#CubicSegment2d-getPoint-member-1)
+  - [getX](#CubicSegment2d-getX-member-1)
+  - [getY](#CubicSegment2d-getY-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class CubicSegment2d extends BaseSegment2d<CubicSegment2dModel> {}
+```
+
+##### References
+
+[CubicSegment2dModel](/gen/primitives/CubicSegment2dModel-interface)
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `CubicSegment2d` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`a`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`b`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`c`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`d`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`p`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+## Properties
+
+### `[Symbol.iterator]` \{#CubicSegment2d-Symbol-iterator-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+[Symbol.iterator]: (
+  this: InstanceType<typeof CubicSegment2d>
+) => Generator<VecLike, void, undefined>
+```
+
+##### References
+
+[CubicSegment2d](/gen/primitives/CubicSegment2d-class), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+## Methods
+
+### `getPath()` \{#CubicSegment2d-getPath-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`head`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+string
+```
+
+---
+
+### `getPoint()` \{#CubicSegment2d-getPoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`t`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getX()` \{#CubicSegment2d-getX-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`t`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+---
+
+### `getY()` \{#CubicSegment2d-getY-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`t`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+---
+

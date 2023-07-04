@@ -1,0 +1,30 @@
+---
+title: TLAssetPartial
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 62
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T
+  ? {
+      id: TLAssetId
+      type: T['type']
+      props?: Partial<T['props']>
+    } & Partial<Omit<T, 'id' | 'props' | 'type'>>
+  : never
+```
+
+##### References
+
+[TLAsset](/gen/tlschema/TLAsset-type), [TLAssetId](/gen/tlschema/TLAssetId-type)
+

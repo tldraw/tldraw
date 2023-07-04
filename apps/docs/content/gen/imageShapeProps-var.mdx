@@ -1,0 +1,34 @@
+---
+title: imageShapeProps
+status: published
+category: tlschema
+group: Variable
+author: api
+date: 06/23/2023
+order: 37
+---<Small>Public Readonly Variable</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+imageShapeProps: {
+  w: T.Validator<number>
+  h: T.Validator<number>
+  playing: T.Validator<boolean>
+  url: T.Validator<string>
+  assetId: T.Validator<import('..').TLAssetId | null>
+  crop: T.Validator<{
+    topLeft: import('../misc/geometry-types').Vec2dModel
+    bottomRight: import('../misc/geometry-types').Vec2dModel
+  } | null>
+}
+```
+
+##### References
+
+[TLAssetId](/gen/tlschema/TLAssetId-type), [Vec2dModel](/gen/tlschema/Vec2dModel-interface)
+

@@ -1,0 +1,49 @@
+---
+title: drawShapeProps
+status: published
+category: tlschema
+group: Variable
+author: api
+date: 06/23/2023
+order: 25
+---<Small>Public Readonly Variable</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+drawShapeProps: {
+  color: import('..').EnumStyleProp<
+    | 'black'
+    | 'blue'
+    | 'green'
+    | 'grey'
+    | 'light-blue'
+    | 'light-green'
+    | 'light-red'
+    | 'light-violet'
+    | 'orange'
+    | 'red'
+    | 'violet'
+    | 'yellow'
+  >
+  fill: import('..').EnumStyleProp<'none' | 'pattern' | 'semi' | 'solid'>
+  dash: import('..').EnumStyleProp<'dashed' | 'dotted' | 'draw' | 'solid'>
+  size: import('..').EnumStyleProp<'l' | 'm' | 's' | 'xl'>
+  segments: T.ArrayOfValidator<{
+    type: 'free' | 'straight'
+    points: import('../misc/geometry-types').Vec2dModel[]
+  }>
+  isComplete: T.Validator<boolean>
+  isClosed: T.Validator<boolean>
+  isPen: T.Validator<boolean>
+}
+```
+
+##### References
+
+[EnumStyleProp](/gen/tlschema/EnumStyleProp-class), [Vec2dModel](/gen/tlschema/Vec2dModel-interface)
+
