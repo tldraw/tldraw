@@ -1,12 +1,16 @@
+import {
+	GeoShapeGeoStyle,
+	StateNode,
+	TLEventHandlers,
+	TLGeoShape,
+	createShapeId,
+} from '@tldraw/editor'
 import { Box2d, getStarBounds } from '@tldraw/primitives'
-import { GeoShapeGeoStyle, TLGeoShape, createShapeId } from '@tldraw/tlschema'
-import { StateNode } from '../../../tools/StateNode'
-import { TLEventHandlers } from '../../../types/event-types'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
@@ -56,7 +60,7 @@ export class Pointing extends StateNode {
 		this.cancel()
 	}
 
-	complete() {
+	private complete() {
 		const { originPagePoint } = this.editor.inputs
 
 		const id = createShapeId()
@@ -106,7 +110,7 @@ export class Pointing extends StateNode {
 		}
 	}
 
-	cancel() {
+	private cancel() {
 		this.parent.transition('idle', {})
 	}
 }

@@ -1,27 +1,32 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	BaseBoxShapeUtil,
+	DefaultFontFamilies,
+	Editor,
+	SVGContainer,
+	TLDefaultDashStyle,
+	TLGeoShape,
+	TLOnEditEndHandler,
+	TLOnResizeHandler,
+	TLShapeUtilCanvasSvgDef,
+	getDefaultColorTheme,
+} from '@tldraw/editor'
+import {
 	Box2d,
+	PI,
+	PI2,
+	TAU,
+	Vec2d,
+	VecLike,
 	getPolygonVertices,
 	getRoundedInkyPolygonPath,
 	getRoundedPolygonPoints,
 	linesIntersect,
-	PI,
-	PI2,
 	pointInPolygon,
-	TAU,
-	Vec2d,
-	VecLike,
 } from '@tldraw/primitives'
-import {
-	DefaultFontFamilies,
-	getDefaultColorTheme,
-	TLDefaultDashStyle,
-	TLGeoShape,
-} from '@tldraw/tlschema'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { Editor } from '../../Editor'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnEditEndHandler, TLOnResizeHandler, TLShapeUtilCanvasSvgDef } from '../ShapeUtil'
+import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { SvgExportContext } from '../shared/SvgExportContext'
+import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,
 	LABEL_FONT_SIZES,
@@ -34,9 +39,6 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
-import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { SvgExportContext } from '../shared/SvgExportContext'
-import { TextLabel } from '../shared/TextLabel'
 import { useForceSolid } from '../shared/useForceSolid'
 import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
 import { DashStyleOval, DashStyleOvalSvg } from './components/DashStyleOval'
@@ -45,9 +47,9 @@ import { DrawStyleEllipseSvg, getEllipseIndicatorPath } from './components/DrawS
 import { DrawStylePolygon, DrawStylePolygonSvg } from './components/DrawStylePolygon'
 import { SolidStyleEllipse, SolidStyleEllipseSvg } from './components/SolidStyleEllipse'
 import {
-	getOvalIndicatorPath,
 	SolidStyleOval,
 	SolidStyleOvalSvg,
+	getOvalIndicatorPath,
 } from './components/SolidStyleOval'
 import { SolidStylePolygon, SolidStylePolygonSvg } from './components/SolidStylePolygon'
 
@@ -58,7 +60,7 @@ const MIN_SIZE_WITH_LABEL = 17 * 3
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override type = 'geo' as const
 
-	canEdit = () => true
+	override canEdit = () => true
 
 	override getDefaultProps(): TLGeoShape['props'] {
 		return {
@@ -79,7 +81,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean {
+	override hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean {
 		const outline = this.editor.getOutline(shape)
 
 		// Check the outline
@@ -100,7 +102,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return false
 	}
 
-	hitTestPoint(shape: TLGeoShape, point: VecLike): boolean {
+	override hitTestPoint(shape: TLGeoShape, point: VecLike): boolean {
 		const outline = this.editor.getOutline(shape)
 
 		if (shape.props.fill === 'none') {
@@ -127,15 +129,15 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return pointInPolygon(point, outline)
 	}
 
-	getBounds(shape: TLGeoShape) {
+	override getBounds(shape: TLGeoShape) {
 		return new Box2d(0, 0, shape.props.w, shape.props.h + shape.props.growY)
 	}
 
-	getCenter(shape: TLGeoShape) {
+	override getCenter(shape: TLGeoShape) {
 		return new Vec2d(shape.props.w / 2, (shape.props.h + shape.props.growY) / 2)
 	}
 
-	getOutline(shape: TLGeoShape) {
+	override getOutline(shape: TLGeoShape) {
 		const w = Math.max(1, shape.props.w)
 		const h = Math.max(1, shape.props.h + shape.props.growY)
 		const cx = w / 2
@@ -325,7 +327,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	onEditEnd: TLOnEditEndHandler<TLGeoShape> = (shape) => {
+	override onEditEnd: TLOnEditEndHandler<TLGeoShape> = (shape) => {
 		const {
 			id,
 			type,
@@ -512,7 +514,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
+	override toSvg(shape: TLGeoShape, ctx: SvgExportContext) {
 		const { id, props } = shape
 		const strokeWidth = STROKE_SIZES[props.size]
 		const theme = getDefaultColorTheme(this.editor)
@@ -685,11 +687,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return svgElm
 	}
 
-	getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
+	override getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[] {
 		return [getFillDefForCanvas()]
 	}
 
-	onResize: TLOnResizeHandler<TLGeoShape> = (
+	override onResize: TLOnResizeHandler<TLGeoShape> = (
 		shape,
 		{ initialBounds, handle, newPoint, scaleX, scaleY }
 	) => {
@@ -763,7 +765,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	onBeforeCreate = (shape: TLGeoShape) => {
+	override onBeforeCreate = (shape: TLGeoShape) => {
 		if (!shape.props.text) {
 			if (shape.props.growY) {
 				// No text / some growY, set growY to 0
@@ -804,7 +806,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	onBeforeUpdate = (prev: TLGeoShape, next: TLGeoShape) => {
+	override onBeforeUpdate = (prev: TLGeoShape, next: TLGeoShape) => {
 		const prevText = prev.props.text.trimEnd()
 		const nextText = next.props.text.trimEnd()
 
@@ -889,7 +891,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	onDoubleClick = (shape: TLGeoShape) => {
+	override onDoubleClick = (shape: TLGeoShape) => {
 		// Little easter egg: double-clicking a rectangle / checkbox while
 		// holding alt will toggle between check-box and rectangle
 		if (this.editor.inputs.altKey) {

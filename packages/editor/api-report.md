@@ -4,6 +4,7 @@
 
 ```ts
 
+/// <reference types="@types/jest" />
 /// <reference types="react" />
 
 import { Atom } from '@tldraw/state';
@@ -30,6 +31,7 @@ import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { RecursivePartial } from '@tldraw/utils';
+import { rng } from '@tldraw/utils';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
@@ -56,7 +58,6 @@ import { TLDocument } from '@tldraw/tlschema';
 import { TLDrawShape } from '@tldraw/tlschema';
 import { TLEmbedShape } from '@tldraw/tlschema';
 import { TLFrameShape } from '@tldraw/tlschema';
-import { TLGeoShape } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLHighlightShape } from '@tldraw/tlschema';
@@ -300,7 +301,7 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
 // @public (undocumented)
-export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>, TLShapeInfo<TLVideoShape>];
+export const defaultShapes: readonly [TLShapeInfo<TLDrawShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>, TLShapeInfo<TLVideoShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -832,133 +833,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     toSvg(shape: TLFrameShape): Promise<SVGElement> | SVGElement;
     // (undocumented)
     static type: "frame";
-}
-
-// @public (undocumented)
-export const GeoShape: TLShapeInfo<TLGeoShape>;
-
-// @public (undocumented)
-export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
-    // (undocumented)
-    canEdit: () => boolean;
-    // (undocumented)
-    component(shape: TLGeoShape): JSX.Element;
-    // (undocumented)
-    getBounds(shape: TLGeoShape): Box2d;
-    // (undocumented)
-    getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
-    // (undocumented)
-    getCenter(shape: TLGeoShape): Vec2d;
-    // (undocumented)
-    getDefaultProps(): TLGeoShape['props'];
-    // (undocumented)
-    getOutline(shape: TLGeoShape): Vec2d[];
-    // (undocumented)
-    hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean;
-    // (undocumented)
-    hitTestPoint(shape: TLGeoShape, point: VecLike): boolean;
-    // (undocumented)
-    indicator(shape: TLGeoShape): JSX.Element;
-    // (undocumented)
-    onBeforeCreate: (shape: TLGeoShape) => {
-        props: {
-            growY: number;
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            fill: "none" | "pattern" | "semi" | "solid";
-            dash: "dashed" | "dotted" | "draw" | "solid";
-            size: "l" | "m" | "s" | "xl";
-            font: "draw" | "mono" | "sans" | "serif";
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            verticalAlign: "end" | "middle" | "start";
-            url: string;
-            w: number;
-            h: number;
-            text: string;
-        };
-        type: "geo";
-        x: number;
-        y: number;
-        rotation: number;
-        index: string;
-        parentId: TLParentId;
-        isLocked: boolean;
-        opacity: number;
-        meta: JsonObject;
-        id: TLShapeId;
-        typeName: "shape";
-    } | undefined;
-    // (undocumented)
-    onBeforeUpdate: (prev: TLGeoShape, next: TLGeoShape) => {
-        props: {
-            growY: number;
-            geo: "arrow-down" | "arrow-left" | "arrow-right" | "arrow-up" | "check-box" | "diamond" | "ellipse" | "hexagon" | "octagon" | "oval" | "pentagon" | "rectangle" | "rhombus-2" | "rhombus" | "star" | "trapezoid" | "triangle" | "x-box";
-            labelColor: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            color: "black" | "blue" | "green" | "grey" | "light-blue" | "light-green" | "light-red" | "light-violet" | "orange" | "red" | "violet" | "yellow";
-            fill: "none" | "pattern" | "semi" | "solid";
-            dash: "dashed" | "dotted" | "draw" | "solid";
-            size: "l" | "m" | "s" | "xl";
-            font: "draw" | "mono" | "sans" | "serif";
-            align: "end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start";
-            verticalAlign: "end" | "middle" | "start";
-            url: string;
-            w: number;
-            h: number;
-            text: string;
-        };
-        type: "geo";
-        x: number;
-        y: number;
-        rotation: number;
-        index: string;
-        parentId: TLParentId;
-        isLocked: boolean;
-        opacity: number;
-        meta: JsonObject;
-        id: TLShapeId;
-        typeName: "shape";
-    } | undefined;
-    // (undocumented)
-    onDoubleClick: (shape: TLGeoShape) => {
-        props: {
-            geo: "check-box";
-        };
-        type: "geo";
-        x: number;
-        y: number;
-        rotation: number;
-        index: string;
-        parentId: TLParentId;
-        isLocked: boolean;
-        opacity: number;
-        meta: JsonObject;
-        id: TLShapeId;
-        typeName: "shape";
-    } | {
-        props: {
-            geo: "rectangle";
-        };
-        type: "geo";
-        x: number;
-        y: number;
-        rotation: number;
-        index: string;
-        parentId: TLParentId;
-        isLocked: boolean;
-        opacity: number;
-        meta: JsonObject;
-        id: TLShapeId;
-        typeName: "shape";
-    } | undefined;
-    // (undocumented)
-    onEditEnd: TLOnEditEndHandler<TLGeoShape>;
-    // (undocumented)
-    onResize: TLOnResizeHandler<TLGeoShape>;
-    // (undocumented)
-    toSvg(shape: TLGeoShape, ctx: SvgExportContext): SVGElement;
-    // (undocumented)
-    static type: "geo";
 }
 
 // @public
@@ -1860,6 +1734,8 @@ export type ResizeBoxOptions = Partial<{
 // @internal (undocumented)
 export const RICH_TYPES: Record<string, boolean>;
 
+export { rng }
+
 // @public (undocumented)
 export const runtime: {
     openWindow: (url: string, target: string) => void;
@@ -2087,6 +1963,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     type: TLStateNodeType;
 }
 
+// @public (undocumented)
+export const stopEventPropagation: (e: any) => any;
+
 // @internal (undocumented)
 export const SVG_PADDING = 32;
 
@@ -2098,6 +1977,99 @@ export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
 
 // @public
 export const TAB_ID: string;
+
+// @public (undocumented)
+export class TestEditor extends Editor {
+    constructor(options?: Partial<Omit<TLEditorOptions, 'store'>>);
+    // (undocumented)
+    bounds: {
+        x: number;
+        y: number;
+        top: number;
+        left: number;
+        width: number;
+        height: number;
+        bottom: number;
+        right: number;
+    };
+    // (undocumented)
+    click: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
+    // (undocumented)
+    clipboard: null | TLContent;
+    // (undocumented)
+    copy: (ids?: TLShapeId[]) => this;
+    // (undocumented)
+    static CreateShapeId(id?: string): TLShapeId;
+    // (undocumented)
+    createShapesFromJsx(shapesJsx: JSX.Element | JSX.Element[]): Record<string, TLShapeId>;
+    // (undocumented)
+    cut: (ids?: TLShapeId[]) => this;
+    // (undocumented)
+    doubleClick: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
+    // (undocumented)
+    elm: HTMLDivElement;
+    // (undocumented)
+    expectCameraToBe(x: number, y: number, z: number): void;
+    // (undocumented)
+    expectPathToBe: (path: string) => this;
+    // (undocumented)
+    expectShapeToMatch: (...model: RequiredKeys<TLShapePartial, 'id'>[]) => this;
+    // (undocumented)
+    expectToBeIn: (path: string) => this;
+    // (undocumented)
+    protected getInfo: <T extends TLEventInfo>(info: string | T) => T;
+    // (undocumented)
+    protected getKeyboardEventInfo: (key: string, name: TLKeyboardEventInfo['name'], options?: Partial<TLKeyboardEventInfo>) => TLKeyboardEventInfo;
+    // (undocumented)
+    protected getPointerEventInfo: (x?: number, y?: number, options?: Partial<TLPointerEventInfo> | TLShapeId, modifiers?: EventModifiers) => TLPointerEventInfo;
+    // (undocumented)
+    keyDown: (key: string, options?: Partial<TLKeyboardEventInfo>) => this;
+    // (undocumented)
+    keyRepeat: (key: string, options?: Partial<TLKeyboardEventInfo>) => this;
+    // (undocumented)
+    keyUp: (key: string, options?: Partial<Omit<TLKeyboardEventInfo, "key">>) => this;
+    // (undocumented)
+    paste: (point?: VecLike) => this;
+    // (undocumented)
+    pinchEnd: (x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, "delta" | "offset" | "point">>) => this;
+    // (undocumented)
+    pinchStart: (x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, "delta" | "offset" | "point">>) => this;
+    // (undocumented)
+    pinchTo: (x: number | undefined, y: number | undefined, z: number, dx: number, dy: number, dz: number, options?: Partial<Omit<TLPinchEventInfo, "delta" | "offset" | "point">>) => this;
+    // (undocumented)
+    pointerDown: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
+    // (undocumented)
+    pointerEnter: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
+    // (undocumented)
+    pointerLeave: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
+    // (undocumented)
+    pointerMove: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
+    // (undocumented)
+    pointerUp: (x?: number, y?: number, options?: PointerEventInit_2, modifiers?: EventModifiers) => this;
+    // (undocumented)
+    resizeSelection({ scaleX, scaleY }: {
+        scaleX?: number | undefined;
+        scaleY?: number | undefined;
+    }, handle: SelectionHandle, options?: Partial<TLPointerEventInfo>): this;
+    // (undocumented)
+    rotateSelection(angleRadians: number, { handle, shiftKey, }?: {
+        handle?: RotateCorner;
+        shiftKey?: boolean;
+    }): this;
+    // (undocumented)
+    setScreenBounds(bounds: Box2dModel, center?: boolean): this;
+    // (undocumented)
+    testPageID(id: string): TLPageId;
+    // (undocumented)
+    testShapeID(id: string): TLShapeId;
+    _transformPointerDownSpy: jest.SpyInstance<TLClickEventInfo | TLPointerEventInfo, [info: TLPointerEventInfo]>;
+    // (undocumented)
+    _transformPointerUpSpy: jest.SpyInstance<TLClickEventInfo | TLPointerEventInfo, [info: TLPointerEventInfo]>;
+    // (undocumented)
+    translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>): this;
+    // (undocumented)
+    wheel: (dx: number, dy: number, options?: Partial<Omit<TLWheelEventInfo, "delta">>) => this;
+}
 
 // @public (undocumented)
 export const TextShape: TLShapeInfo<TLTextShape>;
@@ -2707,6 +2679,14 @@ export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
     migrations?: Migrations;
     tool?: TLStateNodeConstructor;
 };
+
+// @public (undocumented)
+export interface TLShapeUtilCanvasSvgDef {
+    // (undocumented)
+    component: React.ComponentType;
+    // (undocumented)
+    key: string;
+}
 
 // @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {

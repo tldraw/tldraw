@@ -48,7 +48,9 @@
 		"@tldraw/polyfills": "workspace:*",
 		"@tldraw/primitives": "workspace:*",
 		"@tldraw/store": "workspace:*",
-		"@tldraw/ui": "workspace:*"
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/ui": "workspace:*",
+		"classnames": "^2.3.2"
 	},
 	"peerDependencies": {
 		"react": "^18",
@@ -58,6 +60,7 @@
 		"@peculiar/webcrypto": "^1.4.0",
 		"@testing-library/jest-dom": "^5.14.1",
 		"@testing-library/react": "^14.0.0",
+		"@types/classnames": "^2.3.1",
 		"chokidar-cli": "^3.0.0",
 		"jest-canvas-mock": "^2.4.0",
 		"jest-environment-jsdom": "^28.1.2",

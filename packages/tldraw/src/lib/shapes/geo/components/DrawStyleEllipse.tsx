@@ -1,21 +1,26 @@
 import {
+	TLDefaultColorTheme,
+	TLGeoShape,
+	TLShapeId,
+	getSvgPathFromStroke,
+	getSvgPathFromStrokePoints,
+	rng,
+} from '@tldraw/editor'
+import {
 	EASINGS,
+	PI2,
+	TAU,
+	Vec2d,
 	getStrokeOutlinePoints,
 	getStrokePoints,
 	perimeterOfEllipse,
-	PI2,
 	setStrokePointRadii,
-	TAU,
-	Vec2d,
 } from '@tldraw/primitives'
-import { TLDefaultColorTheme, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
-import { rng } from '@tldraw/utils'
 import * as React from 'react'
-import { getSvgPathFromStroke, getSvgPathFromStrokePoints } from '../../../../utils/svg'
 import {
+	ShapeFill,
 	getShapeFillSvg,
 	getSvgWithShapeFill,
-	ShapeFill,
 	useDefaultColorTheme,
 } from '../../shared/ShapeFill'
 

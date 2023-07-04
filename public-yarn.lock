@@ -4388,8 +4388,11 @@ __metadata:
     "@tldraw/polyfills": "workspace:*"
     "@tldraw/primitives": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/tlschema": "workspace:*"
     "@tldraw/ui": "workspace:*"
+    "@types/classnames": ^2.3.1
     chokidar-cli: ^3.0.0
+    classnames: ^2.3.2
     jest-canvas-mock: ^2.4.0
     jest-environment-jsdom: ^28.1.2
     lazyrepo: 0.0.0-alpha.27
@@ -4643,6 +4646,15 @@ __metadata:
   version: 1.2.0
   resolution: "@types/canvas-size@npm:1.2.0"
   checksum: 6108ff83df5a77b07417979ff26bd276a18a1ef492ed03279461661e1bb79d288fb0deedfb5aed491317bcd49da12bdb004e9bc4393e6723f2af65554e2cc1d1
+  languageName: node
+  linkType: hard
+
+"@types/classnames@npm:^2.3.1":
+  version: 2.3.1
+  resolution: "@types/classnames@npm:2.3.1"
+  dependencies:
+    classnames: "*"
+  checksum: 09a17ea08fcb83380921efdfdac94cfa162f87025cae0bf6f4ba508c2fa5f436459ce7612905a3f968fdddb68c03b8e6ff08e762ed2d0c110c5c4fceb244dc55
   languageName: node
   linkType: hard
 
@@ -6816,7 +6828,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"classnames@npm:^2.3.2":
+"classnames@npm:*, classnames@npm:^2.3.2":
   version: 2.3.2
   resolution: "classnames@npm:2.3.2"
   checksum: 2c62199789618d95545c872787137262e741f9db13328e216b093eea91c85ef2bfb152c1f9e63027204e2559a006a92eb74147d46c800a9f96297ae1d9f96f4e

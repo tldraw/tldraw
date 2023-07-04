@@ -1,4 +1,4 @@
-import { TLDefaultColorTheme, TLGeoShape } from '@tldraw/tlschema'
+import { TLDefaultColorTheme, TLGeoShape } from '@tldraw/editor'
 import * as React from 'react'
 import {
 	ShapeFill,

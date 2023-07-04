@@ -1,5 +1,4 @@
-import { geoShapeMigrations, geoShapeProps } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/defineShape'
+import { defineShape, geoShapeMigrations, geoShapeProps } from '@tldraw/editor'
 import { GeoShapeTool } from './GeoShapeTool'
 import { GeoShapeUtil } from './GeoShapeUtil'
 

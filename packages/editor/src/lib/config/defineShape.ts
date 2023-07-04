@@ -13,6 +13,7 @@ export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
 	tool?: TLStateNodeConstructor
 }
 
+/** @public */
 export type AnyTLShapeInfo = TLShapeInfo<TLBaseShape<any, any>>
 
 /** @public */

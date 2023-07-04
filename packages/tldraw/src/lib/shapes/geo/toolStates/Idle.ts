@@ -1,19 +1,17 @@
-import { TLGeoShape } from '@tldraw/tlschema'
-import { StateNode } from '../../../tools/StateNode'
-import { TLEventHandlers } from '../../../types/event-types'
+import { StateNode, TLEventHandlers, TLGeoShape } from '@tldraw/editor'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		this.parent.transition('pointing', info)
 	}
 
-	onEnter = () => {
+	override onEnter = () => {
 		this.editor.setCursor({ type: 'cross' })
 	}
 
-	onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		if (info.key === 'Enter') {
 			const shape = this.editor.onlySelectedShape
 			if (shape && this.editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
@@ -29,7 +27,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onCancel = () => {
+	override onCancel = () => {
 		this.editor.setSelectedTool('select')
 	}
 }

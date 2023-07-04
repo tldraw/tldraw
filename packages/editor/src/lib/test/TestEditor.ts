@@ -31,13 +31,15 @@ import { shapesFromJsx } from './jsx'
 
 jest.useFakeTimers()
 
-Object.assign(navigator, {
-	clipboard: {
-		write: () => {
-			//noop
+if (typeof navigator !== 'undefined') {
+	Object.assign(navigator, {
+		clipboard: {
+			write: () => {
+				//noop
+			},
 		},
-	},
-})
+	})
+}
 
 // @ts-expect-error
 window.ClipboardItem = class {}
@@ -52,6 +54,7 @@ declare global {
 	}
 }
 
+/** @public */
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')

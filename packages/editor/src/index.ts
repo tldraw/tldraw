@@ -17,7 +17,7 @@ export {
 export { defineMigrations } from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/tlschema'
-export { getHashForString } from '@tldraw/utils'
+export { getHashForString, rng } from '@tldraw/utils'
 export {
 	ErrorScreen,
 	LoadingScreen,
@@ -115,6 +115,7 @@ export {
 	type TLOnTranslateStartHandler,
 	type TLResizeInfo,
 	type TLResizeMode,
+	type TLShapeUtilCanvasSvgDef,
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
@@ -128,8 +129,6 @@ export { EmbedShape } from './lib/editor/shapes/embed/EmbedShape'
 export { EmbedShapeUtil } from './lib/editor/shapes/embed/EmbedShapeUtil'
 export { FrameShape } from './lib/editor/shapes/frame/FrameShape'
 export { FrameShapeUtil } from './lib/editor/shapes/frame/FrameShapeUtil'
-export { GeoShape } from './lib/editor/shapes/geo/GeoShape'
-export { GeoShapeUtil } from './lib/editor/shapes/geo/GeoShapeUtil'
 export { GroupShape } from './lib/editor/shapes/group/GroupShape'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export { HighlightShape } from './lib/editor/shapes/highlight/HighlightShape'
@@ -198,6 +197,7 @@ export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useTLStore } from './lib/hooks/useTLStore'
+export { TestEditor } from './lib/test/TestEditor'
 export {
 	ReadonlySharedStyleMap,
 	SharedStyleMap,
@@ -236,6 +236,7 @@ export {
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,
+	stopEventPropagation,
 	truncateStringWithEllipsis,
 	usePrefersReducedMotion,
 } from './lib/utils/dom'
