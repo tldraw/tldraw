@@ -1,20 +1,21 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { toDomPrecision } from '@tldraw/primitives'
-import { useValue } from '@tldraw/state'
+
 import {
+	BaseBoxShapeUtil,
+	HTMLContainer,
 	TLEmbedShape,
 	TLEmbedShapePermissions,
+	TLOnResizeHandler,
+	TLShapeUtilFlag,
 	embedShapePermissionDefaults,
-} from '@tldraw/tlschema'
-import * as React from 'react'
+	getEmbedInfo,
+	getEmbedInfoUnsafely,
+	getRotatedBoxShadow,
+	useIsEditing,
+	useValue,
+} from '@tldraw/editor'
+import { toDomPrecision } from '@tldraw/primitives'
 import { useMemo } from 'react'
-import { DefaultSpinner } from '../../../components/DefaultSpinner'
-import { HTMLContainer } from '../../../components/HTMLContainer'
-import { useIsEditing } from '../../../hooks/useIsEditing'
-import { getRotatedBoxShadow } from '../../../utils/dom'
-import { getEmbedInfo, getEmbedInfoUnsafely } from '../../../utils/embeds'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnResizeHandler, TLShapeUtilFlag } from '../ShapeUtil'
 import { resizeBox } from '../shared/resizeBox'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
@@ -142,11 +143,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 							background: embedInfo?.definition.backgroundColor,
 						}}
 					/>
-				) : (
-					<g transform={`translate(${(w - 38) / 2}, ${(h - 38) / 2})`}>
-						<DefaultSpinner />
-					</g>
-				)}
+				) : null}
 			</HTMLContainer>
 		)
 	}

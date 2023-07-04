@@ -34,10 +34,8 @@
 	},
 	"devDependencies": {
 		"@tldraw/assets": "workspace:*",
-		"@tldraw/editor": "workspace:*",
 		"@tldraw/file-format": "workspace:*",
 		"@tldraw/tldraw": "workspace:*",
-		"@tldraw/ui": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@types/fs-extra": "^11.0.1",
 		"@types/node": "^17.0.14",

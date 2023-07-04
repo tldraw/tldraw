@@ -1,6 +1,6 @@
 import { TLArrowShape, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
-import { TestEditor } from '../../test/TestEditor'
-import { TL } from '../../test/jsx'
+import { TestEditor } from '../TestEditor'
+import { TL } from '../test-jsx'
 
 let editor: TestEditor
 

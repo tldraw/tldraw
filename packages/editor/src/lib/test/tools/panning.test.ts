@@ -1,4 +1,4 @@
-import { TestEditor } from '../TestEditor'
+import { TestEditor } from '../../editor/TestEditor'
 
 jest.useFakeTimers()
 

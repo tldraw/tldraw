@@ -1,4 +1,4 @@
-import { TestEditor } from '../../test/TestEditor'
+import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 

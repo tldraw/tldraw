@@ -1,5 +1,5 @@
 import { ZOOMS } from '../../constants'
-import { TestEditor } from '../TestEditor'
+import { TestEditor } from '../../editor/TestEditor'
 
 let editor: TestEditor
 

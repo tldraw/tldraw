@@ -1,7 +1,7 @@
 import { Box2d, PI } from '@tldraw/primitives'
 import { TLShapeId } from '@tldraw/tlschema'
-import { TestEditor } from '../TestEditor'
-import { TL } from '../jsx'
+import { TestEditor } from '../../editor/TestEditor'
+import { TL } from '../../editor/test-jsx'
 
 let editor: TestEditor
 let ids: Record<string, TLShapeId>

@@ -86,6 +86,7 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export { TestEditor } from './lib/editor/TestEditor'
 export {
 	ExternalContentManager as PlopManager,
 	type TLExternalContent,
@@ -121,8 +122,6 @@ export {
 } from './lib/editor/shapes/ShapeUtil'
 export { ArrowShape } from './lib/editor/shapes/arrow/ArrowShape'
 export { ArrowShapeUtil } from './lib/editor/shapes/arrow/ArrowShapeUtil'
-export { EmbedShape } from './lib/editor/shapes/embed/EmbedShape'
-export { EmbedShapeUtil } from './lib/editor/shapes/embed/EmbedShapeUtil'
 export { FrameShape } from './lib/editor/shapes/frame/FrameShape'
 export { FrameShapeUtil } from './lib/editor/shapes/frame/FrameShapeUtil'
 export { GroupShape } from './lib/editor/shapes/group/GroupShape'
@@ -181,11 +180,11 @@ export { normalizeWheel } from './lib/hooks/shared'
 export { useContainer } from './lib/hooks/useContainer'
 export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useTLStore } from './lib/hooks/useTLStore'
-export { TestEditor } from './lib/test/TestEditor'
 export {
 	ReadonlySharedStyleMap,
 	SharedStyleMap,

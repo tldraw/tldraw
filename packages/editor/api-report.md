@@ -52,7 +52,6 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
-import { TLEmbedShape } from '@tldraw/tlschema';
 import { TLFrameShape } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
@@ -210,7 +209,7 @@ export { computed }
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
-export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLEmbedShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLVideoShape>];
+export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLVideoShape>];
 
 // @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
@@ -659,35 +658,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToContent(): this;
     zoomToFit(opts?: TLAnimationOptions): this;
     zoomToSelection(opts?: TLAnimationOptions): this;
-}
-
-// @public (undocumented)
-export const EmbedShape: TLShapeInfo<TLEmbedShape>;
-
-// @public (undocumented)
-export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
-    // (undocumented)
-    canEdit: TLShapeUtilFlag<TLEmbedShape>;
-    // (undocumented)
-    canResize: (shape: TLEmbedShape) => boolean;
-    // (undocumented)
-    canUnmount: TLShapeUtilFlag<TLEmbedShape>;
-    // (undocumented)
-    component(shape: TLEmbedShape): JSX.Element;
-    // (undocumented)
-    getDefaultProps(): TLEmbedShape['props'];
-    // (undocumented)
-    hideSelectionBoundsBg: TLShapeUtilFlag<TLEmbedShape>;
-    // (undocumented)
-    hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape>;
-    // (undocumented)
-    indicator(shape: TLEmbedShape): JSX.Element;
-    // (undocumented)
-    isAspectRatioLocked: TLShapeUtilFlag<TLEmbedShape>;
-    // (undocumented)
-    onResize: TLOnResizeHandler<TLEmbedShape>;
-    // (undocumented)
-    static type: "embed";
 }
 
 // @public (undocumented)
@@ -2451,6 +2421,9 @@ export function useContainer(): HTMLDivElement;
 
 // @public (undocumented)
 export const useEditor: () => Editor;
+
+// @public (undocumented)
+export function useIsEditing(shapeId: TLShapeId): boolean;
 
 // @internal (undocumented)
 export function useLocalStore({ persistenceKey, sessionId, ...rest }: {

@@ -17,17 +17,17 @@ import {
 import { createTLStore } from '../config/createTLStore'
 import { defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
-import { Editor, TLEditorOptions } from '../editor/Editor'
-import { TLContent } from '../editor/types/clipboard-types'
+import { Editor, TLEditorOptions } from './Editor'
+import { shapesFromJsx } from './test-jsx'
+import { TLContent } from './types/clipboard-types'
 import {
 	TLEventInfo,
 	TLKeyboardEventInfo,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
 	TLWheelEventInfo,
-} from '../editor/types/event-types'
-import { RequiredKeys } from '../editor/types/misc-types'
-import { shapesFromJsx } from './jsx'
+} from './types/event-types'
+import { RequiredKeys } from './types/misc-types'
 
 jest.useFakeTimers()
 

@@ -1,5 +1,5 @@
 import { TLFrameShape, TLGeoShape } from '@tldraw/tlschema'
-import { TestEditor } from '../TestEditor'
+import { TestEditor } from '../../editor/TestEditor'
 
 let editor: TestEditor
 

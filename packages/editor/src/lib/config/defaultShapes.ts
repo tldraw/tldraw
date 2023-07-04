@@ -1,5 +1,4 @@
 import { ArrowShape } from '../editor/shapes/arrow/ArrowShape'
-import { EmbedShape } from '../editor/shapes/embed/EmbedShape'
 import { FrameShape } from '../editor/shapes/frame/FrameShape'
 import { GroupShape } from '../editor/shapes/group/GroupShape'
 import { ImageShape } from '../editor/shapes/image/ImageShape'
@@ -10,8 +9,6 @@ import { AnyTLShapeInfo, TLShapeInfo } from './defineShape'
 export const coreShapes = [
 	// created by grouping interactions, probably the corest core shape that we have
 	GroupShape,
-	// created by embed menu / url drop
-	EmbedShape,
 	// created by copy and paste / file drop
 	ImageShape,
 	VideoShape,

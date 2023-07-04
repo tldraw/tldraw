@@ -1,6 +1,6 @@
 import { getIndexAbove, getIndexBetween } from '@tldraw/indices'
 import { createShapeId } from '@tldraw/tlschema'
-import { TestEditor } from '../../test/TestEditor'
+import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 

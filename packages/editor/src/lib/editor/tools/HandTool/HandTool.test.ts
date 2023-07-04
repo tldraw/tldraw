@@ -1,4 +1,4 @@
-import { createDefaultShapes, TestEditor } from '../../../test/TestEditor'
+import { createDefaultShapes, TestEditor } from '../../TestEditor'
 import { HandTool } from './HandTool'
 
 let editor: TestEditor

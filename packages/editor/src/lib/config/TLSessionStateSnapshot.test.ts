@@ -1,5 +1,5 @@
 import { react } from '@tldraw/state'
-import { TestEditor } from '../test/TestEditor'
+import { TestEditor } from '../editor/TestEditor'
 import {
 	TLSessionStateSnapshot,
 	createSessionStateSnapshotSignal,

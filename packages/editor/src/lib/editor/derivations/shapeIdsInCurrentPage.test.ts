@@ -1,5 +1,5 @@
 import { PageRecordType, createShapeId } from '@tldraw/tlschema'
-import { TestEditor } from '../../test/TestEditor'
+import { TestEditor } from '../TestEditor'
 
 let editor = {} as TestEditor
 

@@ -1,5 +1,4 @@
-import { embedShapeMigrations, embedShapeProps } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/defineShape'
+import { defineShape, embedShapeMigrations, embedShapeProps } from '@tldraw/editor'
 import { EmbedShapeUtil } from './EmbedShapeUtil'
 
 /** @public */

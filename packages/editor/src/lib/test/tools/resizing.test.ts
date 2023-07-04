@@ -9,8 +9,8 @@ import {
 } from '@tldraw/primitives'
 import { createShapeId, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine } from '../../editor/managers/SnapManager'
+import { TestEditor } from '../../editor/TestEditor'
 import { TLSelectionHandle } from '../../editor/types/selection-types'
-import { TestEditor } from '../TestEditor'
 import { getSnapLines } from '../testutils/getSnapLines'
 import { roundedBox } from '../testutils/roundedBox'
 

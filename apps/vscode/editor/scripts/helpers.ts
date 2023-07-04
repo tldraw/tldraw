@@ -3,7 +3,7 @@ import fse from 'fs-extra'
 import { join } from 'path'
 import { exists, getDirname } from './path'
 
-const vscodeDir = getDirname(import.meta.url, '../')
+const vscodeDir = getDirname(import.meta.url, '../../')
 
 export async function copyEditor({ log }: { log: (opts: any) => void }) {
 	const editorRoot = join(vscodeDir, 'editor')
