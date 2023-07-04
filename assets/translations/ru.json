@@ -335,5 +335,7 @@
 	"home-project-dialog.description": "Это ваш локальный домашний проект. Это только для вас!",
 	"rename-project-dialog.title": "Переименовать проект",
 	"rename-project-dialog.cancel": "Отмена",
-	"rename-project-dialog.rename": "Переименовать"
+	"rename-project-dialog.rename": "Переименовать",
+	"home-project-dialog.ok": "Хорошо",
+	"cursor-chat.type-to-chat": "Кликните, чтобы начать общаться..."
 }
