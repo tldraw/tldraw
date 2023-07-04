@@ -1,18 +1,18 @@
-import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
 import {
-	getDefaultColorTheme,
+	BaseBoxShapeUtil,
+	SVGContainer,
 	TLFrameShape,
 	TLGroupShape,
+	TLOnResizeEndHandler,
 	TLShape,
 	TLShapeId,
-} from '@tldraw/tlschema'
+	defaultEmptyAs,
+	getDefaultColorTheme,
+} from '@tldraw/editor'
+import { SelectionEdge, canolicalizeRotation, toDomPrecision } from '@tldraw/primitives'
 import { last } from '@tldraw/utils'
-import { SVGContainer } from '../../../components/SVGContainer'
-import { defaultEmptyAs } from '../../../utils/string'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnResizeEndHandler } from '../ShapeUtil'
-import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
+import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FrameHeading } from './components/FrameHeading'
 
 /** @public */
@@ -176,7 +176,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return { shouldHint: false }
 	}
 
-	onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
+	override onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
 		const parent = this.editor.getShapeById(_shape.parentId)
 		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
 

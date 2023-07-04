@@ -1,4 +1,3 @@
-import { FrameShape } from '../editor/shapes/frame/FrameShape'
 import { GroupShape } from '../editor/shapes/group/GroupShape'
 import { ImageShape } from '../editor/shapes/image/ImageShape'
 import { VideoShape } from '../editor/shapes/video/VideoShape'
@@ -12,9 +11,6 @@ export const coreShapes = [
 	ImageShape,
 	VideoShape,
 ] as const
-
-/** @public */
-export const defaultShapes = [FrameShape] as const
 
 const coreShapeTypes = new Set<string>(coreShapes.map((s) => s.type))
 export function checkShapesAndAddCore(customShapes: readonly TLShapeInfo[]) {

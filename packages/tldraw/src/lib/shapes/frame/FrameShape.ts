@@ -1,5 +1,4 @@
-import { frameShapeMigrations, frameShapeProps } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/defineShape'
+import { defineShape, frameShapeMigrations, frameShapeProps } from '@tldraw/editor'
 import { FrameShapeTool } from './FrameShapeTool'
 import { FrameShapeUtil } from './FrameShapeUtil'
 

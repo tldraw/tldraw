@@ -4,8 +4,21 @@
 
 ```ts
 
+import { TLArrowShape } from '@tldraw/editor';
+import { TLBookmarkShape } from '@tldraw/editor';
 import { TldrawEditorProps } from '@tldraw/editor';
+import { TLDrawShape } from '@tldraw/editor';
 import { TldrawUiProps } from '@tldraw/ui';
+import { TLFrameShape } from '@tldraw/editor';
+import { TLGeoShape } from '@tldraw/editor';
+import { TLHighlightShape } from '@tldraw/editor';
+import { TLLineShape } from '@tldraw/editor';
+import { TLNoteShape } from '@tldraw/editor';
+import { TLShapeInfo } from '@tldraw/editor';
+import { TLTextShape } from '@tldraw/editor';
+
+// @public (undocumented)
+export const defaultShapes: readonly [TLShapeInfo<TLTextShape>, TLShapeInfo<TLBookmarkShape>, TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>];
 
 // @public (undocumented)
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps): JSX.Element;

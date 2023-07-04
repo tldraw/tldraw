@@ -52,7 +52,6 @@ import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
-import { TLFrameShape } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
@@ -200,9 +199,6 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 
 // @internal (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
-
-// @public (undocumented)
-export const defaultShapes: readonly [TLShapeInfo<TLFrameShape>];
 
 // @public (undocumented)
 export const defaultTools: TLStateNodeConstructor[];
@@ -630,41 +626,6 @@ export const featureFlags: {
 
 // @public
 export function fileToBase64(file: Blob): Promise<string>;
-
-// @public (undocumented)
-export const FrameShape: TLShapeInfo<TLFrameShape>;
-
-// @public (undocumented)
-export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
-    // (undocumented)
-    canBind: () => boolean;
-    // (undocumented)
-    canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean;
-    // (undocumented)
-    canEdit: () => boolean;
-    // (undocumented)
-    canReceiveNewChildrenOfType: (shape: TLShape, _type: TLShape['type']) => boolean;
-    // (undocumented)
-    component(shape: TLFrameShape): JSX.Element;
-    // (undocumented)
-    getDefaultProps(): TLFrameShape['props'];
-    // (undocumented)
-    indicator(shape: TLFrameShape): JSX.Element;
-    // (undocumented)
-    onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void;
-    // (undocumented)
-    onDragShapesOver: (frame: TLFrameShape, shapes: TLShape[]) => {
-        shouldHint: boolean;
-    };
-    // (undocumented)
-    onResizeEnd: TLOnResizeEndHandler<TLFrameShape>;
-    // (undocumented)
-    providesBackgroundForChildren(): boolean;
-    // (undocumented)
-    toSvg(shape: TLFrameShape): Promise<SVGElement> | SVGElement;
-    // (undocumented)
-    static type: "frame";
-}
 
 // @public (undocumented)
 export function getArrowheadPathForType(info: ArrowInfo, side: 'end' | 'start', strokeWidth: number): string | undefined;

@@ -1,8 +1,6 @@
-import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
-import { TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId, useEditor, useIsEditing } from '@tldraw/editor'
+import { SelectionEdge, canolicalizeRotation, toDomPrecision } from '@tldraw/primitives'
 import { useEffect, useRef } from 'react'
-import { useEditor } from '../../../../hooks/useEditor'
-import { useIsEditing } from '../../../../hooks/useIsEditing'
 import { FrameLabelInput } from './FrameLabelInput'
 
 export const FrameHeading = function FrameHeading({

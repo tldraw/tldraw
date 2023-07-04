@@ -59,7 +59,7 @@ export {
 	type TLStoreOptions,
 } from './lib/config/createTLStore'
 export { createTLUser } from './lib/config/createTLUser'
-export { coreShapes, defaultShapes } from './lib/config/defaultShapes'
+export { coreShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
 export { defineShape, type TLShapeInfo } from './lib/config/defineShape'
 export {
@@ -120,8 +120,6 @@ export {
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
-export { FrameShape } from './lib/editor/shapes/frame/FrameShape'
-export { FrameShapeUtil } from './lib/editor/shapes/frame/FrameShapeUtil'
 export { GroupShape } from './lib/editor/shapes/group/GroupShape'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
 export { ImageShape } from './lib/editor/shapes/image/ImageShape'

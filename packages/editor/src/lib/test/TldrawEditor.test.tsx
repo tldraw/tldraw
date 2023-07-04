@@ -5,7 +5,6 @@ import { TldrawEditor } from '../TldrawEditor'
 import { Canvas } from '../components/Canvas'
 import { HTMLContainer } from '../components/HTMLContainer'
 import { createTLStore } from '../config/createTLStore'
-import { defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
 import { defineShape } from '../config/defineShape'
 import { Editor } from '../editor/Editor'
@@ -65,7 +64,7 @@ describe('<TldrawEditor />', () => {
 		let editor: Editor
 		render(
 			<TldrawEditor
-				shapes={defaultShapes}
+				shapes={[]}
 				onMount={(e) => {
 					editor = e
 				}}
@@ -115,7 +114,7 @@ describe('<TldrawEditor />', () => {
 		expect(() =>
 			render(
 				<TldrawEditor
-					shapes={defaultShapes}
+					shapes={[]}
 					store={createTLStore({ shapes: [] })}
 					autoFocus
 					components={{
@@ -134,7 +133,7 @@ describe('<TldrawEditor />', () => {
 		expect(() =>
 			render(
 				<TldrawEditor
-					store={createTLStore({ shapes: defaultShapes })}
+					store={createTLStore({ shapes: [] })}
 					autoFocus
 					components={{
 						ErrorFallback: ({ error }) => {
@@ -189,7 +188,7 @@ describe('<TldrawEditor />', () => {
 		let editor = {} as Editor
 		render(
 			<TldrawEditor
-				shapes={defaultShapes}
+				shapes={[]}
 				tools={defaultTools}
 				autoFocus
 				onMount={(editorApp) => {

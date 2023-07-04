@@ -15,7 +15,6 @@ import {
 	createShapeId,
 } from '@tldraw/tlschema'
 import { createTLStore } from '../config/createTLStore'
-import { defaultShapes } from '../config/defaultShapes'
 import { defaultTools } from '../config/defaultTools'
 import { Editor, TLEditorOptions } from '../editor/Editor'
 import { TLContent } from '../editor/types/clipboard-types'
@@ -58,7 +57,7 @@ declare global {
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')
-		const { shapes = defaultShapes, tools = [] } = options
+		const { shapes = [], tools = [] } = options
 		elm.tabIndex = 0
 		super({
 			shapes,
