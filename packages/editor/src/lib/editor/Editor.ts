@@ -253,10 +253,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 			this.isIos = !!navigator.userAgent.match(/iPad/i) || !!navigator.userAgent.match(/iPhone/i)
 			this.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
+			this.isFirefox = /firefox/i.test(navigator.userAgent)
+			this.isAndroid = /android/i.test(navigator.userAgent)
 		} else {
 			this.isSafari = false
 			this.isIos = false
 			this.isChromeForIos = false
+			this.isFirefox = false
+			this.isAndroid = false
 		}
 
 		this.store.onBeforeDelete = (record) => {
@@ -423,6 +427,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly isChromeForIos: boolean
+
+	/**
+	 * Whether the editor is running on Firefox.
+	 *
+	 * @public
+	 */
+	readonly isFirefox: boolean
+
+	/**
+	 * Whether the editor is running on Android.
+	 *
+	 * @public
+	 */
+	readonly isAndroid: boolean
 
 	/**
 	 * The current HTML element containing the editor.
