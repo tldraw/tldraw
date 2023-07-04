@@ -1,8 +1,6 @@
 import { pointInPolygon } from '@tldraw/primitives'
-import { TLScribble, TLShapeId } from '@tldraw/tlschema'
+import { TLFrameShape, TLGroupShape, TLScribble, TLShapeId } from '@tldraw/tlschema'
 import { ScribbleManager } from '../../../managers/ScribbleManager'
-import { FrameShapeUtil } from '../../../shapes/frame/FrameShapeUtil'
-import { GroupShapeUtil } from '../../../shapes/group/GroupShapeUtil'
 import { TLEventHandlers, TLPointerEventInfo } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
 
@@ -24,8 +22,8 @@ export class Erasing extends StateNode {
 				.filter(
 					(shape) =>
 						this.editor.isShapeOrAncestorLocked(shape) ||
-						((this.editor.isShapeOfType(shape, GroupShapeUtil) ||
-							this.editor.isShapeOfType(shape, FrameShapeUtil)) &&
+						((this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+							this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) &&
 							this.editor.isPointInShape(originPagePoint, shape))
 				)
 				.map((shape) => shape.id)
@@ -98,7 +96,7 @@ export class Erasing extends StateNode {
 		const erasing = new Set<TLShapeId>(erasingIdsSet)
 
 		for (const shape of shapesArray) {
-			if (this.editor.isShapeOfType(shape, GroupShapeUtil)) continue
+			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
 			const pageMask = this.editor.getPageMaskById(shape.id)

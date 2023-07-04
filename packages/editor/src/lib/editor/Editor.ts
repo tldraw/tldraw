@@ -123,13 +123,10 @@ import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
-import { ArrowShapeUtil } from './shapes/arrow/ArrowShapeUtil'
 import { ArrowInfo } from './shapes/arrow/arrow/arrow-types'
 import { getCurvedArrowInfo } from './shapes/arrow/arrow/curved-arrow'
 import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/arrow/arrow/shared'
 import { getStraightArrowInfo } from './shapes/arrow/arrow/straight-arrow'
-import { FrameShapeUtil } from './shapes/frame/FrameShapeUtil'
-import { GroupShapeUtil } from './shapes/group/GroupShapeUtil'
 import { SvgExportContext, SvgExportDef } from './shapes/shared/SvgExportContext'
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
@@ -285,7 +282,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._updateDepth--
 		}
 		this.store.onAfterCreate = (record) => {
-			if (record.typeName === 'shape' && this.isShapeOfType(record, ArrowShapeUtil)) {
+			if (record.typeName === 'shape' && this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
 				this._arrowDidUpdate(record)
 			}
 			if (record.typeName === 'page') {
@@ -820,7 +817,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _shapeDidChange(prev: TLShape, next: TLShape) {
-		if (this.isShapeOfType(next, ArrowShapeUtil)) {
+		if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
 			this._arrowDidUpdate(next)
 		}
 
@@ -883,7 +880,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				filtered.length === 0
 					? next?.focusLayerId
 					: this.findCommonAncestor(compact(filtered.map((id) => this.getShapeById(id))), (shape) =>
-							this.isShapeOfType(shape, GroupShapeUtil)
+							this.isShapeOfType<TLGroupShape>(shape, 'group')
 					  )
 
 			if (filtered.length !== next.selectedIds.length || nextFocusLayerId != next.focusLayerId) {
@@ -2157,7 +2154,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (focusedShape) {
 			// If we have a focused layer, look for an ancestor of the focused shape that is a group
 			const match = this.findAncestor(focusedShape, (shape) =>
-				this.isShapeOfType(shape, GroupShapeUtil)
+				this.isShapeOfType<TLGroupShape>(shape, 'group')
 			)
 			// If we have an ancestor that can become a focused layer, set it as the focused layer
 			this.setFocusLayer(match?.id ?? null)
@@ -4716,7 +4713,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			const frameAncestors = this.getAncestorsById(shape.id).filter((shape) =>
-				this.isShapeOfType(shape, FrameShapeUtil)
+				this.isShapeOfType<TLFrameShape>(shape, 'frame')
 			)
 
 			if (frameAncestors.length === 0) return undefined
@@ -5204,7 +5201,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const isArrowShape = isShapeOfType(someShape, ArrowShapeUtil)
+	 * const isArrowShape = isShapeOfType<TLArrowShape>(someShape, 'arrow')
 	 * ```
 	 *
 	 * @param util - the TLShapeUtil constructor to test against
@@ -5212,11 +5209,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeOfType<T extends TLUnknownShape>(
-		shape: TLUnknownShape,
-		util: { new (...args: any): ShapeUtil<T>; type: string }
-	): shape is T {
-		return shape.type === util.type
+	isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T {
+		return shape.type === type
 	}
 
 	/**
@@ -5596,7 +5590,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let node = shape as TLShape | undefined
 		while (node) {
 			if (
-				this.isShapeOfType(node, GroupShapeUtil) &&
+				this.isShapeOfType<TLGroupShape>(node, 'group') &&
 				this.focusLayerId !== node.id &&
 				!this.hasAncestor(this.focusLayerShape, node.id) &&
 				(filter?.(node) ?? true)
@@ -5762,8 +5756,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				let newShape: TLShape = deepCopy(shape)
 
 				if (
-					this.isShapeOfType(shape, ArrowShapeUtil) &&
-					this.isShapeOfType(newShape, ArrowShapeUtil)
+					this.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
+					this.isShapeOfType<TLArrowShape>(newShape, 'arrow')
 				) {
 					const info = this.getArrowInfo(shape)
 					let newStartShapeId: TLShapeId | undefined = undefined
@@ -6254,7 +6248,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		shapes = compact(
 			shapes
 				.map((shape) => {
-					if (this.isShapeOfType(shape, GroupShapeUtil)) {
+					if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
 						return this.getSortedChildIds(shape.id).map((id) => this.getShapeById(id))
 					}
 
@@ -6314,7 +6308,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapes = compact(ids.map((id) => this.getShapeById(id))).filter((shape) => {
 			if (!shape) return false
 
-			if (this.isShapeOfType(shape, ArrowShapeUtil)) {
+			if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
 				if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
 					return false
 				}
@@ -6445,7 +6439,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				.filter((shape) => {
 					if (!shape) return false
 
-					if (this.isShapeOfType(shape, ArrowShapeUtil)) {
+					if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
 						if (shape.props.start.type === 'binding' || shape.props.end.type === 'binding') {
 							return false
 						}
@@ -7489,7 +7483,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const groups: TLGroupShape[] = []
 
 		shapes.forEach((shape) => {
-			if (this.isShapeOfType(shape, GroupShapeUtil)) {
+			if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
 				groups.push(shape)
 			} else {
 				idsToSelect.add(shape.id)
@@ -7738,7 +7732,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private _extractSharedStyles(shape: TLShape, sharedStyleMap: SharedStyleMap) {
-		if (this.isShapeOfType(shape, GroupShapeUtil)) {
+		if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
 			// For groups, ignore the styles of the group shape and instead include the styles of the
 			// group's children. These are the shapes that would have their styles changed if the
 			// user called `setStyle` on the current selection.
@@ -7843,7 +7837,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// For groups, ignore the opacity of the group shape and instead include
 				// the opacity of the group's children. These are the shapes that would have
 				// their opacity changed if the user called `setOpacity` on the current selection.
-				if (this.isShapeOfType(shape, GroupShapeUtil)) {
+				if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
 					for (const childId of this.getSortedChildIds(shape.id)) {
 						addShape(childId)
 					}
@@ -7897,7 +7891,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const addShapeById = (id: TLShape['id']) => {
 					const shape = this.getShapeById(id)
 					if (!shape) return
-					if (this.isShapeOfType(shape, GroupShapeUtil)) {
+					if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
 						const childIds = this.getSortedChildIds(id)
 						for (const childId of childIds) {
 							addShapeById(childId)
@@ -7969,7 +7963,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const addShapeById = (id: TLShape['id']) => {
 						const shape = this.getShapeById(id)
 						if (!shape) return
-						if (this.isShapeOfType(shape, GroupShapeUtil)) {
+						if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
 							const childIds = this.getSortedChildIds(id)
 							for (const childId of childIds) {
 								addShapeById(childId)
@@ -8053,7 +8047,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			shape = structuredClone(shape) as typeof shape
 
-			if (this.isShapeOfType(shape, ArrowShapeUtil)) {
+			if (this.isShapeOfType<TLArrowShape>(shape, 'arrow')) {
 				const startBindingId =
 					shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : undefined
 
@@ -8204,7 +8198,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		for (const shape of this.selectedShapes) {
 			if (lowestDepth === 0) break
 
-			const isFrame = this.isShapeOfType(shape, FrameShapeUtil)
+			const isFrame = this.isShapeOfType<TLFrameShape>(shape, 'frame')
 			const ancestors = this.getAncestors(shape)
 			if (isFrame) ancestors.push(shape)
 
@@ -8243,8 +8237,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (rootShapeIds.length === 1) {
 						const rootShape = shapes.find((s) => s.id === rootShapeIds[0])!
 						if (
-							this.isShapeOfType(parent, FrameShapeUtil) &&
-							this.isShapeOfType(rootShape, FrameShapeUtil) &&
+							this.isShapeOfType<TLFrameShape>(parent, 'frame') &&
+							this.isShapeOfType<TLFrameShape>(rootShape, 'frame') &&
 							rootShape.props.w === parent?.props.w &&
 							rootShape.props.h === parent?.props.h
 						) {
@@ -8300,7 +8294,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				index = getIndexAbove(index)
 			}
 
-			if (this.isShapeOfType(newShape, ArrowShapeUtil)) {
+			if (this.isShapeOfType<TLArrowShape>(newShape, 'arrow')) {
 				if (newShape.props.start.type === 'binding') {
 					const mappedId = idMap.get(newShape.props.start.boundShapeId)
 					newShape.props.start = mappedId
@@ -8451,11 +8445,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (rootShapes.length === 1) {
 				const onlyRoot = rootShapes[0] as TLFrameShape
 				// If the old bounds are in the viewport...
-				if (this.isShapeOfType(onlyRoot, FrameShapeUtil)) {
+				if (this.isShapeOfType<TLFrameShape>(onlyRoot, 'frame')) {
 					while (
 						this.getShapesAtPoint(point).some(
 							(shape) =>
-								this.isShapeOfType(shape, FrameShapeUtil) &&
+								this.isShapeOfType<TLFrameShape>(shape, 'frame') &&
 								shape.props.w === onlyRoot.props.w &&
 								shape.props.h === onlyRoot.props.h
 						)
@@ -8568,7 +8562,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!bbox) return
 
 		const singleFrameShapeId =
-			ids.length === 1 && this.isShapeOfType(this.getShapeById(ids[0])!, FrameShapeUtil)
+			ids.length === 1 && this.isShapeOfType<TLFrameShape>(this.getShapeById(ids[0])!, 'frame')
 				? ids[0]
 				: null
 		if (!singleFrameShapeId) {
@@ -8644,7 +8638,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					const shape = this.getShapeById(id)!
 
-					if (this.isShapeOfType(shape, GroupShapeUtil)) return []
+					if (this.isShapeOfType<TLGroupShape>(shape, 'group')) return []
 
 					const util = this.getShapeUtil(shape)
 

@@ -1,12 +1,11 @@
 import {
-	FrameShapeUtil,
 	TLExportType,
-	TLShapeId,
 	downloadDataURLAsFile,
 	getSvgAsDataUrl,
 	getSvgAsImage,
 	useEditor,
 } from '@tldraw/editor'
+import { TLFrameShape, TLShapeId } from '@tldraw/tlschema'
 import { useCallback } from 'react'
 import { useToasts } from './useToastsProvider'
 import { useTranslation } from './useTranslation/useTranslation'
@@ -38,7 +37,7 @@ export function useExportAs() {
 
 			if (ids.length === 1) {
 				const first = editor.getShapeById(ids[0])!
-				if (editor.isShapeOfType(first, FrameShapeUtil)) {
+				if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
 					name = first.props.name ?? 'frame'
 				} else {
 					name = first.id.replace(/:/, '_')
