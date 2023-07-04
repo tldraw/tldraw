@@ -134,7 +134,7 @@ You shouldn't need to use the `dispatch` method directly, however you may write 
 
 The `Editor` class has a "state chart", or a tree of `StateNode` instances, that contain the logic for the editor's tools such as the select tool or the draw tool. User interactions such as moving the cursor will produce different changes to the state depending on which nodes are active.
 
-Each node be active or inactive. Each state node may also have zero or more children. When a state is active, and if the state has children, one (and only one) of its children must also be active. When a state node receives an event from its parent, it has the opportunity to handle the event before passing the event to its active child. The node can handle an event in any way: it can ignore the event, update records in the store, or run a _transition_ that changes which states nodes are active.
+Each node can be active or inactive. Each state node may also have zero or more children. When a state is active, and if the state has children, one (and only one) of its children must also be active. When a state node receives an event from its parent, it has the opportunity to handle the event before passing the event to its active child. The node can handle an event in any way: it can ignore the event, update records in the store, or run a _transition_ that changes which states nodes are active.
 
 When a user interaction is sent to the editor via its `dispatch` method, this event is sent to the editor's root state node (`editor.root`) and passed then down through the chart's active states until either it reaches a leaf node or until one of those nodes produces a transaction.
 
