@@ -222,7 +222,7 @@ export const TldrawUi: React_2.NamedExoticComponent<{
 // @public (undocumented)
 export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, children, }: TldrawUiContextProviderProps): JSX.Element;
 
-// @public (undocumented)
+// @public
 export interface TldrawUiContextProviderProps {
     // (undocumented)
     assetUrls?: RecursivePartial<TLUiAssetUrls>;
@@ -234,7 +234,7 @@ export interface TldrawUiContextProviderProps {
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
 
-// @public (undocumented)
+// @public
 export type TldrawUiProps = {
     children?: ReactNode;
     hideUi?: boolean;
