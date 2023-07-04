@@ -126,7 +126,7 @@ editor.bailToMark("first") // will to A
 
 ## Events and Tools
 
-The `Editor` class receives events from the user interface via its `dispatch` method. When the `Editor` receives an event, it is first handled internally to update `editor.inputs` and other state before, and then sent into to the editor's state chart.
+The `Editor` class receives events from via its `dispatch` method. When the `Editor` receives an event, it is first handled internally to update `editor.inputs` and other state before, and then sent into to the editor's state chart.
 
 You shouldn't need to use the `dispatch` method directly, however you may write code in the state chart that responds to these events.
 
