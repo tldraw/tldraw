@@ -1,4 +1,4 @@
-import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
+import { canonicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
 import { getDefaultColorTheme, TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
 import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
@@ -64,7 +64,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		g.appendChild(rect)
 
 		// Text label
-		const pageRotation = canolicalizeRotation(this.editor.getPageRotationById(shape.id))
+		const pageRotation = canonicalizeRotation(this.editor.getPageRotationById(shape.id))
 		// rotate right 45 deg
 		const offsetRotation = pageRotation + Math.PI / 4
 		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4

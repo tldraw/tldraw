@@ -55,6 +55,7 @@ export const STYLES = {
 	geo: [
 		{ value: 'rectangle', icon: 'geo-rectangle' },
 		{ value: 'ellipse', icon: 'geo-ellipse' },
+		{ value: 'cloud', icon: 'geo-cloud' },
 		{ value: 'triangle', icon: 'geo-triangle' },
 		{ value: 'diamond', icon: 'geo-diamond' },
 		{ value: 'pentagon', icon: 'geo-pentagon' },

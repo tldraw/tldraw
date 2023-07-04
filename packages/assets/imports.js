@@ -101,6 +101,7 @@ import iconsGeoArrowLeft from './icons/icon/geo-arrow-left.svg'
 import iconsGeoArrowRight from './icons/icon/geo-arrow-right.svg'
 import iconsGeoArrowUp from './icons/icon/geo-arrow-up.svg'
 import iconsGeoCheckBox from './icons/icon/geo-check-box.svg'
+import iconsGeoCloud from './icons/icon/geo-cloud.svg'
 import iconsGeoDiamond from './icons/icon/geo-diamond.svg'
 import iconsGeoEllipse from './icons/icon/geo-ellipse.svg'
 import iconsGeoHexagon from './icons/icon/geo-hexagon.svg'
@@ -311,6 +312,7 @@ export function getAssetUrlsByImport(opts) {
 			'geo-arrow-right': formatAssetUrl(iconsGeoArrowRight, opts),
 			'geo-arrow-up': formatAssetUrl(iconsGeoArrowUp, opts),
 			'geo-check-box': formatAssetUrl(iconsGeoCheckBox, opts),
+			'geo-cloud': formatAssetUrl(iconsGeoCloud, opts),
 			'geo-diamond': formatAssetUrl(iconsGeoDiamond, opts),
 			'geo-ellipse': formatAssetUrl(iconsGeoEllipse, opts),
 			'geo-hexagon': formatAssetUrl(iconsGeoHexagon, opts),

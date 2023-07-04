@@ -145,6 +145,7 @@ export const DEFAULT_TRANSLATION = {
 	'geo-style.hexagon': 'Hexagon',
 	'geo-style.octagon': 'Octagon',
 	'geo-style.oval': 'Oval',
+	'geo-style.cloud': 'Cloud',
 	'geo-style.pentagon': 'Pentagon',
 	'geo-style.rectangle': 'Rectangle',
 	'geo-style.rhombus-2': 'Rhombus 2',
