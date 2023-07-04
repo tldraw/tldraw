@@ -39,14 +39,14 @@ import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
 import { useForceSolid } from '../shared/useForceSolid'
 import { cloudOutline, cloudSvgPath } from './cloudOutline'
-import { DashStyleCloud } from './components/DashStyleCloud'
+import { DashStyleCloud, DashStyleCloudSvg } from './components/DashStyleCloud'
 import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
 import { DashStyleOval, DashStyleOvalSvg } from './components/DashStyleOval'
 import { DashStylePolygon, DashStylePolygonSvg } from './components/DashStylePolygon'
-import { DrawStyleCloud } from './components/DrawStyleCloud'
+import { DrawStyleCloud, DrawStyleCloudSvg } from './components/DrawStyleCloud'
 import { DrawStyleEllipseSvg, getEllipseIndicatorPath } from './components/DrawStyleEllipse'
 import { DrawStylePolygon, DrawStylePolygonSvg } from './components/DrawStylePolygon'
-import { SolidStyleCloud } from './components/SolidStyleCloud'
+import { SolidStyleCloud, SolidStyleCloudSvg } from './components/SolidStyleCloud'
 import { SolidStyleEllipse, SolidStyleEllipseSvg } from './components/SolidStyleEllipse'
 import {
 	getOvalIndicatorPath,
@@ -650,6 +650,50 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							color: props.color,
 							fill: props.fill,
 							theme,
+						})
+				}
+				break
+			}
+
+			case 'cloud': {
+				switch (props.dash) {
+					case 'draw':
+						svgElm = DrawStyleCloudSvg({
+							id,
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							color: props.color,
+							fill: props.fill,
+							size: props.size,
+							theme,
+						})
+						break
+
+					case 'solid':
+						svgElm = SolidStyleCloudSvg({
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							color: props.color,
+							fill: props.fill,
+							size: props.size,
+							id,
+							theme,
+						})
+						break
+
+					default:
+						svgElm = DashStyleCloudSvg({
+							id,
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							dash: props.dash,
+							color: props.color,
+							fill: props.fill,
+							theme,
+							size: props.size,
 						})
 				}
 				break
