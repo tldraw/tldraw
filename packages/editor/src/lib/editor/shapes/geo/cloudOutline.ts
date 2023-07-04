@@ -114,7 +114,7 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 
 function getCloudArcPoints(width: number, height: number, seed: string, size: TLDefaultSizeStyle) {
 	const getRandom = rng(seed)
-	const radius = Math.min(Math.min(width, height) / 5, 50)
+	const radius = Math.max(Math.min((width + height) / 10, 50), 1)
 	const spacingModifier = size === 's' ? 1.5 : size === 'm' ? 1.8 : size === 'l' ? 2.6 : 3.6
 	const goalSpacing = radius * spacingModifier + getRandom() * radius * 0.4
 	const pillCircumference = getPillCircumference(width, height)
