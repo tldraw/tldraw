@@ -29,8 +29,14 @@ html,
 	padding: 16px;
 }
 
+.examples__header {
+	width: fit-content;
+	padding-bottom: 32px;
+}
+
 .examples__lockup {
-	height: 64px;
+	height: 56px;
+	width: auto;
 }
 
 .examples__list {
@@ -47,6 +53,8 @@ html,
 }
 
 .examples__list__item a {
+	padding: 8px 12px;
+	margin: 0px -12px;
 	text-decoration: none;
 	color: inherit;
 }

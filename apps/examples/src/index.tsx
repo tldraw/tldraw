@@ -25,6 +25,7 @@ import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
 import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
+import ExamplesTldrawLogo from './ExamplesTldrawLogo'
 import { ListLink } from './components/ListLink'
 import EndToEnd from './end-to-end/end-to-end'
 import YjsExample from './yjs/YjsExample'
@@ -145,7 +146,7 @@ function App() {
 	return (
 		<div className="examples">
 			<div className="examples__header">
-				<img src="tldraw.svg" alt="tldraw logo" className="examples__lockup" />
+				<ExamplesTldrawLogo />
 				<p>
 					See docs at <a href="https://tldraw.dev">tldraw.dev</a>
 				</p>
