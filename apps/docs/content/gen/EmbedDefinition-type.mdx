@@ -1,0 +1,41 @@
+---
+title: EmbedDefinition
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 27
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type EmbedDefinition = {
+  readonly type: string
+  readonly title: string
+  readonly hostnames: readonly string[]
+  readonly minWidth?: number
+  readonly minHeight?: number
+  readonly width: number
+  readonly height: number
+  readonly doesResize: boolean
+  readonly canUnmount: boolean
+  readonly isAspectRatioLocked?: boolean
+  readonly overridePermissions?: TLEmbedShapePermissions
+  readonly instructionLink?: string
+  readonly backgroundColor?: string
+  readonly overrideOutlineRadius?: number
+  readonly toEmbedUrl: (url: string) => string | undefined
+  readonly fromEmbedUrl: (url: string) => string | undefined
+}
+```
+
+##### References
+
+[TLEmbedShapePermissions](/gen/tlschema/TLEmbedShapePermissions-type)
+

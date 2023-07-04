@@ -1,0 +1,34 @@
+---
+title: TLImageAsset
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 95
+---<Small>Public TypeAlias</Small>
+
+An asset for images such as PNGs and JPEGs, used by the TLImageShape.
+
+
+##### Signature
+
+
+```ts
+type TLImageAsset = TLBaseAsset<
+  'image',
+  {
+    w: number
+    h: number
+    name: string
+    isAnimated: boolean
+    mimeType: null | string
+    src: null | string
+  }
+>
+```
+
+##### References
+
+[TLBaseAsset](/gen/tlschema/TLBaseAsset-interface)
+

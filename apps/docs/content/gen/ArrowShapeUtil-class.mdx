@@ -1,0 +1,928 @@
+---
+title: ArrowShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 4
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canBind](#ArrowShapeUtil-canBind-member)
+  - [canEdit](#ArrowShapeUtil-canEdit-member)
+  - [canSnap](#ArrowShapeUtil-canSnap-member)
+  - [hideResizeHandles](#ArrowShapeUtil-hideResizeHandles-member)
+  - [hideRotateHandle](#ArrowShapeUtil-hideRotateHandle-member)
+  - [hideSelectionBoundsBg](#ArrowShapeUtil-hideSelectionBoundsBg-member)
+  - [hideSelectionBoundsFg](#ArrowShapeUtil-hideSelectionBoundsFg-member)
+  - [isClosed](#ArrowShapeUtil-isClosed-member)
+  - [labelBoundsCache](#ArrowShapeUtil-labelBoundsCache-member)
+  - [onDoubleClickHandle](#ArrowShapeUtil-onDoubleClickHandle-member)
+  - [onEditEnd](#ArrowShapeUtil-onEditEnd-member)
+  - [onHandleChange](#ArrowShapeUtil-onHandleChange-member)
+  - [onResize](#ArrowShapeUtil-onResize-member)
+  - [onTranslateStart](#ArrowShapeUtil-onTranslateStart-member)
+  - [type](#ArrowShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#ArrowShapeUtil-component-member-1)
+  - [getArrowInfo](#ArrowShapeUtil-getArrowInfo-member-1)
+  - [getBounds](#ArrowShapeUtil-getBounds-member-1)
+  - [getCanvasSvgDefs](#ArrowShapeUtil-getCanvasSvgDefs-member-1)
+  - [getCenter](#ArrowShapeUtil-getCenter-member-1)
+  - [getDefaultProps](#ArrowShapeUtil-getDefaultProps-member-1)
+  - [getHandles](#ArrowShapeUtil-getHandles-member-1)
+  - [getLabelBounds](#ArrowShapeUtil-getLabelBounds-member-1)
+  - [getOutline](#ArrowShapeUtil-getOutline-member-1)
+  - [getOutlineWithoutLabel](#ArrowShapeUtil-getOutlineWithoutLabel-member-1)
+  - [hitTestLineSegment](#ArrowShapeUtil-hitTestLineSegment-member-1)
+  - [hitTestPoint](#ArrowShapeUtil-hitTestPoint-member-1)
+  - [indicator](#ArrowShapeUtil-indicator-member-1)
+  - [snapPoints](#ArrowShapeUtil-snapPoints-member-1)
+  - [toSvg](#ArrowShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {}
+```
+
+##### References
+
+[ShapeUtil](/gen/editor/ShapeUtil-class), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+## Properties
+
+### `canBind` \{#ArrowShapeUtil-canBind-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canBind: () => boolean
+```
+
+---
+
+### `canEdit` \{#ArrowShapeUtil-canEdit-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canEdit: () => boolean
+```
+
+---
+
+### `canSnap` \{#ArrowShapeUtil-canSnap-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canSnap: () => boolean
+```
+
+---
+
+### `hideResizeHandles` \{#ArrowShapeUtil-hideResizeHandles-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideResizeHandles: TLShapeUtilFlag<TLArrowShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `hideRotateHandle` \{#ArrowShapeUtil-hideRotateHandle-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideRotateHandle: TLShapeUtilFlag<TLArrowShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `hideSelectionBoundsBg` \{#ArrowShapeUtil-hideSelectionBoundsBg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `hideSelectionBoundsFg` \{#ArrowShapeUtil-hideSelectionBoundsFg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `isClosed` \{#ArrowShapeUtil-isClosed-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+isClosed: () => boolean
+```
+
+---
+
+### `labelBoundsCache` \{#ArrowShapeUtil-labelBoundsCache-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape>
+```
+
+##### References
+
+[ComputedCache](/gen/store/ComputedCache-type), [Box2d](/gen/primitives/Box2d-class), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `onDoubleClickHandle` \{#ArrowShapeUtil-onDoubleClickHandle-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onDoubleClickHandle: (
+  shape: TLArrowShape,
+  handle: TLHandle
+) => TLShapePartial<TLArrowShape> | void
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [TLHandle](/gen/tlschema/TLHandle-interface), [TLShapePartial](/gen/tlschema/TLShapePartial-type)
+
+---
+
+### `onEditEnd` \{#ArrowShapeUtil-onEditEnd-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onEditEnd: TLOnEditEndHandler<TLArrowShape>
+```
+
+##### References
+
+[TLOnEditEndHandler](/gen/editor/TLOnEditEndHandler-type), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `onHandleChange` \{#ArrowShapeUtil-onHandleChange-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onHandleChange: TLOnHandleChangeHandler<TLArrowShape>
+```
+
+##### References
+
+[TLOnHandleChangeHandler](/gen/editor/TLOnHandleChangeHandler-type), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `onResize` \{#ArrowShapeUtil-onResize-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onResize: TLOnResizeHandler<TLArrowShape>
+```
+
+##### References
+
+[TLOnResizeHandler](/gen/editor/TLOnResizeHandler-type), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `onTranslateStart` \{#ArrowShapeUtil-onTranslateStart-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onTranslateStart: TLOnTranslateStartHandler<TLArrowShape>
+```
+
+##### References
+
+[TLOnTranslateStartHandler](/gen/editor/TLOnTranslateStartHandler-type), [TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `type` \{#ArrowShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'arrow'
+```
+
+---
+
+## Methods
+
+### `component()` \{#ArrowShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element | null
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `getArrowInfo()` \{#ArrowShapeUtil-getArrowInfo-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+ArrowInfo | undefined
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `getBounds()` \{#ArrowShapeUtil-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getCanvasSvgDefs()` \{#ArrowShapeUtil-getCanvasSvgDefs-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLShapeUtilCanvasSvgDef[]
+```
+
+---
+
+### `getCenter()` \{#ArrowShapeUtil-getCenter-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getDefaultProps()` \{#ArrowShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLArrowShape['props']
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `getHandles()` \{#ArrowShapeUtil-getHandles-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLHandle[]
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [TLHandle](/gen/tlschema/TLHandle-interface)
+
+---
+
+### `getLabelBounds()` \{#ArrowShapeUtil-getLabelBounds-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d | null
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getOutline()` \{#ArrowShapeUtil-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getOutlineWithoutLabel()` \{#ArrowShapeUtil-getOutlineWithoutLabel-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `hitTestLineSegment()` \{#ArrowShapeUtil-hitTestLineSegment-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `hitTestPoint()` \{#ArrowShapeUtil-hitTestPoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `indicator()` \{#ArrowShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element | null
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+
+### `snapPoints()` \{#ArrowShapeUtil-snapPoints-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`_shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `toSvg()` \{#ArrowShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLArrowShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ctx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SvgExportContext
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+SVGGElement
+```
+
+##### References
+
+[TLArrowShape](/gen/tlschema/TLArrowShape-type)
+
+---
+

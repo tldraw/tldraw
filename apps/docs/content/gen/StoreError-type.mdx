@@ -1,0 +1,26 @@
+---
+title: StoreError
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 27
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type StoreError = {
+  error: Error
+  phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'
+  recordBefore?: unknown
+  recordAfter: unknown
+  isExistingValidationIssue: boolean
+}
+```
+

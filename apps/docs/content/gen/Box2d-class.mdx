@@ -1,0 +1,1664 @@
+---
+title: Box2d
+status: published
+category: primitives
+group: Class
+author: api
+date: 06/23/2023
+order: 3
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [aspectRatio](#Box2d-aspectRatio-member)
+  - [center](#Box2d-center-member)
+  - [Collides](#Box2d-Collides-member)
+  - [Common](#Box2d-Common-member)
+  - [Contains](#Box2d-Contains-member)
+  - [ContainsPoint](#Box2d-ContainsPoint-member)
+  - [corners](#Box2d-corners-member)
+  - [h](#Box2d-h-member)
+  - [height](#Box2d-height-member)
+  - [Includes](#Box2d-Includes-member)
+  - [maxX](#Box2d-maxX-member)
+  - [maxY](#Box2d-maxY-member)
+  - [midX](#Box2d-midX-member)
+  - [midY](#Box2d-midY-member)
+  - [minX](#Box2d-minX-member)
+  - [minY](#Box2d-minY-member)
+  - [point](#Box2d-point-member)
+  - [sides](#Box2d-sides-member)
+  - [Sides](#Box2d-Sides-member)
+  - [size](#Box2d-size-member)
+  - [snapPoints](#Box2d-snapPoints-member)
+  - [w](#Box2d-w-member)
+  - [width](#Box2d-width-member)
+  - [x](#Box2d-x-member)
+  - [y](#Box2d-y-member)
+- [Methods](#methods)
+  - [clone](#Box2d-clone-member-1)
+  - [collides](#Box2d-collides-member-1)
+  - [contains](#Box2d-contains-member-1)
+  - [containsPoint](#Box2d-containsPoint-member-1)
+  - [equals](#Box2d-equals-member-1)
+  - [Equals](#Box2d-Equals-member-1)
+  - [expand](#Box2d-expand-member-1)
+  - [Expand](#Box2d-Expand-member-1)
+  - [expandBy](#Box2d-expandBy-member-1)
+  - [ExpandBy](#Box2d-ExpandBy-member-1)
+  - [From](#Box2d-From-member-1)
+  - [FromPoints](#Box2d-FromPoints-member-1)
+  - [getHandlePoint](#Box2d-getHandlePoint-member-1)
+  - [includes](#Box2d-includes-member-1)
+  - [resize](#Box2d-resize-member-1)
+  - [Resize](#Box2d-Resize-member-1)
+  - [scale](#Box2d-scale-member-1)
+  - [set](#Box2d-set-member-1)
+  - [setTo](#Box2d-setTo-member-1)
+  - [snapToGrid](#Box2d-snapToGrid-member-1)
+  - [toFixed](#Box2d-toFixed-member-1)
+  - [toJson](#Box2d-toJson-member-1)
+  - [translate](#Box2d-translate-member-1)
+  - [union](#Box2d-union-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class Box2d {}
+```
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `Box2d` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`w`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`h`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+---
+
+## Properties
+
+### `aspectRatio` \{#Box2d-aspectRatio-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get aspectRatio(): number
+```
+
+---
+
+### `center` \{#Box2d-center-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+get center(): Vec2d
+
+set center(v: Vec2d)
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `Collides` \{#Box2d-Collides-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static Collides: (A: Box2d, B: Box2d) => boolean
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `Common` \{#Box2d-Common-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static Common: (boxes: Box2d[]) => Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `Contains` \{#Box2d-Contains-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static Contains: (A: Box2d, B: Box2d) => boolean
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `ContainsPoint` \{#Box2d-ContainsPoint-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static ContainsPoint: (A: Box2d, B: number | VecLike, y?: number) => boolean
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `corners` \{#Box2d-corners-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get corners(): Vec2d[]
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `h` \{#Box2d-h-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+h: number
+```
+
+---
+
+### `height` \{#Box2d-height-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+get height(): number
+
+set height(n: number)
+```
+
+---
+
+### `Includes` \{#Box2d-Includes-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static Includes: (A: Box2d, B: Box2d) => boolean
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `maxX` \{#Box2d-maxX-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get maxX(): number
+```
+
+---
+
+### `maxY` \{#Box2d-maxY-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get maxY(): number
+```
+
+---
+
+### `midX` \{#Box2d-midX-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get midX(): number
+```
+
+---
+
+### `midY` \{#Box2d-midY-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get midY(): number
+```
+
+---
+
+### `minX` \{#Box2d-minX-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+get minX(): number
+
+set minX(n: number)
+```
+
+---
+
+### `minY` \{#Box2d-minY-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+get minY(): number
+
+set minY(n: number)
+```
+
+---
+
+### `point` \{#Box2d-point-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+get point(): Vec2d
+
+set point(val: Vec2d)
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `sides` \{#Box2d-sides-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get sides(): Array<[Vec2d, Vec2d]>
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `Sides` \{#Box2d-Sides-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static Sides: (A: Box2d, inset?: number) => Vec2d[][]
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `size` \{#Box2d-size-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get size(): Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `snapPoints` \{#Box2d-snapPoints-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+get snapPoints(): Vec2d[]
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `w` \{#Box2d-w-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+w: number
+```
+
+---
+
+### `width` \{#Box2d-width-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+get width(): number
+
+set width(n: number)
+```
+
+---
+
+### `x` \{#Box2d-x-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+x: number
+```
+
+---
+
+### `y` \{#Box2d-y-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+y: number
+```
+
+---
+
+## Methods
+
+### `clone()` \{#Box2d-clone-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `collides()` \{#Box2d-collides-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `contains()` \{#Box2d-contains-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `containsPoint()` \{#Box2d-containsPoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`V`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number | VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `equals()` \{#Box2d-equals-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`other`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d | Box2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class), [Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `Equals()` \{#Box2d-Equals-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`a`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d | Box2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`b`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d | Box2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class), [Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `expand()` \{#Box2d-expand-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `Expand()` \{#Box2d-Expand-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `expandBy()` \{#Box2d-expandBy-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`n`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `ExpandBy()` \{#Box2d-ExpandBy-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`n`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `From()` \{#Box2d-From-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`box`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `FromPoints()` \{#Box2d-FromPoints-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getHandlePoint()` \{#Box2d-getHandlePoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`handle`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SelectionCorner | SelectionEdge
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[SelectionCorner](/gen/primitives/SelectionCorner-type), [SelectionEdge](/gen/primitives/SelectionEdge-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `includes()` \{#Box2d-includes-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `resize()` \{#Box2d-resize-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`handle`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SelectionCorner | SelectionEdge | string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`dx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`dy`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+##### References
+
+[SelectionCorner](/gen/primitives/SelectionCorner-type), [SelectionEdge](/gen/primitives/SelectionEdge-type)
+
+---
+
+### `Resize()` \{#Box2d-Resize-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`box`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`handle`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SelectionCorner | SelectionEdge | string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`dx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`dy`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`isAspectRatioLocked`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+boolean
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+{
+  box: Box2d
+  scaleX: number
+  scaleY: number
+}
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class), [SelectionCorner](/gen/primitives/SelectionCorner-type), [SelectionEdge](/gen/primitives/SelectionEdge-type)
+
+---
+
+### `scale()` \{#Box2d-scale-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`n`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `set()` \{#Box2d-set-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`x`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`y`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`w`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`h`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `setTo()` \{#Box2d-setTo-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `snapToGrid()` \{#Box2d-snapToGrid-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`size`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+
+---
+
+### `toFixed()` \{#Box2d-toFixed-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+this
+```
+
+---
+
+### `toJson()` \{#Box2d-toJson-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+Box2dModel
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `translate()` \{#Box2d-translate-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`delta`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `union()` \{#Box2d-union-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`box`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Box2dModel
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+this
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+

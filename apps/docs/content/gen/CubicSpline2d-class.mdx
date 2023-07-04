@@ -1,0 +1,244 @@
+---
+title: CubicSpline2d
+status: published
+category: primitives
+group: Class
+author: api
+date: 06/23/2023
+order: 10
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [segments](#CubicSpline2d-segments-member)
+- [Methods](#methods)
+  - [FromPoints](#CubicSpline2d-FromPoints-member-1)
+  - [getSegmentsFromPoints](#CubicSpline2d-getSegmentsFromPoints-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class CubicSpline2d extends BaseSpline2d<CubicSegment2dModel> {}
+```
+
+##### References
+
+[CubicSegment2dModel](/gen/primitives/CubicSegment2dModel-interface)
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `CubicSpline2d` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`k`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`p`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+## Properties
+
+### `segments` \{#CubicSpline2d-segments-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+segments: CubicSegment2d[]
+```
+
+##### References
+
+[CubicSegment2d](/gen/primitives/CubicSegment2d-class)
+
+---
+
+## Methods
+
+### `FromPoints()` \{#CubicSpline2d-FromPoints-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Vec2d[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+CubicSpline2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class), [CubicSpline2d](/gen/primitives/CubicSpline2d-class)
+
+---
+
+### `getSegmentsFromPoints()` \{#CubicSpline2d-getSegmentsFromPoints-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`k`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`p`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+CubicSegment2d[]
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [CubicSegment2d](/gen/primitives/CubicSegment2d-class)
+
+---
+

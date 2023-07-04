@@ -1,0 +1,51 @@
+---
+title: TLExternalContent
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 137
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLExternalContent =
+  | {
+      type: 'embed'
+      url: string
+      point?: VecLike
+      embed: EmbedDefinition
+    }
+  | {
+      type: 'files'
+      files: File[]
+      point?: VecLike
+      ignoreParent: boolean
+    }
+  | {
+      type: 'svg-text'
+      text: string
+      point?: VecLike
+    }
+  | {
+      type: 'text'
+      point?: VecLike
+      text: string
+    }
+  | {
+      type: 'url'
+      url: string
+      point?: VecLike
+    }
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [EmbedDefinition](/gen/tlschema/EmbedDefinition-type)
+

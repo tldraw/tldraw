@@ -1,0 +1,43 @@
+---
+title: TldrawEditorProps
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 123
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TldrawEditorProps = {
+  children?: any
+  shapes?: readonly AnyTLShapeInfo[]
+  tools?: readonly TLStateNodeConstructor[]
+  assetUrls?: RecursivePartial<TLEditorAssetUrls>
+  autoFocus?: boolean
+  components?: Partial<TLEditorComponents>
+  onMount?: (editor: Editor) => (() => void) | undefined | void
+} & (
+  | {
+      store: TLStore | TLStoreWithStatus
+    }
+  | {
+      store?: undefined
+      initialData?: StoreSnapshot<TLRecord>
+      persistenceKey?: string
+      sessionId?: string
+      defaultName?: string
+    }
+)
+```
+
+##### References
+
+[TLStateNodeConstructor](/gen/editor/TLStateNodeConstructor-interface), [TLEditorAssetUrls](/gen/editor/TLEditorAssetUrls-type), [TLEditorComponents](/gen/editor/TLEditorComponents-interface), [Editor](/gen/editor/Editor-class), [TLStore](/gen/tlschema/TLStore-type), [TLStoreWithStatus](/gen/editor/TLStoreWithStatus-type), [StoreSnapshot](/gen/store/StoreSnapshot-type), [TLRecord](/gen/tlschema/TLRecord-type)
+

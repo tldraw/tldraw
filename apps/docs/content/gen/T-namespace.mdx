@@ -1,0 +1,821 @@
+---
+title: T
+status: published
+category: validate
+group: Namespace
+author: api
+date: 06/23/2023
+order: 0
+---<Small>None Namespace</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [any](#T-any-var)
+  - [array](#T-array-var)
+  - [bigint](#T-bigint-var)
+  - [boolean](#T-boolean-var)
+  - [integer](#T-integer-var)
+  - [nonZeroInteger](#T-nonZeroInteger-var)
+  - [nonZeroNumber](#T-nonZeroNumber-var)
+  - [number](#T-number-var)
+  - [positiveInteger](#T-positiveInteger-var)
+  - [positiveNumber](#T-positiveNumber-var)
+  - [string](#T-string-var)
+  - [unknown](#T-unknown-var)
+  - [unknownObject](#T-unknownObject-var)
+- [Methods](#methods)
+  - [arrayOf](#T-arrayOf-function-1)
+  - [dict](#T-dict-function-1)
+  - [literal](#T-literal-function-1)
+  - [literalEnum](#T-literalEnum-function-1)
+  - [model](#T-model-function-1)
+  - [nullable](#T-nullable-function-1)
+  - [object](#T-object-function-1)
+  - [optional](#T-optional-function-1)
+  - [setEnum](#T-setEnum-function-1)
+  - [union](#T-union-function-1)
+</details>
+
+##### Signature
+
+
+```ts
+
+```
+
+---
+
+## Properties
+
+### `any` \{#T-any-var}
+
+<Small>Public Readonly Variable</Small>
+
+Validation that accepts any value. Generally this should be avoided, but you can use it as an escape hatch if you want to work without validations for e.g. a prototype.
+
+
+##### Signature
+
+
+```ts
+any: Validator<any>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `array` \{#T-array-var}
+
+<Small>Public Readonly Variable</Small>
+
+Validates that a value is an array. To check the contents of the array, use T.arrayOf.
+
+
+##### Signature
+
+
+```ts
+array: Validator<unknown[]>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `bigint` \{#T-bigint-var}
+
+<Small>Public Readonly Variable</Small>
+
+Validates that a value is a bigint.
+
+
+##### Signature
+
+
+```ts
+bigint: Validator<bigint>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `boolean` \{#T-boolean-var}
+
+<Small>Public Readonly Variable</Small>
+
+Validates that a value is boolean.
+
+
+##### Signature
+
+
+```ts
+boolean: Validator<boolean>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `integer` \{#T-integer-var}
+
+<Small>Public Readonly Variable</Small>
+
+Fails if number is not an integer
+
+
+##### Signature
+
+
+```ts
+integer: Validator<number>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `nonZeroInteger` \{#T-nonZeroInteger-var}
+
+<Small>Public Readonly Variable</Small>
+
+Fails if value \<= 0 and is not an integer
+
+
+##### Signature
+
+
+```ts
+nonZeroInteger: Validator<number>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `nonZeroNumber` \{#T-nonZeroNumber-var}
+
+<Small>Public Readonly Variable</Small>
+
+Fails if value \<= 0
+
+
+##### Signature
+
+
+```ts
+nonZeroNumber: Validator<number>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `number` \{#T-number-var}
+
+<Small>Public Readonly Variable</Small>
+
+Validates that a value is a finite non-NaN number.
+
+
+##### Signature
+
+
+```ts
+number: Validator<number>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `positiveInteger` \{#T-positiveInteger-var}
+
+<Small>Public Readonly Variable</Small>
+
+Fails if value \< 0 and is not an integer
+
+
+##### Signature
+
+
+```ts
+positiveInteger: Validator<number>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `positiveNumber` \{#T-positiveNumber-var}
+
+<Small>Public Readonly Variable</Small>
+
+Fails if value \< 0
+
+
+##### Signature
+
+
+```ts
+positiveNumber: Validator<number>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `string` \{#T-string-var}
+
+<Small>Public Readonly Variable</Small>
+
+Validates that a value is a string.
+
+
+##### Signature
+
+
+```ts
+string: Validator<string>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `unknown` \{#T-unknown-var}
+
+<Small>Public Readonly Variable</Small>
+
+Validation that accepts any value. Useful as a starting point for building your own custom validations.
+
+
+##### Signature
+
+
+```ts
+unknown: Validator<unknown>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `unknownObject` \{#T-unknownObject-var}
+
+<Small>Public Readonly Variable</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+unknownObject: Validator<Record<string, unknown>>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+## Methods
+
+### `arrayOf` \{#T-arrayOf-function-1}
+
+<Small>Public Function</Small>
+
+Validates that a value is an array whose contents matches the passed-in validator.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`itemValidator`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Validatable<T>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+ArrayOfValidator<T>
+```
+
+##### References
+
+[Validatable](/gen/validate/T-Validatable-type), [ArrayOfValidator](/gen/validate/T-ArrayOfValidator-class)
+
+---
+
+### `dict` \{#T-dict-function-1}
+
+<Small>Public Function</Small>
+
+Validation that an option is a dict with particular keys and values.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`keyValidator`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Validatable<Key>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`valueValidator`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Validatable<Value>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+DictValidator<Key, Value>
+```
+
+##### References
+
+[Validatable](/gen/validate/T-Validatable-type), [DictValidator](/gen/validate/T-DictValidator-class)
+
+---
+
+### `literal` \{#T-literal-function-1}
+
+<Small>Public Function</Small>
+
+Validates that a value matches another that was passed in.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const trueValidator = T.literal(true)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`expectedValue`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Validator<T>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `literalEnum` \{#T-literalEnum-function-1}
+
+<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`values`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Values
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Validator<Values[number]>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `model` \{#T-model-function-1}
+
+<Small>Public Function</Small>
+
+A named object with an ID. Errors will be reported as being part of the object with the given name.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`name`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`validator`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Validatable<T>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Validator<T>
+```
+
+##### References
+
+[Validatable](/gen/validate/T-Validatable-type), [Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `nullable` \{#T-nullable-function-1}
+
+<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`validator`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Validatable<T>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Validator<null | T>
+```
+
+##### References
+
+[Validatable](/gen/validate/T-Validatable-type), [Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `object` \{#T-object-function-1}
+
+<Small>Public Function</Small>
+
+Validate an object has a particular shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`config`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  readonly [K in keyof Shape]: Validatable<Shape[K]>
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+ObjectValidator<Shape>
+```
+
+##### References
+
+[Validatable](/gen/validate/T-Validatable-type), [ObjectValidator](/gen/validate/T-ObjectValidator-class)
+
+---
+
+### `optional` \{#T-optional-function-1}
+
+<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`validator`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Validatable<T>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Validator<T | undefined>
+```
+
+##### References
+
+[Validatable](/gen/validate/T-Validatable-type), [Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `setEnum` \{#T-setEnum-function-1}
+
+<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`values`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+ReadonlySet<T>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Validator<T>
+```
+
+##### References
+
+[Validator](/gen/validate/T-Validator-class)
+
+---
+
+### `union` \{#T-union-function-1}
+
+<Small>Public Function</Small>
+
+Validate a union of several object types. Each object must have a property matching `key` which should be a unique string.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const catValidator = T.object({ kind: T.value('cat'), meow: T.boolean })
+const dogValidator = T.object({ kind: T.value('dog'), bark: T.boolean })
+const animalValidator = T.union('kind', {
+  cat: catValidator,
+  dog: dogValidator,
+})
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`key`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Key
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`config`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Config
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+UnionValidator<Key, Config>
+```
+
+##### References
+
+[UnionValidator](/gen/validate/T-UnionValidator-class)
+
+---
+

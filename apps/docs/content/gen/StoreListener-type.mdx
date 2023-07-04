@@ -1,0 +1,24 @@
+---
+title: StoreListener
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 28
+---<Small>Public TypeAlias</Small>
+
+A function that will be called when the history changes.
+
+
+##### Signature
+
+
+```ts
+type StoreListener<R extends UnknownRecord> = (entry: HistoryEntry<R>) => void
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [HistoryEntry](/gen/store/HistoryEntry-type)
+

@@ -1,0 +1,226 @@
+---
+title: Polyline2d
+status: published
+category: primitives
+group: Class
+author: api
+date: 06/23/2023
+order: 70
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [segments](#Polyline2d-segments-member)
+- [Methods](#methods)
+  - [FromPoints](#Polyline2d-FromPoints-member-1)
+  - [getSegmentsFromPoints](#Polyline2d-getSegmentsFromPoints-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class Polyline2d extends BaseSpline2d<LineSegment2dModel> {}
+```
+
+##### References
+
+[LineSegment2dModel](/gen/primitives/LineSegment2dModel-interface)
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `Polyline2d` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`k`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`p`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+## Properties
+
+### `segments` \{#Polyline2d-segments-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+segments: LineSegment2d[]
+```
+
+##### References
+
+[LineSegment2d](/gen/primitives/LineSegment2d-class)
+
+---
+
+## Methods
+
+### `FromPoints()` \{#Polyline2d-FromPoints-member-1}
+
+<Small>Public Static Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Polyline2d
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [Polyline2d](/gen/primitives/Polyline2d-class)
+
+---
+
+### `getSegmentsFromPoints()` \{#Polyline2d-getSegmentsFromPoints-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`points`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`p`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+number
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+LineSegment2d[]
+```
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type), [LineSegment2d](/gen/primitives/LineSegment2d-class)
+
+---
+

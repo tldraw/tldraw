@@ -1,0 +1,71 @@
+---
+title: TLErrorBoundaryProps
+status: published
+category: editor
+group: Interface
+author: api
+date: 06/23/2023
+order: 129
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [children](#TLErrorBoundaryProps-children-member)
+  - [fallback](#TLErrorBoundaryProps-fallback-member)
+  - [onError](#TLErrorBoundaryProps-onError-member)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+interface TLErrorBoundaryProps {}
+```
+
+---
+
+## Properties
+
+### `children` \{#TLErrorBoundaryProps-children-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+children: React.ReactNode
+```
+
+---
+
+### `fallback` \{#TLErrorBoundaryProps-fallback-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+fallback: (props: { error: unknown }) => any
+```
+
+---
+
+### `onError` \{#TLErrorBoundaryProps-onError-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+onError?: ((error: unknown) => void) | null
+```
+
+---
+

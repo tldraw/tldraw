@@ -1,0 +1,23 @@
+---
+title: Migration
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 15
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type Migration<Before = any, After = any> = {
+  up: (oldState: Before) => After
+  down: (newState: After) => Before
+}
+```
+

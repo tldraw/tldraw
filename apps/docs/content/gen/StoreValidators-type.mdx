@@ -1,0 +1,33 @@
+---
+title: StoreValidators
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 33
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type StoreValidators<R extends UnknownRecord> = {
+  [K in R['typeName']]: StoreValidator<
+    Extract<
+      R,
+      {
+        typeName: K
+      }
+    >
+  >
+}
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [StoreValidator](/gen/store/StoreValidator-type)
+

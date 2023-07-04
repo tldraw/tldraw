@@ -1,0 +1,181 @@
+---
+title: TLInstancePageState
+status: published
+category: tlschema
+group: Interface
+author: api
+date: 06/23/2023
+order: 102
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [croppingId](#TLInstancePageState-croppingId-member)
+  - [editingId](#TLInstancePageState-editingId-member)
+  - [erasingIds](#TLInstancePageState-erasingIds-member)
+  - [focusLayerId](#TLInstancePageState-focusLayerId-member)
+  - [hintingIds](#TLInstancePageState-hintingIds-member)
+  - [hoveredId](#TLInstancePageState-hoveredId-member)
+  - [pageId](#TLInstancePageState-pageId-member)
+  - [selectedIds](#TLInstancePageState-selectedIds-member)
+</details>
+
+TLInstancePageState
+
+
+State that is unique to a particular page of the document in a particular browser tab
+
+
+##### Signature
+
+
+```ts
+interface TLInstancePageState
+  extends BaseRecord<'instance_page_state', TLInstancePageStateId> {}
+```
+
+##### References
+
+[BaseRecord](/gen/store/BaseRecord-interface)
+
+---
+
+## Properties
+
+### `croppingId` \{#TLInstancePageState-croppingId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+croppingId: null | TLShapeId
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `editingId` \{#TLInstancePageState-editingId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+editingId: null | TLShapeId
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `erasingIds` \{#TLInstancePageState-erasingIds-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+erasingIds: TLShapeId[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `focusLayerId` \{#TLInstancePageState-focusLayerId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+focusLayerId: null | TLShapeId
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `hintingIds` \{#TLInstancePageState-hintingIds-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+hintingIds: TLShapeId[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `hoveredId` \{#TLInstancePageState-hoveredId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+hoveredId: null | TLShapeId
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `pageId` \{#TLInstancePageState-pageId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+pageId: RecordId<TLPage>
+```
+
+##### References
+
+[RecordId](/gen/store/RecordId-type), [TLPage](/gen/tlschema/TLPage-interface)
+
+---
+
+### `selectedIds` \{#TLInstancePageState-selectedIds-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+selectedIds: TLShapeId[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+

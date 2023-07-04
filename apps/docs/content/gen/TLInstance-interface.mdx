@@ -1,0 +1,316 @@
+---
+title: TLInstance
+status: published
+category: tlschema
+group: Interface
+author: api
+date: 06/23/2023
+order: 100
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [brush](#TLInstance-brush-member)
+  - [chatMessage](#TLInstance-chatMessage-member)
+  - [currentPageId](#TLInstance-currentPageId-member)
+  - [cursor](#TLInstance-cursor-member)
+  - [exportBackground](#TLInstance-exportBackground-member)
+  - [followingUserId](#TLInstance-followingUserId-member)
+  - [highlightedUserIds](#TLInstance-highlightedUserIds-member)
+  - [isChatting](#TLInstance-isChatting-member)
+  - [isDebugMode](#TLInstance-isDebugMode-member)
+  - [isFocusMode](#TLInstance-isFocusMode-member)
+  - [isGridMode](#TLInstance-isGridMode-member)
+  - [isPenMode](#TLInstance-isPenMode-member)
+  - [isToolLocked](#TLInstance-isToolLocked-member)
+  - [opacityForNextShape](#TLInstance-opacityForNextShape-member)
+  - [screenBounds](#TLInstance-screenBounds-member)
+  - [scribble](#TLInstance-scribble-member)
+  - [stylesForNextShape](#TLInstance-stylesForNextShape-member)
+  - [zoomBrush](#TLInstance-zoomBrush-member)
+</details>
+
+TLInstance
+
+
+State that is particular to a single browser tab
+
+
+##### Signature
+
+
+```ts
+interface TLInstance extends BaseRecord<'instance', TLInstanceId> {}
+```
+
+##### References
+
+[BaseRecord](/gen/store/BaseRecord-interface), [TLInstanceId](/gen/tlschema/TLInstanceId-type)
+
+---
+
+## Properties
+
+### `brush` \{#TLInstance-brush-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+brush: Box2dModel | null
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `chatMessage` \{#TLInstance-chatMessage-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+chatMessage: string
+```
+
+---
+
+### `currentPageId` \{#TLInstance-currentPageId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+currentPageId: TLPageId
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `cursor` \{#TLInstance-cursor-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+cursor: TLCursor
+```
+
+##### References
+
+[TLCursor](/gen/tlschema/TLCursor-interface)
+
+---
+
+### `exportBackground` \{#TLInstance-exportBackground-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+exportBackground: boolean
+```
+
+---
+
+### `followingUserId` \{#TLInstance-followingUserId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+followingUserId: null | string
+```
+
+---
+
+### `highlightedUserIds` \{#TLInstance-highlightedUserIds-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+highlightedUserIds: string[]
+```
+
+---
+
+### `isChatting` \{#TLInstance-isChatting-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isChatting: boolean
+```
+
+---
+
+### `isDebugMode` \{#TLInstance-isDebugMode-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isDebugMode: boolean
+```
+
+---
+
+### `isFocusMode` \{#TLInstance-isFocusMode-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isFocusMode: boolean
+```
+
+---
+
+### `isGridMode` \{#TLInstance-isGridMode-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isGridMode: boolean
+```
+
+---
+
+### `isPenMode` \{#TLInstance-isPenMode-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isPenMode: boolean
+```
+
+---
+
+### `isToolLocked` \{#TLInstance-isToolLocked-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isToolLocked: boolean
+```
+
+---
+
+### `opacityForNextShape` \{#TLInstance-opacityForNextShape-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+opacityForNextShape: TLOpacityType
+```
+
+##### References
+
+[TLOpacityType](/gen/tlschema/TLOpacityType-type)
+
+---
+
+### `screenBounds` \{#TLInstance-screenBounds-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+screenBounds: Box2dModel
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `scribble` \{#TLInstance-scribble-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+scribble: null | TLScribble
+```
+
+##### References
+
+[TLScribble](/gen/tlschema/TLScribble-type)
+
+---
+
+### `stylesForNextShape` \{#TLInstance-stylesForNextShape-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+stylesForNextShape: Record<string, unknown>
+```
+
+---
+
+### `zoomBrush` \{#TLInstance-zoomBrush-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+zoomBrush: Box2dModel | null
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+

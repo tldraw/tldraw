@@ -1,0 +1,249 @@
+---
+title: TLInstancePresence
+status: published
+category: tlschema
+group: Interface
+author: api
+date: 06/23/2023
+order: 103
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [brush](#TLInstancePresence-brush-member)
+  - [camera](#TLInstancePresence-camera-member)
+  - [chatMessage](#TLInstancePresence-chatMessage-member)
+  - [color](#TLInstancePresence-color-member)
+  - [currentPageId](#TLInstancePresence-currentPageId-member)
+  - [cursor](#TLInstancePresence-cursor-member)
+  - [followingUserId](#TLInstancePresence-followingUserId-member)
+  - [lastActivityTimestamp](#TLInstancePresence-lastActivityTimestamp-member)
+  - [screenBounds](#TLInstancePresence-screenBounds-member)
+  - [scribble](#TLInstancePresence-scribble-member)
+  - [selectedIds](#TLInstancePresence-selectedIds-member)
+  - [userId](#TLInstancePresence-userId-member)
+  - [userName](#TLInstancePresence-userName-member)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+interface TLInstancePresence
+  extends BaseRecord<'instance_presence', TLInstancePresenceID> {}
+```
+
+##### References
+
+[BaseRecord](/gen/store/BaseRecord-interface)
+
+---
+
+## Properties
+
+### `brush` \{#TLInstancePresence-brush-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+brush: Box2dModel | null
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `camera` \{#TLInstancePresence-camera-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+camera: {
+  x: number
+  y: number
+  z: number
+}
+```
+
+---
+
+### `chatMessage` \{#TLInstancePresence-chatMessage-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+chatMessage: string
+```
+
+---
+
+### `color` \{#TLInstancePresence-color-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+color: string
+```
+
+---
+
+### `currentPageId` \{#TLInstancePresence-currentPageId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+currentPageId: TLPageId
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `cursor` \{#TLInstancePresence-cursor-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+cursor: {
+  x: number
+  y: number
+  type: TLCursor['type']
+  rotation: number
+}
+```
+
+##### References
+
+[TLCursor](/gen/tlschema/TLCursor-interface)
+
+---
+
+### `followingUserId` \{#TLInstancePresence-followingUserId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+followingUserId: null | string
+```
+
+---
+
+### `lastActivityTimestamp` \{#TLInstancePresence-lastActivityTimestamp-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+lastActivityTimestamp: number
+```
+
+---
+
+### `screenBounds` \{#TLInstancePresence-screenBounds-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+screenBounds: Box2dModel
+```
+
+##### References
+
+[Box2dModel](/gen/tlschema/Box2dModel-interface)
+
+---
+
+### `scribble` \{#TLInstancePresence-scribble-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+scribble: null | TLScribble
+```
+
+##### References
+
+[TLScribble](/gen/tlschema/TLScribble-type)
+
+---
+
+### `selectedIds` \{#TLInstancePresence-selectedIds-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+selectedIds: TLShapeId[]
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `userId` \{#TLInstancePresence-userId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+userId: string
+```
+
+---
+
+### `userName` \{#TLInstancePresence-userName-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+userName: string
+```
+
+---
+

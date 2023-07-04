@@ -1,0 +1,28 @@
+---
+title: RecordsDiff
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 20
+---<Small>Public TypeAlias</Small>
+
+A diff describing the changes to a record.
+
+
+##### Signature
+
+
+```ts
+type RecordsDiff<R extends UnknownRecord> = {
+  added: Record<IdOf<R>, R>
+  updated: Record<IdOf<R>, [from: R, to: R]>
+  removed: Record<IdOf<R>, R>
+}
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [IdOf](/gen/store/IdOf-type)
+

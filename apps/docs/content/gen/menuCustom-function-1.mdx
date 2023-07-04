@@ -1,0 +1,69 @@
+---
+title: menuCustom
+status: published
+category: ui
+group: Function
+author: api
+date: 06/23/2023
+order: 9
+---<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`opts`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Partial<{
+  readonlyOk: boolean
+  disabled: boolean
+}>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+{
+  id: string
+  type: 'custom'
+  disabled: boolean
+  readonlyOk: boolean
+}
+```
+

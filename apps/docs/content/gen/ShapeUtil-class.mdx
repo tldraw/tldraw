@@ -1,0 +1,2569 @@
+---
+title: ShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 99
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canBind](#ShapeUtil-canBind-member)
+  - [canCrop](#ShapeUtil-canCrop-member)
+  - [canEdit](#ShapeUtil-canEdit-member)
+  - [canResize](#ShapeUtil-canResize-member)
+  - [canScroll](#ShapeUtil-canScroll-member)
+  - [canSnap](#ShapeUtil-canSnap-member)
+  - [canUnmount](#ShapeUtil-canUnmount-member)
+  - [editor](#ShapeUtil-editor-member)
+  - [hideResizeHandles](#ShapeUtil-hideResizeHandles-member)
+  - [hideRotateHandle](#ShapeUtil-hideRotateHandle-member)
+  - [hideSelectionBoundsBg](#ShapeUtil-hideSelectionBoundsBg-member)
+  - [hideSelectionBoundsFg](#ShapeUtil-hideSelectionBoundsFg-member)
+  - [isAspectRatioLocked](#ShapeUtil-isAspectRatioLocked-member)
+  - [isClosed](#ShapeUtil-isClosed-member)
+  - [onBeforeCreate](#ShapeUtil-onBeforeCreate-member)
+  - [onBeforeUpdate](#ShapeUtil-onBeforeUpdate-member)
+  - [onChildrenChange](#ShapeUtil-onChildrenChange-member)
+  - [onClick](#ShapeUtil-onClick-member)
+  - [onDoubleClick](#ShapeUtil-onDoubleClick-member)
+  - [onDoubleClickEdge](#ShapeUtil-onDoubleClickEdge-member)
+  - [onDoubleClickHandle](#ShapeUtil-onDoubleClickHandle-member)
+  - [onDragShapesOut](#ShapeUtil-onDragShapesOut-member)
+  - [onDragShapesOver](#ShapeUtil-onDragShapesOver-member)
+  - [onDropShapesOver](#ShapeUtil-onDropShapesOver-member)
+  - [onEditEnd](#ShapeUtil-onEditEnd-member)
+  - [onHandleChange](#ShapeUtil-onHandleChange-member)
+  - [onResize](#ShapeUtil-onResize-member)
+  - [onResizeEnd](#ShapeUtil-onResizeEnd-member)
+  - [onResizeStart](#ShapeUtil-onResizeStart-member)
+  - [onRotate](#ShapeUtil-onRotate-member)
+  - [onRotateEnd](#ShapeUtil-onRotateEnd-member)
+  - [onRotateStart](#ShapeUtil-onRotateStart-member)
+  - [onTranslate](#ShapeUtil-onTranslate-member)
+  - [onTranslateEnd](#ShapeUtil-onTranslateEnd-member)
+  - [onTranslateStart](#ShapeUtil-onTranslateStart-member)
+  - [styleProps](#ShapeUtil-styleProps-member)
+  - [type](#ShapeUtil-type-member)
+  - [type](#ShapeUtil-type-member)
+- [Methods](#methods)
+  - [canDropShapes](#ShapeUtil-canDropShapes-member-1)
+  - [canReceiveNewChildrenOfType](#ShapeUtil-canReceiveNewChildrenOfType-member-1)
+  - [center](#ShapeUtil-center-member-1)
+  - [component](#ShapeUtil-component-member-1)
+  - [getBounds](#ShapeUtil-getBounds-member-1)
+  - [getCanvasSvgDefs](#ShapeUtil-getCanvasSvgDefs-member-1)
+  - [getCenter](#ShapeUtil-getCenter-member-1)
+  - [getDefaultProps](#ShapeUtil-getDefaultProps-member-1)
+  - [getHandles](#ShapeUtil-getHandles-member-1)
+  - [getOutline](#ShapeUtil-getOutline-member-1)
+  - [getOutlineSegments](#ShapeUtil-getOutlineSegments-member-1)
+  - [hitTestLineSegment](#ShapeUtil-hitTestLineSegment-member-1)
+  - [hitTestPoint](#ShapeUtil-hitTestPoint-member-1)
+  - [indicator](#ShapeUtil-indicator-member-1)
+  - [setStyleInPartial](#ShapeUtil-setStyleInPartial-member-1)
+  - [snapPoints](#ShapeUtil-snapPoints-member-1)
+  - [toBackgroundSvg](#ShapeUtil-toBackgroundSvg-member-1)
+  - [toSvg](#ShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {}
+```
+
+##### References
+
+[TLUnknownShape](/gen/tlschema/TLUnknownShape-type)
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `ShapeUtil` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`type`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape['type']
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`styleProps`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+ReadonlyMap<StyleProp<unknown>, string>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [StyleProp](/gen/tlschema/StyleProp-class)
+
+---
+
+## Properties
+
+### `canBind` \{#ShapeUtil-canBind-member}
+
+<Small>Public Property</Small>
+
+Whether the shape can be bound to by an arrow.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`_otherShape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The other shape attempting to bind to this shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+canBind: <K>(_shape: Shape, _otherShape?: K | undefined) => boolean
+```
+
+---
+
+### `canCrop` \{#ShapeUtil-canCrop-member}
+
+<Small>Public Property</Small>
+
+Whether the shape can be cropped.
+
+
+##### Signature
+
+
+```ts
+canCrop: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `canEdit` \{#ShapeUtil-canEdit-member}
+
+<Small>Public Property</Small>
+
+Whether the shape can be double clicked to edit.
+
+
+##### Signature
+
+
+```ts
+canEdit: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `canResize` \{#ShapeUtil-canResize-member}
+
+<Small>Public Property</Small>
+
+Whether the shape can be resized.
+
+
+##### Signature
+
+
+```ts
+canResize: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `canScroll` \{#ShapeUtil-canScroll-member}
+
+<Small>Public Property</Small>
+
+Whether the shape can be scrolled while editing.
+
+
+##### Signature
+
+
+```ts
+canScroll: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `canSnap` \{#ShapeUtil-canSnap-member}
+
+<Small>Public Property</Small>
+
+Whether the shape can be snapped to by another shape.
+
+
+##### Signature
+
+
+```ts
+canSnap: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `canUnmount` \{#ShapeUtil-canUnmount-member}
+
+<Small>Public Property</Small>
+
+Whether the shape should unmount when not visible in the editor. Consider keeping this to false if the shape's `component` has local state.
+
+
+##### Signature
+
+
+```ts
+canUnmount: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `editor` \{#ShapeUtil-editor-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+editor: Editor
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class)
+
+---
+
+### `hideResizeHandles` \{#ShapeUtil-hideResizeHandles-member}
+
+<Small>Public Property</Small>
+
+Whether the shape should hide its resize handles when selected.
+
+
+##### Signature
+
+
+```ts
+hideResizeHandles: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `hideRotateHandle` \{#ShapeUtil-hideRotateHandle-member}
+
+<Small>Public Property</Small>
+
+Whether the shape should hide its resize handles when selected.
+
+
+##### Signature
+
+
+```ts
+hideRotateHandle: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `hideSelectionBoundsBg` \{#ShapeUtil-hideSelectionBoundsBg-member}
+
+<Small>Public Property</Small>
+
+Whether the shape should hide its selection bounds background when selected.
+
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsBg: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `hideSelectionBoundsFg` \{#ShapeUtil-hideSelectionBoundsFg-member}
+
+<Small>Public Property</Small>
+
+Whether the shape should hide its selection bounds foreground when selected.
+
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsFg: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `isAspectRatioLocked` \{#ShapeUtil-isAspectRatioLocked-member}
+
+<Small>Public Property</Small>
+
+Whether the shape's aspect ratio is locked.
+
+
+##### Signature
+
+
+```ts
+isAspectRatioLocked: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `isClosed` \{#ShapeUtil-isClosed-member}
+
+<Small>Public Property</Small>
+
+Whether the shape's outline is closed.
+
+
+##### Signature
+
+
+```ts
+isClosed: TLShapeUtilFlag<Shape>
+```
+
+##### References
+
+[TLShapeUtilFlag](/gen/editor/TLShapeUtilFlag-type)
+
+---
+
+### `onBeforeCreate` \{#ShapeUtil-onBeforeCreate-member}
+
+<Small>Public Property</Small>
+
+A callback called just before a shape is created. This method provides a last chance to modify the created shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+onBeforeCreate = (next) => {
+  return { ...next, x: next.x + 1 }
+}
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`next`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The next shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onBeforeCreate?: TLOnBeforeCreateHandler<Shape>
+```
+
+##### References
+
+[TLOnBeforeCreateHandler](/gen/editor/TLOnBeforeCreateHandler-type)
+
+---
+
+### `onBeforeUpdate` \{#ShapeUtil-onBeforeUpdate-member}
+
+<Small>Public Property</Small>
+
+A callback called just before a shape is updated. This method provides a last chance to modify the updated shape.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+onBeforeUpdate = (prev, next) => {
+  if (prev.x === next.x) {
+    return { ...next, x: next.x + 1 }
+  }
+}
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`prev`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The previous shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`next`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The next shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>
+```
+
+##### References
+
+[TLOnBeforeUpdateHandler](/gen/editor/TLOnBeforeUpdateHandler-type)
+
+---
+
+### `onChildrenChange` \{#ShapeUtil-onChildrenChange-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape's children change.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onChildrenChange?: TLOnChildrenChangeHandler<Shape>
+```
+
+##### References
+
+[TLOnChildrenChangeHandler](/gen/editor/TLOnChildrenChangeHandler-type)
+
+---
+
+### `onClick` \{#ShapeUtil-onClick-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape is clicked.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onClick?: TLOnClickHandler<Shape>
+```
+
+##### References
+
+[TLOnClickHandler](/gen/editor/TLOnClickHandler-type)
+
+---
+
+### `onDoubleClick` \{#ShapeUtil-onDoubleClick-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape is double clicked.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onDoubleClick?: TLOnDoubleClickHandler<Shape>
+```
+
+##### References
+
+[TLOnDoubleClickHandler](/gen/editor/TLOnDoubleClickHandler-type)
+
+---
+
+### `onDoubleClickEdge` \{#ShapeUtil-onDoubleClickEdge-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape's edge is double clicked.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onDoubleClickEdge?: TLOnDoubleClickHandler<Shape>
+```
+
+##### References
+
+[TLOnDoubleClickHandler](/gen/editor/TLOnDoubleClickHandler-type)
+
+---
+
+### `onDoubleClickHandle` \{#ShapeUtil-onDoubleClickHandle-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape's handle is double clicked.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`handle`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The handle that is double-clicked.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onDoubleClickHandle?: TLOnDoubleClickHandleHandler<Shape>
+```
+
+##### References
+
+[TLOnDoubleClickHandleHandler](/gen/editor/TLOnDoubleClickHandleHandler-type)
+
+---
+
+### `onDragShapesOut` \{#ShapeUtil-onDragShapesOut-member}
+
+<Small>Public Property</Small>
+
+A callback called when some other shapes are dragged out of this one.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`shapes`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shapes that are being dragged out.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onDragShapesOut?: TLOnDragHandler<Shape>
+```
+
+##### References
+
+[TLOnDragHandler](/gen/editor/TLOnDragHandler-type)
+
+---
+
+### `onDragShapesOver` \{#ShapeUtil-onDragShapesOver-member}
+
+<Small>Public Property</Small>
+
+A callback called when some other shapes are dragged over this one.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+onDragShapesOver = (shape, shapes) => {
+  return { shouldHint: true }
+}
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`shapes`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shapes that are being dragged over this one.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onDragShapesOver?: TLOnDragHandler<
+  Shape,
+  {
+    shouldHint: boolean
+  }
+>
+```
+
+##### References
+
+[TLOnDragHandler](/gen/editor/TLOnDragHandler-type)
+
+---
+
+### `onDropShapesOver` \{#ShapeUtil-onDropShapesOver-member}
+
+<Small>Public Property</Small>
+
+A callback called when some other shapes are dropped over this one.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`shapes`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shapes that are being dropped over this one.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onDropShapesOver?: TLOnDragHandler<Shape>
+```
+
+##### References
+
+[TLOnDragHandler](/gen/editor/TLOnDragHandler-type)
+
+---
+
+### `onEditEnd` \{#ShapeUtil-onEditEnd-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape finishes being editing.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onEditEnd?: TLOnEditEndHandler<Shape>
+```
+
+##### References
+
+[TLOnEditEndHandler](/gen/editor/TLOnEditEndHandler-type)
+
+---
+
+### `onHandleChange` \{#ShapeUtil-onHandleChange-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape's handle changes.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+An object containing the handle and whether the handle is 'precise' or not.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onHandleChange?: TLOnHandleChangeHandler<Shape>
+```
+
+##### References
+
+[TLOnHandleChangeHandler](/gen/editor/TLOnHandleChangeHandler-type)
+
+---
+
+### `onResize` \{#ShapeUtil-onResize-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape changes from a resize.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape at the start of the resize.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+Info about the resize.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onResize?: TLOnResizeHandler<Shape>
+```
+
+##### References
+
+[TLOnResizeHandler](/gen/editor/TLOnResizeHandler-type)
+
+---
+
+### `onResizeEnd` \{#ShapeUtil-onResizeEnd-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape finishes resizing.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`initial`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape at the start of the resize.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`current`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The current shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onResizeEnd?: TLOnResizeEndHandler<Shape>
+```
+
+##### References
+
+[TLOnResizeEndHandler](/gen/editor/TLOnResizeEndHandler-type)
+
+---
+
+### `onResizeStart` \{#ShapeUtil-onResizeStart-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape starts being resized.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onResizeStart?: TLOnResizeStartHandler<Shape>
+```
+
+##### References
+
+[TLOnResizeStartHandler](/gen/editor/TLOnResizeStartHandler-type)
+
+---
+
+### `onRotate` \{#ShapeUtil-onRotate-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape changes from a rotation.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`initial`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape at the start of the rotation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`current`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The current shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onRotate?: TLOnRotateHandler<Shape>
+```
+
+##### References
+
+[TLOnRotateHandler](/gen/editor/TLOnRotateHandler-type)
+
+---
+
+### `onRotateEnd` \{#ShapeUtil-onRotateEnd-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape finishes rotating.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`initial`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape at the start of the rotation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`current`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The current shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onRotateEnd?: TLOnRotateEndHandler<Shape>
+```
+
+##### References
+
+[TLOnRotateEndHandler](/gen/editor/TLOnRotateEndHandler-type)
+
+---
+
+### `onRotateStart` \{#ShapeUtil-onRotateStart-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape starts being rotated.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onRotateStart?: TLOnRotateStartHandler<Shape>
+```
+
+##### References
+
+[TLOnRotateStartHandler](/gen/editor/TLOnRotateStartHandler-type)
+
+---
+
+### `onTranslate` \{#ShapeUtil-onTranslate-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape changes from a translation.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`initial`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape at the start of the translation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`current`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The current shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onTranslate?: TLOnTranslateHandler<Shape>
+```
+
+##### References
+
+[TLOnTranslateHandler](/gen/editor/TLOnTranslateHandler-type)
+
+---
+
+### `onTranslateEnd` \{#ShapeUtil-onTranslateEnd-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape finishes translating.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`initial`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape at the start of the translation.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`current`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The current shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onTranslateEnd?: TLOnTranslateEndHandler<Shape>
+```
+
+##### References
+
+[TLOnTranslateEndHandler](/gen/editor/TLOnTranslateEndHandler-type)
+
+---
+
+### `onTranslateStart` \{#ShapeUtil-onTranslateStart-member}
+
+<Small>Public Property</Small>
+
+A callback called when a shape starts being translated.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+onTranslateStart?: TLOnTranslateStartHandler<Shape>
+```
+
+##### References
+
+[TLOnTranslateStartHandler](/gen/editor/TLOnTranslateStartHandler-type)
+
+---
+
+### `styleProps` \{#ShapeUtil-styleProps-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>
+```
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class)
+
+---
+
+### `type` \{#ShapeUtil-type-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly type: Shape['type']
+```
+
+---
+
+### `type` \{#ShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+The type of the shape util, which should match the shape's type.
+
+
+##### Signature
+
+
+```ts
+static type: string
+```
+
+---
+
+## Methods
+
+### `canDropShapes()` \{#ShapeUtil-canDropShapes-member-1}
+
+<Small>Public Method</Small>
+
+Get whether the shape can receive children of a given type.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape type.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`shapes`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape[]
+```
+
+The shapes that are being dropped.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `canReceiveNewChildrenOfType()` \{#ShapeUtil-canReceiveNewChildrenOfType-member-1}
+
+<Small>Public Method</Small>
+
+Get whether the shape can receive children of a given type.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`type`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShape['type']
+```
+
+The shape type.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `center()` \{#ShapeUtil-center-member-1}
+
+<Small>Public Method</Small>
+
+Get the shape's cached center.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `component()` \{#ShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+Get a JSX element for the shape (as an HTML element).
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+any
+```
+
+---
+
+### `getBounds()` \{#ShapeUtil-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+Get the (not cached) bounds for the shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getCanvasSvgDefs()` \{#ShapeUtil-getCanvasSvgDefs-member-1}
+
+<Small>Public Method</Small>
+
+Return elements to be added to the \<defs\> section of the canvases SVG context. This can be used to define SVG content (e.g. patterns & masks) that can be referred to by ID from svg elements returned by `component`.
+
+
+Each def should have a unique `key`. If multiple defs from different shapes all have the same key, only one will be used.
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLShapeUtilCanvasSvgDef[]
+```
+
+---
+
+### `getCenter()` \{#ShapeUtil-getCenter-member-1}
+
+<Small>Public Method</Small>
+
+Get the shape's (not cached) center.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getDefaultProps()` \{#ShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+Get the default props for a shape.
+
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+Shape['props']
+```
+
+---
+
+### `getHandles()` \{#ShapeUtil-getHandles-member-1}
+
+<Small>Public Method</Small>
+
+Get an array of handle models for the shape. This is an optional method.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+util.getHandles?.(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLHandle[]
+```
+
+##### References
+
+[TLHandle](/gen/tlschema/TLHandle-interface)
+
+---
+
+### `getOutline()` \{#ShapeUtil-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+Get the shape's (not cached) outline.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getOutlineSegments()` \{#ShapeUtil-getOutlineSegments-member-1}
+
+<Small>Public Method</Small>
+
+Get an array of outline segments for the shape. For most shapes, this will be a single segment that includes the entire outline. For shapes with handles, this might be segments of the outline between each handle.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+util.getOutlineSegments(myShape)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[][]
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `hitTestLineSegment()` \{#ShapeUtil-hitTestLineSegment-member-1}
+
+<Small>Public Method</Small>
+
+Get whether a point intersects the shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The line segment's first point.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The line segment's second point.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+ Whether the line segment intersects the shape.
+
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `hitTestPoint()` \{#ShapeUtil-hitTestPoint-member-1}
+
+<Small>Public Method</Small>
+
+Get whether a point intersects the shape.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+The point to test.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+ Whether the point intersects the shape.
+
+
+##### References
+
+[VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `indicator()` \{#ShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+Get JSX describing the shape's indicator (as an SVG element).
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+any
+```
+
+---
+
+### `setStyleInPartial()` \{#ShapeUtil-setStyleInPartial-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`style`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+StyleProp<T>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLShapePartial<Shape>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`value`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLShapePartial<Shape>
+```
+
+##### References
+
+[StyleProp](/gen/tlschema/StyleProp-class), [TLShapePartial](/gen/tlschema/TLShapePartial-type)
+
+---
+
+### `snapPoints()` \{#ShapeUtil-snapPoints-member-1}
+
+<Small>Public Method</Small>
+
+Get the shape's snap points.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `toBackgroundSvg()` \{#ShapeUtil-toBackgroundSvg-member-1}
+
+<Small>Public Method</Small>
+
+Get the shape's background layer as an SVG object.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ctx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SvgExportContext
+```
+
+ctx - The export context for the SVG - used for adding e.g. \<def\>s
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+null | Promise<SVGElement> | SVGElement
+```
+
+ An SVG element.
+
+
+---
+
+### `toSvg()` \{#ShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+Get the shape as an SVG object.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Shape
+```
+
+The shape.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ctx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SvgExportContext
+```
+
+The export context for the SVG - used for adding e.g. \<def\>s
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<SVGElement> | SVGElement
+```
+
+ An SVG element.
+
+
+---
+

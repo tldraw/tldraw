@@ -1,0 +1,49 @@
+---
+title: preventDefault
+status: published
+category: editor
+group: Function
+author: api
+date: 06/23/2023
+order: 90
+---<Small>Public Function</Small>
+
+This function calls `event.preventDefault()` for you. Why is that useful?
+
+
+Beacuase if you enable `window.preventDefaultLogging = true` it'll log out a message when it happens. Because we use console.warn rather than (log) you'll get a stack trace in the inspector telling you exactly where it happened. This is important because `e.preventDefault()` is the source of many bugs, but unfortuantly it can't be avoided because it also stops a lot of default behaviour which doesn't make sense in our UI
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`event`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Event | React.BaseSyntheticEvent
+```
+
+To prevent default on
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+void
+```
+

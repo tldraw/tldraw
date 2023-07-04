@@ -1,0 +1,33 @@
+---
+title: SharedStyle
+status: published
+category: editor
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 100
+---<Small>Public TypeAlias</Small>
+
+The value of a particular [StyleProp](/gen/tlschema/StyleProp-class).
+
+
+A `mixed` style means that in the current selection, there are lots of different values for the same style prop - e.g. a red and a blue shape are selected.
+
+
+A `shared` style means that all shapes in the selection share the same value for this style prop.
+
+
+##### Signature
+
+
+```ts
+type SharedStyle<T> =
+  | {
+      readonly type: 'mixed'
+    }
+  | {
+      readonly type: 'shared'
+      readonly value: T
+    }
+```
+

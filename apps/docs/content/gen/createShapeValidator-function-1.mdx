@@ -1,0 +1,79 @@
+---
+title: createShapeValidator
+status: published
+category: tlschema
+group: Function
+author: api
+date: 06/23/2023
+order: 13
+---<Small>Public Function</Small>
+
+
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`type`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Type
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`props`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  [K in keyof Props]: T.Validatable<Props[K]>
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+T.ObjectValidator<{
+  id: TLShapeId
+  typeName: 'shape'
+  x: number
+  y: number
+  rotation: number
+  index: string
+  parentId: TLParentId
+  type: Type
+  isLocked: boolean
+  opacity: number
+  props: Props | Record<string, unknown>
+}>
+```
+
+##### References
+
+[TLShapeId](/gen/tlschema/TLShapeId-type), [TLParentId](/gen/tlschema/TLParentId-type)
+

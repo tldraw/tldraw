@@ -1,0 +1,32 @@
+---
+title: TLUiEventHandler
+status: published
+category: ui
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 28
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLUiEventHandler<T extends keyof TLUiEventMap = keyof TLUiEventMap> = (
+  name: T,
+  data: Join<
+    {
+      source: TLUiEventSource
+    },
+    TLUiEventMap[T]
+  >
+) => void
+```
+
+##### References
+
+[TLUiEventSource](/gen/ui/TLUiEventSource-type)
+

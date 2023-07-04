@@ -1,0 +1,32 @@
+---
+title: MigrationResult
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 17
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type MigrationResult<T> =
+  | {
+      type: 'error'
+      reason: MigrationFailureReason
+    }
+  | {
+      type: 'success'
+      value: T
+    }
+```
+
+##### References
+
+[MigrationFailureReason](/gen/store/MigrationFailureReason-enum)
+

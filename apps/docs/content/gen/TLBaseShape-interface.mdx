@@ -1,0 +1,168 @@
+---
+title: TLBaseShape
+status: published
+category: tlschema
+group: Interface
+author: api
+date: 06/23/2023
+order: 65
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [index](#TLBaseShape-index-member)
+  - [isLocked](#TLBaseShape-isLocked-member)
+  - [opacity](#TLBaseShape-opacity-member)
+  - [parentId](#TLBaseShape-parentId-member)
+  - [props](#TLBaseShape-props-member)
+  - [rotation](#TLBaseShape-rotation-member)
+  - [type](#TLBaseShape-type-member)
+  - [x](#TLBaseShape-x-member)
+  - [y](#TLBaseShape-y-member)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+interface TLBaseShape<Type extends string, Props extends object>
+  extends BaseRecord<'shape', TLShapeId> {}
+```
+
+##### References
+
+[BaseRecord](/gen/store/BaseRecord-interface), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+## Properties
+
+### `index` \{#TLBaseShape-index-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+index: string
+```
+
+---
+
+### `isLocked` \{#TLBaseShape-isLocked-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isLocked: boolean
+```
+
+---
+
+### `opacity` \{#TLBaseShape-opacity-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+opacity: TLOpacityType
+```
+
+##### References
+
+[TLOpacityType](/gen/tlschema/TLOpacityType-type)
+
+---
+
+### `parentId` \{#TLBaseShape-parentId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+parentId: TLParentId
+```
+
+##### References
+
+[TLParentId](/gen/tlschema/TLParentId-type)
+
+---
+
+### `props` \{#TLBaseShape-props-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+props: Props
+```
+
+---
+
+### `rotation` \{#TLBaseShape-rotation-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+rotation: number
+```
+
+---
+
+### `type` \{#TLBaseShape-type-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+type: Type
+```
+
+---
+
+### `x` \{#TLBaseShape-x-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+x: number
+```
+
+---
+
+### `y` \{#TLBaseShape-y-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+y: number
+```
+
+---
+

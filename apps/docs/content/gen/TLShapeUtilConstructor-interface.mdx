@@ -1,0 +1,122 @@
+---
+title: TLShapeUtilConstructor
+status: published
+category: editor
+group: Interface
+author: api
+date: 06/23/2023
+order: 176
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [type](#TLShapeUtilConstructor-type-member)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+interface TLShapeUtilConstructor<
+  T extends TLUnknownShape,
+  U extends ShapeUtil<T> = ShapeUtil<T>
+> {}
+```
+
+##### References
+
+[TLUnknownShape](/gen/tlschema/TLUnknownShape-type), [ShapeUtil](/gen/editor/ShapeUtil-class)
+
+---
+
+### `(new)` \{#TLShapeUtilConstructor-new-1}
+
+<Small>Public ConstructSignature</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`type`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+T['type']
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`styleProps`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+ReadonlyMap<StyleProp<unknown>, string>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+U
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [StyleProp](/gen/tlschema/StyleProp-class)
+
+---
+
+## Properties
+
+### `type` \{#TLShapeUtilConstructor-type-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+type: T['type']
+```
+
+---
+

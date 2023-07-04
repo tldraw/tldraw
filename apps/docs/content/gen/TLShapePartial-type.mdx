@@ -1,0 +1,30 @@
+---
+title: TLShapePartial
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 117
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type TLShapePartial<T extends TLShape = TLShape> = T extends T
+  ? {
+      id: TLShapeId
+      type: T['type']
+      props?: Partial<T['props']>
+    } & Partial<Omit<T, 'id' | 'props' | 'type'>>
+  : never
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+

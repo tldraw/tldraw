@@ -1,0 +1,32 @@
+---
+title: SchemaShapeInfo
+status: published
+category: tlschema
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 50
+---<Small>Public TypeAlias</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+type SchemaShapeInfo = {
+  migrations?: Migrations
+  props?: Record<
+    string,
+    {
+      validate: (prop: any) => any
+    }
+  >
+}
+```
+
+##### References
+
+[Migrations](/gen/store/Migrations-interface)
+

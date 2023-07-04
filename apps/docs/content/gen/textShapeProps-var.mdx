@@ -1,0 +1,53 @@
+---
+title: textShapeProps
+status: published
+category: tlschema
+group: Variable
+author: api
+date: 06/23/2023
+order: 54
+---<Small>Public Readonly Variable</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+textShapeProps: {
+  color: import('..').EnumStyleProp<
+    | 'black'
+    | 'blue'
+    | 'green'
+    | 'grey'
+    | 'light-blue'
+    | 'light-green'
+    | 'light-red'
+    | 'light-violet'
+    | 'orange'
+    | 'red'
+    | 'violet'
+    | 'yellow'
+  >
+  size: import('..').EnumStyleProp<'l' | 'm' | 's' | 'xl'>
+  font: import('..').EnumStyleProp<'draw' | 'mono' | 'sans' | 'serif'>
+  align: import('..').EnumStyleProp<
+    | 'end-legacy'
+    | 'end'
+    | 'middle-legacy'
+    | 'middle'
+    | 'start-legacy'
+    | 'start'
+  >
+  w: T.Validator<number>
+  text: T.Validator<string>
+  scale: T.Validator<number>
+  autoSize: T.Validator<boolean>
+}
+```
+
+##### References
+
+[EnumStyleProp](/gen/tlschema/EnumStyleProp-class)
+

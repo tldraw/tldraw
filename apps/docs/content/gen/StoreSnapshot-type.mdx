@@ -1,0 +1,24 @@
+---
+title: StoreSnapshot
+status: published
+category: store
+group: TypeAlias
+author: api
+date: 06/23/2023
+order: 31
+---<Small>Public TypeAlias</Small>
+
+A serialized snapshot of the record store's values.
+
+
+##### Signature
+
+
+```ts
+type StoreSnapshot<R extends UnknownRecord> = Record<IdOf<R>, R>
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type), [IdOf](/gen/store/IdOf-type)
+

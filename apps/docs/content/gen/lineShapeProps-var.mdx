@@ -1,0 +1,45 @@
+---
+title: lineShapeProps
+status: published
+category: tlschema
+group: Variable
+author: api
+date: 06/23/2023
+order: 44
+---<Small>Public Readonly Variable</Small>
+
+
+
+
+##### Signature
+
+
+```ts
+lineShapeProps: {
+  color: import('../styles/StyleProp').EnumStyleProp<
+    | 'black'
+    | 'blue'
+    | 'green'
+    | 'grey'
+    | 'light-blue'
+    | 'light-green'
+    | 'light-red'
+    | 'light-violet'
+    | 'orange'
+    | 'red'
+    | 'violet'
+    | 'yellow'
+  >
+  dash: import('../styles/StyleProp').EnumStyleProp<
+    'dashed' | 'dotted' | 'draw' | 'solid'
+  >
+  size: import('../styles/StyleProp').EnumStyleProp<'l' | 'm' | 's' | 'xl'>
+  spline: import('../styles/StyleProp').EnumStyleProp<'cubic' | 'line'>
+  handles: T.DictValidator<string, import('../misc/TLHandle').TLHandle>
+}
+```
+
+##### References
+
+[EnumStyleProp](/gen/tlschema/EnumStyleProp-class), [TLHandle](/gen/tlschema/TLHandle-interface)
+

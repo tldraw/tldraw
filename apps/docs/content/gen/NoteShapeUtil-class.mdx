@@ -1,0 +1,571 @@
+---
+title: NoteShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 87
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canEdit](#NoteShapeUtil-canEdit-member)
+  - [hideResizeHandles](#NoteShapeUtil-hideResizeHandles-member)
+  - [hideSelectionBoundsBg](#NoteShapeUtil-hideSelectionBoundsBg-member)
+  - [hideSelectionBoundsFg](#NoteShapeUtil-hideSelectionBoundsFg-member)
+  - [onBeforeCreate](#NoteShapeUtil-onBeforeCreate-member)
+  - [onBeforeUpdate](#NoteShapeUtil-onBeforeUpdate-member)
+  - [onEditEnd](#NoteShapeUtil-onEditEnd-member)
+  - [type](#NoteShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#NoteShapeUtil-component-member-1)
+  - [getBounds](#NoteShapeUtil-getBounds-member-1)
+  - [getCenter](#NoteShapeUtil-getCenter-member-1)
+  - [getDefaultProps](#NoteShapeUtil-getDefaultProps-member-1)
+  - [getHeight](#NoteShapeUtil-getHeight-member-1)
+  - [getOutline](#NoteShapeUtil-getOutline-member-1)
+  - [indicator](#NoteShapeUtil-indicator-member-1)
+  - [toSvg](#NoteShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class NoteShapeUtil extends ShapeUtil<TLNoteShape> {}
+```
+
+##### References
+
+[ShapeUtil](/gen/editor/ShapeUtil-class), [TLNoteShape](/gen/tlschema/TLNoteShape-type)
+
+---
+
+## Properties
+
+### `canEdit` \{#NoteShapeUtil-canEdit-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canEdit: () => boolean
+```
+
+---
+
+### `hideResizeHandles` \{#NoteShapeUtil-hideResizeHandles-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideResizeHandles: () => boolean
+```
+
+---
+
+### `hideSelectionBoundsBg` \{#NoteShapeUtil-hideSelectionBoundsBg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsBg: () => boolean
+```
+
+---
+
+### `hideSelectionBoundsFg` \{#NoteShapeUtil-hideSelectionBoundsFg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsFg: () => boolean
+```
+
+---
+
+### `onBeforeCreate` \{#NoteShapeUtil-onBeforeCreate-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onBeforeCreate: (next: TLNoteShape) =>
+  | {
+      props: {
+        growY: number
+        color:
+          | 'black'
+          | 'blue'
+          | 'green'
+          | 'grey'
+          | 'light-blue'
+          | 'light-green'
+          | 'light-red'
+          | 'light-violet'
+          | 'orange'
+          | 'red'
+          | 'violet'
+          | 'yellow'
+        size: 'l' | 'm' | 's' | 'xl'
+        font: 'draw' | 'mono' | 'sans' | 'serif'
+        align:
+          | 'end-legacy'
+          | 'end'
+          | 'middle-legacy'
+          | 'middle'
+          | 'start-legacy'
+          | 'start'
+        verticalAlign: 'end' | 'middle' | 'start'
+        url: string
+        text: string
+      }
+      type: 'note'
+      x: number
+      y: number
+      rotation: number
+      index: string
+      parentId: import('@tldraw/tlschema').TLParentId
+      isLocked: boolean
+      opacity: number
+      id: import('@tldraw/tlschema').TLShapeId
+      typeName: 'shape'
+    }
+  | undefined
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type), [TLParentId](/gen/tlschema/TLParentId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `onBeforeUpdate` \{#NoteShapeUtil-onBeforeUpdate-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onBeforeUpdate: (
+  prev: TLNoteShape,
+  next: TLNoteShape
+) =>
+  | {
+      props: {
+        growY: number
+        color:
+          | 'black'
+          | 'blue'
+          | 'green'
+          | 'grey'
+          | 'light-blue'
+          | 'light-green'
+          | 'light-red'
+          | 'light-violet'
+          | 'orange'
+          | 'red'
+          | 'violet'
+          | 'yellow'
+        size: 'l' | 'm' | 's' | 'xl'
+        font: 'draw' | 'mono' | 'sans' | 'serif'
+        align:
+          | 'end-legacy'
+          | 'end'
+          | 'middle-legacy'
+          | 'middle'
+          | 'start-legacy'
+          | 'start'
+        verticalAlign: 'end' | 'middle' | 'start'
+        url: string
+        text: string
+      }
+      type: 'note'
+      x: number
+      y: number
+      rotation: number
+      index: string
+      parentId: import('@tldraw/tlschema').TLParentId
+      isLocked: boolean
+      opacity: number
+      id: import('@tldraw/tlschema').TLShapeId
+      typeName: 'shape'
+    }
+  | undefined
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type), [TLParentId](/gen/tlschema/TLParentId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `onEditEnd` \{#NoteShapeUtil-onEditEnd-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onEditEnd: TLOnEditEndHandler<TLNoteShape>
+```
+
+##### References
+
+[TLOnEditEndHandler](/gen/editor/TLOnEditEndHandler-type), [TLNoteShape](/gen/tlschema/TLNoteShape-type)
+
+---
+
+### `type` \{#NoteShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'note'
+```
+
+---
+
+## Methods
+
+### `component()` \{#NoteShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLNoteShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type)
+
+---
+
+### `getBounds()` \{#NoteShapeUtil-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLNoteShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Box2d
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getCenter()` \{#NoteShapeUtil-getCenter-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`_shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLNoteShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getDefaultProps()` \{#NoteShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLNoteShape['props']
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type)
+
+---
+
+### `getHeight()` \{#NoteShapeUtil-getHeight-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLNoteShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+number
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type)
+
+---
+
+### `getOutline()` \{#NoteShapeUtil-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLNoteShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `indicator()` \{#NoteShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLNoteShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type)
+
+---
+
+### `toSvg()` \{#NoteShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLNoteShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`ctx`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+SvgExportContext
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+SVGGElement
+```
+
+##### References
+
+[TLNoteShape](/gen/tlschema/TLNoteShape-type)
+
+---
+

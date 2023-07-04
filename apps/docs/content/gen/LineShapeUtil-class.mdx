@@ -1,0 +1,596 @@
+---
+title: LineShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 79
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [hideResizeHandles](#LineShapeUtil-hideResizeHandles-member)
+  - [hideRotateHandle](#LineShapeUtil-hideRotateHandle-member)
+  - [hideSelectionBoundsBg](#LineShapeUtil-hideSelectionBoundsBg-member)
+  - [hideSelectionBoundsFg](#LineShapeUtil-hideSelectionBoundsFg-member)
+  - [isClosed](#LineShapeUtil-isClosed-member)
+  - [onHandleChange](#LineShapeUtil-onHandleChange-member)
+  - [onResize](#LineShapeUtil-onResize-member)
+  - [type](#LineShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#LineShapeUtil-component-member-1)
+  - [getBounds](#LineShapeUtil-getBounds-member-1)
+  - [getDefaultProps](#LineShapeUtil-getDefaultProps-member-1)
+  - [getHandles](#LineShapeUtil-getHandles-member-1)
+  - [getOutline](#LineShapeUtil-getOutline-member-1)
+  - [getOutlineSegments](#LineShapeUtil-getOutlineSegments-member-1)
+  - [hitTestLineSegment](#LineShapeUtil-hitTestLineSegment-member-1)
+  - [hitTestPoint](#LineShapeUtil-hitTestPoint-member-1)
+  - [indicator](#LineShapeUtil-indicator-member-1)
+  - [toSvg](#LineShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class LineShapeUtil extends ShapeUtil<TLLineShape> {}
+```
+
+##### References
+
+[ShapeUtil](/gen/editor/ShapeUtil-class), [TLLineShape](/gen/tlschema/TLLineShape-type)
+
+---
+
+## Properties
+
+### `hideResizeHandles` \{#LineShapeUtil-hideResizeHandles-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideResizeHandles: () => boolean
+```
+
+---
+
+### `hideRotateHandle` \{#LineShapeUtil-hideRotateHandle-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideRotateHandle: () => boolean
+```
+
+---
+
+### `hideSelectionBoundsBg` \{#LineShapeUtil-hideSelectionBoundsBg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsBg: () => boolean
+```
+
+---
+
+### `hideSelectionBoundsFg` \{#LineShapeUtil-hideSelectionBoundsFg-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+hideSelectionBoundsFg: () => boolean
+```
+
+---
+
+### `isClosed` \{#LineShapeUtil-isClosed-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+isClosed: () => boolean
+```
+
+---
+
+### `onHandleChange` \{#LineShapeUtil-onHandleChange-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onHandleChange: TLOnHandleChangeHandler<TLLineShape>
+```
+
+##### References
+
+[TLOnHandleChangeHandler](/gen/editor/TLOnHandleChangeHandler-type), [TLLineShape](/gen/tlschema/TLLineShape-type)
+
+---
+
+### `onResize` \{#LineShapeUtil-onResize-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onResize: TLOnResizeHandler<TLLineShape>
+```
+
+##### References
+
+[TLOnResizeHandler](/gen/editor/TLOnResizeHandler-type), [TLLineShape](/gen/tlschema/TLLineShape-type)
+
+---
+
+### `type` \{#LineShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'line'
+```
+
+---
+
+## Methods
+
+### `component()` \{#LineShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLLineShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element | undefined
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type)
+
+---
+
+### `getBounds()` \{#LineShapeUtil-getBounds-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLLineShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+import('@tldraw/primitives').Box2d
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type), [Box2d](/gen/primitives/Box2d-class)
+
+---
+
+### `getDefaultProps()` \{#LineShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLLineShape['props']
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type)
+
+---
+
+### `getHandles()` \{#LineShapeUtil-getHandles-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLLineShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+TLHandle[]
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type), [TLHandle](/gen/tlschema/TLHandle-interface)
+
+---
+
+### `getOutline()` \{#LineShapeUtil-getOutline-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLLineShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[]
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `getOutlineSegments()` \{#LineShapeUtil-getOutlineSegments-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLLineShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Vec2d[][]
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `hitTestLineSegment()` \{#LineShapeUtil-hitTestLineSegment-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLLineShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`A`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`B`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `hitTestPoint()` \{#LineShapeUtil-hitTestPoint-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLLineShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`point`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Vec2d
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type), [Vec2d](/gen/primitives/Vec2d-class)
+
+---
+
+### `indicator()` \{#LineShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLLineShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type)
+
+---
+
+### `toSvg()` \{#LineShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLLineShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+SVGGElement
+```
+
+##### References
+
+[TLLineShape](/gen/tlschema/TLLineShape-type)
+
+---
+

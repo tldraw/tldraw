@@ -1,0 +1,704 @@
+---
+title: PlopManager
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 89
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [editor](#PlopManager-editor-member)
+  - [handleContent](#PlopManager-handleContent-member)
+  - [handleUrl](#PlopManager-handleUrl-member)
+- [Methods](#methods)
+  - [createAssetFromFile](#PlopManager-createAssetFromFile-member-1)
+  - [createAssetFromUrl](#PlopManager-createAssetFromUrl-member-1)
+  - [createShapesForAssets](#PlopManager-createShapesForAssets-member-1)
+  - [handleEmbed](#PlopManager-handleEmbed-member-1)
+  - [handleFiles](#PlopManager-handleFiles-member-1)
+  - [handleSvgText](#PlopManager-handleSvgText-member-1)
+  - [handleText](#PlopManager-handleText-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class ExternalContentManager {}
+```
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `ExternalContentManager` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[Editor](/gen/editor/Editor-class)
+
+---
+
+## Properties
+
+### `editor` \{#PlopManager-editor-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+editor: Editor
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class)
+
+---
+
+### `handleContent` \{#PlopManager-handleContent-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+handleContent: (info: TLExternalContent) => Promise<void>
+```
+
+##### References
+
+[TLExternalContent](/gen/editor/TLExternalContent-type)
+
+---
+
+### `handleUrl` \{#PlopManager-handleUrl-member}
+
+<Small>Public Property</Small>
+
+Handle urls from an external source. Feeling lucky? Overwrite this at runtime to change the way this type of external content is handled.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.this.handleUrl = myCustomMethod
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The editor instance
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`info`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The info object describing the external content.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+handleUrl: (
+  editor: Editor,
+  {
+    point,
+    url,
+  }: Extract<
+    TLExternalContent,
+    {
+      type: 'url'
+    }
+  >
+) => Promise<void>
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [TLExternalContent](/gen/editor/TLExternalContent-type)
+
+---
+
+## Methods
+
+### `createAssetFromFile()` \{#PlopManager-createAssetFromFile-member-1}
+
+<Small>Public Method</Small>
+
+Override this method to change how assets are created from files.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`_editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`file`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+File
+```
+
+The file to create the asset from.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<TLAsset>
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [TLAsset](/gen/tlschema/TLAsset-type)
+
+---
+
+### `createAssetFromUrl()` \{#PlopManager-createAssetFromUrl-member-1}
+
+<Small>Public Method</Small>
+
+Override me to change the way assets are created from urls.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`_editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`url`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The url to create the asset from
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<TLAsset>
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [TLAsset](/gen/tlschema/TLAsset-type)
+
+---
+
+### `createShapesForAssets()` \{#PlopManager-createShapesForAssets-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`assets`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLAsset[]
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`position`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+VecLike
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<void>
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [TLAsset](/gen/tlschema/TLAsset-type), [VecLike](/gen/primitives/VecLike-type)
+
+---
+
+### `handleEmbed()` \{#PlopManager-handleEmbed-member-1}
+
+<Small>Public Method</Small>
+
+Handle embed info from an external source. Feeling lucky? Overwrite this at runtime to change the way this type of external content is handled.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.this.handleEmbed = myCustomMethod
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+The editor instance
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`{ point, url, embed }`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Extract<
+  TLExternalContent,
+  {
+    type: 'embed'
+  }
+>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<void>
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [TLExternalContent](/gen/editor/TLExternalContent-type)
+
+---
+
+### `handleFiles()` \{#PlopManager-handleFiles-member-1}
+
+<Small>Public Method</Small>
+
+Handle files from an external source. Feeling lucky? Overwrite this at runtime to change the way this type of external content is handled.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.this.handleFiles = myCustomMethod
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+The editor instance
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`{ point, files }`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Extract<
+  TLExternalContent,
+  {
+    type: 'files'
+  }
+>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<void>
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [TLExternalContent](/gen/editor/TLExternalContent-type)
+
+---
+
+### `handleSvgText()` \{#PlopManager-handleSvgText-member-1}
+
+<Small>Public Method</Small>
+
+Handle svg text from an external source. Feeling lucky? Overwrite this at runtime to change the way this type of external content is handled.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.this.handleSvgText = myCustomMethod
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+The editor instance.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`{ point, text }`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Extract<
+  TLExternalContent,
+  {
+    type: 'svg-text'
+  }
+>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<void>
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [TLExternalContent](/gen/editor/TLExternalContent-type)
+
+---
+
+### `handleText()` \{#PlopManager-handleText-member-1}
+
+<Small>Public Method</Small>
+
+Handle plain text from an external source. Feeling lucky? Overwrite this at runtime to change the way this type of external content is handled.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+editor.this.handleText = myCustomMethod
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`editor`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Editor
+```
+
+The editor instance
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`{ point, text }`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Extract<
+  TLExternalContent,
+  {
+    type: 'text'
+  }
+>
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<void>
+```
+
+##### References
+
+[Editor](/gen/editor/Editor-class), [TLExternalContent](/gen/editor/TLExternalContent-type)
+
+---
+

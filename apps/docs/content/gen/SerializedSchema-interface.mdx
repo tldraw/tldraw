@@ -1,0 +1,90 @@
+---
+title: SerializedSchema
+status: published
+category: store
+group: Interface
+author: api
+date: 06/23/2023
+order: 24
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [recordVersions](#SerializedSchema-recordVersions-member)
+  - [schemaVersion](#SerializedSchema-schemaVersion-member)
+  - [storeVersion](#SerializedSchema-storeVersion-member)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+interface SerializedSchema {}
+```
+
+---
+
+## Properties
+
+### `recordVersions` \{#SerializedSchema-recordVersions-member}
+
+<Small>Public PropertySignature</Small>
+
+Record versions are the versions for each record type. e.g. adding a new field to a record
+
+
+##### Signature
+
+
+```ts
+recordVersions: Record<
+  string,
+  | {
+      version: number
+      subTypeVersions: Record<string, number>
+      subTypeKey: string
+    }
+  | {
+      version: number
+    }
+>
+```
+
+---
+
+### `schemaVersion` \{#SerializedSchema-schemaVersion-member}
+
+<Small>Public PropertySignature</Small>
+
+Schema version is the version for this type you're looking at right now
+
+
+##### Signature
+
+
+```ts
+schemaVersion: number
+```
+
+---
+
+### `storeVersion` \{#SerializedSchema-storeVersion-member}
+
+<Small>Public PropertySignature</Small>
+
+Store version is the version for the structure of the store. e.g. higher level structure like removing or renaming a record type.
+
+
+##### Signature
+
+
+```ts
+storeVersion: number
+```
+
+---
+

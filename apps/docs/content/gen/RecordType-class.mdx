@@ -1,0 +1,677 @@
+---
+title: RecordType
+status: published
+category: store
+group: Class
+author: api
+date: 06/23/2023
+order: 21
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [createDefaultProperties](#RecordType-createDefaultProperties-member)
+  - [isInstance](#RecordType-isInstance-member)
+  - [migrations](#RecordType-migrations-member)
+  - [scope](#RecordType-scope-member)
+  - [typeName](#RecordType-typeName-member)
+  - [validator](#RecordType-validator-member)
+- [Methods](#methods)
+  - [clone](#RecordType-clone-member-1)
+  - [create](#RecordType-create-member-1)
+  - [createCustomId](#RecordType-createCustomId-member-1)
+  - [createId](#RecordType-createId-member-1)
+  - [isId](#RecordType-isId-member-1)
+  - [parseId](#RecordType-parseId-member-1)
+  - [validate](#RecordType-validate-member-1)
+  - [withDefaultProperties](#RecordType-withDefaultProperties-member-1)
+</details>
+
+A record type is a type that can be stored in a record store. It is created with `createRecordType`.
+
+
+##### Signature
+
+
+```ts
+class RecordType<
+  R extends UnknownRecord,
+  RequiredProperties extends keyof Omit<R, 'id' | 'typeName'>
+> {}
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type)
+
+---
+
+### `Constructor`
+
+<Small>Public Constructor</Small>
+
+Constructs a new instance of the `RecordType` class
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`typeName`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+R['typeName']
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+<ParametersTableRow>
+<ParametersTableName>
+
+`config`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+{
+  readonly createDefaultProperties: () => Exclude<
+    OmitMeta<R>,
+    RequiredProperties
+  >
+  readonly migrations: Migrations
+  readonly validator?:
+    | {
+        validate: (r: unknown) => R
+      }
+    | StoreValidator<R>
+  readonly scope?: RecordScope
+}
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### References
+
+[Migrations](/gen/store/Migrations-interface), [StoreValidator](/gen/store/StoreValidator-type)
+
+---
+
+## Properties
+
+### `createDefaultProperties` \{#RecordType-createDefaultProperties-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly createDefaultProperties: () => Exclude<
+  OmitMeta<R>,
+  RequiredProperties
+>
+```
+
+---
+
+### `isInstance` \{#RecordType-isInstance-member}
+
+<Small>Public Property</Small>
+
+Check whether a record is an instance of this record type.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const result = recordType.isInstance(someRecord)
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`record`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+The record to check.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Signature
+
+
+```ts
+isInstance: (record?: UnknownRecord) => record is R
+```
+
+##### References
+
+[UnknownRecord](/gen/store/UnknownRecord-type)
+
+---
+
+### `migrations` \{#RecordType-migrations-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly migrations: Migrations
+```
+
+##### References
+
+[Migrations](/gen/store/Migrations-interface)
+
+---
+
+### `scope` \{#RecordType-scope-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly scope: RecordScope
+```
+
+---
+
+### `typeName` \{#RecordType-typeName-member}
+
+<Small>Public Readonly Property</Small>
+
+The unique type associated with this record.
+ 
+
+
+##### Signature
+
+
+```ts
+readonly typeName: R['typeName']
+```
+
+---
+
+### `validator` \{#RecordType-validator-member}
+
+<Small>Public Readonly Property</Small>
+
+##### Signature
+
+
+```ts
+readonly validator:
+  | {
+      validate: (r: unknown) => R
+    }
+  | StoreValidator<R>
+```
+
+##### References
+
+[StoreValidator](/gen/store/StoreValidator-type)
+
+---
+
+## Methods
+
+### `clone()` \{#RecordType-clone-member-1}
+
+<Small>Public Method</Small>
+
+Clone a record of this type.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`record`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+R
+```
+
+The record to clone.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+R
+```
+
+ The cloned record.
+
+
+---
+
+### `create()` \{#RecordType-create-member-1}
+
+<Small>Public Method</Small>
+
+Create a new record of this type.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`properties`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+Pick<R, RequiredProperties> &
+  Omit<Partial<R>, RequiredProperties>
+```
+
+The properties of the record.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+R
+```
+
+ The new record.
+
+
+---
+
+### `createCustomId()` \{#RecordType-createCustomId-member-1}
+
+<Small>Public Method</Small>
+
+Create a new ID for this record type based on the given ID.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const id = recordType.createCustomId('myId')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The ID to base the new ID on.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+IdOf<R>
+```
+
+ The new ID.
+
+
+##### References
+
+[IdOf](/gen/store/IdOf-type)
+
+---
+
+### `createId()` \{#RecordType-createId-member-1}
+
+<Small>Public Method</Small>
+
+Create a new ID for this record type.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const id = recordType.createId()
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`customUniquePart`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+IdOf<R>
+```
+
+ The new ID.
+
+
+##### References
+
+[IdOf](/gen/store/IdOf-type)
+
+---
+
+### `isId()` \{#RecordType-isId-member-1}
+
+<Small>Public Method</Small>
+
+Check whether an id is an id of this type.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const result = recordType.isIn('someId')
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+ <Small>(optional)</Small>
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+string
+```
+
+The id to check.
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+id is IdOf<R>
+```
+
+ Whether the id is an id of this type.
+
+
+##### References
+
+[IdOf](/gen/store/IdOf-type)
+
+---
+
+### `parseId()` \{#RecordType-parseId-member-1}
+
+<Small>Public Method</Small>
+
+Takes an id like `user:123` and returns the part after the colon `123`
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`id`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+IdOf<R>
+```
+
+The id
+
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+string
+```
+
+
+
+
+##### References
+
+[IdOf](/gen/store/IdOf-type)
+
+---
+
+### `validate()` \{#RecordType-validate-member-1}
+
+<Small>Public Method</Small>
+
+Check that the passed in record passes the validations for this type. Returns its input correctly typed if it does, but throws an error otherwise.
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`record`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+unknown
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+R
+```
+
+---
+
+### `withDefaultProperties()` \{#RecordType-withDefaultProperties-member-1}
+
+<Small>Public Method</Small>
+
+Create a new RecordType that has the same type name as this RecordType and includes the given default properties.
+
+
+
+
+##### Example
+
+
+
+
+```ts
+const authorType = createRecordType('author', () => ({ living: true }))
+const deadAuthorType = authorType.withDefaultProperties({ living: false })
+```
+
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`createDefaultProperties`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+() => DefaultProps
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+RecordType<R, Exclude<RequiredProperties, keyof DefaultProps>>
+```
+
+ The new RecordType.
+
+
+##### References
+
+[RecordType](/gen/store/RecordType-class)
+
+---
+

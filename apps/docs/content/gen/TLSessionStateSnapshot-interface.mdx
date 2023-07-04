@@ -1,0 +1,158 @@
+---
+title: TLSessionStateSnapshot
+status: published
+category: editor
+group: Interface
+author: api
+date: 06/23/2023
+order: 174
+---<Small>Public Interface</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [currentPageId](#TLSessionStateSnapshot-currentPageId-member)
+  - [exportBackground](#TLSessionStateSnapshot-exportBackground-member)
+  - [isDebugMode](#TLSessionStateSnapshot-isDebugMode-member)
+  - [isFocusMode](#TLSessionStateSnapshot-isFocusMode-member)
+  - [isGridMode](#TLSessionStateSnapshot-isGridMode-member)
+  - [isToolLocked](#TLSessionStateSnapshot-isToolLocked-member)
+  - [pageStates](#TLSessionStateSnapshot-pageStates-member)
+  - [version](#TLSessionStateSnapshot-version-member)
+</details>
+
+The state of the editor instance, not including any document state.
+
+
+##### Signature
+
+
+```ts
+interface TLSessionStateSnapshot {}
+```
+
+---
+
+## Properties
+
+### `currentPageId` \{#TLSessionStateSnapshot-currentPageId-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+currentPageId: TLPageId
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type)
+
+---
+
+### `exportBackground` \{#TLSessionStateSnapshot-exportBackground-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+exportBackground: boolean
+```
+
+---
+
+### `isDebugMode` \{#TLSessionStateSnapshot-isDebugMode-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isDebugMode: boolean
+```
+
+---
+
+### `isFocusMode` \{#TLSessionStateSnapshot-isFocusMode-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isFocusMode: boolean
+```
+
+---
+
+### `isGridMode` \{#TLSessionStateSnapshot-isGridMode-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isGridMode: boolean
+```
+
+---
+
+### `isToolLocked` \{#TLSessionStateSnapshot-isToolLocked-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+isToolLocked: boolean
+```
+
+---
+
+### `pageStates` \{#TLSessionStateSnapshot-pageStates-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+pageStates: Array<{
+  pageId: TLPageId
+  camera: {
+    x: number
+    y: number
+    z: number
+  }
+  selectedIds: TLShapeId[]
+  focusLayerId: null | TLShapeId
+}>
+```
+
+##### References
+
+[TLPageId](/gen/tlschema/TLPageId-type), [TLShapeId](/gen/tlschema/TLShapeId-type)
+
+---
+
+### `version` \{#TLSessionStateSnapshot-version-member}
+
+<Small>Public PropertySignature</Small>
+
+##### Signature
+
+
+```ts
+version: number
+```
+
+---
+

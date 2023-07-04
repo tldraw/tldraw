@@ -1,0 +1,341 @@
+---
+title: FrameShapeUtil
+status: published
+category: editor
+group: Class
+author: api
+date: 06/23/2023
+order: 36
+---<Small>Public Class</Small>
+
+<details>
+	<summary>Table of Contents</summary>
+- [Properties](#properties)
+  - [canBind](#FrameShapeUtil-canBind-member)
+  - [canDropShapes](#FrameShapeUtil-canDropShapes-member)
+  - [canEdit](#FrameShapeUtil-canEdit-member)
+  - [canReceiveNewChildrenOfType](#FrameShapeUtil-canReceiveNewChildrenOfType-member)
+  - [onDragShapesOut](#FrameShapeUtil-onDragShapesOut-member)
+  - [onDragShapesOver](#FrameShapeUtil-onDragShapesOver-member)
+  - [onResizeEnd](#FrameShapeUtil-onResizeEnd-member)
+  - [type](#FrameShapeUtil-type-member)
+- [Methods](#methods)
+  - [component](#FrameShapeUtil-component-member-1)
+  - [getDefaultProps](#FrameShapeUtil-getDefaultProps-member-1)
+  - [indicator](#FrameShapeUtil-indicator-member-1)
+  - [providesBackgroundForChildren](#FrameShapeUtil-providesBackgroundForChildren-member-1)
+  - [toSvg](#FrameShapeUtil-toSvg-member-1)
+</details>
+
+
+
+
+##### Signature
+
+
+```ts
+class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {}
+```
+
+##### References
+
+[BaseBoxShapeUtil](/gen/editor/BaseBoxShapeUtil-class), [TLFrameShape](/gen/tlschema/TLFrameShape-type)
+
+---
+
+## Properties
+
+### `canBind` \{#FrameShapeUtil-canBind-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canBind: () => boolean
+```
+
+---
+
+### `canDropShapes` \{#FrameShapeUtil-canDropShapes-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canDropShapes: (shape: TLFrameShape, _shapes: TLShape[]) => boolean
+```
+
+##### References
+
+[TLFrameShape](/gen/tlschema/TLFrameShape-type), [TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `canEdit` \{#FrameShapeUtil-canEdit-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canEdit: () => boolean
+```
+
+---
+
+### `canReceiveNewChildrenOfType` \{#FrameShapeUtil-canReceiveNewChildrenOfType-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+canReceiveNewChildrenOfType: (
+  shape: TLShape,
+  _type: TLShape['type']
+) => boolean
+```
+
+##### References
+
+[TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `onDragShapesOut` \{#FrameShapeUtil-onDragShapesOut-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onDragShapesOut: (_shape: TLFrameShape, shapes: TLShape[]) => void
+```
+
+##### References
+
+[TLFrameShape](/gen/tlschema/TLFrameShape-type), [TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `onDragShapesOver` \{#FrameShapeUtil-onDragShapesOver-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onDragShapesOver: (
+  frame: TLFrameShape,
+  shapes: TLShape[]
+) => {
+  shouldHint: boolean
+}
+```
+
+##### References
+
+[TLFrameShape](/gen/tlschema/TLFrameShape-type), [TLShape](/gen/tlschema/TLShape-type)
+
+---
+
+### `onResizeEnd` \{#FrameShapeUtil-onResizeEnd-member}
+
+<Small>Public Property</Small>
+
+##### Signature
+
+
+```ts
+onResizeEnd: TLOnResizeEndHandler<TLFrameShape>
+```
+
+##### References
+
+[TLOnResizeEndHandler](/gen/editor/TLOnResizeEndHandler-type), [TLFrameShape](/gen/tlschema/TLFrameShape-type)
+
+---
+
+### `type` \{#FrameShapeUtil-type-member}
+
+<Small>Public Static Property</Small>
+
+##### Signature
+
+
+```ts
+static type: 'frame'
+```
+
+---
+
+## Methods
+
+### `component()` \{#FrameShapeUtil-component-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLFrameShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLFrameShape](/gen/tlschema/TLFrameShape-type)
+
+---
+
+### `getDefaultProps()` \{#FrameShapeUtil-getDefaultProps-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+TLFrameShape['props']
+```
+
+##### References
+
+[TLFrameShape](/gen/tlschema/TLFrameShape-type)
+
+---
+
+### `indicator()` \{#FrameShapeUtil-indicator-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLFrameShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+JSX.Element
+```
+
+##### References
+
+[TLFrameShape](/gen/tlschema/TLFrameShape-type)
+
+---
+
+### `providesBackgroundForChildren()` \{#FrameShapeUtil-providesBackgroundForChildren-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+None
+
+##### Returns
+
+
+```ts
+boolean
+```
+
+---
+
+### `toSvg()` \{#FrameShapeUtil-toSvg-member-1}
+
+<Small>Public Method</Small>
+
+##### Parameters
+
+
+<ParametersTable>
+
+<ParametersTableRow>
+<ParametersTableName>
+
+`shape`
+
+</ParametersTableName>
+<ParametersTableDescription>
+
+```ts
+TLFrameShape
+```
+
+
+
+</ParametersTableDescription>
+</ParametersTableRow>
+</ParametersTable>
+
+##### Returns
+
+
+```ts
+Promise<SVGElement> | SVGElement
+```
+
+##### References
+
+[TLFrameShape](/gen/tlschema/TLFrameShape-type)
+
+---
+
