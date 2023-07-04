@@ -22,6 +22,7 @@ export {
 	ErrorScreen,
 	LoadingScreen,
 	TldrawEditor,
+	type TLOnMountHandler,
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
 export {
