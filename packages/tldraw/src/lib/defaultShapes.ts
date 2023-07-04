@@ -1,6 +1,5 @@
 import {
 	ArrowShape,
-	BookmarkShape,
 	EmbedShape,
 	FrameShape,
 	GroupShape,
@@ -10,6 +9,7 @@ import {
 	TextShape,
 	VideoShape,
 } from '@tldraw/editor'
+import { BookmarkShape } from './shapes/bookmark/BookmarkShape'
 import { DrawShape } from './shapes/draw/DrawShape'
 import { GeoShape } from './shapes/geo/GeoShape'
 import { HighlightShape } from './shapes/highlight/HighlightShape'

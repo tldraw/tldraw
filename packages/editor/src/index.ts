@@ -121,8 +121,6 @@ export {
 } from './lib/editor/shapes/ShapeUtil'
 export { ArrowShape } from './lib/editor/shapes/arrow/ArrowShape'
 export { ArrowShapeUtil } from './lib/editor/shapes/arrow/ArrowShapeUtil'
-export { BookmarkShape } from './lib/editor/shapes/bookmark/BookmarkShape'
-export { BookmarkShapeUtil } from './lib/editor/shapes/bookmark/BookmarkShapeUtil'
 export { EmbedShape } from './lib/editor/shapes/embed/EmbedShape'
 export { EmbedShapeUtil } from './lib/editor/shapes/embed/EmbedShapeUtil'
 export { FrameShape } from './lib/editor/shapes/frame/FrameShape'

@@ -1,17 +1,20 @@
-import { toDomPrecision } from '@tldraw/primitives'
-import { AssetRecordType, TLAssetId, TLBookmarkAsset, TLBookmarkShape } from '@tldraw/tlschema'
-import { debounce, getHashForString } from '@tldraw/utils'
-import { HTMLContainer } from '../../../components/HTMLContainer'
-
-import { isValidUrl } from '../../../utils/data'
 import {
+	AssetRecordType,
+	BaseBoxShapeUtil,
+	Editor,
+	HTMLContainer,
+	TLAssetId,
+	TLBookmarkAsset,
+	TLBookmarkShape,
+	TLOnBeforeCreateHandler,
+	TLOnBeforeUpdateHandler,
 	getRotatedBoxShadow,
+	isValidUrl,
 	stopEventPropagation,
 	truncateStringWithEllipsis,
-} from '../../../utils/dom'
-import { Editor } from '../../Editor'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnBeforeCreateHandler, TLOnBeforeUpdateHandler } from '../ShapeUtil'
+} from '@tldraw/editor'
+import { toDomPrecision } from '@tldraw/primitives'
+import { debounce, getHashForString } from '@tldraw/utils'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 /** @public */

@@ -1,5 +1,4 @@
-import { bookmarkShapeMigrations, bookmarkShapeProps } from '@tldraw/tlschema'
-import { defineShape } from '../../../config/defineShape'
+import { bookmarkShapeMigrations, bookmarkShapeProps, defineShape } from '@tldraw/editor'
 import { BookmarkShapeUtil } from './BookmarkShapeUtil'
 
 /** @public */

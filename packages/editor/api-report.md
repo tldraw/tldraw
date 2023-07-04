@@ -48,7 +48,6 @@ import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
-import { TLBookmarkShape } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
@@ -201,31 +200,6 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 export function blobAsString(blob: Blob): Promise<string>;
 
 // @public (undocumented)
-export const BookmarkShape: TLShapeInfo<TLBookmarkShape>;
-
-// @public (undocumented)
-export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
-    // (undocumented)
-    canResize: () => boolean;
-    // (undocumented)
-    component(shape: TLBookmarkShape): JSX.Element;
-    // (undocumented)
-    getDefaultProps(): TLBookmarkShape['props'];
-    // (undocumented)
-    hideSelectionBoundsBg: () => boolean;
-    // (undocumented)
-    hideSelectionBoundsFg: () => boolean;
-    // (undocumented)
-    indicator(shape: TLBookmarkShape): JSX.Element;
-    // (undocumented)
-    onBeforeCreate?: TLOnBeforeCreateHandler<TLBookmarkShape>;
-    // (undocumented)
-    onBeforeUpdate?: TLOnBeforeUpdateHandler<TLBookmarkShape>;
-    // (undocumented)
-    static type: "bookmark";
-}
-
-// @public (undocumented)
 export const Canvas: React_2.MemoExoticComponent<() => JSX.Element>;
 
 // @public (undocumented)
@@ -237,7 +211,7 @@ export { computed }
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
-export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLEmbedShape>, TLShapeInfo<TLBookmarkShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLTextShape>];
+export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLEmbedShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLTextShape>];
 
 // @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;

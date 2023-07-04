@@ -1,9 +1,8 @@
-import { createShapeId, TLBookmarkShape } from '@tldraw/tlschema'
+import { TLBookmarkShape, TestEditor, createShapeId } from '@tldraw/editor'
 import {
 	BookmarkShapeUtil,
 	getHumanReadableAddress,
-} from '../../editor/shapes/bookmark/BookmarkShapeUtil'
-import { TestEditor } from '../TestEditor'
+} from '../lib/shapes/bookmark/BookmarkShapeUtil'
 
 let editor: TestEditor
 

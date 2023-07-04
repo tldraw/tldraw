@@ -1,5 +1,4 @@
 import { ArrowShape } from '../editor/shapes/arrow/ArrowShape'
-import { BookmarkShape } from '../editor/shapes/bookmark/BookmarkShape'
 import { EmbedShape } from '../editor/shapes/embed/EmbedShape'
 import { FrameShape } from '../editor/shapes/frame/FrameShape'
 import { GroupShape } from '../editor/shapes/group/GroupShape'
@@ -14,8 +13,6 @@ export const coreShapes = [
 	GroupShape,
 	// created by embed menu / url drop
 	EmbedShape,
-	// created by copy and paste / url drop
-	BookmarkShape,
 	// created by copy and paste / file drop
 	ImageShape,
 	// created by copy and paste
