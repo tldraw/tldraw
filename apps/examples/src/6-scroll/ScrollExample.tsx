@@ -5,7 +5,7 @@ export default function ScrollExample() {
 	return (
 		<div
 			style={{
-				width: '120vw',
+				width: '150vw',
 				height: '150vh',
 				display: 'flex',
 				justifyContent: 'center',
