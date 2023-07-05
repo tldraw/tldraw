@@ -72,7 +72,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.57.0",
 		"@typescript-eslint/parser": "^5.57.0",
 		"auto": "^10.46.0",
-		"eslint": "^8.37.0",
+		"eslint": "^8.44.0",
 		"eslint-config-prettier": "^8.8.0",
 		"eslint-plugin-import": "^2.27.5",
 		"eslint-plugin-local": "^1.0.0",
@@ -94,5 +94,11 @@
 	},
 	"resolutions": {
 		"@microsoft/api-extractor@^7.35.4": "patch:@microsoft/api-extractor@npm%3A7.35.4#./.yarn/patches/@microsoft-api-extractor-npm-7.35.4-5f4f0357b4.patch"
+	},
+	"dependencies": {
+		"@tldraw/tldraw": "alpha",
+		"node-gyp": "^9.4.0",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0"
 	}
 }
