@@ -1,13 +1,6 @@
 import { PI, Vec2d, getPointOnCircle, shortAngleDist } from '@tldraw/primitives'
 import { TLDefaultSizeStyle, Vec2dModel } from '@tldraw/tlschema'
-import { rng } from '@tldraw/utils'
-
-function getPillCircumference(width: number, height: number) {
-	const radius = Math.min(width, height) / 2
-	const longSide = Math.max(width, height) - radius * 2
-
-	return Math.PI * (radius * 2) + 2 * longSide
-}
+import { exhaustiveSwitchError, rng } from '@tldraw/utils'
 
 type PillSection =
 	| {
@@ -15,21 +8,19 @@ type PillSection =
 			start: Vec2dModel
 			delta: Vec2dModel
 			offset: number
+			seed: number
 	  }
 	| {
 			type: 'arc'
 			center: Vec2dModel
 			startAngle: number
 			offset: number
+			seed: number
 	  }
 
-function getPillPoints(width: number, height: number, numPoints: number) {
+function getPillPoints(width: number, height: number, spacingBetweenPoints: number) {
 	const radius = Math.min(width, height) / 2
 	const longSide = Math.max(width, height) - radius * 2
-
-	const circumference = Math.PI * (radius * 2) + 2 * longSide
-
-	const spacing = circumference / numPoints
 
 	const sections: PillSection[] =
 		width > height
@@ -39,24 +30,28 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 						start: new Vec2d(radius, 0),
 						delta: new Vec2d(1, 0),
 						offset: 0,
+						seed: 0,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(width - radius, radius),
 						startAngle: -PI / 2,
 						offset: longSide,
+						seed: 1000,
 					},
 					{
 						type: 'straight',
 						start: new Vec2d(width - radius, height),
 						delta: new Vec2d(-1, 0),
 						offset: longSide + PI * radius,
+						seed: 2000,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(radius, radius),
 						startAngle: PI / 2,
 						offset: longSide * 2 + PI * radius,
+						seed: 3000,
 					},
 			  ]
 			: [
@@ -65,50 +60,68 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 						start: new Vec2d(width, radius),
 						delta: new Vec2d(0, 1),
 						offset: 0,
+						seed: 0,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(radius, height - radius),
 						startAngle: 0,
 						offset: longSide,
+						seed: 1000,
 					},
 					{
 						type: 'straight',
 						start: new Vec2d(0, height - radius),
 						delta: new Vec2d(0, -1),
 						offset: longSide + PI * radius,
+						seed: 2000,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(radius, radius),
 						startAngle: PI,
 						offset: longSide * 2 + PI * radius,
+						seed: 3000,
 					},
 			  ]
 
-	const points: Vec2d[] = []
-	for (let i = 0; i < numPoints; i++) {
-		const dist = i * spacing
-		let section = sections[0]
-		if (sections[1] && dist > sections[1].offset) {
-			sections.shift()
-			section = sections[0]
-		}
+	const distToSkip = spacingBetweenPoints * 0.5
 
-		const distFromOffset = dist - section.offset
-		if (section.type === 'straight') {
-			points.push(Vec2d.Add(section.start, Vec2d.Mul(section.delta, distFromOffset)))
-		} else {
-			points.push(
-				getPointOnCircle(
-					section.center.x,
-					section.center.y,
-					radius,
-					section.startAngle + distFromOffset / radius
-				)
-			)
+	const points: { point: Vec2d; seed: number }[] = []
+	for (const section of sections) {
+		switch (section.type) {
+			case 'straight': {
+				for (let dist = 0, i = 0; dist < longSide - distToSkip; dist += spacingBetweenPoints, i++) {
+					points.push({
+						point: Vec2d.Add(section.start, Vec2d.Mul(section.delta, dist)),
+						seed: section.seed + i,
+					})
+				}
+				break
+			}
+			case 'arc': {
+				for (
+					let dist = 0, i = 0;
+					dist < Math.PI * radius - distToSkip;
+					dist += spacingBetweenPoints, i++
+				) {
+					points.push({
+						point: getPointOnCircle(
+							section.center.x,
+							section.center.y,
+							radius,
+							section.startAngle + dist / radius
+						),
+						seed: section.seed + i,
+					})
+				}
+				break
+			}
+			default:
+				exhaustiveSwitchError(section, 'type')
 		}
 	}
+
 	return points
 }
 
@@ -117,14 +130,14 @@ function getCloudArcPoints(width: number, height: number, seed: string, size: TL
 	const radius = Math.max(Math.min((width + height) / 13, 50), 1)
 	const spacingModifier = size === 's' ? 1.5 : size === 'm' ? 1.8 : size === 'l' ? 2.6 : 3.6
 	const goalSpacing = radius * spacingModifier + getRandom() * radius * 0.4
-	const pillCircumference = getPillCircumference(width, height)
-
-	const numBalls = Math.max(Math.ceil(pillCircumference / goalSpacing), 9)
 
 	const wiggle = radius / 6
 
-	return getPillPoints(width, height, numBalls).map((p) => {
-		return new Vec2d(p.x + getRandom() * wiggle, p.y + getRandom() * wiggle)
+	return getPillPoints(width, height, goalSpacing).map((p) => {
+		return new Vec2d(
+			p.point.x + rng(seed + p.seed)() * wiggle,
+			p.point.y + rng(seed + p.seed)() * wiggle
+		)
 	})
 }
 
