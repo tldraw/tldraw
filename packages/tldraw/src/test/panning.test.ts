@@ -1,5 +1,3 @@
-/* eslint-disable import/no-internal-modules */
-
 import { TestEditor } from './TestEditor'
 
 jest.useFakeTimers()

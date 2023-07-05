@@ -1,5 +1,3 @@
-/* eslint-disable import/no-internal-modules */
-
 import { DefaultFillStyle, TLArrowShape, TLFrameShape, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-internal-modules */
 import { TLEditorOptions } from '@tldraw/editor'
 import { TestEditor as _TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 import { defaultShapes } from '../lib/defaultShapes'

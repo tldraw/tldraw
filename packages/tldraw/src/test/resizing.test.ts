@@ -1,5 +1,3 @@
-/* eslint-disable import/no-internal-modules */
-
 import { TLSelectionHandle, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/editor'
 import { GapsSnapLine, PointsSnapLine } from '@tldraw/editor/src/lib/editor/managers/SnapManager'
 import {

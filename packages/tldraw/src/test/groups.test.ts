@@ -1,5 +1,3 @@
-/* eslint-disable import/no-internal-modules */
-
 import {
 	GroupShapeUtil,
 	TLArrowShape,

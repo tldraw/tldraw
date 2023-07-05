@@ -1,4 +1,3 @@
-/* eslint-disable import/no-internal-modules */
 import { createShapeId, TLImageShape } from '@tldraw/editor'
 import { MIN_CROP_SIZE } from '@tldraw/editor/src/lib/constants'
 import { TestEditor } from './TestEditor'

@@ -1,4 +1,3 @@
-/* eslint-disable import/no-internal-modules */
 import { TLDrawShape, TLHighlightShape } from '@tldraw/editor'
 import { last } from '@tldraw/utils'
 import { TestEditor } from './TestEditor'

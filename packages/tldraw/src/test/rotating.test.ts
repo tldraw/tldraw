@@ -1,5 +1,3 @@
-/* eslint-disable import/no-internal-modules */
-
 import { createShapeId } from '@tldraw/editor'
 import { Vec2d } from '@tldraw/primitives'
 import { TestEditor } from './TestEditor'

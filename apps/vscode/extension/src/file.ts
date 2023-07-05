@@ -1,5 +1,6 @@
-import { createTLStore, defaultShapes } from '@tldraw/editor'
+import { createTLStore } from '@tldraw/editor'
 import { TldrawFile } from '@tldraw/file-format'
+import { defaultShapes } from '@tldraw/tldraw'
 import * as vscode from 'vscode'
 import { nicelog } from './utils'
 
