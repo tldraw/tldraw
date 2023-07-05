@@ -1,6 +1,7 @@
-import { TLDrawShape, TLHighlightShape } from '@tldraw/tlschema'
+/* eslint-disable import/no-internal-modules */
+import { TLDrawShape, TLHighlightShape } from '@tldraw/editor'
 import { last } from '@tldraw/utils'
-import { TestEditor } from '../TestEditor'
+import { TestEditor } from './TestEditor'
 
 jest.useFakeTimers()
 

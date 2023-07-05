@@ -10,13 +10,16 @@ import {
 import {
 	Box2dModel,
 	PageRecordType,
+	TLBaseShape,
 	TLShapeId,
 	TLShapePartial,
 	createShapeId,
 } from '@tldraw/tlschema'
 import { createTLStore } from '../config/createTLStore'
 import { defaultTools } from '../config/defaultTools'
+import { defineShape } from '../config/defineShape'
 import { Editor, TLEditorOptions } from '../editor/Editor'
+import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
 import { TLContent } from '../editor/types/clipboard-types'
 import {
 	TLEventInfo,
@@ -53,11 +56,43 @@ declare global {
 	}
 }
 
+type GeoShape = TLBaseShape<
+	'geo',
+	{
+		w: number
+		h: number
+	}
+>
+
+class GeoShapeUtil extends BaseBoxShapeUtil<GeoShape> {
+	static override type = 'geo' as const
+	type = 'geo' as const
+
+	getDefaultProps() {
+		return {
+			w: 100,
+			h: 100,
+		}
+	}
+
+	component() {
+		return null
+	}
+
+	indicator() {
+		return null
+	}
+}
+
+const geoShape = defineShape('geo', {
+	util: GeoShapeUtil,
+})
+
 /** @public */
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')
-		const { shapes = [], tools = [] } = options
+		const { shapes = [geoShape], tools = [] } = options
 		elm.tabIndex = 0
 		super({
 			shapes,

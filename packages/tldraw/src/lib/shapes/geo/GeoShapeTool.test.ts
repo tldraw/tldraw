@@ -1,6 +1,5 @@
+import { TestEditor } from '../../../test/TestEditor'
 import { GeoShapeTool } from './GeoShapeTool'
-// eslint-disable-next-line import/no-internal-modules
-import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 
 let editor: TestEditor
 

@@ -1,11 +1,20 @@
+/* eslint-disable import/no-internal-modules */
+import {
+	ShapeUtil,
+	TLArrowShape,
+	TLShapeId,
+	TLShapePartial,
+	createShapeId,
+	defineShape,
+} from '@tldraw/editor'
+import {
+	GapsSnapLine,
+	PointsSnapLine,
+	SnapLine,
+} from '@tldraw/editor/src/lib/editor/managers/SnapManager'
 import { Box2d, Vec2d } from '@tldraw/primitives'
-import { TLArrowShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
-import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../editor/managers/SnapManager'
-import { ShapeUtil } from '../../editor/shapes/ShapeUtil'
-import { TestEditor } from '../TestEditor'
-
-import { defineShape } from '../../config/defineShape'
-import { getSnapLines } from '../testutils/getSnapLines'
+import { TestEditor } from './TestEditor'
+import { getSnapLines } from './getSnapLines'
 
 type __TopLeftSnapOnlyShape = any
 
@@ -18,7 +27,13 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 	getBounds(shape: __TopLeftSnapOnlyShape): Box2d {
 		return new Box2d(shape.x, shape.y, shape.props.width, shape.props.height)
 	}
-	getOutline(shape: __TopLeftSnapOnlyShape): Vec2d[] {
+	component() {
+		throw new Error('Method not implemented.')
+	}
+	indicator() {
+		throw new Error('Method not implemented.')
+	}
+	override getOutline(shape: __TopLeftSnapOnlyShape): Vec2d[] {
 		return [
 			Vec2d.From({ x: shape.x, y: shape.y }),
 			Vec2d.From({ x: shape.x + shape.props.width, y: shape.y }),
@@ -26,16 +41,10 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 			Vec2d.From({ x: shape.x, y: shape.y + shape.props.height }),
 		]
 	}
-	component() {
-		throw new Error('Method not implemented.')
-	}
-	indicator() {
-		throw new Error('Method not implemented.')
-	}
-	getCenter(shape: __TopLeftSnapOnlyShape): Vec2d {
+	override getCenter(shape: __TopLeftSnapOnlyShape): Vec2d {
 		return new Vec2d(shape.x + shape.props.width / 2, shape.y + shape.props.height / 2)
 	}
-	snapPoints(shape: __TopLeftSnapOnlyShape): Vec2d[] {
+	override snapPoints(shape: __TopLeftSnapOnlyShape): Vec2d[] {
 		return [Vec2d.From({ x: shape.x, y: shape.y })]
 	}
 }

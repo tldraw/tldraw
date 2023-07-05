@@ -1,10 +1,9 @@
 import { TLBookmarkShape, createShapeId } from '@tldraw/editor'
-// eslint-disable-next-line import/no-internal-modules
-import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 import {
 	BookmarkShapeUtil,
 	getHumanReadableAddress,
 } from '../lib/shapes/bookmark/BookmarkShapeUtil'
+import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 

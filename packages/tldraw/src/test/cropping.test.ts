@@ -1,6 +1,7 @@
-import { TLImageShape, createShapeId } from '@tldraw/tlschema'
-import { MIN_CROP_SIZE } from '../../constants'
-import { TestEditor } from '../TestEditor'
+/* eslint-disable import/no-internal-modules */
+import { createShapeId, TLImageShape } from '@tldraw/editor'
+import { MIN_CROP_SIZE } from '@tldraw/editor/src/lib/constants'
+import { TestEditor } from './TestEditor'
 
 jest.useFakeTimers()
 

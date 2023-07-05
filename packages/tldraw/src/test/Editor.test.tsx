@@ -1,8 +1,11 @@
-import { PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
-import { defineShape } from '../config/defineShape'
-import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
-import { TestEditor } from './TestEditor'
-import { TL } from './test-jsx'
+import {
+	BaseBoxShapeUtil,
+	PageRecordType,
+	TLShape,
+	createShapeId,
+	defineShape,
+} from '@tldraw/editor'
+import { TL, TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
@@ -439,8 +442,8 @@ describe('getShapeUtil', () => {
 
 	beforeEach(() => {
 		class _MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
-			static type = 'blorg'
-			type = 'blorg'
+			static override type = 'blorg'
+			override type = 'blorg'
 
 			getDefaultProps() {
 				return {

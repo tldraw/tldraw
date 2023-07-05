@@ -1,7 +1,6 @@
 import { createShapeId } from '@tldraw/editor'
-// eslint-disable-next-line import/no-internal-modules
-import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 import { Vec2d } from '@tldraw/primitives'
+import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
 

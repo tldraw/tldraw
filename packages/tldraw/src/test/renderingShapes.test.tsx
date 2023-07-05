@@ -1,7 +1,6 @@
-import { TLShapeId } from '@tldraw/tlschema'
+import { TLShapeId } from '@tldraw/editor'
 import { assert, assertExists } from '@tldraw/utils'
-import { TestEditor } from '../TestEditor'
-import { TL } from '../test-jsx'
+import { TL, TestEditor } from './TestEditor'
 
 let editor: TestEditor
 

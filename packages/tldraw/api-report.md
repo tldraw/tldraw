@@ -4,21 +4,21 @@
 
 ```ts
 
-import { TLArrowShape } from '@tldraw/editor';
-import { TLBookmarkShape } from '@tldraw/editor';
+import { TLArrowShape } from '@tldraw/tlschema';
+import { TLBookmarkShape } from '@tldraw/tlschema';
 import { TldrawEditorProps } from '@tldraw/editor';
-import { TLDrawShape } from '@tldraw/editor';
+import { TLDrawShape } from '@tldraw/tlschema';
 import { TldrawUiProps } from '@tldraw/ui';
-import { TLFrameShape } from '@tldraw/editor';
-import { TLGeoShape } from '@tldraw/editor';
-import { TLHighlightShape } from '@tldraw/editor';
-import { TLLineShape } from '@tldraw/editor';
-import { TLNoteShape } from '@tldraw/editor';
+import { TLFrameShape } from '@tldraw/tlschema';
+import { TLGeoShape } from '@tldraw/tlschema';
+import { TLHighlightShape } from '@tldraw/tlschema';
+import { TLLineShape } from '@tldraw/tlschema';
+import { TLNoteShape } from '@tldraw/tlschema';
 import { TLShapeInfo } from '@tldraw/editor';
-import { TLTextShape } from '@tldraw/editor';
+import { TLTextShape } from '@tldraw/tlschema';
 
 // @public (undocumented)
-export const defaultShapes: readonly [TLShapeInfo<TLTextShape>, TLShapeInfo<TLBookmarkShape>, TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>];
+export const defaultShapes: readonly [TLShapeInfo<TLTextShape>, TLShapeInfo<TLBookmarkShape>, TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>];
 
 // @public (undocumented)
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps): JSX.Element;

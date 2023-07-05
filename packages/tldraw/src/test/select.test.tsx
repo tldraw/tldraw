@@ -1,6 +1,8 @@
-import { SelectTool } from '../../editor/tools/SelectTool/SelectTool'
-import { TestEditor } from '../TestEditor'
-import { TL } from '../test-jsx'
+/* eslint-disable import/no-internal-modules */
+
+import { SelectTool } from '@tldraw/editor/src/lib/editor/tools/SelectTool/SelectTool'
+import { TL } from '@tldraw/editor/src/lib/test/test-jsx'
+import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 

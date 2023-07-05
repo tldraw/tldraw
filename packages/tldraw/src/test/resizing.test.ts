@@ -1,18 +1,19 @@
+/* eslint-disable import/no-internal-modules */
+
+import { TLSelectionHandle, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/editor'
+import { GapsSnapLine, PointsSnapLine } from '@tldraw/editor/src/lib/editor/managers/SnapManager'
 import {
-	canolicalizeRotation,
 	EPSILON,
 	PI,
 	PI2,
 	RotateCorner,
-	rotateSelectionHandle,
 	Vec2d,
+	canolicalizeRotation,
+	rotateSelectionHandle,
 } from '@tldraw/primitives'
-import { createShapeId, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
-import { GapsSnapLine, PointsSnapLine } from '../../editor/managers/SnapManager'
-import { TLSelectionHandle } from '../../editor/types/selection-types'
-import { TestEditor } from '../TestEditor'
-import { getSnapLines } from '../testutils/getSnapLines'
-import { roundedBox } from '../testutils/roundedBox'
+import { TestEditor } from './TestEditor'
+import { getSnapLines } from './getSnapLines'
+import { roundedBox } from './roundedBox'
 
 jest.useFakeTimers()
 

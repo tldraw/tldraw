@@ -10,7 +10,7 @@ import {
 	sortByIndex,
 } from '@tldraw/editor'
 import { Matrix2d, Vec2d } from '@tldraw/primitives'
-import { last } from '@tldraw/utils'
+import { last, structuredClone } from '@tldraw/utils'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

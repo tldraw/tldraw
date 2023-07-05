@@ -1,4 +1,3 @@
-import { TLBaseShape, TLShapeInfo, coreShapes } from '@tldraw/editor'
 import { ArrowShape } from './shapes/arrow/ArrowShape'
 import { BookmarkShape } from './shapes/bookmark/BookmarkShape'
 import { DrawShape } from './shapes/draw/DrawShape'
@@ -17,29 +16,7 @@ export const defaultShapes = [
 	GeoShape,
 	NoteShape,
 	LineShape,
-	GeoShape,
 	FrameShape,
 	ArrowShape,
 	HighlightShape,
 ] as const
-
-const coreShapeTypes = new Set<string>(coreShapes.map((s) => s.type))
-export function checkShapesAndAddCore(customShapes: readonly TLShapeInfo[]) {
-	const shapes: TLShapeInfo<TLBaseShape<any, any>>[] = [...coreShapes]
-
-	const addedCustomShapeTypes = new Set<string>()
-	for (const customShape of customShapes) {
-		if (coreShapeTypes.has(customShape.type)) {
-			throw new Error(
-				`Shape type "${customShape.type}" is a core shapes type and cannot be overridden`
-			)
-		}
-		if (addedCustomShapeTypes.has(customShape.type)) {
-			throw new Error(`Shape type "${customShape.type}" is defined more than once`)
-		}
-		shapes.push(customShape)
-		addedCustomShapeTypes.add(customShape.type)
-	}
-
-	return shapes
-}

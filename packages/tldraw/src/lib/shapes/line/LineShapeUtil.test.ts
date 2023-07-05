@@ -1,7 +1,6 @@
 import { TLGeoShape, TLLineShape, createShapeId } from '@tldraw/editor'
-// eslint-disable-next-line import/no-internal-modules
-import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 import { deepCopy } from '@tldraw/utils'
+import { TestEditor } from '../../../test/TestEditor'
 
 jest.mock('nanoid', () => {
 	let i = 0

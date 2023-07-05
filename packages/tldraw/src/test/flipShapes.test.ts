@@ -1,12 +1,12 @@
-import { Matrix2d, PI } from '@tldraw/primitives'
 import {
 	TLArrowShape,
 	TLArrowShapeProps,
 	TLShapeId,
 	TLShapePartial,
 	createShapeId,
-} from '@tldraw/tlschema'
-import { TestEditor } from '../TestEditor'
+} from '@tldraw/editor'
+import { Matrix2d, PI } from '@tldraw/primitives'
+import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
