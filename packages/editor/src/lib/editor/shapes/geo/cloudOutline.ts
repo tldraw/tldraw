@@ -7,14 +7,12 @@ type PillSection =
 			type: 'straight'
 			start: Vec2dModel
 			delta: Vec2dModel
-			offset: number
 			seed: number
 	  }
 	| {
 			type: 'arc'
 			center: Vec2dModel
 			startAngle: number
-			offset: number
 			seed: number
 	  }
 
@@ -29,28 +27,24 @@ function getPillPoints(width: number, height: number, spacingBetweenPoints: numb
 						type: 'straight',
 						start: new Vec2d(radius, 0),
 						delta: new Vec2d(1, 0),
-						offset: 0,
 						seed: 0,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(width - radius, radius),
 						startAngle: -PI / 2,
-						offset: longSide,
 						seed: 1000,
 					},
 					{
 						type: 'straight',
 						start: new Vec2d(width - radius, height),
 						delta: new Vec2d(-1, 0),
-						offset: longSide + PI * radius,
 						seed: 2000,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(radius, radius),
 						startAngle: PI / 2,
-						offset: longSide * 2 + PI * radius,
 						seed: 3000,
 					},
 			  ]
@@ -59,28 +53,24 @@ function getPillPoints(width: number, height: number, spacingBetweenPoints: numb
 						type: 'straight',
 						start: new Vec2d(width, radius),
 						delta: new Vec2d(0, 1),
-						offset: 0,
 						seed: 0,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(radius, height - radius),
 						startAngle: 0,
-						offset: longSide,
 						seed: 1000,
 					},
 					{
 						type: 'straight',
 						start: new Vec2d(0, height - radius),
 						delta: new Vec2d(0, -1),
-						offset: longSide + PI * radius,
 						seed: 2000,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(radius, radius),
 						startAngle: PI,
-						offset: longSide * 2 + PI * radius,
 						seed: 3000,
 					},
 			  ]
