@@ -499,10 +499,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapesAtPoint(point: VecLike): TLShape[];
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
+    getShapeUtil<Def extends TLAnyShapeUtilConstructor>(definition: Def): InstanceType<Def>;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
-    // (undocumented)
+    // @internal (undocumented)
     getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;
-    // (undocumented)
+    // @internal (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
     getSortedChildIds(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
@@ -556,6 +557,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     isPointInShape(point: VecLike, shape: TLShape): boolean;
     readonly isSafari: boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
+    isShapeOfType<T extends TLBaseShape<any, any>>(shape: TLUnknownShape, util: {
+        new (...args: any[]): ShapeUtil<T>;
+        type: string;
+    }): shape is T;
+    // @internal (undocumented)
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): string;
@@ -1306,12 +1312,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
     onTranslateStart?: TLOnTranslateStartHandler<Shape>;
     // (undocumented)
-    static props?: ShapeProps<TLUnknownShape>;
+    static props?: ShapeProps<TLBaseShape<any, any>>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
     snapPoints(shape: Shape): Vec2d[];
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<SVGElement> | SVGElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
+    // (undocumented)
     static type: string;
 }
 
@@ -1684,7 +1691,7 @@ export interface TLEditorOptions {
     getContainer: () => HTMLElement;
     // (undocumented)
     initialState?: string;
-    shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
+    shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;

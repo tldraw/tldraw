@@ -1,6 +1,13 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Migrations } from '@tldraw/store'
-import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
+import {
+	ShapeProps,
+	TLBaseShape,
+	TLHandle,
+	TLShape,
+	TLShapePartial,
+	TLUnknownShape,
+} from '@tldraw/tlschema'
 import { Box2d } from '../../primitives/Box2d'
 import { Vec2d, VecLike } from '../../primitives/Vec2d'
 import { linesIntersect } from '../../primitives/intersect'
@@ -31,15 +38,9 @@ export interface TLShapeUtilCanvasSvgDef {
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	constructor(public editor: Editor) {}
-	static props?: ShapeProps<TLUnknownShape>
-	static migrations?: Migrations
-
-	/**
-	 * The type of the shape util, which should match the shape's type.
-	 *
-	 * @public
-	 */
 	static type: string
+	static props?: ShapeProps<TLBaseShape<any, any>>
+	static migrations?: Migrations
 
 	/**
 	 * Get the default props for a shape.

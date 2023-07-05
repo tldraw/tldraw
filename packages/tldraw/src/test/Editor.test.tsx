@@ -1,4 +1,11 @@
-import { BaseBoxShapeUtil, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
+import {
+	BaseBoxShapeUtil,
+	PageRecordType,
+	ShapeUtil,
+	TLBaseShape,
+	TLShape,
+	createShapeId,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -434,31 +441,27 @@ describe('isFocused', () => {
 	})
 })
 
-describe('getShapeUtil', () => {
-	let myUtil: any
-
-	beforeEach(() => {
-		class _MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
-			static override type = 'blorg'
-
-			getDefaultProps() {
-				return {
-					w: 100,
-					h: 100,
-				}
-			}
-			component() {
-				throw new Error('Method not implemented.')
-			}
-			indicator() {
-				throw new Error('Method not implemented.')
+describe('getShapeUtil & isShapeOfType', () => {
+	type MyShape = TLBaseShape<'blorg', { w: number; h: number }>
+	class MyFakeShapeUtil extends BaseBoxShapeUtil<MyShape> {
+		static override type = 'blorg' as const
+		getDefaultProps() {
+			return {
+				w: 100,
+				h: 100,
 			}
 		}
+		component() {
+			throw new Error('Method not implemented.')
+		}
+		indicator() {
+			throw new Error('Method not implemented.')
+		}
+	}
 
-		myUtil = _MyFakeShapeUtil
-
+	beforeEach(() => {
 		editor = new TestEditor({
-			shapeUtils: [_MyFakeShapeUtil],
+			shapeUtils: [MyFakeShapeUtil],
 		})
 
 		editor.createShapes([
@@ -469,27 +472,54 @@ describe('getShapeUtil', () => {
 		editor.setCurrentPageId(page1)
 	})
 
-	it('accepts shapes', () => {
-		const shape = editor.getShapeById(ids.box1)!
-		const util = editor.getShapeUtil(shape)
-		expect(util).toBeInstanceOf(myUtil)
+	describe('getShapeUtil', () => {
+		it('accepts shapes', () => {
+			const shape = editor.getShapeById(ids.box1)! as MyShape
+			const util = editor.getShapeUtil(shape)
+			expect(util).toBeInstanceOf(MyFakeShapeUtil)
+			const _assertType: ShapeUtil<MyShape> = util
+		})
+
+		it('accepts shape types', () => {
+			const util = editor.getShapeUtil<MyShape>('blorg')
+			expect(util).toBeInstanceOf(MyFakeShapeUtil)
+			const _assertType: ShapeUtil<MyShape> = util
+		})
+
+		it('accepts shape defs', () => {
+			const util = editor.getShapeUtil(MyFakeShapeUtil)
+			expect(util).toBeInstanceOf(MyFakeShapeUtil)
+			const _assertType: MyFakeShapeUtil = util
+		})
+
+		it('throws if that shape type isnt registered', () => {
+			const myMissingShape = { type: 'missing' } as TLShape
+			expect(() => editor.getShapeUtil(myMissingShape)).toThrowErrorMatchingInlineSnapshot(
+				`"No shape util found for type \\"missing\\""`
+			)
+		})
+
+		it('throws if that type isnt registered', () => {
+			expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
+				`"No shape util found for type \\"missing\\""`
+			)
+		})
 	})
 
-	it('accepts shape types', () => {
-		const util = editor.getShapeUtil('blorg')
-		expect(util).toBeInstanceOf(myUtil)
-	})
-
-	it('throws if that shape type isnt registered', () => {
-		const myMissingShape = { type: 'missing' } as TLShape
-		expect(() => editor.getShapeUtil(myMissingShape)).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type \\"missing\\""`
-		)
-	})
-
-	it('throws if that type isnt registered', () => {
-		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
-			`"No shape util found for type \\"missing\\""`
-		)
+	describe('isShapeOfType', () => {
+		it('accepts type strings', () => {
+			const shape = editor.getShapeById(ids.box1)!
+			expect(editor.isShapeOfType(shape, 'blorg')).toBe(true)
+			if (editor.isShapeOfType<MyShape>(shape, 'blorg')) {
+				const _assertType: MyShape = shape
+			}
+		})
+		it('accepts shape utils', () => {
+			const shape = editor.getShapeById(ids.box1)!
+			expect(editor.isShapeOfType(shape, MyFakeShapeUtil)).toBe(true)
+			if (editor.isShapeOfType(shape, MyFakeShapeUtil)) {
+				const _assertType: MyShape = shape
+			}
+		})
 	})
 })

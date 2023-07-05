@@ -1,6 +1,5 @@
 import {
 	Box2d,
-	GroupShapeUtil,
 	TLArrowShape,
 	TLGroupShape,
 	TLLineShape,
@@ -117,7 +116,7 @@ describe('creating groups', () => {
 		expect(editor.getShapeById(ids.boxB)).toBeTruthy()
 
 		const group = onlySelectedShape()
-		expect(group.type).toBe(GroupShapeUtil.type)
+		expect(group.type).toBe('group')
 		expect(editor.getPageBoundsById(group.id)!).toCloselyMatchObject({ x: 0, y: 0, w: 30, h: 10 })
 		expect(children(group).has(editor.getShapeById(ids.boxA)!)).toBe(true)
 		expect(children(group).has(editor.getShapeById(ids.boxB)!)).toBe(true)
@@ -214,7 +213,7 @@ describe('creating groups', () => {
 		editor.groupShapes()
 
 		const uberGroup = onlySelectedShape()
-		expect(uberGroup.type).toBe(GroupShapeUtil.type)
+		expect(uberGroup.type).toBe('group')
 		expect(editor.getPageBoundsById(uberGroup.id)!).toCloselyMatchObject({
 			x: 0,
 			y: 0,
@@ -496,7 +495,7 @@ describe('ungrouping shapes', () => {
 
 		editor.ungroupShapes()
 		expect(editor.selectedIds.length).toBe(1)
-		expect(onlySelectedShape().type).toBe(GroupShapeUtil.type)
+		expect(onlySelectedShape().type).toBe('group')
 	})
 	it('keeps order correct simple', () => {
 		// 0   10  20  30  40  50  60  70

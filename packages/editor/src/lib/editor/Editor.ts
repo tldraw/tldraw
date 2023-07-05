@@ -10,6 +10,7 @@ import {
 	TLAsset,
 	TLAssetId,
 	TLAssetPartial,
+	TLBaseShape,
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLDocument,
@@ -52,7 +53,7 @@ import {
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import { TLUser, createTLUser } from '../config/createTLUser'
-import { checkShapesAndAddCore } from '../config/defaultShapes'
+import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from '../config/defaultShapes'
 import {
 	ANIMATION_MEDIUM_MS,
 	CAMERA_MAX_RENDERING_INTERVAL,
@@ -108,7 +109,7 @@ import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
+import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
 import { ArrowInfo } from './shapes/shared/arrow/arrow-types'
 import { getCurvedArrowInfo } from './shapes/shared/arrow/curved-arrow'
 import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/shared/arrow/shared'
@@ -144,7 +145,7 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[]
+	shapeUtils: readonly TLAnyShapeUtilConstructor[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -467,14 +468,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	styleProps: { [key: string]: Map<StyleProp<unknown>, string> }
 
 	/**
+	 * Get a shape util by its constructor.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getShapeUtil(ArrowShapeUtil)
+	 * ```
+	 *
+	 * @param definition - The shape definition.
+	 *
+	 * @public
+	 */
+	getShapeUtil<Def extends TLAnyShapeUtilConstructor>(definition: Def): InstanceType<Def>
+	/**
 	 * Get a shape util from a shape itself.
 	 *
 	 * @example
 	 * ```ts
 	 * const util = editor.getShapeUtil(myArrowShape)
-	 * const util = editor.getShapeUtil('arrow')
 	 * const util = editor.getShapeUtil<TLArrowShape>(myArrowShape)
-	 * const util = editor.getShapeUtil(TLArrowShape)('arrow')
 	 * ```
 	 *
 	 * @param shape - A shape, shape partial, or shape type.
@@ -482,7 +494,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
+	/** @internal */
 	getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>
+	/** @internal */
 	getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T
 	getShapeUtil(arg: string | { type: string }) {
 		const type = typeof arg === 'string' ? arg : arg.type
@@ -625,9 +639,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.history.batch(fn)
 		return this
 	}
-
-	/* --------------------- Arrows --------------------- */
-	// todo: move these to tldraw or replace with a bindings API
 
 	/** @internal */
 	@computed
@@ -4539,11 +4550,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get whether a shape matches the type of a TLShapeUtil.
+	 * Check whether a shape matches the type of a ShapeUtil.
 	 *
 	 * @example
 	 * ```ts
-	 * const isArrowShape = isShapeOfType<TLArrowShape>(someShape, 'arrow')
+	 * const isArrowShape = editor.isShapeOfType(someShape, ArrowShapeUtil)
 	 * ```
 	 *
 	 * @param util - the TLShapeUtil constructor to test against
@@ -4551,7 +4562,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T {
+	isShapeOfType<T extends TLBaseShape<any, any>>(
+		shape: TLUnknownShape,
+		util: { new (...args: any[]): ShapeUtil<T>; type: string }
+	): shape is T
+	/** @internal */
+	isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T
+	isShapeOfType(shape: TLUnknownShape, arg: string | { type: string }) {
+		const type = typeof arg === 'string' ? arg : arg.type
 		return shape.type === type
 	}
 

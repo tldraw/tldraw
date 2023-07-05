@@ -275,8 +275,6 @@ describe('Custom shapes', () => {
 	>
 
 	class CardUtil extends BaseBoxShapeUtil<CardShape> {
-		static override type = 'card' as const
-
 		override isAspectRatioLocked = (_shape: CardShape) => false
 		override canResize = (_shape: CardShape) => true
 		override canBind = (_shape: CardShape) => true
