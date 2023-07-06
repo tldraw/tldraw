@@ -58,8 +58,6 @@ if (textShape) {
 }
 ```
 
-Shapes can also contain some **meta information**. This is a place to store any extra data you want to attach to the shape. You can find more information about this [below](#meta).
-
 ## Shape util
 
 While tldraw's shapes themselves are simple JSON objects, we use [`ShapeUtil`](/gen/editor/ShapeUtil) classes to answer questions about shapes. For example, when the editor needs to know the bounding box of a text shape, it will find the [`TextShapeUtil`](/gen/editor/TextShapeUtil) and call its [`getBounds`](/gen/editor/ShapeUtil#getBounds) method, passing in the text shape object as an argument.
