@@ -14,13 +14,11 @@ type PillSection =
 			type: 'straight'
 			start: Vec2dModel
 			delta: Vec2dModel
-			offset: number
 	  }
 	| {
 			type: 'arc'
 			center: Vec2dModel
 			startAngle: number
-			offset: number
 	  }
 
 function getPillPoints(width: number, height: number, numPoints: number) {
@@ -38,25 +36,21 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 						type: 'straight',
 						start: new Vec2d(radius, 0),
 						delta: new Vec2d(1, 0),
-						offset: 0,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(width - radius, radius),
 						startAngle: -PI / 2,
-						offset: longSide,
 					},
 					{
 						type: 'straight',
 						start: new Vec2d(width - radius, height),
 						delta: new Vec2d(-1, 0),
-						offset: longSide + PI * radius,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(radius, radius),
 						startAngle: PI / 2,
-						offset: longSide * 2 + PI * radius,
 					},
 			  ]
 			: [
@@ -64,51 +58,49 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 						type: 'straight',
 						start: new Vec2d(width, radius),
 						delta: new Vec2d(0, 1),
-						offset: 0,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(radius, height - radius),
 						startAngle: 0,
-						offset: longSide,
 					},
 					{
 						type: 'straight',
 						start: new Vec2d(0, height - radius),
 						delta: new Vec2d(0, -1),
-						offset: longSide + PI * radius,
 					},
 					{
 						type: 'arc',
 						center: new Vec2d(radius, radius),
 						startAngle: PI,
-						offset: longSide * 2 + PI * radius,
 					},
 			  ]
 
+	let sectionOffset = 0
+
 	const points: Vec2d[] = []
 	for (let i = 0; i < numPoints; i++) {
-		const dist = i * spacing
-		let section = sections[0]
-		if (sections[1] && dist > sections[1].offset) {
-			sections.shift()
-			section = sections[0]
-		}
-
-		const distFromOffset = dist - section.offset
+		const section = sections[0]
 		if (section.type === 'straight') {
-			points.push(Vec2d.Add(section.start, Vec2d.Mul(section.delta, distFromOffset)))
+			points.push(Vec2d.Add(section.start, Vec2d.Mul(section.delta, sectionOffset)))
 		} else {
 			points.push(
 				getPointOnCircle(
 					section.center.x,
 					section.center.y,
 					radius,
-					section.startAngle + distFromOffset / radius
+					section.startAngle + sectionOffset / radius
 				)
 			)
 		}
+		sectionOffset += spacing
+		const sectionLength = section.type === 'straight' ? longSide : PI * radius
+		if (sectionOffset > sectionLength) {
+			sectionOffset -= sectionLength
+			sections.push(sections.shift()!)
+		}
 	}
+
 	return points
 }
 
