@@ -520,7 +520,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	indicator(shape: TLGeoShape) {
 		const { id, props } = shape
-		const { w, h, growY, size } = props
+		const { w, size } = props
+		const h = props.h + props.growY
 
 		const forceSolid = useForceSolid()
 		const strokeWidth = STROKE_SIZES[size]
@@ -528,13 +529,13 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		switch (props.geo) {
 			case 'ellipse': {
 				if (props.dash === 'draw' && !forceSolid) {
-					return <path d={getEllipseIndicatorPath(id, w, h + growY, strokeWidth)} />
+					return <path d={getEllipseIndicatorPath(id, w, h, strokeWidth)} />
 				}
 
-				return <ellipse cx={w / 2} cy={(h + growY) / 2} rx={w / 2} ry={(h + growY) / 2} />
+				return <ellipse cx={w / 2} cy={h / 2} rx={w / 2} ry={h / 2} />
 			}
 			case 'oval': {
-				return <path d={getOvalIndicatorPath(w, h + growY)} />
+				return <path d={getOvalIndicatorPath(w, h)} />
 			}
 			case 'cloud': {
 				return <path d={cloudSvgPath(w, h, id, size)} />

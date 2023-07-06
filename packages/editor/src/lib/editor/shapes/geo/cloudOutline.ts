@@ -1,4 +1,4 @@
-import { PI, Vec2d, getPointOnCircle, shortAngleDist } from '@tldraw/primitives'
+import { Box2d, PI, Vec2d, getPointOnCircle, shortAngleDist } from '@tldraw/primitives'
 import { TLDefaultSizeStyle, Vec2dModel } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
 
@@ -156,13 +156,37 @@ export function getCloudArcs(
 ) {
 	const points = getCloudArcPoints(width, height, seed, size)
 	const arcs: Arc[] = []
+	const containingBox = new Box2d()
+
 	for (let i = 0; i < points.length; i++) {
 		const leftPoint = points[i]
 		const rightPoint = points[i === points.length - 1 ? 0 : i + 1]
 
-		arcs.push(getCloudArc(leftPoint, rightPoint))
+		const arc = getCloudArc(leftPoint, rightPoint)
+		arcs.push(arc)
+		containingBox.expand(
+			new Box2d(
+				arc.center.x - arc.radius,
+				arc.center.y - arc.radius,
+				arc.radius * 2,
+				arc.radius * 2
+			)
+		)
 	}
-	return arcs
+
+	// To fit the cloud into the box, we need to scale it down and offset it
+	const scale = { x: width / containingBox.width, y: height / containingBox.height }
+	const offset = {
+		x: -containingBox.x,
+		y: -containingBox.y,
+	}
+
+	return arcs.map((arc) => {
+		return getCloudArc(
+			Vec2d.MulV(Vec2d.Add(offset, arc.leftPoint), scale),
+			Vec2d.MulV(Vec2d.Add(offset, arc.rightPoint), scale)
+		)
+	})
 }
 
 export function cloudOutline(
