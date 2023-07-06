@@ -18,7 +18,7 @@ keywords:
 - [Inside a shape](#inside-a-shape)
 - [Shape util](#shape-util)
 - [Custom shapes](#custom-shapes)
-- [Meta](#meta)
+- [Meta information](#meta-information)
 
 ## Introduction
 
@@ -161,9 +161,9 @@ Let's create a card shape using the `Editor` API. We'll do this by setting the `
 
 Once the page refreshes, we should now have our custom shape on the canvas.
 
-## Meta
+## Meta information
 
-Shapes also have a `meta` property that you can fill with your own data. This should feel like a bit of a hack, however it's intended to be an escape hatch for applications where you want to use tldraw's shapes but also want to attach a bit of extra data to the shape.
+Shapes also have a `meta` property that you can fill with your own data. This should feel like a bit of a hack, however it's intended to be an escape hatch for applications where you want to use tldraw's existing shapes but also want to attach a bit of extra data to the shape.
 
 Note that tldraw's regular shape definitions have an unknown object for the shape's `meta` property. To type your shape's meta, use a union like this:
 
