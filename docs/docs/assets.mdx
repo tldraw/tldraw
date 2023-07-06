@@ -6,13 +6,13 @@ date: 6/9/2023
 order: 9
 ---
 
-In order to use the `<Tldraw/>` component, the app must be able to find certain assets. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. We offer a few different ways of making these assets available to your app.
+In order to use the [`<Tldraw/>`](/gen/tldraw/Tldraw) component, the app must be able to find certain assets. These are contained in the `embed-icons`, `fonts`, `icons`, and `translations` folders. We offer a few different ways of making these assets available to your app.
 
 ### 1. Using a public CDN
 
 By default we serve these assets from a [public CDN called unpkg](https://unpkg.com/browse/@tldraw/assets@2.0.0-alpha.12/), so everything should work out of the box and is a good way to get started.
 
-If you would like to customize some of the assets you can pass the customizations to our `<Tldraw />` component. For example, to use a custom icon for the `hand` tool you can do the following:
+If you would like to customize some of the assets you can pass the customizations to our [`<Tldraw/>`](/gen/tldraw/Tldraw) component. For example, to use a custom icon for the `hand` tool you can do the following:
 
 ```javascript
 const assetUrls = {
