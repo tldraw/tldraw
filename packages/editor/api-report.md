@@ -20,6 +20,7 @@ import { EmbedDefinition } from '@tldraw/tlschema';
 import { EventEmitter } from 'eventemitter3';
 import { getHashForString } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
+import { JsonObject } from '@tldraw/utils';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
@@ -478,6 +479,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHandles<T extends TLShape>(shape: T): TLHandle[] | undefined;
     getHandlesById<T extends TLShape>(id: T['id']): TLHandle[] | undefined;
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
+    getInitialMetaForShape(_shape: TLShape): JsonObject;
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
     getMaskedPageBoundsById(id: TLShapeId): Box2d | undefined;
     getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape;
@@ -557,12 +559,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     get instanceState(): TLInstance;
     interrupt(): this;
+    readonly isAndroid: boolean;
     get isChangingStyle(): boolean;
     set isChangingStyle(v: boolean);
     readonly isChromeForIos: boolean;
     get isCoarsePointer(): boolean;
     set isCoarsePointer(v: boolean);
     get isDarkMode(): boolean;
+    readonly isFirefox: boolean;
     get isFocused(): boolean;
     get isFocusMode(): boolean;
     get isGridMode(): boolean;
@@ -886,6 +890,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -915,6 +920,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -931,6 +937,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | {
@@ -945,6 +952,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1711,6 +1719,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1734,6 +1743,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -1861,6 +1871,43 @@ export const runtime: {
     refreshPage: () => void;
     hardReset: () => void;
 };
+
+// @public (undocumented)
+export class ScribbleManager implements TLScribble {
+    constructor(opts: {
+        onUpdate: (scribble: TLScribble) => void;
+        onComplete: () => void;
+        size?: TLScribble['size'];
+        color?: TLScribble['color'];
+        opacity?: TLScribble['opacity'];
+        delay?: TLScribble['delay'];
+    });
+    addPoint: (x: number, y: number) => void;
+    // (undocumented)
+    color: "accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white";
+    // (undocumented)
+    delay: number;
+    // (undocumented)
+    delayRemaining: number;
+    getScribble(): TLScribble;
+    // (undocumented)
+    opacity: number;
+    // (undocumented)
+    pause: () => void;
+    // (undocumented)
+    points: Vec2dModel[];
+    // (undocumented)
+    resume: () => void;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    state: "active" | "paused" | "starting" | "stopping";
+    stop: () => void;
+    // (undocumented)
+    tick: TLTickEvent;
+    // (undocumented)
+    timeoutMs: number;
+}
 
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
@@ -2101,6 +2148,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
             scale: number;
             autoSize: boolean;
         };
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;
@@ -2124,6 +2172,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         parentId: TLParentId;
         isLocked: boolean;
         opacity: number;
+        meta: JsonObject;
         id: TLShapeId;
         typeName: "shape";
     } | undefined;

@@ -41,7 +41,7 @@ While tldraw's shapes themselves are simple JSON objects, we use [`ShapeUtil`](/
 Let's create a `ShapeUtil` class for the shape.
 
 ```tsx
-import { ShapeUtil, HTMLContainer } from '@tldraw/tldraw'
+import { ShapeUtil, HTMLContainer, Box2d } from '@tldraw/tldraw'
 
 class CardShapeUtil extends ShapeUtil<CardShape> {
   static type = 'card' as const
@@ -53,17 +53,17 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 		}
 	}
 
-  getBounds(shape: Shape) {
+  getBounds(shape: CardShape) {
 		return new Box2d(0, 0, shape.props.w, shape.props.h)
 	}
 
-  component(shape: Shape) {
+  component(shape: CardShape) {
     return (
       <HTMLContainer>Hello</HTMLContainer>
     )
   }
 
-  indicator(shape: Shape) {
+  indicator(shape: CardShape) {
     return (
       <rect width={shape.props.w} height={shape.props.h}/>
     )

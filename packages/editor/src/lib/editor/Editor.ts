@@ -65,6 +65,7 @@ import {
 	isShapeId,
 } from '@tldraw/tlschema'
 import {
+	JsonObject,
 	annotateError,
 	assert,
 	compact,
@@ -86,7 +87,7 @@ import {
 	CAMERA_MAX_RENDERING_INTERVAL,
 	CAMERA_MOVING_TIMEOUT,
 	COARSE_DRAG_DISTANCE,
-	COLLABORATOR_TIMEOUT,
+	COLLABORATOR_IDLE_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
 	DRAG_DISTANCE,
 	FOLLOW_CHASE_PAN_SNAP,
@@ -252,10 +253,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 			this.isIos = !!navigator.userAgent.match(/iPad/i) || !!navigator.userAgent.match(/iPhone/i)
 			this.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
+			this.isFirefox = /firefox/i.test(navigator.userAgent)
+			this.isAndroid = /android/i.test(navigator.userAgent)
 		} else {
 			this.isSafari = false
 			this.isIos = false
 			this.isChromeForIos = false
+			this.isFirefox = false
+			this.isAndroid = false
 		}
 
 		this.store.onBeforeDelete = (record) => {
@@ -422,6 +427,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly isChromeForIos: boolean
+
+	/**
+	 * Whether the editor is running on Firefox.
+	 *
+	 * @public
+	 */
+	readonly isFirefox: boolean
+
+	/**
+	 * Whether the editor is running on Android.
+	 *
+	 * @public
+	 */
+	readonly isAndroid: boolean
 
 	/**
 	 * The current HTML element containing the editor.
@@ -3149,7 +3168,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (index < 0) return
 				highlightedUserIds.splice(index, 1)
 				this.updateInstanceState({ highlightedUserIds })
-			}, COLLABORATOR_TIMEOUT)
+			}, COLLABORATOR_IDLE_TIMEOUT)
 		})
 	}
 
@@ -3971,6 +3990,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					bottomIndex && topIndex !== bottomIndex
 						? getIndexBetween(topIndex, bottomIndex)
 						: getIndexAbove(topIndex),
+				meta: {},
 			})
 
 			const newCamera = CameraRecordType.create({
@@ -7095,6 +7115,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get the initial meta value for a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getInitialMetaForShape = (shape) => {
+	 *   if (shape.type === 'note') {
+	 *     return { createdBy: myCurrentUser.id }
+	 *   }
+	 * }
+	 * ```
+	 *
+	 * @param shape - The shape to get the initial meta for.
+	 *
+	 * @public
+	 */
+	getInitialMetaForShape(_shape: TLShape): JsonObject {
+		return {}
+	}
+
+	/**
 	 * Create shapes.
 	 *
 	 * @example
@@ -7252,6 +7292,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					shapeRecordsToCreate.push(shapeRecordToCreate)
 				}
+
+				// Add meta properties, if any, to the shapes
+				shapeRecordsToCreate.forEach((shape) => {
+					shape.meta = this.getInitialMetaForShape(shape)
+				})
 
 				this.store.put(shapeRecordsToCreate)
 
@@ -7564,9 +7609,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						switch (k) {
 							case 'id':
 							case 'type':
-							case 'typeName': {
 								continue
-							}
 							default: {
 								if (v !== (prev as any)[k]) {
 									if (!newRecord) {
@@ -7574,13 +7617,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 									}
 
 									if (k === 'props') {
-										const nextProps = { ...prev.props } as Record<string, unknown>
+										// props property
+										const nextProps = { ...prev.props } as JsonObject
 										for (const [propKey, propValue] of Object.entries(v as object)) {
-											if (propValue === undefined) continue
-											nextProps[propKey] = propValue
+											if (propValue !== undefined) {
+												nextProps[propKey] = propValue
+											}
 										}
 										newRecord!.props = nextProps
+									} else if (k === 'meta') {
+										// meta property
+										const nextMeta = { ...prev.meta } as JsonObject
+										for (const [metaKey, metaValue] of Object.entries(v as object)) {
+											if (metaValue !== undefined) {
+												nextMeta[metaKey] = metaValue
+											}
+										}
+										newRecord!.meta = nextMeta
 									} else {
+										// base property
 										;(newRecord as any)[k] = v
 									}
 								}
@@ -8802,6 +8857,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					info.type === 'pointer' && info.pointerId === INTERNAL_POINTER_IDS.CAMERA_MOVE
 						? this.store.get(TLPOINTER_ID)?.lastActivityTimestamp ?? Date.now()
 						: Date.now(),
+				meta: {},
 			},
 		])
 	}
@@ -9167,7 +9223,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing = true
 							inputs.isDragging = false
 
-							if (!this.isPenMode) {
+							if (this.isPenMode) {
+								if (!isPen) {
+									return
+								}
+							} else {
 								if (isPen) {
 									this.setPenMode(true)
 								}

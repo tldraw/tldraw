@@ -1,4 +1,5 @@
 import { BaseRecord } from '@tldraw/store'
+import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { TLAssetId } from '../records/TLAsset'
@@ -7,6 +8,7 @@ import { TLAssetId } from '../records/TLAsset'
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
 	type: Type
 	props: Props
+	meta: JsonObject
 }
 
 /**
@@ -22,7 +24,7 @@ export const assetIdValidator = idValidator<TLAssetId>('asset')
  * @param props - The validator for the asset's props
  *
  * @public */
-export function createAssetValidator<Type extends string, Props extends object>(
+export function createAssetValidator<Type extends string, Props extends JsonObject>(
 	type: Type,
 	props: T.Validator<Props>
 ): T.ObjectValidator<{
@@ -30,11 +32,13 @@ export function createAssetValidator<Type extends string, Props extends object>(
 	typeName: 'asset'
 	type: Type
 	props: Props
+	meta: JsonObject
 }> {
 	return T.object({
 		id: assetIdValidator,
 		typeName: T.literal('asset'),
 		type: T.literal(type),
 		props,
+		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 }

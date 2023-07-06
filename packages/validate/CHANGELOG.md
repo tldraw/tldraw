@@ -1,3 +1,59 @@
+# v2.0.0-alpha.14 (Tue Jul 04 2023)
+
+### Release Notes
+
+#### [feature] add `meta` property to records ([#1627](https://github.com/tldraw/tldraw/pull/1627))
+
+- todo
+
+---
+
+#### 🚀 Enhancement
+
+- [feature] add `meta` property to records [#1627](https://github.com/tldraw/tldraw/pull/1627) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.0.0-alpha.13 (Wed Jun 28 2023)
+
+### Release Notes
+
+#### Styles API ([#1580](https://github.com/tldraw/tldraw/pull/1580))
+
+-
+
+#### mini `defineShape` API ([#1563](https://github.com/tldraw/tldraw/pull/1563))
+
+[dev-facing, notes to come]
+
+#### Rename tlvalidate to validate ([#1508](https://github.com/tldraw/tldraw/pull/1508))
+
+- Rename tlvalidate to validate
+
+---
+
+#### 💥 Breaking Change
+
+- Styles API [#1580](https://github.com/tldraw/tldraw/pull/1580) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- mini `defineShape` API [#1563](https://github.com/tldraw/tldraw/pull/1563) ([@SomeHats](https://github.com/SomeHats))
+- Rename tlvalidate to validate [#1508](https://github.com/tldraw/tldraw/pull/1508) ([@steveruizok](https://github.com/steveruizok))
+
+#### ⚠️ Pushed to `main`
+
+- update lazyrepo ([@ds300](https://github.com/ds300))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.12 (Mon Apr 03 2023)
 
 #### 🐛 Bug Fix

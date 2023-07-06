@@ -17,6 +17,7 @@ export async function onCreateAssetFromUrl(editor: Editor, url: string): Promise
 				image: meta.image ?? '',
 				title: meta.title ?? truncateStringWithEllipsis(url, 32),
 			},
+			meta: {},
 		}
 	} catch (error) {
 		// Otherwise, fallback to fetching data from the url
@@ -51,6 +52,7 @@ export async function onCreateAssetFromUrl(editor: Editor, url: string): Promise
 				title: meta.title,
 				description: meta.description,
 			},
+			meta: {},
 		}
 	}
 }

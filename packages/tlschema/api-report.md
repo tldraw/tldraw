@@ -6,6 +6,7 @@
 
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
+import { JsonObject } from '@tldraw/utils';
 import { Migrations } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
@@ -113,11 +114,12 @@ export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser
 export function CLIENT_FIXUP_SCRIPT(persistedStore: SerializedStore<TLRecord>): SerializedStore<TLRecord>;
 
 // @public
-export function createAssetValidator<Type extends string, Props extends object>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
+export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
     id: TLAssetId;
     typeName: 'asset';
     type: Type;
     props: Props;
+    meta: JsonObject;
 }>;
 
 // @public (undocumented)
@@ -131,21 +133,11 @@ export const createPresenceStateDerivation: ($user: Signal<{
 export function createShapeId(id?: string): TLShapeId;
 
 // @public (undocumented)
-export function createShapeValidator<Type extends string, Props extends object>(type: Type, props?: {
+export function createShapeValidator<Type extends string, Props extends JsonObject, Meta extends JsonObject>(type: Type, props?: {
     [K in keyof Props]: T.Validatable<Props[K]>;
-}): T.ObjectValidator<{
-    id: TLShapeId;
-    typeName: "shape";
-    x: number;
-    y: number;
-    rotation: number;
-    index: string;
-    parentId: TLParentId;
-    type: Type;
-    isLocked: boolean;
-    opacity: number;
-    props: Props | Record<string, unknown>;
-}>;
+}, meta?: {
+    [K in keyof Meta]: T.Validatable<Meta[K]>;
+}): T.ObjectValidator<TLBaseShape<Type, Props>>;
 
 // @public
 export function createTLSchema({ shapes }: {
@@ -710,6 +702,9 @@ export type SchemaShapeInfo = {
     props?: Record<string, {
         validate: (prop: any) => any;
     }>;
+    meta?: Record<string, {
+        validate: (prop: any) => any;
+    }>;
 };
 
 // @internal (undocumented)
@@ -786,7 +781,8 @@ export type TLAssetPartial<T extends TLAsset = TLAsset> = T extends T ? {
     id: TLAssetId;
     type: T['type'];
     props?: Partial<T['props']>;
-} & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
+    meta?: Partial<T['meta']>;
+} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public (undocumented)
 export type TLAssetShape = Extract<TLShape, {
@@ -797,6 +793,8 @@ export type TLAssetShape = Extract<TLShape, {
 
 // @public (undocumented)
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     props: Props;
     // (undocumented)
@@ -809,6 +807,8 @@ export interface TLBaseShape<Type extends string, Props extends object> extends 
     index: string;
     // (undocumented)
     isLocked: boolean;
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     opacity: TLOpacityType;
     // (undocumented)
@@ -838,6 +838,8 @@ export type TLBookmarkShape = TLBaseShape<'bookmark', TLBookmarkShapeProps>;
 
 // @public
 export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     x: number;
     // (undocumented)
@@ -911,6 +913,8 @@ export type TLDefaultVerticalAlignStyle = T.TypeOf<typeof DefaultVerticalAlignSt
 export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
     // (undocumented)
     gridSize: number;
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     name: string;
 }
@@ -1010,6 +1014,8 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     isToolLocked: boolean;
     // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
     opacityForNextShape: TLOpacityType;
     // (undocumented)
     screenBounds: Box2dModel;
@@ -1041,6 +1047,8 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
     hintingIds: TLShapeId[];
     // (undocumented)
     hoveredId: null | TLShapeId;
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     pageId: RecordId<TLPage>;
     // (undocumented)
@@ -1075,6 +1083,8 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     lastActivityTimestamp: number;
     // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
     screenBounds: Box2dModel;
     // (undocumented)
     scribble: null | TLScribble;
@@ -1102,6 +1112,8 @@ export type TLOpacityType = number;
 export interface TLPage extends BaseRecord<'page', TLPageId> {
     // (undocumented)
     index: string;
+    // (undocumented)
+    meta: JsonObject;
     // (undocumented)
     name: string;
 }
@@ -1145,7 +1157,8 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
     id: TLShapeId;
     type: T['type'];
     props?: Partial<T['props']>;
-} & Partial<Omit<T, 'id' | 'props' | 'type'>> : never;
+    meta?: Partial<T['meta']>;
+} & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public (undocumented)
 export type TLShapeProp = keyof TLShapeProps;

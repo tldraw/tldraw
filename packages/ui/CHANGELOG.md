@@ -1,3 +1,351 @@
+# v2.0.0-alpha.14 (Tue Jul 04 2023)
+
+### Release Notes
+
+#### Disable styles panel button on mobile when using the laser tool. ([#1704](https://github.com/tldraw/tldraw/pull/1704))
+
+- Disable the styles panel button for laser tool on mobile.
+
+#### remove lock option from highlighter ([#1703](https://github.com/tldraw/tldraw/pull/1703))
+
+- We no longer show the tool lock option for highlighter - it didn't do anything anyway
+
+#### [fix] Lock shortcut ([#1677](https://github.com/tldraw/tldraw/pull/1677))
+
+- [@tldraw/editor] Fix lock tool shortcut
+
+#### [feature] add `meta` property to records ([#1627](https://github.com/tldraw/tldraw/pull/1627))
+
+- todo
+
+---
+
+#### 🚀 Enhancement
+
+- [feature] add `meta` property to records [#1627](https://github.com/tldraw/tldraw/pull/1627) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Disable styles panel button on mobile when using the laser tool. [#1704](https://github.com/tldraw/tldraw/pull/1704) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- remove lock option from highlighter [#1703](https://github.com/tldraw/tldraw/pull/1703) ([@SomeHats](https://github.com/SomeHats))
+- [fix] Lock shortcut [#1677](https://github.com/tldraw/tldraw/pull/1677) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.0.0-alpha.13 (Wed Jun 28 2023)
+
+### Release Notes
+
+#### Styles API follow-ups ([#1636](https://github.com/tldraw/tldraw/pull/1636))
+
+--
+
+#### Revert "Update dependencies (#1613)" ([#1617](https://github.com/tldraw/tldraw/pull/1617))
+
+-
+
+#### tldraw.css ([#1607](https://github.com/tldraw/tldraw/pull/1607))
+
+- [tldraw] Removes `editor.css` and `ui.css` exports, replaces with `tldraw.css`
+
+#### Styles API ([#1580](https://github.com/tldraw/tldraw/pull/1580))
+
+-
+
+#### (1/2) Cursor Chat - Presence ([#1487](https://github.com/tldraw/tldraw/pull/1487))
+
+- [dev] Added support for cursor chat presence.
+
+#### Use unpkg as a default for serving assets. ([#1548](https://github.com/tldraw/tldraw/pull/1548))
+
+- Use unpkg asset hosting as a default.
+
+#### hoist opacity out of props ([#1526](https://github.com/tldraw/tldraw/pull/1526))
+
+[internal only for now]
+
+#### Select locked shapes on long press ([#1529](https://github.com/tldraw/tldraw/pull/1529))
+
+
+
+#### highlighter fixes ([#1530](https://github.com/tldraw/tldraw/pull/1530))
+
+[aq bug fixes]
+
+#### Simplify static cursors ([#1520](https://github.com/tldraw/tldraw/pull/1520))
+
+- (editor) Simplifies the cursors in our CSS.
+
+#### Renaming types, shape utils, tools ([#1513](https://github.com/tldraw/tldraw/pull/1513))
+
+- Renaming of types, shape utils, tools
+
+#### tlschema cleanup ([#1509](https://github.com/tldraw/tldraw/pull/1509))
+
+- [editor] Remove `app.createShapeId`
+- [tlschema] Cleans up exports
+
+#### Cleanup @tldraw/ui types / exports ([#1504](https://github.com/tldraw/tldraw/pull/1504))
+
+- [editor] clean up / unify types
+
+#### rename app to editor ([#1503](https://github.com/tldraw/tldraw/pull/1503))
+
+- Rename `App` to `Editor` and many other things that reference `app` to `editor`.
+
+#### Add support for locking shapes ([#1447](https://github.com/tldraw/tldraw/pull/1447))
+
+- Add support for locking shapes.
+
+#### [3/3] Highlighter styling ([#1490](https://github.com/tldraw/tldraw/pull/1490))
+
+Highlighter pen is here! 🎉🎉🎉
+
+#### [1/3] initial highlighter shape/tool ([#1401](https://github.com/tldraw/tldraw/pull/1401))
+
+[internal only change layout ground work for highlighter]
+
+#### [feature] reduce motion ([#1485](https://github.com/tldraw/tldraw/pull/1485))
+
+- [editor] Add `reduceMotion` user preference
+- Add reduce motion option to preferences
+
+#### Feature flags rework ([#1474](https://github.com/tldraw/tldraw/pull/1474))
+
+[internal only change]
+
+#### [refactor] update record names ([#1473](https://github.com/tldraw/tldraw/pull/1473))
+
+- [editor] rename record types
+
+#### remove safari special-casing for paste ([#1470](https://github.com/tldraw/tldraw/pull/1470))
+
+[fixes a regression introduced during this release]
+
+#### Don't allow `g` keyboard shortcut in readonly mode, show laser tool in the toolbar ([#1459](https://github.com/tldraw/tldraw/pull/1459))
+
+- Disable geo tool shortcut in readonly mode. Show laser on the toolbar.
+
+#### [mini-feature] Following indicator ([#1468](https://github.com/tldraw/tldraw/pull/1468))
+
+- Adds viewport following indicator
+
+#### [chore] refactor user preferences ([#1435](https://github.com/tldraw/tldraw/pull/1435))
+
+- Add a brief release note for your PR here.
+
+#### Add translations for "Leave shared project" action ([#1394](https://github.com/tldraw/tldraw/pull/1394))
+
+- None
+
+#### Stricter ID types ([#1439](https://github.com/tldraw/tldraw/pull/1439))
+
+[internal only, covered by #1432 changelog]
+
+#### Add SVG cursors for all cursor types ([#1416](https://github.com/tldraw/tldraw/pull/1416))
+
+- Added consistent custom cursors.
+
+#### [refactor] Remove `TLShapeDef`, `getShapeUtilByType`. ([#1432](https://github.com/tldraw/tldraw/pull/1432))
+
+- [tlschema] Update props of `createTLSchema`
+- [editor] Update props of `TldrawEditorConfig`
+- [editor] Remove `App.getShapeUtilByType`
+- [editor] Update `App.getShapeUtil` to take a type rather than a shape
+
+#### Measure individual words instead of just line breaks for text exports ([#1397](https://github.com/tldraw/tldraw/pull/1397))
+
+- Add a brief release note for your PR here.
+
+#### [feature] Add checkbox to toolbar ([#1423](https://github.com/tldraw/tldraw/pull/1423))
+
+- Adds missing checkbox to toolbar.
+
+#### [feature] add laser pointer ([#1412](https://github.com/tldraw/tldraw/pull/1412))
+
+- Adds the laser pointer tool.
+
+#### Vertical text alignment for geo shapes ([#1414](https://github.com/tldraw/tldraw/pull/1414))
+
+- This adds vertical text alignment property to geo shapes.
+
+#### [fix] page menu, drag handle css ([#1406](https://github.com/tldraw/tldraw/pull/1406))
+
+- Fix styling in the page menu
+
+#### Switch to new collaborators component ([#1405](https://github.com/tldraw/tldraw/pull/1405))
+
+- [Breaking] Removes the old version of LiveCollaborators, replacing it with the new one based on `TLInstancePresence`
+
+#### [improvement] refactor paste to support multi-line text ([#1398](https://github.com/tldraw/tldraw/pull/1398))
+
+- Improves clipboard logic when pasting text
+- Adds support for pasting multi-line text
+- Adds maximum widths when pasting single-line text
+- Adds support for RTL languages when pasting multi-line or wrapped text
+- Strips leading indentation when pasting text
+
+#### Don't allow the users to use keyboard shortcuts to select tools in readonly mode. ([#1382](https://github.com/tldraw/tldraw/pull/1382))
+
+- Disable keyboard shortcut events for tools in readonly mode. We only allow the select, hand tools, and zoom tool.
+
+#### [fix] Don't synchronize isReadOnly ([#1396](https://github.com/tldraw/tldraw/pull/1396))
+
+- Removes the isReadOnly value from the `user_document_settings` record type.
+
+#### Add localizations for snapshots links ([#1347](https://github.com/tldraw/tldraw/pull/1347))
+
+- Add localization for creating snapshot links.
+
+#### avoid lazy race conditions ([#1364](https://github.com/tldraw/tldraw/pull/1364))
+
+[internal only]
+
+#### Export Events stuff ([#1360](https://github.com/tldraw/tldraw/pull/1360))
+
+- [ui] export the `TLUiEventSource` type
+- [ui] export the `EventsProviderProps ` type
+- [ui] export the `useEvents ` hook
+
+#### [improvement] rename onEvent to onUiEvent ([#1358](https://github.com/tldraw/tldraw/pull/1358))
+
+- [docs] Adds docs for ui events
+- [tldraw] Renames `onEvent` to `onUiEvent`
+
+#### [improvement] Ui events followup ([#1354](https://github.com/tldraw/tldraw/pull/1354))
+
+- [ui] Adds source to ui events data object
+- [ui] Corrects source for toolbar events
+- [ui] Corrects source for clipboard events
+- [examples] Updates events example
+
+#### Fix "copy as png" in firefox when `dom.events.asyncClipboard.clipboardItem` is enabled ([#1342](https://github.com/tldraw/tldraw/pull/1342))
+
+- Fix "copy as png" in firefox when `dom.events.asyncClipboard.clipboardItem` is enabled
+
+---
+
+#### 💥 Breaking Change
+
+- [fix] react component runaways, error boundaries [#1625](https://github.com/tldraw/tldraw/pull/1625) ([@steveruizok](https://github.com/steveruizok))
+- tldraw.css [#1607](https://github.com/tldraw/tldraw/pull/1607) ([@steveruizok](https://github.com/steveruizok))
+- Tidy up [#1600](https://github.com/tldraw/tldraw/pull/1600) ([@steveruizok](https://github.com/steveruizok))
+- Styles API [#1580](https://github.com/tldraw/tldraw/pull/1580) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- Use unpkg as a default for serving assets. [#1548](https://github.com/tldraw/tldraw/pull/1548) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- hoist opacity out of props [#1526](https://github.com/tldraw/tldraw/pull/1526) ([@SomeHats](https://github.com/SomeHats))
+- Independent instance state persistence [#1493](https://github.com/tldraw/tldraw/pull/1493) ([@ds300](https://github.com/ds300))
+- Renaming types, shape utils, tools [#1513](https://github.com/tldraw/tldraw/pull/1513) ([@steveruizok](https://github.com/steveruizok))
+- tlschema cleanup [#1509](https://github.com/tldraw/tldraw/pull/1509) ([@steveruizok](https://github.com/steveruizok))
+- Cleanup @tldraw/ui types / exports [#1504](https://github.com/tldraw/tldraw/pull/1504) ([@steveruizok](https://github.com/steveruizok))
+- rename app to editor [#1503](https://github.com/tldraw/tldraw/pull/1503) ([@steveruizok](https://github.com/steveruizok))
+- Add support for project names [#1340](https://github.com/tldraw/tldraw/pull/1340) ([@TodePond](https://github.com/TodePond) [@steveruizok](https://github.com/steveruizok))
+- [refactor] User-facing APIs [#1478](https://github.com/tldraw/tldraw/pull/1478) ([@steveruizok](https://github.com/steveruizok))
+- [refactor] update record names [#1473](https://github.com/tldraw/tldraw/pull/1473) ([@steveruizok](https://github.com/steveruizok))
+- [chore] refactor user preferences [#1435](https://github.com/tldraw/tldraw/pull/1435) ([@ds300](https://github.com/ds300))
+- [refactor] Remove `TLShapeDef`, `getShapeUtilByType`. [#1432](https://github.com/tldraw/tldraw/pull/1432) ([@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))
+- Switch to new collaborators component [#1405](https://github.com/tldraw/tldraw/pull/1405) ([@ds300](https://github.com/ds300))
+- [fix] Don't synchronize isReadOnly [#1396](https://github.com/tldraw/tldraw/pull/1396) ([@ds300](https://github.com/ds300))
+- [improvement] rename onEvent to onUiEvent [#1358](https://github.com/tldraw/tldraw/pull/1358) ([@steveruizok](https://github.com/steveruizok))
+- [improvement] Ui events followup [#1354](https://github.com/tldraw/tldraw/pull/1354) ([@steveruizok](https://github.com/steveruizok))
+- [feature] ui events [#1326](https://github.com/tldraw/tldraw/pull/1326) ([@orangemug](https://github.com/orangemug) [@steveruizok](https://github.com/steveruizok))
+
+#### 🚀 Enhancement
+
+- Styles API follow-ups [#1636](https://github.com/tldraw/tldraw/pull/1636) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- (1/2) Cursor Chat - Presence [#1487](https://github.com/tldraw/tldraw/pull/1487) ([@TodePond](https://github.com/TodePond) [@steveruizok](https://github.com/steveruizok))
+- Add support for locking shapes [#1447](https://github.com/tldraw/tldraw/pull/1447) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+- [3/3] Highlighter styling [#1490](https://github.com/tldraw/tldraw/pull/1490) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- [1/3] initial highlighter shape/tool [#1401](https://github.com/tldraw/tldraw/pull/1401) ([@SomeHats](https://github.com/SomeHats))
+- [feature] reduce motion [#1485](https://github.com/tldraw/tldraw/pull/1485) ([@steveruizok](https://github.com/steveruizok))
+- [mini-feature] Following indicator [#1468](https://github.com/tldraw/tldraw/pull/1468) ([@steveruizok](https://github.com/steveruizok))
+- Add SVG cursors for all cursor types [#1416](https://github.com/tldraw/tldraw/pull/1416) ([@TodePond](https://github.com/TodePond) [@steveruizok](https://github.com/steveruizok))
+- [feature] Add checkbox to toolbar [#1423](https://github.com/tldraw/tldraw/pull/1423) ([@steveruizok](https://github.com/steveruizok))
+- [feature] add laser pointer [#1412](https://github.com/tldraw/tldraw/pull/1412) ([@steveruizok](https://github.com/steveruizok))
+- Vertical text alignment for geo shapes [#1414](https://github.com/tldraw/tldraw/pull/1414) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+- [improvement] refactor paste to support multi-line text [#1398](https://github.com/tldraw/tldraw/pull/1398) ([@steveruizok](https://github.com/steveruizok))
+- Add stuff for new 'share project' flow [#1403](https://github.com/tldraw/tldraw/pull/1403) ([@ds300](https://github.com/ds300))
+- open menus refactor [#1400](https://github.com/tldraw/tldraw/pull/1400) ([@steveruizok](https://github.com/steveruizok))
+- Snapshot link menu translations [#1399](https://github.com/tldraw/tldraw/pull/1399) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- 3/2 Cursor chat [#1623](https://github.com/tldraw/tldraw/pull/1623) ([@steveruizok](https://github.com/steveruizok))
+- [fix] embeds [#1578](https://github.com/tldraw/tldraw/pull/1578) ([@steveruizok](https://github.com/steveruizok))
+- Asset improvements [#1557](https://github.com/tldraw/tldraw/pull/1557) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Use `"Toggle locked"` [#1538](https://github.com/tldraw/tldraw/pull/1538) ([@steveruizok](https://github.com/steveruizok))
+- Select locked shapes on long press [#1529](https://github.com/tldraw/tldraw/pull/1529) ([@steveruizok](https://github.com/steveruizok))
+- highlighter fixes [#1530](https://github.com/tldraw/tldraw/pull/1530) ([@SomeHats](https://github.com/SomeHats))
+- Feature flags rework [#1474](https://github.com/tldraw/tldraw/pull/1474) ([@SomeHats](https://github.com/SomeHats))
+- remove safari special-casing for paste [#1470](https://github.com/tldraw/tldraw/pull/1470) ([@SomeHats](https://github.com/SomeHats))
+- Don't allow `g` keyboard shortcut in readonly mode, show laser tool in the toolbar [#1459](https://github.com/tldraw/tldraw/pull/1459) ([@MitjaBezensek](https://github.com/MitjaBezensek) [@steveruizok](https://github.com/steveruizok))
+- Fix people menu button border on android [#1471](https://github.com/tldraw/tldraw/pull/1471) ([@TodePond](https://github.com/TodePond))
+- [fix] lock option for laser tool [#1460](https://github.com/tldraw/tldraw/pull/1460) ([@steveruizok](https://github.com/steveruizok))
+- Add laser keyboard shortcut. [#1467](https://github.com/tldraw/tldraw/pull/1467) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- [fix] make follow icon visible on iPad [#1462](https://github.com/tldraw/tldraw/pull/1462) ([@steveruizok](https://github.com/steveruizok))
+- [fix] page item submenu [#1461](https://github.com/tldraw/tldraw/pull/1461) ([@steveruizok](https://github.com/steveruizok))
+- Add translations for "Leave shared project" action [#1394](https://github.com/tldraw/tldraw/pull/1394) ([@TodePond](https://github.com/TodePond) [@steveruizok](https://github.com/steveruizok))
+- Stricter ID types [#1439](https://github.com/tldraw/tldraw/pull/1439) ([@SomeHats](https://github.com/SomeHats) [@steveruizok](https://github.com/steveruizok))
+- Measure individual words instead of just line breaks for text exports [#1397](https://github.com/tldraw/tldraw/pull/1397) ([@SomeHats](https://github.com/SomeHats))
+- [fix] page menu, drag handle css [#1406](https://github.com/tldraw/tldraw/pull/1406) ([@steveruizok](https://github.com/steveruizok))
+- Don't allow the users to use keyboard shortcuts to select tools in readonly mode. [#1382](https://github.com/tldraw/tldraw/pull/1382) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Disabling middle click paste in favour of panning [#1335](https://github.com/tldraw/tldraw/pull/1335) ([@orangemug](https://github.com/orangemug) [@steveruizok](https://github.com/steveruizok))
+- Export Events stuff [#1360](https://github.com/tldraw/tldraw/pull/1360) ([@steveruizok](https://github.com/steveruizok))
+- Fix "copy as png" in firefox when `dom.events.asyncClipboard.clipboardItem` is enabled [#1342](https://github.com/tldraw/tldraw/pull/1342) ([@orangemug](https://github.com/orangemug))
+- [feature] `check-box` geo shape [#1330](https://github.com/tldraw/tldraw/pull/1330) ([@steveruizok](https://github.com/steveruizok))
+- [tiny] rename show menu paste [#1332](https://github.com/tldraw/tldraw/pull/1332) ([@steveruizok](https://github.com/steveruizok))
+- remove svg layer, html all the things, rs to tl [#1227](https://github.com/tldraw/tldraw/pull/1227) ([@TodePond](https://github.com/TodePond) [@steveruizok](https://github.com/steveruizok))
+- New vite-based examples app [#1226](https://github.com/tldraw/tldraw/pull/1226) ([@SomeHats](https://github.com/SomeHats))
+- readmes [#1195](https://github.com/tldraw/tldraw/pull/1195) ([@steveruizok](https://github.com/steveruizok))
+- update @radix-ui/react-popover to 1.0.6-rc.5 [#1206](https://github.com/tldraw/tldraw/pull/1206) ([@SomeHats](https://github.com/SomeHats))
+- [chore] update lazyrepo [#1211](https://github.com/tldraw/tldraw/pull/1211) ([@ds300](https://github.com/ds300))
+- [fix] pick a better default language [#1201](https://github.com/tldraw/tldraw/pull/1201) ([@steveruizok](https://github.com/steveruizok) [@TodePond](https://github.com/TodePond))
+- Added `pHYs` to import/export of png images [#1200](https://github.com/tldraw/tldraw/pull/1200) ([@orangemug](https://github.com/orangemug) [@steveruizok](https://github.com/steveruizok))
+- derived presence state [#1204](https://github.com/tldraw/tldraw/pull/1204) ([@ds300](https://github.com/ds300))
+- [lite] upgrade lazyrepo [#1198](https://github.com/tldraw/tldraw/pull/1198) ([@ds300](https://github.com/ds300))
+- transfer-out: transfer out [#1195](https://github.com/tldraw/tldraw/pull/1195) ([@SomeHats](https://github.com/SomeHats))
+
+#### ⚠️ Pushed to `main`
+
+- update lazyrepo ([@ds300](https://github.com/ds300))
+
+#### 🏠 Internal
+
+- Explicit shape type checks [#1594](https://github.com/tldraw/tldraw/pull/1594) ([@steveruizok](https://github.com/steveruizok))
+- move some kbds into actions and tools [#1585](https://github.com/tldraw/tldraw/pull/1585) ([@BrianHung](https://github.com/BrianHung) [@steveruizok](https://github.com/steveruizok))
+- [improvement] bookmark shape logic [#1568](https://github.com/tldraw/tldraw/pull/1568) ([@steveruizok](https://github.com/steveruizok))
+- Simplify static cursors [#1520](https://github.com/tldraw/tldraw/pull/1520) ([@steveruizok](https://github.com/steveruizok))
+- [chore] remove benchmark [#1489](https://github.com/tldraw/tldraw/pull/1489) ([@steveruizok](https://github.com/steveruizok))
+- Add localizations for snapshots links [#1347](https://github.com/tldraw/tldraw/pull/1347) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- avoid lazy race conditions [#1364](https://github.com/tldraw/tldraw/pull/1364) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🧪 Tests
+
+- Add playwright tests [#1484](https://github.com/tldraw/tldraw/pull/1484) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- Incorporate signia as @tldraw/state [#1620](https://github.com/tldraw/tldraw/pull/1620) ([@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+- Revert "Update dependencies (#1613)" [#1617](https://github.com/tldraw/tldraw/pull/1617) ([@SomeHats](https://github.com/SomeHats))
+- Update dependencies [#1613](https://github.com/tldraw/tldraw/pull/1613) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 7
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Brian Hung ([@BrianHung](https://github.com/BrianHung))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Orange Mug ([@orangemug](https://github.com/orangemug))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.12 (Mon Apr 03 2023)
 
 #### 🐛 Bug Fix
