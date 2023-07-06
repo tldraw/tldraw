@@ -76,6 +76,8 @@ const Versions = {
 	AddCloud: 7,
 } as const
 
+export { Versions as GeoShapeVersions }
+
 /** @internal */
 export const geoShapeMigrations = defineMigrations({
 	currentVersion: Versions.AddCloud,
