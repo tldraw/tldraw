@@ -2296,15 +2296,18 @@ export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
-export type TldrawEditorProps = {
-    children?: any;
-    shapes?: readonly AnyTLShapeInfo[];
-    tools?: readonly TLStateNodeConstructor[];
+export interface TldrawEditorBaseProps {
     assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
+    children?: any;
     components?: Partial<TLEditorComponents>;
     onMount?: TLOnMountHandler;
-} & ({
+    shapes?: readonly AnyTLShapeInfo[];
+    tools?: readonly TLStateNodeConstructor[];
+}
+
+// @public
+export type TldrawEditorProps = TldrawEditorBaseProps & ({
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;

@@ -9,6 +9,7 @@ import React, {
 	useState,
 	useSyncExternalStore,
 } from 'react'
+
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
@@ -34,52 +35,65 @@ import { useZoomCss } from './hooks/useZoomCss'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
- * Attributes for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
- *
- * @param children - The editor's children.
- * @param shapes - An array of shape utils to use in the editor.
- * @param tools - An array of tools to use in the editor.
- * @param assetUrls - Urls for where to find fonts and other assets.
- * @param autoFocus - Whether to automatically focus the editor when it mounts.
- * @param components - Overrides for the tldraw user interface components.
- * @param onMount - Called when the editor has mounted.
- * @param store - The Store instance to use for keeping the editor's data. This
- * may be prepopulated, e.g. by loading from a server or database.
- * @param initialData - The editor's initial data.
- * @param persistenceKey - The id under which to sync and persist the editor's
- * data. If none is given tldraw will not sync or persist the editor's data.
- * @param sessionId - When tldraw reloads a document from local persistence, it
- * will try to bring back the editor UI state (e.g. camera position, which
- * shapes are selected). It does this using a sessionId, which by default is
- * unique per browser tab. If you wish to have more fine-grained control over
- * this behavior, you can provide your own sessionId. If it can't find saved UI
- * state for the given sessionId, it will use the most recently saved UI state
- * for the given persistenceKey if available.
- * @param defaultName - The default initial document name. e.g. 'Untitled
- * Document'
+ * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
  *
  * @public
  **/
-export type TldrawEditorProps = {
+export type TldrawEditorProps = TldrawEditorBaseProps &
+	(
+		| {
+				store: TLStore | TLStoreWithStatus
+		  }
+		| {
+				store?: undefined
+				initialData?: SerializedStore<TLRecord>
+				persistenceKey?: string
+				sessionId?: string
+				defaultName?: string
+		  }
+	)
+
+/**
+ * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
+ *
+ * @public
+ */
+export interface TldrawEditorBaseProps {
+	/**
+	 * The component's children.
+	 */
 	children?: any
+
+	/**
+	 * An array of shapes definitions to make available to the editor.
+	 */
 	shapes?: readonly AnyTLShapeInfo[]
+
+	/**
+	 * An array of tools to add to the editor's state chart.
+	 */
 	tools?: readonly TLStateNodeConstructor[]
+
+	/**
+	 * Urls for the editor to find fonts and other assets.
+	 */
 	assetUrls?: RecursivePartial<TLEditorAssetUrls>
+
+	/**
+	 * Whether to automatically focus the editor when it mounts.
+	 */
 	autoFocus?: boolean
+
+	/**
+	 * Overrides for the editor's components, such as handles, collaborator cursors, etc.
+	 */
 	components?: Partial<TLEditorComponents>
+
+	/**
+	 * Called when the editor has mounted.
+	 */
 	onMount?: TLOnMountHandler
-} & (
-	| {
-			store: TLStore | TLStoreWithStatus
-	  }
-	| {
-			store?: undefined
-			initialData?: SerializedStore<TLRecord>
-			persistenceKey?: string
-			sessionId?: string
-			defaultName?: string
-	  }
-)
+}
 
 /**
  * Called when the editor has mounted.
