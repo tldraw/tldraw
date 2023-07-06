@@ -10,6 +10,17 @@ keywords:
   - state
 ---
 
-Coming soon. 
+##### Table of Contents
 
-See the [tldraw repository](https://github.com/tldraw/tldraw/tree/main/apps/examples) for an example of how to create custom tools in tldraw.
+- [Introduction](#introduction)
+- [State chart](#state-chart)
+- [Handling events](#handling-events)
+- [Custom tools](#custom-tools)
+
+## Introduction
+
+In tldraw, a **tool** is a state that the user can be in. For example, the user can be in the select tool, the draw tool, or the arrow tool.
+
+In other words, a tool is a [`StateNode`](/gen/editor/StateNode) of tldraw's "state chart". This tree of `StateNode` instances contains the logic for the user's interactions. User interactions such as moving the cursor will produce different changes to the state depending on which nodes are active.
+
+

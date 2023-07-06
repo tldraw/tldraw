@@ -16,7 +16,7 @@ keywords:
 
 - [Introduction](#introduction)
 - [State](#state)
-- [Events and Tools](#events-and-tools)
+- [Events](#events)
 - [Inputs](#inputs)
 - [Common things to do with the editor](#common-things-to-do-with-the-editor)
 
@@ -124,7 +124,7 @@ editor.duplicateShapes(editor.selectedIds)
 editor.bailToMark("first") // will to A
 ```
 
-## Events and Tools
+## Events
 
 The `Editor` class receives events from via its `dispatch` method. When the `Editor` receives an event, it is first handled internally to update `editor.inputs` and other state before, and then sent into to the editor's state chart.
 
