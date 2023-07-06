@@ -1,3 +1,58 @@
+# v2.0.0-alpha.14 (Tue Jul 04 2023)
+
+### Release Notes
+
+#### [fix] penmode ([#1698](https://github.com/tldraw/tldraw/pull/1698))
+
+- [fix] pen mode
+
+#### [improvement] More nuanced cursor state ([#1682](https://github.com/tldraw/tldraw/pull/1682))
+
+- Improve cursor timeouts and hiding logic.
+
+#### [fix] comma keyboard shortcuts ([#1675](https://github.com/tldraw/tldraw/pull/1675))
+
+- [@tldraw/editor] Bug fixes on document events.
+
+#### [improvement] add box sizing border box ([#1674](https://github.com/tldraw/tldraw/pull/1674))
+
+- [@tldraw/editor] Add `box-sizing: border-box` to `tl-container`
+
+#### [improvemnet] drop crc, Buffer dependency ([#1673](https://github.com/tldraw/tldraw/pull/1673))
+
+- [@tldraw/editor] Remove peer dependency on buffer.
+
+#### [improvement] export scribble manager ([#1671](https://github.com/tldraw/tldraw/pull/1671))
+
+- [@tldraw/tldraw] Export `ScribbleManager`
+
+#### [feature] add `meta` property to records ([#1627](https://github.com/tldraw/tldraw/pull/1627))
+
+- todo
+
+---
+
+#### 🚀 Enhancement
+
+- [improvement] More nuanced cursor state [#1682](https://github.com/tldraw/tldraw/pull/1682) ([@steveruizok](https://github.com/steveruizok))
+- [improvement] export scribble manager [#1671](https://github.com/tldraw/tldraw/pull/1671) ([@steveruizok](https://github.com/steveruizok))
+- [feature] add `meta` property to records [#1627](https://github.com/tldraw/tldraw/pull/1627) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- [fix] penmode [#1698](https://github.com/tldraw/tldraw/pull/1698) ([@steveruizok](https://github.com/steveruizok))
+- [fix] indicator not updating [#1696](https://github.com/tldraw/tldraw/pull/1696) ([@steveruizok](https://github.com/steveruizok))
+- [fix] comma keyboard shortcuts [#1675](https://github.com/tldraw/tldraw/pull/1675) ([@steveruizok](https://github.com/steveruizok))
+- [improvement] add box sizing border box [#1674](https://github.com/tldraw/tldraw/pull/1674) ([@steveruizok](https://github.com/steveruizok))
+- [improvemnet] drop crc, Buffer dependency [#1673](https://github.com/tldraw/tldraw/pull/1673) ([@steveruizok](https://github.com/steveruizok))
+- [fix] Shape rendering [#1670](https://github.com/tldraw/tldraw/pull/1670) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.13 (Wed Jun 28 2023)
 
 ### Release Notes
