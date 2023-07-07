@@ -97,6 +97,7 @@ export function getAssetUrls(opts) {
 			'geo-arrow-right': formatAssetUrl('./icons/icon/geo-arrow-right.svg', opts),
 			'geo-arrow-up': formatAssetUrl('./icons/icon/geo-arrow-up.svg', opts),
 			'geo-check-box': formatAssetUrl('./icons/icon/geo-check-box.svg', opts),
+			'geo-cloud': formatAssetUrl('./icons/icon/geo-cloud.svg', opts),
 			'geo-diamond': formatAssetUrl('./icons/icon/geo-diamond.svg', opts),
 			'geo-ellipse': formatAssetUrl('./icons/icon/geo-ellipse.svg', opts),
 			'geo-hexagon': formatAssetUrl('./icons/icon/geo-hexagon.svg', opts),

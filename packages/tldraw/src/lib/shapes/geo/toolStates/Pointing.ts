@@ -85,7 +85,11 @@ export class Pointing extends StateNode {
 		if (!shape) return
 
 		const bounds =
-			shape.props.geo === 'star' ? getStarBounds(5, 200, 200) : new Box2d(0, 0, 200, 200)
+			shape.props.geo === 'star'
+				? getStarBounds(5, 200, 200)
+				: shape.props.geo === 'cloud'
+				? new Box2d(0, 0, 300, 180)
+				: new Box2d(0, 0, 200, 200)
 		const delta = this.editor.getDeltaInParentSpace(shape, bounds.center)
 
 		this.editor.select(id)

@@ -88,7 +88,7 @@ export function perimeterOfEllipse(rx: number, ry: number): number {
  * @returns A number between 0 and 2 * PI
  * @public
  */
-export function canolicalizeRotation(a: number) {
+export function canonicalizeRotation(a: number) {
 	a = a % PI2
 	if (a < 0) {
 		a = a + PI2

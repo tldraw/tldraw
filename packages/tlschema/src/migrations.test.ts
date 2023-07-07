@@ -15,7 +15,7 @@ import { arrowShapeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations } from './shapes/TLDrawShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
-import { geoShapeMigrations } from './shapes/TLGeoShape'
+import { GeoShapeVersions, geoShapeMigrations } from './shapes/TLGeoShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
 import { noteShapeMigrations } from './shapes/TLNoteShape'
 import { textShapeMigrations } from './shapes/TLTextShape'
@@ -703,6 +703,22 @@ describe('Migrate GeoShape legacy horizontal alignment', () => {
 		})
 		expect(down({ props: { align: 'end-legacy', type: 'ellipse' } })).toEqual({
 			props: { align: 'end', type: 'ellipse' },
+		})
+	})
+})
+
+describe('adding cloud shape', () => {
+	const { up, down } = geoShapeMigrations.migrators[GeoShapeVersions.AddCloud]
+
+	test('up does nothing', () => {
+		expect(up({ props: { geo: 'rectangle' } })).toEqual({
+			props: { geo: 'rectangle' },
+		})
+	})
+
+	test('down converts clouds to rectangles', () => {
+		expect(down({ props: { geo: 'cloud' } })).toEqual({
+			props: { geo: 'rectangle' },
 		})
 	})
 })

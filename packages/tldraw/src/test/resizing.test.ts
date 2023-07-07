@@ -6,7 +6,7 @@ import {
 	PI2,
 	RotateCorner,
 	Vec2d,
-	canolicalizeRotation,
+	canonicalizeRotation,
 	rotateSelectionHandle,
 } from '@tldraw/primitives'
 import { TestEditor } from './TestEditor'
@@ -331,8 +331,8 @@ describe('When resizing mulitple shapes...', () => {
 				.pointerMove(rotateEnd.x, rotateEnd.y)
 				.pointerUp()
 
-			expect(canolicalizeRotation(shapeA.rotation) % Math.PI).toBeCloseTo(
-				canolicalizeRotation(rotation) % Math.PI
+			expect(canonicalizeRotation(shapeA.rotation) % Math.PI).toBeCloseTo(
+				canonicalizeRotation(rotation) % Math.PI
 			)
 			expect(editor.getPageRotation(shapeB)).toBeCloseTo(rotation + rotationB)
 			expect(editor.getPageRotation(shapeC)).toBeCloseTo(rotation + rotationB)
@@ -588,7 +588,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		editor.pointerUp(20, 20, { shiftKey: false })
 		jest.advanceTimersByTime(200)
 
-		expect(editor.getShapeById(ids.boxB)!.rotation).toBeCloseTo(canolicalizeRotation(-PI / 2))
+		expect(editor.getShapeById(ids.boxB)!.rotation).toBeCloseTo(canonicalizeRotation(-PI / 2))
 
 		editor.select(ids.boxA, ids.boxB)
 		// shrink
@@ -2325,7 +2325,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		expect(editor.getPageBoundsById(ids.boxX)!.w).toBeCloseTo(60)
 		expect(editor.getPageBoundsById(ids.boxX)!.h).toBeCloseTo(60)
 		expect(editor.getShapeById(ids.boxX)!.rotation).toEqual(
-			canolicalizeRotation(((PI / 2) * times) % (PI * 2))
+			canonicalizeRotation(((PI / 2) * times) % (PI * 2))
 		)
 	}
 

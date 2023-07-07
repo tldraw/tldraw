@@ -42,11 +42,15 @@ import {
 } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { useForceSolid } from '../shared/useForceSolid'
+import { cloudOutline, cloudSvgPath } from './cloudOutline'
+import { DashStyleCloud, DashStyleCloudSvg } from './components/DashStyleCloud'
 import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
 import { DashStyleOval, DashStyleOvalSvg } from './components/DashStyleOval'
 import { DashStylePolygon, DashStylePolygonSvg } from './components/DashStylePolygon'
+import { DrawStyleCloud, DrawStyleCloudSvg } from './components/DrawStyleCloud'
 import { DrawStyleEllipseSvg, getEllipseIndicatorPath } from './components/DrawStyleEllipse'
 import { DrawStylePolygon, DrawStylePolygonSvg } from './components/DrawStylePolygon'
+import { SolidStyleCloud, SolidStyleCloudSvg } from './components/SolidStyleCloud'
 import { SolidStyleEllipse, SolidStyleEllipseSvg } from './components/SolidStyleEllipse'
 import {
 	SolidStyleOval,
@@ -148,6 +152,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const cy = h / 2
 
 		switch (shape.props.geo) {
+			case 'cloud': {
+				return cloudOutline(w, h, shape.id, shape.props.size)
+			}
 			case 'triangle': {
 				return [new Vec2d(cx, 0), new Vec2d(w, h), new Vec2d(0, h)]
 			}
@@ -364,6 +371,48 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			const h = props.h + growY
 
 			switch (props.geo) {
+				case 'cloud': {
+					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
+						return (
+							<SolidStyleCloud
+								color={color}
+								fill={fill}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								id={id}
+								size={size}
+							/>
+						)
+					} else if (dash === 'dashed' || dash === 'dotted') {
+						return (
+							<DashStyleCloud
+								color={color}
+								fill={fill}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								id={id}
+								size={size}
+								dash={dash === 'dashed' ? dash : size === 's' && forceSolid ? 'dashed' : dash}
+							/>
+						)
+					} else if (dash === 'draw') {
+						return (
+							<DrawStyleCloud
+								color={color}
+								fill={fill}
+								strokeWidth={strokeWidth}
+								w={w}
+								h={h}
+								id={id}
+								size={size}
+							/>
+						)
+					}
+
+					break
+				}
 				case 'ellipse': {
 					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
 						return (
@@ -477,7 +526,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	indicator(shape: TLGeoShape) {
 		const { id, props } = shape
-		const { w, h, growY, size } = props
+		const { w, size } = props
+		const h = props.h + props.growY
 
 		const forceSolid = useForceSolid()
 		const strokeWidth = STROKE_SIZES[size]
@@ -485,13 +535,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		switch (props.geo) {
 			case 'ellipse': {
 				if (props.dash === 'draw' && !forceSolid) {
-					return <path d={getEllipseIndicatorPath(id, w, h + growY, strokeWidth)} />
+					return <path d={getEllipseIndicatorPath(id, w, h, strokeWidth)} />
 				}
 
-				return <ellipse cx={w / 2} cy={(h + growY) / 2} rx={w / 2} ry={(h + growY) / 2} />
+				return <ellipse cx={w / 2} cy={h / 2} rx={w / 2} ry={h / 2} />
 			}
 			case 'oval': {
-				return <path d={getOvalIndicatorPath(w, h + growY)} />
+				return <path d={getOvalIndicatorPath(w, h)} />
+			}
+			case 'cloud': {
+				return <path d={cloudSvgPath(w, h, id, size)} />
 			}
 
 			default: {
@@ -604,6 +657,50 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 							color: props.color,
 							fill: props.fill,
 							theme,
+						})
+				}
+				break
+			}
+
+			case 'cloud': {
+				switch (props.dash) {
+					case 'draw':
+						svgElm = DrawStyleCloudSvg({
+							id,
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							color: props.color,
+							fill: props.fill,
+							size: props.size,
+							theme,
+						})
+						break
+
+					case 'solid':
+						svgElm = SolidStyleCloudSvg({
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							color: props.color,
+							fill: props.fill,
+							size: props.size,
+							id,
+							theme,
+						})
+						break
+
+					default:
+						svgElm = DashStyleCloudSvg({
+							id,
+							strokeWidth,
+							w: props.w,
+							h: props.h,
+							dash: props.dash,
+							color: props.color,
+							fill: props.fill,
+							theme,
+							size: props.size,
 						})
 				}
 				break
