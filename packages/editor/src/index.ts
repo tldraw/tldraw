@@ -22,6 +22,8 @@ export {
 	ErrorScreen,
 	LoadingScreen,
 	TldrawEditor,
+	type TLOnMountHandler,
+	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
 export {

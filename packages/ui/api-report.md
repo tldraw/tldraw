@@ -211,37 +211,30 @@ function Title({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
-export const TldrawUi: React_2.NamedExoticComponent<{
+export const TldrawUi: React_2.NamedExoticComponent<TldrawUiBaseProps & TldrawUiContextProviderProps>;
+
+// @public
+export interface TldrawUiBaseProps {
     children?: ReactNode;
-    hideUi?: boolean | undefined;
+    hideUi?: boolean;
+    renderDebugMenuItems?: () => React_2.ReactNode;
     shareZone?: ReactNode;
     topZone?: ReactNode;
-    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
-} & TldrawUiContextProviderProps>;
+}
 
 // @public (undocumented)
 export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, children, }: TldrawUiContextProviderProps): JSX.Element;
 
 // @public
 export interface TldrawUiContextProviderProps {
-    // (undocumented)
     assetUrls?: RecursivePartial<TLUiAssetUrls>;
-    // (undocumented)
     children?: any;
-    // (undocumented)
     onUiEvent?: TLUiEventHandler;
-    // (undocumented)
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
 
 // @public
-export type TldrawUiProps = {
-    children?: ReactNode;
-    hideUi?: boolean;
-    shareZone?: ReactNode;
-    topZone?: ReactNode;
-    renderDebugMenuItems?: () => React_2.ReactNode;
-} & TldrawUiContextProviderProps;
+export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
 
 // @public (undocumented)
 export interface TLUiActionItem {
