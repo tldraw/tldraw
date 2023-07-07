@@ -1,11 +1,4 @@
-import {
-	Box2d,
-	PI,
-	Vec2d,
-	approximately,
-	getPointOnCircle,
-	shortAngleDist,
-} from '@tldraw/primitives'
+import { PI, Vec2d, getPointOnCircle, shortAngleDist } from '@tldraw/primitives'
 import { TLDefaultSizeStyle, Vec2dModel } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
 
@@ -28,7 +21,7 @@ type PillSection =
 			startAngle: number
 	  }
 
-function getPillPoints(width: number, height: number, numPoints: number) {
+export function getPillPoints(width: number, height: number, numPoints: number) {
 	const radius = Math.min(width, height) / 2
 	const longSide = Math.max(width, height) - radius * 2
 
@@ -101,71 +94,28 @@ function getPillPoints(width: number, height: number, numPoints: number) {
 			)
 		}
 		sectionOffset += spacing
-		const sectionLength = section.type === 'straight' ? longSide : PI * radius
-		if (sectionOffset > sectionLength) {
+		let sectionLength = section.type === 'straight' ? longSide : PI * radius
+		while (sectionOffset > sectionLength) {
 			sectionOffset -= sectionLength
 			sections.push(sections.shift()!)
+			sectionLength = sections[0].type === 'straight' ? longSide : PI * radius
 		}
 	}
 
 	return points
 }
 
-function getCloudArcPoints(width: number, height: number, seed: string, size: TLDefaultSizeStyle) {
-	const getRandom = rng(seed)
-	const radius = Math.max(Math.min((width + height) / 13, 50), 1)
-	const spacingModifier = size === 's' ? 1.5 : size === 'm' ? 1.8 : size === 'l' ? 2.6 : 3.6
-	const goalSpacing = radius * spacingModifier + getRandom() * radius * 0.4
-	const pillCircumference = getPillCircumference(width, height)
-
-	const numBalls = Math.max(Math.ceil(pillCircumference / goalSpacing), 9)
-
-	const wiggle = radius / 6
-
-	return getPillPoints(width, height, numBalls).map((p) => {
-		return new Vec2d(p.x + getRandom() * wiggle, p.y + getRandom() * wiggle)
-	})
-}
-
-export function getCloudArc(leftPoint: Vec2d, rightPoint: Vec2d) {
-	const center = Vec2d.Average([leftPoint, rightPoint])
-	const offsetAngle = Vec2d.Angle(center, leftPoint) - Math.PI / 2
-	const actualCenter = Vec2d.Add(
-		center,
-		Vec2d.FromAngle(offsetAngle, Vec2d.Dist(leftPoint, rightPoint) / 3)
-	)
-
-	const radius = Vec2d.Dist(actualCenter, leftPoint)
-
-	return {
-		leftPoint,
-		rightPoint,
-		center: actualCenter,
-		radius,
+const switchSize = <T>(size: TLDefaultSizeStyle, s: T, m: T, l: T, xl: T) => {
+	switch (size) {
+		case 's':
+			return s
+		case 'm':
+			return m
+		case 'l':
+			return l
+		case 'xl':
+			return xl
 	}
-}
-
-type Arc = ReturnType<typeof getCloudArc>
-
-function isTopBall(leftPoint: Vec2d, rightPoint: Vec2d) {
-	return (
-		leftPoint.x < rightPoint.x && rightPoint.x - leftPoint.x > Vec2d.Dist(leftPoint, rightPoint) / 2
-	)
-}
-function isRightBall(leftPoint: Vec2d, rightPoint: Vec2d) {
-	return (
-		leftPoint.y < rightPoint.y && rightPoint.y - leftPoint.y > Vec2d.Dist(leftPoint, rightPoint) / 2
-	)
-}
-function isBottomBall(leftPoint: Vec2d, rightPoint: Vec2d) {
-	return (
-		leftPoint.x > rightPoint.x && leftPoint.x - rightPoint.x > Vec2d.Dist(leftPoint, rightPoint) / 2
-	)
-}
-function isLeftBall(leftPoint: Vec2d, rightPoint: Vec2d) {
-	return (
-		leftPoint.y > rightPoint.y && leftPoint.y - rightPoint.y > Vec2d.Dist(leftPoint, rightPoint) / 2
-	)
 }
 
 export function getCloudArcs(
@@ -174,132 +124,86 @@ export function getCloudArcs(
 	seed: string,
 	size: TLDefaultSizeStyle
 ) {
-	const points = getCloudArcPoints(width, height, seed, size)
-	const arcs: Arc[] = []
-	const containingBox = new Box2d()
+	const getRandom = rng(seed)
+	const pillCircumference = getPillCircumference(width, height)
+	const numBumps = Math.max(Math.ceil(pillCircumference / switchSize(size, 50, 70, 100, 130)), 9)
+	const targetBumpProtrusion = (pillCircumference / numBumps) * 0.2
 
-	for (let i = 0; i < points.length; i++) {
-		const leftPoint = points[i]
-		const rightPoint = points[i === points.length - 1 ? 0 : i + 1]
+	// if the aspect ratio is high, innerWidth should be smaller
+	const innerWidth = Math.max(width - targetBumpProtrusion * 2, 1)
+	const innerHeight = Math.max(height - targetBumpProtrusion * 2, 1)
+	const paddingX = (width - innerWidth) / 2
+	const paddingY = (height - innerHeight) / 2
 
-		const arc = getCloudArc(leftPoint, rightPoint)
-		arcs.push(arc)
-		containingBox.expand(
-			new Box2d(
-				arc.center.x - arc.radius,
-				arc.center.y - arc.radius,
-				arc.radius * 2,
-				arc.radius * 2
-			)
-		)
-	}
+	const bumpPoints = getPillPoints(innerWidth, innerHeight, numBumps).map((p) => {
+		return p.addXY(paddingX, paddingY)
+	})
+	const maxWiggle = targetBumpProtrusion / 5
 
-	// To fit the cloud into the box, we need to scale it down and offset it
-	const scale = { x: width / containingBox.width, y: height / containingBox.height }
-	const offset = {
-		x: -containingBox.x,
-		y: -containingBox.y,
-	}
+	const adjustedBumpPoints = bumpPoints.map((p, i) => {
+		const pointBefore = bumpPoints[i === 0 ? bumpPoints.length - 1 : i - 1]
+		const pointAfter = bumpPoints[i === bumpPoints.length - 1 ? 0 : i + 1]
 
-	let topMost: Arc = arcs[0]
-	let rightMost: Arc = arcs[0]
-	let bottomMost: Arc = arcs[0]
-	let leftMost: Arc = arcs[0]
+		const angle = Vec2d.Angle(pointBefore, pointAfter) - Math.PI / 2
 
-	const scaledArcs = arcs.map((arc): Arc => {
-		const leftPoint = Vec2d.Add(arc.leftPoint, offset).mulV(scale)
-		const rightPoint = Vec2d.Add(arc.rightPoint, offset).mulV(scale)
-		let center = Vec2d.Add(arc.center, offset).mulV(scale)
-		let radius = Vec2d.Dist(center, leftPoint)
+		const randDist = getRandom() * maxWiggle
+		const randAngle = angle + (getRandom() - 0.5) * Math.PI * 0.7
 
-		// if the arc goes outside the top edge of the box, we need to adjust the center and radius
-		if (center.y - radius < 0 && isTopBall(leftPoint, rightPoint)) {
-			center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, new Vec2d(center.x, 0))
-			radius = Vec2d.Dist(center, leftPoint)
-		}
-
-		// if the arc goes outside the right edge of the box, we need to adjust the center and radius
-		if (center.x + radius > width && isRightBall(leftPoint, rightPoint)) {
-			center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, new Vec2d(width, center.y))
-			radius = Vec2d.Dist(center, leftPoint)
-		}
-
-		// if the arc goes outside the bottom edge of the box, we need to adjust the center and radius
-		if (center.y + radius > height && isBottomBall(leftPoint, rightPoint)) {
-			center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, new Vec2d(center.x, height))
-			radius = Vec2d.Dist(center, leftPoint)
-		}
-
-		// if the arc goes outside the left edge of the box, we need to adjust the center and radius
-		if (center.x - radius < 0 && isLeftBall(leftPoint, rightPoint)) {
-			center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, new Vec2d(0, center.y))
-			radius = Vec2d.Dist(center, leftPoint)
-		}
-
-		const newArc = {
-			leftPoint,
-			rightPoint,
-			center,
-			radius,
-		}
-
-		if (center.y - radius < topMost.center.y - topMost.radius) {
-			topMost = newArc
-		}
-
-		if (center.x + radius > rightMost.center.x + rightMost.radius) {
-			rightMost = newArc
-		}
-
-		if (center.y + radius > bottomMost.center.y + bottomMost.radius) {
-			bottomMost = newArc
-		}
-
-		if (center.x - radius < leftMost.center.x - leftMost.radius) {
-			leftMost = newArc
-		}
-		return newArc
+		return Vec2d.Add(p, Vec2d.FromAngle(randAngle, randDist))
 	})
 
-	// now if any of the top/right/bottom/left arcs do not meet the edge of the bounding box, we need to scoot them over
-	const topMostY = topMost.center.y - topMost.radius
-	if (!approximately(topMostY, 0)) {
-		topMost.center = getCenterOfCircleGivenThreePoints(
-			topMost.leftPoint,
-			topMost.rightPoint,
-			new Vec2d(topMost.center.x, 0)
-		)
-		topMost.radius = Vec2d.Dist(topMost.center, topMost.leftPoint)
+	const arcs: Arc[] = []
+
+	let leftMost = Infinity
+
+	for (let i = 0; i < adjustedBumpPoints.length; i++) {
+		const leftPoint = adjustedBumpPoints[i]
+		const rightPoint = adjustedBumpPoints[i === adjustedBumpPoints.length - 1 ? 0 : i + 1]
+
+		const arc = getCloudArc(leftPoint, rightPoint, Math.max(paddingX, paddingY), width, height)
+		const left = arc.center.x - arc.radius
+		if (left < leftMost) {
+			leftMost = left
+		}
+		arcs.push(arc)
 	}
-	const rightMostX = rightMost.center.x + rightMost.radius
-	if (!approximately(rightMostX, width)) {
-		rightMost.center = getCenterOfCircleGivenThreePoints(
-			rightMost.leftPoint,
-			rightMost.rightPoint,
-			new Vec2d(width, rightMost.center.y)
-		)
-		rightMost.radius = Vec2d.Dist(rightMost.center, rightMost.leftPoint)
-	}
-	const bottomMostY = bottomMost.center.y + bottomMost.radius
-	if (!approximately(bottomMostY, height)) {
-		bottomMost.center = getCenterOfCircleGivenThreePoints(
-			bottomMost.leftPoint,
-			bottomMost.rightPoint,
-			new Vec2d(bottomMost.center.x, height)
-		)
-		bottomMost.radius = Vec2d.Dist(bottomMost.center, bottomMost.leftPoint)
-	}
-	const leftMostX = leftMost.center.x - leftMost.radius
-	if (!approximately(leftMostX, 0)) {
-		leftMost.center = getCenterOfCircleGivenThreePoints(
-			leftMost.leftPoint,
-			leftMost.rightPoint,
-			new Vec2d(0, leftMost.center.y)
-		)
-		leftMost.radius = Vec2d.Dist(leftMost.center, leftMost.leftPoint)
-	}
-	return scaledArcs
+
+	return arcs
 }
+
+export function getCloudArc(
+	leftPoint: Vec2d,
+	rightPoint: Vec2d,
+	padding: number,
+	width: number,
+	height: number
+) {
+	const midPoint = Vec2d.Average([leftPoint, rightPoint])
+	const offsetAngle = Vec2d.Angle(leftPoint, rightPoint) - Math.PI / 2
+	const arcPoint = Vec2d.Add(midPoint, Vec2d.FromAngle(offsetAngle, padding))
+	if (arcPoint.x < 0) {
+		arcPoint.x = 0
+	} else if (arcPoint.x > width) {
+		arcPoint.x = width
+	}
+	if (arcPoint.y < 0) {
+		arcPoint.y = 0
+	} else if (arcPoint.y > height) {
+		arcPoint.y = height
+	}
+
+	const center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, arcPoint)
+	const radius = Vec2d.Dist(center, leftPoint)
+
+	return {
+		leftPoint,
+		rightPoint,
+		center,
+		radius,
+	}
+}
+
+type Arc = ReturnType<typeof getCloudArc>
 
 function getCenterOfCircleGivenThreePoints(a: Vec2d, b: Vec2d, c: Vec2d) {
 	const A = a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y
