@@ -1,3 +1,23 @@
+# v2.0.0-alpha.14 (Tue Jul 04 2023)
+
+### Release Notes
+
+#### [fix] mutating `snapshot` in `migrateStoreSnapshot` ([#1663](https://github.com/tldraw/tldraw/pull/1663))
+
+- [@tldraw/store] Fixed a bug that would cause `Store.migrateStoreSnapshot` to mutate its `snapshot` argument.
+
+---
+
+#### 🐛 Bug Fix
+
+- [fix] mutating `snapshot` in `migrateStoreSnapshot` [#1663](https://github.com/tldraw/tldraw/pull/1663) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.13 (Wed Jun 28 2023)
 
 ### Release Notes

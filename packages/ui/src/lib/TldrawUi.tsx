@@ -24,15 +24,22 @@ import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useTranslation } from './hooks/useTranslation/useTranslation'
 
-/** @public */
+/**
+ * Attributes for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
+ *
+ * @param children - The component's children.
+ * @param hideUi - Whether to hide the interface and only display the canvas.
+ * @param shareZone - A component to use for the share zone (will be deprecated)
+ * @param topZone - A component to use for the top zone (will be deprecated)
+ * @param renderDebugMenuItems - Additional items to add to the debug menu (will be deprecated)
+ *
+ * @public
+ */
 export type TldrawUiProps = {
 	children?: ReactNode
-	/** Whether to hide the interface and only display the canvas. */
 	hideUi?: boolean
-	/** A component to use for the share zone (will be deprecated) */
 	shareZone?: ReactNode
 	topZone?: ReactNode
-	/** Additional items to add to the debug menu  (will be deprecated)*/
 	renderDebugMenuItems?: () => React.ReactNode
 } & TldrawUiContextProviderProps
 
