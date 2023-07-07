@@ -119,7 +119,7 @@ it('lists shapes in viewport sorted by id with correct indexes & background inde
 	])
 
 	// Send B to the back
-	editor.reorderShapes('toBack', [ids.B])
+	editor.sendToBack([ids.B])
 
 	// The items should still be sorted by id
 	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([

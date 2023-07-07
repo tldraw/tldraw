@@ -111,6 +111,7 @@ import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/Sh
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName, uniqueId } from '../utils/data'
+import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
@@ -251,10 +252,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 			this.isIos = !!navigator.userAgent.match(/iPad/i) || !!navigator.userAgent.match(/iPhone/i)
 			this.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
+			this.isFirefox = /firefox/i.test(navigator.userAgent)
+			this.isAndroid = /android/i.test(navigator.userAgent)
 		} else {
 			this.isSafari = false
 			this.isIos = false
 			this.isChromeForIos = false
+			this.isFirefox = false
+			this.isAndroid = false
 		}
 
 		this.store.onBeforeDelete = (record) => {
@@ -421,6 +426,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly isChromeForIos: boolean
+
+	/**
+	 * Whether the editor is running on Firefox.
+	 *
+	 * @public
+	 */
+	readonly isFirefox: boolean
+
+	/**
+	 * Whether the editor is running on Android.
+	 *
+	 * @public
+	 */
+	readonly isAndroid: boolean
 
 	/**
 	 * The current HTML element containing the editor.
@@ -5117,31 +5136,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * For a given set of ids, get a map containing the ids of their parents and the children of those
-	 * parents.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getParentsMappedToChildren(['id1', 'id2', 'id3'])
-	 * ```
-	 *
-	 * @param ids - The ids to get the parents and children of.
-	 *
-	 * @public
-	 */
-	getParentsMappedToChildren(ids: TLShapeId[]) {
-		const shapes = ids.map((id) => this.store.get(id)!)
-		const parents = new Map<TLParentId, Set<TLShape>>()
-		shapes.forEach((shape) => {
-			if (!parents.has(shape.parentId)) {
-				parents.set(shape.parentId, new Set())
-			}
-			parents.get(shape.parentId)?.add(shape)
-		})
-		return parents
-	}
-
-	/**
 	 * An array containing all of the shapes in the current page.
 	 *
 	 * @example
@@ -5980,179 +5974,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Reorder shapes.
-	 *
-	 * @param operation - The operation to perform.
-	 * @param ids - The ids to reorder.
-	 *
-	 * @public
-	 */
-	reorderShapes(operation: 'toBack' | 'toFront' | 'forward' | 'backward', ids: TLShapeId[]) {
-		if (this.isReadOnly) return this
-		if (ids.length === 0) return this
-		// this.emit('reorder-shapes', { pageId: this.currentPageId, ids, operation })
-
-		const parents = this.getParentsMappedToChildren(ids)
-
-		const changes: TLShapePartial[] = []
-
-		switch (operation) {
-			case 'toBack': {
-				parents.forEach((movingSet, parentId) => {
-					const siblings = compact(
-						this.getSortedChildIds(parentId).map((id) => this.getShapeById(id))
-					)
-
-					if (movingSet.size === siblings.length) return
-
-					let below: string | undefined
-					let above: string | undefined
-
-					for (const shape of siblings) {
-						if (!movingSet.has(shape)) {
-							above = shape.index
-							break
-						}
-						movingSet.delete(shape)
-						below = shape.index
-					}
-
-					if (movingSet.size === 0) return
-
-					const indices = getIndicesBetween(below, above, movingSet.size)
-
-					Array.from(movingSet.values())
-						.sort(sortByIndex)
-						.forEach((node, i) =>
-							changes.push({ id: node.id as any, type: node.type, index: indices[i] })
-						)
-				})
-
-				break
-			}
-			case 'toFront': {
-				parents.forEach((movingSet, parentId) => {
-					const siblings = compact(
-						this.getSortedChildIds(parentId).map((id) => this.getShapeById(id))
-					)
-					const len = siblings.length
-
-					if (movingSet.size === len) return
-
-					let below: string | undefined
-					let above: string | undefined
-
-					for (let i = len - 1; i > -1; i--) {
-						const shape = siblings[i]
-
-						if (!movingSet.has(shape)) {
-							below = shape.index
-							break
-						}
-
-						movingSet.delete(shape)
-						above = shape.index
-					}
-
-					if (movingSet.size === 0) return
-
-					const indices = getIndicesBetween(below, above, movingSet.size)
-
-					Array.from(movingSet.values())
-						.sort(sortByIndex)
-						.forEach((node, i) =>
-							changes.push({ id: node.id as any, type: node.type, index: indices[i] })
-						)
-				})
-
-				break
-			}
-			case 'forward': {
-				parents.forEach((movingSet, parentId) => {
-					const siblings = compact(
-						this.getSortedChildIds(parentId).map((id) => this.getShapeById(id))
-					)
-					const len = siblings.length
-
-					if (movingSet.size === len) return
-
-					const movingIndices = new Set(Array.from(movingSet).map((n) => siblings.indexOf(n)))
-
-					let selectIndex = -1
-					let isSelecting = false
-					let below: string | undefined
-					let above: string | undefined
-					let count: number
-
-					for (let i = 0; i < len; i++) {
-						const isMoving = movingIndices.has(i)
-
-						if (!isSelecting && isMoving) {
-							isSelecting = true
-							selectIndex = i
-							above = undefined
-						} else if (isSelecting && !isMoving) {
-							isSelecting = false
-							count = i - selectIndex
-							below = siblings[i].index
-							above = siblings[i + 1]?.index
-
-							const indices = getIndicesBetween(below, above, count)
-
-							for (let k = 0; k < count; k++) {
-								const node = siblings[selectIndex + k]
-								changes.push({ id: node.id as any, type: node.type, index: indices[k] })
-							}
-						}
-					}
-				})
-
-				break
-			}
-			case 'backward': {
-				parents.forEach((movingSet, parentId) => {
-					const siblings = compact(
-						this.getSortedChildIds(parentId).map((id) => this.getShapeById(id))
-					)
-					const len = siblings.length
-
-					if (movingSet.size === len) return
-
-					const movingIndices = new Set(Array.from(movingSet).map((n) => siblings.indexOf(n)))
-
-					let selectIndex = -1
-					let isSelecting = false
-					let count: number
-
-					for (let i = len - 1; i > -1; i--) {
-						const isMoving = movingIndices.has(i)
-
-						if (!isSelecting && isMoving) {
-							isSelecting = true
-							selectIndex = i
-						} else if (isSelecting && !isMoving) {
-							isSelecting = false
-							count = selectIndex - i
-
-							const indices = getIndicesBetween(siblings[i - 1]?.index, siblings[i].index, count)
-
-							for (let k = 0; k < count; k++) {
-								const node = siblings[i + k + 1]
-								changes.push({ id: node.id as any, type: node.type, index: indices[k] })
-							}
-						}
-					}
-				})
-
-				break
-			}
-		}
-
-		this.updateShapes(changes)
-		return this
-	}
-
-	/**
 	 * Send shapes to the back of the page's object list.
 	 *
 	 * @example
@@ -6166,7 +5987,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	sendToBack(ids = this.pageState.selectedIds) {
-		this.reorderShapes('toBack', ids)
+		const changes = getReorderingShapesChanges(this, 'toBack', ids)
+		if (changes) this.updateShapes(changes)
 		return this
 	}
 
@@ -6184,7 +6006,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	sendBackward(ids = this.pageState.selectedIds) {
-		this.reorderShapes('backward', ids)
+		const changes = getReorderingShapesChanges(this, 'backward', ids)
+		if (changes) this.updateShapes(changes)
 		return this
 	}
 
@@ -6202,7 +6025,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	bringForward(ids = this.pageState.selectedIds) {
-		this.reorderShapes('forward', ids)
+		const changes = getReorderingShapesChanges(this, 'forward', ids)
+		if (changes) this.updateShapes(changes)
 		return this
 	}
 
@@ -6220,7 +6044,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	bringToFront(ids = this.pageState.selectedIds) {
-		this.reorderShapes('toFront', ids)
+		const changes = getReorderingShapesChanges(this, 'toFront', ids)
+		if (changes) this.updateShapes(changes)
 		return this
 	}
 
@@ -9188,7 +9013,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing = true
 							inputs.isDragging = false
 
-							if (!this.isPenMode) {
+							if (this.isPenMode) {
+								if (!isPen) {
+									return
+								}
+							} else {
 								if (isPen) {
 									this.setPenMode(true)
 								}

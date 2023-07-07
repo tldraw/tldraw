@@ -1,3 +1,43 @@
+# v2.0.0-alpha.14 (Tue Jul 04 2023)
+
+### Release Notes
+
+#### Disable styles panel button on mobile when using the laser tool. ([#1704](https://github.com/tldraw/tldraw/pull/1704))
+
+- Disable the styles panel button for laser tool on mobile.
+
+#### remove lock option from highlighter ([#1703](https://github.com/tldraw/tldraw/pull/1703))
+
+- We no longer show the tool lock option for highlighter - it didn't do anything anyway
+
+#### [fix] Lock shortcut ([#1677](https://github.com/tldraw/tldraw/pull/1677))
+
+- [@tldraw/editor] Fix lock tool shortcut
+
+#### [feature] add `meta` property to records ([#1627](https://github.com/tldraw/tldraw/pull/1627))
+
+- todo
+
+---
+
+#### 🚀 Enhancement
+
+- [feature] add `meta` property to records [#1627](https://github.com/tldraw/tldraw/pull/1627) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Disable styles panel button on mobile when using the laser tool. [#1704](https://github.com/tldraw/tldraw/pull/1704) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- remove lock option from highlighter [#1703](https://github.com/tldraw/tldraw/pull/1703) ([@SomeHats](https://github.com/SomeHats))
+- [fix] Lock shortcut [#1677](https://github.com/tldraw/tldraw/pull/1677) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.13 (Wed Jun 28 2023)
 
 ### Release Notes
