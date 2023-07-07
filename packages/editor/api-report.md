@@ -503,7 +503,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageTransformById(id: TLShapeId): Matrix2d | undefined;
     getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']): TLPageId | TLShapeId;
     getParentShape(shape?: TLShape): TLShape | undefined;
-    getParentsMappedToChildren(ids: TLShapeId[]): Map<TLParentId, Set<TLShape>>;
     getParentTransform(shape: TLShape): Matrix2d;
     getPointInParentSpace(shapeId: TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d;
@@ -631,7 +630,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         isInViewport: boolean;
         maskedPageBounds: Box2d | undefined;
     }[];
-    reorderShapes(operation: 'backward' | 'forward' | 'toBack' | 'toFront', ids: TLShapeId[]): this;
     reparentShapesById(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
     replaceStoreContentsWithRecordsForOtherDocument(records: TLRecord[]): void;
     resetZoom(point?: Vec2d, opts?: TLAnimationOptions): this;
