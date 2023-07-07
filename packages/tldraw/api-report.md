@@ -4,21 +4,31 @@
 
 ```ts
 
-import { TLArrowShape } from '@tldraw/tlschema';
-import { TLBookmarkShape } from '@tldraw/tlschema';
+import { BaseBoxShapeTool } from '@tldraw/editor';
+import { ShapeUtil } from '@tldraw/editor';
+import { StateNode } from '@tldraw/editor';
+import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
+import { TLArrowShape } from '@tldraw/editor';
+import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TldrawEditorProps } from '@tldraw/editor';
-import { TLDrawShape } from '@tldraw/tlschema';
+import { TLDrawShape } from '@tldraw/editor';
+import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TldrawUiProps } from '@tldraw/ui';
-import { TLFrameShape } from '@tldraw/tlschema';
-import { TLGeoShape } from '@tldraw/tlschema';
-import { TLHighlightShape } from '@tldraw/tlschema';
-import { TLLineShape } from '@tldraw/tlschema';
-import { TLNoteShape } from '@tldraw/tlschema';
-import { TLShapeInfo } from '@tldraw/editor';
-import { TLTextShape } from '@tldraw/tlschema';
+import { TLEventHandlers } from '@tldraw/editor';
+import { TLHighlightShape } from '@tldraw/editor';
+import { TLInterruptEvent } from '@tldraw/editor';
+import { TLLineShape } from '@tldraw/editor';
+import { TLPointerEventInfo } from '@tldraw/editor';
+import { TLShapeId } from '@tldraw/editor';
+import { TLTextShape } from '@tldraw/editor';
+import { TLUnknownShape } from '@tldraw/editor';
+import { Vec2d } from '@tldraw/primitives';
 
 // @public (undocumented)
-export const defaultShapes: readonly [TLShapeInfo<TLTextShape>, TLShapeInfo<TLBookmarkShape>, TLShapeInfo<TLDrawShape>, TLShapeInfo<TLGeoShape>, TLShapeInfo<TLNoteShape>, TLShapeInfo<TLLineShape>, TLShapeInfo<TLFrameShape>, TLShapeInfo<TLArrowShape>, TLShapeInfo<TLHighlightShape>];
+export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
+
+// @public (undocumented)
+export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
 
 // @public (undocumented)
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps): JSX.Element;

@@ -7,7 +7,9 @@ import {
 	TLEmbedShapePermissions,
 	TLOnResizeHandler,
 	TLShapeUtilFlag,
+	embedShapeMigrations,
 	embedShapePermissionDefaults,
+	embedShapeProps,
 	getEmbedInfo,
 	getEmbedInfoUnsafely,
 	getRotatedBoxShadow,
@@ -28,6 +30,8 @@ const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 /** @public */
 export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override type = 'embed' as const
+	static override props = embedShapeProps
+	static override migrations = embedShapeMigrations
 
 	override hideSelectionBoundsBg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)

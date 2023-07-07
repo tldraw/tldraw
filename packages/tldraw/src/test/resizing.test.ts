@@ -3649,7 +3649,7 @@ describe('nodes that have do not resize', () => {
 //     //    │ C │
 //     // 30 └───┘
 //     editor =new TestScene({
-//       shapes: [TLBoxShape, AspectRatioAlwaysLocked],
+//       shapeUtils: [TLBoxShape, AspectRatioAlwaysLocked],
 //       nodes: [
 //         {
 //           id: ids.boxA,

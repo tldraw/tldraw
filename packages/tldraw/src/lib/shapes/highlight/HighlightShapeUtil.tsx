@@ -8,6 +8,8 @@ import {
 	TLOnResizeHandler,
 	getDefaultColorTheme,
 	getSvgPathFromStrokePoints,
+	highlightShapeMigrations,
+	highlightShapeProps,
 } from '@tldraw/editor'
 import { Box2d, Vec2d, VecLike, getStrokePoints, linesIntersect } from '@tldraw/primitives'
 import { last, rng } from '@tldraw/utils'
@@ -23,6 +25,8 @@ const UNDERLAY_OPACITY = 0.82
 /** @public */
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	static override type = 'highlight' as const
+	static override props = highlightShapeProps
+	static override migrations = highlightShapeMigrations
 
 	override hideResizeHandles = (shape: TLHighlightShape) => getIsDot(shape)
 	override hideRotateHandle = (shape: TLHighlightShape) => getIsDot(shape)

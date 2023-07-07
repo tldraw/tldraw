@@ -1,13 +1,16 @@
 import { HistoryEntry, SerializedStore, Store, StoreSchema } from '@tldraw/store'
-import { TLRecord, TLStore, TLStoreProps, createTLSchema } from '@tldraw/tlschema'
-import { checkShapesAndAddCore } from './defaultShapes'
-import { AnyTLShapeInfo, TLShapeInfo } from './defineShape'
+import { TLRecord, TLStore, TLStoreProps, TLUnknownShape, createTLSchema } from '@tldraw/tlschema'
+import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
+import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
 /** @public */
 export type TLStoreOptions = {
 	initialData?: SerializedStore<TLRecord>
 	defaultName?: string
-} & ({ shapes: readonly AnyTLShapeInfo[] } | { schema: StoreSchema<TLRecord, TLStoreProps> })
+} & (
+	| { shapeUtils: readonly TLAnyShapeUtilConstructor[] }
+	| { schema: StoreSchema<TLRecord, TLStoreProps> }
+)
 
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
@@ -22,7 +25,7 @@ export function createTLStore({ initialData, defaultName = '', ...rest }: TLStor
 	const schema =
 		'schema' in rest
 			? rest.schema
-			: createTLSchema({ shapes: shapesArrayToShapeMap(checkShapesAndAddCore(rest.shapes)) })
+			: createTLSchema({ shapes: shapesArrayToShapeMap(checkShapesAndAddCore(rest.shapeUtils)) })
 	return new Store({
 		schema,
 		initialData,
@@ -32,6 +35,14 @@ export function createTLStore({ initialData, defaultName = '', ...rest }: TLStor
 	})
 }
 
-function shapesArrayToShapeMap(shapes: TLShapeInfo[]) {
-	return Object.fromEntries(shapes.map((s) => [s.type, s]))
+function shapesArrayToShapeMap(shapeUtils: TLShapeUtilConstructor<TLUnknownShape>[]) {
+	return Object.fromEntries(
+		shapeUtils.map((s) => [
+			s.type,
+			{
+				props: s.props,
+				migations: s.migrations,
+			},
+		])
+	)
 }

@@ -1,10 +1,4 @@
-import {
-	BaseBoxShapeUtil,
-	PageRecordType,
-	TLShape,
-	createShapeId,
-	defineShape,
-} from '@tldraw/editor'
+import { BaseBoxShapeUtil, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
 import { TL, TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -443,7 +437,6 @@ describe('getShapeUtil', () => {
 	beforeEach(() => {
 		class _MyFakeShapeUtil extends BaseBoxShapeUtil<any> {
 			static override type = 'blorg'
-			override type = 'blorg'
 
 			getDefaultProps() {
 				return {
@@ -461,12 +454,8 @@ describe('getShapeUtil', () => {
 
 		myUtil = _MyFakeShapeUtil
 
-		const myShapeDef = defineShape('blorg', {
-			util: _MyFakeShapeUtil,
-		})
-
 		editor = new TestEditor({
-			shapes: [myShapeDef],
+			shapeUtils: [_MyFakeShapeUtil],
 		})
 
 		editor.createShapes([

@@ -10,7 +10,7 @@ import {
 	TLStoreWithStatus,
 	createPresenceStateDerivation,
 	createTLStore,
-	defaultShapes,
+	defaultShapeUtils,
 	getUserPreferences,
 } from '@tldraw/tldraw'
 import { useEffect, useMemo, useState } from 'react'
@@ -21,7 +21,7 @@ export function useYjsStore({
 	roomId = 'example',
 	hostUrl = process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev',
 }: Partial<{ hostUrl: string; roomId: string; version: number }>) {
-	const [store] = useState(() => createTLStore({ shapes: defaultShapes }))
+	const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }))
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({ status: 'loading' })
 
 	const { doc, room, yRecords } = useMemo(() => {

@@ -6,6 +6,8 @@ import {
 	TLDrawShapeSegment,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
+	drawShapeMigrations,
+	drawShapeProps,
 	getDefaultColorTheme,
 	getSvgPathFromStroke,
 	getSvgPathFromStrokePoints,
@@ -33,6 +35,8 @@ import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments 
 /** @public */
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	static override type = 'draw' as const
+	static override props = drawShapeProps
+	static override migrations = drawShapeMigrations
 
 	override hideResizeHandles = (shape: TLDrawShape) => getIsDot(shape)
 	override hideRotateHandle = (shape: TLDrawShape) => getIsDot(shape)

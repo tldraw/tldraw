@@ -1,7 +1,12 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { Vec2d, toDomPrecision } from '@tldraw/primitives'
 import { useValue } from '@tldraw/state'
-import { TLImageShape, TLShapePartial } from '@tldraw/tlschema'
+import {
+	TLImageShape,
+	TLShapePartial,
+	imageShapeMigrations,
+	imageShapeProps,
+} from '@tldraw/tlschema'
 import { deepCopy } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
 import { DefaultSpinner } from '../../../components/DefaultSpinner'
@@ -50,6 +55,8 @@ async function getDataURIFromURL(url: string): Promise<string> {
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image' as const
+	static override props = imageShapeProps
+	static override migrations = imageShapeMigrations
 
 	override isAspectRatioLocked = () => true
 	override canCrop = () => true

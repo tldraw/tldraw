@@ -1,7 +1,8 @@
 import { Canvas, TldrawEditor, TldrawEditorProps, defaultTools } from '@tldraw/editor'
 import { ContextMenu, TldrawUi, TldrawUiProps } from '@tldraw/ui'
 import { useMemo } from 'react'
-import { defaultShapes } from './defaultShapes'
+import { defaultShapeTools } from './defaultShapeTools'
+import { defaultShapeUtils } from './defaultShapeUtils'
 
 /** @public */
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
@@ -9,8 +10,14 @@ export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
 
 	const withDefaults = {
 		...rest,
-		shapes: useMemo(() => [...defaultShapes, ...(rest.shapes ?? [])], [rest.shapes]),
-		tools: useMemo(() => [...defaultTools, ...(rest.tools ?? [])], [rest.tools]),
+		shapeUtils: useMemo(
+			() => [...defaultShapeUtils, ...(rest.shapeUtils ?? [])],
+			[rest.shapeUtils]
+		),
+		tools: useMemo(
+			() => [...defaultTools, ...defaultShapeTools, ...(rest.tools ?? [])],
+			[rest.tools]
+		),
 	}
 
 	return (

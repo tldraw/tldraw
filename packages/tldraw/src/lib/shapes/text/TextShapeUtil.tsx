@@ -11,6 +11,8 @@ import {
 	WeakMapCache,
 	getDefaultColorTheme,
 	stopEventPropagation,
+	textShapeMigrations,
+	textShapeProps,
 } from '@tldraw/editor'
 import { Box2d, Vec2d, toDomPrecision } from '@tldraw/primitives'
 import { SvgExportContext } from '../shared/SvgExportContext'
@@ -25,6 +27,8 @@ const sizeCache = new WeakMapCache<TLTextShape['props'], { height: number; width
 /** @public */
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	static override type = 'text' as const
+	static override props = textShapeProps
+	static override migrations = textShapeMigrations
 
 	getDefaultProps(): TLTextShape['props'] {
 		return {

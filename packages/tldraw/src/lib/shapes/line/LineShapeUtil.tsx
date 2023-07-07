@@ -9,6 +9,8 @@ import {
 	WeakMapCache,
 	getDefaultColorTheme,
 	getIndexBetween,
+	lineShapeMigrations,
+	lineShapeProps,
 	sortByIndex,
 } from '@tldraw/editor'
 import {
@@ -34,7 +36,8 @@ const handlesCache = new WeakMapCache<TLLineShape['props'], TLHandle[]>()
 /** @public */
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	static override type = 'line' as const
-	override type = 'line' as const
+	static override props = lineShapeProps
+	static override migrations = lineShapeMigrations
 
 	override hideResizeHandles = () => true
 	override hideRotateHandle = () => true

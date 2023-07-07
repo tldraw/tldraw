@@ -1,11 +1,4 @@
-import {
-	ShapeUtil,
-	TLArrowShape,
-	TLShapeId,
-	TLShapePartial,
-	createShapeId,
-	defineShape,
-} from '@tldraw/editor'
+import { ShapeUtil, TLArrowShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/editor'
 import {
 	GapsSnapLine,
 	PointsSnapLine,
@@ -48,9 +41,7 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 	}
 }
 
-const __TopLeftSnapOnlyShape = defineShape('__test_top_left_snap_only', {
-	util: __TopLeftSnapOnlyShapeUtil,
-})
+const __TopLeftSnapOnlyShape = __TopLeftSnapOnlyShapeUtil
 
 let editor: TestEditor
 
@@ -765,7 +756,7 @@ describe('custom snapping points', () => {
 	beforeEach(() => {
 		editor?.dispose()
 		editor = new TestEditor({
-			shapes: [__TopLeftSnapOnlyShape],
+			shapeUtils: [__TopLeftSnapOnlyShape],
 			// x───────┐
 			// │ T     │
 			// │       │

@@ -13,7 +13,7 @@ import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './assetU
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLUser, createTLUser } from './config/createTLUser'
-import { AnyTLShapeInfo } from './config/defineShape'
+import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
@@ -37,7 +37,7 @@ import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 export type TldrawEditorProps = {
 	children?: any
 	/** An array of shape utils to use in the editor. */
-	shapes?: readonly AnyTLShapeInfo[]
+	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
 	/** An array of tools to use in the editor. */
 	tools?: readonly TLStateNodeConstructor[]
 	/** Urls for where to find fonts and other assets. */
@@ -99,7 +99,7 @@ declare global {
 	}
 }
 
-const EMPTY_SHAPES_ARRAY = [] as const
+const EMPTY_SHAPE_UTILS_ARRAY = [] as const
 const EMPTY_TOOLS_ARRAY = [] as const
 
 /** @public */
@@ -119,7 +119,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 	// defaults applied in @tldraw/tldraw.
 	const withDefaults = {
 		...rest,
-		shapes: rest.shapes ?? EMPTY_SHAPES_ARRAY,
+		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
 	}
 
@@ -153,12 +153,12 @@ export const TldrawEditor = memo(function TldrawEditor({
 })
 
 function TldrawEditorWithOwnStore(
-	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapes' | 'tools'>
+	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapeUtils' | 'tools'>
 ) {
-	const { defaultName, initialData, shapes, persistenceKey, sessionId, user } = props
+	const { defaultName, initialData, shapeUtils, persistenceKey, sessionId, user } = props
 
 	const syncedStore = useLocalStore({
-		shapes,
+		shapeUtils,
 		initialData,
 		persistenceKey,
 		sessionId,
@@ -172,7 +172,10 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	store,
 	user,
 	...rest
-}: Required<TldrawEditorProps & { store: TLStoreWithStatus; user: TLUser }, 'shapes' | 'tools'>) {
+}: Required<
+	TldrawEditorProps & { store: TLStoreWithStatus; user: TLUser },
+	'shapeUtils' | 'tools'
+>) {
 	const container = useContainer()
 
 	useLayoutEffect(() => {
@@ -211,7 +214,7 @@ function TldrawEditorWithReadyStore({
 	children,
 	store,
 	tools,
-	shapes,
+	shapeUtils,
 	autoFocus,
 	user,
 	assetUrls,
@@ -220,7 +223,7 @@ function TldrawEditorWithReadyStore({
 		store: TLStore
 		user: TLUser
 	},
-	'shapes' | 'tools'
+	'shapeUtils' | 'tools'
 >) {
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
@@ -229,7 +232,7 @@ function TldrawEditorWithReadyStore({
 	useLayoutEffect(() => {
 		const editor = new Editor({
 			store,
-			shapes,
+			shapeUtils,
 			tools,
 			getContainer: () => container,
 			user,
@@ -241,7 +244,7 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapes, tools, store, user])
+	}, [container, shapeUtils, tools, store, user])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()

@@ -5,6 +5,8 @@ import {
 	TLNoteShape,
 	TLOnEditEndHandler,
 	getDefaultColorTheme,
+	noteShapeMigrations,
+	noteShapeProps,
 } from '@tldraw/editor'
 import { Box2d, Vec2d, toDomPrecision } from '@tldraw/primitives'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -20,6 +22,8 @@ const NOTE_SIZE = 200
 /** @public */
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	static override type = 'note' as const
+	static override props = noteShapeProps
+	static override migrations = noteShapeMigrations
 
 	override canEdit = () => true
 	override hideResizeHandles = () => true

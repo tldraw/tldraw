@@ -78,6 +78,7 @@ import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
+import { Validator } from '@tldraw/validate/.tsbuild/lib/validation';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -143,7 +144,7 @@ export { computed }
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
-export const coreShapes: readonly [TLShapeInfo<TLGroupShape>, TLShapeInfo<TLImageShape>, TLShapeInfo<TLVideoShape>];
+export const coreShapes: readonly [typeof GroupShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
 
 // @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
@@ -205,9 +206,6 @@ export const defaultTools: TLStateNodeConstructor[];
 
 export { defineMigrations }
 
-// @public (undocumented)
-export function defineShape<T extends TLUnknownShape>(type: T['type'], opts: Omit<TLShapeInfo<T>, 'type'>): TLShapeInfo<T>;
-
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
 
@@ -219,7 +217,7 @@ export const DRAG_DISTANCE = 4;
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, tools, getContainer }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -563,6 +561,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     stopFollowingUser(): this;
     readonly store: TLStore;
     stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
+    // (undocumented)
+    styleProps: {
+        [key: string]: Map<StyleProp<unknown>, string>;
+    };
     readonly textMeasure: TextManager;
     toggleLock(ids?: TLShapeId[]): this;
     undo(): HistoryManager<this>;
@@ -753,9 +755,6 @@ export const GRID_STEPS: {
 }[];
 
 // @public (undocumented)
-export const GroupShape: TLShapeInfo<TLGroupShape>;
-
-// @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -776,11 +775,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     indicator(shape: TLGroupShape): JSX.Element;
     // (undocumented)
+    static migrations: Migrations;
+    // (undocumented)
     onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape>;
     // (undocumented)
-    static type: "group";
+    static props: ShapeProps<TLGroupShape>;
     // (undocumented)
-    type: "group";
+    static type: "group";
 }
 
 // @internal (undocumented)
@@ -804,9 +805,6 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
 // @public (undocumented)
-export const ImageShape: TLShapeInfo<TLImageShape>;
-
-// @public (undocumented)
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     canCrop: () => boolean;
@@ -819,9 +817,23 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
     // (undocumented)
     isAspectRatioLocked: () => boolean;
     // (undocumented)
+    static migrations: Migrations;
+    // (undocumented)
     onDoubleClick: (shape: TLImageShape) => void;
     // (undocumented)
     onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>;
+    // (undocumented)
+    static props: {
+        w: Validator<number>;
+        h: Validator<number>;
+        playing: Validator<boolean>;
+        url: Validator<string>;
+        assetId: Validator<TLAssetId | null>;
+        crop: Validator<    {
+        topLeft: Vec2dModel;
+        bottomRight: Vec2dModel;
+        } | null>;
+    };
     // (undocumented)
     toSvg(shape: TLImageShape): Promise<SVGGElement>;
     // (undocumented)
@@ -1440,7 +1452,7 @@ export function setUserPreferences(user: TLUserPreferences): void;
 
 // @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
-    constructor(editor: Editor, type: Shape['type'], styleProps: ReadonlyMap<StyleProp<unknown>, string>);
+    constructor(editor: Editor);
     // @internal
     backgroundComponent?(shape: Shape): any;
     canBind: <K>(_shape: Shape, _otherShape?: K | undefined) => boolean;
@@ -1474,6 +1486,8 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
     isClosed: TLShapeUtilFlag<Shape>;
+    // (undocumented)
+    static migrations?: Migrations;
     onBeforeCreate?: TLOnBeforeCreateHandler<Shape>;
     onBeforeUpdate?: TLOnBeforeUpdateHandler<Shape>;
     // @internal
@@ -1499,17 +1513,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     onTranslate?: TLOnTranslateHandler<Shape>;
     onTranslateEnd?: TLOnTranslateEndHandler<Shape>;
     onTranslateStart?: TLOnTranslateStartHandler<Shape>;
+    // (undocumented)
+    static props?: ShapeProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
-    // (undocumented)
-    setStyleInPartial<T>(style: StyleProp<T>, shape: TLShapePartial<Shape>, value: T): TLShapePartial<Shape>;
     snapPoints(shape: Shape): Vec2d[];
-    // (undocumented)
-    readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>;
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<SVGElement> | SVGElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
-    // (undocumented)
-    readonly type: Shape['type'];
     static type: string;
 }
 
@@ -1631,6 +1641,9 @@ export type TLAnimationOptions = Partial<{
 }>;
 
 // @public (undocumented)
+export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
+
+// @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
     w: number;
     h: number;
@@ -1720,7 +1733,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 // @public (undocumented)
 export type TldrawEditorProps = {
     children?: any;
-    shapes?: readonly AnyTLShapeInfo[];
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
     assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
@@ -1789,7 +1802,7 @@ export interface TLEditorComponents {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
-    shapes: readonly AnyTLShapeInfo[];
+    shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
@@ -2127,15 +2140,6 @@ export interface TLSessionStateSnapshot {
 }
 
 // @public (undocumented)
-export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
-    type: T['type'];
-    util: TLShapeUtilConstructor<T>;
-    props?: ShapeProps<T>;
-    migrations?: Migrations;
-    tool?: TLStateNodeConstructor;
-};
-
-// @public (undocumented)
 export interface TLShapeUtilCanvasSvgDef {
     // (undocumented)
     component: React.ComponentType;
@@ -2146,7 +2150,11 @@ export interface TLShapeUtilCanvasSvgDef {
 // @public (undocumented)
 export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends ShapeUtil<T> = ShapeUtil<T>> {
     // (undocumented)
-    new (editor: Editor, type: T['type'], styleProps: ReadonlyMap<StyleProp<unknown>, string>): U;
+    new (editor: Editor): U;
+    // (undocumented)
+    migrations?: Migrations;
+    // (undocumented)
+    props?: ShapeProps<T>;
     // (undocumented)
     type: T['type'];
 }
@@ -2176,7 +2184,7 @@ export type TLStoreOptions = {
 } & ({
     schema: StoreSchema<TLRecord, TLStoreProps>;
 } | {
-    shapes: readonly AnyTLShapeInfo[];
+    shapeUtils: readonly TLAnyShapeUtilConstructor[];
 });
 
 // @public (undocumented)
@@ -2287,9 +2295,6 @@ export function useTLStore(opts: TLStoreOptions): TLStore;
 export { useValue }
 
 // @public (undocumented)
-export const VideoShape: TLShapeInfo<TLVideoShape>;
-
-// @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit: () => boolean;
@@ -2301,6 +2306,17 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     indicator(shape: TLVideoShape): JSX.Element;
     // (undocumented)
     isAspectRatioLocked: () => boolean;
+    // (undocumented)
+    static migrations: Migrations;
+    // (undocumented)
+    static props: {
+        w: Validator<number>;
+        h: Validator<number>;
+        time: Validator<number>;
+        playing: Validator<boolean>;
+        url: Validator<string>;
+        assetId: Validator<TLAssetId | null>;
+    };
     // (undocumented)
     toSvg(shape: TLVideoShape): SVGGElement;
     // (undocumented)

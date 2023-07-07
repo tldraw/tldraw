@@ -1,5 +1,5 @@
 import { Box2d, Matrix2d, Vec2d } from '@tldraw/primitives'
-import { TLGroupShape } from '@tldraw/tlschema'
+import { TLGroupShape, groupShapeMigrations, groupShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { ShapeUtil, TLOnChildrenChangeHandler } from '../ShapeUtil'
 import { DashedOutlineBox } from '../shared/DashedOutlineBox'
@@ -7,8 +7,8 @@ import { DashedOutlineBox } from '../shared/DashedOutlineBox'
 /** @public */
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override type = 'group' as const
-
-	type = 'group' as const
+	static override props = groupShapeProps
+	static override migrations = groupShapeMigrations
 
 	hideSelectionBoundsBg = () => false
 	hideSelectionBoundsFg = () => true

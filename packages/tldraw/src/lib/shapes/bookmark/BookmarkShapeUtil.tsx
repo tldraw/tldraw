@@ -8,6 +8,8 @@ import {
 	TLBookmarkShape,
 	TLOnBeforeCreateHandler,
 	TLOnBeforeUpdateHandler,
+	bookmarkShapeMigrations,
+	bookmarkShapeProps,
 	getRotatedBoxShadow,
 	isValidUrl,
 	stopEventPropagation,
@@ -20,6 +22,8 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	static override type = 'bookmark' as const
+	static override props = bookmarkShapeProps
+	static override migrations = bookmarkShapeMigrations
 
 	override canResize = () => false
 

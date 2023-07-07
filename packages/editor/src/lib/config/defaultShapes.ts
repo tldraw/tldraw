@@ -1,20 +1,24 @@
-import { GroupShape } from '../editor/shapes/group/GroupShape'
-import { ImageShape } from '../editor/shapes/image/ImageShape'
-import { VideoShape } from '../editor/shapes/video/VideoShape'
-import { AnyTLShapeInfo, TLShapeInfo } from './defineShape'
+import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
+import { GroupShapeUtil } from '../editor/shapes/group/GroupShapeUtil'
+import { ImageShapeUtil } from '../editor/shapes/image/ImageShapeUtil'
+import { VideoShapeUtil } from '../editor/shapes/video/VideoShapeUtil'
+
+/** @public */
+export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>
 
 /** @public */
 export const coreShapes = [
 	// created by grouping interactions, probably the corest core shape that we have
-	GroupShape,
+	GroupShapeUtil,
 	// created by copy and paste / file drop
-	ImageShape,
-	VideoShape,
+	ImageShapeUtil,
+	VideoShapeUtil,
 ] as const
 
 const coreShapeTypes = new Set<string>(coreShapes.map((s) => s.type))
-export function checkShapesAndAddCore(customShapes: readonly TLShapeInfo[]) {
-	const shapes: AnyTLShapeInfo[] = [...coreShapes]
+
+export function checkShapesAndAddCore(customShapes: readonly TLAnyShapeUtilConstructor[]) {
+	const shapes = [...coreShapes] as TLAnyShapeUtilConstructor[]
 
 	const addedCustomShapeTypes = new Set<string>()
 	for (const customShape of customShapes) {

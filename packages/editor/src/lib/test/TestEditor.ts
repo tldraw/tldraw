@@ -13,13 +13,14 @@ import {
 	TLBaseShape,
 	TLShapeId,
 	TLShapePartial,
+	TLUnknownShape,
 	createShapeId,
 } from '@tldraw/tlschema'
 import { createTLStore } from '../config/createTLStore'
 import { defaultTools } from '../config/defaultTools'
-import { defineShape } from '../config/defineShape'
 import { Editor, TLEditorOptions } from '../editor/Editor'
 import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
+import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
 import { TLContent } from '../editor/types/clipboard-types'
 import {
 	TLEventInfo,
@@ -84,20 +85,17 @@ class GeoShapeUtil extends BaseBoxShapeUtil<GeoShape> {
 	}
 }
 
-const geoShape = defineShape('geo', {
-	util: GeoShapeUtil,
-})
-
 /** @public */
 export class TestEditor extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')
-		const { shapes = [geoShape], tools = [] } = options
+		const { shapeUtils = [GeoShapeUtil as TLShapeUtilConstructor<TLUnknownShape>], tools = [] } =
+			options
 		elm.tabIndex = 0
 		super({
-			shapes,
+			shapeUtils,
 			tools: [...defaultTools, ...tools],
-			store: createTLStore({ shapes }),
+			store: createTLStore({ shapeUtils }),
 			getContainer: () => elm,
 			...options,
 		})

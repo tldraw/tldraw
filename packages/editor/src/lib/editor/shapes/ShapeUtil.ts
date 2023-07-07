@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box2d, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
-import { StyleProp, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
+import { Migrations } from '@tldraw/store'
+import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
 import { SvgExportContext } from './shared/SvgExportContext'
@@ -10,8 +11,10 @@ export interface TLShapeUtilConstructor<
 	T extends TLUnknownShape,
 	U extends ShapeUtil<T> = ShapeUtil<T>
 > {
-	new (editor: Editor, type: T['type'], styleProps: ReadonlyMap<StyleProp<unknown>, string>): U
+	new (editor: Editor): U
 	type: T['type']
+	props?: ShapeProps<T>
+	migrations?: Migrations
 }
 
 /** @public */
@@ -25,27 +28,9 @@ export interface TLShapeUtilCanvasSvgDef {
 
 /** @public */
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
-	constructor(
-		public editor: Editor,
-		public readonly type: Shape['type'],
-		public readonly styleProps: ReadonlyMap<StyleProp<unknown>, string>
-	) {}
-
-	setStyleInPartial<T>(
-		style: StyleProp<T>,
-		shape: TLShapePartial<Shape>,
-		value: T
-	): TLShapePartial<Shape> {
-		const styleKey = this.styleProps.get(style)
-		if (!styleKey) return shape
-		return {
-			...shape,
-			props: {
-				...shape.props,
-				[styleKey]: value,
-			},
-		}
-	}
+	constructor(public editor: Editor) {}
+	static props?: ShapeProps<TLUnknownShape>
+	static migrations?: Migrations
 
 	/**
 	 * The type of the shape util, which should match the shape's type.

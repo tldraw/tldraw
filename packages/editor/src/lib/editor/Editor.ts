@@ -81,7 +81,6 @@ import { EventEmitter } from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
-import { AnyTLShapeInfo } from '../config/defineShape'
 import {
 	ANIMATION_MEDIUM_MS,
 	CAMERA_MAX_RENDERING_INTERVAL,
@@ -123,7 +122,7 @@ import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
-import { ShapeUtil, TLResizeMode } from './shapes/ShapeUtil'
+import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
 import { SvgExportContext, SvgExportDef } from './shapes/shared/SvgExportContext'
 import { ArrowInfo } from './shapes/shared/arrow/arrow-types'
 import { getCurvedArrowInfo } from './shapes/shared/arrow/curved-arrow'
@@ -159,7 +158,7 @@ export interface TLEditorOptions {
 	/**
 	 * An array of shapes to use in the editor. These will be used to create and manage shapes in the editor.
 	 */
-	shapes: readonly AnyTLShapeInfo[]
+	shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[]
 	/**
 	 * An array of tools to use in the editor. These will be used to handle events and manage user interactions in the editor.
 	 */
@@ -177,7 +176,7 @@ export interface TLEditorOptions {
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({ store, user, shapes, tools, getContainer }: TLEditorOptions) {
+	constructor({ store, user, shapeUtils, tools, getContainer }: TLEditorOptions) {
 		super()
 
 		this.store = store
@@ -190,18 +189,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.root = new RootState(this)
 
-		const allShapes = checkShapesAndAddCore(shapes)
+		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
 
 		const shapeTypesInSchema = new Set(
 			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
 		)
-		for (const shape of allShapes) {
-			if (!shapeTypesInSchema.has(shape.type)) {
+		for (const shapeUtil of allShapeUtils) {
+			if (!shapeTypesInSchema.has(shapeUtil.type)) {
 				throw Error(
-					`Editor and store have different shapes: "${shape.type}" was passed into the editor but not the schema`
+					`Editor and store have different shapes: "${shapeUtil.type}" was passed into the editor but not the schema`
 				)
 			}
-			shapeTypesInSchema.delete(shape.type)
+			shapeTypesInSchema.delete(shapeUtil.type)
 		}
 		if (shapeTypesInSchema.size > 0) {
 			throw Error(
@@ -210,12 +209,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}" is present in the store schema but not provided to the editor`
 			)
 		}
-		const shapeUtils = {} as Record<string, ShapeUtil>
+		const _shapeUtils = {} as Record<string, ShapeUtil<any>>
+		const _styleProps = {} as Record<string, Map<StyleProp<unknown>, string>>
 		const allStylesById = new Map<string, StyleProp<unknown>>()
 
-		for (const { util: Util, props } of allShapes) {
-			const propKeysByStyle = getShapePropKeysByStyle(props ?? {})
-			shapeUtils[Util.type] = new Util(this, Util.type, propKeysByStyle)
+		for (const Util of allShapeUtils) {
+			const util = new Util(this)
+			_shapeUtils[Util.type] = util
+
+			const propKeysByStyle = getShapePropKeysByStyle(Util.props ?? {})
+			_styleProps[Util.type] = propKeysByStyle
 
 			for (const style of propKeysByStyle.keys()) {
 				if (!allStylesById.has(style.id)) {
@@ -228,19 +231,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		this.shapeUtils = shapeUtils
+		this.shapeUtils = _shapeUtils
+		this.styleProps = _styleProps
 
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		for (const { tool: Tool } of allShapes) {
-			if (Tool) {
-				if (hasOwnProperty(this.root.children!, Tool.id)) {
-					throw Error(`Can't override tool with id "${Tool.id}"`)
-				}
-				this.root.children![Tool.id] = new Tool(this)
-			}
-		}
 		for (const Tool of tools) {
 			if (hasOwnProperty(this.root.children!, Tool.id)) {
 				throw Error(`Can't override tool with id "${Tool.id}"`)
@@ -606,6 +602,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
+
+	styleProps: { [key: string]: Map<StyleProp<unknown>, string> }
 
 	/**
 	 * Get a shape util from a shape itself.
@@ -7051,7 +7049,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					// We then look up each key in the tab state's styles; and if it's there,
 					// we use the value from the tab state's styles instead of the default.
-					for (const [style, propKey] of util.styleProps) {
+					for (const [style, propKey] of this.styleProps[partial.type]) {
 						;(initialProps as any)[propKey] = this.getStyleForNextShape(style)
 					}
 
@@ -7568,8 +7566,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this._extractSharedStyles(this.getShapeById(childIds[i][0])!, sharedStyleMap)
 			}
 		} else {
-			const util = this.getShapeUtil(shape)
-			for (const [style, propKey] of util.styleProps) {
+			for (const [style, propKey] of this.styleProps[shape.type]) {
 				sharedStyleMap.applyValue(style, getOwnProperty(shape.props, propKey))
 			}
 		}
@@ -7605,8 +7602,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined {
-		const util = this.getShapeUtil(shape)
-		const styleKey = util.styleProps.get(style)
+		const styleKey = this.styleProps[shape.type].get(style)
 		if (styleKey === undefined) return undefined
 		return getOwnProperty(shape.props, styleKey) as T | undefined
 	}
@@ -7638,7 +7634,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const currentTool = this.root.current.value!
 		const styles = new SharedStyleMap()
 		if (currentTool.shapeType) {
-			for (const style of this.getShapeUtil(currentTool.shapeType).styleProps.keys()) {
+			for (const style of this.styleProps[currentTool.shapeType].keys()) {
 				styles.applyValue(style, this.getStyleForNextShape(style))
 			}
 		}
@@ -7795,7 +7791,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							}
 						} else {
 							const util = this.getShapeUtil(shape)
-							const stylePropKey = util.styleProps.get(style)
+							const stylePropKey = this.styleProps[shape.type].get(style)
 							if (stylePropKey) {
 								const shapePartial: TLShapePartial = {
 									id: shape.id,

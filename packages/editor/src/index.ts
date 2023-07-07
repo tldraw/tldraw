@@ -59,9 +59,8 @@ export {
 	type TLStoreOptions,
 } from './lib/config/createTLStore'
 export { createTLUser } from './lib/config/createTLUser'
-export { coreShapes } from './lib/config/defaultShapes'
+export { TLAnyShapeUtilConstructor, coreShapes } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
-export { defineShape, type TLShapeInfo } from './lib/config/defineShape'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,
@@ -120,9 +119,7 @@ export {
 	type TLShapeUtilConstructor,
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
-export { GroupShape } from './lib/editor/shapes/group/GroupShape'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export { ImageShape } from './lib/editor/shapes/image/ImageShape'
 export { ImageShapeUtil } from './lib/editor/shapes/image/ImageShapeUtil'
 export { getArrowheadPathForType } from './lib/editor/shapes/shared/arrow/arrowheads'
 export {
@@ -135,7 +132,6 @@ export {
 	getStraightArrowHandlePath,
 } from './lib/editor/shapes/shared/arrow/straight-arrow'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
-export { VideoShape } from './lib/editor/shapes/video/VideoShape'
 export { VideoShapeUtil } from './lib/editor/shapes/video/VideoShapeUtil'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'

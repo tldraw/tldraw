@@ -3,7 +3,7 @@ import {
 	ContextMenu,
 	TldrawEditor,
 	TldrawUi,
-	defaultShapes,
+	defaultShapeUtils,
 	defaultTools,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
@@ -12,7 +12,7 @@ export default function ExplodedExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
-				shapes={defaultShapes}
+				shapeUtils={defaultShapeUtils}
 				tools={defaultTools}
 				autoFocus
 				persistenceKey="exploded-example"

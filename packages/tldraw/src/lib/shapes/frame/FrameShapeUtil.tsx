@@ -7,6 +7,8 @@ import {
 	TLShape,
 	TLShapeId,
 	defaultEmptyAs,
+	frameShapeMigrations,
+	frameShapeProps,
 	getDefaultColorTheme,
 } from '@tldraw/editor'
 import { SelectionEdge, canolicalizeRotation, toDomPrecision } from '@tldraw/primitives'
@@ -18,6 +20,8 @@ import { FrameHeading } from './components/FrameHeading'
 /** @public */
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	static override type = 'frame' as const
+	static override props = frameShapeProps
+	static override migrations = frameShapeMigrations
 
 	override canBind = () => true
 

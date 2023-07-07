@@ -9,6 +9,8 @@ import {
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
+	geoShapeMigrations,
+	geoShapeProps,
 	getDefaultColorTheme,
 } from '@tldraw/editor'
 import {
@@ -59,6 +61,8 @@ const MIN_SIZE_WITH_LABEL = 17 * 3
 /** @public */
 export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	static override type = 'geo' as const
+	static override props = geoShapeProps
+	static override migrations = geoShapeMigrations
 
 	override canEdit = () => true
 

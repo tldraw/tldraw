@@ -1,6 +1,6 @@
 import { toDomPrecision } from '@tldraw/primitives'
 import { track } from '@tldraw/state'
-import { TLVideoShape } from '@tldraw/tlschema'
+import { TLVideoShape, videoShapeMigrations, videoShapeProps } from '@tldraw/tlschema'
 import * as React from 'react'
 import { DefaultSpinner } from '../../../components/DefaultSpinner'
 import { HTMLContainer } from '../../../components/HTMLContainer'
@@ -12,6 +12,8 @@ import { HyperlinkButton } from '../shared/HyperlinkButton'
 /** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
+	static override props = videoShapeProps
+	static override migrations = videoShapeMigrations
 
 	override canEdit = () => true
 	override isAspectRatioLocked = () => true

@@ -1,5 +1,5 @@
 import { track } from '@tldraw/state'
-import { Canvas, TldrawEditor, defaultShapes, defaultTools, useEditor } from '@tldraw/tldraw'
+import { Canvas, TldrawEditor, defaultShapeUtils, defaultTools, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useEffect } from 'react'
 import './custom-ui.css'
@@ -7,7 +7,7 @@ import './custom-ui.css'
 export default function CustomUiExample() {
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor shapes={defaultShapes} tools={defaultTools} autoFocus>
+			<TldrawEditor shapeUtils={defaultShapeUtils} tools={defaultTools} autoFocus>
 				<Canvas />
 				<CustomUi />
 			</TldrawEditor>

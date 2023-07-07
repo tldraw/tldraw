@@ -24,7 +24,7 @@ class BroadcastChannelMock {
 }
 
 function testClient(channel = new BroadcastChannelMock('test')) {
-	const store = createTLStore({ shapes: [] })
+	const store = createTLStore({ shapeUtils: [] })
 	const onLoad = jest.fn(() => {
 		return
 	})

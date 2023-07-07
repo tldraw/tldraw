@@ -18,6 +18,8 @@ import {
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec2dModel,
+	arrowShapeMigrations,
+	arrowShapeProps,
 	computed,
 	getArrowTerminalsInArrowSpace,
 	getArrowheadPathForType,
@@ -64,6 +66,8 @@ let globalRenderIndex = 0
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override type = 'arrow' as const
+	static override props = arrowShapeProps
+	static override migrations = arrowShapeMigrations
 
 	override canEdit = () => true
 	override canBind = () => false
