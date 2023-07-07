@@ -1730,16 +1730,19 @@ export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
 // @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
-// @public (undocumented)
-export type TldrawEditorProps = {
-    children?: any;
-    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
-    tools?: readonly TLStateNodeConstructor[];
+// @public
+export interface TldrawEditorBaseProps {
     assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
+    children?: any;
     components?: Partial<TLEditorComponents>;
-    onMount?: (editor: Editor) => (() => void) | undefined | void;
-} & ({
+    onMount?: TLOnMountHandler;
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+    tools?: readonly TLStateNodeConstructor[];
+}
+
+// @public
+export type TldrawEditorProps = TldrawEditorBaseProps & ({
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;
@@ -2015,6 +2018,9 @@ export type TLOnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
     handle: TLHandle;
     isPrecise: boolean;
 }) => TLShapePartial<T> | void;
+
+// @public
+export type TLOnMountHandler = (editor: Editor) => (() => void) | undefined | void;
 
 // @public (undocumented)
 export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
