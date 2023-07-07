@@ -1,11 +1,11 @@
 import {
-	ArrowShapeUtil,
-	BookmarkShapeUtil,
 	Editor,
-	EmbedShapeUtil,
-	GeoShapeUtil,
+	TLArrowShape,
+	TLBookmarkShape,
 	TLContent,
-	TextShapeUtil,
+	TLEmbedShape,
+	TLGeoShape,
+	TLTextShape,
 	getValidHttpURLList,
 	isSvgText,
 	isValidHttpURL,
@@ -508,15 +508,15 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 		const textItems = content.shapes
 			.map((shape) => {
 				if (
-					editor.isShapeOfType(shape, TextShapeUtil) ||
-					editor.isShapeOfType(shape, GeoShapeUtil) ||
-					editor.isShapeOfType(shape, ArrowShapeUtil)
+					editor.isShapeOfType<TLTextShape>(shape, 'text') ||
+					editor.isShapeOfType<TLGeoShape>(shape, 'geo') ||
+					editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
 				) {
 					return shape.props.text
 				}
 				if (
-					editor.isShapeOfType(shape, BookmarkShapeUtil) ||
-					editor.isShapeOfType(shape, EmbedShapeUtil)
+					editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') ||
+					editor.isShapeOfType<TLEmbedShape>(shape, 'embed')
 				) {
 					return shape.props.url
 				}

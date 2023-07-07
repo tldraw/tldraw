@@ -21,7 +21,7 @@ export class Pointing extends StateNode {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
-			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType.type as TLBaseBoxShape['type']
+			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType
 
 			const id = createShapeId()
 
@@ -78,7 +78,7 @@ export class Pointing extends StateNode {
 
 		this.editor.mark(this.markId)
 
-		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType.type as TLBaseBoxShape['type']
+		const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType as TLBaseBoxShape['type']
 
 		const id = createShapeId()
 

@@ -52,19 +52,10 @@ import {
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getShapeFillSvg, ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { SvgExportContext } from '../shared/SvgExportContext'
-import { ArrowInfo } from './arrow/arrow-types'
 import { getArrowheadPathForType } from './arrow/arrowheads'
-import {
-	getCurvedArrowHandlePath,
-	getCurvedArrowInfo,
-	getSolidCurvedArrowPath,
-} from './arrow/curved-arrow'
-import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './arrow/shared'
-import {
-	getSolidStraightArrowPath,
-	getStraightArrowHandlePath,
-	getStraightArrowInfo,
-} from './arrow/straight-arrow'
+import { getCurvedArrowHandlePath, getSolidCurvedArrowPath } from './arrow/curved-arrow'
+import { getArrowTerminalsInArrowSpace } from './arrow/shared'
+import { getSolidStraightArrowPath, getStraightArrowHandlePath } from './arrow/straight-arrow'
 import { ArrowTextLabel } from './components/ArrowTextLabel'
 
 let globalRenderIndex = 0
@@ -108,7 +99,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	getOutlineWithoutLabel(shape: TLArrowShape): Vec2d[] {
-		const info = this.getArrowInfo(shape)
+		const info = this.editor.getArrowInfo(shape)
 
 		if (!info) {
 			return []
@@ -213,24 +204,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return EMPTY_ARRAY
 	}
 
-	@computed
-	private get infoCache() {
-		return this.editor.store.createComputedCache<ArrowInfo, TLArrowShape>(
-			'arrow infoCache',
-			(shape) => {
-				return getIsArrowStraight(shape)
-					? getStraightArrowInfo(this.editor, shape)
-					: getCurvedArrowInfo(this.editor, shape)
-			}
-		)
-	}
-
-	getArrowInfo(shape: TLArrowShape) {
-		return this.infoCache.get(shape.id)
-	}
-
 	getHandles(shape: TLArrowShape): TLHandle[] {
-		const info = this.infoCache.get(shape.id)!
+		const info = this.editor.getArrowInfo(shape)!
 		return [
 			{
 				id: 'start',
@@ -581,7 +556,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'arrow.dragging'
 			) && !this.editor.isReadOnly
 
-		const info = this.getArrowInfo(shape)
+		const info = this.editor.getArrowInfo(shape)
 		const bounds = this.editor.getBounds(shape)
 		const labelSize = this.getLabelBounds(shape)
 
@@ -760,7 +735,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	indicator(shape: TLArrowShape) {
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
-		const info = this.getArrowInfo(shape)
+		const info = this.editor.getArrowInfo(shape)
 		const bounds = this.editor.getBounds(shape)
 		const labelSize = this.getLabelBounds(shape)
 
@@ -854,7 +829,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	@computed get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape> {
 		return this.editor.store.createComputedCache('labelBoundsCache', (shape) => {
-			const info = this.getArrowInfo(shape)
+			const info = this.editor.getArrowInfo(shape)
 			const bounds = this.editor.getBounds(shape)
 			const { text, font, size } = shape.props
 
@@ -938,7 +913,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const color = theme[shape.props.color].solid
 
-		const info = this.getArrowInfo(shape)
+		const info = this.editor.getArrowInfo(shape)
 
 		const strokeWidth = STROKE_SIZES[shape.props.size]
 

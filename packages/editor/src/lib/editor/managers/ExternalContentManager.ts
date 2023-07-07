@@ -27,7 +27,6 @@ import { getEmbedInfo } from '../../utils/embeds'
 import { Editor } from '../Editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shapes/shared/default-shape-constants'
 import { INDENT } from '../shapes/text/TextHelpers'
-import { TextShapeUtil } from '../shapes/text/TextShapeUtil'
 
 /** @public */
 export type TLExternalContent =
@@ -235,7 +234,7 @@ export class ExternalContentManager {
 		const p =
 			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
 
-		const defaultProps = editor.getShapeUtil(TextShapeUtil).getDefaultProps()
+		const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
 		const textToPaste = stripTrailingWhitespace(
 			stripCommonMinimumIndentation(replaceTabsWithSpaces(text))

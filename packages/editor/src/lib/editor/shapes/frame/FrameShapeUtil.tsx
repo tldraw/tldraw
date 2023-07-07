@@ -1,10 +1,15 @@
 import { canolicalizeRotation, SelectionEdge, toDomPrecision } from '@tldraw/primitives'
-import { getDefaultColorTheme, TLFrameShape, TLShape, TLShapeId } from '@tldraw/tlschema'
+import {
+	getDefaultColorTheme,
+	TLFrameShape,
+	TLGroupShape,
+	TLShape,
+	TLShapeId,
+} from '@tldraw/tlschema'
 import { last } from '@tldraw/utils'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { defaultEmptyAs } from '../../../utils/string'
 import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { GroupShapeUtil } from '../group/GroupShapeUtil'
 import { TLOnResizeEndHandler } from '../ShapeUtil'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
@@ -173,7 +178,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
 		const parent = this.editor.getShapeById(_shape.parentId)
-		const isInGroup = parent && this.editor.isShapeOfType(parent, GroupShapeUtil)
+		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
 
 		// If frame is in a group, keep the shape
 		// moved out in that group

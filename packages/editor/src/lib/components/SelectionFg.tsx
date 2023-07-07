@@ -1,9 +1,8 @@
 import { RotateCorner, toDomPrecision } from '@tldraw/primitives'
 import { track } from '@tldraw/state'
+import { TLEmbedShape, TLTextShape } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { useRef } from 'react'
-import { EmbedShapeUtil } from '../editor/shapes/embed/EmbedShapeUtil'
-import { TextShapeUtil } from '../editor/shapes/text/TextShapeUtil'
 import { getCursor } from '../hooks/useCursor'
 import { useEditor } from '../hooks/useEditor'
 import { useSelectionEvents } from '../hooks/useSelectionEvents'
@@ -94,11 +93,11 @@ export const SelectionFg = track(function SelectionFg() {
 		(showSelectionBounds &&
 			editor.isIn('select.resizing') &&
 			onlyShape &&
-			editor.isShapeOfType(onlyShape, TextShapeUtil))
+			editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
 
 	if (
 		onlyShape &&
-		editor.isShapeOfType(onlyShape, EmbedShapeUtil) &&
+		editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed') &&
 		shouldDisplayBox &&
 		IS_FIREFOX
 	) {
@@ -186,7 +185,7 @@ export const SelectionFg = track(function SelectionFg() {
 		shouldDisplayControls &&
 		isCoarsePointer &&
 		onlyShape &&
-		editor.isShapeOfType(onlyShape, TextShapeUtil) &&
+		editor.isShapeOfType<TLTextShape>(onlyShape, 'text') &&
 		textHandleHeight * zoom >= 4
 
 	return (

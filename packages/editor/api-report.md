@@ -121,8 +121,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     component(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
-    getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
-    // (undocumented)
     getBounds(shape: TLArrowShape): Box2d;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
@@ -185,7 +183,7 @@ export abstract class BaseBoxShapeTool extends StateNode {
     // (undocumented)
     static initial: string;
     // (undocumented)
-    abstract shapeType: TLShapeUtilConstructor<any>;
+    abstract shapeType: string;
 }
 
 // @public (undocumented)
@@ -462,6 +460,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
     getAncestors(shape: TLShape, acc?: TLShape[]): TLShape[];
     getAncestorsById(id: TLShapeId, acc?: TLShape[]): TLShape[];
+    // (undocumented)
+    getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
     getArrowsBoundTo(shapeId: TLShapeId): {
         arrowId: TLShapeId;
         handleId: "end" | "start";
@@ -512,11 +512,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapesAtPoint(point: VecLike): TLShape[];
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
-    getShapeUtil<C extends {
-        new (...args: any[]): ShapeUtil<any>;
-        type: string;
-    }>(util: C): InstanceType<C>;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
+    // (undocumented)
+    getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;
+    // (undocumented)
+    getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
     getSortedChildIds(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
     // @internal (undocumented)
@@ -579,10 +579,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly isSafari: boolean;
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
-    isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, util: {
-        new (...args: any): ShapeUtil<T>;
-        type: string;
-    }): shape is T;
+    isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     get isSnapMode(): boolean;
     get isToolLocked(): boolean;
@@ -2083,7 +2080,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     path: Computed<string>;
     // (undocumented)
-    shapeType?: TLShapeUtilConstructor<TLBaseShape<any, any>>;
+    shapeType?: string;
     // (undocumented)
     transition(id: string, info: any): this;
     // (undocumented)

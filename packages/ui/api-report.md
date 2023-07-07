@@ -19,6 +19,7 @@ import { TLEditorAssetUrls } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
 import { TLLanguage } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
+import { TLShapeId as TLShapeId_2 } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
 
 // @internal (undocumented)
@@ -643,7 +644,7 @@ export function useDialogs(): TLUiDialogsContextType;
 export function useEvents(): TLUiEventContextType;
 
 // @public (undocumented)
-export function useExportAs(): (ids?: TLShapeId[], format?: TLExportType) => Promise<void>;
+export function useExportAs(): (ids?: TLShapeId_2[], format?: TLExportType) => Promise<void>;
 
 // @public (undocumented)
 export function useHelpMenuSchema(): TLUiMenuSchema;

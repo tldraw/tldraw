@@ -12,11 +12,10 @@ import {
 	VecLike,
 } from '@tldraw/primitives'
 import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
-import { TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
+import { TLGroupShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
 import { dedupe, deepCopy } from '@tldraw/utils'
 import { uniqueId } from '../../utils/data'
 import type { Editor } from '../Editor'
-import { GroupShapeUtil } from '../shapes/group/GroupShapeUtil'
 
 export type PointsSnapLine = {
 	id: string
@@ -266,7 +265,7 @@ export class SnapManager {
 				const pageBounds = editor.getPageBoundsById(childId)
 				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
 				// Snap to children of groups but not group itself
-				if (editor.isShapeOfType(childShape, GroupShapeUtil)) {
+				if (editor.isShapeOfType<TLGroupShape>(childShape, 'group')) {
 					collectSnappableShapesFromParent(childId)
 					continue
 				}
