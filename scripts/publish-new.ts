@@ -3,6 +3,7 @@ import fetch from 'cross-fetch'
 import { assert } from 'node:console'
 import { parse } from 'semver'
 import { exec } from './lib/exec'
+import { BUBLIC_ROOT } from './lib/file'
 import { nicelog } from './lib/nicelog'
 import { getLatestVersion, publish, setAllVersions } from './lib/publishing'
 import { getAllWorkspacePackages } from './lib/workspace'
@@ -57,7 +58,12 @@ async function main() {
 			packageJsonFilesToAdd.push(`${workspace.relativePath}/package.json`)
 		}
 	}
-	await exec('git', ['add', 'lerna.json', ...packageJsonFilesToAdd])
+	await exec('git', [
+		'add',
+		'lerna.json',
+		...packageJsonFilesToAdd,
+		BUBLIC_ROOT + '/packages/*/src/version.ts',
+	])
 
 	// this creates a new commit
 	await auto.changelog({

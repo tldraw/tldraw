@@ -55,7 +55,7 @@ export {
 	angleDelta,
 	approximately,
 	areAnglesCompatible,
-	canolicalizeRotation,
+	canonicalizeRotation,
 	clamp,
 	clampRadians,
 	degreesToRadians,

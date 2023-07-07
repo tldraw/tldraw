@@ -484,6 +484,10 @@ export class Vec2d {
 		return r
 	}
 
+	static FromAngle(r: number, length = 1) {
+		return new Vec2d(Math.cos(r) * length, Math.sin(r) * length)
+	}
+
 	static ToArray(A: VecLike) {
 		return [A.x, A.y, A.z!]
 	}
