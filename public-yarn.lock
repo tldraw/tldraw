@@ -16555,6 +16555,7 @@ __metadata:
     "@tldraw/editor": "workspace:*"
     "@tldraw/file-format": "workspace:*"
     "@tldraw/store": "workspace:*"
+    "@tldraw/tldraw": "workspace:*"
     "@types/fs-extra": ^11.0.1
     "@types/node-fetch": ^2.6.2
     "@types/vscode": ^1.75.1
