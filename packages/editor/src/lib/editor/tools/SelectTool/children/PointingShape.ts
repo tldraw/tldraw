@@ -10,7 +10,7 @@ export class PointingShape extends StateNode {
 
 	didSelectOnEnter = false
 
-	onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
+	override onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
 		this.eventTargetShape = info.shape
 		this.selectingShape = this.editor.getOutermostSelectableShape(info.shape)
 
@@ -51,7 +51,7 @@ export class PointingShape extends StateNode {
 		}
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
 		const { shape } = info
 
 		if (shape) {
@@ -110,7 +110,7 @@ export class PointingShape extends StateNode {
 		this.parent.transition('idle', info)
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			if (this.editor.isReadOnly) return
 			this.parent.transition('translating', info)

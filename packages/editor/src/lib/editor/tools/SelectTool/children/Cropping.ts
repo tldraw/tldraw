@@ -25,7 +25,7 @@ export class Cropping extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
-	onEnter: TLEnterEventHandler = (
+	override onEnter: TLEnterEventHandler = (
 		info: TLPointerEventInfo & {
 			target: 'selection'
 			handle: SelectionHandle
@@ -38,19 +38,19 @@ export class Cropping extends StateNode {
 		this.updateShapes()
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		this.updateShapes()
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete: TLEventHandlers['onComplete'] = () => {
 		this.complete()
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.cancel()
 	}
 

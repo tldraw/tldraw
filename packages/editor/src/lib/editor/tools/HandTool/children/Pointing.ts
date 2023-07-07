@@ -4,34 +4,34 @@ import { StateNode } from '../../StateNode'
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	onEnter = () => {
+	override onEnter = () => {
 		this.editor.stopCameraAnimation()
 		this.editor.setCursor({ type: 'grabbing' })
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('dragging', info)
 		}
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.complete()
 	}
 
-	onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete: TLEventHandlers['onComplete'] = () => {
 		this.complete()
 	}
 
-	onInterrupt: TLEventHandlers['onInterrupt'] = () => {
+	override onInterrupt: TLEventHandlers['onInterrupt'] = () => {
 		this.complete()
 	}
 
-	complete() {
+	private complete() {
 		this.parent.transition('idle', {})
 	}
 }

@@ -5,7 +5,7 @@
 ```ts
 
 import { BaseBoxShapeTool } from '@tldraw/editor';
-import { ShapeUtil } from '@tldraw/editor';
+import { ShapeUtil } from '@tldraw/editor/src';
 import { StateNode } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
@@ -21,7 +21,7 @@ import { TLLineShape } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
-import { TLUnknownShape } from '@tldraw/editor';
+import { TLUnknownShape } from '@tldraw/editor/src';
 import { Vec2d } from '@tldraw/primitives';
 
 // @public (undocumented)

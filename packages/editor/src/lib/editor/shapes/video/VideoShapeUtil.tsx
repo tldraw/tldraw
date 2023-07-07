@@ -37,7 +37,7 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	toSvg(shape: TLVideoShape) {
+	override toSvg(shape: TLVideoShape) {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const image = document.createElementNS('http://www.w3.org/2000/svg', 'image')
 		image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', serializeVideo(shape.id))

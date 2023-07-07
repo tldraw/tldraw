@@ -763,11 +763,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getBounds(shape: TLGroupShape): Box2d;
     // (undocumented)
-    getCenter(shape: TLGroupShape): Vec2d;
-    // (undocumented)
     getDefaultProps(): TLGroupShape['props'];
-    // (undocumented)
-    getOutline(shape: TLGroupShape): Vec2d[];
     // (undocumented)
     hideSelectionBoundsBg: () => boolean;
     // (undocumented)

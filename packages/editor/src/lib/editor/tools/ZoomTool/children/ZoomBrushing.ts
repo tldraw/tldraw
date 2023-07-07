@@ -9,24 +9,24 @@ export class ZoomBrushing extends StateNode {
 
 	zoomBrush = new Box2d()
 
-	onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
+	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
 		this.update()
 	}
 
-	onExit = () => {
+	override onExit = () => {
 		this.editor.setZoomBrush(null)
 	}
 
-	onPointerMove = () => {
+	override onPointerMove = () => {
 		this.update()
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.cancel()
 	}
 

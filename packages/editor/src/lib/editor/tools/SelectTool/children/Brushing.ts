@@ -29,7 +29,7 @@ export class Brushing extends StateNode {
 	// The shape that the brush started on
 	initialStartShape: TLShape | null = null
 
-	onEnter = (info: TLPointerEventInfo & { target: 'canvas' }) => {
+	override onEnter = (info: TLPointerEventInfo & { target: 'canvas' }) => {
 		const { altKey, currentPagePoint } = this.editor.inputs
 
 		if (altKey) {
@@ -53,29 +53,29 @@ export class Brushing extends StateNode {
 		this.onPointerMove()
 	}
 
-	onExit = () => {
+	override onExit = () => {
 		this.initialSelectedIds = []
 		this.editor.setBrush(null)
 	}
 
-	onPointerMove = () => {
+	override onPointerMove = () => {
 		this.hitTestShapes()
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete: TLEventHandlers['onComplete'] = () => {
 		this.complete()
 	}
 
-	onCancel?: TLCancelEvent | undefined = (info) => {
+	override onCancel?: TLCancelEvent | undefined = (info) => {
 		this.editor.setSelectedIds(this.initialSelectedIds, true)
 		this.parent.transition('idle', info)
 	}
 
-	onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		if (this.editor.inputs.altKey) {
 			this.parent.transition('scribble_brushing', info)
 		} else {
@@ -83,7 +83,7 @@ export class Brushing extends StateNode {
 		}
 	}
 
-	onKeyUp?: TLKeyboardEvent | undefined = () => {
+	override onKeyUp?: TLKeyboardEvent | undefined = () => {
 		this.hitTestShapes()
 	}
 
@@ -170,7 +170,7 @@ export class Brushing extends StateNode {
 		this.editor.setSelectedIds(Array.from(results), true)
 	}
 
-	onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt: TLInterruptEvent = () => {
 		this.editor.setBrush(null)
 	}
 

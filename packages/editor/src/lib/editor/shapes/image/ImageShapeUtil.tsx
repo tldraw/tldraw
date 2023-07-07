@@ -172,7 +172,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return <rect width={toDomPrecision(shape.props.w)} height={toDomPrecision(shape.props.h)} />
 	}
 
-	async toSvg(shape: TLImageShape) {
+	override async toSvg(shape: TLImageShape) {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 		const asset = shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : null
 
@@ -210,7 +210,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return g
 	}
 
-	onDoubleClick = (shape: TLImageShape) => {
+	override onDoubleClick = (shape: TLImageShape) => {
 		const asset = shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : undefined
 
 		if (!asset) return
@@ -231,7 +231,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		])
 	}
 
-	onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape> = (shape) => {
+	override onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape> = (shape) => {
 		const props = shape.props
 		if (!props) return
 

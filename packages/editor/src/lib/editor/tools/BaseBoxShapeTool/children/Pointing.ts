@@ -12,12 +12,12 @@ export class Pointing extends StateNode {
 
 	wasFocusedOnEnter = false
 
-	onEnter = () => {
+	override onEnter = () => {
 		const { isMenuOpen } = this.editor
 		this.wasFocusedOnEnter = !isMenuOpen
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 

@@ -29,7 +29,7 @@ export class Translating extends StateNode {
 
 	dragAndDropManager = new DragAndDropManager(this.editor)
 
-	onEnter = (
+	override onEnter = (
 		info: TLPointerEventInfo & {
 			target: 'shape'
 			isCreating?: boolean
@@ -48,12 +48,7 @@ export class Translating extends StateNode {
 		this.editor.on('tick', this.updateParent)
 	}
 
-	updateParent = () => {
-		const { snapshot } = this
-		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
-	}
-
-	onExit = () => {
+	override onExit = () => {
 		this.editor.off('tick', this.updateParent)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
@@ -62,11 +57,11 @@ export class Translating extends StateNode {
 		this.dragAndDropManager.clear()
 	}
 
-	onPointerMove = () => {
+	override onPointerMove = () => {
 		this.updateShapes()
 	}
 
-	onKeyDown = () => {
+	override onKeyDown = () => {
 		if (this.editor.inputs.altKey && !this.isCloning) {
 			this.startCloning()
 			return
@@ -76,7 +71,7 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	onKeyUp: TLEventHandlers['onKeyUp'] = () => {
+	override onKeyUp: TLEventHandlers['onKeyUp'] = () => {
 		if (!this.editor.inputs.altKey && this.isCloning) {
 			this.stopCloning()
 			return
@@ -86,20 +81,16 @@ export class Translating extends StateNode {
 		this.updateShapes()
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete: TLEventHandlers['onComplete'] = () => {
 		this.complete()
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.cancel()
-	}
-
-	reset() {
-		this.editor.bailToMark(this.markId)
 	}
 
 	protected startCloning() {
@@ -122,6 +113,15 @@ export class Translating extends StateNode {
 		this.reset()
 		this.markId = this.editor.mark('translating')
 		this.updateShapes()
+	}
+
+	updateParent = () => {
+		const { snapshot } = this
+		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
+	}
+
+	reset() {
+		this.editor.bailToMark(this.markId)
 	}
 
 	protected complete() {

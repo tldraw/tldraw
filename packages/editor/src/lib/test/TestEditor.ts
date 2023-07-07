@@ -30,7 +30,6 @@ import {
 	TLWheelEventInfo,
 } from '../editor/types/event-types'
 import { RequiredKeys } from '../editor/types/misc-types'
-import { shapesFromJsx } from './test-jsx'
 
 jest.useFakeTimers()
 
@@ -67,7 +66,6 @@ type GeoShape = TLBaseShape<
 
 class GeoShapeUtil extends BaseBoxShapeUtil<GeoShape> {
 	static override type = 'geo' as const
-	type = 'geo' as const
 
 	getDefaultProps() {
 		return {
@@ -610,16 +608,13 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	createShapesFromJsx(shapesJsx: JSX.Element | JSX.Element[]): Record<string, TLShapeId> {
-		const { shapes, ids } = shapesFromJsx(shapesJsx)
-		this.createShapes(shapes)
-		return ids
-	}
-
 	static CreateShapeId(id?: string) {
 		return id ? createShapeId(id) : createShapeId()
 	}
 }
+
+type PointerEventInit = Partial<TLPointerEventInfo> | TLShapeId
+type EventModifiers = Partial<Pick<TLPointerEventInfo, 'shiftKey' | 'ctrlKey' | 'altKey'>>
 
 export const defaultShapesIds = {
 	box1: createShapeId('box1'),
@@ -648,11 +643,6 @@ export const createDefaultShapes = (): TLShapePartial[] => [
 		props: {
 			w: 100,
 			h: 100,
-			color: 'black',
-			fill: 'none',
-			dash: 'draw',
-			size: 'm',
-			geo: 'rectangle',
 		},
 	},
 	{
@@ -664,14 +654,6 @@ export const createDefaultShapes = (): TLShapePartial[] => [
 		props: {
 			w: 50,
 			h: 50,
-			color: 'black',
-			fill: 'none',
-			dash: 'draw',
-			size: 'm',
-			geo: 'ellipse',
 		},
 	},
 ]
-
-type PointerEventInit = Partial<TLPointerEventInfo> | TLShapeId
-type EventModifiers = Partial<Pick<TLPointerEventInfo, 'shiftKey' | 'ctrlKey' | 'altKey'>>

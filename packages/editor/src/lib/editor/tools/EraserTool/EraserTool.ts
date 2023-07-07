@@ -6,10 +6,10 @@ import { Pointing } from './children/Pointing'
 
 export class EraserTool extends StateNode {
 	static override id = 'eraser'
-	static initial = 'idle'
-	static children = () => [Idle, Pointing, Erasing]
+	static override initial = 'idle'
+	static override children = () => [Idle, Pointing, Erasing]
 
-	onEnter = () => {
+	override onEnter = () => {
 		this.editor.setCursor({ type: 'cross' })
 	}
 }

@@ -1,6 +1,6 @@
 import { SelectTool } from '@tldraw/editor/src/lib/editor/tools/SelectTool/SelectTool'
-import { TL } from '@tldraw/editor/src/lib/test/test-jsx'
 import { TestEditor } from './TestEditor'
+import { TL } from './test-jsx'
 
 let editor: TestEditor
 

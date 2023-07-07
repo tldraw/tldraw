@@ -18,7 +18,7 @@ import {
 import { StateNode } from '../../StateNode'
 
 export class DraggingHandle extends StateNode {
-	static id = 'dragging_handle'
+	static override id = 'dragging_handle'
 
 	shapeId = '' as TLShapeId
 	initialHandle = {} as TLHandle
@@ -39,7 +39,7 @@ export class DraggingHandle extends StateNode {
 	isPreciseId = null as TLShapeId | null
 	pointingId = null as TLShapeId | null
 
-	onEnter: TLEnterEventHandler = (
+	override onEnter: TLEnterEventHandler = (
 		info: TLPointerEventInfo & {
 			shape: TLArrowShape
 			target: 'handle'
@@ -130,31 +130,31 @@ export class DraggingHandle extends StateNode {
 		}
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		this.update()
 	}
 
-	onKeyDown: TLKeyboardEvent | undefined = () => {
+	override onKeyDown: TLKeyboardEvent | undefined = () => {
 		this.update()
 	}
 
-	onKeyUp: TLKeyboardEvent | undefined = () => {
+	override onKeyUp: TLKeyboardEvent | undefined = () => {
 		this.update()
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete: TLEventHandlers['onComplete'] = () => {
 		this.complete()
 	}
 
-	onCancel: TLCancelEvent = () => {
+	override onCancel: TLCancelEvent = () => {
 		this.cancel()
 	}
 
-	onExit = () => {
+	override onExit = () => {
 		this.editor.setHintingIds([])
 		this.editor.snaps.clear()
 		this.editor.setCursor({ type: 'default' })

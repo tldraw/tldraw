@@ -6,7 +6,7 @@ import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	onEnter = () => {
+	override onEnter = () => {
 		this.editor.setCursor({ type: 'default' })
 
 		const { onlySelectedShape } = this.editor
@@ -23,18 +23,18 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onExit: TLExitEventHandler = () => {
+	override onExit: TLExitEventHandler = () => {
 		this.editor.setCursor({ type: 'default' })
 
 		this.editor.off('change-history', this.cleanupCroppingState)
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.editor.setCroppingId(null)
 		this.editor.setSelectedTool('select.idle', {})
 	}
 
-	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		if (this.editor.isMenuOpen) return
 
 		if (info.ctrlKey) {
@@ -105,7 +105,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
+	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
 		// Without this, the double click's "settle" would trigger the reset
 		// after the user double clicked the edge to begin cropping
 		if (info.phase !== 'up') return
@@ -122,15 +122,15 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onKeyDown: TLEventHandlers['onKeyDown'] = () => {
+	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {
 		this.nudgeCroppingImage(false)
 	}
 
-	onKeyRepeat: TLEventHandlers['onKeyRepeat'] = () => {
+	override onKeyRepeat: TLEventHandlers['onKeyRepeat'] = () => {
 		this.nudgeCroppingImage(true)
 	}
 
-	onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		switch (info.code) {
 			case 'Enter': {
 				this.editor.setCroppingId(null)

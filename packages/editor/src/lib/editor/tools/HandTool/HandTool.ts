@@ -8,24 +8,24 @@ import { Pointing } from './children/Pointing'
 
 export class HandTool extends StateNode {
 	static override id = 'hand'
-	static initial = 'idle'
-	static children = () => [Idle, Pointing, Dragging]
+	static override initial = 'idle'
+	static override children = () => [Idle, Pointing, Dragging]
 
-	onDoubleClick: TLClickEvent = (info) => {
+	override onDoubleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
 			const { currentScreenPoint } = this.editor.inputs
 			this.editor.zoomIn(currentScreenPoint, { duration: 220, easing: EASINGS.easeOutQuint })
 		}
 	}
 
-	onTripleClick: TLClickEvent = (info) => {
+	override onTripleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
 			const { currentScreenPoint } = this.editor.inputs
 			this.editor.zoomOut(currentScreenPoint, { duration: 320, easing: EASINGS.easeOutQuint })
 		}
 	}
 
-	onQuadrupleClick: TLClickEvent = (info) => {
+	override onQuadrupleClick: TLClickEvent = (info) => {
 		if (info.phase === 'settle') {
 			const {
 				zoomLevel,

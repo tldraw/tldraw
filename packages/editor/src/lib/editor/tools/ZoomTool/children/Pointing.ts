@@ -6,21 +6,21 @@ export class Pointing extends StateNode {
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
-	onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
+	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onPointerMove: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('zoom_brushing', this.info)
 		}
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.cancel()
 	}
 

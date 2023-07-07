@@ -6,11 +6,11 @@ export class Idle extends StateNode {
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
-	onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
+	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
 	}
 
-	onPointerDown: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerDown: TLEventHandlers['onPointerUp'] = () => {
 		this.parent.transition('pointing', this.info)
 	}
 }

@@ -5,7 +5,7 @@ import { StateNode } from '../../StateNode'
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	onEnter = () => {
+	override onEnter = () => {
 		const { inputs } = this.editor
 
 		const erasing = new Set<TLShapeId>()
@@ -33,7 +33,7 @@ export class Pointing extends StateNode {
 		this.editor.setErasingIds([...erasing])
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('erasing', info)
 		}

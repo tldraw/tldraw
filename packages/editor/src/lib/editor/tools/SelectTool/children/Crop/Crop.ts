@@ -5,7 +5,6 @@ import { TranslatingCrop } from './children/TranslatingCrop'
 
 export class Crop extends StateNode {
 	static override id = 'crop'
-
-	static initial = 'idle'
-	static children = () => [Idle, TranslatingCrop, PointingCrop]
+	static override initial = 'idle'
+	static override children = () => [Idle, TranslatingCrop, PointingCrop]
 }

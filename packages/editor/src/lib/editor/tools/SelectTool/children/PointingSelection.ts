@@ -8,16 +8,16 @@ export class PointingSelection extends StateNode {
 		target: 'selection'
 	}
 
-	onEnter = (info: TLPointerEventInfo & { target: 'selection' }) => {
+	override onEnter = (info: TLPointerEventInfo & { target: 'selection' }) => {
 		this.info = info
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
 		this.editor.selectNone()
 		this.parent.transition('idle', info)
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			if (this.editor.isReadOnly) return
 			this.parent.transition('translating', info)

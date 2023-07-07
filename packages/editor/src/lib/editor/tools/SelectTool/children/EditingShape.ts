@@ -4,7 +4,7 @@ import { StateNode } from '../../StateNode'
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
 
-	onPointerEnter: TLEventHandlers['onPointerEnter'] = (info) => {
+	override onPointerEnter: TLEventHandlers['onPointerEnter'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
 				const { selectedIds, focusLayerId } = this.editor
@@ -20,7 +20,7 @@ export class EditingShape extends StateNode {
 		}
 	}
 
-	onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
+	override onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
 				this.editor.setHoveredId(null)
@@ -29,7 +29,7 @@ export class EditingShape extends StateNode {
 		}
 	}
 
-	onExit = () => {
+	override onExit = () => {
 		if (!this.editor.pageState.editingId) return
 		const { editingId } = this.editor.pageState
 		if (!editingId) return
@@ -44,7 +44,7 @@ export class EditingShape extends StateNode {
 		util.onEditEnd?.(shape)
 	}
 
-	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
 				const { shape } = info
@@ -85,11 +85,11 @@ export class EditingShape extends StateNode {
 		this.parent.current.value?.onPointerDown?.(info)
 	}
 
-	onComplete: TLEventHandlers['onComplete'] = (info) => {
+	override onComplete: TLEventHandlers['onComplete'] = (info) => {
 		this.parent.transition('idle', info)
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = (info) => {
+	override onCancel: TLEventHandlers['onCancel'] = (info) => {
 		this.parent.transition('idle', info)
 	}
 }

@@ -5,10 +5,10 @@ import { ZoomTool } from './ZoomTool/ZoomTool'
 
 export class RootState extends StateNode {
 	static override id = 'root'
-	static initial = 'select'
-	static children = () => [SelectTool, ZoomTool]
+	static override initial = 'select'
+	static override children = () => [SelectTool, ZoomTool]
 
-	onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		switch (info.code) {
 			case 'KeyZ': {
 				if (!(info.shiftKey || info.ctrlKey)) {

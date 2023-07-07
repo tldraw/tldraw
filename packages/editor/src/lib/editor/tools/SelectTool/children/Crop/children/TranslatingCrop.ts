@@ -17,7 +17,7 @@ export class TranslatingCrop extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
-	onEnter = (
+	override onEnter = (
 		info: TLPointerEventInfo & {
 			target: 'shape'
 			isCreating?: boolean
@@ -32,27 +32,27 @@ export class TranslatingCrop extends StateNode {
 		this.updateShapes()
 	}
 
-	onExit = () => {
+	override onExit = () => {
 		this.editor.setCursor({ type: 'default' })
 	}
 
-	onPointerMove = () => {
+	override onPointerMove = () => {
 		this.updateShapes()
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete: TLEventHandlers['onComplete'] = () => {
 		this.complete()
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.cancel()
 	}
 
-	onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		switch (info.key) {
 			case 'Alt':
 			case 'Shift': {
@@ -62,7 +62,7 @@ export class TranslatingCrop extends StateNode {
 		}
 	}
 
-	onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
+	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		switch (info.key) {
 			case 'Enter': {
 				this.complete()

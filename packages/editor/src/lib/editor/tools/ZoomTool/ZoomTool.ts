@@ -6,34 +6,26 @@ import { ZoomBrushing } from './children/ZoomBrushing'
 
 export class ZoomTool extends StateNode {
 	static override id = 'zoom'
-	static initial = 'idle'
-	static children = () => [Idle, ZoomBrushing, Pointing]
+	static override initial = 'idle'
+	static override children = () => [Idle, ZoomBrushing, Pointing]
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
-	onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
+	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
 		this.updateCursor()
 	}
 
-	updateCursor() {
-		if (this.editor.inputs.altKey) {
-			this.editor.setCursor({ type: 'zoom-out' })
-		} else {
-			this.editor.setCursor({ type: 'zoom-in' })
-		}
-	}
-
-	onExit = () => {
+	override onExit = () => {
 		this.editor.setZoomBrush(null)
 		this.editor.setCursor({ type: 'default' })
 	}
 
-	onKeyDown: TLKeyboardEvent | undefined = () => {
+	override onKeyDown: TLKeyboardEvent | undefined = () => {
 		this.updateCursor()
 	}
 
-	onKeyUp: TLKeyboardEvent = (info) => {
+	override onKeyUp: TLKeyboardEvent = (info) => {
 		this.updateCursor()
 
 		if (info.code === 'KeyZ') {
@@ -41,7 +33,7 @@ export class ZoomTool extends StateNode {
 		}
 	}
 
-	onInterrupt: TLInterruptEvent = () => {
+	override onInterrupt: TLInterruptEvent = () => {
 		this.complete()
 	}
 
@@ -51,6 +43,14 @@ export class ZoomTool extends StateNode {
 			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.parent.transition('select', {})
+		}
+	}
+
+	private updateCursor() {
+		if (this.editor.inputs.altKey) {
+			this.editor.setCursor({ type: 'zoom-out' })
+		} else {
+			this.editor.setCursor({ type: 'zoom-in' })
 		}
 	}
 }

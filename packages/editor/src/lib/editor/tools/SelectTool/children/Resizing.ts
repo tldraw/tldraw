@@ -41,7 +41,7 @@ export class Resizing extends StateNode {
 
 	private snapshot = {} as any as Snapshot
 
-	onEnter: TLEnterEventHandler = (info: ResizingInfo) => {
+	override onEnter: TLEnterEventHandler = (info: ResizingInfo) => {
 		const {
 			isCreating = false,
 			editAfterComplete = false,
@@ -63,26 +63,26 @@ export class Resizing extends StateNode {
 		this.updateShapes()
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		this.updateShapes()
 	}
 
-	onKeyDown: TLEventHandlers['onKeyDown'] = () => {
+	override onKeyDown: TLEventHandlers['onKeyDown'] = () => {
 		this.updateShapes()
 	}
-	onKeyUp: TLEventHandlers['onKeyUp'] = () => {
+	override onKeyUp: TLEventHandlers['onKeyUp'] = () => {
 		this.updateShapes()
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onComplete: TLEventHandlers['onComplete'] = () => {
+	override onComplete: TLEventHandlers['onComplete'] = () => {
 		this.complete()
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.cancel()
 	}
 
@@ -342,7 +342,7 @@ export class Resizing extends StateNode {
 		this.editor.setCursor(nextCursor)
 	}
 
-	onExit = () => {
+	override onExit = () => {
 		this.editor.setCursor({ type: 'default' })
 		this.editor.snaps.clear()
 	}

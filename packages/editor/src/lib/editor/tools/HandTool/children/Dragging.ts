@@ -6,23 +6,23 @@ import { StateNode } from '../../StateNode'
 export class Dragging extends StateNode {
 	static override id = 'dragging'
 
-	onEnter = () => {
+	override onEnter = () => {
 		this.update()
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		this.update()
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.complete()
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.complete()
 	}
 
-	onComplete = () => {
+	override onComplete = () => {
 		this.complete()
 	}
 

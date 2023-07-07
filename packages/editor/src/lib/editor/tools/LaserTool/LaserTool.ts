@@ -5,11 +5,10 @@ import { Lasering } from './children/Lasering'
 
 export class LaserTool extends StateNode {
 	static override id = 'laser'
+	static override initial = 'idle'
+	static override children = () => [Idle, Lasering]
 
-	static initial = 'idle'
-	static children = () => [Idle, Lasering]
-
-	onEnter = () => {
+	override onEnter = () => {
 		this.editor.setCursor({ type: 'cross' })
 	}
 }

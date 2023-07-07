@@ -12,9 +12,7 @@ import { StateNode } from '../../StateNode'
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
-
-	onPointerEnter: TLEventHandlers['onPointerEnter'] = (info) => {
+	override onPointerEnter: TLEventHandlers['onPointerEnter'] = (info) => {
 		switch (info.target) {
 			case 'canvas': {
 				// noop
@@ -48,7 +46,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
+	override onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
 				this.editor.setHoveredId(null)
@@ -57,7 +55,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
+	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		if (this.editor.isMenuOpen) return
 
 		const shouldEnterCropMode = this.shouldEnterCropMode(info, true)
@@ -134,7 +132,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
+	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
 		if (info.phase !== 'up') return
 
 		switch (info.target) {
@@ -233,7 +231,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onRightClick: TLEventHandlers['onRightClick'] = (info) => {
+	override onRightClick: TLEventHandlers['onRightClick'] = (info) => {
 		switch (info.target) {
 			case 'canvas': {
 				this.editor.selectNone()
@@ -257,12 +255,12 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onEnter = () => {
+	override onEnter = () => {
 		this.editor.setHoveredId(null)
 		this.editor.setCursor({ type: 'default' })
 	}
 
-	onCancel: TLEventHandlers['onCancel'] = () => {
+	override onCancel: TLEventHandlers['onCancel'] = () => {
 		if (
 			this.editor.focusLayerId !== this.editor.currentPageId &&
 			this.editor.selectedIds.length > 0
@@ -274,7 +272,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		switch (info.code) {
 			case 'ArrowLeft':
 			case 'ArrowRight':
@@ -286,7 +284,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onKeyRepeat: TLEventHandlers['onKeyDown'] = (info) => {
+	override onKeyRepeat: TLEventHandlers['onKeyDown'] = (info) => {
 		switch (info.code) {
 			case 'ArrowLeft':
 			case 'ArrowRight':
@@ -298,7 +296,7 @@ export class Idle extends StateNode {
 		}
 	}
 
-	onKeyUp = (info: TLKeyboardEventInfo) => {
+	override onKeyUp = (info: TLKeyboardEventInfo) => {
 		if (this.editor.isReadOnly) {
 			switch (info.code) {
 				case 'Enter': {
@@ -376,6 +374,8 @@ export class Idle extends StateNode {
 		this.editor.setEditingId(shape.id)
 		this.parent.transition('editing_shape', info)
 	}
+
+	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		this.editor.mark('creating text shape')

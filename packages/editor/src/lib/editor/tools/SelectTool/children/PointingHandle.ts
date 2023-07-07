@@ -7,7 +7,7 @@ export class PointingHandle extends StateNode {
 
 	info = {} as TLPointerEventInfo & { target: 'handle' }
 
-	onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
+	override onEnter = (info: TLPointerEventInfo & { target: 'handle' }) => {
 		this.info = info
 
 		const initialTerminal = (info.shape as TLArrowShape).props[info.handle.id as 'start' | 'end']
@@ -19,16 +19,16 @@ export class PointingHandle extends StateNode {
 		this.editor.setCursor({ type: 'grabbing' })
 	}
 
-	onExit = () => {
+	override onExit = () => {
 		this.editor.setHintingIds([])
 		this.editor.setCursor({ type: 'default' })
 	}
 
-	onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		this.parent.transition('idle', this.info)
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (this.editor.inputs.isDragging) {
 			this.parent.transition('dragging_handle', this.info)
 		}

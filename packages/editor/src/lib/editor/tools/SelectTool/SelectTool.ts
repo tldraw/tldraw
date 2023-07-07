@@ -19,8 +19,8 @@ import { Translating } from './children/Translating'
 
 export class SelectTool extends StateNode {
 	static override id = 'select'
-	static initial = 'idle'
-	static children = () => [
+	static override initial = 'idle'
+	static override children = () => [
 		Crop,
 		Cropping,
 		Idle,
@@ -40,7 +40,7 @@ export class SelectTool extends StateNode {
 		DraggingHandle,
 	]
 
-	onExit = () => {
+	override onExit = () => {
 		if (this.editor.pageState.editingId) {
 			this.editor.setEditingId(null)
 		}
