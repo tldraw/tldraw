@@ -149,7 +149,7 @@ const BrushWrapper = track(function BrushWrapper() {
 	const { brush } = editor
 	const { Brush } = useEditorComponents()
 
-	if (!(Brush && brush && editor.isIn('select.brushing'))) return null
+	if (!(Brush && brush)) return null
 
 	return <Brush className="tl-user-brush" brush={brush} />
 })
@@ -159,7 +159,7 @@ export const ZoomBrushWrapper = track(function Zoom() {
 	const { zoomBrush } = editor
 	const { ZoomBrush } = useEditorComponents()
 
-	if (!(ZoomBrush && zoomBrush && editor.isIn('zoom'))) return null
+	if (!(ZoomBrush && zoomBrush)) return null
 
 	return <ZoomBrush className="tl-user-brush" brush={zoomBrush} />
 })

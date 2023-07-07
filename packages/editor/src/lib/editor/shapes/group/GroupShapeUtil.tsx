@@ -58,7 +58,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			hintingIds.some(
 				(id) =>
 					id !== shape.id &&
-					this.editor.isShapeOfType(this.editor.getShapeById(id)!, GroupShapeUtil)
+					this.editor.isShapeOfType<TLGroupShape>(this.editor.getShapeById(id)!, 'group')
 			)
 
 		if (

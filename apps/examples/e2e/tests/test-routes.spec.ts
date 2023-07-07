@@ -7,7 +7,7 @@ test.describe('Routes', () => {
 	})
 
 	test('basic', async ({ page }) => {
-		await page.goto('http://localhost:5420/')
+		await page.goto('http://localhost:5420/develop')
 		await page.waitForSelector('.tl-canvas')
 	})
 

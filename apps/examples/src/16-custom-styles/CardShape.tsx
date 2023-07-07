@@ -86,13 +86,11 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 export class CardShapeTool extends BaseBoxShapeTool {
 	static override id = 'card'
 	static override initial = 'idle'
-
-	override shapeType = CardShapeUtil
+	override shapeType = 'card'
 }
 
 export const CardShape = defineShape('card', {
 	util: CardShapeUtil,
-	tool: CardShapeTool,
 	// to use a style prop, you need to describe all the props in your shape.
 	props: {
 		w: T.number,

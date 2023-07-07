@@ -9,6 +9,7 @@ import React, {
 	useState,
 	useSyncExternalStore,
 } from 'react'
+
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
@@ -33,65 +34,78 @@ import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
-/** @public */
-export type TldrawEditorProps = {
+/**
+ * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
+ *
+ * @public
+ **/
+export type TldrawEditorProps = TldrawEditorBaseProps &
+	(
+		| {
+				store: TLStore | TLStoreWithStatus
+		  }
+		| {
+				store?: undefined
+				initialData?: SerializedStore<TLRecord>
+				persistenceKey?: string
+				sessionId?: string
+				defaultName?: string
+		  }
+	)
+
+/**
+ * Base props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
+ *
+ * @public
+ */
+export interface TldrawEditorBaseProps {
+	/**
+	 * The component's children.
+	 */
 	children?: any
-	/** An array of shape utils to use in the editor. */
+
+	/**
+	 * An array of shapes definitions to make available to the editor.
+	 */
 	shapes?: readonly AnyTLShapeInfo[]
-	/** An array of tools to use in the editor. */
+
+	/**
+	 * An array of tools to add to the editor's state chart.
+	 */
 	tools?: readonly TLStateNodeConstructor[]
-	/** Urls for where to find fonts and other assets. */
+
+	/**
+	 * Urls for the editor to find fonts and other assets.
+	 */
 	assetUrls?: RecursivePartial<TLEditorAssetUrls>
-	/** Whether to automatically focus the editor when it mounts. */
+
+	/**
+	 * Whether to automatically focus the editor when it mounts.
+	 */
 	autoFocus?: boolean
-	/** Overrides for the tldraw user interface components. */
+
+	/**
+	 * Overrides for the editor's components, such as handles, collaborator cursors, etc.
+	 */
 	components?: Partial<TLEditorComponents>
+
 	/**
 	 * Called when the editor has mounted.
-	 * @example
-	 * ```ts
-	 * function TldrawEditor() {
-	 * 	return <Editor onMount={(editor) => editor.selectAll()} />
-	 * }
-	 * ```
-	 * @param editor - The editor instance.
 	 */
-	onMount?: (editor: Editor) => (() => void) | undefined | void
-} & (
-	| {
-			/**
-			 * The Store instance to use for keeping the editor's data. This may be prepopulated, e.g. by loading
-			 * from a server or database.
-			 */
-			store: TLStore | TLStoreWithStatus
-	  }
-	| {
-			store?: undefined
-			/**
-			 * The editor's initial data.
-			 */
-			initialData?: SerializedStore<TLRecord>
-			/**
-			 * The id under which to sync and persist the editor's data. If none is given tldraw will not sync or persist
-			 * the editor's data.
-			 */
-			persistenceKey?: string
-			/**
-			 * When tldraw reloads a document from local persistence, it will try to bring back the
-			 * editor UI state (e.g. camera position, which shapes are selected). It does this using a sessionId,
-			 * which by default is unique per browser tab. If you wish to have more fine-grained
-			 * control over this behavior, you can provide your own sessionId.
-			 *
-			 * If it can't find saved UI state for the given sessionId, it will use the most recently saved
-			 * UI state for the given persistenceKey if available.
-			 */
-			sessionId?: string
-			/**
-			 * The default initial document name. e.g. 'Untitled Document'
-			 */
-			defaultName?: string
-	  }
-)
+	onMount?: TLOnMountHandler
+}
+
+/**
+ * Called when the editor has mounted.
+ * @example
+ * ```ts
+ * <Tldraw onMount={(editor) => editor.selectAll()} />
+ * ```
+ * @param editor - The editor instance.
+ *
+ * @public
+ */
+export type TLOnMountHandler = (editor: Editor) => (() => void) | undefined | void
 
 declare global {
 	interface Window {

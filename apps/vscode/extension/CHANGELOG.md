@@ -1,3 +1,8 @@
+## 2.0.10
+- Removed the lock option from the highlighter tool.
+- Disabled the styles button for the laser tool on small screens.
+- Fixed mouse cursor after resizing during text creation. We now revert back to the default cursor.
+
 ## 2.0.9
 
 - Stability improvements

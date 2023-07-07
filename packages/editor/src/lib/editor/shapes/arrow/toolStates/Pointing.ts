@@ -1,5 +1,4 @@
 import { createShapeId, TLArrowShape } from '@tldraw/tlschema'
-import { ArrowShapeUtil } from '../../../shapes/arrow/ArrowShapeUtil'
 import { StateNode } from '../../../tools/StateNode'
 import { TLEventHandlers } from '../../../types/event-types'
 
@@ -43,7 +42,7 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const util = this.editor.getShapeUtil(ArrowShapeUtil)
+		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 		const shape = this.editor.getShapeById<TLArrowShape>(id)
 		if (!shape) return
 
@@ -90,7 +89,7 @@ export class Pointing extends StateNode {
 			}
 
 			if (!this.didTimeout) {
-				const util = this.editor.getShapeUtil(ArrowShapeUtil)
+				const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 				const shape = this.editor.getShapeById<TLArrowShape>(this.shape.id)
 
 				if (!shape) return

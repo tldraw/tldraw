@@ -16,11 +16,30 @@ import { ToolsProvider } from './hooks/useTools'
 import { TranslationProvider } from './hooks/useTranslation/useTranslation'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from './overrides'
 
-/** @public */
+/**
+ * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
+ *
+ * @public
+ **/
 export interface TldrawUiContextProviderProps {
+	/**
+	 * Urls for where to find fonts and other assets for the UI.
+	 */
 	assetUrls?: RecursivePartial<TLUiAssetUrls>
+
+	/**
+	 * Overrides for the UI.
+	 */
 	overrides?: TLUiOverrides | TLUiOverrides[]
+
+	/**
+	 * Callback for when an event occurs in the UI.
+	 */
 	onUiEvent?: TLUiEventHandler
+
+	/**
+	 * The component's children.
+	 */
 	children?: any
 }
 

@@ -1,12 +1,11 @@
 import { Box2d, Vec2d } from '@tldraw/primitives'
-import { TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
+import { TLArrowShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
 import { GapsSnapLine, PointsSnapLine, SnapLine } from '../../editor/managers/SnapManager'
 import { ShapeUtil } from '../../editor/shapes/ShapeUtil'
 import { TestEditor } from '../TestEditor'
 
 import { defaultShapes } from '../../config/defaultShapes'
 import { defineShape } from '../../config/defineShape'
-import { ArrowShapeUtil } from '../../editor/shapes/arrow/ArrowShapeUtil'
 import { getSnapLines } from '../testutils/getSnapLines'
 
 type __TopLeftSnapOnlyShape = any
@@ -1950,7 +1949,7 @@ describe('translating a shape with a bound shape', () => {
 		})
 
 		const newArrow = editor.shapesArray.find(
-			(s) => editor.isShapeOfType(s, ArrowShapeUtil) && s.id !== arrow1
+			(s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1
 		)
 		expect(newArrow).toMatchObject({
 			props: { start: { type: 'binding' }, end: { type: 'point' } },

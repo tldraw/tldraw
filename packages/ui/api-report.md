@@ -19,6 +19,7 @@ import { TLEditorAssetUrls } from '@tldraw/editor';
 import { TLExportType } from '@tldraw/editor';
 import { TLLanguage } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
+import { TLShapeId as TLShapeId_2 } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
 
 // @internal (undocumented)
@@ -211,37 +212,30 @@ function Title({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
-export const TldrawUi: React_2.NamedExoticComponent<{
+export const TldrawUi: React_2.NamedExoticComponent<TldrawUiBaseProps & TldrawUiContextProviderProps>;
+
+// @public
+export interface TldrawUiBaseProps {
     children?: ReactNode;
-    hideUi?: boolean | undefined;
+    hideUi?: boolean;
+    renderDebugMenuItems?: () => React_2.ReactNode;
     shareZone?: ReactNode;
     topZone?: ReactNode;
-    renderDebugMenuItems?: (() => React_2.ReactNode) | undefined;
-} & TldrawUiContextProviderProps>;
+}
 
 // @public (undocumented)
 export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, children, }: TldrawUiContextProviderProps): JSX.Element;
 
-// @public (undocumented)
+// @public
 export interface TldrawUiContextProviderProps {
-    // (undocumented)
     assetUrls?: RecursivePartial<TLUiAssetUrls>;
-    // (undocumented)
     children?: any;
-    // (undocumented)
     onUiEvent?: TLUiEventHandler;
-    // (undocumented)
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
 
-// @public (undocumented)
-export type TldrawUiProps = {
-    children?: ReactNode;
-    hideUi?: boolean;
-    shareZone?: ReactNode;
-    topZone?: ReactNode;
-    renderDebugMenuItems?: () => React_2.ReactNode;
-} & TldrawUiContextProviderProps;
+// @public
+export type TldrawUiProps = TldrawUiBaseProps & TldrawUiContextProviderProps;
 
 // @public (undocumented)
 export interface TLUiActionItem {
@@ -650,7 +644,7 @@ export function useDialogs(): TLUiDialogsContextType;
 export function useEvents(): TLUiEventContextType;
 
 // @public (undocumented)
-export function useExportAs(): (ids?: TLShapeId[], format?: TLExportType) => Promise<void>;
+export function useExportAs(): (ids?: TLShapeId_2[], format?: TLExportType) => Promise<void>;
 
 // @public (undocumented)
 export function useHelpMenuSchema(): TLUiMenuSchema;

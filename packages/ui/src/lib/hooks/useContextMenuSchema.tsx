@@ -1,4 +1,4 @@
-import { BookmarkShapeUtil, Editor, EmbedShapeUtil, getEmbedInfo, useEditor } from '@tldraw/editor'
+import { Editor, TLBookmarkShape, TLEmbedShape, getEmbedInfo, useEditor } from '@tldraw/editor'
 import { track, useValue } from '@tldraw/state'
 import React, { useMemo } from 'react'
 import {
@@ -65,7 +65,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 			if (editor.selectedIds.length !== 1) return false
 			return editor.selectedIds.some((selectedId) => {
 				const shape = editor.getShapeById(selectedId)
-				return shape && editor.isShapeOfType(shape, EmbedShapeUtil) && shape.props.url
+				return shape && editor.isShapeOfType<TLEmbedShape>(shape, 'embed') && shape.props.url
 			})
 		},
 		[]
@@ -78,7 +78,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 				const shape = editor.getShapeById(selectedId)
 				return (
 					shape &&
-					editor.isShapeOfType(shape, BookmarkShapeUtil) &&
+					editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') &&
 					shape.props.url &&
 					getEmbedInfo(shape.props.url)
 				)

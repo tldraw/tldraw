@@ -1,6 +1,4 @@
-import { createShapeId } from '@tldraw/tlschema'
-import { FrameShapeUtil } from '../editor/shapes/frame/FrameShapeUtil'
-import { GeoShapeUtil } from '../editor/shapes/geo/GeoShapeUtil'
+import { TLFrameShape, TLGeoShape, createShapeId } from '@tldraw/tlschema'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -56,7 +54,7 @@ beforeEach(() => {
 describe('When interacting with a shape...', () => {
 	it('fires rotate events', () => {
 		// Set start / change / end events on only the geo shape
-		const util = editor.getShapeUtil(FrameShapeUtil)
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
 		const fnStart = jest.fn()
 		util.onRotateStart = fnStart
@@ -89,12 +87,12 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('cleans up events', () => {
-		const util = editor.getShapeUtil(GeoShapeUtil)
+		const util = editor.getShapeUtil<TLGeoShape>('geo')
 		expect(util.onRotateStart).toBeUndefined()
 	})
 
 	it('fires double click handler event', () => {
-		const util = editor.getShapeUtil(GeoShapeUtil)
+		const util = editor.getShapeUtil<TLGeoShape>('geo')
 
 		const fnStart = jest.fn()
 		util.onDoubleClick = fnStart
@@ -105,7 +103,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Fires resisizing events', () => {
-		const util = editor.getShapeUtil(FrameShapeUtil)
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
 		const fnStart = jest.fn()
 		util.onResizeStart = fnStart
@@ -142,7 +140,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Fires translating events', () => {
-		const util = editor.getShapeUtil(FrameShapeUtil)
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
 		const fnStart = jest.fn()
 		util.onTranslateStart = fnStart
@@ -170,7 +168,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Uses the shape utils onClick handler', () => {
-		const util = editor.getShapeUtil(FrameShapeUtil)
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
 		const fnClick = jest.fn()
 		util.onClick = fnClick
@@ -184,7 +182,7 @@ describe('When interacting with a shape...', () => {
 	})
 
 	it('Uses the shape utils onClick handler', () => {
-		const util = editor.getShapeUtil(FrameShapeUtil)
+		const util = editor.getShapeUtil<TLFrameShape>('frame')
 
 		const fnClick = jest.fn((shape: any) => {
 			return {
