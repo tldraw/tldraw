@@ -91,7 +91,6 @@ export class CardShapeTool extends BaseBoxShapeTool {
 
 export const CardShape = defineShape('card', {
 	util: CardShapeUtil,
-	tool: CardShapeTool,
 	// to use a style prop, you need to describe all the props in your shape.
 	props: {
 		w: T.number,

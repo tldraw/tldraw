@@ -17,19 +17,29 @@ import { TranslationProvider } from './hooks/useTranslation/useTranslation'
 import { TLUiOverrides, useMergedOverrides, useMergedTranslationOverrides } from './overrides'
 
 /**
- * Attributes for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
- *
- * @param assetUrls - Urls for where to find fonts and other assets for the UI.
- * @param overrides - Overrides for the UI.
- * @param onUiEvent - Callback for when UI events occur.
- * @param children - The component's children.
+ * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawUi} components.
  *
  * @public
  **/
 export interface TldrawUiContextProviderProps {
+	/**
+	 * Urls for where to find fonts and other assets for the UI.
+	 */
 	assetUrls?: RecursivePartial<TLUiAssetUrls>
+
+	/**
+	 * Overrides for the UI.
+	 */
 	overrides?: TLUiOverrides | TLUiOverrides[]
+
+	/**
+	 * Callback for when an event occurs in the UI.
+	 */
 	onUiEvent?: TLUiEventHandler
+
+	/**
+	 * The component's children.
+	 */
 	children?: any
 }
 

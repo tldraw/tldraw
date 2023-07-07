@@ -1,7 +1,7 @@
 import * as Dialog from './lib/components/primitives/Dialog'
 import * as DropdownMenu from './lib/components/primitives/DropdownMenu'
 
-export { TldrawUi, type TldrawUiProps } from './lib/TldrawUi'
+export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/TldrawUi'
 export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
