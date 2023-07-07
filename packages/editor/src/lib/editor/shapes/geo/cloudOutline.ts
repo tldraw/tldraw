@@ -1,4 +1,11 @@
-import { Box2d, PI, Vec2d, getPointOnCircle, shortAngleDist } from '@tldraw/primitives'
+import {
+	Box2d,
+	PI,
+	Vec2d,
+	approximately,
+	getPointOnCircle,
+	shortAngleDist,
+} from '@tldraw/primitives'
 import { TLDefaultSizeStyle, Vec2dModel } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
 
@@ -140,6 +147,27 @@ export function getCloudArc(leftPoint: Vec2d, rightPoint: Vec2d) {
 
 type Arc = ReturnType<typeof getCloudArc>
 
+function isTopBall(leftPoint: Vec2d, rightPoint: Vec2d) {
+	return (
+		leftPoint.x < rightPoint.x && rightPoint.x - leftPoint.x > Vec2d.Dist(leftPoint, rightPoint) / 2
+	)
+}
+function isRightBall(leftPoint: Vec2d, rightPoint: Vec2d) {
+	return (
+		leftPoint.y < rightPoint.y && rightPoint.y - leftPoint.y > Vec2d.Dist(leftPoint, rightPoint) / 2
+	)
+}
+function isBottomBall(leftPoint: Vec2d, rightPoint: Vec2d) {
+	return (
+		leftPoint.x > rightPoint.x && leftPoint.x - rightPoint.x > Vec2d.Dist(leftPoint, rightPoint) / 2
+	)
+}
+function isLeftBall(leftPoint: Vec2d, rightPoint: Vec2d) {
+	return (
+		leftPoint.y > rightPoint.y && leftPoint.y - rightPoint.y > Vec2d.Dist(leftPoint, rightPoint) / 2
+	)
+}
+
 export function getCloudArcs(
 	width: number,
 	height: number,
@@ -173,12 +201,121 @@ export function getCloudArcs(
 		y: -containingBox.y,
 	}
 
-	return arcs.map((arc) => {
-		return getCloudArc(
-			Vec2d.MulV(Vec2d.Add(offset, arc.leftPoint), scale),
-			Vec2d.MulV(Vec2d.Add(offset, arc.rightPoint), scale)
-		)
+	let topMost: Arc = arcs[0]
+	let rightMost: Arc = arcs[0]
+	let bottomMost: Arc = arcs[0]
+	let leftMost: Arc = arcs[0]
+
+	const scaledArcs = arcs.map((arc): Arc => {
+		const leftPoint = Vec2d.Add(arc.leftPoint, offset).mulV(scale)
+		const rightPoint = Vec2d.Add(arc.rightPoint, offset).mulV(scale)
+		let center = Vec2d.Add(arc.center, offset).mulV(scale)
+		let radius = Vec2d.Dist(center, leftPoint)
+
+		// if the arc goes outside the top edge of the box, we need to adjust the center and radius
+		if (center.y - radius < 0 && isTopBall(leftPoint, rightPoint)) {
+			center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, new Vec2d(center.x, 0))
+			radius = Vec2d.Dist(center, leftPoint)
+		}
+
+		// if the arc goes outside the right edge of the box, we need to adjust the center and radius
+		if (center.x + radius > width && isRightBall(leftPoint, rightPoint)) {
+			center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, new Vec2d(width, center.y))
+			radius = Vec2d.Dist(center, leftPoint)
+		}
+
+		// if the arc goes outside the bottom edge of the box, we need to adjust the center and radius
+		if (center.y + radius > height && isBottomBall(leftPoint, rightPoint)) {
+			center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, new Vec2d(center.x, height))
+			radius = Vec2d.Dist(center, leftPoint)
+		}
+
+		// if the arc goes outside the left edge of the box, we need to adjust the center and radius
+		if (center.x - radius < 0 && isLeftBall(leftPoint, rightPoint)) {
+			center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, new Vec2d(0, center.y))
+			radius = Vec2d.Dist(center, leftPoint)
+		}
+
+		const newArc = {
+			leftPoint,
+			rightPoint,
+			center,
+			radius,
+		}
+
+		if (center.y - radius < topMost.center.y - topMost.radius) {
+			topMost = newArc
+		}
+
+		if (center.x + radius > rightMost.center.x + rightMost.radius) {
+			rightMost = newArc
+		}
+
+		if (center.y + radius > bottomMost.center.y + bottomMost.radius) {
+			bottomMost = newArc
+		}
+
+		if (center.x - radius < leftMost.center.x - leftMost.radius) {
+			leftMost = newArc
+		}
+		return newArc
 	})
+
+	// now if any of the top/right/bottom/left arcs do not meet the edge of the bounding box, we need to scoot them over
+	const topMostY = topMost.center.y - topMost.radius
+	if (!approximately(topMostY, 0)) {
+		topMost.center = getCenterOfCircleGivenThreePoints(
+			topMost.leftPoint,
+			topMost.rightPoint,
+			new Vec2d(topMost.center.x, 0)
+		)
+		topMost.radius = Vec2d.Dist(topMost.center, topMost.leftPoint)
+	}
+	const rightMostX = rightMost.center.x + rightMost.radius
+	if (!approximately(rightMostX, width)) {
+		rightMost.center = getCenterOfCircleGivenThreePoints(
+			rightMost.leftPoint,
+			rightMost.rightPoint,
+			new Vec2d(width, rightMost.center.y)
+		)
+		rightMost.radius = Vec2d.Dist(rightMost.center, rightMost.leftPoint)
+	}
+	const bottomMostY = bottomMost.center.y + bottomMost.radius
+	if (!approximately(bottomMostY, height)) {
+		bottomMost.center = getCenterOfCircleGivenThreePoints(
+			bottomMost.leftPoint,
+			bottomMost.rightPoint,
+			new Vec2d(bottomMost.center.x, height)
+		)
+		bottomMost.radius = Vec2d.Dist(bottomMost.center, bottomMost.leftPoint)
+	}
+	const leftMostX = leftMost.center.x - leftMost.radius
+	if (!approximately(leftMostX, 0)) {
+		leftMost.center = getCenterOfCircleGivenThreePoints(
+			leftMost.leftPoint,
+			leftMost.rightPoint,
+			new Vec2d(0, leftMost.center.y)
+		)
+		leftMost.radius = Vec2d.Dist(leftMost.center, leftMost.leftPoint)
+	}
+	return scaledArcs
+}
+
+function getCenterOfCircleGivenThreePoints(a: Vec2d, b: Vec2d, c: Vec2d) {
+	const A = a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y
+	const B =
+		(a.x * a.x + a.y * a.y) * (c.y - b.y) +
+		(b.x * b.x + b.y * b.y) * (a.y - c.y) +
+		(c.x * c.x + c.y * c.y) * (b.y - a.y)
+	const C =
+		(a.x * a.x + a.y * a.y) * (b.x - c.x) +
+		(b.x * b.x + b.y * b.y) * (c.x - a.x) +
+		(c.x * c.x + c.y * c.y) * (a.x - b.x)
+
+	const x = -B / (2 * A)
+	const y = -C / (2 * A)
+
+	return new Vec2d(x, y)
 }
 
 export function cloudOutline(
@@ -230,9 +367,13 @@ export function inkyCloudSvgPath(
 	let pathB = `M${mut(arcs[0].leftPoint.x)},${mut(arcs[0].leftPoint.y)}`
 
 	// now draw arcs for each circle, starting where it intersects the previous circle, and ending where it intersects the next circle
-	for (const { rightPoint, radius } of arcs) {
+	for (const { rightPoint, radius, center } of arcs) {
 		pathA += ` A${radius},${radius} 0 0,1 ${rightPoint.x},${rightPoint.y}`
-		pathB += ` A${radius},${radius} 0 0,1 ${mut(rightPoint.x)},${mut(rightPoint.y)}`
+		const mutX = mut(rightPoint.x)
+		const mutY = mut(rightPoint.y)
+		const mutRadius = Vec2d.Dist(center, { x: mutX, y: mutY })
+
+		pathB += ` A${mutRadius},${mutRadius} 0 0,1 ${mutX},${mutY}`
 	}
 
 	return pathA + pathB + ' Z'
