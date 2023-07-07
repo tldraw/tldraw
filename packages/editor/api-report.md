@@ -726,6 +726,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
+    // (undocumented)
+    get userPresences(): Computed<TLInstancePresence[], unknown>;
     get viewportPageBounds(): Box2d;
     get viewportPageCenter(): Vec2d;
     get viewportScreenBounds(): Box2d;

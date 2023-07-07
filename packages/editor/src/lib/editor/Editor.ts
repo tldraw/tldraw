@@ -2470,12 +2470,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return CameraRecordType.createId(this.currentPageId)
 	}
 
+	@computed get userPresences() {
+		return this.store.query.records('instance_presence', () => ({
+			userId: { neq: this.user.id },
+		}))
+	}
+
 	/**
 	 * The current camera.
 	 *
 	 * @public
 	 */
 	@computed get camera() {
+		if (this.instanceState.followingUserId) {
+			const presences = this.userPresences.value
+				.filter((p) => p.userId === this.instanceState.followingUserId)
+				.sort((a, b) => b.lastActivityTimestamp - a.lastActivityTimestamp)
+			const camera = presences[0]?.camera
+			if (camera) {
+				return CameraRecordType.create({ id: this.cameraId, x: camera.x, y: camera.y, z: camera.z })
+			}
+		}
 		return this.store.get(this.cameraId)!
 	}
 
