@@ -2708,7 +2708,6 @@ export type TLShapeInfo<T extends TLUnknownShape = TLUnknownShape> = {
     util: TLShapeUtilConstructor<T>;
     props?: ShapeProps<T>;
     migrations?: Migrations;
-    tool?: TLStateNodeConstructor;
 };
 
 // @public (undocumented)
