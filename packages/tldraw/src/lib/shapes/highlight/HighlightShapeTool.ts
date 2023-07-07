@@ -7,7 +7,6 @@ export class HighlightShapeTool extends StateNode {
 	static override id = 'highlight'
 	static override initial = 'idle'
 	static override children = () => [Idle, Drawing]
-
 	override shapeType = 'highlight'
 
 	override onExit = () => {

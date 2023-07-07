@@ -1,6 +1,5 @@
 import {
 	DefaultFontFamilies,
-	EMPTY_ARRAY,
 	SVGContainer,
 	ShapeUtil,
 	TLArrowShape,
@@ -22,7 +21,6 @@ import {
 	arrowShapeProps,
 	computed,
 	getArrowTerminalsInArrowSpace,
-	getArrowheadPathForType,
 	getCurvedArrowHandlePath,
 	getDefaultColorTheme,
 	getSolidCurvedArrowPath,
@@ -41,6 +39,7 @@ import {
 	shortAngleDist,
 	toDomPrecision,
 } from '@tldraw/primitives'
+import { EMPTY_ARRAY } from '@tldraw/state'
 import { ComputedCache } from '@tldraw/store'
 import { deepCopy, last, minBy } from '@tldraw/utils'
 import React from 'react'

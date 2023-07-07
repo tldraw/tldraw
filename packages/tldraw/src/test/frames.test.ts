@@ -1,5 +1,10 @@
-import { DefaultFillStyle, TLArrowShape, TLFrameShape, createShapeId } from '@tldraw/editor'
-import { TestEditor } from './TestEditor'
+import {
+	DefaultFillStyle,
+	TLArrowShape,
+	TLFrameShape,
+	TestEditor,
+	createShapeId,
+} from '@tldraw/editor'
 
 let editor: TestEditor
 

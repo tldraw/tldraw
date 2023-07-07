@@ -1,5 +1,11 @@
-import { BaseBoxShapeUtil, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
-import { TL, TestEditor } from './TestEditor'
+import {
+	BaseBoxShapeUtil,
+	PageRecordType,
+	TLShape,
+	TestEditor,
+	createShapeId,
+} from '@tldraw/editor'
+import { TL } from './TestEditor'
 
 let editor: TestEditor
 
