@@ -13,14 +13,56 @@ keywords:
 ##### Table of Contents
 
 - [Introduction](#introduction)
-- [State chart](#state-chart)
+- [Types of tool](#types-of-tool)
+- [Inside a tool](#inside-a-tool)
 - [Handling events](#handling-events)
-- [Custom tools](#custom-tools)
 
 ## Introduction
 
-In tldraw, a **tool** is a state that the user can be in. For example, the user can be in the select tool, the draw tool, or the arrow tool.
+In tldraw, a **tool** is what we call any top-level state in our state chart. For example, the select tool, the draw tool, and the arrow tool are all top-level states that the user can be in.
 
-In other words, a tool is a [`StateNode`](/gen/editor/StateNode) of tldraw's "state chart". This tree of `StateNode` instances contains the logic for the user's interactions. User interactions such as moving the cursor will produce different changes to the state depending on which nodes are active.
+<Image title="Tools" src="/images/api/tools.png" alt="A diagram showing the state chart of tldraw. The top row of states (apart from the Root state) are annotated as tools." title="The first level of states in the start chart are known as tools."/>
 
+For more detailed information about the state chart, and how it works, go to the [Editor page](editor). Or read below for more information about tools, and how to make your own.
 
+## Types of tool
+
+The tldraw editor comes with some in-built **core tools**: the [select tool](/gen/editor/SelectTool), the [zoom tool](/gen/editor/ZoomTool), and the [text tool](/gen/editor/TextTool). These are always added to the state chart.
+
+There are also some **default tools** available, like the [draw tool](/gen/editor/DrawShapeTool), the [hand tool](/gen/editor/HandTool), the [arrow tool](/gen/editor/ArrowTool), and more. The `<Tldraw>` component automatically adds these tools to the state chart. 
+
+You can also create your own **custom tools**. You can add them to the state chart by passing an array of them to the [`<Tldraw>`](/gen/editor/Tldraw) component's `tools` prop.
+
+Note: You might also want to add a tool to the user interface in various ways, such as the toolbar. That isn't documented here yet, but you can see how it's done in our [examples folder](https://github.com/tldraw/tldraw/tree/main/apps/examples/src/3-custom-config). 
+
+## Inside a tool
+
+Every tool has an **id**. This is used to identify it in the state chart.
+
+```ts
+class MyTool extends StateNode {
+  static override id = 'my-tool'
+}
+```
+
+Tools can contain **children**. For example, the [hand tool](/gen/editor/HandTool) has three children, `Idle`, `Pointing` and `Dragging`. If a state has children, it must also have an `initial` state, so that it knows which state to start in.
+
+```ts
+class MyIdleState extends StateNode {
+  static override id = 'my-idle-state'
+}
+
+class MyPointingState extends StateNode {
+  static override id = 'my-pointing-state'
+}
+
+class MyTool extends StateNode {
+  static override id = 'my-tool'
+  static override initial = 'my-idle-state'
+  static override children = [MyIdleState, MyPointingState]
+}
+```
+
+### Handling events
+
+Coming soon...
