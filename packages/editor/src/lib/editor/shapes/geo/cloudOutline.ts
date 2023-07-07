@@ -126,7 +126,7 @@ export function getCloudArcs(
 ) {
 	const getRandom = rng(seed)
 	const pillCircumference = getPillCircumference(width, height)
-	const numBumps = Math.max(Math.ceil(pillCircumference / switchSize(size, 50, 70, 100, 130)), 9)
+	const numBumps = Math.max(Math.ceil(pillCircumference / switchSize(size, 50, 70, 100, 130)), 6)
 	const targetBumpProtrusion = (pillCircumference / numBumps) * 0.2
 
 	// if the aspect ratio is high, innerWidth should be smaller
@@ -138,34 +138,20 @@ export function getCloudArcs(
 	const bumpPoints = getPillPoints(innerWidth, innerHeight, numBumps).map((p) => {
 		return p.addXY(paddingX, paddingY)
 	})
-	const maxWiggle = targetBumpProtrusion / 5
 
-	const adjustedBumpPoints = bumpPoints.map((p, i) => {
-		const pointBefore = bumpPoints[i === 0 ? bumpPoints.length - 1 : i - 1]
-		const pointAfter = bumpPoints[i === bumpPoints.length - 1 ? 0 : i + 1]
+	const maxWiggle = targetBumpProtrusion * 0.3
 
-		const angle = Vec2d.Angle(pointBefore, pointAfter) - Math.PI / 2
-
-		const randDist = getRandom() * maxWiggle
-		const randAngle = angle + (getRandom() - 0.5) * Math.PI * 0.7
-
-		return Vec2d.Add(p, Vec2d.FromAngle(randAngle, randDist))
+	const adjustedBumpPoints = bumpPoints.map((p) => {
+		return Vec2d.AddXY(p, getRandom() * maxWiggle, getRandom() * maxWiggle)
 	})
 
 	const arcs: Arc[] = []
-
-	let leftMost = Infinity
 
 	for (let i = 0; i < adjustedBumpPoints.length; i++) {
 		const leftPoint = adjustedBumpPoints[i]
 		const rightPoint = adjustedBumpPoints[i === adjustedBumpPoints.length - 1 ? 0 : i + 1]
 
-		const arc = getCloudArc(leftPoint, rightPoint, Math.max(paddingX, paddingY), width, height)
-		const left = arc.center.x - arc.radius
-		if (left < leftMost) {
-			leftMost = left
-		}
-		arcs.push(arc)
+		arcs.push(getCloudArc(leftPoint, rightPoint, Math.max(paddingX, paddingY), width, height))
 	}
 
 	return arcs
@@ -219,6 +205,11 @@ function getCenterOfCircleGivenThreePoints(a: Vec2d, b: Vec2d, c: Vec2d) {
 	const x = -B / (2 * A)
 	const y = -C / (2 * A)
 
+	// handle situations where the points are colinear (this happens when the cloud is very small)
+	if (!Number.isFinite(x) || !Number.isFinite(y)) {
+		return Vec2d.Average([a, b, c])
+	}
+
 	return new Vec2d(x, y)
 }
 
@@ -230,7 +221,9 @@ export function cloudOutline(
 ) {
 	const path: Vec2d[] = []
 
-	for (const { center, radius, leftPoint, rightPoint } of getCloudArcs(width, height, seed, size)) {
+	const arcs = getCloudArcs(width, height, seed, size)
+
+	for (const { center, radius, leftPoint, rightPoint } of arcs) {
 		path.push(...pointsOnArc(leftPoint, rightPoint, center, radius, 10))
 	}
 
