@@ -87,15 +87,15 @@ type CardShape = TLBaseShape<
 >
 ```
 
-With the `TLBaseShape` helper, we define the shape's `type` property (`card`) and the shape's `props` property (`{ w: number, h: number }`). The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
+With the [`TLBaseShape`](/gen/editor/TLBaseShape) helper, we define the shape's `type` property (`card`) and the shape's `props` property (`{ w: number, h: number }`). The type can be any string but the props must be a regular [JSON-serializable](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify#description) JavaScript object.
 
-The `TLBaseShape` helper adds the other base properties of a shape, such as `x`, `y`, `rotation`, and `opacity`.
+The [`TLBaseShape`](/gen/editor/TLBaseShape) helper adds the other base properties of a shape, such as `x`, `y`, `rotation`, and `opacity`.
 
 ### Shape Util
 
-While tldraw's shapes themselves are simple JSON objects, we use `ShapeUtil` classes to answer questions about shapes.
+While tldraw's shapes themselves are simple JSON objects, we use [`ShapeUtil`](/gen/editor/ShapeUtil) classes to answer questions about shapes.
 
-Let's create a `ShapeUtil` class for the shape.
+Let's create a [`ShapeUtil`](/gen/editor/ShapeUtil) class for the shape.
 
 ```tsx
 import { ShapeUtil, HTMLContainer, Box2d } from '@tldraw/tldraw'
@@ -128,13 +128,13 @@ class CardShapeUtil extends ShapeUtil<CardShape> {
 }
 ```
 
-This is a minimal `ShapeUtil`. We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods `getDefaultProps`, `getBounds`, `component`, and `indicator`.
+This is a minimal [`ShapeUtil`](/gen/editor/ShapeUtil). We've given it a static property `type` that matches the type of our shape, we've provided implementations for the abstract methods [`getDefaultProps`](/gen/editor/ShapeUtil#getDefaultProps), [`getBounds`](/gen/editor/ShapeUtil#getBounds), [`component`](/gen/editor/ShapeUtil#component), and [`indicator`](/gen/editor/ShapeUtil#indicator).
 
-We still have work to do on the `CardShapeUtil` class, but we'll come back to it later. For now, let's put the shape onto the canvas by passing it to the `<Tldraw>` component.
+We still have work to do on the `CardShapeUtil` class, but we'll come back to it later. For now, let's put the shape onto the canvas by passing it to the [`<Tldraw>`](/gen/tldraw/Tldraw) component.
 
 ### Defining the shape
 
-Before we pass the shape down, we need to package it up in a way using the `defineShape` function. We can then pass an array of our defined shapes into the `<Tldraw>` component's `shapes` prop. 
+Before we pass the shape down, we need to package it up in a way using the [`defineShape`](/gen/editor/defineShape) function. We can then pass an array of our defined shapes into the [`<Tldraw>`](/gen/tldraw/Tldraw) component's `shapes` prop. 
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'
@@ -151,7 +151,7 @@ export default function () {
 }
 ```
 
-Let's create a card shape using the `Editor` API. We'll do this by setting the `onMount` prop of the `<Tldraw>` component.
+Let's create a card shape using the [`Editor`](/gen/editor/Editor) API. We'll do this by setting the `onMount` prop of the [`<Tldraw>`](/gen/tldraw/Tldraw) component.
 
 ```tsx
 <Tldraw shapes={[MyCardShape]} onMount={(editor) => {
@@ -163,7 +163,7 @@ Once the page refreshes, we should now have our custom shape on the canvas.
 
 ## Meta information
 
-Shapes also have a `meta` property that you can fill with your own data. This should feel like a bit of a hack, however it's intended to be an escape hatch for applications where you want to use tldraw's existing shapes but also want to attach a bit of extra data to the shape.
+Shapes also have a [`meta`](/gen/tlschema/TLBaseShape#meta) property that you can fill with your own data. This should feel like a bit of a hack, however it's intended to be an escape hatch for applications where you want to use tldraw's existing shapes but also want to attach a bit of extra data to the shape.
 
 Note that tldraw's regular shape definitions have an unknown object for the shape's `meta` property. To type your shape's meta, use a union like this:
 
@@ -173,7 +173,7 @@ type MyShapeWithMeta = TLGeoShape & { meta: { createdBy: string } }
 const shape = editor.getShapeById<MyShapeWithMeta>(myGeoShape.id)
 ```
 
-You can update a shape's `meta` property in the same way you would update its props, using `Editor.updateShapes`.
+You can update a shape's `meta` property in the same way you would update its props, using [`Editor.updateShapes`](/gen/editor/Editor#updateShapes).
 
 ```ts
 editor.updateShapes<MyShapeWithMeta>([{
@@ -185,12 +185,12 @@ editor.updateShapes<MyShapeWithMeta>([{
 }])
 ```
 
-Like `props`, the data in a shape's `meta` object must be JSON serializable.
+Like [`props`](/gen/tlschema/TLBaseShape#props), the data in a shape's `meta` object must be JSON serializable.
 
-In addition to setting meta properties this way, you can also set the default meta data for shapes using the Editor's `getShapeInitialMeta` method.
+In addition to setting meta properties this way, you can also set the default meta data for shapes using the Editor's [`getInitialMetaForShape`](/gen/editor/Editor#getInitialMetaForShape) method.
 
 ```tsx
-editor.getShapeInitialMeta = (shape: TLShape) => {
+editor.getInitialMetaForShape = (shape: TLShape) => {
   if (shape.type === 'text') {
     return { createdBy: currentUser.id, lastModified: Date.now() } 
   } else {
@@ -199,17 +199,17 @@ editor.getShapeInitialMeta = (shape: TLShape) => {
 }
 ```
 
-Whenever new shapes are created using the `createShapes` method, the shape's meta property will be set using the `getShapeInitialMeta` method. By default this method returns an empty object.
+Whenever new shapes are created using the [`createShapes`](/gen/editor/Editor#createShapes) method, the shape's meta property will be set using the [`getInitialMetaForShape`](/gen/editor/Editor#getInitialMetaForShape) method. By default this method returns an empty object.
 
 ## Using starter shapes
 
-You can use "starter" shape utils like `BaseBoxShapeUtil` to get regular rectangular shape behavior.
+You can use "starter" shape utils like [`BaseBoxShapeUtil`](/gen/editor/BaseBoxShapeUtil) to get regular rectangular shape behavior.
 
 > todo
 
 ## Flags
 
-You can use flags like `hideRotateHandle` to hide different parts of the UI when the shape is selected, or else to control different behaviors of the shape.
+You can use flags like [`hideRotateHandle`](/gen/editor/ShapeUtil#hideRotateHandle) to hide different parts of the UI when the shape is selected, or else to control different behaviors of the shape.
 
 > todo
 
