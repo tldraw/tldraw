@@ -1,11 +1,5 @@
-import {
-	BaseBoxShapeUtil,
-	PageRecordType,
-	TLShape,
-	TestEditor,
-	createShapeId,
-} from '@tldraw/editor'
-import { TL } from './TestEditor'
+import { BaseBoxShapeUtil, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
+import { TL, TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
@@ -250,7 +244,7 @@ describe('Editor.TickManager', () => {
 		// usually this is called by the app's tick manager, using the elapsed time
 		// between two animation frames, but we're calling it directly here.
 		const tick = (ms: number) => {
-			// @ts-expect-error
+			// @ts-ignore
 			editor._tickManager.updatePointerVelocity(ms)
 		}
 
