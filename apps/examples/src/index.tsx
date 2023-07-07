@@ -25,6 +25,8 @@ import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
 import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
+import ExamplesTldrawLogo from './ExamplesTldrawLogo'
+import { ListLink } from './components/ListLink'
 import EndToEnd from './end-to-end/end-to-end'
 import YjsExample from './yjs/YjsExample'
 
@@ -38,89 +40,135 @@ setDefaultUiAssetUrls(assetUrls)
 
 type Example = {
 	path: string
+	title?: string
 	element: JSX.Element
 }
 
 export const allExamples: Example[] = [
 	{
-		path: '/',
+		title: 'Basic (development)',
+		path: '/develop',
 		element: <ExampleBasic />,
 	},
 	{
-		path: '/scroll',
-		element: <ExampleScroll />,
-	},
-	{
-		path: '/multiple',
-		element: <ExampleMultiple />,
-	},
-	{
+		title: 'Editor API',
 		path: '/api',
 		element: <ExampleApi />,
 	},
 	{
+		title: 'Multiple editors',
+		path: '/multiple',
+		element: <ExampleMultiple />,
+	},
+	{
+		title: 'Scroll example',
+		path: '/scroll',
+		element: <ExampleScroll />,
+	},
+	{
+		title: 'Custom config',
 		path: '/custom-config',
 		element: <CustomConfigExample />,
 	},
 	{
-		path: '/custom-ui',
-		element: <CustomUiExample />,
-	},
-	{
+		title: 'Sublibraries',
 		path: '/exploded',
 		element: <ExplodedExample />,
 	},
 	{
-		path: '/hide-ui',
-		element: <HideUiExample />,
-	},
-	{
+		title: 'Error boundary',
 		path: '/error-boundary',
 		element: <ErrorBoundaryExample />,
 	},
 	{
+		title: 'Custom UI',
+		path: '/custom-ui',
+		element: <CustomUiExample />,
+	},
+	{
+		title: 'Hide UI',
+		path: '/hide-ui',
+		element: <HideUiExample />,
+	},
+	{
+		title: 'UI components',
 		path: '/custom-components',
 		element: <CustomComponentsExample />,
 	},
 	{
+		title: 'UI events',
 		path: '/ui-events',
 		element: <UiEventsExample />,
 	},
 	{
+		title: 'Store events',
 		path: '/store-events',
 		element: <StoreEventsExample />,
 	},
 	{
+		title: 'User presence',
 		path: '/user-presence',
 		element: <UserPresenceExample />,
 	},
 	{
+		title: 'UI zones',
 		path: '/zones',
 		element: <ZonesExample />,
 	},
 	{
+		title: 'Persistence',
 		path: '/persistence',
 		element: <PersistenceExample />,
 	},
 	{
-		path: '/end-to-end',
-		element: <EndToEnd />,
-	},
-	{
+		title: 'Custom styles',
 		path: '/yjs',
 		element: <YjsExample />,
 	},
 	{
+		title: 'Custom styles',
 		path: '/custom-styles',
 		element: <CustomStylesExample />,
 	},
 	{
+		title: 'Shape meta property',
 		path: '/shape-meta',
 		element: <ShapeMetaExample />,
 	},
+	// not listed
+	{
+		path: '/end-to-end',
+		element: <EndToEnd />,
+	},
 ]
 
-const router = createBrowserRouter(allExamples)
+function App() {
+	return (
+		<div className="examples">
+			<div className="examples__header">
+				<ExamplesTldrawLogo />
+				<p>
+					See docs at <a href="https://tldraw.dev">tldraw.dev</a>
+				</p>
+			</div>
+			<ul className="examples__list">
+				{allExamples
+					.filter((example) => example.title)
+					.map((example) => (
+						<ListLink key={example.path} title={example.title!} route={example.path} />
+					))}
+			</ul>
+		</div>
+	)
+}
+
+const router = createBrowserRouter([
+	...allExamples,
+	{
+		path: '/',
+		element: <App />,
+	},
+])
 const rootElement = document.getElementById('root')
 const root = createRoot(rootElement!)
 

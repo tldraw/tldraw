@@ -9,7 +9,16 @@ interface ToggleToolLockedButtonProps {
 	activeToolId?: string
 }
 
-const NOT_LOCKABLE_TOOLS = ['select', 'hand', 'draw', 'eraser', 'text', 'zoom', 'laser']
+const NOT_LOCKABLE_TOOLS = [
+	'select',
+	'hand',
+	'draw',
+	'eraser',
+	'text',
+	'zoom',
+	'laser',
+	'highlight',
+]
 
 export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonProps) {
 	const editor = useEditor()

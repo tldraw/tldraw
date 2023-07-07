@@ -559,12 +559,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     get instanceState(): TLInstance;
     interrupt(): this;
+    readonly isAndroid: boolean;
     get isChangingStyle(): boolean;
     set isChangingStyle(v: boolean);
     readonly isChromeForIos: boolean;
     get isCoarsePointer(): boolean;
     set isCoarsePointer(v: boolean);
     get isDarkMode(): boolean;
+    readonly isFirefox: boolean;
     get isFocused(): boolean;
     get isFocusMode(): boolean;
     get isGridMode(): boolean;
