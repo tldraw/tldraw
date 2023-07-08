@@ -135,61 +135,70 @@ export function getCloudArcs(
 	const paddingX = (width - innerWidth) / 2
 	const paddingY = (height - innerHeight) / 2
 
+	const distanceBetweenPointsOnPerimeter = getPillCircumference(innerWidth, innerHeight) / numBumps
+
 	const bumpPoints = getPillPoints(innerWidth, innerHeight, numBumps).map((p) => {
 		return p.addXY(paddingX, paddingY)
 	})
 
 	const maxWiggle = targetBumpProtrusion * 0.3
 
-	const adjustedBumpPoints = bumpPoints.map((p) => {
+	const wiggledPoints = bumpPoints.map((p) => {
 		return Vec2d.AddXY(p, getRandom() * maxWiggle, getRandom() * maxWiggle)
 	})
 
 	const arcs: Arc[] = []
 
-	for (let i = 0; i < adjustedBumpPoints.length; i++) {
-		const leftPoint = adjustedBumpPoints[i]
-		const rightPoint = adjustedBumpPoints[i === adjustedBumpPoints.length - 1 ? 0 : i + 1]
+	for (let i = 0; i < wiggledPoints.length; i++) {
+		const j = i === wiggledPoints.length - 1 ? 0 : i + 1
+		const leftWigglePoint = wiggledPoints[i]
+		const rightWigglePoint = wiggledPoints[j]
+		const leftPoint = bumpPoints[i]
+		const rightPoint = bumpPoints[j]
 
-		arcs.push(getCloudArc(leftPoint, rightPoint, Math.max(paddingX, paddingY), width, height))
+		const midPoint = Vec2d.Average([leftPoint, rightPoint])
+		const offsetAngle = Vec2d.Angle(leftPoint, rightPoint) - Math.PI / 2
+		// when the points are on the curvy part of a pill, there is a natural arc that we need to extends past
+		// otherwise it looks like the bumps get less bumpy on the curvy parts
+		const curvatureOffset =
+			(distanceBetweenPointsOnPerimeter - Vec2d.Dist(leftPoint, rightPoint)) * 0.5
+		const arcPoint = Vec2d.Add(
+			midPoint,
+			Vec2d.FromAngle(offsetAngle, Math.max(paddingX, paddingY) + curvatureOffset)
+		)
+		if (arcPoint.x < 0) {
+			arcPoint.x = 0
+		} else if (arcPoint.x > width) {
+			arcPoint.x = width
+		}
+		if (arcPoint.y < 0) {
+			arcPoint.y = 0
+		} else if (arcPoint.y > height) {
+			arcPoint.y = height
+		}
+
+		const center = getCenterOfCircleGivenThreePoints(leftWigglePoint, rightWigglePoint, arcPoint)
+		const radius = Vec2d.Dist(center, leftWigglePoint)
+
+		arcs.push({
+			leftPoint: leftWigglePoint,
+			rightPoint: rightWigglePoint,
+			arcPoint,
+			center,
+			radius,
+		})
 	}
 
 	return arcs
 }
 
-export function getCloudArc(
-	leftPoint: Vec2d,
-	rightPoint: Vec2d,
-	padding: number,
-	width: number,
-	height: number
-) {
-	const midPoint = Vec2d.Average([leftPoint, rightPoint])
-	const offsetAngle = Vec2d.Angle(leftPoint, rightPoint) - Math.PI / 2
-	const arcPoint = Vec2d.Add(midPoint, Vec2d.FromAngle(offsetAngle, padding))
-	if (arcPoint.x < 0) {
-		arcPoint.x = 0
-	} else if (arcPoint.x > width) {
-		arcPoint.x = width
-	}
-	if (arcPoint.y < 0) {
-		arcPoint.y = 0
-	} else if (arcPoint.y > height) {
-		arcPoint.y = height
-	}
-
-	const center = getCenterOfCircleGivenThreePoints(leftPoint, rightPoint, arcPoint)
-	const radius = Vec2d.Dist(center, leftPoint)
-
-	return {
-		leftPoint,
-		rightPoint,
-		center,
-		radius,
-	}
+type Arc = {
+	leftPoint: Vec2d
+	rightPoint: Vec2d
+	arcPoint: Vec2d
+	center: Vec2d
+	radius: number
 }
-
-type Arc = ReturnType<typeof getCloudArc>
 
 function getCenterOfCircleGivenThreePoints(a: Vec2d, b: Vec2d, c: Vec2d) {
 	const A = a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y
@@ -259,18 +268,21 @@ export function inkyCloudSvgPath(
 		const multiplier = size === 's' ? 0.5 : size === 'm' ? 0.7 : size === 'l' ? 0.9 : 1.6
 		return n + getRandom() * multiplier * 2
 	}
+	const mutPoint = (p: Vec2d) => new Vec2d(mut(p.x), mut(p.y))
 	const arcs = getCloudArcs(width, height, seed, size)
 	let pathA = `M${arcs[0].leftPoint.x},${arcs[0].leftPoint.y}`
-	let pathB = `M${mut(arcs[0].leftPoint.x)},${mut(arcs[0].leftPoint.y)}`
+	let leftMutPoint = mutPoint(arcs[0].leftPoint)
+	let pathB = `M${leftMutPoint.x},${leftMutPoint.y}`
 
-	// now draw arcs for each circle, starting where it intersects the previous circle, and ending where it intersects the next circle
-	for (const { rightPoint, radius, center } of arcs) {
+	for (const { rightPoint, radius, arcPoint } of arcs) {
 		pathA += ` A${radius},${radius} 0 0,1 ${rightPoint.x},${rightPoint.y}`
-		const mutX = mut(rightPoint.x)
-		const mutY = mut(rightPoint.y)
-		const mutRadius = Vec2d.Dist(center, { x: mutX, y: mutY })
+		const rightMutPoint = mutPoint(rightPoint)
+		const mutArcPoint = mutPoint(arcPoint)
+		const mutCenter = getCenterOfCircleGivenThreePoints(leftMutPoint, rightMutPoint, mutArcPoint)
+		const mutRadius = Math.abs(Vec2d.Dist(mutCenter, leftMutPoint))
 
-		pathB += ` A${mutRadius},${mutRadius} 0 0,1 ${mutX},${mutY}`
+		pathB += ` A${mutRadius},${mutRadius} 0 0,1 ${rightMutPoint.x},${rightMutPoint.y}`
+		leftMutPoint = rightMutPoint
 	}
 
 	return pathA + pathB + ' Z'
