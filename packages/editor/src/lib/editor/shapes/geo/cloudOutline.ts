@@ -143,9 +143,21 @@ export function getCloudArcs(
 
 	const maxWiggle = targetBumpProtrusion * 0.3
 
-	const wiggledPoints = bumpPoints.map((p) => {
-		return Vec2d.AddXY(p, getRandom() * maxWiggle, getRandom() * maxWiggle)
-	})
+	// wiggle the points from either end so that the bumps 'pop'
+	// in at the bottom-right and the top-left looks relatively stable
+	const wiggledPoints = bumpPoints.slice(0)
+	for (let i = 0; i < Math.floor(numBumps / 2); i++) {
+		wiggledPoints[i] = Vec2d.AddXY(
+			wiggledPoints[i],
+			getRandom() * maxWiggle,
+			getRandom() * maxWiggle
+		)
+		wiggledPoints[numBumps - i - 1] = Vec2d.AddXY(
+			wiggledPoints[numBumps - i - 1],
+			getRandom() * maxWiggle,
+			getRandom() * maxWiggle
+		)
+	}
 
 	const arcs: Arc[] = []
 
@@ -161,7 +173,7 @@ export function getCloudArcs(
 		// when the points are on the curvy part of a pill, there is a natural arc that we need to extends past
 		// otherwise it looks like the bumps get less bumpy on the curvy parts
 		const curvatureOffset =
-			(distanceBetweenPointsOnPerimeter - Vec2d.Dist(leftPoint, rightPoint)) * 0.5
+			(distanceBetweenPointsOnPerimeter - Vec2d.Dist(leftPoint, rightPoint)) * 0.7
 		const arcPoint = Vec2d.Add(
 			midPoint,
 			Vec2d.FromAngle(offsetAngle, Math.max(paddingX, paddingY) + curvatureOffset)
