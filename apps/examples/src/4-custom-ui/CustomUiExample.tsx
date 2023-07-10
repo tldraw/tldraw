@@ -1,5 +1,5 @@
 import { track } from '@tldraw/state'
-import { Canvas, TldrawEditor, defaultShapeUtils, defaultTools, useEditor } from '@tldraw/tldraw'
+import { Canvas, TldrawEditor, defaultShapeUtils, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useEffect } from 'react'
 import './custom-ui.css'
@@ -7,7 +7,7 @@ import './custom-ui.css'
 export default function CustomUiExample() {
 	return (
 		<div className="tldraw__editor">
-			<TldrawEditor shapeUtils={defaultShapeUtils} tools={defaultTools} autoFocus>
+			<TldrawEditor shapeUtils={defaultShapeUtils} autoFocus>
 				<Canvas />
 				<CustomUi />
 			</TldrawEditor>
@@ -37,7 +37,7 @@ const CustomUi = track(() => {
 	return (
 		<div className="custom-layout">
 			<div className="custom-toolbar">
-				<button
+				{/* <button
 					className="custom-button"
 					data-isactive={editor.currentToolId === 'select'}
 					onClick={() => editor.setSelectedTool('select')}
@@ -57,7 +57,7 @@ const CustomUi = track(() => {
 					onClick={() => editor.setSelectedTool('eraser')}
 				>
 					Eraser
-				</button>
+				</button> */}
 			</div>
 		</div>
 	)

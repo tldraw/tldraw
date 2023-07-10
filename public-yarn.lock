@@ -4394,7 +4394,7 @@ __metadata:
     "@types/classnames": ^2.3.1
     chokidar-cli: ^3.0.0
     classnames: ^2.3.2
-    jest-canvas-mock: ^2.4.0
+    jest-canvas-mock: ^2.5.2
     jest-environment-jsdom: ^28.1.2
     lazyrepo: 0.0.0-alpha.27
     resize-observer-polyfill: ^1.5.1
@@ -11150,6 +11150,16 @@ __metadata:
     cssfontparser: ^1.2.1
     moo-color: ^1.0.2
   checksum: b8ff56c1b7b7feb6d33b7914dbfac21f19a5a33db0bc092f0426e500e80e67df1286bf817eb780e378b648c9130d7b8ca20cd46e45520657996273a948a7c198
+  languageName: node
+  linkType: hard
+
+"jest-canvas-mock@npm:^2.5.2":
+  version: 2.5.2
+  resolution: "jest-canvas-mock@npm:2.5.2"
+  dependencies:
+    cssfontparser: ^1.2.1
+    moo-color: ^1.0.2
+  checksum: a3004d2e96473049045e49dcf98e5ea6011494048ab42b5422b3089d9ff406aaca8353e79587055d840fa145541668eb8f78613765f252ad5901a8217e91ea5d
   languageName: node
   linkType: hard
 

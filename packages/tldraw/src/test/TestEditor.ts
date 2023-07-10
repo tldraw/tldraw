@@ -2,6 +2,7 @@ import { TLEditorOptions, TLShapeId, TLShapePartial, createShapeId } from '@tldr
 import { TAU } from '@tldraw/primitives'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
+import { defaultTools } from '../lib/defaultTools'
 import { TestEditorEmpty } from './TestEditorEmpty'
 import { shapesFromJsx } from './test-jsx'
 
@@ -10,7 +11,8 @@ export class TestEditor extends TestEditorEmpty {
 		super({
 			...opts,
 			shapeUtils: [...(opts.shapeUtils ?? []), ...defaultShapeUtils],
-			tools: [...(opts.tools ?? []), ...defaultShapeTools],
+			tools: [...(opts.tools ?? []), ...defaultTools, ...defaultShapeTools],
+			initialState: 'select',
 		})
 	}
 

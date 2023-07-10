@@ -9,9 +9,9 @@ import {
 	TldrawEditor,
 	createShapeId,
 	createTLStore,
-	defaultTools,
 } from '@tldraw/editor'
 import { noop } from '@tldraw/utils'
+import { defaultTools } from '../lib/defaultTools'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {

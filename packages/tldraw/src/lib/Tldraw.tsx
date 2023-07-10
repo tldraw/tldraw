@@ -1,8 +1,9 @@
-import { Canvas, TldrawEditor, TldrawEditorProps, defaultTools, useEditor } from '@tldraw/editor'
+import { Canvas, TldrawEditor, TldrawEditorProps, useEditor } from '@tldraw/editor'
 import { ContextMenu, TldrawUi, TldrawUiProps } from '@tldraw/ui'
 import { useLayoutEffect, useMemo } from 'react'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
+import { defaultTools } from './defaultTools'
 
 /** @public */
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {

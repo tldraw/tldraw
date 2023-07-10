@@ -48,10 +48,13 @@ import { Vec2d } from '@tldraw/primitives';
 import { VecLike } from '@tldraw/primitives';
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof HandTool | typeof LaserTool | typeof LineShapeTool | typeof NoteShapeTool | typeof SelectTool | typeof TextShapeTool | typeof ZoomTool)[];
+export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];
+
+// @public (undocumented)
+export const defaultTools: (typeof EraserTool | typeof HandTool | typeof LaserTool | typeof SelectTool | typeof ZoomTool)[];
 
 // @public (undocumented)
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps): JSX.Element;

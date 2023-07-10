@@ -62,7 +62,6 @@ export {
 } from './lib/config/createTLStore'
 export { createTLUser } from './lib/config/createTLUser'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
-export { defaultTools } from './lib/config/defaultTools'
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,

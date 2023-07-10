@@ -63,7 +63,7 @@
 		"@testing-library/react": "^14.0.0",
 		"@types/classnames": "^2.3.1",
 		"chokidar-cli": "^3.0.0",
-		"jest-canvas-mock": "^2.4.0",
+		"jest-canvas-mock": "^2.5.2",
 		"jest-environment-jsdom": "^28.1.2",
 		"lazyrepo": "0.0.0-alpha.27",
 		"resize-observer-polyfill": "^1.5.1"
@@ -86,6 +86,7 @@
 		},
 		"setupFiles": [
 			"raf/polyfill",
+			"jest-canvas-mock",
 			"<rootDir>/setupTests.js"
 		],
 		"setupFilesAfterEnv": [

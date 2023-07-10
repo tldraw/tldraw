@@ -18,7 +18,6 @@ import {
 	TLWheelEventInfo,
 	createShapeId,
 	createTLStore,
-	defaultTools,
 } from '@tldraw/editor'
 import {
 	ROTATE_CORNER_TO_SELECTION_CORNER,
@@ -91,7 +90,7 @@ export class TestEditorEmpty extends Editor {
 		elm.tabIndex = 0
 		super({
 			shapeUtils,
-			tools: [...defaultTools, ...tools],
+			tools: [...tools],
 			store: createTLStore({ shapeUtils }),
 			getContainer: () => elm,
 			...options,

@@ -80,7 +80,6 @@ import EventEmitter from 'eventemitter3'
 import { nanoid } from 'nanoid'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
-import { coreTools } from '../config/defaultTools'
 import {
 	ANIMATION_MEDIUM_MS,
 	CAMERA_MAX_RENDERING_INTERVAL,
@@ -243,7 +242,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		for (const Tool of [...coreTools, ...tools]) {
+		for (const Tool of [...tools]) {
 			if (hasOwnProperty(this.root.children!, Tool.id)) {
 				throw Error(`Can't override tool with id "${Tool.id}"`)
 			}

@@ -207,9 +207,6 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 // @internal (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
-// @public (undocumented)
-export const defaultTools: TLStateNodeConstructor[];
-
 export { defineMigrations }
 
 // @internal (undocumented)
