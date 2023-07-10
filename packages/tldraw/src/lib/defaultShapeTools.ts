@@ -6,6 +6,10 @@ import { HighlightShapeTool } from './shapes/highlight/HighlightShapeTool'
 import { LineShapeTool } from './shapes/line/LineShapeTool'
 import { NoteShapeTool } from './shapes/note/NoteShapeTool'
 import { TextShapeTool } from './shapes/text/TextShapeTool'
+import { HandTool } from './tools/HandTool/HandTool'
+import { LaserTool } from './tools/LaserTool/LaserTool'
+import { SelectTool } from './tools/SelectTool/SelectTool'
+import { ZoomTool } from './tools/ZoomTool/ZoomTool'
 
 /** @public */
 export const defaultShapeTools = [
@@ -17,4 +21,8 @@ export const defaultShapeTools = [
 	FrameShapeTool,
 	ArrowShapeTool,
 	HighlightShapeTool,
+	HandTool,
+	LaserTool,
+	SelectTool,
+	ZoomTool,
 ]

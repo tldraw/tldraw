@@ -1,6 +1,6 @@
-import { Canvas, TldrawEditor, TldrawEditorProps, defaultTools } from '@tldraw/editor'
+import { Canvas, TldrawEditor, TldrawEditorProps, defaultTools, useEditor } from '@tldraw/editor'
 import { ContextMenu, TldrawUi, TldrawUiProps } from '@tldraw/ui'
-import { useMemo } from 'react'
+import { useLayoutEffect, useMemo } from 'react'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 
@@ -27,7 +27,30 @@ export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
 					<Canvas />
 				</ContextMenu>
 				{children}
+				<Hacks />
 			</TldrawUi>
 		</TldrawEditor>
 	)
+}
+
+function Hacks() {
+	const editor = useEditor()
+
+	useLayoutEffect(() => {
+		editor.root.onKeyDown = (info) => {
+			switch (info.code) {
+				case 'KeyZ': {
+					if (!(info.shiftKey || info.ctrlKey)) {
+						const currentTool = editor.root.current.value
+						if (currentTool && currentTool.current.value?.id === 'idle') {
+							editor.setSelectedTool('zoom', { ...info, onInteractionEnd: currentTool.id })
+						}
+					}
+					break
+				}
+			}
+		}
+	})
+
+	return null
 }

@@ -5,27 +5,52 @@
 ```ts
 
 import { BaseBoxShapeTool } from '@tldraw/editor';
+import { Box2d } from '@tldraw/primitives';
+import { Editor } from '@tldraw/editor';
+import { Matrix2d } from '@tldraw/primitives';
+import { Matrix2dModel } from '@tldraw/primitives';
+import { ScribbleManager } from '@tldraw/editor';
+import { SelectionCorner } from '@tldraw/primitives';
+import { SelectionEdge } from '@tldraw/primitives';
+import { SelectionHandle } from '@tldraw/primitives';
 import { ShapeUtil } from '@tldraw/editor/src';
 import { StateNode } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
+import { TLBaseEventInfo } from '@tldraw/editor/src';
+import { TLCancelEvent } from '@tldraw/editor';
+import { TLClickEvent } from '@tldraw/editor';
+import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TldrawEditorProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TldrawUiProps } from '@tldraw/ui';
+import { TLEnterEventHandler } from '@tldraw/editor';
 import { TLEventHandlers } from '@tldraw/editor';
+import { TLExitEventHandler } from '@tldraw/editor';
+import { TLHandle } from '@tldraw/editor';
+import { TLHandle as TLHandle_2 } from '@tldraw/editor/src';
 import { TLHighlightShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
+import { TLKeyboardEvent } from '@tldraw/editor';
+import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
+import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
+import { TLPointerEventName } from '@tldraw/editor/src';
+import { TLRotationSnapshot } from '@tldraw/editor';
+import { TLSelectionHandle } from '@tldraw/editor/src';
+import { TLShape } from '@tldraw/editor';
+import { TLShape as TLShape_2 } from '@tldraw/editor/src';
 import { TLShapeId } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor/src';
 import { Vec2d } from '@tldraw/primitives';
+import { VecLike } from '@tldraw/primitives';
 
 // @public (undocumented)
-export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
+export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof HandTool | typeof LaserTool | typeof LineShapeTool | typeof NoteShapeTool | typeof SelectTool | typeof TextShapeTool | typeof ZoomTool)[];
 
 // @public (undocumented)
 export const defaultShapeUtils: TLAnyShapeUtilConstructor[];

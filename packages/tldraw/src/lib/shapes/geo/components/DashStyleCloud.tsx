@@ -1,5 +1,5 @@
+import { TLDefaultColorTheme, TLGeoShape, TLShapeId } from '@tldraw/editor'
 import { Vec2d, canonicalizeRotation } from '@tldraw/primitives'
-import { TLDefaultColorTheme, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import {
 	ShapeFill,
