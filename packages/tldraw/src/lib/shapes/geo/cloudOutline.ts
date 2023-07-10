@@ -1,5 +1,5 @@
+import { TLDefaultSizeStyle, Vec2dModel } from '@tldraw/editor'
 import { PI, Vec2d, getPointOnCircle, shortAngleDist } from '@tldraw/primitives'
-import { TLDefaultSizeStyle, Vec2dModel } from '@tldraw/tlschema'
 import { rng } from '@tldraw/utils'
 
 function getPillCircumference(width: number, height: number) {
