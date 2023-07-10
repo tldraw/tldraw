@@ -172,12 +172,13 @@ export function getCloudArcs(
 		const offsetAngle = Vec2d.Angle(leftPoint, rightPoint) - Math.PI / 2
 		// when the points are on the curvy part of a pill, there is a natural arc that we need to extends past
 		// otherwise it looks like the bumps get less bumpy on the curvy parts
-		const curvatureOffset =
-			(distanceBetweenPointsOnPerimeter - Vec2d.Dist(leftPoint, rightPoint)) * 0.7
-		const arcPoint = Vec2d.Add(
-			midPoint,
-			Vec2d.FromAngle(offsetAngle, Math.max(paddingX, paddingY) + curvatureOffset)
-		)
+		const distanceBetweenOriginalPoints = Vec2d.Dist(leftPoint, rightPoint)
+		const curvatureOffset = distanceBetweenPointsOnPerimeter - distanceBetweenOriginalPoints
+		const distanceBetweenWigglePoints = Vec2d.Dist(leftWigglePoint, rightWigglePoint)
+		const relativeSize = distanceBetweenWigglePoints / distanceBetweenOriginalPoints
+		const finalDistance = (Math.max(paddingX, paddingY) + curvatureOffset) * relativeSize
+
+		const arcPoint = Vec2d.Add(midPoint, Vec2d.FromAngle(offsetAngle, finalDistance))
 		if (arcPoint.x < 0) {
 			arcPoint.x = 0
 		} else if (arcPoint.x > width) {
