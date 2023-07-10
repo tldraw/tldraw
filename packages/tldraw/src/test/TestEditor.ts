@@ -1,16 +1,11 @@
-import {
-	EditorTestInternals,
-	TLEditorOptions,
-	TLShapeId,
-	TLShapePartial,
-	createShapeId,
-} from '@tldraw/editor'
+import { TLEditorOptions, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/editor'
 import { TAU } from '@tldraw/primitives'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
+import { TestEditorEmpty } from './TestEditorEmpty'
 import { shapesFromJsx } from './test-jsx'
 
-export class TestEditor extends EditorTestInternals.TestEditor {
+export class TestEditor extends TestEditorEmpty {
 	constructor(opts = {} as Partial<Omit<TLEditorOptions, 'store'>>) {
 		super({
 			...opts,

@@ -1,11 +1,11 @@
-import { react } from '@tldraw/state'
-import { TestEditor } from '../test/TestEditor'
 import {
 	TLSessionStateSnapshot,
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
-} from './TLSessionStateSnapshot'
+	react,
+} from '@tldraw/editor'
+import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 

@@ -1,4 +1,26 @@
 import {
+	BaseBoxShapeUtil,
+	Box2dModel,
+	Editor,
+	PageRecordType,
+	RequiredKeys,
+	TLBaseShape,
+	TLContent,
+	TLEditorOptions,
+	TLEventInfo,
+	TLKeyboardEventInfo,
+	TLPinchEventInfo,
+	TLPointerEventInfo,
+	TLShapeId,
+	TLShapePartial,
+	TLShapeUtilConstructor,
+	TLUnknownShape,
+	TLWheelEventInfo,
+	createShapeId,
+	createTLStore,
+	defaultTools,
+} from '@tldraw/editor'
+import {
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RotateCorner,
 	SelectionHandle,
@@ -7,29 +29,6 @@ import {
 	VecLike,
 	rotateSelectionHandle,
 } from '@tldraw/primitives'
-import {
-	Box2dModel,
-	PageRecordType,
-	TLBaseShape,
-	TLShapeId,
-	TLShapePartial,
-	TLUnknownShape,
-	createShapeId,
-} from '@tldraw/tlschema'
-import { createTLStore } from '../config/createTLStore'
-import { defaultTools } from '../config/defaultTools'
-import { Editor, TLEditorOptions } from '../editor/Editor'
-import { BaseBoxShapeUtil } from '../editor/shapes/BaseBoxShapeUtil'
-import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
-import { TLContent } from '../editor/types/clipboard-types'
-import {
-	TLEventInfo,
-	TLKeyboardEventInfo,
-	TLPinchEventInfo,
-	TLPointerEventInfo,
-	TLWheelEventInfo,
-} from '../editor/types/event-types'
-import { RequiredKeys } from '../editor/types/misc-types'
 
 jest.useFakeTimers()
 
@@ -84,7 +83,7 @@ class GeoShapeUtil extends BaseBoxShapeUtil<GeoShape> {
 }
 
 /** @public */
-export class TestEditor extends Editor {
+export class TestEditorEmpty extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')
 		const { shapeUtils = [GeoShapeUtil as TLShapeUtilConstructor<TLUnknownShape>], tools = [] } =

@@ -274,4 +274,3 @@ export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { openWindow } from './lib/utils/window-open'
-export { EditorTestInternals } from './testing'

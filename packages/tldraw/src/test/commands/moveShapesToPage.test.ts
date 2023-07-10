@@ -1,4 +1,4 @@
-import { DefaultFillStyle, PageRecordType, TLShape, createShapeId } from '@tldraw/tlschema'
+import { DefaultFillStyle, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

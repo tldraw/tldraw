@@ -1,4 +1,4 @@
-import { PageRecordType } from '@tldraw/tlschema'
+import { PageRecordType } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

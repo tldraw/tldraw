@@ -33,13 +33,6 @@
 	"files": [
 		"editor.css"
 	],
-	"//": "This gets overwritten by the build script. The testing lib isn't currently available to public consumers",
-	"exports": {
-		"./testing": {
-			"default": "./src/testing.ts",
-			"types": "./.tsbuild/testing.d.ts"
-		}
-	},
 	"scripts": {
 		"test": "lazy inherit",
 		"benchmark": "yarn run -T tsx ./scripts/benchmark.ts",

@@ -1,8 +1,3 @@
-import { ReadonlySharedStyleMap, SharedStyle } from '@tldraw/editor'
-import { DefaultColorStyle, TLGeoShape, TLGroupShape } from '@tldraw/tlschema'
-import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
-import { TL } from './test-jsx'
-
 let editor: TestEditor
 
 function asPlainObject(styles: ReadonlySharedStyleMap | null) {
