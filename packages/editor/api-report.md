@@ -23,7 +23,6 @@ import { HistoryEntry } from '@tldraw/store';
 import { JsonObject } from '@tldraw/utils';
 import { MatLike } from '@tldraw/primitives';
 import { Matrix2d } from '@tldraw/primitives';
-import { Matrix2dModel } from '@tldraw/primitives';
 import { Migrations } from '@tldraw/store';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
@@ -33,7 +32,6 @@ import { rng } from '@tldraw/utils';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
-import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -99,12 +97,20 @@ export const ANIMATION_MEDIUM_MS = 320;
 // @internal (undocumented)
 export const ANIMATION_SHORT_MS = 80;
 
+// @internal (undocumented)
+export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, }: {
+    delta: number;
+    snapshot: TLRotationSnapshot;
+    editor: Editor;
+    stage: 'end' | 'one-off' | 'start' | 'update';
+}): void;
+
 export { atom }
 
 // @public (undocumented)
 export abstract class BaseBoxShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Idle_4 | typeof Pointing_2)[];
+    static children: () => (typeof Idle | typeof Pointing)[];
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -217,7 +223,7 @@ export const DRAG_DISTANCE = 4;
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, tools, getContainer }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -630,6 +636,17 @@ export const featureFlags: {
 export function fileToBase64(file: Blob): Promise<string>;
 
 // @public (undocumented)
+export type GapsSnapLine = {
+    id: string;
+    type: 'gaps';
+    direction: 'horizontal' | 'vertical';
+    gaps: Array<{
+        startEdge: [VecLike, VecLike];
+        endEdge: [VecLike, VecLike];
+    }>;
+};
+
+// @public (undocumented)
 export function getArrowheadPathForType(info: ArrowInfo, side: 'end' | 'start', strokeWidth: number): string | undefined;
 
 // @public (undocumented)
@@ -691,6 +708,11 @@ export function getResizedImageDataUrl(dataURLForImage: string, width: number, h
 
 // @public (undocumented)
 export function getRotatedBoxShadow(rotation: number): string;
+
+// @internal (undocumented)
+export function getRotationSnapshot({ editor }: {
+    editor: Editor;
+}): null | TLRotationSnapshot;
 
 // @public
 export function getSolidCurvedArrowPath(info: ArrowInfo & {
@@ -1314,6 +1336,13 @@ export class PlopManager {
     }>) => Promise<void>;
 }
 
+// @public (undocumented)
+export type PointsSnapLine = {
+    id: string;
+    type: 'points';
+    points: VecLike[];
+};
+
 // @public
 export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
 
@@ -1533,6 +1562,71 @@ export class SharedStyleMap extends ReadonlySharedStyleMap {
     applyValue<T>(prop: StyleProp<T>, value: T): void;
     // (undocumented)
     set<T>(prop: StyleProp<T>, value: SharedStyle<T>): void;
+}
+
+// @public (undocumented)
+export type SnapLine = GapsSnapLine | PointsSnapLine;
+
+// @public (undocumented)
+export class SnapManager {
+    constructor(editor: Editor);
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    get currentCommonAncestor(): TLShapeId | undefined;
+    // (undocumented)
+    readonly editor: Editor;
+    // (undocumented)
+    getSnappingHandleDelta({ handlePoint, additionalSegments, }: {
+        handlePoint: Vec2d;
+        additionalSegments: Vec2d[][];
+    }): null | Vec2d;
+    // (undocumented)
+    get lines(): SnapLine[];
+    // (undocumented)
+    get outlinesInPageSpace(): Vec2d[][];
+    // (undocumented)
+    setLines(lines: SnapLine[]): void;
+    // (undocumented)
+    get snappablePoints(): SnapPoint[];
+    // (undocumented)
+    get snappableShapes(): GapNode[];
+    // (undocumented)
+    get snapPointsCache(): ComputedCache<SnapPoint[], TLShape>;
+    // (undocumented)
+    snapResize({ initialSelectionPageBounds, dragDelta, handle: originalHandle, isAspectRatioLocked, isResizingFromCenter, }: {
+        initialSelectionPageBounds: Box2d;
+        dragDelta: Vec2d;
+        handle: SelectionCorner | SelectionEdge;
+        isAspectRatioLocked: boolean;
+        isResizingFromCenter: boolean;
+    }): SnapData;
+    // (undocumented)
+    get snapThreshold(): number;
+    // (undocumented)
+    snapTranslate({ lockedAxis, initialSelectionPageBounds, initialSelectionSnapPoints, dragDelta, }: {
+        lockedAxis: 'x' | 'y' | null;
+        initialSelectionSnapPoints: SnapPoint[];
+        initialSelectionPageBounds: Box2d;
+        dragDelta: Vec2d;
+    }): SnapData;
+    // (undocumented)
+    get visibleGaps(): {
+        horizontal: Gap[];
+        vertical: Gap[];
+    };
+}
+
+// @public (undocumented)
+export interface SnapPoint {
+    // (undocumented)
+    handle?: SelectionCorner;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
 }
 
 // @public (undocumented)
@@ -1801,6 +1895,8 @@ export interface TLEditorComponents {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
+    // (undocumented)
+    initialState?: string;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
     tools: readonly TLStateNodeConstructor[];
@@ -2108,6 +2204,17 @@ export type TLResizeInfo<T extends TLShape> = {
 
 // @public
 export type TLResizeMode = 'resize_bounds' | 'scale_shape';
+
+// @public
+export type TLRotationSnapshot = {
+    selectionPageCenter: Vec2d;
+    initialCursorAngle: number;
+    initialSelectionRotation: number;
+    shapeSnapshots: {
+        shape: TLShape;
+        initialPagePoint: Vec2d;
+    }[];
+};
 
 // @public (undocumented)
 export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;

@@ -1,4 +1,4 @@
-import { HandTool } from '@tldraw/editor/src/lib/editor/tools/HandTool/HandTool'
+import { HandTool } from '../lib/tools/HandTool/HandTool'
 import { TestEditor, createDefaultShapes } from './TestEditor'
 
 let editor: TestEditor

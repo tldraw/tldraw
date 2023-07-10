@@ -17,11 +17,14 @@ import { dedupe, deepCopy } from '@tldraw/utils'
 import { uniqueId } from '../../utils/data'
 import type { Editor } from '../Editor'
 
+/** @public */
 export type PointsSnapLine = {
 	id: string
 	type: 'points'
 	points: VecLike[]
 }
+
+/** @public */
 export type GapsSnapLine = {
 	id: string
 	type: 'gaps'
@@ -31,6 +34,8 @@ export type GapsSnapLine = {
 		endEdge: [VecLike, VecLike]
 	}>
 }
+
+/** @public */
 export type SnapLine = PointsSnapLine | GapsSnapLine
 
 export type SnapInteractionType =
@@ -43,6 +48,7 @@ export type SnapInteractionType =
 			type: 'resize'
 	  }
 
+/** @public */
 export interface SnapPoint {
 	id: string
 	x: number
@@ -208,6 +214,7 @@ function dedupeGapSnaps(snaps: Array<Extract<SnapLine, { type: 'gaps' }>>) {
 	}
 }
 
+/** @public */
 export class SnapManager {
 	private _snapLines = atom<SnapLine[] | undefined>('snapLines', undefined)
 

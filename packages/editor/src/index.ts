@@ -61,7 +61,7 @@ export {
 	type TLStoreOptions,
 } from './lib/config/createTLStore'
 export { createTLUser } from './lib/config/createTLUser'
-export { TLAnyShapeUtilConstructor, coreShapes } from './lib/config/defaultShapes'
+export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export { defaultTools } from './lib/config/defaultTools'
 export {
 	ANIMATION_MEDIUM_MS,
@@ -93,6 +93,13 @@ export {
 	type TLExternalContent,
 } from './lib/editor/managers/ExternalContentManager'
 export { ScribbleManager } from './lib/editor/managers/ScribbleManager'
+export {
+	SnapManager,
+	type GapsSnapLine,
+	type PointsSnapLine,
+	type SnapLine,
+	type SnapPoint,
+} from './lib/editor/managers/SnapManager'
 export { BaseBoxShapeUtil, type TLBaseBoxShape } from './lib/editor/shapes/BaseBoxShapeUtil'
 export {
 	ShapeUtil,
@@ -251,6 +258,11 @@ export {
 export { hardResetEditor } from './lib/utils/hard-reset'
 export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
 export { refreshPage } from './lib/utils/refresh-page'
+export {
+	applyRotationToSnapshotShapes,
+	getRotationSnapshot,
+	type TLRotationSnapshot,
+} from './lib/utils/rotation'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
 export {
 	blobAsString,

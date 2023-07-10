@@ -1,4 +1,4 @@
-import { SelectTool } from '@tldraw/editor/src/lib/editor/tools/SelectTool/SelectTool'
+import { SelectTool } from '../lib/tools/SelectTool/SelectTool'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 

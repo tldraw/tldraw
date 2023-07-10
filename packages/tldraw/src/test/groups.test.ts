@@ -9,9 +9,9 @@ import {
 	createShapeId,
 	sortByIndex,
 } from '@tldraw/editor'
-import { EraserTool } from '@tldraw/editor/src/lib/editor/tools/EraserTool/EraserTool'
 import { Box2d, VecLike, approximately } from '@tldraw/primitives'
 import { assert, compact } from '@tldraw/utils'
+import { EraserTool } from '../lib/tools/EraserTool/EraserTool'
 import { TestEditor } from './TestEditor'
 
 jest.mock('nanoid', () => {

@@ -1,5 +1,5 @@
+import { createShapeId, TLArrowShape, TLShapePartial } from '@tldraw/editor'
 import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
-import { TLArrowShape, TLShapePartial, createShapeId } from '@tldraw/tlschema'
 
 let editor: TestEditor
 

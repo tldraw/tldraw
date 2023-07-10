@@ -172,11 +172,13 @@ export interface TLEditorOptions {
 	 * given, the body element will be used.
 	 */
 	getContainer: () => HTMLElement
+
+	initialState?: string
 }
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({ store, user, shapeUtils, tools, getContainer }: TLEditorOptions) {
+	constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions) {
 		super()
 
 		this.store = store
@@ -187,7 +189,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.textMeasure = new TextManager(this)
 
-		this.root = new RootState(this)
+		class NewRoot extends RootState {
+			static override initial = initialState ?? ''
+		}
+
+		this.root = new NewRoot(this)
 
 		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
 

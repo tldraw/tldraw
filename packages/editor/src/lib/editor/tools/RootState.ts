@@ -1,12 +1,10 @@
 import { TLEventHandlers } from '../types/event-types'
-import { SelectTool } from './SelectTool/SelectTool'
 import { StateNode } from './StateNode'
-import { ZoomTool } from './ZoomTool/ZoomTool'
 
 export class RootState extends StateNode {
 	static override id = 'root'
-	static override initial = 'select'
-	static override children = () => [SelectTool, ZoomTool]
+	static override initial = ''
+	static override children = () => []
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		switch (info.code) {

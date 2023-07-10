@@ -53,9 +53,6 @@ export const MAX_ASSET_HEIGHT = 1000
 export const GRID_INCREMENT = 5
 
 /** @internal */
-export const MIN_CROP_SIZE = 8
-
-/** @internal */
 export const DOUBLE_CLICK_DURATION = 450
 /** @internal */
 export const MULTI_CLICK_DURATION = 200
