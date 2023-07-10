@@ -1,5 +1,7 @@
-import { MAX_PAGES } from '@tldraw/editor/src/lib/constants'
-import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
+import { EditorTestInternals } from '@tldraw/editor'
+import { TestEditor } from '../TestEditor'
+
+const { MAX_PAGES } = EditorTestInternals
 
 let editor: TestEditor
 

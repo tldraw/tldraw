@@ -1,5 +1,5 @@
-import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
 import { Vec2d } from '@tldraw/primitives'
+import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 

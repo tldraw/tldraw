@@ -1,4 +1,4 @@
-import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
+import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 

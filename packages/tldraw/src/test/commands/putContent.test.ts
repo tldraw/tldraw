@@ -1,6 +1,6 @@
-import { TLContent } from '@tldraw/editor/src/lib/editor/types/clipboard-types'
-import { TestEditor } from '@tldraw/editor/src/lib/test/TestEditor'
+import { TLContent } from '@tldraw/editor'
 import { structuredClone } from '@tldraw/utils'
+import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
 

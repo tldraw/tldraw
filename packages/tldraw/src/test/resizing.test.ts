@@ -1,5 +1,11 @@
-import { TLSelectionHandle, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/editor'
-import { GapsSnapLine, PointsSnapLine } from '@tldraw/editor/src/lib/editor/managers/SnapManager'
+import {
+	GapsSnapLine,
+	PointsSnapLine,
+	TLSelectionHandle,
+	TLShapeId,
+	TLShapePartial,
+	createShapeId,
+} from '@tldraw/editor'
 import {
 	EPSILON,
 	PI,

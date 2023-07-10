@@ -1,9 +1,13 @@
-import { ShapeUtil, TLArrowShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/editor'
 import {
 	GapsSnapLine,
 	PointsSnapLine,
+	ShapeUtil,
 	SnapLine,
-} from '@tldraw/editor/src/lib/editor/managers/SnapManager'
+	TLArrowShape,
+	TLShapeId,
+	TLShapePartial,
+	createShapeId,
+} from '@tldraw/editor'
 import { Box2d, Vec2d } from '@tldraw/primitives'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'

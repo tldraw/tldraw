@@ -4,6 +4,7 @@
 
 ```ts
 
+/// <reference types="@types/jest" />
 /// <reference types="react" />
 
 import { Atom } from '@tldraw/state';
@@ -32,6 +33,7 @@ import { rng } from '@tldraw/utils';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
+import { SelectionHandle } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -598,6 +600,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToFit(opts?: TLAnimationOptions): this;
     zoomToSelection(opts?: TLAnimationOptions): this;
 }
+
+// @internal (undocumented)
+export const EditorTestInternals: {
+    TestEditor: typeof TestEditor;
+    MAX_PAGES: number;
+};
 
 export { EMPTY_ARRAY }
 

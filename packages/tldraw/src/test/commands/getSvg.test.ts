@@ -1,4 +1,5 @@
-import { createShapeId, DefaultDashStyle, SVG_PADDING } from '@tldraw/editor/src'
+import { SVG_PADDING } from '@tldraw/editor'
+import { createShapeId, DefaultDashStyle } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

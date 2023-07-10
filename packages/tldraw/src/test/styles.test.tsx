@@ -1,4 +1,5 @@
-import { ReadonlySharedStyleMap, SharedStyle } from '@tldraw/editor/src'
+import { ReadonlySharedStyleMap, SharedStyle } from '@tldraw/editor'
+import { DefaultColorStyle, TLGeoShape, TLGroupShape } from '@tldraw/tlschema'
 import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
 import { TL } from './test-jsx'
 
