@@ -1,3 +1,14 @@
+/// <reference types="react" />
+import {
+	DefaultColorStyle,
+	ReadonlySharedStyleMap,
+	SharedStyle,
+	TLGeoShape,
+	TLGroupShape,
+} from '@tldraw/editor'
+import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
+import { TL } from './test-jsx'
+
 let editor: TestEditor
 
 function asPlainObject(styles: ReadonlySharedStyleMap | null) {
