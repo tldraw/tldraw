@@ -1,10 +1,8 @@
 import {
-	BaseBoxShapeUtil,
 	Box2dModel,
 	Editor,
 	PageRecordType,
 	RequiredKeys,
-	TLBaseShape,
 	TLContent,
 	TLEditorOptions,
 	TLEventInfo,
@@ -13,8 +11,6 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	TLShapePartial,
-	TLShapeUtilConstructor,
-	TLUnknownShape,
 	TLWheelEventInfo,
 	createShapeId,
 	createTLStore,
@@ -54,43 +50,15 @@ declare global {
 	}
 }
 
-type GeoShape = TLBaseShape<
-	'geo',
-	{
-		w: number
-		h: number
-	}
->
-
-class GeoShapeUtil extends BaseBoxShapeUtil<GeoShape> {
-	static override type = 'geo' as const
-
-	getDefaultProps() {
-		return {
-			w: 100,
-			h: 100,
-		}
-	}
-
-	component() {
-		return null
-	}
-
-	indicator() {
-		return null
-	}
-}
-
 /** @public */
 export class TestEditorEmpty extends Editor {
 	constructor(options: Partial<Omit<TLEditorOptions, 'store'>> = {}) {
 		const elm = document.createElement('div')
-		const { shapeUtils = [GeoShapeUtil as TLShapeUtilConstructor<TLUnknownShape>], tools = [] } =
-			options
+		const { shapeUtils = [], tools = [] } = options
 		elm.tabIndex = 0
 		super({
 			shapeUtils,
-			tools: [...tools],
+			tools,
 			store: createTLStore({ shapeUtils }),
 			getContainer: () => elm,
 			...options,

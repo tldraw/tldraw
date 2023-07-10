@@ -39,7 +39,7 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
 		render(
-			<TldrawEditor autoFocus>
+			<TldrawEditor tools={defaultTools} autoFocus>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -53,6 +53,7 @@ describe('<TldrawEditor />', () => {
 				onMount={(e) => {
 					editor = e
 				}}
+				tools={defaultTools}
 				autoFocus
 			>
 				<div data-testid="canvas-1" />
@@ -67,6 +68,7 @@ describe('<TldrawEditor />', () => {
 		render(
 			<TldrawEditor
 				shapeUtils={[]}
+				tools={defaultTools}
 				onMount={(e) => {
 					editor = e
 				}}
@@ -86,6 +88,7 @@ describe('<TldrawEditor />', () => {
 		render(
 			<TldrawEditor
 				store={store}
+				tools={defaultTools}
 				onMount={(editor) => {
 					expect(editor.store).toBe(store)
 				}}
@@ -142,7 +145,7 @@ describe('<TldrawEditor />', () => {
 		const initialStore = createTLStore({ shapeUtils: [] })
 		const onMount = jest.fn()
 		const rendered = render(
-			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor tools={defaultTools} store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -152,7 +155,7 @@ describe('<TldrawEditor />', () => {
 		expect(initialEditor.store).toBe(initialStore)
 		// re-render with the same store:
 		rendered.rerender(
-			<TldrawEditor store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor tools={defaultTools} store={initialStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
 		)
@@ -162,7 +165,7 @@ describe('<TldrawEditor />', () => {
 		// re-render with a new store:
 		const newStore = createTLStore({ shapeUtils: [] })
 		rendered.rerender(
-			<TldrawEditor store={newStore} onMount={onMount} autoFocus>
+			<TldrawEditor tools={defaultTools} store={newStore} onMount={onMount} autoFocus>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)
@@ -297,7 +300,7 @@ describe('Custom shapes', () => {
 		render(
 			<TldrawEditor
 				shapeUtils={shapeUtils}
-				tools={tools}
+				tools={[...defaultTools, ...tools]}
 				autoFocus
 				onMount={(editorApp) => {
 					editor = editorApp

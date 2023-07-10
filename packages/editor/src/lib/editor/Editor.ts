@@ -75,6 +75,7 @@ import {
 	hasOwnProperty,
 	partition,
 	sortById,
+	structuredClone,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import { nanoid } from 'nanoid'

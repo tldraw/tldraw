@@ -103,7 +103,6 @@ describe('arrowBindingsIndex', () => {
 		let arrowCId: TLShapeId
 		let arrowDId: TLShapeId
 		let arrowEId: TLShapeId
-		let ids: Record<string, TLShapeId>
 		beforeEach(() => {
 			editor.createShapes([
 				{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
