@@ -7,4 +7,8 @@ export class Idle extends StateNode {
 	onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		this.parent.transition('pointing', info)
 	}
+
+	onCancel = () => {
+		this.editor.setSelectedTool('select')
+	}
 }
