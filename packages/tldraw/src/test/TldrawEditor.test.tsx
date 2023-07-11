@@ -295,7 +295,7 @@ describe('Custom shapes', () => {
 	const tools = [CardTool]
 	const shapeUtils = [CardUtil]
 
-	it.only('Uses custom shapes', async () => {
+	it('Uses custom shapes', async () => {
 		let editor = {} as Editor
 		render(
 			<TldrawEditor
