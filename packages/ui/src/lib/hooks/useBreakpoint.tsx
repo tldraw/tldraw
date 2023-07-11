@@ -6,12 +6,22 @@ import { PORTRAIT_BREAKPOINTS } from '../constants'
 const BreakpointContext = React.createContext(0)
 
 /** @public */
-export function BreakPointProvider({ children }: { children: any }) {
+export function BreakPointProvider({
+	forceMobileModeLayout,
+	children,
+}: {
+	forceMobileModeLayout: boolean
+	children: any
+}) {
 	const editor = useEditor()
 
 	const breakpoint = useValue(
 		'breakpoint',
 		() => {
+			if (forceMobileModeLayout) {
+				return 1
+			}
+
 			const { width } = editor.viewportScreenBounds
 			const breakpoints = PORTRAIT_BREAKPOINTS
 

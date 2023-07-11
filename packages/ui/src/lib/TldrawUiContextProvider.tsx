@@ -38,6 +38,11 @@ export interface TldrawUiContextProviderProps {
 	onUiEvent?: TLUiEventHandler
 
 	/**
+	 * Force mobile mode layout.
+	 */
+	forceMobileModeLayout?: boolean
+
+	/**
 	 * The component's children.
 	 */
 	children?: any
@@ -48,6 +53,7 @@ export function TldrawUiContextProvider({
 	overrides,
 	assetUrls,
 	onUiEvent,
+	forceMobileModeLayout = false,
 	children,
 }: TldrawUiContextProviderProps) {
 	return (
@@ -56,7 +62,7 @@ export function TldrawUiContextProvider({
 				<EventsProvider onEvent={onUiEvent}>
 					<ToastsProvider>
 						<DialogsProvider>
-							<BreakPointProvider>
+							<BreakPointProvider forceMobileModeLayout={forceMobileModeLayout}>
 								<InternalProviders overrides={overrides}>{children}</InternalProviders>
 							</BreakPointProvider>
 						</DialogsProvider>

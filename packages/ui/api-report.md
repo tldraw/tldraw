@@ -36,7 +36,8 @@ function Body_2({ className, children, style, }: {
 }): JSX.Element;
 
 // @public (undocumented)
-export function BreakPointProvider({ children }: {
+export function BreakPointProvider({ forceMobileModeLayout, children, }: {
+    forceMobileModeLayout: boolean;
     children: any;
 }): JSX.Element;
 
@@ -224,12 +225,13 @@ export interface TldrawUiBaseProps {
 }
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, children, }: TldrawUiContextProviderProps): JSX.Element;
+export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, forceMobileModeLayout, children, }: TldrawUiContextProviderProps): JSX.Element;
 
 // @public
 export interface TldrawUiContextProviderProps {
     assetUrls?: RecursivePartial<TLUiAssetUrls>;
     children?: any;
+    forceMobileModeLayout?: boolean;
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
 }
