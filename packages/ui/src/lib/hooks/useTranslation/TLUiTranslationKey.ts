@@ -184,6 +184,7 @@ export type TLUiTranslationKey =
 	| 'tool.arrow-right'
 	| 'tool.arrow-up'
 	| 'tool.arrow'
+	| 'tool.cloud'
 	| 'tool.diamond'
 	| 'tool.ellipse'
 	| 'tool.hexagon'
