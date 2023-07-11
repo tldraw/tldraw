@@ -57,6 +57,7 @@
 		"@tldraw/state": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*",
 		"browser-fs-access": "^0.31.0",
 		"classnames": "^2.3.2",
 		"hotkeys-js": "^3.9.4",

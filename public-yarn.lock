@@ -4438,6 +4438,7 @@ __metadata:
     "@tldraw/state": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
     "@tldraw/utils": "workspace:*"
+    "@tldraw/validate": "workspace:*"
     "@types/lz-string": ^1.3.34
     browser-fs-access: ^0.31.0
     classnames: ^2.3.2
