@@ -567,6 +567,7 @@ export class TestEditor extends Editor {
 		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle }, options)
 		this.pointerMove(targetHandlePoint.x, targetHandlePoint.y, options)
 		this.pointerUp(targetHandlePoint.x, targetHandlePoint.y, options)
+		return this
 	}
 
 	createShapesFromJsx(shapesJsx: JSX.Element | JSX.Element[]): Record<string, TLShapeId> {
