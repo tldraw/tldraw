@@ -93,6 +93,11 @@ export interface TldrawEditorBaseProps {
 	 * Called when the editor has mounted.
 	 */
 	onMount?: TLOnMountHandler
+
+	/**
+	 * The editor's initial state (usually the id of the first active tool).
+	 */
+	initialState?: string
 }
 
 /**
@@ -232,6 +237,7 @@ function TldrawEditorWithReadyStore({
 	autoFocus,
 	user,
 	assetUrls,
+	initialState,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -250,7 +256,7 @@ function TldrawEditorWithReadyStore({
 			tools,
 			getContainer: () => container,
 			user,
-			initialState: 'select',
+			initialState,
 		})
 		;(window as any).app = editor
 		;(window as any).editor = editor
@@ -259,7 +265,7 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapeUtils, tools, store, user])
+	}, [container, shapeUtils, tools, store, user, initialState])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) editor.focus()

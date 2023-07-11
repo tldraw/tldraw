@@ -1823,6 +1823,7 @@ export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
     children?: any;
     components?: Partial<TLEditorComponents>;
+    initialState?: string;
     onMount?: TLOnMountHandler;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];

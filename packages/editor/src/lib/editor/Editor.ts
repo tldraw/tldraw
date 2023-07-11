@@ -194,8 +194,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.root = new NewRoot(this)
+		this.root.children = {}
 
 		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
+
+		// console.log(
+		// 	'after checking shapes',
+		// 	[...allShapeUtils].map((u) => u.type)
+		// )
 
 		const shapeTypesInSchema = new Set(
 			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
@@ -247,7 +253,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (hasOwnProperty(this.root.children!, Tool.id)) {
 				throw Error(`Can't override tool with id "${Tool.id}"`)
 			}
-			this.root.children![Tool.id] = new Tool(this)
+			this.root.children![Tool.id] = new Tool(this, this.root)
+		}
+
+		if (!initialState) {
+			throw Error(`You must provide an initial state for the editor.`)
+		} else {
+			if (this.root.children[initialState] === undefined) {
+				throw Error(`No state found for initialState "${initialState}".`)
+			}
 		}
 
 		if (typeof window !== 'undefined' && 'navigator' in window) {
@@ -8003,7 +8017,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.isReadOnly) return this
 
 		if (!content.schema) {
-			throw Error('Could not put content: content is missing a schema.')
+			throw Error('Could not put content:\ncontent is missing a schema.')
 		}
 
 		const { select = false, preserveIds = false, preservePosition = false } = options
@@ -8163,11 +8177,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					assets[i] = result.value as TLAsset
 				} else {
 					throw Error(
-						`Could not put content: could not migrate content for asset:\n${JSON.stringify(
-							asset,
-							null,
-							2
-						)}`
+						`Could not put content:\ncould not migrate content for asset:\n${asset.id}\n${asset.type}\nreason:${result.reason}`
 					)
 				}
 			}
@@ -8221,11 +8231,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				newShapes[i] = result.value as TLShape
 			} else {
 				throw Error(
-					`Could not put content: could not migrate content for shape:\n${JSON.stringify(
-						shape,
-						null,
-						2
-					)}`
+					`Could not put content:\ncould not migrate content for shape:\n${shape.id}, ${shape.type}\nreason:${result.reason}`
 				)
 			}
 		}

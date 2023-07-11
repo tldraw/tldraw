@@ -1,34 +1,18 @@
-import { TLArrowShape, TLGeoShape, TLShapeId, createShapeId } from '@tldraw/editor'
+import { TLArrowShape, TLGeoShape, TLShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
+import { TL } from './test-jsx'
 
 let editor: TestEditor
 
 beforeEach(() => {
 	editor = new TestEditor()
 })
-const ids = {
-	box1: createShapeId('box1'),
-	box2: createShapeId('box2'),
-	box3: createShapeId('box3'),
-}
 
 describe('arrowBindingsIndex', () => {
 	it('keeps a mapping from bound shapes to the arrows that bind to them', () => {
-		editor.createShapes([
-			{
-				id: ids.box1,
-				type: 'geo',
-				x: 0,
-				y: 0,
-				props: { w: 100, h: 100, fill: 'solid' },
-			},
-			{
-				id: ids.box2,
-				type: 'geo',
-				x: 200,
-				y: 0,
-				props: { w: 100, h: 100, fill: 'solid' },
-			},
+		const ids = editor.createShapesFromJsx([
+			<TL.geo ref="box1" x={0} y={0} w={100} h={100} fill="solid" />,
+			<TL.geo ref="box2" x={200} y={0} w={100} h={100} fill="solid" />,
 		])
 
 		editor.setSelectedTool('arrow')
@@ -41,9 +25,9 @@ describe('arrowBindingsIndex', () => {
 	})
 
 	it('works if there are many arrows', () => {
-		editor.createShapes([
-			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
-			{ id: ids.box2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } },
+		const ids = editor.createShapesFromJsx([
+			<TL.geo ref="box1" x={0} y={0} w={100} h={100} />,
+			<TL.geo ref="box2" x={200} y={0} w={100} h={100} />,
 		])
 
 		editor.setSelectedTool('arrow')
@@ -103,10 +87,11 @@ describe('arrowBindingsIndex', () => {
 		let arrowCId: TLShapeId
 		let arrowDId: TLShapeId
 		let arrowEId: TLShapeId
+		let ids: Record<string, TLShapeId>
 		beforeEach(() => {
-			editor.createShapes([
-				{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
-				{ id: ids.box1, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100 } },
+			ids = editor.createShapesFromJsx([
+				<TL.geo ref="box1" x={0} y={0} w={100} h={100} />,
+				<TL.geo ref="box2" x={200} y={0} w={100} h={100} />,
 			])
 
 			// span both boxes
@@ -175,17 +160,12 @@ describe('arrowBindingsIndex', () => {
 			editor.pointerDown(250, 50).pointerMove(50, 50).pointerUp(50, 50)
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(4)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(4)
+
 			// create a new box
 
-			editor.createShapes([
-				{
-					id: ids.box3,
-					type: 'geo',
-					x: 400,
-					y: 0,
-					props: { w: 100, h: 100 },
-				},
-			])
+			const { box3 } = editor.createShapesFromJsx(
+				<TL.geo ref="box3" x={400} y={0} w={100} h={100} />
+			)
 
 			// draw from box 2 to box 3
 
@@ -193,7 +173,7 @@ describe('arrowBindingsIndex', () => {
 			editor.pointerDown(250, 50).pointerMove(450, 50).pointerUp(450, 50)
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(5)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(4)
-			expect(editor.getArrowsBoundTo(ids.box3)).toHaveLength(1)
+			expect(editor.getArrowsBoundTo(box3)).toHaveLength(1)
 		})
 
 		it('works when copy pasting', () => {
@@ -227,7 +207,9 @@ describe('arrowBindingsIndex', () => {
 
 			// create another box
 
-			editor.createShapes([{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { w: 100, h: 100 } }])
+			const { box3 } = editor.createShapesFromJsx(
+				<TL.geo ref="box3" x={400} y={0} w={100} h={100} />
+			)
 
 			// move arrowA from box2 to box3
 			editor.updateShapes<TLArrowShape>([
@@ -238,7 +220,7 @@ describe('arrowBindingsIndex', () => {
 						end: {
 							type: 'binding',
 							isExact: false,
-							boundShapeId: ids.box3,
+							boundShapeId: box3,
 							normalizedAnchor: { x: 0.5, y: 0.5 },
 						},
 					},
@@ -247,7 +229,7 @@ describe('arrowBindingsIndex', () => {
 
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(2)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(3)
-			expect(editor.getArrowsBoundTo(ids.box3)).toHaveLength(1)
+			expect(editor.getArrowsBoundTo(box3)).toHaveLength(1)
 		})
 	})
 })

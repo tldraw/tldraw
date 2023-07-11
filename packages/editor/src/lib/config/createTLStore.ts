@@ -1,5 +1,12 @@
 import { HistoryEntry, SerializedStore, Store, StoreSchema } from '@tldraw/store'
-import { TLRecord, TLStore, TLStoreProps, TLUnknownShape, createTLSchema } from '@tldraw/tlschema'
+import {
+	SchemaShapeInfo,
+	TLRecord,
+	TLStore,
+	TLStoreProps,
+	TLUnknownShape,
+	createTLSchema,
+} from '@tldraw/tlschema'
 import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
@@ -37,11 +44,11 @@ export function createTLStore({ initialData, defaultName = '', ...rest }: TLStor
 
 function shapesArrayToShapeMap(shapeUtils: TLShapeUtilConstructor<TLUnknownShape>[]) {
 	return Object.fromEntries(
-		shapeUtils.map((s) => [
+		shapeUtils.map((s): [string, SchemaShapeInfo] => [
 			s.type,
 			{
 				props: s.props,
-				migations: s.migrations,
+				migrations: s.migrations,
 			},
 		])
 	)

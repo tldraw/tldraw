@@ -10,6 +10,7 @@ export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
 	const { children, ...rest } = props
 
 	const withDefaults = {
+		initialState: 'select',
 		...rest,
 		shapeUtils: useMemo(
 			() => [...defaultShapeUtils, ...(rest.shapeUtils ?? [])],

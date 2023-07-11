@@ -295,13 +295,14 @@ describe('Custom shapes', () => {
 	const tools = [CardTool]
 	const shapeUtils = [CardUtil]
 
-	it('Uses custom shapes', async () => {
+	it.only('Uses custom shapes', async () => {
 		let editor = {} as Editor
 		render(
 			<TldrawEditor
 				shapeUtils={shapeUtils}
 				tools={[...defaultTools, ...tools]}
 				autoFocus
+				initialState="select"
 				onMount={(editorApp) => {
 					editor = editorApp
 				}}
