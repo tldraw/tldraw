@@ -205,6 +205,7 @@ export type TLUiTranslationKey =
 	| 'tool.laser'
 	| 'tool.embed'
 	| 'tool.text'
+	| 'tool.cloud'
 	| 'menu.title'
 	| 'menu.copy-as'
 	| 'menu.edit'

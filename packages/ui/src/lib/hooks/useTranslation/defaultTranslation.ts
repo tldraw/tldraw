@@ -205,6 +205,7 @@ export const DEFAULT_TRANSLATION = {
 	'tool.laser': 'Laser',
 	'tool.embed': 'Embed',
 	'tool.text': 'Text',
+	'tool.cloud': 'Cloud',
 	'menu.title': 'Menu',
 	'menu.copy-as': 'Copy as',
 	'menu.edit': 'Edit',
