@@ -3,6 +3,7 @@ import {
 	DocumentRecordType,
 	InstancePresenceRecordType,
 	PageRecordType,
+	TLAnyShapeUtilConstructor,
 	TLDocument,
 	TLInstancePresence,
 	TLPageId,
@@ -20,8 +21,16 @@ import * as Y from 'yjs'
 export function useYjsStore({
 	roomId = 'example',
 	hostUrl = process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev',
-}: Partial<{ hostUrl: string; roomId: string; version: number }>) {
-	const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }))
+	shapeUtils = [],
+}: Partial<{
+	hostUrl: string
+	roomId: string
+	version: number
+	shapeUtils: TLAnyShapeUtilConstructor[]
+}>) {
+	const [store] = useState(() =>
+		createTLStore({ shapeUtils: [...defaultShapeUtils, ...shapeUtils] })
+	)
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({ status: 'loading' })
 
 	const { doc, room, yRecords } = useMemo(() => {
