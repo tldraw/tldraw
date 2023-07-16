@@ -1,8 +1,6 @@
 // Important! don't move this tlschema re-export to lib/index.ts, doing so causes esbuild to produce
 // incorrect output. https://github.com/evanw/esbuild/issues/1737
 
-/** @internal */
-import '@tldraw/polyfills'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/indices'
 // eslint-disable-next-line local/no-export-star
@@ -25,6 +23,8 @@ export * from '@tldraw/store'
 export * from '@tldraw/tlschema'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/utils'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/validate'
 export {
 	ErrorScreen,
 	LoadingScreen,
@@ -247,3 +247,6 @@ export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniqueId } from './lib/utils/uniqueId'
 export { openWindow } from './lib/utils/window-open'
+
+/** @internal */
+import '@tldraw/polyfills'

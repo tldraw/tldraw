@@ -12,6 +12,7 @@ export default function ExplodedExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
+				initialState="select"
 				shapeUtils={defaultShapeUtils}
 				tools={defaultTools}
 				autoFocus

@@ -4,11 +4,11 @@ import {
 	DefaultColorStyle,
 	HTMLContainer,
 	StyleProp,
+	T,
 	TLBaseShape,
 	TLDefaultColorStyle,
 	getDefaultColorTheme,
 } from '@tldraw/tldraw'
-import { T } from '@tldraw/validate'
 
 // Define a style that can be used across multiple shapes.
 // The ID (myApp:filter) must be globally unique, so we recommend prefixing it with a namespace.

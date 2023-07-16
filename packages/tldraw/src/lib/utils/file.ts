@@ -6,6 +6,7 @@ import {
 	Result,
 	SerializedSchema,
 	SerializedStore,
+	T,
 	TLAsset,
 	TLAssetId,
 	TLRecord,
@@ -15,7 +16,6 @@ import {
 	createTLStore,
 	exhaustiveSwitchError,
 } from '@tldraw/editor'
-import { T } from '@tldraw/validate'
 import { TLUiToastsContextType } from '../ui/hooks/useToastsProvider'
 import { TLUiTranslationKey } from '../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from './buildFromV1Document'

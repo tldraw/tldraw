@@ -1,4 +1,3 @@
-import { computed, react, transact } from '@tldraw/state'
 import {
 	DocumentRecordType,
 	InstancePresenceRecordType,
@@ -9,10 +8,12 @@ import {
 	TLPageId,
 	TLRecord,
 	TLStoreWithStatus,
+	computed,
 	createPresenceStateDerivation,
 	createTLStore,
 	defaultShapeUtils,
 	getUserPreferences,
+	react,
 } from '@tldraw/tldraw'
 import { useEffect, useMemo, useState } from 'react'
 import { WebsocketProvider } from 'y-websocket'
@@ -77,7 +78,7 @@ export function useYjsStore({
 			// is empty, initialize the yjs doc with the default store records.
 			if (yRecords.size === 0) {
 				// Create the initial store records
-				transact(() => {
+				Y.transact(doc, () => {
 					store.clear()
 					store.put([
 						DocumentRecordType.create({
@@ -99,7 +100,7 @@ export function useYjsStore({
 				})
 			} else {
 				// Replace the store records with the yjs doc records
-				transact(() => {
+				Y.transact(doc, () => {
 					store.clear()
 					store.put([...yRecords.values()])
 				})

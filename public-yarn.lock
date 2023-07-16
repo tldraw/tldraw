@@ -4624,6 +4624,7 @@ __metadata:
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^14.0.0
     "@tldraw/indices": "workspace:*"
+    "@tldraw/polyfills": "workspace:*"
     "@tldraw/primitives": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
@@ -4794,8 +4795,6 @@ __metadata:
     "@testing-library/jest-dom": ^5.14.1
     "@testing-library/react": ^14.0.0
     "@tldraw/editor": "workspace:*"
-    "@tldraw/polyfills": "workspace:*"
-    "@tldraw/validate": "workspace:*"
     "@types/classnames": ^2.3.1
     "@types/lodash.uniq": ^4.5.7
     "@types/lz-string": ^1.3.34

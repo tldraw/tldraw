@@ -183,6 +183,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.store = store
 
+		this.snaps = new SnapManager(this)
+
 		this.user = new UserPreferencesManager(user ?? createTLUser())
 
 		this.getContainer = getContainer ?? (() => document.body)
@@ -406,7 +408,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	readonly snaps = new SnapManager(this)
+	readonly snaps: SnapManager
 
 	/**
 	 * A manager for the user and their preferences.

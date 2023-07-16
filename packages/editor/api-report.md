@@ -1893,6 +1893,7 @@ export * from "@tldraw/primitives";
 export * from "@tldraw/store";
 export * from "@tldraw/tlschema";
 export * from "@tldraw/utils";
+export * from "@tldraw/validate";
 
 // (No @packageDocumentation comment for this package)
 
