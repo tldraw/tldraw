@@ -7,21 +7,20 @@ import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
 
-const components = {
-	scribble: TldrawScribble,
-}
-
 /** @public */
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
 	const { children, ...rest } = props
 
-	const withDefaults = {
+	const withDefaults: TldrawEditorProps = {
 		initialState: 'select',
 		...rest,
-		components: {
-			...components,
-			...rest.components,
-		},
+		components: useMemo(
+			() => ({
+				Scribble: TldrawScribble,
+				...rest.components,
+			}),
+			[rest.components]
+		),
 		shapeUtils: useMemo(
 			() => [...defaultShapeUtils, ...(rest.shapeUtils ?? [])],
 			[rest.shapeUtils]

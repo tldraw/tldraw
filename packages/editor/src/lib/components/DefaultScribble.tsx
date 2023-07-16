@@ -24,8 +24,9 @@ export const DefaultScribble: TLScribbleComponent = ({
 		<svg className={className ? classNames('tl-overlays__item', className) : className}>
 			<path
 				className="tl-scribble"
-				d={getSvgPathFromPoints(scribble.points)}
+				d={getSvgPathFromPoints(scribble.points, false)}
 				stroke={color ?? `var(--color-${scribble.color})`}
+				fill="none"
 				strokeWidth={8 / zoom}
 				opacity={opacity ?? scribble.opacity}
 			/>
