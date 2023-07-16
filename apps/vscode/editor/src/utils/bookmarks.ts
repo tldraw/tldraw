@@ -1,8 +1,15 @@
-import { AssetRecordType, Editor, TLAsset, truncateStringWithEllipsis } from '@tldraw/editor'
+import {
+	AssetRecordType,
+	TLAsset,
+	TLExternalAssetContent,
+	truncateStringWithEllipsis,
+} from '@tldraw/editor'
 import { getHashForString } from '@tldraw/utils'
 import { rpc } from './rpc'
 
-export async function onCreateAssetFromUrl(editor: Editor, url: string): Promise<TLAsset> {
+export async function onCreateAssetFromUrl({
+	url,
+}: TLExternalAssetContent & { type: 'url' }): Promise<TLAsset> {
 	try {
 		// First, try to get the data from vscode
 		const meta = await rpc('vscode:bookmark', { url })
