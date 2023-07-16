@@ -1,4 +1,4 @@
-import { ACCEPTED_ASSET_TYPE, useEditor } from '@tldraw/editor'
+import { useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 
 export function useInsertMedia() {
@@ -8,7 +8,7 @@ export function useInsertMedia() {
 	useEffect(() => {
 		const input = window.document.createElement('input')
 		input.type = 'file'
-		input.accept = ACCEPTED_ASSET_TYPE
+		input.accept = 'image/jpeg,image/png,image/gif,image/svg+xml,video/mp4,video/quicktime'
 		input.multiple = true
 		inputRef.current = input
 		async function onchange(e: Event) {

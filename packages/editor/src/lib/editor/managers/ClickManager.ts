@@ -5,7 +5,7 @@ import {
 	DRAG_DISTANCE,
 	MULTI_CLICK_DURATION,
 } from '../../constants'
-import { uniqueId } from '../../utils/data'
+import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../types/event-types'
 

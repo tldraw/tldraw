@@ -58,10 +58,12 @@
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
+		"@types/lodash.uniq": "^4.5.7",
 		"browser-fs-access": "^0.31.0",
 		"classnames": "^2.3.2",
 		"hotkeys-js": "^3.9.4",
 		"idb": "^7.1.1",
+		"lodash.uniq": "^4.5.0",
 		"lz-string": "^1.4.4"
 	},
 	"peerDependencies": {
@@ -85,7 +87,7 @@
 			"^.+\\.*.css$"
 		],
 		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid|escape-string-regexp)/)"
+			"node_modules/(?!(nanoid)/)"
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1",

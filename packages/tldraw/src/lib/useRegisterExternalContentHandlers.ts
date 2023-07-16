@@ -1,6 +1,4 @@
 import {
-	ACCEPTED_IMG_TYPE,
-	ACCEPTED_VID_TYPE,
 	AssetRecordType,
 	Editor,
 	MAX_ASSET_HEIGHT,
@@ -11,22 +9,25 @@ import {
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
-	containBoxSize,
 	createShapeId,
-	getEmbedInfo,
-	getFileMetaData,
-	getImageSizeFromSrc,
-	getResizedImageDataUrl,
-	getVideoSizeFromSrc,
-	isImage,
-	truncateStringWithEllipsis,
 	useEditor,
 } from '@tldraw/editor'
 import { Vec2d, VecLike } from '@tldraw/primitives'
 import { compact, getHashForString } from '@tldraw/utils'
 import { useEffect } from 'react'
-import { INDENT } from './shapes/shared/TextHelpers'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
+import {
+	ACCEPTED_IMG_TYPE,
+	ACCEPTED_VID_TYPE,
+	containBoxSize,
+	getFileMetaData,
+	getImageSizeFromSrc,
+	getResizedImageDataUrl,
+	getVideoSizeFromSrc,
+	isImage,
+} from './utils/assets'
+import { getEmbedInfo } from './utils/embeds'
+import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text'
 
 export function useRegisterExternalContentHandlers() {
 	const editor = useEditor()
@@ -221,9 +222,7 @@ export function useRegisterExternalContentHandlers() {
 
 			const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
 
-			const textToPaste = stripTrailingWhitespace(
-				stripCommonMinimumIndentation(replaceTabsWithSpaces(text))
-			)
+			const textToPaste = cleanupText(text)
 
 			// Measure the text with default values
 			let w: number
@@ -234,7 +233,7 @@ export function useRegisterExternalContentHandlers() {
 			const isMultiLine = textToPaste.split('\n').length > 1
 
 			// check whether the text contains the most common characters in RTL languages
-			const isRtl = rtlRegex.test(textToPaste)
+			const isRtl = isRightToLeftLanguage(textToPaste)
 
 			if (isMultiLine) {
 				align = isMultiLine ? (isRtl ? 'end' : 'start') : 'middle'
@@ -332,52 +331,7 @@ export function useRegisterExternalContentHandlers() {
 	}, [editor])
 }
 
-const rtlRegex = /[\u0590-\u05FF\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/
-
-/**
- * Replace any tabs with double spaces.
- * @param text - The text to replace tabs in.
- * @internal
- */
-function replaceTabsWithSpaces(text: string) {
-	return text.replace(/\t/g, INDENT)
-}
-
-/**
- * Strip common minimum indentation from each line.
- * @param text - The text to strip.
- * @internal
- */
-function stripCommonMinimumIndentation(text: string): string {
-	// Split the text into individual lines
-	const lines = text.split('\n')
-
-	// remove any leading lines that are only whitespace or newlines
-	while (lines[0].trim().length === 0) {
-		lines.shift()
-	}
-
-	let minIndentation = Infinity
-	for (const line of lines) {
-		if (line.trim().length > 0) {
-			const indentation = line.length - line.trimStart().length
-			minIndentation = Math.min(minIndentation, indentation)
-		}
-	}
-
-	return lines.map((line) => line.slice(minIndentation)).join('\n')
-}
-
-/**
- * Strip trailing whitespace from each line and remove any trailing newlines.
- * @param text - The text to strip.
- * @internal
- */
-function stripTrailingWhitespace(text: string): string {
-	return text.replace(/[ \t]+$/gm, '').replace(/\n+$/, '')
-}
-
-async function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike) {
+export async function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike) {
 	if (!assets.length) return
 
 	const currentPoint = Vec2d.From(position)

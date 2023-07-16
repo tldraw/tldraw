@@ -1,7 +1,6 @@
 import {
 	createTLStore,
 	Editor,
-	fileToBase64,
 	TLAsset,
 	TLAssetId,
 	TLRecord,
@@ -148,6 +147,30 @@ export function parseTldrawJsonFile({
 		// invalid record
 		return Result.err({ type: 'invalidRecords', cause: e })
 	}
+}
+
+/**
+ * Convert a file to base64.
+ *
+ * @example
+ *
+ * ```ts
+ * const A = fileToBase64('./test.png')
+ * ```
+ *
+ * @param value - The file as a blob.
+ * @public
+ */
+function fileToBase64(file: Blob): Promise<string> {
+	return new Promise((resolve, reject) => {
+		if (file) {
+			const reader = new FileReader()
+			reader.readAsDataURL(file)
+			reader.onload = () => resolve(reader.result as string)
+			reader.onerror = (error) => reject(error)
+			reader.onabort = (error) => reject(error)
+		}
+	})
 }
 
 /** @public */

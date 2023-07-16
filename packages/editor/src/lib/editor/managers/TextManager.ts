@@ -1,5 +1,5 @@
 import { Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
-import { uniqueId } from '../../utils/data'
+import { uniqueId } from '../../utils/uniqueId'
 import { Editor } from '../Editor'
 import { TextHelpers } from '../shapes/shared/TextHelpers'
 

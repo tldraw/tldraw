@@ -79,15 +79,6 @@ import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
 import { whyAmIRunning } from '@tldraw/state';
 
-// @public (undocumented)
-export const ACCEPTED_ASSET_TYPE: string;
-
-// @public (undocumented)
-export const ACCEPTED_IMG_TYPE: string[];
-
-// @public (undocumented)
-export const ACCEPTED_VID_TYPE: string[];
-
 // @internal (undocumented)
 export const ANIMATION_MEDIUM_MS = 320;
 
@@ -138,13 +129,7 @@ export function blobAsString(blob: Blob): Promise<string>;
 // @public (undocumented)
 export const Canvas: React_2.MemoExoticComponent<() => JSX.Element>;
 
-// @public (undocumented)
-export const checkFlag: (flag: (() => boolean) | boolean | undefined) => boolean | undefined;
-
 export { computed }
-
-// @public
-export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
@@ -631,9 +616,6 @@ export const featureFlags: {
     highlighterTool: DebugFlag<boolean>;
 };
 
-// @public
-export function fileToBase64(file: Blob): Promise<string>;
-
 // @public (undocumented)
 export type GapsSnapLine = {
     id: string;
@@ -659,33 +641,13 @@ export function getCurvedArrowHandlePath(info: ArrowInfo & {
     isStraight: false;
 }): string;
 
-// @public
-export function getEmbedInfo(inputUrl: string): TLEmbedResult;
-
-// @public
-export function getEmbedInfoUnsafely(inputUrl: string): TLEmbedResult;
-
-// @public
-export function getFileMetaData(file: File): Promise<{
-    isAnimated: boolean;
-}>;
-
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
 
 export { getHashForString }
 
 // @public
-export function getImageSizeFromSrc(dataURL: string): Promise<{
-    w: number;
-    h: number;
-}>;
-
-// @public
 export function getIncrementedName(name: string, others: string[]): string;
-
-// @public
-export function getMediaAssetFromFile(file: File): Promise<TLAsset>;
 
 // @internal (undocumented)
 export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: HTMLElement): {
@@ -701,12 +663,6 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: 
     button: number;
     isPen: boolean;
 };
-
-// @public
-export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number): Promise<string>;
-
-// @public (undocumented)
-export function getRotatedBoxShadow(rotation: number): string;
 
 // @internal (undocumented)
 export function getRotationSnapshot({ editor }: {
@@ -755,15 +711,6 @@ export function getTextBoundingBox(text: SVGTextElement): DOMRect;
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
-
-// @public (undocumented)
-export const getValidHttpURLList: (url: string) => string[] | undefined;
-
-// @public
-export function getVideoSizeFromSrc(src: string): Promise<{
-    w: number;
-    h: number;
-}>;
 
 // @internal (undocumented)
 export const GRID_INCREMENT = 5;
@@ -821,27 +768,6 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 // @public (undocumented)
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
-// @public
-export function isAnimated(buffer: ArrayBuffer): boolean;
-
-// @public
-export function isGIF(buffer: ArrayBuffer): boolean;
-
-// @public (undocumented)
-export const isImage: (ext: string) => boolean;
-
-// @public
-export function isSerializable(value: any): boolean;
-
-// @public (undocumented)
-export const isSvgText: (text: string) => boolean;
-
-// @public (undocumented)
-export const isValidHttpURL: (url: string) => boolean;
-
-// @public (undocumented)
-export function isValidUrl(url: string): boolean;
-
 // @public (undocumented)
 export function LoadingScreen({ children }: {
     children: any;
@@ -855,382 +781,6 @@ export function loopToHtmlElement(elm: Element): HTMLElement;
 
 // @internal (undocumented)
 export const MAJOR_NUDGE_FACTOR = 10;
-
-// @public (undocumented)
-export function matchEmbedUrl(url: string): {
-    definition: {
-        readonly type: "codepen";
-        readonly title: "Codepen";
-        readonly hostnames: readonly ["codepen.io"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 520;
-        readonly height: 400;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "codesandbox";
-        readonly title: "CodeSandbox";
-        readonly hostnames: readonly ["codesandbox.io"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "excalidraw";
-        readonly title: "Excalidraw";
-        readonly hostnames: readonly ["excalidraw.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly isAspectRatioLocked: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "felt";
-        readonly title: "Felt";
-        readonly hostnames: readonly ["felt.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "figma";
-        readonly title: "Figma";
-        readonly hostnames: readonly ["figma.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "github_gist";
-        readonly title: "GitHub Gist";
-        readonly hostnames: readonly ["gist.github.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "google_calendar";
-        readonly title: "Google Calendar";
-        readonly hostnames: readonly ["calendar.google.*"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly minWidth: 460;
-        readonly minHeight: 360;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "google_maps";
-        readonly title: "Google Maps";
-        readonly hostnames: readonly ["google.*"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "google_slides";
-        readonly title: "Google Slides";
-        readonly hostnames: readonly ["docs.google.*"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly minWidth: 460;
-        readonly minHeight: 360;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "observable";
-        readonly title: "Observable";
-        readonly hostnames: readonly ["observablehq.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly isAspectRatioLocked: false;
-        readonly backgroundColor: "#fff";
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "replit";
-        readonly title: "Replit";
-        readonly hostnames: readonly ["replit.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "scratch";
-        readonly title: "Scratch";
-        readonly hostnames: readonly ["scratch.mit.edu"];
-        readonly width: 520;
-        readonly height: 400;
-        readonly doesResize: false;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "spotify";
-        readonly title: "Spotify";
-        readonly hostnames: readonly ["open.spotify.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly minHeight: 500;
-        readonly overrideOutlineRadius: 12;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "tldraw";
-        readonly title: "tldraw";
-        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "vimeo";
-        readonly title: "Vimeo";
-        readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
-        readonly width: 640;
-        readonly height: 360;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly isAspectRatioLocked: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "youtube";
-        readonly title: "YouTube";
-        readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
-        readonly width: 800;
-        readonly height: 450;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly overridePermissions: {
-            readonly 'allow-presentation': true;
-        };
-        readonly isAspectRatioLocked: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    };
-    url: string;
-    embedUrl: string;
-} | undefined;
-
-// @public (undocumented)
-export function matchUrl(url: string): {
-    definition: {
-        readonly type: "codepen";
-        readonly title: "Codepen";
-        readonly hostnames: readonly ["codepen.io"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 520;
-        readonly height: 400;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "codesandbox";
-        readonly title: "CodeSandbox";
-        readonly hostnames: readonly ["codesandbox.io"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "excalidraw";
-        readonly title: "Excalidraw";
-        readonly hostnames: readonly ["excalidraw.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly isAspectRatioLocked: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "felt";
-        readonly title: "Felt";
-        readonly hostnames: readonly ["felt.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "figma";
-        readonly title: "Figma";
-        readonly hostnames: readonly ["figma.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "github_gist";
-        readonly title: "GitHub Gist";
-        readonly hostnames: readonly ["gist.github.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "google_calendar";
-        readonly title: "Google Calendar";
-        readonly hostnames: readonly ["calendar.google.*"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly minWidth: 460;
-        readonly minHeight: 360;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly instructionLink: "https://support.google.com/calendar/answer/41207?hl=en";
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "google_maps";
-        readonly title: "Google Maps";
-        readonly hostnames: readonly ["google.*"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "google_slides";
-        readonly title: "Google Slides";
-        readonly hostnames: readonly ["docs.google.*"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly minWidth: 460;
-        readonly minHeight: 360;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "observable";
-        readonly title: "Observable";
-        readonly hostnames: readonly ["observablehq.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly isAspectRatioLocked: false;
-        readonly backgroundColor: "#fff";
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "replit";
-        readonly title: "Replit";
-        readonly hostnames: readonly ["replit.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "scratch";
-        readonly title: "Scratch";
-        readonly hostnames: readonly ["scratch.mit.edu"];
-        readonly width: 520;
-        readonly height: 400;
-        readonly doesResize: false;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "spotify";
-        readonly title: "Spotify";
-        readonly hostnames: readonly ["open.spotify.com"];
-        readonly width: 720;
-        readonly height: 500;
-        readonly minHeight: 500;
-        readonly overrideOutlineRadius: 12;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "tldraw";
-        readonly title: "tldraw";
-        readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
-        readonly minWidth: 300;
-        readonly minHeight: 300;
-        readonly width: 720;
-        readonly height: 500;
-        readonly doesResize: true;
-        readonly canUnmount: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "vimeo";
-        readonly title: "Vimeo";
-        readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
-        readonly width: 640;
-        readonly height: 360;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly isAspectRatioLocked: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    } | {
-        readonly type: "youtube";
-        readonly title: "YouTube";
-        readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
-        readonly width: 800;
-        readonly height: 450;
-        readonly doesResize: true;
-        readonly canUnmount: false;
-        readonly overridePermissions: {
-            readonly 'allow-presentation': true;
-        };
-        readonly isAspectRatioLocked: true;
-        readonly toEmbedUrl: (url: string) => string | undefined;
-        readonly fromEmbedUrl: (url: string) => string | undefined;
-    };
-    embedUrl: string;
-    url: string;
-} | undefined;
 
 // @internal (undocumented)
 export const MAX_ASSET_HEIGHT = 1000;
@@ -1256,7 +806,7 @@ export const MINOR_NUDGE_FACTOR = 1;
 // @internal (undocumented)
 export const MULTI_CLICK_DURATION = 200;
 
-// @public (undocumented)
+// @internal (undocumented)
 export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent): {
     x: number;
     y: number;
@@ -1270,6 +820,15 @@ export function openWindow(url: string, target?: string): void;
 export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
     fallback: TLErrorFallbackComponent;
 }): JSX.Element;
+
+// @public (undocumented)
+export const png: {
+    isPng: typeof isPng;
+    readChunks: typeof readChunks;
+    parsePhys: typeof parsePhys;
+    findChunk: typeof findChunk;
+    setPhysChunk: typeof setPhysChunk;
+};
 
 // @public (undocumented)
 export type PointsSnapLine = {
@@ -1526,9 +1085,6 @@ export interface SnapPoint {
     // (undocumented)
     y: number;
 }
-
-// @public (undocumented)
-export function snapToGrid(n: number, gridSize: number): number;
 
 // @public (undocumented)
 export abstract class StateNode implements Partial<TLEventHandlers> {
@@ -1814,13 +1370,6 @@ export interface TLEditorOptions {
     tools: readonly TLStateNodeConstructor[];
     user?: TLUser;
 }
-
-// @public (undocumented)
-export type TLEmbedResult = {
-    definition: EmbedDefinition;
-    url: string;
-    embedUrl: string;
-} | undefined;
 
 // @public (undocumented)
 export type TLEnterEventHandler = (info: any, from: string) => void;
@@ -2273,9 +1822,6 @@ export type TLWheelEventInfo = TLBaseEventInfo & {
 };
 
 export { track }
-
-// @public (undocumented)
-export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
 
 // @public (undocumented)
 export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboardEvent | TLPinchEvent | TLPointerEvent;

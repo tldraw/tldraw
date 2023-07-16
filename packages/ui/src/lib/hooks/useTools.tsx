@@ -1,7 +1,7 @@
 import { Editor, GeoShapeGeoStyle, featureFlags, useEditor } from '@tldraw/editor'
 import { useValue } from '@tldraw/state'
 import * as React from 'react'
-import { EmbedDialog } from '../components/EmbedDialog'
+// import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './useDialogsProvider'
 import { TLUiEventSource, useEvents } from './useEventsProvider'
@@ -196,16 +196,16 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 					trackEvent('select-tool', { source, id: 'laser' })
 				},
 			},
-			{
-				id: 'embed',
-				label: 'tool.embed',
-				readonlyOk: false,
-				icon: 'tool-embed',
-				onSelect(source) {
-					addDialog({ component: EmbedDialog })
-					trackEvent('select-tool', { source, id: 'embed' })
-				},
-			},
+			// {
+			// 	id: 'embed',
+			// 	label: 'tool.embed',
+			// 	readonlyOk: false,
+			// 	icon: 'tool-embed',
+			// 	onSelect(source) {
+			// 		addDialog({ component: EmbedDialog })
+			// 		trackEvent('select-tool', { source, id: 'embed' })
+			// 	},
+			// },
 		]
 
 		if (highlighterEnabled) {

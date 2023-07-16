@@ -1,6 +1,6 @@
 import { debugFlags } from './debug-flags'
 import { getBrowserCanvasMaxSize } from './getBrowserCanvasMaxSize'
-import { setPhysChunk } from './png'
+import { png } from './png'
 
 /** @public */
 export type TLCopyType = 'svg' | 'png' | 'jpeg' | 'json'
@@ -111,7 +111,7 @@ export async function getSvgAsImage(
 	if (!blob) return null
 
 	const view = new DataView(await blob.arrayBuffer())
-	return setPhysChunk(view, effectiveScale, {
+	return png.setPhysChunk(view, effectiveScale, {
 		type: 'image/' + type,
 	})
 }

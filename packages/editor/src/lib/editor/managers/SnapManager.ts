@@ -14,7 +14,7 @@ import {
 import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
 import { TLGroupShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
 import { dedupe, deepCopy } from '@tldraw/utils'
-import { uniqueId } from '../../utils/data'
+import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 
 /** @public */

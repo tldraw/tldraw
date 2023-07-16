@@ -1,7 +1,6 @@
-import { ANIMATION_MEDIUM_MS, Editor, getEmbedInfo, openWindow, useEditor } from '@tldraw/editor'
+import { ANIMATION_MEDIUM_MS, Editor, openWindow, useEditor } from '@tldraw/editor'
 import { Box2d, TAU, Vec2d, approximately } from '@tldraw/primitives'
 import {
-	TLBookmarkShape,
 	TLEmbedShape,
 	TLGroupShape,
 	TLShapeId,
@@ -12,7 +11,7 @@ import {
 import { compact } from '@tldraw/utils'
 import * as React from 'react'
 import { EditLinkDialog } from '../components/EditLinkDialog'
-import { EmbedDialog } from '../components/EmbedDialog'
+// import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
 import { useMenuClipboardEvents } from './useClipboardEvents'
 import { useCopyAs } from './useCopyAs'
@@ -88,16 +87,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					addDialog({ component: EditLinkDialog })
 				},
 			},
-			{
-				id: 'insert-embed',
-				label: 'action.insert-embed',
-				readonlyOk: false,
-				kbd: '$i',
-				onSelect(source) {
-					trackEvent('insert-embed', { source })
-					addDialog({ component: EmbedDialog })
-				},
-			},
+			// {
+			// 	id: 'insert-embed',
+			// 	label: 'action.insert-embed',
+			// 	readonlyOk: false,
+			// 	kbd: '$i',
+			// 	onSelect(source) {
+			// 		trackEvent('insert-embed', { source })
+			// 		addDialog({ component: EmbedDialog })
+			// 	},
+			// },
 			{
 				id: 'insert-media',
 				label: 'action.insert-media',
@@ -283,56 +282,56 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.createShapes(createList)
 				},
 			},
-			{
-				id: 'convert-to-embed',
-				label: 'action.convert-to-embed',
-				readonlyOk: false,
-				onSelect(source) {
-					trackEvent('convert-to-embed', { source })
-					const ids = editor.selectedIds
-					const shapes = compact(ids.map((id) => editor.getShapeById(id)))
+			// {
+			// 	id: 'convert-to-embed',
+			// 	label: 'action.convert-to-embed',
+			// 	readonlyOk: false,
+			// 	onSelect(source) {
+			// 		trackEvent('convert-to-embed', { source })
+			// 		const ids = editor.selectedIds
+			// 		const shapes = compact(ids.map((id) => editor.getShapeById(id)))
 
-					const createList: TLShapePartial[] = []
-					const deleteList: TLShapeId[] = []
-					for (const shape of shapes) {
-						if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
+			// 		const createList: TLShapePartial[] = []
+			// 		const deleteList: TLShapeId[] = []
+			// 		for (const shape of shapes) {
+			// 			if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
 
-						const { url } = shape.props
+			// 			const { url } = shape.props
 
-						const embedInfo = getEmbedInfo(shape.props.url)
+			// 			const embedInfo = getEmbedInfo(shape.props.url)
 
-						if (!embedInfo) continue
-						if (!embedInfo.definition) continue
+			// 			if (!embedInfo) continue
+			// 			if (!embedInfo.definition) continue
 
-						const { width, height } = embedInfo.definition
+			// 			const { width, height } = embedInfo.definition
 
-						const newPos = new Vec2d(shape.x, shape.y)
-						newPos.rot(-shape.rotation)
-						newPos.add(new Vec2d(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
-						newPos.rot(shape.rotation)
+			// 			const newPos = new Vec2d(shape.x, shape.y)
+			// 			newPos.rot(-shape.rotation)
+			// 			newPos.add(new Vec2d(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
+			// 			newPos.rot(shape.rotation)
 
-						const shapeToCreate: TLShapePartial<TLEmbedShape> = {
-							id: createShapeId(),
-							type: 'embed',
-							x: newPos.x,
-							y: newPos.y,
-							rotation: shape.rotation,
-							props: {
-								url: url,
-								w: width,
-								h: height,
-							},
-						}
+			// 			const shapeToCreate: TLShapePartial<TLEmbedShape> = {
+			// 				id: createShapeId(),
+			// 				type: 'embed',
+			// 				x: newPos.x,
+			// 				y: newPos.y,
+			// 				rotation: shape.rotation,
+			// 				props: {
+			// 					url: url,
+			// 					w: width,
+			// 					h: height,
+			// 				},
+			// 			}
 
-						createList.push(shapeToCreate)
-						deleteList.push(shape.id)
-					}
+			// 			createList.push(shapeToCreate)
+			// 			deleteList.push(shape.id)
+			// 		}
 
-					editor.mark('convert shapes to embed')
-					editor.deleteShapes(deleteList)
-					editor.createShapes(createList)
-				},
-			},
+			// 		editor.mark('convert shapes to embed')
+			// 		editor.deleteShapes(deleteList)
+			// 		editor.createShapes(createList)
+			// 	},
+			// },
 			{
 				id: 'duplicate',
 				kbd: '$d',

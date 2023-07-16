@@ -6,13 +6,11 @@ import {
 	TLEmbedShape,
 	TLGeoShape,
 	TLTextShape,
-	getValidHttpURLList,
-	isSvgText,
-	isValidHttpURL,
 	useEditor,
 } from '@tldraw/editor'
 import { VecLike } from '@tldraw/primitives'
 import { isNonNull } from '@tldraw/utils'
+import uniq from 'lodash.uniq'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
@@ -21,6 +19,37 @@ import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
 import { useEditorIsFocused } from './useEditorIsFocused'
 import { TLUiEventSource, useEvents } from './useEventsProvider'
+
+/** @public */
+export const isValidHttpURL = (url: string) => {
+	try {
+		const u = new URL(url)
+		return u.protocol === 'http:' || u.protocol === 'https:'
+	} catch (e) {
+		return false
+	}
+}
+
+/** @public */
+const getValidHttpURLList = (url: string) => {
+	const urls = url.split(/[\n\s]/)
+	for (const url of urls) {
+		try {
+			const u = new URL(url)
+			if (!(u.protocol === 'http:' || u.protocol === 'https:')) {
+				return
+			}
+		} catch (e) {
+			return
+		}
+	}
+	return uniq(urls)
+}
+
+/** @public */
+const isSvgText = (text: string) => {
+	return /^<svg/.test(text)
+}
 
 const INPUTS = ['input', 'select', 'textarea']
 

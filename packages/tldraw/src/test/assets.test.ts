@@ -1,4 +1,4 @@
-import { containBoxSize } from './assets'
+import { containBoxSize } from '../lib/utils/assets'
 
 describe('containBoxSize', () => {
 	it('should not increase size of asset', () => {

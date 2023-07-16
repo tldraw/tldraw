@@ -95,7 +95,7 @@
 			"^.+\\.*.css$"
 		],
 		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid|escape-string-regexp)/)"
+			"node_modules/(?!(nanoid)/)"
 		],
 		"moduleNameMapper": {
 			"^~(.*)": "<rootDir>/src/$1",

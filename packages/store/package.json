@@ -61,7 +61,7 @@
 			"^~(.*)": "<rootDir>/src/$1"
 		},
 		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid|escape-string-regexp)/)"
+			"node_modules/(?!(nanoid)/)"
 		]
 	}
 }

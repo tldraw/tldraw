@@ -10,13 +10,12 @@ import {
 	TLOnBeforeUpdateHandler,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
-	getRotatedBoxShadow,
-	isValidUrl,
 	stopEventPropagation,
-	truncateStringWithEllipsis,
 } from '@tldraw/editor'
 import { toDomPrecision } from '@tldraw/primitives'
-import { debounce, getHashForString } from '@tldraw/utils'
+import { debounce, getHashForString, isValidUrl } from '@tldraw/utils'
+import { getRotatedBoxShadow } from '../../utils/rotated-box-shadow'
+import { truncateStringWithEllipsis } from '../../utils/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 /** @public */

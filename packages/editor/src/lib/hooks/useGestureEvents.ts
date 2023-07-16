@@ -5,7 +5,7 @@ import throttle from 'lodash.throttle'
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
 import { preventDefault } from '../utils/dom'
-import { normalizeWheel } from './shared'
+import { normalizeWheel } from '../utils/normalizeWheel'
 import { useEditor } from './useEditor'
 
 type check<T extends AnyHandlerEventTypes, Key extends GestureKey> = undefined extends T[Key]

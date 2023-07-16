@@ -1,5 +1,6 @@
-import { TLBaseShape, isValidUrl, useEditor } from '@tldraw/editor'
+import { TLBaseShape, useEditor } from '@tldraw/editor'
 import { track } from '@tldraw/state'
+import { isValidUrl } from '@tldraw/utils'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'

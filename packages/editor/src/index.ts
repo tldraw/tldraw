@@ -184,7 +184,6 @@ export {
 } from './lib/editor/types/history-types'
 export { type RequiredKeys } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
-export { normalizeWheel } from './lib/hooks/shared'
 export { useContainer } from './lib/hooks/useContainer'
 export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
@@ -200,49 +199,16 @@ export {
 	type SharedStyle,
 } from './lib/utils/SharedStylesMap'
 export { WeakMapCache } from './lib/utils/WeakMapCache'
-export {
-	ACCEPTED_ASSET_TYPE,
-	ACCEPTED_IMG_TYPE,
-	ACCEPTED_VID_TYPE,
-	containBoxSize,
-	dataUrlToFile,
-	getFileMetaData,
-	getImageSizeFromSrc,
-	getMediaAssetFromFile,
-	getResizedImageDataUrl,
-	getValidHttpURLList,
-	getVideoSizeFromSrc,
-	isImage,
-	isSvgText,
-	isValidHttpURL,
-} from './lib/utils/assets'
-export {
-	checkFlag,
-	fileToBase64,
-	getIncrementedName,
-	isSerializable,
-	isValidUrl,
-	snapToGrid,
-	uniqueId,
-} from './lib/utils/data'
+export { dataUrlToFile } from './lib/utils/assets'
 export { debugFlags, featureFlags, type DebugFlag } from './lib/utils/debug-flags'
 export {
-	getRotatedBoxShadow,
 	loopToHtmlElement,
 	preventDefault,
 	releasePointerCapture,
 	setPointerCapture,
 	stopEventPropagation,
-	truncateStringWithEllipsis,
 	usePrefersReducedMotion,
 } from './lib/utils/dom'
-export {
-	getEmbedInfo,
-	getEmbedInfoUnsafely,
-	matchEmbedUrl,
-	matchUrl,
-	type TLEmbedResult,
-} from './lib/utils/embeds'
 export {
 	downloadDataURLAsFile,
 	getSvgAsDataUrl,
@@ -253,8 +219,10 @@ export {
 	type TLCopyType,
 	type TLExportType,
 } from './lib/utils/export'
+export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { hardResetEditor } from './lib/utils/hard-reset'
-export { isAnimated, isGIF } from './lib/utils/is-gif-animated'
+export { normalizeWheel } from './lib/utils/normalizeWheel'
+export { png } from './lib/utils/png'
 export { refreshPage } from './lib/utils/refresh-page'
 export {
 	applyRotationToSnapshotShapes,
@@ -271,4 +239,5 @@ export {
 export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from './lib/utils/svg'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
+export { uniqueId } from './lib/utils/uniqueId'
 export { openWindow } from './lib/utils/window-open'
