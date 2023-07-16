@@ -307,13 +307,8 @@ export { openWindow } from './lib/utils/window-open'
 
 /** @polyfills */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/array/at'
-// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/array/flat'
-// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/array/flat-map'
-// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/string/at'
-// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/string/replace-all'
