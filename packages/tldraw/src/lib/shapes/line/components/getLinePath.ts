@@ -1,4 +1,4 @@
-import { CubicSpline2d, Polyline2d, TLLineShape, Vec2d, getSvgPathFromStroke } from '@tldraw/editor'
+import { CubicSpline2d, Polyline2d, TLLineShape, Vec2d, getSvgPathFromPoints } from '@tldraw/editor'
 import { getStrokeOutlinePoints } from '../../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
@@ -96,7 +96,7 @@ export function getLineDrawPath(
 	strokeWidth: number
 ) {
 	const stroke = getLineDrawStrokeOutlinePoints(shape, spline, strokeWidth)
-	return getSvgPathFromStroke(stroke)
+	return getSvgPathFromPoints(stroke)
 }
 
 export function getLineSolidPath(
@@ -105,7 +105,7 @@ export function getLineSolidPath(
 	strokeWidth: number
 ) {
 	const outlinePoints = getLineSolidStrokeOutlinePoints(shape, spline, strokeWidth)
-	return getSvgPathFromStroke(outlinePoints)
+	return getSvgPathFromPoints(outlinePoints)
 }
 
 export function getLineIndicatorPath(

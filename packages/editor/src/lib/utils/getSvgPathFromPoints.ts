@@ -1,43 +1,13 @@
 import { VecLike } from '../primitives/Vec2d'
-import { toDomPrecision } from '../primitives/utils'
-
-/** @internal */
-export function getPointerInfo(e: React.PointerEvent | PointerEvent, container: HTMLElement) {
-	;(e as any).isKilled = true
-
-	const { top, left } = container.getBoundingClientRect()
-
-	return {
-		point: {
-			x: e.clientX - left,
-			y: e.clientY - top,
-			z: e.pressure,
-		},
-		shiftKey: e.shiftKey,
-		altKey: e.altKey,
-		ctrlKey: e.metaKey || e.ctrlKey,
-		pointerId: e.pointerId,
-		button: e.button,
-		isPen: e.pointerType === 'pen',
-	}
-}
-
-function precise(A: VecLike) {
-	return `${toDomPrecision(A.x)},${toDomPrecision(A.y)} `
-}
-
-function average(A: VecLike, B: VecLike) {
-	return `${toDomPrecision((A.x + B.x) / 2)},${toDomPrecision((A.y + B.y) / 2)} `
-}
+import { average, precise } from '../primitives/utils'
 
 /**
  * Turn an array of points into a path of quadradic curves.
  *
  * @param points - The points returned from perfect-freehand
  * @param closed - Whether the stroke is closed
- * @public
  */
-export function getSvgPathFromStroke(points: VecLike[], closed = true): string {
+export function getSvgPathFromPoints(points: VecLike[], closed = true): string {
 	const len = points.length
 
 	if (len < 2) {

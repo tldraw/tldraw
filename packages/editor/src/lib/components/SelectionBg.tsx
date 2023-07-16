@@ -5,7 +5,7 @@ import { useEditor } from '../hooks/useEditor'
 import { Matrix2d } from '../primitives/Matrix2d'
 import { toDomPrecision } from '../primitives/utils'
 import { releasePointerCapture, setPointerCapture } from '../utils/dom'
-import { getPointerInfo } from '../utils/svg'
+import { getPointerInfo } from '../utils/getPointerInfo'
 
 export const SelectionBg = track(function SelectionBg() {
 	const editor = useEditor()

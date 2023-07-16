@@ -93,6 +93,7 @@ import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/Sh
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName } from '../utils/getIncrementedName'
+import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import {
 	getIndexAbove,
 	getIndexBetween,
@@ -100,8 +101,7 @@ import {
 	getIndicesAbove,
 	getIndicesBetween,
 	sortByIndex,
-} from '../utils/indices/reordering'
-import { getReorderingShapesChanges } from '../utils/reorderShapes'
+} from '../utils/reordering/reordering'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'

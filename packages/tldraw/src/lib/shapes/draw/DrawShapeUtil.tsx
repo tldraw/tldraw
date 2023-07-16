@@ -13,7 +13,7 @@ import {
 	drawShapeMigrations,
 	drawShapeProps,
 	getDefaultColorTheme,
-	getSvgPathFromStroke,
+	getSvgPathFromPoints,
 	last,
 	linesIntersect,
 	pointInPolygon,
@@ -166,7 +166,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 						d={solidStrokePath}
 					/>
 					<path
-						d={getSvgPathFromStroke(strokeOutlinePoints, true)}
+						d={getSvgPathFromPoints(strokeOutlinePoints, true)}
 						strokeLinecap="round"
 						fill={theme[shape.props.color].solid}
 					/>
@@ -250,7 +250,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			const strokeOutlinePoints = getStrokeOutlinePoints(strokePoints, options)
 
 			const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
-			p.setAttribute('d', getSvgPathFromStroke(strokeOutlinePoints, true))
+			p.setAttribute('d', getSvgPathFromPoints(strokeOutlinePoints, true))
 			p.setAttribute('fill', theme[color].solid)
 			p.setAttribute('stroke-linecap', 'round')
 

@@ -6,7 +6,7 @@ import {
 	TLGeoShape,
 	TLShapeId,
 	Vec2d,
-	getSvgPathFromStroke,
+	getSvgPathFromPoints,
 	perimeterOfEllipse,
 	rng,
 } from '@tldraw/editor'
@@ -127,7 +127,7 @@ export function getEllipseStrokePoints(
 
 export function getEllipsePath(id: string, width: number, height: number, strokeWidth: number) {
 	const options = getEllipseStrokeOptions(strokeWidth)
-	return getSvgPathFromStroke(
+	return getSvgPathFromPoints(
 		getStrokeOutlinePoints(
 			setStrokePointRadii(getEllipseStrokePoints(id, width, height, strokeWidth), options),
 			options

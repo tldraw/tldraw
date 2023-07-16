@@ -8,7 +8,6 @@ import {
 	TLShape,
 	TLShapeId,
 	canonicalizeRotation,
-	defaultEmptyAs,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
@@ -18,6 +17,13 @@ import {
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FrameHeading } from './components/FrameHeading'
+
+export function defaultEmptyAs(str: string, dflt: string) {
+	if (str.match(/^\s*$/)) {
+		return dflt
+	}
+	return str
+}
 
 /** @public */
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {

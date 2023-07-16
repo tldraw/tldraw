@@ -280,7 +280,12 @@ export {
 	type TLExportType,
 } from './lib/utils/export'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
-export { hardResetEditor } from './lib/utils/hard-reset'
+export { getPointerInfo } from './lib/utils/getPointerInfo'
+export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
+export { hardResetEditor } from './lib/utils/hardResetEditor'
+export { normalizeWheel } from './lib/utils/normalizeWheel'
+export { png } from './lib/utils/png'
+export { refreshPage } from './lib/utils/refresh-page'
 export {
 	getIndexAbove,
 	getIndexBelow,
@@ -290,23 +295,13 @@ export {
 	getIndicesBelow,
 	getIndicesBetween,
 	sortByIndex,
-} from './lib/utils/indices/reordering'
-export { normalizeWheel } from './lib/utils/normalizeWheel'
-export { png } from './lib/utils/png'
-export { refreshPage } from './lib/utils/refresh-page'
+} from './lib/utils/reordering/reordering'
 export {
 	applyRotationToSnapshotShapes,
 	getRotationSnapshot,
 	type TLRotationSnapshot,
 } from './lib/utils/rotation'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
-export {
-	blobAsString,
-	correctSpacesToNbsp,
-	dataTransferItemAsString,
-	defaultEmptyAs,
-} from './lib/utils/string'
-export { getPointerInfo, getSvgPathFromStroke } from './lib/utils/svg'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'
