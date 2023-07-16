@@ -1,10 +1,15 @@
 import { Canvas, TldrawEditor, TldrawEditorProps, useEditor } from '@tldraw/editor'
 import { useLayoutEffect, useMemo } from 'react'
+import { TldrawScribble } from './canvas/TldrawScribble'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
+
+const components = {
+	scribble: TldrawScribble,
+}
 
 /** @public */
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
@@ -13,6 +18,10 @@ export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
 	const withDefaults = {
 		initialState: 'select',
 		...rest,
+		components: {
+			...components,
+			...rest.components,
+		},
 		shapeUtils: useMemo(
 			() => [...defaultShapeUtils, ...(rest.shapeUtils ?? [])],
 			[rest.shapeUtils]

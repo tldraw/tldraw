@@ -6,13 +6,9 @@ import {
 	TLGeoShape,
 	TLShapeId,
 	Vec2d,
-	getStrokeOutlinePoints,
-	getStrokePoints,
 	getSvgPathFromStroke,
-	getSvgPathFromStrokePoints,
 	perimeterOfEllipse,
 	rng,
-	setStrokePointRadii,
 } from '@tldraw/editor'
 
 import * as React from 'react'
@@ -22,6 +18,10 @@ import {
 	getSvgWithShapeFill,
 	useDefaultColorTheme,
 } from '../../shared/ShapeFill'
+import { getStrokeOutlinePoints } from '../../shared/freehand/getStrokeOutlinePoints'
+import { getStrokePoints } from '../../shared/freehand/getStrokePoints'
+import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
+import { getSvgPathFromStrokePoints } from '../../shared/freehand/svg'
 
 export const DrawStyleEllipse = React.memo(function DrawStyleEllipse({
 	id,

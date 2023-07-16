@@ -1,28 +1,26 @@
+import { TLArrowShape } from '@tldraw/tlschema'
+import { Box2d } from '../../../../primitives/Box2d'
+import { Matrix2d } from '../../../../primitives/Matrix2d'
+import { Vec2d, VecLike } from '../../../../primitives/Vec2d'
+import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
 import {
-	Box2d,
-	getArcLength,
-	getPointOnCircle,
-	intersectCirclePolygon,
-	intersectCirclePolyline,
-	isSafeFloat,
-	lerpAngles,
-	Matrix2d,
 	PI,
 	PI2,
+	getArcLength,
+	getPointOnCircle,
+	isSafeFloat,
+	lerpAngles,
 	shortAngleDist,
-	Vec2d,
-	VecLike,
-} from '@tldraw/primitives'
-import { TLArrowShape } from '@tldraw/tlschema'
+} from '../../../../primitives/utils'
 import type { Editor } from '../../../Editor'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { ArcInfo, ArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
-	getArrowTerminalsInArrowSpace,
-	getBoundShapeInfoForTerminal,
 	MIN_ARROW_LENGTH,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
+	getArrowTerminalsInArrowSpace,
+	getBoundShapeInfoForTerminal,
 } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 

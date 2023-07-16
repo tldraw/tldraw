@@ -1,5 +1,5 @@
-import { VecLike } from '@tldraw/primitives'
 import { EmbedDefinition } from '@tldraw/tlschema'
+import { VecLike } from '../../primitives/Vec2d'
 
 /** @public */
 export type TLExternalContent =

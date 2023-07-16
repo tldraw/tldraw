@@ -10,8 +10,6 @@ import {
 	Vec2d,
 	VecLike,
 	getDefaultColorTheme,
-	getStrokePoints,
-	getSvgPathFromStrokePoints,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
@@ -21,6 +19,8 @@ import {
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { FONT_SIZES } from '../shared/default-shape-constants'
+import { getStrokePoints } from '../shared/freehand/getStrokePoints'
+import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useForceSolid } from '../shared/useForceSolid'
 

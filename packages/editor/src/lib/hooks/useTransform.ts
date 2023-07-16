@@ -1,5 +1,5 @@
-import { VecLike } from '@tldraw/primitives'
 import { useLayoutEffect } from 'react'
+import { VecLike } from '../primitives/Vec2d'
 
 export function useTransform(
 	ref: React.RefObject<HTMLElement | SVGElement>,

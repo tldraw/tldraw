@@ -1,7 +1,7 @@
-import { toDomPrecision } from '@tldraw/primitives'
 import { Box2dModel } from '@tldraw/tlschema'
 import { useRef } from 'react'
 import { useTransform } from '../hooks/useTransform'
+import { toDomPrecision } from '../primitives/utils'
 
 /** @public */
 export type TLBrushComponent = (props: {

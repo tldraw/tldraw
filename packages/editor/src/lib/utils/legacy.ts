@@ -1,5 +1,5 @@
-import { Box2d } from '@tldraw/primitives'
 import { Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
+import { Box2d } from '../primitives/Box2d'
 
 export function getLegacyOffsetX(
 	align: TLDefaultHorizontalAlignStyle | string,

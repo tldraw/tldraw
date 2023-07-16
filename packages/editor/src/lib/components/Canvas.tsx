@@ -1,4 +1,3 @@
-import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import { react, track, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
@@ -12,6 +11,8 @@ import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoub
 import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
 import { useScreenBounds } from '../hooks/useScreenBounds'
+import { Matrix2d } from '../primitives/Matrix2d'
+import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
 import { SelectionBg } from './SelectionBg'

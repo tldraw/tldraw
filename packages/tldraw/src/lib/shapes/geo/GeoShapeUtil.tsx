@@ -20,8 +20,6 @@ import {
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
-	getRoundedInkyPolygonPath,
-	getRoundedPolygonPoints,
 	linesIntersect,
 	pointInPolygon,
 } from '@tldraw/editor'
@@ -40,6 +38,7 @@ import {
 	getFontDefForExport,
 } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
+import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/polygon-helpers'
 import { useForceSolid } from '../shared/useForceSolid'
 import { cloudOutline, cloudSvgPath } from './cloudOutline'
 import { DashStyleCloud, DashStyleCloudSvg } from './components/DashStyleCloud'

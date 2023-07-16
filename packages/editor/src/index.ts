@@ -3,8 +3,6 @@
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/indices'
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/primitives'
 export {
 	EMPTY_ARRAY,
 	atom,
@@ -71,24 +69,20 @@ export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/default
 export {
 	ANIMATION_MEDIUM_MS,
 	ANIMATION_SHORT_MS,
+	CAMERA_SLIDE_FRICTION,
 	DEFAULT_ANIMATION_OPTIONS,
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
 	GRID_INCREMENT,
 	GRID_STEPS,
-	HAND_TOOL_FRICTION,
 	HASH_PATTERN_ZOOM_NAMES,
 	MAJOR_NUDGE_FACTOR,
-	MAX_ASSET_HEIGHT,
-	MAX_ASSET_WIDTH,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
 	MINOR_NUDGE_FACTOR,
 	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
-	REMOVE_SYMBOL,
-	RICH_TYPES,
 	SVG_PADDING,
 	ZOOMS,
 } from './lib/constants'
@@ -200,6 +194,66 @@ export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
 export { useTLStore } from './lib/hooks/useTLStore'
 export {
+	Box2d,
+	ROTATE_CORNER_TO_SELECTION_CORNER,
+	rotateSelectionHandle,
+	type RotateCorner,
+	type SelectionCorner,
+	type SelectionEdge,
+	type SelectionHandle,
+} from './lib/primitives/Box2d'
+export { CubicSpline2d } from './lib/primitives/CubicSpline2d'
+export { Matrix2d, type Matrix2dModel } from './lib/primitives/Matrix2d'
+export { Polyline2d } from './lib/primitives/Polyline2d'
+export { Vec2d, type VecLike } from './lib/primitives/Vec2d'
+export { EASINGS } from './lib/primitives/easings'
+export {
+	intersectLineSegmentPolygon,
+	intersectLineSegmentPolyline,
+	intersectPolygonPolygon,
+	linesIntersect,
+	polygonsIntersect,
+} from './lib/primitives/intersect'
+export {
+	EPSILON,
+	PI,
+	PI2,
+	SIN,
+	TAU,
+	angleDelta,
+	approximately,
+	areAnglesCompatible,
+	canonicalizeRotation,
+	clamp,
+	clampRadians,
+	degreesToRadians,
+	getArcLength,
+	getPointOnCircle,
+	getPolygonVertices,
+	getStarBounds,
+	getSweep,
+	isAngleBetween,
+	isSafeFloat,
+	lerpAngles,
+	longAngleDist,
+	perimeterOfEllipse,
+	pointInBounds,
+	pointInCircle,
+	pointInEllipse,
+	pointInPolygon,
+	pointInPolyline,
+	pointInRect,
+	pointNearToLineSegment,
+	pointNearToPolyline,
+	radiansToDegrees,
+	rangeIntersection,
+	shortAngleDist,
+	snapAngle,
+	toDomPrecision,
+	toFixed,
+	toPrecision,
+} from './lib/primitives/utils'
+export {
 	ReadonlySharedStyleMap,
 	SharedStyleMap,
 	type SharedStyle,
@@ -242,7 +296,7 @@ export {
 	dataTransferItemAsString,
 	defaultEmptyAs,
 } from './lib/utils/string'
-export { getPointerInfo, getSvgPathFromStroke, getSvgPathFromStrokePoints } from './lib/utils/svg'
+export { getPointerInfo, getSvgPathFromStroke } from './lib/utils/svg'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniqueId } from './lib/utils/uniqueId'

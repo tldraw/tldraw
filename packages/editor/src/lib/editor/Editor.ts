@@ -6,21 +6,7 @@ import {
 	getIndicesBetween,
 	sortByIndex,
 } from '@tldraw/indices'
-import {
-	Box2d,
-	EASINGS,
-	MatLike,
-	Matrix2d,
-	Matrix2dModel,
-	PI2,
-	Vec2d,
-	VecLike,
-	approximately,
-	areAnglesCompatible,
-	clamp,
-	intersectPolygonPolygon,
-	pointInPolygon,
-} from '@tldraw/primitives'
+
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
@@ -85,6 +71,7 @@ import {
 	ANIMATION_MEDIUM_MS,
 	CAMERA_MAX_RENDERING_INTERVAL,
 	CAMERA_MOVING_TIMEOUT,
+	CAMERA_SLIDE_FRICTION,
 	COARSE_DRAG_DISTANCE,
 	COLLABORATOR_IDLE_TIMEOUT,
 	DEFAULT_ANIMATION_OPTIONS,
@@ -95,7 +82,6 @@ import {
 	FOLLOW_CHASE_ZOOM_SNAP,
 	FOLLOW_CHASE_ZOOM_UNSNAP,
 	GRID_INCREMENT,
-	HAND_TOOL_FRICTION,
 	INTERNAL_POINTER_IDS,
 	MAJOR_NUDGE_FACTOR,
 	MAX_PAGES,
@@ -106,6 +92,12 @@ import {
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
+import { Box2d } from '../primitives/Box2d'
+import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
+import { Vec2d, VecLike } from '../primitives/Vec2d'
+import { EASINGS } from '../primitives/easings'
+import { intersectPolygonPolygon } from '../primitives/intersect'
+import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
@@ -9209,7 +9201,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 										this.slideCamera({
 											speed: Math.min(2, this.inputs.pointerVelocity.len()),
 											direction: this.inputs.pointerVelocity,
-											friction: HAND_TOOL_FRICTION,
+											friction: CAMERA_SLIDE_FRICTION,
 										})
 										this.setCursor({
 											type: this._prevCursor,
@@ -9218,7 +9210,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 										this.slideCamera({
 											speed: Math.min(2, this.inputs.pointerVelocity.len()),
 											direction: this.inputs.pointerVelocity,
-											friction: HAND_TOOL_FRICTION,
+											friction: CAMERA_SLIDE_FRICTION,
 										})
 										this.setCursor({
 											type: 'grab',
@@ -9228,7 +9220,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 									this.slideCamera({
 										speed: Math.min(2, this.inputs.pointerVelocity.len()),
 										direction: this.inputs.pointerVelocity,
-										friction: HAND_TOOL_FRICTION,
+										friction: CAMERA_SLIDE_FRICTION,
 									})
 									this.setCursor({
 										type: 'grab',

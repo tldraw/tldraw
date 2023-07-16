@@ -1,4 +1,6 @@
-import { intersectCircleCircle, PI, TAU, Vec2d, VecLike } from '@tldraw/primitives'
+import { Vec2d, VecLike } from '../../../../primitives/Vec2d'
+import { intersectCircleCircle } from '../../../../primitives/intersect'
+import { PI, TAU } from '../../../../primitives/utils'
 import { ArrowInfo } from './arrow-types'
 
 type TLArrowPointsInfo = {

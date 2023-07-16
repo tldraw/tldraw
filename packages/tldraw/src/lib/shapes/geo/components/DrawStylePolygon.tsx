@@ -1,10 +1,4 @@
-import {
-	TLDefaultColorTheme,
-	TLGeoShape,
-	VecLike,
-	getRoundedInkyPolygonPath,
-	getRoundedPolygonPoints,
-} from '@tldraw/editor'
+import { TLDefaultColorTheme, TLGeoShape, VecLike } from '@tldraw/editor'
 import * as React from 'react'
 import {
 	ShapeFill,
@@ -12,6 +6,7 @@ import {
 	getSvgWithShapeFill,
 	useDefaultColorTheme,
 } from '../../shared/ShapeFill'
+import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../../shared/polygon-helpers'
 
 export const DrawStylePolygon = React.memo(function DrawStylePolygon({
 	id,

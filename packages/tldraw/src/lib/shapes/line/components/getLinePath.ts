@@ -1,14 +1,8 @@
-import {
-	CubicSpline2d,
-	Polyline2d,
-	TLLineShape,
-	Vec2d,
-	getStrokeOutlinePoints,
-	getStrokePoints,
-	getSvgPathFromStroke,
-	getSvgPathFromStrokePoints,
-	setStrokePointRadii,
-} from '@tldraw/editor'
+import { CubicSpline2d, Polyline2d, TLLineShape, Vec2d, getSvgPathFromStroke } from '@tldraw/editor'
+import { getStrokeOutlinePoints } from '../../shared/freehand/getStrokeOutlinePoints'
+import { getStrokePoints } from '../../shared/freehand/getStrokePoints'
+import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
+import { getSvgPathFromStrokePoints } from '../../shared/freehand/svg'
 
 export function getLinePoints(spline: CubicSpline2d | Polyline2d) {
 	const { segments } = spline

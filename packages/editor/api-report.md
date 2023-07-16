@@ -8,33 +8,25 @@
 
 import { Atom } from '@tldraw/state';
 import { atom } from '@tldraw/state';
-import { Box2d } from '@tldraw/primitives';
 import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { ComputedCache } from '@tldraw/store';
-import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
 import { JsonObject } from '@tldraw/utils';
-import { MatLike } from '@tldraw/primitives';
-import { Matrix2d } from '@tldraw/primitives';
 import { Migrations } from '@tldraw/store';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { RecursivePartial } from '@tldraw/utils';
-import { RotateCorner } from '@tldraw/primitives';
-import { SelectionCorner } from '@tldraw/primitives';
-import { SelectionEdge } from '@tldraw/primitives';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
 import { Signal } from '@tldraw/state';
 import { StoreSchema } from '@tldraw/store';
-import { StrokePoint } from '@tldraw/primitives';
 import { StyleProp } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema';
@@ -71,10 +63,11 @@ import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
-import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
-import { VecLike } from '@tldraw/primitives';
 import { whyAmIRunning } from '@tldraw/state';
+
+// @public
+export function angleDelta(a0: number, a1: number): number;
 
 // @internal (undocumented)
 export const ANIMATION_MEDIUM_MS = 320;
@@ -89,6 +82,12 @@ export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, 
     editor: Editor;
     stage: 'end' | 'one-off' | 'start' | 'update';
 }): void;
+
+// @public
+export function approximately(a: number, b: number, precision?: number): boolean;
+
+// @public
+export function areAnglesCompatible(a: number, b: number): boolean;
 
 export { atom }
 
@@ -124,7 +123,135 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 export function blobAsString(blob: Blob): Promise<string>;
 
 // @public (undocumented)
+export class Box2d {
+    constructor(x?: number, y?: number, w?: number, h?: number);
+    // (undocumented)
+    get aspectRatio(): number;
+    // (undocumented)
+    get center(): Vec2d;
+    set center(v: Vec2d);
+    // (undocumented)
+    clone(): Box2d;
+    // (undocumented)
+    static Collides: (A: Box2d, B: Box2d) => boolean;
+    // (undocumented)
+    collides(B: Box2d): boolean;
+    // (undocumented)
+    static Common: (boxes: Box2d[]) => Box2d;
+    // (undocumented)
+    static Contains: (A: Box2d, B: Box2d) => boolean;
+    // (undocumented)
+    contains(B: Box2d): boolean;
+    // (undocumented)
+    static ContainsPoint: (A: Box2d, B: number | VecLike, y?: number) => boolean;
+    // (undocumented)
+    containsPoint(V: number | VecLike, y?: number): boolean;
+    // (undocumented)
+    get corners(): Vec2d[];
+    // (undocumented)
+    static Equals(a: Box2d | Box2dModel, b: Box2d | Box2dModel): boolean;
+    // (undocumented)
+    equals(other: Box2d | Box2dModel): boolean;
+    // (undocumented)
+    static Expand(A: Box2d, B: Box2d): Box2d;
+    // (undocumented)
+    expand(A: Box2d): this;
+    // (undocumented)
+    static ExpandBy(A: Box2d, n: number): Box2d;
+    // (undocumented)
+    expandBy(n: number): this;
+    // (undocumented)
+    static From(box: Box2dModel): Box2d;
+    // (undocumented)
+    static FromPoints(points: VecLike[]): Box2d;
+    // (undocumented)
+    getHandlePoint(handle: SelectionCorner | SelectionEdge): Vec2d;
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    get height(): number;
+    set height(n: number);
+    // (undocumented)
+    static Includes: (A: Box2d, B: Box2d) => boolean;
+    // (undocumented)
+    includes(B: Box2d): boolean;
+    // (undocumented)
+    get maxX(): number;
+    // (undocumented)
+    get maxY(): number;
+    // (undocumented)
+    get midX(): number;
+    // (undocumented)
+    get midY(): number;
+    // (undocumented)
+    get minX(): number;
+    set minX(n: number);
+    // (undocumented)
+    get minY(): number;
+    set minY(n: number);
+    // (undocumented)
+    get point(): Vec2d;
+    set point(val: Vec2d);
+    // (undocumented)
+    static Resize(box: Box2d, handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number, isAspectRatioLocked?: boolean): {
+        box: Box2d;
+        scaleX: number;
+        scaleY: number;
+    };
+    // (undocumented)
+    resize(handle: SelectionCorner | SelectionEdge | string, dx: number, dy: number): void;
+    // (undocumented)
+    scale(n: number): this;
+    // (undocumented)
+    set(x?: number, y?: number, w?: number, h?: number): this;
+    // (undocumented)
+    setTo(B: Box2d): this;
+    // (undocumented)
+    static Sides: (A: Box2d, inset?: number) => Vec2d[][];
+    // (undocumented)
+    get sides(): Array<[Vec2d, Vec2d]>;
+    // (undocumented)
+    get size(): Vec2d;
+    // (undocumented)
+    get snapPoints(): Vec2d[];
+    // (undocumented)
+    snapToGrid(size: number): void;
+    // (undocumented)
+    toFixed(): this;
+    // (undocumented)
+    toJson(): Box2dModel;
+    // (undocumented)
+    translate(delta: VecLike): this;
+    // (undocumented)
+    union(box: Box2dModel): this;
+    // (undocumented)
+    w: number;
+    // (undocumented)
+    get width(): number;
+    set width(n: number);
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
+// @internal (undocumented)
+export const CAMERA_SLIDE_FRICTION = 0.09;
+
+// @public (undocumented)
+export function canonicalizeRotation(a: number): number;
+
+// @public (undocumented)
 export const Canvas: React_2.MemoExoticComponent<() => JSX.Element>;
+
+// @public
+export function clamp(n: number, min: number): number;
+
+// @public
+export function clamp(n: number, min: number, max: number): number;
+
+// @public
+export function clampRadians(r: number): number;
 
 export { computed }
 
@@ -146,6 +273,17 @@ export function createTLUser(opts?: {
     userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
     setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
 }): TLUser;
+
+// @public (undocumented)
+export class CubicSpline2d extends BaseSpline2d<CubicSegment2dModel> {
+    constructor(points: VecLike[], k?: number, p?: number);
+    // (undocumented)
+    static FromPoints(points: Vec2d[]): CubicSpline2d;
+    // (undocumented)
+    getSegmentsFromPoints(points: VecLike[], k?: number, p?: number): CubicSegment2d[];
+    // (undocumented)
+    segments: CubicSegment2d[];
+}
 
 // @public (undocumented)
 export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
@@ -186,6 +324,9 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 // @internal (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
 
+// @public
+export function degreesToRadians(d: number): number;
+
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
 
@@ -194,6 +335,29 @@ export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
 
 // @internal (undocumented)
 export const DRAG_DISTANCE = 4;
+
+// @public (undocumented)
+export const EASINGS: {
+    readonly linear: (t: number) => number;
+    readonly easeInQuad: (t: number) => number;
+    readonly easeOutQuad: (t: number) => number;
+    readonly easeInOutQuad: (t: number) => number;
+    readonly easeInCubic: (t: number) => number;
+    readonly easeOutCubic: (t: number) => number;
+    readonly easeInOutCubic: (t: number) => number;
+    readonly easeInQuart: (t: number) => number;
+    readonly easeOutQuart: (t: number) => number;
+    readonly easeInOutQuart: (t: number) => number;
+    readonly easeInQuint: (t: number) => number;
+    readonly easeOutQuint: (t: number) => number;
+    readonly easeInOutQuint: (t: number) => number;
+    readonly easeInSine: (t: number) => number;
+    readonly easeOutSine: (t: number) => number;
+    readonly easeInOutSine: (t: number) => number;
+    readonly easeInExpo: (t: number) => number;
+    readonly easeOutExpo: (t: number) => number;
+    readonly easeInOutExpo: (t: number) => number;
+};
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
@@ -581,6 +745,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 export { EMPTY_ARRAY }
 
 // @public (undocumented)
+export const EPSILON: number;
+
+// @public (undocumented)
 export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_3.PropsWithChildren<TLErrorBoundaryProps>>, TLErrorBoundaryState> {
     // (undocumented)
     componentDidCatch(error: unknown): void;
@@ -622,6 +789,9 @@ export type GapsSnapLine = {
     }>;
 };
 
+// @public
+export function getArcLength(C: VecLike, r: number, A: VecLike, B: VecLike): number;
+
 // @public (undocumented)
 export function getArrowheadPathForType(info: ArrowInfo, side: 'end' | 'start', strokeWidth: number): string | undefined;
 
@@ -657,6 +827,12 @@ export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: 
     isPen: boolean;
 };
 
+// @public
+export function getPointOnCircle(cx: number, cy: number, r: number, a: number): Vec2d;
+
+// @public (undocumented)
+export function getPolygonVertices(width: number, height: number, sides: number): Vec2d[];
+
 // @internal (undocumented)
 export function getRotationSnapshot({ editor }: {
     editor: Editor;
@@ -671,6 +847,9 @@ export function getSolidCurvedArrowPath(info: ArrowInfo & {
 export function getSolidStraightArrowPath(info: ArrowInfo & {
     isStraight: true;
 }): string;
+
+// @public
+export const getStarBounds: (sides: number, w: number, h: number) => Box2d;
 
 // @public (undocumented)
 export function getStraightArrowHandlePath(info: ArrowInfo & {
@@ -694,10 +873,10 @@ export function getSvgAsImage(svg: SVGElement, options: {
 export function getSvgAsString(svg: SVGElement): string;
 
 // @public
-export function getSvgPathFromStroke(points: Vec2d[], closed?: boolean): string;
+export function getSvgPathFromStroke(points: VecLike[], closed?: boolean): string;
 
 // @public
-export function getSvgPathFromStrokePoints(points: StrokePoint[], closed?: boolean): string;
+export function getSweep(C: VecLike, A: VecLike, B: VecLike): number;
 
 // @public (undocumented)
 export function getTextBoundingBox(text: SVGTextElement): DOMRect;
@@ -741,9 +920,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     static type: "group";
 }
 
-// @internal (undocumented)
-export const HAND_TOOL_FRICTION = 0.09;
-
 // @public
 export function hardReset({ shouldReload }?: {
     shouldReload?: boolean | undefined;
@@ -761,6 +937,27 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 // @public (undocumented)
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
+// @public
+export function intersectLineSegmentPolygon(a1: VecLike, a2: VecLike, points: VecLike[]): null | VecLike[];
+
+// @public
+export function intersectLineSegmentPolyline(a1: VecLike, a2: VecLike, points: VecLike[]): null | VecLike[];
+
+// @public
+export function intersectPolygonPolygon(polygonA: VecLike[], polygonB: VecLike[]): null | VecLike[];
+
+// @public
+export function isAngleBetween(a: number, b: number, c: number): boolean;
+
+// @public
+export const isSafeFloat: (n: number) => boolean;
+
+// @public
+export function lerpAngles(a0: number, a1: number, t: number): number;
+
+// @public (undocumented)
+export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;
+
 // @public (undocumented)
 export function LoadingScreen({ children }: {
     children: any;
@@ -769,17 +966,110 @@ export function LoadingScreen({ children }: {
 // @public
 export function loadSessionStateSnapshotIntoStore(store: TLStore, snapshot: TLSessionStateSnapshot): void;
 
+// @public
+export function longAngleDist(a0: number, a1: number): number;
+
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
 
 // @internal (undocumented)
 export const MAJOR_NUDGE_FACTOR = 10;
 
-// @internal (undocumented)
-export const MAX_ASSET_HEIGHT = 1000;
+// @public (undocumented)
+export class Matrix2d {
+    constructor(a: number, b: number, c: number, d: number, e: number, f: number);
+    // (undocumented)
+    a: number;
+    // (undocumented)
+    static Absolute(m: MatLike): Matrix2dModel;
+    // (undocumented)
+    static applyToBounds(m: MatLike, box: Box2d): Box2d;
+    // (undocumented)
+    applyToPoint(point: VecLike): Vec2d;
+    // (undocumented)
+    static applyToPoint(m: MatLike, point: VecLike): Vec2d;
+    // (undocumented)
+    applyToPoints(points: VecLike[]): Vec2d[];
+    // (undocumented)
+    static applyToPoints(m: MatLike, points: VecLike[]): Vec2d[];
+    // (undocumented)
+    static applyToXY(m: MatLike, x: number, y: number): number[];
+    // (undocumented)
+    b: number;
+    // (undocumented)
+    c: number;
+    // (undocumented)
+    clone(): Matrix2d;
+    // (undocumented)
+    static Compose(...matrices: MatLike[]): Matrix2d;
+    // (undocumented)
+    d: number;
+    // (undocumented)
+    static Decompose(m: MatLike): MatrixInfo;
+    // (undocumented)
+    decompose(): MatrixInfo;
+    // (undocumented)
+    decomposed(): MatrixInfo;
+    // (undocumented)
+    e: number;
+    // (undocumented)
+    equals(m: Matrix2d | Matrix2dModel): boolean;
+    // (undocumented)
+    f: number;
+    // (undocumented)
+    static From(m: MatLike): Matrix2d;
+    // (undocumented)
+    static Identity(): Matrix2d;
+    // (undocumented)
+    identity(): this;
+    // (undocumented)
+    static Inverse(m: Matrix2dModel): Matrix2dModel;
+    // (undocumented)
+    invert(): this;
+    // (undocumented)
+    static Multiply(m1: Matrix2dModel, m2: Matrix2dModel): Matrix2dModel;
+    // (undocumented)
+    multiply(m: Matrix2d | Matrix2dModel): this;
+    // (undocumented)
+    static Rotate(r: number, cx?: number, cy?: number): Matrix2d;
+    // (undocumented)
+    rotate(r: number, cx?: number, cy?: number): Matrix2d;
+    // (undocumented)
+    static Scale: {
+        (x: number, y: number): Matrix2dModel;
+        (x: number, y: number, cx: number, cy: number): Matrix2dModel;
+    };
+    // (undocumented)
+    scale(x: number, y: number): this;
+    // (undocumented)
+    setTo(model: Matrix2dModel): this;
+    // (undocumented)
+    static Smooth(m: MatLike, precision?: number): MatLike;
+    // (undocumented)
+    toCssString(): string;
+    // (undocumented)
+    static toCssString(m: MatLike): string;
+    // (undocumented)
+    static Translate(x: number, y: number): Matrix2d;
+    // (undocumented)
+    translate(x: number, y: number): Matrix2d;
+}
 
-// @internal (undocumented)
-export const MAX_ASSET_WIDTH = 1000;
+// @public (undocumented)
+export interface Matrix2dModel {
+    // (undocumented)
+    a: number;
+    // (undocumented)
+    b: number;
+    // (undocumented)
+    c: number;
+    // (undocumented)
+    d: number;
+    // (undocumented)
+    e: number;
+    // (undocumented)
+    f: number;
+}
 
 // @internal (undocumented)
 export const MAX_PAGES = 40;
@@ -814,6 +1104,15 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
     fallback: TLErrorFallbackComponent;
 }): JSX.Element;
 
+// @public
+export function perimeterOfEllipse(rx: number, ry: number): number;
+
+// @public (undocumented)
+export const PI: number;
+
+// @public (undocumented)
+export const PI2: number;
+
 // @public (undocumented)
 export const png: {
     isPng: typeof isPng;
@@ -823,6 +1122,30 @@ export const png: {
     setPhysChunk: typeof setPhysChunk;
 };
 
+// @public
+export function pointInBounds(A: VecLike, b: Box2d): boolean;
+
+// @public
+export function pointInCircle(A: VecLike, C: VecLike, r: number): boolean;
+
+// @public
+export function pointInEllipse(A: VecLike, C: VecLike, rx: number, ry: number, rotation?: number): boolean;
+
+// @public
+export function pointInPolygon(A: VecLike, points: VecLike[]): boolean;
+
+// @public
+export function pointInPolyline(A: VecLike, points: VecLike[], distance?: number): boolean;
+
+// @public
+export function pointInRect(A: VecLike, point: VecLike, size: VecLike): boolean;
+
+// @public
+export function pointNearToLineSegment(A: VecLike, p1: VecLike, p2: VecLike, distance?: number): boolean;
+
+// @public
+export function pointNearToPolyline(A: VecLike, points: VecLike[], distance?: number): boolean;
+
 // @public (undocumented)
 export type PointsSnapLine = {
     id: string;
@@ -830,8 +1153,28 @@ export type PointsSnapLine = {
     points: VecLike[];
 };
 
+// @public (undocumented)
+export function polygonsIntersect(a: VecLike[], b: VecLike[]): boolean;
+
+// @public (undocumented)
+export class Polyline2d extends BaseSpline2d<LineSegment2dModel> {
+    constructor(points: VecLike[], k?: number, p?: number);
+    // (undocumented)
+    static FromPoints(points: VecLike[]): Polyline2d;
+    // (undocumented)
+    getSegmentsFromPoints(points: VecLike[], p?: number): LineSegment2d[];
+    // (undocumented)
+    segments: LineSegment2d[];
+}
+
 // @public
 export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;
+
+// @public
+export function radiansToDegrees(r: number): number;
+
+// @public
+export function rangeIntersection(a0: number, a1: number, b0: number, b1: number): [number, number] | null;
 
 export { react }
 
@@ -863,9 +1206,6 @@ export function refreshPage(): void;
 
 // @public (undocumented)
 export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
-
-// @internal (undocumented)
-export const REMOVE_SYMBOL: unique symbol;
 
 // @public (undocumented)
 export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
@@ -901,8 +1241,20 @@ export type ResizeBoxOptions = Partial<{
     maxHeight: number;
 }>;
 
-// @internal (undocumented)
-export const RICH_TYPES: Record<string, boolean>;
+// @public (undocumented)
+export const ROTATE_CORNER_TO_SELECTION_CORNER: {
+    readonly top_left_rotate: "top_left";
+    readonly top_right_rotate: "top_right";
+    readonly bottom_right_rotate: "bottom_right";
+    readonly bottom_left_rotate: "bottom_left";
+    readonly mobile_rotate: "top_left";
+};
+
+// @public (undocumented)
+export type RotateCorner = 'bottom_left_rotate' | 'bottom_right_rotate' | 'mobile_rotate' | 'top_left_rotate' | 'top_right_rotate';
+
+// @public (undocumented)
+export function rotateSelectionHandle(handle: SelectionHandle, rotation: number): SelectionHandle;
 
 // @public (undocumented)
 export const runtime: {
@@ -910,6 +1262,15 @@ export const runtime: {
     refreshPage: () => void;
     hardReset: () => void;
 };
+
+// @public (undocumented)
+export type SelectionCorner = 'bottom_left' | 'bottom_right' | 'top_left' | 'top_right';
+
+// @public (undocumented)
+export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
+
+// @public (undocumented)
+export type SelectionHandle = SelectionCorner | SelectionEdge;
 
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
@@ -1011,6 +1372,15 @@ export class SharedStyleMap extends ReadonlySharedStyleMap {
     // (undocumented)
     set<T>(prop: StyleProp<T>, value: SharedStyle<T>): void;
 }
+
+// @public
+export function shortAngleDist(a0: number, a1: number): number;
+
+// @public (undocumented)
+export const SIN: (x: number) => number;
+
+// @public
+export function snapAngle(r: number, segments: number): number;
 
 // @public (undocumented)
 export type SnapLine = GapsSnapLine | PointsSnapLine;
@@ -1181,6 +1551,9 @@ export interface SvgExportDef {
 
 // @public
 export const TAB_ID: string;
+
+// @public (undocumented)
+export const TAU: number;
 
 // @public (undocumented)
 export type TLAnimationOptions = Partial<{
@@ -1812,6 +2185,15 @@ export type TLWheelEventInfo = TLBaseEventInfo & {
     delta: Vec2dModel;
 };
 
+// @public
+export function toDomPrecision(v: number): number;
+
+// @public (undocumented)
+export function toFixed(v: number): number;
+
+// @public
+export function toPrecision(n: number, precision?: number): number;
+
 export { track }
 
 // @public (undocumented)
@@ -1865,6 +2247,218 @@ export function useTLStore(opts: TLStoreOptions): TLStore;
 export { useValue }
 
 // @public (undocumented)
+export class Vec2d {
+    constructor(x?: number, y?: number, z?: number);
+    // (undocumented)
+    static Abs(A: VecLike): Vec2d;
+    // (undocumented)
+    abs(): this;
+    // (undocumented)
+    static Add(A: VecLike, B: VecLike): Vec2d;
+    // (undocumented)
+    add(V: VecLike): this;
+    // (undocumented)
+    static AddScalar(A: VecLike, n: number): Vec2d;
+    // (undocumented)
+    addScalar(n: number): this;
+    // (undocumented)
+    static AddXY(A: VecLike, x: number, y: number): Vec2d;
+    // (undocumented)
+    addXY(x: number, y: number): this;
+    // (undocumented)
+    static Angle(A: VecLike, B: VecLike): number;
+    // (undocumented)
+    angle(B: VecLike): number;
+    // (undocumented)
+    static Average(arr: VecLike[]): Vec2d;
+    // (undocumented)
+    static Cast(A: VecLike): Vec2d;
+    // (undocumented)
+    static Clamp(A: Vec2d, min: number, max?: number): Vec2d;
+    // (undocumented)
+    clamp(min: number, max?: number): this;
+    // (undocumented)
+    static Clockwise(A: VecLike, B: VecLike, C: VecLike): boolean;
+    // (undocumented)
+    clone(): Vec2d;
+    // (undocumented)
+    static Cpr(A: VecLike, B: VecLike): number;
+    // (undocumented)
+    cpr(V: VecLike): number;
+    // (undocumented)
+    static Cross(A: VecLike, V: VecLike): Vec2d;
+    // (undocumented)
+    cross(V: VecLike): this;
+    // (undocumented)
+    static Dist(A: VecLike, B: VecLike): number;
+    // (undocumented)
+    dist(V: VecLike): number;
+    // (undocumented)
+    static Dist2(A: VecLike, B: VecLike): number;
+    // (undocumented)
+    static DistanceToLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp?: boolean): number;
+    // (undocumented)
+    distanceToLineSegment(A: VecLike, B: VecLike): number;
+    // (undocumented)
+    static DistanceToLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): number;
+    // (undocumented)
+    static Div(A: VecLike, t: number): Vec2d;
+    // (undocumented)
+    div(t: number): this;
+    // (undocumented)
+    static DivV(A: VecLike, B: VecLike): Vec2d;
+    // (undocumented)
+    divV(V: VecLike): this;
+    // (undocumented)
+    static Dpr(A: VecLike, B: VecLike): number;
+    // (undocumented)
+    dpr(V: VecLike): number;
+    // (undocumented)
+    static Equals(A: VecLike, B: VecLike): boolean;
+    // (undocumented)
+    equals(B: VecLike): boolean;
+    // (undocumented)
+    static EqualsXY(A: VecLike, x: number, y: number): boolean;
+    // (undocumented)
+    equalsXY(x: number, y: number): boolean;
+    // (undocumented)
+    static From({ x, y, z }: Vec2dModel): Vec2d;
+    // (undocumented)
+    static FromAngle(r: number, length?: number): Vec2d;
+    // (undocumented)
+    static FromArray(v: number[]): Vec2d;
+    // (undocumented)
+    static Len(A: VecLike): number;
+    // (undocumented)
+    len(): number;
+    // (undocumented)
+    static Len2(A: VecLike): number;
+    // (undocumented)
+    len2(): number;
+    // (undocumented)
+    static Lrp(A: VecLike, B: VecLike, t: number): Vec2d;
+    // (undocumented)
+    lrp(B: VecLike, t: number): Vec2d;
+    // (undocumented)
+    static Max(A: VecLike, B: VecLike): Vec2d;
+    // (undocumented)
+    static Med(A: VecLike, B: VecLike): Vec2d;
+    // (undocumented)
+    static Min(A: VecLike, B: VecLike): Vec2d;
+    // (undocumented)
+    static Mul(A: VecLike, t: number): Vec2d;
+    // (undocumented)
+    mul(t: number): this;
+    // (undocumented)
+    static MulV(A: VecLike, B: VecLike): Vec2d;
+    // (undocumented)
+    mulV(V: VecLike): this;
+    // (undocumented)
+    static NearestPointOnLineSegment(A: VecLike, B: VecLike, P: VecLike, clamp?: boolean): Vec2d;
+    static NearestPointOnLineThroughPoint(A: VecLike, u: VecLike, P: VecLike): Vec2d;
+    // (undocumented)
+    static Neg(A: VecLike): Vec2d;
+    // (undocumented)
+    neg(): this;
+    // (undocumented)
+    norm(): this;
+    // (undocumented)
+    static Nudge(A: VecLike, B: VecLike, distance: number): Vec2d;
+    // (undocumented)
+    nudge(B: VecLike, distance: number): this;
+    // (undocumented)
+    static Per(A: VecLike): Vec2d;
+    // (undocumented)
+    per(): this;
+    static PointsBetween(A: Vec2dModel, B: Vec2dModel, steps?: number): Vec2d[];
+    // (undocumented)
+    get pressure(): number;
+    // (undocumented)
+    static Pry(A: VecLike, B: VecLike): number;
+    // (undocumented)
+    pry(V: VecLike): number;
+    // (undocumented)
+    static Rescale(A: VecLike, n: number): Vec2d;
+    // (undocumented)
+    static Rot(A: VecLike, r?: number): Vec2d;
+    // (undocumented)
+    rot(r: number): this;
+    // (undocumented)
+    static RotWith(A: VecLike, C: VecLike, r: number): Vec2d;
+    // (undocumented)
+    rotWith(C: VecLike, r: number): this;
+    // (undocumented)
+    static ScaleWithOrigin(A: VecLike, scale: number, origin: VecLike): Vec2d;
+    // (undocumented)
+    set(x?: number, y?: number, z?: number): this;
+    // (undocumented)
+    setTo({ x, y, z }: VecLike): this;
+    // (undocumented)
+    static Slope(A: VecLike, B: VecLike): number;
+    // (undocumented)
+    slope(B: VecLike): number;
+    // (undocumented)
+    static Snap(A: VecLike, step?: number): Vec2d;
+    // (undocumented)
+    static SnapToGrid(A: VecLike, gridSize?: number): Vec2d;
+    // (undocumented)
+    snapToGrid(gridSize: number): this;
+    // (undocumented)
+    static Sub(A: VecLike, B: VecLike): Vec2d;
+    // (undocumented)
+    sub(V: VecLike): this;
+    // (undocumented)
+    static SubScalar(A: VecLike, n: number): Vec2d;
+    // (undocumented)
+    subScalar(n: number): this;
+    // (undocumented)
+    static SubXY(A: VecLike, x: number, y: number): Vec2d;
+    // (undocumented)
+    subXY(x: number, y: number): this;
+    // (undocumented)
+    static Tan(A: VecLike, B: VecLike): Vec2d;
+    // (undocumented)
+    tan(V: VecLike): Vec2d;
+    // (undocumented)
+    static ToAngle(A: VecLike): number;
+    // (undocumented)
+    toAngle(): number;
+    // (undocumented)
+    static ToArray(A: VecLike): number[];
+    // (undocumented)
+    toArray(): number[];
+    // (undocumented)
+    static ToFixed(A: VecLike, n?: number): Vec2d;
+    // (undocumented)
+    toFixed(): Vec2d;
+    // (undocumented)
+    static ToJson(A: VecLike): {
+        x: number;
+        y: number;
+        z: number | undefined;
+    };
+    // (undocumented)
+    toJson(): Vec2dModel;
+    // (undocumented)
+    static ToString(A: VecLike): string;
+    // (undocumented)
+    toString(): string;
+    // (undocumented)
+    static Uni(A: VecLike): Vec2d;
+    // (undocumented)
+    uni(): Vec2d;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+    // (undocumented)
+    z: number;
+}
+
+// @public (undocumented)
+export type VecLike = Vec2d | Vec2dModel;
+
+// @public (undocumented)
 export class WeakMapCache<T extends object, K> {
     // (undocumented)
     access(item: T): K | undefined;
@@ -1889,7 +2483,6 @@ export const ZOOMS: number[];
 
 
 export * from "@tldraw/indices";
-export * from "@tldraw/primitives";
 export * from "@tldraw/store";
 export * from "@tldraw/tlschema";
 export * from "@tldraw/utils";

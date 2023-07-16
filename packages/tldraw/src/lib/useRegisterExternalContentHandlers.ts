@@ -1,8 +1,6 @@
 import {
 	AssetRecordType,
 	Editor,
-	MAX_ASSET_HEIGHT,
-	MAX_ASSET_WIDTH,
 	TLAsset,
 	TLAssetId,
 	TLEmbedShape,
@@ -30,6 +28,11 @@ import {
 } from './utils/assets'
 import { getEmbedInfo } from './utils/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text'
+
+/** @internal */
+export const MAX_ASSET_WIDTH = 1000
+/** @internal */
+export const MAX_ASSET_HEIGHT = 1000
 
 export function useRegisterExternalContentHandlers() {
 	const editor = useEditor()

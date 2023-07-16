@@ -47,7 +47,6 @@
 	"dependencies": {
 		"@tldraw/indices": "workspace:*",
 		"@tldraw/polyfills": "workspace:*",
-		"@tldraw/primitives": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",

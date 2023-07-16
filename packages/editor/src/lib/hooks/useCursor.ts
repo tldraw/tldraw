@@ -1,6 +1,6 @@
-import { PI, radiansToDegrees } from '@tldraw/primitives'
 import { useQuickReactor } from '@tldraw/state'
 import { TLCursorType } from '@tldraw/tlschema'
+import { PI, radiansToDegrees } from '../primitives/utils'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 

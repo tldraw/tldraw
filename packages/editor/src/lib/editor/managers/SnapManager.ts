@@ -1,19 +1,17 @@
+import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
+import { TLGroupShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
+import { dedupe, deepCopy } from '@tldraw/utils'
 import {
 	Box2d,
 	flipSelectionHandleX,
 	flipSelectionHandleY,
 	isSelectionCorner,
-	Matrix2d,
-	rangeIntersection,
-	rangesOverlap,
 	SelectionCorner,
 	SelectionEdge,
-	Vec2d,
-	VecLike,
-} from '@tldraw/primitives'
-import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
-import { TLGroupShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
-import { dedupe, deepCopy } from '@tldraw/utils'
+} from '../../primitives/Box2d'
+import { Matrix2d } from '../../primitives/Matrix2d'
+import { rangeIntersection, rangesOverlap } from '../../primitives/utils'
+import { Vec2d, VecLike } from '../../primitives/Vec2d'
 import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 

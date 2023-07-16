@@ -1,8 +1,9 @@
-import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import { track } from '@tldraw/state'
 import * as React from 'react'
 import { TLPointerEventInfo } from '../editor/types/event-types'
 import { useEditor } from '../hooks/useEditor'
+import { Matrix2d } from '../primitives/Matrix2d'
+import { toDomPrecision } from '../primitives/utils'
 import { releasePointerCapture, setPointerCapture } from '../utils/dom'
 import { getPointerInfo } from '../utils/svg'
 

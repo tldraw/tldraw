@@ -1,10 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Box2d, linesIntersect, Vec2d, VecLike } from '@tldraw/primitives'
 import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
+import { Box2d } from '../../primitives/Box2d'
+import { Vec2d, VecLike } from '../../primitives/Vec2d'
+import { linesIntersect } from '../../primitives/intersect'
 import type { Editor } from '../Editor'
-import { TLResizeHandle } from '../types/selection-types'
 import { SvgExportContext } from '../types/SvgExportContext'
+import { TLResizeHandle } from '../types/selection-types'
 
 /** @public */
 export interface TLShapeUtilConstructor<

@@ -1,22 +1,20 @@
+import { TLArrowShape } from '@tldraw/tlschema'
+import { Box2d } from '../../../../primitives/Box2d'
+import { Matrix2d, Matrix2dModel } from '../../../../primitives/Matrix2d'
+import { Vec2d, VecLike } from '../../../../primitives/Vec2d'
 import {
-	Box2d,
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
-	Matrix2d,
-	Matrix2dModel,
-	Vec2d,
-	VecLike,
-} from '@tldraw/primitives'
-import { TLArrowShape } from '@tldraw/tlschema'
+} from '../../../../primitives/intersect'
 import { Editor } from '../../../Editor'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { ArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
+	MIN_ARROW_LENGTH,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
-	MIN_ARROW_LENGTH,
 } from './shared'
 
 export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): ArrowInfo {

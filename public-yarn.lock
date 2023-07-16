@@ -4625,7 +4625,6 @@ __metadata:
     "@testing-library/react": ^14.0.0
     "@tldraw/indices": "workspace:*"
     "@tldraw/polyfills": "workspace:*"
-    "@tldraw/primitives": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -4711,15 +4710,6 @@ __metadata:
   resolution: "@tldraw/polyfills@workspace:packages/polyfills"
   dependencies:
     core-js: ^3.27.2
-    lazyrepo: 0.0.0-alpha.27
-  languageName: unknown
-  linkType: soft
-
-"@tldraw/primitives@workspace:*, @tldraw/primitives@workspace:packages/primitives":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/primitives@workspace:packages/primitives"
-  dependencies:
-    "@tldraw/tlschema": "workspace:*"
     lazyrepo: 0.0.0-alpha.27
   languageName: unknown
   linkType: soft

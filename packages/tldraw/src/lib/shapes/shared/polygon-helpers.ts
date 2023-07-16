@@ -1,5 +1,4 @@
-import { Vec2d, VecLike } from './Vec2d'
-import { toDomPrecision } from './utils'
+import { Vec2d, VecLike, toDomPrecision } from '@tldraw/editor'
 
 function precise(A: VecLike) {
 	return `${toDomPrecision(A.x)},${toDomPrecision(A.y)} `

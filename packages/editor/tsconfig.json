@@ -11,7 +11,6 @@
 		"types": ["node", "@types/jest"]
 	},
 	"references": [
-		{ "path": "../primitives" },
 		{ "path": "../tlschema" },
 		{ "path": "../store" },
 		{ "path": "../validate" },

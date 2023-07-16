@@ -1,4 +1,4 @@
-import { Box2d } from '@tldraw/primitives'
+import { Box2d } from '../../../primitives/Box2d'
 import { getPerfectDashProps } from './getPerfectDashProps'
 
 export function DashedOutlineBox({

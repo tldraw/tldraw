@@ -13,20 +13,20 @@ import {
 	drawShapeMigrations,
 	drawShapeProps,
 	getDefaultColorTheme,
-	getStrokeOutlinePoints,
-	getStrokePoints,
 	getSvgPathFromStroke,
-	getSvgPathFromStrokePoints,
 	last,
 	linesIntersect,
 	pointInPolygon,
 	rng,
-	setStrokePointRadii,
 	toFixed,
 } from '@tldraw/editor'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
+import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
+import { getStrokePoints } from '../shared/freehand/getStrokePoints'
+import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
+import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getDrawShapeStrokeDashArray, getFreehandOptions, getPointsFromSegments } from './getPath'
 

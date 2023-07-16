@@ -1,5 +1,6 @@
-import { Matrix2d, Vec2d } from '@tldraw/primitives'
 import { TLArrowShape, TLArrowShapeTerminal, TLShape } from '@tldraw/tlschema'
+import { Matrix2d } from '../../../../primitives/Matrix2d'
+import { Vec2d } from '../../../../primitives/Vec2d'
 import { Editor } from '../../../Editor'
 
 export function getIsArrowStraight(shape: TLArrowShape) {

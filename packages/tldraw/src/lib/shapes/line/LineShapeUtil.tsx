@@ -13,7 +13,6 @@ import {
 	WeakMapCache,
 	deepCopy,
 	getDefaultColorTheme,
-	getDrawLinePathData,
 	getIndexBetween,
 	intersectLineSegmentPolyline,
 	lineShapeMigrations,
@@ -25,6 +24,7 @@ import {
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
+import { getDrawLinePathData } from '../shared/polygon-helpers'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getLineDrawPath, getLineIndicatorPath, getLinePoints } from './components/getLinePath'
 import { getLineSvg } from './components/getLineSvg'

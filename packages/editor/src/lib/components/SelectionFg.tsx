@@ -1,4 +1,3 @@
-import { RotateCorner, toDomPrecision } from '@tldraw/primitives'
 import { track } from '@tldraw/state'
 import { TLEmbedShape, TLTextShape } from '@tldraw/tlschema'
 import classNames from 'classnames'
@@ -7,6 +6,8 @@ import { getCursor } from '../hooks/useCursor'
 import { useEditor } from '../hooks/useEditor'
 import { useSelectionEvents } from '../hooks/useSelectionEvents'
 import { useTransform } from '../hooks/useTransform'
+import { RotateCorner } from '../primitives/Box2d'
+import { toDomPrecision } from '../primitives/utils'
 import { CropHandles } from './CropHandles'
 
 const IS_FIREFOX =

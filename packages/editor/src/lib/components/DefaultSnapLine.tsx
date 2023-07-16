@@ -1,4 +1,3 @@
-import { rangeIntersection } from '@tldraw/primitives'
 import classNames from 'classnames'
 import * as React from 'react'
 import {
@@ -6,6 +5,7 @@ import {
 	type PointsSnapLine,
 	type SnapLine,
 } from '../editor/managers/SnapManager'
+import { rangeIntersection } from '../primitives/utils'
 
 function PointsSnapLine({ points, zoom }: { zoom: number } & PointsSnapLine) {
 	const l = 2.5 / zoom
