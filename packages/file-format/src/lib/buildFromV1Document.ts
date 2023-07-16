@@ -629,7 +629,8 @@ async function tryMigrateAsset(editor: Editor, placeholderAsset: TLAsset) {
 			type: response.headers.get('content-type') ?? placeholderAsset.props.mimeType ?? undefined,
 		})
 
-		const newAsset = await editor.externalContentManager.createAssetFromFile(editor, file)
+		const newAsset = await editor.getAssetForExternalContent({ type: 'file', file })
+		if (!newAsset) throw new Error('Could not get asset for external content')
 		if (newAsset.type === 'bookmark') return
 
 		editor.updateAssets([

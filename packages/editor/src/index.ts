@@ -88,10 +88,6 @@ export {
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
 export {
-	ExternalContentManager as PlopManager,
-	type TLExternalContent,
-} from './lib/editor/managers/ExternalContentManager'
-export {
 	SnapManager,
 	type GapsSnapLine,
 	type PointsSnapLine,
@@ -176,6 +172,10 @@ export {
 	type UiEvent,
 	type UiEventType,
 } from './lib/editor/types/event-types'
+export {
+	type TLExternalAssetContent,
+	type TLExternalContent,
+} from './lib/editor/types/external-content'
 export {
 	type TLCommand,
 	type TLCommandHandler,

@@ -26,6 +26,7 @@ import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	Box2dModel,
 	CameraRecordType,
+	EmbedDefinition,
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
@@ -116,7 +117,6 @@ import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager'
-import { ExternalContentManager, TLExternalContent } from './managers/ExternalContentManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -7852,8 +7852,107 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* --------------------- Content -------------------- */
 
-	/** @public */
-	externalContentManager = new ExternalContentManager(this)
+	/** @internal */
+	private _externalAssetContentHandlers: {
+		[K in TLExternalAssetContent['type']]: {
+			[Key in K]:
+				| null
+				| ((info: TLExternalAssetContent & { type: Key }) => Promise<TLAsset | undefined>)
+		}[K]
+	} = {
+		file: null,
+		url: null,
+	}
+
+	/**
+	 * Register an external content handler. This handler will be called when the editor receives
+	 * external content of the provided type. For example, the 'image' type handler will be called
+	 * when a user drops an image onto the canvas.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerExternalAssetHandler('text', (info) => { ... }))
+	 * ```
+	 *
+	 * @param type - The type of external content.
+	 * @param handler - The handler to use for this content type.
+	 *
+	 * @public
+	 */
+	registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(
+		type: T,
+		handler: null | ((info: TLExternalAssetContent & { type: T }) => Promise<TLAsset>)
+	): this {
+		this._externalAssetContentHandlers[type] = handler as any
+		return this
+	}
+
+	/**
+	 * Get an asset for an external asset content type.
+	 *
+	 * @example
+	 * ```ts
+	 * const asset = await editor.getAssetForExternalContent({ type: 'file', file: myFile })
+	 * const asset = await editor.getAssetForExternalContent({ type: 'url', url: myUrl })
+	 * ```
+	 *
+	 * @param info - Info about the external content.
+	 * @returns The asset.
+	 */
+	async getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined> {
+		return await this._externalAssetContentHandlers[info.type]?.(info as any)
+	}
+
+	/** @internal */
+	private _externalContentHandlers: {
+		[K in TLExternalContent['type']]: {
+			[Key in K]: null | ((info: TLExternalContent & { type: Key }) => void)
+		}[K]
+	} = {
+		text: null,
+		files: null,
+		embed: null,
+		'svg-text': null,
+		url: null,
+	}
+
+	/**
+	 * Register an external content handler. This handler will be called when the editor receives
+	 * external content of the provided type. For example, the 'image' type handler will be called
+	 * when a user drops an image onto the canvas.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.registerExternalContentHandler('text', (info) => { ... }))
+	 * ```
+	 *
+	 * @param type - The type of external content.
+	 * @param handler - The handler to use for this content type.
+	 *
+	 * @public
+	 */
+	registerExternalContentHandler<T extends TLExternalContent['type']>(
+		type: T,
+		handler:
+			| null
+			| ((
+					info: T extends TLExternalContent['type']
+						? TLExternalContent & { type: T }
+						: TLExternalContent
+			  ) => void)
+	): this {
+		this._externalContentHandlers[type] = handler as any
+		return this
+	}
+
+	/**
+	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
+	 *
+	 * @param info - Info about the external content.
+	 */
+	async putExternalContent(info: TLExternalContent): Promise<void> {
+		return this._externalContentHandlers[info.type]?.(info as any)
+	}
 
 	/**
 	 * Get content that can be exported for the given shape ids.
@@ -8207,7 +8306,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						asset.props.mimeType ?? 'image/png'
 					)
 
-					const newAsset = await this.externalContentManager.createAssetFromFile(this, file)
+					const newAsset = await this.getAssetForExternalContent({ type: 'file', file })
+
+					if (!newAsset) {
+						return null
+					}
 
 					return [asset, newAsset] as const
 				})
@@ -8215,7 +8318,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.updateAssets(
 					compact(
 						assets.map((result) =>
-							result.status === 'fulfilled'
+							result.status === 'fulfilled' && result.value
 								? { ...result.value[1], id: result.value[0].id }
 								: undefined
 						)
@@ -8328,15 +8431,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
 			}
 		})
-	}
-
-	/**
-	 * Handle external content, such as files, urls, embeds, or plain text which has been put into the app, for example by pasting external text or dropping external images onto canvas.
-	 *
-	 * @param info - Info about the external content.
-	 */
-	async putExternalContent(info: TLExternalContent): Promise<void> {
-		this.externalContentManager.handleContent(info)
 	}
 
 	/**
@@ -9256,3 +9350,36 @@ function alertMaxShapes(editor: Editor, pageId = editor.currentPageId) {
 	const name = editor.getPageById(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
 }
+
+/** @public */
+export type TLExternalContent =
+	| {
+			type: 'text'
+			point?: VecLike
+			text: string
+	  }
+	| {
+			type: 'files'
+			files: File[]
+			point?: VecLike
+			ignoreParent: boolean
+	  }
+	| {
+			type: 'url'
+			url: string
+			point?: VecLike
+	  }
+	| {
+			type: 'svg-text'
+			text: string
+			point?: VecLike
+	  }
+	| {
+			type: 'embed'
+			url: string
+			point?: VecLike
+			embed: EmbedDefinition
+	  }
+
+/** @public */
+export type TLExternalAssetContent = { type: 'file'; file: File } | { type: 'url'; url: string }

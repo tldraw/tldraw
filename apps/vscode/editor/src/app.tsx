@@ -125,7 +125,9 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
 	const handleMount = useCallback((editor: Editor) => {
-		editor.externalContentManager.createAssetFromUrl = onCreateAssetFromUrl
+		editor.registerExternalAssetHandler('url', async (info) => {
+			return await onCreateAssetFromUrl(editor, info.url)
+		})
 	}, [])
 
 	return (

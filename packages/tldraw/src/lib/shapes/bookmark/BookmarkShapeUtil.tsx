@@ -173,7 +173,7 @@ const createBookmarkAssetOnUrlChange = debounce(async (editor: Editor, shape: TL
 
 	// Create the asset using the external content manager's createAssetFromUrl method.
 	// This may be overwritten by the user (for example, we overwrite it on tldraw.com)
-	const asset = await editor.externalContentManager.createAssetFromUrl(editor, url)
+	const asset = await editor.getAssetForExternalContent({ type: 'url', url })
 
 	if (!asset) {
 		// No asset? Just leave the bookmark as a null assetId.

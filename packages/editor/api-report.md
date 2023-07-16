@@ -302,8 +302,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get editingShape(): null | TLUnknownShape;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
-    // (undocumented)
-    externalContentManager: PlopManager;
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -321,6 +319,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAssetById(id: TLAssetId): TLAsset | undefined;
     getAssetBySrc(src: string): TLBookmarkAsset | TLImageAsset | TLVideoAsset | undefined;
+    getAssetForExternalContent(info: TLExternalAssetContent_2): Promise<TLAsset | undefined>;
     getBounds<T extends TLShape>(shape: T): Box2d;
     getBoundsById<T extends TLShape>(id: T['id']): Box2d | undefined;
     getClipPathById(id: TLShapeId): string | undefined;
@@ -462,8 +461,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         preserveIds?: boolean;
     }): this;
-    putExternalContent(info: TLExternalContent): Promise<void>;
+    putExternalContent(info: TLExternalContent_2): Promise<void>;
     redo(): this;
+    registerExternalAssetHandler<T extends TLExternalAssetContent_2['type']>(type: T, handler: ((info: TLExternalAssetContent_2 & {
+        type: T;
+    }) => Promise<TLAsset>) | null): this;
+    registerExternalContentHandler<T extends TLExternalContent_2['type']>(type: T, handler: ((info: T extends TLExternalContent_2['type'] ? TLExternalContent_2 & {
+        type: T;
+    } : TLExternalContent_2) => void) | null): this;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingBounds(): Box2d;
     // @internal (undocumented)
@@ -1267,34 +1272,6 @@ export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLE
 }): JSX.Element;
 
 // @public (undocumented)
-export class PlopManager {
-    constructor(editor: Editor);
-    createAssetFromFile(_editor: Editor, file: File): Promise<TLAsset>;
-    createAssetFromUrl(_editor: Editor, url: string): Promise<TLAsset>;
-    // (undocumented)
-    createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike): Promise<void>;
-    // (undocumented)
-    editor: Editor;
-    // (undocumented)
-    handleContent: (info: TLExternalContent) => Promise<void>;
-    handleEmbed(editor: Editor, { point, url, embed }: Extract<TLExternalContent, {
-        type: 'embed';
-    }>): Promise<void>;
-    handleFiles(editor: Editor, { point, files }: Extract<TLExternalContent, {
-        type: 'files';
-    }>): Promise<void>;
-    handleSvgText(editor: Editor, { point, text }: Extract<TLExternalContent, {
-        type: 'svg-text';
-    }>): Promise<void>;
-    handleText(editor: Editor, { point, text }: Extract<TLExternalContent, {
-        type: 'text';
-    }>): Promise<void>;
-    handleUrl: (editor: Editor, { point, url }: Extract<TLExternalContent, {
-        type: 'url';
-    }>) => Promise<void>;
-}
-
-// @public (undocumented)
 export type PointsSnapLine = {
     id: string;
     type: 'points';
@@ -1953,6 +1930,15 @@ export type TLExitEventHandler = (info: any, to: string) => void;
 
 // @public (undocumented)
 export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
+
+// @public (undocumented)
+export type TLExternalAssetContent = {
+    type: 'file';
+    file: File;
+} | {
+    type: 'url';
+    url: string;
+};
 
 // @public (undocumented)
 export type TLExternalContent = {

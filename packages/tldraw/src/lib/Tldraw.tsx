@@ -39,6 +39,9 @@ function Hacks() {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {
+		// Register external content handlers
+
+		// Set z to trigger the zoom tool
 		editor.root.onKeyDown = (info) => {
 			switch (info.code) {
 				case 'KeyZ': {
