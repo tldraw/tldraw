@@ -92,6 +92,9 @@ export function areAnglesCompatible(a: number, b: number): boolean;
 export { atom }
 
 // @public (undocumented)
+export function average(A: VecLike, B: VecLike): string;
+
+// @public (undocumented)
 export abstract class BaseBoxShapeTool extends StateNode {
     // (undocumented)
     static children: () => (typeof Idle | typeof Pointing)[];
@@ -1166,6 +1169,9 @@ export class Polyline2d extends BaseSpline2d<LineSegment2dModel> {
     // (undocumented)
     segments: LineSegment2d[];
 }
+
+// @public (undocumented)
+export function precise(A: VecLike): string;
 
 // @public
 export function preventDefault(event: Event | React_2.BaseSyntheticEvent): void;

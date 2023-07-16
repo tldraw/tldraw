@@ -1,10 +1,12 @@
 import { Box2d } from './Box2d'
 import { Vec2d, VecLike } from './Vec2d'
 
+/** @public */
 export function precise(A: VecLike) {
 	return `${toDomPrecision(A.x)},${toDomPrecision(A.y)} `
 }
 
+/** @public */
 export function average(A: VecLike, B: VecLike) {
 	return `${toDomPrecision((A.x + B.x) / 2)},${toDomPrecision((A.y + B.y) / 2)} `
 }

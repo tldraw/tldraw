@@ -1,4 +1,4 @@
-import { Vec2d, VecLike } from '@tldraw/editor/src/lib/primitives/Vec2d'
+import { Vec2d, VecLike } from '@tldraw/editor'
 import { getStrokeOutlinePoints } from './getStrokeOutlinePoints'
 import { getStrokePoints } from './getStrokePoints'
 import { setStrokePointRadii } from './setStrokePointRadii'

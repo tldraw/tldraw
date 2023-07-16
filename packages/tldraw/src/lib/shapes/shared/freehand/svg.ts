@@ -1,4 +1,4 @@
-import { average, precise } from '@tldraw/editor/src/lib/primitives/utils'
+import { average, precise } from '@tldraw/editor'
 import { StrokePoint } from './types'
 
 /**
