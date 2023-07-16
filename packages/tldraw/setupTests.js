@@ -16,3 +16,8 @@ document.fonts = {
 }
 
 global.matchMedia = () => false
+
+Object.defineProperty(global.URL, 'createObjectURL', {
+	writable: true,
+	value: jest.fn(),
+})

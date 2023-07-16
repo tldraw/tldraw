@@ -12,6 +12,7 @@ import {
 } from '@tldraw/editor'
 import { noop } from '@tldraw/utils'
 import { defaultTools } from '../lib/defaultTools'
+import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 
 let originalFetch: typeof window.fetch
 beforeEach(() => {
@@ -39,7 +40,7 @@ function checkAllShapes(editor: Editor, shapes: string[]) {
 describe('<TldrawEditor />', () => {
 	it('Renders without crashing', async () => {
 		render(
-			<TldrawEditor tools={defaultTools} autoFocus>
+			<TldrawEditor tools={defaultTools} autoFocus initialState="select">
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -53,6 +54,7 @@ describe('<TldrawEditor />', () => {
 				onMount={(e) => {
 					editor = e
 				}}
+				initialState="select"
 				tools={defaultTools}
 				autoFocus
 			>
@@ -69,6 +71,7 @@ describe('<TldrawEditor />', () => {
 			<TldrawEditor
 				shapeUtils={[]}
 				tools={defaultTools}
+				initialState="select"
 				onMount={(e) => {
 					editor = e
 				}}
@@ -89,6 +92,7 @@ describe('<TldrawEditor />', () => {
 			<TldrawEditor
 				store={store}
 				tools={defaultTools}
+				initialState="select"
 				onMount={(editor) => {
 					expect(editor.store).toBe(store)
 				}}
@@ -145,7 +149,13 @@ describe('<TldrawEditor />', () => {
 		const initialStore = createTLStore({ shapeUtils: [] })
 		const onMount = jest.fn()
 		const rendered = render(
-			<TldrawEditor tools={defaultTools} store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				initialState="select"
+				tools={defaultTools}
+				store={initialStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
 		)
@@ -155,7 +165,13 @@ describe('<TldrawEditor />', () => {
 		expect(initialEditor.store).toBe(initialStore)
 		// re-render with the same store:
 		rendered.rerender(
-			<TldrawEditor tools={defaultTools} store={initialStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				store={initialStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
 		)
@@ -165,7 +181,13 @@ describe('<TldrawEditor />', () => {
 		// re-render with a new store:
 		const newStore = createTLStore({ shapeUtils: [] })
 		rendered.rerender(
-			<TldrawEditor tools={defaultTools} store={newStore} onMount={onMount} autoFocus>
+			<TldrawEditor
+				tools={defaultTools}
+				initialState="select"
+				store={newStore}
+				onMount={onMount}
+				autoFocus
+			>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)
@@ -177,18 +199,21 @@ describe('<TldrawEditor />', () => {
 
 	it('Renders the canvas and shapes', async () => {
 		let editor = {} as Editor
-		render(
-			<TldrawEditor
-				shapeUtils={[]}
-				tools={defaultTools}
-				autoFocus
-				onMount={(editorApp) => {
-					editor = editorApp
-				}}
-			>
-				<Canvas />
-				<div data-testid="canvas-1" />
-			</TldrawEditor>
+		await act(async () =>
+			render(
+				<TldrawEditor
+					shapeUtils={[GeoShapeUtil]}
+					initialState="select"
+					tools={defaultTools}
+					autoFocus
+					onMount={(editorApp) => {
+						editor = editorApp
+					}}
+				>
+					<Canvas />
+					<div data-testid="canvas-1" />
+				</TldrawEditor>
+			)
 		)
 		await screen.findByTestId('canvas-1')
 
