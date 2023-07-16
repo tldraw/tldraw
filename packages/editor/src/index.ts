@@ -1,8 +1,6 @@
 // Important! don't move this tlschema re-export to lib/index.ts, doing so causes esbuild to produce
 // incorrect output. https://github.com/evanw/esbuild/issues/1737
 
-// eslint-disable-next-line local/no-export-star
-export * from '@tldraw/indices'
 export {
 	EMPTY_ARRAY,
 	atom,
@@ -283,6 +281,16 @@ export {
 } from './lib/utils/export'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { hardResetEditor } from './lib/utils/hard-reset'
+export {
+	getIndexAbove,
+	getIndexBelow,
+	getIndexBetween,
+	getIndices,
+	getIndicesAbove,
+	getIndicesBelow,
+	getIndicesBetween,
+	sortByIndex,
+} from './lib/utils/indices/reordering'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { png } from './lib/utils/png'
 export { refreshPage } from './lib/utils/refresh-page'

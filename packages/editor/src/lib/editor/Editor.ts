@@ -1,12 +1,3 @@
-import {
-	getIndexAbove,
-	getIndexBetween,
-	getIndices,
-	getIndicesAbove,
-	getIndicesBetween,
-	sortByIndex,
-} from '@tldraw/indices'
-
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
@@ -102,6 +93,14 @@ import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/Sh
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName } from '../utils/getIncrementedName'
+import {
+	getIndexAbove,
+	getIndexBetween,
+	getIndices,
+	getIndicesAbove,
+	getIndicesBetween,
+	sortByIndex,
+} from '../utils/indices/reordering'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'

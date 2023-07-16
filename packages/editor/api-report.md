@@ -815,6 +815,27 @@ export function getFreshUserPreferences(): TLUserPreferences;
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
+// @public
+export function getIndexAbove(below: string): string;
+
+// @public
+export function getIndexBelow(above: string): string;
+
+// @public
+export function getIndexBetween(below: string, above?: string): string;
+
+// @public
+export function getIndices(n: number, start?: string): string[];
+
+// @public
+export function getIndicesAbove(below: string, n: number): string[];
+
+// @public
+export function getIndicesBelow(above: string, n: number): string[];
+
+// @public
+export function getIndicesBetween(below: string | undefined, above: string | undefined, n: number): string[];
+
 // @internal (undocumented)
 export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: HTMLElement): {
     point: {
@@ -1452,6 +1473,11 @@ export interface SnapPoint {
     // (undocumented)
     y: number;
 }
+
+// @public
+export function sortByIndex<T extends {
+    index: string;
+}>(a: T, b: T): -1 | 0 | 1;
 
 // @public (undocumented)
 export abstract class StateNode implements Partial<TLEventHandlers> {
@@ -2494,7 +2520,6 @@ export { whyAmIRunning }
 export const ZOOMS: number[];
 
 
-export * from "@tldraw/indices";
 export * from "@tldraw/store";
 export * from "@tldraw/tlschema";
 export * from "@tldraw/utils";
