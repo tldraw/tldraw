@@ -62,6 +62,7 @@ const CURSORS: Record<TLCursorType, (r: number, f: boolean, color: string) => st
 	'zoom-out': (r, f, c) => getCursorCss(ZOOM_OUT_SVG, r, 0, f, c),
 }
 
+/** @public */
 export function getCursor(cursor: TLCursorType, rotation = 0, color = 'black') {
 	return CURSORS[cursor](radiansToDegrees(rotation), false, color)
 }

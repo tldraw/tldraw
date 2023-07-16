@@ -37,7 +37,6 @@ import { TLDefaultSizeStyle } from '@tldraw/editor';
 import { TldrawEditorProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
-import { TLEditorAssetUrls } from '@tldraw/editor';
 import { TLEnterEventHandler } from '@tldraw/editor';
 import { TLEventHandlers } from '@tldraw/editor';
 import { TLExitEventHandler } from '@tldraw/editor';
@@ -325,7 +324,9 @@ function Title({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
-export function Tldraw(props: TldrawEditorProps & TldrawUiProps): JSX.Element;
+export function Tldraw(props: TldrawEditorProps & TldrawUiProps & {
+    assetUrls?: RecursivePartial<TLEditorAssetUrls>;
+}): JSX.Element;
 
 // @public (undocumented)
 export const TLDRAW_FILE_EXTENSION: ".tldr";

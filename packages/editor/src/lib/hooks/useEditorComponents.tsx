@@ -11,6 +11,10 @@ import { DefaultGrid, TLGridComponent } from '../components/DefaultGrid'
 import { DefaultHandle, TLHandleComponent } from '../components/DefaultHandle'
 import { DefaultScribble, TLScribbleComponent } from '../components/DefaultScribble'
 import {
+	DefaultSelectionForeground,
+	TLSelectionForegroundComponent,
+} from '../components/DefaultSelectionForeground'
+import {
 	DefaultShapeErrorFallback,
 	TLShapeErrorFallbackComponent,
 } from '../components/DefaultShapeErrorFallback'
@@ -43,6 +47,7 @@ export interface TLEditorComponents {
 	ShapeErrorFallback: TLShapeErrorFallbackComponent
 	ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent
 	Spinner: TLSpinnerComponent | null
+	SelectionForeground: TLSelectionForegroundComponent | null
 }
 
 export const EditorComponentsContext = createContext({} as TLEditorComponents)
@@ -74,6 +79,7 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 				ShapeErrorFallback: DefaultShapeErrorFallback,
 				ShapeIndicatorErrorFallback: DefaultShapeIndicatorErrorFallback,
 				Spinner: DefaultSpinner,
+				SelectionForeground: DefaultSelectionForeground,
 				...overrides,
 			}}
 		>

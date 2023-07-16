@@ -17,11 +17,12 @@ import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
 import { JsonObject } from '@tldraw/utils';
+import { MemoExoticComponent } from 'react';
 import { Migrations } from '@tldraw/store';
+import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
-import { RecursivePartial } from '@tldraw/utils';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -37,6 +38,7 @@ import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
 import { TLCursor } from '@tldraw/tlschema';
+import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
@@ -301,9 +303,6 @@ export const DEFAULT_ANIMATION_OPTIONS: {
     duration: number;
     easing: (t: number) => number;
 };
-
-// @public (undocumented)
-export let defaultEditorAssetUrls: TLEditorAssetUrls;
 
 // @internal (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
@@ -794,6 +793,9 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
     end: Vec2d;
 };
 
+// @public (undocumented)
+export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
+
 // @public
 export function getCurvedArrowHandlePath(info: ArrowInfo & {
     isStraight: false;
@@ -1259,9 +1261,6 @@ export type SelectionEdge = 'bottom' | 'left' | 'right' | 'top';
 // @public (undocumented)
 export type SelectionHandle = SelectionCorner | SelectionEdge;
 
-// @internal (undocumented)
-export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
-
 // @public (undocumented)
 export function setPointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
@@ -1644,7 +1643,6 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
 export interface TldrawEditorBaseProps {
-    assetUrls?: RecursivePartial<TLEditorAssetUrls>;
     autoFocus?: boolean;
     children?: any;
     components?: Partial<TLEditorComponents>;
@@ -1664,16 +1662,6 @@ export type TldrawEditorProps = TldrawEditorBaseProps & ({
     sessionId?: string;
     defaultName?: string;
 });
-
-// @public (undocumented)
-export type TLEditorAssetUrls = {
-    fonts: {
-        monospace: string;
-        serif: string;
-        sansSerif: string;
-        draw: string;
-    };
-};
 
 // @public (undocumented)
 export interface TLEditorComponents {
@@ -1701,6 +1689,8 @@ export interface TLEditorComponents {
     Handle: null | TLHandleComponent;
     // (undocumented)
     Scribble: null | TLScribbleComponent;
+    // (undocumented)
+    SelectionForeground: null | TLSelectionForegroundComponent;
     // (undocumented)
     ShapeErrorFallback: TLShapeErrorFallbackComponent;
     // (undocumented)
@@ -2237,7 +2227,17 @@ export const USER_COLORS: readonly ["#FF802B", "#EC5E41", "#F2555A", "#F04F88", 
 export { useReactor }
 
 // @public (undocumented)
+export function useSelectionEvents(handle: TLSelectionHandle): {
+    onPointerDown: PointerEventHandler<Element>;
+    onPointerMove: (e: React.PointerEvent) => void;
+    onPointerUp: PointerEventHandler<Element>;
+};
+
+// @public (undocumented)
 export function useTLStore(opts: TLStoreOptions): TLStore;
+
+// @public (undocumented)
+export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
 
 export { useValue }
 

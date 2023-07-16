@@ -1,6 +1,7 @@
 import { useLayoutEffect } from 'react'
 import { VecLike } from '../primitives/Vec2d'
 
+/** @public */
 export function useTransform(
 	ref: React.RefObject<HTMLElement | SVGElement>,
 	x?: number,

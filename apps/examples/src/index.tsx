@@ -1,10 +1,6 @@
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
-import {
-	DefaultErrorFallback,
-	ErrorBoundary,
-	setDefaultEditorAssetUrls,
-	setDefaultUiAssetUrls,
-} from '@tldraw/tldraw'
+import { DefaultErrorFallback, ErrorBoundary, setDefaultUiAssetUrls } from '@tldraw/tldraw'
+import { setDefaultEditorAssetUrls } from '@tldraw/tldraw/src/lib/utils/assetUrls'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'

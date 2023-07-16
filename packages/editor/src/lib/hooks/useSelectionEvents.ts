@@ -4,6 +4,7 @@ import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
+/** @public */
 export function useSelectionEvents(handle: TLSelectionHandle) {
 	const editor = useEditor()
 

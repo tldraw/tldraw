@@ -16,7 +16,6 @@ import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
 import { SelectionBg } from './SelectionBg'
-import { SelectionFg } from './SelectionFg'
 import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
 
@@ -111,7 +110,7 @@ export const Canvas = track(function Canvas() {
 					<HoveredShapeIndicator />
 					<HintedShapeIndicator />
 					<SnapLinesWrapper />
-					<SelectionFg />
+					<SelectionFgWrapper />
 					<LiveCollaborators />
 				</div>
 			</div>
@@ -433,3 +432,9 @@ const UiLogger = track(() => {
 		</div>
 	)
 })
+
+export function SelectionFgWrapper() {
+	const { SelectionForeground } = useEditorComponents()
+	if (!SelectionForeground) return null
+	return <SelectionForeground />
+}

@@ -1,14 +1,33 @@
-import { Canvas, TldrawEditor, TldrawEditorProps, useEditor } from '@tldraw/editor'
+import {
+	Canvas,
+	ErrorScreen,
+	LoadingScreen,
+	RecursivePartial,
+	TldrawEditor,
+	TldrawEditorProps,
+	useEditor,
+} from '@tldraw/editor'
 import { useLayoutEffect, useMemo } from 'react'
 import { TldrawScribble } from './canvas/TldrawScribble'
+import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
+import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './utils/assetUrls'
+import { usePreloadAssets } from './utils/usePreloadAssets'
 
 /** @public */
-export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
+export function Tldraw(
+	props: TldrawEditorProps &
+		TldrawUiProps & {
+			/**
+			 * Urls for the editor to find fonts and other assets.
+			 */
+			assetUrls?: RecursivePartial<TLEditorAssetUrls>
+		}
+) {
 	const { children, ...rest } = props
 
 	const withDefaults: TldrawEditorProps = {
@@ -17,6 +36,7 @@ export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
 		components: useMemo(
 			() => ({
 				Scribble: TldrawScribble,
+				SelectionForeground: TldrawSelectionForeground,
 				...rest.components,
 			}),
 			[rest.components]
@@ -29,6 +49,18 @@ export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {
 			() => [...defaultTools, ...defaultShapeTools, ...(rest.tools ?? [])],
 			[rest.tools]
 		),
+	}
+
+	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
+
+	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
+
+	if (preloadingError) {
+		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
+	}
+
+	if (!preloadingComplete) {
+		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
 
 	return (

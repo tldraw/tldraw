@@ -1,6 +1,5 @@
-import { RecursivePartial } from '@tldraw/utils'
-import { useMemo } from 'react'
-import { version } from '../version'
+import { RecursivePartial } from '@tldraw/editor'
+import { useMemo, version } from 'react'
 
 /** @public */
 export type TLEditorAssetUrls = {

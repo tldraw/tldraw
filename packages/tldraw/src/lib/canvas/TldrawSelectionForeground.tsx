@@ -1,13 +1,16 @@
-import { track } from '@tldraw/state'
-import { TLEmbedShape, TLTextShape } from '@tldraw/tlschema'
+import {
+	RotateCorner,
+	TLEmbedShape,
+	TLTextShape,
+	getCursor,
+	toDomPrecision,
+	track,
+	useEditor,
+	useSelectionEvents,
+	useTransform,
+} from '@tldraw/editor'
 import classNames from 'classnames'
 import { useRef } from 'react'
-import { getCursor } from '../hooks/useCursor'
-import { useEditor } from '../hooks/useEditor'
-import { useSelectionEvents } from '../hooks/useSelectionEvents'
-import { useTransform } from '../hooks/useTransform'
-import { RotateCorner } from '../primitives/Box2d'
-import { toDomPrecision } from '../primitives/utils'
 import { CropHandles } from './CropHandles'
 
 const IS_FIREFOX =
@@ -15,7 +18,7 @@ const IS_FIREFOX =
 	navigator.userAgent &&
 	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
-export const SelectionFg = track(function SelectionFg() {
+export const TldrawSelectionForeground = track(function SelectionFg() {
 	const editor = useEditor()
 	const rSvg = useRef<SVGSVGElement>(null)
 

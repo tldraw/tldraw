@@ -33,11 +33,6 @@ export {
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
-export {
-	defaultEditorAssetUrls,
-	setDefaultEditorAssetUrls,
-	type TLEditorAssetUrls,
-} from './lib/assetUrls'
 export { Canvas } from './lib/components/Canvas'
 export { DefaultErrorFallback } from './lib/components/DefaultErrorFallback'
 export {
@@ -187,6 +182,7 @@ export {
 export { type RequiredKeys } from './lib/editor/types/misc-types'
 export { type TLResizeHandle, type TLSelectionHandle } from './lib/editor/types/selection-types'
 export { useContainer } from './lib/hooks/useContainer'
+export { getCursor } from './lib/hooks/useCursor'
 export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useIsCropping } from './lib/hooks/useIsCropping'
@@ -194,7 +190,9 @@ export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'
+export { useSelectionEvents } from './lib/hooks/useSelectionEvents'
 export { useTLStore } from './lib/hooks/useTLStore'
+export { useTransform } from './lib/hooks/useTransform'
 export {
 	Box2d,
 	ROTATE_CORNER_TO_SELECTION_CORNER,

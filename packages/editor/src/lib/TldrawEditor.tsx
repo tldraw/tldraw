@@ -1,6 +1,6 @@
 import { SerializedStore, Store } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
-import { RecursivePartial, Required, annotateError } from '@tldraw/utils'
+import { Required, annotateError } from '@tldraw/utils'
 import React, {
 	memo,
 	useCallback,
@@ -10,7 +10,6 @@ import React, {
 	useSyncExternalStore,
 } from 'react'
 
-import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './assetUrls'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLUser, createTLUser } from './config/createTLUser'
@@ -29,7 +28,6 @@ import {
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
-import { usePreloadAssets } from './hooks/usePreloadAssets'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
@@ -73,11 +71,6 @@ export interface TldrawEditorBaseProps {
 	 * An array of tools to add to the editor's state chart.
 	 */
 	tools?: readonly TLStateNodeConstructor[]
-
-	/**
-	 * Urls for the editor to find fonts and other assets.
-	 */
-	assetUrls?: RecursivePartial<TLEditorAssetUrls>
 
 	/**
 	 * Whether to automatically focus the editor when it mounts.
@@ -236,7 +229,6 @@ function TldrawEditorWithReadyStore({
 	shapeUtils,
 	autoFocus,
 	user,
-	assetUrls,
 	initialState,
 }: Required<
 	TldrawEditorProps & {
@@ -297,17 +289,6 @@ function TldrawEditorWithReadyStore({
 		),
 		() => editor?.crashingError ?? null
 	)
-
-	const assets = useDefaultEditorAssetsWithOverrides(assetUrls)
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-
-	if (preloadingError) {
-		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
-	}
-
-	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
-	}
 
 	if (!editor) {
 		return null
