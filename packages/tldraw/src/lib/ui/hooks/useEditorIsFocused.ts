@@ -1,5 +1,4 @@
-import { useEditor } from '@tldraw/editor'
-import { useValue } from '@tldraw/state'
+import { useEditor, useValue } from '@tldraw/editor'
 
 export function useEditorIsFocused() {
 	const editor = useEditor()

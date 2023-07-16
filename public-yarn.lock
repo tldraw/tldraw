@@ -4624,7 +4624,6 @@ __metadata:
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^14.0.0
     "@tldraw/indices": "workspace:*"
-    "@tldraw/polyfills": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -4640,6 +4639,7 @@ __metadata:
     benchmark: ^2.1.4
     canvas-size: ^1.2.6
     classnames: ^2.3.2
+    core-js: ^3.31.1
     escape-string-regexp: ^5.0.0
     eventemitter3: ^4.0.7
     fake-indexeddb: ^4.0.0
@@ -4702,15 +4702,6 @@ __metadata:
     tsx: ^3.12.2
     typescript: ^5.0.2
     vercel: ^28.16.15
-  languageName: unknown
-  linkType: soft
-
-"@tldraw/polyfills@workspace:*, @tldraw/polyfills@workspace:packages/polyfills":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/polyfills@workspace:packages/polyfills"
-  dependencies:
-    core-js: ^3.27.2
-    lazyrepo: 0.0.0-alpha.27
   languageName: unknown
   linkType: soft
 
@@ -7557,10 +7548,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"core-js@npm:^3.27.2":
-  version: 3.30.1
-  resolution: "core-js@npm:3.30.1"
-  checksum: 6d4a00b488694d4c715c424e15dfef31433ac7aa395c39c518a0cfacec918ada1c716fed74682033197e0164e23bbf38bfd598ee9a239c4aaa590ab1ba862ac8
+"core-js@npm:^3.31.1":
+  version: 3.31.1
+  resolution: "core-js@npm:3.31.1"
+  checksum: 14519213a63c55cf188bdd2f4dece54583feaf6b90e75d6c65e07f509cd487055bf64898aeda7c97c36029ac1ea2f2ed8e4b02281553f6a257e7143a32a14015
   languageName: node
   linkType: hard
 

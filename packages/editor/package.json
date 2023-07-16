@@ -46,7 +46,6 @@
 	},
 	"dependencies": {
 		"@tldraw/indices": "workspace:*",
-		"@tldraw/polyfills": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
@@ -56,6 +55,7 @@
 		"@use-gesture/react": "^10.2.27",
 		"canvas-size": "^1.2.6",
 		"classnames": "^2.3.2",
+		"core-js": "^3.31.1",
 		"escape-string-regexp": "^5.0.0",
 		"eventemitter3": "^4.0.7",
 		"idb": "^7.1.1",

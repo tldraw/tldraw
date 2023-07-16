@@ -302,5 +302,9 @@ export { hardReset } from './lib/utils/sync/hardReset'
 export { uniqueId } from './lib/utils/uniqueId'
 export { openWindow } from './lib/utils/window-open'
 
-/** @internal */
-import '@tldraw/polyfills'
+/** @polyfills */
+import 'core-js/stable/array/at'
+import 'core-js/stable/array/flat'
+import 'core-js/stable/array/flat-map'
+import 'core-js/stable/string/at'
+import 'core-js/stable/string/replace-all'

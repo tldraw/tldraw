@@ -1,5 +1,11 @@
-import { Editor, TLArrowShape, assert, exhaustiveSwitchError, useEditor } from '@tldraw/editor'
-import { useValue } from '@tldraw/state'
+import {
+	Editor,
+	TLArrowShape,
+	assert,
+	exhaustiveSwitchError,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import { TLUiActionItem } from './useActions'
 import { TLUiToolItem } from './useTools'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'

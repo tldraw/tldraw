@@ -1,13 +1,5 @@
-import { VecLike, toDomPrecision } from '@tldraw/editor'
+import { average, precise } from '@tldraw/editor/src/lib/primitives/utils'
 import { StrokePoint } from './types'
-
-function precise(A: VecLike) {
-	return `${toDomPrecision(A.x)},${toDomPrecision(A.y)} `
-}
-
-function average(A: VecLike, B: VecLike) {
-	return `${toDomPrecision((A.x + B.x) / 2)},${toDomPrecision((A.y + B.y) / 2)} `
-}
 
 /**
  * Turn an array of stroke points into a path of quadradic curves.

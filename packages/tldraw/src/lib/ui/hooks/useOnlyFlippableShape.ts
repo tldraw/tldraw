@@ -1,5 +1,11 @@
-import { TLArrowShape, TLDrawShape, TLGroupShape, TLLineShape, useEditor } from '@tldraw/editor'
-import { useValue } from '@tldraw/state'
+import {
+	TLArrowShape,
+	TLDrawShape,
+	TLGroupShape,
+	TLLineShape,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 
 export function useOnlyFlippableShape() {
 	const editor = useEditor()
