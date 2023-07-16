@@ -6,6 +6,8 @@ import { average, precise } from '../primitives/utils'
  *
  * @param points - The points returned from perfect-freehand
  * @param closed - Whether the stroke is closed
+ *
+ * @public
  */
 export function getSvgPathFromPoints(points: VecLike[], closed = true): string {
 	const len = points.length

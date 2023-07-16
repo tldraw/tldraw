@@ -4623,7 +4623,6 @@ __metadata:
     "@peculiar/webcrypto": ^1.4.0
     "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^14.0.0
-    "@tldraw/indices": "workspace:*"
     "@tldraw/state": "workspace:*"
     "@tldraw/store": "workspace:*"
     "@tldraw/tlschema": "workspace:*"
@@ -4659,14 +4658,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@tldraw/indices@workspace:*, @tldraw/indices@workspace:packages/indices":
-  version: 0.0.0-use.local
-  resolution: "@tldraw/indices@workspace:packages/indices"
-  dependencies:
-    lazyrepo: 0.0.0-alpha.27
-  languageName: unknown
-  linkType: soft
-
 "@tldraw/monorepo@workspace:.":
   version: 0.0.0-use.local
   resolution: "@tldraw/monorepo@workspace:."
@@ -4699,6 +4690,7 @@ __metadata:
     prettier: ^2.8.6
     prettier-plugin-organize-imports: ^3.2.2
     rimraf: ^4.4.0
+    svgo: ^3.0.2
     tsx: ^3.12.2
     typescript: ^5.0.2
     vercel: ^28.16.15
@@ -16871,7 +16863,6 @@ __metadata:
   resolution: "tldraw-vscode@workspace:apps/vscode/extension"
   dependencies:
     "@tldraw/editor": "workspace:*"
-    "@tldraw/store": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
     "@types/fs-extra": ^11.0.1
     "@types/node-fetch": ^2.6.2

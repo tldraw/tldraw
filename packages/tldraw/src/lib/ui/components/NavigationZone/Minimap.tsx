@@ -4,6 +4,7 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	Vec2d,
+	getPointerInfo,
 	intersectPolygonPolygon,
 	normalizeWheel,
 	track,
@@ -126,7 +127,7 @@ export const Minimap = track(function Minimap({
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_move',
-				...getPointerInfo(e),
+				...getPointerInfo(e, editor.getContainer()),
 				point: screenPoint,
 				isPen: editor.isPenMode,
 			}
@@ -243,21 +244,3 @@ export const Minimap = track(function Minimap({
 		</div>
 	)
 })
-
-function getPointerInfo(e: React.PointerEvent | PointerEvent) {
-	;(e as any).isKilled = true
-
-	return {
-		point: {
-			x: e.clientX,
-			y: e.clientY,
-			z: e.pressure,
-		},
-		shiftKey: e.shiftKey,
-		altKey: e.altKey,
-		ctrlKey: e.metaKey || e.ctrlKey,
-		pointerId: e.pointerId,
-		button: e.button,
-		isPen: e.pointerType === 'pen',
-	}
-}

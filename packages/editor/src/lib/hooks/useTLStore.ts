@@ -4,6 +4,7 @@ import { TLStoreOptions, createTLStore } from '../config/createTLStore'
 /** @public */
 export function useTLStore(opts: TLStoreOptions) {
 	const [store, setStore] = useState(() => createTLStore(opts))
+	// prev
 	const ref = useRef(opts)
 	useEffect(() => void (ref.current = opts))
 

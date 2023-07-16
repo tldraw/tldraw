@@ -123,9 +123,6 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 }
 
 // @public (undocumented)
-export function blobAsString(blob: Blob): Promise<string>;
-
-// @public (undocumented)
 export class Box2d {
     constructor(x?: number, y?: number, w?: number, h?: number);
     // (undocumented)
@@ -261,9 +258,6 @@ export { computed }
 // @public (undocumented)
 export const coreShapes: readonly [typeof GroupShapeUtil];
 
-// @public (undocumented)
-export function correctSpacesToNbsp(input: string): string;
-
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
@@ -287,9 +281,6 @@ export class CubicSpline2d extends BaseSpline2d<CubicSegment2dModel> {
     // (undocumented)
     segments: CubicSegment2d[];
 }
-
-// @public (undocumented)
-export function dataTransferItemAsString(item: DataTransferItem): Promise<string>;
 
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
@@ -320,9 +311,6 @@ export const DEFAULT_ANIMATION_OPTIONS: {
 
 // @public (undocumented)
 export let defaultEditorAssetUrls: TLEditorAssetUrls;
-
-// @public (undocumented)
-export function defaultEmptyAs(str: string, dflt: string): string;
 
 // @internal (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
@@ -836,7 +824,7 @@ export function getIndicesBelow(above: string, n: number): string[];
 // @public
 export function getIndicesBetween(below: string | undefined, above: string | undefined, n: number): string[];
 
-// @internal (undocumented)
+// @public (undocumented)
 export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: HTMLElement): {
     point: {
         x: number;
@@ -897,7 +885,7 @@ export function getSvgAsImage(svg: SVGElement, options: {
 export function getSvgAsString(svg: SVGElement): string;
 
 // @public
-export function getSvgPathFromStroke(points: VecLike[], closed?: boolean): string;
+export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
 
 // @public
 export function getSweep(C: VecLike, A: VecLike, B: VecLike): number;

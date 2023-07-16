@@ -1,3 +1,4 @@
+/** @public */
 export function getPointerInfo(e: React.PointerEvent | PointerEvent, container: HTMLElement) {
 	;(e as any).isKilled = true
 
