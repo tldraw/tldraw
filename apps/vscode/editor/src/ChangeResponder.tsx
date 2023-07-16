@@ -1,10 +1,10 @@
 import {
+	debounce,
 	parseAndLoadDocument,
 	serializeTldrawJson,
 	useDefaultHelpers,
 	useEditor,
 } from '@tldraw/tldraw'
-import { debounce } from '@tldraw/utils'
 import React from 'react'
 // @ts-ignore
 import type { VscodeMessage } from '../../messages'

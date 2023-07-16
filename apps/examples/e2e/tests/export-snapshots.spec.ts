@@ -1,6 +1,5 @@
 import test, { Page, expect } from '@playwright/test'
-import { Editor, TLShapeId, TLShapePartial } from '@tldraw/tldraw'
-import { assert } from '@tldraw/utils'
+import { Editor, TLShapeId, TLShapePartial, assert } from '@tldraw/tldraw'
 import { rename, writeFile } from 'fs/promises'
 import { setupPage } from '../shared-e2e'
 

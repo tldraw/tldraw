@@ -79,7 +79,6 @@ import {
 	structuredClone,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
-import { nanoid } from 'nanoid'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -8615,7 +8614,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						// Create a clip path and add it to defs
 						const clipPathEl = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath')
 						defs.appendChild(clipPathEl)
-						const id = nanoid()
+						const id = uniqueId()
 						clipPathEl.id = id
 
 						// Create a polyline mask that does the clipping

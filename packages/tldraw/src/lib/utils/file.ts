@@ -16,7 +16,8 @@ import {
 	exhaustiveSwitchError,
 } from '@tldraw/editor'
 import { T } from '@tldraw/validate'
-import { TLUiToastsContextType, TLUiTranslationKey } from '../ui'
+import { TLUiToastsContextType } from '../ui/hooks/useToastsProvider'
+import { TLUiTranslationKey } from '../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from './buildFromV1Document'
 
 /** @public */

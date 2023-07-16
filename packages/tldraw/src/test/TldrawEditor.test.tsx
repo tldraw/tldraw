@@ -62,7 +62,7 @@ describe('<TldrawEditor />', () => {
 			</TldrawEditor>
 		)
 		await screen.findByTestId('canvas-1')
-		checkAllShapes(editor!, ['group', 'image', 'video'])
+		checkAllShapes(editor!, ['group'])
 	})
 
 	it('Can be created with default shapes', async () => {
@@ -83,7 +83,7 @@ describe('<TldrawEditor />', () => {
 		await screen.findByTestId('canvas-1')
 		expect(editor!).toBeTruthy()
 
-		checkAllShapes(editor!, ['group', 'image', 'video'])
+		checkAllShapes(editor!, ['group'])
 	})
 
 	it('Renders with an external store', async () => {
@@ -344,7 +344,7 @@ describe('Custom shapes', () => {
 		})
 
 		expect(editor.shapeUtils.card).toBeTruthy()
-		checkAllShapes(editor, ['group', 'image', 'video', 'card'])
+		checkAllShapes(editor, ['group', 'card'])
 
 		const id = createShapeId()
 

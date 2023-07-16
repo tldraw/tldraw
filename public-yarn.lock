@@ -4650,7 +4650,7 @@ __metadata:
     lazyrepo: 0.0.0-alpha.27
     lodash.throttle: ^4.1.1
     lodash.uniq: ^4.5.0
-    nanoid: 4.0.2
+    nanoid: ^3.3.6
     react-test-renderer: ^18.2.0
     resize-observer-polyfill: ^1.5.1
   peerDependencies:
@@ -4773,7 +4773,7 @@ __metadata:
     "@types/lodash.isequal": ^4.5.6
     lazyrepo: 0.0.0-alpha.27
     lodash.isequal: ^4.5.0
-    nanoid: 4.0.2
+    nanoid: ^3.3.6
     raf: ^3.4.1
   languageName: unknown
   linkType: soft
@@ -4826,7 +4826,7 @@ __metadata:
     "@tldraw/validate": "workspace:*"
     kleur: ^4.1.5
     lazyrepo: 0.0.0-alpha.27
-    nanoid: 4.0.2
+    nanoid: ^3.3.6
   languageName: unknown
   linkType: soft
 
@@ -4852,9 +4852,7 @@ __metadata:
   resolution: "@tldraw/vscode-editor@workspace:apps/vscode/editor"
   dependencies:
     "@tldraw/assets": "workspace:*"
-    "@tldraw/editor": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
-    "@tldraw/utils": "workspace:*"
     "@types/fs-extra": ^11.0.1
     "@types/node": ^17.0.14
     "@types/react": ^18.0.24
@@ -4866,7 +4864,6 @@ __metadata:
     esbuild: ^0.18.3
     fs-extra: ^11.1.0
     lazyrepo: 0.0.0-alpha.27
-    nanoid: 4.0.2
     react: ^18.2.0
     react-dom: ^18.2.0
     tslib: ^2.4.0
@@ -9486,10 +9483,7 @@ __metadata:
     "@babel/plugin-proposal-decorators": ^7.21.0
     "@playwright/test": ^1.35.1
     "@tldraw/assets": "workspace:*"
-    "@tldraw/state": "workspace:*"
     "@tldraw/tldraw": "workspace:*"
-    "@tldraw/utils": "workspace:*"
-    "@tldraw/validate": "workspace:*"
     "@vercel/analytics": ^1.0.1
     concurrently: ^8.1.0
     dotenv: ^16.0.3
@@ -13794,15 +13788,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"nanoid@npm:4.0.2":
-  version: 4.0.2
-  resolution: "nanoid@npm:4.0.2"
-  bin:
-    nanoid: bin/nanoid.js
-  checksum: 747c399cea4664dd0be1d0ec498ffd1ef8f1f5221676fc8b577e3f46f66d9afcddb9595d63d19a2e78d0bc6cc33984f65e66bf1682c850b9e26288883d96b53f
-  languageName: node
-  linkType: hard
-
 "nanoid@npm:^3.3.6":
   version: 3.3.6
   resolution: "nanoid@npm:3.3.6"
@@ -16923,7 +16908,6 @@ __metadata:
     lazyrepo: 0.0.0-alpha.27
     lodash: ^4.17.21
     mocha: ^9.1.1
-    nanoid: 4.0.2
     node-fetch: ^2.0.0
     process: ^0.11.10
     ts-loader: ^9.2.5
