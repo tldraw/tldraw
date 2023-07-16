@@ -7,8 +7,9 @@ import {
 	TLScribble,
 	TLShape,
 	TLShapeId,
+	intersectLineSegmentPolyline,
+	pointInPolygon,
 } from '@tldraw/editor'
-import { intersectLineSegmentPolyline, pointInPolygon } from '@tldraw/primitives'
 import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
 
 export class ScribbleBrushing extends StateNode {

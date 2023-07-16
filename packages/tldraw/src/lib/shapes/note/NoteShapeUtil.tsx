@@ -1,15 +1,17 @@
 import {
+	Box2d,
 	DefaultFontFamilies,
 	Editor,
 	ShapeUtil,
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
+	Vec2d,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
+	toDomPrecision,
 } from '@tldraw/editor'
-import { Box2d, Vec2d, toDomPrecision } from '@tldraw/primitives'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { TextLabel } from '../shared/TextLabel'

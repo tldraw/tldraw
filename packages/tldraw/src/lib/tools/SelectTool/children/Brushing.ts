@@ -1,4 +1,6 @@
 import {
+	Box2d,
+	Matrix2d,
 	ShapeUtil,
 	StateNode,
 	TLCancelEvent,
@@ -11,15 +13,11 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
-} from '@tldraw/editor'
-import {
-	Box2d,
-	Matrix2d,
 	Vec2d,
 	VecLike,
 	pointInPolygon,
 	polygonsIntersect,
-} from '@tldraw/primitives'
+} from '@tldraw/editor'
 
 export class Brushing extends StateNode {
 	static override id = 'brushing'

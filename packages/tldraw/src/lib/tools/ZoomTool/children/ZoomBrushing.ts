@@ -1,5 +1,4 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
-import { Box2d } from '@tldraw/primitives'
+import { Box2d, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
 
 export class ZoomBrushing extends StateNode {
 	static override id = 'zoom_brushing'

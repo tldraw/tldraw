@@ -1,6 +1,6 @@
 {
 	"extends": "../../config/tsconfig.base.json",
-	"include": ["src"],
+	"include": ["src", "../editor/src/lib/utils/assets.test.ts"],
 	"exclude": ["node_modules", "dist", "**/*.css", ".tsbuild*", "./scripts/legacy-translations"],
 	"compilerOptions": {
 		"outDir": "./.tsbuild",
@@ -8,10 +8,5 @@
 		"noImplicitReturns": false,
 		"rootDir": "src"
 	},
-	"references": [
-		{ "path": "../editor" },
-		{ "path": "../ui" },
-		{ "path": "../utils" },
-		{ "path": "../primitives" }
-	]
+	"references": [{ "path": "../editor" }, { "path": "../validate" }]
 }

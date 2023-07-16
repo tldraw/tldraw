@@ -1,5 +1,11 @@
-import { TLShapeId, useEditor, useIsEditing } from '@tldraw/editor'
-import { SelectionEdge, canonicalizeRotation, toDomPrecision } from '@tldraw/primitives'
+import {
+	SelectionEdge,
+	TLShapeId,
+	canonicalizeRotation,
+	toDomPrecision,
+	useEditor,
+	useIsEditing,
+} from '@tldraw/editor'
 import { useEffect, useRef } from 'react'
 import { FrameLabelInput } from './FrameLabelInput'
 

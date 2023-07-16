@@ -1,16 +1,18 @@
 import {
+	Matrix2d,
 	StateNode,
 	TLEventHandlers,
 	TLHandle,
 	TLInterruptEvent,
 	TLLineShape,
 	TLShapeId,
+	Vec2d,
 	createShapeId,
 	getIndexAbove,
+	last,
 	sortByIndex,
+	structuredClone,
 } from '@tldraw/editor'
-import { Matrix2d, Vec2d } from '@tldraw/primitives'
-import { last, structuredClone } from '@tldraw/utils'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

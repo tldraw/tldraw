@@ -1,5 +1,4 @@
-import { StateNode, TLClickEvent } from '@tldraw/editor'
-import { EASINGS } from '@tldraw/primitives'
+import { EASINGS, StateNode, TLClickEvent } from '@tldraw/editor'
 import { Dragging } from './children/Dragging'
 import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'

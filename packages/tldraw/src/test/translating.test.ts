@@ -5,9 +5,9 @@ import {
 	TLArrowShape,
 	TLShapeId,
 	TLShapePartial,
+	Vec2d,
 	createShapeId,
 } from '@tldraw/editor'
-import { Vec2d } from '@tldraw/primitives'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 

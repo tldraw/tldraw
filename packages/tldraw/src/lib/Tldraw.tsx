@@ -1,9 +1,10 @@
 import { Canvas, TldrawEditor, TldrawEditorProps, useEditor } from '@tldraw/editor'
-import { ContextMenu, TldrawUi, TldrawUiProps } from '@tldraw/ui'
 import { useLayoutEffect, useMemo } from 'react'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { defaultTools } from './defaultTools'
+import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
+import { ContextMenu } from './ui/components/ContextMenu'
 
 /** @public */
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps) {

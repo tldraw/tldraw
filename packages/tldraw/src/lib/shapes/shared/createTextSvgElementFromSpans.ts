@@ -1,11 +1,11 @@
 import {
+	Box2d,
 	Box2dModel,
 	Editor,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
 	correctSpacesToNbsp,
 } from '@tldraw/editor'
-import { Box2d } from '@tldraw/primitives'
 
 /** Get an SVG element for a text shape. */
 export function createTextSvgElementFromSpans(

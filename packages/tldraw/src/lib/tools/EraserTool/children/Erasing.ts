@@ -6,8 +6,8 @@ import {
 	TLPointerEventInfo,
 	TLScribble,
 	TLShapeId,
+	pointInPolygon,
 } from '@tldraw/editor'
-import { pointInPolygon } from '@tldraw/primitives'
 import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
 
 export class Erasing extends StateNode {

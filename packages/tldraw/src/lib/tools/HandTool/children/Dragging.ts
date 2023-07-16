@@ -1,5 +1,4 @@
-import { HAND_TOOL_FRICTION, StateNode, TLEventHandlers } from '@tldraw/editor'
-import { Vec2d } from '@tldraw/primitives'
+import { HAND_TOOL_FRICTION, StateNode, TLEventHandlers, Vec2d } from '@tldraw/editor'
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'

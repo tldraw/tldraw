@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	Box2d,
 	SVGContainer,
 	ShapeUtil,
 	SvgExportContext,
@@ -7,25 +8,22 @@ import {
 	TLDrawShapeSegment,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
+	Vec2d,
+	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
 	getDefaultColorTheme,
-	getSvgPathFromStroke,
-	getSvgPathFromStrokePoints,
-	rng,
-} from '@tldraw/editor'
-import {
-	Box2d,
-	Vec2d,
-	VecLike,
 	getStrokeOutlinePoints,
 	getStrokePoints,
+	getSvgPathFromStroke,
+	getSvgPathFromStrokePoints,
+	last,
 	linesIntersect,
 	pointInPolygon,
+	rng,
 	setStrokePointRadii,
 	toFixed,
-} from '@tldraw/primitives'
-import { last } from '@tldraw/utils'
+} from '@tldraw/editor'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'

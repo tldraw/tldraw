@@ -1,12 +1,15 @@
-import { parseAndLoadDocument, serializeTldrawJson } from '@tldraw/file-format'
+import {
+	parseAndLoadDocument,
+	serializeTldrawJson,
+	useDefaultHelpers,
+	useEditor,
+} from '@tldraw/tldraw'
 import { debounce } from '@tldraw/utils'
 import React from 'react'
+// @ts-ignore
+import type { VscodeMessage } from '../../messages'
 import '../public/index.css'
 import { vscode } from './utils/vscode'
-
-// @ts-ignore
-import { useDefaultHelpers, useEditor } from '@tldraw/tldraw'
-import type { VscodeMessage } from '../../messages'
 
 export const ChangeResponder = () => {
 	const editor = useEditor()

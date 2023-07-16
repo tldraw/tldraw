@@ -1,4 +1,5 @@
 import {
+	Box2d,
 	GroupShapeUtil,
 	TLArrowShape,
 	TLGroupShape,
@@ -6,11 +7,13 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
+	VecLike,
+	approximately,
+	assert,
+	compact,
 	createShapeId,
 	sortByIndex,
 } from '@tldraw/editor'
-import { Box2d, VecLike, approximately } from '@tldraw/primitives'
-import { assert, compact } from '@tldraw/utils'
 import { EraserTool } from '../lib/tools/EraserTool/EraserTool'
 import { TestEditor } from './TestEditor'
 

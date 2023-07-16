@@ -1,32 +1,31 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
+	Box2d,
 	DefaultFontFamilies,
 	Editor,
+	PI,
+	PI2,
 	SVGContainer,
 	SvgExportContext,
+	TAU,
 	TLDefaultDashStyle,
 	TLGeoShape,
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
+	Vec2d,
+	VecLike,
 	geoShapeMigrations,
 	geoShapeProps,
 	getDefaultColorTheme,
-} from '@tldraw/editor'
-import {
-	Box2d,
-	PI,
-	PI2,
-	TAU,
-	Vec2d,
-	VecLike,
 	getPolygonVertices,
 	getRoundedInkyPolygonPath,
 	getRoundedPolygonPoints,
 	linesIntersect,
 	pointInPolygon,
-} from '@tldraw/primitives'
+} from '@tldraw/editor'
+
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import {

@@ -1,4 +1,4 @@
-import { Vec2d } from '@tldraw/primitives'
+import { Vec2d } from '@tldraw/editor'
 
 export const ROTATING_BOX_SHADOWS = [
 	{

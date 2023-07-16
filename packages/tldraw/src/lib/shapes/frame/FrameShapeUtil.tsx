@@ -1,18 +1,20 @@
 import {
 	BaseBoxShapeUtil,
 	SVGContainer,
+	SelectionEdge,
 	TLFrameShape,
 	TLGroupShape,
 	TLOnResizeEndHandler,
 	TLShape,
 	TLShapeId,
+	canonicalizeRotation,
 	defaultEmptyAs,
 	frameShapeMigrations,
 	frameShapeProps,
 	getDefaultColorTheme,
+	last,
+	toDomPrecision,
 } from '@tldraw/editor'
-import { SelectionEdge, canonicalizeRotation, toDomPrecision } from '@tldraw/primitives'
-import { last } from '@tldraw/utils'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FrameHeading } from './components/FrameHeading'

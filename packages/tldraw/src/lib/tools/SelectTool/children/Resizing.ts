@@ -1,5 +1,11 @@
 import {
+	Matrix2d,
+	PI,
+	PI2,
+	SelectionCorner,
+	SelectionEdge,
 	StateNode,
+	TAU,
 	TLEnterEventHandler,
 	TLEventHandlers,
 	TLFrameShape,
@@ -7,18 +13,10 @@ import {
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-} from '@tldraw/editor'
-import {
-	Matrix2d,
-	PI,
-	PI2,
-	SelectionCorner,
-	SelectionEdge,
-	TAU,
 	Vec2d,
 	VecLike,
 	areAnglesCompatible,
-} from '@tldraw/primitives'
+} from '@tldraw/editor'
 
 type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'

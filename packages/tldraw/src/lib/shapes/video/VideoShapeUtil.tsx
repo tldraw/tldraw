@@ -2,13 +2,13 @@ import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
 	TLVideoShape,
+	toDomPrecision,
 	track,
 	useIsEditing,
 	usePrefersReducedMotion,
 	videoShapeMigrations,
 	videoShapeProps,
 } from '@tldraw/editor'
-import { toDomPrecision } from '@tldraw/primitives'
 import React from 'react'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 

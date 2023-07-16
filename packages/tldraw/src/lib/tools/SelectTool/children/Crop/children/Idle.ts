@@ -1,5 +1,4 @@
-import { StateNode, TLEventHandlers, TLExitEventHandler } from '@tldraw/editor'
-import { Vec2d } from '@tldraw/primitives'
+import { StateNode, TLEventHandlers, TLExitEventHandler, Vec2d } from '@tldraw/editor'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {

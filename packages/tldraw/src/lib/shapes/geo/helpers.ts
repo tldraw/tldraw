@@ -1,4 +1,4 @@
-import { perimeterOfEllipse } from '@tldraw/primitives'
+import { perimeterOfEllipse } from '@tldraw/editor'
 
 export function getOvalSolidPath(w: number, h: number) {
 	if (h > w) {

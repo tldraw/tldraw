@@ -1,18 +1,23 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	Box2d,
 	SVGContainer,
 	ShapeUtil,
 	TLDefaultColorTheme,
 	TLDrawShapeSegment,
 	TLHighlightShape,
 	TLOnResizeHandler,
+	Vec2d,
+	VecLike,
 	getDefaultColorTheme,
+	getStrokePoints,
 	getSvgPathFromStrokePoints,
 	highlightShapeMigrations,
 	highlightShapeProps,
+	last,
+	linesIntersect,
+	rng,
 } from '@tldraw/editor'
-import { Box2d, Vec2d, VecLike, getStrokePoints, linesIntersect } from '@tldraw/primitives'
-import { last, rng } from '@tldraw/utils'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { FONT_SIZES } from '../shared/default-shape-constants'

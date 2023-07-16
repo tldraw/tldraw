@@ -53,9 +53,6 @@ const perPackageExceptions: Record<string, Record<string, () => string | undefin
 	'@tldraw/tlsync-worker': {
 		test: () => 'lazy inherit --passWithNoTests',
 	},
-	'@tldraw/ui': {
-		test: () => 'lazy inherit --passWithNoTests',
-	},
 	'@tldraw/assets': {
 		test: () => undefined,
 		build: () => undefined,

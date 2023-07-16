@@ -1,5 +1,4 @@
-import { TLLineShape } from '@tldraw/editor'
-import { assert } from '@tldraw/utils'
+import { TLLineShape, assert } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor

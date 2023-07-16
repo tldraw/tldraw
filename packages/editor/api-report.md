@@ -13,12 +13,10 @@ import { Box2dModel } from '@tldraw/tlschema';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { ComputedCache } from '@tldraw/store';
-import { defineMigrations } from '@tldraw/store';
 import { EASINGS } from '@tldraw/primitives';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
-import { getHashForString } from '@tldraw/utils';
 import { HistoryEntry } from '@tldraw/store';
 import { JsonObject } from '@tldraw/utils';
 import { MatLike } from '@tldraw/primitives';
@@ -28,7 +26,6 @@ import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
 import { RecursivePartial } from '@tldraw/utils';
-import { rng } from '@tldraw/utils';
 import { RotateCorner } from '@tldraw/primitives';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
@@ -188,8 +185,6 @@ export function defaultEmptyAs(str: string, dflt: string): string;
 
 // @internal (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
-
-export { defineMigrations }
 
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
@@ -644,8 +639,6 @@ export function getCurvedArrowHandlePath(info: ArrowInfo & {
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
 
-export { getHashForString }
-
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
@@ -910,8 +903,6 @@ export type ResizeBoxOptions = Partial<{
 
 // @internal (undocumented)
 export const RICH_TYPES: Record<string, boolean>;
-
-export { rng }
 
 // @public (undocumented)
 export const runtime: {
@@ -1898,7 +1889,10 @@ export const ZOOMS: number[];
 
 
 export * from "@tldraw/indices";
+export * from "@tldraw/primitives";
+export * from "@tldraw/store";
 export * from "@tldraw/tlschema";
+export * from "@tldraw/utils";
 
 // (No @packageDocumentation comment for this package)
 

@@ -1,12 +1,16 @@
 import {
+	EPSILON,
+	RotateCorner,
 	StateNode,
 	TLEventHandlers,
 	TLPointerEventInfo,
 	TLRotationSnapshot,
+	angleDelta,
 	applyRotationToSnapshotShapes,
+	degreesToRadians,
 	getRotationSnapshot,
+	snapAngle,
 } from '@tldraw/editor'
-import { EPSILON, RotateCorner, angleDelta, degreesToRadians, snapAngle } from '@tldraw/primitives'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 export class Rotating extends StateNode {

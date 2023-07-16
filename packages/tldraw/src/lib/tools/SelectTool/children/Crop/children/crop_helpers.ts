@@ -1,6 +1,11 @@
-import { Editor, TLBaseShape, TLImageShapeCrop, TLShapePartial } from '@tldraw/editor'
-import { Vec2d } from '@tldraw/primitives'
-import { deepCopy } from '@tldraw/utils'
+import {
+	Editor,
+	TLBaseShape,
+	TLImageShapeCrop,
+	TLShapePartial,
+	Vec2d,
+	deepCopy,
+} from '@tldraw/editor'
 
 export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
 

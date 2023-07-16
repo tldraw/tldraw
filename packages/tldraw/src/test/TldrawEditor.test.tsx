@@ -9,8 +9,8 @@ import {
 	TldrawEditor,
 	createShapeId,
 	createTLStore,
+	noop,
 } from '@tldraw/editor'
-import { noop } from '@tldraw/utils'
 import { defaultTools } from '../lib/defaultTools'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 

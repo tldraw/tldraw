@@ -1,5 +1,10 @@
-import { TLDefaultColorTheme, TLGeoShape, TLShapeId } from '@tldraw/editor'
-import { perimeterOfEllipse, toDomPrecision } from '@tldraw/primitives'
+import {
+	TLDefaultColorTheme,
+	TLGeoShape,
+	TLShapeId,
+	perimeterOfEllipse,
+	toDomPrecision,
+} from '@tldraw/editor'
 import * as React from 'react'
 import {
 	ShapeFill,

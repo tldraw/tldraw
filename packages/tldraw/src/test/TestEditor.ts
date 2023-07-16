@@ -2,7 +2,11 @@ import {
 	Box2dModel,
 	Editor,
 	PageRecordType,
+	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
+	RotateCorner,
+	SelectionHandle,
+	TAU,
 	TLContent,
 	TLEditorOptions,
 	TLEventInfo,
@@ -12,18 +16,12 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLWheelEventInfo,
-	createShapeId,
-	createTLStore,
-} from '@tldraw/editor'
-import {
-	ROTATE_CORNER_TO_SELECTION_CORNER,
-	RotateCorner,
-	SelectionHandle,
-	TAU,
 	Vec2d,
 	VecLike,
+	createShapeId,
+	createTLStore,
 	rotateSelectionHandle,
-} from '@tldraw/primitives'
+} from '@tldraw/editor'
 import { defaultShapeTools } from '../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../lib/defaultShapeUtils'
 import { defaultTools } from '../lib/defaultTools'

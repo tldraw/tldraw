@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	Box2d,
 	DefaultFontFamilies,
 	Editor,
 	HTMLContainer,
@@ -9,13 +10,14 @@ import {
 	TLOnResizeHandler,
 	TLShapeUtilFlag,
 	TLTextShape,
+	Vec2d,
 	WeakMapCache,
 	getDefaultColorTheme,
 	stopEventPropagation,
 	textShapeMigrations,
 	textShapeProps,
+	toDomPrecision,
 } from '@tldraw/editor'
-import { Box2d, Vec2d, toDomPrecision } from '@tldraw/primitives'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'

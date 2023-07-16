@@ -9,11 +9,13 @@ import {
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
+	Vec2d,
+	VecLike,
+	compact,
 	createShapeId,
+	getHashForString,
 	useEditor,
 } from '@tldraw/editor'
-import { Vec2d, VecLike } from '@tldraw/primitives'
-import { compact, getHashForString } from '@tldraw/utils'
 import { useEffect } from 'react'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import {

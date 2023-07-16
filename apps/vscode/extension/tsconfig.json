@@ -23,8 +23,5 @@
 		"experimentalDecorators": true
 	},
 	"include": ["src", "../messages", "scripts"],
-	"references": [
-		{ "path": "../../../packages/file-format" },
-		{ "path": "../../../packages/tldraw" }
-	]
+	"references": [{ "path": "../../../packages/tldraw" }]
 }

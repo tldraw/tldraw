@@ -5,14 +5,15 @@ import {
 	TLImageShape,
 	TLOnDoubleClickHandler,
 	TLShapePartial,
+	Vec2d,
+	deepCopy,
 	imageShapeMigrations,
 	imageShapeProps,
+	toDomPrecision,
 	useIsCropping,
 	usePrefersReducedMotion,
 	useValue,
 } from '@tldraw/editor'
-import { Vec2d, toDomPrecision } from '@tldraw/primitives'
-import { deepCopy } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 

@@ -3,6 +3,8 @@
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/indices'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/primitives'
 export {
 	EMPTY_ARRAY,
 	atom,
@@ -15,10 +17,12 @@ export {
 	useValue,
 	whyAmIRunning,
 } from '@tldraw/state'
-export { defineMigrations } from '@tldraw/store'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/store'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/tlschema'
-export { getHashForString, rng } from '@tldraw/utils'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/utils'
 export {
 	ErrorScreen,
 	LoadingScreen,

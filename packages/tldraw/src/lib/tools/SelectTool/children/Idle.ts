@@ -8,10 +8,10 @@ import {
 	TLPointerEventInfo,
 	TLShape,
 	TLTextShape,
+	Vec2d,
 	createShapeId,
 	debugFlags,
 } from '@tldraw/editor'
-import { Vec2d } from '@tldraw/primitives'
 
 export class Idle extends StateNode {
 	static override id = 'idle'

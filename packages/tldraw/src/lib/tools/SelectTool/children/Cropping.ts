@@ -1,4 +1,5 @@
 import {
+	SelectionHandle,
 	StateNode,
 	TLBaseShape,
 	TLEnterEventHandler,
@@ -7,9 +8,9 @@ import {
 	TLImageShapeCrop,
 	TLPointerEventInfo,
 	TLShapePartial,
+	Vec2d,
+	deepCopy,
 } from '@tldraw/editor'
-import { SelectionHandle, Vec2d } from '@tldraw/primitives'
-import { deepCopy } from '@tldraw/utils'
 import { MIN_CROP_SIZE } from './Crop/crop-constants'
 import { CursorTypeMap } from './PointingResizeHandle'
 

@@ -1,4 +1,5 @@
 import {
+	Matrix2d,
 	StateNode,
 	TLArrowShape,
 	TLArrowShapeTerminal,
@@ -10,10 +11,11 @@ import {
 	TLPointerEventInfo,
 	TLShapeId,
 	TLShapePartial,
+	Vec2d,
+	deepCopy,
+	snapAngle,
 	sortByIndex,
 } from '@tldraw/editor'
-import { Matrix2d, Vec2d, snapAngle } from '@tldraw/primitives'
-import { deepCopy } from '@tldraw/utils'
 
 export class DraggingHandle extends StateNode {
 	static override id = 'dragging_handle'

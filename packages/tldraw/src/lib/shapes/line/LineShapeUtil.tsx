@@ -1,28 +1,27 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	CubicSpline2d,
+	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
 	TLHandle,
 	TLLineShape,
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
-	WeakMapCache,
-	getDefaultColorTheme,
-	getIndexBetween,
-	lineShapeMigrations,
-	lineShapeProps,
-	sortByIndex,
-} from '@tldraw/editor'
-import {
-	CubicSpline2d,
-	Polyline2d,
 	Vec2d,
 	VecLike,
+	WeakMapCache,
+	deepCopy,
+	getDefaultColorTheme,
 	getDrawLinePathData,
+	getIndexBetween,
 	intersectLineSegmentPolyline,
+	lineShapeMigrations,
+	lineShapeProps,
 	pointNearToPolyline,
-} from '@tldraw/primitives'
-import { deepCopy } from '@tldraw/utils'
+	sortByIndex,
+} from '@tldraw/editor'
+
 import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'

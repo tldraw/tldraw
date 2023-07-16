@@ -1,6 +1,9 @@
 import {
+	Box2d,
+	ComputedCache,
 	DefaultFontFamilies,
 	EMPTY_ARRAY,
+	Matrix2d,
 	SVGContainer,
 	ShapeUtil,
 	SvgExportContext,
@@ -18,32 +21,29 @@ import {
 	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
+	Vec2d,
 	Vec2dModel,
+	VecLike,
 	arrowShapeMigrations,
 	arrowShapeProps,
 	computed,
+	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getArrowheadPathForType,
 	getCurvedArrowHandlePath,
 	getDefaultColorTheme,
+	getPointOnCircle,
 	getSolidCurvedArrowPath,
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
-} from '@tldraw/editor'
-import {
-	Box2d,
-	Matrix2d,
-	Vec2d,
-	VecLike,
-	getPointOnCircle,
+	last,
 	linesIntersect,
 	longAngleDist,
+	minBy,
 	pointInPolygon,
 	shortAngleDist,
 	toDomPrecision,
-} from '@tldraw/primitives'
-import { ComputedCache } from '@tldraw/store'
-import { deepCopy, last, minBy } from '@tldraw/utils'
+} from '@tldraw/editor'
 import React from 'react'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'

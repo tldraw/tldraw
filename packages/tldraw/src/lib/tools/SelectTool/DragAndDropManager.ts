@@ -1,5 +1,4 @@
-import { Editor, TLShape, TLShapeId } from '@tldraw/editor'
-import { compact } from '@tldraw/utils'
+import { Editor, TLShape, TLShapeId, compact } from '@tldraw/editor'
 
 const LAG_DURATION = 100
 

@@ -1,5 +1,4 @@
-import { ShapeUtil, SnapLine, createShapeId } from '@tldraw/editor'
-import { Box2d, Vec2d } from '@tldraw/primitives'
+import { Box2d, ShapeUtil, SnapLine, Vec2d, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
