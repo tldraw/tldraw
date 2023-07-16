@@ -3693,7 +3693,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	readonly _renderingBounds = atom('rendering viewport', new Box2d())
+	private readonly _renderingBounds = atom('rendering viewport', new Box2d())
 
 	/**
 	 * The current rendering bounds in page space, expanded slightly. Used for determining which shapes
@@ -3706,7 +3706,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	readonly _renderingBoundsExpanded = atom('rendering viewport expanded', new Box2d())
+	private readonly _renderingBoundsExpanded = atom('rendering viewport expanded', new Box2d())
 
 	/**
 	 * Update the rendering bounds. This should be called when the viewport has stopped changing, such
@@ -7846,7 +7846,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Content -------------------- */
 
 	/** @internal */
-	private _externalAssetContentHandlers: {
+	externalAssetContentHandlers: {
 		[K in TLExternalAssetContent['type']]: {
 			[Key in K]:
 				| null
@@ -7864,7 +7864,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.registerExternalAssetHandler('text', (info) => { ... }))
+	 * editor.registerExternalAssetHandler('text', myHandler)
 	 * ```
 	 *
 	 * @param type - The type of external content.
@@ -7876,7 +7876,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		type: T,
 		handler: null | ((info: TLExternalAssetContent & { type: T }) => Promise<TLAsset>)
 	): this {
-		this._externalAssetContentHandlers[type] = handler as any
+		this.externalAssetContentHandlers[type] = handler as any
 		return this
 	}
 
@@ -7893,11 +7893,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns The asset.
 	 */
 	async getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined> {
-		return await this._externalAssetContentHandlers[info.type]?.(info as any)
+		return await this.externalAssetContentHandlers[info.type]?.(info as any)
 	}
 
 	/** @internal */
-	private _externalContentHandlers: {
+	externalContentHandlers: {
 		[K in TLExternalContent['type']]: {
 			[Key in K]: null | ((info: TLExternalContent & { type: Key }) => void)
 		}[K]
@@ -7916,7 +7916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.registerExternalContentHandler('text', (info) => { ... }))
+	 * editor.registerExternalContentHandler('text', myHandler)
 	 * ```
 	 *
 	 * @param type - The type of external content.
@@ -7934,7 +7934,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						: TLExternalContent
 			  ) => void)
 	): this {
-		this._externalContentHandlers[type] = handler as any
+		this.externalContentHandlers[type] = handler as any
 		return this
 	}
 
@@ -7944,7 +7944,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param info - Info about the external content.
 	 */
 	async putExternalContent(info: TLExternalContent): Promise<void> {
-		return this._externalContentHandlers[info.type]?.(info as any)
+		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
 	/**

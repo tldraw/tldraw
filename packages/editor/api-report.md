@@ -58,6 +58,8 @@ import { TLStoreProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
 import { track } from '@tldraw/state';
+import { transact } from '@tldraw/state';
+import { transaction } from '@tldraw/state';
 import { UnknownRecord } from '@tldraw/store';
 import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
@@ -88,6 +90,8 @@ export function approximately(a: number, b: number, precision?: number): boolean
 
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
+
+export { Atom }
 
 export { atom }
 
@@ -423,6 +427,22 @@ export class Editor extends EventEmitter<TLEventMap> {
     get editingShape(): null | TLUnknownShape;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
+    // @internal (undocumented)
+    externalAssetContentHandlers: {
+        [K in TLExternalAssetContent_2['type']]: {
+            [Key in K]: ((info: TLExternalAssetContent_2 & {
+                type: Key;
+            }) => Promise<TLAsset | undefined>) | null;
+        }[K];
+    };
+    // @internal (undocumented)
+    externalContentHandlers: {
+        [K in TLExternalContent_2['type']]: {
+            [Key in K]: ((info: TLExternalContent_2 & {
+                type: Key;
+            }) => void) | null;
+        }[K];
+    };
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
@@ -592,11 +612,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     } : TLExternalContent_2) => void) | null): this;
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingBounds(): Box2d;
-    // @internal (undocumented)
-    readonly _renderingBounds: Atom<Box2d, unknown>;
     get renderingBoundsExpanded(): Box2d;
-    // @internal (undocumented)
-    readonly _renderingBoundsExpanded: Atom<Box2d, unknown>;
     get renderingShapes(): {
         id: TLShapeId;
         index: number;
@@ -1346,6 +1362,8 @@ export class SharedStyleMap extends ReadonlySharedStyleMap {
 
 // @public
 export function shortAngleDist(a0: number, a1: number): number;
+
+export { Signal }
 
 // @public (undocumented)
 export const SIN: (x: number) => number;
@@ -2165,6 +2183,10 @@ export function toFixed(v: number): number;
 export function toPrecision(n: number, precision?: number): number;
 
 export { track }
+
+export { transact }
+
+export { transaction }
 
 // @public (undocumented)
 export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboardEvent | TLPinchEvent | TLPointerEvent;

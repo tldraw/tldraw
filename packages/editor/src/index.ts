@@ -7,11 +7,15 @@ export {
 	computed,
 	react,
 	track,
+	transact,
+	transaction,
 	useComputed,
 	useQuickReactor,
 	useReactor,
 	useValue,
 	whyAmIRunning,
+	type Atom,
+	type Signal,
 } from '@tldraw/state'
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/store'

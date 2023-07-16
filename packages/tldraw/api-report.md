@@ -10,6 +10,7 @@ import { BaseBoxShapeTool } from '@tldraw/editor';
 import { Box2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
+import { EmbedDefinition } from '@tldraw/editor';
 import { LANGUAGES } from '@tldraw/editor';
 import { Matrix2d } from '@tldraw/editor';
 import { Matrix2dModel } from '@tldraw/editor';
@@ -64,6 +65,9 @@ import { UnknownRecord } from '@tldraw/editor';
 import { Vec2d } from '@tldraw/editor';
 import { Vec2dModel } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
+
+// @public (undocumented)
+export const ACCEPTED_IMG_TYPE: string[];
 
 // @internal (undocumented)
 export function AssetUrlsProvider({ assetUrls, children, }: {
@@ -180,6 +184,26 @@ function Footer({ className, children }: {
     children: any;
 }): JSX.Element;
 
+// @public
+export function getEmbedInfo(inputUrl: string): TLEmbedResult;
+
+// @public (undocumented)
+export function getFileMetaData(file: File): Promise<{
+    isAnimated: boolean;
+}>;
+
+// @public
+export function getImageSizeFromSrc(dataURL: string): Promise<{
+    w: number;
+    h: number;
+}>;
+
+// @public
+export function getVideoSizeFromSrc(src: string): Promise<{
+    w: number;
+    h: number;
+}>;
+
 // @public (undocumented)
 function Group({ children, size, }: {
     children: any;
@@ -202,7 +226,26 @@ function Indicator(): JSX.Element;
 export const Input: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
 
 // @public (undocumented)
+export const isImage: (ext: string) => boolean;
+
+// @public (undocumented)
 function Item({ noClose, ...props }: DropdownMenuItemProps): JSX.Element;
+
+// @internal (undocumented)
+export interface LegacyTldrawDocument {
+    // (undocumented)
+    assets: TDAssets;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    name: string;
+    // (undocumented)
+    pages: Record<string, TDPage>;
+    // (undocumented)
+    pageStates: Record<string, TLV1PageState>;
+    // (undocumented)
+    version: number;
+}
 
 // @public (undocumented)
 export function menuCustom(id: string, opts?: Partial<{
@@ -249,6 +292,9 @@ function Root({ id, children, modal, }: {
 // @public (undocumented)
 export function serializeTldrawJson(store: TLStore): Promise<string>;
 
+// @public (undocumented)
+export function serializeTldrawJsonBlob(store: TLStore): Promise<Blob>;
+
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
@@ -280,6 +326,9 @@ function Title({ className, children }: {
 
 // @public (undocumented)
 export function Tldraw(props: TldrawEditorProps & TldrawUiProps): JSX.Element;
+
+// @public (undocumented)
+export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
 export interface TldrawFile {
@@ -675,6 +724,9 @@ function Trigger({ children, 'data-testid': testId, }: {
     children: any;
     'data-testid'?: string;
 }): JSX.Element;
+
+// @public (undocumented)
+export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
 
 // @public (undocumented)
 export function useActions(): TLUiActionsContextType;

@@ -36,6 +36,7 @@ export function containBoxSize(
 	}
 }
 
+/** @public */
 export async function getFileMetaData(file: File): Promise<{ isAnimated: boolean }> {
 	if (file.type === 'image/gif') {
 		return await new Promise((resolve, reject) => {
