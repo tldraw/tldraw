@@ -4,6 +4,7 @@ import {
 	DefaultFontFamilies,
 	Editor,
 	SVGContainer,
+	SvgExportContext,
 	TLDefaultDashStyle,
 	TLGeoShape,
 	TLOnEditEndHandler,
@@ -27,7 +28,6 @@ import {
 	pointInPolygon,
 } from '@tldraw/primitives'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
-import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
 import {
 	FONT_FAMILIES,

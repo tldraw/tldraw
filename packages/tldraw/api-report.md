@@ -9,7 +9,6 @@ import { Box2d } from '@tldraw/primitives';
 import { Editor } from '@tldraw/editor';
 import { Matrix2d } from '@tldraw/primitives';
 import { Matrix2dModel } from '@tldraw/primitives';
-import { ScribbleManager } from '@tldraw/editor';
 import { SelectionCorner } from '@tldraw/primitives';
 import { SelectionEdge } from '@tldraw/primitives';
 import { SelectionHandle } from '@tldraw/primitives';
@@ -39,12 +38,15 @@ import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPointerEventName } from '@tldraw/editor';
 import { TLRotationSnapshot } from '@tldraw/editor';
+import { TLScribble } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
+import { TLTickEvent } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
 import { Vec2d } from '@tldraw/primitives';
+import { Vec2dModel } from '@tldraw/editor';
 import { VecLike } from '@tldraw/primitives';
 
 // @public (undocumented)

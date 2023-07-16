@@ -1,12 +1,15 @@
+import {
+	BaseBoxShapeUtil,
+	HTMLContainer,
+	TLVideoShape,
+	track,
+	useIsEditing,
+	usePrefersReducedMotion,
+	videoShapeMigrations,
+	videoShapeProps,
+} from '@tldraw/editor'
 import { toDomPrecision } from '@tldraw/primitives'
-import { track } from '@tldraw/state'
-import { TLVideoShape, videoShapeMigrations, videoShapeProps } from '@tldraw/tlschema'
-import * as React from 'react'
-import { DefaultSpinner } from '../../../components/DefaultSpinner'
-import { HTMLContainer } from '../../../components/HTMLContainer'
-import { useIsEditing } from '../../../hooks/useIsEditing'
-import { usePrefersReducedMotion } from '../../../utils/dom'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
+import React from 'react'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 /** @public */
@@ -69,7 +72,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 	const { shape, videoUtil } = props
 	const showControls = videoUtil.editor.getBounds(shape).w * videoUtil.editor.zoomLevel >= 110
 	const asset = shape.props.assetId ? videoUtil.editor.getAssetById(shape.props.assetId) : null
-	const { w, h, time, playing } = shape.props
+	const { time, playing } = shape.props
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
 
@@ -193,11 +196,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 						>
 							<source src={asset.props.src} />
 						</video>
-					) : (
-						<g transform={`translate(${(w - 38) / 2}, ${(h - 38) / 2})`}>
-							<DefaultSpinner />
-						</g>
-					)}
+					) : null}
 				</div>
 			</HTMLContainer>
 			{'url' in shape.props && shape.props.url && (

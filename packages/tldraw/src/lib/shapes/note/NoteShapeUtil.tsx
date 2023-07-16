@@ -2,6 +2,7 @@ import {
 	DefaultFontFamilies,
 	Editor,
 	ShapeUtil,
+	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
 	getDefaultColorTheme,
@@ -11,7 +12,6 @@ import {
 import { Box2d, Vec2d, toDomPrecision } from '@tldraw/primitives'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
-import { SvgExportContext } from '../shared/SvgExportContext'
 import { TextLabel } from '../shared/TextLabel'
 import { FONT_FAMILIES, LABEL_FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'

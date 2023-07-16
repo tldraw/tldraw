@@ -1,5 +1,4 @@
 import {
-	ScribbleManager,
 	ShapeUtil,
 	StateNode,
 	TLEventHandlers,
@@ -10,6 +9,7 @@ import {
 	TLShapeId,
 } from '@tldraw/editor'
 import { intersectLineSegmentPolyline, pointInPolygon } from '@tldraw/primitives'
+import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
 
 export class ScribbleBrushing extends StateNode {
 	static override id = 'scribble_brushing'

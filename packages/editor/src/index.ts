@@ -91,7 +91,6 @@ export {
 	ExternalContentManager as PlopManager,
 	type TLExternalContent,
 } from './lib/editor/managers/ExternalContentManager'
-export { ScribbleManager } from './lib/editor/managers/ScribbleManager'
 export {
 	SnapManager,
 	type GapsSnapLine,
@@ -128,7 +127,6 @@ export {
 	type TLShapeUtilFlag,
 } from './lib/editor/shapes/ShapeUtil'
 export { GroupShapeUtil } from './lib/editor/shapes/group/GroupShapeUtil'
-export { ImageShapeUtil } from './lib/editor/shapes/image/ImageShapeUtil'
 export { getArrowheadPathForType } from './lib/editor/shapes/shared/arrow/arrowheads'
 export {
 	getCurvedArrowHandlePath,
@@ -140,9 +138,9 @@ export {
 	getStraightArrowHandlePath,
 } from './lib/editor/shapes/shared/arrow/straight-arrow'
 export { resizeBox, type ResizeBoxOptions } from './lib/editor/shapes/shared/resizeBox'
-export { VideoShapeUtil } from './lib/editor/shapes/video/VideoShapeUtil'
 export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxShapeTool'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
+export { type SvgExportContext, type SvgExportDef } from './lib/editor/types/SvgExportContext'
 export { type TLContent } from './lib/editor/types/clipboard-types'
 export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
 export {
@@ -190,6 +188,7 @@ export { normalizeWheel } from './lib/hooks/shared'
 export { useContainer } from './lib/hooks/useContainer'
 export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
+export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'

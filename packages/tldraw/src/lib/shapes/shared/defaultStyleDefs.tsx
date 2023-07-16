@@ -4,6 +4,7 @@ import {
 	DefaultFontStyle,
 	HASH_PATTERN_ZOOM_NAMES,
 	MAX_ZOOM,
+	SvgExportDef,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
@@ -12,7 +13,6 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { SvgExportDef } from './SvgExportContext'
 
 /** @public */
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {

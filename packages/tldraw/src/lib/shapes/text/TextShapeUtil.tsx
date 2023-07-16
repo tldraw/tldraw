@@ -4,6 +4,7 @@ import {
 	Editor,
 	HTMLContainer,
 	ShapeUtil,
+	SvgExportContext,
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	TLShapeUtilFlag,
@@ -15,7 +16,6 @@ import {
 	textShapeProps,
 } from '@tldraw/editor'
 import { Box2d, Vec2d, toDomPrecision } from '@tldraw/primitives'
-import { SvgExportContext } from '../shared/SvgExportContext'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
 import { getFontDefForExport } from '../shared/defaultStyleDefs'

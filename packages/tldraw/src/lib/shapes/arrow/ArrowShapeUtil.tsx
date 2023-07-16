@@ -3,6 +3,7 @@ import {
 	EMPTY_ARRAY,
 	SVGContainer,
 	ShapeUtil,
+	SvgExportContext,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
@@ -45,7 +46,6 @@ import { ComputedCache } from '@tldraw/store'
 import { deepCopy, last, minBy } from '@tldraw/utils'
 import React from 'react'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
-import { SvgExportContext } from '../shared/SvgExportContext'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import {
 	ARROW_LABEL_FONT_SIZES,

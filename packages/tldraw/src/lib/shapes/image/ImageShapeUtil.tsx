@@ -1,20 +1,19 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import { Vec2d, toDomPrecision } from '@tldraw/primitives'
-import { useValue } from '@tldraw/state'
 import {
+	BaseBoxShapeUtil,
+	HTMLContainer,
 	TLImageShape,
+	TLOnDoubleClickHandler,
 	TLShapePartial,
 	imageShapeMigrations,
 	imageShapeProps,
-} from '@tldraw/tlschema'
+	useIsCropping,
+	usePrefersReducedMotion,
+	useValue,
+} from '@tldraw/editor'
+import { Vec2d, toDomPrecision } from '@tldraw/primitives'
 import { deepCopy } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
-import { DefaultSpinner } from '../../../components/DefaultSpinner'
-import { HTMLContainer } from '../../../components/HTMLContainer'
-import { useIsCropping } from '../../../hooks/useIsCropping'
-import { usePrefersReducedMotion } from '../../../utils/dom'
-import { BaseBoxShapeUtil } from '../BaseBoxShapeUtil'
-import { TLOnDoubleClickHandler } from '../ShapeUtil'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 
 const loadImage = async (url: string): Promise<HTMLImageElement> => {
@@ -78,7 +77,6 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 
-		const { w, h } = shape.props
 		const asset = shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : undefined
 
 		if (asset?.type === 'bookmark') {
@@ -147,11 +145,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 								}}
 								draggable={false}
 							/>
-						) : (
-							<g transform={`translate(${(w - 38) / 2}, ${(h - 38) / 2})`}>
-								<DefaultSpinner />
-							</g>
-						)}
+						) : null}
 						{asset?.props.isAnimated && !shape.props.playing && (
 							<div className="tl-image__tg">GIF</div>
 						)}

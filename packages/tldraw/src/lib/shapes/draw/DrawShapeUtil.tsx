@@ -2,6 +2,7 @@
 import {
 	SVGContainer,
 	ShapeUtil,
+	SvgExportContext,
 	TLDrawShape,
 	TLDrawShapeSegment,
 	TLOnResizeHandler,
@@ -26,7 +27,6 @@ import {
 } from '@tldraw/primitives'
 import { last } from '@tldraw/utils'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
-import { SvgExportContext } from '../shared/SvgExportContext'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { useForceSolid } from '../shared/useForceSolid'

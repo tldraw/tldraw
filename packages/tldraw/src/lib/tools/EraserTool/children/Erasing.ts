@@ -1,5 +1,4 @@
 import {
-	ScribbleManager,
 	StateNode,
 	TLEventHandlers,
 	TLFrameShape,
@@ -9,6 +8,7 @@ import {
 	TLShapeId,
 } from '@tldraw/editor'
 import { pointInPolygon } from '@tldraw/primitives'
+import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
 
 export class Erasing extends StateNode {
 	static override id = 'erasing'

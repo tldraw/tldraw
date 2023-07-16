@@ -10,8 +10,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { HASH_PATTERN_ZOOM_NAMES, MAX_ZOOM } from '../../../constants'
 import { useEditor } from '../../../hooks/useEditor'
 import { debugFlags } from '../../../utils/debug-flags'
+import { SvgExportDef } from '../../types/SvgExportContext'
 import { TLShapeUtilCanvasSvgDef } from '../ShapeUtil'
-import { SvgExportDef } from './SvgExportContext'
 
 /** @public */
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {

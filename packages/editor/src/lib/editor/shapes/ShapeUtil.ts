@@ -4,7 +4,7 @@ import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
 import { TLResizeHandle } from '../types/selection-types'
-import { SvgExportContext } from './shared/SvgExportContext'
+import { SvgExportContext } from '../types/SvgExportContext'
 
 /** @public */
 export interface TLShapeUtilConstructor<

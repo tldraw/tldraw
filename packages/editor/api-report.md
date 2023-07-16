@@ -53,7 +53,6 @@ import { TLDocument } from '@tldraw/tlschema';
 import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
-import { TLImageShape } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePresence } from '@tldraw/tlschema';
@@ -69,14 +68,12 @@ import { TLStore } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLUnknownShape } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
-import { TLVideoShape } from '@tldraw/tlschema';
 import { track } from '@tldraw/state';
 import { UnknownRecord } from '@tldraw/store';
 import { useComputed } from '@tldraw/state';
 import { useQuickReactor } from '@tldraw/state';
 import { useReactor } from '@tldraw/state';
 import { useValue } from '@tldraw/state';
-import { Validator } from '@tldraw/validate';
 import { Vec2d } from '@tldraw/primitives';
 import { Vec2dModel } from '@tldraw/tlschema';
 import { VecLike } from '@tldraw/primitives';
@@ -150,7 +147,7 @@ export { computed }
 export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
 
 // @public (undocumented)
-export const coreShapes: readonly [typeof GroupShapeUtil, typeof ImageShapeUtil, typeof VideoShapeUtil];
+export const coreShapes: readonly [typeof GroupShapeUtil];
 
 // @public (undocumented)
 export function correctSpacesToNbsp(input: string): string;
@@ -819,42 +816,6 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 // @public (undocumented)
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
-// @public (undocumented)
-export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
-    // (undocumented)
-    canCrop: () => boolean;
-    // (undocumented)
-    component(shape: TLImageShape): JSX.Element;
-    // (undocumented)
-    getDefaultProps(): TLImageShape['props'];
-    // (undocumented)
-    indicator(shape: TLImageShape): JSX.Element | null;
-    // (undocumented)
-    isAspectRatioLocked: () => boolean;
-    // (undocumented)
-    static migrations: Migrations;
-    // (undocumented)
-    onDoubleClick: (shape: TLImageShape) => void;
-    // (undocumented)
-    onDoubleClickEdge: TLOnDoubleClickHandler<TLImageShape>;
-    // (undocumented)
-    static props: {
-        w: Validator<number>;
-        h: Validator<number>;
-        playing: Validator<boolean>;
-        url: Validator<string>;
-        assetId: Validator<TLAssetId | null>;
-        crop: Validator<    {
-        topLeft: Vec2dModel;
-        bottomRight: Vec2dModel;
-        } | null>;
-    };
-    // (undocumented)
-    toSvg(shape: TLImageShape): Promise<SVGGElement>;
-    // (undocumented)
-    static type: "image";
-}
-
 // @public
 export function isAnimated(buffer: ArrayBuffer): boolean;
 
@@ -1423,43 +1384,6 @@ export const runtime: {
     hardReset: () => void;
 };
 
-// @public (undocumented)
-export class ScribbleManager implements TLScribble {
-    constructor(opts: {
-        onUpdate: (scribble: TLScribble) => void;
-        onComplete: () => void;
-        size?: TLScribble['size'];
-        color?: TLScribble['color'];
-        opacity?: TLScribble['opacity'];
-        delay?: TLScribble['delay'];
-    });
-    addPoint: (x: number, y: number) => void;
-    // (undocumented)
-    color: "accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white";
-    // (undocumented)
-    delay: number;
-    // (undocumented)
-    delayRemaining: number;
-    getScribble(): TLScribble;
-    // (undocumented)
-    opacity: number;
-    // (undocumented)
-    pause: () => void;
-    // (undocumented)
-    points: Vec2dModel[];
-    // (undocumented)
-    resume: () => void;
-    // (undocumented)
-    size: number;
-    // (undocumented)
-    state: "active" | "paused" | "starting" | "stopping";
-    stop: () => void;
-    // (undocumented)
-    tick: TLTickEvent;
-    // (undocumented)
-    timeoutMs: number;
-}
-
 // @internal (undocumented)
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
@@ -1717,6 +1641,19 @@ export function SVGContainer({ children, className, ...rest }: SVGContainerProps
 
 // @public (undocumented)
 export type SVGContainerProps = React_3.HTMLAttributes<SVGElement>;
+
+// @public (undocumented)
+export interface SvgExportContext {
+    addExportDef(def: SvgExportDef): void;
+}
+
+// @public (undocumented)
+export interface SvgExportDef {
+    // (undocumented)
+    getElement: () => null | Promise<null | SVGElement | SVGElement[]> | SVGElement | SVGElement[];
+    // (undocumented)
+    key: string;
+}
 
 // @public
 export const TAB_ID: string;
@@ -2372,6 +2309,9 @@ export function useContainer(): HTMLDivElement;
 export const useEditor: () => Editor;
 
 // @public (undocumented)
+export function useIsCropping(shapeId: TLShapeId): boolean;
+
+// @public (undocumented)
 export function useIsEditing(shapeId: TLShapeId): boolean;
 
 // @internal (undocumented)
@@ -2400,35 +2340,6 @@ export { useReactor }
 export function useTLStore(opts: TLStoreOptions): TLStore;
 
 export { useValue }
-
-// @public (undocumented)
-export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
-    // (undocumented)
-    canEdit: () => boolean;
-    // (undocumented)
-    component(shape: TLVideoShape): JSX.Element;
-    // (undocumented)
-    getDefaultProps(): TLVideoShape['props'];
-    // (undocumented)
-    indicator(shape: TLVideoShape): JSX.Element;
-    // (undocumented)
-    isAspectRatioLocked: () => boolean;
-    // (undocumented)
-    static migrations: Migrations;
-    // (undocumented)
-    static props: {
-        w: Validator<number>;
-        h: Validator<number>;
-        time: Validator<number>;
-        playing: Validator<boolean>;
-        url: Validator<string>;
-        assetId: Validator<TLAssetId | null>;
-    };
-    // (undocumented)
-    toSvg(shape: TLVideoShape): SVGGElement;
-    // (undocumented)
-    static type: "video";
-}
 
 // @public (undocumented)
 export class WeakMapCache<T extends object, K> {
