@@ -5,12 +5,12 @@ import {
 	toDomPrecision,
 	track,
 	useIsEditing,
-	usePrefersReducedMotion,
 	videoShapeMigrations,
 	videoShapeProps,
 } from '@tldraw/editor'
 import React from 'react'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 /** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {

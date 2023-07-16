@@ -1,7 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-	CubicSpline2d,
-	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
 	TLHandle,
@@ -25,6 +23,8 @@ import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getDrawLinePathData } from '../shared/polygon-helpers'
+import { CubicSpline2d } from '../shared/splines/CubicSpline2d'
+import { Polyline2d } from '../shared/splines/Polyline2d'
 import { useForceSolid } from '../shared/useForceSolid'
 import { getLineDrawPath, getLineIndicatorPath, getLinePoints } from './components/getLinePath'
 import { getLineSvg } from './components/getLineSvg'

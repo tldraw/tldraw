@@ -1,5 +1,4 @@
-import { Box2d } from './Box2d'
-import { Vec2d, VecLike } from './Vec2d'
+import { Box2d, Vec2d, VecLike } from '@tldraw/editor'
 
 /**
  * A base segment used for cubic and quadradic curves.

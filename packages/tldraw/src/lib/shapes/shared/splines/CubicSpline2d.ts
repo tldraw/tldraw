@@ -1,6 +1,6 @@
+import { Vec2d, VecLike } from '@tldraw/editor'
 import { BaseSpline2d } from './BaseSpline2d'
 import { CubicSegment2d, CubicSegment2dModel } from './CubicSegment2d'
-import { Vec2d, VecLike } from './Vec2d'
 
 /** @public */
 export class CubicSpline2d extends BaseSpline2d<CubicSegment2dModel> {

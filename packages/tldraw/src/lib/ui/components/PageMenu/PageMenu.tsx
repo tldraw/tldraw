@@ -1,4 +1,12 @@
-import { MAX_PAGES, PageRecordType, TLPageId, useEditor, useValue } from '@tldraw/editor'
+import {
+	MAX_PAGES,
+	PageRecordType,
+	TLPageId,
+	releasePointerCapture,
+	setPointerCapture,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
@@ -110,7 +118,7 @@ export const PageMenu = function PageMenu() {
 
 			const mut = rMutables.current
 
-			e.currentTarget.setPointerCapture(e.pointerId)
+			setPointerCapture(e.currentTarget, e)
 
 			mut.status = 'pointing'
 			mut.pointing = { id, index: +index! }
@@ -198,7 +206,7 @@ export const PageMenu = function PageMenu() {
 				onMovePage(editor, id as TLPageId, index, mut.dragIndex)
 			}
 
-			e.currentTarget.releasePointerCapture(e.pointerId)
+			releasePointerCapture(e.currentTarget, e)
 			mut.status = 'idle'
 		},
 		[editor]

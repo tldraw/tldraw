@@ -13,7 +13,7 @@ if the user clicks on a handle but the pointerup does not fire for
 whatever reason.
 */
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { debugFlags } from './debug-flags'
 
 /** @public */
@@ -80,23 +80,6 @@ export function releasePointerCapture(
 	if (debugFlags.pointerCaptureLogging.value) {
 		console.warn('releasePointerCapture called on element:', element, event)
 	}
-}
-
-/** @public */
-export function usePrefersReducedMotion() {
-	const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-
-	useEffect(() => {
-		const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
-		const handler = () => {
-			setPrefersReducedMotion(mql.matches)
-		}
-		handler()
-		mql.addEventListener('change', handler)
-		return () => mql.removeEventListener('change', handler)
-	}, [])
-
-	return prefersReducedMotion
 }
 
 /** @public */

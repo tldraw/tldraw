@@ -11,11 +11,11 @@ import {
 	imageShapeProps,
 	toDomPrecision,
 	useIsCropping,
-	usePrefersReducedMotion,
 	useValue,
 } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
+import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 
 const loadImage = async (url: string): Promise<HTMLImageElement> => {
 	return new Promise((resolve, reject) => {

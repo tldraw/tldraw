@@ -1,6 +1,5 @@
+import { Box2d, Vec2d, VecLike } from '@tldraw/editor'
 import { BaseSegment2d } from './BaseSegment2d'
-import { Box2d } from './Box2d'
-import { Vec2d, VecLike } from './Vec2d'
 
 export abstract class BaseSpline2d<T extends { p: number }> {
 	constructor(public points: VecLike[], public p = 50, public k = 1) {}

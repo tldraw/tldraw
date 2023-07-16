@@ -200,9 +200,7 @@ export {
 	type SelectionEdge,
 	type SelectionHandle,
 } from './lib/primitives/Box2d'
-export { CubicSpline2d } from './lib/primitives/CubicSpline2d'
 export { Matrix2d, type Matrix2dModel } from './lib/primitives/Matrix2d'
-export { Polyline2d } from './lib/primitives/Polyline2d'
 export { Vec2d, type VecLike } from './lib/primitives/Vec2d'
 export { EASINGS } from './lib/primitives/easings'
 export {
@@ -267,25 +265,14 @@ export {
 	releasePointerCapture,
 	setPointerCapture,
 	stopEventPropagation,
-	usePrefersReducedMotion,
 } from './lib/utils/dom'
-export {
-	downloadDataURLAsFile,
-	getSvgAsDataUrl,
-	getSvgAsDataUrlSync,
-	getSvgAsImage,
-	getSvgAsString,
-	getTextBoundingBox,
-	type TLCopyType,
-	type TLExportType,
-} from './lib/utils/export'
 export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { png } from './lib/utils/png'
-export { refreshPage } from './lib/utils/refresh-page'
+export { refreshPage } from './lib/utils/refreshPage'
 export {
 	getIndexAbove,
 	getIndexBelow,

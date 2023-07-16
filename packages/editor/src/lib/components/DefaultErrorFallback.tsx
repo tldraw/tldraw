@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Editor } from '../editor/Editor'
 import { EditorContext } from '../hooks/useEditor'
 import { hardResetEditor } from '../utils/hardResetEditor'
-import { refreshPage } from '../utils/refresh-page'
+import { refreshPage } from '../utils/refreshPage'
 import { Canvas } from './Canvas'
 import { ErrorBoundary } from './ErrorBoundary'
 

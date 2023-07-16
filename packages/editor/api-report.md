@@ -272,17 +272,6 @@ export function createTLUser(opts?: {
 }): TLUser;
 
 // @public (undocumented)
-export class CubicSpline2d extends BaseSpline2d<CubicSegment2dModel> {
-    constructor(points: VecLike[], k?: number, p?: number);
-    // (undocumented)
-    static FromPoints(points: Vec2d[]): CubicSpline2d;
-    // (undocumented)
-    getSegmentsFromPoints(points: VecLike[], k?: number, p?: number): CubicSegment2d[];
-    // (undocumented)
-    segments: CubicSegment2d[];
-}
-
-// @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
 // @internal (undocumented)
@@ -320,9 +309,6 @@ export function degreesToRadians(d: number): number;
 
 // @internal (undocumented)
 export const DOUBLE_CLICK_DURATION = 450;
-
-// @public (undocumented)
-export function downloadDataURLAsFile(dataUrl: string, filename: string): void;
 
 // @internal (undocumented)
 export const DRAG_DISTANCE = 4;
@@ -868,30 +854,11 @@ export function getStraightArrowHandlePath(info: ArrowInfo & {
     isStraight: true;
 }): string;
 
-// @public (undocumented)
-export function getSvgAsDataUrl(svg: SVGElement): Promise<string>;
-
-// @public (undocumented)
-export function getSvgAsDataUrlSync(node: SVGElement): string;
-
-// @public (undocumented)
-export function getSvgAsImage(svg: SVGElement, options: {
-    type: TLCopyType | TLExportType;
-    quality: number;
-    scale: number;
-}): Promise<Blob | null>;
-
-// @public (undocumented)
-export function getSvgAsString(svg: SVGElement): string;
-
 // @public
 export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): string;
 
 // @public
 export function getSweep(C: VecLike, A: VecLike, B: VecLike): number;
-
-// @public (undocumented)
-export function getTextBoundingBox(text: SVGTextElement): DOMRect;
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
@@ -1167,17 +1134,6 @@ export type PointsSnapLine = {
 
 // @public (undocumented)
 export function polygonsIntersect(a: VecLike[], b: VecLike[]): boolean;
-
-// @public (undocumented)
-export class Polyline2d extends BaseSpline2d<LineSegment2dModel> {
-    constructor(points: VecLike[], k?: number, p?: number);
-    // (undocumented)
-    static FromPoints(points: VecLike[]): Polyline2d;
-    // (undocumented)
-    getSegmentsFromPoints(points: VecLike[], p?: number): LineSegment2d[];
-    // (undocumented)
-    segments: LineSegment2d[];
-}
 
 // @public (undocumented)
 export function precise(A: VecLike): string;
@@ -1666,9 +1622,6 @@ export interface TLContent {
 }
 
 // @public (undocumented)
-export type TLCopyType = 'jpeg' | 'json' | 'png' | 'svg';
-
-// @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 
 // @public
@@ -1860,9 +1813,6 @@ export type TLEventName = 'cancel' | 'complete' | 'interrupt' | 'wheel' | TLCLic
 
 // @public (undocumented)
 export type TLExitEventHandler = (info: any, to: string) => void;
-
-// @public (undocumented)
-export type TLExportType = 'jpeg' | 'json' | 'png' | 'svg' | 'webp';
 
 // @public (undocumented)
 export type TLExternalAssetContent = {
@@ -2253,9 +2203,6 @@ export function useLocalStore({ persistenceKey, sessionId, ...rest }: {
 
 // @internal (undocumented)
 export function usePeerIds(): string[];
-
-// @public (undocumented)
-export function usePrefersReducedMotion(): boolean;
 
 // @internal (undocumented)
 export function usePresence(userId: string): null | TLInstancePresence;

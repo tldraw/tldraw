@@ -7,6 +7,7 @@ import {
 	getPointerInfo,
 	intersectPolygonPolygon,
 	normalizeWheel,
+	setPointerCapture,
 	track,
 	useContainer,
 	useEditor,
@@ -74,7 +75,7 @@ export const Minimap = track(function Minimap({
 
 	const onPointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
-			e.currentTarget.setPointerCapture(e.pointerId)
+			setPointerCapture(e.currentTarget, e)
 			if (!editor.currentPageShapeIds.size) return
 
 			rPointing.current = true

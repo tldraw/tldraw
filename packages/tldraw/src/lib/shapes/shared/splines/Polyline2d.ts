@@ -1,6 +1,6 @@
+import { VecLike } from '@tldraw/editor'
 import { BaseSpline2d } from './BaseSpline2d'
 import { LineSegment2d, LineSegment2dModel } from './LineSegment2d'
-import { VecLike } from './Vec2d'
 
 /** @public */
 export class Polyline2d extends BaseSpline2d<LineSegment2dModel> {

@@ -1,6 +1,5 @@
-import { debugFlags } from './debug-flags'
-import { getBrowserCanvasMaxSize } from './getBrowserCanvasMaxSize'
-import { png } from './png'
+import { debugFlags, png } from '@tldraw/editor'
+import { getBrowserCanvasMaxSize } from '../shapes/shared/getBrowserCanvasMaxSize'
 
 /** @public */
 export type TLCopyType = 'svg' | 'png' | 'jpeg' | 'json'

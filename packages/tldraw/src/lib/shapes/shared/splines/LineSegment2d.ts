@@ -1,6 +1,5 @@
+import { Box2d, Vec2d, VecLike } from '@tldraw/editor'
 import { BaseSegment2d } from './BaseSegment2d'
-import { Box2d } from './Box2d'
-import { Vec2d, VecLike } from './Vec2d'
 
 /** @public */
 export interface LineSegment2dModel {

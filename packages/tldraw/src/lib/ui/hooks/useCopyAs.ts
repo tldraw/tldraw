@@ -1,12 +1,6 @@
-import {
-	Editor,
-	getSvgAsImage,
-	getSvgAsString,
-	TLCopyType,
-	TLShapeId,
-	useEditor,
-} from '@tldraw/editor'
+import { Editor, TLShapeId, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { TLCopyType, getSvgAsImage, getSvgAsString } from '../../utils/export'
 import { useToasts } from './useToastsProvider'
 import { useTranslation } from './useTranslation/useTranslation'
 
