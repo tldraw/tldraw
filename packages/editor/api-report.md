@@ -2208,6 +2208,12 @@ export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboar
 // @public (undocumented)
 export type UiEventType = 'click' | 'keyboard' | 'pinch' | 'pointer' | 'wheel' | 'zoom';
 
+// @public (undocumented)
+export function uniq<T>(array: {
+    readonly length: number;
+    readonly [n: number]: T;
+} | null | undefined): T[];
+
 // @public
 export function uniqueId(): string;
 

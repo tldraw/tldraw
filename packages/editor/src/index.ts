@@ -301,12 +301,19 @@ export {
 export { getPointerInfo, getSvgPathFromStroke } from './lib/utils/svg'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
+export { uniq } from './lib/utils/uniq'
 export { uniqueId } from './lib/utils/uniqueId'
 export { openWindow } from './lib/utils/window-open'
 
 /** @polyfills */
+
+// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/array/at'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/array/flat'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/array/flat-map'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/string/at'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import 'core-js/stable/string/replace-all'

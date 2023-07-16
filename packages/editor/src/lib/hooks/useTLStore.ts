@@ -1,14 +1,17 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { TLStoreOptions, createTLStore } from '../config/createTLStore'
-import { usePrevious } from './usePrevious'
 
 /** @public */
 export function useTLStore(opts: TLStoreOptions) {
 	const [store, setStore] = useState(() => createTLStore(opts))
-	const prev = usePrevious(opts)
+	const ref = useRef(opts)
+	useEffect(() => void (ref.current = opts))
+
 	if (
 		// shallow equality check
-		(Object.keys(prev) as (keyof TLStoreOptions)[]).some((key) => prev[key] !== opts[key])
+		(Object.keys(ref.current) as (keyof TLStoreOptions)[]).some(
+			(key) => ref.current[key] !== opts[key]
+		)
 	) {
 		const newStore = createTLStore(opts)
 		setStore(newStore)

@@ -1,6 +1,6 @@
 import { useComputed, useValue } from '@tldraw/state'
-import uniq from 'lodash.uniq'
 import { useMemo } from 'react'
+import { uniq } from '../utils/uniq'
 import { useEditor } from './useEditor'
 
 // TODO: maybe move this to a computed property on the App class?

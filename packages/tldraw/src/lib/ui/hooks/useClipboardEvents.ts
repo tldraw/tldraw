@@ -8,9 +8,9 @@ import {
 	TLTextShape,
 	VecLike,
 	isNonNull,
+	uniq,
 	useEditor,
 } from '@tldraw/editor'
-import uniq from 'lodash.uniq'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
