@@ -82,15 +82,10 @@ This repository's contents is divided across four primary sections:
 
 - `assets`: a library for working with tldraw's fonts and translations
 - `editor`: the tldraw editor
-- `file-format`: a library for working with tldraw's `.tldr` file format
-- `indices`: a library for working with tldraw's indices
-- `polyfills`: a collection of polyfills used by tldraw
-- `primitives`: low-level primitives for working with vectors and geometry
 - `state`: a signals library, also known as signia
 - `store`: an in-memory reactive database
 - `tldraw`: the main tldraw package containing both the editor and the UI
 - `tlschema`: shape definitions and migrations
-- `ui`: the editor's user interface
 - `utils`: low-level data utilities shared by other libraries
 - `validate`: a validation library used for run-time validation
 

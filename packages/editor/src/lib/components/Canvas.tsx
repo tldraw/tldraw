@@ -1,4 +1,3 @@
-import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import { react, track, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
@@ -12,10 +11,10 @@ import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoub
 import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
 import { useScreenBounds } from '../hooks/useScreenBounds'
+import { Matrix2d } from '../primitives/Matrix2d'
+import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
-import { SelectionBg } from './SelectionBg'
-import { SelectionFg } from './SelectionFg'
 import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
 
@@ -97,7 +96,7 @@ export const Canvas = track(function Canvas() {
 						{SvgDefs && <SvgDefs />}
 					</defs>
 				</svg>
-				<SelectionBg />
+				<SelectionBackgroundWrapper />
 				<div className="tl-shapes">
 					<ShapesToDisplay />
 				</div>
@@ -110,7 +109,7 @@ export const Canvas = track(function Canvas() {
 					<HoveredShapeIndicator />
 					<HintedShapeIndicator />
 					<SnapLinesWrapper />
-					<SelectionFg />
+					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
 			</div>
@@ -124,12 +123,13 @@ const GridWrapper = track(function GridWrapper() {
 
 	// get grid from context
 
+	const { gridSize } = editor.documentSettings
 	const { x, y, z } = editor.camera
 	const isGridMode = editor.isGridMode
 
 	if (!(Grid && isGridMode)) return null
 
-	return <Grid x={x} y={y} z={z} size={editor.gridSize} />
+	return <Grid x={x} y={y} z={z} size={gridSize} />
 })
 
 const ScribbleWrapper = track(function ScribbleWrapper() {
@@ -432,3 +432,15 @@ const UiLogger = track(() => {
 		</div>
 	)
 })
+
+export function SelectionForegroundWrapper() {
+	const { SelectionForeground } = useEditorComponents()
+	if (!SelectionForeground) return null
+	return <SelectionForeground />
+}
+
+export function SelectionBackgroundWrapper() {
+	const { SelectionBackground } = useEditorComponents()
+	if (!SelectionBackground) return null
+	return <SelectionBackground />
+}

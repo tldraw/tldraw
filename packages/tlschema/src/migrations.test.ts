@@ -1273,6 +1273,44 @@ describe('adds meta ', () => {
 	}
 })
 
+describe('removes cursor color', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.RemoveCursorColor]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				cursor: {
+					type: 'default',
+					rotation: 0.1,
+					color: 'black',
+				},
+			})
+		).toStrictEqual({
+			cursor: {
+				type: 'default',
+				rotation: 0.1,
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				cursor: {
+					type: 'default',
+					rotation: 0.1,
+				},
+			})
+		).toStrictEqual({
+			cursor: {
+				type: 'default',
+				rotation: 0.1,
+				color: 'black',
+			},
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

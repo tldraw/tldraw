@@ -1,4 +1,4 @@
-import { TldrawFile } from '@tldraw/file-format'
+import { TldrawFile } from '@tldraw/tldraw'
 import * as vscode from 'vscode'
 import { defaultFileContents, fileExists, loadFile } from './file'
 import { nicelog } from './utils'

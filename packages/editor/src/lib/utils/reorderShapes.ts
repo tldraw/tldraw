@@ -1,7 +1,7 @@
-import { getIndicesBetween, sortByIndex } from '@tldraw/indices'
 import { TLParentId, TLShape, TLShapeId, TLShapePartial } from '@tldraw/tlschema'
 import { compact } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
+import { getIndicesBetween, sortByIndex } from './reordering/reordering'
 
 export function getReorderingShapesChanges(
 	editor: Editor,

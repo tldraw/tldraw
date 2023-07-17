@@ -1,8 +1,13 @@
-import { AssetRecordType, Editor, TLAsset, truncateStringWithEllipsis } from '@tldraw/editor'
-import { getHashForString } from '@tldraw/utils'
+import { AssetRecordType, TLAsset, TLExternalAssetContent, getHashForString } from '@tldraw/tldraw'
 import { rpc } from './rpc'
 
-export async function onCreateAssetFromUrl(editor: Editor, url: string): Promise<TLAsset> {
+export const truncateStringWithEllipsis = (str: string, maxLength: number) => {
+	return str.length <= maxLength ? str : str.substring(0, maxLength - 3) + '...'
+}
+
+export async function onCreateAssetFromUrl({
+	url,
+}: TLExternalAssetContent & { type: 'url' }): Promise<TLAsset> {
 	try {
 		// First, try to get the data from vscode
 		const meta = await rpc('vscode:bookmark', { url })

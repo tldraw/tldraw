@@ -8,6 +8,12 @@ const MOVING_CURSOR_SPEED = 0.25 // 0 is stopped, 1 is full send
 const MOVING_CURSOR_RADIUS = 100
 const CURSOR_CHAT_MESSAGE = 'Hey, I think this is just great.'
 
+// Note:
+// Almost all of the information below is calculated automatically by helpers in the editor.
+// For a more realistic implementation, see the yjs example in this examples folder. If anything,
+// this example should be used to understand the data model and test designs, not as a reference
+// for how to implement user presence.
+
 export default function UserPresenceExample() {
 	const rRaf = useRef<any>(-1)
 	return (
