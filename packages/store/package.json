@@ -44,7 +44,7 @@
 		"@tldraw/state": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"lodash.isequal": "^4.5.0",
-		"nanoid": "4.0.2"
+		"nanoid": "^3.3.6"
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
@@ -61,7 +61,7 @@
 			"^~(.*)": "<rootDir>/src/$1"
 		},
 		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid|escape-string-regexp)/)"
+			"node_modules/(?!(nanoid)/)"
 		]
 	}
 }

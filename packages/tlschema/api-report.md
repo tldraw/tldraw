@@ -857,8 +857,6 @@ export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
 // @public
 export interface TLCursor {
     // (undocumented)
-    color: TLCanvasUiColor;
-    // (undocumented)
     rotation: number;
     // (undocumented)
     type: TLCursorType;

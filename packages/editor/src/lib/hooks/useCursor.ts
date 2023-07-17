@@ -1,6 +1,6 @@
-import { PI, radiansToDegrees } from '@tldraw/primitives'
-import { useQuickReactor } from '@tldraw/state'
+import { useQuickReactor, useValue } from '@tldraw/state'
 import { TLCursorType } from '@tldraw/tlschema'
+import { PI, radiansToDegrees } from '../primitives/utils'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 
@@ -62,6 +62,7 @@ const CURSORS: Record<TLCursorType, (r: number, f: boolean, color: string) => st
 	'zoom-out': (r, f, c) => getCursorCss(ZOOM_OUT_SVG, r, 0, f, c),
 }
 
+/** @public */
 export function getCursor(cursor: TLCursorType, rotation = 0, color = 'black') {
 	return CURSORS[cursor](radiansToDegrees(rotation), false, color)
 }
@@ -71,19 +72,23 @@ const STATIC_CURSORS = ['default', 'pointer', 'cross', 'move', 'grab', 'grabbing
 export function useCursor() {
 	const editor = useEditor()
 	const container = useContainer()
+	const isDarkMode = useValue('dark mode', () => editor.user.isDarkMode, [editor])
 
 	useQuickReactor(
 		'useCursor',
 		() => {
-			const { type, rotation, color } = editor.cursor
+			const { type, rotation } = editor.cursor
 
 			if (STATIC_CURSORS.includes(type)) {
 				container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)
 				return
 			}
 
-			container.style.setProperty('--tl-cursor', getCursor(type, rotation, color))
+			container.style.setProperty(
+				'--tl-cursor',
+				getCursor(type, rotation, isDarkMode ? 'white' : 'black')
+			)
 		},
-		[editor, container]
+		[editor, container, isDarkMode]
 	)
 }

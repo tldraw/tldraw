@@ -17,8 +17,10 @@ export function useCoarsePointer() {
 				editor.isCoarsePointer = mql.matches
 			}
 			handler()
-			mql.addEventListener('change', handler)
-			return () => mql.removeEventListener('change', handler)
+			if (mql) {
+				mql.addEventListener('change', handler)
+				return () => mql.removeEventListener('change', handler)
+			}
 		}
 	}, [editor])
 }

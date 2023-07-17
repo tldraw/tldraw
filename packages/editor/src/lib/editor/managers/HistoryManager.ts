@@ -1,6 +1,6 @@
 import { atom, transact } from '@tldraw/state'
 import { devFreeze } from '@tldraw/store'
-import { uniqueId } from '../../utils/data'
+import { uniqueId } from '../../utils/uniqueId'
 import { TLCommandHandler, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
 

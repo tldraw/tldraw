@@ -245,14 +245,11 @@ input,
 	pointer-events: none;
 }
 
-.tlui-following {
-	display: block;
+.tl-positioned {
 	position: absolute;
-	inset: 0px;
-	border-width: 2px;
-	border-style: solid;
-	z-index: 9999999;
-	pointer-events: none;
+	top: 0px;
+	left: 0px;
+	transform-origin: top left;
 }
 
 /* ------------------- Background ------------------- */

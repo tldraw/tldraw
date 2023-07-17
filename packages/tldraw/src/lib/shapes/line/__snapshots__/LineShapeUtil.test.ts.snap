@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Misc resizes: line shape after resize 1`] = `
+Object {
+  "id": "shape:line1",
+  "index": "a1",
+  "isLocked": false,
+  "meta": Object {},
+  "opacity": 1,
+  "parentId": "page:id51",
+  "props": Object {
+    "color": "black",
+    "dash": "draw",
+    "handles": Object {
+      "end": Object {
+        "canBind": false,
+        "id": "end",
+        "index": "a2",
+        "type": "vertex",
+        "x": 100,
+        "y": 700,
+      },
+      "start": Object {
+        "canBind": false,
+        "id": "start",
+        "index": "a1",
+        "type": "vertex",
+        "x": 0,
+        "y": 0,
+      },
+    },
+    "size": "m",
+    "spline": "line",
+  },
+  "rotation": 0,
+  "type": "line",
+  "typeName": "shape",
+  "x": 150,
+  "y": 150,
+}
+`;

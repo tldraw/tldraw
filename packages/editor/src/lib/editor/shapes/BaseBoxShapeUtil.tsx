@@ -1,5 +1,8 @@
-import { Box2d, linesIntersect, pointInPolygon, Vec2d, VecLike } from '@tldraw/primitives'
 import { TLBaseShape } from '@tldraw/tlschema'
+import { Box2d } from '../../primitives/Box2d'
+import { Vec2d, VecLike } from '../../primitives/Vec2d'
+import { linesIntersect } from '../../primitives/intersect'
+import { pointInPolygon } from '../../primitives/utils'
 import { ShapeUtil, TLOnResizeHandler } from './ShapeUtil'
 import { resizeBox } from './shared/resizeBox'
 

@@ -9,7 +9,7 @@ export const uiOverrides: TLUiOverrides = {
 			kbd: 'c',
 			readonlyOk: false,
 			onSelect: () => {
-				editor.setSelectedTool('card')
+				editor.setCurrentTool('card')
 			},
 		}
 		return tools
