@@ -7,6 +7,8 @@ import {
 	resizeBox,
 } from '@tldraw/tldraw'
 import { useState } from 'react'
+import { cardShapeMigrations } from './card-shape-migrations'
+import { cardShapeProps } from './card-shape-props'
 import { ICardShape } from './card-shape-types'
 
 // A utility class for the card shape. This is where you define
@@ -15,6 +17,10 @@ import { ICardShape } from './card-shape-types'
 
 export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	static override type = 'card' as const
+	// A validation schema for the shape's props (optional)
+	static override props = cardShapeProps
+	// Migrations for upgrading shapes (optional)
+	static override migrations = cardShapeMigrations
 
 	// Flags
 	override isAspectRatioLocked = (_shape: ICardShape) => false

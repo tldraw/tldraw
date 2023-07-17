@@ -1,18 +1,19 @@
-import { computed, react, transact } from '@tldraw/state'
 import {
 	DocumentRecordType,
 	InstancePresenceRecordType,
 	PageRecordType,
+	TLAnyShapeUtilConstructor,
 	TLDocument,
 	TLInstancePresence,
 	TLPageId,
 	TLRecord,
-	TLShapeInfo,
 	TLStoreWithStatus,
+	computed,
 	createPresenceStateDerivation,
 	createTLStore,
-	defaultShapes,
+	defaultShapeUtils,
 	getUserPreferences,
+	react,
 } from '@tldraw/tldraw'
 import { useEffect, useMemo, useState } from 'react'
 import { WebsocketProvider } from 'y-websocket'
@@ -21,14 +22,16 @@ import * as Y from 'yjs'
 export function useYjsStore({
 	roomId = 'example',
 	hostUrl = process.env.NODE_ENV === 'development' ? 'ws://localhost:1234' : 'wss://demos.yjs.dev',
-	shapes = [],
+	shapeUtils = [],
 }: Partial<{
 	hostUrl: string
 	roomId: string
 	version: number
-	shapes?: TLShapeInfo[]
+	shapeUtils: TLAnyShapeUtilConstructor[]
 }>) {
-	const [store] = useState(() => createTLStore({ shapes: [...defaultShapes, ...shapes] }))
+	const [store] = useState(() =>
+		createTLStore({ shapeUtils: [...defaultShapeUtils, ...shapeUtils] })
+	)
 	const [storeWithStatus, setStoreWithStatus] = useState<TLStoreWithStatus>({ status: 'loading' })
 
 	const { doc, room, yRecords } = useMemo(() => {
@@ -75,7 +78,7 @@ export function useYjsStore({
 			// is empty, initialize the yjs doc with the default store records.
 			if (yRecords.size === 0) {
 				// Create the initial store records
-				transact(() => {
+				Y.transact(doc, () => {
 					store.clear()
 					store.put([
 						DocumentRecordType.create({
@@ -97,7 +100,7 @@ export function useYjsStore({
 				})
 			} else {
 				// Replace the store records with the yjs doc records
-				transact(() => {
+				Y.transact(doc, () => {
 					store.clear()
 					store.put([...yRecords.values()])
 				})

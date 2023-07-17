@@ -1,10 +1,6 @@
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
-import {
-	DefaultErrorFallback,
-	ErrorBoundary,
-	setDefaultEditorAssetUrls,
-	setDefaultUiAssetUrls,
-} from '@tldraw/tldraw'
+import { DefaultErrorFallback, ErrorBoundary, setDefaultUiAssetUrls } from '@tldraw/tldraw'
+import { setDefaultEditorAssetUrls } from '@tldraw/tldraw/src/lib/utils/assetUrls'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -28,6 +24,7 @@ import HideUiExample from './9-hide-ui/HideUiExample'
 import ExamplesTldrawLogo from './ExamplesTldrawLogo'
 import { ListLink } from './components/ListLink'
 import EndToEnd from './end-to-end/end-to-end'
+import OnlyEditorExample from './only-editor/OnlyEditor'
 import YjsExample from './yjs/YjsExample'
 
 // This example is only used for end to end tests
@@ -49,6 +46,11 @@ export const allExamples: Example[] = [
 		title: 'Basic (development)',
 		path: '/develop',
 		element: <ExampleBasic />,
+	},
+	{
+		title: 'Collaboration (with Yjs)',
+		path: '/yjs',
+		element: <YjsExample />,
 	},
 	{
 		title: 'Editor API',
@@ -122,11 +124,6 @@ export const allExamples: Example[] = [
 	},
 	{
 		title: 'Custom styles',
-		path: '/yjs',
-		element: <YjsExample />,
-	},
-	{
-		title: 'Custom styles',
 		path: '/custom-styles',
 		element: <CustomStylesExample />,
 	},
@@ -134,6 +131,11 @@ export const allExamples: Example[] = [
 		title: 'Shape meta property',
 		path: '/shape-meta',
 		element: <ShapeMetaExample />,
+	},
+	{
+		title: 'Only editor',
+		path: '/only-editor',
+		element: <OnlyEditorExample />,
 	},
 	// not listed
 	{

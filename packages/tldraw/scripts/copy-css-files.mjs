@@ -9,7 +9,7 @@ const packageDir = join(__dirname, '..')
 
 let combinedContent = [
 	join(packageDir, '..', 'editor', 'editor.css'),
-	join(packageDir, '..', 'ui', 'ui.css'),
+	join(packageDir, 'src', 'lib', 'ui.css'),
 ].reduce(
 	(acc, path) => {
 		const content = readFileSync(path, 'utf8')
@@ -18,7 +18,7 @@ let combinedContent = [
 	},
 	`/* THIS CSS FILE IS GENERATED! DO NOT EDIT. OR EDIT. I'M A COMMENT NOT A COP */ 
 /* This file is created by the copy-css-files.mjs script in @tldraw/tldraw. */
-/* It combines @tldraw/editor/editor.css and @tldraw/ui/ui.css */
+/* It combines @tldraw/editor's editor.css and @tldraw/tldraw's ui.css */
 
 `
 )

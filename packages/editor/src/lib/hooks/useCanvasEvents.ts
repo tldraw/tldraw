@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
-import { getPointerInfo } from '../utils/svg'
+import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {

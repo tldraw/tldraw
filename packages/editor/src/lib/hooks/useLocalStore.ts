@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
 import { TLStoreOptions } from '../config/createTLStore'
-import { uniqueId } from '../utils/data'
 import { TLStoreWithStatus } from '../utils/sync/StoreWithStatus'
 import { TLLocalSyncClient } from '../utils/sync/TLLocalSyncClient'
+import { uniqueId } from '../utils/uniqueId'
 import { useTLStore } from './useTLStore'
 
 /** @internal */
