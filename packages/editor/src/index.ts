@@ -41,6 +41,7 @@ export {
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
+export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export {
 	TAB_ID,

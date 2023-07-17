@@ -1,17 +1,17 @@
 import { Vec2dModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { memo, useRef } from 'react'
+import { ComponentType, memo, useRef } from 'react'
 import { useTransform } from '../hooks/useTransform'
 
 /** @public */
-export type TLCursorComponent = (props: {
+export type TLCursorComponent = ComponentType<{
 	className?: string
 	point: Vec2dModel | null
 	zoom: number
 	color?: string
 	name: string | null
 	chatMessage: string
-}) => any | null
+}>
 
 const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatMessage }) => {
 	const rCursor = useRef<HTMLDivElement>(null)

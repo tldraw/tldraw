@@ -1,15 +1,16 @@
 import { TLScribble } from '@tldraw/tlschema'
 import classNames from 'classnames'
+import { ComponentType } from 'react'
 import { getSvgPathFromPoints } from '../utils/getSvgPathFromPoints'
 
 /** @public */
-export type TLScribbleComponent = (props: {
+export type TLScribbleComponent = ComponentType<{
 	scribble: TLScribble
 	zoom: number
 	color?: string
 	opacity?: number
 	className?: string
-}) => any
+}>
 
 export const DefaultScribble: TLScribbleComponent = ({
 	scribble,
@@ -18,7 +19,7 @@ export const DefaultScribble: TLScribbleComponent = ({
 	opacity,
 	className,
 }) => {
-	if (!scribble.points.length) return
+	if (!scribble.points.length) return null
 
 	return (
 		<svg className={className ? classNames('tl-overlays__item', className) : className}>

@@ -153,11 +153,11 @@ function GapsSnapLine({ gaps, direction, zoom }: { zoom: number } & GapsSnapLine
 	)
 }
 
-export type TLSnapLineComponent = (props: {
+export type TLSnapLineComponent = React.ComponentType<{
 	className?: string
 	line: SnapLine
 	zoom: number
-}) => any
+}>
 
 export const DefaultSnapLine: TLSnapLineComponent = ({ className, line, zoom }) => {
 	return (

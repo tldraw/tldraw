@@ -24,6 +24,7 @@ import HideUiExample from './9-hide-ui/HideUiExample'
 import ExamplesTldrawLogo from './ExamplesTldrawLogo'
 import { ListLink } from './components/ListLink'
 import EndToEnd from './end-to-end/end-to-end'
+import OnlyEditorExample from './only-editor/OnlyEditor'
 import YjsExample from './yjs/YjsExample'
 
 // This example is only used for end to end tests
@@ -130,6 +131,11 @@ export const allExamples: Example[] = [
 		title: 'Shape meta property',
 		path: '/shape-meta',
 		element: <ShapeMetaExample />,
+	},
+	{
+		title: 'Only editor',
+		path: '/only-editor',
+		element: <OnlyEditorExample />,
 	},
 	// not listed
 	{

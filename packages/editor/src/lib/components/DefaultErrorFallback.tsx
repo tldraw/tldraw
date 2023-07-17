@@ -1,6 +1,6 @@
 import { useValue } from '@tldraw/state'
 import classNames from 'classnames'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Editor } from '../editor/Editor'
 import { EditorContext } from '../hooks/useEditor'
 import { hardResetEditor } from '../utils/hardResetEditor'
@@ -14,7 +14,7 @@ const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 function noop() {}
 
 /** @public */
-export type TLErrorFallbackComponent = (props: { error: unknown; editor?: Editor }) => any | null
+export type TLErrorFallbackComponent = ComponentType<{ error: unknown; editor?: Editor }>
 
 /** @internal */
 export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }) => {

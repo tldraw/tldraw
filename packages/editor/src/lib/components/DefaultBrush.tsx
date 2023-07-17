@@ -1,15 +1,15 @@
 import { Box2dModel } from '@tldraw/tlschema'
-import { useRef } from 'react'
+import { ComponentType, useRef } from 'react'
 import { useTransform } from '../hooks/useTransform'
 import { toDomPrecision } from '../primitives/utils'
 
 /** @public */
-export type TLBrushComponent = (props: {
+export type TLBrushComponent = ComponentType<{
 	brush: Box2dModel
 	color?: string
 	opacity?: number
 	className?: string
-}) => any | null
+}>
 
 export const DefaultBrush: TLBrushComponent = ({ brush, color, opacity }) => {
 	const rSvg = useRef<SVGSVGElement>(null)

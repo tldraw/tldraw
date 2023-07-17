@@ -135,7 +135,7 @@ export const Shape = track(function Shape({
 				{isCulled && util.canUnmount(shape) ? (
 					<CulledShape shape={shape} />
 				) : (
-					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
+					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 						<InnerShape shape={shape} util={util} />
 					</OptionalErrorBoundary>
 				)}

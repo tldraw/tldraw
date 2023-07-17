@@ -1,11 +1,12 @@
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
+import { ComponentType } from 'react'
 
-export type TLHandleComponent = (props: {
+export type TLHandleComponent = ComponentType<{
 	shapeId: TLShapeId
 	handle: TLHandle
 	className?: string
-}) => any | null
+}>
 
 export const DefaultHandle: TLHandleComponent = ({ handle, className }) => {
 	return (

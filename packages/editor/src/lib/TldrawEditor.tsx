@@ -10,6 +10,7 @@ import React, {
 	useSyncExternalStore,
 } from 'react'
 
+import { Canvas } from './components/Canvas'
 import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { TLUser, createTLUser } from './config/createTLUser'
@@ -302,7 +303,7 @@ function TldrawEditorWithReadyStore({
 		// document in the event of an error to reassure them that their work is
 		// not lost.
 		<OptionalErrorBoundary
-			fallback={ErrorFallback}
+			fallback={ErrorFallback as any}
 			onError={(error) =>
 				editor.annotateError(error, { origin: 'react.tldraw', willCrashApp: true })
 			}
@@ -325,7 +326,7 @@ function Layout({ children }: { children: any }) {
 	useSafariFocusOutFix()
 	useForceUpdate()
 
-	return children
+	return children ?? <Canvas />
 }
 
 function Crash({ crashingError }: { crashingError: unknown }): null {

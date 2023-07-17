@@ -249,14 +249,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.root.children![Tool.id] = new Tool(this, this.root)
 		}
 
-		if (!initialState) {
-			throw Error(`You must provide an initial state for the editor.`)
-		} else {
-			if (this.root.children[initialState] === undefined) {
-				throw Error(`No state found for initialState "${initialState}".`)
-			}
-		}
-
 		if (typeof window !== 'undefined' && 'navigator' in window) {
 			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
 			this.isIos = !!navigator.userAgent.match(/iPad/i) || !!navigator.userAgent.match(/iPhone/i)
@@ -353,6 +345,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 			true
 		)
+
+		if (initialState && this.root.children[initialState] === undefined) {
+			throw Error(`No state found for initialState "${initialState}".`)
+		}
 
 		this.root.enter(undefined, 'initial')
 
@@ -1086,7 +1082,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			activeToolId = currentChildState?.info?.onInteractionEnd ?? 'select'
 		}
 
-		return activeToolId ?? 'select'
+		return activeToolId ?? ''
 	}
 
 	/**

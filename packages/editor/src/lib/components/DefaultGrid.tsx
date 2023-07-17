@@ -1,13 +1,14 @@
 import { modulate } from '@tldraw/utils'
+import { ComponentType } from 'react'
 import { GRID_STEPS } from '../constants'
 
 /** @public */
-export type TLGridComponent = (props: {
+export type TLGridComponent = ComponentType<{
 	x: number
 	y: number
 	z: number
 	size: number
-}) => JSX.Element | null
+}>
 
 export const DefaultGrid: TLGridComponent = ({ x, y, z, size }) => {
 	return (

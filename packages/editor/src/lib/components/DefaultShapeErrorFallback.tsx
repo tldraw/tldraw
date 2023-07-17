@@ -1,5 +1,7 @@
+import { ComponentType } from 'react'
+
 /** @public */
-export type TLShapeErrorFallbackComponent = (props: { error: any }) => any | null
+export type TLShapeErrorFallbackComponent = ComponentType<{ error: any }>
 
 /** @internal */
 export const DefaultShapeErrorFallback: TLShapeErrorFallbackComponent = ({

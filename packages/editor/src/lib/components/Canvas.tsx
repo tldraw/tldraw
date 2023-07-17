@@ -15,7 +15,6 @@ import { Matrix2d } from '../primitives/Matrix2d'
 import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
-import { SelectionBg } from './SelectionBg'
 import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
 
@@ -97,7 +96,7 @@ export const Canvas = track(function Canvas() {
 						{SvgDefs && <SvgDefs />}
 					</defs>
 				</svg>
-				<SelectionBg />
+				<SelectionBackgroundWrapper />
 				<div className="tl-shapes">
 					<ShapesToDisplay />
 				</div>
@@ -110,7 +109,7 @@ export const Canvas = track(function Canvas() {
 					<HoveredShapeIndicator />
 					<HintedShapeIndicator />
 					<SnapLinesWrapper />
-					<SelectionFgWrapper />
+					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
 			</div>
@@ -433,8 +432,14 @@ const UiLogger = track(() => {
 	)
 })
 
-export function SelectionFgWrapper() {
+export function SelectionForegroundWrapper() {
 	const { SelectionForeground } = useEditorComponents()
 	if (!SelectionForeground) return null
 	return <SelectionForeground />
+}
+
+export function SelectionBackgroundWrapper() {
+	const { SelectionBackground } = useEditorComponents()
+	if (!SelectionBackground) return null
+	return <SelectionBackground />
 }

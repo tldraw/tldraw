@@ -1,19 +1,19 @@
 import { Vec2dModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
-import { useRef } from 'react'
+import { ComponentType, useRef } from 'react'
 import { useTransform } from '../hooks/useTransform'
 import { Box2d } from '../primitives/Box2d'
 import { Vec2d } from '../primitives/Vec2d'
 import { clamp } from '../primitives/utils'
 
-export type TLCollaboratorHintComponent = (props: {
+export type TLCollaboratorHintComponent = ComponentType<{
 	className?: string
 	point: Vec2dModel
 	viewport: Box2d
 	zoom: number
 	opacity?: number
 	color: string
-}) => JSX.Element | null
+}>
 
 export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
 	className,

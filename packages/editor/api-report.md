@@ -9,6 +9,7 @@
 import { Atom } from '@tldraw/state';
 import { atom } from '@tldraw/state';
 import { Box2dModel } from '@tldraw/tlschema';
+import { ComponentType } from 'react';
 import { Computed } from '@tldraw/state';
 import { computed } from '@tldraw/state';
 import { ComputedCache } from '@tldraw/store';
@@ -16,6 +17,7 @@ import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
 import EventEmitter from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
+import { HTMLProps } from 'react';
 import { JsonObject } from '@tldraw/utils';
 import { MemoExoticComponent } from 'react';
 import { Migrations } from '@tldraw/store';
@@ -1154,6 +1156,13 @@ export type PointsSnapLine = {
 export function polygonsIntersect(a: VecLike[], b: VecLike[]): boolean;
 
 // @public (undocumented)
+export const PositionedOnCanvas: MemoExoticComponent<({ x: offsetX, y: offsetY, rotation, ...rest }: {
+x?: number | undefined;
+y?: number | undefined;
+rotation?: number | undefined;
+} & HTMLProps<HTMLDivElement>) => JSX.Element>;
+
+// @public (undocumented)
 export function precise(A: VecLike): string;
 
 // @public
@@ -1664,46 +1673,13 @@ export type TldrawEditorProps = TldrawEditorBaseProps & ({
 });
 
 // @public (undocumented)
-export interface TLEditorComponents {
-    // (undocumented)
-    Background: null | TLBackgroundComponent;
-    // (undocumented)
-    Brush: null | TLBrushComponent;
-    // (undocumented)
-    CollaboratorBrush: null | TLBrushComponent;
-    // (undocumented)
-    CollaboratorCursor: null | TLCursorComponent;
-    // (undocumented)
-    CollaboratorHint: null | TLCollaboratorHintComponent;
-    // (undocumented)
-    CollaboratorScribble: null | TLScribbleComponent;
-    // (undocumented)
-    CollaboratorShapeIndicator: null | TLShapeIndicatorComponent;
-    // (undocumented)
-    Cursor: null | TLCursorComponent;
-    // (undocumented)
+export type TLEditorComponents = {
+    [K in keyof BaseEditorComponents]: BaseEditorComponents[K] | null;
+} & {
     ErrorFallback: TLErrorFallbackComponent;
-    // (undocumented)
-    Grid: null | TLGridComponent;
-    // (undocumented)
-    Handle: null | TLHandleComponent;
-    // (undocumented)
-    Scribble: null | TLScribbleComponent;
-    // (undocumented)
-    SelectionForeground: null | TLSelectionForegroundComponent;
-    // (undocumented)
     ShapeErrorFallback: TLShapeErrorFallbackComponent;
-    // (undocumented)
-    ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallback;
-    // (undocumented)
-    SnapLine: null | TLSnapLineComponent;
-    // (undocumented)
-    Spinner: null | TLSpinnerComponent;
-    // (undocumented)
-    SvgDefs: null | TLSvgDefsComponent;
-    // (undocumented)
-    ZoomBrush: null | TLBrushComponent;
-}
+    ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent;
+};
 
 // @public (undocumented)
 export interface TLEditorOptions {
@@ -1724,9 +1700,7 @@ export interface TLErrorBoundaryProps {
     // (undocumented)
     children: React_3.ReactNode;
     // (undocumented)
-    fallback: (props: {
-        error: unknown;
-    }) => any;
+    fallback: TLErrorFallbackComponent;
     // (undocumented)
     onError?: ((error: unknown) => void) | null;
 }

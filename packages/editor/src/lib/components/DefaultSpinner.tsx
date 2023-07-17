@@ -1,4 +1,6 @@
-export type TLSpinnerComponent = () => any | null
+import { ComponentType } from 'react'
+
+export type TLSpinnerComponent = ComponentType<object>
 
 export const DefaultSpinner: TLSpinnerComponent = () => {
 	return (

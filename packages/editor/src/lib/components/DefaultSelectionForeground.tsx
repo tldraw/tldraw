@@ -1,14 +1,12 @@
 import { track } from '@tldraw/state'
 import classNames from 'classnames'
-import { MemoExoticComponent, useRef } from 'react'
+import { ComponentType, useRef } from 'react'
 import { useEditor } from '../hooks/useEditor'
 import { useTransform } from '../hooks/useTransform'
 import { toDomPrecision } from '../primitives/utils'
 
 /** @public */
-export type TLSelectionForegroundComponent =
-	| (() => any | null)
-	| MemoExoticComponent<() => any | null>
+export type TLSelectionForegroundComponent = ComponentType<object>
 
 export const DefaultSelectionForeground: TLSelectionForegroundComponent = track(() => {
 	const editor = useEditor()
