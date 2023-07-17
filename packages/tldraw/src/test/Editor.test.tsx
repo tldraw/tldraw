@@ -53,13 +53,13 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's hintingIds", () => {
 		test('[boxes]', () => {
-			editor.setHintingIds([ids.box1, ids.box2, ids.box3])
+			editor.hintingIds = [ids.box1, ids.box2, ids.box3]
 			expect(editor.hintingIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
 			expect(editor.hintingIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.setHintingIds([ids.frame1])
+			editor.hintingIds = [ids.frame1]
 			expect(editor.hintingIds).toEqual([ids.frame1])
 			moveShapesToPage2()
 			expect(editor.hintingIds).toEqual([ids.frame1])
@@ -68,25 +68,25 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's editingId", () => {
 		test('[root shape]', () => {
-			editor.setEditingId(ids.box1)
+			editor.editingId = ids.box1
 			expect(editor.editingId).toBe(ids.box1)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(null)
 		})
 		test('[child of frame]', () => {
-			editor.setEditingId(ids.box2)
+			editor.editingId = ids.box2
 			expect(editor.editingId).toBe(ids.box2)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(null)
 		})
 		test('[child of group]', () => {
-			editor.setEditingId(ids.box3)
+			editor.editingId = ids.box3
 			expect(editor.editingId).toBe(ids.box3)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(null)
 		})
 		test('[frame that doesnt move]', () => {
-			editor.setEditingId(ids.frame1)
+			editor.editingId = ids.frame1
 			expect(editor.editingId).toBe(ids.frame1)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(ids.frame1)
@@ -95,13 +95,13 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's erasingIds", () => {
 		test('[boxes]', () => {
-			editor.setErasingIds([ids.box1, ids.box2, ids.box3])
+			editor.erasingIds = [ids.box1, ids.box2, ids.box3]
 			expect(editor.erasingIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
 			expect(editor.erasingIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.setErasingIds([ids.frame1])
+			editor.erasingIds = [ids.frame1]
 			expect(editor.erasingIds).toEqual([ids.frame1])
 			moveShapesToPage2()
 			expect(editor.erasingIds).toEqual([ids.frame1])

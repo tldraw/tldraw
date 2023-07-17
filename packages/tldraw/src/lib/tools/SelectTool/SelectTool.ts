@@ -42,7 +42,7 @@ export class SelectTool extends StateNode {
 
 	override onExit = () => {
 		if (this.editor.pageState.editingId) {
-			this.editor.setEditingId(null)
+			this.editor.editingId = null
 		}
 	}
 }

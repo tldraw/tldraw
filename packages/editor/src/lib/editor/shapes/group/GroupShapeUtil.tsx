@@ -3,7 +3,7 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { Box2d } from '../../../primitives/Box2d'
 import { Matrix2d } from '../../../primitives/Matrix2d'
 import { ShapeUtil, TLOnChildrenChangeHandler } from '../ShapeUtil'
-import { DashedOutlineBox } from '../shared/DashedOutlineBox'
+import { DashedOutlineBox } from './DashedOutlineBox'
 
 /** @public */
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {

@@ -1,7 +1,16 @@
 import { Box2dModel, TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema'
 import { uniqueId } from '../../utils/uniqueId'
 import { Editor } from '../Editor'
-import { TextHelpers } from '../shapes/shared/TextHelpers'
+
+const fixNewLines = /\r?\n|\r/g
+
+function normalizeTextForDom(text: string) {
+	return text
+		.replace(fixNewLines, '\n')
+		.split('\n')
+		.map((x) => x || ' ')
+		.join('\n')
+}
 
 const textAlignmentsForLtr = {
 	start: 'left',
@@ -73,7 +82,7 @@ export class TextManager {
 		elm.style.setProperty('max-width', opts.maxWidth)
 		elm.style.setProperty('padding', opts.padding)
 
-		elm.textContent = TextHelpers.normalizeTextForDom(textToMeasure)
+		elm.textContent = normalizeTextForDom(textToMeasure)
 
 		const rect = elm.getBoundingClientRect()
 

@@ -13,11 +13,11 @@ import {
 	shortAngleDist,
 } from '../../../../primitives/utils'
 import type { Editor } from '../../../Editor'
-import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { ArcInfo, ArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	MIN_ARROW_LENGTH,
+	STROKE_SIZES,
 	WAY_TOO_BIG_ARROW_BEND_FACTOR,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,

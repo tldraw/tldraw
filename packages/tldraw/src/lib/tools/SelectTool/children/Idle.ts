@@ -29,7 +29,7 @@ export class Idle extends StateNode {
 					(parent) => !selectedIds.includes(parent.id)
 				)
 				if (hoveringShape.id !== focusLayerId) {
-					this.editor.setHoveredId(hoveringShape.id)
+					this.editor.hoveredId = hoveringShape.id
 				}
 
 				// Custom cursor debugging!
@@ -53,7 +53,7 @@ export class Idle extends StateNode {
 	override onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
-				this.editor.setHoveredId(null)
+				this.editor.hoveredId = null
 				break
 			}
 		}
@@ -260,7 +260,7 @@ export class Idle extends StateNode {
 	}
 
 	override onEnter = () => {
-		this.editor.setHoveredId(null)
+		this.editor.hoveredId = null
 		this.editor.cursor = { type: 'default', rotation: 0 }
 		this.parent.currentToolIdMask = undefined
 	}
@@ -376,7 +376,7 @@ export class Idle extends StateNode {
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.editor.mark('editing shape')
-		this.editor.setEditingId(shape.id)
+		this.editor.editingId = shape.id
 		this.parent.transition('editing_shape', info)
 	}
 
@@ -416,7 +416,7 @@ export class Idle extends StateNode {
 			},
 		])
 
-		this.editor.setEditingId(id)
+		this.editor.editingId = id
 		this.editor.select(id)
 		this.parent.transition('editing_shape', info)
 	}

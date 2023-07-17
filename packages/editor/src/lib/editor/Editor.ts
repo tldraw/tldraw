@@ -2004,8 +2004,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	// Editing Id
-
 	/**
 	 * The current editing shape's id.
 	 *
@@ -2014,15 +2012,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	get editingId() {
 		return this.pageState.editingId
 	}
-
-	/**
-	 * Set the current editing id.
-	 *
-	 * @param id - The id of the shape to edit or null to clear the editing id.
-	 *
-	 * @public
-	 */
-	setEditingId(id: TLShapeId | null): this {
+	set editingId(id) {
 		if (!id) {
 			this.setPageState({ editingId: null })
 		} else {
@@ -2034,13 +2024,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 		}
-
-		return this
-	}
-
-	@computed get editingShape() {
-		if (!this.editingId) return null
-		return this.getShapeById(this.editingId) ?? null
 	}
 
 	// Hovered Id
@@ -2054,36 +2037,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get hoveredId() {
 		return this.pageState.hoveredId
 	}
-
-	/**
-	 * Set the current hovered shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setHoveredId('box1')
-	 * editor.setHoveredId() // Clears the hovered shape.
-	 * ```
-	 *
-	 * @param id - The id of the page to set as the current page
-	 *
-	 * @public
-	 */
-	setHoveredId(id: TLShapeId | null = null): this {
-		if (id === this.pageState.hoveredId) return this
-
+	set hoveredId(id: TLShapeId | null) {
+		if (id === this.pageState.hoveredId) return
 		this.setPageState({ hoveredId: id }, true)
-		return this
-	}
-
-	/**
-	 * The current hovered shape.
-	 *
-	 * @readonly
-	 * @public
-	 */
-	@computed get hoveredShape() {
-		if (!this.hoveredId) return null
-		return this.getShapeById(this.hoveredId) ?? null
 	}
 
 	// Hinting ids
@@ -2096,21 +2052,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get hintingIds() {
 		return this.pageState.hintingIds
 	}
-
-	/**
-	 * Set the hinted shape ids.
-	 *
-	 * @param ids - The ids to set as hinted.
-	 *
-	 * @public
-	 */
-	setHintingIds(ids: TLShapeId[]): this {
+	set hintingIds(ids: TLShapeId[]) {
 		// always ephemeral
 		this.store.update(this.pageState.id, (s) => ({ ...s, hintingIds: dedupe(ids) }))
-		return this
 	}
-
-	// Erasing Ids
 
 	/**
 	 * The editor's current erasing ids.
@@ -2119,6 +2064,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed get erasingIds() {
 		return this.pageState.erasingIds
+	}
+	set erasingIds(ids: TLShapeId[]) {
+		const erasingIds = this.erasingIdsSet
+		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return
+		this.setPageState({ erasingIds: ids }, true)
 	}
 
 	/**
@@ -2132,29 +2082,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the current erasing shapes.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setErasingIds(['box1', 'box2'])
-	 * editor.setErasingIds() // Clears the erasing set
-	 * ```
-	 *
-	 * @param ids - The ids of shapes to set as erasing.
-	 *
-	 * @public
-	 */
-	setErasingIds(ids: TLShapeId[] = []): this {
-		const erasingIds = this.erasingIdsSet
-		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return this
-
-		this.setPageState({ erasingIds: ids }, true)
-		return this
-	}
-
-	// Cropping Id
-
-	/**
 	 * The current cropping shape's id.
 	 *
 	 * @public
@@ -2162,15 +2089,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	get croppingId() {
 		return this.pageState.croppingId
 	}
-
-	/**
-	 * Set the current cropping shape's id.
-	 *
-	 * @param id - The id of the shape to crop or null to clear the cropping id.
-	 *
-	 * @public
-	 */
-	setCroppingId(id: TLShapeId | null): this {
+	set croppingId(id: TLShapeId | null) {
 		if (id !== this.croppingId) {
 			if (!id) {
 				this.setPageState({ croppingId: null })
@@ -2185,7 +2104,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 		}
-		return this
 	}
 
 	/** @internal */

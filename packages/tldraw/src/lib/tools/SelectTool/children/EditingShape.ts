@@ -12,7 +12,7 @@ export class EditingShape extends StateNode {
 					(parent) => !selectedIds.includes(parent.id)
 				)
 				if (hoveringShape.id !== focusLayerId) {
-					this.editor.setHoveredId(hoveringShape.id)
+					this.editor.hoveredId = hoveringShape.id
 				}
 				break
 			}
@@ -22,7 +22,7 @@ export class EditingShape extends StateNode {
 	override onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
-				this.editor.setHoveredId(null)
+				this.editor.hoveredId = null
 				break
 			}
 		}
@@ -34,7 +34,7 @@ export class EditingShape extends StateNode {
 		if (!editingId) return
 
 		// Clear the editing shape
-		this.editor.setEditingId(null)
+		this.editor.editingId = null
 
 		const shape = this.editor.getShapeById(editingId)!
 		const util = this.editor.getShapeUtil(shape)
@@ -70,8 +70,8 @@ export class EditingShape extends StateNode {
 							util.canEdit?.(shape) &&
 							!this.editor.isShapeOrAncestorLocked(shape)
 						) {
-							this.editor.setEditingId(shape.id)
-							this.editor.setHoveredId(shape.id)
+							this.editor.editingId = shape.id
+							this.editor.hoveredId = shape.id
 							this.editor.setSelectedIds([shape.id])
 							return
 						}

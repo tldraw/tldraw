@@ -17,7 +17,7 @@ export class Idle extends StateNode {
 				)
 				if (hoveringShape.id !== focusLayerId) {
 					if (this.editor.isShapeOfType<TLTextShape>(hoveringShape, 'text')) {
-						this.editor.setHoveredId(hoveringShape.id)
+						this.editor.hoveredId = hoveringShape.id
 					}
 				}
 				break
@@ -28,7 +28,7 @@ export class Idle extends StateNode {
 	override onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
 		switch (info.target) {
 			case 'shape': {
-				this.editor.setHoveredId(null)
+				this.editor.hoveredId = null
 				break
 			}
 		}
@@ -41,7 +41,7 @@ export class Idle extends StateNode {
 			if (this.editor.isShapeOfType<TLTextShape>(shape, 'text')) {
 				requestAnimationFrame(() => {
 					this.editor.setSelectedIds([shape.id])
-					this.editor.setEditingId(shape.id)
+					this.editor.editingId = shape.id
 					this.editor.setCurrentTool('select.editing_shape', {
 						...info,
 						target: 'shape',
@@ -64,7 +64,7 @@ export class Idle extends StateNode {
 			const shape = this.editor.selectedShapes[0]
 			if (shape && this.editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
 				this.editor.setCurrentTool('select')
-				this.editor.setEditingId(shape.id)
+				this.editor.editingId = shape.id
 				this.editor.root.current.value!.transition('editing_shape', {
 					...info,
 					target: 'shape',

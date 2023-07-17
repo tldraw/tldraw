@@ -58,7 +58,7 @@ export class Pointing extends StateNode {
 			if (change) {
 				const startTerminal = change.props?.start
 				if (startTerminal?.type === 'binding') {
-					this.editor.setHintingIds([startTerminal.boundShapeId])
+					this.editor.hintingIds = [startTerminal.boundShapeId]
 				}
 				this.editor.updateShapes([change], true)
 			}
@@ -139,7 +139,7 @@ export class Pointing extends StateNode {
 
 	cancel() {
 		this.editor.bailToMark('creating')
-		this.editor.setHintingIds([])
+		this.editor.hintingIds = []
 		this.parent.transition('idle', {})
 	}
 }

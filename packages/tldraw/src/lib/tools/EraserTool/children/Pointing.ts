@@ -28,7 +28,7 @@ export class Pointing extends StateNode {
 			}
 		}
 
-		this.editor.setErasingIds([...erasing])
+		this.editor.erasingIds = [...erasing]
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
@@ -61,12 +61,12 @@ export class Pointing extends StateNode {
 			this.editor.deleteShapes(erasingIds)
 		}
 
-		this.editor.setErasingIds([])
+		this.editor.erasingIds = []
 		this.parent.transition('idle', {})
 	}
 
 	cancel() {
-		this.editor.setErasingIds([])
+		this.editor.erasingIds = []
 		this.parent.transition('idle', {})
 	}
 }

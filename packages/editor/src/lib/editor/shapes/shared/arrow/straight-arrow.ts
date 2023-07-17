@@ -7,12 +7,12 @@ import {
 	intersectLineSegmentPolyline,
 } from '../../../../primitives/intersect'
 import { Editor } from '../../../Editor'
-import { STROKE_SIZES } from '../../shared/default-shape-constants'
 import { ArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
 	MIN_ARROW_LENGTH,
+	STROKE_SIZES,
 	getArrowTerminalsInArrowSpace,
 	getBoundShapeInfoForTerminal,
 } from './shared'
