@@ -256,7 +256,7 @@ describe('<TldrawEditor />', () => {
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
 
 		// Select the eraser tool...
-		await act(async () => editor.setSelectedTool('eraser'))
+		await act(async () => editor.setCurrentTool('eraser'))
 
 		// Is the editor's current tool correct?
 		expect(editor.currentToolId).toBe('eraser')
@@ -378,7 +378,7 @@ describe('Custom shapes', () => {
 		expect(await screen.findByTestId('card-indicator')).toBeTruthy()
 
 		// Select the tool...
-		await act(async () => editor.setSelectedTool('card'))
+		await act(async () => editor.setCurrentTool('card'))
 
 		// Is the editor's current tool correct?
 		expect(editor.currentToolId).toBe('card')

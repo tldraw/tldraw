@@ -36,7 +36,7 @@ export class ScribbleBrushing extends StateNode {
 
 		this.updateBrushSelection()
 		requestAnimationFrame(() => {
-			this.editor.setBrush(null)
+			this.editor.brush = null
 		})
 	}
 
@@ -87,12 +87,12 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.editor.setScribble(scribble)
+		this.editor.scribble = scribble
 	}
 
 	private onScribbleComplete = () => {
 		this.editor.off('tick', this.scribble.tick)
-		this.editor.setScribble(null)
+		this.editor.scribble = null
 	}
 
 	private updateBrushSelection() {

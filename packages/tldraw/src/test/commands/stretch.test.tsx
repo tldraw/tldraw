@@ -198,14 +198,14 @@ describe('When shapes have 0-width or 0-height', () => {
 		editor.deleteShapes()
 
 		editor
-			.setSelectedTool('arrow')
+			.setCurrentTool('arrow')
 			.keyDown('shift')
 			.pointerDown(50, 0)
 			.pointerMove(50, 100)
 			.pointerUp(50, 100)
 			.keyUp('shift')
 
-			.setSelectedTool('geo')
+			.setCurrentTool('geo')
 			.pointerDown(0, 0)
 			.pointerMove(100, 100)
 			.pointerUp(100, 100)
@@ -223,7 +223,7 @@ describe('When shapes have 0-width or 0-height', () => {
 
 		editor
 			// draw a perfectly horiztonal arrow:
-			.setSelectedTool('arrow')
+			.setCurrentTool('arrow')
 			.keyDown('shift')
 			.pointerDown(0, 50)
 			.pointerMove(100, 50)
@@ -231,7 +231,7 @@ describe('When shapes have 0-width or 0-height', () => {
 			.keyUp('shift')
 
 			// plus a box:
-			.setSelectedTool('geo')
+			.setCurrentTool('geo')
 			.pointerDown(0, 0)
 			.pointerMove(100, 100)
 			.pointerUp(100, 100)

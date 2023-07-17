@@ -45,7 +45,7 @@ const moveShapesToPage2 = () => {
 
 describe('shapes that are moved to another page', () => {
 	it("should be excluded from the previous page's focusLayerId", () => {
-		editor.setFocusLayer(ids.group1)
+		editor.focusLayerId = ids.group1
 		expect(editor.focusLayerId).toBe(ids.group1)
 		moveShapesToPage2()
 		expect(editor.focusLayerId).toBe(editor.currentPageId)
@@ -285,7 +285,7 @@ describe("App's default tool", () => {
 	})
 	it('Is hand for readonly mode', () => {
 		editor = new TestEditor()
-		editor.setReadOnly(true)
+		editor.isReadOnly = true
 		expect(editor.currentToolId).toBe('hand')
 	})
 })
@@ -295,16 +295,16 @@ describe('currentToolId', () => {
 		expect(editor.currentToolId).toBe('select')
 	})
 	it('is set to the last used tool', () => {
-		editor.setSelectedTool('draw')
+		editor.setCurrentTool('draw')
 		expect(editor.currentToolId).toBe('draw')
 
-		editor.setSelectedTool('geo')
+		editor.setCurrentTool('geo')
 		expect(editor.currentToolId).toBe('geo')
 	})
 	it('stays the selected tool during shape creation interactions that technically use the select tool', () => {
 		expect(editor.currentToolId).toBe('select')
 
-		editor.setSelectedTool('geo')
+		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 
@@ -315,7 +315,7 @@ describe('currentToolId', () => {
 	it('reverts back to select if we finish the interaction', () => {
 		expect(editor.currentToolId).toBe('select')
 
-		editor.setSelectedTool('geo')
+		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 
@@ -330,7 +330,7 @@ describe('currentToolId', () => {
 	it('stays on the selected tool if we cancel the interaction', () => {
 		expect(editor.currentToolId).toBe('select')
 
-		editor.setSelectedTool('geo')
+		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 
@@ -349,21 +349,21 @@ describe('isFocused', () => {
 	})
 
 	it('becomes true when you call .focus()', () => {
-		editor.focus()
+		editor.isFocused = true
 		expect(editor.isFocused).toBe(true)
 	})
 
 	it('becomes false when you call .blur()', () => {
-		editor.focus()
+		editor.isFocused = true
 		expect(editor.isFocused).toBe(true)
 
-		editor.blur()
+		editor.isFocused = false
 		expect(editor.isFocused).toBe(false)
 	})
 
 	it('remains false when you call .blur()', () => {
 		expect(editor.isFocused).toBe(false)
-		editor.blur()
+		editor.isFocused = false
 		expect(editor.isFocused).toBe(false)
 	})
 
@@ -376,7 +376,7 @@ describe('isFocused', () => {
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
-		editor.focus()
+		editor.isFocused = true
 		expect(editor.isFocused).toBe(true)
 
 		editor.elm.blur()
@@ -405,7 +405,7 @@ describe('isFocused', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 
-		editor.focus()
+		editor.isFocused = true
 
 		expect(editor.isFocused).toBe(true)
 
@@ -421,12 +421,12 @@ describe('isFocused', () => {
 		expect(focusMock).not.toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.focus()
+		editor.isFocused = true
 
 		expect(focusMock).toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.blur()
+		editor.isFocused = false
 
 		expect(blurMock).toHaveBeenCalled()
 	})

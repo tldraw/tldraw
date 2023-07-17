@@ -355,6 +355,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
     animateToUser(userId: string): void;
     get animationSpeed(): number;
+    set animationSpeed(animationSpeed: number);
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         origin: string;
@@ -366,10 +367,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void): this;
-    blur(): this;
+    // (undocumented)
+    blur: () => boolean;
     bringForward(ids?: TLShapeId[]): this;
     bringToFront(ids?: TLShapeId[]): this;
     get brush(): Box2dModel | null;
+    set brush(brush: Box2dModel | null);
     get camera(): TLCamera;
     get cameraState(): "idle" | "moving";
     cancel(): this;
@@ -408,14 +411,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
     get currentPageShapeIds(): Set<TLShapeId>;
+    get currentTool(): StateNode | undefined;
     get currentToolId(): string;
     get cursor(): TLCursor;
+    set cursor(cursor: TLCursor);
     deleteAssets(ids: TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
     deletePage(id: TLPageId): void;
     deleteShapes(ids?: TLShapeId[]): this;
     deselect(...ids: TLShapeId[]): this;
     get devicePixelRatio(): number;
+    set devicePixelRatio(dpr: number);
     dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
     dispose(): void;
@@ -447,9 +453,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
-    focus(): this;
+    // (undocumented)
+    focus: () => boolean;
     get focusLayerId(): TLPageId | TLShapeId;
-    get focusLayerShape(): TLShape | undefined;
+    set focusLayerId(next: TLPageId | TLShapeId);
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
     getAncestors(shape: TLShape, acc?: TLShape[]): TLShape[];
     getAncestorsById(id: TLShapeId, acc?: TLShape[]): TLShape[];
@@ -523,7 +530,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     }>): Promise<SVGSVGElement | undefined>;
     getTransform(shape: TLShape): Matrix2d;
-    get gridSize(): number;
     groupShapes(ids?: TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | undefined, ancestorId: TLShapeId): boolean;
     get hintingIds(): TLShapeId[];
@@ -559,27 +565,36 @@ export class Editor extends EventEmitter<TLEventMap> {
     get isCoarsePointer(): boolean;
     set isCoarsePointer(v: boolean);
     get isDarkMode(): boolean;
+    set isDarkMode(isDarkMode: boolean);
     readonly isFirefox: boolean;
     get isFocused(): boolean;
+    set isFocused(isFocused: boolean);
     get isFocusMode(): boolean;
+    set isFocusMode(isFocusMode: boolean);
     get isGridMode(): boolean;
+    set isGridMode(isGridMode: boolean);
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
     readonly isIos: boolean;
     get isMenuOpen(): boolean;
     get isPenMode(): boolean;
+    set isPenMode(isPenMode: boolean);
     isPointInShape(point: VecLike, shape: TLShape): boolean;
     get isReadOnly(): boolean;
+    set isReadOnly(isReadOnly: boolean);
     readonly isSafari: boolean;
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     get isSnapMode(): boolean;
+    set isSnapMode(isSnapMode: boolean);
     get isToolLocked(): boolean;
+    set isToolLocked(isToolLocked: boolean);
     isWithinSelection(id: TLShapeId): boolean;
     get locale(): string;
-    mark(reason?: string, onUndo?: boolean, onRedo?: boolean): string;
+    set locale(locale: string);
+    mark(markId?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
     get onlySelectedShape(): null | TLShape;
@@ -597,6 +612,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     popFocusLayer(): this;
     // @internal (undocumented)
     get projectName(): string;
+    set projectName(name: string);
     putContent(content: TLContent, options?: {
         point?: VecLike;
         select?: boolean;
@@ -624,7 +640,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         maskedPageBounds: Box2d | undefined;
     }[];
     reparentShapesById(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
-    replaceStoreContentsWithRecordsForOtherDocument(records: TLRecord[]): void;
     resetZoom(point?: Vec2d, opts?: TLAnimationOptions): this;
     resizeShape(id: TLShapeId, scale: VecLike, options?: {
         initialBounds?: Box2d;
@@ -643,6 +658,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         z: number;
     };
     get scribble(): null | TLScribble;
+    set scribble(scribble: null | TLScribble);
     select(...ids: TLShapeId[]): this;
     selectAll(): this;
     get selectedIds(): TLShapeId[];
@@ -655,35 +671,18 @@ export class Editor extends EventEmitter<TLEventMap> {
     selectNone(): this;
     sendBackward(ids?: TLShapeId[]): this;
     sendToBack(ids?: TLShapeId[]): this;
-    setAnimationSpeed(animationSpeed: number): this;
-    setBrush(brush?: Box2dModel | null): this;
     setCamera(x: number, y: number, z?: number, { stopFollowing }?: TLViewportOptions): this;
     setCroppingId(id: null | TLShapeId): this;
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
-    setCursor(cursor: Partial<TLCursor>): this;
-    setDarkMode(isDarkMode: boolean): this;
-    setDevicePixelRatio(dpr: number): this;
+    setCurrentTool(id: string, info?: {}): this;
     setEditingId(id: null | TLShapeId): this;
     setErasingIds(ids?: TLShapeId[]): this;
-    setFocusLayer(next: null | TLShapeId): this;
-    setFocusMode(isFocusMode: boolean): this;
-    setGridMode(isGridMode: boolean): this;
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredId(id?: null | TLShapeId): this;
-    setLocale(locale: string): void;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     setPageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
-    setPenMode(isPenMode: boolean): this;
-    // @internal (undocumented)
-    setProjectName(name: string): void;
-    setReadOnly(isReadOnly: boolean): this;
-    setScribble(scribble?: null | TLScribble): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
-    setSelectedTool(id: string, info?: {}): this;
-    setSnapMode(isSnapMode: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
-    setToolLocked(isToolLocked: boolean): this;
-    setZoomBrush(zoomBrush?: Box2dModel | null): this;
     get shapesArray(): TLShape[];
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
@@ -713,7 +712,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     undo(): HistoryManager<this>;
     ungroupShapes(ids?: TLShapeId[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    updateDocumentSettings(settings: Partial<TLDocument>): void;
+    updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal
@@ -727,6 +726,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get viewportScreenCenter(): Vec2d;
     visitDescendants(parentId: TLParentId, visitor: (id: TLShapeId) => false | void): void;
     get zoomBrush(): Box2dModel | null;
+    set zoomBrush(zoomBrush: Box2dModel | null);
     zoomIn(point?: Vec2d, opts?: TLAnimationOptions): this;
     get zoomLevel(): number;
     zoomOut(point?: Vec2d, opts?: TLAnimationOptions): this;

@@ -263,7 +263,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (!(editor.inputs.shiftKey || editor.inputs.ctrlKey)) {
 						const currentTool = editor.root.current.value
 						if (currentTool && currentTool.current.value?.id === 'idle') {
-							editor.setSelectedTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
+							editor.setCurrentTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
 						}
 					}
 				},
@@ -684,7 +684,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('select-all-shapes', { source })
 					if (editor.currentToolId !== 'select') {
 						editor.cancel()
-						editor.setSelectedTool('select')
+						editor.setCurrentTool('select')
 					}
 
 					editor.mark('select all kbd')
@@ -800,7 +800,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
-					editor.setSnapMode(!editor.isSnapMode)
+					editor.isSnapMode = !editor.isSnapMode
 				},
 				checkbox: true,
 			},
@@ -812,7 +812,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-dark-mode', { source })
-					editor.setDarkMode(!editor.isDarkMode)
+					editor.isDarkMode = !editor.isDarkMode
 				},
 				checkbox: true,
 			},
@@ -823,7 +823,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-reduce-motion', { source })
-					editor.setAnimationSpeed(editor.animationSpeed === 0 ? 1 : 0)
+					editor.animationSpeed = editor.animationSpeed === 0 ? 1 : 0
 				},
 				checkbox: true,
 			},
@@ -852,7 +852,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'q',
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
-					editor.setToolLocked(!editor.isToolLocked)
+					editor.isToolLocked = !editor.isToolLocked
 				},
 				checkbox: true,
 			},
@@ -871,7 +871,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
 							clearToasts()
-							editor.setFocusMode(!editor.isFocusMode)
+							editor.isFocusMode = !editor.isFocusMode
 						})
 					})
 				},
@@ -884,7 +884,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: "$'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
-					editor.setGridMode(!editor.isGridMode)
+					editor.isGridMode = !editor.isGridMode
 				},
 				checkbox: true,
 			},
@@ -921,7 +921,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('exit-pen-mode', { source })
-					editor.setPenMode(false)
+					editor.isPenMode = false
 				},
 			},
 			{

@@ -1406,7 +1406,7 @@ describe('translating while the grid is enabled', () => {
 		//  └───┘       └───┘
 		editor.createShapes([box(ids.box1, 0, 0, 20, 20), box(ids.box2, 50, 0, 20, 20)])
 
-		editor.setGridMode(true)
+		editor.isGridMode = true
 
 		// try to snap A to B
 		// doesn't work because of the grid
@@ -1559,7 +1559,7 @@ describe('translating a shape with a bound shape', () => {
 		editor.createShapes([box(ids.box1, 0, 0, 100, 100), box(ids.box2, 200, 0, 100, 100)])
 
 		// Create an arrow starting within the first box and ending within the second box
-		editor.setSelectedTool('arrow').pointerDown(50, 50).pointerMove(250, 50).pointerUp()
+		editor.setCurrentTool('arrow').pointerDown(50, 50).pointerMove(250, 50).pointerUp()
 
 		//   100         200
 		// ┌───────────────────┐

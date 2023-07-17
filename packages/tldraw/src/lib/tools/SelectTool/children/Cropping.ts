@@ -63,10 +63,10 @@ export class Cropping extends StateNode {
 		if (!selectedShape) return
 
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.setCursor({
+		this.editor.cursor = {
 			type: cursorType,
 			rotation: selectedShape.rotation,
-		})
+		}
 	}
 
 	private getDefaultCrop = (): TLImageShapeCrop => ({
@@ -203,7 +203,7 @@ export class Cropping extends StateNode {
 
 	private complete() {
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})
@@ -213,7 +213,7 @@ export class Cropping extends StateNode {
 	private cancel() {
 		this.editor.bailToMark(this.markId)
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})

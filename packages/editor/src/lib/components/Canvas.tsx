@@ -123,12 +123,13 @@ const GridWrapper = track(function GridWrapper() {
 
 	// get grid from context
 
+	const { gridSize } = editor.documentSettings
 	const { x, y, z } = editor.camera
 	const isGridMode = editor.isGridMode
 
 	if (!(Grid && isGridMode)) return null
 
-	return <Grid x={x} y={y} z={z} size={editor.gridSize} />
+	return <Grid x={x} y={y} z={z} size={gridSize} />
 })
 
 const ScribbleWrapper = track(function ScribbleWrapper() {

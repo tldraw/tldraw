@@ -42,7 +42,7 @@ export class Pointing extends StateNode {
 				],
 				true
 			)
-			this.editor.setSelectedTool('select.resizing', {
+			this.editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'bottom_right',
@@ -111,7 +111,7 @@ export class Pointing extends StateNode {
 		if (this.editor.instanceState.isToolLocked) {
 			this.parent.transition('idle', {})
 		} else {
-			this.editor.setSelectedTool('select.idle')
+			this.editor.setCurrentTool('select.idle')
 		}
 	}
 

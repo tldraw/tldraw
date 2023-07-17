@@ -43,7 +43,7 @@ describe('TLUserPreferences', () => {
 
 		expect(editor.isDarkMode).toBe(false)
 
-		editor.setDarkMode(true)
+		editor.isDarkMode = true
 
 		expect(editor.isDarkMode).toBe(true)
 		expect(userPreferences.value.isDarkMode).toBe(true)

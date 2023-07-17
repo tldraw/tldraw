@@ -279,7 +279,7 @@ describe('creating groups', () => {
 		// │ A │   │ B │   │ C │
 		// └───┘   └───┘   └───┘
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
-		editor.setReadOnly(true)
+		editor.isReadOnly = true
 		editor.selectAll()
 		expect(editor.selectedIds.length).toBe(3)
 		editor.groupShapes()
@@ -490,7 +490,7 @@ describe('ungrouping shapes', () => {
 		expect(editor.selectedIds.length).toBe(3)
 		editor.groupShapes()
 		expect(editor.selectedIds.length).toBe(1)
-		editor.setReadOnly(true)
+		editor.isReadOnly = true
 
 		editor.ungroupShapes()
 		expect(editor.selectedIds.length).toBe(1)
@@ -1107,7 +1107,7 @@ describe('creating new shapes', () => {
 	describe('boxes', () => {
 		it('does not create inside the group if the group is only selected and not focused', () => {
 			editor.select(groupA.id)
-			editor.setSelectedTool('geo')
+			editor.setCurrentTool('geo')
 			editor.pointerDown(20, 20).pointerMove(80, 80).pointerUp(80, 80)
 			const boxC = onlySelectedShape()
 
@@ -1124,7 +1124,7 @@ describe('creating new shapes', () => {
 			editor.select(ids.boxA)
 			expect(editor.focusLayerId === groupA.id).toBe(true)
 
-			editor.setSelectedTool('geo')
+			editor.setCurrentTool('geo')
 			editor.pointerDown(20, 20).pointerMove(80, 80).pointerUp(80, 80)
 			const boxC = onlySelectedShape()
 
@@ -1142,7 +1142,7 @@ describe('creating new shapes', () => {
 			editor.select(ids.boxA)
 			expect(editor.focusLayerId === groupA.id).toBe(true)
 
-			editor.setSelectedTool('geo')
+			editor.setCurrentTool('geo')
 			editor.pointerDown(20, 20).pointerMove(-10, -10)
 
 			expect(editor.getPageBoundsById(groupA.id)).toCloselyMatchObject({
@@ -1171,7 +1171,7 @@ describe('creating new shapes', () => {
 			editor.select(ids.boxA)
 			expect(editor.focusLayerId === groupA.id).toBe(true)
 
-			editor.setSelectedTool('geo')
+			editor.setCurrentTool('geo')
 			editor.pointerDown(-50, -50).pointerMove(-100, -100).pointerUp()
 
 			expect(editor.getPageBoundsById(groupA.id)).toCloselyMatchObject({
@@ -1195,7 +1195,7 @@ describe('creating new shapes', () => {
 		it('does not draw inside the group if the group is only selected and not focused', () => {
 			editor.select(groupA.id)
 
-			editor.setSelectedTool('draw')
+			editor.setCurrentTool('draw')
 			editor.pointerDown(20, 20).pointerMove(80, 80).pointerUp(80, 80)
 
 			const lineC = onlySelectedShape()
@@ -1206,7 +1206,7 @@ describe('creating new shapes', () => {
 			editor.select(ids.boxA)
 			expect(editor.focusLayerId === groupA.id).toBe(true)
 
-			editor.setSelectedTool('draw')
+			editor.setCurrentTool('draw')
 			editor.pointerDown(20, 20).pointerMove(80, 80).pointerUp(80, 80)
 
 			const lineC = onlySelectedShape()
@@ -1217,7 +1217,7 @@ describe('creating new shapes', () => {
 			editor.select(ids.boxA)
 			expect(editor.focusLayerId === groupA.id).toBe(true)
 
-			editor.setSelectedTool('draw')
+			editor.setCurrentTool('draw')
 			editor.pointerDown(20, 20)
 			for (let i = 20; i >= -20; i--) {
 				editor.pointerMove(i, i)
@@ -1245,7 +1245,7 @@ describe('creating new shapes', () => {
 			editor.select(ids.boxA)
 			expect(editor.focusLayerId === groupA.id).toBe(true)
 
-			editor.setSelectedTool('draw')
+			editor.setCurrentTool('draw')
 			editor.pointerDown(-20, -20)
 			for (let i = -20; i >= -100; i--) {
 				editor.pointerMove(i, i)
@@ -1273,7 +1273,7 @@ describe('creating new shapes', () => {
 			it('does not draw inside the group if the group is only selected and not focused', () => {
 				editor.select(groupA.id)
 
-				editor.setSelectedTool('line')
+				editor.setCurrentTool('line')
 				editor.pointerDown(20, 20)
 				editor.pointerMove(80, 80)
 				editor.pointerUp(80, 80)
@@ -1287,7 +1287,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool('line')
+				editor.setCurrentTool('line')
 				editor.pointerDown(20, 20).pointerMove(80, 80).pointerUp(80, 80)
 
 				const lineC = onlySelectedShape() as TLLineShape
@@ -1299,7 +1299,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool('line')
+				editor.setCurrentTool('line')
 				editor.pointerDown(20, 20).pointerMove(-10, -10)
 
 				expect(editor.getPageBoundsById(groupA.id)).toMatchSnapshot('group with line shape')
@@ -1315,7 +1315,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool('line')
+				editor.setCurrentTool('line')
 				editor.pointerDown(-50, -50).pointerMove(-100, -100).pointerUp()
 
 				expect(editor.getPageBoundsById(groupA.id)).toMatchSnapshot('group with line')
@@ -1330,7 +1330,7 @@ describe('creating new shapes', () => {
 				editor.select(groupA.id)
 				expect(editor.focusLayerId === editor.currentPageId).toBe(true)
 
-				editor.setSelectedTool('note')
+				editor.setCurrentTool('note')
 				editor.pointerDown(20, 20).pointerUp()
 
 				const postit = onlySelectedShape()
@@ -1341,7 +1341,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool('note')
+				editor.setCurrentTool('note')
 				editor.pointerDown(20, 20).pointerUp()
 
 				const postit = onlySelectedShape()
@@ -1359,7 +1359,7 @@ describe('creating new shapes', () => {
 					h: 100,
 				})
 
-				editor.setSelectedTool('note')
+				editor.setCurrentTool('note')
 				editor.pointerDown(80, 80)
 				editor.pointerUp()
 				// default size is 200x200, and it centers it, so add 100px around the pointer
@@ -1384,7 +1384,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusLayerId === groupA.id).toBe(true)
 
-				editor.setSelectedTool('note')
+				editor.setCurrentTool('note')
 				expect(editor.getPageBoundsById(groupA.id)).toCloselyMatchObject({
 					x: 0,
 					y: 0,
@@ -1442,7 +1442,7 @@ describe('erasing', () => {
 	})
 
 	it('erases whole groups if you hit one of their shapes', () => {
-		editor.setSelectedTool(EraserTool.id)
+		editor.setCurrentTool(EraserTool.id)
 
 		// erase D
 		editor.pointerDown(65, 5, ids.boxD)
@@ -1453,7 +1453,7 @@ describe('erasing', () => {
 	})
 
 	it('does not erase whole groups if you do not hit on one of their shapes', () => {
-		editor.setSelectedTool(EraserTool.id)
+		editor.setCurrentTool(EraserTool.id)
 
 		editor.pointerDown(35, 5)
 		expect(editor.erasingIdsSet.size).toBe(0)
@@ -1464,7 +1464,7 @@ describe('erasing', () => {
 		expect(editor.focusLayerId === groupAId).toBe(true)
 		const groupA = editor.getShapeById(groupAId)!
 
-		editor.setSelectedTool(EraserTool.id)
+		editor.setCurrentTool(EraserTool.id)
 
 		// erase B
 		editor.pointerDown(25, 5, ids.boxB)
@@ -1480,7 +1480,7 @@ describe('erasing', () => {
 		editor.select(ids.boxA)
 		expect(editor.focusLayerId === groupAId).toBe(true)
 
-		editor.setSelectedTool(EraserTool.id)
+		editor.setCurrentTool(EraserTool.id)
 
 		// erase E
 		editor.pointerDown(5, 25, ids.boxE)
@@ -1531,7 +1531,7 @@ describe('bindings', () => {
 	})
 
 	it('can not be made from some sibling shape to a group shape', () => {
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		// go from E to group C (not hovering over a leaf box)
 		editor.pointerDown(5, 25).pointerMove(35, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
@@ -1541,7 +1541,7 @@ describe('bindings', () => {
 	})
 
 	it('can not be made from a group shape to some sibling shape', () => {
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		// go from group C (not hovering over a leaf box) to E
 		editor.pointerDown(35, 5).pointerMove(5, 25).pointerUp()
 
@@ -1551,7 +1551,7 @@ describe('bindings', () => {
 		expect(arrow.props.end).toMatchObject({ boundShapeId: ids.boxE })
 	})
 	it('can be made from a shape within a group to some shape outside of the group', () => {
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		// go from A to E
 		editor.pointerDown(5, 5).pointerMove(5, 25).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
@@ -1563,7 +1563,7 @@ describe('bindings', () => {
 	})
 
 	it('can be made from a shape within a group to another shape within the group', () => {
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		// go from A to B
 		editor.pointerDown(5, 5).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
@@ -1574,7 +1574,7 @@ describe('bindings', () => {
 	})
 
 	it('can be made from a shape outside of a group to a shape within the group', () => {
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		// go from E to B
 		editor.pointerDown(5, 25).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
@@ -1645,7 +1645,7 @@ describe('moving handles within a group', () => {
 		editor.select(ids.boxA)
 		expect(editor.focusLayerId).toBe(groupA.id)
 
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 
 		editor.pointerDown(50, 50).pointerMove(60, 60).pointerUp(60, 60)
 

@@ -9,10 +9,10 @@ export class Idle extends StateNode {
 	}
 
 	override onEnter = () => {
-		this.editor.setCursor({ type: 'cross' })
+		this.editor.cursor = { type: 'cross', rotation: 0 }
 	}
 
 	override onCancel = () => {
-		this.editor.setSelectedTool('select')
+		this.editor.setCurrentTool('select')
 	}
 }

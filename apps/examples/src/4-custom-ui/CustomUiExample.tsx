@@ -26,18 +26,18 @@ const CustomUi = track(() => {
 					break
 				}
 				case 'v': {
-					editor.setSelectedTool('select')
+					editor.setCurrentTool('select')
 					break
 				}
 				case 'e': {
-					editor.setSelectedTool('eraser')
+					editor.setCurrentTool('eraser')
 					break
 				}
 				case 'x':
 				case 'p':
 				case 'b':
 				case 'd': {
-					editor.setSelectedTool('draw')
+					editor.setCurrentTool('draw')
 					break
 				}
 			}
@@ -55,21 +55,21 @@ const CustomUi = track(() => {
 				<button
 					className="custom-button"
 					data-isactive={editor.currentToolId === 'select'}
-					onClick={() => editor.setSelectedTool('select')}
+					onClick={() => editor.setCurrentTool('select')}
 				>
 					Select
 				</button>
 				<button
 					className="custom-button"
 					data-isactive={editor.currentToolId === 'draw'}
-					onClick={() => editor.setSelectedTool('draw')}
+					onClick={() => editor.setCurrentTool('draw')}
 				>
 					Pencil
 				</button>
 				<button
 					className="custom-button"
 					data-isactive={editor.currentToolId === 'eraser'}
-					onClick={() => editor.setSelectedTool('eraser')}
+					onClick={() => editor.setCurrentTool('eraser')}
 				>
 					Eraser
 				</button>

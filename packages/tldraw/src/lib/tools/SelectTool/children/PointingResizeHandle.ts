@@ -34,10 +34,10 @@ export class PointingResizeHandle extends StateNode {
 	private updateCursor() {
 		const selected = this.editor.selectedShapes
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.setCursor({
+		this.editor.cursor = {
 			type: cursorType,
 			rotation: selected.length === 1 ? selected[0].rotation : 0,
-		})
+		}
 	}
 
 	override onEnter = (info: PointingResizeHandleInfo) => {
@@ -75,7 +75,7 @@ export class PointingResizeHandle extends StateNode {
 
 	private complete() {
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}
@@ -83,7 +83,7 @@ export class PointingResizeHandle extends StateNode {
 
 	private cancel() {
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}

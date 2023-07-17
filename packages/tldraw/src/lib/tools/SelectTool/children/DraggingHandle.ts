@@ -56,7 +56,7 @@ export class DraggingHandle extends StateNode {
 		this.initialPageTransform = this.editor.getPageTransform(shape)!
 		this.initialPageRotation = this.editor.getPageRotation(shape)!
 
-		this.editor.setCursor({ type: isCreating ? 'cross' : 'grabbing', rotation: 0 })
+		this.editor.cursor = { type: isCreating ? 'cross' : 'grabbing', rotation: 0 }
 
 		// <!-- Only relevant to arrows
 		const handles = this.editor.getHandles(shape)!.sort(sortByIndex)
@@ -159,7 +159,7 @@ export class DraggingHandle extends StateNode {
 		this.parent.currentToolIdMask = undefined
 		this.editor.setHintingIds([])
 		this.editor.snaps.clear()
-		this.editor.setCursor({ type: 'default' })
+		this.editor.cursor = { type: 'default', rotation: 0 }
 	}
 
 	private complete() {
@@ -169,7 +169,7 @@ export class DraggingHandle extends StateNode {
 		if (this.editor.instanceState.isToolLocked && onInteractionEnd) {
 			// Return to the tool that was active before this one,
 			// but only if tool lock is turned on!
-			this.editor.setSelectedTool(onInteractionEnd, { shapeId: this.shapeId })
+			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
 			return
 		}
 
@@ -184,7 +184,7 @@ export class DraggingHandle extends StateNode {
 		if (onInteractionEnd) {
 			// Return to the tool that was active before this one,
 			// whether tool lock is turned on or not!
-			this.editor.setSelectedTool(onInteractionEnd, { shapeId: this.shapeId })
+			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })
 			return
 		}
 

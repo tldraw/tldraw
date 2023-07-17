@@ -112,7 +112,7 @@ export class Pointing extends StateNode {
 				}
 			}
 
-			this.editor.setSelectedTool('select.dragging_handle', {
+			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
 				handle: handles.find((h) => h.id === 'end')! /* end */,
 				isCreating: true,

@@ -176,7 +176,7 @@ describe('When a shape is selected...', () => {
 
 describe('When grid is enabled...', () => {
 	it('nudges a shape correctly', () => {
-		editor.setGridMode(true)
+		editor.isGridMode = true
 		editor.setSelectedIds([ids.boxA])
 
 		expect(nudgeAndGet([ids.boxA], 'ArrowUp', false)).toMatchObject([{ x: 10, y: 0 }])
@@ -186,7 +186,7 @@ describe('When grid is enabled...', () => {
 	})
 
 	it('nudges a shape with shift key pressed', () => {
-		editor.setGridMode(true)
+		editor.isGridMode = true
 		editor.setSelectedIds([ids.boxA])
 
 		expect(nudgeAndGet([ids.boxA], 'ArrowUp', true)).toMatchObject([{ x: 10, y: -40 }])

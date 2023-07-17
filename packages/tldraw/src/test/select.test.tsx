@@ -14,11 +14,11 @@ afterEach(() => {
 describe(SelectTool, () => {
 	describe('pointer down while shape is being edited', () => {
 		it('captures the pointer down event if it is on the shape', () => {
-			editor.setSelectedTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
+			editor.setCurrentTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
 			const shapeId = editor.onlySelectedShape?.id
 			editor._transformPointerDownSpy.mockRestore()
 			editor._transformPointerUpSpy.mockRestore()
-			editor.setSelectedTool('select')
+			editor.setCurrentTool('select')
 			editor.expectPathToBe('root.select.idle')
 			editor.doubleClick(50, 50, shapeId)
 
@@ -39,11 +39,11 @@ describe(SelectTool, () => {
 		})
 	})
 	it('does not allow pressing undo to end up in the editing state', () => {
-		editor.setSelectedTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
+		editor.setCurrentTool('geo').pointerDown(0, 0).pointerMove(100, 100).pointerUp(100, 100)
 		const shapeId = editor.onlySelectedShape?.id
 		editor._transformPointerDownSpy.mockRestore()
 		editor._transformPointerUpSpy.mockRestore()
-		editor.setSelectedTool('select')
+		editor.setCurrentTool('select')
 		editor.doubleClick(50, 50, shapeId)
 
 		expect(editor.pageState.editingId).toBe(shapeId)
@@ -138,7 +138,7 @@ describe('When brushing arrows', () => {
 					bend={0}
 				/>,
 			])
-		editor.setSelectedTool('select')
+		editor.setCurrentTool('select')
 		editor.pointerDown(55, 45)
 		editor.pointerMove(45, 55)
 		editor.expectPathToBe('root.select.brushing')
@@ -160,7 +160,7 @@ describe('When brushing arrows', () => {
 					bend={40}
 				/>,
 			])
-		editor.setSelectedTool('select')
+		editor.setCurrentTool('select')
 		editor.pointerDown(55, 45)
 		editor.pointerMove(45, 55)
 		editor.expectPathToBe('root.select.brushing')

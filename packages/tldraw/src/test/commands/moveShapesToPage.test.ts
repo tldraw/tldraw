@@ -150,7 +150,7 @@ describe('arrows', () => {
 	beforeEach(() => {
 		// draw a first box
 		editor
-			.setSelectedTool('geo')
+			.setCurrentTool('geo')
 			.pointerDown(200, 200)
 			.pointerMove(300, 300)
 			.pointerUp(300, 300)
@@ -159,7 +159,7 @@ describe('arrows', () => {
 
 		// draw a second box
 		editor
-			.setSelectedTool('geo')
+			.setCurrentTool('geo')
 			.pointerDown(400, 400)
 			.pointerMove(500, 500)
 			.pointerUp(500, 500)
@@ -167,7 +167,7 @@ describe('arrows', () => {
 		secondBox = editor.onlySelectedShape!
 
 		// draw an arrow from the first box to the second box
-		editor.setSelectedTool('arrow').pointerDown(250, 250).pointerMove(450, 450).pointerUp(450, 450)
+		editor.setCurrentTool('arrow').pointerDown(250, 250).pointerMove(450, 450).pointerUp(450, 450)
 		arrow = editor.onlySelectedShape!
 	})
 

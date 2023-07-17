@@ -18,7 +18,7 @@ jest.useFakeTimers()
 
 describe(HandTool, () => {
 	it('Double taps to zoom in', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		expect(editor.zoomLevel).toBe(1)
 		editor.click()
 		editor.click() // double click!
@@ -29,7 +29,7 @@ describe(HandTool, () => {
 	})
 
 	it('Triple taps to zoom out', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		expect(editor.zoomLevel).toBe(1)
 		editor.click()
 		editor.click()
@@ -41,7 +41,7 @@ describe(HandTool, () => {
 	})
 
 	it('Quadruple taps to reset zoom', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.zoomIn() // zoom to 2
 		expect(editor.zoomLevel).toBe(2)
 		editor.click()
@@ -55,7 +55,7 @@ describe(HandTool, () => {
 	})
 
 	it('Quadruple taps from zoom=1 to zoom to fit', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		expect(editor.zoomLevel).toBe(1)
 		editor.createShapes(createDefaultShapes()) // makes some shapes
 		editor.click()
@@ -73,7 +73,7 @@ describe(HandTool, () => {
 
 describe('When in the idle state', () => {
 	it('Returns to select on cancel', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.expectPathToBe('root.hand.idle')
 		editor.cancel()
 		editor.expectPathToBe('root.select.idle')
@@ -82,26 +82,26 @@ describe('When in the idle state', () => {
 
 describe('When selecting the tool', () => {
 	it('selects the tool and enters the idle state', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.expectPathToBe('root.hand.idle')
 	})
 })
 
 describe('When in the idle state', () => {
 	it('Enters pointing state on pointer down', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.pointerDown(100, 100)
 		editor.expectPathToBe('root.hand.pointing')
 	})
 
 	it('Switches back to select tool on cancel', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.cancel()
 		editor.expectPathToBe('root.select.idle')
 	})
 
 	it('Does nothing on interrupt', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.interrupt()
 		editor.expectPathToBe('root.hand.idle')
 	})
@@ -109,7 +109,7 @@ describe('When in the idle state', () => {
 
 describe('When in the pointing state', () => {
 	it('Switches back to idle on cancel', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.pointerDown(50, 50)
 		editor.expectPathToBe('root.hand.pointing')
 		editor.cancel()
@@ -117,7 +117,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Enters the dragging state on drag start', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(51, 51) // not far enough!
 		editor.expectPathToBe('root.hand.pointing')
@@ -126,14 +126,14 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Returns to the idle state on cancel', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.pointerDown(50, 50)
 		editor.cancel()
 		editor.expectPathToBe('root.hand.idle')
 	})
 
 	it('Returns to the idle state on interrupt', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.pointerDown(50, 50)
 		editor.interrupt()
 		editor.expectPathToBe('root.hand.idle')
@@ -142,7 +142,7 @@ describe('When in the pointing state', () => {
 
 describe('When in the dragging state', () => {
 	it('Moves the camera', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		expect(editor.camera.x).toBe(0)
 		expect(editor.camera.y).toBe(0)
 		editor.pointerDown(50, 50)
@@ -159,7 +159,7 @@ describe('When in the dragging state', () => {
 
 	// it('Moves the camera with inertia on pointer up', () => {
 	//  Can't test this—x is set to Inifnity in tests
-	// 	editor.setSelectedTool('hand')
+	// 	editor.setCurrentTool('hand')
 	// 	expect(editor.camera.x).toBe(0)
 	// 	expect(editor.camera.y).toBe(0)
 	// 	editor.pointerDown(50, 50)
@@ -171,7 +171,7 @@ describe('When in the dragging state', () => {
 
 	// it('Lets the inertia die down using time', () => {
 	//  Can't test this—x is set to Inifnity in tests
-	// 	editor.setSelectedTool('hand')
+	// 	editor.setCurrentTool('hand')
 	// 	expect(editor.camera.x).toBe(0)
 	// 	expect(editor.camera.y).toBe(0)
 	// 	editor.pointerDown(50, 50)
@@ -182,7 +182,7 @@ describe('When in the dragging state', () => {
 	// })
 
 	it('Returns to the idle state on cancel', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)
 		editor.cancel()

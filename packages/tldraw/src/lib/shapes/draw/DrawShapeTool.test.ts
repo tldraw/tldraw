@@ -16,14 +16,14 @@ describe(DrawShapeTool, () => {
 
 describe('When in the idle state', () => {
 	it('Returns to select on cancel', () => {
-		editor.setSelectedTool('draw')
+		editor.setCurrentTool('draw')
 		editor.expectPathToBe('root.draw.idle')
 		editor.cancel()
 		editor.expectPathToBe('root.select.idle')
 	})
 
 	it('Enters the drawing state on pointer down', () => {
-		editor.setSelectedTool('draw')
+		editor.setCurrentTool('draw')
 		editor.pointerDown(50, 50)
 		editor.expectPathToBe('root.draw.drawing')
 	})
@@ -31,14 +31,14 @@ describe('When in the idle state', () => {
 
 describe('When in the drawing state', () => {
 	it('Returns to idle on cancel', () => {
-		editor.setSelectedTool('draw')
+		editor.setCurrentTool('draw')
 		editor.pointerDown(50, 50)
 		editor.cancel()
 		editor.expectPathToBe('root.draw.idle')
 	})
 
 	it('Returns to idle on complete', () => {
-		editor.setSelectedTool('draw')
+		editor.setCurrentTool('draw')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 		editor.expectPathToBe('root.draw.idle')

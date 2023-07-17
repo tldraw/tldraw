@@ -261,7 +261,7 @@ function TldrawEditorWithReadyStore({
 	}, [container, shapeUtils, tools, store, user, initialState])
 
 	React.useLayoutEffect(() => {
-		if (editor && autoFocus) editor.focus()
+		if (editor && autoFocus) editor.isFocused = true
 	}, [editor, autoFocus])
 
 	const onMountEvent = useEvent((editor: Editor) => {

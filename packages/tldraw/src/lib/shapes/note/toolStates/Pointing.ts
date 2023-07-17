@@ -28,7 +28,7 @@ export class Pointing extends StateNode {
 			const shape = this.createShape()
 			if (!shape) return
 
-			this.editor.setSelectedTool('select.translating', {
+			this.editor.setCurrentTool('select.translating', {
 				...info,
 				target: 'shape',
 				shape,
@@ -69,7 +69,7 @@ export class Pointing extends StateNode {
 			if (!shape) return
 
 			this.editor.setEditingId(shape.id)
-			this.editor.setSelectedTool('select.editing_shape', {
+			this.editor.setCurrentTool('select.editing_shape', {
 				...this.info,
 				target: 'shape',
 				shape,

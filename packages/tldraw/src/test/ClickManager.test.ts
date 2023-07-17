@@ -5,7 +5,7 @@ let editor: TestEditor
 beforeEach(() => {
 	editor = new TestEditor()
 	// we want to do this in order to avoid creating text shapes. weird
-	editor.setSelectedTool('eraser')
+	editor.setCurrentTool('eraser')
 	editor._transformPointerDownSpy.mockRestore()
 	editor._transformPointerUpSpy.mockRestore()
 })

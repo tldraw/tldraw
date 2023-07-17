@@ -5,7 +5,7 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onEnter = () => {
-		this.editor.setCursor({ type: 'default' })
+		this.editor.cursor = { type: 'default', rotation: 0 }
 
 		const { onlySelectedShape } = this.editor
 
@@ -22,14 +22,14 @@ export class Idle extends StateNode {
 	}
 
 	override onExit: TLExitEventHandler = () => {
-		this.editor.setCursor({ type: 'default' })
+		this.editor.cursor = { type: 'default', rotation: 0 }
 
 		this.editor.off('change-history', this.cleanupCroppingState)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
 		this.editor.setCroppingId(null)
-		this.editor.setSelectedTool('select.idle', {})
+		this.editor.setCurrentTool('select.idle', {})
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
@@ -37,7 +37,7 @@ export class Idle extends StateNode {
 
 		if (info.ctrlKey) {
 			this.editor.setCroppingId(null)
-			this.editor.setSelectedTool('select.brushing', info)
+			this.editor.setCurrentTool('select.brushing', info)
 			return
 		}
 
@@ -48,13 +48,13 @@ export class Idle extends StateNode {
 			}
 			case 'shape': {
 				if (info.shape.id === this.editor.croppingId) {
-					this.editor.setSelectedTool('select.crop.pointing_crop', info)
+					this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					return
 				} else {
 					if (this.editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
 						this.editor.setCroppingId(info.shape.id)
 						this.editor.setSelectedIds([info.shape.id])
-						this.editor.setSelectedTool('select.crop.pointing_crop', info)
+						this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					} else {
 						this.cancel()
 					}
@@ -68,7 +68,7 @@ export class Idle extends StateNode {
 					case 'top_right_rotate':
 					case 'bottom_left_rotate':
 					case 'bottom_right_rotate': {
-						this.editor.setSelectedTool('select.pointing_rotate_handle', {
+						this.editor.setCurrentTool('select.pointing_rotate_handle', {
 							...info,
 							onInteractionEnd: 'select.crop',
 						})
@@ -78,7 +78,7 @@ export class Idle extends StateNode {
 					case 'right':
 					case 'bottom':
 					case 'left': {
-						this.editor.setSelectedTool('select.pointing_crop_handle', {
+						this.editor.setCurrentTool('select.pointing_crop_handle', {
 							...info,
 							onInteractionEnd: 'select.crop',
 						})
@@ -88,7 +88,7 @@ export class Idle extends StateNode {
 					case 'top_right':
 					case 'bottom_left':
 					case 'bottom_right': {
-						this.editor.setSelectedTool('select.pointing_crop_handle', {
+						this.editor.setCurrentTool('select.pointing_crop_handle', {
 							...info,
 							onInteractionEnd: 'select.crop',
 						})
@@ -132,7 +132,7 @@ export class Idle extends StateNode {
 		switch (info.code) {
 			case 'Enter': {
 				this.editor.setCroppingId(null)
-				this.editor.setSelectedTool('select.idle', {})
+				this.editor.setCurrentTool('select.idle', {})
 				break
 			}
 		}
@@ -140,12 +140,12 @@ export class Idle extends StateNode {
 
 	private cancel() {
 		this.editor.setCroppingId(null)
-		this.editor.setSelectedTool('select.idle', {})
+		this.editor.setCurrentTool('select.idle', {})
 	}
 
 	private cleanupCroppingState = () => {
 		if (!this.editor.croppingId) {
-			this.editor.setSelectedTool('select.idle', {})
+			this.editor.setCurrentTool('select.idle', {})
 		}
 	}
 

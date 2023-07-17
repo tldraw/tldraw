@@ -18,8 +18,8 @@ export class ZoomTool extends StateNode {
 
 	override onExit = () => {
 		this.currentToolIdMask = undefined
-		this.editor.setZoomBrush(null)
-		this.editor.setCursor({ type: 'default' })
+		this.editor.zoomBrush = null
+		this.editor.cursor = { type: 'default', rotation: 0 }
 		this.currentToolIdMask = undefined
 	}
 
@@ -42,7 +42,7 @@ export class ZoomTool extends StateNode {
 	private complete() {
 		// Go back to the previous tool. If we are already in select we want to transition to idle
 		if (this.info.onInteractionEnd && this.info.onInteractionEnd !== 'select') {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.parent.transition('select', {})
 		}
@@ -50,9 +50,9 @@ export class ZoomTool extends StateNode {
 
 	private updateCursor() {
 		if (this.editor.inputs.altKey) {
-			this.editor.setCursor({ type: 'zoom-out' })
+			this.editor.cursor = { type: 'zoom-out', rotation: 0 }
 		} else {
-			this.editor.setCursor({ type: 'zoom-in' })
+			this.editor.cursor = { type: 'zoom-in', rotation: 0 }
 		}
 	}
 }

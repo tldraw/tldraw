@@ -13,7 +13,7 @@ export class RootState extends StateNode {
 					const currentTool = this.current.value
 					if (currentTool && currentTool.current.value?.id === 'idle') {
 						if (this.children!['zoom']) {
-							this.editor.setSelectedTool('zoom', { ...info, onInteractionEnd: currentTool.id })
+							this.editor.setCurrentTool('zoom', { ...info, onInteractionEnd: currentTool.id })
 						}
 					}
 				}

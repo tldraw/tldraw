@@ -12,10 +12,10 @@ export class PointingRotateHandle extends StateNode {
 
 	private updateCursor() {
 		const { selectionRotation } = this.editor
-		this.editor.setCursor({
+		this.editor.cursor = {
 			type: CursorTypeMap[this.info.handle as RotateCorner],
 			rotation: selectionRotation,
-		})
+		}
 	}
 
 	override onEnter = (info: PointingRotateHandleInfo) => {
@@ -26,7 +26,7 @@ export class PointingRotateHandle extends StateNode {
 
 	override onExit = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.setCursor({ type: 'default' })
+		this.editor.cursor = { type: 'default', rotation: 0 }
 	}
 
 	override onPointerMove = () => {
@@ -55,7 +55,7 @@ export class PointingRotateHandle extends StateNode {
 
 	private complete() {
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}
@@ -63,7 +63,7 @@ export class PointingRotateHandle extends StateNode {
 
 	private cancel() {
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}

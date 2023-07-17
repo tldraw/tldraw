@@ -38,7 +38,7 @@ export class Pointing extends StateNode {
 			this.shape = this.editor.getShapeById(id)
 			if (!this.shape) return
 
-			this.editor.setSelectedTool('select.resizing', {
+			this.editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'right',
@@ -87,7 +87,7 @@ export class Pointing extends StateNode {
 		)
 
 		this.editor.setEditingId(id)
-		this.editor.setSelectedTool('select')
+		this.editor.setCurrentTool('select')
 		this.editor.root.current.value?.transition('editing_shape', {})
 	}
 

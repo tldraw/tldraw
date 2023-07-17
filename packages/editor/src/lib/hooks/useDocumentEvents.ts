@@ -15,7 +15,7 @@ export function useDocumentEvents() {
 		if (typeof matchMedia !== undefined) return
 
 		function updateDevicePixelRatio() {
-			editor.setDevicePixelRatio(window.devicePixelRatio)
+			editor.devicePixelRatio = window.devicePixelRatio
 		}
 
 		const MM = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)

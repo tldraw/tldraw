@@ -60,12 +60,12 @@ export class Erasing extends StateNode {
 	}
 
 	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.editor.setScribble(scribble)
+		this.editor.scribble = scribble
 	}
 
 	private onScribbleComplete = () => {
 		this.editor.off('tick', this.scribble.tick)
-		this.editor.setScribble(null)
+		this.editor.scribble = null
 	}
 
 	override onExit = () => {

@@ -8,6 +8,6 @@ export class LaserTool extends StateNode {
 	static override children = () => [Idle, Lasering]
 
 	override onEnter = () => {
-		this.editor.setCursor({ type: 'cross' })
+		this.editor.cursor = { type: 'cross', rotation: 0 }
 	}
 }

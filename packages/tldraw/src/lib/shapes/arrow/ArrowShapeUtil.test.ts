@@ -301,7 +301,7 @@ describe('Other cases when arrow are moved', () => {
 			.selectAll()
 			.groupShapes()
 
-		editor.setSelectedTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
+		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
 		let arrow = editor.shapesArray[editor.shapesArray.length - 1]
 		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
 		assert(arrow.props.end.type === 'binding')
@@ -320,7 +320,7 @@ describe('Other cases when arrow are moved', () => {
 
 describe('When a shape it rotated', () => {
 	it('binds correctly', () => {
-		editor.setSelectedTool('arrow').pointerDown(0, 0).pointerMove(375, 375)
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(375, 375)
 
 		const arrow = editor.shapesArray[editor.shapesArray.length - 1]
 
@@ -361,15 +361,15 @@ describe('resizing', () => {
 		editor
 			.selectAll()
 			.deleteShapes()
-			.setSelectedTool('arrow')
+			.setCurrentTool('arrow')
 			.pointerDown(0, 0)
 			.pointerMove(200, 200)
 			.pointerUp()
-			.setSelectedTool('arrow')
+			.setCurrentTool('arrow')
 			.pointerDown(100, 100)
 			.pointerMove(300, 300)
 			.pointerUp()
-			.setSelectedTool('select')
+			.setCurrentTool('select')
 
 		const arrow1 = editor.shapesArray.at(-2)!
 		const arrow2 = editor.shapesArray.at(-1)!
@@ -416,15 +416,15 @@ describe('resizing', () => {
 		editor
 			.selectAll()
 			.deleteShapes()
-			.setSelectedTool('arrow')
+			.setCurrentTool('arrow')
 			.pointerDown(0, 0)
 			.pointerMove(200, 200)
 			.pointerUp()
-			.setSelectedTool('arrow')
+			.setCurrentTool('arrow')
 			.pointerDown(100, 100)
 			.pointerMove(300, 300)
 			.pointerUp()
-			.setSelectedTool('select')
+			.setCurrentTool('select')
 
 		const arrow1 = editor.shapesArray.at(-2)!
 		const arrow2 = editor.shapesArray.at(-1)!
@@ -486,24 +486,24 @@ describe("an arrow's parents", () => {
 	beforeEach(() => {
 		editor.selectAll().deleteShapes()
 
-		editor.setSelectedTool('frame')
+		editor.setCurrentTool('frame')
 		editor.pointerDown(0, 0).pointerMove(100, 100).pointerUp()
 		frameId = editor.onlySelectedShape!.id
 
-		editor.setSelectedTool('geo')
+		editor.setCurrentTool('geo')
 		editor.pointerDown(10, 10).pointerMove(20, 20).pointerUp()
 		boxAid = editor.onlySelectedShape!.id
-		editor.setSelectedTool('geo')
+		editor.setCurrentTool('geo')
 		editor.pointerDown(10, 80).pointerMove(20, 90).pointerUp()
 		boxBid = editor.onlySelectedShape!.id
-		editor.setSelectedTool('geo')
+		editor.setCurrentTool('geo')
 		editor.pointerDown(110, 10).pointerMove(120, 20).pointerUp()
 		boxCid = editor.onlySelectedShape!.id
 	})
 
 	it("are updated when the arrow's bound shapes change", () => {
 		// draw arrow from a to empty space within frame, but don't pointer up yet
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(50, 50)
 		const arrowId = editor.onlySelectedShape!.id
 
@@ -538,7 +538,7 @@ describe("an arrow's parents", () => {
 
 	it('reparents when one of the shapes is moved outside of the frame', () => {
 		// draw arrow from a to b
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(15, 85).pointerUp()
 		const arrowId = editor.onlySelectedShape!.id
 
@@ -562,7 +562,7 @@ describe("an arrow's parents", () => {
 
 	it('reparents to the frame when an arrow created outside has both its parents moved inside', () => {
 		// draw arrow from a to c
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(115, 15).pointerUp()
 		const arrowId = editor.onlySelectedShape!.id
 		expect(editor.getShapeById(arrowId)).toMatchObject({

@@ -56,7 +56,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'v',
 				readonlyOk: true,
 				onSelect(source) {
-					editor.setSelectedTool('select')
+					editor.setCurrentTool('select')
 					trackEvent('select-tool', { source, id: 'select' })
 				},
 			},
@@ -67,7 +67,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'h',
 				readonlyOk: true,
 				onSelect(source) {
-					editor.setSelectedTool('hand')
+					editor.setCurrentTool('hand')
 					trackEvent('select-tool', { source, id: 'hand' })
 				},
 			},
@@ -78,7 +78,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				kbd: 'e',
 				readonlyOk: false,
 				onSelect(source) {
-					editor.setSelectedTool('eraser')
+					editor.setCurrentTool('eraser')
 					trackEvent('select-tool', { source, id: 'eraser' })
 				},
 			},
@@ -89,7 +89,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-pencil',
 				kbd: 'd,b,x',
 				onSelect(source) {
-					editor.setSelectedTool('draw')
+					editor.setCurrentTool('draw')
 					trackEvent('select-tool', { source, id: 'draw' })
 				},
 			},
@@ -113,7 +113,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 							},
 							true
 						)
-						editor.setSelectedTool('geo')
+						editor.setCurrentTool('geo')
 						trackEvent('select-tool', { source, id: `geo-${id}` })
 					})
 				},
@@ -125,7 +125,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-arrow',
 				kbd: 'a',
 				onSelect(source) {
-					editor.setSelectedTool('arrow')
+					editor.setCurrentTool('arrow')
 					trackEvent('select-tool', { source, id: 'arrow' })
 				},
 			},
@@ -136,7 +136,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-line',
 				kbd: 'l',
 				onSelect(source) {
-					editor.setSelectedTool('line')
+					editor.setCurrentTool('line')
 					trackEvent('select-tool', { source, id: 'line' })
 				},
 			},
@@ -147,7 +147,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-frame',
 				kbd: 'f',
 				onSelect(source) {
-					editor.setSelectedTool('frame')
+					editor.setCurrentTool('frame')
 					trackEvent('select-tool', { source, id: 'frame' })
 				},
 			},
@@ -158,7 +158,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-text',
 				kbd: 't',
 				onSelect(source) {
-					editor.setSelectedTool('text')
+					editor.setCurrentTool('text')
 					trackEvent('select-tool', { source, id: 'text' })
 				},
 			},
@@ -180,7 +180,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-note',
 				kbd: 'n',
 				onSelect(source) {
-					editor.setSelectedTool('note')
+					editor.setCurrentTool('note')
 					trackEvent('select-tool', { source, id: 'note' })
 				},
 			},
@@ -191,7 +191,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				icon: 'tool-laser',
 				kbd: 'k',
 				onSelect(source) {
-					editor.setSelectedTool('laser')
+					editor.setCurrentTool('laser')
 					trackEvent('select-tool', { source, id: 'laser' })
 				},
 			},
@@ -216,7 +216,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				// TODO: pick a better shortcut
 				kbd: '!d',
 				onSelect(source) {
-					editor.setSelectedTool('highlight')
+					editor.setCurrentTool('highlight')
 					trackEvent('select-tool', { source, id: 'highlight' })
 				},
 			})

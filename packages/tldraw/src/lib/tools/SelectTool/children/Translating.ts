@@ -64,7 +64,7 @@ export class Translating extends StateNode {
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clear()
-		this.editor.setCursor({ type: 'default' })
+		this.editor.cursor = { type: 'default', rotation: 0 }
 		this.dragAndDropManager.clear()
 	}
 
@@ -141,13 +141,13 @@ export class Translating extends StateNode {
 		this.handleEnd()
 
 		if (this.editor.instanceState.isToolLocked && this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd)
+			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
 			if (this.editAfterComplete) {
 				const onlySelected = this.editor.onlySelectedShape
 				if (onlySelected) {
 					this.editor.setEditingId(onlySelected.id)
-					this.editor.setSelectedTool('select')
+					this.editor.setCurrentTool('select')
 					this.editor.root.current.value!.transition('editing_shape', {})
 				}
 			} else {
@@ -159,7 +159,7 @@ export class Translating extends StateNode {
 	private cancel() {
 		this.reset()
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd)
+			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
 			this.parent.transition('idle', this.info)
 		}
@@ -169,7 +169,7 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.info = info
 
-		this.editor.setCursor({ type: 'move' })
+		this.editor.cursor = { type: 'move', rotation: 0 }
 		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
 
 		// Don't clone on create; otherwise clone on altKey
@@ -342,7 +342,11 @@ export function moveShapesToPoint({
 	initialSelectionPageBounds: Box2d
 	initialSelectionSnapPoints: SnapPoint[]
 }) {
-	const { inputs, isGridMode, gridSize } = editor
+	const {
+		inputs,
+		isGridMode,
+		documentSettings: { gridSize },
+	} = editor
 
 	const delta = Vec2d.Sub(inputs.currentPagePoint, inputs.originPagePoint)
 

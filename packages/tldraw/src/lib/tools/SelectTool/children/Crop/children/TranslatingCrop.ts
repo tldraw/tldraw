@@ -27,12 +27,12 @@ export class TranslatingCrop extends StateNode {
 		this.snapshot = this.createSnapshot()
 
 		this.editor.mark(this.markId)
-		this.editor.setCursor({ type: 'move' })
+		this.editor.cursor = { type: 'move', rotation: 0 }
 		this.updateShapes()
 	}
 
 	override onExit = () => {
-		this.editor.setCursor({ type: 'default' })
+		this.editor.cursor = { type: 'default', rotation: 0 }
 	}
 
 	override onPointerMove = () => {
@@ -76,12 +76,12 @@ export class TranslatingCrop extends StateNode {
 
 	protected complete() {
 		this.updateShapes()
-		this.editor.setSelectedTool('select.crop.idle', this.info)
+		this.editor.setCurrentTool('select.crop.idle', this.info)
 	}
 
 	private cancel() {
 		this.editor.bailToMark(this.markId)
-		this.editor.setSelectedTool('select.crop.idle', this.info)
+		this.editor.setCurrentTool('select.crop.idle', this.info)
 	}
 
 	private createSnapshot() {

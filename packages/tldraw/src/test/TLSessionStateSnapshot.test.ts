@@ -52,7 +52,7 @@ describe('createSessionStateSnapshotSignal', () => {
 		expect(isGridMode).toBe(false)
 		expect(numPages).toBe(1)
 
-		editor.setGridMode(true)
+		editor.isGridMode = true
 
 		expect(isGridMode).toBe(true)
 		expect(numPages).toBe(1)

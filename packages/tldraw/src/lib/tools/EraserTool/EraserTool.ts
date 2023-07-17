@@ -9,6 +9,6 @@ export class EraserTool extends StateNode {
 	static override children = () => [Idle, Pointing, Erasing]
 
 	override onEnter = () => {
-		this.editor.setCursor({ type: 'cross' })
+		this.editor.cursor = { type: 'cross', rotation: 0 }
 	}
 }

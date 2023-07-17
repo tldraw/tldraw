@@ -15,7 +15,7 @@ describe('arrowBindingsIndex', () => {
 			<TL.geo ref="box2" x={200} y={0} w={100} h={100} fill="solid" />,
 		])
 
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		editor.pointerDown(50, 50).pointerMove(250, 50).pointerUp(250, 50)
 		const arrow = editor.onlySelectedShape!
 		expect(arrow.type).toBe('arrow')
@@ -30,32 +30,32 @@ describe('arrowBindingsIndex', () => {
 			<TL.geo ref="box2" x={200} y={0} w={100} h={100} />,
 		])
 
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		// span both boxes
 		editor.pointerDown(50, 50).pointerMove(250, 50).pointerUp(250, 50)
 		const arrow1 = editor.onlySelectedShape!
 		expect(arrow1.type).toBe('arrow')
 
 		// start at box 1 and leave
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		editor.pointerDown(50, 50).pointerMove(50, -50).pointerUp(50, -50)
 		const arrow2 = editor.onlySelectedShape!
 		expect(arrow2.type).toBe('arrow')
 
 		// start outside box 1 and enter
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		editor.pointerDown(50, -50).pointerMove(50, 50).pointerUp(50, 50)
 		const arrow3 = editor.onlySelectedShape!
 		expect(arrow3.type).toBe('arrow')
 
 		// start at box 2 and leave
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		editor.pointerDown(250, 50).pointerMove(250, -50).pointerUp(250, -50)
 		const arrow4 = editor.onlySelectedShape!
 		expect(arrow4.type).toBe('arrow')
 
 		// start outside box 2 and enter
-		editor.setSelectedTool('arrow')
+		editor.setCurrentTool('arrow')
 		editor.pointerDown(250, -50).pointerMove(250, 50).pointerUp(250, 50)
 		const arrow5 = editor.onlySelectedShape!
 		expect(arrow5.type).toBe('arrow')
@@ -95,23 +95,23 @@ describe('arrowBindingsIndex', () => {
 			])
 
 			// span both boxes
-			editor.setSelectedTool('arrow')
+			editor.setCurrentTool('arrow')
 			editor.pointerDown(50, 50).pointerMove(250, 50).pointerUp(250, 50)
 			arrowAId = editor.onlySelectedShape!.id
 			// start at box 1 and leave
-			editor.setSelectedTool('arrow')
+			editor.setCurrentTool('arrow')
 			editor.pointerDown(50, 50).pointerMove(50, -50).pointerUp(50, -50)
 			arrowBId = editor.onlySelectedShape!.id
 			// start outside box 1 and enter
-			editor.setSelectedTool('arrow')
+			editor.setCurrentTool('arrow')
 			editor.pointerDown(50, -50).pointerMove(50, 50).pointerUp(50, 50)
 			arrowCId = editor.onlySelectedShape!.id
 			// start at box 2 and leave
-			editor.setSelectedTool('arrow')
+			editor.setCurrentTool('arrow')
 			editor.pointerDown(250, 50).pointerMove(250, -50).pointerUp(250, -50)
 			arrowDId = editor.onlySelectedShape!.id
 			// start outside box 2 and enter
-			editor.setSelectedTool('arrow')
+			editor.setCurrentTool('arrow')
 			editor.pointerDown(250, -50).pointerMove(250, 50).pointerUp(250, 50)
 			arrowEId = editor.onlySelectedShape!.id
 		})
@@ -156,7 +156,7 @@ describe('arrowBindingsIndex', () => {
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(3)
 
 			// draw from box 2 to box 1
-			editor.setSelectedTool('arrow')
+			editor.setCurrentTool('arrow')
 			editor.pointerDown(250, 50).pointerMove(50, 50).pointerUp(50, 50)
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(4)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(4)
@@ -169,7 +169,7 @@ describe('arrowBindingsIndex', () => {
 
 			// draw from box 2 to box 3
 
-			editor.setSelectedTool('arrow')
+			editor.setCurrentTool('arrow')
 			editor.pointerDown(250, 50).pointerMove(450, 50).pointerUp(450, 50)
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(5)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(4)

@@ -15,6 +15,8 @@ import {
 	UnknownRecord,
 	createTLStore,
 	exhaustiveSwitchError,
+	partition,
+	transact,
 } from '@tldraw/editor'
 import { TLUiToastsContextType } from '../ui/hooks/useToastsProvider'
 import { TLUiTranslationKey } from '../ui/hooks/useTranslation/TLUiTranslationKey'
@@ -297,7 +299,24 @@ export async function parseAndLoadDocument(
 	// just restore everything, so if the user has opened
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
-	editor.replaceStoreContentsWithRecordsForOtherDocument(parseFileResult.value.allRecords())
+	transact(() => {
+		editor.store.clear()
+		const [shapes, nonShapes] = partition(
+			parseFileResult.value.allRecords(),
+			(record) => record.typeName === 'shape'
+		)
+		editor.store.put(nonShapes, 'initialize')
+		editor.store.ensureStoreIsUsable()
+		editor.store.put(shapes, 'initialize')
+		editor.history.clear()
+		editor.updateViewportScreenBounds()
+		editor.updateRenderingBounds()
 
-	if (forceDarkMode) editor.setDarkMode(true)
+		const bounds = editor.allShapesCommonBounds
+		if (bounds) {
+			editor.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
+		}
+	})
+
+	if (forceDarkMode) editor.isDarkMode = true
 }

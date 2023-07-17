@@ -112,7 +112,7 @@ export class Pointing extends StateNode {
 				throw Error('No handles found')
 			}
 
-			this.editor.setSelectedTool('select.dragging_handle', {
+			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
 				isCreating: true,
 				handle: last(handles)!,

@@ -40,7 +40,7 @@ export class Rotating extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.setCursor({ type: 'none' })
+		this.editor.cursor = { type: 'none', rotation: 0 }
 		this.parent.currentToolIdMask = undefined
 
 		this.snapshot = {} as TLRotationSnapshot
@@ -85,16 +85,16 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.setCursor({
+		this.editor.cursor = {
 			type: CursorTypeMap[this.info.handle as RotateCorner],
 			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-		})
+		}
 	}
 
 	private cancel = () => {
 		this.editor.bailToMark(this.markId)
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.parent.transition('idle', this.info)
 		}
@@ -108,7 +108,7 @@ export class Rotating extends StateNode {
 			stage: 'end',
 		})
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, this.info)
+			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
 			this.parent.transition('idle', this.info)
 		}
@@ -127,10 +127,10 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.setCursor({
+		this.editor.cursor = {
 			type: CursorTypeMap[this.info.handle as RotateCorner],
 			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-		})
+		}
 	}
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {

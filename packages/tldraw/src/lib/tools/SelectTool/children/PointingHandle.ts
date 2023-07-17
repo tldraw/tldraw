@@ -14,12 +14,12 @@ export class PointingHandle extends StateNode {
 			this.editor.setHintingIds([initialTerminal.boundShapeId])
 		}
 
-		this.editor.setCursor({ type: 'grabbing' })
+		this.editor.cursor = { type: 'grabbing', rotation: 0 }
 	}
 
 	override onExit = () => {
 		this.editor.setHintingIds([])
-		this.editor.setCursor({ type: 'default' })
+		this.editor.cursor = { type: 'default', rotation: 0 }
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

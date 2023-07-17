@@ -9,7 +9,7 @@ export function LanguageMenu() {
 	const { languages, currentLanguage } = useLanguages()
 
 	const handleLanguageSelect = useCallback(
-		(locale: TLUiTranslation['locale']) => editor.setLocale(locale),
+		(locale: TLUiTranslation['locale']) => (editor.locale = locale),
 		[editor]
 	)
 

@@ -7,7 +7,7 @@ export class Idle extends StateNode {
 
 	override onEnter = (info: { shapeId: TLShapeId }) => {
 		this.shapeId = info.shapeId
-		this.editor.setCursor({ type: 'cross' })
+		this.editor.cursor = { type: 'cross', rotation: 0 }
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = () => {
@@ -15,6 +15,6 @@ export class Idle extends StateNode {
 	}
 
 	override onCancel = () => {
-		this.editor.setSelectedTool('select')
+		this.editor.setCurrentTool('select')
 	}
 }

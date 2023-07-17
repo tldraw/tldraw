@@ -8,7 +8,7 @@ beforeEach(() => {
 })
 
 it('enters the line state', () => {
-	editor.setSelectedTool('line')
+	editor.setCurrentTool('line')
 	expect(editor.currentToolId).toBe('line')
 	editor.expectPathToBe('root.line.idle')
 })
@@ -16,14 +16,14 @@ it('enters the line state', () => {
 describe('When in the idle state', () => {
 	it('enters the pointing state and creates a shape on pointer down', () => {
 		const shapesBefore = editor.shapesArray.length
-		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' })
+		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' })
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		editor.expectPathToBe('root.line.pointing')
 	})
 
 	it('returns to select on cancel', () => {
-		editor.setSelectedTool('line')
+		editor.setCurrentTool('line')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})
@@ -32,7 +32,7 @@ describe('When in the idle state', () => {
 describe('When in the pointing state', () => {
 	it('createes on pointer up', () => {
 		const shapesBefore = editor.shapesArray.length
-		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerUp(0, 0)
+		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerUp(0, 0)
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		expect(editor.hintingIds.length).toBe(0)
@@ -41,7 +41,7 @@ describe('When in the pointing state', () => {
 
 	it('bails on cancel', () => {
 		const shapesBefore = editor.shapesArray.length
-		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).cancel()
+		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).cancel()
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore)
 		expect(editor.hintingIds.length).toBe(0)
@@ -49,7 +49,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('enters the dragging state on pointer move', () => {
-		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
+		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
 		editor.expectPathToBe('root.select.dragging_handle')
 	})
 })
@@ -57,7 +57,7 @@ describe('When in the pointing state', () => {
 // This could be moved to dragging_handle
 describe('When dragging the line', () => {
 	it('updates the line on pointer move', () => {
-		editor.setSelectedTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
+		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
 		const line = editor.shapesArray[editor.shapesArray.length - 1]
 		editor.expectShapeToMatch(line, {
 			id: line.id,
@@ -77,7 +77,7 @@ describe('When dragging the line', () => {
 	it('returns to select.idle, keeping shape, on pointer up', () => {
 		const shapesBefore = editor.shapesArray.length
 		editor
-			.setSelectedTool('line')
+			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)
@@ -88,10 +88,10 @@ describe('When dragging the line', () => {
 	})
 
 	it('returns to line.idle, keeping shape, on pointer up if tool lock is enabled', () => {
-		editor.setToolLocked(true)
+		editor.isToolLocked = true
 		const shapesBefore = editor.shapesArray.length
 		editor
-			.setSelectedTool('line')
+			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)
@@ -104,7 +104,7 @@ describe('When dragging the line', () => {
 	it('bails on cancel', () => {
 		const shapesBefore = editor.shapesArray.length
 		editor
-			.setSelectedTool('line')
+			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.cancel()
@@ -116,9 +116,9 @@ describe('When dragging the line', () => {
 
 describe('When extending the line with the shift-key in tool-lock mode', () => {
 	it('extends a line by joining-the-dots', () => {
-		editor.setToolLocked(true)
+		editor.isToolLocked = true
 		editor
-			.setSelectedTool('line')
+			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)
@@ -133,9 +133,9 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line after a click by shift-click dragging', () => {
-		editor.setToolLocked(true)
+		editor.isToolLocked = true
 		editor
-			.setSelectedTool('line')
+			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerUp(0, 0)
 			.keyDown('Shift')
@@ -150,9 +150,9 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line by shift-click dragging', () => {
-		editor.setToolLocked(true)
+		editor.isToolLocked = true
 		editor
-			.setSelectedTool('line')
+			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)
@@ -168,9 +168,9 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointerdown', () => {
-		editor.setToolLocked(true)
+		editor.isToolLocked = true
 		editor
-			.setSelectedTool('line')
+			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)
@@ -188,9 +188,9 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 	})
 
 	it('extends a line by shift-clicking even after canceling a pointermove', () => {
-		editor.setToolLocked(true)
+		editor.isToolLocked = true
 		editor
-			.setSelectedTool('line')
+			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)

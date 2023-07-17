@@ -26,7 +26,6 @@ import {
 	TLPage,
 	TLPageId,
 	TLParentId,
-	TLRecord,
 	TLScribble,
 	TLShape,
 	TLShapeId,
@@ -51,7 +50,6 @@ import {
 	deepCopy,
 	getOwnProperty,
 	hasOwnProperty,
-	partition,
 	sortById,
 	structuredClone,
 } from '@tldraw/utils'
@@ -541,14 +539,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.mark('flip shapes')
 	 * ```
 	 *
-	 * @param reason - The reason for the mark.
+	 * @param markId - The mark's id, usually the reason for adding the mark.
 	 * @param onUndo - Whether to stop at the mark when undoing.
 	 * @param onRedo - Whether to stop at the mark when redoing.
 	 *
 	 * @public
 	 */
-	mark(reason?: string, onUndo?: boolean, onRedo?: boolean) {
-		return this.history.mark(reason, onUndo, onRedo)
+	mark(markId?: string, onUndo?: boolean, onRedo?: boolean) {
+		return this.history.mark(markId, onUndo, onRedo)
 	}
 
 	/**
@@ -1068,9 +1066,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get currentToolId(): string {
-		const activeTool = this.root.current.value
-		return activeTool?.currentToolIdMask ?? activeTool?.id ?? ''
+	@computed get currentToolId(): string {
+		const { currentTool } = this
+		if (!currentTool) return ''
+		return currentTool.currentToolIdMask ?? currentTool.id
+	}
+
+	/**
+	 * The current selected tool.
+	 *
+	 * @public
+	 */
+	@computed get currentTool(): StateNode | undefined {
+		return this.root.current.value
 	}
 
 	/**
@@ -1078,8 +1086,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setSelectedTool('hand')
-	 * editor.setSelectedTool('hand', { date: Date.now() })
+	 * editor.setCurrentTool('hand')
+	 * editor.setCurrentTool('hand', { date: Date.now() })
 	 * ```
 	 *
 	 * @param id - The id of the tool to select.
@@ -1087,7 +1095,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setSelectedTool(id: string, info = {}) {
+	setCurrentTool(id: string, info = {}): this {
 		this.root.transition(id, info)
 		return this
 	}
@@ -1121,41 +1129,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* ----------------- Internal State ----------------- */
 
 	/**
-	 * Blur the app, cancelling any interaction state.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.blur()
-	 * ```
-	 *
-	 * @public
-	 */
-	blur() {
-		this.complete()
-		this.getContainer().blur()
-		this._isFocused.set(false)
-		return this
-	}
-
-	/**
-	 * Focus the editor.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.focus()
-	 * ```
-	 *
-	 * @public
-	 */
-	focus() {
-		this.getContainer().focus()
-		this._isFocused.set(true)
-		return this
-	}
-
-	private _canMoveCamera = atom('can move camera', true)
-
-	/**
 	 * Whether the editor's camera can move.
 	 *
 	 * @example
@@ -1167,75 +1140,68 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get canMoveCamera() {
+	get canMoveCamera(): boolean {
 		return this._canMoveCamera.value
 	}
-
 	set canMoveCamera(canMove: boolean) {
 		this._canMoveCamera.set(canMove)
 	}
-
-	private _isFocused = atom('_isFocused', false)
+	private _canMoveCamera = atom('can move camera', true)
 
 	/**
 	 * Whether or not the editor is focused.
 	 *
 	 * @public
 	 */
-	get isFocused() {
+	@computed get isFocused(): boolean {
 		return this._isFocused.value
 	}
+	set isFocused(isFocused) {
+		if (isFocused) {
+			this.getContainer().focus()
+			this._isFocused.set(true)
+		} else {
+			this.complete()
+			this.getContainer().blur()
+		}
+		this._isFocused.set(isFocused)
+	}
+	private _isFocused = atom('_isFocused', false)
 
-	/** @internal */
-	private _dpr = atom<number>(
-		'devicePixelRatio',
-		typeof window === 'undefined' ? 1 : window.devicePixelRatio
-	)
+	focus = () => (this.isFocused = true)
+	blur = () => (this.isFocused = false)
 
 	/**
 	 * The window's device pixel ratio.
 	 *
 	 * @public
 	 */
-	@computed get devicePixelRatio() {
+	@computed get devicePixelRatio(): number {
 		return this._dpr.value
 	}
-
-	/**
-	 * Set the window's device pixel ratio. This should usually only be set by the Canvas component.
-	 *
-	 * ```ts
-	 * editor.setDevicePixelRatio(2)
-	 * ```
-	 *
-	 * @public
-	 */
-	setDevicePixelRatio(dpr: number) {
+	set devicePixelRatio(dpr: number) {
 		this._dpr.set(dpr)
-		return this
 	}
+	/** @internal */
+	private _dpr = atom<number>('dpr', typeof window === 'undefined' ? 1 : window.devicePixelRatio)
 
 	// Coarse Pointer
-
-	/** @internal */
-	private _isCoarsePointer = atom<boolean>('isCoarsePointer', false as any)
 
 	/**
 	 * Whether the user is using a "coarse" pointer, such as on a touch screen. This is automatically set by the canvas.
 	 *
 	 * @public
 	 **/
-	get isCoarsePointer() {
+	get isCoarsePointer(): boolean {
 		return this._isCoarsePointer.value
 	}
-
 	set isCoarsePointer(v) {
 		this._isCoarsePointer.set(v)
 	}
+	/** @internal */
+	private _isCoarsePointer = atom<boolean>('isCoarsePointer', false as any)
 
 	// Menus
-
-	private _openMenus = atom('open-menus', [] as string[])
 
 	/**
 	 * A set of strings representing any open menus. When menus are open,
@@ -1251,6 +1217,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get openMenus(): string[] {
 		return this._openMenus.value
 	}
+	private _openMenus = atom('open-menus', [] as string[])
 
 	/**
 	 * Add an open menu.
@@ -1262,7 +1229,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	addOpenMenu(id: string) {
+	addOpenMenu(id: string): this {
 		const menus = new Set(this.openMenus)
 		if (!menus.has(id)) {
 			menus.add(id)
@@ -1281,7 +1248,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	deleteOpenMenu(id: string) {
+	deleteOpenMenu(id: string): this {
 		const menus = new Set(this.openMenus)
 		if (menus.has(id)) {
 			menus.delete(id)
@@ -1293,19 +1260,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Get whether any menus are open.
 	 *
+	 * @example
+	 * ```ts
+	 * editor.isMenuOpen()
+	 * ```
+	 *
 	 * @public
 	 */
-	@computed get isMenuOpen() {
+	@computed get isMenuOpen(): boolean {
 		return this.openMenus.length > 0
 	}
 
 	// Changing style
-
-	/** @internal */
-	private _isChangingStyle = atom<boolean>('isChangingStyle', false as any)
-
-	/** @internal */
-	private _isChangingStyleTimeout = -1 as any
 
 	/**
 	 * Whether the user is currently changing the style of a shape. This may cause the UI to change.
@@ -1317,10 +1283,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get isChangingStyle() {
+	get isChangingStyle(): boolean {
 		return this._isChangingStyle.value
 	}
-
 	set isChangingStyle(v) {
 		this._isChangingStyle.set(v)
 		// Clear any reset timeout
@@ -1330,49 +1295,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this._isChangingStyleTimeout = setTimeout(() => (this.isChangingStyle = false), 2000)
 		}
 	}
+	/** @internal */
+	private _isChangingStyle = atom<boolean>('isChangingStyle', false as any)
+	/** @internal */
+	private _isChangingStyleTimeout = -1 as any
 
 	// Pen Mode
-
-	/** @internal */
-	private _isPenMode = atom<boolean>('isPenMode', false as any)
 
 	/**
 	 * Whether the editor is in pen mode or not.
 	 *
 	 * @public
 	 **/
-	get isPenMode() {
+	get isPenMode(): boolean {
 		return this._isPenMode.value
 	}
-
-	/**
-	 * Set whether the editor is in pen mode or not.
-	 *
-	 * @public
-	 **/
-	setPenMode(isPenMode: boolean): this {
+	set isPenMode(isPenMode: boolean) {
 		if (isPenMode !== this.isPenMode) {
 			this._isPenMode.set(isPenMode)
 		}
-		return this
 	}
-
-	// Read only
-
-	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
-
-	/**
-	 * Set whether the editor is in read-only mode or not.
-	 *
-	 * @public
-	 **/
-	setReadOnly(isReadOnly: boolean): this {
-		this._isReadOnly.set(isReadOnly)
-		if (isReadOnly) {
-			this.setSelectedTool('hand')
-		}
-		return this
-	}
+	/** @internal */
+	private _isPenMode = atom<boolean>('isPenMode', false as any)
 
 	/**
 	 * Whether the editor is in read-only mode or not.
@@ -1382,6 +1326,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	get isReadOnly() {
 		return this._isReadOnly.value
 	}
+	set isReadOnly(isReadOnly: boolean) {
+		this._isReadOnly.set(isReadOnly)
+		if (isReadOnly) {
+			this.setCurrentTool('hand')
+		}
+	}
+	private _isReadOnly = atom<boolean>('isReadOnly', false as any)
 
 	/* ---------------- Document Settings --------------- */
 
@@ -1399,51 +1350,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	updateDocumentSettings(settings: Partial<TLDocument>) {
+	updateDocumentSettings(settings: Partial<TLDocument>): this {
 		this.store.put([{ ...this.documentSettings, ...settings }])
-	}
-
-	/**
-	 * The document's grid size.
-	 *
-	 * @public
-	 **/
-	get gridSize() {
-		return this.documentSettings.gridSize
+		return this
 	}
 
 	/** @internal */
-	get projectName() {
+	@computed get projectName() {
 		return this.documentSettings.name
 	}
-
-	/** @internal */
-	setProjectName(name: string) {
+	set projectName(name: string) {
 		this.updateDocumentSettings({ name })
 	}
 
 	/* ---------------------- User ---------------------- */
 
 	/**
-	 * Get the user's locale.
+	 * The user's locale.
 	 *
 	 * @public
 	 */
-	get locale() {
+	@computed get locale() {
 		return this.user.locale
 	}
-
-	/**
-	 * Update the user's locale. This affects which translations are used when rendering UI elements.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setLocale('fr')
-	 * ```
-	 *
-	 * @public
-	 */
-	setLocale(locale: string) {
+	set locale(locale: string) {
 		this.user.updateUserPreferences({ locale })
 	}
 
@@ -1452,20 +1382,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	get isSnapMode() {
+	@computed get isSnapMode() {
 		return this.user.isSnapMode
 	}
-
-	/**
-	 * Set whether the user has "always snap" mode enabled.
-	 *
-	 * @public
-	 **/
-	setSnapMode(isSnapMode: boolean) {
+	set isSnapMode(isSnapMode: boolean) {
 		if (isSnapMode !== this.isSnapMode) {
 			this.user.updateUserPreferences({ isSnapMode })
 		}
-		return this
 	}
 
 	/**
@@ -1473,43 +1396,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	get isDarkMode() {
+	@computed get isDarkMode() {
 		return this.user.isDarkMode
 	}
-
-	/**
-	 * Set whether the user has dark mode enabled.
-	 *
-	 * @public
-	 **/
-	setDarkMode(isDarkMode: boolean) {
+	set isDarkMode(isDarkMode: boolean) {
 		if (isDarkMode !== this.isDarkMode) {
 			this.user.updateUserPreferences({ isDarkMode })
 		}
-		return this
 	}
 
 	/**
-	 * The user's chosen animation speed.
+	 * The user's chosen animation speed. 0 is disabled, 1 is full speed.
 	 *
 	 * @public
 	 */
-	get animationSpeed() {
+	@computed get animationSpeed() {
 		return this.user.animationSpeed
 	}
-
-	/**
-	 * Set the user's chosen animation speed.
-	 * Set to 0.0 to disable animations.
-	 * Set to 1.0 for full speed.
-	 *
-	 * @public
-	 */
-	setAnimationSpeed(animationSpeed: number): this {
+	set animationSpeed(animationSpeed: number) {
 		if (animationSpeed !== this.animationSpeed) {
 			this.user.updateUserPreferences({ animationSpeed })
 		}
-		return this
 	}
 
 	/* ----------------- Instance State ----------------- */
@@ -1519,7 +1426,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get instanceState(): TLInstance {
+	@computed get instanceState(): TLInstance {
 		return this.store.get(TLINSTANCE_ID)!
 	}
 
@@ -1528,8 +1435,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	get cursor() {
+	@computed get cursor(): TLCursor {
 		return this.instanceState.cursor
+	}
+	set cursor(cursor) {
+		const current = this.cursor
+		if (!(current.type === cursor.type && current.rotation === cursor.rotation)) {
+			this.updateInstanceState({ cursor }, true)
+		}
 	}
 
 	/**
@@ -1537,27 +1450,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	get brush() {
+	@computed get brush() {
 		return this.instanceState.brush
 	}
-
-	/**
-	 * Set the current brush.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setBrush({ x: 0, y: 0, w: 100, h: 100 })
-	 * editor.setBrush() // Clears the brush
-	 * ```
-	 *
-	 * @param brush - The brush box model to set, or null for no brush model.
-	 *
-	 * @public
-	 */
-	setBrush(brush: Box2dModel | null = null): this {
-		if (!brush && !this.brush) return this
+	set brush(brush: Box2dModel | null) {
+		if (!brush && !this.brush) return
 		this.updateInstanceState({ brush }, true)
-		return this
 	}
 
 	/**
@@ -1565,27 +1463,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	get zoomBrush() {
+	@computed get zoomBrush() {
 		return this.instanceState.zoomBrush
 	}
-
-	/**
-	 * Set the current zoom brush.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setZoomBrush({ x: 0, y: 0, w: 100, h: 100 })
-	 * editor.setZoomBrush() // Clears the zoom
-	 * ```
-	 *
-	 * @param zoomBrush - The zoom box model to set, or null for no zoom model.
-	 *
-	 * @public
-	 */
-	setZoomBrush(zoomBrush: Box2dModel | null = null): this {
-		if (!zoomBrush && !this.zoomBrush) return this
+	set zoomBrush(zoomBrush: Box2dModel | null) {
+		if (!zoomBrush && !this.zoomBrush) return
 		this.updateInstanceState({ zoomBrush }, true)
-		return this
 	}
 
 	/**
@@ -1593,26 +1476,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	get scribble() {
+	@computed get scribble() {
 		return this.instanceState.scribble
 	}
-
-	/**
-	 * Set the current scribble.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setScribble(nextScribble)
-	 * editor.setScribble() // clears the scribble
-	 * ```
-	 *
-	 * @param scribble - The new scribble object.
-	 *
-	 * @public
-	 */
-	setScribble(scribble: TLScribble | null = null): this {
+	set scribble(scribble: TLScribble | null) {
 		this.updateInstanceState({ scribble }, true)
-		return this
 	}
 
 	// Focus Mode
@@ -1622,20 +1490,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	get isFocusMode() {
+	@computed get isFocusMode() {
 		return this.instanceState.isFocusMode
 	}
-
-	/**
-	 * Set whether the instance is in focus mode or not.
-	 *
-	 * @public
-	 **/
-	setFocusMode(isFocusMode: boolean): this {
+	set isFocusMode(isFocusMode: boolean) {
 		if (isFocusMode !== this.isFocusMode) {
 			this.updateInstanceState({ isFocusMode }, true)
 		}
-		return this
 	}
 
 	// Tool Locked
@@ -1645,20 +1506,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	get isToolLocked() {
+	@computed get isToolLocked() {
 		return this.instanceState.isToolLocked
 	}
-
-	/**
-	 * Set whether the instance has "tool lock" mode enabled.
-	 *
-	 * @public
-	 **/
-	setToolLocked(isToolLocked: boolean): this {
+	set isToolLocked(isToolLocked: boolean) {
 		if (isToolLocked !== this.isToolLocked) {
 			this.updateInstanceState({ isToolLocked }, true)
 		}
-		return this
 	}
 
 	// Grid Mode
@@ -1668,20 +1522,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	get isGridMode() {
+	@computed get isGridMode() {
 		return this.instanceState.isGridMode
 	}
-
-	/**
-	 * Set whether the instance's grid is enabled.
-	 *
-	 * @public
-	 **/
-	setGridMode(isGridMode: boolean): this {
+	set isGridMode(isGridMode: boolean) {
 		if (isGridMode !== this.isGridMode) {
 			this.updateInstanceState({ isGridMode }, true)
 		}
-		return this
 	}
 
 	/**
@@ -1727,40 +1574,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		}
 	)
-
-	/**
-	 * Set the current cursor.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setCursor({ type: 'default' })
-	 * editor.setCursor({ type: 'default', rotation: Math.PI / 2, color: 'red' })
-	 * ```
-	 *
-	 * @param cursor - A partial of the cursor object.
-	 *
-	 * @public
-	 */
-	setCursor(cursor: Partial<TLCursor>): this {
-		const current = this.cursor
-		const next = {
-			...current,
-			rotation: 0,
-			...cursor,
-		}
-
-		if (
-			!(
-				current.type === next.type &&
-				current.rotation === next.rotation &&
-				current.color === next.color
-			)
-		) {
-			this.updateInstanceState({ cursor: next }, true)
-		}
-
-		return this
-	}
 
 	/* ------------------- Page State ------------------- */
 
@@ -2135,26 +1948,47 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// Focus Layer Id
 
 	/**
-	 * The shape id of the current focus layer.
+	 * The shape id of the current focus layer. Null when the focus layer id is the current page.
 	 *
 	 * @public
 	 */
-	get focusLayerId() {
+	get focusLayerId(): TLShapeId | TLPageId {
 		return this.pageState.focusLayerId ?? this.currentPageId
 	}
-
-	/**
-	 * The shape of the current focus layer.
-	 *
-	 * @public
-	 */
-	get focusLayerShape(): TLShape | undefined {
-		const id = this.pageState.focusLayerId
-		if (!id) {
-			return
-		}
-		return this.getShapeById(id)
+	set focusLayerId(next) {
+		this._setFocusLayerId(next)
 	}
+	/** @internal */
+	private _setFocusLayerId = this.history.createCommand(
+		'setFocusLayerId',
+		(next: undefined | TLShapeId | TLPageId) => {
+			next = isPageId(next as string) ? undefined : (next as TLShapeId | undefined)
+			// When we first click an empty canvas we don't want this to show up in the undo stack
+			if (!next && !this.canUndo) {
+				return
+			}
+			const prev = this.pageState.focusLayerId
+			return {
+				data: {
+					prev,
+					next,
+				},
+				preservesRedoStack: true,
+				squashing: true,
+			}
+		},
+		{
+			do: ({ next }) => {
+				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: next ?? null }))
+			},
+			undo: ({ prev }) => {
+				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: prev }))
+			},
+			squash({ prev }, { next }) {
+				return { prev, next }
+			},
+		}
+	)
 
 	/**
 	 * Exit the current focus layer, moving up to the next group if there is one.
@@ -2171,52 +2005,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.isShapeOfType<TLGroupShape>(shape, 'group')
 			)
 			// If we have an ancestor that can become a focused layer, set it as the focused layer
-			this.setFocusLayer(match?.id ?? null)
+			this.focusLayerId = match?.id ?? this.currentPageId
 			this.select(focusedShape.id)
 		} else {
 			// If there's no focused shape, then clear the focus layer and clear selection
-			this.setFocusLayer(null)
+			this.focusLayerId = this.currentPageId
 			this.selectNone()
 		}
 
 		return this
 	}
-
-	/**
-	 * Set the focus layer to the given shape id.
-	 *
-	 * @param next - The next focus layer id or null to reset the focus layer to the page
-	 *
-	 * @public
-	 */
-	setFocusLayer(next: null | TLShapeId) {
-		this._setFocusLayer(next)
-		return this
-	}
-
-	/** @internal */
-	private _setFocusLayer = this.history.createCommand(
-		'setFocusLayer',
-		(next: null | TLShapeId) => {
-			// When we first click an empty canvas we don't want this to show up in the undo stack
-			if (next === null && !this.canUndo) {
-				return
-			}
-			const prev = this.pageState.focusLayerId
-			return { data: { prev, next }, preservesRedoStack: true, squashing: true }
-		},
-		{
-			do: ({ next }) => {
-				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: next }))
-			},
-			undo: ({ prev }) => {
-				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: prev }))
-			},
-			squash({ prev }, { next }) {
-				return { prev, next }
-			},
-		}
-	)
 
 	// Editing Id
 
@@ -2389,7 +2187,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!id) {
 				this.setPageState({ croppingId: null })
 				if (this.isInAny('select.crop', 'select.pointing_crop_handle', 'select.cropping')) {
-					this.setSelectedTool('select.idle')
+					this.setCurrentTool('select.idle')
 				}
 			} else {
 				const shape = this.getShapeById(id)!
@@ -5577,11 +5375,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape {
 		let match = shape
 		let node = shape as TLShape | undefined
+		const focusLayerShape = this.focusLayerId ? this.getShapeById(this.focusLayerId) : undefined
 		while (node) {
 			if (
 				this.isShapeOfType<TLGroupShape>(node, 'group') &&
 				this.focusLayerId !== node.id &&
-				!this.hasAncestor(this.focusLayerShape, node.id) &&
+				!this.hasAncestor(focusLayerShape, node.id) &&
 				(filter?.(node) ?? true)
 			) {
 				match = node
@@ -5634,11 +5433,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major = false, ephemeral = false): this {
 		if (ids.length <= 0) return this
+		const { gridSize } = this.documentSettings
 
 		const step = this.isGridMode
 			? major
-				? this.gridSize * GRID_INCREMENT
-				: this.gridSize
+				? gridSize * GRID_INCREMENT
+				: gridSize
 			: major
 			? MAJOR_NUDGE_FACTOR
 			: MINOR_NUDGE_FACTOR
@@ -5913,7 +5713,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Put the shape content onto the new page; parents and indices will
 			// be taken care of by the putContent method; make sure to pop any focus
 			// layers so that the content will be put onto the page.
-			this.setFocusLayer(null)
+			this.focusLayerId = this.currentPageId
 			this.selectNone()
 			this.putContent(content, { select: true, preserveIds: true, preservePosition: true })
 
@@ -8391,29 +8191,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Replace the store's contents with the given records.
-	 *
-	 * @param records - The records to replace the store's contents with.
-	 */
-	replaceStoreContentsWithRecordsForOtherDocument(records: TLRecord[]) {
-		transact(() => {
-			this.store.clear()
-			const [shapes, nonShapes] = partition(records, (record) => record.typeName === 'shape')
-			this.store.put(nonShapes, 'initialize')
-			this.store.ensureStoreIsUsable()
-			this.store.put(shapes, 'initialize')
-			this.history.clear()
-			this.updateViewportScreenBounds()
-			this.updateRenderingBounds()
-
-			const bounds = this.allShapesCommonBounds
-			if (bounds) {
-				this.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
-			}
-		})
-	}
-
-	/**
 	 * Get an exported SVG of the given shapes.
 	 *
 	 * @param ids - The ids of the shapes to export. Defaults to selected shapes.
@@ -8691,7 +8468,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param info - The event info.
 	 */
-	private _updateInputsFromEvent(info: TLPointerEventInfo | TLPinchEventInfo) {
+	private _updateInputsFromEvent(info: TLPointerEventInfo | TLPinchEventInfo): void {
 		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
 			this.inputs
 
@@ -8744,7 +8521,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	cancel() {
+	cancel(): this {
 		this.dispatch({ type: 'misc', name: 'cancel' })
 		return this
 	}
@@ -8759,7 +8536,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	interrupt() {
+	interrupt(): this {
 		this.dispatch({ type: 'misc', name: 'interrupt' })
 		return this
 	}
@@ -8774,7 +8551,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	complete() {
+	complete(): this {
 		this.dispatch({ type: 'misc', name: 'complete' })
 		return this
 	}
@@ -8896,9 +8673,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					if (this.inputs.isPanning) {
 						this.inputs.isPanning = false
-						this.setCursor({
+						this.cursor = {
+							...this.cursor,
 							type: this._prevCursor,
-						})
+							rotation: 0,
+						}
 					}
 				}
 
@@ -9101,7 +8880,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								}
 							} else {
 								if (isPen) {
-									this.setPenMode(true)
+									this.isPenMode = true
 								}
 							}
 
@@ -9109,7 +8888,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								// Eraser button activates eraser
 								this._restoreToolId = this.currentToolId
 								this.complete()
-								this.setSelectedTool('eraser')
+								this.setCurrentTool('eraser')
 							} else if (info.button === 1) {
 								// Middle mouse pan activates panning
 								if (!this.inputs.isPanning) {
@@ -9121,9 +8900,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 							if (this.inputs.isPanning) {
 								this.stopCameraAnimation()
-								this.setCursor({
+								this.cursor = {
+									...this.cursor,
 									type: 'grabbing',
-								})
+									rotation: 0,
+								}
 								return this
 							}
 
@@ -9189,18 +8970,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 											direction: this.inputs.pointerVelocity,
 											friction: CAMERA_SLIDE_FRICTION,
 										})
-										this.setCursor({
+										this.cursor = {
+											...this.cursor,
 											type: this._prevCursor,
-										})
+											rotation: 0,
+										}
 									} else {
 										this.slideCamera({
 											speed: Math.min(2, this.inputs.pointerVelocity.len()),
 											direction: this.inputs.pointerVelocity,
 											friction: CAMERA_SLIDE_FRICTION,
 										})
-										this.setCursor({
+										this.cursor = {
+											...this.cursor,
 											type: 'grab',
-										})
+											rotation: 0,
+										}
 									}
 								} else if (info.button === 0) {
 									this.slideCamera({
@@ -9208,15 +8993,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 										direction: this.inputs.pointerVelocity,
 										friction: CAMERA_SLIDE_FRICTION,
 									})
-									this.setCursor({
+									this.cursor = {
+										...this.cursor,
 										type: 'grab',
-									})
+										rotation: 0,
+									}
 								}
 							} else {
 								if (info.button === 5) {
 									// Eraser button activates eraser
 									this.complete()
-									this.setSelectedTool(this._restoreToolId)
+									this.setCurrentTool(this._restoreToolId)
 								}
 							}
 
@@ -9244,9 +9031,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 								}
 
 								this.inputs.isPanning = true
-								this.setCursor({
+								this.cursor = {
+									...this.cursor,
 									type: this.inputs.isPointing ? 'grabbing' : 'grab',
-								})
+									rotation: 0,
+								}
 							}
 
 							break
@@ -9257,9 +9046,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 							if (info.code === 'Space' && !this.inputs.buttons.has(1)) {
 								this.inputs.isPanning = false
-								this.setCursor({
+								this.cursor = {
+									...this.cursor,
 									type: this._prevCursor,
-								})
+									rotation: 0,
+								}
 							}
 
 							break

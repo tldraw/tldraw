@@ -56,7 +56,7 @@ export class Resizing extends StateNode {
 		this.creationCursorOffset = creationCursorOffset
 
 		if (info.isCreating) {
-			this.editor.setCursor({ type: 'cross', rotation: 0 })
+			this.editor.cursor = { type: 'cross', rotation: 0 }
 		}
 
 		this.snapshot = this._createSnapshot()
@@ -93,7 +93,7 @@ export class Resizing extends StateNode {
 		// Restore initial models
 		this.editor.bailToMark(this.markId)
 		if (this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 		} else {
 			this.parent.transition('idle', {})
 		}
@@ -104,13 +104,13 @@ export class Resizing extends StateNode {
 
 		if (this.editAfterComplete && this.editor.onlySelectedShape) {
 			this.editor.setEditingId(this.editor.onlySelectedShape.id)
-			this.editor.setSelectedTool('select')
+			this.editor.setCurrentTool('select')
 			this.editor.root.current.value!.transition('editing_shape', {})
 			return
 		}
 
 		if (this.editor.instanceState.isToolLocked && this.info.onInteractionEnd) {
-			this.editor.setSelectedTool(this.info.onInteractionEnd, {})
+			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 			return
 		}
 
@@ -209,7 +209,8 @@ export class Resizing extends StateNode {
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
 		if (this.editor.isGridMode && !ctrlKey) {
-			currentPagePoint.snapToGrid(this.editor.gridSize)
+			const { gridSize } = this.editor.documentSettings
+			currentPagePoint.snapToGrid(gridSize)
 		}
 
 		const dragHandle = this.info.handle as SelectionCorner | SelectionEdge
@@ -342,12 +343,12 @@ export class Resizing extends StateNode {
 
 		nextCursor.rotation = rotation
 
-		this.editor.setCursor(nextCursor)
+		this.editor.cursor = nextCursor
 	}
 
 	override onExit = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.setCursor({ type: 'default' })
+		this.editor.cursor = { type: 'default', rotation: 0 }
 		this.editor.snaps.clear()
 	}
 

@@ -2947,7 +2947,7 @@ describe('snapping while the grid is enabled', () => {
 
 		editor.createShapes([box(ids.boxA, 0, 0, 20, 20), box(ids.boxB, 60, 0, 20, 20)])
 
-		editor.setGridMode(true)
+		editor.isGridMode = true
 
 		// try to move right side of A to left side of B
 		// doesn't work because of the grid
@@ -3816,7 +3816,7 @@ describe('bugs', () => {
 })
 
 it('uses the cross cursor when create resizing', () => {
-	editor.setSelectedTool('geo')
+	editor.setCurrentTool('geo')
 	editor.pointerDown(0, 0)
 	editor.pointerMove(100, 100)
 	editor.expectToBeIn('select.resizing')

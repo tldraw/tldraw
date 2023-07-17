@@ -94,7 +94,7 @@ afterEach(() => {
 
 describe('When clicking', () => {
 	it('Selects the tool, adds the hovered shapes to the editor.erasingIds array on pointer down, deletes them on pointer up, restores on undo and deletes again on redo', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 
 		// Starts in idle
 		editor.expectPathToBe('root.eraser.idle')
@@ -137,7 +137,7 @@ describe('When clicking', () => {
 	})
 
 	it('Erases all shapes under the cursor on click', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 
 		const shapesBeforeCount = editor.shapesArray.length
 
@@ -157,7 +157,7 @@ describe('When clicking', () => {
 
 	it("Erases a group when clicking on the group's child", () => {
 		editor.groupShapes([ids.box2, ids.box3], ids.group1)
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 
 		const shapesBeforeCount = editor.shapesArray.length
 
@@ -179,7 +179,7 @@ describe('When clicking', () => {
 
 	it('Does not erase a group when clicking on the group itself', () => {
 		editor.groupShapes([ids.box2, ids.box3], ids.group1)
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 
 		const shapesBeforeCount = editor.shapesArray.length
 
@@ -193,7 +193,7 @@ describe('When clicking', () => {
 	})
 
 	it('Stops erasing when it reaches a frame when the frame was not was the top-most hovered shape', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 
 		const shapesBeforeCount = editor.shapesArray.length
 
@@ -211,7 +211,7 @@ describe('When clicking', () => {
 	})
 
 	it('Erases a frame and its children when the frame was the first clicked shape', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 
 		const shapesBeforeCount = editor.shapesArray.length
 
@@ -229,7 +229,7 @@ describe('When clicking', () => {
 	})
 
 	it('Only erases masked shapes when pointer is inside the mask', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 
 		const shapesBeforeCount = editor.shapesArray.length
 
@@ -247,7 +247,7 @@ describe('When clicking', () => {
 	})
 
 	it('Clears erasing ids and does not erase shapes on cancel', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 		editor.expectPathToBe('root.eraser.idle')
 
 		const shapesBeforeCount = editor.shapesArray.length
@@ -274,7 +274,7 @@ describe('When clicking', () => {
 	})
 
 	it('Clears erasing ids and does not erase shapes on interrupt', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 		editor.expectPathToBe('root.eraser.idle')
 
 		const shapesBeforeCount = editor.shapesArray.length
@@ -303,7 +303,7 @@ describe('When clicking', () => {
 
 describe('When clicking and dragging', () => {
 	it('Enters erasing state on pointer move, adds contacted shapes to the apps.erasingIds array / apps.erasingIdsSet, deletes them and clears erasingIds / erasingIdsSet on pointer up, restores shapes on undo and deletes again on redo', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 
 		editor.expectPathToBe('root.eraser.idle')
 
@@ -342,7 +342,7 @@ describe('When clicking and dragging', () => {
 	})
 
 	it('Clears erasing ids and does not erase shapes on cancel', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 		editor.expectPathToBe('root.eraser.idle')
 		editor.pointerDown(-100, -100) // outside of any shapes
 		editor.pointerMove(50, 50) // inside of box1
@@ -359,7 +359,7 @@ describe('When clicking and dragging', () => {
 
 	it('Excludes a group if it was hovered when the drag started', () => {
 		editor.groupShapes([ids.box2, ids.box3], ids.group1)
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 		editor.expectPathToBe('root.eraser.idle')
 		editor.pointerDown(275, 275) // in between box2 AND box3, so over of the new group
 		editor.pointerMove(280, 280) // still outside of the new group
@@ -377,7 +377,7 @@ describe('When clicking and dragging', () => {
 	})
 
 	it('Excludes a frame if it was hovered when the drag started', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 		editor.pointerDown(325, 25) // directly on frame1, not its children
 		editor.pointerMove(350, 375) // still in the frame, passing through box3
 		jest.advanceTimersByTime(16)
@@ -390,7 +390,7 @@ describe('When clicking and dragging', () => {
 	})
 
 	it('Only erases masked shapes when pointer is inside the mask', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 		editor.pointerDown(425, 0) // Above the masked part of box3
 		expect(editor.erasingIds).toEqual([])
 		editor.pointerMove(425, 500) // Through the masked part of box3
@@ -411,7 +411,7 @@ describe('When clicking and dragging', () => {
 	})
 
 	it('Does nothing on interrupt, allowing for a pinch during the erasing session', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 		editor.pointerDown(-100, -100)
 		editor.pointerMove(50, 50)
 		editor.interrupt()
@@ -419,7 +419,7 @@ describe('When clicking and dragging', () => {
 	})
 
 	it('Starts a scribble on pointer down, updates it on pointer move, stops it on exit', () => {
-		editor.setSelectedTool('eraser')
+		editor.setCurrentTool('eraser')
 		editor.pointerDown(-100, -100)
 		expect(editor.scribble).toBe(null)
 		editor.pointerMove(50, 50)
@@ -442,7 +442,7 @@ describe('When shift clicking', () => {
 
 describe('When in the idle state', () => {
 	it('Returns to select on cancel', () => {
-		editor.setSelectedTool('hand')
+		editor.setCurrentTool('hand')
 		editor.expectPathToBe('root.hand.idle')
 		editor.cancel()
 		editor.expectPathToBe('root.select.idle')

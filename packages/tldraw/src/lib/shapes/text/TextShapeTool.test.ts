@@ -14,7 +14,7 @@ afterEach(() => {
 describe(TextShapeTool, () => {
 	it('Creates text, edits it, undoes and redoes', () => {
 		expect(editor.shapesArray.length).toBe(0)
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.expectToBeIn('text.idle')
 		editor.pointerDown(0, 0)
 		editor.expectToBeIn('text.pointing')
@@ -50,14 +50,14 @@ describe(TextShapeTool, () => {
 
 describe('When selecting the tool', () => {
 	it('starts in idle, transitions to pointing and dragging', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.expectToBeIn('text.idle')
 	})
 })
 
 describe('When in idle state', () => {
 	it('Transitions to pointing on pointer down', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.expectToBeIn('text.pointing')
 		editor.pointerUp()
@@ -65,7 +65,7 @@ describe('When in idle state', () => {
 	})
 
 	it('creates a shape on pointer up', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.pointerUp()
 		editor.expectToBeIn('select.editing_shape')
@@ -73,7 +73,7 @@ describe('When in idle state', () => {
 	})
 
 	it('returns to select on cancel', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.cancel()
 		editor.expectToBeIn('select.idle')
 	})
@@ -81,7 +81,7 @@ describe('When in idle state', () => {
 
 describe('When in the pointing state', () => {
 	it('returns to idle on escape', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.cancel()
 		editor.expectToBeIn('text.idle')
@@ -89,7 +89,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('returns to idle on interrupt', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.expectToBeIn('text.pointing')
 		editor.interrupt()
@@ -98,7 +98,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('transitions to select.resizing when dragging and edits on pointer up', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(10, 10)
 		editor.expectToBeIn('select.resizing')
@@ -108,7 +108,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('on pointer up, preserves the center when the text has a auto width', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		const x = 0
 		const y = 0
 		editor.pointerDown(x, y)
@@ -123,7 +123,7 @@ describe('When in the pointing state', () => {
 
 describe('When resizing', () => {
 	it('bails on escape while resizing and returns to text.idle', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
@@ -133,7 +133,7 @@ describe('When resizing', () => {
 	})
 
 	it('does not bails on interrupt while resizing', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 		editor.expectToBeIn('select.resizing')
@@ -142,7 +142,7 @@ describe('When resizing', () => {
 	})
 
 	it('preserves the top left when the text has a fixed width', () => {
-		editor.setSelectedTool('text')
+		editor.setCurrentTool('text')
 		const x = 0
 		const y = 0
 		editor.pointerDown(x, y)

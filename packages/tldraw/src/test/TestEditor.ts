@@ -501,7 +501,7 @@ export class TestEditor extends Editor {
 			throw new Error('No selection')
 		}
 
-		this.setSelectedTool('select')
+		this.setCurrentTool('select')
 
 		const handlePoint = this.selectionBounds!.getHandlePoint(
 			ROTATE_CORNER_TO_SELECTION_CORNER[handle]
@@ -521,7 +521,7 @@ export class TestEditor extends Editor {
 		if (this.selectedIds.length === 0) {
 			throw new Error('No selection')
 		}
-		this.setSelectedTool('select')
+		this.setCurrentTool('select')
 
 		const center = this.selectionPageCenter!
 
@@ -542,7 +542,7 @@ export class TestEditor extends Editor {
 		if (this.selectedIds.length === 0) {
 			throw new Error('No selection')
 		}
-		this.setSelectedTool('select')
+		this.setCurrentTool('select')
 		const bounds = this.selectionBounds!
 		const preRotationHandlePoint = bounds.getHandlePoint(handle)
 

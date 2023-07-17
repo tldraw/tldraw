@@ -21,7 +21,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 	describe(`When ${toolType}ing...`, () => {
 		it('Creates a dot', () => {
 			editor
-				.setSelectedTool(toolType)
+				.setCurrentTool(toolType)
 				.pointerDown(60, 60)
 				.expectToBeIn(`${toolType}.drawing`)
 				.pointerUp()
@@ -39,7 +39,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 		it('Creates a dot when shift is held down', () => {
 			editor
-				.setSelectedTool(toolType)
+				.setCurrentTool(toolType)
 				.keyDown('Shift')
 				.pointerDown(60, 60)
 				.expectToBeIn(`${toolType}.drawing`)
@@ -57,7 +57,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 		})
 
 		it('Creates a free draw line when shift is not held', () => {
-			editor.setSelectedTool(toolType).pointerDown(10, 10).pointerMove(20, 20)
+			editor.setCurrentTool(toolType).pointerDown(10, 10).pointerMove(20, 20)
 
 			const shape = editor.shapesArray[0] as DrawableShape
 			expect(shape.props.segments.length).toBe(1)
@@ -67,7 +67,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 		})
 
 		it('Creates a straight line when shift is held', () => {
-			editor.setSelectedTool(toolType).keyDown('Shift').pointerDown(10, 10).pointerMove(20, 20)
+			editor.setCurrentTool(toolType).keyDown('Shift').pointerDown(10, 10).pointerMove(20, 20)
 
 			const shape = editor.shapesArray[0] as DrawableShape
 			expect(shape.props.segments.length).toBe(1)
@@ -81,7 +81,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 		it('Switches between segment types when shift is pressed / released  (starting with shift up)', () => {
 			editor
-				.setSelectedTool(toolType)
+				.setCurrentTool(toolType)
 				.pointerDown(10, 10)
 				.pointerMove(20, 20)
 				.keyDown('Shift')
@@ -100,7 +100,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 		it('Switches between segment types when shift is pressed / released (starting with shift down)', () => {
 			editor
-				.setSelectedTool(toolType)
+				.setCurrentTool(toolType)
 				.keyDown('Shift')
 				.pointerDown(10, 10)
 				.pointerMove(20, 20)
@@ -120,7 +120,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 		it('Extends previously drawn line when shift is held', () => {
 			editor
-				.setSelectedTool(toolType)
+				.setCurrentTool(toolType)
 				.keyDown('Shift')
 				.pointerDown(10, 10)
 				.pointerUp()
@@ -140,11 +140,11 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 		it('Does not extends previously drawn line after switching to another tool', () => {
 			editor
-				.setSelectedTool(toolType)
+				.setCurrentTool(toolType)
 				.pointerDown(10, 10)
 				.pointerUp()
-				.setSelectedTool('select')
-				.setSelectedTool(toolType)
+				.setCurrentTool('select')
+				.setCurrentTool(toolType)
 				.keyDown('Shift')
 				.pointerDown(20, 20)
 				.pointerMove(30, 30)
@@ -170,7 +170,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const snappedX = magnitude * Math.cos(snappedAngle)
 			const snappedY = magnitude * Math.sin(snappedAngle)
 
-			editor.setSelectedTool(toolType).keyDown('Shift').pointerDown(0, 0).pointerMove(x, y)
+			editor.setCurrentTool(toolType).keyDown('Shift').pointerDown(0, 0).pointerMove(x, y)
 
 			const shape = editor.shapesArray[0] as DrawableShape
 			const segment = shape.props.segments[0]
@@ -184,7 +184,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 			const x = magnitude * Math.cos(angle)
 			const y = magnitude * Math.sin(angle)
 
-			editor.setSelectedTool(toolType).keyDown('Meta').pointerDown(0, 0).pointerMove(x, y)
+			editor.setCurrentTool(toolType).keyDown('Meta').pointerDown(0, 0).pointerMove(x, y)
 
 			const shape = editor.shapesArray[0] as DrawableShape
 			const segment = shape.props.segments[0]
@@ -194,7 +194,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 		it('Snaps to start or end of straight segments in self when shift + cmd is held', () => {
 			editor
-				.setSelectedTool(toolType)
+				.setCurrentTool(toolType)
 				.keyDown('Shift')
 				.pointerDown(0, 0)
 				.pointerUp()
@@ -219,7 +219,7 @@ for (const toolType of ['draw', 'highlight'] as const) {
 
 		it('Snaps to position along straight segments in self when shift + cmd is held', () => {
 			editor
-				.setSelectedTool(toolType)
+				.setCurrentTool(toolType)
 				.keyDown('Shift')
 				.pointerDown(0, 0)
 				.pointerUp()
@@ -243,17 +243,17 @@ for (const toolType of ['draw', 'highlight'] as const) {
 		})
 
 		it('Deletes very short lines on interrupt', () => {
-			editor.setSelectedTool(toolType).pointerDown(0, 0).pointerMove(0.1, 0.1).interrupt()
+			editor.setCurrentTool(toolType).pointerDown(0, 0).pointerMove(0.1, 0.1).interrupt()
 			expect(editor.shapesArray).toHaveLength(0)
 		})
 
 		it('Does not delete longer lines on interrupt', () => {
-			editor.setSelectedTool(toolType).pointerDown(0, 0).pointerMove(5, 5).interrupt()
+			editor.setCurrentTool(toolType).pointerDown(0, 0).pointerMove(5, 5).interrupt()
 			expect(editor.shapesArray).toHaveLength(1)
 		})
 
 		it('Completes on cancel', () => {
-			editor.setSelectedTool(toolType).pointerDown(0, 0).pointerMove(5, 5).cancel()
+			editor.setCurrentTool(toolType).pointerDown(0, 0).pointerMove(5, 5).cancel()
 			expect(editor.shapesArray).toHaveLength(1)
 			const shape = editor.shapesArray[0] as DrawableShape
 			expect(shape.props.segments.length).toBe(1)

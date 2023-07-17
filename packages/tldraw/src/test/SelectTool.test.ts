@@ -412,8 +412,8 @@ describe('When in readonly mode', () => {
 				props: { w: 100, h: 100, url: '' },
 			},
 		])
-		editor.setReadOnly(true)
-		editor.setSelectedTool('select')
+		editor.isReadOnly = true
+		editor.setCurrentTool('select')
 	})
 
 	it('Begins editing embed when double clicked', () => {

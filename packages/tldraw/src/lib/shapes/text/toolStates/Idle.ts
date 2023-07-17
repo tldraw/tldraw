@@ -42,7 +42,7 @@ export class Idle extends StateNode {
 				requestAnimationFrame(() => {
 					this.editor.setSelectedIds([shape.id])
 					this.editor.setEditingId(shape.id)
-					this.editor.setSelectedTool('select.editing_shape', {
+					this.editor.setCurrentTool('select.editing_shape', {
 						...info,
 						target: 'shape',
 						shape,
@@ -56,14 +56,14 @@ export class Idle extends StateNode {
 	}
 
 	override onEnter = () => {
-		this.editor.setCursor({ type: 'cross' })
+		this.editor.cursor = { type: 'cross', rotation: 0 }
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		if (info.key === 'Enter') {
 			const shape = this.editor.selectedShapes[0]
 			if (shape && this.editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
-				this.editor.setSelectedTool('select')
+				this.editor.setCurrentTool('select')
 				this.editor.setEditingId(shape.id)
 				this.editor.root.current.value!.transition('editing_shape', {
 					...info,
@@ -75,6 +75,6 @@ export class Idle extends StateNode {
 	}
 
 	override onCancel = () => {
-		this.editor.setSelectedTool('select')
+		this.editor.setCurrentTool('select')
 	}
 }
