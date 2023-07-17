@@ -25,7 +25,7 @@ export class PointingShape extends StateNode {
 			return
 		}
 
-		const isSelected =
+		const isWithinSelection =
 			this.editor.isSelected(this.selectingShape.id) ||
 			this.editor.isAncestorSelected(this.selectingShape.id)
 
@@ -34,7 +34,9 @@ export class PointingShape extends StateNode {
 			this.editor.selectionBounds?.containsPoint(this.editor.inputs.currentPagePoint)
 
 		this.didSelectOnEnter =
-			!isSelected && this.selectingShape.id !== this.editor.focusLayerId && !isBehindSelectionBounds
+			!isWithinSelection &&
+			this.selectingShape.id !== this.editor.focusLayerId &&
+			!isBehindSelectionBounds
 
 		if (this.didSelectOnEnter) {
 			const { inputs, selectedIds } = this.editor
