@@ -1,11 +1,11 @@
-import { Vec2d } from '@tldraw/primitives'
 import type { AnyHandlerEventTypes, EventTypes, GestureKey, Handler } from '@use-gesture/core/types'
 import { createUseGesture, pinchAction, wheelAction } from '@use-gesture/react'
 import throttle from 'lodash.throttle'
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
+import { Vec2d } from '../primitives/Vec2d'
 import { preventDefault } from '../utils/dom'
-import { normalizeWheel } from './shared'
+import { normalizeWheel } from '../utils/normalizeWheel'
 import { useEditor } from './useEditor'
 
 type check<T extends AnyHandlerEventTypes, Key extends GestureKey> = undefined extends T[Key]

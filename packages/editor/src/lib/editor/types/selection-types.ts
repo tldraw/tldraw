@@ -1,4 +1,4 @@
-import { RotateCorner, SelectionCorner, SelectionEdge } from '@tldraw/primitives'
+import { RotateCorner, SelectionCorner, SelectionEdge } from '../../primitives/Box2d'
 
 /** @public */
 export type TLSelectionHandle = SelectionCorner | SelectionEdge | RotateCorner

@@ -1,8 +1,7 @@
-import { nanoid } from 'nanoid'
+import { uniqueId } from '@tldraw/tldraw'
 import * as vscode from 'vscode'
 import { TLDrawDocument } from './TldrawDocument'
 import { GlobalStateKeys, WebViewMessageHandler } from './WebViewMessageHandler'
-// @ts-ignore
 
 export class TldrawWebviewManager {
 	private disposables: vscode.Disposable[] = []
@@ -15,7 +14,7 @@ export class TldrawWebviewManager {
 	) {
 		let userId = context.globalState.get(GlobalStateKeys.UserId)
 		if (!userId) {
-			userId = 'user:' + nanoid()
+			userId = 'user:' + uniqueId()
 			context.globalState.update(GlobalStateKeys.UserId, userId)
 		}
 

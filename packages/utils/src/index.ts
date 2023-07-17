@@ -29,4 +29,5 @@ export {
 export { rafThrottle, throttledRaf } from './lib/raf'
 export { sortById } from './lib/sort'
 export type { Expand, RecursivePartial, Required } from './lib/types'
+export { isValidUrl } from './lib/url'
 export { isDefined, isNonNull, isNonNullish, structuredClone } from './lib/value'

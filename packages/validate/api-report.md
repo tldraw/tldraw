@@ -188,7 +188,7 @@ class ValidationError extends Error {
 }
 
 // @public (undocumented)
-class Validator<T> implements Validatable<T> {
+export class Validator<T> implements Validatable<T> {
     constructor(validationFn: ValidatorFn<T>);
     check(name: string, checkFn: (value: T) => void): Validator<T>;
     // (undocumented)

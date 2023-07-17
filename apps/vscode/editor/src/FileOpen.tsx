@@ -1,6 +1,4 @@
-import { useEditor } from '@tldraw/editor'
-import { parseAndLoadDocument } from '@tldraw/file-format'
-import { useDefaultHelpers } from '@tldraw/ui'
+import { parseAndLoadDocument, useDefaultHelpers, useEditor } from '@tldraw/tldraw'
 import React from 'react'
 import { vscode } from './utils/vscode'
 

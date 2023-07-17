@@ -19,7 +19,7 @@ import {
 } from '@tldraw/tlschema'
 import { objectMapFromEntries } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
-import { uniqueId } from '../utils/data'
+import { uniqueId } from '../utils/uniqueId'
 
 const tabIdKey = 'TLDRAW_TAB_ID_v2' as const
 

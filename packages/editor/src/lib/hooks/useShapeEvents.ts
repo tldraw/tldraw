@@ -3,7 +3,7 @@ import React from 'react'
 import { Editor } from '../editor/Editor'
 import { TLPointerEventName } from '../editor/types/event-types'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
-import { getPointerInfo } from '../utils/svg'
+import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
 const pointerEventHandler = (editor: Editor, shapeId: TLShapeId, name: TLPointerEventName) => {

@@ -52,7 +52,7 @@
 			"^~(.*)": "<rootDir>/src/$1"
 		},
 		"transformIgnorePatterns": [
-			"node_modules/(?!(nanoid|escape-string-regexp)/)"
+			"node_modules/(?!(nanoid)/)"
 		]
 	},
 	"dependencies": {
@@ -60,6 +60,6 @@
 		"@tldraw/store": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"nanoid": "4.0.2"
+		"nanoid": "^3.3.6"
 	}
 }

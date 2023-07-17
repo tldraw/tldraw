@@ -1,5 +1,5 @@
-import { Vec2d } from '@tldraw/primitives'
 import { createShapeId } from '@tldraw/tlschema'
+import { Vec2d } from '../../../../primitives/Vec2d'
 import { TLBaseBoxShape } from '../../../shapes/BaseBoxShapeUtil'
 import { TLEventHandlers } from '../../../types/event-types'
 import { StateNode } from '../../StateNode'
@@ -12,12 +12,12 @@ export class Pointing extends StateNode {
 
 	wasFocusedOnEnter = false
 
-	onEnter = () => {
+	override onEnter = () => {
 		const { isMenuOpen } = this.editor
 		this.wasFocusedOnEnter = !isMenuOpen
 	}
 
-	onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
@@ -42,7 +42,7 @@ export class Pointing extends StateNode {
 				],
 				true
 			)
-			this.editor.setSelectedTool('select.resizing', {
+			this.editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
 				handle: 'bottom_right',
@@ -111,7 +111,7 @@ export class Pointing extends StateNode {
 		if (this.editor.instanceState.isToolLocked) {
 			this.parent.transition('idle', {})
 		} else {
-			this.editor.setSelectedTool('select.idle')
+			this.editor.setCurrentTool('select.idle')
 		}
 	}
 

@@ -1,10 +1,9 @@
-import { BaseBoxShapeUtil, TLBaseShape, defineShape } from '@tldraw/tldraw'
+import { BaseBoxShapeUtil, TLBaseShape } from '@tldraw/tldraw'
 
 export type ErrorShape = TLBaseShape<'error', { w: number; h: number; message: string }>
 
 export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
 	static override type = 'error' as const
-	override type = 'error' as const
 
 	getDefaultProps() {
 		return { message: 'Error!', w: 100, h: 100 }
@@ -16,5 +15,3 @@ export class ErrorShapeUtil extends BaseBoxShapeUtil<ErrorShape> {
 		throw new Error(`Error shape indicator!`)
 	}
 }
-
-export const ErrorShape = defineShape('error', { util: ErrorShapeUtil })
