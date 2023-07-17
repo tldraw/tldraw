@@ -191,7 +191,7 @@ export function createShapeRecordType(shapes: Record<string, SchemaShapeInfo>) {
 			firstVersion: rootShapeMigrations.firstVersion,
 			migrators: rootShapeMigrations.migrators,
 			subTypeKey: 'type',
-			subTypeMigrations: mapObjectMapValues(shapes, (k, v) => v.migrations ?? defineMigrations({})),
+			subTypeMigrations: mapObjectMapValues(shapes, (_, v) => v.migrations ?? defineMigrations({})),
 		}),
 		scope: 'document',
 		validator: T.model(

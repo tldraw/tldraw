@@ -1,12 +1,11 @@
-import { Tldraw, createTLStore, defaultShapes } from '@tldraw/tldraw'
+import { Tldraw, createTLStore, defaultShapeUtils, throttle } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { throttle } from '@tldraw/utils'
 import { useLayoutEffect, useState } from 'react'
 
 const PERSISTENCE_KEY = 'example-3'
 
 export default function PersistenceExample() {
-	const [store] = useState(() => createTLStore({ shapes: defaultShapes }))
+	const [store] = useState(() => createTLStore({ shapeUtils: defaultShapeUtils }))
 	const [loadingState, setLoadingState] = useState<
 		{ status: 'loading' } | { status: 'ready' } | { status: 'error'; error: string }
 	>({

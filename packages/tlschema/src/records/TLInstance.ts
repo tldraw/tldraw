@@ -90,7 +90,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			scribble: null,
 			cursor: {
 				type: 'default',
-				color: 'black',
 				rotation: 0,
 			},
 			isFocusMode: false,
@@ -128,11 +127,12 @@ export const instanceVersions = {
 	AddHighlightedUserIds: 15,
 	ReplacePropsForNextShapeWithStylesForNextShape: 16,
 	AddMeta: 17,
+	RemoveCursorColor: 18,
 } as const
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.AddMeta,
+	currentVersion: instanceVersions.RemoveCursorColor,
 	migrators: {
 		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -366,6 +366,24 @@ export const instanceMigrations = defineMigrations({
 			down: ({ meta: _, ...record }) => {
 				return {
 					...record,
+				}
+			},
+		},
+		[instanceVersions.RemoveCursorColor]: {
+			up: (record) => {
+				const { color: _, ...cursor } = record.cursor
+				return {
+					...record,
+					cursor,
+				}
+			},
+			down: (record) => {
+				return {
+					...record,
+					cursor: {
+						...record.cursor,
+						color: 'black',
+					},
 				}
 			},
 		},

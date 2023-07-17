@@ -89,7 +89,7 @@ const MyCustomShapes = [MyCardShape]
 export default function () {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw shapes={MyCustomShapes}/>
+			<Tldraw shapeUtils={MyCustomShapes}/>
 		</div>
 	)
 }
@@ -101,7 +101,7 @@ The [`defineShape`](/gen/editor/defineShape) function can also be used to includ
 export default function () {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw shapes={MyCustomShapes} onMount={editor => {
+			<Tldraw shapeUtils={MyCustomShapes} onMount={editor => {
         editor.createShapes([{  type: "card" }])
       }}/>
 		</div>

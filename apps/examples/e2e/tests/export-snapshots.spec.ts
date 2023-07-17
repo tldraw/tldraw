@@ -1,20 +1,11 @@
-import test, { Page, expect } from '@playwright/test'
+import test, { expect } from '@playwright/test'
 import { Editor, TLShapeId, TLShapePartial } from '@tldraw/tldraw'
-import { assert } from '@tldraw/utils'
 import { rename, writeFile } from 'fs/promises'
 import { setupPage } from '../shared-e2e'
 
-let page: Page
 declare const editor: Editor
 
 test.describe('Export snapshots', () => {
-	test.beforeAll(async ({ browser }) => {
-		page = await browser.newPage()
-	})
-	test.beforeEach(async () => {
-		await setupPage(page)
-	})
-
 	const snapshots = {} as Record<string, TLShapePartial[]>
 
 	for (const fill of ['none', 'semi', 'solid', 'pattern']) {
@@ -172,7 +163,9 @@ test.describe('Export snapshots', () => {
 	}
 
 	for (const [name, shapes] of Object.entries(snapshots)) {
-		test(`Exports with ${name}`, async () => {
+		test(`Exports with ${name}`, async ({ browser }) => {
+			const page = await browser.newPage()
+			await setupPage(page)
 			await page.evaluate((shapes) => {
 				editor
 					.updateInstanceState({ exportBackground: false })
@@ -188,17 +181,17 @@ test.describe('Export snapshots', () => {
 			await page.click('[data-testid="menu-item.export-as-svg"]')
 
 			const download = await downloadEvent
-			const path = await download.path()
-			assert(path)
+			const path = (await download.path()) as string
+			// assert(path)
 			await rename(path, path + '.svg')
 			await writeFile(
 				path + '.html',
 				`
-                    <!DOCTYPE html>
-                    <meta charset="utf-8" />
-                    <meta name="viewport" content="width=device-width, initial-scale=1" />
-                    <img src="${path}.svg" />
-                `,
+			                  <!DOCTYPE html>
+			                  <meta charset="utf-8" />
+			                  <meta name="viewport" content="width=device-width, initial-scale=1" />
+			                  <img src="${path}.svg" />
+			              `,
 				'utf-8'
 			)
 
