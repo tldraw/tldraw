@@ -49,6 +49,7 @@ export class Translating extends StateNode {
 		const { isCreating = false, editAfterComplete = false } = info
 
 		this.info = info
+		this.parent.currentToolIdMask = info.onInteractionEnd
 		this.isCreating = isCreating
 		this.editAfterComplete = editAfterComplete
 
@@ -58,6 +59,7 @@ export class Translating extends StateNode {
 	}
 
 	override onExit = () => {
+		this.parent.currentToolIdMask = undefined
 		this.editor.off('tick', this.updateParent)
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any

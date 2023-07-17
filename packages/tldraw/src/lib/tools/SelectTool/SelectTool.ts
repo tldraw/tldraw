@@ -40,10 +40,6 @@ export class SelectTool extends StateNode {
 		DraggingHandle,
 	]
 
-	override onEnter = (info: { onInteractionEnd?: string } | undefined) => {
-		this.currentToolIdMask = info?.onInteractionEnd
-	}
-
 	override onExit = () => {
 		if (this.editor.pageState.editingId) {
 			this.editor.setEditingId(null)

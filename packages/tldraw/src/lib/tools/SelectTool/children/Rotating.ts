@@ -23,10 +23,11 @@ export class Rotating extends StateNode {
 	markId = ''
 
 	override onEnter = (
-		info: Extract<TLPointerEventInfo, { target: 'selection'; onInteractionEnd?: string }>
+		info: TLPointerEventInfo & { target: 'selection'; onInteractionEnd?: string }
 	) => {
 		// Store the event information
 		this.info = info
+		this.parent.currentToolIdMask = info.onInteractionEnd
 
 		this.markId = this.editor.mark('rotate start')
 
@@ -40,6 +41,7 @@ export class Rotating extends StateNode {
 
 	override onExit = () => {
 		this.editor.setCursor({ type: 'none' })
+		this.parent.currentToolIdMask = undefined
 
 		this.snapshot = {} as TLRotationSnapshot
 	}

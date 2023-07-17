@@ -1,12 +1,9 @@
 import { StateNode, TLEventHandlers, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { CursorTypeMap } from './PointingResizeHandle'
 
-type TLPointingCropHandleInfo = Extract<
-	TLPointerEventInfo,
-	{
-		target: 'selection'
-	}
-> & {
+type TLPointingCropHandleInfo = TLPointerEventInfo & {
+	target: 'selection'
+} & {
 	onInteractionEnd?: string
 }
 
@@ -25,11 +22,17 @@ export class PointingCropHandle extends StateNode {
 
 	override onEnter = (info: TLPointingCropHandleInfo) => {
 		this.info = info
+		this.parent.currentToolIdMask = info.onInteractionEnd
 		const selectedShape = this.editor.selectedShapes[0]
 		if (!selectedShape) return
 
 		this.updateCursor(selectedShape)
 		this.editor.setCroppingId(selectedShape.id)
+	}
+
+	override onExit = () => {
+		this.editor.setCursor({ type: 'default' })
+		this.parent.currentToolIdMask = undefined
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {

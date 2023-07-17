@@ -262,6 +262,7 @@ export class Idle extends StateNode {
 	override onEnter = () => {
 		this.editor.setHoveredId(null)
 		this.editor.setCursor({ type: 'default' })
+		this.parent.currentToolIdMask = undefined
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

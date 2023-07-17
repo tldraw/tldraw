@@ -2,7 +2,6 @@ import { preventDefault, useEditor } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from './useActions'
-import { useEditorIsFocused } from './useEditorIsFocused'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
@@ -19,15 +18,14 @@ const SKIP_KBDS = [
 export function useKeyboardShortcuts() {
 	const editor = useEditor()
 
-	const appIsFocused = useEditorIsFocused()
 	const isReadonly = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
 
 	useEffect(() => {
-		if (!appIsFocused) return
-
 		const container = editor.getContainer()
+
+		hotkeys.setScope(editor.store.id)
 
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
 			hotkeys(keys, { element: container, scope: editor.store.id }, callback)
@@ -36,7 +34,7 @@ export function useKeyboardShortcuts() {
 		// Add hotkeys for actions and tools.
 		// Except those that in SKIP_KBDS!
 		const areShortcutsDisabled = () =>
-			editor.isMenuOpen || editor.editingId !== null || editor.crashingError
+			(editor.isFocused && editor.isMenuOpen) || editor.editingId !== null || editor.crashingError
 
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
@@ -62,12 +60,10 @@ export function useKeyboardShortcuts() {
 			})
 		}
 
-		hotkeys.setScope(editor.store.id)
-
 		return () => {
 			hotkeys.deleteScope(editor.store.id)
 		}
-	}, [actions, tools, isReadonly, editor, appIsFocused])
+	}, [actions, tools, isReadonly, editor])
 }
 
 function getHotkeysStringFromKbd(kbd: string) {

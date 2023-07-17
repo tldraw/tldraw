@@ -258,7 +258,6 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'z',
 				onSelect(source) {
 					if (editor.root.current.value?.id === 'zoom') return
-					console.log('updating')
 
 					trackEvent('zoom-tool', { source })
 					if (!(editor.inputs.shiftKey || editor.inputs.ctrlKey)) {

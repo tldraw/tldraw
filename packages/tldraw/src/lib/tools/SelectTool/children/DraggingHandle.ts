@@ -49,6 +49,7 @@ export class DraggingHandle extends StateNode {
 	) => {
 		const { shape, isCreating, handle } = info
 		this.info = info
+		this.parent.currentToolIdMask = info.onInteractionEnd
 		this.shapeId = shape.id
 		this.markId = isCreating ? 'creating' : this.editor.mark('dragging handle')
 		this.initialHandle = deepCopy(handle)
@@ -155,6 +156,7 @@ export class DraggingHandle extends StateNode {
 	}
 
 	override onExit = () => {
+		this.parent.currentToolIdMask = undefined
 		this.editor.setHintingIds([])
 		this.editor.snaps.clear()
 		this.editor.setCursor({ type: 'default' })

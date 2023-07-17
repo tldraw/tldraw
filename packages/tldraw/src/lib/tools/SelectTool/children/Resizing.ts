@@ -50,6 +50,8 @@ export class Resizing extends StateNode {
 		} = info
 
 		this.info = info
+
+		this.parent.currentToolIdMask = info.onInteractionEnd
 		this.editAfterComplete = editAfterComplete
 		this.creationCursorOffset = creationCursorOffset
 
@@ -344,6 +346,7 @@ export class Resizing extends StateNode {
 	}
 
 	override onExit = () => {
+		this.parent.currentToolIdMask = undefined
 		this.editor.setCursor({ type: 'default' })
 		this.editor.snaps.clear()
 	}

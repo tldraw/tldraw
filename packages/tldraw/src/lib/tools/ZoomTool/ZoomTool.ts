@@ -12,14 +12,15 @@ export class ZoomTool extends StateNode {
 
 	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
-		console.log(info.onInteractionEnd)
 		this.currentToolIdMask = info.onInteractionEnd
 		this.updateCursor()
 	}
 
 	override onExit = () => {
+		this.currentToolIdMask = undefined
 		this.editor.setZoomBrush(null)
 		this.editor.setCursor({ type: 'default' })
+		this.currentToolIdMask = undefined
 	}
 
 	override onKeyDown: TLKeyboardEvent | undefined = () => {
