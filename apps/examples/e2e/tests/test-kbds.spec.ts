@@ -348,7 +348,7 @@ test.describe('Delete bug', () => {
 		await page.keyboard.press('r')
 		await page.mouse.move(100, 100)
 		await page.mouse.down()
-		await page.mouse.move(200, 200)
+		await page.mouse.up()
 		await page.keyboard.press('Backspace')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
 			name: 'delete-shapes',
