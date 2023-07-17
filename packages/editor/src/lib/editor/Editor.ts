@@ -1431,6 +1431,50 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Update the instance's state.
+	 *
+	 * @param partial - A partial object to update the instance state with.
+	 * @param ephemeral - Whether the change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
+	 * @param squashing - Whether the change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
+	 *
+	 * @public
+	 */
+	updateInstanceState(
+		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
+		ephemeral = false,
+		squashing = false
+	) {
+		this._updateInstanceState(partial, ephemeral, squashing)
+		return this
+	}
+
+	/** @internal */
+	private _updateInstanceState = this.history.createCommand(
+		'updateTabState',
+		(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral = false, squashing = false) => {
+			const prev = this.instanceState
+			const next = { ...prev, ...partial }
+
+			return {
+				data: { prev, next },
+				squashing,
+				ephemeral,
+			}
+		},
+		{
+			do: ({ next }) => {
+				this.store.put([next])
+			},
+			undo: ({ prev }) => {
+				this.store.put([prev])
+			},
+			squash({ prev }, { next }) {
+				return { prev, next }
+			},
+		}
+	)
+
+	/**
 	 * The instance's cursor state.
 	 *
 	 * @public
@@ -1483,8 +1527,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.updateInstanceState({ scribble }, true)
 	}
 
-	// Focus Mode
-
 	/**
 	 * Whether the instance is in focus mode or not.
 	 *
@@ -1498,8 +1540,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.updateInstanceState({ isFocusMode }, true)
 		}
 	}
-
-	// Tool Locked
 
 	/**
 	 * Whether the instance has "tool lock" mode enabled.
@@ -1515,8 +1555,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	// Grid Mode
-
 	/**
 	 * Whether the instance's grid is enabled.
 	 *
@@ -1530,50 +1568,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.updateInstanceState({ isGridMode }, true)
 		}
 	}
-
-	/**
-	 * Update the instance's state.
-	 *
-	 * @param partial - A partial object to update the instance state with.
-	 * @param ephemeral - Whether the change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
-	 * @param squashing - Whether the change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
-	 *
-	 * @public
-	 */
-	updateInstanceState(
-		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
-		ephemeral = false,
-		squashing = false
-	) {
-		this._updateInstanceState(partial, ephemeral, squashing)
-		return this
-	}
-
-	/** @internal */
-	private _updateInstanceState = this.history.createCommand(
-		'updateTabState',
-		(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral = false, squashing = false) => {
-			const prev = this.instanceState
-			const next = { ...prev, ...partial }
-
-			return {
-				data: { prev, next },
-				squashing,
-				ephemeral,
-			}
-		},
-		{
-			do: ({ next }) => {
-				this.store.put([next])
-			},
-			undo: ({ prev }) => {
-				this.store.put([prev])
-			},
-			squash({ prev }, { next }) {
-				return { prev, next }
-			},
-		}
-	)
 
 	/* ------------------- Page State ------------------- */
 
@@ -1644,8 +1638,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		}
 	)
-
-	// Selected Ids
 
 	/**
 	 * The current selected ids.
@@ -1730,19 +1722,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Determine whether a not a shape is within the current selection. A shape is within the
-	 * selection if it or any of its parents is selected.
+	 * Determine whether or not any of a shape's ancestors are selected.
 	 *
 	 * @param id - The id of the shape to check.
 	 *
 	 * @public
 	 */
-	isWithinSelection(id: TLShapeId) {
+	isAncestorSelected(id: TLShapeId) {
 		const shape = this.getShapeById(id)
 		if (!shape) return false
-
-		if (this.isSelected(id)) return true
-
 		return !!this.findAncestor(shape, (parent) => this.isSelected(parent.id))
 	}
 

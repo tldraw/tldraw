@@ -25,7 +25,9 @@ export class PointingShape extends StateNode {
 			return
 		}
 
-		const isSelected = this.editor.isWithinSelection(this.selectingShape.id)
+		const isSelected =
+			this.editor.isSelected(this.selectingShape.id) ||
+			this.editor.isAncestorSelected(this.selectingShape.id)
 
 		const isBehindSelectionBounds =
 			this.editor.selectedIds.length > 1 && // only on 2+ selected shapes!

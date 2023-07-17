@@ -379,8 +379,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// If no bound shapes are in the selection, unbind any bound shapes
 
 		if (
-			(startBinding && this.editor.isWithinSelection(startBinding)) ||
-			(endBinding && this.editor.isWithinSelection(endBinding))
+			(startBinding &&
+				(this.editor.isSelected(startBinding) || this.editor.isAncestorSelected(startBinding))) ||
+			(endBinding &&
+				(this.editor.isSelected(endBinding) || this.editor.isAncestorSelected(endBinding)))
 		) {
 			return
 		}

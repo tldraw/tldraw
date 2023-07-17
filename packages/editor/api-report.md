@@ -558,6 +558,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     get instanceState(): TLInstance;
     interrupt(): this;
+    isAncestorSelected(id: TLShapeId): boolean;
     readonly isAndroid: boolean;
     get isChangingStyle(): boolean;
     set isChangingStyle(v: boolean);
@@ -591,7 +592,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     set isSnapMode(isSnapMode: boolean);
     get isToolLocked(): boolean;
     set isToolLocked(isToolLocked: boolean);
-    isWithinSelection(id: TLShapeId): boolean;
     get locale(): string;
     set locale(locale: string);
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): string;
