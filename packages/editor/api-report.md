@@ -1459,6 +1459,10 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     current: Atom<StateNode | undefined>;
     // (undocumented)
+    get currentToolIdMask(): string | undefined;
+    set currentToolIdMask(id: string | undefined);
+    _currentToolIdMask: Atom<string | undefined, unknown>;
+    // (undocumented)
     editor: Editor;
     // (undocumented)
     enter(info: any, from: string): void;

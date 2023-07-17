@@ -12,6 +12,8 @@ export class ZoomTool extends StateNode {
 
 	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
+		console.log(info.onInteractionEnd)
+		this.currentToolIdMask = info.onInteractionEnd
 		this.updateCursor()
 	}
 

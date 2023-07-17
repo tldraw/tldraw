@@ -1070,19 +1070,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	get currentToolId(): string {
 		const activeTool = this.root.current.value
-		let activeToolId = activeTool?.id
-
-		// Often a tool will transition into one of the following select states after the initial pointerdown: 'translating', 'resizing', 'dragging_handle'
-		// It should then supply the tool id to the `onInteractionEnd` property to tell us which tool initially triggered the interaction.
-		// If tool lock mode is on then tldraw will switch to the given tool id.
-		// If tool lock mode is off then tldraw will switch back to the select tool when the interaction ends.
-
-		if (activeToolId === 'select' || activeToolId === 'zoom') {
-			const currentChildState = activeTool?.current.value as any
-			activeToolId = currentChildState?.info?.onInteractionEnd ?? 'select'
-		}
-
-		return activeToolId ?? ''
+		return activeTool?.currentToolIdMask ?? activeTool?.id ?? ''
 	}
 
 	/**

@@ -253,6 +253,23 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'select-zoom-tool',
+				readonlyOk: true,
+				kbd: 'z',
+				onSelect(source) {
+					if (editor.root.current.value?.id === 'zoom') return
+					console.log('updating')
+
+					trackEvent('zoom-tool', { source })
+					if (!(editor.inputs.shiftKey || editor.inputs.ctrlKey)) {
+						const currentTool = editor.root.current.value
+						if (currentTool && currentTool.current.value?.id === 'idle') {
+							editor.setSelectedTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
+						}
+					}
+				},
+			},
+			{
 				id: 'convert-to-bookmark',
 				label: 'action.convert-to-bookmark',
 				readonlyOk: false,
