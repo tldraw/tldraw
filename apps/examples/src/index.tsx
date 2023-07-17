@@ -48,6 +48,11 @@ export const allExamples: Example[] = [
 		element: <ExampleBasic />,
 	},
 	{
+		title: 'Collaboration (with Yjs)',
+		path: '/yjs',
+		element: <YjsExample />,
+	},
+	{
 		title: 'Editor API',
 		path: '/api',
 		element: <ExampleApi />,
@@ -116,11 +121,6 @@ export const allExamples: Example[] = [
 		title: 'Persistence',
 		path: '/persistence',
 		element: <PersistenceExample />,
-	},
-	{
-		title: 'Custom styles',
-		path: '/yjs',
-		element: <YjsExample />,
 	},
 	{
 		title: 'Custom styles',

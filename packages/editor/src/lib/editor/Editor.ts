@@ -7080,7 +7080,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// Add meta properties, if any, to the shapes
 				shapeRecordsToCreate.forEach((shape) => {
-					shape.meta = this.getInitialMetaForShape(shape)
+					shape.meta = {
+						...this.getInitialMetaForShape(shape),
+						...shape.meta,
+					}
 				})
 
 				this.store.put(shapeRecordsToCreate)
