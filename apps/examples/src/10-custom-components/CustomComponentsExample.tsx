@@ -2,24 +2,30 @@ import { Tldraw, TLEditorComponents } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 const components: Partial<TLEditorComponents> = {
-	Brush: ({ brush }) => (
-		<rect
-			className="tl-brush"
-			stroke="red"
-			fill="none"
-			width={Math.max(1, brush.w)}
-			height={Math.max(1, brush.h)}
-			transform={`translate(${brush.x},${brush.y})`}
-		/>
-	),
+	Brush: function MyBrush({ brush }) {
+		return (
+			<svg className="tl-overlays__item">
+				<rect
+					className="tl-brush"
+					stroke="red"
+					fill="none"
+					width={Math.max(1, brush.w)}
+					height={Math.max(1, brush.h)}
+					transform={`translate(${brush.x},${brush.y})`}
+				/>
+			</svg>
+		)
+	},
 	Scribble: ({ scribble, opacity, color }) => {
 		return (
-			<polyline
-				points={scribble.points.map((p) => `${p.x},${p.y}`).join(' ')}
-				stroke={color ?? 'black'}
-				opacity={opacity ?? '1'}
-				fill="none"
-			/>
+			<svg className="tl-overlays__item">
+				<polyline
+					points={scribble.points.map((p) => `${p.x},${p.y}`).join(' ')}
+					stroke={color ?? 'black'}
+					opacity={opacity ?? '1'}
+					fill="none"
+				/>
+			</svg>
 		)
 	},
 	SnapLine: null,
