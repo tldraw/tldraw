@@ -23,6 +23,22 @@ const CustomUi = track(() => {
 				case 'Delete':
 				case 'Backspace': {
 					editor.deleteShapes()
+					break
+				}
+				case 'v': {
+					editor.setSelectedTool('select')
+					break
+				}
+				case 'e': {
+					editor.setSelectedTool('eraser')
+					break
+				}
+				case 'x':
+				case 'p':
+				case 'b':
+				case 'd': {
+					editor.setSelectedTool('draw')
+					break
 				}
 			}
 		}
@@ -36,7 +52,7 @@ const CustomUi = track(() => {
 	return (
 		<div className="custom-layout">
 			<div className="custom-toolbar">
-				{/* <button
+				<button
 					className="custom-button"
 					data-isactive={editor.currentToolId === 'select'}
 					onClick={() => editor.setSelectedTool('select')}
@@ -56,7 +72,7 @@ const CustomUi = track(() => {
 					onClick={() => editor.setSelectedTool('eraser')}
 				>
 					Eraser
-				</button> */}
+				</button>
 			</div>
 		</div>
 	)
