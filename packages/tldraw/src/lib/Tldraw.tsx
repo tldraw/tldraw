@@ -5,9 +5,8 @@ import {
 	RecursivePartial,
 	TldrawEditor,
 	TldrawEditorProps,
-	useEditor,
 } from '@tldraw/editor'
-import { useLayoutEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { defaultShapeTools } from './defaultShapeTools'
@@ -15,6 +14,7 @@ import { defaultShapeUtils } from './defaultShapeUtils'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
+import { useRegisterExternalContentHandlers } from './useRegisterExternalContentHandlers'
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './utils/assetUrls'
 import { usePreloadAssets } from './utils/usePreloadAssets'
 
@@ -77,26 +77,7 @@ export function Tldraw(
 }
 
 function Hacks() {
-	const editor = useEditor()
-
-	useLayoutEffect(() => {
-		// Register external content handlers
-
-		// Set z to trigger the zoom tool
-		editor.root.onKeyDown = (info) => {
-			switch (info.code) {
-				case 'KeyZ': {
-					if (!(info.shiftKey || info.ctrlKey)) {
-						const currentTool = editor.root.current.value
-						if (currentTool && currentTool.current.value?.id === 'idle') {
-							editor.setSelectedTool('zoom', { ...info, onInteractionEnd: currentTool.id })
-						}
-					}
-					break
-				}
-			}
-		}
-	})
+	useRegisterExternalContentHandlers()
 
 	return null
 }
