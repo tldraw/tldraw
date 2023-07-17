@@ -7,5 +7,7 @@ beforeEach(() => {
 })
 
 describe('squashing', () => {
+	editor
+
 	it.todo('squashes')
 })
