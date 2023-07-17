@@ -1,9 +1,9 @@
 import esbuild from 'esbuild'
 import fs from 'fs'
-import fse from 'fs-extra'
+import fse, { exists } from 'fs-extra'
 import path from 'path'
-import { logEnv } from '../../vscode-script-utils/cli'
-import { exists, getDirname } from '../../vscode-script-utils/path'
+import { logEnv } from './cli'
+import { getDirname } from './path'
 
 const rootDir = getDirname(import.meta.url, '../')
 const log = logEnv('editor')

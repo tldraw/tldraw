@@ -145,7 +145,7 @@ const MyCardShape = defineShape('card', { util: CardShapeUtil })
 export default function () {
 	return (
 		<div style={{ position: 'fixed', inset: 0 }}>
-			<Tldraw shapes={[MyCardShape]}/>
+			<Tldraw shapeUtils={MyCustomShapes}/>
 		</div>
 	)
 }
@@ -154,9 +154,15 @@ export default function () {
 Let's create a card shape using the [`Editor`](/gen/editor/Editor) API. We'll do this by setting the `onMount` prop of the [`<Tldraw>`](/gen/tldraw/Tldraw) component.
 
 ```tsx
-<Tldraw shapes={[MyCardShape]} onMount={(editor) => {
-  editor.createShapes([{ type: "card" }])
-}}/>
+export default function () {
+	return (
+		<div style={{ position: 'fixed', inset: 0 }}>
+			<Tldraw shapeUtils={MyCustomShapes} onMount={editor => {
+        editor.createShapes([{  type: "card" }])
+      }}/>
+		</div>
+	)
+}
 ```
 
 Once the page refreshes, we should now have our custom shape on the canvas.

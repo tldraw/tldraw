@@ -15,7 +15,7 @@ import { arrowShapeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations } from './shapes/TLDrawShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
-import { geoShapeMigrations } from './shapes/TLGeoShape'
+import { GeoShapeVersions, geoShapeMigrations } from './shapes/TLGeoShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
 import { noteShapeMigrations } from './shapes/TLNoteShape'
 import { textShapeMigrations } from './shapes/TLTextShape'
@@ -707,6 +707,22 @@ describe('Migrate GeoShape legacy horizontal alignment', () => {
 	})
 })
 
+describe('adding cloud shape', () => {
+	const { up, down } = geoShapeMigrations.migrators[GeoShapeVersions.AddCloud]
+
+	test('up does nothing', () => {
+		expect(up({ props: { geo: 'rectangle' } })).toEqual({
+			props: { geo: 'rectangle' },
+		})
+	})
+
+	test('down converts clouds to rectangles', () => {
+		expect(down({ props: { geo: 'cloud' } })).toEqual({
+			props: { geo: 'rectangle' },
+		})
+	})
+})
+
 describe('Migrate NoteShape legacy horizontal alignment', () => {
 	const { up, down } = noteShapeMigrations.migrators[3]
 
@@ -1255,6 +1271,44 @@ describe('adds meta ', () => {
 			expect(down({ meta: {} })).toStrictEqual({})
 		})
 	}
+})
+
+describe('removes cursor color', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.RemoveCursorColor]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				cursor: {
+					type: 'default',
+					rotation: 0.1,
+					color: 'black',
+				},
+			})
+		).toStrictEqual({
+			cursor: {
+				type: 'default',
+				rotation: 0.1,
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				cursor: {
+					type: 'default',
+					rotation: 0.1,
+				},
+			})
+		).toStrictEqual({
+			cursor: {
+				type: 'default',
+				rotation: 0.1,
+				color: 'black',
+			},
+		})
+	})
 })
 
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */

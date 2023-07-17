@@ -1,5 +1,4 @@
-import { DefaultColorStyle, ShapeProps, StyleProp } from '@tldraw/tldraw'
-import { T } from '@tldraw/validate'
+import { DefaultColorStyle, ShapeProps, StyleProp, T } from '@tldraw/tldraw'
 import { ICardShape } from './card-shape-types'
 
 export const WeightStyle = StyleProp.defineEnum('myApp:weight', {

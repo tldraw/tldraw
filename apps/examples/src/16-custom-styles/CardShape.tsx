@@ -4,12 +4,11 @@ import {
 	DefaultColorStyle,
 	HTMLContainer,
 	StyleProp,
+	T,
 	TLBaseShape,
 	TLDefaultColorStyle,
-	defineShape,
 	getDefaultColorTheme,
 } from '@tldraw/tldraw'
-import { T } from '@tldraw/validate'
 
 // Define a style that can be used across multiple shapes.
 // The ID (myApp:filter) must be globally unique, so we recommend prefixing it with a namespace.
@@ -32,6 +31,15 @@ export type CardShape = TLBaseShape<
 
 export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 	static override type = 'card' as const
+
+	static override props = {
+		w: T.number,
+		h: T.number,
+		// You can re-use tldraw built-in styles...
+		color: DefaultColorStyle,
+		// ...or your own custom styles.
+		filter: MyFilterStyle,
+	}
 
 	override isAspectRatioLocked = (_shape: CardShape) => false
 	override canResize = (_shape: CardShape) => true
@@ -86,20 +94,13 @@ export class CardShapeUtil extends BaseBoxShapeUtil<CardShape> {
 export class CardShapeTool extends BaseBoxShapeTool {
 	static override id = 'card'
 	static override initial = 'idle'
-
-	override shapeType = CardShapeUtil
-}
-
-export const CardShape = defineShape('card', {
-	util: CardShapeUtil,
-	tool: CardShapeTool,
-	// to use a style prop, you need to describe all the props in your shape.
-	props: {
+	override shapeType = 'card'
+	props = {
 		w: T.number,
 		h: T.number,
 		// You can re-use tldraw built-in styles...
 		color: DefaultColorStyle,
 		// ...or your own custom styles.
 		filter: MyFilterStyle,
-	},
-})
+	}
+}

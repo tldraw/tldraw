@@ -1,19 +1,20 @@
-import { Box2d, Matrix2d, Vec2d } from '@tldraw/primitives'
-import { TLGroupShape } from '@tldraw/tlschema'
+import { TLGroupShape, groupShapeMigrations, groupShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
+import { Box2d } from '../../../primitives/Box2d'
+import { Matrix2d } from '../../../primitives/Matrix2d'
 import { ShapeUtil, TLOnChildrenChangeHandler } from '../ShapeUtil'
-import { DashedOutlineBox } from '../shared/DashedOutlineBox'
+import { DashedOutlineBox } from './DashedOutlineBox'
 
 /** @public */
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override type = 'group' as const
+	static override props = groupShapeProps
+	static override migrations = groupShapeMigrations
 
-	type = 'group' as const
+	override hideSelectionBoundsBg = () => false
+	override hideSelectionBoundsFg = () => true
 
-	hideSelectionBoundsBg = () => false
-	hideSelectionBoundsFg = () => true
-
-	canBind = () => false
+	override canBind = () => false
 
 	getDefaultProps(): TLGroupShape['props'] {
 		return {}
@@ -35,14 +36,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return Box2d.FromPoints(allChildPoints)
 	}
 
-	getCenter(shape: TLGroupShape): Vec2d {
-		return this.editor.getBounds(shape).center
-	}
-
-	getOutline(shape: TLGroupShape): Vec2d[] {
-		return this.editor.getBounds(shape).corners
-	}
-
 	component(shape: TLGroupShape) {
 		// Not a class component, but eslint can't tell that :(
 		const {
@@ -58,7 +51,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			hintingIds.some(
 				(id) =>
 					id !== shape.id &&
-					this.editor.isShapeOfType(this.editor.getShapeById(id)!, GroupShapeUtil)
+					this.editor.isShapeOfType<TLGroupShape>(this.editor.getShapeById(id)!, 'group')
 			)
 
 		if (
@@ -91,7 +84,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return <DashedOutlineBox className="" bounds={bounds} zoomLevel={zoomLevel} />
 	}
 
-	onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape> = (group) => {
+	override onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape> = (group) => {
 		const children = this.editor.getSortedChildIds(group.id)
 		if (children.length === 0) {
 			if (this.editor.pageState.focusLayerId === group.id) {

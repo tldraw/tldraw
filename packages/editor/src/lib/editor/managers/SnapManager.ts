@@ -1,28 +1,28 @@
+import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
+import { TLGroupShape, TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
+import { dedupe, deepCopy } from '@tldraw/utils'
 import {
 	Box2d,
 	flipSelectionHandleX,
 	flipSelectionHandleY,
 	isSelectionCorner,
-	Matrix2d,
-	rangeIntersection,
-	rangesOverlap,
 	SelectionCorner,
 	SelectionEdge,
-	Vec2d,
-	VecLike,
-} from '@tldraw/primitives'
-import { atom, computed, EMPTY_ARRAY } from '@tldraw/state'
-import { TLParentId, TLShape, TLShapeId, Vec2dModel } from '@tldraw/tlschema'
-import { dedupe, deepCopy } from '@tldraw/utils'
-import { uniqueId } from '../../utils/data'
+} from '../../primitives/Box2d'
+import { Matrix2d } from '../../primitives/Matrix2d'
+import { rangeIntersection, rangesOverlap } from '../../primitives/utils'
+import { Vec2d, VecLike } from '../../primitives/Vec2d'
+import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
-import { GroupShapeUtil } from '../shapes/group/GroupShapeUtil'
 
+/** @public */
 export type PointsSnapLine = {
 	id: string
 	type: 'points'
 	points: VecLike[]
 }
+
+/** @public */
 export type GapsSnapLine = {
 	id: string
 	type: 'gaps'
@@ -32,6 +32,8 @@ export type GapsSnapLine = {
 		endEdge: [VecLike, VecLike]
 	}>
 }
+
+/** @public */
 export type SnapLine = PointsSnapLine | GapsSnapLine
 
 export type SnapInteractionType =
@@ -44,6 +46,7 @@ export type SnapInteractionType =
 			type: 'resize'
 	  }
 
+/** @public */
 export interface SnapPoint {
 	id: string
 	x: number
@@ -209,6 +212,7 @@ function dedupeGapSnaps(snaps: Array<Extract<SnapLine, { type: 'gaps' }>>) {
 	}
 }
 
+/** @public */
 export class SnapManager {
 	private _snapLines = atom<SnapLine[] | undefined>('snapLines', undefined)
 
@@ -266,7 +270,7 @@ export class SnapManager {
 				const pageBounds = editor.getPageBoundsById(childId)
 				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
 				// Snap to children of groups but not group itself
-				if (editor.isShapeOfType(childShape, GroupShapeUtil)) {
+				if (editor.isShapeOfType<TLGroupShape>(childShape, 'group')) {
 					collectSnappableShapesFromParent(childId)
 					continue
 				}

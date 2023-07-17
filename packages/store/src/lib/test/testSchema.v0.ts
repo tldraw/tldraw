@@ -1,4 +1,4 @@
-import { assert } from '@tldraw/utils'
+import assert from 'assert'
 import { BaseRecord, RecordId } from '../BaseRecord'
 import { createRecordType } from '../RecordType'
 import { StoreSchema } from '../StoreSchema'
