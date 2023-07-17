@@ -11,8 +11,8 @@ import React, {
 } from 'react'
 
 import { Canvas } from './components/Canvas'
-import { DefaultErrorFallback } from './components/DefaultErrorFallback'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
+import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'

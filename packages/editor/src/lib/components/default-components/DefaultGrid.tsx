@@ -1,6 +1,6 @@
 import { modulate } from '@tldraw/utils'
 import { ComponentType } from 'react'
-import { GRID_STEPS } from '../constants'
+import { GRID_STEPS } from '../../constants'
 
 /** @public */
 export type TLGridComponent = ComponentType<{

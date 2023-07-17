@@ -1,9 +1,9 @@
 import { track } from '@tldraw/state'
 import classNames from 'classnames'
 import { ComponentType, useRef } from 'react'
-import { useEditor } from '../hooks/useEditor'
-import { useTransform } from '../hooks/useTransform'
-import { toDomPrecision } from '../primitives/utils'
+import { useEditor } from '../../hooks/useEditor'
+import { useTransform } from '../../hooks/useTransform'
+import { toDomPrecision } from '../../primitives/utils'
 
 /** @public */
 export type TLSelectionForegroundComponent = ComponentType<object>

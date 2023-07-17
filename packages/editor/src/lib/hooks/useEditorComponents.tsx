@@ -1,35 +1,47 @@
 import { createContext, useContext, useMemo } from 'react'
-import { DefaultBackground, TLBackgroundComponent } from '../components/DefaultBackground'
-import { DefaultBrush, TLBrushComponent } from '../components/DefaultBrush'
+import { ShapeIndicator, TLShapeIndicatorComponent } from '../components/ShapeIndicator'
+import {
+	DefaultBackground,
+	TLBackgroundComponent,
+} from '../components/default-components/DefaultBackground'
+import { DefaultBrush, TLBrushComponent } from '../components/default-components/DefaultBrush'
 import {
 	DefaultCollaboratorHint,
 	TLCollaboratorHintComponent,
-} from '../components/DefaultCollaboratorHint'
-import { DefaultCursor, TLCursorComponent } from '../components/DefaultCursor'
-import { DefaultErrorFallback, TLErrorFallbackComponent } from '../components/DefaultErrorFallback'
-import { DefaultGrid, TLGridComponent } from '../components/DefaultGrid'
-import { DefaultHandle, TLHandleComponent } from '../components/DefaultHandle'
-import { DefaultScribble, TLScribbleComponent } from '../components/DefaultScribble'
+} from '../components/default-components/DefaultCollaboratorHint'
+import { DefaultCursor, TLCursorComponent } from '../components/default-components/DefaultCursor'
+import {
+	DefaultErrorFallback,
+	TLErrorFallbackComponent,
+} from '../components/default-components/DefaultErrorFallback'
+import { DefaultGrid, TLGridComponent } from '../components/default-components/DefaultGrid'
+import { DefaultHandle, TLHandleComponent } from '../components/default-components/DefaultHandle'
+import {
+	DefaultScribble,
+	TLScribbleComponent,
+} from '../components/default-components/DefaultScribble'
 import {
 	DefaultSelectionBackground,
 	TLSelectionBackgroundComponent,
-} from '../components/DefaultSelectionBackground'
+} from '../components/default-components/DefaultSelectionBackground'
 import {
 	DefaultSelectionForeground,
 	TLSelectionForegroundComponent,
-} from '../components/DefaultSelectionForeground'
+} from '../components/default-components/DefaultSelectionForeground'
 import {
 	DefaultShapeErrorFallback,
 	TLShapeErrorFallbackComponent,
-} from '../components/DefaultShapeErrorFallback'
+} from '../components/default-components/DefaultShapeErrorFallback'
 import {
 	DefaultShapeIndicatorErrorFallback,
 	TLShapeIndicatorErrorFallbackComponent,
-} from '../components/DefaultShapeIndicatorErrorFallback'
-import { DefaultSnapLine, TLSnapLineComponent } from '../components/DefaultSnapLine'
-import { DefaultSpinner, TLSpinnerComponent } from '../components/DefaultSpinner'
-import { DefaultSvgDefs, TLSvgDefsComponent } from '../components/DefaultSvgDefs'
-import { ShapeIndicator, TLShapeIndicatorComponent } from '../components/ShapeIndicator'
+} from '../components/default-components/DefaultShapeIndicatorErrorFallback'
+import {
+	DefaultSnapLine,
+	TLSnapLineComponent,
+} from '../components/default-components/DefaultSnapLine'
+import { DefaultSpinner, TLSpinnerComponent } from '../components/default-components/DefaultSpinner'
+import { DefaultSvgDefs, TLSvgDefsComponent } from '../components/default-components/DefaultSvgDefs'
 
 interface BaseEditorComponents {
 	Background: TLBackgroundComponent

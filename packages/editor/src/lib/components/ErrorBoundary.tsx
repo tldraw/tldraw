@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { TLErrorFallbackComponent } from './DefaultErrorFallback'
+import { TLErrorFallbackComponent } from './default-components/DefaultErrorFallback'
 
 /** @public */
 export interface TLErrorBoundaryProps {

@@ -4,8 +4,8 @@ import {
 	type GapsSnapLine,
 	type PointsSnapLine,
 	type SnapLine,
-} from '../editor/managers/SnapManager'
-import { rangeIntersection } from '../primitives/utils'
+} from '../../editor/managers/SnapManager'
+import { rangeIntersection } from '../../primitives/utils'
 
 function PointsSnapLine({ points, zoom }: { zoom: number } & PointsSnapLine) {
 	const l = 2.5 / zoom

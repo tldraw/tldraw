@@ -34,7 +34,6 @@ export {
 	type TldrawEditorProps,
 } from './lib/TldrawEditor'
 export { Canvas } from './lib/components/Canvas'
-export { DefaultErrorFallback } from './lib/components/DefaultErrorFallback'
 export {
 	ErrorBoundary,
 	OptionalErrorBoundary,
@@ -43,6 +42,7 @@ export {
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
+export { DefaultErrorFallback } from './lib/components/default-components/DefaultErrorFallback'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,

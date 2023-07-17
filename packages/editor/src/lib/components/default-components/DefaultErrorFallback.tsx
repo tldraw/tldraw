@@ -1,12 +1,12 @@
 import { useValue } from '@tldraw/state'
 import classNames from 'classnames'
 import { ComponentType, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Editor } from '../editor/Editor'
-import { EditorContext } from '../hooks/useEditor'
-import { hardResetEditor } from '../utils/hardResetEditor'
-import { refreshPage } from '../utils/refreshPage'
-import { Canvas } from './Canvas'
-import { ErrorBoundary } from './ErrorBoundary'
+import { Editor } from '../../editor/Editor'
+import { EditorContext } from '../../hooks/useEditor'
+import { hardResetEditor } from '../../utils/hardResetEditor'
+import { refreshPage } from '../../utils/refreshPage'
+import { Canvas } from '../Canvas'
+import { ErrorBoundary } from '../ErrorBoundary'
 
 const BASE_ERROR_URL = 'https://github.com/tldraw/tldraw/issues/new'
 

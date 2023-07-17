@@ -1,10 +1,10 @@
 import { Vec2dModel } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { ComponentType, useRef } from 'react'
-import { useTransform } from '../hooks/useTransform'
-import { Box2d } from '../primitives/Box2d'
-import { Vec2d } from '../primitives/Vec2d'
-import { clamp } from '../primitives/utils'
+import { useTransform } from '../../hooks/useTransform'
+import { Box2d } from '../../primitives/Box2d'
+import { Vec2d } from '../../primitives/Vec2d'
+import { clamp } from '../../primitives/utils'
 
 export type TLCollaboratorHintComponent = ComponentType<{
 	className?: string
