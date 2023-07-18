@@ -377,7 +377,8 @@ describe('isFocused', () => {
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
-		editor.updateInstanceState({ isFocused: true })
+		editor.elm.focus()
+
 		expect(editor.instanceState.isFocused).toBe(true)
 
 		editor.elm.blur()

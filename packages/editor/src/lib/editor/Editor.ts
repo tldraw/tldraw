@@ -1206,7 +1206,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	blur = () => {
-		this.getContainer().focus()
+		this.getContainer().blur()
 	}
 
 	// Menus
