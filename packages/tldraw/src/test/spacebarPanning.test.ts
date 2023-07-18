@@ -13,18 +13,18 @@ beforeEach(() => {
 })
 
 it('Sets cursor and state correctly', () => {
-	expect(editor.cursor.type).toBe('default')
+	expect(editor.instanceState.cursor.type).toBe('default')
 	expect(editor.inputs.isPanning).toBe(false)
 	editor.keyDown(' ')
 	expect(editor.inputs.isPanning).toBe(true)
-	expect(editor.cursor.type).toBe('grab')
+	expect(editor.instanceState.cursor.type).toBe('grab')
 	editor.pointerDown(0, 0)
-	expect(editor.cursor.type).toBe('grabbing')
+	expect(editor.instanceState.cursor.type).toBe('grabbing')
 	editor.pointerUp(0, 0)
-	expect(editor.cursor.type).toBe('grab')
+	expect(editor.instanceState.cursor.type).toBe('grab')
 	editor.keyUp(' ')
 	expect(editor.inputs.isPanning).toBe(false)
-	expect(editor.cursor.type).toBe('default')
+	expect(editor.instanceState.cursor.type).toBe('default')
 })
 
 it('When holding spacebar and clicking and dragging, it pans the camera', () => {

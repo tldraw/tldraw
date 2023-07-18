@@ -144,32 +144,30 @@ const ScribbleWrapper = track(function ScribbleWrapper() {
 	return <Scribble className="tl-user-scribble" scribble={scribble} zoom={zoom} />
 })
 
-const BrushWrapper = track(function BrushWrapper() {
+const BrushWrapper = function BrushWrapper() {
 	const editor = useEditor()
-	const { brush } = editor
+	const brush = useValue('brush', () => editor.instanceState.brush, [editor])
 	const { Brush } = useEditorComponents()
 
 	if (!(Brush && brush)) return null
 
 	return <Brush className="tl-user-brush" brush={brush} />
-})
+}
 
-export const ZoomBrushWrapper = track(function Zoom() {
+export const ZoomBrushWrapper = function Zoom() {
 	const editor = useEditor()
-	const { zoomBrush } = editor
+	const zoomBrush = useValue('zoomBrush', () => editor.instanceState.zoomBrush, [editor])
 	const { ZoomBrush } = useEditorComponents()
 
 	if (!(ZoomBrush && zoomBrush)) return null
 
 	return <ZoomBrush className="tl-user-brush" brush={zoomBrush} />
-})
+}
 
-export const SnapLinesWrapper = track(function SnapLines() {
+export const SnapLinesWrapper = function SnapLines() {
 	const editor = useEditor()
-	const {
-		snaps: { lines },
-		zoomLevel,
-	} = editor
+	const lines = useValue('snapLines', () => editor.snaps.lines, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const { SnapLine } = useEditorComponents()
 
 	if (!(SnapLine && lines.length > 0)) return null
@@ -181,23 +179,22 @@ export const SnapLinesWrapper = track(function SnapLines() {
 			))}
 		</>
 	)
-})
+}
 
 const MIN_HANDLE_DISTANCE = 48
 
-const HandlesWrapper = track(function HandlesWrapper() {
+const HandlesWrapper = function HandlesWrapper() {
 	const editor = useEditor()
+	const { Handles } = useEditorComponents()
 
-	const {
-		zoomLevel,
-		onlySelectedShape,
-		editorState: { isChangingStyle, isReadOnly },
-	} = editor
+	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
+	const isChangingStyle = useValue('isChangingStyle', () => editor.instanceState.isChangingStyle, [
+		editor,
+	])
+	const isReadOnly = useValue('isChangingStyle', () => editor.instanceState.isReadOnly, [editor])
 
-	const shouldDisplayHandles =
-		editor.isInAny('select.idle', 'select.pointing_handle') && !isChangingStyle && !isReadOnly
-
-	if (!(onlySelectedShape && shouldDisplayHandles)) return null
+	if (!Handles || !onlySelectedShape || isChangingStyle || isReadOnly) return null
 
 	const handles = editor.getHandles(onlySelectedShape)
 
@@ -227,15 +224,15 @@ const HandlesWrapper = track(function HandlesWrapper() {
 	handlesToDisplay.sort((a) => (a.type === 'vertex' ? 1 : -1))
 
 	return (
-		<svg className="tl-user-handles tl-overlays__item">
+		<Handles>
 			<g transform={Matrix2d.toCssString(transform)}>
 				{handlesToDisplay.map((handle) => {
 					return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
 				})}
 			</g>
-		</svg>
+		</Handles>
 	)
-})
+}
 
 const HandleWrapper = ({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHandle }) => {
 	const events = useHandleEvents(shapeId, handle.id)
@@ -289,7 +286,7 @@ const SelectedIdIndicators = track(function SelectedIdIndicators() {
 			'select.pointing_shape',
 			'select.pointing_selection',
 			'select.pointing_handle'
-		) && !editor.editorState.isChangingStyle
+		) && !editor.instanceState.isChangingStyle
 
 	if (!shouldDisplay) return null
 

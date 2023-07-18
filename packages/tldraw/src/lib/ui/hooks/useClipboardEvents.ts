@@ -642,7 +642,7 @@ export function useNativeClipboardEvents() {
 	const editor = useEditor()
 	const trackEvent = useEvents()
 
-	const appIsFocused = useValue('editor.isFocused', () => editor.editorState.isFocused, [editor])
+	const appIsFocused = useValue('editor.isFocused', () => editor.instanceState.isFocused, [editor])
 
 	useEffect(() => {
 		if (!appIsFocused) return

@@ -3820,16 +3820,16 @@ it('uses the cross cursor when create resizing', () => {
 	editor.pointerDown(0, 0)
 	editor.pointerMove(100, 100)
 	editor.expectToBeIn('select.resizing')
-	expect(editor.cursor.type).toBe('cross')
-	expect(editor.cursor.rotation).toBe(0)
+	expect(editor.instanceState.cursor.type).toBe('cross')
+	expect(editor.instanceState.cursor.rotation).toBe(0)
 
 	editor.pointerMove(120, 120)
-	expect(editor.cursor.type).toBe('cross')
-	expect(editor.cursor.rotation).toBe(0)
+	expect(editor.instanceState.cursor.type).toBe('cross')
+	expect(editor.instanceState.cursor.rotation).toBe(0)
 
 	editor.pointerMove(-120, -120)
-	expect(editor.cursor.type).toBe('cross')
-	expect(editor.cursor.rotation).toBe(0)
+	expect(editor.instanceState.cursor.type).toBe('cross')
+	expect(editor.instanceState.cursor.rotation).toBe(0)
 })
 
 describe('Resizing text from the right edge', () => {
@@ -3842,7 +3842,7 @@ describe('Resizing text from the right edge', () => {
 
 		const bounds = editor.getBoundsById(id)!
 
-		editor.updateEditorState({ isCoarsePointer: false })
+		editor.updateInstanceState({ isCoarsePointer: false })
 
 		// Resize from the right edge
 		editor.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
@@ -3859,7 +3859,7 @@ describe('Resizing text from the right edge', () => {
 	})
 
 	it('Resizes text from the right edge when pointer is coarse', () => {
-		editor.updateEditorState({ isCoarsePointer: true })
+		editor.updateInstanceState({ isCoarsePointer: true })
 
 		const id = createShapeId()
 		editor.createShapes([{ id, type: 'text', props: { text: 'H' } }])

@@ -77,7 +77,7 @@ export function useCursor() {
 	useQuickReactor(
 		'useCursor',
 		() => {
-			const { type, rotation } = editor.cursor
+			const { type, rotation } = editor.instanceState.cursor
 
 			if (STATIC_CURSORS.includes(type)) {
 				container.style.setProperty('--tl-cursor', `var(--tl-cursor-${type})`)

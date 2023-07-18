@@ -1,6 +1,6 @@
 import { T } from '@tldraw/validate'
 
-export type TLEditorState = {
+export type TLinstanceState = {
 	canMoveCamera: boolean
 	isFocused: boolean
 	devicePixelRatio: number
@@ -10,7 +10,7 @@ export type TLEditorState = {
 	isReadOnly: boolean
 }
 
-export const editorStateValidator = T.object<TLEditorState>({
+export const instanceStateValidator = T.object<TLinstanceState>({
 	canMoveCamera: T.boolean,
 	isFocused: T.boolean,
 	devicePixelRatio: T.number,

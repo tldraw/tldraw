@@ -39,7 +39,6 @@ import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
-import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
@@ -369,8 +368,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     blur: () => this;
     bringForward(ids?: TLShapeId[]): this;
     bringToFront(ids?: TLShapeId[]): this;
-    get brush(): Box2dModel | null;
-    set brush(brush: Box2dModel | null);
     get camera(): TLCamera;
     get cameraState(): "idle" | "moving";
     cancel(): this;
@@ -410,7 +407,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPageShapeIds(): Set<TLShapeId>;
     get currentTool(): StateNode | undefined;
     get currentToolId(): string;
-    get cursor(): TLCursor;
     deleteAssets(ids: TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
     deletePage(id: TLPageId): void;
@@ -425,10 +421,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     set editingId(id: null | TLShapeId);
-    // (undocumented)
-    get editorState(): TLEditorState;
-    // (undocumented)
-    _editorState: Atom<TLEditorState, unknown>;
     get erasingIds(): TLShapeId[];
     set erasingIds(ids: TLShapeId[]);
     get erasingIdsSet(): Set<TLShapeId>;
@@ -684,7 +676,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     ungroupShapes(ids?: TLShapeId[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateEditorState(editorState: Partial<TLEditorState>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal

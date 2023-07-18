@@ -45,7 +45,7 @@ export const PageMenu = function PageMenu() {
 		[editor]
 	)
 
-	const isCoarsePointer = useValue('isCoarsePointer', () => editor.editorState.isCoarsePointer, [
+	const isCoarsePointer = useValue('isCoarsePointer', () => editor.instanceState.isCoarsePointer, [
 		editor,
 	])
 

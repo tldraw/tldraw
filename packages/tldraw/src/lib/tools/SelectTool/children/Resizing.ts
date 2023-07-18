@@ -320,7 +320,7 @@ export class Resizing extends StateNode {
 		isFlippedY: boolean
 		rotation: number
 	}) {
-		const nextCursor = { ...this.editor.cursor }
+		const nextCursor = { ...this.editor.instanceState.cursor }
 
 		switch (dragHandle) {
 			case 'top_left':

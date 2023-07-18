@@ -120,7 +120,7 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			if (this.editor.editorState.isReadOnly) return
+			if (this.editor.instanceState.isReadOnly) return
 			this.parent.transition('translating', info)
 		}
 	}

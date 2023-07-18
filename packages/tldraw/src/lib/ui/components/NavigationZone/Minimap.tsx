@@ -36,7 +36,7 @@ export const Minimap = track(function Minimap({
 	const rPointing = React.useRef(false)
 
 	const minimap = React.useMemo(
-		() => new MinimapManager(editor, editor.editorState.devicePixelRatio),
+		() => new MinimapManager(editor, editor.instanceState.devicePixelRatio),
 		[editor]
 	)
 
@@ -166,7 +166,7 @@ export const Minimap = track(function Minimap({
 		'update dpr',
 		() => {
 			const {
-				editorState: { devicePixelRatio },
+				instanceState: { devicePixelRatio },
 			} = editor
 			minimap.setDpr(devicePixelRatio)
 
@@ -193,7 +193,7 @@ export const Minimap = track(function Minimap({
 		'minimap render when pagebounds or collaborators changes',
 		() => {
 			const {
-				editorState: { devicePixelRatio },
+				instanceState: { devicePixelRatio },
 				viewportPageBounds,
 				allShapesCommonBounds,
 			} = editor

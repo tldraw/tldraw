@@ -285,7 +285,7 @@ describe("App's default tool", () => {
 	})
 	it('Is hand for readonly mode', () => {
 		editor = new TestEditor()
-		editor.updateEditorState({ isReadOnly: true })
+		editor.updateInstanceState({ isReadOnly: true })
 		editor.setCurrentTool('hand')
 		expect(editor.currentToolId).toBe('hand')
 	})
@@ -346,43 +346,43 @@ describe('currentToolId', () => {
 
 describe('isFocused', () => {
 	it('is false by default', () => {
-		expect(editor.editorState.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes true when you call .focus()', () => {
-		editor.updateEditorState({ isFocused: true })
-		expect(editor.editorState.isFocused).toBe(true)
+		editor.updateInstanceState({ isFocused: true })
+		expect(editor.instanceState.isFocused).toBe(true)
 	})
 
 	it('becomes false when you call .blur()', () => {
-		editor.updateEditorState({ isFocused: true })
-		expect(editor.editorState.isFocused).toBe(true)
+		editor.updateInstanceState({ isFocused: true })
+		expect(editor.instanceState.isFocused).toBe(true)
 
-		editor.updateEditorState({ isFocused: false })
-		expect(editor.editorState.isFocused).toBe(false)
+		editor.updateInstanceState({ isFocused: false })
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('remains false when you call .blur()', () => {
-		expect(editor.editorState.isFocused).toBe(false)
-		editor.updateEditorState({ isFocused: false })
-		expect(editor.editorState.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
+		editor.updateInstanceState({ isFocused: false })
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
-		expect(editor.editorState.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
 
 		editor.elm.focus()
 
-		expect(editor.editorState.isFocused).toBe(true)
+		expect(editor.instanceState.isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
-		editor.updateEditorState({ isFocused: true })
-		expect(editor.editorState.isFocused).toBe(true)
+		editor.updateInstanceState({ isFocused: true })
+		expect(editor.instanceState.isFocused).toBe(true)
 
 		editor.elm.blur()
 
-		expect(editor.editorState.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes true when a child of the app container div receives a focusin event', () => {
@@ -391,28 +391,28 @@ describe('isFocused', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 
-		expect(editor.editorState.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
 
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
 
-		expect(editor.editorState.isFocused).toBe(true)
+		expect(editor.instanceState.isFocused).toBe(true)
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		expect(editor.editorState.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes false when a child of the app container div receives a focusout event', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 
-		editor.updateEditorState({ isFocused: true })
+		editor.updateInstanceState({ isFocused: true })
 
-		expect(editor.editorState.isFocused).toBe(true)
+		expect(editor.instanceState.isFocused).toBe(true)
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		expect(editor.editorState.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('calls .focus() and .blur() on the container div when you call .focus() and .blur() on the editor', () => {
@@ -422,12 +422,12 @@ describe('isFocused', () => {
 		expect(focusMock).not.toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.updateEditorState({ isFocused: true })
+		editor.updateInstanceState({ isFocused: true })
 
 		expect(focusMock).toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.updateEditorState({ isFocused: false })
+		editor.updateInstanceState({ isFocused: false })
 
 		expect(blurMock).toHaveBeenCalled()
 	})

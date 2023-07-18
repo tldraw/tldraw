@@ -57,7 +57,7 @@ export class Brushing extends StateNode {
 
 	override onExit = () => {
 		this.initialSelectedIds = []
-		this.editor.brush = null
+		this.editor.updateInstanceState({ brush: null })
 	}
 
 	override onPointerMove = () => {
@@ -168,12 +168,12 @@ export class Brushing extends StateNode {
 			}
 		}
 
-		this.editor.brush = { ...this.brush.toJson() }
+		this.editor.updateInstanceState({ brush: { ...this.brush.toJson() } })
 		this.editor.setSelectedIds(Array.from(results), true)
 	}
 
 	override onInterrupt: TLInterruptEvent = () => {
-		this.editor.brush = null
+		this.editor.updateInstanceState({ brush: null })
 	}
 
 	private handleHit(

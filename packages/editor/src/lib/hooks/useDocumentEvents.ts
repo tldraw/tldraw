@@ -9,13 +9,13 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => editor.editorState.isFocused, [editor])
+	const isAppFocused = useValue('isFocused', () => editor.instanceState.isFocused, [editor])
 
 	useEffect(() => {
 		if (typeof matchMedia !== undefined) return
 
 		function updateDevicePixelRatio() {
-			editor.updateEditorState({ devicePixelRatio: window.devicePixelRatio })
+			editor.updateInstanceState({ devicePixelRatio: window.devicePixelRatio })
 		}
 
 		const MM = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)

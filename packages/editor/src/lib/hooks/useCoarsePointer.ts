@@ -8,13 +8,13 @@ export function useCoarsePointer() {
 		// detect coarse VS fine pointer. For now, let's assume that you have a fine
 		// pointer if you're on Firefox on desktop.
 		if (editor.isFirefox && !editor.isAndroid && !editor.isIos) {
-			editor.updateEditorState({ isCoarsePointer: false })
+			editor.updateInstanceState({ isCoarsePointer: false })
 			return
 		}
 		if (window.matchMedia) {
 			const mql = window.matchMedia('(pointer: coarse)')
 			const handler = () => {
-				editor.updateEditorState({ isCoarsePointer: !!mql.matches })
+				editor.updateInstanceState({ isCoarsePointer: !!mql.matches })
 			}
 			handler()
 			if (mql) {

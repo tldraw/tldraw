@@ -34,7 +34,7 @@ export function useKeyboardShortcuts() {
 		// Add hotkeys for actions and tools.
 		// Except those that in SKIP_KBDS!
 		const areShortcutsDisabled = () =>
-			(editor.editorState.isFocused && editor.isMenuOpen) ||
+			(editor.instanceState.isFocused && editor.isMenuOpen) ||
 			editor.editingId !== null ||
 			editor.crashingError
 
@@ -51,7 +51,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && editor.editorState.isReadOnly)) continue
+			if (!tool.kbd || (!tool.readonlyOk && editor.instanceState.isReadOnly)) continue
 
 			if (SKIP_KBDS.includes(tool.id)) continue
 
