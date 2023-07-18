@@ -80,4 +80,5 @@ const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opac
 	)
 }
 
+/** @public */
 export const ShapeIndicator = React.memo(_ShapeIndicator)

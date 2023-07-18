@@ -18,6 +18,10 @@ import { DefaultGrid, TLGridComponent } from '../components/default-components/D
 import { DefaultHandle, TLHandleComponent } from '../components/default-components/DefaultHandle'
 import { DefaultHandles, TLHandlesComponent } from '../components/default-components/DefaultHandles'
 import {
+	DefaultHoveredShapeIndicator,
+	TLHoveredShapeIndicatorComponent,
+} from '../components/default-components/DefaultHoveredShapeIndicator'
+import {
 	DefaultScribble,
 	TLScribbleComponent,
 } from '../components/default-components/DefaultScribble'
@@ -63,6 +67,7 @@ interface BaseEditorComponents {
 	Spinner: TLSpinnerComponent
 	SelectionForeground: TLSelectionForegroundComponent
 	SelectionBackground: TLSelectionBackgroundComponent
+	HoveredShapeIndicator: TLHoveredShapeIndicatorComponent
 }
 
 /** @public */
@@ -107,6 +112,7 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 					Spinner: DefaultSpinner,
 					SelectionBackground: DefaultSelectionBackground,
 					SelectionForeground: DefaultSelectionForeground,
+					HoveredShapeIndicator: DefaultHoveredShapeIndicator,
 					...overrides,
 				}),
 				[overrides]

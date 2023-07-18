@@ -305,19 +305,11 @@ function SelectedIdIndicators() {
 
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const editor = useEditor()
+	const { HoveredShapeIndicator } = useEditorComponents()
+	const hoveredId = useValue('hovered id', () => editor.currentPageState.hoveredId, [editor])
+	if (!hoveredId || !HoveredShapeIndicator) return null
 
-	const displayingHoveredId = useValue(
-		'hovered id and should display',
-		() =>
-			editor.isInAny('select.idle', 'select.editing_shape')
-				? editor.currentPageState.hoveredId
-				: null,
-		[editor]
-	)
-
-	if (!displayingHoveredId) return null
-
-	return <ShapeIndicator className="tl-user-indicator__hovered" id={displayingHoveredId} />
+	return <HoveredShapeIndicator shapeId={hoveredId} />
 }
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {

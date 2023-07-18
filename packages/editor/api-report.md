@@ -1235,6 +1235,14 @@ export function setRuntimeOverrides(input: Partial<typeof runtime>): void;
 export function setUserPreferences(user: TLUserPreferences): void;
 
 // @public (undocumented)
+export const ShapeIndicator: React_3.NamedExoticComponent<{
+    id: TLShapeId;
+    color?: string | undefined;
+    opacity?: number | undefined;
+    className?: string | undefined;
+}>;
+
+// @public (undocumented)
 export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     constructor(editor: Editor);
     // @internal
@@ -1851,6 +1859,11 @@ export type TLHistoryMark = {
     onUndo: boolean;
     onRedo: boolean;
 };
+
+// @public (undocumented)
+export type TLHoveredShapeIndicatorComponent = ComponentType<{
+    shapeId: TLShapeId;
+}>;
 
 // @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;

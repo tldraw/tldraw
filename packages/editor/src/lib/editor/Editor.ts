@@ -1757,7 +1757,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get erasingIdsSet() {
-		// todo: Make incremental derivation, so that this only gets updated when erasingIds changes: we're creating this too often!
 		return new Set<TLShapeId>(this.erasingIds)
 	}
 
