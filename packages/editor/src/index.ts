@@ -42,7 +42,21 @@ export {
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
+export { type TLShapeIndicatorComponent } from './lib/components/ShapeIndicator'
+export { type TLBackgroundComponent } from './lib/components/default-components/DefaultBackground'
+export { type TLBrushComponent } from './lib/components/default-components/DefaultBrush'
+export { type TLCollaboratorHintComponent } from './lib/components/default-components/DefaultCollaboratorHint'
+export { type TLCursorComponent } from './lib/components/default-components/DefaultCursor'
 export { DefaultErrorFallback } from './lib/components/default-components/DefaultErrorFallback'
+export { type TLGridComponent } from './lib/components/default-components/DefaultGrid'
+export { type TLHandleComponent } from './lib/components/default-components/DefaultHandle'
+export { type TLHandlesComponent } from './lib/components/default-components/DefaultHandles'
+export { type TLScribbleComponent } from './lib/components/default-components/DefaultScribble'
+export { type TLSelectionBackgroundComponent } from './lib/components/default-components/DefaultSelectionBackground'
+export { type TLSelectionForegroundComponent } from './lib/components/default-components/DefaultSelectionForeground'
+export { type TLSnapLineComponent } from './lib/components/default-components/DefaultSnapLine'
+export { type TLSpinnerComponent } from './lib/components/default-components/DefaultSpinner'
+export { type TLSvgDefsComponent } from './lib/components/default-components/DefaultSvgDefs'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,

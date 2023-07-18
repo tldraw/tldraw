@@ -1534,6 +1534,9 @@ export type TLAnimationOptions = Partial<{
 export type TLAnyShapeUtilConstructor = TLShapeUtilConstructor<any>;
 
 // @public (undocumented)
+export type TLBackgroundComponent = ComponentType;
+
+// @public (undocumented)
 export type TLBaseBoxShape = TLBaseShape<string, {
     w: number;
     h: number;
@@ -1550,6 +1553,14 @@ export interface TLBaseEventInfo {
     // (undocumented)
     type: UiEventType;
 }
+
+// @public (undocumented)
+export type TLBrushComponent = ComponentType<{
+    brush: Box2dModel;
+    color?: string;
+    opacity?: number;
+    className?: string;
+}>;
 
 // @public (undocumented)
 export type TLCancelEvent = (info: TLCancelEventInfo) => void;
@@ -1575,6 +1586,16 @@ export type TLClickEventInfo = TLBaseEventInfo & {
 
 // @public (undocumented)
 export type TLCLickEventName = 'double_click' | 'quadruple_click' | 'triple_click';
+
+// @public (undocumented)
+export type TLCollaboratorHintComponent = ComponentType<{
+    className?: string;
+    point: Vec2dModel;
+    viewport: Box2d;
+    zoom: number;
+    opacity?: number;
+    color: string;
+}>;
 
 // @public (undocumented)
 export type TLCommand<Name extends string = any, Data = any> = {
@@ -1613,6 +1634,16 @@ export interface TLContent {
     // (undocumented)
     shapes: TLShape[];
 }
+
+// @public (undocumented)
+export type TLCursorComponent = ComponentType<{
+    className?: string;
+    point: null | Vec2dModel;
+    zoom: number;
+    color?: string;
+    name: null | string;
+    chatMessage: string;
+}>;
 
 // @public (undocumented)
 export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
@@ -1798,6 +1829,27 @@ export type TLExternalContent = {
 };
 
 // @public (undocumented)
+export type TLGridComponent = ComponentType<{
+    x: number;
+    y: number;
+    z: number;
+    size: number;
+}>;
+
+// @public (undocumented)
+export type TLHandleComponent = ComponentType<{
+    shapeId: TLShapeId;
+    handle: TLHandle;
+    className?: string;
+}>;
+
+// @public (undocumented)
+export type TLHandlesComponent = ComponentType<{
+    className?: string;
+    children: any;
+}>;
+
+// @public (undocumented)
 export type TLHistoryEntry = TLCommand | TLHistoryMark;
 
 // @public (undocumented)
@@ -1970,6 +2022,21 @@ export type TLRotationSnapshot = {
 };
 
 // @public (undocumented)
+export type TLScribbleComponent = ComponentType<{
+    scribble: TLScribble;
+    zoom: number;
+    color?: string;
+    opacity?: number;
+    className?: string;
+}>;
+
+// @public (undocumented)
+export type TLSelectionBackgroundComponent = React_3.ComponentType<object>;
+
+// @public (undocumented)
+export type TLSelectionForegroundComponent = ComponentType<object>;
+
+// @public (undocumented)
 export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;
 
 // @public
@@ -2002,6 +2069,14 @@ export interface TLSessionStateSnapshot {
 }
 
 // @public (undocumented)
+export type TLShapeIndicatorComponent = React_3.ComponentType<{
+    id: TLShapeId;
+    color?: string | undefined;
+    opacity?: number;
+    className?: string;
+}>;
+
+// @public (undocumented)
 export interface TLShapeUtilCanvasSvgDef {
     // (undocumented)
     component: React.ComponentType;
@@ -2023,6 +2098,16 @@ export interface TLShapeUtilConstructor<T extends TLUnknownShape, U extends Shap
 
 // @public (undocumented)
 export type TLShapeUtilFlag<T> = (shape: T) => boolean;
+
+// @public (undocumented)
+export type TLSnapLineComponent = React_3.ComponentType<{
+    className?: string;
+    line: SnapLine;
+    zoom: number;
+}>;
+
+// @public (undocumented)
+export type TLSpinnerComponent = ComponentType<object>;
 
 // @public (undocumented)
 export interface TLStateNodeConstructor {
@@ -2072,6 +2157,9 @@ export type TLStoreWithStatus = {
     readonly store: TLStore;
     readonly error?: undefined;
 };
+
+// @public (undocumented)
+export type TLSvgDefsComponent = React.ComponentType;
 
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;

@@ -2,6 +2,7 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { ComponentType } from 'react'
 
+/** @public */
 export type TLHandleComponent = ComponentType<{
 	shapeId: TLShapeId
 	handle: TLHandle
