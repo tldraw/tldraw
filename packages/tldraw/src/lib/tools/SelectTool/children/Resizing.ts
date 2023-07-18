@@ -103,7 +103,7 @@ export class Resizing extends StateNode {
 		this.handleResizeEnd()
 
 		if (this.editAfterComplete && this.editor.onlySelectedShape) {
-			this.editor.editingId = this.editor.onlySelectedShape.id
+			this.editor.setEditingId(this.editor.onlySelectedShape.id)
 			this.editor.setCurrentTool('select')
 			this.editor.root.current.value!.transition('editing_shape', {})
 			return

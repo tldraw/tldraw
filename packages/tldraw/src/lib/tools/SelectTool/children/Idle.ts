@@ -381,7 +381,7 @@ export class Idle extends StateNode {
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.editor.mark('editing shape')
-		this.editor.editingId = shape.id
+		this.editor.setEditingId(shape.id)
 		this.parent.transition('editing_shape', info)
 	}
 
@@ -421,7 +421,7 @@ export class Idle extends StateNode {
 			},
 		])
 
-		this.editor.editingId = id
+		this.editor.setEditingId(id)
 		this.editor.select(id)
 		this.parent.transition('editing_shape', info)
 	}

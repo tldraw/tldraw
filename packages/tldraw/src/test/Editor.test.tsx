@@ -68,25 +68,25 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's editingId", () => {
 		test('[root shape]', () => {
-			editor.editingId = ids.box1
+			editor.setEditingId(ids.box1)
 			expect(editor.editingId).toBe(ids.box1)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(null)
 		})
 		test('[child of frame]', () => {
-			editor.editingId = ids.box2
+			editor.setEditingId(ids.box2)
 			expect(editor.editingId).toBe(ids.box2)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(null)
 		})
 		test('[child of group]', () => {
-			editor.editingId = ids.box3
+			editor.setEditingId(ids.box3)
 			expect(editor.editingId).toBe(ids.box3)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(null)
 		})
 		test('[frame that doesnt move]', () => {
-			editor.editingId = ids.frame1
+			editor.setEditingId(ids.frame1)
 			expect(editor.editingId).toBe(ids.frame1)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(ids.frame1)

@@ -1689,7 +1689,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	get editingId() {
 		return this.currentPageState.editingId
 	}
-	set editingId(id) {
+	setEditingId(id: TLShapeId | null) {
 		if (!id) {
 			this.updateCurrentPageState({ editingId: null })
 		} else {

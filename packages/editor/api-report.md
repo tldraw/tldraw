@@ -421,7 +421,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicatePage(id?: TLPageId, createId?: TLPageId): this;
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
-    set editingId(id: null | TLShapeId);
     get erasingIds(): TLShapeId[];
     set erasingIds(ids: TLShapeId[]);
     get erasingIdsSet(): Set<TLShapeId>;
@@ -634,6 +633,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCamera(x: number, y: number, z?: number, { stopFollowing }?: TLViewportOptions): this;
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
     setCurrentTool(id: string, info?: {}): this;
+    // (undocumented)
+    setEditingId(id: null | TLShapeId): void;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;

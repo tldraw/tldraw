@@ -34,7 +34,7 @@ export class EditingShape extends StateNode {
 		if (!editingId) return
 
 		// Clear the editing shape
-		this.editor.editingId = null
+		this.editor.setEditingId(null)
 
 		const shape = this.editor.getShapeById(editingId)!
 		const util = this.editor.getShapeUtil(shape)
@@ -70,7 +70,7 @@ export class EditingShape extends StateNode {
 							util.canEdit?.(shape) &&
 							!this.editor.isShapeOrAncestorLocked(shape)
 						) {
-							this.editor.editingId = shape.id
+							this.editor.setEditingId(shape.id)
 							this.editor.hoveredId = shape.id
 							this.editor.setSelectedIds([shape.id])
 							return
