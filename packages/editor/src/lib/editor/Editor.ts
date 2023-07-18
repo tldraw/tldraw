@@ -1124,7 +1124,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* ----------------- Internal State ----------------- */
 
 	_editorState = atom<TLEditorState>('interal_state', {
-		canMoveCamera: false,
+		canMoveCamera: true,
 		isFocused: false,
 		devicePixelRatio: typeof window === 'undefined' ? 1 : window.devicePixelRatio,
 		isCoarsePointer: false,

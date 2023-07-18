@@ -14,7 +14,7 @@ export function useCoarsePointer() {
 		if (window.matchMedia) {
 			const mql = window.matchMedia('(pointer: coarse)')
 			const handler = () => {
-				editor.updateEditorState({ isCoarsePointer: mql.matches })
+				editor.updateEditorState({ isCoarsePointer: !!mql.matches })
 			}
 			handler()
 			if (mql) {

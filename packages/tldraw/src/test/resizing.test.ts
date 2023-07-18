@@ -3842,8 +3842,7 @@ describe('Resizing text from the right edge', () => {
 
 		const bounds = editor.getBoundsById(id)!
 
-		// @ts-expect-error
-		editor._isCoarsePointer.set(false)
+		editor.updateEditorState({ isCoarsePointer: false })
 
 		// Resize from the right edge
 		editor.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
@@ -3860,8 +3859,7 @@ describe('Resizing text from the right edge', () => {
 	})
 
 	it('Resizes text from the right edge when pointer is coarse', () => {
-		// @ts-expect-error
-		editor._isCoarsePointer.set(true)
+		editor.updateEditorState({ isCoarsePointer: true })
 
 		const id = createShapeId()
 		editor.createShapes([{ id, type: 'text', props: { text: 'H' } }])
