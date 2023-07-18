@@ -422,7 +422,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     get erasingIds(): TLShapeId[];
-    set erasingIds(ids: TLShapeId[]);
     get erasingIdsSet(): Set<TLShapeId>;
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -635,6 +634,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentTool(id: string, info?: {}): this;
     // (undocumented)
     setEditingId(id: null | TLShapeId): void;
+    // (undocumented)
+    setErasingIds(ids: TLShapeId[]): void;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
@@ -667,7 +668,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     undo(): HistoryManager<this>;
     ungroupShapes(ids?: TLShapeId[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
+    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingId' | 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;

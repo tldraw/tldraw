@@ -321,7 +321,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.ensureStoreIsUsable()
 
 		// clear ephemeral state
-		this.updateCurrentPageState(
+		this._setInstancePageState(
 			{
 				editingId: null,
 				hoveredId: null,
@@ -1320,7 +1320,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateCurrentPageState(
-		partial: Partial<Omit<TLInstancePageState, 'selectedIds' | 'pageId' | 'focusLayerId'>>,
+		partial: Partial<
+			Omit<TLInstancePageState, 'selectedIds' | 'editingId' | 'pageId' | 'focusLayerId'>
+		>,
 		ephemeral = false
 	): this {
 		this._setInstancePageState(partial, ephemeral)
@@ -1691,13 +1693,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	setEditingId(id: TLShapeId | null) {
 		if (!id) {
-			this.updateCurrentPageState({ editingId: null })
+			this._setInstancePageState({ editingId: null })
 		} else {
 			if (id !== this.editingId) {
 				const shape = this.getShapeById(id)!
 				const util = this.getShapeUtil(shape)
 				if (shape && util.canEdit(shape)) {
-					this.updateCurrentPageState({ editingId: id, hoveredId: null }, false)
+					this._setInstancePageState({ editingId: id, hoveredId: null }, false)
 				}
 			}
 		}
@@ -1742,10 +1744,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get erasingIds() {
 		return this.currentPageState.erasingIds
 	}
-	set erasingIds(ids: TLShapeId[]) {
+
+	setErasingIds(ids: TLShapeId[]) {
 		const erasingIds = this.erasingIdsSet
 		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return
-		this.updateCurrentPageState({ erasingIds: ids }, true)
+		this._setInstancePageState({ erasingIds: ids }, true)
 	}
 
 	/**
