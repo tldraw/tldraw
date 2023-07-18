@@ -562,8 +562,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     interrupt(): this;
     isAncestorSelected(id: TLShapeId): boolean;
     readonly isAndroid: boolean;
-    get isChangingStyle(): boolean;
-    set isChangingStyle(v: boolean);
     readonly isChromeForIos: boolean;
     get isDarkMode(): boolean;
     set isDarkMode(isDarkMode: boolean);

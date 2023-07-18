@@ -56,7 +56,7 @@ export const TldrawSelectionForeground = track(function SelectionFg() {
 
 	const zoom = editor.zoomLevel
 	const rotation = editor.selectionRotation
-	const isChangingStyles = editor.isChangingStyle
+	const isChangingStyle = editor.editorState.isChangingStyle
 
 	const width = Math.max(1, bounds.width)
 	const height = Math.max(1, bounds.height)
@@ -78,7 +78,7 @@ export const TldrawSelectionForeground = track(function SelectionFg() {
 
 	const showSelectionBounds =
 		(onlyShape ? !editor.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
-		!isChangingStyles
+		!isChangingStyle
 
 	let shouldDisplayBox =
 		(showSelectionBounds &&
@@ -115,7 +115,7 @@ export const TldrawSelectionForeground = track(function SelectionFg() {
 			'select.crop.idle',
 			'select.crop.pointing_crop'
 		) &&
-		!isChangingStyles &&
+		!isChangingStyle &&
 		!isReadonlyMode
 
 	const shouldDisplayControls =
@@ -125,7 +125,7 @@ export const TldrawSelectionForeground = track(function SelectionFg() {
 			'select.pointing_shape',
 			'select.crop.idle'
 		) &&
-		!isChangingStyles &&
+		!isChangingStyle &&
 		!isReadonlyMode
 
 	const showCornerRotateHandles =

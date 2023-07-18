@@ -57,7 +57,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
-			editor.isChangingStyle = false
+			editor.updateEditorState({ isChangingStyle: false })
 		}
 	}, [editor, isMobile])
 
@@ -96,7 +96,7 @@ function useStyleChangeCallback() {
 	return React.useMemo(() => {
 		return function <T>(style: StyleProp<T>, value: T, squashing: boolean) {
 			editor.setStyle(style, value, squashing)
-			editor.isChangingStyle = true
+			editor.updateEditorState({ isChangingStyle: true })
 		}
 	}, [editor])
 }
@@ -119,7 +119,7 @@ function CommonStylePickerSet({
 		(value: number, ephemeral: boolean) => {
 			const item = tldrawSupportedOpacities[value]
 			editor.setOpacity(item, ephemeral)
-			editor.isChangingStyle = true
+			editor.updateEditorState({ isChangingStyle: true })
 		},
 		[editor]
 	)

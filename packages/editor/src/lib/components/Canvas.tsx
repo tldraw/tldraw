@@ -189,7 +189,7 @@ const HandlesWrapper = track(function HandlesWrapper() {
 	const editor = useEditor()
 
 	const zoom = editor.zoomLevel
-	const isChangingStyle = editor.isChangingStyle
+	const isChangingStyle = editor.editorState.isChangingStyle
 
 	const onlySelectedShape = editor.onlySelectedShape
 
@@ -290,7 +290,7 @@ const SelectedIdIndicators = track(function SelectedIdIndicators() {
 			'select.pointing_shape',
 			'select.pointing_selection',
 			'select.pointing_handle'
-		) && !editor.isChangingStyle
+		) && !editor.editorState.isChangingStyle
 
 	if (!shouldDisplay) return null
 

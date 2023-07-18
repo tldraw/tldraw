@@ -1155,6 +1155,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this._editorState.set(next)
+
+		// Handle changes to isChangingStyle
+		if (editorState.isChangingStyle !== undefined) {
+			clearTimeout(this._isChangingStyleTimeout)
+			if (editorState.isChangingStyle === true) {
+				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
+				this._isChangingStyleTimeout = setTimeout(() => {
+					this.updateEditorState({ isChangingStyle: false })
+				}, 2000)
+			}
+		}
+
+		// Handle changes to isFocused
 		if (editorState.isFocused === true) {
 			this.getContainer().focus()
 		} else if (editorState.isFocused === false) {
@@ -1163,6 +1176,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		return this
 	}
+
+	/** @internal */
+	private _isChangingStyleTimeout = -1 as any
 
 	focus = () => this.updateEditorState({ isFocused: true })
 	blur = () => this.updateEditorState({ isFocused: false })
@@ -1235,35 +1251,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get isMenuOpen(): boolean {
 		return this.openMenus.length > 0
 	}
-
-	// Changing style
-
-	/**
-	 * Whether the user is currently changing the style of a shape. This may cause the UI to change.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.isChangingStyle = true
-	 * ```
-	 *
-	 * @public
-	 */
-	get isChangingStyle(): boolean {
-		return this._isChangingStyle.value
-	}
-	set isChangingStyle(v) {
-		this._isChangingStyle.set(v)
-		// Clear any reset timeout
-		clearTimeout(this._isChangingStyleTimeout)
-		if (v) {
-			// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
-			this._isChangingStyleTimeout = setTimeout(() => (this.isChangingStyle = false), 2000)
-		}
-	}
-	/** @internal */
-	private _isChangingStyle = atom<boolean>('isChangingStyle', false as any)
-	/** @internal */
-	private _isChangingStyleTimeout = -1 as any
 
 	/* ---------------- Document Settings --------------- */
 

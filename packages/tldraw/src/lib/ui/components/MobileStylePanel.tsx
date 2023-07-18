@@ -31,7 +31,7 @@ export function MobileStylePanel() {
 	const handleStylesOpenChange = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
-				editor.isChangingStyle = false
+				editor.updateEditorState({ isChangingStyle: false })
 			}
 		},
 		[editor]
