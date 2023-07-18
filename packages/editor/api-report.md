@@ -637,7 +637,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
-    setPageState(partial: Partial<Omit<TLInstancePageState, 'selectedIds'>>, ephemeral?: boolean): void;
+    setPageState(partial: Partial<Omit<TLInstancePageState, 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
     get shapesArray(): TLShape[];
@@ -682,8 +682,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get viewportScreenBounds(): Box2d;
     get viewportScreenCenter(): Vec2d;
     visitDescendants(parentId: TLParentId, visitor: (id: TLShapeId) => false | void): void;
-    get zoomBrush(): Box2dModel | null;
-    set zoomBrush(zoomBrush: Box2dModel | null);
     zoomIn(point?: Vec2d, opts?: TLAnimationOptions): this;
     get zoomLevel(): number;
     zoomOut(point?: Vec2d, opts?: TLAnimationOptions): this;

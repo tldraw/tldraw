@@ -1,7 +1,6 @@
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
-	Box2dModel,
 	CameraRecordType,
 	EmbedDefinition,
 	InstancePageStateRecordType,
@@ -289,13 +288,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 			if (record.typeName === 'page') {
 				const cameraId = CameraRecordType.createId(record.id)
-				const pageStateId = InstancePageStateRecordType.createId(record.id)
+				const _pageStateId = InstancePageStateRecordType.createId(record.id)
 				if (!this.store.has(cameraId)) {
 					this.store.put([CameraRecordType.create({ id: cameraId })])
 				}
-				if (!this.store.has(pageStateId)) {
+				if (!this.store.has(_pageStateId)) {
 					this.store.put([
-						InstancePageStateRecordType.create({ id: pageStateId, pageId: record.id }),
+						InstancePageStateRecordType.create({ id: _pageStateId, pageId: record.id }),
 					])
 				}
 			}
@@ -916,8 +915,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// delete the camera and state for the page if necessary
 		const cameraId = CameraRecordType.createId(page.id)
-		const instancePageStateId = InstancePageStateRecordType.createId(page.id)
-		this.store.remove([cameraId, instancePageStateId])
+		const instance_PageStateId = InstancePageStateRecordType.createId(page.id)
+		this.store.remove([cameraId, instance_PageStateId])
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -1289,19 +1288,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	)
 
-	/**
-	 * The instance's zoom brush state.
-	 *
-	 * @public
-	 **/
-	@computed get zoomBrush() {
-		return this.instanceState.zoomBrush
-	}
-	set zoomBrush(zoomBrush: Box2dModel | null) {
-		if (!zoomBrush && !this.zoomBrush) return
-		this.updateInstanceState({ zoomBrush }, true)
-	}
-
 	/* ------------------- Page State ------------------- */
 
 	/** @internal */
@@ -1310,31 +1296,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get a page state by its id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getPageStateByPageId('page1')
-	 * ```
-	 *
-	 * @public
-	 */
-	getPageStateByPageId(id: TLPageId) {
-		return this._pageStates.value.find((p) => p.pageId === id)
-	}
-
-	/** @internal */
-	@computed private get pageStateId() {
-		return InstancePageStateRecordType.createId(this.currentPageId)
-	}
-
-	/**
 	 * The current page state.
 	 *
 	 * @public
 	 */
 	@computed get pageState(): TLInstancePageState {
-		return this.store.get(this.pageStateId)!
+		return this.store.get(this._pageStateId)!
+	}
+	/** @internal */
+	@computed private get _pageStateId() {
+		return InstancePageStateRecordType.createId(this.currentPageId)
 	}
 
 	/**
@@ -1351,8 +1322,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setPageState(partial: Partial<Omit<TLInstancePageState, 'selectedIds'>>, ephemeral = false) {
+	setPageState(
+		partial: Partial<Omit<TLInstancePageState, 'selectedIds' | 'pageId' | 'focusLayerId'>>,
+		ephemeral = false
+	): this {
 		this._setInstancePageState(partial, ephemeral)
+		return this
+	}
+
+	/**
+	 * Get a page state by its id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPageStateByPageId('page1')
+	 * ```
+	 *
+	 * @public
+	 */
+	getPageStateByPageId(id: TLPageId) {
+		return this._pageStates.value.find((p) => p.pageId === id)
 	}
 
 	/** @internal */
