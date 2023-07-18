@@ -312,6 +312,7 @@ test.describe('Context menu', async () => {
 	test.beforeEach(async ({ browser }) => {
 		page = await browser.newPage()
 		await setupPage(page)
+		await setupPageWithShapes(page)
 	})
 
 	test('distribute horizontal', async () => {
@@ -340,7 +341,7 @@ test.describe('Context menu', async () => {
 })
 
 test.describe('Delete bug', () => {
-	test.beforeAll(async ({ browser }) => {
+	test.beforeEach(async ({ browser }) => {
 		page = await browser.newPage()
 		await setupPage(page)
 	})
@@ -357,8 +358,8 @@ test.describe('Delete bug', () => {
 
 	test('delete bug with drag', async () => {
 		await page.keyboard.press('r')
-		await page.mouse.move(100, 100)
 		await page.mouse.down()
+		await page.mouse.move(100, 100)
 		await page.mouse.up()
 		await page.keyboard.press('Backspace')
 		expect(await page.evaluate(() => __tldraw_ui_event)).toMatchObject({
