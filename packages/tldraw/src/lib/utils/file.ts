@@ -318,5 +318,5 @@ export async function parseAndLoadDocument(
 		}
 	})
 
-	if (forceDarkMode) editor.isDarkMode = true
+	if (forceDarkMode) editor.user.updateUserPreferences({ isDarkMode: true })
 }

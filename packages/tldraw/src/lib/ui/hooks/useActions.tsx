@@ -800,7 +800,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
-					editor.isSnapMode = !editor.isSnapMode
+					editor.user.updateUserPreferences({ isSnapMode: !editor.user.isSnapMode })
 				},
 				checkbox: true,
 			},
@@ -812,7 +812,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-dark-mode', { source })
-					editor.isDarkMode = !editor.isDarkMode
+					editor.user.updateUserPreferences({ isDarkMode: !editor.user.isDarkMode })
 				},
 				checkbox: true,
 			},
@@ -823,7 +823,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-reduce-motion', { source })
-					editor.animationSpeed = editor.animationSpeed === 0 ? 1 : 0
+					editor.user.updateUserPreferences({
+						animationSpeed: editor.user.animationSpeed === 0 ? 1 : 0,
+					})
 				},
 				checkbox: true,
 			},

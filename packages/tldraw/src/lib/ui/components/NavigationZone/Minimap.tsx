@@ -40,7 +40,7 @@ export const Minimap = track(function Minimap({
 		[editor]
 	)
 
-	const isDarkMode = editor.isDarkMode
+	const isDarkMode = editor.user.isDarkMode
 
 	React.useEffect(() => {
 		// Must check after render

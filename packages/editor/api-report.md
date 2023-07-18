@@ -354,8 +354,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
     animateToUser(userId: string): void;
-    get animationSpeed(): number;
-    set animationSpeed(animationSpeed: number);
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         origin: string;
@@ -563,8 +561,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     isAncestorSelected(id: TLShapeId): boolean;
     readonly isAndroid: boolean;
     readonly isChromeForIos: boolean;
-    get isDarkMode(): boolean;
-    set isDarkMode(isDarkMode: boolean);
     readonly isFirefox: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
@@ -576,12 +572,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
-    get isSnapMode(): boolean;
-    set isSnapMode(isSnapMode: boolean);
     get isToolLocked(): boolean;
     set isToolLocked(isToolLocked: boolean);
-    get locale(): string;
-    set locale(locale: string);
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;

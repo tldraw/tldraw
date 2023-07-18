@@ -1281,62 +1281,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.updateDocumentSettings({ name })
 	}
 
-	/* ---------------------- User ---------------------- */
-
-	/**
-	 * The user's locale.
-	 *
-	 * @public
-	 */
-	@computed get locale() {
-		return this.user.locale
-	}
-	set locale(locale: string) {
-		this.user.updateUserPreferences({ locale })
-	}
-
-	/**
-	 * Whether the user has "always snap" mode enabled.
-	 *
-	 * @public
-	 **/
-	@computed get isSnapMode() {
-		return this.user.isSnapMode
-	}
-	set isSnapMode(isSnapMode: boolean) {
-		if (isSnapMode !== this.isSnapMode) {
-			this.user.updateUserPreferences({ isSnapMode })
-		}
-	}
-
-	/**
-	 * Whether the user has dark mode enabled.
-	 *
-	 * @public
-	 **/
-	@computed get isDarkMode() {
-		return this.user.isDarkMode
-	}
-	set isDarkMode(isDarkMode: boolean) {
-		if (isDarkMode !== this.isDarkMode) {
-			this.user.updateUserPreferences({ isDarkMode })
-		}
-	}
-
-	/**
-	 * The user's chosen animation speed. 0 is disabled, 1 is full speed.
-	 *
-	 * @public
-	 */
-	@computed get animationSpeed() {
-		return this.user.animationSpeed
-	}
-	set animationSpeed(animationSpeed: number) {
-		if (animationSpeed !== this.animationSpeed) {
-			this.user.updateUserPreferences({ animationSpeed })
-		}
-	}
-
 	/* ----------------- Instance State ----------------- */
 
 	/**
@@ -2612,7 +2556,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _animateToViewport(targetViewportPage: Box2d, opts = {} as TLAnimationOptions) {
 		const { duration = 0, easing = EASINGS.easeInOutCubic } = opts
-		const { animationSpeed, viewportPageBounds } = this
+		const {
+			user: { animationSpeed },
+			viewportPageBounds,
+		} = this
 
 		// If we have an existing animation, then stop it; also stop following any user
 		this.stopCameraAnimation()
@@ -2662,7 +2609,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.stopCameraAnimation()
 
-		const { animationSpeed } = this
+		const { animationSpeed } = this.user
 
 		if (animationSpeed === 0) return
 
@@ -8019,7 +7966,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} = opts
 
 		// todo: we shouldn't depend on the public theme here
-		const theme = getDefaultColorTheme(this)
+		const theme = getDefaultColorTheme({ isDarkMode: this.user.isDarkMode })
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
