@@ -309,7 +309,7 @@ test.describe('Keyboard Shortcuts', () => {
 })
 
 test.describe('Context menu', async () => {
-	test.beforeAll(async ({ browser }) => {
+	test.beforeEach(async ({ browser }) => {
 		page = await browser.newPage()
 		await setupPage(page)
 	})
