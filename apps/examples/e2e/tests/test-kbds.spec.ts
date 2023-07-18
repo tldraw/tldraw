@@ -312,6 +312,7 @@ test.describe('Context menu', async () => {
 	test.beforeEach(async ({ browser }) => {
 		page = await browser.newPage()
 		await setupPage(page)
+		await setupPageWithShapes(page)
 	})
 
 	test('distribute horizontal', async () => {
@@ -340,7 +341,7 @@ test.describe('Context menu', async () => {
 })
 
 test.describe('Delete bug', () => {
-	test.beforeAll(async ({ browser }) => {
+	test.beforeEach(async ({ browser }) => {
 		page = await browser.newPage()
 		await setupPage(page)
 	})
