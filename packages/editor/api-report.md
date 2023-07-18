@@ -365,7 +365,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     bailToMark(id: string): this;
     batch(fn: () => void): this;
     // (undocumented)
-    blur: () => this;
+    blur: () => void;
     bringForward(ids?: TLShapeId[]): this;
     bringToFront(ids?: TLShapeId[]): this;
     get camera(): TLCamera;
@@ -443,7 +443,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
     // (undocumented)
-    focus: () => this;
+    focus: () => void;
     get focusLayerId(): TLPageId | TLShapeId;
     set focusLayerId(next: TLPageId | TLShapeId);
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;

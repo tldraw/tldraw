@@ -306,16 +306,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const container = this.getContainer()
 
-		container.addEventListener('focusin', this.focus)
-		container.addEventListener('focus', this.focus)
-		container.addEventListener('focusout', this.blur)
-		container.addEventListener('blur', this.blur)
+		const handleFocus = () => this.updateInstanceState({ isFocused: true })
+		const handleBlur = () => this.updateInstanceState({ isFocused: false })
+
+		container.addEventListener('focusin', handleFocus)
+		container.addEventListener('focus', handleFocus)
+		container.addEventListener('focusout', handleBlur)
+		container.addEventListener('blur', handleBlur)
 
 		this.disposables.add(() => {
-			container.removeEventListener('focusin', this.focus)
-			container.removeEventListener('focus', this.focus)
-			container.removeEventListener('focusout', this.blur)
-			container.removeEventListener('blur', this.blur)
+			container.removeEventListener('focusin', handleFocus)
+			container.removeEventListener('focus', handleFocus)
+			container.removeEventListener('focusout', handleBlur)
+			container.removeEventListener('blur', handleBlur)
 		})
 
 		this.store.ensureStoreIsUsable()
@@ -1166,13 +1169,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		// Handle changes to isFocused
-		if (partial.isFocused === true) {
-			this.getContainer().focus()
-		} else if (partial.isFocused === false) {
-			this.getContainer().blur()
-		}
-
 		return this
 	}
 
@@ -1205,8 +1201,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _isChangingStyleTimeout = -1 as any
 
-	focus = () => this.updateInstanceState({ isFocused: true })
-	blur = () => this.updateInstanceState({ isFocused: false })
+	focus = () => {
+		this.getContainer().focus()
+	}
+
+	blur = () => {
+		this.getContainer().focus()
+	}
 
 	// Menus
 
