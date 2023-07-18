@@ -186,11 +186,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
 
-		// console.log(
-		// 	'after checking shapes',
-		// 	[...allShapeUtils].map((u) => u.type)
-		// )
-
 		const shapeTypesInSchema = new Set(
 			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
 		)
@@ -457,6 +452,42 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.disposables.clear()
 	}
 
+	/* ------------------- Shape Utils ------------------ */
+
+	/**
+	 * A map of shape utility classes (TLShapeUtils) by shape type.
+	 *
+	 * @public
+	 */
+	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
+
+	styleProps: { [key: string]: Map<StyleProp<unknown>, string> }
+
+	/**
+	 * Get a shape util from a shape itself.
+	 *
+	 * @example
+	 * ```ts
+	 * const util = editor.getShapeUtil(myArrowShape)
+	 * const util = editor.getShapeUtil('arrow')
+	 * const util = editor.getShapeUtil<TLArrowShape>(myArrowShape)
+	 * const util = editor.getShapeUtil(TLArrowShape)('arrow')
+	 * ```
+	 *
+	 * @param shape - A shape, shape partial, or shape type.
+	 *
+	 * @public
+	 */
+	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
+	getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>
+	getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T
+	getShapeUtil(arg: string | { type: string }) {
+		const type = typeof arg === 'string' ? arg : arg.type
+		const shapeUtil = getOwnProperty(this.shapeUtils, type)
+		assert(shapeUtil, `No shape util found for type "${type}"`)
+		return shapeUtil
+	}
+
 	/* --------------------- History -------------------- */
 
 	/**
@@ -592,41 +623,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/* ------------------- Shape Utils ------------------ */
-
-	/**
-	 * A map of shape utility classes (TLShapeUtils) by shape type.
-	 *
-	 * @public
-	 */
-	shapeUtils: { readonly [K in string]?: ShapeUtil<TLUnknownShape> }
-
-	styleProps: { [key: string]: Map<StyleProp<unknown>, string> }
-
-	/**
-	 * Get a shape util from a shape itself.
-	 *
-	 * @example
-	 * ```ts
-	 * const util = editor.getShapeUtil(myArrowShape)
-	 * const util = editor.getShapeUtil('arrow')
-	 * const util = editor.getShapeUtil<TLArrowShape>(myArrowShape)
-	 * const util = editor.getShapeUtil(TLArrowShape)('arrow')
-	 * ```
-	 *
-	 * @param shape - A shape, shape partial, or shape type.
-	 *
-	 * @public
-	 */
-	getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>
-	getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>
-	getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T
-	getShapeUtil(arg: string | { type: string }) {
-		const type = typeof arg === 'string' ? arg : arg.type
-		const shapeUtil = getOwnProperty(this.shapeUtils, type)
-		assert(shapeUtil, `No shape util found for type "${type}"`)
-		return shapeUtil
-	}
+	/* --------------------- Arrows --------------------- */
+	// todo: move these to tldraw or replace with a bindings API
 
 	/** @internal */
 	@computed
@@ -1110,83 +1108,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return state
 	}
 
-	/* ----------------- Internal State ----------------- */
-
-	/** @internal */
-	private _isChangingStyleTimeout = -1 as any
-
-	focus = () => this.updateInstanceState({ isFocused: true })
-	blur = () => this.updateInstanceState({ isFocused: false })
-
-	// Menus
-
-	/**
-	 * A set of strings representing any open menus. When menus are open,
-	 * certain interactions will behave differently; for example, when a
-	 * draw tool is selected and a menu is open, a pointer-down will not
-	 * create a dot (because the user is probably trying to close the menu)
-	 * however a pointer-down event followed by a drag will begin drawing
-	 * a line (because the user is BOTH trying to close the menu AND start
-	 * drawing a line).
-	 *
-	 * @public
-	 */
-	@computed get openMenus(): string[] {
-		return this.instanceState.openMenus
-	}
-
-	/**
-	 * Add an open menu.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.addOpenMenu('menu-id')
-	 * ```
-	 *
-	 * @public
-	 */
-	addOpenMenu(id: string): this {
-		const menus = new Set(this.openMenus)
-		if (!menus.has(id)) {
-			menus.add(id)
-			this.updateInstanceState({ openMenus: [...menus] })
-		}
-		return this
-	}
-
-	/**
-	 * Delete an open menu.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.deleteOpenMenu('menu-id')
-	 * ```
-	 *
-	 * @public
-	 */
-	deleteOpenMenu(id: string): this {
-		const menus = new Set(this.openMenus)
-		if (menus.has(id)) {
-			menus.delete(id)
-			this.updateInstanceState({ openMenus: [...menus] })
-		}
-		return this
-	}
-
-	/**
-	 * Get whether any menus are open.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.isMenuOpen()
-	 * ```
-	 *
-	 * @public
-	 */
-	@computed get isMenuOpen(): boolean {
-		return this.openMenus.length > 0
-	}
-
 	/* ---------------- Document Settings --------------- */
 
 	/**
@@ -1280,6 +1201,81 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		}
 	)
+
+	/** @internal */
+	private _isChangingStyleTimeout = -1 as any
+
+	focus = () => this.updateInstanceState({ isFocused: true })
+	blur = () => this.updateInstanceState({ isFocused: false })
+
+	// Menus
+
+	/**
+	 * A set of strings representing any open menus. When menus are open,
+	 * certain interactions will behave differently; for example, when a
+	 * draw tool is selected and a menu is open, a pointer-down will not
+	 * create a dot (because the user is probably trying to close the menu)
+	 * however a pointer-down event followed by a drag will begin drawing
+	 * a line (because the user is BOTH trying to close the menu AND start
+	 * drawing a line).
+	 *
+	 * @public
+	 */
+	@computed get openMenus(): string[] {
+		return this.instanceState.openMenus
+	}
+
+	/**
+	 * Add an open menu.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.addOpenMenu('menu-id')
+	 * ```
+	 *
+	 * @public
+	 */
+	addOpenMenu(id: string): this {
+		const menus = new Set(this.openMenus)
+		if (!menus.has(id)) {
+			menus.add(id)
+			this.updateInstanceState({ openMenus: [...menus] })
+		}
+		return this
+	}
+
+	/**
+	 * Delete an open menu.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deleteOpenMenu('menu-id')
+	 * ```
+	 *
+	 * @public
+	 */
+	deleteOpenMenu(id: string): this {
+		const menus = new Set(this.openMenus)
+		if (menus.has(id)) {
+			menus.delete(id)
+			this.updateInstanceState({ openMenus: [...menus] })
+		}
+		return this
+	}
+
+	/**
+	 * Get whether any menus are open.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.isMenuOpen()
+	 * ```
+	 *
+	 * @public
+	 */
+	@computed get isMenuOpen(): boolean {
+		return this.openMenus.length > 0
+	}
 
 	/* ------------------- Page State ------------------- */
 
@@ -3530,7 +3526,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._createAssets(assets)
 		return this
 	}
-
 	/** @internal */
 	private _createAssets = this.history.createCommand(
 		'createAssets',
@@ -3552,44 +3547,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	)
 
 	/**
-	 * Delete one or more assets.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.deleteAssets(['asset1', 'asset2'])
-	 * ```
-	 *
-	 * @param ids - The assets to delete.
-	 *
-	 * @public
-	 */
-	deleteAssets(ids: TLAssetId[]) {
-		this._deleteAssets(ids)
-		return this
-	}
-
-	/** @internal */
-	private _deleteAssets = this.history.createCommand(
-		'deleteAssets',
-		(ids: TLAssetId[]) => {
-			if (this.instanceState.isReadOnly) return
-			if (ids.length <= 0) return
-
-			const prev = compact(ids.map((id) => this.store.get(id)))
-
-			return { data: { ids, prev } }
-		},
-		{
-			do: ({ ids }) => {
-				this.store.remove(ids)
-			},
-			undo: ({ prev }) => {
-				this.store.put(prev)
-			},
-		}
-	)
-
-	/**
 	 * Update one or more assets.
 	 *
 	 * @example
@@ -3605,7 +3562,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._updateAssets(assets)
 		return this
 	}
-
 	/** @internal */
 	private _updateAssets = this.history.createCommand(
 		'updateAssets',
@@ -3638,20 +3594,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 	)
 
 	/**
-	 * Get an asset by its src property.
+	 * Delete one or more assets.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.getAssetBySource('https://example.com/image.png')
+	 * editor.deleteAssets(['asset1', 'asset2'])
 	 * ```
 	 *
-	 * @param src - The source value of the asset.
+	 * @param ids - The assets to delete.
 	 *
 	 * @public
 	 */
-	getAssetBySrc(src: string) {
-		return this.assets.find((a) => a.props.src === src)
+	deleteAssets(ids: TLAssetId[]) {
+		this._deleteAssets(ids)
+		return this
 	}
+	/** @internal */
+	private _deleteAssets = this.history.createCommand(
+		'deleteAssets',
+		(ids: TLAssetId[]) => {
+			if (this.instanceState.isReadOnly) return
+			if (ids.length <= 0) return
+
+			const prev = compact(ids.map((id) => this.store.get(id)))
+
+			return { data: { ids, prev } }
+		},
+		{
+			do: ({ ids }) => {
+				this.store.remove(ids)
+			},
+			undo: ({ prev }) => {
+				this.store.put(prev)
+			},
+		}
+	)
 
 	/**
 	 * Get an asset by its id.

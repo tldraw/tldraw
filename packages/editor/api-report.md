@@ -458,7 +458,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         handleId: "end" | "start";
     }[];
     getAssetById(id: TLAssetId): TLAsset | undefined;
-    getAssetBySrc(src: string): TLBookmarkAsset | TLImageAsset | TLVideoAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent_2): Promise<TLAsset | undefined>;
     getBounds<T extends TLShape>(shape: T): Box2d;
     getBoundsById<T extends TLShape>(id: T['id']): Box2d | undefined;
