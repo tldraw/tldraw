@@ -1273,14 +1273,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/** @internal */
-	@computed get projectName() {
-		return this.documentSettings.name
-	}
-	set projectName(name: string) {
-		this.updateDocumentSettings({ name })
-	}
-
 	/* ----------------- Instance State ----------------- */
 
 	/**

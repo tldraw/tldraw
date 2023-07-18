@@ -590,9 +590,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     pan(dx: number, dy: number, opts?: TLAnimationOptions): this;
     panZoomIntoView(ids: TLShapeId[], opts?: TLAnimationOptions): this;
     popFocusLayer(): this;
-    // @internal (undocumented)
-    get projectName(): string;
-    set projectName(name: string);
     putContent(content: TLContent, options?: {
         point?: VecLike;
         select?: boolean;
