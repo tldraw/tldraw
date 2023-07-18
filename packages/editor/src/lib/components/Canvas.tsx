@@ -188,15 +188,14 @@ const MIN_HANDLE_DISTANCE = 48
 const HandlesWrapper = track(function HandlesWrapper() {
 	const editor = useEditor()
 
-	const zoom = editor.zoomLevel
-	const isChangingStyle = editor.editorState.isChangingStyle
-
-	const onlySelectedShape = editor.onlySelectedShape
+	const {
+		zoomLevel,
+		onlySelectedShape,
+		editorState: { isChangingStyle, isReadOnly },
+	} = editor
 
 	const shouldDisplayHandles =
-		editor.isInAny('select.idle', 'select.pointing_handle') &&
-		!isChangingStyle &&
-		!editor.editorState.isReadOnly
+		editor.isInAny('select.idle', 'select.pointing_handle') && !isChangingStyle && !isReadOnly
 
 	if (!(onlySelectedShape && shouldDisplayHandles)) return null
 
@@ -216,7 +215,7 @@ const HandlesWrapper = track(function HandlesWrapper() {
 			const prev = handles[i - 1]
 			const next = handles[i + 1]
 			if (prev && next) {
-				if (Math.hypot(prev.y - next.y, prev.x - next.x) < MIN_HANDLE_DISTANCE / zoom) {
+				if (Math.hypot(prev.y - next.y, prev.x - next.x) < MIN_HANDLE_DISTANCE / zoomLevel) {
 					continue
 				}
 			}
