@@ -8,7 +8,7 @@ import { useEditor } from './useEditor'
 
 const pointerEventHandler = (editor: Editor, shapeId: TLShapeId, name: TLPointerEventName) => {
 	return (e: React.PointerEvent) => {
-		if (name !== 'pointer_move' && editor.pageState.editingId === shapeId)
+		if (name !== 'pointer_move' && editor.currentPageState.editingId === shapeId)
 			(e as any).isKilled = true
 		if ((e as any).isKilled) return
 

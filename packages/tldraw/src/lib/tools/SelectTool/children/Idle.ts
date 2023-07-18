@@ -247,7 +247,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				const { selectedIds } = this.editor.pageState
+				const { selectedIds } = this.editor.currentPageState
 				const { shape } = info
 
 				const targetShape = this.editor.getOutermostSelectableShape(

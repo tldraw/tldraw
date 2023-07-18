@@ -326,7 +326,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.ensureStoreIsUsable()
 
 		// clear ephemeral state
-		this.setPageState(
+		this.updateCurrentPageState(
 			{
 				editingId: null,
 				hoveredId: null,
@@ -752,11 +752,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// 	return update ?? next
 	// }
 
-	@computed
-	private get _allPageStates() {
-		return this.store.query.records('instance_page_state')
-	}
-
 	/** @internal */
 	private _shapeWillBeDeleted(deletedShape: TLShape) {
 		// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
@@ -772,11 +767,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this._unbindArrowTerminal(arrow, handleId)
 			}
 		}
-		const pageStates = this._allPageStates.value
-
 		const deletedIds = new Set([deletedShape.id])
 		const updates = compact(
-			pageStates.map((pageState) => {
+			this.pageStates.map((pageState) => {
 				return this._cleanupInstancePageState(pageState, deletedIds)
 			})
 		)
@@ -857,7 +850,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				allMovingIds.add(id)
 			})
 
-			for (const instancePageState of this._allPageStates.value) {
+			for (const instancePageState of this.pageStates) {
 				if (instancePageState.pageId === next.parentId) continue
 				const nextPageState = this._cleanupInstancePageState(instancePageState, allMovingIds)
 
@@ -1290,6 +1283,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* ------------------- Page State ------------------- */
 
+	/**
+	 * Page states.
+	 *
+	 * @public
+	 */
+	@computed get pageStates(): TLInstancePageState[] {
+		return this._pageStates.value
+	}
 	/** @internal */
 	@computed private get _pageStates() {
 		return this.store.query.records('instance_page_state')
@@ -1300,21 +1301,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get pageState(): TLInstancePageState {
-		return this.store.get(this._pageStateId)!
+	@computed get currentPageState(): TLInstancePageState {
+		return this.store.get(this._currentPageStateId)!
 	}
 	/** @internal */
-	@computed private get _pageStateId() {
+	@computed private get _currentPageStateId() {
 		return InstancePageStateRecordType.createId(this.currentPageId)
 	}
 
 	/**
-	 * Update a page state.
+	 * Update this instance's page state.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setPageState({ id: 'page1', editingId: 'shape:123' })
-	 * editor.setPageState({ id: 'page1', editingId: 'shape:123' }, true)
+	 * editor.updateInstancePageState({ id: 'page1', editingId: 'shape:123' })
+	 * editor.updateInstancePageState({ id: 'page1', editingId: 'shape:123' }, true)
 	 * ```
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
@@ -1322,7 +1323,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setPageState(
+	updateCurrentPageState(
 		partial: Partial<Omit<TLInstancePageState, 'selectedIds' | 'pageId' | 'focusLayerId'>>,
 		ephemeral = false
 	): this {
@@ -1330,25 +1331,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/**
-	 * Get a page state by its id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getPageStateByPageId('page1')
-	 * ```
-	 *
-	 * @public
-	 */
-	getPageStateByPageId(id: TLPageId) {
-		return this._pageStates.value.find((p) => p.pageId === id)
-	}
-
 	/** @internal */
 	private _setInstancePageState = this.history.createCommand(
 		'setInstancePageState',
 		(partial: Partial<Omit<TLInstancePageState, 'selectedIds'>>, ephemeral = false) => {
-			const prev = this.store.get(partial.id ?? this.pageState.id)!
+			const prev = this.store.get(partial.id ?? this.currentPageState.id)!
 			return { data: { prev, partial }, ephemeral }
 		},
 		{
@@ -1367,7 +1354,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get selectedIds() {
-		return this.pageState.selectedIds
+		return this.currentPageState.selectedIds
 	}
 
 	/**
@@ -1394,7 +1381,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _setSelectedIds = this.history.createCommand(
 		'setSelectedIds',
 		(ids: TLShapeId[], squashing = false) => {
-			const prevSelectedIds = this.pageState.selectedIds
+			const prevSelectedIds = this.currentPageState.selectedIds
 			const prevSet = new Set(prevSelectedIds)
 
 			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
@@ -1403,10 +1390,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ ids }) => {
-				this.store.put([{ ...this.pageState, selectedIds: ids }])
+				this.store.put([{ ...this.currentPageState, selectedIds: ids }])
 			},
 			undo: ({ prevSelectedIds }) => {
-				this.store.put([{ ...this.pageState, selectedIds: prevSelectedIds }])
+				this.store.put([{ ...this.currentPageState, selectedIds: prevSelectedIds }])
 			},
 			squash(prev, next) {
 				return { ids: next.ids, prevSelectedIds: prev.prevSelectedIds }
@@ -1513,7 +1500,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 */
 	@computed get selectedShapes(): TLShape[] {
-		const { selectedIds } = this.pageState
+		const { selectedIds } = this.currentPageState
 		return compact(selectedIds.map((id) => this.store.get(id)))
 	}
 
@@ -1546,7 +1533,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed get selectedPageBounds(): Box2d | null {
 		const {
-			pageState: { selectedIds },
+			currentPageState: { selectedIds },
 		} = this
 
 		if (selectedIds.length === 0) return null
@@ -1635,7 +1622,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	get focusLayerId(): TLShapeId | TLPageId {
-		return this.pageState.focusLayerId ?? this.currentPageId
+		return this.currentPageState.focusLayerId ?? this.currentPageId
 	}
 	set focusLayerId(next) {
 		this._setFocusLayerId(next)
@@ -1649,7 +1636,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!next && !this.canUndo) {
 				return
 			}
-			const prev = this.pageState.focusLayerId
+			const prev = this.currentPageState.focusLayerId
 			return {
 				data: {
 					prev,
@@ -1661,10 +1648,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ next }) => {
-				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: next ?? null }))
+				this.store.update(this.currentPageState.id, (s) => ({ ...s, focusLayerId: next ?? null }))
 			},
 			undo: ({ prev }) => {
-				this.store.update(this.pageState.id, (s) => ({ ...s, focusLayerId: prev }))
+				this.store.update(this.currentPageState.id, (s) => ({ ...s, focusLayerId: prev }))
 			},
 			squash({ prev }, { next }) {
 				return { prev, next }
@@ -1678,7 +1665,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	popFocusLayer() {
-		const current = this.pageState.focusLayerId
+		const current = this.currentPageState.focusLayerId
 		const focusedShape = current && this.getShapeById(current)
 
 		if (focusedShape) {
@@ -1704,17 +1691,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	get editingId() {
-		return this.pageState.editingId
+		return this.currentPageState.editingId
 	}
 	set editingId(id) {
 		if (!id) {
-			this.setPageState({ editingId: null })
+			this.updateCurrentPageState({ editingId: null })
 		} else {
 			if (id !== this.editingId) {
 				const shape = this.getShapeById(id)!
 				const util = this.getShapeUtil(shape)
 				if (shape && util.canEdit(shape)) {
-					this.setPageState({ editingId: id, hoveredId: null }, false)
+					this.updateCurrentPageState({ editingId: id, hoveredId: null }, false)
 				}
 			}
 		}
@@ -1729,11 +1716,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get hoveredId() {
-		return this.pageState.hoveredId
+		return this.currentPageState.hoveredId
 	}
 	set hoveredId(id: TLShapeId | null) {
-		if (id === this.pageState.hoveredId) return
-		this.setPageState({ hoveredId: id }, true)
+		if (id === this.currentPageState.hoveredId) return
+		this.updateCurrentPageState({ hoveredId: id }, true)
 	}
 
 	// Hinting ids
@@ -1744,11 +1731,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get hintingIds() {
-		return this.pageState.hintingIds
+		return this.currentPageState.hintingIds
 	}
 	set hintingIds(ids: TLShapeId[]) {
 		// always ephemeral
-		this.store.update(this.pageState.id, (s) => ({ ...s, hintingIds: dedupe(ids) }))
+		this.store.update(this.currentPageState.id, (s) => ({ ...s, hintingIds: dedupe(ids) }))
 	}
 
 	/**
@@ -1757,12 +1744,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get erasingIds() {
-		return this.pageState.erasingIds
+		return this.currentPageState.erasingIds
 	}
 	set erasingIds(ids: TLShapeId[]) {
 		const erasingIds = this.erasingIdsSet
 		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return
-		this.setPageState({ erasingIds: ids }, true)
+		this.updateCurrentPageState({ erasingIds: ids }, true)
 	}
 
 	/**
@@ -1781,12 +1768,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	get croppingId() {
-		return this.pageState.croppingId
+		return this.currentPageState.croppingId
 	}
 	set croppingId(id: TLShapeId | null) {
 		if (id !== this.croppingId) {
 			if (!id) {
-				this.setPageState({ croppingId: null })
+				this.updateCurrentPageState({ croppingId: null })
 				if (this.isInAny('select.crop', 'select.pointing_crop_handle', 'select.cropping')) {
 					this.setCurrentTool('select.idle')
 				}
@@ -1794,7 +1781,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const shape = this.getShapeById(id)!
 				const util = this.getShapeUtil(shape)
 				if (shape && util.canCrop(shape)) {
-					this.setPageState({ croppingId: id, hoveredId: null })
+					this.updateCurrentPageState({ croppingId: id, hoveredId: null })
 				}
 			}
 		}
@@ -3135,9 +3122,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	get currentPage(): TLPage {
-		const page = this.getPageById(this.currentPageId)
-		if (!page)
-			throw Error(`No current page (id ${this.currentPageId}, ${this.pages.length} pages))`)
+		const page = this.getPageById(this.currentPageId)!
 		return page
 	}
 
@@ -3161,20 +3146,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getPageById(id: TLPageId): TLPage | undefined {
-		return this.store.get(id)
-	}
-
-	/**
-	 * Get a page by its ID.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getPageById(myPage.id)
-	 * ```
-	 *
-	 * @public
-	 */
-	getPageInfoById(id: TLPage['id']) {
 		return this.store.get(id)
 	}
 
@@ -3229,7 +3200,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._setCurrentPageId(pageId, { stopFollowing })
 		return this
 	}
-
 	/** @internal */
 	private _setCurrentPageId = this.history.createCommand(
 		'setCurrentPage',
@@ -3255,7 +3225,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// in multiplayer contexts this page might have been deleted
 					return
 				}
-				if (!this.getPageStateByPageId(toId)) {
+				if (!this.pageStates.find((p) => p.pageId === toId)) {
 					const camera = CameraRecordType.create({
 						id: CameraRecordType.createId(toId),
 					})
@@ -3299,11 +3269,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing = false) {
+	updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing = false): this {
 		this._updatePage(partial, squashing)
 		return this
 	}
-
 	/** @internal */
 	private _updatePage = this.history.createCommand(
 		'updatePage',
@@ -3346,11 +3315,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createPage(title: string, id: TLPageId = PageRecordType.createId(), belowPageIndex?: string) {
+	createPage(
+		title: string,
+		id: TLPageId = PageRecordType.createId(),
+		belowPageIndex?: string
+	): this {
 		this._createPage(title, id, belowPageIndex)
 		return this
 	}
-
 	/** @internal */
 	private _createPage = this.history.createCommand(
 		'createPage',
@@ -3418,6 +3390,66 @@ export class Editor extends EventEmitter<TLEventMap> {
 	)
 
 	/**
+	 * Delete a page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deletePage('page1')
+	 * ```
+	 *
+	 * @param id - The id of the page to delete.
+	 *
+	 * @public
+	 */
+	deletePage(id: TLPageId): this {
+		this._deletePage(id)
+		return this
+	}
+	/** @internal */
+	private _deletePage = this.history.createCommand(
+		'delete_page',
+		(id: TLPageId) => {
+			if (this.instanceState.isReadOnly) return null
+			const { pages } = this
+			if (pages.length === 1) return null
+
+			const deletedPage = this.getPageById(id)
+			const deletedPageStates = this.pageStates.filter((s) => s.pageId === id)
+
+			if (!deletedPage) return null
+
+			if (id === this.currentPageId) {
+				const index = pages.findIndex((page) => page.id === id)
+				const next = pages[index - 1] ?? pages[index + 1]
+				this.setCurrentPageId(next.id)
+			}
+
+			return { data: { id, deletedPage, deletedPageStates } }
+		},
+		{
+			do: ({ deletedPage, deletedPageStates }) => {
+				const { pages } = this
+				if (pages.length === 1) return
+
+				if (deletedPage.id === this.currentPageId) {
+					const index = pages.findIndex((page) => page.id === deletedPage.id)
+					const next = pages[index - 1] ?? pages[index + 1]
+					this.setCurrentPageId(next.id)
+				}
+
+				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
+				this.store.remove([deletedPage.id]) // remove the page
+				this.updateRenderingBounds()
+			},
+			undo: ({ deletedPage, deletedPageStates }) => {
+				this.store.put([deletedPage])
+				this.store.put(deletedPageStates)
+				this.updateRenderingBounds()
+			},
+		}
+	)
+
+	/**
 	 * Duplicate a page.
 	 *
 	 * @param id - The id of the page to duplicate. Defaults to the current page.
@@ -3465,66 +3497,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.updatePage({ id, name }, squashing)
 		return this
 	}
-
-	/**
-	 * Delete a page.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.deletePage('page1')
-	 * ```
-	 *
-	 * @param id - The id of the page to delete.
-	 *
-	 * @public
-	 */
-	deletePage(id: TLPageId) {
-		this._deletePage(id)
-	}
-
-	/** @internal */
-	private _deletePage = this.history.createCommand(
-		'delete_page',
-		(id: TLPageId) => {
-			if (this.instanceState.isReadOnly) return null
-			const { pages } = this
-			if (pages.length === 1) return null
-
-			const deletedPage = this.getPageById(id)
-			const deletedPageStates = this._pageStates.value.filter((s) => s.pageId === id)
-
-			if (!deletedPage) return null
-
-			if (id === this.currentPageId) {
-				const index = pages.findIndex((page) => page.id === id)
-				const next = pages[index - 1] ?? pages[index + 1]
-				this.setCurrentPageId(next.id)
-			}
-
-			return { data: { id, deletedPage, deletedPageStates } }
-		},
-		{
-			do: ({ deletedPage, deletedPageStates }) => {
-				const { pages } = this
-				if (pages.length === 1) return
-
-				if (deletedPage.id === this.currentPageId) {
-					const index = pages.findIndex((page) => page.id === deletedPage.id)
-					const next = pages[index - 1] ?? pages[index + 1]
-					this.setCurrentPageId(next.id)
-				}
-
-				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
-				this.store.remove([deletedPage.id]) // remove the page
-				this.updateRenderingBounds()
-			},
-			undo: ({ deletedPage, deletedPageStates }) => {
-				this.store.put([deletedPage])
-				this.store.put(deletedPageStates)
-				this.updateRenderingBounds()
-			},
-		}
-	)
 
 	/* --------------------- Assets --------------------- */
 
@@ -5384,7 +5356,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	sendToBack(ids = this.pageState.selectedIds) {
+	sendToBack(ids = this.currentPageState.selectedIds) {
 		const changes = getReorderingShapesChanges(this, 'toBack', ids)
 		if (changes) this.updateShapes(changes)
 		return this
@@ -5403,7 +5375,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	sendBackward(ids = this.pageState.selectedIds) {
+	sendBackward(ids = this.currentPageState.selectedIds) {
 		const changes = getReorderingShapesChanges(this, 'backward', ids)
 		if (changes) this.updateShapes(changes)
 		return this
@@ -5422,7 +5394,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	bringForward(ids = this.pageState.selectedIds) {
+	bringForward(ids = this.currentPageState.selectedIds) {
 		const changes = getReorderingShapesChanges(this, 'forward', ids)
 		if (changes) this.updateShapes(changes)
 		return this
@@ -5441,7 +5413,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	bringToFront(ids = this.pageState.selectedIds) {
+	bringToFront(ids = this.currentPageState.selectedIds) {
 		const changes = getReorderingShapesChanges(this, 'toFront', ids)
 		if (changes) this.updateShapes(changes)
 		return this
@@ -5523,7 +5495,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	stackShapes(
 		operation: 'horizontal' | 'vertical',
-		ids: TLShapeId[] = this.pageState.selectedIds,
+		ids: TLShapeId[] = this.currentPageState.selectedIds,
 		gap?: number
 	) {
 		if (this.instanceState.isReadOnly) return this
@@ -5652,7 +5624,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param ids - The ids of the shapes to pack. Defaults to selected shapes.
 	 * @param padding - The padding to apply to the packed shapes.
 	 */
-	packShapes(ids: TLShapeId[] = this.pageState.selectedIds, padding = 16) {
+	packShapes(ids: TLShapeId[] = this.currentPageState.selectedIds, padding = 16) {
 		if (this.instanceState.isReadOnly) return this
 		if (ids.length < 2) return this
 
@@ -5810,7 +5782,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	alignShapes(
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom',
-		ids: TLShapeId[] = this.pageState.selectedIds
+		ids: TLShapeId[] = this.currentPageState.selectedIds
 	) {
 		if (this.instanceState.isReadOnly) return this
 		if (ids.length < 2) return this
@@ -5897,7 +5869,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	distributeShapes(
 		operation: 'horizontal' | 'vertical',
-		ids: TLShapeId[] = this.pageState.selectedIds
+		ids: TLShapeId[] = this.currentPageState.selectedIds
 	) {
 		if (this.instanceState.isReadOnly) return this
 		if (ids.length < 3) return this
@@ -5982,7 +5954,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	stretchShapes(
 		operation: 'horizontal' | 'vertical',
-		ids: TLShapeId[] = this.pageState.selectedIds
+		ids: TLShapeId[] = this.currentPageState.selectedIds
 	) {
 		if (this.instanceState.isReadOnly) return this
 		if (ids.length < 2) return this
@@ -6495,7 +6467,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				// the engine will filter out any shapes that are descendants of other new shapes.
 				if (select) {
-					this.store.update(this.pageState.id, (state) => ({
+					this.store.update(this.currentPageState.id, (state) => ({
 						...state,
 						selectedIds: createdIds,
 					}))
@@ -6505,7 +6477,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.store.remove(createdIds)
 
 				if (prevSelectedIds) {
-					this.store.update(this.pageState.id, (state) => ({
+					this.store.update(this.currentPageState.id, (state) => ({
 						...state,
 						selectedIds: prevSelectedIds,
 					}))
@@ -6903,7 +6875,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		(ids: TLShapeId[]) => {
 			if (this.instanceState.isReadOnly) return null
 			if (ids.length === 0) return null
-			const prevSelectedIds = [...this.pageState.selectedIds]
+			const prevSelectedIds = [...this.currentPageState.selectedIds]
 
 			const allIds = new Set(ids)
 
@@ -6935,14 +6907,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		{
 			do: ({ deletedIds, postSelectedIds }) => {
 				this.store.remove(deletedIds)
-				this.store.update(this.pageState.id, (state) => ({
+				this.store.update(this.currentPageState.id, (state) => ({
 					...state,
 					selectedIds: postSelectedIds,
 				}))
 			},
 			undo: ({ snapshots, prevSelectedIds }) => {
 				this.store.put(snapshots)
-				this.store.update(this.pageState.id, (state) => ({
+				this.store.update(this.currentPageState.id, (state) => ({
 					...state,
 					selectedIds: prevSelectedIds,
 				}))
@@ -7101,7 +7073,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {
-					pageState: { selectedIds },
+					currentPageState: { selectedIds },
 				} = this
 
 				const shapesToUpdate: TLShape[] = []
@@ -7168,7 +7140,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {
-					pageState: { selectedIds },
+					currentPageState: { selectedIds },
 				} = this
 
 				if (selectedIds.length > 0) {

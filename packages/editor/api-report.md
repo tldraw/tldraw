@@ -405,11 +405,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
     get currentPageShapeIds(): Set<TLShapeId>;
+    get currentPageState(): TLInstancePageState;
     get currentTool(): StateNode | undefined;
     get currentToolId(): string;
     deleteAssets(ids: TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
-    deletePage(id: TLPageId): void;
+    deletePage(id: TLPageId): this;
     deleteShapes(ids?: TLShapeId[]): this;
     deselect(...ids: TLShapeId[]): this;
     dispatch(info: TLEventInfo): this;
@@ -484,12 +485,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageCenter(shape: TLShape): null | Vec2d;
     getPageCenterById(id: TLShapeId): null | Vec2d;
     getPageCorners(shape: TLShape): Vec2d[];
-    getPageInfoById(id: TLPage['id']): TLPage | undefined;
     getPageMaskById(id: TLShapeId): undefined | VecLike[];
     getPagePointById(id: TLShapeId): undefined | Vec2d;
     getPageRotation(shape: TLShape): number;
     getPageRotationById(id: TLShapeId): number;
-    getPageStateByPageId(id: TLPageId): TLInstancePageState | undefined;
     getPageTransform(shape: TLShape): Matrix2d | undefined;
     getPageTransformById(id: TLShapeId): Matrix2d | undefined;
     getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']): TLPageId | TLShapeId;
@@ -569,7 +568,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get openMenus(): string[];
     packShapes(ids?: TLShapeId[], padding?: number): this;
     get pages(): TLPage[];
-    get pageState(): TLInstancePageState;
+    get pageStates(): TLInstancePageState[];
     pageToScreen(x: number, y: number, z?: number, camera?: Vec2dModel): {
         x: number;
         y: number;
@@ -637,7 +636,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
-    setPageState(partial: Partial<Omit<TLInstancePageState, 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
     get shapesArray(): TLShape[];
@@ -669,6 +667,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     undo(): HistoryManager<this>;
     ungroupShapes(ids?: TLShapeId[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
+    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;

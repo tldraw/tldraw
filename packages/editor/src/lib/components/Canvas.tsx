@@ -273,8 +273,7 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 
 function SelectedIdIndicators() {
 	const editor = useEditor()
-
-	const selectedIds = useValue('selectedIds', () => editor.pageState.selectedIds, [editor])
+	const selectedIds = useValue('selectedIds', () => editor.currentPageState.selectedIds, [editor])
 	const shouldDisplay = useValue(
 		'should display selected ids',
 		() => {
@@ -310,7 +309,9 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const displayingHoveredId = useValue(
 		'hovered id and should display',
 		() =>
-			editor.isInAny('select.idle', 'select.editing_shape') ? editor.pageState.hoveredId : null,
+			editor.isInAny('select.idle', 'select.editing_shape')
+				? editor.currentPageState.hoveredId
+				: null,
 		[editor]
 	)
 

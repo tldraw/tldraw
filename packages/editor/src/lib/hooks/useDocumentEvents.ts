@@ -78,7 +78,7 @@ export function useDocumentEvents() {
 						if (!editor.inputs.keys.has('Comma')) {
 							const { x, y, z } = editor.inputs.currentScreenPoint
 							const {
-								pageState: { hoveredId },
+								currentPageState: { hoveredId },
 							} = editor
 							editor.inputs.keys.add('Comma')
 
@@ -156,7 +156,7 @@ export function useDocumentEvents() {
 				if (editor.inputs.keys.has(e.code)) {
 					const { x, y, z } = editor.inputs.currentScreenPoint
 					const {
-						pageState: { hoveredId },
+						currentPageState: { hoveredId },
 					} = editor
 
 					editor.inputs.keys.delete(e.code)
