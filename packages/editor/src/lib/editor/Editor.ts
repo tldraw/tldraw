@@ -25,7 +25,6 @@ import {
 	TLPage,
 	TLPageId,
 	TLParentId,
-	TLScribble,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -1301,32 +1300,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	set zoomBrush(zoomBrush: Box2dModel | null) {
 		if (!zoomBrush && !this.zoomBrush) return
 		this.updateInstanceState({ zoomBrush }, true)
-	}
-
-	/**
-	 * The instance's scribble state.
-	 *
-	 * @public
-	 **/
-	@computed get scribble() {
-		return this.instanceState.scribble
-	}
-	set scribble(scribble: TLScribble | null) {
-		this.updateInstanceState({ scribble }, true)
-	}
-
-	/**
-	 * Whether the instance has "tool lock" mode enabled.
-	 *
-	 * @public
-	 **/
-	@computed get isToolLocked() {
-		return this.instanceState.isToolLocked
-	}
-	set isToolLocked(isToolLocked: boolean) {
-		if (isToolLocked !== this.isToolLocked) {
-			this.updateInstanceState({ isToolLocked }, true)
-		}
 	}
 
 	/* ------------------- Page State ------------------- */

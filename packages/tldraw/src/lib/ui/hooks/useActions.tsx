@@ -854,7 +854,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'q',
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
-					editor.isToolLocked = !editor.isToolLocked
+					editor.updateInstanceState({ isToolLocked: !editor.instanceState.isToolLocked })
 				},
 				checkbox: true,
 			},

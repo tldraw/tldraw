@@ -117,34 +117,30 @@ export const Canvas = track(function Canvas() {
 	)
 })
 
-const GridWrapper = track(function GridWrapper() {
+function GridWrapper() {
 	const editor = useEditor()
+	const gridSize = useValue('gridSize', () => editor.documentSettings.gridSize, [editor])
+	const { x, y, z } = useValue('camera', () => editor.camera, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.instanceState.isGridMode, [editor])
 	const { Grid } = useEditorComponents()
-
-	// get grid from context
-
-	const { gridSize } = editor.documentSettings
-	const { x, y, z } = editor.camera
-	const isGridMode = editor.instanceState.isGridMode
 
 	if (!(Grid && isGridMode)) return null
 
 	return <Grid x={x} y={y} z={z} size={gridSize} />
-})
+}
 
-const ScribbleWrapper = track(function ScribbleWrapper() {
+function ScribbleWrapper() {
 	const editor = useEditor()
-	const scribble = editor.scribble
-	const zoom = editor.zoomLevel
-
+	const scribble = useValue('scribble', () => editor.instanceState.scribble, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const { Scribble } = useEditorComponents()
 
 	if (!(Scribble && scribble)) return null
 
-	return <Scribble className="tl-user-scribble" scribble={scribble} zoom={zoom} />
-})
+	return <Scribble className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
+}
 
-const BrushWrapper = function BrushWrapper() {
+function BrushWrapper() {
 	const editor = useEditor()
 	const brush = useValue('brush', () => editor.instanceState.brush, [editor])
 	const { Brush } = useEditorComponents()
@@ -154,7 +150,7 @@ const BrushWrapper = function BrushWrapper() {
 	return <Brush className="tl-user-brush" brush={brush} />
 }
 
-export const ZoomBrushWrapper = function Zoom() {
+function ZoomBrushWrapper() {
 	const editor = useEditor()
 	const zoomBrush = useValue('zoomBrush', () => editor.instanceState.zoomBrush, [editor])
 	const { ZoomBrush } = useEditorComponents()
@@ -164,7 +160,7 @@ export const ZoomBrushWrapper = function Zoom() {
 	return <ZoomBrush className="tl-user-brush" brush={zoomBrush} />
 }
 
-export const SnapLinesWrapper = function SnapLines() {
+function SnapLinesWrapper() {
 	const editor = useEditor()
 	const lines = useValue('snapLines', () => editor.snaps.lines, [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
@@ -183,7 +179,7 @@ export const SnapLinesWrapper = function SnapLines() {
 
 const MIN_HANDLE_DISTANCE = 48
 
-const HandlesWrapper = function HandlesWrapper() {
+function HandlesWrapper() {
 	const editor = useEditor()
 	const { Handles } = useEditorComponents()
 
@@ -234,7 +230,7 @@ const HandlesWrapper = function HandlesWrapper() {
 	)
 }
 
-const HandleWrapper = ({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHandle }) => {
+function HandleWrapper({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHandle }) {
 	const events = useHandleEvents(shapeId, handle.id)
 	const { Handle } = useEditorComponents()
 
@@ -275,18 +271,26 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 	)
 })
 
-const SelectedIdIndicators = track(function SelectedIdIndicators() {
+function SelectedIdIndicators() {
 	const editor = useEditor()
 
-	const shouldDisplay =
-		editor.isInAny(
-			'select.idle',
-			'select.brushing',
-			'select.scribble_brushing',
-			'select.pointing_shape',
-			'select.pointing_selection',
-			'select.pointing_handle'
-		) && !editor.instanceState.isChangingStyle
+	const shouldDisplay = useValue(
+		'should display selected ids',
+		() => {
+			// todo: move to tldraw selected ids wrapper
+			return (
+				editor.isInAny(
+					'select.idle',
+					'select.brushing',
+					'select.scribble_brushing',
+					'select.pointing_shape',
+					'select.pointing_selection',
+					'select.pointing_handle'
+				) && !editor.instanceState.isChangingStyle
+			)
+		},
+		[editor]
+	)
 
 	if (!shouldDisplay) return null
 
@@ -297,7 +301,7 @@ const SelectedIdIndicators = track(function SelectedIdIndicators() {
 			))}
 		</>
 	)
-})
+}
 
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const editor = useEditor()

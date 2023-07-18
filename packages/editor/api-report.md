@@ -563,8 +563,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
-    get isToolLocked(): boolean;
-    set isToolLocked(isToolLocked: boolean);
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): string;
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
@@ -625,8 +623,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         y: number;
         z: number;
     };
-    get scribble(): null | TLScribble;
-    set scribble(scribble: null | TLScribble);
     select(...ids: TLShapeId[]): this;
     selectAll(): this;
     get selectedIds(): TLShapeId[];
