@@ -5,7 +5,7 @@ import { Button } from './primitives/Button'
 export const ExitPenMode = track(function ExitPenMode() {
 	const editor = useEditor()
 
-	const isPenMode = editor.isPenMode
+	const isPenMode = editor.instanceState.isPenMode
 
 	const actions = useActions()
 

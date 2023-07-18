@@ -39,7 +39,7 @@ export const TranslationProvider = track(function TranslationProvider({
 	children,
 }: TLUiTranslationProviderProps) {
 	const editor = useEditor()
-	const locale = editor.locale
+	const locale = editor.user.locale
 	const getAssetUrl = useAssetUrls()
 
 	const [currentTranslation, setCurrentTranslation] = React.useState<TLUiTranslation>(() => {

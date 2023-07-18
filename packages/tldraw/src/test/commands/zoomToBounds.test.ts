@@ -30,7 +30,7 @@ it('does not zoom past min', () => {
 it('does not zoom to bounds when camera is frozen', () => {
 	editor.setScreenBounds({ x: 0, y: 0, w: 1000, h: 1000 })
 	expect(editor.viewportPageCenter.toJson()).toCloselyMatchObject({ x: 500, y: 500 })
-	editor.canMoveCamera = false
+	editor.updateInstanceState({ canMoveCamera: false })
 	editor.zoomToBounds(200, 300, 300, 300)
 	expect(editor.viewportPageCenter.toJson()).toCloselyMatchObject({ x: 500, y: 500 })
 })

@@ -122,7 +122,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		const bounds = this.getBounds(shape)
 
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')

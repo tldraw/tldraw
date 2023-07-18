@@ -3,7 +3,7 @@ import * as React from 'react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useMenuSchema } from '../hooks/useMenuSchema'
-import { useReadonly } from '../hooks/useReadonly'
+import { useReadOnly } from '../hooks/useReadOnly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { LanguageMenu } from './LanguageMenu'
 import { Button } from './primitives/Button'
@@ -35,7 +35,7 @@ function MenuContent() {
 	const msg = useTranslation()
 	const menuSchema = useMenuSchema()
 	const breakpoint = useBreakpoint()
-	const isReadonly = useReadonly()
+	const isReadonly = useReadOnly()
 
 	function getMenuItem(
 		editor: Editor,

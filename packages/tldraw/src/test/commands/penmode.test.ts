@@ -9,7 +9,7 @@ beforeEach(() => {
 
 it('ignores touch events while in pen mode', async () => {
 	editor.setCurrentTool('draw')
-	editor.isPenMode = true
+	editor.updateInstanceState({ isPenMode: true })
 	editor.dispatch({
 		type: 'pointer',
 		name: 'pointer_down',

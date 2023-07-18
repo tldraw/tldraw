@@ -22,19 +22,19 @@ describe(SelectTool, () => {
 			editor.expectPathToBe('root.select.idle')
 			editor.doubleClick(50, 50, shapeId)
 
-			expect(editor.pageState.editingId).toBe(shapeId)
+			expect(editor.currentPageState.editingId).toBe(shapeId)
 
 			// clicking on the shape should not do anything
 			jest.advanceTimersByTime(1000)
 			editor.pointerDown(50, 50, shapeId)
 
-			expect(editor.pageState.editingId).toBe(shapeId)
+			expect(editor.currentPageState.editingId).toBe(shapeId)
 
 			// clicking outside the shape should end editing
 			jest.advanceTimersByTime(1000)
 
 			editor.pointerDown(150, 150).pointerUp()
-			expect(editor.pageState.editingId).toBe(null)
+			expect(editor.currentPageState.editingId).toBe(null)
 			expect(editor.root.path.value).toEqual('root.select.idle')
 		})
 	})
@@ -46,24 +46,24 @@ describe(SelectTool, () => {
 		editor.setCurrentTool('select')
 		editor.doubleClick(50, 50, shapeId)
 
-		expect(editor.pageState.editingId).toBe(shapeId)
+		expect(editor.currentPageState.editingId).toBe(shapeId)
 
 		// clicking on the shape should not do anything
 		jest.advanceTimersByTime(1000)
 		editor.pointerDown(50, 50, shapeId)
 
-		expect(editor.pageState.editingId).toBe(shapeId)
+		expect(editor.currentPageState.editingId).toBe(shapeId)
 
 		// clicking outside the shape should end editing
 		jest.advanceTimersByTime(1000)
 
 		editor.pointerDown(150, 150).pointerUp()
-		expect(editor.pageState.editingId).toBe(null)
+		expect(editor.currentPageState.editingId).toBe(null)
 		expect(editor.root.path.value).toEqual('root.select.idle')
 
 		editor.undo()
 
-		expect(editor.pageState.editingId).toBe(null)
+		expect(editor.currentPageState.editingId).toBe(null)
 	})
 })
 

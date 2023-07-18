@@ -12,7 +12,7 @@ export class Lasering extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.erasingIds = []
+		this.editor.setErasingIds([])
 		this.scribble.stop()
 	}
 
@@ -47,12 +47,12 @@ export class Lasering extends StateNode {
 	}
 
 	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.editor.scribble = scribble
+		this.editor.updateInstanceState({ scribble })
 	}
 
 	private onScribbleComplete = () => {
 		this.editor.off('tick', this.scribble.tick)
-		this.editor.scribble = null
+		this.editor.updateInstanceState({ scribble: null })
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

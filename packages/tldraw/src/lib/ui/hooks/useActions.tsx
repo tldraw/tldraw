@@ -367,7 +367,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('duplicate-shapes', { source })
 					const ids = editor.selectedIds
 					const commonBounds = Box2d.Common(compact(ids.map((id) => editor.getPageBoundsById(id))))
-					const offset = editor.canMoveCamera
+					const offset = editor.instanceState.canMoveCamera
 						? {
 								x: commonBounds.width + 10,
 								y: 0,
@@ -800,7 +800,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-snap-mode', { source })
-					editor.isSnapMode = !editor.isSnapMode
+					editor.user.updateUserPreferences({ isSnapMode: !editor.user.isSnapMode })
 				},
 				checkbox: true,
 			},
@@ -812,7 +812,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-dark-mode', { source })
-					editor.isDarkMode = !editor.isDarkMode
+					editor.user.updateUserPreferences({ isDarkMode: !editor.user.isDarkMode })
 				},
 				checkbox: true,
 			},
@@ -823,7 +823,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-reduce-motion', { source })
-					editor.animationSpeed = editor.animationSpeed === 0 ? 1 : 0
+					editor.user.updateUserPreferences({
+						animationSpeed: editor.user.animationSpeed === 0 ? 1 : 0,
+					})
 				},
 				checkbox: true,
 			},
@@ -852,7 +854,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'q',
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
-					editor.isToolLocked = !editor.isToolLocked
+					editor.updateInstanceState({ isToolLocked: !editor.instanceState.isToolLocked })
 				},
 				checkbox: true,
 			},
@@ -871,7 +873,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
 							clearToasts()
-							editor.isFocusMode = !editor.isFocusMode
+							editor.updateInstanceState({ isFocusMode: !editor.instanceState.isFocusMode })
 						})
 					})
 				},
@@ -884,7 +886,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: "$'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
-					editor.isGridMode = !editor.isGridMode
+					editor.updateInstanceState({ isGridMode: !editor.instanceState.isGridMode })
 				},
 				checkbox: true,
 			},
@@ -921,7 +923,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('exit-pen-mode', { source })
-					editor.isPenMode = false
+					editor.instanceState.isPenMode = false
 				},
 			},
 			{

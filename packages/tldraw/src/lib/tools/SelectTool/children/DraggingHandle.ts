@@ -56,7 +56,10 @@ export class DraggingHandle extends StateNode {
 		this.initialPageTransform = this.editor.getPageTransform(shape)!
 		this.initialPageRotation = this.editor.getPageRotation(shape)!
 
-		this.editor.cursor = { type: isCreating ? 'cross' : 'grabbing', rotation: 0 }
+		this.editor.updateInstanceState(
+			{ cursor: { type: isCreating ? 'cross' : 'grabbing', rotation: 0 } },
+			true
+		)
 
 		// <!-- Only relevant to arrows
 		const handles = this.editor.getHandles(shape)!.sort(sortByIndex)
@@ -159,7 +162,7 @@ export class DraggingHandle extends StateNode {
 		this.parent.currentToolIdMask = undefined
 		this.editor.hintingIds = []
 		this.editor.snaps.clear()
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 	}
 
 	private complete() {
@@ -195,7 +198,7 @@ export class DraggingHandle extends StateNode {
 		const { editor, shapeId } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const {
-			isSnapMode,
+			user: { isSnapMode },
 			hintingIds,
 			snaps,
 			inputs: { currentPagePoint, originPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },

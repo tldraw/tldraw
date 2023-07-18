@@ -56,7 +56,7 @@ export class Resizing extends StateNode {
 		this.creationCursorOffset = creationCursorOffset
 
 		if (info.isCreating) {
-			this.editor.cursor = { type: 'cross', rotation: 0 }
+			this.editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, true)
 		}
 
 		this.snapshot = this._createSnapshot()
@@ -103,7 +103,7 @@ export class Resizing extends StateNode {
 		this.handleResizeEnd()
 
 		if (this.editAfterComplete && this.editor.onlySelectedShape) {
-			this.editor.editingId = this.editor.onlySelectedShape.id
+			this.editor.setEditingId(this.editor.onlySelectedShape.id)
 			this.editor.setCurrentTool('select')
 			this.editor.root.current.value!.transition('editing_shape', {})
 			return
@@ -208,7 +208,7 @@ export class Resizing extends StateNode {
 			.sub(this.creationCursorOffset)
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
-		if (this.editor.isGridMode && !ctrlKey) {
+		if (this.editor.instanceState.isGridMode && !ctrlKey) {
 			const { gridSize } = this.editor.documentSettings
 			currentPagePoint.snapToGrid(gridSize)
 		}
@@ -218,7 +218,7 @@ export class Resizing extends StateNode {
 
 		this.editor.snaps.clear()
 
-		const shouldSnap = this.editor.isSnapMode ? !ctrlKey : ctrlKey
+		const shouldSnap = this.editor.user.isSnapMode ? !ctrlKey : ctrlKey
 
 		if (shouldSnap && selectionRotation % TAU === 0) {
 			const { nudge } = this.editor.snaps.snapResize({
@@ -320,7 +320,7 @@ export class Resizing extends StateNode {
 		isFlippedY: boolean
 		rotation: number
 	}) {
-		const nextCursor = { ...this.editor.cursor }
+		const nextCursor = { ...this.editor.instanceState.cursor }
 
 		switch (dragHandle) {
 			case 'top_left':
@@ -343,12 +343,12 @@ export class Resizing extends StateNode {
 
 		nextCursor.rotation = rotation
 
-		this.editor.cursor = nextCursor
+		this.editor.updateInstanceState({ cursor: nextCursor })
 	}
 
 	override onExit = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 		this.editor.snaps.clear()
 	}
 

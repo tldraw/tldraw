@@ -43,7 +43,7 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	// Render method — the React component that will be rendered for the shape
 	component(shape: ICardShape) {
 		const bounds = this.editor.getBounds(shape)
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 
 		// Unfortunately eslint will think this is a class components
 		// eslint-disable-next-line react-hooks/rules-of-hooks

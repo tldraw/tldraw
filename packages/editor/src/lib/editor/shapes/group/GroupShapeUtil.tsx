@@ -40,7 +40,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		// Not a class component, but eslint can't tell that :(
 		const {
 			erasingIdsSet,
-			pageState: { hintingIds, focusLayerId },
+			currentPageState: { hintingIds, focusLayerId },
 			zoomLevel,
 		} = this.editor
 
@@ -87,13 +87,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	override onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape> = (group) => {
 		const children = this.editor.getSortedChildIds(group.id)
 		if (children.length === 0) {
-			if (this.editor.pageState.focusLayerId === group.id) {
+			if (this.editor.currentPageState.focusLayerId === group.id) {
 				this.editor.popFocusLayer()
 			}
 			this.editor.deleteShapes([group.id])
 			return
 		} else if (children.length === 1) {
-			if (this.editor.pageState.focusLayerId === group.id) {
+			if (this.editor.currentPageState.focusLayerId === group.id) {
 				this.editor.popFocusLayer()
 			}
 			this.editor.reparentShapesById(children, group.parentId)
