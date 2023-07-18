@@ -422,12 +422,12 @@ describe('isFocused', () => {
 		expect(focusMock).not.toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.updateInstanceState({ isFocused: true })
+		editor.focus()
 
 		expect(focusMock).toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.updateInstanceState({ isFocused: false })
+		editor.blur()
 
 		expect(blurMock).toHaveBeenCalled()
 	})
