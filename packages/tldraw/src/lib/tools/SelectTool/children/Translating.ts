@@ -64,7 +64,7 @@ export class Translating extends StateNode {
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clear()
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 		this.dragAndDropManager.clear()
 	}
 
@@ -169,7 +169,7 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.info = info
 
-		this.editor.cursor = { type: 'move', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'move', rotation: 0 } }, true)
 		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
 
 		// Don't clone on create; otherwise clone on altKey

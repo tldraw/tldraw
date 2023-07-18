@@ -27,12 +27,12 @@ export class TranslatingCrop extends StateNode {
 		this.snapshot = this.createSnapshot()
 
 		this.editor.mark(this.markId)
-		this.editor.cursor = { type: 'move', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'move', rotation: 0 } }, true)
 		this.updateShapes()
 	}
 
 	override onExit = () => {
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 	}
 
 	override onPointerMove = () => {

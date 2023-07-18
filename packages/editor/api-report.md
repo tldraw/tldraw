@@ -411,7 +411,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentTool(): StateNode | undefined;
     get currentToolId(): string;
     get cursor(): TLCursor;
-    set cursor(cursor: TLCursor);
     deleteAssets(ids: TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
     deletePage(id: TLPageId): void;

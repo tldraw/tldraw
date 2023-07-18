@@ -19,7 +19,7 @@ export class ZoomTool extends StateNode {
 	override onExit = () => {
 		this.currentToolIdMask = undefined
 		this.editor.zoomBrush = null
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 		this.currentToolIdMask = undefined
 	}
 
@@ -50,9 +50,9 @@ export class ZoomTool extends StateNode {
 
 	private updateCursor() {
 		if (this.editor.inputs.altKey) {
-			this.editor.cursor = { type: 'zoom-out', rotation: 0 }
+			this.editor.updateInstanceState({ cursor: { type: 'zoom-out', rotation: 0 } }, true)
 		} else {
-			this.editor.cursor = { type: 'zoom-in', rotation: 0 }
+			this.editor.updateInstanceState({ cursor: { type: 'zoom-in', rotation: 0 } }, true)
 		}
 	}
 }

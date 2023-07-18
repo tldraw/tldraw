@@ -38,10 +38,10 @@ export class Idle extends StateNode {
 					if (hoveringShape.type !== 'geo') break
 					const cursorType = (hoveringShape as TLGeoShape).props.text
 					try {
-						this.editor.cursor = { type: cursorType, rotation: 0 }
+						this.editor.updateInstanceState({ cursor: { type: cursorType, rotation: 0 } }, true)
 					} catch (e) {
 						console.error(`Cursor type not recognized: '${cursorType}'`)
-						this.editor.cursor = { type: 'default', rotation: 0 }
+						this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 					}
 				}
 
@@ -262,7 +262,7 @@ export class Idle extends StateNode {
 
 	override onEnter = () => {
 		this.editor.hoveredId = null
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 		this.parent.currentToolIdMask = undefined
 	}
 
