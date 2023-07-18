@@ -2,7 +2,7 @@ import { GeoShapeGeoStyle, preventDefault, track, useEditor, useValue } from '@t
 import classNames from 'classnames'
 import React, { memo } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
-import { useReadonly } from '../../hooks/useReadonly'
+import { useReadOnly } from '../../hooks/useReadOnly'
 import { TLUiToolbarItem, useToolbarSchema } from '../../hooks/useToolbarSchema'
 import { TLUiToolItem } from '../../hooks/useTools'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -25,7 +25,7 @@ export const Toolbar = memo(function Toolbar() {
 
 	const rMostRecentlyActiveDropdownItem = React.useRef<TLUiToolbarItem | undefined>(undefined)
 
-	const isReadOnly = useReadonly()
+	const isReadOnly = useReadOnly()
 	const toolbarItems = useToolbarSchema()
 	const laserTool = toolbarItems.find((item) => item.toolItem.id === 'laser')
 

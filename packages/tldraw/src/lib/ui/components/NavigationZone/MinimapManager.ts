@@ -253,7 +253,7 @@ export class MinimapManager {
 
 		// Brush
 		{
-			const { brush } = editor
+			const { brush } = editor.instanceState
 			if (brush) {
 				const { x, y, w, h } = brush
 				ctx.beginPath()

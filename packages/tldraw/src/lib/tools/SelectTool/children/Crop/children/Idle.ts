@@ -5,7 +5,7 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onEnter = () => {
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 
 		const { onlySelectedShape } = this.editor
 
@@ -22,7 +22,7 @@ export class Idle extends StateNode {
 	}
 
 	override onExit: TLExitEventHandler = () => {
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 
 		this.editor.off('change-history', this.cleanupCroppingState)
 	}

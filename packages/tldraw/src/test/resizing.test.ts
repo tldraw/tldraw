@@ -2947,7 +2947,7 @@ describe('snapping while the grid is enabled', () => {
 
 		editor.createShapes([box(ids.boxA, 0, 0, 20, 20), box(ids.boxB, 60, 0, 20, 20)])
 
-		editor.isGridMode = true
+		editor.updateInstanceState({ isGridMode: true })
 
 		// try to move right side of A to left side of B
 		// doesn't work because of the grid
@@ -3820,16 +3820,16 @@ it('uses the cross cursor when create resizing', () => {
 	editor.pointerDown(0, 0)
 	editor.pointerMove(100, 100)
 	editor.expectToBeIn('select.resizing')
-	expect(editor.cursor.type).toBe('cross')
-	expect(editor.cursor.rotation).toBe(0)
+	expect(editor.instanceState.cursor.type).toBe('cross')
+	expect(editor.instanceState.cursor.rotation).toBe(0)
 
 	editor.pointerMove(120, 120)
-	expect(editor.cursor.type).toBe('cross')
-	expect(editor.cursor.rotation).toBe(0)
+	expect(editor.instanceState.cursor.type).toBe('cross')
+	expect(editor.instanceState.cursor.rotation).toBe(0)
 
 	editor.pointerMove(-120, -120)
-	expect(editor.cursor.type).toBe('cross')
-	expect(editor.cursor.rotation).toBe(0)
+	expect(editor.instanceState.cursor.type).toBe('cross')
+	expect(editor.instanceState.cursor.rotation).toBe(0)
 })
 
 describe('Resizing text from the right edge', () => {
@@ -3842,8 +3842,7 @@ describe('Resizing text from the right edge', () => {
 
 		const bounds = editor.getBoundsById(id)!
 
-		// @ts-expect-error
-		editor._isCoarsePointer.set(false)
+		editor.updateInstanceState({ isCoarsePointer: false })
 
 		// Resize from the right edge
 		editor.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge
@@ -3860,8 +3859,7 @@ describe('Resizing text from the right edge', () => {
 	})
 
 	it('Resizes text from the right edge when pointer is coarse', () => {
-		// @ts-expect-error
-		editor._isCoarsePointer.set(true)
+		editor.updateInstanceState({ isCoarsePointer: true })
 
 		const id = createShapeId()
 		editor.createShapes([{ id, type: 'text', props: { text: 'H' } }])

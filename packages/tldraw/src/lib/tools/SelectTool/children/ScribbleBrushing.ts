@@ -36,12 +36,12 @@ export class ScribbleBrushing extends StateNode {
 
 		this.updateBrushSelection()
 		requestAnimationFrame(() => {
-			this.editor.brush = null
+			this.editor.updateInstanceState({ brush: null })
 		})
 	}
 
 	override onExit = () => {
-		this.editor.erasingIds = []
+		this.editor.setErasingIds([])
 		this.scribble.stop()
 	}
 
@@ -87,12 +87,12 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.editor.scribble = scribble
+		this.editor.updateInstanceState({ scribble })
 	}
 
 	private onScribbleComplete = () => {
 		this.editor.off('tick', this.scribble.tick)
-		this.editor.scribble = null
+		this.editor.updateInstanceState({ scribble: null })
 	}
 
 	private updateBrushSelection() {

@@ -161,12 +161,12 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	override toSvg(shape: TLHighlightShape) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		return highlighterToSvg(getStrokeWidth(shape), shape, OVERLAY_OPACITY, theme)
 	}
 
 	override toBackgroundSvg(shape: TLHighlightShape) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		return highlighterToSvg(getStrokeWidth(shape), shape, UNDERLAY_OPACITY, theme)
 	}
 

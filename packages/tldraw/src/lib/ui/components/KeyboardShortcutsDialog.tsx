@@ -1,6 +1,6 @@
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useKeyboardShortcutsSchema } from '../hooks/useKeyboardShortcutsSchema'
-import { useReadonly } from '../hooks/useReadonly'
+import { useReadOnly } from '../hooks/useReadOnly'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import * as Dialog from './primitives/Dialog'
@@ -8,7 +8,7 @@ import { Kbd } from './primitives/Kbd'
 
 export const KeyboardShortcutsDialog = () => {
 	const msg = useTranslation()
-	const isReadonly = useReadonly()
+	const isReadonly = useReadOnly()
 	const shortcutsItems = useKeyboardShortcutsSchema()
 
 	function getKeyboardShortcutItem(item: TLUiMenuChild) {

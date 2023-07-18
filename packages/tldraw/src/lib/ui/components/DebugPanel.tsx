@@ -181,11 +181,6 @@ const DebugMenuContent = track(function DebugMenuContent({
 				</DropdownMenu.Item>
 			</DropdownMenu.Group>
 			<DropdownMenu.Group>
-				<Toggle
-					label="Read-only"
-					value={editor.isReadOnly}
-					onChange={(r) => (editor.isReadOnly = r)}
-				/>
 				<DebugFlagToggle flag={debugFlags.debugSvg} />
 				<DebugFlagToggle flag={debugFlags.forceSrgb} />
 				<DebugFlagToggle

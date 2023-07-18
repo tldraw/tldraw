@@ -60,12 +60,12 @@ export class Erasing extends StateNode {
 	}
 
 	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.editor.scribble = scribble
+		this.editor.updateInstanceState({ scribble })
 	}
 
 	private onScribbleComplete = () => {
 		this.editor.off('tick', this.scribble.tick)
-		this.editor.scribble = null
+		this.editor.updateInstanceState({ scribble: null })
 	}
 
 	override onExit = () => {
@@ -124,17 +124,17 @@ export class Erasing extends StateNode {
 		// Remove the hit shapes, except if they're in the list of excluded shapes
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
-		this.editor.erasingIds = [...erasing].filter((id) => !excludedShapeIds.has(id))
+		this.editor.setErasingIds([...erasing].filter((id) => !excludedShapeIds.has(id)))
 	}
 
 	complete() {
-		this.editor.deleteShapes(this.editor.pageState.erasingIds)
-		this.editor.erasingIds = []
+		this.editor.deleteShapes(this.editor.currentPageState.erasingIds)
+		this.editor.setErasingIds([])
 		this.parent.transition('idle', {})
 	}
 
 	cancel() {
-		this.editor.erasingIds = []
+		this.editor.setErasingIds([])
 		this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}

@@ -64,7 +64,7 @@ export class Translating extends StateNode {
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clear()
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 		this.dragAndDropManager.clear()
 	}
 
@@ -146,7 +146,7 @@ export class Translating extends StateNode {
 			if (this.editAfterComplete) {
 				const onlySelected = this.editor.onlySelectedShape
 				if (onlySelected) {
-					this.editor.editingId = onlySelected.id
+					this.editor.setEditingId(onlySelected.id)
 					this.editor.setCurrentTool('select')
 					this.editor.root.current.value!.transition('editing_shape', {})
 				}
@@ -169,7 +169,7 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.info = info
 
-		this.editor.cursor = { type: 'move', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'move', rotation: 0 } }, true)
 		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
 
 		// Don't clone on create; otherwise clone on altKey
@@ -344,7 +344,7 @@ export function moveShapesToPoint({
 }) {
 	const {
 		inputs,
-		isGridMode,
+		instanceState: { isGridMode },
 		documentSettings: { gridSize },
 	} = editor
 
@@ -366,7 +366,7 @@ export function moveShapesToPoint({
 	editor.snaps.clear()
 
 	const shouldSnap =
-		(editor.isSnapMode ? !inputs.ctrlKey : inputs.ctrlKey) &&
+		(editor.user.isSnapMode ? !inputs.ctrlKey : inputs.ctrlKey) &&
 		editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
 
 	if (shouldSnap) {

@@ -20,7 +20,10 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
 
-	const isEditing = useValue('isEditing', () => editor.pageState.editingId === id, [editor, id])
+	const isEditing = useValue('isEditing', () => editor.currentPageState.editingId === id, [
+		editor,
+		id,
+	])
 
 	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()

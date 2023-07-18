@@ -9,13 +9,13 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => editor.isFocused, [editor])
+	const isAppFocused = useValue('isFocused', () => editor.instanceState.isFocused, [editor])
 
 	useEffect(() => {
 		if (typeof matchMedia !== undefined) return
 
 		function updateDevicePixelRatio() {
-			editor.devicePixelRatio = window.devicePixelRatio
+			editor.updateInstanceState({ devicePixelRatio: window.devicePixelRatio })
 		}
 
 		const MM = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
@@ -78,7 +78,7 @@ export function useDocumentEvents() {
 						if (!editor.inputs.keys.has('Comma')) {
 							const { x, y, z } = editor.inputs.currentScreenPoint
 							const {
-								pageState: { hoveredId },
+								currentPageState: { hoveredId },
 							} = editor
 							editor.inputs.keys.add('Comma')
 
@@ -91,7 +91,7 @@ export function useDocumentEvents() {
 								ctrlKey: e.metaKey || e.ctrlKey,
 								pointerId: 0,
 								button: 0,
-								isPen: editor.isPenMode,
+								isPen: editor.instanceState.isPenMode,
 								...(hoveredId
 									? {
 											target: 'shape',
@@ -156,7 +156,7 @@ export function useDocumentEvents() {
 				if (editor.inputs.keys.has(e.code)) {
 					const { x, y, z } = editor.inputs.currentScreenPoint
 					const {
-						pageState: { hoveredId },
+						currentPageState: { hoveredId },
 					} = editor
 
 					editor.inputs.keys.delete(e.code)
@@ -170,7 +170,7 @@ export function useDocumentEvents() {
 						ctrlKey: e.metaKey || e.ctrlKey,
 						pointerId: 0,
 						button: 0,
-						isPen: editor.isPenMode,
+						isPen: editor.instanceState.isPenMode,
 						...(hoveredId
 							? {
 									target: 'shape',

@@ -17,7 +17,7 @@ export interface ShapeFillProps {
 
 export function useDefaultColorTheme() {
 	const editor = useEditor()
-	return getDefaultColorTheme(editor)
+	return getDefaultColorTheme({ isDarkMode: editor.user.isDarkMode })
 }
 
 export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: ShapeFillProps) {
@@ -42,7 +42,7 @@ const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
 	const editor = useEditor()
 	const theme = useDefaultColorTheme()
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
-	const isDarkMode = useValue('isDarkMode', () => editor.isDarkMode, [editor])
+	const isDarkMode = useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
 
 	const intZoom = Math.ceil(zoomLevel)
 	const teenyTiny = editor.zoomLevel <= 0.18

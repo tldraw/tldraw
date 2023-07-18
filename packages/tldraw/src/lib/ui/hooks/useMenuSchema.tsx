@@ -47,10 +47,10 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < 5
 
-	const isDarkMode = useValue('isDarkMode', () => editor.isDarkMode, [editor])
-	const animationSpeed = useValue('animationSpeed', () => editor.animationSpeed, [editor])
-	const isGridMode = useValue('isGridMode', () => editor.isGridMode, [editor])
-	const isSnapMode = useValue('isSnapMode', () => editor.isSnapMode, [editor])
+	const isDarkMode = useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
+	const animationSpeed = useValue('animationSpeed', () => editor.user.animationSpeed, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.instanceState.isGridMode, [editor])
+	const isSnapMode = useValue('isSnapMode', () => editor.user.isSnapMode, [editor])
 	const isToolLock = useValue('isToolLock', () => editor.instanceState.isToolLocked, [editor])
 	const isFocusMode = useValue('isFocusMode', () => editor.instanceState.isFocusMode, [editor])
 	const isDebugMode = useValue('isDebugMode', () => editor.instanceState.isDebugMode, [editor])

@@ -40,7 +40,7 @@ export class Rotating extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.cursor = { type: 'none', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'none', rotation: 0 } }, true)
 		this.parent.currentToolIdMask = undefined
 
 		this.snapshot = {} as TLRotationSnapshot
@@ -85,10 +85,12 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.cursor = {
-			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-		}
+		this.editor.updateInstanceState({
+			cursor: {
+				type: CursorTypeMap[this.info.handle as RotateCorner],
+				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+			},
+		})
 	}
 
 	private cancel = () => {
@@ -127,10 +129,12 @@ export class Rotating extends StateNode {
 		})
 
 		// Update cursor
-		this.editor.cursor = {
-			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
-		}
+		this.editor.updateInstanceState({
+			cursor: {
+				type: CursorTypeMap[this.info.handle as RotateCorner],
+				rotation: newSelectionRotation + this.snapshot.initialSelectionRotation,
+			},
+		})
 	}
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
@@ -150,7 +154,7 @@ export class Rotating extends StateNode {
 		} else if (snapToNearestDegree) {
 			newSelectionRotation = Math.round(newSelectionRotation / EPSILON) * EPSILON
 
-			if (this.editor.isCoarsePointer) {
+			if (this.editor.instanceState.isCoarsePointer) {
 				const snappedToRightAngle = snapAngle(newSelectionRotation, 4)
 				const angleToRightAngle = angleDelta(newSelectionRotation, snappedToRightAngle)
 				if (Math.abs(angleToRightAngle) < degreesToRadians(5)) {

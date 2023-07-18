@@ -14,10 +14,12 @@ export class PointingCropHandle extends StateNode {
 
 	private updateCursor(shape: TLShape) {
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.cursor = {
-			type: cursorType,
-			rotation: shape.rotation,
-		}
+		this.editor.updateInstanceState({
+			cursor: {
+				type: cursorType,
+				rotation: shape.rotation,
+			},
+		})
 	}
 
 	override onEnter = (info: TLPointingCropHandleInfo) => {
@@ -31,7 +33,7 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 		this.parent.currentToolIdMask = undefined
 	}
 

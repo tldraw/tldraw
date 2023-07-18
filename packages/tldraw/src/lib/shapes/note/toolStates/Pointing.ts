@@ -68,7 +68,7 @@ export class Pointing extends StateNode {
 		} else {
 			if (!shape) return
 
-			this.editor.editingId = shape.id
+			this.editor.setEditingId(shape.id)
 			this.editor.setCurrentTool('select.editing_shape', {
 				...this.info,
 				target: 'shape',

@@ -29,12 +29,12 @@ export class EditingShape extends StateNode {
 	}
 
 	override onExit = () => {
-		if (!this.editor.pageState.editingId) return
-		const { editingId } = this.editor.pageState
+		if (!this.editor.currentPageState.editingId) return
+		const { editingId } = this.editor.currentPageState
 		if (!editingId) return
 
 		// Clear the editing shape
-		this.editor.editingId = null
+		this.editor.setEditingId(null)
 
 		const shape = this.editor.getShapeById(editingId)!
 		const util = this.editor.getShapeUtil(shape)
@@ -48,7 +48,7 @@ export class EditingShape extends StateNode {
 			case 'shape': {
 				const { shape } = info
 
-				const { editingId } = this.editor.pageState
+				const { editingId } = this.editor.currentPageState
 
 				if (editingId) {
 					if (shape.id === editingId) {
@@ -70,7 +70,7 @@ export class EditingShape extends StateNode {
 							util.canEdit?.(shape) &&
 							!this.editor.isShapeOrAncestorLocked(shape)
 						) {
-							this.editor.editingId = shape.id
+							this.editor.setEditingId(shape.id)
 							this.editor.hoveredId = shape.id
 							this.editor.setSelectedIds([shape.id])
 							return

@@ -110,7 +110,7 @@ describe('When dragging the arrow', () => {
 	})
 
 	it('returns to arrow.idle, keeping shape, on pointer up when tool lock is active', () => {
-		editor.isToolLocked = true
+		editor.updateInstanceState({ isToolLocked: true })
 		const shapesBefore = editor.shapesArray.length
 		editor
 			.setCurrentTool('arrow')

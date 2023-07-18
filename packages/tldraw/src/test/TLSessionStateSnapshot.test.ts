@@ -52,7 +52,7 @@ describe('createSessionStateSnapshotSignal', () => {
 		expect(isGridMode).toBe(false)
 		expect(numPages).toBe(1)
 
-		editor.isGridMode = true
+		editor.updateInstanceState({ isGridMode: true })
 
 		expect(isGridMode).toBe(true)
 		expect(numPages).toBe(1)
@@ -70,7 +70,7 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 		let snapshot = createSessionStateSnapshotSignal(editor.store).value
 		if (!snapshot) throw new Error('snapshot is null')
 
-		expect(editor.isGridMode).toBe(false)
+		expect(editor.instanceState.isGridMode).toBe(false)
 		expect(editor.camera.x).toBe(0)
 		expect(editor.camera.y).toBe(0)
 
@@ -82,7 +82,7 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 
 		loadSessionStateSnapshotIntoStore(editor.store, snapshot)
 
-		expect(editor.isGridMode).toBe(true)
+		expect(editor.instanceState.isGridMode).toBe(true)
 		expect(editor.camera.x).toBe(1)
 		expect(editor.camera.y).toBe(2)
 	})
