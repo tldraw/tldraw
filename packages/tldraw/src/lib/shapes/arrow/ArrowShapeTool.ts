@@ -7,5 +7,5 @@ export class ArrowShapeTool extends StateNode {
 	static override initial = 'idle'
 	static override children = () => [Idle, Pointing]
 
-	overrideshapeType = 'arrow'
+	override shapeType = 'arrow'
 }
