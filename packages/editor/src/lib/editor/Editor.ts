@@ -1406,8 +1406,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		'setSelectedIds',
 		(ids: TLShapeId[], squashing = false) => {
 			const prevSelectedIds = this.pageState.selectedIds
-
-			const prevSet = new Set(this.pageState.selectedIds)
+			const prevSet = new Set(prevSelectedIds)
 
 			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
 
@@ -1415,35 +1414,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ ids }) => {
-				this.store.update(this.pageState.id, (state) => ({ ...state, selectedIds: ids }))
+				this.store.put([{ ...this.pageState, selectedIds: ids }])
 			},
 			undo: ({ prevSelectedIds }) => {
-				this.store.update(this.pageState.id, () => ({
-					...this.pageState,
-					selectedIds: prevSelectedIds,
-				}))
+				this.store.put([{ ...this.pageState, selectedIds: prevSelectedIds }])
 			},
 			squash(prev, next) {
 				return { ids: next.ids, prevSelectedIds: prev.prevSelectedIds }
 			},
 		}
 	)
-
-	/**
-	 * Determine whether or not a shape is selected
-	 *
-	 * @example
-	 * ```ts
-	 * editor.isSelected('id1')
-	 * ```
-	 *
-	 * @param id - The id of the shape to check.
-	 *
-	 * @public
-	 */
-	isSelected(id: TLShapeId) {
-		return this.selectedIds.includes(id)
-	}
 
 	/**
 	 * Determine whether or not any of a shape's ancestors are selected.
@@ -1455,7 +1435,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isAncestorSelected(id: TLShapeId) {
 		const shape = this.getShapeById(id)
 		if (!shape) return false
-		return !!this.findAncestor(shape, (parent) => this.isSelected(parent.id))
+		const { selectedIds } = this
+		return !!this.findAncestor(shape, (parent) => selectedIds.includes(parent.id))
 	}
 
 	/**

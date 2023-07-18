@@ -252,7 +252,7 @@ export class Idle extends StateNode {
 
 				const targetShape = this.editor.getOutermostSelectableShape(
 					shape,
-					(parent) => !this.editor.isSelected(parent.id)
+					(parent) => !selectedIds.includes(parent.id)
 				)
 
 				if (!selectedIds.includes(targetShape.id)) {

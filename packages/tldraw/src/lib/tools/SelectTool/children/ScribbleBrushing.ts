@@ -87,12 +87,12 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.editor.instanceState.scribble = scribble
+		this.editor.updateInstanceState({ scribble })
 	}
 
 	private onScribbleComplete = () => {
 		this.editor.off('tick', this.scribble.tick)
-		this.editor.instanceState.scribble = null
+		this.editor.updateInstanceState({ scribble: null })
 	}
 
 	private updateBrushSelection() {

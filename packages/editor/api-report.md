@@ -559,7 +559,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get isMenuOpen(): boolean;
     isPointInShape(point: VecLike, shape: TLShape): boolean;
     readonly isSafari: boolean;
-    isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
     isShapeOrAncestorLocked(shape?: TLShape): boolean;

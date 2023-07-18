@@ -252,6 +252,8 @@ describe('<TldrawEditor />', () => {
 		// Select the shape
 		await act(async () => editor.select(id))
 
+		expect(editor.selectedIds.length).toBe(1)
+
 		// Is the shape's component rendering?
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
 

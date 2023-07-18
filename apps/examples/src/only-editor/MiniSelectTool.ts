@@ -32,7 +32,7 @@ class IdleState extends StateNode {
 				if (editor.inputs.shiftKey) {
 					editor.select(...editor.selectedIds, info.shape.id)
 				} else {
-					if (!editor.isSelected(info.shape.id)) {
+					if (!editor.selectedIds.includes(info.shape.id)) {
 						editor.select(info.shape.id)
 					}
 					this.parent.transition('pointing', info)

@@ -274,6 +274,7 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 function SelectedIdIndicators() {
 	const editor = useEditor()
 
+	const selectedIds = useValue('selectedIds', () => editor.pageState.selectedIds, [editor])
 	const shouldDisplay = useValue(
 		'should display selected ids',
 		() => {
@@ -296,7 +297,7 @@ function SelectedIdIndicators() {
 
 	return (
 		<>
-			{editor.selectedIds.map((id) => (
+			{selectedIds.map((id) => (
 				<ShapeIndicator key={id + '_indicator'} className="tl-user-indicator__selected" id={id} />
 			))}
 		</>
