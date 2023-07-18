@@ -626,7 +626,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     select(...ids: TLShapeId[]): this;
     selectAll(): this;
     get selectedIds(): TLShapeId[];
-    get selectedIdsSet(): ReadonlySet<TLShapeId>;
     get selectedPageBounds(): Box2d | null;
     get selectedShapes(): TLShape[];
     get selectionBounds(): Box2d | undefined;
@@ -639,7 +638,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
-    setPageState(partial: Partial<TLInstancePageState>, ephemeral?: boolean): void;
+    setPageState(partial: Partial<Omit<TLInstancePageState, 'selectedIds'>>, ephemeral?: boolean): void;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
     get shapesArray(): TLShape[];

@@ -1351,14 +1351,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setPageState(partial: Partial<TLInstancePageState>, ephemeral = false) {
+	setPageState(partial: Partial<Omit<TLInstancePageState, 'selectedIds'>>, ephemeral = false) {
 		this._setInstancePageState(partial, ephemeral)
 	}
 
 	/** @internal */
 	private _setInstancePageState = this.history.createCommand(
 		'setInstancePageState',
-		(partial: Partial<TLInstancePageState>, ephemeral = false) => {
+		(partial: Partial<Omit<TLInstancePageState, 'selectedIds'>>, ephemeral = false) => {
 			const prev = this.store.get(partial.id ?? this.pageState.id)!
 			return { data: { prev, partial }, ephemeral }
 		},
@@ -1379,15 +1379,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed get selectedIds() {
 		return this.pageState.selectedIds
-	}
-
-	/**
-	 * The current selected ids as a set
-	 *
-	 * @public
-	 */
-	@computed get selectedIdsSet(): ReadonlySet<TLShapeId> {
-		return new Set(this.selectedIds)
 	}
 
 	/**
@@ -1451,7 +1442,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isSelected(id: TLShapeId) {
-		return this.selectedIdsSet.has(id)
+		return this.selectedIds.includes(id)
 	}
 
 	/**
