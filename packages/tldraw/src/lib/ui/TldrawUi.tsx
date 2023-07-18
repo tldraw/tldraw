@@ -119,7 +119,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useValue('isReadOnlyMode', () => editor.isReadOnly, [editor])
+	const isReadonlyMode = useValue('isReadOnlyMode', () => editor.editorState.isReadOnly, [editor])
 	const isFocusMode = useValue('focus', () => editor.instanceState.isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.instanceState.isDebugMode, [editor])
 

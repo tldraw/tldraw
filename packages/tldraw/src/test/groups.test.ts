@@ -279,7 +279,8 @@ describe('creating groups', () => {
 		// │ A │   │ B │   │ C │
 		// └───┘   └───┘   └───┘
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
-		editor.isReadOnly = true
+		editor.updateEditorState({ isReadOnly: true })
+		editor.setCurrentTool('hand')
 		editor.selectAll()
 		expect(editor.selectedIds.length).toBe(3)
 		editor.groupShapes()
@@ -490,7 +491,8 @@ describe('ungrouping shapes', () => {
 		expect(editor.selectedIds.length).toBe(3)
 		editor.groupShapes()
 		expect(editor.selectedIds.length).toBe(1)
-		editor.isReadOnly = true
+		editor.updateEditorState({ isReadOnly: true })
+		editor.setCurrentTool('hand')
 
 		editor.ungroupShapes()
 		expect(editor.selectedIds.length).toBe(1)

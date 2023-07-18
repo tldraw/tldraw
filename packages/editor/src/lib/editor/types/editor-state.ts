@@ -7,14 +7,15 @@ export type TLEditorState = {
 	isCoarsePointer: boolean
 	openMenus: string[]
 	isChangingStyle: boolean
+	isReadOnly: boolean
 }
 
-export const editorStateValidator = T.object({
+export const editorStateValidator = T.object<TLEditorState>({
 	canMoveCamera: T.boolean,
 	isFocused: T.boolean,
 	devicePixelRatio: T.number,
 	isCoarsePointer: T.boolean,
 	openMenus: T.arrayOf(T.string),
 	isChangingStyle: T.boolean,
-	isPenMode: T.boolean,
+	isReadOnly: T.boolean,
 })

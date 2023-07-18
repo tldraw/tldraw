@@ -573,8 +573,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly isIos: boolean;
     get isMenuOpen(): boolean;
     isPointInShape(point: VecLike, shape: TLShape): boolean;
-    get isReadOnly(): boolean;
-    set isReadOnly(isReadOnly: boolean);
     readonly isSafari: boolean;
     isSelected(id: TLShapeId): boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;

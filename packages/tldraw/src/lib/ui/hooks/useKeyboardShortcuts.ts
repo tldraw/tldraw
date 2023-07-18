@@ -2,7 +2,7 @@ import { preventDefault, useEditor } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from './useActions'
-import { useReadonly } from './useReadonly'
+import { useReadOnly } from './useReadOnly'
 import { useTools } from './useTools'
 
 const SKIP_KBDS = [
@@ -18,7 +18,7 @@ const SKIP_KBDS = [
 export function useKeyboardShortcuts() {
 	const editor = useEditor()
 
-	const isReadonly = useReadonly()
+	const isReadonly = useReadOnly()
 	const actions = useActions()
 	const tools = useTools()
 
@@ -51,7 +51,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && editor.isReadOnly)) continue
+			if (!tool.kbd || (!tool.readonlyOk && editor.editorState.isReadOnly)) continue
 
 			if (SKIP_KBDS.includes(tool.id)) continue
 

@@ -196,7 +196,7 @@ const HandlesWrapper = track(function HandlesWrapper() {
 	const shouldDisplayHandles =
 		editor.isInAny('select.idle', 'select.pointing_handle') &&
 		!isChangingStyle &&
-		!editor.isReadOnly
+		!editor.editorState.isReadOnly
 
 	if (!(onlySelectedShape && shouldDisplayHandles)) return null
 

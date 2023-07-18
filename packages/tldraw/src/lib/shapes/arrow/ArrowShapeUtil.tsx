@@ -560,7 +560,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'select.pointing_handle',
 				'select.dragging_handle',
 				'arrow.dragging'
-			) && !this.editor.isReadOnly
+			) && !this.editor.editorState.isReadOnly
 
 		const info = this.editor.getArrowInfo(shape)
 		const bounds = this.editor.getBounds(shape)
