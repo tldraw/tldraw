@@ -367,7 +367,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('duplicate-shapes', { source })
 					const ids = editor.selectedIds
 					const commonBounds = Box2d.Common(compact(ids.map((id) => editor.getPageBoundsById(id))))
-					const offset = editor.canMoveCamera
+					const offset = editor.editorState.canMoveCamera
 						? {
 								x: commonBounds.width + 10,
 								y: 0,
@@ -871,7 +871,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
 							clearToasts()
-							editor.isFocusMode = !editor.isFocusMode
+							editor.updateInstanceState({ isFocusMode: !editor.instanceState.isFocusMode })
 						})
 					})
 				},
@@ -884,7 +884,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: "$'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
-					editor.isGridMode = !editor.isGridMode
+					editor.updateInstanceState({ isGridMode: !editor.instanceState.isGridMode })
 				},
 				checkbox: true,
 			},
@@ -921,7 +921,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('exit-pen-mode', { source })
-					editor.isPenMode = false
+					editor.instanceState.isPenMode = false
 				},
 			},
 			{

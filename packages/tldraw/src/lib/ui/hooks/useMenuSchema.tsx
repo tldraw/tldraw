@@ -49,7 +49,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 
 	const isDarkMode = useValue('isDarkMode', () => editor.isDarkMode, [editor])
 	const animationSpeed = useValue('animationSpeed', () => editor.animationSpeed, [editor])
-	const isGridMode = useValue('isGridMode', () => editor.isGridMode, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.instanceState.isGridMode, [editor])
 	const isSnapMode = useValue('isSnapMode', () => editor.isSnapMode, [editor])
 	const isToolLock = useValue('isToolLock', () => editor.instanceState.isToolLocked, [editor])
 	const isFocusMode = useValue('isFocusMode', () => editor.instanceState.isFocusMode, [editor])

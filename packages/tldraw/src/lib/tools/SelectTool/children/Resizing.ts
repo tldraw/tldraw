@@ -208,7 +208,7 @@ export class Resizing extends StateNode {
 			.sub(this.creationCursorOffset)
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
-		if (this.editor.isGridMode && !ctrlKey) {
+		if (this.editor.instanceState.isGridMode && !ctrlKey) {
 			const { gridSize } = this.editor.documentSettings
 			currentPagePoint.snapToGrid(gridSize)
 		}

@@ -344,7 +344,7 @@ export function moveShapesToPoint({
 }) {
 	const {
 		inputs,
-		isGridMode,
+		instanceState: { isGridMode },
 		documentSettings: { gridSize },
 	} = editor
 

@@ -14,7 +14,7 @@ it('converts correctly', () => {
 
 it('does not zoom to bounds when camera is frozen', () => {
 	const cameraBefore = { ...editor.camera }
-	editor.canMoveCamera = false
+	editor.updateEditorState({ canMoveCamera: false })
 	editor.zoomToFit()
 	expect(editor.camera).toMatchObject(cameraBefore)
 })

@@ -150,7 +150,7 @@ export class Rotating extends StateNode {
 		} else if (snapToNearestDegree) {
 			newSelectionRotation = Math.round(newSelectionRotation / EPSILON) * EPSILON
 
-			if (this.editor.isCoarsePointer) {
+			if (this.editor.editorState.isCoarsePointer) {
 				const snappedToRightAngle = snapAngle(newSelectionRotation, 4)
 				const angleToRightAngle = angleDelta(newSelectionRotation, snappedToRightAngle)
 				if (Math.abs(angleToRightAngle) < degreesToRadians(5)) {

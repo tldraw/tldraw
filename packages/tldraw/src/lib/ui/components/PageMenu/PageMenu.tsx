@@ -44,7 +44,9 @@ export const PageMenu = function PageMenu() {
 		[editor]
 	)
 
-	const isCoarsePointer = useValue('isCoarsePointer', () => editor.isCoarsePointer, [editor])
+	const isCoarsePointer = useValue('isCoarsePointer', () => editor.editorState.isCoarsePointer, [
+		editor,
+	])
 
 	// The component has an "editing state" that may be toggled to expose additional controls
 	const [isEditing, setIsEditing] = useState(false)

@@ -120,6 +120,7 @@ import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
 import { TLContent } from './types/clipboard-types'
+import { TLEditorState, editorStateValidator } from './types/editor-state'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
 import { RequiredKeys } from './types/misc-types'
@@ -313,23 +314,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		const container = this.getContainer()
-		const focusin = () => {
-			this._isFocused.set(true)
-		}
-		const focusout = () => {
-			this._isFocused.set(false)
-		}
 
-		container.addEventListener('focusin', focusin)
-		container.addEventListener('focus', focusin)
-		container.addEventListener('focusout', focusout)
-		container.addEventListener('blur', focusout)
+		container.addEventListener('focusin', this.focus)
+		container.addEventListener('focus', this.focus)
+		container.addEventListener('focusout', this.blur)
+		container.addEventListener('blur', this.blur)
 
 		this.disposables.add(() => {
-			container.removeEventListener('focusin', focusin)
-			container.removeEventListener('focus', focusin)
-			container.removeEventListener('focusout', focusout)
-			container.removeEventListener('blur', focusout)
+			container.removeEventListener('focusin', this.focus)
+			container.removeEventListener('focus', this.focus)
+			container.removeEventListener('focusout', this.blur)
+			container.removeEventListener('blur', this.blur)
 		})
 
 		this.store.ensureStoreIsUsable()
@@ -1128,78 +1123,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/* ----------------- Internal State ----------------- */
 
+	_editorState = atom<TLEditorState>('interal_state', {
+		canMoveCamera: false,
+		isFocused: false,
+		devicePixelRatio: typeof window === 'undefined' ? 1 : window.devicePixelRatio,
+		isCoarsePointer: false,
+		openMenus: [] as string[],
+		isChangingStyle: false,
+	})
+
+	@computed get editorState() {
+		return this._editorState.value
+	}
 	/**
-	 * Whether the editor's camera can move.
+	 * Update the editor's internal state.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.canMoveCamera = false
+	 * editor.updateEditorState({ editorState.canMoveCamera: false })
 	 * ```
 	 *
-	 * @param canMove - Whether the camera can move.
+	 * @param editorState - A partial of the editor state to update.
 	 *
 	 * @public
 	 */
-	get canMoveCamera(): boolean {
-		return this._canMoveCamera.value
-	}
-	set canMoveCamera(canMove: boolean) {
-		this._canMoveCamera.set(canMove)
-	}
-	private _canMoveCamera = atom('can move camera', true)
+	updateEditorState(editorState: Partial<TLEditorState>) {
+		const next = editorStateValidator.validate({
+			...this._editorState.__unsafe__getWithoutCapture(),
+			...editorState,
+		})
 
-	/**
-	 * Whether or not the editor is focused.
-	 *
-	 * @public
-	 */
-	@computed get isFocused(): boolean {
-		return this._isFocused.value
-	}
-	set isFocused(isFocused) {
-		if (isFocused) {
+		this._editorState.set(next)
+		if (editorState.isFocused === true) {
 			this.getContainer().focus()
-			this._isFocused.set(true)
-		} else {
-			this.complete()
+		} else if (editorState.isFocused === false) {
 			this.getContainer().blur()
 		}
-		this._isFocused.set(isFocused)
-	}
-	private _isFocused = atom('_isFocused', false)
 
-	focus = () => (this.isFocused = true)
-	blur = () => (this.isFocused = false)
+		return this
+	}
 
-	/**
-	 * The window's device pixel ratio.
-	 *
-	 * @public
-	 */
-	@computed get devicePixelRatio(): number {
-		return this._dpr.value
-	}
-	set devicePixelRatio(dpr: number) {
-		this._dpr.set(dpr)
-	}
-	/** @internal */
-	private _dpr = atom<number>('dpr', typeof window === 'undefined' ? 1 : window.devicePixelRatio)
-
-	// Coarse Pointer
-
-	/**
-	 * Whether the user is using a "coarse" pointer, such as on a touch screen. This is automatically set by the canvas.
-	 *
-	 * @public
-	 **/
-	get isCoarsePointer(): boolean {
-		return this._isCoarsePointer.value
-	}
-	set isCoarsePointer(v) {
-		this._isCoarsePointer.set(v)
-	}
-	/** @internal */
-	private _isCoarsePointer = atom<boolean>('isCoarsePointer', false as any)
+	focus = () => this.updateEditorState({ isFocused: true })
+	blur = () => this.updateEditorState({ isFocused: false })
 
 	// Menus
 
@@ -1301,22 +1266,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _isChangingStyleTimeout = -1 as any
 
 	// Pen Mode
-
-	/**
-	 * Whether the editor is in pen mode or not.
-	 *
-	 * @public
-	 **/
-	get isPenMode(): boolean {
-		return this._isPenMode.value
-	}
-	set isPenMode(isPenMode: boolean) {
-		if (isPenMode !== this.isPenMode) {
-			this._isPenMode.set(isPenMode)
-		}
-	}
-	/** @internal */
-	private _isPenMode = atom<boolean>('isPenMode', false as any)
 
 	/**
 	 * Whether the editor is in read-only mode or not.
@@ -1450,7 +1399,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	private _updateInstanceState = this.history.createCommand(
-		'updateTabState',
+		'updateInstanceState',
 		(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral = false, squashing = false) => {
 			const prev = this.instanceState
 			const next = { ...prev, ...partial }
@@ -1528,20 +1477,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Whether the instance is in focus mode or not.
-	 *
-	 * @public
-	 **/
-	@computed get isFocusMode() {
-		return this.instanceState.isFocusMode
-	}
-	set isFocusMode(isFocusMode: boolean) {
-		if (isFocusMode !== this.isFocusMode) {
-			this.updateInstanceState({ isFocusMode }, true)
-		}
-	}
-
-	/**
 	 * Whether the instance has "tool lock" mode enabled.
 	 *
 	 * @public
@@ -1552,20 +1487,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	set isToolLocked(isToolLocked: boolean) {
 		if (isToolLocked !== this.isToolLocked) {
 			this.updateInstanceState({ isToolLocked }, true)
-		}
-	}
-
-	/**
-	 * Whether the instance's grid is enabled.
-	 *
-	 * @public
-	 **/
-	@computed get isGridMode() {
-		return this.instanceState.isGridMode
-	}
-	set isGridMode(isGridMode: boolean) {
-		if (isGridMode !== this.isGridMode) {
-			this.updateInstanceState({ isGridMode }, true)
 		}
 	}
 
@@ -2198,7 +2119,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				altKey: this.inputs.altKey,
 				shiftKey: this.inputs.shiftKey,
 				button: 0,
-				isPen: this.isPenMode ?? false,
+				isPen: this.instanceState.isPenMode ?? false,
 			})
 
 			this._tickCameraState()
@@ -2290,7 +2211,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	centerOnPoint(x: number, y: number, opts?: TLAnimationOptions): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		const {
 			viewportPageBounds: { width: pw, height: ph },
@@ -2338,7 +2259,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToFit(opts?: TLAnimationOptions): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		const ids = [...this.currentPageShapeIds]
 		if (ids.length <= 0) return this
@@ -2368,7 +2289,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resetZoom(point = this.viewportScreenCenter, opts?: TLAnimationOptions): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.camera
 		const { x, y } = point
@@ -2396,7 +2317,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomIn(point = this.viewportScreenCenter, opts?: TLAnimationOptions): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.camera
 
@@ -2440,7 +2361,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomOut(point = this.viewportScreenCenter, opts?: TLAnimationOptions): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		const { x: cx, y: cy, z: cz } = this.camera
 
@@ -2483,7 +2404,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToSelection(opts?: TLAnimationOptions): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		const ids = this.selectedIds
 		if (ids.length <= 0) return this
@@ -2511,7 +2432,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	panZoomIntoView(ids: TLShapeId[], opts?: TLAnimationOptions): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		if (ids.length <= 0) return this
 		const selectedBounds = Box2d.Common(compact(ids.map((id) => this.getPageBoundsById(id))))
@@ -2590,7 +2511,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		targetZoom?: number,
 		opts?: TLAnimationOptions
 	): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		const { viewportScreenBounds } = this
 
@@ -2641,7 +2562,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opts - The animation options
 	 */
 	pan(dx: number, dy: number, opts?: TLAnimationOptions): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		const { camera } = this
 		const { x: cx, y: cy, z: cz } = camera
@@ -2768,7 +2689,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			speedThreshold?: number
 		}
 	) {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		this.stopCameraAnimation()
 
@@ -2864,7 +2785,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	animateToShape(shapeId: TLShapeId, opts: TLAnimationOptions = DEFAULT_ANIMATION_OPTIONS): this {
-		if (!this.canMoveCamera) return this
+		if (!this.editorState.canMoveCamera) return this
 
 		const activeArea = this.viewportScreenBounds.clone().expandBy(-32)
 		const viewportAspectRatio = activeArea.width / activeArea.height
@@ -5341,7 +5262,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 		const { gridSize } = this.documentSettings
 
-		const step = this.isGridMode
+		const step = this.instanceState.isGridMode
 			? major
 				? gridSize * GRID_INCREMENT
 				: gridSize
@@ -8623,7 +8544,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			switch (type) {
 				case 'pinch': {
-					if (!this.canMoveCamera) return
+					if (!this.editorState.canMoveCamera) return
 					this._updateInputsFromEvent(info)
 
 					switch (info.name) {
@@ -8715,7 +8636,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 				case 'wheel': {
-					if (!this.canMoveCamera) return
+					if (!this.editorState.canMoveCamera) return
 
 					if (this.isMenuOpen) {
 						// noop
@@ -8749,7 +8670,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 							!inputs.isDragging &&
 							inputs.isPointing &&
 							originPagePoint.dist(currentPagePoint) >
-								(this.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / this.zoomLevel
+								(this.editorState.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
+									this.zoomLevel
 						) {
 							inputs.isDragging = true
 						}
@@ -8780,13 +8702,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 							inputs.isPointing = true
 							inputs.isDragging = false
 
-							if (this.isPenMode) {
+							if (this.instanceState.isPenMode) {
 								if (!isPen) {
 									return
 								}
 							} else {
 								if (isPen) {
-									this.isPenMode = true
+									this.updateInstanceState({ isPenMode: true })
 								}
 							}
 
@@ -8820,7 +8742,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}
 						case 'pointer_move': {
 							// If the user is in pen mode, but the pointer is not a pen, stop here.
-							if (!isPen && this.isPenMode) {
+							if (!isPen && this.instanceState.isPenMode) {
 								return
 							}
 
@@ -8836,7 +8758,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 								!inputs.isDragging &&
 								inputs.isPointing &&
 								originPagePoint.dist(currentPagePoint) >
-									(this.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) / this.zoomLevel
+									(this.editorState.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE) /
+										this.zoomLevel
 							) {
 								inputs.isDragging = true
 							}
@@ -8854,7 +8777,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 								return
 							}
 
-							if (!isPen && this.isPenMode) {
+							if (!isPen && this.instanceState.isPenMode) {
 								return
 							}
 
@@ -8979,7 +8902,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 
 				// If a pointer event, send the event to the click manager.
-				if (info.isPen === this.isPenMode) {
+				if (info.isPen === this.instanceState.isPenMode) {
 					switch (info.name) {
 						case 'pointer_down': {
 							const otherEvent = this._clickManager.transformPointerDownEvent(info)

@@ -368,7 +368,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     bailToMark(id: string): this;
     batch(fn: () => void): this;
     // (undocumented)
-    blur: () => boolean;
+    blur: () => this;
     bringForward(ids?: TLShapeId[]): this;
     bringToFront(ids?: TLShapeId[]): this;
     get brush(): Box2dModel | null;
@@ -377,8 +377,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
-    get canMoveCamera(): boolean;
-    set canMoveCamera(canMove: boolean);
     get canRedo(): boolean;
     get canUndo(): boolean;
     // @internal (undocumented)
@@ -421,8 +419,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     deletePage(id: TLPageId): void;
     deleteShapes(ids?: TLShapeId[]): this;
     deselect(...ids: TLShapeId[]): this;
-    get devicePixelRatio(): number;
-    set devicePixelRatio(dpr: number);
     dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
     dispose(): void;
@@ -432,6 +428,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     set editingId(id: null | TLShapeId);
+    // (undocumented)
+    get editorState(): TLEditorState;
+    // (undocumented)
+    _editorState: Atom<TLEditorState, unknown>;
     get erasingIds(): TLShapeId[];
     set erasingIds(ids: TLShapeId[]);
     get erasingIdsSet(): Set<TLShapeId>;
@@ -455,7 +455,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
     // (undocumented)
-    focus: () => boolean;
+    focus: () => this;
     get focusLayerId(): TLPageId | TLShapeId;
     set focusLayerId(next: TLPageId | TLShapeId);
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
@@ -565,23 +565,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     get isChangingStyle(): boolean;
     set isChangingStyle(v: boolean);
     readonly isChromeForIos: boolean;
-    get isCoarsePointer(): boolean;
-    set isCoarsePointer(v: boolean);
     get isDarkMode(): boolean;
     set isDarkMode(isDarkMode: boolean);
     readonly isFirefox: boolean;
-    get isFocused(): boolean;
-    set isFocused(isFocused: boolean);
-    get isFocusMode(): boolean;
-    set isFocusMode(isFocusMode: boolean);
-    get isGridMode(): boolean;
-    set isGridMode(isGridMode: boolean);
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
     readonly isIos: boolean;
     get isMenuOpen(): boolean;
-    get isPenMode(): boolean;
-    set isPenMode(isPenMode: boolean);
     isPointInShape(point: VecLike, shape: TLShape): boolean;
     get isReadOnly(): boolean;
     set isReadOnly(isReadOnly: boolean);
@@ -710,6 +700,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     ungroupShapes(ids?: TLShapeId[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
+    updateEditorState(editorState: Partial<TLEditorState>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal

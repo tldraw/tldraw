@@ -345,43 +345,43 @@ describe('currentToolId', () => {
 
 describe('isFocused', () => {
 	it('is false by default', () => {
-		expect(editor.isFocused).toBe(false)
+		expect(editor.editorState.isFocused).toBe(false)
 	})
 
 	it('becomes true when you call .focus()', () => {
-		editor.isFocused = true
-		expect(editor.isFocused).toBe(true)
+		editor.updateEditorState({ isFocused: true })
+		expect(editor.editorState.isFocused).toBe(true)
 	})
 
 	it('becomes false when you call .blur()', () => {
-		editor.isFocused = true
-		expect(editor.isFocused).toBe(true)
+		editor.updateEditorState({ isFocused: true })
+		expect(editor.editorState.isFocused).toBe(true)
 
-		editor.isFocused = false
-		expect(editor.isFocused).toBe(false)
+		editor.updateEditorState({ isFocused: false })
+		expect(editor.editorState.isFocused).toBe(false)
 	})
 
 	it('remains false when you call .blur()', () => {
-		expect(editor.isFocused).toBe(false)
-		editor.isFocused = false
-		expect(editor.isFocused).toBe(false)
+		expect(editor.editorState.isFocused).toBe(false)
+		editor.updateEditorState({ isFocused: false })
+		expect(editor.editorState.isFocused).toBe(false)
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
-		expect(editor.isFocused).toBe(false)
+		expect(editor.editorState.isFocused).toBe(false)
 
 		editor.elm.focus()
 
-		expect(editor.isFocused).toBe(true)
+		expect(editor.editorState.isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
-		editor.isFocused = true
-		expect(editor.isFocused).toBe(true)
+		editor.updateEditorState({ isFocused: true })
+		expect(editor.editorState.isFocused).toBe(true)
 
 		editor.elm.blur()
 
-		expect(editor.isFocused).toBe(false)
+		expect(editor.editorState.isFocused).toBe(false)
 	})
 
 	it('becomes true when a child of the app container div receives a focusin event', () => {
@@ -390,28 +390,28 @@ describe('isFocused', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 
-		expect(editor.isFocused).toBe(false)
+		expect(editor.editorState.isFocused).toBe(false)
 
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
 
-		expect(editor.isFocused).toBe(true)
+		expect(editor.editorState.isFocused).toBe(true)
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		expect(editor.isFocused).toBe(false)
+		expect(editor.editorState.isFocused).toBe(false)
 	})
 
 	it('becomes false when a child of the app container div receives a focusout event', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 
-		editor.isFocused = true
+		editor.updateEditorState({ isFocused: true })
 
-		expect(editor.isFocused).toBe(true)
+		expect(editor.editorState.isFocused).toBe(true)
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		expect(editor.isFocused).toBe(false)
+		expect(editor.editorState.isFocused).toBe(false)
 	})
 
 	it('calls .focus() and .blur() on the container div when you call .focus() and .blur() on the editor', () => {
@@ -421,12 +421,12 @@ describe('isFocused', () => {
 		expect(focusMock).not.toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.isFocused = true
+		editor.updateEditorState({ isFocused: true })
 
 		expect(focusMock).toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.isFocused = false
+		editor.updateEditorState({ isFocused: false })
 
 		expect(blurMock).toHaveBeenCalled()
 	})

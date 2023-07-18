@@ -10,6 +10,7 @@ import {
 	isNonNull,
 	uniq,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
@@ -17,7 +18,6 @@ import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
-import { useEditorIsFocused } from './useEditorIsFocused'
 import { TLUiEventSource, useEvents } from './useEventsProvider'
 
 /** @public */
@@ -642,7 +642,7 @@ export function useNativeClipboardEvents() {
 	const editor = useEditor()
 	const trackEvent = useEvents()
 
-	const appIsFocused = useEditorIsFocused()
+	const appIsFocused = useValue('editor.isFocused', () => editor.editorState.isFocused, [editor])
 
 	useEffect(() => {
 		if (!appIsFocused) return

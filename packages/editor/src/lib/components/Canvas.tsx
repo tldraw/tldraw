@@ -125,7 +125,7 @@ const GridWrapper = track(function GridWrapper() {
 
 	const { gridSize } = editor.documentSettings
 	const { x, y, z } = editor.camera
-	const isGridMode = editor.isGridMode
+	const isGridMode = editor.instanceState.isGridMode
 
 	if (!(Grid && isGridMode)) return null
 

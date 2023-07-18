@@ -9,13 +9,13 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => editor.isFocused, [editor])
+	const isAppFocused = useValue('isFocused', () => editor.editorState.isFocused, [editor])
 
 	useEffect(() => {
 		if (typeof matchMedia !== undefined) return
 
 		function updateDevicePixelRatio() {
-			editor.devicePixelRatio = window.devicePixelRatio
+			editor.updateEditorState({ devicePixelRatio: window.devicePixelRatio })
 		}
 
 		const MM = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
@@ -91,7 +91,7 @@ export function useDocumentEvents() {
 								ctrlKey: e.metaKey || e.ctrlKey,
 								pointerId: 0,
 								button: 0,
-								isPen: editor.isPenMode,
+								isPen: editor.instanceState.isPenMode,
 								...(hoveredId
 									? {
 											target: 'shape',
@@ -170,7 +170,7 @@ export function useDocumentEvents() {
 						ctrlKey: e.metaKey || e.ctrlKey,
 						pointerId: 0,
 						button: 0,
-						isPen: editor.isPenMode,
+						isPen: editor.instanceState.isPenMode,
 						...(hoveredId
 							? {
 									target: 'shape',
