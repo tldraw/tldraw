@@ -91,6 +91,37 @@ export function applyRotationToSnapshotShapes({ delta, editor, snapshot, stage, 
 // @public
 export function approximately(a: number, b: number, precision?: number): boolean;
 
+// @public (undocumented)
+export class Arc2d extends Geometry2d {
+    constructor(config: {
+        center: Vec2d;
+        radius: number;
+        start: Vec2d;
+        end: Vec2d;
+        margin: number;
+    });
+    // (undocumented)
+    ab: number;
+    // (undocumented)
+    ac: number;
+    // (undocumented)
+    _center: Vec2d;
+    // (undocumented)
+    end: Vec2d;
+    // (undocumented)
+    getVertices(): Vec2d[];
+    // (undocumented)
+    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    // (undocumented)
+    margin: number;
+    // (undocumented)
+    nearestPoint(point: Vec2d): Vec2d;
+    // (undocumented)
+    radius: number;
+    // (undocumented)
+    start: Vec2d;
+}
+
 // @public
 export function areAnglesCompatible(a: number, b: number): boolean;
 
@@ -116,15 +147,7 @@ export abstract class BaseBoxShapeTool extends StateNode {
 // @public (undocumented)
 export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends ShapeUtil<Shape> {
     // (undocumented)
-    getBounds(shape: Shape): Box2d;
-    // (undocumented)
-    getCenter(shape: Shape): Vec2d;
-    // (undocumented)
-    getOutline(shape: Shape): Vec2d[];
-    // (undocumented)
-    hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean;
-    // (undocumented)
-    hitTestPoint(shape: Shape, point: VecLike): boolean;
+    getGeometry(shape: Shape): Geometry2d;
     // (undocumented)
     onResize: TLOnResizeHandler<any>;
 }
@@ -251,6 +274,33 @@ export function canonicalizeRotation(a: number): number;
 // @public (undocumented)
 export const Canvas: React_2.MemoExoticComponent<() => JSX.Element>;
 
+// @public (undocumented)
+export class Circle2d extends Geometry2d {
+    constructor(config: {
+        radius: number;
+        margin: number;
+        isFilled: boolean;
+    });
+    // (undocumented)
+    _center: Vec2d;
+    // (undocumented)
+    config: {
+        radius: number;
+        margin: number;
+        isFilled: boolean;
+    };
+    // (undocumented)
+    getBounds(): Box2d;
+    // (undocumented)
+    getVertices(): Vec2d[];
+    // (undocumented)
+    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    // (undocumented)
+    nearestPoint(point: Vec2d): Vec2d;
+    // (undocumented)
+    radius: number;
+}
+
 // @public
 export function clamp(n: number, min: number): number;
 
@@ -277,6 +327,56 @@ export function createTLUser(opts?: {
     userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
     setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
 }): TLUser;
+
+// @public (undocumented)
+export class CubicBezier2d extends Polyline2d {
+    constructor(config: {
+        margin: number;
+        start: Vec2d;
+        cp1: Vec2d;
+        cp2: Vec2d;
+        end: Vec2d;
+    });
+    // (undocumented)
+    a: Vec2d;
+    // (undocumented)
+    b: Vec2d;
+    // (undocumented)
+    c: Vec2d;
+    // (undocumented)
+    d: Vec2d;
+    // (undocumented)
+    getVertices(): Vec2d[];
+    // (undocumented)
+    midPoint(): Vec2d;
+    // (undocumented)
+    nearestPoint(A: Vec2d): Vec2d;
+}
+
+// @public (undocumented)
+export class CubicSpline2d extends Geometry2d {
+    constructor(config: {
+        points: Vec2d[];
+        isFilled: boolean;
+        margin: number;
+    });
+    // (undocumented)
+    getVertices(): Vec2d[];
+    // (undocumented)
+    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    // (undocumented)
+    get length(): number;
+    // (undocumented)
+    _length?: number;
+    // (undocumented)
+    nearestPoint(A: Vec2d): Vec2d;
+    // (undocumented)
+    points: Vec2d[];
+    // (undocumented)
+    get segments(): CubicBezier2d[];
+    // (undocumented)
+    _segments?: CubicBezier2d[];
+}
 
 // @public (undocumented)
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
@@ -339,6 +439,33 @@ export const EASINGS: {
     readonly easeOutExpo: (t: number) => number;
     readonly easeInOutExpo: (t: number) => number;
 };
+
+// @public (undocumented)
+export class Edge2d extends Geometry2d {
+    constructor(config: {
+        start: Vec2d;
+        end: Vec2d;
+        margin: number;
+    });
+    // (undocumented)
+    d: Vec2d;
+    // (undocumented)
+    end: Vec2d;
+    // (undocumented)
+    getVertices(): Vec2d[];
+    // (undocumented)
+    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    // (undocumented)
+    length: number;
+    // (undocumented)
+    midPoint(): Vec2d;
+    // (undocumented)
+    nearestPoint(point: Vec2d): Vec2d;
+    // (undocumented)
+    start: Vec2d;
+    // (undocumented)
+    u: Vec2d;
+}
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
@@ -465,6 +592,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d;
     getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getGeometry<T extends Geometry2d>(shape: TLShape): T;
     getHandles<T extends TLShape>(shape: T): TLHandle[] | undefined;
     getHandlesById<T extends TLShape>(id: T['id']): TLHandle[] | undefined;
     getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
@@ -691,6 +819,37 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToSelection(opts?: TLAnimationOptions): this;
 }
 
+// @public (undocumented)
+export class Ellipse2d extends Geometry2d {
+    constructor(config: {
+        width: number;
+        height: number;
+        margin: number;
+        isFilled: boolean;
+    });
+    // (undocumented)
+    config: {
+        width: number;
+        height: number;
+        margin: number;
+        isFilled: boolean;
+    };
+    // (undocumented)
+    get edges(): Edge2d[];
+    // (undocumented)
+    _edges?: Edge2d[];
+    // (undocumented)
+    getVertices(): any[];
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    // (undocumented)
+    nearestPoint(A: Vec2d): Vec2d;
+    // (undocumented)
+    w: number;
+}
+
 export { EMPTY_ARRAY }
 
 // @public (undocumented)
@@ -737,6 +896,44 @@ export type GapsSnapLine = {
         endEdge: [VecLike, VecLike];
     }>;
 };
+
+// @public (undocumented)
+export abstract class Geometry2d {
+    // (undocumented)
+    get bounds(): Box2d;
+    // (undocumented)
+    _bounds: Box2d | undefined;
+    // (undocumented)
+    get center(): Vec2d;
+    // (undocumented)
+    distanceToPoint(point: Vec2d): number;
+    // (undocumented)
+    getBounds(): Box2d;
+    // (undocumented)
+    abstract getVertices(): Vec2d[];
+    // (undocumented)
+    abstract hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    // (undocumented)
+    hitTestPoint(point: Vec2d, zoom?: number): boolean;
+    // (undocumented)
+    isClosed: boolean;
+    // (undocumented)
+    isFilled: boolean;
+    // (undocumented)
+    isPointInBounds(point: Vec2d): boolean;
+    // (undocumented)
+    margin: number;
+    // (undocumented)
+    abstract nearestPoint(point: Vec2d): Vec2d;
+    // (undocumented)
+    get snapPoints(): Vec2d[];
+    // (undocumented)
+    _snapPoints: undefined | Vec2d[];
+    // (undocumented)
+    get vertices(): Vec2d[];
+    // (undocumented)
+    _vertices: undefined | Vec2d[];
+}
 
 // @public
 export function getArcLength(C: VecLike, r: number, A: VecLike, B: VecLike): number;
@@ -849,15 +1046,32 @@ export const GRID_STEPS: {
 }[];
 
 // @public (undocumented)
+export class Group2d extends Geometry2d {
+    constructor(config: {
+        children: Geometry2d[];
+        isFilled: boolean;
+        margin: number;
+    });
+    // (undocumented)
+    children: Geometry2d[];
+    // (undocumented)
+    getVertices(): Vec2d[];
+    // (undocumented)
+    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    // (undocumented)
+    nearestPoint(point: Vec2d): Vec2d;
+}
+
+// @public (undocumented)
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind: () => boolean;
     // (undocumented)
     component(shape: TLGroupShape): JSX.Element | null;
     // (undocumented)
-    getBounds(shape: TLGroupShape): Box2d;
-    // (undocumented)
     getDefaultProps(): TLGroupShape['props'];
+    // (undocumented)
+    getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
     hideSelectionBoundsBg: () => boolean;
     // (undocumented)
@@ -1099,7 +1313,42 @@ export type PointsSnapLine = {
 };
 
 // @public (undocumented)
+export class Polygon2d extends Polyline2d {
+    constructor(config: {
+        margin: number;
+        points: Vec2d[];
+        isFilled: boolean;
+    });
+    // (undocumented)
+    type: "polyline";
+}
+
+// @public (undocumented)
 export function polygonsIntersect(a: VecLike[], b: VecLike[]): boolean;
+
+// @public (undocumented)
+export class Polyline2d extends Geometry2d {
+    constructor(config: {
+        margin: number;
+        points: Vec2d[];
+    });
+    // (undocumented)
+    getVertices(): Vec2d[];
+    // (undocumented)
+    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    // (undocumented)
+    get length(): number;
+    // (undocumented)
+    _length?: number;
+    // (undocumented)
+    nearestPoint(A: Vec2d): Vec2d;
+    // (undocumented)
+    points: Vec2d[];
+    // (undocumented)
+    get segments(): Edge2d[];
+    // (undocumented)
+    _segments?: Edge2d[];
+}
 
 // @public (undocumented)
 export const PositionedOnCanvas: MemoExoticComponent<({ x: offsetX, y: offsetY, rotation, ...rest }: {
@@ -1143,6 +1392,26 @@ export class ReadonlySharedStyleMap {
     get size(): number;
     // (undocumented)
     values(): IterableIterator<SharedStyle<unknown>>;
+}
+
+// @public (undocumented)
+export class Rectangle2d extends Polygon2d {
+    constructor(config: {
+        x?: number;
+        y?: number;
+        width: number;
+        height: number;
+        isFilled: boolean;
+        margin: number;
+    });
+    // (undocumented)
+    h: number;
+    // (undocumented)
+    w: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
 }
 
 // @public (undocumented)
@@ -1247,28 +1516,24 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canScroll: TLShapeUtilFlag<Shape>;
     canSnap: TLShapeUtilFlag<Shape>;
     canUnmount: TLShapeUtilFlag<Shape>;
-    center(shape: Shape): Vec2d;
     abstract component(shape: Shape): any;
     // (undocumented)
     editor: Editor;
     // @internal (undocumented)
     expandSelectionOutlinePx(shape: Shape): number;
-    abstract getBounds(shape: Shape): Box2d;
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
-    getCenter(shape: Shape): Vec2d;
     abstract getDefaultProps(): Shape['props'];
+    abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
-    getOutline(shape: Shape): Vec2d[];
     getOutlineSegments(shape: Shape): Vec2d[][];
+    // (undocumented)
+    getSnapPoints(shape: Shape): Vec2d[];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsFg: TLShapeUtilFlag<Shape>;
-    hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean;
-    hitTestPoint(shape: Shape, point: VecLike): boolean;
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
-    isClosed: TLShapeUtilFlag<Shape>;
     // (undocumented)
     static migrations?: Migrations;
     onBeforeCreate?: TLOnBeforeCreateHandler<Shape>;
@@ -1300,7 +1565,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     static props?: ShapeProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
-    snapPoints(shape: Shape): Vec2d[];
     toBackgroundSvg?(shape: Shape, ctx: SvgExportContext): null | Promise<SVGElement> | SVGElement;
     toSvg?(shape: Shape, ctx: SvgExportContext): Promise<SVGElement> | SVGElement;
     static type: string;
@@ -1402,6 +1666,25 @@ export interface SnapPoint {
 export function sortByIndex<T extends {
     index: string;
 }>(a: T, b: T): -1 | 0 | 1;
+
+// @public (undocumented)
+export class Stadium2d extends Ellipse2d {
+    constructor(config: {
+        width: number;
+        height: number;
+        margin: number;
+        isFilled: boolean;
+    });
+    // (undocumented)
+    config: {
+        width: number;
+        height: number;
+        margin: number;
+        isFilled: boolean;
+    };
+    // (undocumented)
+    getVertices(): Vec2d[];
+}
 
 // @public (undocumented)
 export abstract class StateNode implements Partial<TLEventHandlers> {

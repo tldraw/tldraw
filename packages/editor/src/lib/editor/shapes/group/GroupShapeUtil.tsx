@@ -1,7 +1,9 @@
 import { TLGroupShape, groupShapeMigrations, groupShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { Box2d } from '../../../primitives/Box2d'
+import { Geometry2d } from '../../../primitives/Geometry2d'
 import { Matrix2d } from '../../../primitives/Matrix2d'
+import { Vec2d } from '../../../primitives/Vec2d'
+import { Rectangle2d } from '../../../primitives/geometry/Rectangle2d'
 import { ShapeUtil, TLOnChildrenChangeHandler } from '../ShapeUtil'
 import { DashedOutlineBox } from './DashedOutlineBox'
 
@@ -20,10 +22,10 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return {}
 	}
 
-	getBounds(shape: TLGroupShape): Box2d {
+	getGeometry(shape: TLGroupShape): Geometry2d {
 		const children = this.editor.getSortedChildIds(shape.id)
 		if (children.length === 0) {
-			return new Box2d()
+			return new Rectangle2d({ width: 1, height: 1, isFilled: false, margin: 4 })
 		}
 
 		const allChildPoints = children.flatMap((childId) => {
@@ -33,7 +35,25 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 				.map((point) => Matrix2d.applyToPoint(this.editor.getTransform(shape), point))
 		})
 
-		return Box2d.FromPoints(allChildPoints)
+		let minX = Infinity
+		let minY = Infinity
+		let maxX = -Infinity
+		let maxY = -Infinity
+		let point: Vec2d
+		for (let i = 0, n = allChildPoints.length; i < n; i++) {
+			point = allChildPoints[i]
+			minX = Math.min(point.x, minX)
+			minY = Math.min(point.y, minY)
+			maxX = Math.max(point.x, maxX)
+			maxY = Math.max(point.y, maxY)
+		}
+
+		return new Rectangle2d({
+			width: maxX - minX,
+			height: maxY - minY,
+			isFilled: false,
+			margin: 4,
+		})
 	}
 
 	component(shape: TLGroupShape) {

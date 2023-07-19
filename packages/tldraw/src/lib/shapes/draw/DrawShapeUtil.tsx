@@ -1,6 +1,8 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-	Box2d,
+	Circle2d,
+	Polygon2d,
+	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
 	SvgExportContext,
@@ -8,15 +10,12 @@ import {
 	TLDrawShapeSegment,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
-	Vec2d,
 	VecLike,
 	drawShapeMigrations,
 	drawShapeProps,
 	getDefaultColorTheme,
 	getSvgPathFromPoints,
 	last,
-	linesIntersect,
-	pointInPolygon,
 	rng,
 	toFixed,
 } from '@tldraw/editor'
@@ -54,78 +53,33 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		}
 	}
 
-	override isClosed = (shape: TLDrawShape) => shape.props.isClosed
+	getGeometry(shape: TLDrawShape) {
+		const points = getPointsFromSegments(shape.props.segments)
+		const margin = STROKE_SIZES[shape.props.size]
 
-	getBounds(shape: TLDrawShape) {
-		return Box2d.FromPoints(this.editor.getOutline(shape))
-	}
-
-	override getOutline(shape: TLDrawShape) {
-		return getPointsFromSegments(shape.props.segments)
-	}
-
-	override getCenter(shape: TLDrawShape): Vec2d {
-		return this.editor.getBounds(shape).center
-	}
-
-	override hitTestPoint(shape: TLDrawShape, point: VecLike): boolean {
-		const outline = this.editor.getOutline(shape)
-		const zoomLevel = this.editor.zoomLevel
-		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
-
-		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
-			if (shape.props.segments[0].points.some((pt) => Vec2d.Dist(point, pt) < offsetDist * 1.5)) {
-				return true
-			}
+		// A dot
+		if (shape.props.segments.length === 1 && points.length < 4) {
+			return new Circle2d({
+				radius: margin,
+				margin: 4,
+				isFilled: true,
+			})
 		}
 
-		if (this.isClosed(shape)) {
-			return pointInPolygon(point, outline)
+		// A closed draw stroke
+		if (shape.props.isClosed) {
+			return new Polygon2d({
+				points,
+				margin,
+				isFilled: shape.props.fill !== 'none',
+			})
 		}
 
-		if (this.editor.getBounds(shape).containsPoint(point)) {
-			for (let i = 0; i < outline.length; i++) {
-				const C = outline[i]
-				const D = outline[(i + 1) % outline.length]
-
-				if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
-			}
-		}
-
-		return false
-	}
-
-	override hitTestLineSegment(shape: TLDrawShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.editor.getOutline(shape)
-
-		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
-			const zoomLevel = this.editor.zoomLevel
-			const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
-
-			if (
-				shape.props.segments[0].points.some(
-					(pt) => Vec2d.DistanceToLineSegment(A, B, pt) < offsetDist * 1.5
-				)
-			) {
-				return true
-			}
-		}
-
-		if (this.isClosed(shape)) {
-			for (let i = 0; i < outline.length; i++) {
-				const C = outline[i]
-				const D = outline[(i + 1) % outline.length]
-				if (linesIntersect(A, B, C, D)) return true
-			}
-		} else {
-			for (let i = 0; i < outline.length - 1; i++) {
-				const C = outline[i]
-				const D = outline[i + 1]
-				if (linesIntersect(A, B, C, D)) return true
-			}
-		}
-
-		return false
+		// An open draw stroke
+		return new Polyline2d({
+			points,
+			margin,
+		})
 	}
 
 	component(shape: TLDrawShape) {

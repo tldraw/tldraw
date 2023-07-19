@@ -1,5 +1,5 @@
 import {
-	ShapeUtil,
+	Geometry2d,
 	StateNode,
 	TLEventHandlers,
 	TLFrameShape,
@@ -97,6 +97,7 @@ export class ScribbleBrushing extends StateNode {
 
 	private updateBrushSelection() {
 		const {
+			zoomLevel,
 			shapesArray,
 			inputs: { originPagePoint, previousPagePoint, currentPagePoint },
 		} = this.editor
@@ -104,25 +105,27 @@ export class ScribbleBrushing extends StateNode {
 		this.pushPointToScribble()
 
 		const shapes = shapesArray
-		let shape: TLShape, util: ShapeUtil<TLShape>
+		let shape: TLShape, geometry: Geometry2d
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
-			util = this.editor.getShapeUtil(shape)
+			geometry = this.editor.getGeometry(shape)
 
 			if (
 				this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
 				this.newlySelectedIds.has(shape.id) ||
 				(this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
-					util.hitTestPoint(shape, this.editor.getPointInShapeSpace(shape, originPagePoint))) ||
+					geometry.hitTestPoint(
+						this.editor.getPointInShapeSpace(shape, originPagePoint),
+						zoomLevel
+					)) ||
 				this.editor.isShapeOrAncestorLocked(shape)
 			) {
 				continue
 			}
 
 			if (
-				util.hitTestLineSegment(
-					shape,
+				geometry.hitTestLineSegment(
 					this.editor.getPointInShapeSpace(shape, previousPagePoint),
 					this.editor.getPointInShapeSpace(shape, currentPagePoint)
 				)

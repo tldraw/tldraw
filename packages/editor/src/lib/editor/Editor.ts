@@ -80,6 +80,7 @@ import {
 	ZOOMS,
 } from '../constants'
 import { Box2d } from '../primitives/Box2d'
+import { Geometry2d } from '../primitives/Geometry2d'
 import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
 import { Vec2d, VecLike } from '../primitives/Vec2d'
 import { EASINGS } from '../primitives/easings'
@@ -3665,10 +3666,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- Shapes --------------------- */
 
 	@computed
-	private get _boundsCache(): ComputedCache<Box2d, TLShape> {
+	private get _geometryCache(): ComputedCache<Geometry2d, TLShape> {
 		return this.store.createComputedCache('bounds', (shape) => {
-			return this.getShapeUtil(shape).getBounds(shape)
+			return this.getShapeUtil(shape).getGeometry(shape)
 		})
+	}
+
+	/**
+	 * Get the geometry of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getGeometry(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape to get the geometry for.
+	 *
+	 * @public
+	 */
+	getGeometry<T extends Geometry2d>(shape: TLShape): T {
+		return this._geometryCache.get(shape.id)! as T
 	}
 
 	/**
@@ -3684,11 +3701,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getBounds<T extends TLShape>(shape: T): Box2d {
-		const result = this._boundsCache.get(shape.id) ?? new Box2d()
-		if (result.width === 0 || result.height === 0) {
-			return new Box2d(result.x, result.y, Math.max(result.width, 1), Math.max(result.height, 1))
-		}
-		return result
+		return this.getGeometry(shape).bounds
 	}
 
 	/**
@@ -3707,13 +3720,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getBounds<T>(this.getShapeById<T>(id)!)
 	}
 
-	@computed
-	private get _outlineCache(): ComputedCache<Vec2d[], TLShape> {
-		return this.store.createComputedCache('outline', (shape) => {
-			return this.getShapeUtil(shape).getOutline(shape)
-		})
-	}
-
 	/**
 	 * Get the local outline of a shape.
 	 *
@@ -3727,7 +3733,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getOutline<T extends TLShape>(shape: T): Vec2d[] {
-		return this._outlineCache.get(shape.id) ?? EMPTY_ARRAY
+		return this.getGeometry(shape).vertices
 	}
 
 	/**
@@ -3936,8 +3942,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getPageCenter(shape: TLShape) {
 		const pageTransform = this.getPageTransformById(shape.id)
 		if (!pageTransform) return null
-		const util = this.getShapeUtil(shape)
-		const center = util.center(shape)
+		const center = this.getBounds(shape).center
 		return Matrix2d.applyToPoint(pageTransform, center)
 	}
 
@@ -4371,7 +4376,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	isPointInShape(point: VecLike, shape: TLShape): boolean {
-		const util = this.getShapeUtil(shape)
+		const geometry = this.getGeometry(shape)
 
 		const pageMask = this._pageMaskCache.get(shape.id)
 
@@ -4380,7 +4385,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!hit) return false
 		}
 
-		return util.hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
+		return geometry.hitTestPoint(this.getPointInShapeSpace(shape, point), this.zoomLevel)
 	}
 
 	/**
@@ -4396,6 +4401,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getShapesAtPoint(point: VecLike): TLShape[] {
+		const { zoomLevel } = this
+
 		return this.shapesArray.filter((shape) => {
 			// Check the page mask too
 			const pageMask = this._pageMaskCache.get(shape.id)
@@ -4404,7 +4411,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Otherwise, use the shape's own hit test method
-			return this.getShapeUtil(shape).hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
+			return this.getGeometry(shape).hitTestPoint(
+				this.getPointInShapeSpace(shape, point),
+				zoomLevel
+			)
 		})
 	}
 
@@ -4878,6 +4888,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']) {
 		const shapes = this.sortedShapesArray
+		const { zoomLevel } = this
 
 		for (let i = shapes.length - 1; i >= 0; i--) {
 			const shape = shapes[i]
@@ -4887,7 +4898,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				maskedPageBounds &&
 				maskedPageBounds.containsPoint(point) &&
-				util.hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
+				this.getGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), zoomLevel)
 			) {
 				return shape.id
 			}
@@ -4908,6 +4919,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getDroppingShape(point: VecLike, droppingShapes: TLShape[] = []) {
 		const shapes = this.sortedShapesArray
+		const { zoomLevel } = this
 
 		for (let i = shapes.length - 1; i >= 0; i--) {
 			const shape = shapes[i]
@@ -4919,7 +4931,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				maskedPageBounds &&
 				maskedPageBounds.containsPoint(point) &&
-				util.hitTestPoint(shape, this.getPointInShapeSpace(shape, point))
+				this.getGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), zoomLevel)
 			) {
 				return shape
 			}
@@ -7707,8 +7719,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (!isPageId(pasteParentId)) {
 					// Put the shapes in the middle of the (on screen) parent
 					const shape = this.getShapeById(pasteParentId)!
-					const util = this.getShapeUtil(shape)
-					point = util.center(shape)
+					point = this.getGeometry(shape).bounds.center
 				} else {
 					const { viewportPageBounds } = this
 					if (preservePosition || viewportPageBounds.includes(Box2d.From(bounds))) {

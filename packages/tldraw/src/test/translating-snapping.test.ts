@@ -1,4 +1,4 @@
-import { Box2d, ShapeUtil, SnapLine, Vec2d, createShapeId } from '@tldraw/editor'
+import { Geometry2d, Rectangle2d, ShapeUtil, SnapLine, Vec2d, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -41,28 +41,22 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 	getDefaultProps(): __TopLeftSnapOnlyShape['props'] {
 		return { width: 10, height: 10 }
 	}
-	getBounds(shape: __TopLeftSnapOnlyShape): Box2d {
-		return new Box2d(shape.x, shape.y, shape.props.width, shape.props.height)
-	}
 	component() {
 		throw new Error('Method not implemented.')
 	}
 	indicator() {
 		throw new Error('Method not implemented.')
 	}
-	override getOutline(shape: __TopLeftSnapOnlyShape): Vec2d[] {
-		return [
-			Vec2d.From({ x: shape.x, y: shape.y }),
-			Vec2d.From({ x: shape.x + shape.props.width, y: shape.y }),
-			Vec2d.From({ x: shape.x + shape.props.width, y: shape.y + shape.props.height }),
-			Vec2d.From({ x: shape.x, y: shape.y + shape.props.height }),
-		]
+	getGeometry(shape: __TopLeftSnapOnlyShape): Geometry2d {
+		return new Rectangle2d({
+			width: shape.width,
+			height: shape.height,
+			isFilled: true,
+			margin: 4,
+		})
 	}
-	override getCenter(shape: __TopLeftSnapOnlyShape): Vec2d {
-		return new Vec2d(shape.x + shape.props.width / 2, shape.y + shape.props.height / 2)
-	}
-	override snapPoints(shape: __TopLeftSnapOnlyShape): Vec2d[] {
-		return [Vec2d.From({ x: shape.x, y: shape.y })]
+	override getSnapPoints(_shape: __TopLeftSnapOnlyShape): Vec2d[] {
+		return [new Vec2d()]
 	}
 }
 

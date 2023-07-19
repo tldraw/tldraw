@@ -289,8 +289,6 @@ describe('Custom shapes', () => {
 		}
 
 		component(shape: CardShape) {
-			const bounds = this.getBounds(shape)
-
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -303,7 +301,7 @@ describe('Custom shapes', () => {
 						pointerEvents: 'all',
 					}}
 				>
-					{bounds.w.toFixed()}x{bounds.h.toFixed()}
+					{shape.props.w.toFixed()}x{shape.props.h.toFixed()}
 				</HTMLContainer>
 			)
 		}

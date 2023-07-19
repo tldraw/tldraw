@@ -1,7 +1,6 @@
 import {
 	Box2d,
 	Matrix2d,
-	ShapeUtil,
 	StateNode,
 	TLCancelEvent,
 	TLEventHandlers,
@@ -14,7 +13,6 @@ import {
 	TLShape,
 	TLShapeId,
 	Vec2d,
-	VecLike,
 	pointInPolygon,
 	polygonsIntersect,
 } from '@tldraw/editor'
@@ -106,13 +104,12 @@ export class Brushing extends StateNode {
 		// We'll be collecting shape ids
 		const results = new Set(shiftKey ? this.initialSelectedIds : [])
 
-		let A: VecLike,
-			B: VecLike,
+		let A: Vec2d,
+			B: Vec2d,
 			shape: TLShape,
-			util: ShapeUtil<TLShape>,
 			pageBounds: Box2d | undefined,
 			pageTransform: Matrix2d | undefined,
-			localCorners: VecLike[]
+			localCorners: Vec2d[]
 
 		// We'll be testing the corners of the brush against the shapes
 		const { corners } = this.brush
@@ -145,7 +142,7 @@ export class Brushing extends StateNode {
 			if (this.brush.collides(pageBounds)) {
 				// Shapes expect to hit test line segments in their own coordinate system,
 				// so we first need to get the brush corners in the shape's local space.
-				util = this.editor.getShapeUtil(shape)
+				const geometry = this.editor.getGeometry(shape)
 
 				pageTransform = this.editor.getPageTransform(shape)
 
@@ -160,7 +157,7 @@ export class Brushing extends StateNode {
 					A = localCorners[i]
 					B = localCorners[(i + 1) % localCorners.length]
 
-					if (util.hitTestLineSegment(shape, A, B)) {
+					if (geometry.hitTestLineSegment(A, B)) {
 						this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
 						break hitTestBrushEdges
 					}

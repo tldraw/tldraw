@@ -25,13 +25,12 @@ export function getBoundShapeInfoForTerminal(
 	}
 
 	const shape = editor.getShapeById(terminal.boundShapeId)!
-	const util = editor.getShapeUtil(shape)
 	const transform = editor.getPageTransform(shape)!
 
 	return {
 		shape,
 		transform,
-		isClosed: util.isClosed(shape),
+		isClosed: editor.getGeometry(shape).isClosed,
 		isExact: terminal.isExact,
 		didIntersect: false,
 		outline: editor.getOutline(shape),

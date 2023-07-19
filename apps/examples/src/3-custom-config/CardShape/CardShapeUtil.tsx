@@ -1,6 +1,6 @@
 import {
-	Box2d,
 	HTMLContainer,
+	Rectangle2d,
 	ShapeUtil,
 	TLOnResizeHandler,
 	getDefaultColorTheme,
@@ -36,8 +36,13 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 		}
 	}
 
-	getBounds(shape: ICardShape) {
-		return new Box2d(0, 0, shape.props.w, shape.props.h)
+	getGeometry(shape: ICardShape) {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: true,
+			margin: 4,
+		})
 	}
 
 	// Render method — the React component that will be rendered for the shape

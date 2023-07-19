@@ -53,7 +53,6 @@ export class PointingCanvas extends StateNode {
 			return false
 		}
 		const clickPoint = this.editor.getPointInShapeSpace(groupShape, inputs.currentPagePoint)
-		const util = this.editor.getShapeUtil(groupShape)
-		return util.hitTestPoint(groupShape, clickPoint)
+		return this.editor.getGeometry(groupShape).hitTestPoint(clickPoint, this.editor.zoomLevel)
 	}
 }
