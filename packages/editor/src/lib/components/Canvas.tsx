@@ -101,6 +101,7 @@ export const Canvas = track(function Canvas() {
 					<ShapesToDisplay />
 				</div>
 				<div className="tl-overlays">
+					<OutlineView />
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />
@@ -268,6 +269,55 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 				<Shape key={result.id + '_shape'} {...result} />
 			))}
 		</>
+	)
+})
+
+const OutlineView = track(function OutlineView() {
+	const editor = useEditor()
+
+	const { renderingShapes } = editor
+
+	return (
+		<svg
+			style={{
+				position: 'absolute',
+				zIndex: 999999999,
+				top: 0,
+				left: 0,
+				width: 100,
+				height: 100,
+				overflow: 'visible',
+			}}
+		>
+			{renderingShapes.map((result) => {
+				const shape = editor.getShapeById(result.id)!
+				const geometry = editor.getGeometry(shape)
+				const pageTransform = editor.getPageTransform(shape)!
+				const vertices = pageTransform.applyToPoints(geometry.vertices)
+
+				if (geometry.isClosed) {
+					return (
+						<polygon
+							key={result.id + '_outline'}
+							stroke="dodgerblue"
+							strokeWidth={2}
+							fill="none"
+							points={vertices.map((v) => `${v.x},${v.y}`).join(' ')}
+						/>
+					)
+				}
+
+				return (
+					<polyline
+						key={result.id + '_outline'}
+						stroke="dodgerblue"
+						strokeWidth={2}
+						fill="none"
+						points={vertices.map((v) => `${v.x},${v.y}`).join(' ')}
+					/>
+				)
+			})}
+		</svg>
 	)
 })
 

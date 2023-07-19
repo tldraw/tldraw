@@ -12,6 +12,7 @@ export class Polyline2d extends Geometry2d {
 
 		this.margin = margin
 		this.points = points
+		this.isClosed = false
 	}
 
 	_segments?: Edge2d[]

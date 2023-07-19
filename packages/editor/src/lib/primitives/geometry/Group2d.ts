@@ -31,16 +31,132 @@ export class Group2d extends Geometry2d {
 		let d = Infinity
 		let p: Vec2d | undefined
 
-		for (const child of this.children) {
-			const nearest = child.nearestPoint(point)
-			const dist = nearest.dist(point)
-			if (dist < d) {
-				d = dist
-				p = nearest
+		const { children, operation } = this
+
+		switch (operation) {
+			case 'union': {
+				for (const child of this.children) {
+					const nearest = child.nearestPoint(point)
+					const dist = nearest.dist(point)
+					if (dist < d) {
+						d = dist
+						p = nearest
+					}
+				}
+				break
+			}
+			case 'subtract': {
+				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
+					child = children[i]
+					const first = children[0]
+
+					const nearest = child.nearestPoint(point)
+					const dist = nearest.dist(point)
+
+					if (i === 0) {
+						d = dist
+						p = nearest
+					} else {
+						if (dist < d) {
+							const distToFirst = first.distanceToPoint(nearest)
+							if (distToFirst < d) {
+								d = dist
+								p = nearest
+							}
+						}
+					}
+				}
+				break
+			}
+			case 'exclude': {
+				// // if odd, and if point is inside of of the even shapes, use the point
+				// const tests = this.children.map((c) => {
+				// 	const nearest = c.nearestPoint(point)
+				// 	return {
+				// 		nearest,
+				// 		dist: nearest.dist(point),
+				// 	}
+				// })
+
+				// for (const test of tests) {
+				// 	const dist = test.dist
+				// 	if (dist < d) {
+				// 		d = dist
+				// 		p = test.nearest
+				// 	}
+				// }
+				break
+			}
+			case 'intersect': {
+				// each closest point needs to be inside of all the shapes
+				const tests = this.children
+					.map((c) => {
+						const nearest = c.nearestPoint(point)
+						return {
+							nearest,
+							dist: nearest.dist(point),
+						}
+					})
+					.filter((p) => this.children.every((c) => c.distanceToPoint(p.nearest) < 0))
+
+				for (const test of tests) {
+					const dist = test.dist
+					if (dist < d) {
+						d = dist
+						p = test.nearest
+					}
+				}
+				break
 			}
 		}
-
 		return p!
+	}
+
+	override hitTestPoint(point: Vec2d, zoom: number): boolean {
+		const { children, operation, margin } = this
+		const min = margin / zoom
+		const isCloseEnough = this.distanceToPoint(point) <= this.margin / zoom
+		if (!isCloseEnough) return false
+
+		switch (operation) {
+			case 'union': {
+				return true
+			}
+			case 'subtract': {
+				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
+					child = children[i]
+
+					const nearest = child.nearestPoint(point)
+					const dist = nearest.dist(point)
+
+					if (i === 0) {
+						if (dist > min) return false
+					} else {
+						if (dist < -margin) {
+							return false
+						}
+					}
+				}
+				return true
+			}
+			case 'exclude': {
+				let hits = 0
+				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
+					child = children[i]
+
+					const nearest = child.nearestPoint(point)
+					const dist = nearest.dist(point)
+
+					if (dist < -margin) {
+						hits++
+					}
+				}
+				return hits % 2 === 1
+			}
+			case 'intersect': {
+				return children.every((child) => child.distanceToPoint(point) <= margin / zoom)
+			}
+		}
 	}
 
 	override hitTestLineSegment(A: Vec2d, B: Vec2d): boolean {
