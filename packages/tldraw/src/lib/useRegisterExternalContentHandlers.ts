@@ -1,6 +1,7 @@
 import {
 	AssetRecordType,
 	Editor,
+	MediaHelpers,
 	TLAsset,
 	TLAssetId,
 	TLEmbedShape,
@@ -21,9 +22,7 @@ import {
 	ACCEPTED_VID_TYPE,
 	containBoxSize,
 	getFileMetaData,
-	getImageSizeFromSrc,
 	getResizedImageDataUrl,
-	getVideoSizeFromSrc,
 	isImage,
 } from './utils/assets'
 import { getEmbedInfo } from './utils/embeds'
@@ -46,7 +45,9 @@ export function useRegisterExternalContentHandlers() {
 					let dataUrl = reader.result as string
 
 					const isImageType = isImage(file.type)
-					const sizeFn = isImageType ? getImageSizeFromSrc : getVideoSizeFromSrc
+					const sizeFn = isImageType
+						? MediaHelpers.getImageSizeFromSrc
+						: MediaHelpers.getVideoSizeFromSrc
 
 					// Hack to make .mov videos work via dataURL.
 					if (file.type === 'video/quicktime' && dataUrl.includes('video/quicktime')) {
