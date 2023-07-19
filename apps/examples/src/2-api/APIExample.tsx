@@ -1,14 +1,5 @@
-import {
-	DefaultColorStyle,
-	Editor,
-	TLGeoShape,
-	TLShapePartial,
-	Tldraw,
-	createShapeId,
-	useEditor,
-} from '@tldraw/tldraw'
+import { Editor, TLImageShape, Tldraw, dataUrlToFile, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { useEffect } from 'react'
 
 // The tldraw component shares its App instance via its onMount callback prop.
 
@@ -19,49 +10,65 @@ import { useEffect } from 'react'
 
 export default function APIExample() {
 	const handleMount = (editor: Editor) => {
+		const url = 'https://storage.googleapis.com/wand-images-public/character.png'
+
+		let file: File | undefined
+		dataUrlToFile(url, 'test.png', 'image/png')
+			.then((result) => {
+				if (result instanceof File) {
+					file = result
+					const files = [file]
+					editor
+						.putExternalContent({
+							type: 'files',
+							files,
+							point: editor.viewportPageCenter,
+							ignoreParent: false,
+						})
+						.then((result) => {
+							return result
+						})
+						.catch((error) => console.error('Unable to create shape from file, ', error))
+				} else {
+					console.error('Unable to get file from URL')
+				}
+			})
+			.catch((error) => console.error(`Unable to get file from URL, ${url}, `, error))
+
+		// Get the created shape
+		const ids = editor.getShapeIdsInPage(editor.currentPageId)
+
+		const imageShapes: TLImageShape[] = []
+		ids.forEach((id) => {
+			const shape = editor.getShapeById(id)
+			if (shape && shape.type === 'image') {
+				imageShapes.push(shape as TLImageShape)
+			}
+		})
+
 		// Create a shape id
-		const id = createShapeId('hello')
 
 		editor.focus()
 
-		// Create a shape
-		editor.createShapes<TLGeoShape>([
-			{
-				id,
-				type: 'geo',
-				x: 128 + Math.random() * 500,
-				y: 128 + Math.random() * 500,
-				props: {
-					geo: 'rectangle',
-					w: 100,
-					h: 100,
-					dash: 'draw',
-					color: 'blue',
-					size: 'm',
-				},
-			},
-		])
-
-		// Get the created shape
-		const shape = editor.getShapeById<TLGeoShape>(id)!
-
-		const shapeUpdate: TLShapePartial<TLGeoShape> = {
-			id,
-			type: 'geo',
-			props: {
-				h: shape.props.h * 3,
-				text: 'hello world!',
-			},
-		}
+		// const imageShape = imageShapes[0]
+		// const update: TLShapePartial<TLImageShape> = {
+		// 	id: imageShape.id,
+		// 	type: "image",
+		// 	props: {
+		// 		h : imageShape.props.h * 2,
+		// 	}
+		// }
+		// shapeUpdates.push(update)
 
 		// Update the shape
-		editor.updateShapes([shapeUpdate])
+		// editor.updateShapes(shapeUpdates)
+		// editor.updateShapes([shapeUpdate])
 
 		// Select the shape
-		editor.select(id)
+		// editor.select(id)
 
 		// Rotate the shape around its center
-		editor.rotateShapesBy([id], Math.PI / 8)
+		// editor.rotateShapesBy([id], Math.PI / 8)
 
 		// Clear the selection
 		editor.selectNone()
@@ -86,21 +93,21 @@ export default function APIExample() {
 const InsideOfEditorContext = () => {
 	const editor = useEditor()
 
-	useEffect(() => {
-		let i = 0
-
-		const interval = setInterval(() => {
-			const selection = [...editor.selectedIds]
-			editor.selectAll()
-			editor.setStyle(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
-			editor.setSelectedIds(selection)
-			i++
-		}, 1000)
-
-		return () => {
-			clearInterval(interval)
-		}
-	}, [editor])
+	// useEffect(() => {
+	// 	let i = 0
+	//
+	// 	const interval = setInterval(() => {
+	// 		const selection = [...editor.selectedIds]
+	// 		editor.selectAll()
+	// 		editor.setStyle(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
+	// 		editor.setSelectedIds(selection)
+	// 		i++
+	// 	}, 1000)
+	//
+	// 	return () => {
+	// 		clearInterval(interval)
+	// 	}
+	// }, [editor])
 
 	return null
 }
