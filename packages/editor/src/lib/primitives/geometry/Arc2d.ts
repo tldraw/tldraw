@@ -92,20 +92,21 @@ function isPointOnArc(
 	sweepFlag: number,
 	largeArcFlag: number
 ) {
+	let ab: number, ac: number, ag: number, bg: number
 	if (largeArcFlag) {
 		if (sweepFlag) {
-			const ab = Math.abs(longAngleDist(angleStart, angleEnd))
-			const ag = shortAngleDist(angleStart, anglePoint)
-			const bg = shortAngleDist(anglePoint, angleEnd)
+			ab = Math.abs(longAngleDist(angleStart, angleEnd))
+			ag = shortAngleDist(angleStart, anglePoint)
+			bg = shortAngleDist(anglePoint, angleEnd)
 			if (Math.abs(ag) < Math.abs(bg)) {
 				return ag / ab
 			} else {
 				return (ab - bg) / ab
 			}
 		} else {
-			const ab = Math.abs(longAngleDist(angleEnd, angleStart))
-			const ag = shortAngleDist(anglePoint, angleStart)
-			const bg = shortAngleDist(angleEnd, anglePoint)
+			ab = Math.abs(longAngleDist(angleEnd, angleStart))
+			ag = shortAngleDist(anglePoint, angleStart)
+			bg = shortAngleDist(angleEnd, anglePoint)
 			if (Math.abs(ag) < Math.abs(bg)) {
 				return ag / ab
 			} else {
@@ -114,13 +115,12 @@ function isPointOnArc(
 		}
 	} else {
 		if (sweepFlag) {
-			const ab = shortAngleDist(angleEnd, angleStart)
-			const ac = shortAngleDist(anglePoint, angleStart)
-			return ac / ab
+			ab = shortAngleDist(angleEnd, angleStart)
+			ac = shortAngleDist(anglePoint, angleStart)
 		} else {
-			const ab = shortAngleDist(angleStart, angleEnd)
-			const ac = shortAngleDist(angleStart, anglePoint)
-			return ac / ab
+			ab = shortAngleDist(angleStart, angleEnd)
+			ac = shortAngleDist(angleStart, anglePoint)
 		}
+		return ac / ab
 	}
 }

@@ -101,7 +101,7 @@ export const Canvas = track(function Canvas() {
 					<ShapesToDisplay />
 				</div>
 				<div className="tl-overlays">
-					<OutlineView />
+					{/* <OutlineView /> */}
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />
@@ -284,6 +284,7 @@ const OutlineView = track(function OutlineView() {
 		<svg
 			style={{
 				position: 'absolute',
+				pointerEvents: 'none',
 				zIndex: 999999999,
 				top: 0,
 				left: 0,
