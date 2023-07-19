@@ -12,7 +12,7 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useRef } from 'react'
-import { useReadOnly } from '../ui/hooks/useReadOnly'
+import { useReadonly } from '../ui/hooks/useReadonly'
 import { CropHandles } from './CropHandles'
 
 const IS_FIREFOX =
@@ -25,7 +25,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		const editor = useEditor()
 		const rSvg = useRef<SVGSVGElement>(null)
 
-		const isReadonlyMode = useReadOnly()
+		const isReadonlyMode = useReadonly()
 		const topEvents = useSelectionEvents('top')
 		const rightEvents = useSelectionEvents('right')
 		const bottomEvents = useSelectionEvents('bottom')

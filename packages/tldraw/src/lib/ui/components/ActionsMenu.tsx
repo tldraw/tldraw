@@ -3,7 +3,7 @@ import { useContainer } from '@tldraw/editor'
 import { memo } from 'react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useActionsMenuSchema } from '../hooks/useActionsMenuSchema'
-import { useReadOnly } from '../hooks/useReadOnly'
+import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
 import { Popover, PopoverTrigger } from './primitives/Popover'
@@ -13,7 +13,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 	const msg = useTranslation()
 	const container = useContainer()
 	const menuSchema = useActionsMenuSchema()
-	const isReadonly = useReadOnly()
+	const isReadonly = useReadonly()
 
 	function getActionMenuItem(item: TLUiMenuChild) {
 		if (isReadonly && !item.readonlyOk) return null

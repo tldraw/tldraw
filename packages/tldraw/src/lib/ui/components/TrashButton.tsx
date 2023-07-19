@@ -1,6 +1,6 @@
 import { track, useEditor } from '@tldraw/editor'
 import { useActions } from '../hooks/useActions'
-import { useReadOnly } from '../hooks/useReadOnly'
+import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
 import { kbdStr } from './primitives/shared'
@@ -11,7 +11,7 @@ export const TrashButton = track(function TrashButton() {
 	const msg = useTranslation()
 	const action = actions['delete']
 
-	const isReadonly = useReadOnly()
+	const isReadonly = useReadonly()
 
 	if (isReadonly) return null
 

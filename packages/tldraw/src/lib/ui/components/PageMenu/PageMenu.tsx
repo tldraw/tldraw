@@ -10,7 +10,7 @@ import {
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
-import { useReadOnly } from '../../hooks/useReadOnly'
+import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { Icon } from '../primitives/Icon'
@@ -36,7 +36,7 @@ export const PageMenu = function PageMenu() {
 	const currentPage = useValue('currentPage', () => editor.currentPage, [editor])
 
 	// When in readonly mode, we don't allow a user to edit the pages
-	const isReadonlyMode = useReadOnly()
+	const isReadonlyMode = useReadonly()
 
 	// If the user has reached the max page count, we disable the "add page" button
 	const maxPageCountReached = useValue(

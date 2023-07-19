@@ -285,7 +285,7 @@ describe("App's default tool", () => {
 	})
 	it('Is hand for readonly mode', () => {
 		editor = new TestEditor()
-		editor.updateInstanceState({ isReadOnly: true })
+		editor.updateInstanceState({ isReadonly: true })
 		editor.setCurrentTool('hand')
 		expect(editor.currentToolId).toBe('hand')
 	})

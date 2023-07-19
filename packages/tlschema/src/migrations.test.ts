@@ -1341,6 +1341,26 @@ describe('adds lonely properties', () => {
 	})
 })
 
+describe('rename isReadOnly to isReadonly', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.ReadOnlyReadonly]
+
+	test('up works as expected', () => {
+		expect(up({ isReadOnly: false })).toStrictEqual({
+			isReadonly: false,
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				isReadOnly: false,
+			})
+		).toStrictEqual({
+			isReadonly: false,
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

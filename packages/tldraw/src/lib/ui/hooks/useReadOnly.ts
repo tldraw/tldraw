@@ -1,7 +1,7 @@
 import { useEditor, useValue } from '@tldraw/editor'
 
 /** @public */
-export function useReadOnly() {
+export function useReadonly() {
 	const editor = useEditor()
-	return useValue('isReadOnlyMode', () => editor.instanceState.isReadOnly, [editor])
+	return useValue('isReadonlyMode', () => editor.instanceState.isReadonly, [editor])
 }

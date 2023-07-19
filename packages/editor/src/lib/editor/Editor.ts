@@ -43,6 +43,7 @@ import {
 	annotateError,
 	assert,
 	compact,
+	debounce,
 	dedupe,
 	deepCopy,
 	getOwnProperty,
@@ -306,19 +307,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const container = this.getContainer()
 
-		const handleFocus = () => this.updateInstanceState({ isFocused: true })
-		const handleBlur = () => this.updateInstanceState({ isFocused: false })
+		// We need to debounce this because when focus changes, the body
+		// becomes focused for a brief moment. Debouncing means that we
+		// check only when focus stops changing: when it settles, what
+		// has it settled on? If it's settled on the container or something
+		// inside of the container, then focus or preserve the current focus;
+		// if not, then turn off focus. Turning off focus is a trigger to
+		// also turn off keyboard shortcuts and other things.
+		const updateFocus = debounce(() => {
+			const { isFocused } = this.instanceState
+			const containerHasFocus =
+				container === document.activeElement || container.contains(document.activeElement)
+			if ((!isFocused && containerHasFocus) || (isFocused && !containerHasFocus)) {
+				this.updateInstanceState({ isFocused: !isFocused })
+			}
+		}, 32)
 
-		container.addEventListener('focusin', handleFocus)
-		container.addEventListener('focus', handleFocus)
-		container.addEventListener('focusout', handleBlur)
-		container.addEventListener('blur', handleBlur)
+		container.addEventListener('focusin', updateFocus)
+		container.addEventListener('focus', updateFocus)
+		container.addEventListener('focusout', updateFocus)
+		container.addEventListener('blur', updateFocus)
 
 		this.disposables.add(() => {
-			container.removeEventListener('focusin', handleFocus)
-			container.removeEventListener('focus', handleFocus)
-			container.removeEventListener('focusout', handleBlur)
-			container.removeEventListener('blur', handleBlur)
+			container.removeEventListener('focusin', updateFocus)
+			container.removeEventListener('focus', updateFocus)
+			container.removeEventListener('focusout', updateFocus)
+			container.removeEventListener('blur', updateFocus)
 		})
 
 		this.store.ensureStoreIsUsable()
@@ -1047,26 +1061,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The id of the current selected tool.
-	 *
-	 * @public
-	 */
-	@computed get currentToolId(): string {
-		const { currentTool } = this
-		if (!currentTool) return ''
-		return currentTool.currentToolIdMask ?? currentTool.id
-	}
-
-	/**
-	 * The current selected tool.
-	 *
-	 * @public
-	 */
-	@computed get currentTool(): StateNode | undefined {
-		return this.root.current.value
-	}
-
-	/**
 	 * Set the selected tool.
 	 *
 	 * @example
@@ -1083,6 +1077,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	setCurrentTool(id: string, info = {}): this {
 		this.root.transition(id, info)
 		return this
+	}
+	/**
+	 * The current selected tool.
+	 *
+	 * @public
+	 */
+	@computed get currentTool(): StateNode | undefined {
+		return this.root.current.value
+	}
+
+	/**
+	 * The id of the current selected tool.
+	 *
+	 * @public
+	 */
+	@computed get currentToolId(): string {
+		const { currentTool } = this
+		if (!currentTool) return ''
+		return currentTool.currentToolIdMask ?? currentTool.id
 	}
 
 	/**
@@ -3276,7 +3289,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _updatePage = this.history.createCommand(
 		'updatePage',
 		(partial: RequiredKeys<TLPage, 'id'>, squashing = false) => {
-			if (this.instanceState.isReadOnly) return null
+			if (this.instanceState.isReadonly) return null
 
 			const prev = this.getPageById(partial.id)
 
@@ -3326,7 +3339,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _createPage = this.history.createCommand(
 		'createPage',
 		(title: string, id: TLPageId = PageRecordType.createId(), belowPageIndex?: string) => {
-			if (this.instanceState.isReadOnly) return null
+			if (this.instanceState.isReadonly) return null
 			if (this.pages.length >= MAX_PAGES) return null
 			const pageInfo = this.pages
 			const topIndex = belowPageIndex ?? pageInfo[pageInfo.length - 1]?.index ?? 'a1'
@@ -3408,7 +3421,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _deletePage = this.history.createCommand(
 		'delete_page',
 		(id: TLPageId) => {
-			if (this.instanceState.isReadOnly) return null
+			if (this.instanceState.isReadonly) return null
 			const { pages } = this
 			if (pages.length === 1) return null
 
@@ -3492,7 +3505,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	renamePage(id: TLPageId, name: string, squashing = false) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 		this.updatePage({ id, name }, squashing)
 		return this
 	}
@@ -3533,7 +3546,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _createAssets = this.history.createCommand(
 		'createAssets',
 		(assets: TLAsset[]) => {
-			if (this.instanceState.isReadOnly) return null
+			if (this.instanceState.isReadonly) return null
 			if (assets.length <= 0) return null
 
 			return { data: { assets } }
@@ -3569,7 +3582,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _updateAssets = this.history.createCommand(
 		'updateAssets',
 		(assets: TLAssetPartial[]) => {
-			if (this.instanceState.isReadOnly) return
+			if (this.instanceState.isReadonly) return
 			if (assets.length <= 0) return
 
 			const snapshots: Record<string, TLAsset> = {}
@@ -3616,7 +3629,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _deleteAssets = this.history.createCommand(
 		'deleteAssets',
 		(ids: TLAssetId[]) => {
-			if (this.instanceState.isReadOnly) return
+			if (this.instanceState.isReadonly) return
 			if (ids.length <= 0) return
 
 			const prev = compact(ids.map((id) => this.store.get(id)))
@@ -5236,7 +5249,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this {
 		if (ids.length === 0) return this
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 
 		const { currentPageId } = this
 
@@ -5293,7 +5306,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	toggleLock(ids: TLShapeId[] = this.selectedIds): this {
-		if (this.instanceState.isReadOnly || ids.length === 0) return this
+		if (this.instanceState.isReadonly || ids.length === 0) return this
 
 		let allLocked = true,
 			allUnlocked = true
@@ -5414,7 +5427,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	flipShapes(operation: 'horizontal' | 'vertical', ids: TLShapeId[] = this.selectedIds) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 
 		let shapes = compact(ids.map((id) => this.getShapeById(id)))
 
@@ -5478,7 +5491,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		ids: TLShapeId[] = this.currentPageState.selectedIds,
 		gap?: number
 	) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 
 		const shapes = compact(ids.map((id) => this.getShapeById(id))).filter((shape) => {
 			if (!shape) return false
@@ -5605,7 +5618,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param padding - The padding to apply to the packed shapes.
 	 */
 	packShapes(ids: TLShapeId[] = this.currentPageState.selectedIds, padding = 16) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 		if (ids.length < 2) return this
 
 		const shapes = compact(
@@ -5764,7 +5777,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		operation: 'left' | 'center-horizontal' | 'right' | 'top' | 'center-vertical' | 'bottom',
 		ids: TLShapeId[] = this.currentPageState.selectedIds
 	) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 		if (ids.length < 2) return this
 
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
@@ -5851,7 +5864,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		operation: 'horizontal' | 'vertical',
 		ids: TLShapeId[] = this.currentPageState.selectedIds
 	) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 		if (ids.length < 3) return this
 
 		const len = ids.length
@@ -5936,7 +5949,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		operation: 'horizontal' | 'vertical',
 		ids: TLShapeId[] = this.currentPageState.selectedIds
 	) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 		if (ids.length < 2) return this
 
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
@@ -6024,7 +6037,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			mode?: TLResizeMode
 		} = {}
 	) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 
 		if (!Number.isFinite(scale.x)) scale = new Vec2d(1, scale.y)
 		if (!Number.isFinite(scale.y)) scale = new Vec2d(scale.x, 1)
@@ -6296,7 +6309,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _createShapes = this.history.createCommand(
 		'createShapes',
 		(partials: TLShapePartial[], select = false) => {
-			if (this.instanceState.isReadOnly) return null
+			if (this.instanceState.isReadonly) return null
 			if (partials.length <= 0) return null
 
 			const { currentPageShapeIds: shapeIds, selectedIds } = this
@@ -6584,7 +6597,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	groupShapes(ids: TLShapeId[] = this.selectedIds, groupId = createShapeId()) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 
 		if (ids.length <= 1) return this
 
@@ -6639,7 +6652,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	ungroupShapes(ids: TLShapeId[] = this.selectedIds) {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 		if (ids.length === 0) return this
 
 		// Only ungroup when the select tool is active
@@ -6730,7 +6743,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _updateShapes = this.history.createCommand(
 		'updateShapes',
 		(_partials: (TLShapePartial | null | undefined)[], squashing = false) => {
-			if (this.instanceState.isReadOnly) return null
+			if (this.instanceState.isReadonly) return null
 
 			const partials = compact(_partials)
 
@@ -6853,7 +6866,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _deleteShapes = this.history.createCommand(
 		'delete_shapes',
 		(ids: TLShapeId[]) => {
-			if (this.instanceState.isReadOnly) return null
+			if (this.instanceState.isReadonly) return null
 			if (ids.length === 0) return null
 			const prevSelectedIds = [...this.currentPageState.selectedIds]
 
@@ -7444,7 +7457,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			preserveIds?: boolean
 		} = {}
 	): this {
-		if (this.instanceState.isReadOnly) return this
+		if (this.instanceState.isReadonly) return this
 
 		if (!content.schema) {
 			throw Error('Could not put content:\ncontent is missing a schema.')

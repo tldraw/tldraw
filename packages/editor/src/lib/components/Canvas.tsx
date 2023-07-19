@@ -188,9 +188,9 @@ function HandlesWrapper() {
 	const isChangingStyle = useValue('isChangingStyle', () => editor.instanceState.isChangingStyle, [
 		editor,
 	])
-	const isReadOnly = useValue('isChangingStyle', () => editor.instanceState.isReadOnly, [editor])
+	const isReadonly = useValue('isChangingStyle', () => editor.instanceState.isReadonly, [editor])
 
-	if (!Handles || !onlySelectedShape || isChangingStyle || isReadOnly) return null
+	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly) return null
 
 	const handles = editor.getHandles(onlySelectedShape)
 

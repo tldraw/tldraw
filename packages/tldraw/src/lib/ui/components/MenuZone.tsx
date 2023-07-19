@@ -1,6 +1,6 @@
 import { track, useEditor } from '@tldraw/editor'
 import { useBreakpoint } from '../hooks/useBreakpoint'
-import { useReadOnly } from '../hooks/useReadOnly'
+import { useReadonly } from '../hooks/useReadonly'
 import { ActionsMenu } from './ActionsMenu'
 import { DuplicateButton } from './DuplicateButton'
 import { Menu } from './Menu'
@@ -13,7 +13,7 @@ export const MenuZone = track(function MenuZone() {
 	const editor = useEditor()
 
 	const breakpoint = useBreakpoint()
-	const isReadonly = useReadOnly()
+	const isReadonly = useReadonly()
 
 	const showQuickActions = !isReadonly && !editor.isInAny('hand', 'zoom', 'eraser')
 
