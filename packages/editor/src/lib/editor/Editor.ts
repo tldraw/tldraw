@@ -315,11 +315,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// if not, then turn off focus. Turning off focus is a trigger to
 		// also turn off keyboard shortcuts and other things.
 		const updateFocus = debounce(() => {
+			const { activeElement } = document
 			const { isFocused } = this.instanceState
-			const containerHasFocus =
-				container === document.activeElement || container.contains(document.activeElement)
-			if ((!isFocused && containerHasFocus) || (isFocused && !containerHasFocus)) {
-				this.updateInstanceState({ isFocused: !isFocused })
+			const hasFocus = container === activeElement || container.contains(activeElement)
+			if ((!isFocused && hasFocus) || (isFocused && !hasFocus)) {
+				this.updateInstanceState({ isFocused: hasFocus })
 			}
 		}, 32)
 
