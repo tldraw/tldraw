@@ -440,16 +440,16 @@ export const instanceMigrations = defineMigrations({
 			},
 		},
 		[instanceVersions.ReadOnlyReadonly]: {
-			up: (record) => {
+			up: ({ isReadOnly: _isReadOnly, ...record }) => {
 				return {
 					...record,
-					isReadonly: record.isReadOnly,
+					isReadonly: _isReadOnly,
 				}
 			},
-			down: ({ isReadOnly: _isReadOnly, ...record }) => {
+			down: ({ isReadonly: _isReadonly, ...record }) => {
 				return {
 					...record,
-					isReadOnly: record.isReadonly,
+					isReadOnly: _isReadonly,
 				}
 			},
 		},

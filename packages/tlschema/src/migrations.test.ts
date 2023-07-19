@@ -1351,12 +1351,8 @@ describe('rename isReadOnly to isReadonly', () => {
 	})
 
 	test('down works as expected', () => {
-		expect(
-			down({
-				isReadOnly: false,
-			})
-		).toStrictEqual({
-			isReadonly: false,
+		expect(down({ isReadonly: false })).toStrictEqual({
+			isReadOnly: false,
 		})
 	})
 })
