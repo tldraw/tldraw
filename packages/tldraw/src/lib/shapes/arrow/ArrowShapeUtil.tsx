@@ -102,6 +102,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					start: Vec2d.Cast(info.start.point),
 					end: Vec2d.Cast(info.end.point),
 					margin: STROKE_SIZES[shape.props.size],
+					sweepFlag: info.handleArc.sweepFlag,
 			  })
 
 		if (shape.props.text.trim()) {

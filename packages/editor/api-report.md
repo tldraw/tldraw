@@ -98,12 +98,13 @@ export class Arc2d extends Geometry2d {
         radius: number;
         start: Vec2d;
         end: Vec2d;
+        sweepFlag: number;
         margin: number;
     });
     // (undocumented)
-    ab: number;
+    angleEnd: number;
     // (undocumented)
-    ac: number;
+    angleStart: number;
     // (undocumented)
     _center: Vec2d;
     // (undocumented)
@@ -120,6 +121,8 @@ export class Arc2d extends Geometry2d {
     radius: number;
     // (undocumented)
     start: Vec2d;
+    // (undocumented)
+    sweepFlag: number;
 }
 
 // @public
