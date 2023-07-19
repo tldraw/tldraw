@@ -12,7 +12,7 @@ export default function MultipleExample() {
 			<h2>First Example</h2>
 			<p>This is the second example.</p>
 			<div style={{ width: '100%', height: '600px', padding: 32 }} tabIndex={-1}>
-				<Tldraw persistenceKey="steve" autoFocus />
+				<Tldraw persistenceKey="steve" className="A" autoFocus />
 			</div>
 
 			<textarea defaultValue="type in me" style={{ margin: 10 }}></textarea>
@@ -20,7 +20,7 @@ export default function MultipleExample() {
 			<h2>Second Example</h2>
 			<p>This is the second example.</p>
 			<div style={{ width: '100%', height: '600px' }} tabIndex={-1}>
-				<Tldraw persistenceKey="david" autoFocus={false} />
+				<Tldraw persistenceKey="david" className="B" />
 			</div>
 
 			<div

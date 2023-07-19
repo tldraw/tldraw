@@ -1,5 +1,5 @@
 import { ToastProvider } from '@radix-ui/react-toast'
-import { useEditor, useValue } from '@tldraw/editor'
+import { preventDefault, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawUiContextProvider'
@@ -119,7 +119,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
-	const isReadonlyMode = useValue('isReadOnlyMode', () => editor.instanceState.isReadOnly, [editor])
+	const isReadonlyMode = useValue('isReadonlyMode', () => editor.instanceState.isReadonly, [editor])
 	const isFocusMode = useValue('focus', () => editor.instanceState.isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.instanceState.isDebugMode, [editor])
 
@@ -135,6 +135,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 				className={classNames('tlui-layout', {
 					'tlui-layout__mobile': breakpoint < 5,
 				})}
+				onPointerDown={preventDefault}
 			>
 				{isFocusMode ? (
 					<div className="tlui-layout__top">

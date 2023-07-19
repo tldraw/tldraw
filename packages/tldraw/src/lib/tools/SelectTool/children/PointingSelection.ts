@@ -18,7 +18,7 @@ export class PointingSelection extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			if (this.editor.instanceState.isReadOnly) return
+			if (this.editor.instanceState.isReadonly) return
 			this.parent.transition('translating', info)
 		}
 	}

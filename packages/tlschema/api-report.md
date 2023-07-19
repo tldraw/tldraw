@@ -1020,7 +1020,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     isPenMode: boolean;
     // (undocumented)
-    isReadOnly: boolean;
+    isReadonly: boolean;
     // (undocumented)
     isToolLocked: boolean;
     // (undocumented)

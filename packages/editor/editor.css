@@ -191,6 +191,10 @@
 	-webkit-touch-callout: initial;
 }
 
+.tl-container:focus-within {
+	outline: 1px solid var(--color-low);
+}
+
 input,
 *[contenteditable],
 *[contenteditable] * {

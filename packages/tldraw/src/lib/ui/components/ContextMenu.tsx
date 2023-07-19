@@ -6,7 +6,7 @@ import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
 import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
-import { useReadOnly } from '../hooks/useReadOnly'
+import { useReadonly } from '../hooks/useReadonly'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { MoveToPageMenu } from './MoveToPageMenu'
 import { Button } from './primitives/Button'
@@ -66,7 +66,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const [_, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
 	// If every item in the menu is readonly, then we don't want to show the menu
-	const isReadonly = useReadOnly()
+	const isReadonly = useReadonly()
 
 	const noItemsToShow =
 		contextTLUiMenuSchema.length === 0 ||
@@ -98,7 +98,7 @@ function ContextMenuContent() {
 	const menuSchema = useContextMenuSchema()
 	const [_, handleSubOpenChange] = useMenuIsOpen('context menu sub')
 
-	const isReadonly = useReadOnly()
+	const isReadonly = useReadonly()
 	const breakpoint = useBreakpoint()
 	const container = useContainer()
 

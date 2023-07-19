@@ -32,6 +32,7 @@ export function useDocumentEvents() {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (
 				e.altKey &&
+				// todo: When should we allow the alt key to be used? Perhaps states should declare which keys matter to them?
 				(editor.isIn('zoom') || !editor.root.path.value.endsWith('.idle')) &&
 				!isFocusingInput()
 			) {
@@ -45,21 +46,14 @@ export function useDocumentEvents() {
 			;(e as any).isKilled = true
 
 			switch (e.key) {
-				case '=': {
-					if (e.metaKey || e.ctrlKey) {
-						preventDefault(e)
-						return
-					}
-					break
-				}
-				case '-': {
-					if (e.metaKey || e.ctrlKey) {
-						preventDefault(e)
-						return
-					}
-					break
-				}
+				case '=':
+				case '-':
 				case '0': {
+					// These keys are used for zooming. Technically we only use
+					// the + - and 0 keys, however it's common for them to be
+					// paired with modifier keys (command / control) so we need
+					// to prevent the browser's regular actions (i.e. zooming
+					// the page). A user can zoom by unfocusing the editor.
 					if (e.metaKey || e.ctrlKey) {
 						preventDefault(e)
 						return
@@ -73,6 +67,9 @@ export function useDocumentEvents() {
 					break
 				}
 				case ',': {
+					// todo: extract to extension
+					// This seems very fragile; the comma key here is used to send pointer events,
+					// but that means it also needs to know about pen mode, hovered ids, etc.
 					if (!isFocusingInput()) {
 						preventDefault(e)
 						if (!editor.inputs.keys.has('Comma')) {

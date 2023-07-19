@@ -4,7 +4,7 @@ import * as React from 'react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useHelpMenuSchema } from '../hooks/useHelpMenuSchema'
 import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
-import { useReadOnly } from '../hooks/useReadOnly'
+import { useReadonly } from '../hooks/useReadonly'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../icon-types'
@@ -59,7 +59,7 @@ export const HelpMenu = React.memo(function HelpMenu() {
 function HelpMenuContent() {
 	const menuSchema = useHelpMenuSchema()
 
-	const isReadonly = useReadOnly()
+	const isReadonly = useReadonly()
 
 	function getHelpMenuItem(item: TLUiMenuChild) {
 		if (isReadonly && !item.readonlyOk) return null

@@ -10,6 +10,7 @@ import React, {
 	useSyncExternalStore,
 } from 'react'
 
+import classNames from 'classnames'
 import { Canvas } from './components/Canvas'
 import { OptionalErrorBoundary } from './components/ErrorBoundary'
 import { DefaultErrorFallback } from './components/default-components/DefaultErrorFallback'
@@ -92,6 +93,11 @@ export interface TldrawEditorBaseProps {
 	 * The editor's initial state (usually the id of the first active tool).
 	 */
 	initialState?: string
+
+	/**
+	 * A classname to pass to the editor's container.
+	 */
+	className?: string
 }
 
 /**
@@ -119,9 +125,10 @@ const EMPTY_TOOLS_ARRAY = [] as const
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
+	className,
 	...rest
 }: TldrawEditorProps) {
-	const [container, setContainer] = React.useState<HTMLDivElement | null>(null)
+	const [container, rContainer] = React.useState<HTMLDivElement | null>(null)
 	const user = useMemo(() => createTLUser(), [])
 
 	const ErrorFallback =
@@ -137,7 +144,12 @@ export const TldrawEditor = memo(function TldrawEditor({
 	}
 
 	return (
-		<div ref={setContainer} draggable={false} className="tl-container tl-theme__light" tabIndex={0}>
+		<div
+			ref={rContainer}
+			draggable={false}
+			className={classNames('tl-container tl-theme__light', className)}
+			tabIndex={0}
+		>
 			<OptionalErrorBoundary
 				fallback={ErrorFallback}
 				onError={(error) => annotateError(error, { tags: { origin: 'react.tldraw-before-app' } })}

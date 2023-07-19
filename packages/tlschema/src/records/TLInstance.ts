@@ -42,7 +42,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isCoarsePointer: boolean
 	openMenus: string[]
 	isChangingStyle: boolean
-	isReadOnly: boolean
+	isReadonly: boolean
 	meta: JsonObject
 }
 
@@ -87,7 +87,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isCoarsePointer: T.boolean,
 			openMenus: T.arrayOf(T.string),
 			isChangingStyle: T.boolean,
-			isReadOnly: T.boolean,
+			isReadonly: T.boolean,
 			meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 		})
 	)
@@ -124,7 +124,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isCoarsePointer: false,
 			openMenus: [] as string[],
 			isChangingStyle: false,
-			isReadOnly: false,
+			isReadonly: false,
 			meta: {},
 		})
 	)
@@ -151,11 +151,12 @@ export const instanceVersions = {
 	AddMeta: 17,
 	RemoveCursorColor: 18,
 	AddLonelyProperties: 19,
+	ReadOnlyReadonly: 20,
 } as const
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.AddLonelyProperties,
+	currentVersion: instanceVersions.ReadOnlyReadonly,
 	migrators: {
 		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -435,6 +436,20 @@ export const instanceMigrations = defineMigrations({
 			}) => {
 				return {
 					...record,
+				}
+			},
+		},
+		[instanceVersions.ReadOnlyReadonly]: {
+			up: ({ isReadOnly: _isReadOnly, ...record }) => {
+				return {
+					...record,
+					isReadonly: _isReadOnly,
+				}
+			},
+			down: ({ isReadonly: _isReadonly, ...record }) => {
+				return {
+					...record,
+					isReadOnly: _isReadonly,
 				}
 			},
 		},

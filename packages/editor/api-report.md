@@ -1643,6 +1643,7 @@ export const TldrawEditor: React_2.NamedExoticComponent<TldrawEditorProps>;
 export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
     children?: any;
+    className?: string;
     components?: Partial<TLEditorComponents>;
     initialState?: string;
     onMount?: TLOnMountHandler;

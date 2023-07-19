@@ -285,7 +285,7 @@ describe("App's default tool", () => {
 	})
 	it('Is hand for readonly mode', () => {
 		editor = new TestEditor()
-		editor.updateInstanceState({ isReadOnly: true })
+		editor.updateInstanceState({ isReadonly: true })
 		editor.setCurrentTool('hand')
 		expect(editor.currentToolId).toBe('hand')
 	})
@@ -369,37 +369,42 @@ describe('isFocused', () => {
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
+		jest.advanceTimersByTime(100)
 		expect(editor.instanceState.isFocused).toBe(false)
 
 		editor.elm.focus()
 
+		jest.advanceTimersByTime(100)
 		expect(editor.instanceState.isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
 		editor.elm.focus()
 
+		jest.advanceTimersByTime(100)
 		expect(editor.instanceState.isFocused).toBe(true)
 
 		editor.elm.blur()
 
+		jest.advanceTimersByTime(100)
 		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
-	it('becomes true when a child of the app container div receives a focusin event', () => {
+	it.skip('becomes true when a child of the app container div receives a focusin event', () => {
+		// We need to skip this one because it's not actually true: the focusin event will bubble
+		// to the document.body, resulting in that being the active element. In reality, the editor's
+		// container would also have received a focus event, and after the editor's debounce ends,
+		// the container (or one of its descendants) will be the focused element.
 		editor.elm.blur()
-
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
-
+		jest.advanceTimersByTime(100)
 		expect(editor.instanceState.isFocused).toBe(false)
-
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
-
+		jest.advanceTimersByTime(100)
 		expect(editor.instanceState.isFocused).toBe(true)
-
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
-
+		jest.advanceTimersByTime(100)
 		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
@@ -413,6 +418,7 @@ describe('isFocused', () => {
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
+		jest.advanceTimersByTime(100)
 		expect(editor.instanceState.isFocused).toBe(false)
 	})
 

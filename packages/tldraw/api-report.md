@@ -796,7 +796,7 @@ export function useMenuSchema(): TLUiMenuSchema;
 export function useNativeClipboardEvents(): void;
 
 // @public (undocumented)
-export function useReadOnly(): boolean;
+export function useReadonly(): boolean;
 
 // @public (undocumented)
 export function useToasts(): TLUiToastsContextType;

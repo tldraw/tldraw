@@ -83,7 +83,7 @@ export {
 	type TLUiMenuSchemaContextType,
 	type TLUiMenuSchemaProviderProps,
 } from './lib/ui/hooks/useMenuSchema'
-export { useReadOnly } from './lib/ui/hooks/useReadOnly'
+export { useReadonly } from './lib/ui/hooks/useReadonly'
 export {
 	useToasts,
 	type TLUiToast,

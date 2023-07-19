@@ -87,7 +87,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.instanceState.isReadOnly) break
+				if (this.editor.instanceState.isReadonly) break
 				if (this.editor.inputs.altKey) {
 					this.parent.transition('pointing_shape', info)
 				} else {
@@ -142,12 +142,12 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				// Create text shape and transition to editing_shape
-				if (this.editor.instanceState.isReadOnly) break
+				if (this.editor.instanceState.isReadonly) break
 				this.handleDoubleClickOnCanvas(info)
 				break
 			}
 			case 'selection': {
-				if (this.editor.instanceState.isReadOnly) break
+				if (this.editor.instanceState.isReadonly) break
 
 				const { onlySelectedShape } = this.editor
 				if (onlySelectedShape) {
@@ -191,7 +191,7 @@ export class Idle extends StateNode {
 				if (
 					shape.type !== 'video' &&
 					shape.type !== 'embed' &&
-					this.editor.instanceState.isReadOnly
+					this.editor.instanceState.isReadonly
 				)
 					break
 
@@ -221,7 +221,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.instanceState.isReadOnly) break
+				if (this.editor.instanceState.isReadonly) break
 				const { shape, handle } = info
 
 				const util = this.editor.getShapeUtil(shape)
@@ -307,7 +307,7 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyUp = (info: TLKeyboardEventInfo) => {
-		if (this.editor.instanceState.isReadOnly) {
+		if (this.editor.instanceState.isReadonly) {
 			switch (info.code) {
 				case 'Enter': {
 					if (this.shouldStartEditingShape() && this.editor.onlySelectedShape) {

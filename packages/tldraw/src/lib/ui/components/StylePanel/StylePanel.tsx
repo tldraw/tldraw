@@ -142,7 +142,11 @@ function CommonStylePickerSet({
 
 	return (
 		<>
-			<div className="tlui-style-panel__section__common" aria-label="style panel styles">
+			<div
+				tabIndex={-1}
+				className="tlui-style-panel__section__common"
+				aria-label="style panel styles"
+			>
 				{color === undefined ? null : (
 					<ButtonPicker
 						title={msg('style-panel.color')}
