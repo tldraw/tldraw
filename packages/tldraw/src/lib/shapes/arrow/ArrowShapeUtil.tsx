@@ -164,6 +164,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				margin: 4,
 				isFilled: false,
 				children: [bodyGeom, labelGeom],
+				operation: 'union',
 			})
 		}
 

@@ -1051,6 +1051,7 @@ export class Group2d extends Geometry2d {
         children: Geometry2d[];
         isFilled: boolean;
         margin: number;
+        operation: 'exclude' | 'intersect' | 'subtract' | 'union';
     });
     // (undocumented)
     children: Geometry2d[];
@@ -1060,6 +1061,8 @@ export class Group2d extends Geometry2d {
     hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
     // (undocumented)
     nearestPoint(point: Vec2d): Vec2d;
+    // (undocumented)
+    operation: 'exclude' | 'intersect' | 'subtract' | 'union';
 }
 
 // @public (undocumented)
