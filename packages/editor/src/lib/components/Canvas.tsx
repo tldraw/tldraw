@@ -275,7 +275,10 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 const OutlineView = track(function OutlineView() {
 	const editor = useEditor()
 
-	const { renderingShapes } = editor
+	const {
+		renderingShapes,
+		inputs: { currentPagePoint },
+	} = editor
 
 	return (
 		<svg
@@ -293,28 +296,44 @@ const OutlineView = track(function OutlineView() {
 				const shape = editor.getShapeById(result.id)!
 				const geometry = editor.getGeometry(shape)
 				const pageTransform = editor.getPageTransform(shape)!
-				const vertices = pageTransform.applyToPoints(geometry.vertices)
+
+				const pointInShapeSpace = editor.getPointInShapeSpace(shape, currentPagePoint)
+				const nearestPointOnShape = geometry.nearestPoint(pointInShapeSpace)
+
+				let path: any
 
 				if (geometry.isClosed) {
-					return (
+					path = (
 						<polygon
-							key={result.id + '_outline'}
 							stroke="dodgerblue"
 							strokeWidth={2}
 							fill="none"
-							points={vertices.map((v) => `${v.x},${v.y}`).join(' ')}
+							points={geometry.vertices.map((v) => `${v.x},${v.y}`).join(' ')}
 						/>
 					)
 				}
 
-				return (
+				path = (
 					<polyline
-						key={result.id + '_outline'}
 						stroke="dodgerblue"
 						strokeWidth={2}
 						fill="none"
-						points={vertices.map((v) => `${v.x},${v.y}`).join(' ')}
+						points={geometry.vertices.map((v) => `${v.x},${v.y}`).join(' ')}
 					/>
+				)
+
+				return (
+					<g key={result.id + '_outline'} transform={pageTransform.toCssString()}>
+						{path}
+						<line
+							x1={nearestPointOnShape.x}
+							y1={nearestPointOnShape.y}
+							x2={pointInShapeSpace.x}
+							y2={pointInShapeSpace.y}
+							strokeWidth={2}
+							stroke="red"
+						/>
+					</g>
 				)
 			})}
 		</svg>

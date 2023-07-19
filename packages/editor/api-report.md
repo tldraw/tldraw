@@ -99,6 +99,7 @@ export class Arc2d extends Geometry2d {
         start: Vec2d;
         end: Vec2d;
         sweepFlag: number;
+        largeArcFlag: number;
         margin: number;
     });
     // (undocumented)
@@ -108,11 +109,15 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     _center: Vec2d;
     // (undocumented)
+    delta: number;
+    // (undocumented)
     end: Vec2d;
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)
     hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    // (undocumented)
+    largeArcFlag: number;
     // (undocumented)
     margin: number;
     // (undocumented)
