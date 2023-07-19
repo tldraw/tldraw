@@ -1,5 +1,6 @@
 import {
 	Box2d,
+	GroupShapeUtil,
 	TLArrowShape,
 	TLGroupShape,
 	TLLineShape,
@@ -1895,7 +1896,7 @@ describe('Group opacity', () => {
 		editor.setOpacity(0.5)
 		editor.groupShapes()
 		const group = editor.getShapeById(onlySelectedId())!
-		assert(editor.isShapeOfType<TLGroupShape>(group, 'group'))
+		assert(editor.isShapeOfType(group, GroupShapeUtil))
 		expect(group.opacity).toBe(1)
 	})
 })

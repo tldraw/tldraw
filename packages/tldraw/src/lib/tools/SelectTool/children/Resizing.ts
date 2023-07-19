@@ -8,7 +8,6 @@ import {
 	TAU,
 	TLEnterEventHandler,
 	TLEventHandlers,
-	TLFrameShape,
 	TLPointerEventInfo,
 	TLShape,
 	TLShapeId,
@@ -17,6 +16,7 @@ import {
 	VecLike,
 	areAnglesCompatible,
 } from '@tldraw/editor'
+import { FrameShapeUtil } from '../../../shapes/frame/FrameShapeUtil'
 
 type ResizingInfo = TLPointerEventInfo & {
 	target: 'selection'
@@ -375,13 +375,12 @@ export class Resizing extends StateNode {
 			const shape = this.editor.getShapeById(id)
 			if (shape) {
 				shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
-				if (this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') && selectedIds.length === 1)
-					return
+				if (this.editor.isShapeOfType(shape, FrameShapeUtil) && selectedIds.length === 1) return
 				this.editor.visitDescendants(shape.id, (descendantId) => {
 					const descendent = this.editor.getShapeById(descendantId)
 					if (descendent) {
 						shapeSnapshots.set(descendent.id, this._createShapeSnapshot(descendent))
-						if (this.editor.isShapeOfType<TLFrameShape>(descendent, 'frame')) {
+						if (this.editor.isShapeOfType(descendent, FrameShapeUtil)) {
 							return false
 						}
 					}

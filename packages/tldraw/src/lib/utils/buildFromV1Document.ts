@@ -26,6 +26,7 @@ import {
 	clamp,
 	createShapeId,
 } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../shapes/arrow/ArrowShapeUtil'
 
 const TLDRAW_V1_VERSION = 15.5
 
@@ -518,7 +519,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 					}
 
 					const v2ShapeId = v1ShapeIdsToV2ShapeIds.get(v1Shape.id)!
-					const util = editor.getShapeUtil<TLArrowShape>('arrow')
+					const util = editor.getShapeUtil(ArrowShapeUtil)
 
 					// dumb but necessary
 					editor.inputs.ctrlKey = false

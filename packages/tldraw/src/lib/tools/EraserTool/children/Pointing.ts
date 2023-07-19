@@ -1,4 +1,5 @@
-import { StateNode, TLEventHandlers, TLFrameShape, TLGroupShape, TLShapeId } from '@tldraw/editor'
+import { GroupShapeUtil, StateNode, TLEventHandlers, TLShapeId } from '@tldraw/editor'
+import { FrameShapeUtil } from '../../../shapes/frame/FrameShapeUtil'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -13,16 +14,12 @@ export class Pointing extends StateNode {
 		for (const shape of [...this.editor.sortedShapesArray].reverse()) {
 			if (this.editor.isPointInShape(inputs.currentPagePoint, shape)) {
 				// Skip groups
-				if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
+				if (this.editor.isShapeOfType(shape, GroupShapeUtil)) continue
 
 				const hitShape = this.editor.getOutermostSelectableShape(shape)
 
 				// If we've hit a frame after hitting any other shape, stop here
-				if (
-					this.editor.isShapeOfType<TLFrameShape>(hitShape, 'frame') &&
-					erasing.size > initialSize
-				)
-					break
+				if (this.editor.isShapeOfType(hitShape, FrameShapeUtil) && erasing.size > initialSize) break
 
 				erasing.add(hitShape.id)
 			}

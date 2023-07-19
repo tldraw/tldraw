@@ -1,4 +1,5 @@
-import { TLArrowShape, TLGeoShape, TLShapeId } from '@tldraw/editor'
+import { TLArrowShape, TLShapeId } from '@tldraw/editor'
+import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -184,7 +185,7 @@ describe('arrowBindingsIndex', () => {
 			editor.duplicateShapes()
 
 			const [box1Clone, box2Clone] = editor.selectedShapes
-				.filter((shape) => editor.isShapeOfType<TLGeoShape>(shape, 'geo'))
+				.filter((shape) => editor.isShapeOfType(shape, GeoShapeUtil))
 				.sort((a, b) => a.x - b.x)
 
 			expect(editor.getArrowsBoundTo(box2Clone.id)).toHaveLength(3)

@@ -1,15 +1,15 @@
 import {
+	GroupShapeUtil,
 	ShapeUtil,
 	StateNode,
 	TLEventHandlers,
-	TLFrameShape,
-	TLGroupShape,
 	TLScribble,
 	TLShape,
 	TLShapeId,
 	intersectLineSegmentPolyline,
 	pointInPolygon,
 } from '@tldraw/editor'
+import { FrameShapeUtil } from '../../../shapes/frame/FrameShapeUtil'
 import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
 
 export class ScribbleBrushing extends StateNode {
@@ -111,9 +111,9 @@ export class ScribbleBrushing extends StateNode {
 			util = this.editor.getShapeUtil(shape)
 
 			if (
-				this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+				this.editor.isShapeOfType(shape, GroupShapeUtil) ||
 				this.newlySelectedIds.has(shape.id) ||
-				(this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
+				(this.editor.isShapeOfType(shape, FrameShapeUtil) &&
 					util.hitTestPoint(shape, this.editor.getPointInShapeSpace(shape, originPagePoint))) ||
 				this.editor.isShapeOrAncestorLocked(shape)
 			) {

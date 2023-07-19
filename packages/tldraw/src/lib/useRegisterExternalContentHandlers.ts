@@ -16,6 +16,7 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
+import { TextShapeUtil } from './shapes/text/TextShapeUtil'
 import {
 	ACCEPTED_IMG_TYPE,
 	ACCEPTED_VID_TYPE,
@@ -225,7 +226,7 @@ export function useRegisterExternalContentHandlers() {
 				point ??
 				(editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
 
-			const defaultProps = editor.getShapeUtil<TLTextShape>('text').getDefaultProps()
+			const defaultProps = editor.getShapeUtil(TextShapeUtil).getDefaultProps()
 
 			const textToPaste = cleanupText(text)
 

@@ -1,7 +1,7 @@
 import {
+	GroupShapeUtil,
 	StateNode,
 	TLEventHandlers,
-	TLGroupShape,
 	TLPointerEventInfo,
 	TLShape,
 } from '@tldraw/editor'
@@ -43,7 +43,7 @@ export class PointingShape extends StateNode {
 
 			const parent = this.editor.getParentShape(info.shape)
 
-			if (parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')) {
+			if (parent && this.editor.isShapeOfType(parent, GroupShapeUtil)) {
 				this.editor.cancelDoubleClick()
 			}
 

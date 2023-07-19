@@ -7,6 +7,7 @@ import {
 	TLShapeId,
 } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
+import { ArrowShapeUtil } from './ArrowShapeUtil'
 
 let editor: TestEditor
 
@@ -303,7 +304,7 @@ describe('Other cases when arrow are moved', () => {
 
 		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
 		let arrow = editor.shapesArray[editor.shapesArray.length - 1]
-		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
+		assert(editor.isShapeOfType(arrow, ArrowShapeUtil))
 		assert(arrow.props.end.type === 'binding')
 		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
 
@@ -312,7 +313,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// arrow should still be bound to box3
 		arrow = editor.getShapeById(arrow.id)!
-		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
+		assert(editor.isShapeOfType(arrow, ArrowShapeUtil))
 		assert(arrow.props.end.type === 'binding')
 		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
 	})

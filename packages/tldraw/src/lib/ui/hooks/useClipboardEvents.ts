@@ -1,19 +1,11 @@
-import {
-	Editor,
-	TLArrowShape,
-	TLBookmarkShape,
-	TLContent,
-	TLEmbedShape,
-	TLGeoShape,
-	TLTextShape,
-	VecLike,
-	isNonNull,
-	uniq,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+import { Editor, TLContent, VecLike, isNonNull, uniq, useEditor, useValue } from '@tldraw/editor'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
+import { ArrowShapeUtil } from '../../shapes/arrow/ArrowShapeUtil'
+import { BookmarkShapeUtil } from '../../shapes/bookmark/BookmarkShapeUtil'
+import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
+import { GeoShapeUtil } from '../../shapes/geo/GeoShapeUtil'
+import { TextShapeUtil } from '../../shapes/text/TextShapeUtil'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
@@ -537,15 +529,15 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 		const textItems = content.shapes
 			.map((shape) => {
 				if (
-					editor.isShapeOfType<TLTextShape>(shape, 'text') ||
-					editor.isShapeOfType<TLGeoShape>(shape, 'geo') ||
-					editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+					editor.isShapeOfType(shape, TextShapeUtil) ||
+					editor.isShapeOfType(shape, GeoShapeUtil) ||
+					editor.isShapeOfType(shape, ArrowShapeUtil)
 				) {
 					return shape.props.text
 				}
 				if (
-					editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') ||
-					editor.isShapeOfType<TLEmbedShape>(shape, 'embed')
+					editor.isShapeOfType(shape, BookmarkShapeUtil) ||
+					editor.isShapeOfType(shape, EmbedShapeUtil)
 				) {
 					return shape.props.url
 				}

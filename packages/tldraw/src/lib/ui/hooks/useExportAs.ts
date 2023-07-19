@@ -1,5 +1,6 @@
-import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
+import { TLShapeId, useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { FrameShapeUtil } from '../../shapes/frame/FrameShapeUtil'
 import {
 	TLExportType,
 	downloadDataURLAsFile,
@@ -36,7 +37,7 @@ export function useExportAs() {
 
 			if (ids.length === 1) {
 				const first = editor.getShapeById(ids[0])!
-				if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
+				if (editor.isShapeOfType(first, FrameShapeUtil)) {
 					name = first.props.name ?? 'frame'
 				} else {
 					name = first.id.replace(/:/, '_')

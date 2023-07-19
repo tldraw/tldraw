@@ -2,12 +2,12 @@ import {
 	GapsSnapLine,
 	PointsSnapLine,
 	SnapLine,
-	TLArrowShape,
 	TLShapeId,
 	TLShapePartial,
 	Vec2d,
 	createShapeId,
 } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../lib/shapes/arrow/ArrowShapeUtil'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 
@@ -1649,7 +1649,7 @@ describe('translating a shape with a bound shape', () => {
 		})
 
 		const newArrow = editor.shapesArray.find(
-			(s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1
+			(s) => editor.isShapeOfType(s, ArrowShapeUtil) && s.id !== arrow1
 		)
 		expect(newArrow).toMatchObject({
 			props: { start: { type: 'binding' }, end: { type: 'point' } },

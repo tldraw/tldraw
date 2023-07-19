@@ -1,4 +1,5 @@
-import { TLTextShape, useEditor, useValue } from '@tldraw/editor'
+import { useEditor, useValue } from '@tldraw/editor'
+import { TextShapeUtil } from '../../shapes/text/TextShapeUtil'
 
 export function useShowAutoSizeToggle() {
 	const editor = useEditor()
@@ -8,7 +9,7 @@ export function useShowAutoSizeToggle() {
 			const { selectedShapes } = editor
 			return (
 				selectedShapes.length === 1 &&
-				editor.isShapeOfType<TLTextShape>(selectedShapes[0], 'text') &&
+				editor.isShapeOfType(selectedShapes[0], TextShapeUtil) &&
 				selectedShapes[0].props.autoSize === false
 			)
 		},

@@ -11,6 +11,7 @@ import {
 	Vec2d,
 	deepCopy,
 } from '@tldraw/editor'
+import { ImageShapeUtil } from '../../../shapes/image/ImageShapeUtil'
 import { MIN_CROP_SIZE } from './Crop/crop-constants'
 import { CursorTypeMap } from './PointingResizeHandle'
 
@@ -80,7 +81,7 @@ export class Cropping extends StateNode {
 		const { shape, cursorHandleOffset } = this.snapshot
 
 		if (!shape) return
-		const util = this.editor.getShapeUtil<TLImageShape>('image')
+		const util = this.editor.getShapeUtil(ImageShapeUtil)
 		if (!util) return
 
 		const props = shape.props

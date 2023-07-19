@@ -1,8 +1,6 @@
 import {
 	RotateCorner,
-	TLEmbedShape,
 	TLSelectionForegroundComponent,
-	TLTextShape,
 	getCursor,
 	toDomPrecision,
 	track,
@@ -12,6 +10,8 @@ import {
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useRef } from 'react'
+import { EmbedShapeUtil } from '../shapes/embed/EmbedShapeUtil'
+import { TextShapeUtil } from '../shapes/text/TextShapeUtil'
 import { useReadOnly } from '../ui/hooks/useReadOnly'
 import { CropHandles } from './CropHandles'
 
@@ -100,11 +100,11 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			(showSelectionBounds &&
 				editor.isIn('select.resizing') &&
 				onlyShape &&
-				editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
+				editor.isShapeOfType(onlyShape, TextShapeUtil))
 
 		if (
 			onlyShape &&
-			editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed') &&
+			editor.isShapeOfType(onlyShape, EmbedShapeUtil) &&
 			shouldDisplayBox &&
 			IS_FIREFOX
 		) {
@@ -193,7 +193,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			shouldDisplayControls &&
 			isCoarsePointer &&
 			onlyShape &&
-			editor.isShapeOfType<TLTextShape>(onlyShape, 'text') &&
+			editor.isShapeOfType(onlyShape, TextShapeUtil) &&
 			textHandleHeight * zoom >= 4
 
 		return (

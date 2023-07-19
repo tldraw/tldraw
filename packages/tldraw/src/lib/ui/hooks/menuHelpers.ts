@@ -1,11 +1,5 @@
-import {
-	Editor,
-	TLArrowShape,
-	assert,
-	exhaustiveSwitchError,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+import { Editor, assert, exhaustiveSwitchError, useEditor, useValue } from '@tldraw/editor'
+import { ArrowShapeUtil } from '../../shapes/arrow/ArrowShapeUtil'
 import { TLUiActionItem } from './useActions'
 import { TLUiToolItem } from './useTools'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
@@ -144,13 +138,10 @@ function shapesWithUnboundArrows(editor: Editor) {
 
 	return selectedShapes.filter((shape) => {
 		if (!shape) return false
-		if (
-			editor.isShapeOfType<TLArrowShape>(shape, 'arrow') &&
-			shape.props.start.type === 'binding'
-		) {
+		if (editor.isShapeOfType(shape, ArrowShapeUtil) && shape.props.start.type === 'binding') {
 			return false
 		}
-		if (editor.isShapeOfType<TLArrowShape>(shape, 'arrow') && shape.props.end.type === 'binding') {
+		if (editor.isShapeOfType(shape, ArrowShapeUtil) && shape.props.end.type === 'binding') {
 			return false
 		}
 		return true

@@ -1,12 +1,11 @@
 import {
 	Box2d,
+	GroupShapeUtil,
 	Matrix2d,
 	ShapeUtil,
 	StateNode,
 	TLCancelEvent,
 	TLEventHandlers,
-	TLFrameShape,
-	TLGroupShape,
 	TLInterruptEvent,
 	TLKeyboardEvent,
 	TLPageId,
@@ -18,6 +17,7 @@ import {
 	pointInPolygon,
 	polygonsIntersect,
 } from '@tldraw/editor'
+import { FrameShapeUtil } from '../../../shapes/frame/FrameShapeUtil'
 
 export class Brushing extends StateNode {
 	static override id = 'brushing'
@@ -43,7 +43,7 @@ export class Brushing extends StateNode {
 			this.editor.shapesArray
 				.filter(
 					(shape) =>
-						this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+						this.editor.isShapeOfType(shape, GroupShapeUtil) ||
 						this.editor.isShapeOrAncestorLocked(shape)
 				)
 				.map((shape) => shape.id)
@@ -136,7 +136,7 @@ export class Brushing extends StateNode {
 			// Should we even test for a single segment intersections? Only if
 			// we're not holding the ctrl key for alternate selection mode
 			// (only wraps count!), or if the shape is a frame.
-			if (ctrlKey || this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+			if (ctrlKey || this.editor.isShapeOfType(shape, FrameShapeUtil)) {
 				continue testAllShapes
 			}
 

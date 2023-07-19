@@ -2,10 +2,9 @@ import {
 	ANIMATION_MEDIUM_MS,
 	Box2d,
 	Editor,
+	GroupShapeUtil,
 	TAU,
-	TLBookmarkShape,
 	TLEmbedShape,
-	TLGroupShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
@@ -17,6 +16,9 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
+import { BookmarkShapeUtil } from '../../shapes/bookmark/BookmarkShapeUtil'
+import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
+import { TextShapeUtil } from '../../shapes/text/TextShapeUtil'
 import { getEmbedInfo } from '../../utils/embeds'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
@@ -215,7 +217,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						editor.selectedShapes
 							.filter(
 								(shape): shape is TLTextShape =>
-									editor.isShapeOfType<TLTextShape>(shape, 'text') && shape.props.autoSize === false
+									editor.isShapeOfType(shape, TextShapeUtil) && shape.props.autoSize === false
 							)
 							.map((shape) => {
 								return {
@@ -244,7 +246,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						return
 					}
 					const shape = editor.getShapeById(ids[0])
-					if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed')) {
+					if (!shape || !editor.isShapeOfType(shape, EmbedShapeUtil)) {
 						console.error(warnMsg)
 						return
 					}
@@ -279,8 +281,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
-							continue
+						if (!shape || !editor.isShapeOfType(shape, EmbedShapeUtil) || !shape.props.url) continue
 
 						const newPos = new Vec2d(shape.x, shape.y)
 						newPos.rot(-shape.rotation)
@@ -318,7 +319,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []
 					for (const shape of shapes) {
-						if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
+						if (!editor.isShapeOfType(shape, BookmarkShapeUtil)) continue
 
 						const { url } = shape.props
 
@@ -401,7 +402,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('group-shapes', { source })
 					const { onlySelectedShape } = editor
-					if (onlySelectedShape && editor.isShapeOfType<TLGroupShape>(onlySelectedShape, 'group')) {
+					if (onlySelectedShape && editor.isShapeOfType(onlySelectedShape, GroupShapeUtil)) {
 						editor.mark('ungroup')
 						editor.ungroupShapes(editor.selectedIds)
 					} else {

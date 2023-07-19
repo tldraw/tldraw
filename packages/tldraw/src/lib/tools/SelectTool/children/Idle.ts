@@ -1,9 +1,9 @@
 import {
+	GroupShapeUtil,
 	StateNode,
 	TLClickEventInfo,
 	TLEventHandlers,
 	TLGeoShape,
-	TLGroupShape,
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
 	TLShape,
@@ -326,9 +326,7 @@ export class Idle extends StateNode {
 				case 'Enter': {
 					const { selectedShapes } = this.editor
 
-					if (
-						selectedShapes.every((shape) => this.editor.isShapeOfType<TLGroupShape>(shape, 'group'))
-					) {
+					if (selectedShapes.every((shape) => this.editor.isShapeOfType(shape, GroupShapeUtil))) {
 						this.editor.setSelectedIds(
 							selectedShapes.flatMap((shape) => this.editor.getSortedChildIds(shape.id))
 						)
