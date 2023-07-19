@@ -521,6 +521,11 @@ export class ExternalContentManager {
 
 		try {
 			const resp = await fetch(url, { method: 'GET', mode: 'no-cors' })
+			const blob = await resp.blob()
+			if (blob.type && ACCEPTED_IMG_TYPE.includes(blob.type)) {
+				const file = new File([blob], url.split('/').pop() ?? 'image.png')
+				return await this.createAssetFromFile(_editor, file)
+			}
 			const html = await resp.text()
 			const doc = new DOMParser().parseFromString(html, 'text/html')
 			meta = {
