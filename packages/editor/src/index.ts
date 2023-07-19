@@ -289,7 +289,6 @@ export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
-export { png } from './lib/utils/png'
 export { refreshPage } from './lib/utils/refreshPage'
 export {
 	getIndexAbove,

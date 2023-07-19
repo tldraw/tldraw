@@ -1067,15 +1067,6 @@ export const PI: number;
 // @public (undocumented)
 export const PI2: number;
 
-// @public (undocumented)
-export const png: {
-    isPng: typeof isPng;
-    readChunks: typeof readChunks;
-    parsePhys: typeof parsePhys;
-    findChunk: typeof findChunk;
-    setPhysChunk: typeof setPhysChunk;
-};
-
 // @public
 export function pointInBounds(A: VecLike, b: Box2d): boolean;
 

@@ -34,7 +34,7 @@ export function useDefaultEditorAssetsWithOverrides(
 		if (!overrides) return defaultEditorAssetUrls
 
 		return {
-			fonts: Object.assign({ ...defaultEditorAssetUrls.fonts }, { ...overrides?.fonts }),
+			fonts: { ...defaultEditorAssetUrls.fonts, ...overrides?.fonts },
 		}
 	}, [overrides])
 }
