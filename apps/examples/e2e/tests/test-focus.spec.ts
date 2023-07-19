@@ -77,7 +77,7 @@ test.describe('Focus', () => {
 		)
 
 		await EditorB.click()
-
+		await page.waitForTimeout(100) // takes 30ms or so to focus
 		await page.keyboard.press('d')
 
 		expect(
