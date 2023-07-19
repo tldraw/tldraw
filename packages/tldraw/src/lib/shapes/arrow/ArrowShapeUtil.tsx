@@ -90,7 +90,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	getGeometry(shape: TLArrowShape) {
 		const info = this.editor.getArrowInfo(shape)!
 
-		const arrowBody = info.isStraight
+		const bodyGeom = info.isStraight
 			? new Edge2d({
 					start: Vec2d.From(info.start.point),
 					end: Vec2d.From(info.end.point),
@@ -105,7 +105,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			  })
 
 		if (shape.props.text.trim()) {
-			const bodyBounds = arrowBody.bounds
+			const bodyBounds = bodyGeom.bounds
 
 			const { w, h } = this.editor.textMeasure.measureText(shape.props.text, {
 				...TEXT_PROPS,
@@ -151,24 +151,23 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				height = squishedHeight
 			}
 
+			const labelGeom = new Rectangle2d({
+				x: info.middle.x - width / 2 - 4,
+				y: info.middle.y - height / 2 - 4,
+				width: width + 8,
+				height: height + 8,
+				isFilled: true,
+				margin: 4,
+			})
+
 			return new Group2d({
 				margin: 4,
 				isFilled: false,
-				children: [
-					arrowBody,
-					new Rectangle2d({
-						x: info.middle.x - width / 2 - 4,
-						y: info.middle.y - height / 2 - 4,
-						width: width + 8,
-						height: height + 8,
-						isFilled: true,
-						margin: 4,
-					}),
-				],
+				children: [bodyGeom, labelGeom],
 			})
 		}
 
-		return arrowBody
+		return bodyGeom
 	}
 
 	// getOutlineWithoutLabel(shape: TLArrowShape): Vec2d[] {
@@ -618,7 +617,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const info = this.editor.getArrowInfo(shape)
 		const bounds = this.editor.getBounds(shape)
-		const labelGeometry = this.editor.getGeometry<Group2d>(shape).children[1] as Rectangle2d
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const changeIndex = React.useMemo<number>(() => {
@@ -689,6 +687,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				style: shape.props.dash,
 			}
 		)
+
+		const labelGeometry = shape.props.text.trim()
+			? (this.editor.getGeometry<Group2d>(shape).children[1] as Rectangle2d)
+			: null
 
 		const maskStartArrowhead = !(
 			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
@@ -797,7 +799,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const info = this.editor.getArrowInfo(shape)
 		const bounds = this.editor.getBounds(shape)
-		const labelGeometry = this.editor.getGeometry<Group2d>(shape).children[1] as Rectangle2d
+
+		const labelGeometry = shape.props.text.trim()
+			? (this.editor.getGeometry<Group2d>(shape).children[1] as Rectangle2d)
+			: null
 
 		if (!info) return null
 		if (Vec2d.Equals(start, end)) return null
@@ -987,7 +992,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
 		const bounds = this.editor.getBounds(shape)
-		const labelGeometry = this.editor.getGeometry<Group2d>(shape).children[1] as Rectangle2d
+
+		const labelGeometry = shape.props.text.trim()
+			? (this.editor.getGeometry<Group2d>(shape).children[1] as Rectangle2d)
+			: null
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
 

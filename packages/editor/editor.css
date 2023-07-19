@@ -1451,15 +1451,17 @@ input,
 	border-style: solid;
 	border-radius: calc(var(--radius-1) * var(--tl-scale));
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	text-align: left;
 	position: relative;
 	pointer-events: all;
 	overflow: hidden;
 	padding: var(--space-2);
 }
 
-.tl-shape-error-boundary::after {
+.tl-shape-error-boundary::before {
 	transform: scale(var(--tl-scale));
 	content: 'Error';
 	font-size: 12px;
