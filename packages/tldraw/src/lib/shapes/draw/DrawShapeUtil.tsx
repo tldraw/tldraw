@@ -68,10 +68,15 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			})
 		}
 
+		const strokePoints = getStrokePoints(
+			points,
+			getFreehandOptions(shape.props, strokeWidth, true, true)
+		).map((p) => p.point)
+
 		// A closed draw stroke
 		if (shape.props.isClosed) {
 			return new Polygon2d({
-				points,
+				points: strokePoints,
 				margin: strokeWidth + 4,
 				isFilled: shape.props.fill !== 'none',
 			})
@@ -79,7 +84,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 		// An open draw stroke
 		return new Polyline2d({
-			points,
+			points: strokePoints,
 			margin: strokeWidth + 4,
 		})
 	}
