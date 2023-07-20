@@ -272,7 +272,7 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 	)
 })
 
-const GeometryDebuggingView = track(function OutlineView({
+const GeometryDebuggingView = track(function GeometryDebuggingView({
 	showClosestPointOnOutline = true,
 }: {
 	showClosestPointOnOutline?: boolean
@@ -305,16 +305,18 @@ const GeometryDebuggingView = track(function OutlineView({
 				const nearestPointOnShape = geometry.nearestPoint(pointInShapeSpace)
 				const distanceToPoint = geometry.distanceToPoint(pointInShapeSpace)
 
+				const { vertices, margin } = geometry
+
 				return (
 					<g key={result.id + '_outline'} transform={pageTransform.toCssString()}>
 						<path stroke="dodgerblue" strokeWidth={2} fill="none" d={geometry.toSimpleSvgPath()} />
-						{geometry.vertices.map((v, i) => (
+						{vertices.map((v, i) => (
 							<circle
 								key={`v${i}`}
 								cx={v.x}
 								cy={v.y}
 								r={2}
-								fill={`hsl(${modulate(i, [0, geometry.vertices.length - 1], [120, 0])}, 100%, 50%)`}
+								fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 0])}, 100%, 50%)`}
 							/>
 						))}
 						{showClosestPointOnOutline && (
@@ -324,7 +326,7 @@ const GeometryDebuggingView = track(function OutlineView({
 								x2={pointInShapeSpace.x}
 								y2={pointInShapeSpace.y}
 								strokeWidth={2}
-								stroke={distanceToPoint < geometry.margin / zoomLevel ? 'red' : 'pink'}
+								stroke={distanceToPoint < margin / zoomLevel ? 'red' : 'pink'}
 							/>
 						)}
 					</g>

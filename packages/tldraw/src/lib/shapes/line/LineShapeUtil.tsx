@@ -99,6 +99,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					y: point.y,
 				})
 			}
+
 			return results.sort(sortByIndex)
 		})
 	}

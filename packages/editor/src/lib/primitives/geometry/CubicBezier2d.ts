@@ -23,24 +23,34 @@ export class CubicBezier2d extends Polyline2d {
 		// we'll always use ten vertices for each bezier curve
 		for (let i = 0, n = 10; i < n; i++) {
 			const t = i / n
-			new Vec2d(
-				(1 - t) * (1 - t) * (1 - t) * a.x +
-					3 * ((1 - t) * (1 - t)) * t * b.x +
-					3 * (1 - t) * (t * t) * c.x +
-					t * t * t * d.x,
-				(1 - t) * (1 - t) * (1 - t) * a.y +
-					3 * ((1 - t) * (1 - t)) * t * b.y +
-					3 * (1 - t) * (t * t) * c.y +
-					t * t * t * d.y
+			vertices.push(
+				new Vec2d(
+					(1 - t) * (1 - t) * (1 - t) * a.x +
+						3 * ((1 - t) * (1 - t)) * t * b.x +
+						3 * (1 - t) * (t * t) * c.x +
+						t * t * t * d.x,
+					(1 - t) * (1 - t) * (1 - t) * a.y +
+						3 * ((1 - t) * (1 - t)) * t * b.y +
+						3 * (1 - t) * (t * t) * c.y +
+						t * t * t * d.y
+				)
 			)
 		}
 		return vertices
 	}
 
 	midPoint() {
+		const { a, b, c, d } = this
+		const t = 0.5
 		return new Vec2d(
-			(1 / 3) * this.a.x + (2 / 3) * this.b.x,
-			(1 / 3) * this.a.y + (2 / 3) * this.b.y
+			(1 - t) * (1 - t) * (1 - t) * a.x +
+				3 * ((1 - t) * (1 - t)) * t * b.x +
+				3 * (1 - t) * (t * t) * c.x +
+				t * t * t * d.x,
+			(1 - t) * (1 - t) * (1 - t) * a.y +
+				3 * ((1 - t) * (1 - t)) * t * b.y +
+				3 * (1 - t) * (t * t) * c.y +
+				t * t * t * d.y
 		)
 	}
 

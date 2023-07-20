@@ -24,7 +24,7 @@ export class Edge2d extends Geometry2d {
 	}
 
 	midPoint(): Vec2d {
-		return this.start.clone().add(this.d.clone().div(2))
+		return this.start.lrp(this.end, 0.5)
 	}
 
 	override getVertices(): Vec2d[] {
