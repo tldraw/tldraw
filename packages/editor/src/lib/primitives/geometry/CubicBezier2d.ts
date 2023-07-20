@@ -20,6 +20,7 @@ export class CubicBezier2d extends Polyline2d {
 	override getVertices() {
 		const vertices = [] as Vec2d[]
 		const { a, b, c, d } = this
+		// we'll always use ten vertices for each bezier curve
 		for (let i = 0, n = 10; i < n; i++) {
 			const t = i / n
 			new Vec2d(
