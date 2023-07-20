@@ -13,6 +13,7 @@ export interface ShapeFillProps {
 	d: string
 	fill: TLDefaultFillStyle
 	color: TLDefaultColorStyle
+	theme: TLDefaultColorTheme
 }
 
 export function useDefaultColorTheme() {
@@ -21,8 +22,7 @@ export function useDefaultColorTheme() {
 	return getDefaultColorTheme({ isDarkMode })
 }
 
-export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: ShapeFillProps) {
-	const theme = useDefaultColorTheme()
+export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }: ShapeFillProps) {
 	switch (fill) {
 		case 'none': {
 			return <path className={'tl-hitarea-stroke'} fill="none" d={d} />
@@ -39,11 +39,7 @@ export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: Shape
 	}
 })
 
-const PatternFill = function PatternFill({
-	d,
-	color,
-	theme,
-}: ShapeFillProps & { theme: TLDefaultColorTheme }) {
+const PatternFill = function PatternFill({ d, color, theme }: ShapeFillProps) {
 	const editor = useEditor()
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const isDarkMode = useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
@@ -66,12 +62,7 @@ const PatternFill = function PatternFill({
 	)
 }
 
-export function getShapeFillSvg({
-	d,
-	color,
-	fill,
-	theme,
-}: ShapeFillProps & { theme: TLDefaultColorTheme }) {
+export function getShapeFillSvg({ d, color, fill, theme }: ShapeFillProps) {
 	if (fill === 'none') {
 		return
 	}
