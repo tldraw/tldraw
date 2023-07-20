@@ -16,7 +16,7 @@ export abstract class Geometry2d {
 
 	distanceToPoint(point: Vec2d) {
 		const dist = point.dist(this.nearestPoint(point))
-		return this.isFilled && pointInPolygon(point, this.vertices) ? -dist : dist
+		return this.isClosed && pointInPolygon(point, this.vertices) ? -dist : dist
 	}
 
 	hitTestPoint(point: Vec2d, zoom = 1) {
@@ -67,5 +67,26 @@ export abstract class Geometry2d {
 
 	get center() {
 		return this.bounds.center
+	}
+
+	toSimpleSvgPath() {
+		let path = ''
+
+		const { vertices } = this
+		const n = vertices.length
+
+		if (n === 0) return path
+
+		path += `M${vertices[0].x},${vertices[0].y}`
+
+		for (let i = 1; i < n; i++) {
+			path += `L${vertices[i].x},${vertices[i].y}`
+		}
+
+		if (this.isClosed) {
+			path += 'Z'
+		}
+
+		return path
 	}
 }

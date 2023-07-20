@@ -1,7 +1,8 @@
 import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
 import { intersectLineSegmentCircle } from '../intersect'
-import { PI2, angleDelta, longAngleDist, shortAngleDist } from '../utils'
+import { PI, PI2, shortAngleDist } from '../utils'
+import { getArcSegmentCount } from './geometry-constants'
 
 /** @public */
 export class Arc2d extends Geometry2d {
@@ -10,12 +11,11 @@ export class Arc2d extends Geometry2d {
 	start: Vec2d
 	end: Vec2d
 
-	delta: number
+	measure: number
+	length: number
 	margin: number
 	angleStart: number
 	angleEnd: number
-	sweepFlag: number
-	largeArcFlag: number
 
 	constructor(config: {
 		center: Vec2d
@@ -33,9 +33,8 @@ export class Arc2d extends Geometry2d {
 		// ensure that the start and end are clockwise
 		this.angleStart = Vec2d.Angle(center, start)
 		this.angleEnd = Vec2d.Angle(center, end)
-		this.delta = angleDelta(this.angleStart, this.angleEnd)
-		this.sweepFlag = sweepFlag
-		this.largeArcFlag = largeArcFlag
+		this.measure = getArcMeasure(this.angleStart, this.angleEnd, sweepFlag, largeArcFlag)
+		this.length = this.measure * radius
 
 		this.start = start
 		this.end = end
@@ -47,37 +46,44 @@ export class Arc2d extends Geometry2d {
 	}
 
 	nearestPoint(point: Vec2d): Vec2d {
-		const { _center, largeArcFlag, sweepFlag, radius, angleEnd, angleStart } = this
-		const result = isPointOnArc(angleStart, angleEnd, _center.angle(point), sweepFlag, largeArcFlag)
-		if (result <= 0 || result >= 1) {
-			const ds = point.dist(this.start)
-			const de = point.dist(this.end)
-			return ds < de ? this.start : this.end
+		const { _center, measure, radius, angleEnd, angleStart, start: A, end: B } = this
+		const t = getPointInArcT(measure, angleStart, angleEnd, _center.angle(point))
+		if (t <= 0) return A
+		if (t >= 1) return B
+
+		// Get the point (P) on the arc, then pick the nearest of A, B, and P
+		const P = _center.clone().add(point.clone().sub(_center).uni().mul(radius))
+
+		let distance = Infinity
+		let nearest: Vec2d
+		for (const pt of [A, B, P]) {
+			if (point.dist(pt) < distance) {
+				nearest = pt
+				distance = point.dist(pt)
+			}
 		}
-		return _center.clone().add(point.clone().sub(_center).uni().mul(radius))
+
+		return nearest!
 	}
 
 	hitTestLineSegment(A: Vec2d, B: Vec2d): boolean {
-		const { _center, radius, sweepFlag, angleStart, largeArcFlag, angleEnd } = this
+		const { _center, radius, measure, angleStart, angleEnd } = this
 		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
 		if (intersection === null) return false
 
 		return intersection.some((p) => {
-			return isPointOnArc(angleStart, angleEnd, _center.angle(p), sweepFlag, largeArcFlag)
+			const result = getPointInArcT(measure, angleStart, angleEnd, _center.angle(p))
+			return result >= 0 && result <= 1
 		})
 	}
 
 	getVertices(): Vec2d[] {
-		const { _center, delta, sweepFlag, largeArcFlag, radius, angleStart } = this
+		const { _center, measure, length, radius, angleStart } = this
 		const vertices: Vec2d[] = []
-		const d =
-			largeArcFlag && sweepFlag ? PI2 + delta : largeArcFlag && !sweepFlag ? -(PI2 - delta) : delta
-		const length = Math.abs(radius * Math.abs(d))
-		const n = Math.max(8, Math.floor(length / 32))
 
-		for (let i = 0; i < n + 1; i++) {
-			const t = i / n
-			const angle = angleStart + d * t
+		for (let i = 0, n = getArcSegmentCount(Math.abs(length)); i < n + 1; i++) {
+			const t = (i / n) * measure
+			const angle = angleStart + t
 			vertices.push(_center.clone().add(new Vec2d(Math.cos(angle), Math.sin(angle)).mul(radius)))
 		}
 
@@ -85,42 +91,48 @@ export class Arc2d extends Geometry2d {
 	}
 }
 
-function isPointOnArc(
-	angleStart: number,
-	angleEnd: number,
-	anglePoint: number,
-	sweepFlag: number,
-	largeArcFlag: number
-) {
-	let ab: number, ac: number, ag: number, bg: number
-	if (largeArcFlag) {
-		if (sweepFlag) {
-			ab = Math.abs(longAngleDist(angleStart, angleEnd))
-			ag = shortAngleDist(angleStart, anglePoint)
-			bg = shortAngleDist(anglePoint, angleEnd)
-			if (Math.abs(ag) < Math.abs(bg)) {
-				return ag / ab
-			} else {
-				return (ab - bg) / ab
-			}
+/**
+ * Returns the t value of the point on the arc.
+ *
+ * @param mAB The measure of the arc from A to B, negative if counter-clockwise
+ * @param A The angle from center to arc's start point (A) on the circle
+ * @param B The angle from center to arc's end point (B) on the circle
+ * @param P The point on the circle (P) to find the t value for
+ *
+ * @returns The t value of the point on the arc, with 0 being the start and 1 being the end
+ *
+ * @public
+ */
+function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
+	let mAP: number
+	if (Math.abs(mAB) > PI) {
+		mAP = shortAngleDist(A, P)
+		const mPB = shortAngleDist(P, B)
+		if (Math.abs(mAP) < Math.abs(mPB)) {
+			return mAP / mAB
 		} else {
-			ab = Math.abs(longAngleDist(angleEnd, angleStart))
-			ag = shortAngleDist(anglePoint, angleStart)
-			bg = shortAngleDist(angleEnd, anglePoint)
-			if (Math.abs(ag) < Math.abs(bg)) {
-				return ag / ab
-			} else {
-				return (ab - bg) / ab
-			}
+			return (mAB - mPB) / mAB
 		}
 	} else {
-		if (sweepFlag) {
-			ab = shortAngleDist(angleEnd, angleStart)
-			ac = shortAngleDist(anglePoint, angleStart)
-		} else {
-			ab = shortAngleDist(angleStart, angleEnd)
-			ac = shortAngleDist(angleStart, anglePoint)
-		}
-		return ac / ab
+		mAP = shortAngleDist(A, P)
+		return mAP / mAB
 	}
+}
+
+/**
+ * Get the measure of an arc.
+ *
+ * @param A The angle from center to arc's start point (A) on the circle
+ * @param B The angle from center to arc's end point (B) on the circle
+ * @param sweepFlag 1 if the arc is clockwise, 0 if counter-clockwise
+ * @param largeArcFlag 1 if the arc is greater than 180 degrees, 0 if less than 180 degrees
+ *
+ * @returns The measure of the arc, negative if counter-clockwise
+ *
+ * @public
+ */
+function getArcMeasure(A: number, B: number, sweepFlag: number, largeArcFlag: number) {
+	const m = ((2 * ((B - A) % PI2)) % PI2) - ((B - A) % PI2)
+	if (!largeArcFlag) return m
+	return (PI2 - Math.abs(m)) * (sweepFlag ? 1 : -1)
 }

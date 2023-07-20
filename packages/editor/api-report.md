@@ -109,25 +109,23 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     _center: Vec2d;
     // (undocumented)
-    delta: number;
-    // (undocumented)
     end: Vec2d;
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)
     hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
     // (undocumented)
-    largeArcFlag: number;
+    length: number;
     // (undocumented)
     margin: number;
+    // (undocumented)
+    measure: number;
     // (undocumented)
     nearestPoint(point: Vec2d): Vec2d;
     // (undocumented)
     radius: number;
     // (undocumented)
     start: Vec2d;
-    // (undocumented)
-    sweepFlag: number;
 }
 
 // @public
@@ -937,6 +935,8 @@ export abstract class Geometry2d {
     get snapPoints(): Vec2d[];
     // (undocumented)
     _snapPoints: undefined | Vec2d[];
+    // (undocumented)
+    toSimpleSvgPath(): string;
     // (undocumented)
     get vertices(): Vec2d[];
     // (undocumented)

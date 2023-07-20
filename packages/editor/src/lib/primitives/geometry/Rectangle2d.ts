@@ -32,5 +32,6 @@ export class Rectangle2d extends Polygon2d {
 		this.y = y
 		this.w = width
 		this.h = height
+		this.isClosed = true
 	}
 }

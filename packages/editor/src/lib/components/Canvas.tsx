@@ -101,7 +101,7 @@ export const Canvas = track(function Canvas() {
 					<ShapesToDisplay />
 				</div>
 				<div className="tl-overlays">
-					{/* <OutlineView /> */}
+					<OutlineDebuggingView />
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />
@@ -272,7 +272,11 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 	)
 })
 
-const OutlineView = track(function OutlineView() {
+const OutlineDebuggingView = track(function OutlineView({
+	showClosestPointOnOutline = true,
+}: {
+	showClosestPointOnOutline?: boolean
+}) {
 	const editor = useEditor()
 
 	const {
@@ -288,8 +292,6 @@ const OutlineView = track(function OutlineView() {
 				zIndex: 999999999,
 				top: 0,
 				left: 0,
-				width: 100,
-				height: 100,
 				overflow: 'visible',
 			}}
 		>
@@ -301,39 +303,28 @@ const OutlineView = track(function OutlineView() {
 				const pointInShapeSpace = editor.getPointInShapeSpace(shape, currentPagePoint)
 				const nearestPointOnShape = geometry.nearestPoint(pointInShapeSpace)
 
-				let path: any
-
-				if (geometry.isClosed) {
-					path = (
-						<polygon
-							stroke="dodgerblue"
-							strokeWidth={2}
-							fill="none"
-							points={geometry.vertices.map((v) => `${v.x},${v.y}`).join(' ')}
-						/>
-					)
-				}
-
-				path = (
-					<polyline
-						stroke="dodgerblue"
-						strokeWidth={2}
-						fill="none"
-						points={geometry.vertices.map((v) => `${v.x},${v.y}`).join(' ')}
-					/>
-				)
-
 				return (
 					<g key={result.id + '_outline'} transform={pageTransform.toCssString()}>
-						{path}
-						<line
-							x1={nearestPointOnShape.x}
-							y1={nearestPointOnShape.y}
-							x2={pointInShapeSpace.x}
-							y2={pointInShapeSpace.y}
-							strokeWidth={2}
-							stroke="red"
-						/>
+						<path stroke="dodgerblue" strokeWidth={2} fill="none" d={geometry.toSimpleSvgPath()} />
+						{geometry.vertices.map((v, i) => (
+							<circle
+								key={`v${i}`}
+								cx={v.x}
+								cy={v.y}
+								r={2}
+								fill={`hsl(${modulate(i, [0, geometry.vertices.length - 1], [120, 0])}, 100%, 50%)`}
+							/>
+						))}
+						{showClosestPointOnOutline && (
+							<line
+								x1={nearestPointOnShape.x}
+								y1={nearestPointOnShape.y}
+								x2={pointInShapeSpace.x}
+								y2={pointInShapeSpace.y}
+								strokeWidth={2}
+								stroke="red"
+							/>
+						)}
 					</g>
 				)
 			})}

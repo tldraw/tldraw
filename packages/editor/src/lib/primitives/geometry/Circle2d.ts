@@ -3,6 +3,7 @@ import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI2 } from '../utils'
+import { getArcSegmentCount } from './geometry-constants'
 
 /** @public */
 export class Circle2d extends Geometry2d {
@@ -28,7 +29,7 @@ export class Circle2d extends Geometry2d {
 		const { _center, radius } = this
 		const perimeter = PI2 * radius
 		const vertices: Vec2d[] = []
-		for (let i = 0, n = Math.max(8, Math.floor(perimeter / 16)); i < n; i++) {
+		for (let i = 0, n = getArcSegmentCount(perimeter); i < n; i++) {
 			const angle = (i / n) * PI2
 			vertices.push(_center.clone().add(Vec2d.FromAngle(angle).mul(radius)))
 		}
