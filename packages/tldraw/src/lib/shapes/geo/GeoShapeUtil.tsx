@@ -141,7 +141,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const cx = w / 2
 		const cy = h / 2
 
-		const margin = STROKE_SIZES[shape.props.size]
+		const strokeWidth = STROKE_SIZES[shape.props.size]
+		const margin = strokeWidth + 4
 		const isFilled = shape.props.fill !== 'none'
 
 		switch (shape.props.geo) {

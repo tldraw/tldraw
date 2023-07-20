@@ -49,7 +49,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	getGeometry(shape: TLHighlightShape) {
 		return new Polyline2d({
 			points: getPointsFromSegments(shape.props.segments),
-			margin: getStrokeWidth(shape),
+			margin: getStrokeWidth(shape) + 4,
 		})
 	}
 

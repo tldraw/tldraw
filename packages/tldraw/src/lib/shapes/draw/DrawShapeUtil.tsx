@@ -55,12 +55,12 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	getGeometry(shape: TLDrawShape) {
 		const points = getPointsFromSegments(shape.props.segments)
-		const margin = STROKE_SIZES[shape.props.size]
+		const strokeWidth = STROKE_SIZES[shape.props.size]
 
 		// A dot
 		if (shape.props.segments.length === 1 && points.length < 4) {
 			return new Circle2d({
-				radius: margin,
+				radius: strokeWidth,
 				margin: 4,
 				isFilled: true,
 			})
@@ -70,7 +70,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		if (shape.props.isClosed) {
 			return new Polygon2d({
 				points,
-				margin,
+				margin: strokeWidth + 4,
 				isFilled: shape.props.fill !== 'none',
 			})
 		}
@@ -78,7 +78,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		// An open draw stroke
 		return new Polyline2d({
 			points,
-			margin,
+			margin: strokeWidth + 4,
 		})
 	}
 

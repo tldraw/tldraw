@@ -280,6 +280,7 @@ const OutlineDebuggingView = track(function OutlineView({
 	const editor = useEditor()
 
 	const {
+		zoomLevel,
 		renderingShapes,
 		inputs: { currentPagePoint },
 	} = editor
@@ -322,7 +323,11 @@ const OutlineDebuggingView = track(function OutlineView({
 								x2={pointInShapeSpace.x}
 								y2={pointInShapeSpace.y}
 								strokeWidth={2}
-								stroke="red"
+								stroke={
+									nearestPointOnShape.dist(pointInShapeSpace) < geometry.margin / zoomLevel
+										? 'red'
+										: 'pink'
+								}
 							/>
 						)}
 					</g>

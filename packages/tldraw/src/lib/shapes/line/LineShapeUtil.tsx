@@ -346,13 +346,14 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Polyline2d {
 	const { spline, handles } = shape.props
 	const handlePoints = Object.values(handles).sort(sortByIndex).map(Vec2d.From)
+	const margin = STROKE_SIZES[shape.props.size] + 4
 
 	switch (spline) {
 		case 'cubic': {
-			return new CubicSpline2d({ points: handlePoints, isFilled: false, margin: 4 })
+			return new CubicSpline2d({ points: handlePoints, isFilled: false, margin })
 		}
 		case 'line': {
-			return new Polyline2d({ points: handlePoints, margin: 4 })
+			return new Polyline2d({ points: handlePoints, margin })
 		}
 	}
 }
