@@ -41,7 +41,6 @@ export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }
 const PatternFill = function PatternFill({ d, color, theme }: ShapeFillProps) {
 	const editor = useEditor()
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
-	const isDarkMode = useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
 
 	const intZoom = Math.ceil(zoomLevel)
 	const teenyTiny = editor.zoomLevel <= 0.18
@@ -53,7 +52,7 @@ const PatternFill = function PatternFill({ d, color, theme }: ShapeFillProps) {
 				fill={
 					teenyTiny
 						? theme[color].semi
-						: `url(#${HASH_PATTERN_ZOOM_NAMES[intZoom + (isDarkMode ? '_dark' : '_light')]})`
+						: `url(#${HASH_PATTERN_ZOOM_NAMES[`${intZoom}_${theme.id}`]})`
 				}
 				d={d}
 			/>
