@@ -2,7 +2,7 @@ import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI, PI2, shortAngleDist } from '../utils'
-import { getArcSegmentCount } from './geometry-constants'
+import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
 export class Arc2d extends Geometry2d {
@@ -81,7 +81,7 @@ export class Arc2d extends Geometry2d {
 		const { _center, measure, length, radius, angleStart } = this
 		const vertices: Vec2d[] = []
 
-		for (let i = 0, n = getArcSegmentCount(Math.abs(length)); i < n + 1; i++) {
+		for (let i = 0, n = getVerticesCountForLength(Math.abs(length)); i < n + 1; i++) {
 			const t = (i / n) * measure
 			const angle = angleStart + t
 			vertices.push(_center.clone().add(new Vec2d(Math.cos(angle), Math.sin(angle)).mul(radius)))

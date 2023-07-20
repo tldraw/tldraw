@@ -35,7 +35,7 @@ export class Group2d extends Geometry2d {
 
 		switch (operation) {
 			case 'union': {
-				for (const child of this.children) {
+				for (const child of children) {
 					const nearest = child.nearestPoint(point)
 					const dist = nearest.dist(point)
 					if (dist < d) {
@@ -46,29 +46,31 @@ export class Group2d extends Geometry2d {
 				break
 			}
 			case 'subtract': {
-				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
-					child = children[i]
-					const first = children[0]
+				throw Error('not implemented')
+				// for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
+				// 	child = children[i]
+				// 	const first = children[0]
 
-					const nearest = child.nearestPoint(point)
-					const dist = nearest.dist(point)
+				// 	const nearest = child.nearestPoint(point)
+				// 	const dist = nearest.dist(point)
 
-					if (i === 0) {
-						d = dist
-						p = nearest
-					} else {
-						if (dist < d) {
-							const distToFirst = first.distanceToPoint(nearest)
-							if (distToFirst < d) {
-								d = dist
-								p = nearest
-							}
-						}
-					}
-				}
-				break
+				// 	if (i === 0) {
+				// 		d = dist
+				// 		p = nearest
+				// 	} else {
+				// 		if (dist < d) {
+				// 			const distToFirst = first.distanceToPoint(nearest)
+				// 			if (distToFirst < d) {
+				// 				d = dist
+				// 				p = nearest
+				// 			}
+				// 		}
+				// 	}
+				// }
+				// break
 			}
 			case 'exclude': {
+				throw Error('not implemented')
 				// // if odd, and if point is inside of of the even shapes, use the point
 				// const tests = this.children.map((c) => {
 				// 	const nearest = c.nearestPoint(point)
@@ -85,28 +87,29 @@ export class Group2d extends Geometry2d {
 				// 		p = test.nearest
 				// 	}
 				// }
-				break
+				// break
 			}
 			case 'intersect': {
-				// each closest point needs to be inside of all the shapes
-				const tests = this.children
-					.map((c) => {
-						const nearest = c.nearestPoint(point)
-						return {
-							nearest,
-							dist: nearest.dist(point),
-						}
-					})
-					.filter((p) => this.children.every((c) => c.distanceToPoint(p.nearest) < 0))
+				throw Error('not implemented')
+				// // each closest point needs to be inside of all the shapes
+				// const tests = this.children
+				// 	.map((c) => {
+				// 		const nearest = c.nearestPoint(point)
+				// 		return {
+				// 			nearest,
+				// 			dist: nearest.dist(point),
+				// 		}
+				// 	})
+				// 	.filter((p) => this.children.every((c) => c.distanceToPoint(p.nearest) < 0))
 
-				for (const test of tests) {
-					const dist = test.dist
-					if (dist < d) {
-						d = dist
-						p = test.nearest
-					}
-				}
-				break
+				// for (const test of tests) {
+				// 	const dist = test.dist
+				// 	if (dist < d) {
+				// 		d = dist
+				// 		p = test.nearest
+				// 	}
+				// }
+				// break
 			}
 		}
 		return p!

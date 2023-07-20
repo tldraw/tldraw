@@ -2,6 +2,7 @@ import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
 import { PI, PI2 } from '../utils'
 import { Edge2d } from './Edge2d'
+import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
 export class Ellipse2d extends Geometry2d {
@@ -43,7 +44,7 @@ export class Ellipse2d extends Geometry2d {
 		const q = Math.pow(cx - cy, 2) / Math.pow(cx + cy, 2)
 		const p = PI * (cx + cy) * (1 + (3 * q) / (10 + Math.sqrt(4 - 3 * q)))
 		// Number of points
-		const len = Math.ceil(Math.max(4, Math.ceil(p / 10)) / 4) * 4
+		const len = getVerticesCountForLength(p)
 		// Size of step
 		const step = PI2 / len
 
