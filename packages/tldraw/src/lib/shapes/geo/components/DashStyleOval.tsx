@@ -38,7 +38,7 @@ export const DashStyleOval = React.memo(function DashStyleOval({
 
 	return (
 		<>
-			<ShapeFill d={d} color={color} fill={fill} />
+			<ShapeFill theme={theme} d={d} color={color} fill={fill} />
 			<path
 				d={d}
 				strokeWidth={sw}

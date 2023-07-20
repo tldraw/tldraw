@@ -29,7 +29,7 @@ export const SolidStylePolygon = React.memo(function SolidStylePolygon({
 
 	return (
 		<>
-			<ShapeFill d={path} fill={fill} color={color} />
+			<ShapeFill d={path} fill={fill} color={color} theme={theme} />
 			<path d={path} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 		</>
 	)

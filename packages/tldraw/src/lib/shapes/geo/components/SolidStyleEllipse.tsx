@@ -24,7 +24,7 @@ export const SolidStyleEllipse = React.memo(function SolidStyleEllipse({
 
 	return (
 		<>
-			<ShapeFill d={d} color={color} fill={fill} />
+			<ShapeFill d={d} color={color} fill={fill} theme={theme} />
 			<path d={d} stroke={theme[color].solid} strokeWidth={sw} fill="none" />
 		</>
 	)

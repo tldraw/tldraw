@@ -870,6 +870,7 @@ export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{
+    id: 'dark' | 'light';
     text: string;
     background: string;
     solid: string;
