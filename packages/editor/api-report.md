@@ -283,6 +283,8 @@ export const Canvas: React_2.MemoExoticComponent<() => JSX.Element>;
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
     constructor(config: {
+        x?: number;
+        y?: number;
         radius: number;
         margin: number;
         isFilled: boolean;
@@ -291,6 +293,8 @@ export class Circle2d extends Geometry2d {
     _center: Vec2d;
     // (undocumented)
     config: {
+        x?: number;
+        y?: number;
         radius: number;
         margin: number;
         isFilled: boolean;

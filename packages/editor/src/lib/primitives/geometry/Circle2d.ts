@@ -10,10 +10,12 @@ export class Circle2d extends Geometry2d {
 	_center: Vec2d
 	radius: number
 
-	constructor(public config: { radius: number; margin: number; isFilled: boolean }) {
+	constructor(
+		public config: { x?: number; y?: number; radius: number; margin: number; isFilled: boolean }
+	) {
 		super()
-		const { radius, isFilled, margin } = config
-		this._center = new Vec2d(radius, radius)
+		const { x = 0, y = 0, radius, isFilled, margin } = config
+		this._center = new Vec2d(radius + x, radius + y)
 		this.margin = margin
 		this.radius = radius
 		this.isFilled = isFilled

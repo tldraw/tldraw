@@ -60,6 +60,8 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		// A dot
 		if (shape.props.segments.length === 1 && points.length < 4) {
 			return new Circle2d({
+				x: -strokeWidth,
+				y: -strokeWidth,
 				radius: strokeWidth,
 				margin: 4,
 				isFilled: true,
