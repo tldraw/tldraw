@@ -34,14 +34,17 @@ export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: Shape
 			return <path className={'tl-hitarea-fill-solid'} fill={theme.solid} d={d} />
 		}
 		case 'pattern': {
-			return <PatternFill color={color} fill={fill} d={d} />
+			return <PatternFill theme={theme} color={color} fill={fill} d={d} />
 		}
 	}
 })
 
-const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
+const PatternFill = function PatternFill({
+	d,
+	color,
+	theme,
+}: ShapeFillProps & { theme: TLDefaultColorTheme }) {
 	const editor = useEditor()
-	const theme = useDefaultColorTheme()
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const isDarkMode = useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
 
