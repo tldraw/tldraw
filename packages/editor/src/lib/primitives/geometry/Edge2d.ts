@@ -33,6 +33,7 @@ export class Edge2d extends Geometry2d {
 
 	override nearestPoint(point: Vec2d): Vec2d {
 		const { start, end, u } = this
+		if (start.equals(end)) return start.clone()
 		const C = start.clone().add(u.clone().mul(point.clone().sub(start).pry(u)))
 		if (C.x < Math.min(start.x, end.x)) return start.x < end.x ? start.clone() : end.clone()
 		if (C.x > Math.max(start.x, end.x)) return start.x > end.x ? start.clone() : end.clone()

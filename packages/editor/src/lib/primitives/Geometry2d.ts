@@ -16,7 +16,7 @@ export abstract class Geometry2d {
 
 	distanceToPoint(point: Vec2d) {
 		const dist = point.dist(this.nearestPoint(point))
-		return this.isClosed && pointInPolygon(point, this.vertices) ? -dist : dist
+		return this.isClosed && this.isFilled && pointInPolygon(point, this.vertices) ? -dist : dist
 	}
 
 	hitTestPoint(point: Vec2d, zoom = 1) {

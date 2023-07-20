@@ -101,7 +101,7 @@ export const Canvas = track(function Canvas() {
 					<ShapesToDisplay />
 				</div>
 				<div className="tl-overlays">
-					<OutlineDebuggingView />
+					<GeometryDebuggingView />
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />
@@ -272,7 +272,7 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 	)
 })
 
-const OutlineDebuggingView = track(function OutlineView({
+const GeometryDebuggingView = track(function OutlineView({
 	showClosestPointOnOutline = true,
 }: {
 	showClosestPointOnOutline?: boolean
@@ -303,6 +303,7 @@ const OutlineDebuggingView = track(function OutlineView({
 
 				const pointInShapeSpace = editor.getPointInShapeSpace(shape, currentPagePoint)
 				const nearestPointOnShape = geometry.nearestPoint(pointInShapeSpace)
+				const distanceToPoint = geometry.distanceToPoint(pointInShapeSpace)
 
 				return (
 					<g key={result.id + '_outline'} transform={pageTransform.toCssString()}>
@@ -323,11 +324,7 @@ const OutlineDebuggingView = track(function OutlineView({
 								x2={pointInShapeSpace.x}
 								y2={pointInShapeSpace.y}
 								strokeWidth={2}
-								stroke={
-									nearestPointOnShape.dist(pointInShapeSpace) < geometry.margin / zoomLevel
-										? 'red'
-										: 'pink'
-								}
+								stroke={distanceToPoint < geometry.margin / zoomLevel ? 'red' : 'pink'}
 							/>
 						)}
 					</g>
