@@ -17,7 +17,8 @@ export interface ShapeFillProps {
 
 export function useDefaultColorTheme() {
 	const editor = useEditor()
-	return getDefaultColorTheme(editor)
+	const isDarkMode = useValue('isdarkmode', () => editor.isDarkMode, [editor])
+	return getDefaultColorTheme({ isDarkMode })
 }
 
 export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: ShapeFillProps) {
