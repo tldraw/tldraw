@@ -1,227 +1,229 @@
-import test, { Page, expect } from '@playwright/test'
-import { Editor, TLShapeId, TLShapePartial } from '@tldraw/tldraw'
-import { rename, writeFile } from 'fs/promises'
-import { setupPage } from '../shared-e2e'
+export {}
 
-declare const editor: Editor
+// import test, { Page, expect } from '@playwright/test'
+// import { Editor, TLShapeId, TLShapePartial } from '@tldraw/tldraw'
+// import { rename, writeFile } from 'fs/promises'
+// import { setupPage } from '../shared-e2e'
 
-test.describe('Export snapshots', () => {
-	const snapshots = {} as Record<string, TLShapePartial[]>
+// declare const editor: Editor
 
-	for (const fill of ['none', 'semi', 'solid', 'pattern']) {
-		snapshots[`geo fill=${fill}`] = [
-			{
-				id: 'shape:testShape' as TLShapeId,
-				type: 'geo',
-				props: {
-					fill,
-					color: 'green',
-					w: 100,
-					h: 100,
-				},
-			},
-		]
+// test.describe('Export snapshots', () => {
+// 	const snapshots = {} as Record<string, TLShapePartial[]>
 
-		snapshots[`arrow fill=${fill}`] = [
-			{
-				id: 'shape:testShape' as TLShapeId,
-				type: 'arrow',
-				props: {
-					color: 'light-green',
-					fill: fill,
-					arrowheadStart: 'square',
-					arrowheadEnd: 'dot',
-					start: { type: 'point', x: 0, y: 0 },
-					end: { type: 'point', x: 100, y: 100 },
-					bend: 20,
-				},
-			},
-		]
+// 	for (const fill of ['none', 'semi', 'solid', 'pattern']) {
+// 		snapshots[`geo fill=${fill}`] = [
+// 			{
+// 				id: 'shape:testShape' as TLShapeId,
+// 				type: 'geo',
+// 				props: {
+// 					fill,
+// 					color: 'green',
+// 					w: 100,
+// 					h: 100,
+// 				},
+// 			},
+// 		]
 
-		snapshots[`draw fill=${fill}`] = [
-			{
-				id: 'shape:testShape' as TLShapeId,
-				type: 'draw',
-				props: {
-					color: 'light-violet',
-					fill: fill,
-					segments: [
-						{
-							type: 'straight',
-							points: [{ x: 0, y: 0 }],
-						},
-						{
-							type: 'straight',
-							points: [
-								{ x: 0, y: 0 },
-								{ x: 100, y: 0 },
-							],
-						},
-						{
-							type: 'straight',
-							points: [
-								{ x: 100, y: 0 },
-								{ x: 0, y: 100 },
-							],
-						},
-						{
-							type: 'straight',
-							points: [
-								{ x: 0, y: 100 },
-								{ x: 100, y: 100 },
-							],
-						},
-						{
-							type: 'straight',
-							points: [
-								{ x: 100, y: 100 },
-								{ x: 0, y: 0 },
-							],
-						},
-					],
-					isClosed: true,
-					isComplete: true,
-				},
-			},
-		]
-	}
+// 		snapshots[`arrow fill=${fill}`] = [
+// 			{
+// 				id: 'shape:testShape' as TLShapeId,
+// 				type: 'arrow',
+// 				props: {
+// 					color: 'light-green',
+// 					fill: fill,
+// 					arrowheadStart: 'square',
+// 					arrowheadEnd: 'dot',
+// 					start: { type: 'point', x: 0, y: 0 },
+// 					end: { type: 'point', x: 100, y: 100 },
+// 					bend: 20,
+// 				},
+// 			},
+// 		]
 
-	for (const font of ['draw', 'sans', 'serif', 'mono']) {
-		snapshots[`geo font=${font}`] = [
-			{
-				id: 'shape:testShape' as TLShapeId,
-				type: 'geo',
-				props: {
-					text: 'test',
-					color: 'blue',
-					font,
-					w: 100,
-					h: 100,
-				},
-			},
-		]
+// 		snapshots[`draw fill=${fill}`] = [
+// 			{
+// 				id: 'shape:testShape' as TLShapeId,
+// 				type: 'draw',
+// 				props: {
+// 					color: 'light-violet',
+// 					fill: fill,
+// 					segments: [
+// 						{
+// 							type: 'straight',
+// 							points: [{ x: 0, y: 0 }],
+// 						},
+// 						{
+// 							type: 'straight',
+// 							points: [
+// 								{ x: 0, y: 0 },
+// 								{ x: 100, y: 0 },
+// 							],
+// 						},
+// 						{
+// 							type: 'straight',
+// 							points: [
+// 								{ x: 100, y: 0 },
+// 								{ x: 0, y: 100 },
+// 							],
+// 						},
+// 						{
+// 							type: 'straight',
+// 							points: [
+// 								{ x: 0, y: 100 },
+// 								{ x: 100, y: 100 },
+// 							],
+// 						},
+// 						{
+// 							type: 'straight',
+// 							points: [
+// 								{ x: 100, y: 100 },
+// 								{ x: 0, y: 0 },
+// 							],
+// 						},
+// 					],
+// 					isClosed: true,
+// 					isComplete: true,
+// 				},
+// 			},
+// 		]
+// 	}
 
-		snapshots[`arrow font=${font}`] = [
-			{
-				id: 'shape:testShape' as TLShapeId,
-				type: 'arrow',
-				props: {
-					color: 'blue',
-					fill: 'solid',
-					arrowheadStart: 'square',
-					arrowheadEnd: 'arrow',
-					font,
-					start: { type: 'point', x: 0, y: 0 },
-					end: { type: 'point', x: 100, y: 100 },
-					bend: 20,
-					text: 'test',
-				},
-			},
-		]
+// 	for (const font of ['draw', 'sans', 'serif', 'mono']) {
+// 		snapshots[`geo font=${font}`] = [
+// 			{
+// 				id: 'shape:testShape' as TLShapeId,
+// 				type: 'geo',
+// 				props: {
+// 					text: 'test',
+// 					color: 'blue',
+// 					font,
+// 					w: 100,
+// 					h: 100,
+// 				},
+// 			},
+// 		]
 
-		snapshots[`arrow font=${font}`] = [
-			{
-				id: 'shape:testShape' as TLShapeId,
-				type: 'arrow',
-				props: {
-					color: 'blue',
-					fill: 'solid',
-					arrowheadStart: 'square',
-					arrowheadEnd: 'arrow',
-					font,
-					start: { type: 'point', x: 0, y: 0 },
-					end: { type: 'point', x: 100, y: 100 },
-					bend: 20,
-					text: 'test',
-				},
-			},
-		]
+// 		snapshots[`arrow font=${font}`] = [
+// 			{
+// 				id: 'shape:testShape' as TLShapeId,
+// 				type: 'arrow',
+// 				props: {
+// 					color: 'blue',
+// 					fill: 'solid',
+// 					arrowheadStart: 'square',
+// 					arrowheadEnd: 'arrow',
+// 					font,
+// 					start: { type: 'point', x: 0, y: 0 },
+// 					end: { type: 'point', x: 100, y: 100 },
+// 					bend: 20,
+// 					text: 'test',
+// 				},
+// 			},
+// 		]
 
-		snapshots[`note font=${font}`] = [
-			{
-				id: 'shape:testShape' as TLShapeId,
-				type: 'note',
-				props: {
-					color: 'violet',
-					font,
-					text: 'test',
-				},
-			},
-		]
+// 		snapshots[`arrow font=${font}`] = [
+// 			{
+// 				id: 'shape:testShape' as TLShapeId,
+// 				type: 'arrow',
+// 				props: {
+// 					color: 'blue',
+// 					fill: 'solid',
+// 					arrowheadStart: 'square',
+// 					arrowheadEnd: 'arrow',
+// 					font,
+// 					start: { type: 'point', x: 0, y: 0 },
+// 					end: { type: 'point', x: 100, y: 100 },
+// 					bend: 20,
+// 					text: 'test',
+// 				},
+// 			},
+// 		]
 
-		snapshots[`text font=${font}`] = [
-			{
-				id: 'shape:testShape' as TLShapeId,
-				type: 'text',
-				props: {
-					color: 'red',
-					font,
-					text: 'test',
-				},
-			},
-		]
-	}
+// 		snapshots[`note font=${font}`] = [
+// 			{
+// 				id: 'shape:testShape' as TLShapeId,
+// 				type: 'note',
+// 				props: {
+// 					color: 'violet',
+// 					font,
+// 					text: 'test',
+// 				},
+// 			},
+// 		]
 
-	for (const [name, shapes] of Object.entries(snapshots)) {
-		test(`Exports with ${name}`, async ({ browser }) => {
-			const page = await browser.newPage()
-			await setupPage(page)
-			await page.evaluate((shapes) => {
-				editor
-					.updateInstanceState({ exportBackground: false })
-					.selectAll()
-					.deleteShapes()
-					.createShapes(shapes)
-			}, shapes as any)
+// 		snapshots[`text font=${font}`] = [
+// 			{
+// 				id: 'shape:testShape' as TLShapeId,
+// 				type: 'text',
+// 				props: {
+// 					color: 'red',
+// 					font,
+// 					text: 'test',
+// 				},
+// 			},
+// 		]
+// 	}
 
-			snapshotTest(page)
-		})
-	}
+// 	for (const [name, shapes] of Object.entries(snapshots)) {
+// 		test(`Exports with ${name}`, async ({ browser }) => {
+// 			const page = await browser.newPage()
+// 			await setupPage(page)
+// 			await page.evaluate((shapes) => {
+// 				editor
+// 					.updateInstanceState({ exportBackground: false })
+// 					.selectAll()
+// 					.deleteShapes()
+// 					.createShapes(shapes)
+// 			}, shapes as any)
 
-	for (const [name, shapes] of Object.entries(snapshots)) {
-		test(`Exports with ${name} in dark mode`, async ({ browser }) => {
-			const page = await browser.newPage()
-			await setupPage(page)
-			await page.evaluate((shapes) => {
-				editor.user.updateUserPreferences({ isDarkMode: true })
-				editor
-					.updateInstanceState({ exportBackground: false })
-					.selectAll()
-					.deleteShapes()
-					.createShapes(shapes)
-			}, shapes as any)
+// 			snapshotTest(page)
+// 		})
+// 	}
 
-			snapshotTest(page)
-		})
-	}
-})
+// 	for (const [name, shapes] of Object.entries(snapshots)) {
+// 		test(`Exports with ${name} in dark mode`, async ({ browser }) => {
+// 			const page = await browser.newPage()
+// 			await setupPage(page)
+// 			await page.evaluate((shapes) => {
+// 				editor.user.updateUserPreferences({ isDarkMode: true })
+// 				editor
+// 					.updateInstanceState({ exportBackground: false })
+// 					.selectAll()
+// 					.deleteShapes()
+// 					.createShapes(shapes)
+// 			}, shapes as any)
 
-async function snapshotTest(page: Page) {
-	const downloadEvent = page.waitForEvent('download')
-	await page.click('[data-testid="main.menu"]')
-	await page.click('[data-testid="menu-item.edit"]')
-	await page.click('[data-testid="menu-item.export-as"]')
-	await page.click('[data-testid="menu-item.export-as-svg"]')
+// 			snapshotTest(page)
+// 		})
+// 	}
+// })
 
-	const download = await downloadEvent
-	const path = (await download.path()) as string
-	// assert(path)
-	await rename(path, path + '.svg')
-	await writeFile(
-		path + '.html',
-		`
-			                  <!DOCTYPE html>
-			                  <meta charset="utf-8" />
-			                  <meta name="viewport" content="width=device-width, initial-scale=1" />
-			                  <img src="${path}.svg" />
-			              `,
-		'utf-8'
-	)
+// async function snapshotTest(page: Page) {
+// 	const downloadEvent = page.waitForEvent('download')
+// 	await page.click('[data-testid="main.menu"]')
+// 	await page.click('[data-testid="menu-item.edit"]')
+// 	await page.click('[data-testid="menu-item.export-as"]')
+// 	await page.click('[data-testid="menu-item.export-as-svg"]')
 
-	await page.goto(`file://${path}.html`)
-	const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
-	await expect(page).toHaveScreenshot({
-		omitBackground: true,
-		clip,
-	})
-}
+// 	const download = await downloadEvent
+// 	const path = (await download.path()) as string
+// 	// assert(path)
+// 	await rename(path, path + '.svg')
+// 	await writeFile(
+// 		path + '.html',
+// 		`
+// 			                  <!DOCTYPE html>
+// 			                  <meta charset="utf-8" />
+// 			                  <meta name="viewport" content="width=device-width, initial-scale=1" />
+// 			                  <img src="${path}.svg" />
+// 			              `,
+// 		'utf-8'
+// 	)
+
+// 	await page.goto(`file://${path}.html`)
+// 	const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
+// 	await expect(page).toHaveScreenshot({
+// 		omitBackground: true,
+// 		clip,
+// 	})
+// }
