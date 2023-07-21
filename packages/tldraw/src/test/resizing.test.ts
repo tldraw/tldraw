@@ -913,6 +913,8 @@ describe('When resizing a shape with children', () => {
 				},
 			])
 			.select(ids.boxB, ids.lineA)
+
+		editor
 			.pointerDown(10, 10, {
 				target: 'selection',
 				handle: 'top_left',

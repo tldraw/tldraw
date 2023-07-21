@@ -295,11 +295,12 @@ export class Resizing extends StateNode {
 
 		for (const id of shapeSnapshots.keys()) {
 			const snapshot = shapeSnapshots.get(id)!
+
 			this.editor.resizeShape(id, scale, {
-				initialBounds: snapshot.bounds,
-				dragHandle,
-				initialPageTransform: snapshot.pageTransform,
 				initialShape: snapshot.shape,
+				initialBounds: snapshot.bounds,
+				initialPageTransform: snapshot.pageTransform,
+				dragHandle,
 				mode: selectedIds.length === 1 && id === selectedIds[0] ? 'resize_bounds' : 'scale_shape',
 				scaleOrigin: scaleOriginPage,
 				scaleAxisRotation: selectionRotation,

@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	Box2d,
 	Circle2d,
 	Polygon2d,
 	Polyline2d,
@@ -58,14 +59,17 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		const strokeWidth = STROKE_SIZES[shape.props.size]
 
 		// A dot
-		if (shape.props.segments.length === 1 && points.length < 4) {
-			return new Circle2d({
-				x: -strokeWidth,
-				y: -strokeWidth,
-				radius: strokeWidth,
-				margin: 4,
-				isFilled: true,
-			})
+		if (shape.props.segments.length === 1) {
+			const box = Box2d.FromPoints(points)
+			if (box.width < strokeWidth * 2 && box.height < strokeWidth * 2) {
+				return new Circle2d({
+					x: -strokeWidth,
+					y: -strokeWidth,
+					radius: strokeWidth,
+					margin: 4,
+					isFilled: true,
+				})
+			}
 		}
 
 		const strokePoints = getStrokePoints(
