@@ -4,7 +4,6 @@ import * as React from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
-import { useShapeEvents } from '../hooks/useShapeEvents'
 import { Matrix2d } from '../primitives/Matrix2d'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -35,8 +34,6 @@ export const Shape = track(function Shape({
 	const editor = useEditor()
 
 	const { ShapeErrorFallback } = useEditorComponents()
-
-	const events = useShapeEvents(id)
 
 	const containerRef = React.useRef<HTMLDivElement>(null)
 	const backgroundContainerRef = React.useRef<HTMLDivElement>(null)
@@ -121,17 +118,7 @@ export const Shape = track(function Shape({
 					)}
 				</div>
 			)}
-			<div
-				ref={containerRef}
-				className="tl-shape"
-				data-shape-type={shape.type}
-				draggable={false}
-				onPointerDown={events.onPointerDown}
-				onPointerMove={events.onPointerMove}
-				onPointerUp={events.onPointerUp}
-				onPointerEnter={events.onPointerEnter}
-				onPointerLeave={events.onPointerLeave}
-			>
+			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
 				{isCulled && util.canUnmount(shape) ? (
 					<CulledShape shape={shape} />
 				) : (

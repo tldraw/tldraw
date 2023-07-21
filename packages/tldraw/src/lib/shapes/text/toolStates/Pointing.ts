@@ -6,7 +6,7 @@ export class Pointing extends StateNode {
 	shape?: TLTextShape
 
 	override onExit = () => {
-		this.editor.hintingIds = []
+		this.editor.setHintingIds([])
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {

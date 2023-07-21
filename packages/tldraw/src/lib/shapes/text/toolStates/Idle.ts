@@ -1,35 +1,17 @@
 import { StateNode, TLEventHandlers, TLGeoShape, TLTextShape } from '@tldraw/editor'
+import { getHoveredShapeId } from '../../../tools/SelectTool/shared'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onPointerEnter: TLEventHandlers['onPointerEnter'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		switch (info.target) {
+			case 'shape':
 			case 'canvas': {
-				// noop
-				break
-			}
-			case 'shape': {
-				const { selectedIds, focusLayerId } = this.editor
-				const hoveringShape = this.editor.getOutermostSelectableShape(
-					info.shape,
-					(parent) => !selectedIds.includes(parent.id)
-				)
-				if (hoveringShape.id !== focusLayerId) {
-					if (this.editor.isShapeOfType<TLTextShape>(hoveringShape, 'text')) {
-						this.editor.hoveredId = hoveringShape.id
-					}
+				const nextHoveredId = getHoveredShapeId(this.editor)
+				if (nextHoveredId !== this.editor.hoveredId) {
+					this.editor.setHoveredId(nextHoveredId)
 				}
-				break
-			}
-		}
-	}
-
-	override onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
-		switch (info.target) {
-			case 'shape': {
-				this.editor.hoveredId = null
-				break
 			}
 		}
 	}

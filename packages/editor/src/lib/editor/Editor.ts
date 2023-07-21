@@ -1731,7 +1731,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get hoveredId() {
 		return this.currentPageState.hoveredId
 	}
-	set hoveredId(id: TLShapeId | null) {
+	setHoveredId(id: TLShapeId | null) {
 		if (id === this.currentPageState.hoveredId) return
 		this.updateCurrentPageState({ hoveredId: id }, true)
 	}
@@ -1746,7 +1746,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get hintingIds() {
 		return this.currentPageState.hintingIds
 	}
-	set hintingIds(ids: TLShapeId[]) {
+	setHintingIds(ids: TLShapeId[]) {
 		// always ephemeral
 		this.store.update(this.currentPageState.id, (s) => ({ ...s, hintingIds: dedupe(ids) }))
 	}
@@ -1760,7 +1760,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.currentPageState.erasingIds
 	}
 
-	setErasingIds(ids: TLShapeId[]) {
+	set erasingIds(ids: TLShapeId[]) {
 		const erasingIds = this.erasingIdsSet
 		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return
 		this._setInstancePageState({ erasingIds: ids }, true)
@@ -4183,14 +4183,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean, exact: boolean): boolean {
+	isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean, exact: boolean): boolean
+	isPointInShape(id: TLShapeId, point: VecLike, hitInside: boolean, exact: boolean): boolean
+	isPointInShape(
+		id: TLShape | TLShapeId,
+		point: VecLike,
+		hitInside: boolean,
+		exact: boolean
+	): boolean {
+		if (typeof id !== 'string') id = id.id
 		// If the shape is masked, and if the point falls outside of that
 		// mask, then it's defintely a miss—we don't need to test further.
-		const pageMask = this.getPageMask(shape.id)
+		const pageMask = this.getPageMask(id)
 		if (pageMask && !pointInPolygon(point, pageMask)) return false
 
-		return this.getGeometry(shape).hitTestPoint(
-			this.getPointInShapeSpace(shape, point),
+		return this.getGeometry(id).hitTestPoint(
+			this.getPointInShapeSpace(id, point),
 			this.zoomLevel,
 			hitInside,
 			exact
@@ -4228,8 +4236,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d {
-		return Matrix2d.applyToPoint(Matrix2d.Inverse(this.getPageTransform(shape)!), point)
+	getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d
+	getPointInShapeSpace(id: TLShapeId, point: VecLike): Vec2d
+	getPointInShapeSpace(id: TLShape | TLShapeId, point: VecLike): Vec2d {
+		return this._pageTransformCache
+			.get(typeof id === 'string' ? id : id.id)!
+			.clone()
+			.invert()
+			.applyToPoint(point)
 	}
 
 	/**
@@ -4766,6 +4780,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let match = shape
 		let node = shape as TLShape | undefined
 		const focusLayerShape = this.focusLayerId ? this.getShape(this.focusLayerId) : undefined
+
 		while (node) {
 			if (
 				this.isShapeOfType<TLGroupShape>(node, 'group') &&

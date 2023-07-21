@@ -58,38 +58,10 @@ export const DefaultSelectionBackground: TLSelectionBackgroundComponent = track(
 				editor.dispatch(info)
 			}
 
-			const onPointerEnter = (e: React.PointerEvent) => {
-				if ((e as any).isKilled) return
-
-				const info: TLPointerEventInfo = {
-					type: 'pointer',
-					target: 'selection',
-					name: 'pointer_enter',
-					...getPointerInfo(e, editor.getContainer()),
-				}
-
-				editor.dispatch(info)
-			}
-
-			const onPointerLeave = (e: React.PointerEvent) => {
-				if ((e as any).isKilled) return
-
-				const info: TLPointerEventInfo = {
-					type: 'pointer',
-					target: 'selection',
-					name: 'pointer_leave',
-					...getPointerInfo(e, editor.getContainer()),
-				}
-
-				editor.dispatch(info)
-			}
-
 			return {
 				onPointerDown,
 				onPointerMove,
 				onPointerUp,
-				onPointerEnter,
-				onPointerLeave,
 			}
 		}, [editor])
 

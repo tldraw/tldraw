@@ -558,6 +558,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     get erasingIds(): TLShapeId[];
+    set erasingIds(ids: TLShapeId[]);
     get erasingIdsSet(): Set<TLShapeId>;
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -636,6 +637,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getParentTransform(shape: TLShape): Matrix2d;
     getPointInParentSpace(shapeId: TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d;
+    // (undocumented)
+    getPointInShapeSpace(id: TLShapeId, point: VecLike): Vec2d;
     getShape<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     // (undocumented)
     getShape<T extends TLShape = TLShape>(shape: TLShape): T | undefined;
@@ -664,10 +667,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     groupShapes(ids?: TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | undefined, ancestorId: TLShapeId): boolean;
     get hintingIds(): TLShapeId[];
-    set hintingIds(ids: TLShapeId[]);
     readonly history: HistoryManager<this>;
     get hoveredId(): null | TLShapeId;
-    set hoveredId(id: null | TLShapeId);
     inputs: {
         originPagePoint: Vec2d;
         originScreenPoint: Vec2d;
@@ -699,6 +700,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly isIos: boolean;
     get isMenuOpen(): boolean;
     isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean, exact: boolean): boolean;
+    // (undocumented)
+    isPointInShape(id: TLShapeId, point: VecLike, hitInside: boolean, exact: boolean): boolean;
     readonly isSafari: boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
@@ -782,7 +785,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     setEditingId(id: null | TLShapeId): void;
     // (undocumented)
-    setErasingIds(ids: TLShapeId[]): void;
+    setHintingIds(ids: TLShapeId[]): void;
+    // (undocumented)
+    setHoveredId(id: null | TLShapeId): void;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
@@ -1080,6 +1085,8 @@ export class Group2d extends Geometry2d {
     });
     // (undocumented)
     children: Geometry2d[];
+    // (undocumented)
+    distanceToPoint(point: Vec2d, hitInside?: boolean): number;
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)
@@ -1773,10 +1780,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     onPointerDown?: TLEventHandlers['onPointerDown'];
     // (undocumented)
-    onPointerEnter?: TLEventHandlers['onPointerEnter'];
-    // (undocumented)
-    onPointerLeave?: TLEventHandlers['onPointerLeave'];
-    // (undocumented)
     onPointerMove?: TLEventHandlers['onPointerMove'];
     // (undocumented)
     onPointerUp?: TLEventHandlers['onPointerUp'];
@@ -2032,10 +2035,6 @@ export interface TLEventHandlers {
     // (undocumented)
     onPointerDown: TLPointerEvent;
     // (undocumented)
-    onPointerEnter: TLPointerEvent;
-    // (undocumented)
-    onPointerLeave: TLPointerEvent;
-    // (undocumented)
     onPointerMove: TLPointerEvent;
     // (undocumented)
     onPointerUp: TLPointerEvent;
@@ -2287,7 +2286,7 @@ export type TLPointerEventInfo = TLBaseEventInfo & {
 } & TLPointerEventTarget;
 
 // @public (undocumented)
-export type TLPointerEventName = 'middle_click' | 'pointer_down' | 'pointer_enter' | 'pointer_leave' | 'pointer_move' | 'pointer_up' | 'right_click';
+export type TLPointerEventName = 'middle_click' | 'pointer_down' | 'pointer_move' | 'pointer_up' | 'right_click';
 
 // @public (undocumented)
 export type TLPointerEventTarget = {

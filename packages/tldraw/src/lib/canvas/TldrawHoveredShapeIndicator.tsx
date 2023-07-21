@@ -9,7 +9,7 @@ export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent = ({ 
 	const editor = useEditor()
 	const hideHoveredShapeIndicator = useValue(
 		'hide hovered',
-		() => editor.isInAny('select.idle', 'select.editing_shape'),
+		() => !editor.isInAny('select.idle', 'select.editing_shape'),
 		[editor]
 	)
 	if (hideHoveredShapeIndicator) return null

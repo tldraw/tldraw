@@ -2,7 +2,6 @@ import {
 	StateNode,
 	TLClickEventInfo,
 	TLEventHandlers,
-	TLGeoShape,
 	TLGroupShape,
 	TLKeyboardEventInfo,
 	TLPointerEventInfo,
@@ -10,51 +9,20 @@ import {
 	TLTextShape,
 	Vec2d,
 	createShapeId,
-	debugFlags,
 } from '@tldraw/editor'
+import { getHoveredShapeId } from '../shared'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onPointerEnter: TLEventHandlers['onPointerEnter'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		switch (info.target) {
+			case 'shape':
 			case 'canvas': {
-				// noop
-				break
-			}
-			case 'shape': {
-				const { selectedIds, focusLayerId } = this.editor
-				const hoveringShape = this.editor.getOutermostSelectableShape(
-					info.shape,
-					(parent) => !selectedIds.includes(parent.id)
-				)
-				if (hoveringShape.id !== focusLayerId) {
-					this.editor.hoveredId = hoveringShape.id
+				const nextHoveredId = getHoveredShapeId(this.editor)
+				if (nextHoveredId !== this.editor.hoveredId) {
+					this.editor.setHoveredId(nextHoveredId)
 				}
-
-				// Custom cursor debugging!
-				// Change the cursor to the type specified by the shape's text label
-				if (debugFlags.debugCursors.value) {
-					if (hoveringShape.type !== 'geo') break
-					const cursorType = (hoveringShape as TLGeoShape).props.text
-					try {
-						this.editor.updateInstanceState({ cursor: { type: cursorType, rotation: 0 } }, true)
-					} catch (e) {
-						console.error(`Cursor type not recognized: '${cursorType}'`)
-						this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
-					}
-				}
-
-				break
-			}
-		}
-	}
-
-	override onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
-		switch (info.target) {
-			case 'shape': {
-				this.editor.hoveredId = null
-				break
 			}
 		}
 	}
@@ -78,6 +46,16 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredId } = this.editor
+				if (hoveredId) {
+					this.onPointerDown({
+						...info,
+						shape: this.editor.getShape(hoveredId)!,
+						target: 'shape',
+					})
+					return
+				}
+
 				this.parent.transition('pointing_canvas', info)
 				break
 			}
@@ -141,6 +119,15 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredId } = this.editor
+				if (hoveredId) {
+					this.onDoubleClick({
+						...info,
+						shape: this.editor.getShape(hoveredId)!,
+						target: 'shape',
+					})
+					return
+				}
 				// Create text shape and transition to editing_shape
 				if (this.editor.instanceState.isReadonly) break
 				this.handleDoubleClickOnCanvas(info)
@@ -243,6 +230,16 @@ export class Idle extends StateNode {
 	override onRightClick: TLEventHandlers['onRightClick'] = (info) => {
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredId } = this.editor
+				if (hoveredId) {
+					this.onRightClick({
+						...info,
+						shape: this.editor.getShape(hoveredId)!,
+						target: 'shape',
+					})
+					return
+				}
+
 				this.editor.selectNone()
 				break
 			}
@@ -265,7 +262,6 @@ export class Idle extends StateNode {
 	}
 
 	override onEnter = () => {
-		this.editor.hoveredId = null
 		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 		this.parent.currentToolIdMask = undefined
 	}

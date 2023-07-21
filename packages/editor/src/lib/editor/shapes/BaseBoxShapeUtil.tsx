@@ -14,7 +14,7 @@ export abstract class BaseBoxShapeUtil<Shape extends TLBaseBoxShape> extends Sha
 			width: shape.props.w,
 			height: shape.props.h,
 			isFilled: true,
-			margin: 4,
+			margin: 8,
 		})
 	}
 

@@ -1,29 +1,17 @@
 import { StateNode, TLEventHandlers } from '@tldraw/editor'
+import { getHoveredShapeId } from '../shared'
 
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
 
-	override onPointerEnter: TLEventHandlers['onPointerEnter'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		switch (info.target) {
-			case 'shape': {
-				const { selectedIds, focusLayerId } = this.editor
-				const hoveringShape = this.editor.getOutermostSelectableShape(
-					info.shape,
-					(parent) => !selectedIds.includes(parent.id)
-				)
-				if (hoveringShape.id !== focusLayerId) {
-					this.editor.hoveredId = hoveringShape.id
+			case 'shape':
+			case 'canvas': {
+				const nextHoveredId = getHoveredShapeId(this.editor)
+				if (nextHoveredId !== this.editor.hoveredId) {
+					this.editor.setHoveredId(nextHoveredId)
 				}
-				break
-			}
-		}
-	}
-
-	override onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
-		switch (info.target) {
-			case 'shape': {
-				this.editor.hoveredId = null
-				break
 			}
 		}
 	}
@@ -45,6 +33,18 @@ export class EditingShape extends StateNode {
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		switch (info.target) {
+			case 'canvas': {
+				const { hoveredId } = this.editor
+				if (hoveredId) {
+					this.onPointerDown({
+						...info,
+						shape: this.editor.getShape(hoveredId)!,
+						target: 'shape',
+					})
+					return
+				}
+				break
+			}
 			case 'shape': {
 				const { shape } = info
 
@@ -71,7 +71,7 @@ export class EditingShape extends StateNode {
 							!this.editor.isShapeOrAncestorLocked(shape)
 						) {
 							this.editor.setEditingId(shape.id)
-							this.editor.hoveredId = shape.id
+							this.editor.setHoveredId(shape.id)
 							this.editor.setSelectedIds([shape.id])
 							return
 						}

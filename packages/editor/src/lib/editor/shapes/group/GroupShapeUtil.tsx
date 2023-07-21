@@ -26,7 +26,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	getGeometry(shape: TLGroupShape): Geometry2d {
 		const children = this.editor.getSortedChildIds(shape.id)
 		if (children.length === 0) {
-			return new Rectangle2d({ width: 1, height: 1, isFilled: false, margin: 4 })
+			return new Rectangle2d({ width: 1, height: 1, isFilled: false, margin: 8 })
 		}
 
 		return new Group2d({
@@ -34,11 +34,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 				const shape = this.editor.getShape(childId)!
 				const geometry = this.editor.getGeometry(childId)
 				const points = this.editor.getTransform(shape).applyToPoints(geometry.vertices)
-
-				for (const point of points) {
-					if (!Number.isFinite(point.x)) throw Error(`shape ${shape.type}`)
-					if (!Number.isFinite(point.y)) throw Error(`shape ${shape.type}`)
-				}
 
 				if (geometry.isClosed) {
 					return new Polygon2d({

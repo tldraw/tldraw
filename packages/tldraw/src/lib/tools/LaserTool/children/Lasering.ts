@@ -12,7 +12,7 @@ export class Lasering extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.setErasingIds([])
+		this.editor.erasingIds = []
 		this.scribble.stop()
 	}
 

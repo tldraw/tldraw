@@ -149,8 +149,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	}
 
 	onWheel?: TLEventHandlers['onWheel']
-	onPointerEnter?: TLEventHandlers['onPointerEnter']
-	onPointerLeave?: TLEventHandlers['onPointerLeave']
 	onPointerDown?: TLEventHandlers['onPointerDown']
 	onPointerMove?: TLEventHandlers['onPointerMove']
 	onPointerUp?: TLEventHandlers['onPointerUp']

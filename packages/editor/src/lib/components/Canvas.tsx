@@ -318,6 +318,7 @@ const GeometryDebuggingView = track(function GeometryDebuggingView({
 								stroke="dodgerblue"
 								strokeWidth={2}
 								fill="none"
+								opacity={0.25}
 								d={geometry.toSimpleSvgPath()}
 							/>
 						)}
@@ -384,6 +385,7 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const editor = useEditor()
 	const { HoveredShapeIndicator } = useEditorComponents()
 	const hoveredId = useValue('hovered id', () => editor.currentPageState.hoveredId, [editor])
+
 	if (!hoveredId || !HoveredShapeIndicator) return null
 
 	return <HoveredShapeIndicator shapeId={hoveredId} />

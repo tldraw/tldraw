@@ -43,6 +43,15 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredId } = this.editor
+				if (hoveredId) {
+					this.onPointerDown({
+						...info,
+						shape: this.editor.getShape(hoveredId)!,
+						target: 'shape',
+					})
+					return
+				}
 				this.cancel()
 				break
 			}

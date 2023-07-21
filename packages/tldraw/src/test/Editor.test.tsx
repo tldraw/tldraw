@@ -53,13 +53,13 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's hintingIds", () => {
 		test('[boxes]', () => {
-			editor.hintingIds = [ids.box1, ids.box2, ids.box3]
+			editor.setHintingIds([ids.box1, ids.box2, ids.box3])
 			expect(editor.hintingIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
 			expect(editor.hintingIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.hintingIds = [ids.frame1]
+			editor.setHintingIds([ids.frame1])
 			expect(editor.hintingIds).toEqual([ids.frame1])
 			moveShapesToPage2()
 			expect(editor.hintingIds).toEqual([ids.frame1])
@@ -95,13 +95,13 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's erasingIds", () => {
 		test('[boxes]', () => {
-			editor.setErasingIds([ids.box1, ids.box2, ids.box3])
+			editor.erasingIds = [ids.box1, ids.box2, ids.box3]
 			expect(editor.erasingIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
 			expect(editor.erasingIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.setErasingIds([ids.frame1])
+			editor.erasingIds = [ids.frame1]
 			expect(editor.erasingIds).toEqual([ids.frame1])
 			moveShapesToPage2()
 			expect(editor.erasingIds).toEqual([ids.frame1])

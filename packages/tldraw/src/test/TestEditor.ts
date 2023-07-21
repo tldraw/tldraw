@@ -330,32 +330,6 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	pointerEnter = (
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) => {
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			name: 'pointer_enter',
-		})
-		return this
-	}
-
-	pointerLeave = (
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) => {
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			name: 'pointer_leave',
-		})
-		return this
-	}
-
 	click = (
 		x = this.inputs.currentScreenPoint.x,
 		y = this.inputs.currentScreenPoint.y,
