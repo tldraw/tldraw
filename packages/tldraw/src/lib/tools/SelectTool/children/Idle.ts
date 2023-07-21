@@ -21,13 +21,8 @@ export class Idle extends StateNode {
 		updateHoveredId(this.editor)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
-		switch (info.target) {
-			case 'shape':
-			case 'canvas': {
-				updateHoveredId(this.editor)
-			}
-		}
+	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
+		updateHoveredId(this.editor)
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
@@ -109,6 +104,16 @@ export class Idle extends StateNode {
 						break
 					}
 					default: {
+						const { hoveredId } = this.editor
+						if (hoveredId && !this.editor.selectedIds.includes(hoveredId)) {
+							this.onPointerDown({
+								...info,
+								shape: this.editor.getShape(hoveredId)!,
+								target: 'shape',
+							})
+							return
+						}
+
 						this.parent.transition('pointing_selection', info)
 					}
 				}

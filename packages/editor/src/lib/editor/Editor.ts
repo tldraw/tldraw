@@ -1637,8 +1637,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	get focusLayerId(): TLShapeId | TLPageId {
 		return this.currentPageState.focusLayerId ?? this.currentPageId
 	}
-	set focusLayerId(next) {
+
+	setFocusLayerId(next: TLShapeId | TLPageId): this {
 		this._setFocusLayerId(next)
+		return this
 	}
 	/** @internal */
 	private _setFocusLayerId = this.history.createCommand(
@@ -1677,7 +1679,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	popFocusLayer() {
+	popFocusLayer(): this {
 		const current = this.currentPageState.focusLayerId
 		const focusedShape = current && this.getShape(current)
 
@@ -1687,11 +1689,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.isShapeOfType<TLGroupShape>(shape, 'group')
 			)
 			// If we have an ancestor that can become a focused layer, set it as the focused layer
-			this.focusLayerId = match?.id ?? this.currentPageId
+			this.setFocusLayerId(match?.id ?? this.currentPageId)
 			this.select(focusedShape.id)
 		} else {
 			// If there's no focused shape, then clear the focus layer and clear selection
-			this.focusLayerId = this.currentPageId
+			this.setFocusLayerId(this.currentPageId)
 			this.selectNone()
 		}
 
@@ -1706,7 +1708,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	get editingId() {
 		return this.currentPageState.editingId
 	}
-	setEditingId(id: TLShapeId | null) {
+	setEditingId(id: TLShapeId | null): this {
 		if (!id) {
 			this._setInstancePageState({ editingId: null })
 		} else {
@@ -1718,6 +1720,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 		}
+		return this
 	}
 
 	// Hovered Id
@@ -1731,9 +1734,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get hoveredId() {
 		return this.currentPageState.hoveredId
 	}
-	setHoveredId(id: TLShapeId | null) {
-		if (id === this.currentPageState.hoveredId) return
+	setHoveredId(id: TLShapeId | null): this {
+		if (id === this.currentPageState.hoveredId) return this
 		this.updateCurrentPageState({ hoveredId: id }, true)
+		return this
 	}
 
 	// Hinting ids
@@ -1746,9 +1750,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get hintingIds() {
 		return this.currentPageState.hintingIds
 	}
-	setHintingIds(ids: TLShapeId[]) {
+	setHintingIds(ids: TLShapeId[]): this {
 		// always ephemeral
 		this.store.update(this.currentPageState.id, (s) => ({ ...s, hintingIds: dedupe(ids) }))
+		return this
 	}
 
 	/**
@@ -1760,10 +1765,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.currentPageState.erasingIds
 	}
 
-	set erasingIds(ids: TLShapeId[]) {
+	setErasingIds(ids: TLShapeId[]): this {
 		const erasingIds = this.erasingIdsSet
-		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return
+		if (ids.length === erasingIds.size && ids.every((id) => erasingIds.has(id))) return this
 		this._setInstancePageState({ erasingIds: ids }, true)
+		return this
 	}
 
 	/**
@@ -1783,7 +1789,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	get croppingId() {
 		return this.currentPageState.croppingId
 	}
-	set croppingId(id: TLShapeId | null) {
+	setCroppingId(id: TLShapeId | null): this {
 		if (id !== this.croppingId) {
 			if (!id) {
 				this.updateCurrentPageState({ croppingId: null })
@@ -1798,6 +1804,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 		}
+		return this
 	}
 
 	/** @internal */
@@ -4722,7 +4729,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				maskedPageBounds &&
 				maskedPageBounds.containsPoint(point) &&
-				this.getGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), zoomLevel)
+				this.getGeometry(shape).hitTestPoint(
+					this.getPointInShapeSpace(shape, point),
+					zoomLevel,
+					true,
+					true
+				)
 			) {
 				return shape.id
 			}
@@ -4755,7 +4767,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				maskedPageBounds &&
 				maskedPageBounds.containsPoint(point) &&
-				this.getGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), zoomLevel)
+				this.getGeometry(shape).hitTestPoint(
+					this.getPointInShapeSpace(shape, point),
+					zoomLevel,
+					true,
+					true
+				)
 			) {
 				return shape
 			}
@@ -5118,7 +5135,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Put the shape content onto the new page; parents and indices will
 			// be taken care of by the putContent method; make sure to pop any focus
 			// layers so that the content will be put onto the page.
-			this.focusLayerId = this.currentPageId
+			this.setFocusLayerId(this.currentPageId)
 			this.selectNone()
 			this.putContent(content, { select: true, preserveIds: true, preservePosition: true })
 

@@ -537,7 +537,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
     createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select?: boolean): this;
     get croppingId(): null | TLShapeId;
-    set croppingId(id: null | TLShapeId);
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
     get currentPageShapeIds(): Set<TLShapeId>;
@@ -558,7 +557,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
     get editingId(): null | TLShapeId;
     get erasingIds(): TLShapeId[];
-    set erasingIds(ids: TLShapeId[]);
     get erasingIdsSet(): Set<TLShapeId>;
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -582,7 +580,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     focus: () => void;
     get focusLayerId(): TLPageId | TLShapeId;
-    set focusLayerId(next: TLPageId | TLShapeId);
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
     getAncestors(shape: TLShape, acc?: TLShape[]): TLShape[];
     getAncestorsById(id: TLShapeId, acc?: TLShape[]): TLShape[];
@@ -780,14 +777,20 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendBackward(ids?: TLShapeId[]): this;
     sendToBack(ids?: TLShapeId[]): this;
     setCamera(x: number, y: number, z?: number, { stopFollowing }?: TLViewportOptions): this;
+    // (undocumented)
+    setCroppingId(id: null | TLShapeId): this;
     setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     // (undocumented)
-    setEditingId(id: null | TLShapeId): void;
+    setEditingId(id: null | TLShapeId): this;
     // (undocumented)
-    setHintingIds(ids: TLShapeId[]): void;
+    setErasingIds(ids: TLShapeId[]): this;
     // (undocumented)
-    setHoveredId(id: null | TLShapeId): void;
+    setFocusLayerId(next: TLPageId | TLShapeId): this;
+    // (undocumented)
+    setHintingIds(ids: TLShapeId[]): this;
+    // (undocumented)
+    setHoveredId(id: null | TLShapeId): this;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;

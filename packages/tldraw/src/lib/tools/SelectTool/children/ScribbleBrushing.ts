@@ -41,7 +41,6 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.erasingIds = []
 		this.scribble.stop()
 	}
 

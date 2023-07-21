@@ -37,7 +37,7 @@ export class PointingCanvas extends StateNode {
 		if (!shiftKey) {
 			this.editor.selectNone()
 			if (!this._clickWasInsideFocusedGroup()) {
-				this.editor.focusLayerId = this.editor.currentPageId
+				this.editor.setFocusLayerId(this.editor.currentPageId)
 			}
 		}
 		this.parent.transition('idle', {})

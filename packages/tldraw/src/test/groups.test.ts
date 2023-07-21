@@ -935,7 +935,7 @@ describe('the select tool', () => {
 		expect(editor.focusLayerId).toBe(groupAId)
 
 		// click outside the focused group, but inside another group
-		editor.pointerDown(35, 5, { target: 'canvas' }).pointerUp(35, 5)
+		editor.pointerDown(-235, 5, { target: 'canvas' }).pointerUp(-235, 5)
 		expect(editor.focusLayerId).toBe(editor.currentPageId)
 		expect(editor.selectedIds).toHaveLength(0)
 
@@ -943,7 +943,7 @@ describe('the select tool', () => {
 		expect(editor.focusLayerId).toBe(groupAId)
 
 		// click the empty canvas
-		editor.pointerDown(35, 50, { target: 'canvas' }).pointerUp(35, 50)
+		editor.pointerDown(-235, 50, { target: 'canvas' }).pointerUp(-235, 50)
 		expect(editor.focusLayerId).toBe(editor.currentPageId)
 		expect(editor.selectedIds).toHaveLength(0)
 	})
@@ -999,19 +999,21 @@ describe('the select tool', () => {
 
 	it('should work while focused in a group if you start the drag from outside of the group', () => {
 		editor.select(ids.boxA)
-		editor
-			.pointerDown(15, -5, { target: 'canvas' }, { shiftKey: true })
-			.pointerMove(25, 9, ids.boxB, { shiftKey: true })
+		expect(editor.getShapesAtPoint({ x: -305, y: -5 })).toMatchObject([])
+		editor.pointerDown(-305, -5, { target: 'canvas' }).pointerMove(25, 9, ids.boxB)
 
 		expect(editor.root.path.value).toBe(`root.select.brushing`)
 		expect(editor.selectedIds.includes(ids.boxA)).toBe(true)
 		expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
 
-		editor.keyUp('Shift')
-		jest.advanceTimersByTime(200)
+		// this one didn't make sense as written—the forced event on canvas won't work now
+		// that we're doing hit testing manually—we'll catch that it was inside a shape
 
-		expect(editor.selectedIds.includes(ids.boxA)).toBe(false)
-		expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
+		// editor.keyUp('Shift')
+		// jest.advanceTimersByTime(200)
+
+		// expect(editor.selectedIds.includes(ids.boxA)).toBe(false)
+		// expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
 	})
 
 	it('should not select the group until you hit one of its child shapes', () => {

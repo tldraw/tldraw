@@ -12,6 +12,7 @@ export function getHoveredShapeId(editor: Editor) {
 	let i = -Infinity
 	let nextHoveredId = null as TLShapeId | null
 	for (const { id, index } of renderingShapes) {
+		if (id === focusLayerId) continue
 		if (editor.isPointInShape(id, currentPagePoint, false, false)) {
 			if (index > i) {
 				i = index

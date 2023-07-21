@@ -1,5 +1,7 @@
 import {
 	BaseBoxShapeUtil,
+	Geometry2d,
+	Rectangle2d,
 	SVGContainer,
 	SelectionEdge,
 	TLFrameShape,
@@ -37,6 +39,15 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override getDefaultProps(): TLFrameShape['props'] {
 		return { w: 160 * 2, h: 90 * 2, name: '' }
+	}
+
+	override getGeometry(shape: TLFrameShape): Geometry2d {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: false,
+			margin: 8,
+		})
 	}
 
 	override component(shape: TLFrameShape) {
