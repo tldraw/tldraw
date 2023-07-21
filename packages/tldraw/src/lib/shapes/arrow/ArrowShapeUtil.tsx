@@ -742,10 +742,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							/>
 						</g>
 						{as && maskStartArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={as} color={shape.props.color} fill={shape.props.fill} />
+							<ShapeFill theme={theme} d={as} color={shape.props.color} fill={shape.props.fill} />
 						)}
 						{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={ae} color={shape.props.color} fill={shape.props.fill} />
+							<ShapeFill theme={theme} d={ae} color={shape.props.color} fill={shape.props.fill} />
 						)}
 						{as && <path d={as} />}
 						{ae && <path d={ae} />}

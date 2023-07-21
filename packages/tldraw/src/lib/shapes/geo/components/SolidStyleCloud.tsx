@@ -25,7 +25,7 @@ export const SolidStyleCloud = React.memo(function SolidStyleCloud({
 
 	return (
 		<>
-			<ShapeFill d={path} fill={fill} color={color} />
+			<ShapeFill theme={theme} d={path} fill={fill} color={color} />
 			<path d={path} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 		</>
 	)

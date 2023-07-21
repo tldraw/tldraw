@@ -126,6 +126,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			return (
 				<SVGContainer id={shape.id}>
 					<ShapeFill
+						theme={theme}
 						fill={shape.props.isClosed ? shape.props.fill : 'none'}
 						color={shape.props.color}
 						d={solidStrokePath}
@@ -142,6 +143,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return (
 			<SVGContainer id={shape.id}>
 				<ShapeFill
+					theme={theme}
 					color={shape.props.color}
 					fill={shape.props.isClosed ? shape.props.fill : 'none'}
 					d={solidStrokePath}

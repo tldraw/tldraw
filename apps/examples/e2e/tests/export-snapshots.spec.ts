@@ -1,4 +1,4 @@
-import test, { expect } from '@playwright/test'
+import test, { Page, expect } from '@playwright/test'
 import { Editor, TLShapeId, TLShapePartial } from '@tldraw/tldraw'
 import { rename, writeFile } from 'fs/promises'
 import { setupPage } from '../shared-e2e'
@@ -174,33 +174,54 @@ test.describe('Export snapshots', () => {
 					.createShapes(shapes)
 			}, shapes as any)
 
-			const downloadEvent = page.waitForEvent('download')
-			await page.click('[data-testid="main.menu"]')
-			await page.click('[data-testid="menu-item.edit"]')
-			await page.click('[data-testid="menu-item.export-as"]')
-			await page.click('[data-testid="menu-item.export-as-svg"]')
+			snapshotTest(page)
+		})
+	}
 
-			const download = await downloadEvent
-			const path = (await download.path()) as string
-			// assert(path)
-			await rename(path, path + '.svg')
-			await writeFile(
-				path + '.html',
-				`
+	for (const [name, shapes] of Object.entries(snapshots)) {
+		test(`Exports with ${name} in dark mode`, async ({ browser }) => {
+			const page = await browser.newPage()
+			await setupPage(page)
+			await page.evaluate((shapes) => {
+				editor.user.updateUserPreferences({ isDarkMode: true })
+				editor
+					.updateInstanceState({ exportBackground: false })
+					.selectAll()
+					.deleteShapes()
+					.createShapes(shapes)
+			}, shapes as any)
+
+			snapshotTest(page)
+		})
+	}
+})
+
+async function snapshotTest(page: Page) {
+	const downloadEvent = page.waitForEvent('download')
+	await page.click('[data-testid="main.menu"]')
+	await page.click('[data-testid="menu-item.edit"]')
+	await page.click('[data-testid="menu-item.export-as"]')
+	await page.click('[data-testid="menu-item.export-as-svg"]')
+
+	const download = await downloadEvent
+	const path = (await download.path()) as string
+	// assert(path)
+	await rename(path, path + '.svg')
+	await writeFile(
+		path + '.html',
+		`
 			                  <!DOCTYPE html>
 			                  <meta charset="utf-8" />
 			                  <meta name="viewport" content="width=device-width, initial-scale=1" />
 			                  <img src="${path}.svg" />
 			              `,
-				'utf-8'
-			)
+		'utf-8'
+	)
 
-			await page.goto(`file://${path}.html`)
-			const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
-			await expect(page).toHaveScreenshot({
-				omitBackground: true,
-				clip,
-			})
-		})
-	}
-})
+	await page.goto(`file://${path}.html`)
+	const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
+	await expect(page).toHaveScreenshot({
+		omitBackground: true,
+		clip,
+	})
+}

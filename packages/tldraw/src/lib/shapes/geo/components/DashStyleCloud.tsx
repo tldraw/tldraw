@@ -34,7 +34,7 @@ export const DashStyleCloud = React.memo(function DashStylePolygon({
 
 	return (
 		<>
-			<ShapeFill d={innerPath} fill={fill} color={color} />
+			<ShapeFill theme={theme} d={innerPath} fill={fill} color={color} />
 			<g strokeWidth={strokeWidth} stroke={theme[color].solid} fill="none" pointerEvents="all">
 				{arcs.map(({ leftPoint, rightPoint, center, radius }, i) => {
 					const angle = canonicalizeRotation(

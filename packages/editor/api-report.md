@@ -2529,6 +2529,9 @@ export const useEditor: () => Editor;
 export function useIsCropping(shapeId: TLShapeId): boolean;
 
 // @public (undocumented)
+export function useIsDarkMode(): boolean;
+
+// @public (undocumented)
 export function useIsEditing(shapeId: TLShapeId): boolean;
 
 // @internal (undocumented)
