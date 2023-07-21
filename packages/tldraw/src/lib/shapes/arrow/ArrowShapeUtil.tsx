@@ -3,7 +3,6 @@ import {
 	DefaultFontFamilies,
 	Edge2d,
 	Group2d,
-	Matrix2d,
 	Rectangle2d,
 	SVGContainer,
 	ShapeUtil,
@@ -105,174 +104,72 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					margin: 4 + STROKE_SIZES[shape.props.size],
 			  })
 
-		if (shape.props.text.trim()) {
-			const bodyBounds = bodyGeom.bounds
-
-			const { w, h } = this.editor.textMeasure.measureText(shape.props.text, {
-				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[shape.props.font],
-				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-				width: 'fit-content',
-			})
-
-			let width = w
-			let height = h
-
-			if (bodyBounds.width > bodyBounds.height) {
-				width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
-
-				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
-					shape.props.text,
-					{
-						...TEXT_PROPS,
-						fontFamily: FONT_FAMILIES[shape.props.font],
-						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-						width: width + 'px',
-					}
-				)
-
-				width = squishedWidth
-				height = squishedHeight
-			}
-
-			if (width > 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]) {
-				width = 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]
-
-				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
-					shape.props.text,
-					{
-						...TEXT_PROPS,
-						fontFamily: FONT_FAMILIES[shape.props.font],
-						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-						width: width + 'px',
-					}
-				)
-
-				width = squishedWidth
-				height = squishedHeight
-			}
-
-			const labelGeom = new Rectangle2d({
-				x: info.middle.x - width / 2 - 4,
-				y: info.middle.y - height / 2 - 4,
-				width: width + 8,
-				height: height + 8,
-				isFilled: true,
-				margin: 4 + STROKE_SIZES[shape.props.size],
-			})
-
-			return new Group2d({
-				margin: 4 + STROKE_SIZES[shape.props.size],
-				children: [bodyGeom, labelGeom],
-				operation: 'union',
-				isSnappable: false,
-			})
+		if (!shape.props.text.trim()) {
+			return bodyGeom
 		}
 
-		return bodyGeom
+		const bodyBounds = bodyGeom.bounds
+
+		const { w, h } = this.editor.textMeasure.measureText(shape.props.text, {
+			...TEXT_PROPS,
+			fontFamily: FONT_FAMILIES[shape.props.font],
+			fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+			width: 'fit-content',
+		})
+
+		let width = w
+		let height = h
+
+		if (bodyBounds.width > bodyBounds.height) {
+			width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
+
+			const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
+				shape.props.text,
+				{
+					...TEXT_PROPS,
+					fontFamily: FONT_FAMILIES[shape.props.font],
+					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+					width: width + 'px',
+				}
+			)
+
+			width = squishedWidth
+			height = squishedHeight
+		}
+
+		if (width > 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]) {
+			width = 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]
+
+			const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
+				shape.props.text,
+				{
+					...TEXT_PROPS,
+					fontFamily: FONT_FAMILIES[shape.props.font],
+					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+					width: width + 'px',
+				}
+			)
+
+			width = squishedWidth
+			height = squishedHeight
+		}
+
+		const labelGeom = new Rectangle2d({
+			x: info.middle.x - width / 2 - 4,
+			y: info.middle.y - height / 2 - 4,
+			width: width + 8,
+			height: height + 8,
+			isFilled: true,
+			margin: 4 + STROKE_SIZES[shape.props.size],
+		})
+
+		return new Group2d({
+			margin: 4 + STROKE_SIZES[shape.props.size],
+			children: [bodyGeom, labelGeom],
+			operation: 'union',
+			isSnappable: false,
+		})
 	}
-
-	// getOutlineWithoutLabel(shape: TLArrowShape): Vec2d[] {
-	// 	const info = this.editor.getArrowInfo(shape)
-
-	// 	if (!info) {
-	// 		return []
-	// 	}
-
-	// 	if (info.isStraight) {
-	// 		if (info.isValid) {
-	// 			return [Vec2d.From(info.start.point), Vec2d.From(info.end.point)]
-	// 		} else {
-	// 			return [new Vec2d(0, 0), new Vec2d(1, 1)]
-	// 		}
-	// 	}
-
-	// 	if (!info.isValid) {
-	// 		return [new Vec2d(0, 0), new Vec2d(1, 1)]
-	// 	}
-
-	// 	const pointsToPush = Math.max(5, Math.ceil(Math.abs(info.bodyArc.length) / 16))
-
-	// 	if (pointsToPush <= 0 && !isFinite(pointsToPush)) {
-	// 		return [new Vec2d(0, 0), new Vec2d(1, 1)]
-	// 	}
-
-	// 	const results: Vec2d[] = Array(pointsToPush)
-
-	// 	const startAngle = Vec2d.Angle(info.bodyArc.center, info.start.point)
-	// 	const endAngle = Vec2d.Angle(info.bodyArc.center, info.end.point)
-
-	// 	const a = info.bodyArc.sweepFlag ? endAngle : startAngle
-	// 	const b = info.bodyArc.sweepFlag ? startAngle : endAngle
-	// 	const l = info.bodyArc.largeArcFlag ? -longAngleDist(a, b) : shortAngleDist(a, b)
-
-	// 	const r = Math.max(1, info.bodyArc.radius)
-
-	// 	for (let i = 0; i < pointsToPush; i++) {
-	// 		const t = i / (pointsToPush - 1)
-	// 		const angle = a + l * t
-	// 		const point = getPointOnCircle(info.bodyArc.center.x, info.bodyArc.center.y, r, angle)
-	// 		results[i] = point
-	// 	}
-
-	// 	return results
-	// }
-
-	// override getOutline(shape: TLArrowShape): Vec2d[] {
-	// 	const outlineWithoutLabel = this.getOutlineWithoutLabel(shape)
-
-	// 	const labelBounds = this.getLabelBounds(shape)
-	// 	if (!labelBounds) {
-	// 		return outlineWithoutLabel
-	// 	}
-
-	// 	const sides = labelBounds.sides
-	// 	const sideIndexes = [0, 1, 2, 3]
-
-	// 	// start with the first point...
-	// 	let prevPoint = outlineWithoutLabel[0]
-	// 	let didAddLabel = false
-	// 	const result = [prevPoint]
-	// 	for (let i = 1; i < outlineWithoutLabel.length; i++) {
-	// 		// ...and use the next point to form a line segment for the outline.
-	// 		const nextPoint = outlineWithoutLabel[i]
-
-	// 		if (!didAddLabel) {
-	// 			// find the index of the side of the label bounds that intersects the line segment
-	// 			const nearestIntersectingSideIndex = minBy(
-	// 				sideIndexes.filter((sideIndex) =>
-	// 					linesIntersect(sides[sideIndex][0], sides[sideIndex][1], prevPoint, nextPoint)
-	// 				),
-	// 				(sideIndex) =>
-	// 					Vec2d.DistanceToLineSegment(sides[sideIndex][0], sides[sideIndex][1], prevPoint)
-	// 			)
-
-	// 			// if we've found one, start at that index and trace around all four corners of the label bounds
-	// 			if (nearestIntersectingSideIndex !== undefined) {
-	// 				const intersectingPoint = Vec2d.NearestPointOnLineSegment(
-	// 					sides[nearestIntersectingSideIndex][0],
-	// 					sides[nearestIntersectingSideIndex][1],
-	// 					prevPoint
-	// 				)
-
-	// 				result.push(intersectingPoint)
-	// 				for (let j = 0; j < 4; j++) {
-	// 					const sideIndex = (nearestIntersectingSideIndex + j) % 4
-	// 					result.push(sides[sideIndex][1])
-	// 				}
-	// 				result.push(intersectingPoint)
-
-	// 				// we've added the label, so we can just continue with the rest of the outline as normal
-	// 				didAddLabel = true
-	// 			}
-	// 		}
-
-	// 		result.push(nextPoint)
-	// 		prevPoint = nextPoint
-	// 	}
-
-	// 	return result
-	// }
 
 	override getHandles(shape: TLArrowShape): TLHandle[] {
 		const info = this.editor.getArrowInfo(shape)!
@@ -314,7 +211,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			case 'start':
 			case 'end': {
 				const pageTransform = this.editor.getPageTransform(next.id)!
-				const pointInPageSpace = Matrix2d.applyToPoint(pageTransform, handle)
+				const pointInPageSpace = pageTransform.applyToPoint(handle)
 
 				if (this.editor.inputs.ctrlKey) {
 					next.props[handle.id] = {
@@ -347,22 +244,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 						const prevHandle = next.props[handle.id]
 
-						const startBindingId =
-							shape.props.start.type === 'binding' && shape.props.start.boundShapeId
-						const endBindingId = shape.props.end.type === 'binding' && shape.props.end.boundShapeId
-
-						let precise =
-							// If externally precise, then always precise
-							isPrecise ||
-							// If the other handle is bound to the same shape, then precise
-							((startBindingId || endBindingId) && startBindingId === endBindingId) ||
-							// If the other shape is not closed, then precise
-							!this.editor.getGeometry(target).isClosed
+						let precise = this.editor.getGeometry(target).isClosed && isPrecise
 
 						if (
+							!precise &&
 							// If we're switching to a new bound shape, then precise only if moving slowly
-							prevHandle.type === 'point' ||
-							(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
+							(prevHandle.type === 'point' ||
+								(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId))
 						) {
 							precise = this.editor.inputs.pointerVelocity.len() < 0.5
 						}
@@ -377,6 +265,16 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 									Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)
 								) /
 									this.editor.zoomLevel
+						}
+
+						// Double check that we're not going to be doing an imprecise snap on the same shape twice
+						if (!precise) {
+							const otherHandle = next.props[handle.id === 'start' ? 'end' : 'start']
+							const otherHandleBindingId =
+								otherHandle.type === 'binding' ? otherHandle.boundShapeId : undefined
+							if (otherHandleBindingId && target.id === otherHandleBindingId) {
+								precise = false
+							}
 						}
 
 						next.props[handle.id] = {
@@ -398,6 +296,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						}
 					}
 				}
+
+				if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
+					if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
+						if (Vec2d.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
+							throw Error('Same shape bound twice at same point')
+						}
+					}
+				}
+
 				break
 			}
 
