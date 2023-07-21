@@ -222,17 +222,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				} else {
 					const target = last(
 						this.editor.sortedShapesArray.filter((hitShape) => {
-							if (hitShape.id === shape.id) {
-								// We're testing against the arrow
-								return
-							}
-
-							const util = this.editor.getShapeUtil(hitShape)
-							if (!util.canBind(hitShape)) {
-								// The shape can't be bound to
-								return
-							}
-
+							// We're testing against the arrow
+							if (hitShape.id === shape.id) return
+							// The shape can't be bound to
+							if (!this.editor.getShapeUtil(hitShape).canBind(hitShape)) return
 							// Test the point using the shape's idea of what a hit is
 							return this.editor.isPointInShape(hitShape, pointInPageSpace, true, true)
 						})
@@ -242,17 +235,17 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						const targetBounds = this.editor.getGeometry(target).bounds
 						const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
-						const prevHandle = next.props[handle.id]
-
 						let precise = this.editor.getGeometry(target).isClosed && isPrecise
 
-						if (
-							!precise &&
-							// If we're switching to a new bound shape, then precise only if moving slowly
-							(prevHandle.type === 'point' ||
-								(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId))
-						) {
-							precise = this.editor.inputs.pointerVelocity.len() < 0.5
+						if (!precise) {
+							const prevHandle = next.props[handle.id]
+							if (
+								prevHandle.type === 'point' ||
+								(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
+							) {
+								// If we're switching to a new bound shape, then precise only if moving slowly
+								precise = this.editor.inputs.pointerVelocity.len() < 0.5
+							}
 						}
 
 						if (precise) {
@@ -267,7 +260,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 									this.editor.zoomLevel
 						}
 
-						// Double check that we're not going to be doing an imprecise snap on the same shape twice
+						// Double check that we're not going to be doing an imprecise snap on the same shape twice,
+						// as this would result in a zero length line
 						if (!precise) {
 							const otherHandle = next.props[handle.id === 'start' ? 'end' : 'start']
 							const otherHandleBindingId =
@@ -289,6 +283,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							isExact: this.editor.inputs.altKey,
 						}
 					} else {
+						// todo: maybe double check that this isn't equal to the other handle too?
 						next.props[handle.id] = {
 							type: 'point',
 							x: handle.x,
