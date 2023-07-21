@@ -39,12 +39,12 @@ it('reparents a shape', () => {
 
 it('preserves shape page transfors', () => {
 	const before = editor.getShapeById(ids.box1)!
-	const A = editor.getPageTransformById(ids.box1)
+	const A = editor.getPageTransform(ids.box1)
 	const A1 = editor.getTransform(before)
 	editor.reparentShapesById([ids.box2], ids.box1)
 
 	const after = editor.getShapeById(ids.box1)!
-	const B = editor.getPageTransformById(ids.box1)!
+	const B = editor.getPageTransform(ids.box1)!
 	const B1 = editor.getTransform(after)
 	expect(A1).toMatchObject(B1)
 	expect(A).toMatchObject(B)

@@ -59,7 +59,7 @@ const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opac
 	const transform = useValue(
 		'transform',
 		() => {
-			const pageTransform = editor.getPageTransformById(id)
+			const pageTransform = editor.getPageTransform(id)
 			if (!pageTransform) return ''
 			return pageTransform.toCssString()
 		},

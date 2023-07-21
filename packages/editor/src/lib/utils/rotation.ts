@@ -74,7 +74,7 @@ export function applyRotationToSnapshotShapes({
 			// around the pivot point (the average center of all rotating shapes.)
 
 			const parentTransform = isShapeId(shape.parentId)
-				? editor.getPageTransformById(shape.parentId)!
+				? editor.getPageTransform(shape.parentId)!
 				: Matrix2d.Identity()
 
 			const newPagePoint = Vec2d.RotWith(initialPagePoint, selectionPageCenter, delta)

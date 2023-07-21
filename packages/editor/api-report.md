@@ -593,9 +593,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAssetById(id: TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent_2): Promise<TLAsset | undefined>;
-    getBounds<T extends TLShape>(shape: T): Box2d;
-    getBoundsById<T extends TLShape>(id: T['id']): Box2d | undefined;
-    getClipPathById(id: TLShapeId): string | undefined;
+    getClipPath(shape: TLShape): string | undefined;
+    // (undocumented)
+    getClipPath(id: TLShapeId): string | undefined;
     getContainer: () => HTMLElement;
     getContent(ids?: TLShapeId[]): TLContent | undefined;
     getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
@@ -611,22 +611,20 @@ export class Editor extends EventEmitter<TLEventMap> {
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
     getMaskedPageBoundsById(id: TLShapeId): Box2d | undefined;
     getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape;
-    getOutline<T extends TLShape>(shape: T): Vec2d[];
-    getOutlineById(id: TLShapeId): Vec2d[];
     getOutlineSegments<T extends TLShape>(shape: T): Vec2d[][];
     getOutlineSegmentsById(id: TLShapeId): Vec2d[][];
     getPageBounds(shape: TLShape): Box2d | undefined;
-    getPageBoundsById(id: TLShapeId): Box2d | undefined;
+    // (undocumented)
+    getPageBounds(id: TLShapeId): Box2d | undefined;
     getPageById(id: TLPageId): TLPage | undefined;
-    getPageCenter(shape: TLShape): null | Vec2d;
-    getPageCenterById(id: TLShapeId): null | Vec2d;
     getPageCorners(shape: TLShape): Vec2d[];
-    getPageMaskById(id: TLShapeId): undefined | VecLike[];
+    getPageMask(id: TLShapeId): undefined | VecLike[];
+    // (undocumented)
+    getPageMask(shape: TLShape): undefined | VecLike[];
     getPagePointById(id: TLShapeId): undefined | Vec2d;
-    getPageRotation(shape: TLShape): number;
-    getPageRotationById(id: TLShapeId): number;
+    getPageTransform(id: TLShapeId): Matrix2d | undefined;
+    // (undocumented)
     getPageTransform(shape: TLShape): Matrix2d | undefined;
-    getPageTransformById(id: TLShapeId): Matrix2d | undefined;
     getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']): TLPageId | TLShapeId;
     getParentShape(shape?: TLShape): TLShape | undefined;
     getParentTransform(shape: TLShape): Matrix2d;
@@ -1191,6 +1189,8 @@ export class Matrix2d {
     // (undocumented)
     c: number;
     // (undocumented)
+    static Cast(m: MatLike): Matrix2d;
+    // (undocumented)
     clone(): Matrix2d;
     // (undocumented)
     static Compose(...matrices: MatLike[]): Matrix2d;
@@ -1226,6 +1226,10 @@ export class Matrix2d {
     static Rotate(r: number, cx?: number, cy?: number): Matrix2d;
     // (undocumented)
     rotate(r: number, cx?: number, cy?: number): Matrix2d;
+    // (undocumented)
+    static Rotation(m: MatLike): number;
+    // (undocumented)
+    rotation(): number;
     // (undocumented)
     static Scale: {
         (x: number, y: number): Matrix2dModel;

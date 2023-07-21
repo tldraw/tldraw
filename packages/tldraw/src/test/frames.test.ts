@@ -223,13 +223,13 @@ describe('frame shapes', () => {
 
 		editor.resizeSelection({ scaleX: 0.5, scaleY: 0.5 }, 'bottom_right')
 
-		expect(editor.getPageBoundsById(frameId)).toCloselyMatchObject({
+		expect(editor.getPageBounds(frameId)).toCloselyMatchObject({
 			x: 100,
 			y: 100,
 			w: 50,
 			h: 50,
 		})
-		expect(editor.getPageBoundsById(boxId)).toCloselyMatchObject({
+		expect(editor.getPageBounds(boxId)).toCloselyMatchObject({
 			x: 125,
 			y: 125,
 			w: 50,
@@ -347,9 +347,9 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.select(ids.boxA)
 		editor.pointerDown(275, 275, ids.boxA).pointerMove(275, 74)
-		expect(editor.getPageBoundsById(ids.boxA)).toMatchObject({ y: 49 })
+		expect(editor.getPageBounds(ids.boxA)).toMatchObject({ y: 49 })
 		editor.keyDown('Control')
-		expect(editor.getPageBoundsById(ids.boxA)).toMatchObject({ y: 50 })
+		expect(editor.getPageBounds(ids.boxA)).toMatchObject({ y: 50 })
 		expect(editor.snaps.lines).toHaveLength(1)
 	})
 
@@ -441,13 +441,13 @@ describe('frame shapes', () => {
 		})
 
 		// mask should be a 50px box around the top left corner
-		expect(editor.getClipPathById(editor.onlySelectedShape!.id)).toMatchInlineSnapshot(
+		expect(editor.getClipPath(editor.onlySelectedShape!.id)).toMatchInlineSnapshot(
 			`"polygon(-50px -50px,50px -50px,50px 50px,-50px 50px)"`
 		)
 
 		editor.reparentShapesById([editor.onlySelectedShape!.id], editor.currentPageId)
 
-		expect(editor.getClipPathById(editor.onlySelectedShape!.id)).toBeUndefined()
+		expect(editor.getClipPath(editor.onlySelectedShape!.id)).toBeUndefined()
 	})
 
 	it('masks its nested children', () => {
@@ -467,7 +467,7 @@ describe('frame shapes', () => {
 		editor.reparentShapesById([boxId], innerFrameId)
 
 		// should be a 50px box starting in the middle of the outer frame
-		expect(editor.getClipPathById(boxId)).toMatchInlineSnapshot(
+		expect(editor.getClipPath(boxId)).toMatchInlineSnapshot(
 			`"polygon(50px 50px,100px 50px,100px 100px,50px 100px)"`
 		)
 	})

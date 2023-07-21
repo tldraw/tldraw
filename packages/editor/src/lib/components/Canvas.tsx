@@ -460,7 +460,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = editor.getPageBoundsById(id)
+			const bb = editor.getPageBounds(id)
 			const el = await editor.getSvg([id], { padding: 0 })
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')

@@ -219,7 +219,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getPageBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -274,7 +274,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getPageBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -329,7 +329,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getPageBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -540,7 +540,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							if (!targetShape) continue
 
 							if (targetId) {
-								const bounds = editor.getPageBoundsById(targetId)!
+								const bounds = editor.getPageBounds(targetId)!
 
 								const v2ShapeFresh = editor.getShapeById<TLArrowShape>(v2ShapeId)!
 

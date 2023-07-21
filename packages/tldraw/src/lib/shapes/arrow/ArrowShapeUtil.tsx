@@ -313,7 +313,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		switch (handle.id) {
 			case 'start':
 			case 'end': {
-				const pageTransform = this.editor.getPageTransformById(next.id)!
+				const pageTransform = this.editor.getPageTransform(next.id)!
 				const pointInPageSpace = Matrix2d.applyToPoint(pageTransform, handle)
 
 				if (this.editor.inputs.ctrlKey) {

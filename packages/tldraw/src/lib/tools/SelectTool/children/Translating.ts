@@ -270,7 +270,7 @@ export class Translating extends StateNode {
 
 			const parentTransform = isPageId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getPageTransformById(shape.parentId)!)
+				: Matrix2d.Inverse(editor.getPageTransform(shape.parentId)!)
 
 			shapeSnapshot.parentTransform = parentTransform
 		})
@@ -293,7 +293,7 @@ function getTranslatingSnapshot(editor: Editor) {
 
 			const parentTransform = PageRecordType.isId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getPageTransformById(shape.parentId)!)
+				: Matrix2d.Inverse(editor.getPageTransform(shape.parentId)!)
 
 			return {
 				shape,

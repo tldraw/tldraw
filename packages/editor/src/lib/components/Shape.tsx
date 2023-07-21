@@ -50,7 +50,7 @@ export const Shape = track(function Shape({
 		'set shape container transform position',
 		() => {
 			const shape = editor.getShapeById(id)
-			const pageTransform = editor.getPageTransformById(id)
+			const pageTransform = editor.getPageTransform(id)
 
 			if (!shape || !pageTransform) return null
 
@@ -66,7 +66,7 @@ export const Shape = track(function Shape({
 			const shape = editor.getShapeById(id)
 			if (!shape) return null
 
-			const clipPath = editor.getClipPathById(id)
+			const clipPath = editor.getClipPath(id)
 			setProperty('clip-path', clipPath ?? 'none')
 		},
 		[editor, setProperty]

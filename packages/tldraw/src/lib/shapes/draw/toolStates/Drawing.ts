@@ -210,7 +210,7 @@ export class Drawing extends StateNode {
 
 				// Convert prevPoint to page space
 				const prevPointPageSpace = Matrix2d.applyToPoint(
-					this.editor.getPageTransformById(shape.id)!,
+					this.editor.getPageTransform(shape.id)!,
 					prevPoint
 				)
 				this.pagePointWhereCurrentSegmentChanged = prevPointPageSpace

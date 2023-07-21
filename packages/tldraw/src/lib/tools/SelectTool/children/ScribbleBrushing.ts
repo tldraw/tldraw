@@ -133,7 +133,7 @@ export class ScribbleBrushing extends StateNode {
 			) {
 				const outermostShape = this.editor.getOutermostSelectableShape(shape)
 
-				const pageMask = this.editor.getPageMaskById(outermostShape.id)
+				const pageMask = this.editor.getPageMask(outermostShape.id)
 
 				if (pageMask) {
 					const intersection = intersectLineSegmentPolyline(

@@ -405,7 +405,7 @@ describe('flipping rotated shapes', () => {
 	})
 
 	const getStartAndEndPoints = (id: TLShapeId) => {
-		const transform = editor.getPageTransformById(id)
+		const transform = editor.getPageTransform(id)
 		if (!transform) throw new Error('no transform')
 		const arrow = editor.getShapeById<TLArrowShape>(id)!
 		if (arrow.props.start.type !== 'point' || arrow.props.end.type !== 'point')

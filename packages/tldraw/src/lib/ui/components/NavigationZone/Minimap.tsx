@@ -211,9 +211,9 @@ export const Minimap = track(function Minimap({
 			const allShapeBounds = [] as (Box2d & { id: TLShapeId })[]
 
 			editor.currentPageShapeIds.forEach((id) => {
-				let pageBounds = editor.getPageBoundsById(id)! as Box2d & { id: TLShapeId }
+				let pageBounds = editor.getPageBounds(id)! as Box2d & { id: TLShapeId }
 
-				const pageMask = editor.getPageMaskById(id)
+				const pageMask = editor.getPageMask(id)
 
 				if (pageMask) {
 					const intersection = intersectPolygonPolygon(pageMask, pageBounds.corners)

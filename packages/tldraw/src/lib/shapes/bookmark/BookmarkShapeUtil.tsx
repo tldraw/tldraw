@@ -45,7 +45,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : null
 		) as TLBookmarkAsset
 
-		const pageRotation = this.editor.getPageRotation(shape)
+		const pageRotation = this.editor.getPageTransform(shape)!.rotation()
 
 		const address = getHumanReadableAddress(shape)
 

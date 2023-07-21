@@ -81,7 +81,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		g.appendChild(rect)
 
 		// Text label
-		const pageRotation = canonicalizeRotation(this.editor.getPageRotationById(shape.id))
+		const pageRotation = canonicalizeRotation(this.editor.getPageTransform(shape.id)!.rotation())
 		// rotate right 45 deg
 		const offsetRotation = pageRotation + Math.PI / 4
 		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
@@ -214,7 +214,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		const shapesToReparent: TLShapeId[] = []
 
 		for (const childId of children) {
-			const childBounds = this.editor.getPageBoundsById(childId)!
+			const childBounds = this.editor.getPageBounds(childId)!
 			if (!bounds.includes(childBounds)) {
 				shapesToReparent.push(childId)
 			}

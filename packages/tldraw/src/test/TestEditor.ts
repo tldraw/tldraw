@@ -588,11 +588,33 @@ export class TestEditor extends Editor {
 	 *
 	 * @public
 	 */
-	override getPageCenter(shape: TLShape) {
-		const pageTransform = this.getPageTransformById(shape.id)
+	getPageCenter(shape: TLShape) {
+		const pageTransform = this.getPageTransform(shape.id)
 		if (!pageTransform) return null
 		const center = this.getGeometry(shape).bounds.center
 		return Matrix2d.applyToPoint(pageTransform, center)
+	}
+
+	/**
+	 * Get the page rotation (or absolute rotation) of a shape by its id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPageRotationById(myShapeId)
+	 * ```
+	 *
+	 * @param id - The id of the shape to get the page rotation for.
+	 */
+	getPageRotationById(id: TLShapeId): number {
+		const pageTransform = this.getPageTransform(id)
+		if (pageTransform) {
+			return Matrix2d.Decompose(pageTransform).rotation
+		}
+		return 0
+	}
+
+	getPageRotation(shape: TLShape) {
+		return this.getPageRotationById(shape.id)
 	}
 }
 
