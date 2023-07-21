@@ -23,6 +23,12 @@ export class Polyline2d extends Geometry2d {
 				const end = vertices[i + 1]
 				this._segments.push(new Edge2d({ start, end, margin }))
 			}
+
+			if (this.isClosed) {
+				this._segments.push(
+					new Edge2d({ start: vertices[vertices.length - 1], end: vertices[0], margin })
+				)
+			}
 		}
 
 		return this._segments

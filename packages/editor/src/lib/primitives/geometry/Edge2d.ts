@@ -1,5 +1,5 @@
 import { Vec2d } from '../Vec2d'
-import { intersectLineSegmentLineSegment } from '../intersect'
+import { linesIntersect } from '../intersect'
 import { Geometry2d } from './Geometry2d'
 
 /** @public */
@@ -42,6 +42,6 @@ export class Edge2d extends Geometry2d {
 	}
 
 	override hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean {
-		return intersectLineSegmentLineSegment(A, B, this.start, this.end) !== null
+		return linesIntersect(A, B, this.start, this.end)
 	}
 }

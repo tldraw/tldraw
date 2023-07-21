@@ -116,7 +116,9 @@ export class Erasing extends StateNode {
 			const A = this.editor.getPointInShapeSpace(shape, previousPagePoint)
 			const B = this.editor.getPointInShapeSpace(shape, currentPagePoint)
 
-			// If it's a hit, erase the outermost selectable shape
+			if (shape.id === 'shape:box1' && !geometry.hitTestLineSegment(A, B, zoomLevel)) {
+				throw Error()
+			}
 			if (geometry.hitTestLineSegment(A, B, zoomLevel)) {
 				erasing.add(this.editor.getOutermostSelectableShape(shape).id)
 			}

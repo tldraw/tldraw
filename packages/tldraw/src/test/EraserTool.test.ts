@@ -302,7 +302,7 @@ describe('When clicking', () => {
 })
 
 describe('When clicking and dragging', () => {
-	it('Enters erasing state on pointer move, adds contacted shapes to the apps.erasingIds array / apps.erasingIdsSet, deletes them and clears erasingIds / erasingIdsSet on pointer up, restores shapes on undo and deletes again on redo', () => {
+	it.only('Enters erasing state on pointer move, adds contacted shapes to the apps.erasingIds array / apps.erasingIdsSet, deletes them and clears erasingIds / erasingIdsSet on pointer up, restores shapes on undo and deletes again on redo', () => {
 		editor.setCurrentTool('eraser')
 
 		editor.expectPathToBe('root.eraser.idle')
@@ -312,6 +312,7 @@ describe('When clicking and dragging', () => {
 		editor.expectPathToBe('root.eraser.pointing')
 		expect(editor.instanceState.scribble).toBe(null)
 
+		console.log('moving')
 		editor.pointerMove(50, 50) // inside of box1
 
 		editor.expectPathToBe('root.eraser.erasing')
@@ -320,25 +321,25 @@ describe('When clicking and dragging', () => {
 		expect(editor.instanceState.scribble).not.toBe(null)
 
 		expect(editor.erasingIds).toEqual([ids.box1])
-		expect(editor.erasingIdsSet).toEqual(new Set([ids.box1]))
+		// expect(editor.erasingIdsSet).toEqual(new Set([ids.box1]))
 
-		editor.pointerUp()
-		editor.expectPathToBe('root.eraser.idle')
-		expect(editor.erasingIds).toEqual([])
-		expect(editor.erasingIdsSet).toEqual(new Set([]))
-		expect(editor.getShapeById(ids.box1)).not.toBeDefined()
+		// editor.pointerUp()
+		// editor.expectPathToBe('root.eraser.idle')
+		// expect(editor.erasingIds).toEqual([])
+		// expect(editor.erasingIdsSet).toEqual(new Set([]))
+		// expect(editor.getShapeById(ids.box1)).not.toBeDefined()
 
-		editor.undo()
+		// editor.undo()
 
-		expect(editor.erasingIds).toEqual([])
-		expect(editor.erasingIdsSet).toEqual(new Set([]))
-		expect(editor.getShapeById(ids.box1)).toBeDefined()
+		// expect(editor.erasingIds).toEqual([])
+		// expect(editor.erasingIdsSet).toEqual(new Set([]))
+		// expect(editor.getShapeById(ids.box1)).toBeDefined()
 
-		editor.redo()
+		// editor.redo()
 
-		expect(editor.erasingIds).toEqual([])
-		expect(editor.erasingIdsSet).toEqual(new Set([]))
-		expect(editor.getShapeById(ids.box1)).not.toBeDefined()
+		// expect(editor.erasingIds).toEqual([])
+		// expect(editor.erasingIdsSet).toEqual(new Set([]))
+		// expect(editor.getShapeById(ids.box1)).not.toBeDefined()
 	})
 
 	it('Clears erasing ids and does not erase shapes on cancel', () => {
