@@ -3,6 +3,9 @@ import { SVGContainer } from '../../../components/SVGContainer'
 import { Matrix2d } from '../../../primitives/Matrix2d'
 import { Vec2d } from '../../../primitives/Vec2d'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
+import { Group2d } from '../../../primitives/geometry/Group2d'
+import { Polygon2d } from '../../../primitives/geometry/Polygon2d'
+import { Polyline2d } from '../../../primitives/geometry/Polyline2d'
 import { Rectangle2d } from '../../../primitives/geometry/Rectangle2d'
 import { ShapeUtil, TLOnChildrenChangeHandler } from '../ShapeUtil'
 import { DashedOutlineBox } from './DashedOutlineBox'
@@ -27,6 +30,30 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		if (children.length === 0) {
 			return new Rectangle2d({ width: 1, height: 1, isFilled: false, margin: 4 })
 		}
+
+		return new Group2d({
+			children: children.map((childId) => {
+				const shape = this.editor.getShapeById(childId)!
+				const geometry = this.editor.getGeometry(childId)
+				const points = this.editor.getTransform(shape).applyToPoints(geometry.vertices)
+
+				if (geometry.isClosed) {
+					return new Polygon2d({
+						points,
+						isFilled: true,
+						margin: 0,
+					})
+				}
+
+				return new Polyline2d({
+					points,
+					margin: 0,
+				})
+			}),
+			isFilled: false,
+			operation: 'union',
+			margin: 0,
+		})
 
 		const allChildPoints = children.flatMap((childId) => {
 			const shape = this.editor.getShapeById(childId)!

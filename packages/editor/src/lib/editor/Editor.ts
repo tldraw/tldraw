@@ -3684,8 +3684,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getGeometry<T extends Geometry2d>(shape: TLShape): T {
-		return this._geometryCache.get(shape.id)! as T
+	getGeometry<T extends Geometry2d>(id: TLShapeId): T
+	getGeometry<T extends Geometry2d>(shape: TLShape): T
+	getGeometry<T extends Geometry2d>(id: TLShape | TLShapeId): T {
+		return this._geometryCache.get(typeof id === 'string' ? id : id.id)! as T
 	}
 
 	/**

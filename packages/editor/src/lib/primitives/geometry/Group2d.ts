@@ -1,3 +1,4 @@
+import { Box2d } from '../Box2d'
 import { Vec2d } from '../Vec2d'
 import { Geometry2d } from './Geometry2d'
 
@@ -206,6 +207,15 @@ export class Group2d extends Geometry2d {
 		for (const child of this.children) {
 			path += child.toSimpleSvgPath()
 		}
+
+		const corners = Box2d.FromPoints(this.vertices).corners
+
+		path += `M${corners[0].x},${corners[0].y} `
+		path += `L${corners[1].x},${corners[1].y} `
+		path += `L${corners[2].x},${corners[2].y} `
+		path += `L${corners[3].x},${corners[3].y} `
+		path += 'Z'
+
 		return path
 	}
 }
