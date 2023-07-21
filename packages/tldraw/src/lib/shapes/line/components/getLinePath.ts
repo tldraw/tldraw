@@ -5,37 +5,6 @@ import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../../shared/freehand/svg'
 import { getSvgPathForLineGeometry } from './svg'
 
-// function getLinePoints(spline: CubicSpline2d | Polyline2d) {
-// 	const { segments } = spline
-
-// 	const allPoints: Vec2d[] = []
-
-// 	for (let j = 0, k = segments.length; j < k; j++) {
-// 		const segment = segments[j]
-// 		const lut = segment.vertices
-
-// 		const n = lut.length - 1
-
-// 		if (j > 0) {
-// 			allPoints.push(Vec2d.Lrp(lut[0], lut[1], 0.25))
-// 		} else {
-// 			allPoints.push(lut[0])
-// 		}
-
-// 		for (let i = 1; i < n; i++) {
-// 			allPoints.push(lut[i])
-// 		}
-
-// 		if (j < k - 1) {
-// 			allPoints.push(Vec2d.Lrp(lut[n - 1], lut[n], 0.75))
-// 		} else {
-// 			allPoints.push(lut[n])
-// 		}
-// 	}
-
-// 	return allPoints
-// }
-
 export function getLineDrawFreehandOptions(strokeWidth: number) {
 	return {
 		size: strokeWidth,

@@ -1,5 +1,5 @@
-import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
+import { Geometry2d } from './Geometry2d'
 
 /** @public */
 export class Group2d extends Geometry2d {
@@ -162,23 +162,23 @@ export class Group2d extends Geometry2d {
 		}
 	}
 
-	override hitTestLineSegment(A: Vec2d, B: Vec2d): boolean {
+	override hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
 		const { children, operation } = this
 		switch (operation) {
 			case 'union': {
-				return children.some((child) => child.hitTestLineSegment(A, B))
+				return children.some((child) => child.hitTestLineSegment(A, B, zoom))
 			}
 			case 'subtract': {
 				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
 					child = children[i]
 					if (i === 0) {
-						if (child.hitTestLineSegment(A, B)) {
+						if (child.hitTestLineSegment(A, B, zoom)) {
 							continue
 						} else {
 							break
 						}
 					} else {
-						if (child.hitTestLineSegment(A, B)) {
+						if (child.hitTestLineSegment(A, B, zoom)) {
 							return false
 						}
 					}
@@ -189,15 +189,23 @@ export class Group2d extends Geometry2d {
 				let hits = 0
 				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
 					child = children[i]
-					if (child.hitTestLineSegment(A, B)) {
+					if (child.hitTestLineSegment(A, B, zoom)) {
 						hits++
 					}
 				}
 				return hits % 2 === 1
 			}
 			case 'intersect': {
-				return children.every((child) => child.hitTestLineSegment(A, B))
+				return children.every((child) => child.hitTestLineSegment(A, B, zoom))
 			}
 		}
+	}
+
+	toSimpleSvgPath() {
+		let path = ''
+		for (const child of this.children) {
+			path += child.toSimpleSvgPath()
+		}
+		return path
 	}
 }

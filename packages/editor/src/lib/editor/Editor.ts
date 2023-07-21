@@ -80,10 +80,10 @@ import {
 	ZOOMS,
 } from '../constants'
 import { Box2d } from '../primitives/Box2d'
-import { Geometry2d } from '../primitives/Geometry2d'
 import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
 import { Vec2d, VecLike } from '../primitives/Vec2d'
 import { EASINGS } from '../primitives/easings'
+import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
@@ -4370,22 +4370,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.isPointInShape({ x: 100, y: 100 }, myShape)
 	 * ```
 	 *
-	 * @param point - The page point to test.
 	 * @param shape - The shape to test against.
+	 * @param point - The page point to test (in page space).
+	 * @param hitInside - Whether to count as a hit if the point is inside of a closed shape.
 	 *
 	 * @public
 	 */
-	isPointInShape(point: VecLike, shape: TLShape): boolean {
-		const geometry = this.getGeometry(shape)
+	isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean): boolean {
+		// If the shape is masked, and if the point falls outside of that
+		// mask, then it's defintely a miss—we don't need to test further.
+		const pageMask = this.getPageMaskById(shape.id)
+		if (pageMask && !pointInPolygon(point, pageMask)) return false
 
-		const pageMask = this._pageMaskCache.get(shape.id)
-
-		if (pageMask) {
-			const hit = pointInPolygon(point, pageMask)
-			if (!hit) return false
-		}
-
-		return geometry.hitTestPoint(this.getPointInShapeSpace(shape, point), this.zoomLevel)
+		return this.getGeometry(shape).hitTestPoint(
+			this.getPointInShapeSpace(shape, point),
+			this.zoomLevel,
+			hitInside
+		)
 	}
 
 	/**
@@ -4400,22 +4401,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapesAtPoint(point: VecLike): TLShape[] {
-		const { zoomLevel } = this
-
-		return this.shapesArray.filter((shape) => {
-			// Check the page mask too
-			const pageMask = this._pageMaskCache.get(shape.id)
-			if (pageMask) {
-				return pointInPolygon(point, pageMask)
-			}
-
-			// Otherwise, use the shape's own hit test method
-			return this.getGeometry(shape).hitTestPoint(
-				this.getPointInShapeSpace(shape, point),
-				zoomLevel
-			)
-		})
+	getShapesAtPoint(point: VecLike, hitInside = false): TLShape[] {
+		return this.shapesArray.filter((shape) => this.isPointInShape(shape, point, hitInside))
 	}
 
 	/**

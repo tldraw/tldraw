@@ -1,8 +1,8 @@
 import { Box2d } from '../Box2d'
-import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI2 } from '../utils'
+import { Geometry2d } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
@@ -43,7 +43,7 @@ export class Circle2d extends Geometry2d {
 		return _center.clone().add(point.clone().sub(_center).uni().mul(radius))
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d): boolean {
+	hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean {
 		const { _center, radius } = this
 		return intersectLineSegmentCircle(A, B, _center, radius) !== null
 	}

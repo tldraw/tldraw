@@ -1,7 +1,7 @@
-import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI, PI2, shortAngleDist } from '../utils'
+import { Geometry2d } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
@@ -66,7 +66,7 @@ export class Arc2d extends Geometry2d {
 		return nearest!
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d): boolean {
+	hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean {
 		const { _center, radius, measure, angleStart, angleEnd } = this
 		const intersection = intersectLineSegmentCircle(A, B, _center, radius)
 		if (intersection === null) return false

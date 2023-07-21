@@ -218,7 +218,6 @@ export {
 	type SelectionEdge,
 	type SelectionHandle,
 } from './lib/primitives/Box2d'
-export { Geometry2d } from './lib/primitives/Geometry2d'
 export { Matrix2d, type Matrix2dModel } from './lib/primitives/Matrix2d'
 export { Vec2d, type VecLike } from './lib/primitives/Vec2d'
 export { EASINGS } from './lib/primitives/easings'
@@ -228,6 +227,7 @@ export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
 export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
 export { Edge2d } from './lib/primitives/geometry/Edge2d'
 export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
+export { Geometry2d } from './lib/primitives/geometry/Geometry2d'
 export { Group2d } from './lib/primitives/geometry/Group2d'
 export { Polygon2d } from './lib/primitives/geometry/Polygon2d'
 export { Polyline2d } from './lib/primitives/geometry/Polyline2d'

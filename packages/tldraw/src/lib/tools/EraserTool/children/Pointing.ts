@@ -11,7 +11,7 @@ export class Pointing extends StateNode {
 		const initialSize = erasing.size
 
 		for (const shape of [...this.editor.sortedShapesArray].reverse()) {
-			if (this.editor.isPointInShape(inputs.currentPagePoint, shape)) {
+			if (this.editor.isPointInShape(shape, inputs.currentPagePoint, false)) {
 				// Skip groups
 				if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 

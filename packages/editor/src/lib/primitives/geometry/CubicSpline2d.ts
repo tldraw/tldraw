@@ -1,6 +1,6 @@
-import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
 import { CubicBezier2d } from './CubicBezier2d'
+import { Geometry2d } from './Geometry2d'
 
 /** @public */
 export class CubicSpline2d extends Geometry2d {
@@ -81,7 +81,7 @@ export class CubicSpline2d extends Geometry2d {
 		return nearest!
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d): boolean {
-		return this.segments.some((segment) => segment.hitTestLineSegment(A, B))
+	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
+		return this.segments.some((segment) => segment.hitTestLineSegment(A, B, zoom))
 	}
 }

@@ -113,7 +113,7 @@ export class Arc2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean;
     // (undocumented)
     length: number;
     // (undocumented)
@@ -304,7 +304,7 @@ export class Circle2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean;
     // (undocumented)
     nearestPoint(point: Vec2d): Vec2d;
     // (undocumented)
@@ -373,7 +373,7 @@ export class CubicSpline2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
     // (undocumented)
     get length(): number;
     // (undocumented)
@@ -464,7 +464,7 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean;
     // (undocumented)
     length: number;
     // (undocumented)
@@ -634,7 +634,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
-    getShapesAtPoint(point: VecLike): TLShape[];
+    getShapesAtPoint(point: VecLike, hitInside?: boolean): TLShape[];
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
@@ -691,7 +691,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isInAny(...paths: string[]): boolean;
     readonly isIos: boolean;
     get isMenuOpen(): boolean;
-    isPointInShape(point: VecLike, shape: TLShape): boolean;
+    isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean): boolean;
     readonly isSafari: boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
@@ -853,7 +853,7 @@ export class Ellipse2d extends Geometry2d {
     // (undocumented)
     h: number;
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
     // (undocumented)
     nearestPoint(A: Vec2d): Vec2d;
     // (undocumented)
@@ -916,15 +916,17 @@ export abstract class Geometry2d {
     // (undocumented)
     get center(): Vec2d;
     // (undocumented)
-    distanceToPoint(point: Vec2d): number;
+    distanceToLineSegment(A: Vec2d, B: Vec2d): number;
+    // (undocumented)
+    distanceToPoint(point: Vec2d, hitInside?: boolean): number;
     // (undocumented)
     getBounds(): Box2d;
     // (undocumented)
     abstract getVertices(): Vec2d[];
     // (undocumented)
-    abstract hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom?: number): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec2d, zoom?: number): boolean;
+    hitTestPoint(point: Vec2d, zoom?: number, hitInside?: boolean): boolean;
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
@@ -935,6 +937,8 @@ export abstract class Geometry2d {
     margin: number;
     // (undocumented)
     abstract nearestPoint(point: Vec2d): Vec2d;
+    // (undocumented)
+    nearestPointOnLineSegment(A: Vec2d, B: Vec2d): Vec2d;
     // (undocumented)
     get snapPoints(): Vec2d[];
     // (undocumented)
@@ -1070,13 +1074,15 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
     // (undocumented)
     hitTestPoint(point: Vec2d, zoom: number): boolean;
     // (undocumented)
     nearestPoint(point: Vec2d): Vec2d;
     // (undocumented)
     operation: 'exclude' | 'intersect' | 'subtract' | 'union';
+    // (undocumented)
+    toSimpleSvgPath(): string;
 }
 
 // @public (undocumented)
@@ -1352,7 +1358,7 @@ export class Polyline2d extends Geometry2d {
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d): boolean;
+    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
     // (undocumented)
     get length(): number;
     // (undocumented)

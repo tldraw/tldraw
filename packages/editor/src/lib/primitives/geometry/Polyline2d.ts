@@ -1,6 +1,6 @@
-import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
 import { Edge2d } from './Edge2d'
+import { Geometry2d } from './Geometry2d'
 
 /** @public */
 export class Polyline2d extends Geometry2d {
@@ -45,8 +45,13 @@ export class Polyline2d extends Geometry2d {
 	}
 
 	nearestPoint(A: Vec2d): Vec2d {
-		let nearest: Vec2d
+		let nearest: Vec2d | undefined
 		let dist = Infinity
+
+		if (this.points.length === 1) {
+			return this.points[0]
+		}
+
 		for (const edge of this.segments) {
 			const p = edge.nearestPoint(A)
 			const d = p.dist(A)
@@ -55,10 +60,11 @@ export class Polyline2d extends Geometry2d {
 				dist = d
 			}
 		}
+
 		return nearest!
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d): boolean {
-		return this.segments.some((edge) => edge.hitTestLineSegment(A, B))
+	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
+		return this.segments.some((edge) => edge.hitTestLineSegment(A, B, zoom))
 	}
 }

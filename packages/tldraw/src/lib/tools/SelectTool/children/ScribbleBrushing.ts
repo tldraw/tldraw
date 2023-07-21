@@ -127,7 +127,8 @@ export class ScribbleBrushing extends StateNode {
 			if (
 				geometry.hitTestLineSegment(
 					this.editor.getPointInShapeSpace(shape, previousPagePoint),
-					this.editor.getPointInShapeSpace(shape, currentPagePoint)
+					this.editor.getPointInShapeSpace(shape, currentPagePoint),
+					zoomLevel
 				)
 			) {
 				const outermostShape = this.editor.getOutermostSelectableShape(shape)

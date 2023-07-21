@@ -273,8 +273,12 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 })
 
 const GeometryDebuggingView = track(function GeometryDebuggingView({
-	showClosestPointOnOutline = true,
+	showStroke = true,
+	showVertices = false,
+	showClosestPointOnOutline = false,
 }: {
+	showStroke?: boolean
+	showVertices?: boolean
 	showClosestPointOnOutline?: boolean
 }) {
 	const editor = useEditor()
@@ -309,17 +313,25 @@ const GeometryDebuggingView = track(function GeometryDebuggingView({
 
 				return (
 					<g key={result.id + '_outline'} transform={pageTransform.toCssString()}>
-						<path stroke="dodgerblue" strokeWidth={2} fill="none" d={geometry.toSimpleSvgPath()} />
-						{vertices.map((v, i) => (
-							<circle
-								key={`v${i}`}
-								cx={v.x}
-								cy={v.y}
-								r={2}
-								fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 0])}, 100%, 50%)`}
+						{showStroke && (
+							<path
+								stroke="dodgerblue"
+								strokeWidth={2}
+								fill="none"
+								d={geometry.toSimpleSvgPath()}
 							/>
-						))}
-						{showClosestPointOnOutline && (
+						)}
+						{showVertices &&
+							vertices.map((v, i) => (
+								<circle
+									key={`v${i}`}
+									cx={v.x}
+									cy={v.y}
+									r={2}
+									fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 0])}, 100%, 50%)`}
+								/>
+							))}
+						{distanceToPoint > 0 && showClosestPointOnOutline && (
 							<line
 								x1={nearestPointOnShape.x}
 								y1={nearestPointOnShape.y}

@@ -342,7 +342,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							}
 
 							// Test the point using the shape's idea of what a hit is
-							return this.editor.isPointInShape(pointInPageSpace, hitShape)
+							return this.editor.isPointInShape(hitShape, pointInPageSpace, true)
 						})
 					)
 
@@ -577,33 +577,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		}
 	}
-
-	// override hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
-	// 	const outline = this.editor.getOutline(shape)
-	// 	const zoomLevel = this.editor.zoomLevel
-	// 	const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
-
-	// 	for (let i = 0; i < outline.length - 1; i++) {
-	// 		const C = outline[i]
-	// 		const D = outline[i + 1]
-
-	// 		if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
-	// 	}
-
-	// 	return false
-	// }
-
-	// override hitTestLineSegment(shape: TLArrowShape, A: VecLike, B: VecLike): boolean {
-	// 	const outline = this.editor.getOutline(shape)
-
-	// 	for (let i = 0; i < outline.length - 1; i++) {
-	// 		const C = outline[i]
-	// 		const D = outline[i + 1]
-	// 		if (linesIntersect(A, B, C, D)) return true
-	// 	}
-
-	// 	return false
-	// }
 
 	component(shape: TLArrowShape) {
 		// Not a class component, but eslint can't tell that :(
@@ -894,66 +867,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			</g>
 		)
 	}
-
-	// @computed get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape> {
-	// 	return this.editor.store.createComputedCache('labelBoundsCache', (shape) => {
-	// 		const info = this.editor.getArrowInfo(shape)
-	// 		const bounds = this.editor.getBounds(shape)
-	// 		const { text, font, size } = shape.props
-
-	// 		if (!info) return null
-	// 		if (!text.trim()) return null
-
-	// 		const { w, h } = this.editor.textMeasure.measureText(text, {
-	// 			...TEXT_PROPS,
-	// 			fontFamily: FONT_FAMILIES[font],
-	// 			fontSize: ARROW_LABEL_FONT_SIZES[size],
-	// 			width: 'fit-content',
-	// 		})
-
-	// 		let width = w
-	// 		let height = h
-
-	// 		if (bounds.width > bounds.height) {
-	// 			width = Math.max(Math.min(w, 64), Math.min(bounds.width - 64, w))
-
-	// 			const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(text, {
-	// 				...TEXT_PROPS,
-	// 				fontFamily: FONT_FAMILIES[font],
-	// 				fontSize: ARROW_LABEL_FONT_SIZES[size],
-	// 				width: width + 'px',
-	// 			})
-
-	// 			width = squishedWidth
-	// 			height = squishedHeight
-	// 		}
-
-	// 		if (width > 16 * ARROW_LABEL_FONT_SIZES[size]) {
-	// 			width = 16 * ARROW_LABEL_FONT_SIZES[size]
-
-	// 			const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(text, {
-	// 				...TEXT_PROPS,
-	// 				fontFamily: FONT_FAMILIES[font],
-	// 				fontSize: ARROW_LABEL_FONT_SIZES[size],
-	// 				width: width + 'px',
-	// 			})
-
-	// 			width = squishedWidth
-	// 			height = squishedHeight
-	// 		}
-
-	// 		return new Box2d(
-	// 			info.middle.x - (width + 8) / 2,
-	// 			info.middle.y - (height + 8) / 2,
-	// 			width + 8,
-	// 			height + 8
-	// 		)
-	// 	})
-	// }
-
-	// getLabelBounds(shape: TLArrowShape): Box2d | null {
-	// 	return this.labelBoundsCache.get(shape.id) || null
-	// }
 
 	override onEditEnd: TLOnEditEndHandler<TLArrowShape> = (shape) => {
 		const {

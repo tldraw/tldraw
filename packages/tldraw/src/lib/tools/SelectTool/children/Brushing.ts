@@ -93,6 +93,7 @@ export class Brushing extends StateNode {
 
 	private hitTestShapes() {
 		const {
+			zoomLevel,
 			currentPageId,
 			shapesArray,
 			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
@@ -157,7 +158,7 @@ export class Brushing extends StateNode {
 					A = localCorners[i]
 					B = localCorners[(i + 1) % localCorners.length]
 
-					if (geometry.hitTestLineSegment(A, B)) {
+					if (geometry.hitTestLineSegment(A, B, zoomLevel)) {
 						this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
 						break hitTestBrushEdges
 					}

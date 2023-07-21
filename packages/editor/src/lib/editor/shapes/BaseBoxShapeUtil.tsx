@@ -1,5 +1,5 @@
 import { TLBaseShape } from '@tldraw/tlschema'
-import { Geometry2d } from '../../primitives/Geometry2d'
+import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import { Rectangle2d } from '../../primitives/geometry/Rectangle2d'
 import { ShapeUtil, TLOnResizeHandler } from './ShapeUtil'
 import { resizeBox } from './shared/resizeBox'

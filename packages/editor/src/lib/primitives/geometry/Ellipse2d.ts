@@ -1,7 +1,7 @@
-import { Geometry2d } from '../Geometry2d'
 import { Vec2d } from '../Vec2d'
 import { PI, PI2 } from '../utils'
 import { Edge2d } from './Edge2d'
+import { Geometry2d } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
@@ -83,7 +83,7 @@ export class Ellipse2d extends Geometry2d {
 		return nearest!
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d): boolean {
-		return this.edges.some((edge) => edge.hitTestLineSegment(A, B))
+	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
+		return this.edges.some((edge) => edge.hitTestLineSegment(A, B, zoom))
 	}
 }

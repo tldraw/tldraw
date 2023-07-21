@@ -1,6 +1,6 @@
-import { Box2d } from './Box2d'
-import { Vec2d } from './Vec2d'
-import { pointInPolygon } from './utils'
+import { Box2d } from '../Box2d'
+import { Vec2d } from '../Vec2d'
+import { pointInPolygon } from '../utils'
 
 /** @public */
 export abstract class Geometry2d {
@@ -12,15 +12,40 @@ export abstract class Geometry2d {
 
 	abstract nearestPoint(point: Vec2d): Vec2d
 
-	abstract hitTestLineSegment(A: Vec2d, B: Vec2d): boolean
+	hitTestPoint(point: Vec2d, zoom = 1, hitInside = false) {
+		return this.distanceToPoint(point, hitInside) <= this.margin / zoom
+	}
 
-	distanceToPoint(point: Vec2d) {
+	distanceToPoint(point: Vec2d, hitInside = false) {
 		const dist = point.dist(this.nearestPoint(point))
+		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
+			return -dist
+		}
+		return dist
+	}
+
+	distanceToLineSegment(A: Vec2d, B: Vec2d) {
+		const point = this.nearestPointOnLineSegment(A, B)
+		const dist = Vec2d.DistanceToLineSegment(A, B, point) // repeated, bleh
 		return this.isClosed && this.isFilled && pointInPolygon(point, this.vertices) ? -dist : dist
 	}
 
-	hitTestPoint(point: Vec2d, zoom = 1) {
-		return this.distanceToPoint(point) <= this.margin / zoom
+	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom = 1): boolean {
+		return this.distanceToLineSegment(A, B) <= this.margin / zoom
+	}
+
+	nearestPointOnLineSegment(A: Vec2d, B: Vec2d): Vec2d {
+		let distance = Infinity
+		let nearest: Vec2d | undefined
+		for (let i = 0; i < this.vertices.length; i++) {
+			const point = this.vertices[i]
+			const d = Vec2d.DistanceToLineSegment(A, B, point)
+			if (d < distance) {
+				distance = d
+				nearest = point
+			}
+		}
+		return nearest!
 	}
 
 	isPointInBounds(point: Vec2d) {

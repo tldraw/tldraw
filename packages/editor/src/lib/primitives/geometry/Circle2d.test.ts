@@ -205,3 +205,23 @@ describe('Circle2d.nearestPoint', () => {
 		).toMatchObject(new Vec2d(10, 20))
 	})
 })
+
+describe('Circle2d.hitTestLineSegment', () => {
+	it('recognizes a miss', () => {
+		expect(
+			new Circle2d({
+				radius: 10,
+				margin: 0,
+				isFilled: false,
+			}).hitTestLineSegment(new Vec2d(0, -2), new Vec2d(20, -2), 1)
+		).toBe(false)
+
+		expect(
+			new Circle2d({
+				radius: 10,
+				margin: 0,
+				isFilled: false,
+			}).hitTestLineSegment(new Vec2d(0, 2), new Vec2d(20, 2), 1)
+		).toBe(true)
+	})
+})
