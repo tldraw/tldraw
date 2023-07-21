@@ -1,18 +1,15 @@
 import { Vec2d } from '../Vec2d'
 import { Edge2d } from './Edge2d'
-import { Geometry2d } from './Geometry2d'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Polyline2d extends Geometry2d {
 	points: Vec2d[]
 
-	constructor(config: { margin: number; points: Vec2d[] }) {
-		super()
-		const { margin, points } = config
-
-		this.margin = margin
+	constructor(config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & { points: Vec2d[] }) {
+		super({ isClosed: false, isFilled: false, ...config })
+		const { points } = config
 		this.points = points
-		this.isClosed = false
 	}
 
 	_segments?: Edge2d[]
@@ -61,7 +58,8 @@ export class Polyline2d extends Geometry2d {
 			}
 		}
 
-		return nearest!
+		if (!nearest) throw Error('nearest point not found')
+		return nearest
 	}
 
 	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {

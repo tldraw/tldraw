@@ -1,19 +1,16 @@
 import { Vec2d } from '../Vec2d'
 import { CubicBezier2d } from './CubicBezier2d'
-import { Geometry2d } from './Geometry2d'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class CubicSpline2d extends Geometry2d {
 	points: Vec2d[]
 
-	constructor(config: { points: Vec2d[]; isFilled: boolean; margin: number }) {
-		super()
-		const { margin, points, isFilled } = config
+	constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { points: Vec2d[] }) {
+		super({ ...config, isClosed: false, isFilled: false })
+		const { points } = config
 
-		this.margin = margin
 		this.points = points
-		this.isFilled = isFilled
-		this.isClosed = false
 	}
 
 	_segments?: CubicBezier2d[]
@@ -68,7 +65,7 @@ export class CubicSpline2d extends Geometry2d {
 	}
 
 	nearestPoint(A: Vec2d): Vec2d {
-		let nearest: Vec2d
+		let nearest: Vec2d | undefined
 		let dist = Infinity
 		for (const segment of this.segments) {
 			const p = segment.nearestPoint(A)
@@ -78,7 +75,9 @@ export class CubicSpline2d extends Geometry2d {
 				dist = d
 			}
 		}
-		return nearest!
+
+		if (!nearest) throw Error('nearest point not found')
+		return nearest
 	}
 
 	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {

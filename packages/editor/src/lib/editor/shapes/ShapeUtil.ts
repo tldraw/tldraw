@@ -72,10 +72,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 */
 	abstract indicator(shape: Shape): any
 
-	getSnapPoints(shape: Shape): Vec2d[] {
-		return this.editor.getGeometry(shape).snapPoints
-	}
-
 	/**
 	 * Whether the shape can be snapped to by another shape.
 	 *

@@ -1,4 +1,5 @@
 import { Vec2d } from '../Vec2d'
+import { Geometry2dOptions } from './Geometry2d'
 import { Polyline2d } from './Polyline2d'
 
 /** @public */
@@ -8,9 +9,16 @@ export class CubicBezier2d extends Polyline2d {
 	c: Vec2d
 	d: Vec2d
 
-	constructor(config: { margin: number; start: Vec2d; cp1: Vec2d; cp2: Vec2d; end: Vec2d }) {
-		const { margin, start: a, cp1: b, cp2: c, end: d } = config
-		super({ margin, points: [a, d] })
+	constructor(
+		config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & {
+			start: Vec2d
+			cp1: Vec2d
+			cp2: Vec2d
+			end: Vec2d
+		}
+	) {
+		const { start: a, cp1: b, cp2: c, end: d } = config
+		super({ ...config, points: [a, d] })
 		this.a = a
 		this.b = b
 		this.c = c
@@ -55,7 +63,7 @@ export class CubicBezier2d extends Polyline2d {
 	}
 
 	nearestPoint(A: Vec2d): Vec2d {
-		let nearest: Vec2d
+		let nearest: Vec2d | undefined
 		let dist = Infinity
 		for (const edge of this.segments) {
 			const p = edge.nearestPoint(A)
@@ -65,6 +73,8 @@ export class CubicBezier2d extends Polyline2d {
 				dist = d
 			}
 		}
-		return nearest!
+
+		if (!nearest) throw Error('nearest point not found')
+		return nearest
 	}
 }

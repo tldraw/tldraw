@@ -4175,6 +4175,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!intersection) return
 			return Box2d.FromPoints(intersection)
 		}
+
 		return pageBounds
 	}
 
@@ -4321,17 +4322,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get allShapesCommonBounds(): Box2d | null {
-		let commonBounds = null as Box2d | null
+	@computed get allShapesCommonBounds(): Box2d | undefined {
+		let commonBounds: Box2d | undefined
 
 		this.currentPageShapeIds.forEach((shapeId) => {
 			const bounds = this.getMaskedPageBoundsById(shapeId)
-			if (bounds) {
-				if (commonBounds) {
-					commonBounds.expand(bounds)
-				} else {
-					commonBounds = bounds.clone()
-				}
+			if (!bounds) return
+			if (!commonBounds) {
+				commonBounds = bounds
+			} else {
+				commonBounds = commonBounds.expand(bounds)
 			}
 		})
 

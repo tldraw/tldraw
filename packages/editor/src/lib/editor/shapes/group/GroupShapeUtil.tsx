@@ -35,6 +35,11 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 				const geometry = this.editor.getGeometry(childId)
 				const points = this.editor.getTransform(shape).applyToPoints(geometry.vertices)
 
+				for (const point of points) {
+					if (!Number.isFinite(point.x)) throw Error(`shape ${shape.type}`)
+					if (!Number.isFinite(point.y)) throw Error(`shape ${shape.type}`)
+				}
+
 				if (geometry.isClosed) {
 					return new Polygon2d({
 						points,
@@ -48,7 +53,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 					margin: 0,
 				})
 			}),
-			isFilled: false,
 			operation: 'union',
 			margin: 0,
 		})

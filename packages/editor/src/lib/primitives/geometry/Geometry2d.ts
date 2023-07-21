@@ -2,11 +2,26 @@ import { Box2d } from '../Box2d'
 import { Vec2d } from '../Vec2d'
 import { pointInPolygon } from '../utils'
 
+export interface Geometry2dOptions {
+	isFilled: boolean
+	isClosed: boolean
+	margin: number
+	isSnappable?: boolean
+}
+
 /** @public */
 export abstract class Geometry2d {
 	margin = 0
 	isFilled = false
 	isClosed = true
+	isSnappable = true
+
+	constructor(opts: Geometry2dOptions) {
+		this.isFilled = opts.isFilled
+		this.isClosed = opts.isClosed
+		this.margin = opts.margin
+		this.isSnappable = opts.isSnappable ?? false
+	}
 
 	abstract getVertices(): Vec2d[]
 
@@ -45,7 +60,8 @@ export abstract class Geometry2d {
 				nearest = point
 			}
 		}
-		return nearest!
+		if (!nearest) throw Error('nearest point not found')
+		return nearest
 	}
 
 	isPointInBounds(point: Vec2d) {

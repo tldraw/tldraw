@@ -1,7 +1,8 @@
+import { Box2d } from '../Box2d'
 import { Vec2d } from '../Vec2d'
 import { PI, PI2 } from '../utils'
 import { Edge2d } from './Edge2d'
-import { Geometry2d } from './Geometry2d'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
@@ -9,14 +10,16 @@ export class Ellipse2d extends Geometry2d {
 	w: number
 	h: number
 
-	constructor(public config: { width: number; height: number; margin: number; isFilled: boolean }) {
-		super()
-		const { width, height, isFilled, margin } = config
+	constructor(
+		public config: Omit<Geometry2dOptions, 'isClosed'> & {
+			width: number
+			height: number
+		}
+	) {
+		super({ ...config, isClosed: true })
+		const { width, height } = config
 		this.w = width
 		this.h = height
-		this.isFilled = isFilled
-		this.isClosed = true
-		this.margin = margin
 	}
 
 	_edges?: Edge2d[]
@@ -70,7 +73,7 @@ export class Ellipse2d extends Geometry2d {
 	}
 
 	nearestPoint(A: Vec2d): Vec2d {
-		let nearest: Vec2d
+		let nearest: Vec2d | undefined
 		let dist = Infinity
 		for (const edge of this.edges) {
 			const p = edge.nearestPoint(A)
@@ -80,10 +83,16 @@ export class Ellipse2d extends Geometry2d {
 				dist = d
 			}
 		}
-		return nearest!
+
+		if (!nearest) throw Error('nearest point not found')
+		return nearest
 	}
 
 	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
 		return this.edges.some((edge) => edge.hitTestLineSegment(A, B, zoom))
+	}
+
+	getBounds() {
+		return new Box2d(0, 0, this.w, this.h)
 	}
 }

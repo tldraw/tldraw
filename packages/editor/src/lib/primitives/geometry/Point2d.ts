@@ -1,17 +1,18 @@
 import { Vec2d } from '../Vec2d'
-import { Geometry2d } from './Geometry2d'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Point2d extends Geometry2d {
 	point: Vec2d
 
-	constructor(config: { margin: number; point: Vec2d }) {
-		super()
+	constructor(
+		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { margin: number; point: Vec2d }
+	) {
+		super({ ...config, isClosed: true, isFilled: true })
 		const { margin, point } = config
 
 		this.margin = margin
 		this.point = point
-		this.isClosed = true
 	}
 
 	getVertices() {

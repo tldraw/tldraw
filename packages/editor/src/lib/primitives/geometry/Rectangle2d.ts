@@ -1,4 +1,6 @@
+import { Box2d } from '../Box2d'
 import { Vec2d } from '../Vec2d'
+import { Geometry2dOptions } from './Geometry2d'
 import { Polygon2d } from './Polygon2d'
 
 /** @public */
@@ -8,30 +10,31 @@ export class Rectangle2d extends Polygon2d {
 	w: number
 	h: number
 
-	constructor(config: {
-		x?: number
-		y?: number
-		width: number
-		height: number
-		isFilled: boolean
-		margin: number
-	}) {
-		const { x = 0, y = 0, width, height, isFilled, margin } = config
-		const points = [
-			new Vec2d(x, y),
-			new Vec2d(x + width, y),
-			new Vec2d(x + width, y + height),
-			new Vec2d(x, y + height),
-		]
+	constructor(
+		config: Omit<Geometry2dOptions, 'isClosed'> & {
+			x?: number
+			y?: number
+			width: number
+			height: number
+		}
+	) {
+		const { x = 0, y = 0, width, height } = config
 		super({
-			points,
-			isFilled,
-			margin,
+			...config,
+			points: [
+				new Vec2d(x, y),
+				new Vec2d(x + width, y),
+				new Vec2d(x + width, y + height),
+				new Vec2d(x, y + height),
+			],
 		})
 		this.x = x
 		this.y = y
 		this.w = width
 		this.h = height
-		this.isClosed = true
+	}
+
+	getBounds() {
+		return new Box2d(this.x, this.y, this.w, this.h)
 	}
 }

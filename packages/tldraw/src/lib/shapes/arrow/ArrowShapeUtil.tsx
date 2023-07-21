@@ -1,7 +1,6 @@
 import {
 	Arc2d,
 	DefaultFontFamilies,
-	EMPTY_ARRAY,
 	Edge2d,
 	Group2d,
 	Matrix2d,
@@ -164,9 +163,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 			return new Group2d({
 				margin: 4 + STROKE_SIZES[shape.props.size],
-				isFilled: false,
 				children: [bodyGeom, labelGeom],
 				operation: 'union',
+				isSnappable: false,
 			})
 		}
 
@@ -274,10 +273,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	// 	return result
 	// }
-
-	override getSnapPoints(_shape: TLArrowShape): Vec2d[] {
-		return EMPTY_ARRAY
-	}
 
 	override getHandles(shape: TLArrowShape): TLHandle[] {
 		const info = this.editor.getArrowInfo(shape)!

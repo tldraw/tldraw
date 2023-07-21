@@ -1,11 +1,14 @@
 import { Vec2d } from '../Vec2d'
 import { PI, TAU } from '../utils'
 import { Ellipse2d } from './Ellipse2d'
+import { Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Stadium2d extends Ellipse2d {
-	constructor(public config: { width: number; height: number; margin: number; isFilled: boolean }) {
-		super(config)
+	constructor(
+		public config: Omit<Geometry2dOptions, 'isClosed'> & { width: number; height: number }
+	) {
+		super({ ...config })
 	}
 
 	getVertices() {

@@ -1,7 +1,7 @@
 import { Vec2d } from '../Vec2d'
 import { intersectLineSegmentCircle } from '../intersect'
 import { PI, PI2, shortAngleDist } from '../utils'
-import { Geometry2d } from './Geometry2d'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 import { getVerticesCountForLength } from './geometry-constants'
 
 /** @public */
@@ -13,21 +13,21 @@ export class Arc2d extends Geometry2d {
 
 	measure: number
 	length: number
-	margin: number
 	angleStart: number
 	angleEnd: number
 
-	constructor(config: {
-		center: Vec2d
-		radius: number
-		start: Vec2d
-		end: Vec2d
-		sweepFlag: number
-		largeArcFlag: number
-		margin: number
-	}) {
-		super()
-		const { margin, center, radius, sweepFlag, largeArcFlag, start, end } = config
+	constructor(
+		config: Omit<Geometry2dOptions, 'isFilled' | 'isClosed'> & {
+			center: Vec2d
+			radius: number
+			start: Vec2d
+			end: Vec2d
+			sweepFlag: number
+			largeArcFlag: number
+		}
+	) {
+		super({ ...config, isFilled: false, isClosed: false })
+		const { center, radius, sweepFlag, largeArcFlag, start, end } = config
 		if (start.equals(end)) throw Error(`Arc must have different start and end points.`)
 
 		// ensure that the start and end are clockwise
@@ -41,8 +41,6 @@ export class Arc2d extends Geometry2d {
 
 		this._center = center
 		this.radius = radius
-		this.margin = margin
-		this.isClosed = false
 	}
 
 	nearestPoint(point: Vec2d): Vec2d {
@@ -55,7 +53,7 @@ export class Arc2d extends Geometry2d {
 		const P = _center.clone().add(point.clone().sub(_center).uni().mul(radius))
 
 		let distance = Infinity
-		let nearest: Vec2d
+		let nearest: Vec2d | undefined
 		for (const pt of [A, B, P]) {
 			if (point.dist(pt) < distance) {
 				nearest = pt
@@ -63,7 +61,8 @@ export class Arc2d extends Geometry2d {
 			}
 		}
 
-		return nearest!
+		if (!nearest) throw Error('nearest point not found')
+		return nearest
 	}
 
 	hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean {

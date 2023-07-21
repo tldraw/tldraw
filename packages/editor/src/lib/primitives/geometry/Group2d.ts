@@ -1,27 +1,26 @@
 import { Box2d } from '../Box2d'
 import { Vec2d } from '../Vec2d'
-import { Geometry2d } from './Geometry2d'
+import { Geometry2d, Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Group2d extends Geometry2d {
 	children: Geometry2d[]
 	operation: 'union' | 'subtract' | 'exclude' | 'intersect'
 
-	constructor(config: {
-		children: Geometry2d[]
-		isFilled: boolean
-		margin: number
-		operation: 'union' | 'subtract' | 'exclude' | 'intersect'
-	}) {
-		super()
-		const { children, margin, operation } = config
+	constructor(
+		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
+			children: Geometry2d[]
+			margin: number
+			operation: 'union' | 'subtract' | 'exclude' | 'intersect'
+		}
+	) {
+		super({ ...config, isClosed: true, isFilled: false })
+		const { children, operation } = config
 
 		if (children.length === 0) throw Error('Group2d must have at least one child')
 
 		this.operation = operation
 		this.children = children
-		this.margin = margin
-		this.isClosed = true
 	}
 
 	override getVertices(): Vec2d[] {
@@ -34,6 +33,10 @@ export class Group2d extends Geometry2d {
 
 		const { children, operation } = this
 
+		if (children.length === 0) {
+			throw Error('no children')
+		}
+
 		switch (operation) {
 			case 'union': {
 				for (const child of children) {
@@ -44,7 +47,8 @@ export class Group2d extends Geometry2d {
 						p = nearest
 					}
 				}
-				break
+				if (!p) throw Error('nearest point not found')
+				return p
 			}
 			case 'subtract': {
 				throw Error('not implemented')
@@ -113,7 +117,6 @@ export class Group2d extends Geometry2d {
 				// break
 			}
 		}
-		return p!
 	}
 
 	override hitTestPoint(point: Vec2d, zoom: number): boolean {

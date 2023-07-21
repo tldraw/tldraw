@@ -93,14 +93,13 @@ export function approximately(a: number, b: number, precision?: number): boolean
 
 // @public (undocumented)
 export class Arc2d extends Geometry2d {
-    constructor(config: {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         center: Vec2d;
         radius: number;
         start: Vec2d;
         end: Vec2d;
         sweepFlag: number;
         largeArcFlag: number;
-        margin: number;
     });
     // (undocumented)
     angleEnd: number;
@@ -116,8 +115,6 @@ export class Arc2d extends Geometry2d {
     hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean;
     // (undocumented)
     length: number;
-    // (undocumented)
-    margin: number;
     // (undocumented)
     measure: number;
     // (undocumented)
@@ -282,7 +279,7 @@ export const Canvas: React_2.MemoExoticComponent<() => JSX.Element>;
 
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
-    constructor(config: {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         x?: number;
         y?: number;
         radius: number;
@@ -292,7 +289,7 @@ export class Circle2d extends Geometry2d {
     // (undocumented)
     _center: Vec2d;
     // (undocumented)
-    config: {
+    config: Omit<Geometry2dOptions, 'isClosed'> & {
         x?: number;
         y?: number;
         radius: number;
@@ -309,6 +306,10 @@ export class Circle2d extends Geometry2d {
     nearestPoint(point: Vec2d): Vec2d;
     // (undocumented)
     radius: number;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
 }
 
 // @public
@@ -340,8 +341,7 @@ export function createTLUser(opts?: {
 
 // @public (undocumented)
 export class CubicBezier2d extends Polyline2d {
-    constructor(config: {
-        margin: number;
+    constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         start: Vec2d;
         cp1: Vec2d;
         cp2: Vec2d;
@@ -365,10 +365,8 @@ export class CubicBezier2d extends Polyline2d {
 
 // @public (undocumented)
 export class CubicSpline2d extends Geometry2d {
-    constructor(config: {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         points: Vec2d[];
-        isFilled: boolean;
-        margin: number;
     });
     // (undocumented)
     getVertices(): Vec2d[];
@@ -456,6 +454,7 @@ export class Edge2d extends Geometry2d {
         start: Vec2d;
         end: Vec2d;
         margin: number;
+        isSnappable?: boolean;
     });
     // (undocumented)
     d: Vec2d;
@@ -482,7 +481,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
-    get allShapesCommonBounds(): Box2d | null;
+    get allShapesCommonBounds(): Box2d | undefined;
     animateCamera(x: number, y: number, z?: number, opts?: TLAnimationOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], options?: {
         duration?: number;
@@ -833,23 +832,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 // @public (undocumented)
 export class Ellipse2d extends Geometry2d {
-    constructor(config: {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         width: number;
         height: number;
-        margin: number;
-        isFilled: boolean;
     });
     // (undocumented)
-    config: {
+    config: Omit<Geometry2dOptions, 'isClosed'> & {
         width: number;
         height: number;
-        margin: number;
-        isFilled: boolean;
     };
     // (undocumented)
     get edges(): Edge2d[];
     // (undocumented)
     _edges?: Edge2d[];
+    // (undocumented)
+    getBounds(): Box2d;
     // (undocumented)
     getVertices(): any[];
     // (undocumented)
@@ -911,6 +908,7 @@ export type GapsSnapLine = {
 
 // @public (undocumented)
 export abstract class Geometry2d {
+    constructor(opts: Geometry2dOptions);
     // (undocumented)
     get bounds(): Box2d;
     // (undocumented)
@@ -935,6 +933,8 @@ export abstract class Geometry2d {
     isFilled: boolean;
     // (undocumented)
     isPointInBounds(point: Vec2d): boolean;
+    // (undocumented)
+    isSnappable: boolean;
     // (undocumented)
     margin: number;
     // (undocumented)
@@ -1065,9 +1065,8 @@ export const GRID_STEPS: {
 
 // @public (undocumented)
 export class Group2d extends Geometry2d {
-    constructor(config: {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         children: Geometry2d[];
-        isFilled: boolean;
         margin: number;
         operation: 'exclude' | 'intersect' | 'subtract' | 'union';
     });
@@ -1339,10 +1338,8 @@ export type PointsSnapLine = {
 
 // @public (undocumented)
 export class Polygon2d extends Polyline2d {
-    constructor(config: {
-        margin: number;
+    constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         points: Vec2d[];
-        isFilled: boolean;
     });
     // (undocumented)
     type: "polyline";
@@ -1353,8 +1350,7 @@ export function polygonsIntersect(a: VecLike[], b: VecLike[]): boolean;
 
 // @public (undocumented)
 export class Polyline2d extends Geometry2d {
-    constructor(config: {
-        margin: number;
+    constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         points: Vec2d[];
     });
     // (undocumented)
@@ -1421,14 +1417,14 @@ export class ReadonlySharedStyleMap {
 
 // @public (undocumented)
 export class Rectangle2d extends Polygon2d {
-    constructor(config: {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         x?: number;
         y?: number;
         width: number;
         height: number;
-        isFilled: boolean;
-        margin: number;
     });
+    // (undocumented)
+    getBounds(): Box2d;
     // (undocumented)
     h: number;
     // (undocumented)
@@ -1551,8 +1547,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     abstract getGeometry(shape: Shape): Geometry2d;
     getHandles?(shape: Shape): TLHandle[];
     getOutlineSegments(shape: Shape): Vec2d[][];
-    // (undocumented)
-    getSnapPoints(shape: Shape): Vec2d[];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
@@ -1694,18 +1688,14 @@ export function sortByIndex<T extends {
 
 // @public (undocumented)
 export class Stadium2d extends Ellipse2d {
-    constructor(config: {
+    constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         width: number;
         height: number;
-        margin: number;
-        isFilled: boolean;
     });
     // (undocumented)
-    config: {
+    config: Omit<Geometry2dOptions, 'isClosed'> & {
         width: number;
         height: number;
-        margin: number;
-        isFilled: boolean;
     };
     // (undocumented)
     getVertices(): Vec2d[];

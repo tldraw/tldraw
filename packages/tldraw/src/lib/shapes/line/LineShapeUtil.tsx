@@ -351,7 +351,7 @@ export function getGeometryForLineShape(shape: TLLineShape): CubicSpline2d | Pol
 
 	switch (spline) {
 		case 'cubic': {
-			return new CubicSpline2d({ points: handlePoints, isFilled: false, margin })
+			return new CubicSpline2d({ points: handlePoints, margin })
 		}
 		case 'line': {
 			return new Polyline2d({ points: handlePoints, margin })
