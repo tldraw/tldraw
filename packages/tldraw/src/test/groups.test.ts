@@ -984,57 +984,55 @@ describe('the select tool', () => {
 		expect(editor.focusLayerId).toBe(editor.currentPageId)
 	})
 
-	describe('brushing', () => {
-		// ! Removed: pointing a group is impossible; you'd be pointing the selection instead.
-		// it('should work while focused in a group if you start the drag from within the group', () => {
-		// 	editor.select(ids.boxA)
-		// 	editor.pointerDown(15, 5, groupAId).pointerMove(25, 9, ids.boxB)
-		// 	expect(editor.root.path.value).toBe(`root.select.brushing`)
-		// 	expect(editor.selectedIds.includes(ids.boxA)).toBe(false)
-		// 	expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
+	// ! Removed: pointing a group is impossible; you'd be pointing the selection instead.
+	// it('should work while focused in a group if you start the drag from within the group', () => {
+	// 	editor.select(ids.boxA)
+	// 	editor.pointerDown(15, 5, groupAId).pointerMove(25, 9, ids.boxB)
+	// 	expect(editor.root.path.value).toBe(`root.select.brushing`)
+	// 	expect(editor.selectedIds.includes(ids.boxA)).toBe(false)
+	// 	expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
 
-		// 	editor.keyDown('Shift')
-		// 	expect(editor.selectedIds.includes(ids.boxA)).toBe(true)
-		// 	expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
-		// })
+	// 	editor.keyDown('Shift')
+	// 	expect(editor.selectedIds.includes(ids.boxA)).toBe(true)
+	// 	expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
+	// })
 
-		it('should work while focused in a group if you start the drag from outside of the group', () => {
-			editor.select(ids.boxA)
-			editor
-				.pointerDown(15, -5, { target: 'canvas' }, { shiftKey: true })
-				.pointerMove(25, 9, ids.boxB, { shiftKey: true })
+	it('should work while focused in a group if you start the drag from outside of the group', () => {
+		editor.select(ids.boxA)
+		editor
+			.pointerDown(15, -5, { target: 'canvas' }, { shiftKey: true })
+			.pointerMove(25, 9, ids.boxB, { shiftKey: true })
 
-			expect(editor.root.path.value).toBe(`root.select.brushing`)
-			expect(editor.selectedIds.includes(ids.boxA)).toBe(true)
-			expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
+		expect(editor.root.path.value).toBe(`root.select.brushing`)
+		expect(editor.selectedIds.includes(ids.boxA)).toBe(true)
+		expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
 
-			editor.keyUp('Shift')
-			jest.advanceTimersByTime(200)
+		editor.keyUp('Shift')
+		jest.advanceTimersByTime(200)
 
-			expect(editor.selectedIds.includes(ids.boxA)).toBe(false)
-			expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
-		})
+		expect(editor.selectedIds.includes(ids.boxA)).toBe(false)
+		expect(editor.selectedIds.includes(ids.boxB)).toBe(true)
+	})
 
-		it('should not select the group until you hit one of its child shapes', () => {
-			//             ┌────┐
-			//  group C    │    │
-			// ┌───────────┼────┼────────────────────────────────────────┐
-			// │ group A   │    │                group B                 │
-			// │ ┌─────────┼────┼─────────┐     ┌──────────────────────┐ │
-			// │ │  ┌───┐  │    │  ┌───┐  │     │ ┌───┐          ┌───┐ │ │
-			// │ │  │ A │  │    │  │ B │  │     │ │ C │          │ D │ │ │
-			// │ │  └───┘  │    │  └───┘  │     │ └───┘          └───┘ │ │
-			// │ └─────────┼────┼─────────┘     └──────────────────────┘ │
-			// └───────────┼────┼────────────────────────────────────────┘
-			//             │    │
-			//             └────┘
-			//                  ▲
-			//                  │ mouse selection
-			editor.pointerDown(12.5, -5, undefined).pointerMove(17.5, 15, ids.boxB)
-			expect(editor.selectedIds.length).toBe(0)
-			editor.pointerMove(25, 15)
-			expect(onlySelectedId()).toBe(groupCId)
-		})
+	it('should not select the group until you hit one of its child shapes', () => {
+		//             ┌────┐
+		//  group C    │    │
+		// ┌───────────┼────┼────────────────────────────────────────┐
+		// │ group A   │    │                group B                 │
+		// │ ┌─────────┼────┼─────────┐     ┌──────────────────────┐ │
+		// │ │  ┌───┐  │    │  ┌───┐  │     │ ┌───┐          ┌───┐ │ │
+		// │ │  │ A │  │    │  │ B │  │     │ │ C │          │ D │ │ │
+		// │ │  └───┘  │    │  └───┘  │     │ └───┘          └───┘ │ │
+		// │ └─────────┼────┼─────────┘     └──────────────────────┘ │
+		// └───────────┼────┼────────────────────────────────────────┘
+		//             │    │
+		//             └────┘
+		//                  ▲
+		//                  │ mouse selection
+		editor.pointerMove(12.5, -15).pointerDown(12.5, -15, undefined).pointerMove(17.5, 15, ids.boxB)
+		expect(editor.selectedIds.length).toBe(0)
+		editor.pointerMove(25, 15)
+		expect(onlySelectedId()).toBe(groupCId)
 	})
 })
 

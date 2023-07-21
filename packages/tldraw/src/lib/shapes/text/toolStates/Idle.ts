@@ -1,5 +1,10 @@
-import { StateNode, TLEventHandlers, TLGeoShape, TLTextShape } from '@tldraw/editor'
-import { getHoveredShapeId } from '../../../tools/SelectTool/shared'
+import {
+	StateNode,
+	TLEventHandlers,
+	TLGeoShape,
+	TLTextShape,
+	updateHoveredId,
+} from '@tldraw/editor'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -8,10 +13,7 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				const nextHoveredId = getHoveredShapeId(this.editor)
-				if (nextHoveredId !== this.editor.hoveredId) {
-					this.editor.setHoveredId(nextHoveredId)
-				}
+				updateHoveredId(this.editor)
 			}
 		}
 	}

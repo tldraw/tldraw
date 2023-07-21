@@ -139,8 +139,8 @@ describe('When brushing arrows', () => {
 				/>,
 			])
 		editor.setCurrentTool('select')
-		editor.pointerDown(55, 45)
-		editor.pointerMove(45, 55)
+		editor.pointerDown(0, 45)
+		editor.pointerMove(100, 55)
 		editor.expectPathToBe('root.select.brushing')
 		expect(editor.selectedIds).toStrictEqual([ids.arrow1])
 	})

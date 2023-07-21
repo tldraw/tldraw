@@ -933,6 +933,10 @@ export abstract class Geometry2d {
     // (undocumented)
     distanceToPoint(point: Vec2d, hitInside?: boolean): number;
     // (undocumented)
+    get expandedBounds(): Box2d;
+    // (undocumented)
+    _expandedBounds: Box2d | undefined;
+    // (undocumented)
     getBounds(): Box2d;
     // (undocumented)
     abstract getVertices(): Vec2d[];
@@ -988,6 +992,9 @@ export function getCurvedArrowHandlePath(info: ArrowInfo & {
 
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
+
+// @public (undocumented)
+export function getHoveredShapeId(editor: Editor): null | TLShapeId;
 
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
@@ -2533,6 +2540,9 @@ export function uniq<T>(array: {
 
 // @public
 export function uniqueId(): string;
+
+// @public (undocumented)
+export function updateHoveredId(editor: Editor): void;
 
 export { useComputed }
 

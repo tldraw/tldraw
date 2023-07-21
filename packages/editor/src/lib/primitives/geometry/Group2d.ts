@@ -72,7 +72,7 @@ export class Group2d extends Geometry2d {
 
 		if (hitInside) {
 			if (exact) return this.bounds.containsPoint(point)
-			return this.bounds.clone().expandBy(min).containsPoint(point)
+			return this.expandedBounds.containsPoint(point)
 		}
 
 		const dist = this.distanceToPoint(point)

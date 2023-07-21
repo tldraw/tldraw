@@ -36,13 +36,13 @@ it('When holding spacebar and clicking and dragging, it pans the camera', () => 
 })
 
 it('When holding spacebar, it updates cursor and does not send events to the state or change statecharts current active state', () => {
-	editor.setHoveredId(ids.box1)
-	editor.pointerDown(50, 50, { target: 'canvas' })
+	editor.pointerDown(150, 150, { target: 'canvas' })
 	editor.pointerMove(100, 100)
-	editor.expectShapeToMatch({ id: ids.box1, x: 150, y: 150 })
+	editor.expectShapeToMatch({ id: ids.box1, x: 50, y: 50 })
 
 	editor.keyDown(' ')
 	editor.pointerMove(200, 200)
 	editor.expectCameraToBe(100, 100, 1)
+	editor.expectShapeToMatch({ id: ids.box1, x: 50, y: 50 })
 	editor.keyUp(' ')
 })

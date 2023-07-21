@@ -1,5 +1,7 @@
-import { Editor, TLShapeId } from '@tldraw/editor'
+import { TLShapeId } from '@tldraw/tlschema'
+import { Editor } from '../editor/Editor'
 
+/** @public */
 export function getHoveredShapeId(editor: Editor) {
 	const {
 		inputs: { currentPagePoint },
@@ -31,4 +33,12 @@ export function getHoveredShapeId(editor: Editor) {
 	}
 
 	return nextHoveredId
+}
+
+/** @public */
+export function updateHoveredId(editor: Editor) {
+	const nextHoveredId = getHoveredShapeId(editor)
+	if (nextHoveredId !== editor.hoveredId) {
+		editor.setHoveredId(nextHoveredId)
+	}
 }

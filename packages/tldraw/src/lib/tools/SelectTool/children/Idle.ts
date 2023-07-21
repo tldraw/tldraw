@@ -9,20 +9,23 @@ import {
 	TLTextShape,
 	Vec2d,
 	createShapeId,
+	updateHoveredId,
 } from '@tldraw/editor'
-import { getHoveredShapeId } from '../shared'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
+
+	override onEnter = () => {
+		this.parent.currentToolIdMask = undefined
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		updateHoveredId(this.editor)
+	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				const nextHoveredId = getHoveredShapeId(this.editor)
-				if (nextHoveredId !== this.editor.hoveredId) {
-					this.editor.setHoveredId(nextHoveredId)
-				}
+				updateHoveredId(this.editor)
 			}
 		}
 	}
@@ -259,11 +262,6 @@ export class Idle extends StateNode {
 				break
 			}
 		}
-	}
-
-	override onEnter = () => {
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
-		this.parent.currentToolIdMask = undefined
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

@@ -1794,7 +1794,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const shape = this.getShape(id)!
 				const util = this.getShapeUtil(shape)
 				if (shape && util.canCrop(shape)) {
-					this.updateCurrentPageState({ croppingId: id, hoveredId: null })
+					this.updateCurrentPageState({ croppingId: id })
 				}
 			}
 		}

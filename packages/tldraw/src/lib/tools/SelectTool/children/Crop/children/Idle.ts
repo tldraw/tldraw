@@ -52,6 +52,7 @@ export class Idle extends StateNode {
 					})
 					return
 				}
+
 				this.cancel()
 				break
 			}

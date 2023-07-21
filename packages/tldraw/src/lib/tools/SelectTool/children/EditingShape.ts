@@ -1,5 +1,4 @@
-import { StateNode, TLEventHandlers } from '@tldraw/editor'
-import { getHoveredShapeId } from '../shared'
+import { StateNode, TLEventHandlers, updateHoveredId } from '@tldraw/editor'
 
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
@@ -8,10 +7,7 @@ export class EditingShape extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				const nextHoveredId = getHoveredShapeId(this.editor)
-				if (nextHoveredId !== this.editor.hoveredId) {
-					this.editor.setHoveredId(nextHoveredId)
-				}
+				updateHoveredId(this.editor)
 			}
 		}
 	}

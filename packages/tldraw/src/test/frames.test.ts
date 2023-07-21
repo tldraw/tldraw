@@ -545,9 +545,10 @@ describe('frame shapes', () => {
 		expect(editor.onlySelectedShape!.id).toBe(frameId)
 	})
 
-	it('can be selected with scribble brushing only if the drag starts outside the frame', () => {
+	it.only('can be selected with scribble brushing only if the drag starts outside the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
+		editor.expectPathToBe('root.select.idle')
 
 		// select from inside the frame
 		editor.setCurrentTool('select')

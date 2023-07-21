@@ -28,6 +28,7 @@ export abstract class Geometry2d {
 	abstract nearestPoint(point: Vec2d): Vec2d
 
 	hitTestPoint(point: Vec2d, zoom = 1, hitInside = false, exact = false) {
+		if (!this.expandedBounds.containsPoint(point)) return false
 		if (exact) return this.distanceToPoint(point, hitInside) <= 0
 		return this.distanceToPoint(point, hitInside) <= this.margin / zoom
 	}
@@ -87,6 +88,15 @@ export abstract class Geometry2d {
 
 	getBounds() {
 		return Box2d.FromPoints(this.vertices)
+	}
+
+	_expandedBounds: Box2d | undefined
+
+	get expandedBounds(): Box2d {
+		if (!this._expandedBounds) {
+			this._expandedBounds = this.bounds.clone().expandBy(this.margin)
+		}
+		return this._expandedBounds
 	}
 
 	_bounds: Box2d | undefined
