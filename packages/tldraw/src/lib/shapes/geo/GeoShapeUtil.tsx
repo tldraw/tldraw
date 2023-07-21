@@ -8,6 +8,7 @@ import {
 	Group2d,
 	PI2,
 	Polygon2d,
+	Polyline2d,
 	Rectangle2d,
 	SVGContainer,
 	Stadium2d,
@@ -331,13 +332,25 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					height: h,
 					isFilled,
 					margin,
+					isSnappable: true,
 				})
 			}
 		}
 
 		const labelSize = getLabelSize(this.editor, shape)
-		const labelWidth = Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8)))
-		const labelHeight = Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8)))
+		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
+
+		const lines = getLines(shape.props, strokeWidth)
+		const edges = lines
+			? lines.map(
+					(line) =>
+						new Polyline2d({
+							points: line,
+							margin: 12,
+						})
+			  )
+			: []
 
 		return new Group2d({
 			children: [
@@ -351,9 +364,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					isSnappable: false,
 					margin: 12,
 				}),
+				...edges,
 			],
 			margin: 12,
 			operation: 'union',
+			isSnappable: false,
 		})
 	}
 
@@ -729,7 +744,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				break
 			}
 			default: {
-				const outline = this.editor.getGeometry(shape).vertices
+				const geometry = this.editor.getGeometry(shape)
+				const outline =
+					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 				const lines = getLines(shape.props, strokeWidth)
 
 				switch (props.dash) {

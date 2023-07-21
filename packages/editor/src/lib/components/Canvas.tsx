@@ -101,7 +101,7 @@ export const Canvas = track(function Canvas() {
 					<ShapesToDisplay />
 				</div>
 				<div className="tl-overlays">
-					<GeometryDebuggingView />
+					{/* <GeometryDebuggingView /> */}
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />

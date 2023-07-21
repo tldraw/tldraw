@@ -24,7 +24,7 @@ export function useDefaultColorTheme() {
 export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }: ShapeFillProps) {
 	switch (fill) {
 		case 'none': {
-			return <path className={'tl-hitarea-stroke'} fill="none" d={d} />
+			return null
 		}
 		case 'solid': {
 			return <path className={'tl-hitarea-fill-solid'} fill={theme[color].semi} d={d} />

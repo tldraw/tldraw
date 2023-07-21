@@ -742,6 +742,8 @@ describe('the bounds of a rotated group', () => {
 		// rotate this all 90 degrees
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
 
+		expect(editor.getGeometry(ids.boxA)!.bounds).toMatchObject({ x: 0, y: 0, w: 10, h: 10 })
+
 		editor.select(ids.boxA, ids.boxB, ids.boxC)
 		editor.groupShapes()
 		const group = onlySelectedShape()

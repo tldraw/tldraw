@@ -330,20 +330,17 @@ input,
 	fill: none;
 	stroke: transparent;
 	pointer-events: stroke;
-	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
 .tl-hitarea-fill {
 	fill: var(--color-background);
 	stroke: transparent;
 	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
 .tl-hitarea-fill-solid {
 	stroke: transparent;
 	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
 /* ---------------- Shape Containers ---------------- */
