@@ -82,7 +82,7 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const shape = this.editor.getShapeById<TLGeoShape>(id)!
+		const shape = this.editor.getShape<TLGeoShape>(id)!
 		if (!shape) return
 
 		const bounds =

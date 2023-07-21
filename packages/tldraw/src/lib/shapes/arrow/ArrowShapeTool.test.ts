@@ -419,7 +419,7 @@ describe('reparenting issue', () => {
 		editor.pointerDown(100, 100, {
 			target: 'handle',
 			handle: { id: 'end', type: 'vertex', index: 'a0', x: 100, y: 100 },
-			shape: editor.getShapeById(arrowId)!,
+			shape: editor.getShape(arrowId)!,
 		})
 		editor.expectPathToBe('root.select.pointing_handle')
 
@@ -474,7 +474,7 @@ describe('reparenting issue', () => {
 			.pointerDown(100, 100, {
 				target: 'handle',
 				handle: { id: 'end', type: 'vertex', index: 'a0', x: 100, y: 100 },
-				shape: editor.getShapeById(arrow1Id)!,
+				shape: editor.getShape(arrow1Id)!,
 			})
 			.pointerMove(120, 120)
 			.pointerUp()
@@ -483,18 +483,18 @@ describe('reparenting issue', () => {
 			.pointerDown(100, 100, {
 				target: 'handle',
 				handle: { id: 'end', type: 'vertex', index: 'a0', x: 100, y: 100 },
-				shape: editor.getShapeById(arrow2Id)!,
+				shape: editor.getShape(arrow2Id)!,
 			})
 			.pointerMove(150, 150)
 
-		const arrow1BoundIndex = editor.getShapeById(arrow1Id)!.index
-		const arrow2BoundIndex = editor.getShapeById(arrow2Id)!.index
+		const arrow1BoundIndex = editor.getShape(arrow1Id)!.index
+		const arrow2BoundIndex = editor.getShape(arrow2Id)!.index
 		expect(arrow1BoundIndex).toBe('a1V')
 		expect(arrow2BoundIndex).toBe('a1G')
 
 		// nudge everything around and make sure we all stay in the right order
 		editor.selectAll().nudgeShapes(editor.selectedIds, { x: -1, y: 0 })
-		expect(editor.getShapeById(arrow1Id)!.index).toBe('a1V')
-		expect(editor.getShapeById(arrow2Id)!.index).toBe('a1G')
+		expect(editor.getShape(arrow1Id)!.index).toBe('a1V')
+		expect(editor.getShape(arrow2Id)!.index).toBe('a1G')
 	})
 })

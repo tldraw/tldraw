@@ -139,7 +139,7 @@ export function menuItem(
 function shapesWithUnboundArrows(editor: Editor) {
 	const { selectedIds } = editor
 	const selectedShapes = selectedIds.map((id) => {
-		return editor.getShapeById(id)
+		return editor.getShape(id)
 	})
 
 	return selectedShapes.filter((shape) => {
@@ -174,7 +174,7 @@ export const useAllowUngroup = () => {
 	const editor = useEditor()
 	return useValue(
 		'allowUngroup',
-		() => editor.selectedIds.some((id) => editor.getShapeById(id)?.type === 'group'),
+		() => editor.selectedIds.some((id) => editor.getShape(id)?.type === 'group'),
 		[]
 	)
 }

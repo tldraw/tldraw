@@ -301,7 +301,7 @@ const GeometryDebuggingView = track(function GeometryDebuggingView({
 			}}
 		>
 			{renderingShapes.map((result) => {
-				const shape = editor.getShapeById(result.id)!
+				const shape = editor.getShape(result.id)!
 				const geometry = editor.getGeometry(shape)
 				const pageTransform = editor.getPageTransform(shape)!
 
@@ -447,7 +447,7 @@ function ArrowheadCross() {
 
 const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 	const editor = useEditor()
-	const shape = editor.getShapeById(id)
+	const shape = editor.getShape(id)
 
 	const [html, setHtml] = React.useState('')
 

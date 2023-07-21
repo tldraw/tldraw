@@ -29,7 +29,7 @@ export class Pointing extends StateNode {
 
 		let shapeExists = false
 		if (info.shapeId) {
-			const shape = this.editor.getShapeById<TLLineShape>(info.shapeId)
+			const shape = this.editor.getShape<TLLineShape>(info.shapeId)
 			if (shape) {
 				shapeExists = true
 				this.shape = shape
@@ -98,7 +98,7 @@ export class Pointing extends StateNode {
 			])
 
 			this.editor.select(id)
-			this.shape = this.editor.getShapeById(id)!
+			this.shape = this.editor.getShape(id)!
 		}
 	}
 

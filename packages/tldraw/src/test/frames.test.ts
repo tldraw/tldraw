@@ -178,7 +178,7 @@ describe('frame shapes', () => {
 		// The absolute rotation should be zero
 		childIds.forEach((id) => expect(editor.getPageRotationById(id)).toBe(0))
 		// Which means the local rotation should be -PI/2
-		childIds.forEach((id) => expect(editor.getShapeById(id)!.rotation).toBe(-Math.PI / 2))
+		childIds.forEach((id) => expect(editor.getShape(id)!.rotation).toBe(-Math.PI / 2))
 	})
 
 	it('can be resized', () => {
@@ -331,9 +331,7 @@ describe('frame shapes', () => {
 		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
 		expect(editor.hintingIds).toHaveLength(0)
 		// box A should still be beneath box B
-		expect(
-			editor.getShapeById(boxAid)!.index.localeCompare(editor.getShapeById(boxBid)!.index)
-		).toBe(-1)
+		expect(editor.getShape(boxAid)!.index.localeCompare(editor.getShape(boxBid)!.index)).toBe(-1)
 	})
 
 	it('can be snapped to when dragging other shapes', () => {
@@ -388,7 +386,7 @@ describe('frame shapes', () => {
 		})
 		expect(editor.snaps.lines).toHaveLength(0)
 		// and if we unparent the box it should snap
-		editor.reparentShapesById([innerBoxId], editor.currentPageId)
+		editor.reparentShapes([innerBoxId], editor.currentPageId)
 
 		editor.pointerMove(287.5, 126.5).pointerMove(277.5, 126.5)
 		expect(editor.snaps.lines).toHaveLength(1)
@@ -421,7 +419,7 @@ describe('frame shapes', () => {
 		expect(editor.snaps.lines).toHaveLength(0)
 
 		// move shape inside the frame to make sure it snaps in there
-		editor.reparentShapesById([outerBoxId], frameId).pointerMove(150, 149, { ctrlKey: true })
+		editor.reparentShapes([outerBoxId], frameId).pointerMove(150, 149, { ctrlKey: true })
 
 		expect(editor.snaps.lines).toHaveLength(1)
 	})
@@ -445,7 +443,7 @@ describe('frame shapes', () => {
 			`"polygon(-50px -50px,50px -50px,50px 50px,-50px 50px)"`
 		)
 
-		editor.reparentShapesById([editor.onlySelectedShape!.id], editor.currentPageId)
+		editor.reparentShapes([editor.onlySelectedShape!.id], editor.currentPageId)
 
 		expect(editor.getClipPath(editor.onlySelectedShape!.id)).toBeUndefined()
 	})
@@ -464,7 +462,7 @@ describe('frame shapes', () => {
 
 		const boxId = editor.onlySelectedShape!.id
 
-		editor.reparentShapesById([boxId], innerFrameId)
+		editor.reparentShapes([boxId], innerFrameId)
 
 		// should be a 50px box starting in the middle of the outer frame
 		expect(editor.getClipPath(boxId)).toMatchInlineSnapshot(
@@ -695,7 +693,7 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	expect(editor.getArrowsBoundTo(boxCId)).toHaveLength(0)
 
 	// expect group parent to be the frame
-	expect(editor.getShapeById(groupId)!.parentId).toBe(frameId)
+	expect(editor.getShape(groupId)!.parentId).toBe(frameId)
 
 	// move the group outside of the frame
 	editor.setCurrentTool('select')
@@ -703,11 +701,9 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	editor.translateSelection(200, 0)
 
 	// expect group parent to be the page
-	expect(editor.getShapeById(groupId)!.parentId).toBe(editor.currentPageId)
+	expect(editor.getShape(groupId)!.parentId).toBe(editor.currentPageId)
 	// expect arrow parent to be the page
-	expect(editor.getShapeById(arrowId)!.parentId).toBe(editor.currentPageId)
+	expect(editor.getShape(arrowId)!.parentId).toBe(editor.currentPageId)
 	// expect arrow index to be greater than group index
-	expect(
-		editor.getShapeById(arrowId)?.index.localeCompare(editor.getShapeById(groupId)!.index)
-	).toBe(1)
+	expect(editor.getShape(arrowId)?.index.localeCompare(editor.getShape(groupId)!.index)).toBe(1)
 })

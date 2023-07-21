@@ -61,10 +61,10 @@ describe('setCurrentPage', () => {
 		editor.setCurrentPageId(editor.pages[1].id)
 		editor.setCurrentPageId(editor.pages[0].id)
 		editor.setCurrentPageId(editor.pages[0].id)
-		expect(editor.getShapeById(boxId)).toBeUndefined()
+		expect(editor.getShape(boxId)).toBeUndefined()
 		expect(editor.history.numUndos).toBe(1)
 		editor.redo()
-		expect(editor.getShapeById(boxId)).not.toBeUndefined()
+		expect(editor.getShape(boxId)).not.toBeUndefined()
 	})
 
 	it('logs an error when trying to navigate to a page that does not exist', () => {

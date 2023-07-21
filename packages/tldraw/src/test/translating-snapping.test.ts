@@ -117,7 +117,7 @@ describe.skip('custom snapping points', () => {
 		// │       │    │ drag  │
 		// └───────┘    x───────x
 		editor.pointerDown(250, 250, ids.box1).pointerMove(250, 51, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 200, y: 0 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 200, y: 0 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -132,7 +132,7 @@ describe.skip('custom snapping points', () => {
 		//              │ drag  │
 		//              x───────x
 		editor.pointerMove(250, 151, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 200, y: 101 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 200, y: 101 })
 		expect(editor.snaps.lines?.length).toBe(0)
 
 		// should not snap to 50 on y axis
@@ -144,7 +144,7 @@ describe.skip('custom snapping points', () => {
 		//              │ drag  │
 		//              x───────x
 		editor.pointerMove(250, 101, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 200, y: 51 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 200, y: 51 })
 		expect(editor.snaps.lines?.length).toBe(0)
 
 		// should snap to 0 on x axis
@@ -160,7 +160,7 @@ describe.skip('custom snapping points', () => {
 		// │ │ drag  │
 		// x x───────x
 		editor.pointerMove(51, 250, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 0, y: 200 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 200 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -177,7 +177,7 @@ describe.skip('custom snapping points', () => {
 		//         │ drag  │
 		//         x───────x
 		editor.pointerMove(151, 250, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 101, y: 200 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 101, y: 200 })
 		expect(editor.snaps.lines?.length).toBe(0)
 
 		// should not snap to 50 on x axis
@@ -193,7 +193,7 @@ describe.skip('custom snapping points', () => {
 		//     │ drag  │
 		//     x───────x
 		editor.pointerMove(101, 250, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 51, y: 200 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 51, y: 200 })
 		expect(editor.snaps.lines?.length).toBe(0)
 	})
 
@@ -206,7 +206,7 @@ describe.skip('custom snapping points', () => {
 		// │ drag  │    │       │
 		// └───────┘    x───────x
 		editor.pointerDown(50, 50, ids.boxT).pointerMove(50, 251, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 0, y: 200 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 0, y: 200 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -220,7 +220,7 @@ describe.skip('custom snapping points', () => {
 		// │ drag  │
 		// └───────┘
 		editor.pointerMove(50, 301, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 0, y: 250 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 0, y: 250 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(2)
 
@@ -236,7 +236,7 @@ describe.skip('custom snapping points', () => {
 		// │ drag  │
 		// └───────┘
 		editor.pointerMove(50, 351, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 0, y: 300 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 0, y: 300 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -253,7 +253,7 @@ describe.skip('custom snapping points', () => {
 		// │ │       │
 		// x x───────x
 		editor.pointerMove(251, 50, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 200, y: 0 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 200, y: 0 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -270,7 +270,7 @@ describe.skip('custom snapping points', () => {
 		//   │       │
 		//   x───────x
 		editor.pointerMove(301, 50, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 250, y: 0 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 250, y: 0 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(2)
 
@@ -287,7 +287,7 @@ describe.skip('custom snapping points', () => {
 		// │ │       │
 		// x x───────x
 		editor.pointerMove(351, 50, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 300, y: 0 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 300, y: 0 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 	})
@@ -379,7 +379,7 @@ describe.skip('custom snapping points', () => {
 		// │       │    │ drag  │
 		// └───────┘    x───────x
 		editor.pointerDown(250, 250, ids.box1).pointerMove(250, 51, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 200, y: 0 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 200, y: 0 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -394,7 +394,7 @@ describe.skip('custom snapping points', () => {
 		//              │ drag  │
 		//              x───────x
 		editor.pointerMove(250, 151, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 200, y: 101 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 200, y: 101 })
 		expect(editor.snaps.lines?.length).toBe(0)
 
 		// should not snap to 50 on y axis
@@ -406,7 +406,7 @@ describe.skip('custom snapping points', () => {
 		//              │ drag  │
 		//              x───────x
 		editor.pointerMove(250, 101, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 200, y: 51 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 200, y: 51 })
 		expect(editor.snaps.lines?.length).toBe(0)
 
 		// should snap to 0 on x axis
@@ -422,7 +422,7 @@ describe.skip('custom snapping points', () => {
 		// │ │ drag  │
 		// x x───────x
 		editor.pointerMove(51, 250, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 0, y: 200 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 0, y: 200 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -439,7 +439,7 @@ describe.skip('custom snapping points', () => {
 		//         │ drag  │
 		//         x───────x
 		editor.pointerMove(151, 250, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 101, y: 200 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 101, y: 200 })
 		expect(editor.snaps.lines?.length).toBe(0)
 
 		// should not snap to 50 on x axis
@@ -455,7 +455,7 @@ describe.skip('custom snapping points', () => {
 		//     │ drag  │
 		//     x───────x
 		editor.pointerMove(101, 250, { ctrlKey: true })
-		expect(editor.getShapeById(ids.box1)).toMatchObject({ x: 51, y: 200 })
+		expect(editor.getShape(ids.box1)).toMatchObject({ x: 51, y: 200 })
 		expect(editor.snaps.lines?.length).toBe(0)
 	})
 
@@ -468,7 +468,7 @@ describe.skip('custom snapping points', () => {
 		// │ drag  │    │       │
 		// └───────┘    x───────x
 		editor.pointerDown(50, 50, ids.boxT).pointerMove(50, 251, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 0, y: 200 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 0, y: 200 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -482,7 +482,7 @@ describe.skip('custom snapping points', () => {
 		// │ drag  │
 		// └───────┘
 		editor.pointerMove(50, 301, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 0, y: 250 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 0, y: 250 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(2)
 
@@ -498,7 +498,7 @@ describe.skip('custom snapping points', () => {
 		// │ drag  │
 		// └───────┘
 		editor.pointerMove(50, 351, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 0, y: 300 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 0, y: 300 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -515,7 +515,7 @@ describe.skip('custom snapping points', () => {
 		// │ │       │
 		// x x───────x
 		editor.pointerMove(251, 50, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 200, y: 0 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 200, y: 0 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 
@@ -532,7 +532,7 @@ describe.skip('custom snapping points', () => {
 		//   │       │
 		//   x───────x
 		editor.pointerMove(301, 50, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 250, y: 0 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 250, y: 0 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(2)
 
@@ -549,7 +549,7 @@ describe.skip('custom snapping points', () => {
 		// │ │       │
 		// x x───────x
 		editor.pointerMove(351, 50, { ctrlKey: true })
-		expect(editor.getShapeById(ids.boxT)).toMatchObject({ x: 300, y: 0 })
+		expect(editor.getShape(ids.boxT)).toMatchObject({ x: 300, y: 0 })
 		expect(editor.snaps.lines?.length).toBe(1)
 		expect(getNumSnapPoints(editor.snaps.lines![0])).toBe(3)
 	})

@@ -199,8 +199,8 @@ describe('Editor.setOpacity', () => {
 		editor.setSelectedIds([ids.A, ids.B])
 		editor.setOpacity(0.5)
 
-		expect(editor.getShapeById(ids.A)!.opacity).toBe(0.5)
-		expect(editor.getShapeById(ids.B)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.A)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.B)!.opacity).toBe(0.5)
 	})
 
 	it('should traverse into groups and set opacity in their children', () => {
@@ -219,16 +219,16 @@ describe('Editor.setOpacity', () => {
 		editor.setOpacity(0.5)
 
 		// a wasn't selected...
-		expect(editor.getShapeById(ids.boxA)!.opacity).toBe(1)
+		expect(editor.getShape(ids.boxA)!.opacity).toBe(1)
 
 		// b, c, & d were within a selected group...
-		expect(editor.getShapeById(ids.boxB)!.opacity).toBe(0.5)
-		expect(editor.getShapeById(ids.boxC)!.opacity).toBe(0.5)
-		expect(editor.getShapeById(ids.boxD)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxB)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxC)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxD)!.opacity).toBe(0.5)
 
 		// groups get skipped
-		expect(editor.getShapeById(ids.groupA)!.opacity).toBe(1)
-		expect(editor.getShapeById(ids.groupB)!.opacity).toBe(1)
+		expect(editor.getShape(ids.groupA)!.opacity).toBe(1)
+		expect(editor.getShape(ids.groupB)!.opacity).toBe(1)
 	})
 
 	it('stores opacity on opacityForNextShape', () => {
@@ -476,7 +476,7 @@ describe('getShapeUtil', () => {
 	})
 
 	it('accepts shapes', () => {
-		const shape = editor.getShapeById(ids.box1)!
+		const shape = editor.getShape(ids.box1)!
 		const util = editor.getShapeUtil(shape)
 		expect(util).toBeInstanceOf(myUtil)
 	})

@@ -78,7 +78,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		const prefersReducedMotion = usePrefersReducedMotion()
 		const [staticFrameSrc, setStaticFrameSrc] = useState('')
 
-		const asset = shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : undefined
+		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
 
 		if (asset?.type === 'bookmark') {
 			throw Error("Bookmark assets can't be rendered as images")
@@ -169,7 +169,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 	override async toSvg(shape: TLImageShape) {
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
-		const asset = shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : null
+		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
 
 		let src = asset?.props.src || ''
 		if (src && src.startsWith('http')) {
@@ -206,7 +206,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	}
 
 	override onDoubleClick = (shape: TLImageShape) => {
-		const asset = shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : undefined
+		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
 
 		if (!asset) return
 

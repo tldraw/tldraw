@@ -84,7 +84,7 @@ describe('Locking', () => {
 	it('Can lock shapes', () => {
 		editor.setSelectedIds([ids.unlockedShapeA])
 		editor.toggleLock()
-		expect(editor.getShapeById(ids.unlockedShapeA)!.isLocked).toBe(true)
+		expect(editor.getShape(ids.unlockedShapeA)!.isLocked).toBe(true)
 		// Locking deselects the shape
 		expect(editor.selectedIds).toEqual([])
 	})
@@ -98,13 +98,13 @@ describe('Locked shapes', () => {
 	})
 
 	it('Cannot be changed', () => {
-		const xBefore = editor.getShapeById(ids.lockedShapeA)!.x
+		const xBefore = editor.getShape(ids.lockedShapeA)!.x
 		editor.updateShapes([{ id: ids.lockedShapeA, type: 'geo', x: 100 }])
-		expect(editor.getShapeById(ids.lockedShapeA)!.x).toBe(xBefore)
+		expect(editor.getShape(ids.lockedShapeA)!.x).toBe(xBefore)
 	})
 
 	it('Cannot be moved', () => {
-		const shape = editor.getShapeById(ids.lockedShapeA)
+		const shape = editor.getShape(ids.lockedShapeA)
 		editor.pointerDown(150, 150, { target: 'shape', shape })
 		editor.expectToBeIn('select.idle')
 
@@ -121,7 +121,7 @@ describe('Locked shapes', () => {
 	})
 
 	it('Cannot be selected by clicking', () => {
-		const shape = editor.getShapeById(ids.lockedShapeA)!
+		const shape = editor.getShape(ids.lockedShapeA)!
 
 		editor
 			.pointerDown(10, 10, { target: 'shape', shape })
@@ -132,7 +132,7 @@ describe('Locked shapes', () => {
 	})
 
 	it('Cannot be edited', () => {
-		const shape = editor.getShapeById(ids.lockedShapeA)!
+		const shape = editor.getShape(ids.lockedShapeA)!
 		const shapeCount = editor.shapesArray.length
 
 		// We create a new shape and we edit that one
@@ -143,21 +143,21 @@ describe('Locked shapes', () => {
 
 	it('Cannot be grouped', () => {
 		const shapeCount = editor.shapesArray.length
-		const parentBefore = editor.getShapeById(ids.lockedShapeA)!.parentId
+		const parentBefore = editor.getShape(ids.lockedShapeA)!.parentId
 
 		editor.groupShapes([ids.lockedShapeA, ids.unlockedShapeA, ids.unlockedShapeB])
 		expect(editor.shapesArray.length).toBe(shapeCount + 1)
 
-		const parentAfter = editor.getShapeById(ids.lockedShapeA)!.parentId
+		const parentAfter = editor.getShape(ids.lockedShapeA)!.parentId
 		expect(parentAfter).toBe(parentBefore)
 	})
 
 	it('Locked frames do not accept new shapes', () => {
-		const frame = editor.getShapeById(ids.lockedFrame)!
+		const frame = editor.getShape(ids.lockedFrame)!
 		const frameUtil = editor.getShapeUtil(frame)
 
 		expect(frameUtil.canReceiveNewChildrenOfType(frame, 'box')).toBe(false)
-		const shape = editor.getShapeById(ids.lockedShapeA)!
+		const shape = editor.getShape(ids.lockedShapeA)!
 		expect(frameUtil.canDropShapes(frame, [shape])).toBe(false)
 	})
 })
@@ -166,13 +166,11 @@ describe('Unlocking', () => {
 	it('Can unlock shapes', () => {
 		editor.setSelectedIds([ids.lockedShapeA, ids.lockedShapeB])
 		let lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map(
-			(id) => editor.getShapeById(id)!.isLocked
+			(id) => editor.getShape(id)!.isLocked
 		)
 		expect(lockedStatus).toStrictEqual([true, true])
 		editor.toggleLock()
-		lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map(
-			(id) => editor.getShapeById(id)!.isLocked
-		)
+		lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map((id) => editor.getShape(id)!.isLocked)
 		expect(lockedStatus).toStrictEqual([false, false])
 	})
 })

@@ -101,7 +101,7 @@ export class Pointing extends StateNode {
 			true
 		)
 
-		const shape = this.editor.getShapeById<TLNoteShape>(id)!
+		const shape = this.editor.getShape<TLNoteShape>(id)!
 		const bounds = this.editor.getGeometry(shape).bounds
 
 		// Center the text around the created point
@@ -114,6 +114,6 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		return this.editor.getShapeById(id)
+		return this.editor.getShape(id)
 	}
 }

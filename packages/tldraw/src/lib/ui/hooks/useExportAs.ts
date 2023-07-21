@@ -35,7 +35,7 @@ export function useExportAs() {
 			let name = 'shapes'
 
 			if (ids.length === 1) {
-				const first = editor.getShapeById(ids[0])!
+				const first = editor.getShape(ids[0])!
 				if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
 					name = first.props.name ?? 'frame'
 				} else {

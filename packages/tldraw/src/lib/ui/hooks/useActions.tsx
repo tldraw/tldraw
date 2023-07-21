@@ -243,7 +243,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						console.error(warnMsg)
 						return
 					}
-					const shape = editor.getShapeById(ids[0])
+					const shape = editor.getShape(ids[0])
 					if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed')) {
 						console.error(warnMsg)
 						return
@@ -313,7 +313,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('convert-to-embed', { source })
 					const ids = editor.selectedIds
-					const shapes = compact(ids.map((id) => editor.getShapeById(id)))
+					const shapes = compact(ids.map((id) => editor.getShape(id)))
 
 					const createList: TLShapePartial[] = []
 					const deleteList: TLShapeId[] = []

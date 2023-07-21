@@ -261,7 +261,7 @@ export class SnapManager {
 			for (const childId of sortedChildIds) {
 				// Skip any selected ids
 				if (selectedIds.includes(childId)) continue
-				const childShape = editor.getShapeById(childId)
+				const childShape = editor.getShape(childId)
 				if (!childShape) continue
 				const util = editor.getShapeUtil(childShape)
 				// Skip any shapes that don't allow snapping

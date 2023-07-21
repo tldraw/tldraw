@@ -48,7 +48,7 @@ export class PointingCanvas extends StateNode {
 		if (!isShapeId(focusLayerId)) {
 			return false
 		}
-		const groupShape = this.editor.getShapeById(focusLayerId)
+		const groupShape = this.editor.getShape(focusLayerId)
 		if (!groupShape) {
 			return false
 		}

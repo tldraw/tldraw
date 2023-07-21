@@ -103,7 +103,7 @@ describe('when multiple shapes are selected', () => {
 
 describe('When shapes are the child of another shape.', () => {
 	it('stretches horizontally', () => {
-		editor.reparentShapesById([ids.boxB], ids.boxA)
+		editor.reparentShapes([ids.boxB], ids.boxA)
 		editor.select(ids.boxB, ids.boxC)
 		editor.stretchShapes('horizontal')
 		jest.advanceTimersByTime(1000)
@@ -114,7 +114,7 @@ describe('When shapes are the child of another shape.', () => {
 	})
 
 	it('stretches vertically', () => {
-		editor.reparentShapesById([ids.boxB], ids.boxA)
+		editor.reparentShapes([ids.boxB], ids.boxA)
 		editor.select(ids.boxB, ids.boxC)
 		editor.stretchShapes('vertical')
 		jest.advanceTimersByTime(1000)

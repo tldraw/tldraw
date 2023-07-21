@@ -65,7 +65,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			// that is scrollable which they're currently editing.
 
 			if (editor.editingId) {
-				const shape = editor.getShapeById(editor.editingId)
+				const shape = editor.getShape(editor.editingId)
 				if (shape) {
 					const util = editor.getShapeUtil(shape)
 					if (util.canScroll(shape)) {

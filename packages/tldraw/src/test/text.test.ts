@@ -262,7 +262,7 @@ it('preserves the top left when the text has text', () => {
 			},
 		},
 	])
-	expect(editor.getShapeById(id)).toMatchObject({
+	expect(editor.getShape(id)).toMatchObject({
 		x,
 		y,
 	})

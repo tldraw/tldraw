@@ -24,7 +24,7 @@ const pointerEventHandler = (editor: Editor, shapeId: TLShapeId, name: TLPointer
 			}
 		}
 
-		const shape = editor.getShapeById(shapeId)
+		const shape = editor.getShape(shapeId)
 
 		if (!shape) {
 			console.error('Shape not found', shapeId)

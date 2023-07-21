@@ -24,7 +24,7 @@ export function getBoundShapeInfoForTerminal(
 		return
 	}
 
-	const shape = editor.getShapeById(terminal.boundShapeId)!
+	const shape = editor.getShape(terminal.boundShapeId)!
 	const transform = editor.getPageTransform(shape)!
 	const geometry = editor.getGeometry(shape)
 
@@ -47,7 +47,7 @@ export function getArrowTerminalInArrowSpace(
 		return Vec2d.From(terminal)
 	}
 
-	const boundShape = editor.getShapeById(terminal.boundShapeId)
+	const boundShape = editor.getShape(terminal.boundShapeId)
 
 	if (!boundShape) {
 		// this can happen in multiplayer contexts where the shape is being deleted

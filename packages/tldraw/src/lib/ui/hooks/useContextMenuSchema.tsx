@@ -64,7 +64,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	// 	() => {
 	// 		if (editor.selectedIds.length !== 1) return false
 	// 		return editor.selectedIds.some((selectedId) => {
-	// 			const shape = editor.getShapeById(selectedId)
+	// 			const shape = editor.getShape(selectedId)
 	// 			return shape && editor.isShapeOfType<TLEmbedShape>(shape, 'embed') && shape.props.url
 	// 		})
 	// 	},
@@ -76,7 +76,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	// 	() => {
 	// 		if (editor.selectedIds.length !== 1) return false
 	// 		return editor.selectedIds.some((selectedId) => {
-	// 			const shape = editor.getShapeById(selectedId)
+	// 			const shape = editor.getShape(selectedId)
 	// 			return (
 	// 				shape &&
 	// 				editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') &&

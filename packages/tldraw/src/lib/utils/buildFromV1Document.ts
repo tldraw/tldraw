@@ -232,7 +232,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							])
 
 							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShapeById<TLGeoShape>(inCommon.id)!
+								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
 								const h = coerceDimension(shape.props.h)
@@ -287,7 +287,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							])
 
 							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShapeById<TLGeoShape>(inCommon.id)!
+								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
 								const h = coerceDimension(shape.props.h)
@@ -342,7 +342,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							])
 
 							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShapeById<TLGeoShape>(inCommon.id)!
+								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
 								const h = coerceDimension(shape.props.h)
@@ -534,7 +534,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 							const targetId = v1ShapeIdsToV2ShapeIds.get(binding.toId)!
 
-							const targetShape = editor.getShapeById(targetId)!
+							const targetShape = editor.getShape(targetId)!
 
 							// (unexpected) We didn't create the target shape
 							if (!targetShape) continue
@@ -542,7 +542,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							if (targetId) {
 								const bounds = editor.getPageBounds(targetId)!
 
-								const v2ShapeFresh = editor.getShapeById<TLArrowShape>(v2ShapeId)!
+								const v2ShapeFresh = editor.getShape<TLArrowShape>(v2ShapeId)!
 
 								const nx = clamp((coerceNumber(binding.point[0]) + 0.5) / 2, 0.2, 0.8)
 								const ny = clamp((coerceNumber(binding.point[1]) + 0.5) / 2, 0.2, 0.8)

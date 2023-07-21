@@ -41,7 +41,7 @@ Shapes are just JSON objects that sit in the [store](/docs/editor#store).
 Every shape contains some **base information**. These include the shape's type, position, rotation, opacity, and more. You can find the full list of base properties [here](/gen/tlschema/TLBaseShape).
 
 ```js
-const shape = editor.getShapeById('some-shape-id')
+const shape = editor.getShape('some-shape-id')
 if (shape) {
   console.log(shape.type)    // The shape's type
   console.log(shape.opacity) // The shape's opacity
@@ -51,7 +51,7 @@ if (shape) {
 Every shape also contains some **shape-specific information**. We call these `props`. For example, the text shape has a [text prop](/gen/tlschema/textShapeProps), the arrow shape has a [start and end prop](/gen/tlschema/arrowShapeProps), and so on.
 
 ```js
-const textShape = editor.getShapeById('some-text-shape-id')
+const textShape = editor.getShape('some-text-shape-id')
 if (textShape) {
   console.log(textShape.props.text) // The shape's text
   console.log(textShape.props.font) // The shape's font
@@ -176,7 +176,7 @@ Note that tldraw's regular shape definitions have an unknown object for the shap
 ```ts
 type MyShapeWithMeta = TLGeoShape & { meta: { createdBy: string } }
 
-const shape = editor.getShapeById<MyShapeWithMeta>(myGeoShape.id)
+const shape = editor.getShape<MyShapeWithMeta>(myGeoShape.id)
 ```
 
 You can update a shape's `meta` property in the same way you would update its props, using [`Editor.updateShapes`](/gen/editor/Editor#updateShapes).

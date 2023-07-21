@@ -106,7 +106,7 @@ export const DefaultSelectionBackground: TLSelectionBackgroundComponent = track(
 		)
 
 		if (selectedIds.length === 1) {
-			const shape = editor.getShapeById(selectedIds[0])
+			const shape = editor.getShape(selectedIds[0])
 			if (!shape) {
 				return null
 			}

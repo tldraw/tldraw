@@ -37,7 +37,7 @@ export class Idle extends StateNode {
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		const { hoveredId } = this.editor
 		if (hoveredId) {
-			const shape = this.editor.getShapeById(hoveredId)!
+			const shape = this.editor.getShape(hoveredId)!
 			if (this.editor.isShapeOfType<TLTextShape>(shape, 'text')) {
 				requestAnimationFrame(() => {
 					this.editor.setSelectedIds([shape.id])

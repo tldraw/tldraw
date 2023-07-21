@@ -37,7 +37,7 @@ export class DragAndDropManager {
 	private handleDrag(movingShapes: TLShape[], cb?: () => void) {
 		const { currentPagePoint } = this.editor.inputs
 
-		movingShapes = compact(movingShapes.map((shape) => this.editor.getShapeById(shape.id)))
+		movingShapes = compact(movingShapes.map((shape) => this.editor.getShape(shape.id)))
 
 		const currDroppingShapeId =
 			this.editor.getDroppingShape(currentPagePoint, movingShapes)?.id ?? null
@@ -54,8 +54,8 @@ export class DragAndDropManager {
 			return
 		}
 
-		const prevDroppingShape = prevDroppingShapeId && this.editor.getShapeById(prevDroppingShapeId)
-		const nextDroppingShape = currDroppingShapeId && this.editor.getShapeById(currDroppingShapeId)
+		const prevDroppingShape = prevDroppingShapeId && this.editor.getShape(prevDroppingShapeId)
+		const nextDroppingShape = currDroppingShapeId && this.editor.getShape(currDroppingShapeId)
 
 		// Even if we don't have a next dropping shape id (i.e. if we're dropping
 		// onto the page) set the prev to the current, to avoid repeat calls to
@@ -88,7 +88,7 @@ export class DragAndDropManager {
 		this.handleDrag(shapes)
 
 		if (currDroppingShapeId) {
-			const shape = this.editor.getShapeById(currDroppingShapeId)
+			const shape = this.editor.getShape(currDroppingShapeId)
 			if (!shape) return
 			this.editor.getShapeUtil(shape).onDropShapesOver?.(shape, shapes)
 		}

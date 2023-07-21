@@ -23,8 +23,8 @@ beforeEach(() => {
 	editor.createPage(ids.page2, ids.page2)
 	editor.setCurrentPageId(ids.page1)
 
-	expect(editor.getShapeById(ids.box1)!.parentId).toEqual(ids.page1)
-	expect(editor.getShapeById(ids.box2)!.parentId).toEqual(ids.box1)
+	expect(editor.getShape(ids.box1)!.parentId).toEqual(ids.page1)
+	expect(editor.getShape(ids.box2)!.parentId).toEqual(ids.box1)
 })
 
 describe('Editor.moveShapesToPage', () => {
@@ -32,11 +32,11 @@ describe('Editor.moveShapesToPage', () => {
 		editor.moveShapesToPage([ids.box2, ids.ellipse1], ids.page2)
 		expect(editor.currentPageId).toBe(ids.page2)
 
-		expect(editor.getShapeById(ids.box2)!.parentId).toBe(ids.page2)
-		expect(editor.getShapeById(ids.ellipse1)!.parentId).toBe(ids.page2)
+		expect(editor.getShape(ids.box2)!.parentId).toBe(ids.page2)
+		expect(editor.getShape(ids.ellipse1)!.parentId).toBe(ids.page2)
 
 		// box1 didn't get moved, still on page 1
-		expect(editor.getShapeById(ids.box1)!.parentId).toBe(ids.page1)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.page1)
 
 		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2, ids.ellipse1])
 
@@ -49,9 +49,9 @@ describe('Editor.moveShapesToPage', () => {
 
 	it('Moves children to page', () => {
 		editor.moveShapesToPage([ids.box1], ids.page2)
-		expect(editor.getShapeById(ids.box2)!.parentId).toBe(ids.box1)
-		expect(editor.getShapeById(ids.box1)!.parentId).toBe(ids.page2)
-		expect(editor.getShapeById(ids.ellipse1)!.parentId).toBe(ids.page1)
+		expect(editor.getShape(ids.box2)!.parentId).toBe(ids.box1)
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.page2)
+		expect(editor.getShape(ids.ellipse1)!.parentId).toBe(ids.page1)
 	})
 
 	it('Adds undo items', () => {

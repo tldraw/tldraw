@@ -8,14 +8,14 @@ function expectShapesInOrder(editor: TestEditor, ...ids: TLShapeId[]) {
 }
 
 function getSiblingBelow(editor: TestEditor, id: TLShapeId) {
-	const shape = editor.getShapeById(id)!
+	const shape = editor.getShape(id)!
 	const siblings = editor.getSortedChildIds(shape.parentId)
 	const index = siblings.indexOf(id)
 	return siblings[index - 1]
 }
 
 function getSiblingAbove(editor: TestEditor, id: TLShapeId) {
-	const shape = editor.getShapeById(id)!
+	const shape = editor.getShape(id)!
 	const siblings = editor.getSortedChildIds(shape.parentId)
 	const index = siblings.indexOf(id)
 	return siblings[index + 1]
@@ -902,7 +902,7 @@ describe('When undoing and redoing...', () => {
 
 describe('When shapes are parented...', () => {
 	it('Sorted correctly by pageIndex', () => {
-		editor.reparentShapesById([ids['C']], ids['A']).reparentShapesById([ids['B']], ids['D'])
+		editor.reparentShapes([ids['C']], ids['A']).reparentShapes([ids['B']], ids['D'])
 
 		expectShapesInOrder(
 			editor,

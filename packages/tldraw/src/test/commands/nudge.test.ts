@@ -58,12 +58,12 @@ function nudgeAndGet(ids: TLShapeId[], key: string, shiftKey: boolean) {
 		}
 	}
 
-	const shapes = ids.map((id) => editor.getShapeById(id)!)
+	const shapes = ids.map((id) => editor.getShape(id)!)
 	return shapes.map((shape) => ({ x: shape.x, y: shape.y }))
 }
 
 function getShape(ids: TLShapeId[]) {
-	const shapes = ids.map((id) => editor.getShapeById(id)!)
+	const shapes = ids.map((id) => editor.getShape(id)!)
 	return shapes.map((shape) => ({ x: shape.x, y: shape.y }))
 }
 
@@ -135,19 +135,19 @@ describe('When a shape is rotated...', () => {
 		editor.rotateShapesBy([ids.boxB], Math.PI / 2)
 		editor.updateShapes([{ id: ids.boxB, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
 		// Make box A a child of box B
-		editor.reparentShapesById([ids.boxA], ids.boxB)
+		editor.reparentShapes([ids.boxA], ids.boxB)
 		// editor.updateShapes([{ id: ids.boxB, type: 'geo', x: 10, y: 10 }])
 
 		// Here's the selection page bounds and shape before we nudge it
 		editor.setSelectedIds([ids.boxA])
 		expect(editor.selectedPageBounds).toCloselyMatchObject({ x: 10, y: 10, w: 100, h: 100 })
-		expect(editor.getShapeById(ids.boxA)).toCloselyMatchObject({ x: 10, y: -10 })
+		expect(editor.getShape(ids.boxA)).toCloselyMatchObject({ x: 10, y: -10 })
 
 		// Select box A and move it up. The page bounds should move up, but the
 		// shape should move left (since its parent is rotated 90 degrees)
 		editor.keyDown('ArrowUp')
 		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 9, w: 100, h: 100 })
-		expect(editor.getShapeById(ids.boxA)).toMatchObject({ x: 9, y: -10 })
+		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 9, y: -10 })
 		editor.keyUp('ArrowUp')
 	})
 })
@@ -240,7 +240,7 @@ describe('When undo redo is on...', () => {
 describe('When nudging a rotated shape...', () => {
 	it('Moves the page point correctly', () => {
 		editor.setSelectedIds([ids.boxA])
-		const shapeA = editor.getShapeById(ids.boxA)!
+		const shapeA = editor.getShape(ids.boxA)!
 
 		editor.updateShapes([{ id: ids.boxA, type: shapeA.type, rotation: 90 }])
 		expect(nudgeAndGet([ids.boxA], 'ArrowRight', false)).toMatchObject([{ x: 11, y: 10 }])
@@ -253,8 +253,8 @@ describe('When nudging a rotated shape...', () => {
 describe('When nudging multiple rotated shapes...', () => {
 	it('Moves the page point correctly', () => {
 		editor.setSelectedIds([ids.boxA, ids.boxB])
-		const shapeA = editor.getShapeById(ids.boxA)!
-		const shapeB = editor.getShapeById(ids.boxB)!
+		const shapeA = editor.getShape(ids.boxA)!
+		const shapeB = editor.getShape(ids.boxB)!
 
 		editor.updateShapes([
 			{

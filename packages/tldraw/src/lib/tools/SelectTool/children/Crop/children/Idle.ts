@@ -109,7 +109,7 @@ export class Idle extends StateNode {
 		if (info.phase !== 'up') return
 
 		if (!this.editor.croppingId) return
-		const shape = this.editor.getShapeById(this.editor.croppingId)
+		const shape = this.editor.getShape(this.editor.croppingId)
 		if (!shape) return
 
 		const util = this.editor.getShapeUtil(shape)
@@ -172,7 +172,7 @@ export class Idle extends StateNode {
 
 		if (shiftKey) delta.mul(10)
 
-		const shape = this.editor.getShapeById(this.editor.croppingId!) as ShapeWithCrop
+		const shape = this.editor.getShape(this.editor.croppingId!) as ShapeWithCrop
 		if (!shape) return
 		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 

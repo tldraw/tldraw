@@ -36,7 +36,7 @@ export class EditingShape extends StateNode {
 		// Clear the editing shape
 		this.editor.setEditingId(null)
 
-		const shape = this.editor.getShapeById(editingId)!
+		const shape = this.editor.getShape(editingId)!
 		const util = this.editor.getShapeUtil(shape)
 
 		// Check for changes on editing end
@@ -55,7 +55,7 @@ export class EditingShape extends StateNode {
 						return
 					}
 
-					const editingShape = this.editor.getShapeById(editingId)
+					const editingShape = this.editor.getShape(editingId)
 
 					if (editingShape) {
 						const editingShapeUtil = this.editor.getShapeUtil(editingShape)

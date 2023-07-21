@@ -35,7 +35,7 @@ export class Pointing extends StateNode {
 
 			this.editor.select(id)
 
-			this.shape = this.editor.getShapeById(id)
+			this.shape = this.editor.getShape(id)
 			if (!this.shape) return
 
 			this.editor.setCurrentTool('select.resizing', {

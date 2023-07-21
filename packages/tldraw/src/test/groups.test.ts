@@ -86,15 +86,15 @@ const onlySelectedId = () => {
 
 const onlySelectedShape = () => {
 	const id = onlySelectedId()
-	return editor.getShapeById(id)!
+	return editor.getShape(id)!
 }
 
 const children = (shape: TLShape) => {
-	return new Set(compact(editor.getSortedChildIds(shape.id).map((id) => editor.getShapeById(id))))
+	return new Set(compact(editor.getSortedChildIds(shape.id).map((id) => editor.getShape(id))))
 }
 
 const isRemoved = (shape: TLShape) => {
-	return !editor.getShapeById(shape.id)
+	return !editor.getShape(shape.id)
 }
 
 describe('creating groups', () => {
@@ -113,15 +113,15 @@ describe('creating groups', () => {
 
 		expect(getAllShapes()).toHaveLength(4)
 		expect(editor.selectedIds.length).toBe(1)
-		expect(editor.getShapeById(ids.boxA)).toBeTruthy()
-		expect(editor.getShapeById(ids.boxB)).toBeTruthy()
+		expect(editor.getShape(ids.boxA)).toBeTruthy()
+		expect(editor.getShape(ids.boxB)).toBeTruthy()
 
 		const group = onlySelectedShape()
 		expect(group.type).toBe(GroupShapeUtil.type)
 		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({ x: 0, y: 0, w: 30, h: 10 })
-		expect(children(group).has(editor.getShapeById(ids.boxA)!)).toBe(true)
-		expect(children(group).has(editor.getShapeById(ids.boxB)!)).toBe(true)
-		expect(children(group).has(editor.getShapeById(ids.boxC)!)).toBe(false)
+		expect(children(group).has(editor.getShape(ids.boxA)!)).toBe(true)
+		expect(children(group).has(editor.getShape(ids.boxB)!)).toBe(true)
+		expect(children(group).has(editor.getShape(ids.boxC)!)).toBe(false)
 	})
 	it('does not work if there are zero or one shape in the selection ', () => {
 		// 0   10  20  30  40  50
@@ -223,8 +223,8 @@ describe('creating groups', () => {
 		})
 
 		expect(children(uberGroup).size).toBe(2)
-		expect(children(uberGroup).has(editor.getShapeById(groupAId)!)).toBe(true)
-		expect(children(uberGroup).has(editor.getShapeById(groupBId)!)).toBe(true)
+		expect(children(uberGroup).has(editor.getShape(groupAId)!)).toBe(true)
+		expect(children(uberGroup).has(editor.getShape(groupBId)!)).toBe(true)
 	})
 	it('works with shapes inside individual nested groups', () => {
 		//     0   10  20  30  40  50  60  70  80  90  100 110
@@ -264,14 +264,14 @@ describe('creating groups', () => {
 		expect(groupB.parentId).toBe(editor.currentPageId)
 		expect(groupC.parentId).toBe(editor.currentPageId)
 
-		expect(editor.getShapeById(ids.boxA)!.parentId).toBe(groupA.id)
-		expect(editor.getShapeById(ids.boxC)!.parentId).toBe(groupA.id)
+		expect(editor.getShape(ids.boxA)!.parentId).toBe(groupA.id)
+		expect(editor.getShape(ids.boxC)!.parentId).toBe(groupA.id)
 
-		expect(editor.getShapeById(ids.boxB)!.parentId).toBe(groupC.id)
-		expect(editor.getShapeById(ids.boxE)!.parentId).toBe(groupC.id)
+		expect(editor.getShape(ids.boxB)!.parentId).toBe(groupC.id)
+		expect(editor.getShape(ids.boxE)!.parentId).toBe(groupC.id)
 
-		expect(editor.getShapeById(ids.boxD)!.parentId).toBe(groupB.id)
-		expect(editor.getShapeById(ids.boxF)!.parentId).toBe(groupB.id)
+		expect(editor.getShape(ids.boxD)!.parentId).toBe(groupB.id)
+		expect(editor.getShape(ids.boxF)!.parentId).toBe(groupB.id)
 	})
 	it('does not work if the scene is in readonly mode', () => {
 		// 0   10  20  30  40  50
@@ -304,7 +304,7 @@ describe('creating groups', () => {
 		const groupAId = onlySelectedId()
 		const sortedGroupChildrenIds = editor
 			.getSortedChildIds(groupAId)
-			.map((id) => editor.getShapeById(id)!)
+			.map((id) => editor.getShape(id)!)
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
 
@@ -338,7 +338,7 @@ describe('creating groups', () => {
 
 		const sortedGroupChildrenIds = editor
 			.getSortedChildIds(groupAId)
-			.map((id) => editor.getShapeById(id)!)
+			.map((id) => editor.getShape(id)!)
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
 
@@ -478,8 +478,8 @@ describe('ungrouping shapes', () => {
 		expect(editor.selectedIds.length).toBe(1)
 		editor.ungroupShapes()
 		expect(editor.selectedIds.length).toBe(2)
-		expect(editor.getShapeById(groupAId)).not.toBe(undefined)
-		expect(editor.getShapeById(groupBId)).not.toBe(undefined)
+		expect(editor.getShape(groupAId)).not.toBe(undefined)
+		expect(editor.getShape(groupBId)).not.toBe(undefined)
 	})
 	it('does not work if the scene is in readonly mode', () => {
 		// 0   10  20  30  40  50
@@ -888,7 +888,7 @@ describe('the select tool', () => {
 	})
 
 	it('should select the outermost non-selected group when you right-click on one of the shapes in that group', () => {
-		const boxA = editor.getShapeById(ids.boxA)
+		const boxA = editor.getShape(ids.boxA)
 
 		editor
 			.pointerDown(0, 0, { target: 'shape', shape: boxA, button: 2 })
@@ -1071,15 +1071,15 @@ describe("when a group's children are deleted", () => {
 
 	it('should ungroup if there is only one shape left', () => {
 		editor.deleteShapes([ids.boxD])
-		expect(editor.getShapeById(groupBId)).toBeUndefined()
-		expect(editor.getShapeById(ids.boxC)?.parentId).toBe(groupCId)
+		expect(editor.getShape(groupBId)).toBeUndefined()
+		expect(editor.getShape(ids.boxC)?.parentId).toBe(groupCId)
 	})
 
 	it('should remove the group if there are no shapes left', () => {
 		editor.deleteShapes([ids.boxC, ids.boxD])
-		expect(editor.getShapeById(groupBId)).toBeUndefined()
-		expect(editor.getShapeById(groupCId)).toBeUndefined()
-		expect(editor.getShapeById(groupAId)).not.toBeUndefined()
+		expect(editor.getShape(groupBId)).toBeUndefined()
+		expect(editor.getShape(groupCId)).toBeUndefined()
+		expect(editor.getShape(groupAId)).not.toBeUndefined()
 	})
 })
 
@@ -1449,7 +1449,7 @@ describe('erasing', () => {
 		expect(editor.currentPageState.erasingIds.length).toBe(1)
 		expect(editor.currentPageState.erasingIds[0]).toBe(groupCId)
 		editor.pointerUp()
-		expect(editor.getShapeById(groupCId)).toBeFalsy()
+		expect(editor.getShape(groupCId)).toBeFalsy()
 	})
 
 	it('does not erase whole groups if you do not hit on one of their shapes', () => {
@@ -1461,7 +1461,7 @@ describe('erasing', () => {
 	it('works inside of groups', () => {
 		editor.select(ids.boxA)
 		expect(editor.focusLayerId === groupAId).toBe(true)
-		const groupA = editor.getShapeById(groupAId)!
+		const groupA = editor.getShape(groupAId)!
 
 		editor.setCurrentTool(EraserTool.id)
 
@@ -1613,8 +1613,8 @@ describe('grouping arrows', () => {
 			arrow(arrowBId, { x: 10, y: 0 }, { x: 10, y: 10 }),
 		])
 
-		const arrowABefore = editor.getShapeById(arrowAId)!
-		const arrowBBefore = editor.getShapeById(arrowBId)!
+		const arrowABefore = editor.getShape(arrowAId)!
+		const arrowBBefore = editor.getShape(arrowBId)!
 
 		expect(arrowABefore.parentId).toMatch(/^page:/)
 		expect(arrowABefore.index).toBe('a1')
@@ -1624,8 +1624,8 @@ describe('grouping arrows', () => {
 		editor.select(arrowAId, arrowBId)
 		editor.groupShapes()
 
-		const arrowAAfter = editor.getShapeById(arrowAId)!
-		const arrowBAfter = editor.getShapeById(arrowBId)!
+		const arrowAAfter = editor.getShape(arrowAId)!
+		const arrowBAfter = editor.getShape(arrowBId)!
 
 		expect(arrowAAfter.parentId).toMatch(/^shape:/)
 		expect(arrowAAfter.index).toBe('a1')
@@ -1702,7 +1702,7 @@ describe('moving handles within a group', () => {
 		editor.expectToBeIn('select.dragging_handle')
 		editor.pointerMove(60, -10)
 
-		arrow = editor.getShapeById(arrow.id)!
+		arrow = editor.getShape(arrow.id)!
 
 		expect(arrow.parentId).toBe(groupA.id)
 
@@ -1790,7 +1790,7 @@ describe('moving handles within a group', () => {
 // 		expect(onlySelectedId()).not.toBe(groupAId)
 // 		expect(onlySelectedShape().type).toBe(GroupShapeUtil.type)
 // 		expect(
-// 			editor.getSortedChildIds(onlySelectedShape().id).map((id) => editor.getShapeById(id)!.type)
+// 			editor.getSortedChildIds(onlySelectedShape().id).map((id) => editor.getShape(id)!.type)
 // 		).toEqual(['geo', 'geo'])
 // 	})
 
@@ -1805,7 +1805,7 @@ describe('moving handles within a group', () => {
 // 		expect(onlySelectedId()).not.toBe(groupAId)
 // 		expect(onlySelectedShape().type).toBe(GroupShapeUtil.type)
 // 		expect(
-// 			editor.getSortedChildIds(onlySelectedShape().id).map((id) => editor.getShapeById(id)!.type)
+// 			editor.getSortedChildIds(onlySelectedShape().id).map((id) => editor.getShape(id)!.type)
 // 		).toEqual(['geo', 'geo'])
 // 		expect(editor.getPageBounds(groupAId)).toCloselyMatchObject(
 // 			editor.getPageBounds(onlySelectedId())
@@ -1822,7 +1822,7 @@ describe('moving handles within a group', () => {
 // 		expect(onlySelectedId()).not.toBe(groupCId)
 // 		expect(onlySelectedShape().parentId).toBe(groupAId)
 // 		expect(onlySelectedShape().type).toBe(GroupShapeUtil.type)
-// 		expect(editor.getSortedChildIds(onlySelectedId()).map((id) => editor.getShapeById(id)!.type)).toEqual(
+// 		expect(editor.getSortedChildIds(onlySelectedId()).map((id) => editor.getShape(id)!.type)).toEqual(
 // 			[GroupShapeUtil.type, GroupShapeUtil.type]
 // 		)
 // 	})
@@ -1910,7 +1910,7 @@ describe('Group opacity', () => {
 		editor.select(ids.boxA, ids.boxB)
 		editor.setOpacity(0.5)
 		editor.groupShapes()
-		const group = editor.getShapeById(onlySelectedId())!
+		const group = editor.getShape(onlySelectedId())!
 		assert(editor.isShapeOfType<TLGroupShape>(group, 'group'))
 		expect(group.opacity).toBe(1)
 	})

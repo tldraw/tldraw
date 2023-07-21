@@ -49,7 +49,7 @@ beforeEach(() => {
 describe('Translating', () => {
 	it('updates the line', () => {
 		editor.select(id)
-		editor.pointerDown(25, 25, { target: 'shape', shape: editor.getShapeById<TLLineShape>(id) })
+		editor.pointerDown(25, 25, { target: 'shape', shape: editor.getShape<TLLineShape>(id) })
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.expectShapeToMatch({
 			id: id,
@@ -61,7 +61,7 @@ describe('Translating', () => {
 	it('updates the line when rotated', () => {
 		editor.select(id)
 
-		const shape = editor.getShapeById<TLLineShape>(id)!
+		const shape = editor.getShape<TLLineShape>(id)!
 		shape.rotation = Math.PI / 2
 
 		editor.pointerDown(250, 250, { target: 'shape', shape: shape })
@@ -78,7 +78,7 @@ describe('Translating', () => {
 it('create new handle', () => {
 	editor.select(id)
 
-	const shape = editor.getShapeById<TLLineShape>(id)!
+	const shape = editor.getShape<TLLineShape>(id)!
 	editor.pointerDown(200, 200, {
 		target: 'handle',
 		shape,
@@ -114,7 +114,7 @@ it('create new handle', () => {
 describe('Misc', () => {
 	it('preserves handle positions on spline type change', () => {
 		editor.select(id)
-		const shape = editor.getShapeById<TLLineShape>(id)!
+		const shape = editor.getShape<TLLineShape>(id)!
 		const prevHandles = deepCopy(shape.props.handles)
 
 		editor.updateShapes([
@@ -137,14 +137,14 @@ describe('Misc', () => {
 
 	it('resizes', () => {
 		editor.select(id)
-		editor.getShapeById<TLLineShape>(id)!
+		editor.getShape<TLLineShape>(id)!
 
 		editor
 			.pointerDown(150, 0, { target: 'selection', handle: 'bottom' })
 			.pointerMove(150, 600) // Resize shape by 0, 600
 			.expectPathToBe('root.select.resizing')
 
-		expect(editor.getShapeById(id)!).toMatchSnapshot('line shape after resize')
+		expect(editor.getShape(id)!).toMatchSnapshot('line shape after resize')
 	})
 
 	it('nudges', () => {
@@ -170,8 +170,8 @@ describe('Misc', () => {
 		const boxID = createShapeId('box1')
 		editor.createShapes([{ id: boxID, type: 'geo', x: 500, y: 150, props: { w: 100, h: 50 } }])
 
-		const box = editor.getShapeById<TLGeoShape>(boxID)!
-		const line = editor.getShapeById<TLLineShape>(id)!
+		const box = editor.getShape<TLGeoShape>(boxID)!
+		const line = editor.getShape<TLLineShape>(id)!
 
 		editor.select(boxID, id)
 
@@ -191,7 +191,7 @@ describe('Misc', () => {
 
 		editor
 			.keyDown('Alt')
-			.pointerDown(25, 25, { target: 'shape', shape: editor.getShapeById<TLLineShape>(id) })
+			.pointerDown(25, 25, { target: 'shape', shape: editor.getShape<TLLineShape>(id) })
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
@@ -203,7 +203,7 @@ describe('Misc', () => {
 
 		editor
 			.keyDown('Alt')
-			.pointerDown(25, 25, { target: 'shape', shape: editor.getShapeById<TLLineShape>(id) })
+			.pointerDown(25, 25, { target: 'shape', shape: editor.getShape<TLLineShape>(id) })
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 

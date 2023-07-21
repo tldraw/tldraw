@@ -43,7 +43,7 @@ export default function APIExample() {
 		])
 
 		// Get the created shape
-		const shape = editor.getShapeById<TLGeoShape>(id)!
+		const shape = editor.getShape<TLGeoShape>(id)!
 
 		const shapeUpdate: TLShapePartial<TLGeoShape> = {
 			id,

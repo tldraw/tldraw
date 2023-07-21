@@ -141,7 +141,7 @@ export class Resizing extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		shapeSnapshots.forEach(({ shape }) => {
-			const current = this.editor.getShapeById(shape.id)!
+			const current = this.editor.getShape(shape.id)!
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onResizeEnd?.(shape, current)
 			if (change) {
@@ -373,13 +373,13 @@ export class Resizing extends StateNode {
 		const shapeSnapshots = new Map<TLShapeId, ShapeSnapshot>()
 
 		selectedIds.forEach((id) => {
-			const shape = this.editor.getShapeById(id)
+			const shape = this.editor.getShape(id)
 			if (shape) {
 				shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
 				if (this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') && selectedIds.length === 1)
 					return
 				this.editor.visitDescendants(shape.id, (descendantId) => {
-					const descendent = this.editor.getShapeById(descendantId)
+					const descendent = this.editor.getShape(descendantId)
 					if (descendent) {
 						shapeSnapshots.set(descendent.id, this._createShapeSnapshot(descendent))
 						if (this.editor.isShapeOfType<TLFrameShape>(descendent, 'frame')) {

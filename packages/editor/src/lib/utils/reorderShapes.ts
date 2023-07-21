@@ -13,11 +13,11 @@ export function getReorderingShapesChanges(
 	// From the ids that are moving, collect the parents, their children, and which of those children are moving
 	const parents = new Map<TLParentId, { moving: Set<TLShape>; children: TLShape[] }>()
 
-	for (const shape of compact(ids.map((id) => editor.getShapeById(id)))) {
+	for (const shape of compact(ids.map((id) => editor.getShape(id)))) {
 		const { parentId } = shape
 		if (!parents.has(parentId)) {
 			parents.set(parentId, {
-				children: compact(editor.getSortedChildIds(parentId).map((id) => editor.getShapeById(id))),
+				children: compact(editor.getSortedChildIds(parentId).map((id) => editor.getShape(id))),
 				moving: new Set(),
 			})
 		}

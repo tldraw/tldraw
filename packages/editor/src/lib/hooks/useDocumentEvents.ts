@@ -92,7 +92,7 @@ export function useDocumentEvents() {
 								...(hoveredId
 									? {
 											target: 'shape',
-											shape: editor.getShapeById(hoveredId)!,
+											shape: editor.getShape(hoveredId)!,
 									  }
 									: {
 											target: 'canvas',
@@ -171,7 +171,7 @@ export function useDocumentEvents() {
 						...(hoveredId
 							? {
 									target: 'shape',
-									shape: editor.getShapeById(hoveredId)!,
+									shape: editor.getShape(hoveredId)!,
 							  }
 							: {
 									target: 'canvas',

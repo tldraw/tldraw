@@ -95,7 +95,7 @@ function getShapes() {
 	}
 
 	Object.entries(ids).map(([normalId, shapeId]) => {
-		const shape = editor.getShapeById(shapeId as any) as any
+		const shape = editor.getShape(shapeId as any) as any
 		const newShape = arr.find((s) => s.id !== shapeId && s.props.w === shape?.props.w)
 		results.old[normalId] = shape
 		results.new[normalId] = newShape
@@ -225,15 +225,15 @@ describe('When pasting', () => {
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
 		expect(editor.selectionPageCenter).toMatchObject(
-			editor.getPageCenter(editor.getShapeById(ids.frame1)!)!
+			editor.getPageCenter(editor.getShape(ids.frame1)!)!
 		)
 	})
 
 	it('pastes shapes as children of the most common ancestor', () => {
-		editor.reparentShapesById([ids.frame3], ids.frame1)
-		editor.reparentShapesById([ids.frame4], ids.frame2)
-		editor.reparentShapesById([ids.box1], ids.frame3)
-		editor.reparentShapesById([ids.box2], ids.frame4)
+		editor.reparentShapes([ids.frame3], ids.frame1)
+		editor.reparentShapes([ids.frame4], ids.frame2)
+		editor.reparentShapes([ids.box1], ids.frame3)
+		editor.reparentShapes([ids.box2], ids.frame4)
 		/*
     Before:
     page
@@ -276,10 +276,10 @@ describe('When pasting', () => {
 	})
 
 	it('pastes shapes as children of the most common ancestor', () => {
-		editor.reparentShapesById([ids.frame3], ids.frame1)
-		editor.reparentShapesById([ids.frame4], ids.frame1)
-		editor.reparentShapesById([ids.box1], ids.frame3)
-		editor.reparentShapesById([ids.box2], ids.frame4)
+		editor.reparentShapes([ids.frame3], ids.frame1)
+		editor.reparentShapes([ids.frame4], ids.frame1)
+		editor.reparentShapes([ids.box1], ids.frame3)
+		editor.reparentShapes([ids.box2], ids.frame4)
 		/*
     Before:
     page
@@ -322,7 +322,7 @@ describe('When pasting', () => {
 })
 
 it('pastes shapes with children', () => {
-	editor.reparentShapesById([ids.box1, ids.box2], ids.frame3)
+	editor.reparentShapes([ids.box1, ids.box2], ids.frame3)
 	/*
   Before:
   page
@@ -398,7 +398,7 @@ describe('When pasting into frames...', () => {
 			.setScreenBounds({ x: 0, y: 0, w: 1000, h: 1000 })
 
 		// put frame2 inside frame1
-		editor.reparentShapesById([ids.frame2], ids.frame1)
+		editor.reparentShapes([ids.frame2], ids.frame1)
 
 		// move frame 2 so that it's clipped AND so that it covers the whole viewport
 		editor

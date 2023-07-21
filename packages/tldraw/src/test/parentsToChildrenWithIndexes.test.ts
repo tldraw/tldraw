@@ -63,16 +63,13 @@ describe('parentsToChildrenWithIndexes', () => {
 			{
 				id: ids.box1,
 				type: 'geo',
-				index: getIndexBetween(
-					editor.getShapeById(ids.box2)!.index,
-					editor.getShapeById(ids.box3)!.index
-				),
+				index: getIndexBetween(editor.getShape(ids.box2)!.index, editor.getShape(ids.box3)!.index),
 			},
 		])
 		expect(editor.getSortedChildIds(editor.currentPageId)).toEqual([ids.box2, ids.box1, ids.box3])
 
 		editor.updateShapes([
-			{ id: ids.box2, type: 'geo', index: getIndexAbove(editor.getShapeById(ids.box3)!.index) },
+			{ id: ids.box2, type: 'geo', index: getIndexAbove(editor.getShape(ids.box3)!.index) },
 		])
 
 		expect(editor.getSortedChildIds(editor.currentPageId)).toEqual([ids.box1, ids.box3, ids.box2])
@@ -86,8 +83,8 @@ describe('parentsToChildrenWithIndexes', () => {
 			{ type: 'geo', id: ids.box4 },
 		])
 
-		const box2Index = editor.getShapeById(ids.box2)!.index
-		const box3Index = editor.getShapeById(ids.box3)!.index
+		const box2Index = editor.getShape(ids.box2)!.index
+		const box3Index = editor.getShape(ids.box3)!.index
 		const box4Index = getIndexBetween(box2Index, box3Index)
 
 		editor.updateShapes([

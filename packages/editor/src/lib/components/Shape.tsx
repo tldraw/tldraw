@@ -49,7 +49,7 @@ export const Shape = track(function Shape({
 	useQuickReactor(
 		'set shape container transform position',
 		() => {
-			const shape = editor.getShapeById(id)
+			const shape = editor.getShape(id)
 			const pageTransform = editor.getPageTransform(id)
 
 			if (!shape || !pageTransform) return null
@@ -63,7 +63,7 @@ export const Shape = track(function Shape({
 	useQuickReactor(
 		'set shape container clip path',
 		() => {
-			const shape = editor.getShapeById(id)
+			const shape = editor.getShape(id)
 			if (!shape) return null
 
 			const clipPath = editor.getClipPath(id)
@@ -75,7 +75,7 @@ export const Shape = track(function Shape({
 	useQuickReactor(
 		'set shape height and width',
 		() => {
-			const shape = editor.getShapeById(id)
+			const shape = editor.getShape(id)
 			if (!shape) return null
 
 			const bounds = editor.getGeometry(shape).bounds
@@ -92,7 +92,7 @@ export const Shape = track(function Shape({
 		backgroundContainerRef.current?.style.setProperty('z-index', backgroundIndex + '')
 	}, [opacity, index, backgroundIndex, setProperty])
 
-	const shape = editor.getShapeById(id)
+	const shape = editor.getShape(id)
 
 	const annotateError = React.useCallback(
 		(error: any) => {

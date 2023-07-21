@@ -126,7 +126,7 @@ describe('When flipping horizontally', () => {
 	})
 
 	it('Flips the children of rotated shapes', () => {
-		editor.reparentShapesById([ids.boxB], ids.boxA)
+		editor.reparentShapes([ids.boxB], ids.boxA)
 		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
 		editor.select(ids.boxB, ids.boxC)
 		const a = editor.selectedPageBounds
@@ -205,7 +205,7 @@ describe('When flipping vertically', () => {
 	})
 
 	it('Flips the children of rotated shapes', () => {
-		editor.reparentShapesById([ids.boxB], ids.boxA)
+		editor.reparentShapes([ids.boxB], ids.boxA)
 		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
 		editor.select(ids.boxB, ids.boxC)
 		const a = editor.selectedPageBounds
@@ -285,11 +285,11 @@ describe('When multiple shapes are selected', () => {
 
 describe('When one shape is selected', () => {
 	it('Does nothing if the shape is not a group', () => {
-		const before = editor.getShapeById(ids.boxA)!
+		const before = editor.getShape(ids.boxA)!
 		editor.select(ids.boxA)
 		editor.flipShapes('horizontal')
 
-		expect(editor.getShapeById(ids.boxA)).toMatchObject(before)
+		expect(editor.getShape(ids.boxA)).toMatchObject(before)
 	})
 
 	it('Flips the direct child shape positions if the shape is a group', async () => {
@@ -407,7 +407,7 @@ describe('flipping rotated shapes', () => {
 	const getStartAndEndPoints = (id: TLShapeId) => {
 		const transform = editor.getPageTransform(id)
 		if (!transform) throw new Error('no transform')
-		const arrow = editor.getShapeById<TLArrowShape>(id)!
+		const arrow = editor.getShape<TLArrowShape>(id)!
 		if (arrow.props.start.type !== 'point' || arrow.props.end.type !== 'point')
 			throw new Error('not a point')
 		const start = Matrix2d.applyToPoint(transform, arrow.props.start)

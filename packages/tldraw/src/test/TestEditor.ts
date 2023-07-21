@@ -213,7 +213,7 @@ export class TestEditor extends Editor {
 
 	expectShapeToMatch = (...model: RequiredKeys<TLShapePartial, 'id'>[]) => {
 		model.forEach((model) => {
-			const shape = this.getShapeById(model.id)!
+			const shape = this.getShape(model.id)!
 			const next = { ...shape, ...model }
 			expect(shape).toCloselyMatchObject(next)
 		})
@@ -226,7 +226,7 @@ export class TestEditor extends Editor {
 		return typeof info === 'string'
 			? ({
 					target: 'shape',
-					shape: this.getShapeById(info as any),
+					shape: this.getShape(info as any),
 			  } as T)
 			: info
 	}
@@ -238,7 +238,7 @@ export class TestEditor extends Editor {
 		modifiers?: EventModifiers
 	): TLPointerEventInfo => {
 		if (typeof options === 'string') {
-			options = { target: 'shape', shape: this.getShapeById(options) }
+			options = { target: 'shape', shape: this.getShape(options) }
 		} else if (options === undefined) {
 			options = { target: 'canvas' }
 		}

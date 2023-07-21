@@ -204,7 +204,7 @@ export class DraggingHandle extends StateNode {
 			inputs: { currentPagePoint, originPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
 		} = editor
 
-		const shape = editor.getShapeById(shapeId)
+		const shape = editor.getShape(shapeId)
 		if (!shape) return
 
 		const util = editor.getShapeUtil(shape)

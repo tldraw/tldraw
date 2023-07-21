@@ -33,25 +33,25 @@ it('Deleting the parent also deletes descendants', () => {
 	editor.setSelectedIds([ids.box2])
 
 	expect(editor.selectedIds).toMatchObject([ids.box2])
-	expect(editor.getShapeById(ids.box2)).not.toBeUndefined()
-	expect(editor.getShapeById(ids.ellipse1)).not.toBeUndefined()
+	expect(editor.getShape(ids.box2)).not.toBeUndefined()
+	expect(editor.getShape(ids.ellipse1)).not.toBeUndefined()
 
 	editor.mark('')
 	editor.deleteShapes([ids.box2])
 
 	expect(editor.selectedIds).toMatchObject([])
-	expect(editor.getShapeById(ids.box2)).toBeUndefined()
-	expect(editor.getShapeById(ids.ellipse1)).toBeUndefined()
+	expect(editor.getShape(ids.box2)).toBeUndefined()
+	expect(editor.getShape(ids.ellipse1)).toBeUndefined()
 
 	editor.undo()
 
 	expect(editor.selectedIds).toMatchObject([ids.box2])
-	expect(editor.getShapeById(ids.box2)).not.toBe(undefined)
-	expect(editor.getShapeById(ids.ellipse1)).not.toBe(undefined)
+	expect(editor.getShape(ids.box2)).not.toBe(undefined)
+	expect(editor.getShape(ids.ellipse1)).not.toBe(undefined)
 
 	editor.redo()
 
 	expect(editor.selectedIds).toMatchObject([])
-	expect(editor.getShapeById(ids.box2)).toBeUndefined()
-	expect(editor.getShapeById(ids.ellipse1)).toBeUndefined()
+	expect(editor.getShape(ids.box2)).toBeUndefined()
+	expect(editor.getShape(ids.ellipse1)).toBeUndefined()
 })

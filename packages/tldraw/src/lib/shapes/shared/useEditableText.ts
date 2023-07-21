@@ -37,7 +37,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 			if (editor.isIn('select.editing_shape')) {
 				const { editingId } = editor
-				const editingShape = editingId && editor.getShapeById(editingId)
+				const editingShape = editingId && editor.getShape(editingId)
 				if (!editingShape) return false
 				return (
 					// The shape must be hovered
@@ -64,7 +64,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 			if (!elm) return
 
-			const shape = editor.getShapeById<TLShape & { props: { text: string } }>(id)
+			const shape = editor.getShape<TLShape & { props: { text: string } }>(id)
 			if (shape) {
 				elm.value = shape.props.text
 				if (elm.value.length && !rSkipSelectOnFocus.current) {

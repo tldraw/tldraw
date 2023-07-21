@@ -41,7 +41,7 @@ export class Pointing extends StateNode {
 		])
 
 		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-		const shape = this.editor.getShapeById<TLArrowShape>(id)
+		const shape = this.editor.getShape<TLArrowShape>(id)
 		if (!shape) return
 
 		const handles = this.editor.getHandles(shape)
@@ -66,7 +66,7 @@ export class Pointing extends StateNode {
 
 		this.editor.select(id)
 
-		this.shape = this.editor.getShapeById(id)
+		this.shape = this.editor.getShape(id)
 
 		this.startPreciseTimeout()
 	}
@@ -88,7 +88,7 @@ export class Pointing extends StateNode {
 
 			if (!this.didTimeout) {
 				const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-				const shape = this.editor.getShapeById<TLArrowShape>(this.shape.id)
+				const shape = this.editor.getShape<TLArrowShape>(this.shape.id)
 
 				if (!shape) return
 

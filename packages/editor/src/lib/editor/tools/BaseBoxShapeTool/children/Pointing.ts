@@ -93,7 +93,7 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const shape = this.editor.getShapeById<TLBaseBoxShape>(id)!
+		const shape = this.editor.getShape<TLBaseBoxShape>(id)!
 		const { w, h } = this.editor.getShapeUtil(shape).getDefaultProps() as TLBaseBoxShape['props']
 		const delta = this.editor.getDeltaInParentSpace(shape, new Vec2d(w / 2, h / 2))
 

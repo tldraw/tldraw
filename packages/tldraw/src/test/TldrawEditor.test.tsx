@@ -235,7 +235,7 @@ describe('<TldrawEditor />', () => {
 		})
 
 		// Does the shape exist?
-		expect(editor.getShapeById(id)).toMatchObject({
+		expect(editor.getShape(id)).toMatchObject({
 			id,
 			type: 'geo',
 			x: 0,
@@ -359,7 +359,7 @@ describe('Custom shapes', () => {
 		})
 
 		// Does the shape exist?
-		expect(editor.getShapeById(id)).toMatchObject({
+		expect(editor.getShape(id)).toMatchObject({
 			id,
 			type: 'card',
 			x: 0,

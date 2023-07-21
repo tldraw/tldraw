@@ -38,7 +38,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 									editor.mark('move_shapes_to_page')
 									editor.moveShapesToPage(editor.selectedIds, page.id as TLPageId)
 
-									const toPage = editor.getPageById(page.id)
+									const toPage = editor.getPage(page.id)
 
 									if (toPage) {
 										addToast({

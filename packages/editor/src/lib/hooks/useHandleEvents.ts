@@ -6,7 +6,7 @@ import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
 function getHandle(editor: Editor, id: TLShapeId, handleId: string) {
-	const shape = editor.getShapeById<TLArrowShape | TLLineShape>(id)!
+	const shape = editor.getShape<TLArrowShape | TLLineShape>(id)!
 	const handles = editor.getHandles(shape)!
 	return { shape, handle: handles.find((h) => h.id === handleId) }
 }

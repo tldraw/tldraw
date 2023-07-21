@@ -209,7 +209,7 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const current = this.editor.getShapeById(shape.id)!
+			const current = this.editor.getShape(shape.id)!
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onTranslateEnd?.(shape, current)
 			if (change) {
@@ -228,7 +228,7 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const current = this.editor.getShapeById(shape.id)!
+			const current = this.editor.getShape(shape.id)!
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onTranslate?.(shape, current)
 			if (change) {
@@ -264,7 +264,7 @@ export class Translating extends StateNode {
 		const movingShapes: TLShape[] = []
 
 		shapeSnapshots.forEach((shapeSnapshot) => {
-			const shape = editor.getShapeById(shapeSnapshot.shape.id)
+			const shape = editor.getShape(shapeSnapshot.shape.id)
 			if (!shape) return null
 			movingShapes.push(shape)
 
@@ -283,11 +283,11 @@ function getTranslatingSnapshot(editor: Editor) {
 
 	const shapeSnapshots = compact(
 		editor.selectedIds.map((id): null | MovingShapeSnapshot => {
-			const shape = editor.getShapeById(id)
+			const shape = editor.getShape(id)
 			if (!shape) return null
 			movingShapes.push(shape)
 
-			const pagePoint = editor.getPagePointById(id)
+			const pagePoint = editor.getPageTransform(id)!.point()
 			if (!pagePoint) return null
 			pagePoints.push(pagePoint)
 

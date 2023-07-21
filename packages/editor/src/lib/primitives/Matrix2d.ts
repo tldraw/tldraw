@@ -117,6 +117,10 @@ export class Matrix2d {
 		return Matrix2d.Rotation(this)
 	}
 
+	point() {
+		return Matrix2d.Point(this)
+	}
+
 	decomposed() {
 		return Matrix2d.Decompose(this)
 	}
@@ -221,6 +225,10 @@ export class Matrix2d {
 			matrix.multiply(matrices[i])
 		}
 		return matrix
+	}
+
+	static Point(m: MatLike) {
+		return new Vec2d(m.e, m.f)
 	}
 
 	static Rotation(m: MatLike): number {

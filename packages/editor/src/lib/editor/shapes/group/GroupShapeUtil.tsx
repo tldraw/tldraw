@@ -31,7 +31,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 		return new Group2d({
 			children: children.map((childId) => {
-				const shape = this.editor.getShapeById(childId)!
+				const shape = this.editor.getShape(childId)!
 				const geometry = this.editor.getGeometry(childId)
 				const points = this.editor.getTransform(shape).applyToPoints(geometry.vertices)
 
@@ -73,7 +73,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			hintingIds.some(
 				(id) =>
 					id !== shape.id &&
-					this.editor.isShapeOfType<TLGroupShape>(this.editor.getShapeById(id)!, 'group')
+					this.editor.isShapeOfType<TLGroupShape>(this.editor.getShape(id)!, 'group')
 			)
 
 		if (
@@ -118,7 +118,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			if (this.editor.currentPageState.focusLayerId === group.id) {
 				this.editor.popFocusLayer()
 			}
-			this.editor.reparentShapesById(children, group.parentId)
+			this.editor.reparentShapes(children, group.parentId)
 			this.editor.deleteShapes([group.id])
 			return
 		}

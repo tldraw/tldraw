@@ -238,7 +238,7 @@ describe('When in the crop.idle state', () => {
 	it('pointing some other shape should return to select.idle', () => {
 		editor
 			.expectPathToBe('root.select.idle')
-			.click(550, 550, { target: 'shape', shape: editor.getShapeById(ids.boxA) })
+			.click(550, 550, { target: 'shape', shape: editor.getShape(ids.boxA) })
 			.expectPathToBe('root.select.idle')
 	})
 
@@ -268,7 +268,7 @@ describe('When in the crop.idle state', () => {
 			.expectPathToBe('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectPathToBe('root.select.crop.idle')
-			.pointerDown(500, 600, { target: 'shape', shape: editor.getShapeById(ids.imageB) })
+			.pointerDown(500, 600, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.expectPathToBe('root.select.crop.pointing_crop')
 
 		expect(editor.croppingId).toBe(ids.imageB)
@@ -280,7 +280,7 @@ describe('When in the crop.idle state', () => {
 			.expectPathToBe('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectPathToBe('root.select.crop.idle')
-			.pointerDown(100, 100, { target: 'shape', shape: editor.getShapeById(ids.imageA) })
+			.pointerDown(100, 100, { target: 'shape', shape: editor.getShape(ids.imageA) })
 			.expectPathToBe('root.select.crop.pointing_crop')
 
 		expect(editor.croppingId).toBe(ids.imageA)
@@ -306,7 +306,7 @@ describe('When in the crop.idle state', () => {
 			.doubleClick(550, 550, ids.imageB)
 			.expectPathToBe('root.select.crop.idle')
 
-		const crop = () => editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const crop = () => editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		expect(crop()).toCloselyMatchObject({
 			topLeft: { x: 0, y: 0 },
@@ -353,7 +353,7 @@ describe('When in the select.crop.pointing_crop state', () => {
 			.expectPathToBe('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectPathToBe('root.select.crop.idle')
-			.pointerDown(550, 550, { target: 'shape', shape: editor.getShapeById(ids.imageB) })
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.expectPathToBe('root.select.crop.pointing_crop')
 			.cancel()
 			.expectPathToBe('root.select.crop.idle')
@@ -363,7 +363,7 @@ describe('When in the select.crop.pointing_crop state', () => {
 			.expectPathToBe('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectPathToBe('root.select.crop.idle')
-			.pointerDown(550, 550, { target: 'shape', shape: editor.getShapeById(ids.imageB) })
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.expectPathToBe('root.select.crop.pointing_crop')
 			.pointerMove(560, 560)
 			.expectPathToBe('root.select.crop.translating_crop')
@@ -376,10 +376,10 @@ describe('When in the select.crop.translating_crop state', () => {
 			.expectPathToBe('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectPathToBe('root.select.crop.idle')
-			.pointerDown(550, 550, { target: 'shape', shape: editor.getShapeById(ids.imageB) })
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.expectPathToBe('root.select.crop.pointing_crop')
 
-		const before = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		expect(before.topLeft.x).toBe(0)
 		expect(before.topLeft.y).toBe(0)
@@ -392,7 +392,7 @@ describe('When in the select.crop.translating_crop state', () => {
 			.expectPathToBe('root.select.crop.translating_crop')
 
 		// Update should have run right away
-		const afterFirst = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const afterFirst = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		expect(afterFirst.topLeft.x).toBe(0.25)
 		expect(afterFirst.topLeft.y).toBe(0.25)
@@ -403,7 +403,7 @@ describe('When in the select.crop.translating_crop state', () => {
 		editor.pointerMove(550, 550)
 
 		// Update should have run right away
-		const afterSecond = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const afterSecond = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		expect(afterSecond.topLeft.x).toBe(0)
 		expect(afterSecond.topLeft.y).toBe(0)
@@ -413,29 +413,29 @@ describe('When in the select.crop.translating_crop state', () => {
 		// and back to the left again (first)
 		editor.pointerMove(250, 250)
 
-		const afterEnd = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const afterEnd = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor.pointerUp()
 
 		editor.undo()
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 
 		editor.redo()
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterEnd)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterEnd)
 	})
 
 	it('moving the pointer while holding shift should adjust the crop', () => {
 		editor
 			.doubleClick(550, 550, ids.imageB)
-			.pointerDown(550, 550, { target: 'shape', shape: editor.getShapeById(ids.imageB) })
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.keyDown('Shift')
 			.pointerMove(550 - imageWidth / 8, 550 - imageHeight / 8)
 			.expectPathToBe('root.select.crop.translating_crop')
 
 		// Update should have run right away
-		const afterShiftDown = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const afterShiftDown = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		expect(afterShiftDown).toMatchObject({
 			topLeft: { x: 0.125, y: 0 },
@@ -445,7 +445,7 @@ describe('When in the select.crop.translating_crop state', () => {
 		editor.keyUp('Shift')
 		jest.advanceTimersByTime(500)
 
-		const afterShiftUp = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const afterShiftUp = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		expect(afterShiftUp).toMatchObject({
 			topLeft: { x: 0.125, y: 0.125 },
@@ -454,47 +454,47 @@ describe('When in the select.crop.translating_crop state', () => {
 
 		editor.keyDown('Shift')
 
-		const afterShiftDownAgain = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const afterShiftDownAgain = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		expect(afterShiftDownAgain).toMatchObject(afterShiftDown)
 	})
 
 	it('pressing escape / cancel should bail on that change and transition to select.crop.idle', () => {
-		const before = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
 			.expectPathToBe('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectPathToBe('root.select.crop.idle')
-			.pointerDown(550, 550, { target: 'shape', shape: editor.getShapeById(ids.imageB) })
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.expectPathToBe('root.select.crop.pointing_crop')
 			.pointerMove(250, 250)
 			.expectPathToBe('root.select.crop.translating_crop')
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 
 		editor.cancel().expectPathToBe('root.select.crop.idle')
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
 
 	it('pressing enter / pointer up / complete should transition to select.crop.idle', () => {
-		const before = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
 			.expectPathToBe('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectPathToBe('root.select.crop.idle')
-			.pointerDown(550, 550, { target: 'shape', shape: editor.getShapeById(ids.imageB) })
+			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.expectPathToBe('root.select.crop.pointing_crop')
 			.pointerMove(250, 250)
 			.expectPathToBe('root.select.crop.translating_crop')
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 
 		editor.keyDown('Enter').keyUp('Enter').expectPathToBe('root.select.crop.idle')
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 	})
 })
 
@@ -542,7 +542,7 @@ describe('When in the select.pointing_crop_handle state', () => {
 
 describe('When in the select.cropping state', () => {
 	it('moving the pointer should adjust the crop', () => {
-		const before = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
 			.cancel()
@@ -553,11 +553,11 @@ describe('When in the select.cropping state', () => {
 			.pointerMove(510, 590)
 			.expectPathToBe('root.select.cropping')
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 	})
 
 	it('escape / cancel should revert the change and transition to select.idle when that is the history state', () => {
-		const before = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
 			.cancel()
@@ -570,11 +570,11 @@ describe('When in the select.cropping state', () => {
 			.cancel()
 			.expectPathToBe('root.select.idle')
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
 
 	it('escape / cancel should revert the change and transition to crop.idle when that is the history state', () => {
-		const before = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
 			.cancel()
@@ -588,11 +588,11 @@ describe('When in the select.cropping state', () => {
 			.cancel()
 			.expectPathToBe('root.select.crop.idle')
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
 
 	it('pointer up / complete should commit the change and transition to crop.idle when that is the history state', () => {
-		const before = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
 			.cancel()
@@ -606,15 +606,15 @@ describe('When in the select.cropping state', () => {
 			.pointerUp()
 			.expectPathToBe('root.select.crop.idle')
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 		editor.undo()
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 		editor.redo()
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 	})
 
 	it('pointer up / complete should commit the change and transition to select.idle when that is the history state', () => {
-		const before = editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!
+		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
 			.cancel()
@@ -627,11 +627,11 @@ describe('When in the select.cropping state', () => {
 			.pointerUp()
 			.expectPathToBe('root.select.idle')
 
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 		editor.undo()
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 		editor.redo()
-		expect(editor.getShapeById<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 	})
 })
 
@@ -678,7 +678,7 @@ describe('When cropping...', () => {
 
 	it('Correctly resets the crop when double clicking a corner', () => {
 		editor
-			.doubleClick(550, 550, { target: 'shape', shape: editor.getShapeById(ids.imageB) })
+			.doubleClick(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.expectToBeIn('select.crop.idle')
 			.expectShapeToMatch({
 				id: ids.imageB,

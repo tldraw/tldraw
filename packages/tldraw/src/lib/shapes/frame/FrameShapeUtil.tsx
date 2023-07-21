@@ -179,7 +179,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]): { shouldHint: boolean } => {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
-			this.editor.reparentShapesById(
+			this.editor.reparentShapes(
 				shapes.map((shape) => shape.id),
 				frame.id
 			)
@@ -189,18 +189,18 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
-		const parent = this.editor.getShapeById(_shape.parentId)
+		const parent = this.editor.getShape(_shape.parentId)
 		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
 
 		// If frame is in a group, keep the shape
 		// moved out in that group
 		if (isInGroup) {
-			this.editor.reparentShapesById(
+			this.editor.reparentShapes(
 				shapes.map((shape) => shape.id),
 				parent.id
 			)
 		} else {
-			this.editor.reparentShapesById(
+			this.editor.reparentShapes(
 				shapes.map((shape) => shape.id),
 				this.editor.currentPageId
 			)
@@ -221,7 +221,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		}
 
 		if (shapesToReparent.length > 0) {
-			this.editor.reparentShapesById(shapesToReparent, this.editor.currentPageId)
+			this.editor.reparentShapes(shapesToReparent, this.editor.currentPageId)
 		}
 	}
 }

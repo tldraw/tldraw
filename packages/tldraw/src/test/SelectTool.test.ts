@@ -21,7 +21,7 @@ beforeEach(() => {
 
 describe('TLSelectTool.Translating', () => {
 	it('Enters from pointing and exits to idle', () => {
-		const shape = editor.getShapeById(ids.box1)
+		const shape = editor.getShape(ids.box1)
 		editor.pointerDown(150, 150, { target: 'shape', shape })
 		editor.expectToBeIn('select.pointing_shape')
 
@@ -33,7 +33,7 @@ describe('TLSelectTool.Translating', () => {
 	})
 
 	it('Drags a shape', () => {
-		const shape = editor.getShapeById(ids.box1)
+		const shape = editor.getShape(ids.box1)
 		editor.pointerDown(150, 150, { target: 'shape', shape })
 		editor.pointerMove(200, 200)
 		editor.pointerUp()
@@ -41,7 +41,7 @@ describe('TLSelectTool.Translating', () => {
 	})
 
 	it('Clones a shape, removes the clone, and re-creates the clone', () => {
-		const shape = editor.getShapeById(ids.box1)
+		const shape = editor.getShape(ids.box1)
 		editor.pointerDown(150, 150, { target: 'shape', shape })
 		editor.pointerMove(200, 200)
 
@@ -77,7 +77,7 @@ describe('TLSelectTool.Translating', () => {
 	})
 
 	it('Constrains when holding shift', () => {
-		const shape = editor.getShapeById(ids.box1)
+		const shape = editor.getShape(ids.box1)
 		editor.pointerDown(150, 150, { target: 'shape', shape })
 		editor.pointerMove(200, 170)
 		editor.expectShapeToMatch({ id: ids.box1, x: 150, y: 120 })
@@ -86,7 +86,7 @@ describe('TLSelectTool.Translating', () => {
 	})
 
 	it('Does not expand selection when holding shift and alt', () => {
-		const shape = editor.getShapeById(ids.box1)
+		const shape = editor.getShape(ids.box1)
 		editor.keyDown('Shift')
 
 		// alt-drag to create a copy:
@@ -109,7 +109,7 @@ describe('TLSelectTool.Translating', () => {
 
 describe('PointingHandle', () => {
 	it('Enters from idle and exits to idle', () => {
-		const shape = editor.getShapeById(ids.box1)
+		const shape = editor.getShape(ids.box1)
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
@@ -122,7 +122,7 @@ describe('PointingHandle', () => {
 	})
 
 	it('Bails on escape', () => {
-		const shape = editor.getShapeById(ids.box1)
+		const shape = editor.getShape(ids.box1)
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
@@ -137,7 +137,7 @@ describe('PointingHandle', () => {
 describe('DraggingHandle', () => {
 	it('Enters from pointing_handle and exits to idle', () => {
 		editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
-		const shape = editor.getShapeById(ids.line1)
+		const shape = editor.getShape(ids.line1)
 		editor.pointerDown(150, 150, {
 			target: 'handle',
 			shape,
@@ -152,7 +152,7 @@ describe('DraggingHandle', () => {
 
 	it('Bails on escape', () => {
 		editor.createShapes([{ id: ids.line1, type: 'line', x: 100, y: 100 }])
-		const shape = editor.getShapeById(ids.line1)
+		const shape = editor.getShape(ids.line1)
 
 		editor.pointerDown(150, 150, {
 			target: 'handle',
@@ -205,7 +205,7 @@ describe('When pressing enter on a selected shape', () => {
 //     ])
 //     .selectAll()
 //     .groupShapes()
-//     .doubleClick(50, 50, { target: 'shape', shape: editor.getShapeById(id1) })
+//     .doubleClick(50, 50, { target: 'shape', shape: editor.getShape(id1) })
 //     .expectToBeIn('select.editing_shape')
 // })
 
@@ -316,11 +316,11 @@ describe('When editing shapes', () => {
 		expect(editor.selectedIds.length).toBe(0)
 
 		// start editing the geo shape
-		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShapeById(ids.geo1) })
+		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.geo1) })
 		expect(editor.editingId).toBe(ids.geo1)
 		expect(editor.onlySelectedShape?.id).toBe(ids.geo1)
 		// point the text shape
-		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShapeById(ids.text1) })
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.text1) })
 		expect(editor.editingId).toBe(null)
 		expect(editor.onlySelectedShape?.id).toBe(ids.text1)
 	})
@@ -330,11 +330,11 @@ describe('When editing shapes', () => {
 		expect(editor.selectedIds.length).toBe(0)
 
 		// start editing the geo shape
-		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShapeById(ids.geo1) })
+		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.geo1) })
 		expect(editor.editingId).toBe(ids.geo1)
 		expect(editor.onlySelectedShape?.id).toBe(ids.geo1)
 		// point the other geo shape
-		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShapeById(ids.geo2) })
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.geo2) })
 		// that other shape should now be editing and selected!
 		expect(editor.editingId).toBe(ids.geo2)
 		expect(editor.onlySelectedShape?.id).toBe(ids.geo2)
@@ -345,8 +345,8 @@ describe('When editing shapes', () => {
 		expect(editor.selectedIds.length).toBe(0)
 
 		// start editing the geo shape
-		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShapeById(ids.text1) })
-		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShapeById(ids.text2) })
+		editor.doubleClick(50, 50, { target: 'shape', shape: editor.getShape(ids.text1) })
+		editor.pointerDown(50, 50, { target: 'shape', shape: editor.getShape(ids.text2) })
 		// that other shape should now be editing and selected!
 		expect(editor.editingId).toBe(ids.text2)
 		expect(editor.onlySelectedShape?.id).toBe(ids.text2)
@@ -376,7 +376,7 @@ describe('When editing shapes', () => {
 		editor.click(1000, 1000)
 		expect(editor.selectedIds.length).toBe(0)
 		expect(editor.shapesArray.length).toBe(5)
-		expect(editor.getShapeById(shapeId)).toBe(undefined)
+		expect(editor.getShape(shapeId)).toBe(undefined)
 	})
 
 	it('It deletes an empty text shape when your click another text shape', () => {
@@ -391,10 +391,10 @@ describe('When editing shapes', () => {
 		const shapeId = editor.selectedIds[0]
 
 		// Click another text shape
-		editor.click(50, 50, { target: 'shape', shape: editor.getShapeById(ids.text1) })
+		editor.click(50, 50, { target: 'shape', shape: editor.getShape(ids.text1) })
 		expect(editor.selectedIds.length).toBe(1)
 		expect(editor.shapesArray.length).toBe(5)
-		expect(editor.getShapeById(shapeId)).toBe(undefined)
+		expect(editor.getShape(shapeId)).toBe(undefined)
 	})
 
 	it.todo('restores selection after changing styles')
@@ -422,7 +422,7 @@ describe('When in readonly mode', () => {
 		expect(editor.selectedIds.length).toBe(0)
 		expect(editor.instanceState.isReadonly).toBe(true)
 
-		const shape = editor.getShapeById(ids.embed1)
+		const shape = editor.getShape(ids.embed1)
 		editor.doubleClick(100, 100, { target: 'shape', shape })
 		expect(editor.editingId).toBe(ids.embed1)
 	})
