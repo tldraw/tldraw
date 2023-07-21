@@ -74,7 +74,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					}}
 				>
 					<div
-						className="tl-note__container tl-hitarea-fill"
+						className="tl-note__container"
 						style={{
 							color: theme[adjustedColor].solid,
 							backgroundColor: theme[adjustedColor].solid,

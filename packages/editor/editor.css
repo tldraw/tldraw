@@ -326,23 +326,6 @@ input,
 	background-color: var(--color-culled);
 }
 
-.tl-hitarea-stroke {
-	fill: none;
-	stroke: transparent;
-	pointer-events: stroke;
-}
-
-.tl-hitarea-fill {
-	fill: var(--color-background);
-	stroke: transparent;
-	pointer-events: all;
-}
-
-.tl-hitarea-fill-solid {
-	stroke: transparent;
-	pointer-events: all;
-}
-
 /* ---------------- Shape Containers ---------------- */
 
 .tl-svg-container {

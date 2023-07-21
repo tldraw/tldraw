@@ -52,7 +52,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		return (
 			<HTMLContainer>
 				<div
-					className="tl-bookmark__container tl-hitarea-stroke"
+					className="tl-bookmark__container"
 					style={{
 						boxShadow: getRotatedBoxShadow(pageRotation),
 					}}

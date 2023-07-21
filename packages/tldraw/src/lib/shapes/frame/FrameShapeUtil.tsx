@@ -58,7 +58,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return (
 			<>
 				<SVGContainer>
-					<rect className="tl-hitarea-stroke" width={bounds.width} height={bounds.height} />
 					<rect
 						className="tl-frame__body"
 						width={bounds.width}

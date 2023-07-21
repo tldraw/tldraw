@@ -643,7 +643,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						{as && <path d={as} />}
 						{ae && <path d={ae} />}
 					</g>
-					<path d={path} className="tl-hitarea-stroke" />
 				</SVGContainer>
 				<ArrowTextLabel
 					id={shape.id}

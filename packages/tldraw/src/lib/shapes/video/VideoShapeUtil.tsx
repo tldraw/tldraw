@@ -178,7 +178,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 					{asset?.props.src ? (
 						<video
 							ref={rVideo}
-							className={`tl-video tl-video-shape-${shape.id.split(':')[1]} tl-hitarea-stroke`}
+							className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
 							width="100%"
 							height="100%"
 							draggable={false}
