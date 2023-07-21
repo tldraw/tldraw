@@ -1,7 +1,5 @@
 import { TLGroupShape, groupShapeMigrations, groupShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
-import { Matrix2d } from '../../../primitives/Matrix2d'
-import { Vec2d } from '../../../primitives/Vec2d'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../../primitives/geometry/Group2d'
 import { Polygon2d } from '../../../primitives/geometry/Polygon2d'
@@ -53,33 +51,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			isFilled: false,
 			operation: 'union',
 			margin: 0,
-		})
-
-		const allChildPoints = children.flatMap((childId) => {
-			const shape = this.editor.getShapeById(childId)!
-			return this.editor
-				.getOutlineById(childId)
-				.map((point) => Matrix2d.applyToPoint(this.editor.getTransform(shape), point))
-		})
-
-		let minX = Infinity
-		let minY = Infinity
-		let maxX = -Infinity
-		let maxY = -Infinity
-		let point: Vec2d
-		for (let i = 0, n = allChildPoints.length; i < n; i++) {
-			point = allChildPoints[i]
-			minX = Math.min(point.x, minX)
-			minY = Math.min(point.y, minY)
-			maxX = Math.max(point.x, maxX)
-			maxY = Math.max(point.y, maxY)
-		}
-
-		return new Rectangle2d({
-			width: maxX - minX,
-			height: maxY - minY,
-			isFilled: false,
-			margin: 4,
 		})
 	}
 
