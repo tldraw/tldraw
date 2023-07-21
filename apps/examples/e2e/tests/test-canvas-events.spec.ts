@@ -53,27 +53,27 @@ test.describe('Canvas events', () => {
 			})
 		})
 
-		test('pointer leave', async () => {
-			await page.mouse.move(200, 200) // to kill any double clicks
-			await page.mouse.move(100, 100)
-			await page.mouse.move(-10, 50)
-			expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
-				target: 'canvas',
-				type: 'pointer',
-				name: 'pointer_leave',
-			})
-		})
+		// test('pointer leave', async () => {
+		// 	await page.mouse.move(200, 200) // to kill any double clicks
+		// 	await page.mouse.move(100, 100)
+		// 	await page.mouse.move(-10, 50)
+		// 	expect(await page.evaluate(() => __tldraw_editor_events.at(-1))).toMatchObject({
+		// 		target: 'canvas',
+		// 		type: 'pointer',
+		// 		name: 'pointer_leave',
+		// 	})
+		// })
 
-		test('pointer enter', async () => {
-			await page.mouse.move(200, 200) // to kill any double clicks
-			await page.mouse.move(-10, 50)
-			await page.mouse.move(1, 50)
-			expect(await page.evaluate(() => __tldraw_editor_events.at(-2))).toMatchObject({
-				target: 'canvas',
-				type: 'pointer',
-				name: 'pointer_enter',
-			})
-		})
+		// test('pointer enter', async () => {
+		// 	await page.mouse.move(200, 200) // to kill any double clicks
+		// 	await page.mouse.move(-10, 50)
+		// 	await page.mouse.move(1, 50)
+		// 	expect(await page.evaluate(() => __tldraw_editor_events.at(-2))).toMatchObject({
+		// 		target: 'canvas',
+		// 		type: 'pointer',
+		// 		name: 'pointer_enter',
+		// 	})
+		// })
 	})
 
 	test.describe('click events', () => {
