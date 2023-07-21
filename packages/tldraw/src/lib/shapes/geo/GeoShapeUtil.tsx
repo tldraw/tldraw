@@ -87,54 +87,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	// override hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean {
-	// 	const outline = this.editor.getOutline(shape)
-
-	// 	// Check the outline
-	// 	for (let i = 0; i < outline.length; i++) {
-	// 		const C = outline[i]
-	// 		const D = outline[(i + 1) % outline.length]
-	// 		if (linesIntersect(A, B, C, D)) return true
-	// 	}
-
-	// 	// Also check lines, if any
-	// 	const lines = getLines(shape.props, 0)
-	// 	if (lines !== undefined) {
-	// 		for (const [C, D] of lines) {
-	// 			if (linesIntersect(A, B, C, D)) return true
-	// 		}
-	// 	}
-
-	// 	return false
-	// }
-
-	// override hitTestPoint(shape: TLGeoShape, point: VecLike): boolean {
-	// 	const outline = this.editor.getOutline(shape)
-
-	// 	if (shape.props.fill === 'none') {
-	// 		const zoomLevel = this.editor.zoomLevel
-	// 		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
-	// 		// Check the outline
-	// 		for (let i = 0; i < outline.length; i++) {
-	// 			const C = outline[i]
-	// 			const D = outline[(i + 1) % outline.length]
-	// 			if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
-	// 		}
-
-	// 		// Also check lines, if any
-	// 		const lines = getLines(shape.props, 1)
-	// 		if (lines !== undefined) {
-	// 			for (const [C, D] of lines) {
-	// 				if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
-	// 			}
-	// 		}
-
-	// 		return false
-	// 	}
-
-	// 	return pointInPolygon(point, outline)
-	// }
-
 	override getGeometry(shape: TLGeoShape): Geometry2d {
 		const w = Math.max(1, shape.props.w)
 		const h = Math.max(1, shape.props.h + shape.props.growY)

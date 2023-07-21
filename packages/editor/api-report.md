@@ -635,7 +635,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeById<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
-    getShapesAtPoint(point: VecLike, hitInside?: boolean): TLShape[];
+    getShapesAtPoint(point: VecLike, hitInside?: boolean, exact?: boolean): TLShape[];
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
@@ -692,7 +692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isInAny(...paths: string[]): boolean;
     readonly isIos: boolean;
     get isMenuOpen(): boolean;
-    isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean): boolean;
+    isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean, exact: boolean): boolean;
     readonly isSafari: boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
@@ -926,7 +926,7 @@ export abstract class Geometry2d {
     // (undocumented)
     hitTestLineSegment(A: Vec2d, B: Vec2d, zoom?: number): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec2d, zoom?: number, hitInside?: boolean): boolean;
+    hitTestPoint(point: Vec2d, zoom?: number, hitInside?: boolean, exact?: boolean): boolean;
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
@@ -1077,7 +1077,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec2d, zoom: number, hitInside: boolean): boolean;
+    hitTestPoint(point: Vec2d, zoom: number, hitInside: boolean, exact: boolean): boolean;
     // (undocumented)
     nearestPoint(point: Vec2d): Vec2d;
     // (undocumented)

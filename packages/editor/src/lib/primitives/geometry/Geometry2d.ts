@@ -27,7 +27,8 @@ export abstract class Geometry2d {
 
 	abstract nearestPoint(point: Vec2d): Vec2d
 
-	hitTestPoint(point: Vec2d, zoom = 1, hitInside = false) {
+	hitTestPoint(point: Vec2d, zoom = 1, hitInside = false, exact = false) {
+		if (exact) return this.distanceToPoint(point, hitInside) <= 0
 		return this.distanceToPoint(point, hitInside) <= this.margin / zoom
 	}
 

@@ -53,62 +53,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		})
 	}
 
-	// override getOutline(shape: TLHighlightShape) {
-	// 	return getPointsFromSegments(shape.props.segments)
-	// }
-
-	// override getCenter(shape: TLHighlightShape): Vec2d {
-	// 	return this.editor.getBounds(shape).center
-	// }
-
-	// override hitTestPoint(shape: TLHighlightShape, point: VecLike): boolean {
-	// 	const outline = this.editor.getOutline(shape)
-	// 	const zoomLevel = this.editor.zoomLevel
-	// 	const offsetDist = getStrokeWidth(shape) / zoomLevel
-
-	// 	if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
-	// 		if (shape.props.segments[0].points.some((pt) => Vec2d.Dist(point, pt) < offsetDist * 1.5)) {
-	// 			return true
-	// 		}
-	// 	}
-
-	// 	if (this.editor.getBounds(shape).containsPoint(point)) {
-	// 		for (let i = 0; i < outline.length; i++) {
-	// 			const C = outline[i]
-	// 			const D = outline[(i + 1) % outline.length]
-
-	// 			if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
-	// 		}
-	// 	}
-
-	// 	return false
-	// }
-
-	// override hitTestLineSegment(shape: TLHighlightShape, A: VecLike, B: VecLike): boolean {
-	// 	const outline = this.editor.getOutline(shape)
-
-	// 	if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
-	// 		const zoomLevel = this.editor.zoomLevel
-	// 		const offsetDist = getStrokeWidth(shape) / zoomLevel
-
-	// 		if (
-	// 			shape.props.segments[0].points.some(
-	// 				(pt) => Vec2d.DistanceToLineSegment(A, B, pt) < offsetDist * 1.5
-	// 			)
-	// 		) {
-	// 			return true
-	// 		}
-	// 	}
-
-	// 	for (let i = 0; i < outline.length - 1; i++) {
-	// 		const C = outline[i]
-	// 		const D = outline[i + 1]
-	// 		if (linesIntersect(A, B, C, D)) return true
-	// 	}
-
-	// 	return false
-	// }
-
 	component(shape: TLHighlightShape) {
 		return (
 			<HighlightRenderer

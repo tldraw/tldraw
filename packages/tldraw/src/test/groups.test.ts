@@ -1456,7 +1456,6 @@ describe('erasing', () => {
 
 	it('does not erase whole groups if you do not hit on one of their shapes', () => {
 		editor.setCurrentTool(EraserTool.id)
-
 		editor.pointerDown(35, 5)
 		expect(editor.erasingIdsSet.size).toBe(0)
 	})
@@ -1493,6 +1492,24 @@ describe('erasing', () => {
 		editor.pointerMove(65, 5)
 
 		expect(editor.erasingIdsSet.size).toBe(2)
+	})
+})
+
+describe('binding bug', () => {
+	beforeEach(() => {
+		editor.createShapes([box(ids.boxA, 0, 0, 10, 10), box(ids.boxB, 50, 0, 10, 10)])
+		editor.select(ids.boxA, ids.boxB)
+		editor.groupShapes()
+		editor.selectNone()
+	})
+
+	it('can not be made from some child shape to a group shape', () => {
+		editor.setCurrentTool('arrow')
+		// go from A to group A
+		editor.pointerDown(5, 5).pointerMove(25, 5).pointerUp()
+		const arrow = onlySelectedShape() as TLArrowShape
+		expect(arrow.props.start).toMatchObject({ boundShapeId: ids.boxA })
+		expect(arrow.props.end).toMatchObject({ type: 'point' })
 	})
 })
 

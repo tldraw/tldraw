@@ -337,7 +337,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							}
 
 							// Test the point using the shape's idea of what a hit is
-							return this.editor.isPointInShape(hitShape, pointInPageSpace, true)
+							return this.editor.isPointInShape(hitShape, pointInPageSpace, true, true)
 						})
 					)
 

@@ -4378,7 +4378,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean): boolean {
+	isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean, exact: boolean): boolean {
 		// If the shape is masked, and if the point falls outside of that
 		// mask, then it's defintely a miss—we don't need to test further.
 		const pageMask = this.getPageMaskById(shape.id)
@@ -4387,7 +4387,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getGeometry(shape).hitTestPoint(
 			this.getPointInShapeSpace(shape, point),
 			this.zoomLevel,
-			hitInside
+			hitInside,
+			exact
 		)
 	}
 
@@ -4403,8 +4404,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapesAtPoint(point: VecLike, hitInside = false): TLShape[] {
-		return this.shapesArray.filter((shape) => this.isPointInShape(shape, point, hitInside))
+	getShapesAtPoint(point: VecLike, hitInside = false, exact = false): TLShape[] {
+		return this.shapesArray.filter((shape) => this.isPointInShape(shape, point, hitInside, exact))
 	}
 
 	/**
