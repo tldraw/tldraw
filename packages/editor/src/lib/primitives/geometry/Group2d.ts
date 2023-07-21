@@ -119,9 +119,14 @@ export class Group2d extends Geometry2d {
 		}
 	}
 
-	override hitTestPoint(point: Vec2d, zoom: number): boolean {
+	override hitTestPoint(point: Vec2d, zoom: number, hitInside: boolean): boolean {
 		const { children, operation, margin } = this
 		const min = margin / zoom
+
+		if (hitInside) {
+			return this.bounds.clone().expandBy(min).containsPoint(point)
+		}
+
 		const isCloseEnough = this.distanceToPoint(point) <= this.margin / zoom
 		if (!isCloseEnough) return false
 

@@ -30,7 +30,7 @@ export class Erasing extends StateNode {
 						this.editor.isShapeOrAncestorLocked(shape) ||
 						((this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
 							this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) &&
-							this.editor.isPointInShape(shape, originPagePoint, false))
+							this.editor.isPointInShape(shape, originPagePoint, true))
 				)
 				.map((shape) => shape.id)
 		)
@@ -116,9 +116,6 @@ export class Erasing extends StateNode {
 			const A = this.editor.getPointInShapeSpace(shape, previousPagePoint)
 			const B = this.editor.getPointInShapeSpace(shape, currentPagePoint)
 
-			if (shape.id === 'shape:box1' && !geometry.hitTestLineSegment(A, B, zoomLevel)) {
-				throw Error()
-			}
 			if (geometry.hitTestLineSegment(A, B, zoomLevel)) {
 				erasing.add(this.editor.getOutermostSelectableShape(shape).id)
 			}

@@ -1077,7 +1077,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec2d, zoom: number): boolean;
+    hitTestPoint(point: Vec2d, zoom: number, hitInside: boolean): boolean;
     // (undocumented)
     nearestPoint(point: Vec2d): Vec2d;
     // (undocumented)
