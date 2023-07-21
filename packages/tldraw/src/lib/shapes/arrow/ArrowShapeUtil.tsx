@@ -238,17 +238,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						let precise = this.editor.getGeometry(target).isClosed && isPrecise
 
 						if (!precise) {
+							// If we're switching to a new bound shape, then precise only if moving slowly
 							const prevHandle = next.props[handle.id]
 							if (
 								prevHandle.type === 'point' ||
 								(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
 							) {
-								// If we're switching to a new bound shape, then precise only if moving slowly
 								precise = this.editor.inputs.pointerVelocity.len() < 0.5
 							}
 						}
 
 						if (precise) {
+							// Turn off precision if we're within a certain distance to the center of the shape.
 							// Funky math but we want the snap distance to be 4 at the minimum and either
 							// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
 							precise =
@@ -260,14 +261,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 									this.editor.zoomLevel
 						}
 
-						// Double check that we're not going to be doing an imprecise snap on the same shape twice,
-						// as this would result in a zero length line
+						// Double check that we're not going to be doing an imprecise snap on
+						// the same shape twice, as this would result in a zero length line
 						if (!precise) {
 							const otherHandle = next.props[handle.id === 'start' ? 'end' : 'start']
-							const otherHandleBindingId =
-								otherHandle.type === 'binding' ? otherHandle.boundShapeId : undefined
-							if (otherHandleBindingId && target.id === otherHandleBindingId) {
-								precise = false
+							if (otherHandle.type === 'binding' && target.id === otherHandle.boundShapeId) {
+								precise = true
 							}
 						}
 
@@ -288,14 +287,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							type: 'point',
 							x: handle.x,
 							y: handle.y,
-						}
-					}
-				}
-
-				if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
-					if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
-						if (Vec2d.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
-							throw Error('Same shape bound twice at same point')
 						}
 					}
 				}
