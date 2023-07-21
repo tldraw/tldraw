@@ -342,7 +342,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					)
 
 					if (target) {
-						const targetBounds = this.editor.getBounds(target)
+						const targetBounds = this.editor.getGeometry(target).bounds
 						const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
 						const prevHandle = next.props[handle.id]
@@ -587,7 +587,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			) && !this.editor.instanceState.isReadonly
 
 		const info = this.editor.getArrowInfo(shape)
-		const bounds = this.editor.getBounds(shape)
+		const bounds = this.editor.getGeometry(shape).bounds
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const changeIndex = React.useMemo<number>(() => {
@@ -769,11 +769,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
 		const info = this.editor.getArrowInfo(shape)
-		const bounds = this.editor.getBounds(shape)
+		const geometry = this.editor.getGeometry<Group2d>(shape)
+		const bounds = geometry.bounds
 
-		const labelGeometry = shape.props.text.trim()
-			? (this.editor.getGeometry<Group2d>(shape).children[1] as Rectangle2d)
-			: null
+		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
 
 		if (!info) return null
 		if (Vec2d.Equals(start, end)) return null
@@ -902,11 +901,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// Arrowhead end path
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
-		const bounds = this.editor.getBounds(shape)
+		const geometry = this.editor.getGeometry<Group2d>(shape)
+		const bounds = geometry.bounds
 
-		const labelGeometry = shape.props.text.trim()
-			? (this.editor.getGeometry<Group2d>(shape).children[1] as Rectangle2d)
-			: null
+		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
 

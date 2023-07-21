@@ -224,7 +224,9 @@ describe('When pasting', () => {
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
-		expect(editor.selectionPageCenter).toMatchObject(editor.getPageCenterById(ids.frame1)!)
+		expect(editor.selectionPageCenter).toMatchObject(
+			editor.getPageCenter(editor.getShapeById(ids.frame1)!)!
+		)
 	})
 
 	it('pastes shapes as children of the most common ancestor', () => {

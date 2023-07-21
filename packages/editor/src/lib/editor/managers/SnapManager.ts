@@ -498,7 +498,7 @@ export class SnapManager {
 
 	@computed get outlinesInPageSpace() {
 		return this.snappableShapes.map(({ id, isClosed }) => {
-			const outline = deepCopy(this.editor.getOutlineById(id))
+			const outline = deepCopy(this.editor.getGeometry(id).vertices)
 			if (isClosed) outline.push(outline[0])
 			const pageTransform = this.editor.getPageTransformById(id)
 			if (!pageTransform) throw Error('No page transform')

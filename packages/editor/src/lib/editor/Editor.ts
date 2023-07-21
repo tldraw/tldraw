@@ -1596,7 +1596,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		if (selectedIds.length === 1) {
-			const bounds = this.getBounds(this.getShapeById(selectedIds[0])!).clone()
+			const bounds = this.getGeometry(selectedIds[0]).bounds.clone()
 			bounds.point = Matrix2d.applyToPoint(this.getPageTransformById(selectedIds[0])!, bounds.point)
 			return bounds
 		}
@@ -1606,7 +1606,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			.flatMap((id) => {
 				const pageTransform = this.getPageTransformById(id)
 				if (!pageTransform) return []
-				return this.getOutlineById(id).map((point) => Matrix2d.applyToPoint(pageTransform, point))
+				return pageTransform.applyToPoints(this.getGeometry(id).vertices)
 			})
 			.map((p) => Vec2d.Rot(p, -selectionRotation))
 		const box = Box2d.FromPoints(allPoints)
@@ -3690,69 +3690,69 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._geometryCache.get(typeof id === 'string' ? id : id.id)! as T
 	}
 
-	/**
-	 * Get the local bounds of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getBounds(myShape)
-	 * ```
-	 *
-	 * @param shape - The shape to get the bounds for.
-	 *
-	 * @public
-	 */
-	getBounds<T extends TLShape>(shape: T): Box2d {
-		return this.getGeometry(shape).bounds
-	}
+	// /**
+	//  * Get the local bounds of a shape.
+	//  *
+	//  * @example
+	//  * ```ts
+	//  * editor.getBounds(myShape)
+	//  * ```
+	//  *
+	//  * @param shape - The shape to get the bounds for.
+	//  *
+	//  * @public
+	//  */
+	// getBounds<T extends TLShape>(shape: T): Box2d {
+	// 	return this.getGeometry(shape).bounds
+	// }
 
-	/**
-	 * Get the local bounds of a shape by its id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getBoundsById(myShape)
-	 * ```
-	 *
-	 * @param id - The id of the shape to get the bounds for.
-	 *
-	 * @public
-	 */
-	getBoundsById<T extends TLShape>(id: T['id']): Box2d | undefined {
-		return this.getBounds<T>(this.getShapeById<T>(id)!)
-	}
+	// /**
+	//  * Get the local bounds of a shape by its id.
+	//  *
+	//  * @example
+	//  * ```ts
+	//  * editor.getBoundsById(myShape)
+	//  * ```
+	//  *
+	//  * @param id - The id of the shape to get the bounds for.
+	//  *
+	//  * @public
+	//  */
+	// getBoundsById<T extends TLShape>(id: T['id']): Box2d | undefined {
+	// 	return this.getBounds<T>(this.getShapeById<T>(id)!)
+	// }
 
-	/**
-	 * Get the local outline of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getOutline(myShape)
-	 * ```
-	 *
-	 * @param shape - The shape to get the outline for.
-	 *
-	 * @public
-	 */
-	getOutline<T extends TLShape>(shape: T): Vec2d[] {
-		return this.getGeometry(shape).vertices
-	}
+	// /**
+	//  * Get the local outline of a shape.
+	//  *
+	//  * @example
+	//  * ```ts
+	//  * editor.getOutline(myShape)
+	//  * ```
+	//  *
+	//  * @param shape - The shape to get the outline for.
+	//  *
+	//  * @public
+	//  */
+	// getOutline<T extends TLShape>(shape: T): Vec2d[] {
+	// 	return this.getGeometry(shape).vertices
+	// }
 
-	/**
-	 * Get the local outline of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getOutlineById(myShape)
-	 * ```
-	 *
-	 * @param id - The shape id to get the outline for.
-	 *
-	 * @public
-	 */
-	getOutlineById(id: TLShapeId): Vec2d[] {
-		return this.getOutline(this.getShapeById(id)!)
-	}
+	// /**
+	//  * Get the local outline of a shape.
+	//  *
+	//  * @example
+	//  * ```ts
+	//  * editor.getOutlineById(myShape)
+	//  * ```
+	//  *
+	//  * @param id - The shape id to get the outline for.
+	//  *
+	//  * @public
+	//  */
+	// getOutlineById(id: TLShapeId): Vec2d[] {
+	// 	return this.getOutline(this.getShapeById(id)!)
+	// }
 
 	@computed
 	private get _outlineSegmentsCache(): ComputedCache<Vec2d[][], TLShape> {
@@ -3930,42 +3930,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the page point (or absolute point) of a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getPagePoint(myShape)
-	 * ```
-	 *
-	 * @param shape - The shape to get the page point for.
-	 *
-	 * @public
-	 */
-	getPageCenter(shape: TLShape) {
-		const pageTransform = this.getPageTransformById(shape.id)
-		if (!pageTransform) return null
-		const center = this.getBounds(shape).center
-		return Matrix2d.applyToPoint(pageTransform, center)
-	}
-
-	/**
-	 * Get the page point (or absolute point) of a shape by its id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getPagePoint(myShape)
-	 * ```
-	 *
-	 * @param id - The shape id to get the page point for.
-	 *
-	 * @public
-	 */
-	getPageCenterById(id: TLShapeId) {
-		const shape = this.getShapeById(id)!
-		return this.getPageCenter(shape)
-	}
-
-	/**
 	 * Get the page rotation (or absolute rotation) of a shape.
 	 *
 	 * @example
@@ -4010,7 +3974,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (!pageTransform) return new Box2d()
 
-			const result = Box2d.FromPoints(Matrix2d.applyToPoints(pageTransform, this.getOutline(shape)))
+			const result = Box2d.FromPoints(
+				Matrix2d.applyToPoints(pageTransform, this.getGeometry(shape).vertices)
+			)
 
 			return result
 		})
@@ -4108,7 +4074,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const pageMask = frameAncestors
 				.map<VecLike[] | undefined>((s) =>
 					// Apply the frame transform to the frame outline to get the frame outline in page space
-					Matrix2d.applyToPoints(this._pageTransformCache.get(s.id)!, this.getOutline(s))
+					this._pageTransformCache.get(s.id)!.applyToPoints(this.getGeometry(s).vertices)
 				)
 				.reduce((acc, b) => (b && acc ? intersectPolygonPolygon(acc, b) ?? undefined : undefined))
 
@@ -4352,7 +4318,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getPageCorners(shape: TLShape): Vec2d[] {
 		const ancestors = this.getAncestors(shape)
-		const corners = this.getBounds(shape).corners
+		const corners = this.getGeometry(shape).bounds.corners
 
 		const transform = Matrix2d.Compose(
 			...ancestors.flatMap((s) => [Matrix2d.Translate(s.x, s.y), Matrix2d.Rotate(s.rotation)]),
@@ -5451,7 +5417,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.batch(() => {
 			for (const shape of shapes) {
-				const bounds = this.getBounds(shape)
+				const bounds = this.getGeometry(shape).bounds
 				const initialPageTransform = this.getPageTransformById(shape.id)
 				if (!initialPageTransform) continue
 				this.resizeShape(
@@ -5955,10 +5921,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length < 2) return this
 
 		const shapes = compact(ids.map((id) => this.getShapeById(id)))
-		const shapeBounds = Object.fromEntries(shapes.map((shape) => [shape.id, this.getBounds(shape)]))
-		const shapePageBounds = Object.fromEntries(
-			shapes.map((shape) => [shape.id, this.getPageBounds(shape)!])
-		)
+		const shapeBounds = Object.fromEntries(ids.map((id) => [id, this.getGeometry(id).bounds]))
+		const shapePageBounds = Object.fromEntries(ids.map((id) => [id, this.getPageBoundsById(id)!]))
 		const commonBounds = Box2d.Common(compact(Object.values(shapePageBounds)))
 
 		const changes: TLShapePartial[] = []
@@ -6059,7 +6023,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const pageTransform = options.initialPageTransform ?? this.getPageTransformById(id)
 		if (!pageTransform) return this
 
-		const initialBounds = options.initialBounds ?? this.getBoundsById(id)
+		const initialBounds = options.initialBounds ?? this.getGeometry(id).bounds
 
 		if (!initialBounds) return this
 
@@ -6234,8 +6198,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		// now calculate how far away the shape is from where it needs to be
-		const currentPageCenter = this.getPageCenterById(id)
-		const currentPagePoint = this.getPagePointById(id)
+		const pageBounds = this.getPageBoundsById(id)!
+		const currentPageCenter = pageBounds.center
+		const currentPagePoint = pageBounds.point
 		if (!currentPageCenter || !currentPagePoint) return this
 		const pageDelta = Vec2d.Sub(postScaleShapePageCenter, currentPageCenter)
 

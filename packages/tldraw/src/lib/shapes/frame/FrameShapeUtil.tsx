@@ -40,7 +40,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override component(shape: TLFrameShape) {
-		const bounds = this.editor.getBounds(shape)
+		const bounds = this.editor.getGeometry(shape).bounds
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
@@ -154,7 +154,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	indicator(shape: TLFrameShape) {
-		const bounds = this.editor.getBounds(shape)
+		const bounds = this.editor.getGeometry(shape).bounds
 
 		return (
 			<rect

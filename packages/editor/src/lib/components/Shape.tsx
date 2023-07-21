@@ -78,7 +78,7 @@ export const Shape = track(function Shape({
 			const shape = editor.getShapeById(id)
 			if (!shape) return null
 
-			const bounds = editor.getBounds(shape)
+			const bounds = editor.getGeometry(shape).bounds
 			setProperty('width', Math.ceil(bounds.width) + 'px')
 			setProperty('height', Math.ceil(bounds.height) + 'px')
 		},
@@ -167,7 +167,7 @@ const InnerShapeBackground = React.memo(
 const CulledShape = React.memo(
 	function CulledShape<T extends TLShape>({ shape }: { shape: T }) {
 		const editor = useEditor()
-		const bounds = editor.getBounds(shape)
+		const bounds = editor.getGeometry(shape).bounds
 
 		return (
 			<div

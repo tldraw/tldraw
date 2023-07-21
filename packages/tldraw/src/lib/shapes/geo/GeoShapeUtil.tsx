@@ -441,7 +441,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					break
 				}
 				default: {
-					const outline = this.editor.getOutline(shape)
+					const outline = this.editor.getGeometry(shape).vertices
 					const lines = getLines(shape.props, strokeWidth)
 
 					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
@@ -527,7 +527,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 
 			default: {
-				const outline = this.editor.getOutline(shape)
+				const outline = this.editor.getGeometry(shape).vertices
 				let path: string
 
 				if (props.dash === 'draw' && !forceSolid) {
@@ -685,7 +685,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				break
 			}
 			default: {
-				const outline = this.editor.getOutline(shape)
+				const outline = this.editor.getGeometry(shape).vertices
 				const lines = getLines(shape.props, strokeWidth)
 
 				switch (props.dash) {
@@ -729,7 +729,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (props.text) {
-			const bounds = this.editor.getBounds(shape)
+			const bounds = this.editor.getGeometry(shape).bounds
 
 			ctx.addExportDef(getFontDefForExport(shape.props.font))
 

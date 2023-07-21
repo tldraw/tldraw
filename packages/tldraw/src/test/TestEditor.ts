@@ -1,6 +1,7 @@
 import {
 	Box2dModel,
 	Editor,
+	Matrix2d,
 	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
@@ -13,6 +14,7 @@ import {
 	TLKeyboardEventInfo,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLWheelEventInfo,
@@ -572,6 +574,25 @@ export class TestEditor extends Editor {
 		const { shapes, ids } = shapesFromJsx(shapesJsx)
 		this.createShapes(shapes)
 		return ids
+	}
+
+	/**
+	 * Get the page point (or absolute point) of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPagePoint(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape to get the page point for.
+	 *
+	 * @public
+	 */
+	override getPageCenter(shape: TLShape) {
+		const pageTransform = this.getPageTransformById(shape.id)
+		if (!pageTransform) return null
+		const center = this.getGeometry(shape).bounds.center
+		return Matrix2d.applyToPoint(pageTransform, center)
 	}
 }
 

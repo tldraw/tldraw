@@ -3842,7 +3842,7 @@ describe('Resizing text from the right edge', () => {
 
 		editor.select(id)
 
-		const bounds = editor.getBoundsById(id)!
+		const bounds = editor.getGeometry(id).bounds
 
 		editor.updateInstanceState({ isCoarsePointer: false })
 
@@ -3869,7 +3869,7 @@ describe('Resizing text from the right edge', () => {
 
 		editor.select(id)
 
-		const bounds = editor.getBoundsById(id)!
+		const bounds = editor.getGeometry(id).bounds
 
 		// Resize from the right edge
 		editor.pointerDown(bounds.maxX, bounds.midY, { target: 'selection', handle: 'right' }) // right edge

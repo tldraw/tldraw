@@ -410,7 +410,7 @@ export class Idle extends StateNode {
 		const shape = this.editor.getShapeById(id)
 		if (!shape) return
 
-		const bounds = this.editor.getBounds(shape)
+		const bounds = this.editor.getGeometry(shape).bounds
 
 		this.editor.updateShapes([
 			{

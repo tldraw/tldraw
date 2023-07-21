@@ -86,7 +86,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			return null
 		}
 
-		const bounds = this.editor.getBounds(shape)
+		const bounds = this.editor.getGeometry(shape).bounds
 
 		return (
 			<SVGContainer id={shape.id}>
@@ -101,7 +101,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			camera: { z: zoomLevel },
 		} = this.editor
 
-		const bounds = this.editor.getBounds(shape)
+		const bounds = this.editor.getGeometry(shape).bounds
 
 		return <DashedOutlineBox className="" bounds={bounds} zoomLevel={zoomLevel} />
 	}
