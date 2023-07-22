@@ -42,6 +42,13 @@ export type Expand<T> = T extends infer O ? {
     [K in keyof O]: O[K];
 } : never;
 
+// @public
+export class FileHelpers {
+    // @internal (undocumented)
+    static base64ToFile(dataURL: string): Promise<ArrayBuffer>;
+    static fileToBase64(file: Blob): Promise<string>;
+}
+
 // @internal
 export function filterEntries<Key extends string, Value>(object: {
     [K in Key]: Value;
@@ -79,6 +86,23 @@ export function isNonNull<T>(value: T): value is typeof value extends null ? nev
 // @public
 export function isNonNullish<T>(value: T): value is typeof value extends undefined ? never : typeof value extends null ? never : T;
 
+// @public (undocumented)
+export function isValidUrl(url: string): boolean;
+
+// @public (undocumented)
+export type JsonArray = JsonValue[];
+
+// @public (undocumented)
+export type JsonObject = {
+    [key: string]: JsonValue | undefined;
+};
+
+// @public (undocumented)
+export type JsonPrimitive = boolean | null | number | string;
+
+// @public (undocumented)
+export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
+
 // @internal (undocumented)
 export function last<T>(arr: readonly T[]): T | undefined;
 
@@ -94,6 +118,18 @@ export function mapObjectMapValues<Key extends string, ValueBefore, ValueAfter>(
 }, mapper: (key: Key, value: ValueBefore) => ValueAfter): {
     [K in Key]: ValueAfter;
 };
+
+// @public
+export class MediaHelpers {
+    static getImageSizeFromSrc(dataURL: string): Promise<{
+        w: number;
+        h: number;
+    }>;
+    static getVideoSizeFromSrc(src: string): Promise<{
+        w: number;
+        h: number;
+    }>;
+}
 
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
@@ -135,6 +171,34 @@ export function omitFromStackTrace<Args extends Array<unknown>, Return>(fn: (...
 
 // @internal
 export function partition<T>(arr: T[], predicate: (item: T) => boolean): [T[], T[]];
+
+// @public (undocumented)
+export class PngHelpers {
+    // (undocumented)
+    static findChunk(view: DataView, type: string): {
+        dataOffset: number;
+        size: number;
+        start: number;
+    };
+    // (undocumented)
+    static getChunkType(view: DataView, offset: number): string;
+    // (undocumented)
+    static isPng(view: DataView, offset: number): boolean;
+    // (undocumented)
+    static parsePhys(view: DataView, offset: number): {
+        ppux: number;
+        ppuy: number;
+        unit: number;
+    };
+    // (undocumented)
+    static readChunks(view: DataView, offset?: number): Record<string, {
+        dataOffset: number;
+        size: number;
+        start: number;
+    }>;
+    // (undocumented)
+    static setPhysChunk(view: DataView, dpr?: number, options?: BlobPropertyBag): Blob;
+}
 
 // @internal (undocumented)
 export function promiseWithResolve<T>(): Promise<T> & {

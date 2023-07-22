@@ -1,11 +1,11 @@
-import { Vec2d } from '@tldraw/primitives'
 import {
 	COARSE_DRAG_DISTANCE,
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
 	MULTI_CLICK_DURATION,
 } from '../../constants'
-import { uniqueId } from '../../utils/data'
+import { Vec2d } from '../../primitives/Vec2d'
+import { uniqueId } from '../../utils/uniqueId'
 import type { Editor } from '../Editor'
 import { TLClickEventInfo, TLPointerEventInfo } from '../types/event-types'
 
@@ -227,7 +227,7 @@ export class ClickManager {
 			this._clickState !== 'idle' &&
 			this._clickScreenPoint &&
 			this._clickScreenPoint.dist(this.editor.inputs.currentScreenPoint) >
-				(this.editor.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
+				(this.editor.instanceState.isCoarsePointer ? COARSE_DRAG_DISTANCE : DRAG_DISTANCE)
 		) {
 			this.cancelDoubleClickTimeout()
 		}

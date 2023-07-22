@@ -2,16 +2,20 @@ import { Migrations, Store, createRecordType } from '@tldraw/store'
 import fs from 'fs'
 import { imageAssetMigrations } from './assets/TLImageAsset'
 import { videoAssetMigrations } from './assets/TLVideoAsset'
-import { documentMigrations } from './records/TLDocument'
-import { instanceMigrations, instanceTypeVersions } from './records/TLInstance'
+import { assetMigrations, assetVersions } from './records/TLAsset'
+import { cameraMigrations, cameraVersions } from './records/TLCamera'
+import { documentMigrations, documentVersions } from './records/TLDocument'
+import { instanceMigrations, instanceVersions } from './records/TLInstance'
+import { pageMigrations, pageVersions } from './records/TLPage'
 import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
+import { pointerMigrations, pointerVersions } from './records/TLPointer'
 import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
-import { TLShape, rootShapeMigrations, Versions as rootShapeVersions } from './records/TLShape'
+import { TLShape, rootShapeMigrations, rootShapeVersions } from './records/TLShape'
 import { arrowShapeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'
 import { drawShapeMigrations } from './shapes/TLDrawShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
-import { geoShapeMigrations } from './shapes/TLGeoShape'
+import { GeoShapeVersions, geoShapeMigrations } from './shapes/TLGeoShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
 import { noteShapeMigrations } from './shapes/TLNoteShape'
 import { textShapeMigrations } from './shapes/TLTextShape'
@@ -703,6 +707,22 @@ describe('Migrate GeoShape legacy horizontal alignment', () => {
 	})
 })
 
+describe('adding cloud shape', () => {
+	const { up, down } = geoShapeMigrations.migrators[GeoShapeVersions.AddCloud]
+
+	test('up does nothing', () => {
+		expect(up({ props: { geo: 'rectangle' } })).toEqual({
+			props: { geo: 'rectangle' },
+		})
+	})
+
+	test('down converts clouds to rectangles', () => {
+		expect(down({ props: { geo: 'cloud' } })).toEqual({
+			props: { geo: 'rectangle' },
+		})
+	})
+})
+
 describe('Migrate NoteShape legacy horizontal alignment', () => {
 	const { up, down } = noteShapeMigrations.migrators[3]
 
@@ -896,7 +916,7 @@ describe('user config refactor', () => {
 	})
 
 	test('removes userId from the instance state', () => {
-		const { up, down } = instanceMigrations.migrators[instanceTypeVersions.RemoveUserId]
+		const { up, down } = instanceMigrations.migrators[instanceVersions.RemoveUserId]
 
 		const prev = {
 			id: 'instance:123',
@@ -924,8 +944,7 @@ describe('user config refactor', () => {
 
 describe('making instance state independent', () => {
 	it('adds isPenMode and isGridMode to instance state', () => {
-		const { up, down } =
-			instanceMigrations.migrators[instanceTypeVersions.AddIsPenModeAndIsGridMode]
+		const { up, down } = instanceMigrations.migrators[instanceVersions.AddIsPenModeAndIsGridMode]
 
 		const prev = {
 			id: 'instance:123',
@@ -1081,7 +1100,7 @@ describe('hoist opacity', () => {
 	})
 
 	test('hoists opacity from propsForNextShape', () => {
-		const { up, down } = instanceMigrations.migrators[instanceTypeVersions.HoistOpacity]
+		const { up, down } = instanceMigrations.migrators[instanceVersions.HoistOpacity]
 		const before = {
 			isToolLocked: true,
 			propsForNextShape: {
@@ -1111,7 +1130,7 @@ describe('hoist opacity', () => {
 })
 
 describe('Adds highlightedUserIds to instance', () => {
-	const { up, down } = instanceMigrations.migrators[instanceTypeVersions.AddHighlightedUserIds]
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddHighlightedUserIds]
 
 	test('up works as expected', () => {
 		expect(up({})).toEqual({ highlightedUserIds: [] })
@@ -1194,9 +1213,7 @@ describe('Removes overridePermissions from embed', () => {
 describe('propsForNextShape -> stylesForNextShape', () => {
 	test('deletes propsForNextShape and adds stylesForNextShape without trying to bring across contents', () => {
 		const { up, down } =
-			instanceMigrations.migrators[
-				instanceTypeVersions.ReplacePropsForNextShapeWithStylesForNextShape
-			]
+			instanceMigrations.migrators[instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape]
 		const beforeUp = {
 			isToolLocked: true,
 			propsForNextShape: {
@@ -1229,6 +1246,114 @@ describe('propsForNextShape -> stylesForNextShape', () => {
 
 		expect(up(beforeUp)).toEqual(afterUp)
 		expect(down(afterUp)).toEqual(afterDown)
+	})
+})
+
+describe('adds meta ', () => {
+	const metaMigrations = [
+		assetMigrations.migrators[assetVersions.AddMeta],
+		cameraMigrations.migrators[cameraVersions.AddMeta],
+		documentMigrations.migrators[documentVersions.AddMeta],
+		instanceMigrations.migrators[instanceVersions.AddMeta],
+		instancePageStateMigrations.migrators[instancePageStateVersions.AddMeta],
+		instancePresenceMigrations.migrators[instancePresenceVersions.AddMeta],
+		pageMigrations.migrators[pageVersions.AddMeta],
+		pointerMigrations.migrators[pointerVersions.AddMeta],
+		rootShapeMigrations.migrators[rootShapeVersions.AddMeta],
+	]
+
+	for (const { up, down } of metaMigrations) {
+		test('up works as expected', () => {
+			expect(up({})).toStrictEqual({ meta: {} })
+		})
+
+		test('down works as expected', () => {
+			expect(down({ meta: {} })).toStrictEqual({})
+		})
+	}
+})
+
+describe('removes cursor color', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.RemoveCursorColor]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				cursor: {
+					type: 'default',
+					rotation: 0.1,
+					color: 'black',
+				},
+			})
+		).toStrictEqual({
+			cursor: {
+				type: 'default',
+				rotation: 0.1,
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				cursor: {
+					type: 'default',
+					rotation: 0.1,
+				},
+			})
+		).toStrictEqual({
+			cursor: {
+				type: 'default',
+				rotation: 0.1,
+				color: 'black',
+			},
+		})
+	})
+})
+
+describe('adds lonely properties', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddLonelyProperties]
+
+	test('up works as expected', () => {
+		expect(up({})).toStrictEqual({
+			canMoveCamera: true,
+			isFocused: false,
+			devicePixelRatio: 1,
+			isCoarsePointer: false,
+			openMenus: [],
+			isChangingStyle: false,
+			isReadOnly: false,
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				canMoveCamera: true,
+				isFocused: false,
+				devicePixelRatio: 1,
+				isCoarsePointer: false,
+				openMenus: [],
+				isChangingStyle: false,
+				isReadOnly: false,
+			})
+		).toStrictEqual({})
+	})
+})
+
+describe('rename isReadOnly to isReadonly', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.ReadOnlyReadonly]
+
+	test('up works as expected', () => {
+		expect(up({ isReadOnly: false })).toStrictEqual({
+			isReadonly: false,
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(down({ isReadonly: false })).toStrictEqual({
+			isReadOnly: false,
+		})
 	})
 })
 

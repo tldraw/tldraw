@@ -1,11 +1,11 @@
-import { Matrix2d } from '@tldraw/primitives'
 import { track, useQuickReactor, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
-import { useEditor } from '../..'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
+import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { useShapeEvents } from '../hooks/useShapeEvents'
+import { Matrix2d } from '../primitives/Matrix2d'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
@@ -135,7 +135,7 @@ export const Shape = track(function Shape({
 				{isCulled && util.canUnmount(shape) ? (
 					<CulledShape shape={shape} />
 				) : (
-					<OptionalErrorBoundary fallback={ShapeErrorFallback} onError={annotateError}>
+					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>
 						<InnerShape shape={shape} util={util} />
 					</OptionalErrorBoundary>
 				)}
@@ -146,9 +146,9 @@ export const Shape = track(function Shape({
 
 const InnerShape = React.memo(
 	function InnerShape<T extends TLShape>({ shape, util }: { shape: T; util: ShapeUtil<T> }) {
-		return useStateTracking('InnerShape:' + util.type, () => util.component(shape))
+		return useStateTracking('InnerShape:' + shape.type, () => util.component(shape))
 	},
-	(prev, next) => prev.shape.props === next.shape.props
+	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
 
 const InnerShapeBackground = React.memo(
@@ -159,9 +159,9 @@ const InnerShapeBackground = React.memo(
 		shape: T
 		util: ShapeUtil<T>
 	}) {
-		return useStateTracking('InnerShape:' + util.type, () => util.backgroundComponent?.(shape))
+		return useStateTracking('InnerShape:' + shape.type, () => util.backgroundComponent?.(shape))
 	},
-	(prev, next) => prev.shape.props === next.shape.props
+	(prev, next) => prev.shape.props === next.shape.props && prev.shape.meta === next.shape.meta
 )
 
 const CulledShape = React.memo(

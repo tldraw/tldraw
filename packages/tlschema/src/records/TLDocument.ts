@@ -1,4 +1,5 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 
 /**
@@ -9,6 +10,7 @@ import { T } from '@tldraw/validate'
 export interface TLDocument extends BaseRecord<'document', RecordId<TLDocument>> {
 	gridSize: number
 	name: string
+	meta: JsonObject
 }
 
 /** @internal */
@@ -19,23 +21,39 @@ export const documentValidator: T.Validator<TLDocument> = T.model(
 		id: T.literal('document:document' as RecordId<TLDocument>),
 		gridSize: T.number,
 		name: T.string,
+		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 )
 
-const Versions = {
+/** @internal */
+export const documentVersions = {
 	AddName: 1,
+	AddMeta: 2,
 } as const
 
 /** @internal */
 export const documentMigrations = defineMigrations({
-	currentVersion: Versions.AddName,
+	currentVersion: documentVersions.AddMeta,
 	migrators: {
-		[Versions.AddName]: {
+		[documentVersions.AddName]: {
 			up: (document: TLDocument) => {
 				return { ...document, name: '' }
 			},
 			down: ({ name: _, ...document }: TLDocument) => {
 				return document
+			},
+		},
+		[documentVersions.AddMeta]: {
+			up: (record) => {
+				return {
+					...record,
+					meta: {},
+				}
+			},
+			down: ({ meta: _, ...record }) => {
+				return {
+					...record,
+				}
 			},
 		},
 	},
@@ -50,6 +68,7 @@ export const DocumentRecordType = createRecordType<TLDocument>('document', {
 	(): Omit<TLDocument, 'id' | 'typeName'> => ({
 		gridSize: 10,
 		name: '',
+		meta: {},
 	})
 )
 

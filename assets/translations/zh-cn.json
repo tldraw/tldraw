@@ -312,6 +312,8 @@
 	"page-menu.go-to-page": "转到页面",
 	"action.insert-embed": "创建嵌入",
 	"people-menu.leading": "跟随",
+	"geo-style.check-box": "复选框",
+	"tool.check-box": "复选框",
 	"share-menu.create-snapshot-link": "创建快照链接",
 	"share-menu.save-note": "将这个项目以 .tldr 格式保存到您的电脑上。",
 	"share-menu.fork-note": "基于这个快照创建一个新的共享项目。",
@@ -326,11 +328,17 @@
 	"sharing.confirm-leave.cancel": "取消",
 	"sharing.confirm-leave.leave": "退出",
 	"sharing.confirm-leave.dont-show-again": "不再询问",
+	"action.toggle-reduce-motion.menu": "降低灵敏度",
+	"action.toggle-reduce-motion": "切换降低灵敏度",
 	"tool.highlight": "高亮",
 	"action.toggle-lock": "锁定/解锁",
 	"share-menu.default-project-name": "共享项目",
+	"home-project-dialog.title": "主项目",
 	"rename-project-dialog.title": "项目重命名",
 	"rename-project-dialog.cancel": "取消",
 	"rename-project-dialog.rename": "重命名",
-	"home-project-dialog.ok": "好的"
+	"home-project-dialog.ok": "好的",
+	"action.open-cursor-chat": "Cursor Chat",
+	"shortcuts-dialog.collaboration": "协作",
+	"cursor-chat.type-to-chat": "输入以开始聊天..."
 }

@@ -1,7 +1,5 @@
 import { Atom, Computed, atom, computed } from '@tldraw/state'
-import { TLBaseShape } from '@tldraw/tlschema'
 import type { Editor } from '../Editor'
-import { TLShapeUtilConstructor } from '../shapes/ShapeUtil'
 import {
 	EVENT_NAME_MAP,
 	TLEnterEventHandler,
@@ -69,7 +67,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	id: string
 	current: Atom<StateNode | undefined>
 	type: TLStateNodeType
-	shapeType?: TLShapeUtilConstructor<TLBaseShape<any, any>>
+	shapeType?: string
 	initial?: string
 	children?: Record<string, StateNode>
 	parent: StateNode
@@ -128,6 +126,26 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		if (!this.isActive) {
 			this.current.value?.exit(info, from)
 		}
+	}
+
+	/**
+	 * This is a hack / escape hatch that will tell the editor to
+	 * report a different state as active (in `currentToolId`) when
+	 * this state is active. This is usually used when a tool transitions
+	 * to a child of a different state for a certain interaction and then
+	 * returns to the original tool when that interaction completes; and
+	 * where we would want to show the original tool as active in the UI.
+	 *
+	 * @public
+	 */
+	_currentToolIdMask = atom('curent tool id mask', undefined as string | undefined)
+
+	@computed get currentToolIdMask() {
+		return this._currentToolIdMask.value
+	}
+
+	set currentToolIdMask(id: string | undefined) {
+		this._currentToolIdMask.set(id)
 	}
 
 	onWheel?: TLEventHandlers['onWheel']

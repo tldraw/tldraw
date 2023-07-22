@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react'
 import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
-import { getPointerInfo } from '../utils/svg'
+import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
 export function useCanvasEvents() {
@@ -80,7 +80,9 @@ export function useCanvasEvents() {
 
 			function onTouchStart(e: React.TouchEvent) {
 				;(e as any).isKilled = true
-				document.body.click() // god damn it, but necessary for long presses to open the context menu
+				// todo: investigate whether this effects keyboard shortcuts
+				// god damn it, but necessary for long presses to open the context menu
+				document.body.click()
 				preventDefault(e)
 			}
 

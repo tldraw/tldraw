@@ -1,4 +1,4 @@
-import { Store, StoreSchema, StoreSchemaOptions, StoreSnapshot } from '@tldraw/store'
+import { SerializedStore, Store, StoreSchema, StoreSchemaOptions } from '@tldraw/store'
 import { annotateError, structuredClone } from '@tldraw/utils'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
@@ -33,7 +33,10 @@ function redactRecordForErrorReporting(record: any) {
 export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>
 
 /** @public */
-export type TLStoreSnapshot = StoreSnapshot<TLRecord>
+export type TLSerializedStore = SerializedStore<TLRecord>
+
+/** @public */
+export type TLStoreSnapshot = SerializedStore<TLRecord>
 
 /** @public */
 export type TLStoreProps = {
@@ -71,7 +74,7 @@ export const onValidationFailure: StoreSchemaOptions<
 }
 
 function getDefaultPages() {
-	return [PageRecordType.create({ name: 'Page 1', index: 'a1' })]
+	return [PageRecordType.create({ name: 'Page 1', index: 'a1', meta: {} })]
 }
 
 /** @internal */

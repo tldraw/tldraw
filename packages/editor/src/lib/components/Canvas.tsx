@@ -1,4 +1,3 @@
-import { Matrix2d, toDomPrecision } from '@tldraw/primitives'
 import { react, track, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
@@ -13,10 +12,10 @@ import { useFixSafariDoubleTapZoomPencilEvents } from '../hooks/useFixSafariDoub
 import { useGestureEvents } from '../hooks/useGestureEvents'
 import { useHandleEvents } from '../hooks/useHandleEvents'
 import { useScreenBounds } from '../hooks/useScreenBounds'
+import { Matrix2d } from '../primitives/Matrix2d'
+import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
 import { LiveCollaborators } from './LiveCollaborators'
-import { SelectionBg } from './SelectionBg'
-import { SelectionFg } from './SelectionFg'
 import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
 
@@ -115,7 +114,7 @@ export const Canvas = track(function Canvas({
 						{SvgDefs && <SvgDefs />}
 					</defs>
 				</svg>
-				<SelectionBg />
+				<SelectionBackgroundWrapper />
 				<div className="tl-shapes">
 					<ShapesToDisplay />
 				</div>
@@ -128,7 +127,7 @@ export const Canvas = track(function Canvas({
 					<HoveredShapeIndicator />
 					<HintedShapeIndicator />
 					<SnapLinesWrapper />
-					<SelectionFg />
+					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
 			</div>
@@ -136,58 +135,53 @@ export const Canvas = track(function Canvas({
 	)
 })
 
-const GridWrapper = track(function GridWrapper() {
+function GridWrapper() {
 	const editor = useEditor()
+	const gridSize = useValue('gridSize', () => editor.documentSettings.gridSize, [editor])
+	const { x, y, z } = useValue('camera', () => editor.camera, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.instanceState.isGridMode, [editor])
 	const { Grid } = useEditorComponents()
-
-	// get grid from context
-
-	const { x, y, z } = editor.camera
-	const isGridMode = editor.isGridMode
 
 	if (!(Grid && isGridMode)) return null
 
-	return <Grid x={x} y={y} z={z} size={editor.gridSize} />
-})
+	return <Grid x={x} y={y} z={z} size={gridSize} />
+}
 
-const ScribbleWrapper = track(function ScribbleWrapper() {
+function ScribbleWrapper() {
 	const editor = useEditor()
-	const scribble = editor.scribble
-	const zoom = editor.zoomLevel
-
+	const scribble = useValue('scribble', () => editor.instanceState.scribble, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const { Scribble } = useEditorComponents()
 
 	if (!(Scribble && scribble)) return null
 
-	return <Scribble className="tl-user-scribble" scribble={scribble} zoom={zoom} />
-})
+	return <Scribble className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
+}
 
-const BrushWrapper = track(function BrushWrapper() {
+function BrushWrapper() {
 	const editor = useEditor()
-	const { brush } = editor
+	const brush = useValue('brush', () => editor.instanceState.brush, [editor])
 	const { Brush } = useEditorComponents()
 
-	if (!(Brush && brush && editor.isIn('select.brushing'))) return null
+	if (!(Brush && brush)) return null
 
 	return <Brush className="tl-user-brush" brush={brush} />
-})
+}
 
-export const ZoomBrushWrapper = track(function Zoom() {
+function ZoomBrushWrapper() {
 	const editor = useEditor()
-	const { zoomBrush } = editor
+	const zoomBrush = useValue('zoomBrush', () => editor.instanceState.zoomBrush, [editor])
 	const { ZoomBrush } = useEditorComponents()
 
-	if (!(ZoomBrush && zoomBrush && editor.isIn('zoom'))) return null
+	if (!(ZoomBrush && zoomBrush)) return null
 
 	return <ZoomBrush className="tl-user-brush" brush={zoomBrush} />
-})
+}
 
-export const SnapLinesWrapper = track(function SnapLines() {
+function SnapLinesWrapper() {
 	const editor = useEditor()
-	const {
-		snaps: { lines },
-		zoomLevel,
-	} = editor
+	const lines = useValue('snapLines', () => editor.snaps.lines, [editor])
+	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const { SnapLine } = useEditorComponents()
 
 	if (!(SnapLine && lines.length > 0)) return null
@@ -199,24 +193,22 @@ export const SnapLinesWrapper = track(function SnapLines() {
 			))}
 		</>
 	)
-})
+}
 
 const MIN_HANDLE_DISTANCE = 48
 
-const HandlesWrapper = track(function HandlesWrapper() {
+function HandlesWrapper() {
 	const editor = useEditor()
+	const { Handles } = useEditorComponents()
 
-	const zoom = editor.zoomLevel
-	const isChangingStyle = editor.isChangingStyle
+	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
+	const isChangingStyle = useValue('isChangingStyle', () => editor.instanceState.isChangingStyle, [
+		editor,
+	])
+	const isReadonly = useValue('isChangingStyle', () => editor.instanceState.isReadonly, [editor])
 
-	const onlySelectedShape = editor.onlySelectedShape
-
-	const shouldDisplayHandles =
-		editor.isInAny('select.idle', 'select.pointing_handle') &&
-		!isChangingStyle &&
-		!editor.isReadOnly
-
-	if (!(onlySelectedShape && shouldDisplayHandles)) return null
+	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly) return null
 
 	const handles = editor.getHandles(onlySelectedShape)
 
@@ -234,7 +226,7 @@ const HandlesWrapper = track(function HandlesWrapper() {
 			const prev = handles[i - 1]
 			const next = handles[i + 1]
 			if (prev && next) {
-				if (Math.hypot(prev.y - next.y, prev.x - next.x) < MIN_HANDLE_DISTANCE / zoom) {
+				if (Math.hypot(prev.y - next.y, prev.x - next.x) < MIN_HANDLE_DISTANCE / zoomLevel) {
 					continue
 				}
 			}
@@ -246,17 +238,17 @@ const HandlesWrapper = track(function HandlesWrapper() {
 	handlesToDisplay.sort((a) => (a.type === 'vertex' ? 1 : -1))
 
 	return (
-		<svg className="tl-user-handles tl-overlays__item">
+		<Handles>
 			<g transform={Matrix2d.toCssString(transform)}>
 				{handlesToDisplay.map((handle) => {
 					return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
 				})}
 			</g>
-		</svg>
+		</Handles>
 	)
-})
+}
 
-const HandleWrapper = ({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHandle }) => {
+function HandleWrapper({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHandle }) {
 	const events = useHandleEvents(shapeId, handle.id)
 	const { Handle } = useEditorComponents()
 
@@ -297,43 +289,45 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 	)
 })
 
-const SelectedIdIndicators = track(function SelectedIdIndicators() {
+function SelectedIdIndicators() {
 	const editor = useEditor()
-
-	const shouldDisplay =
-		editor.isInAny(
-			'select.idle',
-			'select.brushing',
-			'select.scribble_brushing',
-			'select.pointing_shape',
-			'select.pointing_selection',
-			'select.pointing_handle'
-		) && !editor.isChangingStyle
+	const selectedIds = useValue('selectedIds', () => editor.currentPageState.selectedIds, [editor])
+	const shouldDisplay = useValue(
+		'should display selected ids',
+		() => {
+			// todo: move to tldraw selected ids wrapper
+			return (
+				editor.isInAny(
+					'select.idle',
+					'select.brushing',
+					'select.scribble_brushing',
+					'select.pointing_shape',
+					'select.pointing_selection',
+					'select.pointing_handle'
+				) && !editor.instanceState.isChangingStyle
+			)
+		},
+		[editor]
+	)
 
 	if (!shouldDisplay) return null
 
 	return (
 		<>
-			{editor.selectedIds.map((id) => (
+			{selectedIds.map((id) => (
 				<ShapeIndicator key={id + '_indicator'} className="tl-user-indicator__selected" id={id} />
 			))}
 		</>
 	)
-})
+}
 
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const editor = useEditor()
+	const { HoveredShapeIndicator } = useEditorComponents()
+	const hoveredId = useValue('hovered id', () => editor.currentPageState.hoveredId, [editor])
+	if (!hoveredId || !HoveredShapeIndicator) return null
 
-	const displayingHoveredId = useValue(
-		'hovered id and should display',
-		() =>
-			editor.isInAny('select.idle', 'select.editing_shape') ? editor.pageState.hoveredId : null,
-		[editor]
-	)
-
-	if (!displayingHoveredId) return null
-
-	return <ShapeIndicator className="tl-user-indicator__hovered" id={displayingHoveredId} />
+	return <HoveredShapeIndicator shapeId={hoveredId} />
 }
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
@@ -450,3 +444,15 @@ const UiLogger = track(() => {
 		</div>
 	)
 })
+
+export function SelectionForegroundWrapper() {
+	const { SelectionForeground } = useEditorComponents()
+	if (!SelectionForeground) return null
+	return <SelectionForeground />
+}
+
+export function SelectionBackgroundWrapper() {
+	const { SelectionBackground } = useEditorComponents()
+	if (!SelectionBackground) return null
+	return <SelectionBackground />
+}

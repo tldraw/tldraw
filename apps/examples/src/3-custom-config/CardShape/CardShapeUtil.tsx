@@ -1,11 +1,14 @@
-import { resizeBox } from '@tldraw/editor/src/lib/editor/shapes/shared/resizeBox'
 import {
 	Box2d,
 	HTMLContainer,
 	ShapeUtil,
 	TLOnResizeHandler,
 	getDefaultColorTheme,
+	resizeBox,
 } from '@tldraw/tldraw'
+import { useState } from 'react'
+import { cardShapeMigrations } from './card-shape-migrations'
+import { cardShapeProps } from './card-shape-props'
 import { ICardShape } from './card-shape-types'
 
 // A utility class for the card shape. This is where you define
@@ -14,6 +17,10 @@ import { ICardShape } from './card-shape-types'
 
 export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	static override type = 'card' as const
+	// A validation schema for the shape's props (optional)
+	static override props = cardShapeProps
+	// Migrations for upgrading shapes (optional)
+	static override migrations = cardShapeMigrations
 
 	// Flags
 	override isAspectRatioLocked = (_shape: ICardShape) => false
@@ -36,7 +43,11 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 	// Render method — the React component that will be rendered for the shape
 	component(shape: ICardShape) {
 		const bounds = this.editor.getBounds(shape)
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+
+		// Unfortunately eslint will think this is a class components
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const [count, setCount] = useState(0)
 
 		return (
 			<HTMLContainer
@@ -44,14 +55,24 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 				style={{
 					border: '1px solid black',
 					display: 'flex',
+					flexDirection: 'column',
 					alignItems: 'center',
 					justifyContent: 'center',
 					pointerEvents: 'all',
+					backgroundColor: theme[shape.props.color].semi,
 					fontWeight: shape.props.weight,
 					color: theme[shape.props.color].solid,
 				}}
 			>
-				{bounds.w.toFixed()}x{bounds.h.toFixed()}
+				<h2>Clicks: {count}</h2>
+				<button
+					onClick={() => setCount((count) => count + 1)}
+					// You need to stop the pointer down event on buttons
+					// that should prevent shape selection or click and drag
+					onPointerDown={(e) => e.stopPropagation()}
+				>
+					{bounds.w.toFixed()}x{bounds.h.toFixed()}
+				</button>
 			</HTMLContainer>
 		)
 	}

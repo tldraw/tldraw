@@ -1,4 +1,5 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { Box2dModel, box2dModelValidator } from '../misc/geometry-types'
 import { idValidator } from '../misc/id-validator'
@@ -17,11 +18,12 @@ import { pageIdValidator, TLPageId } from './TLPage'
  */
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
+	opacityForNextShape: TLOpacityType
+	stylesForNextShape: Record<string, unknown>
+	// ephemeral
 	followingUserId: string | null
 	highlightedUserIds: string[]
 	brush: Box2dModel | null
-	opacityForNextShape: TLOpacityType
-	stylesForNextShape: Record<string, unknown>
 	cursor: TLCursor
 	scribble: TLScribble | null
 	isFocusMode: boolean
@@ -34,6 +36,14 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isChatting: boolean
 	isPenMode: boolean
 	isGridMode: boolean
+	canMoveCamera: boolean
+	isFocused: boolean
+	devicePixelRatio: number
+	isCoarsePointer: boolean
+	openMenus: string[]
+	isChangingStyle: boolean
+	isReadonly: boolean
+	meta: JsonObject
 }
 
 /** @public */
@@ -71,6 +81,14 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: T.string,
 			isChatting: T.boolean,
 			highlightedUserIds: T.arrayOf(T.string),
+			canMoveCamera: T.boolean,
+			isFocused: T.boolean,
+			devicePixelRatio: T.number,
+			isCoarsePointer: T.boolean,
+			openMenus: T.arrayOf(T.string),
+			isChangingStyle: T.boolean,
+			isReadonly: T.boolean,
+			meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 		})
 	)
 
@@ -87,7 +105,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			scribble: null,
 			cursor: {
 				type: 'default',
-				color: 'black',
 				rotation: 0,
 			},
 			isFocusMode: false,
@@ -101,11 +118,20 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: '',
 			isChatting: false,
 			highlightedUserIds: [],
+			canMoveCamera: true,
+			isFocused: false,
+			devicePixelRatio: typeof window === 'undefined' ? 1 : window.devicePixelRatio,
+			isCoarsePointer: false,
+			openMenus: [] as string[],
+			isChangingStyle: false,
+			isReadonly: false,
+			meta: {},
 		})
 	)
 }
 
-const Versions = {
+/** @internal */
+export const instanceVersions = {
 	AddTransparentExportBgs: 1,
 	RemoveDialog: 2,
 	AddToolLockMode: 3,
@@ -122,15 +148,17 @@ const Versions = {
 	AddChat: 14,
 	AddHighlightedUserIds: 15,
 	ReplacePropsForNextShapeWithStylesForNextShape: 16,
+	AddMeta: 17,
+	RemoveCursorColor: 18,
+	AddLonelyProperties: 19,
+	ReadOnlyReadonly: 20,
 } as const
-
-export { Versions as instanceTypeVersions }
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: Versions.ReplacePropsForNextShapeWithStylesForNextShape,
+	currentVersion: instanceVersions.ReadOnlyReadonly,
 	migrators: {
-		[Versions.AddTransparentExportBgs]: {
+		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
 				return { ...instance, exportBackground: true }
 			},
@@ -138,7 +166,7 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
-		[Versions.RemoveDialog]: {
+		[instanceVersions.RemoveDialog]: {
 			up: ({ dialog: _, ...instance }: any) => {
 				return instance
 			},
@@ -146,7 +174,7 @@ export const instanceMigrations = defineMigrations({
 				return { ...instance, dialog: null }
 			},
 		},
-		[Versions.AddToolLockMode]: {
+		[instanceVersions.AddToolLockMode]: {
 			up: (instance: TLInstance) => {
 				return { ...instance, isToolLocked: false }
 			},
@@ -154,7 +182,7 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
-		[Versions.RemoveExtraPropsForNextShape]: {
+		[instanceVersions.RemoveExtraPropsForNextShape]: {
 			up: ({ propsForNextShape, ...instance }: any) => {
 				return {
 					...instance,
@@ -184,7 +212,7 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
-		[Versions.AddLabelColor]: {
+		[instanceVersions.AddLabelColor]: {
 			up: ({ propsForNextShape, ...instance }: any) => {
 				return {
 					...instance,
@@ -204,7 +232,7 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
-		[Versions.AddFollowingUserId]: {
+		[instanceVersions.AddFollowingUserId]: {
 			up: (instance: TLInstance) => {
 				return { ...instance, followingUserId: null }
 			},
@@ -212,7 +240,7 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
-		[Versions.RemoveAlignJustify]: {
+		[instanceVersions.RemoveAlignJustify]: {
 			up: (instance: any) => {
 				let newAlign = instance.propsForNextShape.align
 				if (newAlign === 'justify') {
@@ -231,7 +259,7 @@ export const instanceMigrations = defineMigrations({
 				return { ...instance }
 			},
 		},
-		[Versions.AddZoom]: {
+		[instanceVersions.AddZoom]: {
 			up: (instance: TLInstance) => {
 				return { ...instance, zoomBrush: null }
 			},
@@ -239,7 +267,7 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
-		[Versions.AddVerticalAlign]: {
+		[instanceVersions.AddVerticalAlign]: {
 			up: (instance) => {
 				return {
 					...instance,
@@ -257,7 +285,7 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
-		[Versions.AddScribbleDelay]: {
+		[instanceVersions.AddScribbleDelay]: {
 			up: (instance) => {
 				if (instance.scribble !== null) {
 					return { ...instance, scribble: { ...instance.scribble, delay: 0 } }
@@ -272,7 +300,7 @@ export const instanceMigrations = defineMigrations({
 				return { ...instance }
 			},
 		},
-		[Versions.RemoveUserId]: {
+		[instanceVersions.RemoveUserId]: {
 			up: ({ userId: _, ...instance }: any) => {
 				return instance
 			},
@@ -280,7 +308,7 @@ export const instanceMigrations = defineMigrations({
 				return { ...instance, userId: 'user:none' }
 			},
 		},
-		[Versions.AddIsPenModeAndIsGridMode]: {
+		[instanceVersions.AddIsPenModeAndIsGridMode]: {
 			up: (instance: TLInstance) => {
 				return { ...instance, isPenMode: false, isGridMode: false }
 			},
@@ -288,7 +316,7 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
-		[Versions.HoistOpacity]: {
+		[instanceVersions.HoistOpacity]: {
 			up: ({ propsForNextShape: { opacity, ...propsForNextShape }, ...instance }: any) => {
 				return { ...instance, opacityForNextShape: Number(opacity ?? '1'), propsForNextShape }
 			},
@@ -311,7 +339,7 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
-		[Versions.AddChat]: {
+		[instanceVersions.AddChat]: {
 			up: (instance: TLInstance) => {
 				return { ...instance, chatMessage: '', isChatting: false }
 			},
@@ -319,7 +347,7 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
-		[Versions.AddHighlightedUserIds]: {
+		[instanceVersions.AddHighlightedUserIds]: {
 			up: (instance: TLInstance) => {
 				return { ...instance, highlightedUserIds: [] }
 			},
@@ -327,7 +355,7 @@ export const instanceMigrations = defineMigrations({
 				return instance
 			},
 		},
-		[Versions.ReplacePropsForNextShapeWithStylesForNextShape]: {
+		[instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape]: {
 			up: ({ propsForNextShape: _, ...instance }) => {
 				return { ...instance, stylesForNextShape: {} }
 			},
@@ -349,6 +377,79 @@ export const instanceMigrations = defineMigrations({
 						arrowheadEnd: 'arrow',
 						spline: 'line',
 					},
+				}
+			},
+		},
+		[instanceVersions.AddMeta]: {
+			up: (record) => {
+				return {
+					...record,
+					meta: {},
+				}
+			},
+			down: ({ meta: _, ...record }) => {
+				return {
+					...record,
+				}
+			},
+		},
+		[instanceVersions.RemoveCursorColor]: {
+			up: (record) => {
+				const { color: _, ...cursor } = record.cursor
+				return {
+					...record,
+					cursor,
+				}
+			},
+			down: (record) => {
+				return {
+					...record,
+					cursor: {
+						...record.cursor,
+						color: 'black',
+					},
+				}
+			},
+		},
+		[instanceVersions.AddLonelyProperties]: {
+			up: (record) => {
+				return {
+					...record,
+					canMoveCamera: true,
+					isFocused: false,
+					devicePixelRatio: 1,
+					isCoarsePointer: false,
+					openMenus: [],
+					isChangingStyle: false,
+					isReadOnly: false,
+				}
+			},
+			down: ({
+				canMoveCamera: _canMoveCamera,
+				isFocused: _isFocused,
+				devicePixelRatio: _devicePixelRatio,
+				isCoarsePointer: _isCoarsePointer,
+				openMenus: _openMenus,
+				isChangingStyle: _isChangingStyle,
+				isReadOnly: _isReadOnly,
+				...record
+			}) => {
+				return {
+					...record,
+				}
+			},
+		},
+		[instanceVersions.ReadOnlyReadonly]: {
+			up: ({ isReadOnly: _isReadOnly, ...record }) => {
+				return {
+					...record,
+					isReadonly: _isReadOnly,
+				}
+			},
+			down: ({ isReadonly: _isReadonly, ...record }) => {
+				return {
+					...record,
+					isReadOnly: _isReadonly,
 				}
 			},
 		},

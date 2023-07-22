@@ -1,3 +1,28 @@
+# v2.0.0-alpha.14 (Tue Jul 04 2023)
+
+#### 🐛 Bug Fix
+
+- [fix] rename `global` in @tldraw/state to avoid collissions [#1672](https://github.com/tldraw/tldraw/pull/1672) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.0.0-alpha.13 (Wed Jun 28 2023)
+
+#### 🔩 Dependency Updates
+
+- Incorporate signia as @tldraw/state [#1620](https://github.com/tldraw/tldraw/pull/1620) ([@steveruizok](https://github.com/steveruizok) [@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.12 (Mon Apr 03 2023)
 
 #### 🐛 Bug Fix

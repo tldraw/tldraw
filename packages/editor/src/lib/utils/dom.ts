@@ -13,8 +13,7 @@ if the user clicks on a handle but the pointerup does not fire for
 whatever reason.
 */
 
-import { Vec2d } from '@tldraw/primitives'
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { debugFlags } from './debug-flags'
 
 /** @public */
@@ -83,54 +82,5 @@ export function releasePointerCapture(
 	}
 }
 
-export const ROTATING_BOX_SHADOWS = [
-	{
-		offsetX: 0,
-		offsetY: 2,
-		blur: 4,
-		spread: 0,
-		color: '#00000029',
-	},
-	{
-		offsetX: 0,
-		offsetY: 3,
-		blur: 6,
-		spread: 0,
-		color: '#0000001f',
-	},
-]
-
 /** @public */
-export function getRotatedBoxShadow(rotation: number) {
-	const cssStrings = ROTATING_BOX_SHADOWS.map((shadow) => {
-		const { offsetX, offsetY, blur, spread, color } = shadow
-		const vec = new Vec2d(offsetX, offsetY)
-		const { x, y } = vec.rot(-rotation)
-		return `${x}px ${y}px ${blur}px ${spread}px ${color}`
-	})
-	return cssStrings.join(', ')
-}
-
-/** @public */
-export function usePrefersReducedMotion() {
-	const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
-
-	useEffect(() => {
-		const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
-		const handler = () => {
-			setPrefersReducedMotion(mql.matches)
-		}
-		handler()
-		mql.addEventListener('change', handler)
-		return () => mql.removeEventListener('change', handler)
-	}, [])
-
-	return prefersReducedMotion
-}
-
-/** @public */
-export const truncateStringWithEllipsis = (str: string, maxLength: number) => {
-	return str.length <= maxLength ? str : str.substring(0, maxLength - 3) + '...'
-}
-
 export const stopEventPropagation = (e: any) => e.stopPropagation()

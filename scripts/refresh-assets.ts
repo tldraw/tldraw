@@ -92,7 +92,7 @@ async function copyIcons() {
 	await writeCodeFile(
 		'scripts/refresh-assets.ts',
 		'typescript',
-		join(BUBLIC_ROOT, 'packages', 'ui', 'src', 'lib', 'icon-types.ts'),
+		join(BUBLIC_ROOT, 'packages', 'tldraw', 'src', 'lib', 'ui', 'icon-types.ts'),
 		iconTypeFile
 	)
 
@@ -201,7 +201,16 @@ async function copyTranslations() {
 	}
 
 	// Create hardcoded files
-	const uiPath = join(BUBLIC_ROOT, 'packages', 'ui', 'src', 'lib', 'hooks', 'useTranslation')
+	const uiPath = join(
+		BUBLIC_ROOT,
+		'packages',
+		'tldraw',
+		'src',
+		'lib',
+		'ui',
+		'hooks',
+		'useTranslation'
+	)
 
 	// languages.ts
 

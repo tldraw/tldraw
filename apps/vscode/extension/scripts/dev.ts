@@ -1,8 +1,8 @@
 import esbuild from 'esbuild'
 import { join } from 'path'
-import { logEnv } from '../../vscode-script-utils/cli'
-import { copyEditor, removeDistDirectory } from '../../vscode-script-utils/helpers'
-import { getDirname } from '../../vscode-script-utils/path'
+import { logEnv } from './cli'
+import { copyEditor, removeDistDirectory } from './helpers'
+import { getDirname } from './path'
 
 const rootDir = getDirname(import.meta.url, '../')
 const log = logEnv('extension')

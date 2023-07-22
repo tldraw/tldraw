@@ -7,10 +7,17 @@ global.FontFace = class FontFace {
 		return Promise.resolve()
 	}
 }
+
 document.fonts = {
 	add: () => {},
 	delete: () => {},
 	forEach: () => {},
+	[Symbol.iterator]: () => [][Symbol.iterator](),
 }
 
 global.matchMedia = () => false
+
+Object.defineProperty(global.URL, 'createObjectURL', {
+	writable: true,
+	value: jest.fn(),
+})

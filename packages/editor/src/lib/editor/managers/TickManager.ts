@@ -1,4 +1,4 @@
-import { Vec2d } from '@tldraw/primitives'
+import { Vec2d } from '../../primitives/Vec2d'
 import { Editor } from '../Editor'
 
 export class TickManager {

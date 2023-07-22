@@ -1,20 +1,17 @@
-import {
-	Canvas,
-	Editor,
-	ErrorBoundary,
-	TldrawEditor,
-	defaultShapes,
-	defaultTools,
-	setRuntimeOverrides,
-} from '@tldraw/editor'
 import { linksUiOverrides } from './utils/links'
 // eslint-disable-next-line import/no-internal-modules
-import '@tldraw/editor/editor.css'
-import { ContextMenu, TLUiMenuSchema, TldrawUi } from '@tldraw/ui'
-// eslint-disable-next-line import/no-internal-modules
-import '@tldraw/ui/ui.css'
+import '@tldraw/tldraw/tldraw.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
+import {
+	Editor,
+	ErrorBoundary,
+	TLUiMenuSchema,
+	Tldraw,
+	defaultShapeTools,
+	defaultShapeUtils,
+	setRuntimeOverrides,
+} from '@tldraw/tldraw'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
@@ -128,26 +125,22 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 	const assetUrls = useMemo(() => getAssetUrlsByImport({ baseUrl: assetSrc }), [assetSrc])
 
 	const handleMount = useCallback((editor: Editor) => {
-		editor.externalContentManager.createAssetFromUrl = onCreateAssetFromUrl
+		editor.registerExternalAssetHandler('url', onCreateAssetFromUrl)
 	}, [])
 
 	return (
-		<TldrawEditor
-			shapes={defaultShapes}
-			tools={defaultTools}
+		<Tldraw
+			shapeUtils={defaultShapeUtils}
+			tools={defaultShapeTools}
 			assetUrls={assetUrls}
 			persistenceKey={uri}
 			onMount={handleMount}
+			overrides={[menuOverrides, linksUiOverrides]}
 			autoFocus
 		>
 			{/* <DarkModeHandler themeKind={themeKind} /> */}
-			<TldrawUi assetUrls={assetUrls} overrides={[menuOverrides, linksUiOverrides]}>
-				<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />
-				<ChangeResponder />
-				<ContextMenu>
-					<Canvas />
-				</ContextMenu>
-			</TldrawUi>
-		</TldrawEditor>
+			<FileOpen fileContents={fileContents} forceDarkMode={isDarkMode} />
+			<ChangeResponder />
+		</Tldraw>
 	)
 }

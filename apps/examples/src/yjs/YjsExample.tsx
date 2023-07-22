@@ -1,5 +1,4 @@
-import { track } from '@tldraw/state'
-import { Tldraw, useEditor } from '@tldraw/tldraw'
+import { Tldraw, track, useEditor } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { useYjsStore } from './useYjsStore'
 

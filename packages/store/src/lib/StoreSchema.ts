@@ -1,7 +1,7 @@
 import { getOwnProperty, objectMapValues } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
 import { RecordType } from './RecordType'
-import { Store, StoreSnapshot } from './Store'
+import { SerializedStore, Store, StoreSnapshot } from './Store'
 import {
 	MigrationFailureReason,
 	MigrationResult,
@@ -188,25 +188,24 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return { type: 'success', value: result.value }
 	}
 
-	migrateStoreSnapshot(
-		storeSnapshot: StoreSnapshot<R>,
-		persistedSchema: SerializedSchema
-	): MigrationResult<StoreSnapshot<R>> {
+	migrateStoreSnapshot(snapshot: StoreSnapshot<R>): MigrationResult<SerializedStore<R>> {
+		let { store } = snapshot
+
 		const migrations = this.options.snapshotMigrations
 		if (!migrations) {
-			return { type: 'success', value: storeSnapshot }
+			return { type: 'success', value: store }
 		}
 		// apply store migrations first
 		const ourStoreVersion = migrations.currentVersion
-		const persistedStoreVersion = persistedSchema.storeVersion ?? 0
+		const persistedStoreVersion = snapshot.schema.storeVersion ?? 0
 
 		if (ourStoreVersion < persistedStoreVersion) {
 			return { type: 'error', reason: MigrationFailureReason.TargetVersionTooOld }
 		}
 
 		if (ourStoreVersion > persistedStoreVersion) {
-			const result = migrate<StoreSnapshot<R>>({
-				value: storeSnapshot,
+			const result = migrate<SerializedStore<R>>({
+				value: store,
 				migrations,
 				fromVersion: persistedStoreVersion,
 				toVersion: ourStoreVersion,
@@ -215,12 +214,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			if (result.type === 'error') {
 				return result
 			}
-			storeSnapshot = result.value
+			store = result.value
 		}
 
 		const updated: R[] = []
-		for (const r of objectMapValues(storeSnapshot)) {
-			const result = this.migratePersistedRecord(r, persistedSchema)
+		for (const r of objectMapValues(store)) {
+			const result = this.migratePersistedRecord(r, snapshot.schema)
 			if (result.type === 'error') {
 				return result
 			} else if (result.value && result.value !== r) {
@@ -228,12 +227,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			}
 		}
 		if (updated.length) {
-			storeSnapshot = { ...storeSnapshot }
+			store = { ...store }
 			for (const r of updated) {
-				storeSnapshot[r.id as IdOf<R>] = r
+				store[r.id as IdOf<R>] = r
 			}
 		}
-		return { type: 'success', value: storeSnapshot }
+		return { type: 'success', value: store }
 	}
 
 	/** @internal */

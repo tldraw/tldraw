@@ -1,10 +1,11 @@
 import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { CardShape } from './CardShape'
+import { CardShapeTool, CardShapeUtil } from './CardShape'
 import { FilterStyleUi } from './FilterStyleUi'
 import { uiOverrides } from './ui-overrides'
 
-const shapes = [CardShape]
+const customShapeUtils = [CardShapeUtil]
+const customTools = [CardShapeTool]
 
 export default function CustomStylesExample() {
 	return (
@@ -12,7 +13,8 @@ export default function CustomStylesExample() {
 			<Tldraw
 				autoFocus
 				persistenceKey="custom-styles-example"
-				shapes={shapes}
+				shapeUtils={customShapeUtils}
+				tools={customTools}
 				overrides={uiOverrides}
 			>
 				<FilterStyleUi />

@@ -1,5 +1,5 @@
 import { BaseRecord } from '@tldraw/store'
-import { Expand } from '@tldraw/utils'
+import { Expand, JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLOpacityType, opacityValidator } from '../misc/TLOpacity'
 import { idValidator } from '../misc/id-validator'
@@ -17,6 +17,7 @@ export interface TLBaseShape<Type extends string, Props extends object>
 	isLocked: boolean
 	opacity: TLOpacityType
 	props: Props
+	meta: JsonObject
 }
 
 /** @public */
@@ -31,11 +32,16 @@ export const parentIdValidator = T.string.refine((id) => {
 export const shapeIdValidator = idValidator<TLShapeId>('shape')
 
 /** @public */
-export function createShapeValidator<Type extends string, Props extends object>(
+export function createShapeValidator<
+	Type extends string,
+	Props extends JsonObject,
+	Meta extends JsonObject
+>(
 	type: Type,
-	props?: { [K in keyof Props]: T.Validatable<Props[K]> }
+	props?: { [K in keyof Props]: T.Validatable<Props[K]> },
+	meta?: { [K in keyof Meta]: T.Validatable<Meta[K]> }
 ) {
-	return T.object({
+	return T.object<TLBaseShape<Type, Props>>({
 		id: shapeIdValidator,
 		typeName: T.literal('shape'),
 		x: T.number,
@@ -46,7 +52,8 @@ export function createShapeValidator<Type extends string, Props extends object>(
 		type: T.literal(type),
 		isLocked: T.boolean,
 		opacity: opacityValidator,
-		props: props ? T.object(props) : T.unknownObject,
+		props: props ? T.object(props) : (T.jsonValue as T.ObjectValidator<Props>),
+		meta: meta ? T.object(meta) : (T.jsonValue as T.ObjectValidator<Meta>),
 	})
 }
 

@@ -7,6 +7,7 @@ export type {
 	ComputedCache,
 	HistoryEntry,
 	RecordsDiff,
+	SerializedStore,
 	StoreError,
 	StoreListener,
 	StoreSnapshot,

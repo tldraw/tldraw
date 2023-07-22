@@ -1,4 +1,5 @@
 import { BaseRecord, createRecordType, defineMigrations, RecordId } from '@tldraw/store'
+import { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { shapeIdValidator } from '../shapes/TLBaseShape'
@@ -24,6 +25,7 @@ export interface TLInstancePageState
 	editingId: TLShapeId | null
 	croppingId: TLShapeId | null
 	focusLayerId: TLShapeId | null
+	meta: JsonObject
 }
 
 /** @internal */
@@ -40,22 +42,22 @@ export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.mo
 		editingId: shapeIdValidator.nullable(),
 		croppingId: shapeIdValidator.nullable(),
 		focusLayerId: shapeIdValidator.nullable(),
+		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 )
 
-const Versions = {
+/** @internal */
+export const instancePageStateVersions = {
 	AddCroppingId: 1,
 	RemoveInstanceIdAndCameraId: 2,
+	AddMeta: 3,
 } as const
-
-/** @internal */
-export { Versions as instancePageStateVersions }
 
 /** @public */
 export const instancePageStateMigrations = defineMigrations({
-	currentVersion: Versions.RemoveInstanceIdAndCameraId,
+	currentVersion: instancePageStateVersions.AddMeta,
 	migrators: {
-		[Versions.AddCroppingId]: {
+		[instancePageStateVersions.AddCroppingId]: {
 			up(instance) {
 				return { ...instance, croppingId: null }
 			},
@@ -63,7 +65,7 @@ export const instancePageStateMigrations = defineMigrations({
 				return instance
 			},
 		},
-		[Versions.RemoveInstanceIdAndCameraId]: {
+		[instancePageStateVersions.RemoveInstanceIdAndCameraId]: {
 			up({ instanceId: _, cameraId: __, ...instance }) {
 				return instance
 			},
@@ -73,6 +75,19 @@ export const instancePageStateMigrations = defineMigrations({
 					...instance,
 					instanceId: TLINSTANCE_ID,
 					cameraId: CameraRecordType.createId('void'),
+				}
+			},
+		},
+		[instancePageStateVersions.AddMeta]: {
+			up: (record) => {
+				return {
+					...record,
+					meta: {},
+				}
+			},
+			down: ({ meta: _, ...record }) => {
+				return {
+					...record,
 				}
 			},
 		},
@@ -96,6 +111,7 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 		erasingIds: [],
 		hintingIds: [],
 		focusLayerId: null,
+		meta: {},
 	})
 )
 

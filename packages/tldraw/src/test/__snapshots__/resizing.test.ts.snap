@@ -1,0 +1,43 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`When resizing a shape with children Resizes a rotated draw shape: draw shape after rotating 1`] = `
+Object {
+  "id": "shape:lineA",
+  "index": "a3",
+  "isLocked": false,
+  "meta": Object {},
+  "opacity": 1,
+  "parentId": "shape:boxA",
+  "props": Object {
+    "color": "black",
+    "dash": "draw",
+    "fill": "none",
+    "isClosed": false,
+    "isComplete": false,
+    "isPen": false,
+    "segments": Array [
+      Object {
+        "points": Array [
+          Object {
+            "x": 0,
+            "y": 0,
+            "z": 0.5,
+          },
+          Object {
+            "x": 110,
+            "y": 110,
+            "z": 0.5,
+          },
+        ],
+        "type": "free",
+      },
+    ],
+    "size": "m",
+  },
+  "rotation": 3.141592653589793,
+  "type": "draw",
+  "typeName": "shape",
+  "x": 100,
+  "y": 100,
+}
+`;
