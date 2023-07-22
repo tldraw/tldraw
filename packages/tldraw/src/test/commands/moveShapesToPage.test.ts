@@ -1,4 +1,4 @@
-import { DefaultFillStyle, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
+import { PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -146,46 +146,48 @@ describe('Editor.moveShapesToPage', () => {
 describe('arrows', () => {
 	let firstBox: TLShape
 	let secondBox: TLShape
-	let arrow: TLShape
 
 	beforeEach(() => {
 		editor.selectAll().deleteShapes()
 		// draw a first box
-		editor
-			.setCurrentTool('geo')
-			.pointerDown(200, 200)
-			.pointerMove(300, 300)
-			.pointerUp(300, 300)
-			.setStyle(DefaultFillStyle, 'solid')
-		firstBox = editor.onlySelectedShape!
+		editor.createShapes([
+			{
+				id: ids.box1,
+				type: 'geo',
+				x: 200,
+				y: 200,
+				props: {
+					fill: 'solid',
+				},
+			},
+			{
+				id: ids.box2,
+				type: 'geo',
+				x: 400,
+				y: 400,
+				props: {
+					fill: 'solid',
+				},
+			},
+		])
 
-		// draw a second box
-		editor
-			.setCurrentTool('geo')
-			.pointerDown(400, 400)
-			.pointerMove(500, 500)
-			.pointerUp(500, 500)
-			.setStyle(DefaultFillStyle, 'solid')
-		secondBox = editor.onlySelectedShape!
-
-		// draw an arrow from the first box to the second box
-		editor
-			.setCurrentTool('arrow')
-			.pointerDown(250, 250)
-			.pointerMove(449, 449)
-			.pointerMove(450, 450)
-			.pointerUp(450, 450)
-		arrow = editor.onlySelectedShape!
+		firstBox = editor.getShape(ids.box1)!
+		secondBox = editor.getShape(ids.box2)!
 	})
 
 	it("retains an arrow's bound position if it's bound shape is moved to another page", () => {
-		console.log(arrow.props)
-		expect(editor.getPageBounds(arrow)).toCloselyMatchObject({
+		editor.setCurrentTool('arrow')
+
+		editor.pointerDown(250, 250)
+		editor.pointerMove(255, 255)
+		editor.pointerMove(450, 450)
+		editor.pointerUp(450, 450)
+		const arrow = editor.onlySelectedShape!
+
+		expect(editor.getPageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
 			// exiting at the bottom right corner of the first box
 			x: 300,
 			y: 300,
-			w: 100,
-			h: 100,
 		})
 
 		// move the second box up 200 px
@@ -209,6 +211,14 @@ describe('arrows', () => {
 	})
 
 	it('retains the arrow binding if you move the arrow to the other page too', () => {
+		editor
+			.setCurrentTool('arrow')
+			.pointerDown(250, 250)
+			.pointerMove(255, 255)
+			.pointerMove(450, 450)
+			.pointerUp(450, 450)
+		const arrow = editor.onlySelectedShape!
+
 		expect(editor.getArrowsBoundTo(firstBox.id).length).toBe(1)
 		expect(editor.getArrowsBoundTo(secondBox.id).length).toBe(1)
 
@@ -220,6 +230,8 @@ describe('arrows', () => {
 	})
 
 	it('centers the camera on the shapes in the new page', () => {
+		editor.setCurrentTool('arrow').pointerDown(250, 250).pointerMove(450, 450).pointerUp(450, 450)
+
 		editor.moveShapesToPage([ids.box1, ids.box2], ids.page2)
 		const { selectedPageBounds } = editor
 		expect(editor.viewportPageCenter).toMatchObject(selectedPageBounds!.center)

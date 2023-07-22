@@ -78,47 +78,44 @@ export class Pointing extends StateNode {
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
 		if (!this.shape) return
 
-		if (this.editor.inputs.isDragging) {
-			const handles = this.editor.getHandles(this.shape)
+		// if (this.editor.inputs.isDragging) {
+		const handles = this.editor.getHandles(this.shape)
 
-			if (!handles) {
-				this.editor.bailToMark('creating')
-				throw Error('No handles found')
-			}
+		if (!handles) {
+			this.editor.bailToMark('creating')
+			throw Error('No handles found')
+		}
 
-			if (!this.didTimeout) {
-				const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-				const shape = this.editor.getShape<TLArrowShape>(this.shape.id)
+		if (!this.didTimeout) {
+			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
+			const shape = this.editor.getShape<TLArrowShape>(this.shape.id)
 
-				if (!shape) return
+			if (!shape) return
 
-				if (handles) {
-					const { x, y } = this.editor.getPointInShapeSpace(
-						shape,
-						this.editor.inputs.originPagePoint
-					)
-					const change = util.onHandleChange?.(shape, {
-						handle: {
-							...handles[0],
-							x,
-							y,
-						},
-						isPrecise: false,
-					})
+			if (handles) {
+				const { x, y } = this.editor.getPointInShapeSpace(shape, this.editor.inputs.originPagePoint)
+				const change = util.onHandleChange?.(shape, {
+					handle: {
+						...handles[0],
+						x,
+						y,
+					},
+					isPrecise: false,
+				})
 
-					if (change) {
-						this.editor.updateShapes([change], true)
-					}
+				if (change) {
+					this.editor.updateShapes([change], true)
 				}
 			}
-
-			this.editor.setCurrentTool('select.dragging_handle', {
-				shape: this.shape,
-				handle: handles.find((h) => h.id === 'end')! /* end */,
-				isCreating: true,
-				onInteractionEnd: 'arrow',
-			})
 		}
+
+		this.editor.setCurrentTool('select.dragging_handle', {
+			shape: this.shape,
+			handle: handles.find((h) => h.id === 'end')! /* end */,
+			isCreating: true,
+			onInteractionEnd: 'arrow',
+		})
+		// }
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

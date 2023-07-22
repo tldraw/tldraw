@@ -1595,7 +1595,7 @@ describe('bindings', () => {
 	it('can be made from a shape outside of a group to a shape within the group', () => {
 		editor.setCurrentTool('arrow')
 		// go from E to B
-		editor.pointerDown(5, 25).pointerMove(25, 5).pointerUp()
+		editor.pointerDown(5, 25).pointerMove(27, 7).pointerMove(25, 5).pointerUp()
 		const arrow = onlySelectedShape() as TLArrowShape
 
 		expect(arrow.parentId).toBe(editor.currentPageId)
