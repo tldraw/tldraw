@@ -217,7 +217,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 			{
 				id: 'middle',
-				type: 'vertex',
+				type: 'virtual',
 				index: 'a2',
 				x: info.middle.x,
 				y: info.middle.y,
