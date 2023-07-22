@@ -4,7 +4,7 @@ import { useEditor } from '../hooks/useEditor'
 
 export const GeometryDebuggingView = track(function GeometryDebuggingView({
 	showStroke = true,
-	showVertices = false,
+	showVertices = true,
 	showClosestPointOnOutline = false,
 }: {
 	showStroke?: boolean

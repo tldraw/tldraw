@@ -14,6 +14,7 @@ import { useScreenBounds } from '../hooks/useScreenBounds'
 import { Matrix2d } from '../primitives/Matrix2d'
 import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
+import { GeometryDebuggingView } from './GeometryDebuggingView'
 import { LiveCollaborators } from './LiveCollaborators'
 import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
@@ -101,7 +102,7 @@ export const Canvas = track(function Canvas() {
 					<ShapesToDisplay />
 				</div>
 				<div className="tl-overlays">
-					{/* <GeometryDebuggingView /> */}
+					<GeometryDebuggingView />
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />
