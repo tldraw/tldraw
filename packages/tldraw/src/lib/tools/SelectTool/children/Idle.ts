@@ -9,7 +9,7 @@ import {
 	TLTextShape,
 	Vec2d,
 	createShapeId,
-	getSmallestShapeContainingCurrentPagePoint,
+	getSmallestShapeContainingPoint,
 	updateHoveredId,
 } from '@tldraw/editor'
 
@@ -46,7 +46,8 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape =
-					this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+					this.editor.hoveredShape ??
+					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onPointerDown({
 						...info,
@@ -129,7 +130,8 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape =
-					this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+					this.editor.hoveredShape ??
+					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onDoubleClick({
 						...info,
@@ -242,7 +244,8 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape =
-					this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+					this.editor.hoveredShape ??
+					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onRightClick({
 						...info,

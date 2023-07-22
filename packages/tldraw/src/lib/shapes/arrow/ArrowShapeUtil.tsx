@@ -29,7 +29,7 @@ import {
 	getArrowheadPathForType,
 	getCurvedArrowHandlePath,
 	getDefaultColorTheme,
-	getSmallestShapeContainingCurrentPagePoint,
+	getSmallestShapeContainingPoint,
 	getSolidCurvedArrowPath,
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
@@ -205,110 +205,111 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		shape,
 		{ handle, isPrecise }
 	) => {
-		const next = deepCopy(shape)
+		const handleId = handle.id as 'start' | 'middle' | 'end'
 
-		switch (handle.id) {
-			case 'start':
-			case 'end': {
-				const pageTransform = this.editor.getPageTransform(next.id)!
-				const pointInPageSpace = pageTransform.applyToPoint(handle)
+		if (handleId === 'middle') {
+			// Bending the arrow...
+			const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
-				if (this.editor.inputs.ctrlKey) {
-					next.props[handle.id] = {
-						type: 'point',
-						x: handle.x,
-						y: handle.y,
-					}
-				} else {
-					const targetId = getSmallestShapeContainingCurrentPagePoint(this.editor, (shape, util) =>
-						util.canBind(shape)
-					)
+			const delta = Vec2d.Sub(end, start)
+			const v = Vec2d.Per(delta)
 
-					if (targetId) {
-						const target = this.editor.getShape(targetId)!
-						const targetGeometry = this.editor.getGeometry(target)
-						const targetBounds = targetGeometry.bounds
-						const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
+			const med = Vec2d.Med(end, start)
+			const A = Vec2d.Sub(med, v)
+			const B = Vec2d.Add(med, v)
 
-						let precise = isPrecise
+			const point = Vec2d.NearestPointOnLineSegment(A, B, handle, false)
+			let bend = Vec2d.Dist(point, med)
+			if (Vec2d.Clockwise(point, end, med)) bend *= -1
+			return { id: shape.id, type: shape.type, props: { bend } }
+		}
 
-						if (!precise) {
-							// If we're switching to a new bound shape, then precise only if moving slowly
-							const prevHandle = next.props[handle.id]
-							if (
-								prevHandle.type === 'point' ||
-								(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
-							) {
-								precise = this.editor.inputs.pointerVelocity.len() < 0.5
-							}
-						}
+		// Start or end, pointing the arrow...
 
-						if (precise) {
-							// Turn off precision if we're within a certain distance to the center of the shape.
-							// Funky math but we want the snap distance to be 4 at the minimum and either
-							// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-							precise =
-								Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
-								Math.max(
-									4,
-									Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)
-								) /
-									this.editor.zoomLevel
-						}
+		const next = deepCopy(shape) as TLArrowShape
 
-						// Double check that we're not going to be doing an imprecise snap on
-						// the same shape twice, as this would result in a zero length line
-						if (!precise) {
-							if (!targetGeometry.isClosed) {
-								precise = true
-							} else {
-								const otherHandle = next.props[handle.id === 'start' ? 'end' : 'start']
-								if (otherHandle.type === 'binding' && target.id === otherHandle.boundShapeId) {
-									precise = true
-								}
-							}
-						}
+		const pageTransform = this.editor.getPageTransform(next.id)!
+		const pointInPageSpace = pageTransform.applyToPoint(handle)
 
-						next.props[handle.id] = {
-							type: 'binding',
-							boundShapeId: target.id,
-							normalizedAnchor: precise
-								? {
-										x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-										y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-								  }
-								: { x: 0.5, y: 0.5 },
-							isExact: this.editor.inputs.altKey,
-						}
-					} else {
-						// todo: maybe double check that this isn't equal to the other handle too?
-						next.props[handle.id] = {
-							type: 'point',
-							x: handle.x,
-							y: handle.y,
-						}
-					}
+		if (this.editor.inputs.ctrlKey) {
+			// todo: maybe double check that this isn't equal to the other handle too?
+			// Skip binding
+			next.props[handleId] = {
+				type: 'point',
+				x: handle.x,
+				y: handle.y,
+			}
+			return next
+		}
+
+		const point = this.editor.getPageTransform(shape.id)!.applyToPoint(handle)
+
+		const target = getSmallestShapeContainingPoint(this.editor, point, (shape, util) =>
+			util.canBind(shape)
+		)
+
+		if (!target) {
+			// todo: maybe double check that this isn't equal to the other handle too?
+			next.props[handleId] = {
+				type: 'point',
+				x: handle.x,
+				y: handle.y,
+			}
+			return next
+		}
+
+		// we've got a target! the handle is being dragged over a shape, bind to it
+
+		const targetGeometry = this.editor.getGeometry(target)
+		const targetBounds = targetGeometry.bounds
+		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
+
+		let precise = isPrecise
+
+		if (!precise) {
+			// If we're switching to a new bound shape, then precise only if moving slowly
+			const prevHandle = next.props[handleId]
+			if (
+				prevHandle.type === 'point' ||
+				(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
+			) {
+				precise = this.editor.inputs.pointerVelocity.len() < 0.5
+			}
+		}
+
+		if (precise) {
+			// Turn off precision if we're within a certain distance to the center of the shape.
+			// Funky math but we want the snap distance to be 4 at the minimum and either
+			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
+			precise =
+				Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
+				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
+					this.editor.zoomLevel
+		}
+
+		// Double check that we're not going to be doing an imprecise snap on
+		// the same shape twice, as this would result in a zero length line
+		if (!precise) {
+			if (!targetGeometry.isClosed) {
+				precise = true
+			} else {
+				const otherHandle = next.props[handleId === 'start' ? 'end' : 'start']
+				if (otherHandle.type === 'binding' && target.id === otherHandle.boundShapeId) {
+					precise = true
 				}
-
-				break
 			}
+		}
 
-			case 'middle': {
-				const { start, end } = getArrowTerminalsInArrowSpace(this.editor, next)
-
-				const delta = Vec2d.Sub(end, start)
-				const v = Vec2d.Per(delta)
-
-				const med = Vec2d.Med(end, start)
-				const A = Vec2d.Sub(med, v)
-				const B = Vec2d.Add(med, v)
-
-				const point = Vec2d.NearestPointOnLineSegment(A, B, handle, false)
-				let bend = Vec2d.Dist(point, med)
-				if (Vec2d.Clockwise(point, end, med)) bend *= -1
-				next.props.bend = bend
-				break
-			}
+		next.props[handleId] = {
+			type: 'binding',
+			boundShapeId: target.id,
+			normalizedAnchor: precise
+				? {
+						x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+						y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+				  }
+				: { x: 0.5, y: 0.5 },
+			isExact: this.editor.inputs.altKey,
 		}
 
 		if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {

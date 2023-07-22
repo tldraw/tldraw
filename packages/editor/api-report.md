@@ -1062,7 +1062,7 @@ export function getRotationSnapshot({ editor }: {
 }): null | TLRotationSnapshot;
 
 // @public (undocumented)
-export function getSmallestShapeContainingCurrentPagePoint(editor: Editor, filter?: (shape: TLShape, util: ShapeUtil) => boolean): null | TLShape;
+export function getSmallestShapeContainingPoint(editor: Editor, point: Vec2d, filter?: (shape: TLShape, util: ShapeUtil) => boolean): null | TLShape;
 
 // @public
 export function getSolidCurvedArrowPath(info: ArrowInfo & {

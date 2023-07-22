@@ -1,4 +1,10 @@
-import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
+import {
+	StateNode,
+	TLArrowShape,
+	TLEventHandlers,
+	createShapeId,
+	getSmallestShapeContainingPoint,
+} from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -21,101 +27,46 @@ export class Pointing extends StateNode {
 	}
 
 	override onEnter = () => {
-		const {
-			inputs: { currentPagePoint },
-		} = this.editor
-
 		this.didTimeout = false
 
-		this.editor.mark('creating')
+		const target = getSmallestShapeContainingPoint(
+			this.editor,
+			this.editor.inputs.currentPagePoint,
+			(shape, util) => util.canBind(shape)
+		)
 
-		const id = createShapeId()
-
-		this.editor.createShapes<TLArrowShape>([
-			{
-				id,
-				type: 'arrow',
-				x: currentPagePoint.x,
-				y: currentPagePoint.y,
-			},
-		])
-
-		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-		const shape = this.editor.getShape<TLArrowShape>(id)
-		if (!shape) return
-
-		const handles = this.editor.getHandles(shape)
-
-		if (handles) {
-			// start precise
-			const point = this.editor.getPointInShapeSpace(shape, currentPagePoint)
-
-			const change = util.onHandleChange?.(shape, {
-				handle: { ...handles[0], x: point.x, y: point.y },
-				isPrecise: true,
-			})
-
-			if (change) {
-				const startTerminal = change.props?.start
-				if (startTerminal?.type === 'binding') {
-					this.editor.setHintingIds([startTerminal.boundShapeId])
-				}
-				this.editor.updateShapes([change], true)
-			}
+		if (!target) {
+			this.createArrowShape()
+		} else {
+			this.editor.setHintingIds([target.id])
 		}
-
-		this.editor.select(id)
-
-		this.shape = this.editor.getShape(id)
 
 		this.startPreciseTimeout()
 	}
 
 	override onExit = () => {
+		this.shape = undefined
+		this.editor.setHintingIds([])
 		this.clearPreciseTimeout()
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		if (!this.shape) return
-
-		// if (this.editor.inputs.isDragging) {
-		const handles = this.editor.getHandles(this.shape)
-
-		if (!handles) {
-			this.editor.bailToMark('creating')
-			throw Error('No handles found')
-		}
-
-		if (!this.didTimeout) {
-			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-			const shape = this.editor.getShape<TLArrowShape>(this.shape.id)
-
-			if (!shape) return
-
-			if (handles) {
-				const { x, y } = this.editor.getPointInShapeSpace(shape, this.editor.inputs.originPagePoint)
-				const change = util.onHandleChange?.(shape, {
-					handle: {
-						...handles[0],
-						x,
-						y,
-					},
-					isPrecise: false,
-				})
-
-				if (change) {
-					this.editor.updateShapes([change], true)
-				}
+		if (this.editor.inputs.isDragging) {
+			if (!this.shape) {
+				this.createArrowShape()
 			}
-		}
 
-		this.editor.setCurrentTool('select.dragging_handle', {
-			shape: this.shape,
-			handle: handles.find((h) => h.id === 'end')! /* end */,
-			isCreating: true,
-			onInteractionEnd: 'arrow',
-		})
-		// }
+			if (!this.shape) throw Error(`expected shape`)
+
+			this.updateArrowShapeEndHandle()
+
+			this.editor.setCurrentTool('select.dragging_handle', {
+				shape: this.shape,
+				handle: this.editor.getHandles(this.shape)!.find((h) => h.id === 'end')! /* end */,
+				isCreating: true,
+				onInteractionEnd: 'arrow',
+			})
+		}
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
@@ -138,5 +89,75 @@ export class Pointing extends StateNode {
 		this.editor.bailToMark('creating')
 		this.editor.setHintingIds([])
 		this.parent.transition('idle', {})
+	}
+
+	createArrowShape() {
+		this.editor.mark('creating')
+
+		const id = createShapeId()
+
+		const { originPagePoint } = this.editor.inputs
+
+		this.editor.createShapes<TLArrowShape>([
+			{
+				id,
+				type: 'arrow',
+				x: originPagePoint.x,
+				y: originPagePoint.y,
+			},
+		])
+
+		const shape = this.editor.getShape<TLArrowShape>(id)
+		if (!shape) throw Error(`expected shape`)
+
+		const handles = this.editor.getHandles(shape)
+		if (!handles) throw Error(`expected handles for arrow`)
+
+		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
+		const startHandle = handles.find((h) => h.id === 'start')!
+		const change = util.onHandleChange?.(shape, {
+			handle: { ...startHandle, x: 0, y: 0 },
+			isPrecise: true, // sure about that?
+		})
+
+		if (change) {
+			const startTerminal = change.props?.start
+			if (startTerminal?.type === 'binding') {
+				this.editor.setHintingIds([startTerminal.boundShapeId])
+			}
+			this.editor.updateShapes([change], true)
+		}
+
+		// Cache the current shape after those changes
+		this.shape = this.editor.getShape(id)
+		this.editor.select(id)
+	}
+
+	updateArrowShapeEndHandle() {
+		const shape = this.shape
+		if (!shape) throw Error(`expected shape`)
+
+		const handles = this.editor.getHandles(shape)
+		if (!handles) throw Error(`expected handles for arrow`)
+
+		// end precise
+		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
+		const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
+		const endHandle = handles.find((h) => h.id === 'end')!
+		const change = util.onHandleChange?.(shape, {
+			handle: { ...endHandle, x: point.x, y: point.y },
+			isPrecise: true, // sure about that?
+		})
+
+		if (change) {
+			const endTerminal = change.props?.end
+			if (endTerminal?.type === 'binding') {
+				this.editor.setHintingIds([endTerminal.boundShapeId])
+			}
+			this.editor.updateShapes([change], true)
+		}
+
+		// Cache the current shape after those changes
+		this.shape = this.editor.getShape(shape.id)
 	}
 }

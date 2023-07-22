@@ -23,6 +23,7 @@ export class DraggingHandle extends StateNode {
 	shapeId = '' as TLShapeId
 	initialHandle = {} as TLHandle
 	initialAdjacentHandle = null as TLHandle | null
+	initialPagePoint = {} as Vec2d
 
 	markId = ''
 	initialPageTransform: any
@@ -55,6 +56,7 @@ export class DraggingHandle extends StateNode {
 		this.initialHandle = deepCopy(handle)
 		this.initialPageTransform = this.editor.getPageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
+		this.initialPagePoint = this.editor.inputs.currentPagePoint.clone()
 
 		this.editor.updateInstanceState(
 			{ cursor: { type: isCreating ? 'cross' : 'grabbing', rotation: 0 } },
@@ -105,6 +107,8 @@ export class DraggingHandle extends StateNode {
 		// -->
 
 		this.update()
+
+		this.editor.select(this.shapeId)
 	}
 
 	// Only relevant to arrows
@@ -195,13 +199,13 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private update() {
-		const { editor, shapeId } = this
+		const { editor, shapeId, initialPagePoint } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const {
 			user: { isSnapMode },
 			hintingIds,
 			snaps,
-			inputs: { currentPagePoint, originPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
+			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
 		} = editor
 
 		const shape = editor.getShape(shapeId)
@@ -211,7 +215,7 @@ export class DraggingHandle extends StateNode {
 
 		let point = currentPagePoint
 			.clone()
-			.sub(originPagePoint)
+			.sub(initialPagePoint)
 			.rot(-initialPageRotation)
 			.add(initialHandle)
 

@@ -303,7 +303,7 @@ export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
 export {
 	getHoveredShapeId,
-	getSmallestShapeContainingCurrentPagePoint as getSmallestShapeContainingCurrentPagePoint,
+	getSmallestShapeContainingPoint,
 	updateHoveredId,
 } from './lib/utils/hovered-id'
 export { normalizeWheel } from './lib/utils/normalizeWheel'

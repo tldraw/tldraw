@@ -3,7 +3,7 @@ import {
 	TLEventHandlers,
 	TLExitEventHandler,
 	Vec2d,
-	getSmallestShapeContainingCurrentPagePoint,
+	getSmallestShapeContainingPoint,
 } from '@tldraw/editor'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
@@ -50,7 +50,8 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape =
-					this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+					this.editor.hoveredShape ??
+					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onPointerDown({
 						...info,

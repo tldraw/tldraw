@@ -1,6 +1,7 @@
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import { Editor } from '../editor/Editor'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
+import { Vec2d } from '../primitives/Vec2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { sortByIndex } from './reordering/reordering'
 
@@ -48,16 +49,13 @@ export function updateHoveredId(editor: Editor) {
 }
 
 /** @public */
-export function getSmallestShapeContainingCurrentPagePoint(
+export function getSmallestShapeContainingPoint(
 	editor: Editor,
+	point: Vec2d,
 	filter?: (shape: TLShape, util: ShapeUtil) => boolean
 ): TLShape | null {
 	// are we inside of a shape but not hovering it?
-	const {
-		zoomLevel,
-		renderingShapes,
-		inputs: { currentPagePoint },
-	} = editor
+	const { zoomLevel, renderingShapes } = editor
 
 	let smallestArea = Infinity
 	let hit: TLShape | null = null
@@ -76,7 +74,7 @@ export function getSmallestShapeContainingCurrentPagePoint(
 			geometry = geometry.children[0]
 		}
 
-		const pointInShapeSpace = editor.getPointInShapeSpace(shape, currentPagePoint)
+		const pointInShapeSpace = editor.getPointInShapeSpace(shape, point)
 		const distance = geometry.distanceToPoint(pointInShapeSpace, true)
 
 		if (!geometry.isClosed) {

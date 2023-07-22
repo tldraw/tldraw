@@ -2,7 +2,7 @@ import {
 	StateNode,
 	TLEventHandlers,
 	createShapeId,
-	getSmallestShapeContainingCurrentPagePoint,
+	getSmallestShapeContainingPoint,
 } from '@tldraw/tldraw'
 
 /*
@@ -25,7 +25,8 @@ export class MicroSelectTool extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape =
-					this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+					this.editor.hoveredShape ??
+					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onPointerDown({
 						...info,

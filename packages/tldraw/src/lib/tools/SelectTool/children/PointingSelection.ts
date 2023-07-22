@@ -3,7 +3,7 @@ import {
 	TLClickEvent,
 	TLEventHandlers,
 	TLPointerEventInfo,
-	getSmallestShapeContainingCurrentPagePoint,
+	getSmallestShapeContainingPoint,
 } from '@tldraw/editor'
 
 export class PointingSelection extends StateNode {
@@ -31,7 +31,8 @@ export class PointingSelection extends StateNode {
 
 	override onDoubleClick?: TLClickEvent | undefined = (info) => {
 		const hitShape =
-			this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+			this.editor.hoveredShape ??
+			getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
 
 		if (hitShape) {
 			// todo: extract the double click shape logic from idle so that we can share it here
