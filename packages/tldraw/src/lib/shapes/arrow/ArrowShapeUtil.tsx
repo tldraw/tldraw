@@ -287,16 +287,20 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					this.editor.zoomLevel
 		}
 
-		// Double check that we're not going to be doing an imprecise snap on
-		// the same shape twice, as this would result in a zero length line
-		if (!precise) {
+		if (!isPrecise) {
 			if (!targetGeometry.isClosed) {
 				precise = true
-			} else {
-				const otherHandle = next.props[handleId === 'start' ? 'end' : 'start']
-				if (otherHandle.type === 'binding' && target.id === otherHandle.boundShapeId) {
-					precise = true
-				}
+			}
+
+			// Double check that we're not going to be doing an imprecise snap on
+			// the same shape twice, as this would result in a zero length line
+			const otherHandle = next.props[handleId === 'start' ? 'end' : 'start']
+			if (
+				otherHandle.type === 'binding' &&
+				target.id === otherHandle.boundShapeId &&
+				Vec2d.Equals(otherHandle.normalizedAnchor, { x: 0.5, y: 0.5 })
+			) {
+				precise = true
 			}
 		}
 
@@ -315,7 +319,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
 			if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
 				if (Vec2d.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
-					throw Error(`Can't be bound to the same point at the same point`)
+					next.props.end.normalizedAnchor.x += 0.05
 				}
 			}
 		}

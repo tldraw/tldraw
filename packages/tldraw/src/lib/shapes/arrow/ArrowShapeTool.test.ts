@@ -27,7 +27,7 @@ beforeEach(() => {
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
-			{ id: ids.box3, type: 'geo', x: 350, y: 350, props: { w: 100, h: 100 } }, // overlapping box2
+			{ id: ids.box3, type: 'geo', x: 350, y: 350, props: { w: 90, h: 90 } }, // overlapping box2, but smaller!
 		])
 })
 

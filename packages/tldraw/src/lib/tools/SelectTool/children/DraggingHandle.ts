@@ -56,7 +56,7 @@ export class DraggingHandle extends StateNode {
 		this.initialHandle = deepCopy(handle)
 		this.initialPageTransform = this.editor.getPageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
-		this.initialPagePoint = this.editor.inputs.currentPagePoint.clone()
+		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
 
 		this.editor.updateInstanceState(
 			{ cursor: { type: isCreating ? 'cross' : 'grabbing', rotation: 0 } },
@@ -103,6 +103,8 @@ export class DraggingHandle extends StateNode {
 			} else {
 				this.resetExactTimeout()
 			}
+		} else {
+			this.editor.setHintingIds([])
 		}
 		// -->
 
@@ -260,6 +262,7 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
+		console.log('searching for a new shape!', this.initialHandle, point)
 		const changes = util.onHandleChange?.(shape, {
 			handle: {
 				...initialHandle,
