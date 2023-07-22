@@ -164,6 +164,11 @@ export class Group2d extends Geometry2d {
 		return this.children[0].vertices
 	}
 
+	getArea() {
+		// todo: this is a temporary solution, assuming that the first child defines the group size
+		return this.children[0].area
+	}
+
 	toSimpleSvgPath() {
 		let path = ''
 		for (const child of this.children) {

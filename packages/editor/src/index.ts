@@ -301,7 +301,11 @@ export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
-export { getHoveredShapeId, updateHoveredId } from './lib/utils/hovered-id'
+export {
+	getHoveredShapeId,
+	getSmallestShapeContainingCurrentPagePoint as getSmallestShapeContainingCurrentPagePoint,
+	updateHoveredId,
+} from './lib/utils/hovered-id'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
 export {

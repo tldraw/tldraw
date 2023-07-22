@@ -1,4 +1,10 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import {
+	StateNode,
+	TLClickEvent,
+	TLEventHandlers,
+	TLPointerEventInfo,
+	getSmallestShapeContainingCurrentPagePoint,
+} from '@tldraw/editor'
 
 export class PointingSelection extends StateNode {
 	static override id = 'pointing_selection'
@@ -20,6 +26,22 @@ export class PointingSelection extends StateNode {
 		if (this.editor.inputs.isDragging) {
 			if (this.editor.instanceState.isReadonly) return
 			this.parent.transition('translating', info)
+		}
+	}
+
+	override onDoubleClick?: TLClickEvent | undefined = (info) => {
+		const hitShape =
+			this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+
+		if (hitShape) {
+			// todo: extract the double click shape logic from idle so that we can share it here
+			this.parent.transition('idle', {})
+			this.parent.onDoubleClick?.({
+				...info,
+				target: 'shape',
+				shape: this.editor.getShape(hitShape)!,
+			})
+			return
 		}
 	}
 

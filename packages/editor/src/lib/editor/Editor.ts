@@ -1739,6 +1739,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.updateCurrentPageState({ hoveredId: id }, true)
 		return this
 	}
+	@computed get hoveredShape() {
+		return this.hoveredId ? this.getShape(this.hoveredId) : undefined
+	}
 
 	// Hinting ids
 
@@ -2965,6 +2968,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const renderingShapes: {
 			id: TLShapeId
+			shape: TLShape
+			util: ShapeUtil
 			index: number
 			backgroundIndex: number
 			opacity: number
@@ -3010,8 +3015,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (editingId !== id && !renderingBoundsExpanded?.includes(maskedPageBounds)) ?? true
 				: true
 
+			const util = this.getShapeUtil(shape)
+
 			renderingShapes.push({
 				id,
+				shape,
+				util,
 				index: nextIndex,
 				backgroundIndex: nextBackgroundIndex,
 				opacity,
@@ -3027,7 +3036,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!childIds.length) return
 
 			let backgroundIndexToRestore = null
-			if (this.getShapeUtil(shape).providesBackgroundForChildren(shape)) {
+			if (util.providesBackgroundForChildren(shape)) {
 				backgroundIndexToRestore = nextBackgroundIndex
 				nextBackgroundIndex = nextIndex
 				nextIndex += MAX_SHAPES_PER_PAGE

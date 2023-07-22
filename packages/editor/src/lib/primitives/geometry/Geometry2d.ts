@@ -125,6 +125,29 @@ export abstract class Geometry2d {
 		return this.bounds.center
 	}
 
+	_area: number | undefined
+
+	get area() {
+		if (!this._area) {
+			this._area = this.getArea()
+		}
+		return this._area
+	}
+
+	getArea() {
+		if (!this.isClosed) {
+			return 0
+		}
+		const { vertices } = this
+		let area = 0
+		for (let i = 0, n = vertices.length; i < n; i++) {
+			const curr = vertices[i]
+			const next = vertices[(i + 1) % n]
+			area += curr.x * next.y - next.x * curr.y
+		}
+		return area / 2
+	}
+
 	toSimpleSvgPath() {
 		let path = ''
 

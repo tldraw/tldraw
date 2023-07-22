@@ -666,6 +666,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     get hintingIds(): TLShapeId[];
     readonly history: HistoryManager<this>;
     get hoveredId(): null | TLShapeId;
+    // (undocumented)
+    get hoveredShape(): TLUnknownShape | undefined;
     inputs: {
         originPagePoint: Vec2d;
         originScreenPoint: Vec2d;
@@ -738,6 +740,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     get renderingBoundsExpanded(): Box2d;
     get renderingShapes(): {
         id: TLShapeId;
+        shape: TLShape;
+        util: ShapeUtil<TLUnknownShape>;
         index: number;
         backgroundIndex: number;
         opacity: number;
@@ -926,6 +930,10 @@ export type GapsSnapLine = {
 export abstract class Geometry2d {
     constructor(opts: Geometry2dOptions);
     // (undocumented)
+    get area(): number;
+    // (undocumented)
+    _area: number | undefined;
+    // (undocumented)
     get bounds(): Box2d;
     // (undocumented)
     _bounds: Box2d | undefined;
@@ -939,6 +947,8 @@ export abstract class Geometry2d {
     get expandedBounds(): Box2d;
     // (undocumented)
     _expandedBounds: Box2d | undefined;
+    // (undocumented)
+    getArea(): number;
     // (undocumented)
     getBounds(): Box2d;
     // (undocumented)
@@ -1051,6 +1061,9 @@ export function getRotationSnapshot({ editor }: {
     editor: Editor;
 }): null | TLRotationSnapshot;
 
+// @public (undocumented)
+export function getSmallestShapeContainingCurrentPagePoint(editor: Editor, filter?: (shape: TLShape, util: ShapeUtil) => boolean): null | TLShape;
+
 // @public
 export function getSolidCurvedArrowPath(info: ArrowInfo & {
     isStraight: false;
@@ -1099,6 +1112,8 @@ export class Group2d extends Geometry2d {
     children: Geometry2d[];
     // (undocumented)
     distanceToPoint(point: Vec2d, hitInside?: boolean): number;
+    // (undocumented)
+    getArea(): number;
     // (undocumented)
     getVertices(): Vec2d[];
     // (undocumented)

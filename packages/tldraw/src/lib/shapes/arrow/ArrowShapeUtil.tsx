@@ -29,10 +29,10 @@ import {
 	getArrowheadPathForType,
 	getCurvedArrowHandlePath,
 	getDefaultColorTheme,
+	getSmallestShapeContainingCurrentPagePoint,
 	getSolidCurvedArrowPath,
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
-	last,
 	toDomPrecision,
 } from '@tldraw/editor'
 import React from 'react'
@@ -220,22 +220,16 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						y: handle.y,
 					}
 				} else {
-					const target = last(
-						this.editor.sortedShapesArray.filter((hitShape) => {
-							// We're testing against the arrow
-							if (hitShape.id === shape.id) return
-							// The shape can't be bound to
-							if (!this.editor.getShapeUtil(hitShape).canBind(hitShape)) return
-							// Test the point using the shape's idea of what a hit is
-							return this.editor.isPointInShape(hitShape, pointInPageSpace, true, true)
-						})
+					const targetId = getSmallestShapeContainingCurrentPagePoint(this.editor, (shape, util) =>
+						util.canBind(shape)
 					)
 
-					if (target) {
+					if (targetId) {
+						const target = this.editor.getShape(targetId)!
 						const targetBounds = this.editor.getGeometry(target).bounds
 						const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
-						let precise = this.editor.getGeometry(target).isClosed && isPrecise
+						let precise = isPrecise
 
 						if (!precise) {
 							// If we're switching to a new bound shape, then precise only if moving slowly
@@ -264,9 +258,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						// Double check that we're not going to be doing an imprecise snap on
 						// the same shape twice, as this would result in a zero length line
 						if (!precise) {
-							const otherHandle = next.props[handle.id === 'start' ? 'end' : 'start']
-							if (otherHandle.type === 'binding' && target.id === otherHandle.boundShapeId) {
+							if (!this.getGeometry(shape).isClosed) {
 								precise = true
+							} else {
+								const otherHandle = next.props[handle.id === 'start' ? 'end' : 'start']
+								if (otherHandle.type === 'binding' && target.id === otherHandle.boundShapeId) {
+									precise = true
+								}
 							}
 						}
 

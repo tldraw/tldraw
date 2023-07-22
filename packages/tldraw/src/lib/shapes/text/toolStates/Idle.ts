@@ -3,6 +3,7 @@ import {
 	TLEventHandlers,
 	TLGeoShape,
 	TLTextShape,
+	getSmallestShapeContainingCurrentPagePoint,
 	updateHoveredId,
 } from '@tldraw/editor'
 
@@ -19,17 +20,17 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		const { hoveredId } = this.editor
-		if (hoveredId) {
-			const shape = this.editor.getShape(hoveredId)!
-			if (this.editor.isShapeOfType<TLTextShape>(shape, 'text')) {
+		const hitShape =
+			this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+		if (hitShape) {
+			if (this.editor.isShapeOfType<TLTextShape>(hitShape, 'text')) {
 				requestAnimationFrame(() => {
-					this.editor.setSelectedIds([shape.id])
-					this.editor.setEditingId(shape.id)
+					this.editor.setSelectedIds([hitShape.id])
+					this.editor.setEditingId(hitShape.id)
 					this.editor.setCurrentTool('select.editing_shape', {
 						...info,
 						target: 'shape',
-						shape,
+						shape: hitShape,
 					})
 				})
 				return

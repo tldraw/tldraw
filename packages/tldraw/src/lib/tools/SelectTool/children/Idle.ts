@@ -9,6 +9,7 @@ import {
 	TLTextShape,
 	Vec2d,
 	createShapeId,
+	getSmallestShapeContainingCurrentPagePoint,
 	updateHoveredId,
 } from '@tldraw/editor'
 
@@ -44,16 +45,16 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const { hoveredId } = this.editor
-				if (hoveredId) {
+				const hitShape =
+					this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+				if (hitShape) {
 					this.onPointerDown({
 						...info,
-						shape: this.editor.getShape(hoveredId)!,
+						shape: hitShape,
 						target: 'shape',
 					})
 					return
 				}
-
 				this.parent.transition('pointing_canvas', info)
 				break
 			}
@@ -127,15 +128,17 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const { hoveredId } = this.editor
-				if (hoveredId) {
+				const hitShape =
+					this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+				if (hitShape) {
 					this.onDoubleClick({
 						...info,
-						shape: this.editor.getShape(hoveredId)!,
+						shape: hitShape,
 						target: 'shape',
 					})
 					return
 				}
+
 				// Create text shape and transition to editing_shape
 				if (this.editor.instanceState.isReadonly) break
 				this.handleDoubleClickOnCanvas(info)
@@ -238,11 +241,12 @@ export class Idle extends StateNode {
 	override onRightClick: TLEventHandlers['onRightClick'] = (info) => {
 		switch (info.target) {
 			case 'canvas': {
-				const { hoveredId } = this.editor
-				if (hoveredId) {
+				const hitShape =
+					this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+				if (hitShape) {
 					this.onRightClick({
 						...info,
-						shape: this.editor.getShape(hoveredId)!,
+						shape: hitShape,
 						target: 'shape',
 					})
 					return

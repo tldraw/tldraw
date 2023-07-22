@@ -20,12 +20,16 @@ opacity based on its own opacity and that of its parent's.
 */
 export const Shape = track(function Shape({
 	id,
+	shape,
+	util,
 	index,
 	backgroundIndex,
 	opacity,
 	isCulled,
 }: {
 	id: TLShapeId
+	shape: TLShape
+	util: ShapeUtil
 	index: number
 	backgroundIndex: number
 	opacity: number
@@ -89,7 +93,7 @@ export const Shape = track(function Shape({
 		backgroundContainerRef.current?.style.setProperty('z-index', backgroundIndex + '')
 	}, [opacity, index, backgroundIndex, setProperty])
 
-	const shape = editor.getShape(id)
+	// const shape = editor.getShape(id)
 
 	const annotateError = React.useCallback(
 		(error: any) => {
@@ -99,8 +103,6 @@ export const Shape = track(function Shape({
 	)
 
 	if (!shape) return null
-
-	const util = editor.getShapeUtil(shape)
 
 	return (
 		<>

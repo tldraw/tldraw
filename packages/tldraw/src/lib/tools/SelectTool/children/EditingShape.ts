@@ -1,4 +1,9 @@
-import { StateNode, TLEventHandlers, updateHoveredId } from '@tldraw/editor'
+import {
+	StateNode,
+	TLEventHandlers,
+	getSmallestShapeContainingCurrentPagePoint,
+	updateHoveredId,
+} from '@tldraw/editor'
 
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
@@ -30,11 +35,12 @@ export class EditingShape extends StateNode {
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		switch (info.target) {
 			case 'canvas': {
-				const { hoveredId } = this.editor
-				if (hoveredId) {
+				const hitShape =
+					this.editor.hoveredShape ?? getSmallestShapeContainingCurrentPagePoint(this.editor)
+				if (hitShape) {
 					this.onPointerDown({
 						...info,
-						shape: this.editor.getShape(hoveredId)!,
+						shape: hitShape,
 						target: 'shape',
 					})
 					return
