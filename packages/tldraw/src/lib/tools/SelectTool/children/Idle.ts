@@ -1,4 +1,5 @@
 import {
+	Editor,
 	StateNode,
 	TLClickEventInfo,
 	TLEventHandlers,
@@ -10,6 +11,7 @@ import {
 	Vec2d,
 	createShapeId,
 	getSmallestShapeContainingPoint,
+	sortByIndex,
 	updateHoveredId,
 } from '@tldraw/editor'
 
@@ -47,7 +49,12 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const hitShape =
 					this.editor.hoveredShape ??
-					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
+					getTopSelectedIdUnderPoint(this.editor, this.editor.inputs.currentPagePoint) ??
+					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint, {
+						hitInside: false,
+						ignoreMargin: false,
+					})
+
 				if (hitShape) {
 					this.onPointerDown({
 						...info,
@@ -106,11 +113,11 @@ export class Idle extends StateNode {
 						break
 					}
 					default: {
-						const { hoveredId } = this.editor
-						if (hoveredId && !this.editor.selectedIds.includes(hoveredId)) {
+						const { hoveredShape } = this.editor
+						if (hoveredShape && !this.editor.selectedIds.includes(hoveredShape.id)) {
 							this.onPointerDown({
 								...info,
-								shape: this.editor.getShape(hoveredId)!,
+								shape: hoveredShape,
 								target: 'shape',
 							})
 							return
@@ -131,7 +138,9 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const hitShape =
 					this.editor.hoveredShape ??
+					getTopSelectedIdUnderPoint(this.editor, this.editor.inputs.currentPagePoint) ??
 					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
+
 				if (hitShape) {
 					this.onDoubleClick({
 						...info,
@@ -457,4 +466,11 @@ export class Idle extends StateNode {
 
 		this.editor.nudgeShapes(this.editor.selectedIds, delta, shiftKey)
 	}
+}
+
+function getTopSelectedIdUnderPoint(editor: Editor, point: Vec2d) {
+	const { selectedShapes } = editor
+	return selectedShapes
+		.sort(sortByIndex)
+		.findLast((shape) => editor.isPointInShape(shape, point, { hitInside: true }))
 }

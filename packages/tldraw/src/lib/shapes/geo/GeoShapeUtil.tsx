@@ -337,9 +337,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
-		const labelSize = getLabelSize(this.editor, shape)
-		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
-		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
+		// const labelSize = getLabelSize(this.editor, shape)
+		// const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
+		// const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
 
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines
@@ -355,15 +355,15 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return new Group2d({
 			children: [
 				body,
-				new Rectangle2d({
-					x: w / 2 - labelWidth / 2,
-					y: h / 2 - labelHeight / 2,
-					width: labelWidth,
-					height: labelHeight,
-					isFilled: true,
-					isSnappable: false,
-					margin: 12,
-				}),
+				// new Rectangle2d({
+				// 	x: w / 2 - labelWidth / 2,
+				// 	y: h / 2 - labelHeight / 2,
+				// 	width: labelWidth,
+				// 	height: labelHeight,
+				// 	isFilled: true,
+				// 	isSnappable: false,
+				// 	margin: 12,
+				// }),
 				...edges,
 			],
 			margin: 12,

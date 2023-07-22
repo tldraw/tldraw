@@ -30,7 +30,10 @@ export class Erasing extends StateNode {
 						this.editor.isShapeOrAncestorLocked(shape) ||
 						((this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
 							this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) &&
-							this.editor.isPointInShape(shape, originPagePoint, true, true))
+							this.editor.isPointInShape(shape, originPagePoint, {
+								hitInside: true,
+								exact: true,
+							}))
 				)
 				.map((shape) => shape.id)
 		)

@@ -3,6 +3,7 @@ import { Editor } from '../editor/Editor'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { Vec2d } from '../primitives/Vec2d'
 import { Group2d } from '../primitives/geometry/Group2d'
+import { pointInPolygon } from '../primitives/utils'
 import { sortByIndex } from './reordering/reordering'
 
 /** @public */
@@ -17,7 +18,7 @@ export function getHoveredShapeId(editor: Editor) {
 	let nextHoveredId = null as TLShapeId | null
 	for (const { id, index } of renderingShapes) {
 		if (id === focusLayerId) continue
-		if (editor.isPointInShape(id, currentPagePoint, false, false)) {
+		if (editor.isPointInShape(id, currentPagePoint)) {
 			if (index > i) {
 				i = index
 				nextHoveredId = id
@@ -48,23 +49,37 @@ export function updateHoveredId(editor: Editor) {
 	}
 }
 
+// inside of hollow geo shape -> true
+// inside of frame shape -> true, but not always; false
+// on pointer down because we want to be able to brush
+// from inside of the frame
+
 /** @public */
 export function getSmallestShapeContainingPoint(
 	editor: Editor,
 	point: Vec2d,
-	filter?: (shape: TLShape, util: ShapeUtil) => boolean
+	opts = {} as {
+		hitInside?: boolean
+		ignoreMargin?: boolean
+		filter?: (shape: TLShape, util: ShapeUtil) => boolean
+	}
 ): TLShape | null {
 	// are we inside of a shape but not hovering it?
 	const { zoomLevel, renderingShapes } = editor
+	const { filter, ignoreMargin, hitInside } = opts
 
 	let smallestArea = Infinity
 	let hit: TLShape | null = null
 
 	let state = 'not-filled' as 'not-filled' | 'filled'
 
-	const shapesToCheck = (
-		filter ? renderingShapes.filter((s) => filter(s.shape, s.util)) : renderingShapes
-	)
+	const shapesToCheck = renderingShapes
+		.filter((s) => {
+			const pageMask = editor.getPageMask(s.shape)
+			if (pageMask && !pointInPolygon(point, pageMask)) return false
+			if (filter) return filter(s.shape, s.util)
+			return true
+		})
 		.map((s) => s.shape)
 		.sort(sortByIndex)
 
@@ -75,12 +90,12 @@ export function getSmallestShapeContainingPoint(
 		}
 
 		const pointInShapeSpace = editor.getPointInShapeSpace(shape, point)
-		const distance = geometry.distanceToPoint(pointInShapeSpace, true)
+		const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
 
 		if (!geometry.isClosed) {
 			if (distance > geometry.margin / zoomLevel) continue
 		} else {
-			if (distance > 0) continue
+			if (distance > (ignoreMargin ? 0 : geometry.margin / zoomLevel)) continue
 		}
 
 		if (state === 'not-filled' && (geometry.isFilled || !geometry.isClosed)) {

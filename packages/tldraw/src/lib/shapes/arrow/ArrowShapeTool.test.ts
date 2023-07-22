@@ -27,7 +27,7 @@ beforeEach(() => {
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
-			{ id: ids.box3, type: 'geo', x: 350, y: 350, props: { w: 90, h: 90 } }, // overlapping box2, but smaller!
+			{ id: ids.box3, type: 'geo', x: 350, y: 350, props: { w: 50, h: 50 } }, // overlapping box2, but smaller!
 		])
 })
 
@@ -254,7 +254,7 @@ describe('When pointing an end shape', () => {
 				end: {
 					type: 'binding',
 					isExact: false,
-					normalizedAnchor: { x: 0.25, y: 0.25 },
+					normalizedAnchor: { x: 0.5, y: 0.5 },
 					boundShapeId: ids.box3,
 				},
 			},
@@ -384,7 +384,7 @@ describe('When pointing an end shape', () => {
 				end: {
 					type: 'binding',
 					isExact: false,
-					normalizedAnchor: { x: 0.25, y: 0.25 },
+					normalizedAnchor: { x: 0.5, y: 0.5 },
 					boundShapeId: ids.box3,
 				},
 			},
@@ -408,7 +408,7 @@ describe('reparenting issue', () => {
 		editor.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
-			{ id: ids.box3, type: 'geo', x: 350, y: 350, props: { w: 100, h: 100 } }, // overlapping box2
+			{ id: ids.box3, type: 'geo', x: 350, y: 350, props: { w: 90, h: 90 } }, // overlapping box2
 		])
 
 		editor.expectShapeToMatch({ id: ids.box1, index: 'a2' })

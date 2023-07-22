@@ -9,7 +9,9 @@ const ids = {
 
 beforeEach(() => {
 	editor = new TestEditor()
-	editor.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+	editor.createShapes([
+		{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { fill: 'solid', w: 100, h: 100 } },
+	])
 })
 
 it('Sets cursor and state correctly', () => {

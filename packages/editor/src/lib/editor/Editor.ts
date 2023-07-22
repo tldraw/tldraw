@@ -4199,14 +4199,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean, exact: boolean): boolean
-	isPointInShape(id: TLShapeId, point: VecLike, hitInside: boolean, exact: boolean): boolean
+	isPointInShape(
+		shape: TLShape,
+		point: VecLike,
+		opts?: { hitInside?: boolean; exact?: boolean }
+	): boolean
+	isPointInShape(
+		id: TLShapeId,
+		point: VecLike,
+		opts?: { hitInside?: boolean; exact?: boolean }
+	): boolean
 	isPointInShape(
 		id: TLShape | TLShapeId,
 		point: VecLike,
-		hitInside: boolean,
-		exact: boolean
+		opts = {} as {
+			hitInside?: boolean
+			exact?: boolean
+		}
 	): boolean {
+		const { hitInside = false, exact = false } = opts
 		if (typeof id !== 'string') id = id.id
 		// If the shape is masked, and if the point falls outside of that
 		// mask, then it's defintely a miss—we don't need to test further.
@@ -4233,8 +4244,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getShapesAtPoint(point: VecLike, hitInside = false, exact = false): TLShape[] {
-		return this.shapesArray.filter((shape) => this.isPointInShape(shape, point, hitInside, exact))
+	getShapesAtPoint(
+		point: VecLike,
+		opts = {} as { hitInside?: boolean; exact?: boolean }
+	): TLShape[] {
+		return this.shapesArray.filter((shape) => this.isPointInShape(shape, point, opts))
 	}
 
 	/**

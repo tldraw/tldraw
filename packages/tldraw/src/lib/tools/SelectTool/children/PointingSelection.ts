@@ -32,7 +32,10 @@ export class PointingSelection extends StateNode {
 	override onDoubleClick?: TLClickEvent | undefined = (info) => {
 		const hitShape =
 			this.editor.hoveredShape ??
-			getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
+			getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint, {
+				hitInside: true,
+				ignoreMargin: true,
+			})
 
 		if (hitShape) {
 			// todo: extract the double click shape logic from idle so that we can share it here

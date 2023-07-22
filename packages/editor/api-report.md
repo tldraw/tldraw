@@ -641,7 +641,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShape<T extends TLShape = TLShape>(shape: TLShape): T | undefined;
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
-    getShapesAtPoint(point: VecLike, hitInside?: boolean, exact?: boolean): TLShape[];
+    getShapesAtPoint(point: VecLike, opts?: {
+        hitInside?: boolean | undefined;
+        exact?: boolean | undefined;
+    }): TLShape[];
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
     getShapeUtil<S extends TLUnknownShape>(shape: S | TLShapePartial<S>): ShapeUtil<S>;
@@ -698,9 +701,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     isInAny(...paths: string[]): boolean;
     readonly isIos: boolean;
     get isMenuOpen(): boolean;
-    isPointInShape(shape: TLShape, point: VecLike, hitInside: boolean, exact: boolean): boolean;
+    isPointInShape(shape: TLShape, point: VecLike, opts?: {
+        hitInside?: boolean;
+        exact?: boolean;
+    }): boolean;
     // (undocumented)
-    isPointInShape(id: TLShapeId, point: VecLike, hitInside: boolean, exact: boolean): boolean;
+    isPointInShape(id: TLShapeId, point: VecLike, opts?: {
+        hitInside?: boolean;
+        exact?: boolean;
+    }): boolean;
     readonly isSafari: boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
@@ -1062,7 +1071,11 @@ export function getRotationSnapshot({ editor }: {
 }): null | TLRotationSnapshot;
 
 // @public (undocumented)
-export function getSmallestShapeContainingPoint(editor: Editor, point: Vec2d, filter?: (shape: TLShape, util: ShapeUtil) => boolean): null | TLShape;
+export function getSmallestShapeContainingPoint(editor: Editor, point: Vec2d, opts?: {
+    hitInside?: boolean | undefined;
+    ignoreMargin?: boolean | undefined;
+    filter?: ((shape: TLShape, util: ShapeUtil) => boolean) | undefined;
+}): null | TLShape;
 
 // @public
 export function getSolidCurvedArrowPath(info: ArrowInfo & {

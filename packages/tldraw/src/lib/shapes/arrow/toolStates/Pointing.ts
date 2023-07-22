@@ -31,7 +31,7 @@ export class Pointing extends StateNode {
 		const target = getSmallestShapeContainingPoint(
 			this.editor,
 			this.editor.inputs.currentPagePoint,
-			(shape, util) => util.canBind(shape)
+			{ filter: (shape, util) => util.canBind(shape), ignoreMargin: false, hitInside: true }
 		)
 
 		if (!target) {

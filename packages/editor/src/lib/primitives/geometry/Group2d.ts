@@ -121,42 +121,9 @@ export class Group2d extends Geometry2d {
 	}
 
 	override hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
-		const { children, operation } = this
-		switch (operation) {
-			case 'union': {
-				return children.some((child) => child.hitTestLineSegment(A, B, zoom))
-			}
-			case 'subtract': {
-				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
-					child = children[i]
-					if (i === 0) {
-						if (child.hitTestLineSegment(A, B, zoom)) {
-							continue
-						} else {
-							break
-						}
-					} else {
-						if (child.hitTestLineSegment(A, B, zoom)) {
-							return false
-						}
-					}
-				}
-				return true
-			}
-			case 'exclude': {
-				let hits = 0
-				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
-					child = children[i]
-					if (child.hitTestLineSegment(A, B, zoom)) {
-						hits++
-					}
-				}
-				return hits % 2 === 1
-			}
-			case 'intersect': {
-				return children.every((child) => child.hitTestLineSegment(A, B, zoom))
-			}
-		}
+		const { children } = this
+		// todo: this is a temporary solution, assuming that the first child defines the group size
+		return children[0].hitTestLineSegment(A, B, zoom)
 	}
 
 	get outerVertices() {

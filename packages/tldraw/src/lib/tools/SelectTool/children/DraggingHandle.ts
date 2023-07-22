@@ -262,7 +262,6 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		console.log('searching for a new shape!', this.initialHandle, point)
 		const changes = util.onHandleChange?.(shape, {
 			handle: {
 				...initialHandle,

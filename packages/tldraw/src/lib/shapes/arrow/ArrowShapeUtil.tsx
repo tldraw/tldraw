@@ -244,9 +244,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const point = this.editor.getPageTransform(shape.id)!.applyToPoint(handle)
 
-		const target = getSmallestShapeContainingPoint(this.editor, point, (shape, util) =>
-			util.canBind(shape)
-		)
+		const target = getSmallestShapeContainingPoint(this.editor, point, {
+			filter: (shape, util) => util.canBind(shape),
+			hitInside: true,
+		})
 
 		if (!target) {
 			// todo: maybe double check that this isn't equal to the other handle too?
