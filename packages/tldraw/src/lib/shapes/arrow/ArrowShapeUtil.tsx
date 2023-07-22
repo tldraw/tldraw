@@ -247,6 +247,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const target = getSmallestShapeContainingPoint(this.editor, point, {
 			filter: (shape, util) => util.canBind(shape),
 			hitInside: true,
+			exact: true,
 		})
 
 		if (!target) {

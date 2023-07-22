@@ -60,13 +60,13 @@ export function getSmallestShapeContainingPoint(
 	point: Vec2d,
 	opts = {} as {
 		hitInside?: boolean
-		ignoreMargin?: boolean
+		exact?: boolean
 		filter?: (shape: TLShape, util: ShapeUtil) => boolean
 	}
 ): TLShape | null {
 	// are we inside of a shape but not hovering it?
 	const { zoomLevel, renderingShapes } = editor
-	const { filter, ignoreMargin, hitInside } = opts
+	const { filter, exact, hitInside } = opts
 
 	let smallestArea = Infinity
 	let hit: TLShape | null = null
@@ -95,7 +95,7 @@ export function getSmallestShapeContainingPoint(
 		if (!geometry.isClosed) {
 			if (distance > geometry.margin / zoomLevel) continue
 		} else {
-			if (distance > (ignoreMargin ? 0 : geometry.margin / zoomLevel)) continue
+			if (distance > (exact ? 0 : geometry.margin / zoomLevel)) continue
 		}
 
 		if (state === 'not-filled' && (geometry.isFilled || !geometry.isClosed)) {

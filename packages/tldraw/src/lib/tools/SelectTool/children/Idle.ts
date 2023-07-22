@@ -52,7 +52,7 @@ export class Idle extends StateNode {
 					getTopSelectedIdUnderPoint(this.editor, this.editor.inputs.currentPagePoint) ??
 					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint, {
 						hitInside: false,
-						ignoreMargin: false,
+						exact: false,
 					})
 
 				if (hitShape) {

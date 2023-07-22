@@ -551,6 +551,7 @@ describe('frame shapes', () => {
 		editor.expectPathToBe('root.select.idle')
 
 		// select from inside the frame
+		editor.selectNone()
 		editor.setCurrentTool('select')
 		editor.pointerDown(150, 150).pointerMove(250, 250)
 		editor.expectPathToBe('root.select.brushing')

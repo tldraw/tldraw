@@ -2,11 +2,12 @@ import {
 	SelectionEdge,
 	TLShapeId,
 	canonicalizeRotation,
+	getPointerInfo,
 	toDomPrecision,
 	useEditor,
 	useIsEditing,
 } from '@tldraw/editor'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { FrameLabelInput } from './FrameLabelInput'
 
 export const FrameHeading = function FrameHeading({
@@ -26,6 +27,21 @@ export const FrameHeading = function FrameHeading({
 	const isEditing = useIsEditing(id)
 
 	const rInput = useRef<HTMLInputElement>(null)
+
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			const event = getPointerInfo(e, editor.getContainer())
+			editor.dispatch({
+				type: 'pointer',
+				name: 'pointer_down',
+				target: 'shape',
+				shape: editor.getShape(id)!,
+				...event,
+			})
+			e.preventDefault()
+		},
+		[editor, id]
+	)
 
 	useEffect(() => {
 		const el = rInput.current
@@ -80,6 +96,7 @@ export const FrameHeading = function FrameHeading({
 				bottom: Math.ceil(height),
 				transform: `${labelTranslate} scale(var(--tl-scale)) translateX(calc(-1 * var(--space-3))`,
 			}}
+			onPointerDown={handlePointerDown}
 		>
 			<div className="tl-frame-heading-hit-area">
 				<FrameLabelInput ref={rInput} id={id} name={name} isEditing={isEditing} />

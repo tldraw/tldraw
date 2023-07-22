@@ -34,7 +34,7 @@ export class PointingSelection extends StateNode {
 			this.editor.hoveredShape ??
 			getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint, {
 				hitInside: true,
-				ignoreMargin: true,
+				exact: true,
 			})
 
 		if (hitShape) {

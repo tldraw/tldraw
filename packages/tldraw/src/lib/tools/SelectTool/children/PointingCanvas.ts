@@ -30,7 +30,7 @@ export class PointingCanvas extends StateNode {
 			this.editor.hoveredShape ??
 			getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint, {
 				hitInside: true,
-				ignoreMargin: true,
+				exact: true,
 			})
 
 		const { shiftKey } = this.editor.inputs

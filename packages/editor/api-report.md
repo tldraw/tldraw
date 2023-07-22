@@ -1073,7 +1073,7 @@ export function getRotationSnapshot({ editor }: {
 // @public (undocumented)
 export function getSmallestShapeContainingPoint(editor: Editor, point: Vec2d, opts?: {
     hitInside?: boolean | undefined;
-    ignoreMargin?: boolean | undefined;
+    exact?: boolean | undefined;
     filter?: ((shape: TLShape, util: ShapeUtil) => boolean) | undefined;
 }): null | TLShape;
 
