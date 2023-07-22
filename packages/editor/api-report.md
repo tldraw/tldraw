@@ -535,6 +535,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         };
     };
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
+    createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select?: boolean): this;
     createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select?: boolean): this;
     get croppingId(): null | TLShapeId;
     get currentPage(): TLPage;
@@ -546,7 +547,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteAssets(ids: TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
     deletePage(id: TLPageId): this;
-    deleteShapes(ids?: TLShapeId[]): this;
+    deleteShape(id: TLShapeId): this;
+    deleteShapes(ids: TLShapeId[]): this;
     deselect(...ids: TLShapeId[]): this;
     dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
@@ -842,6 +844,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal
     updateRenderingBounds(): this;
+    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, squashing?: boolean): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;

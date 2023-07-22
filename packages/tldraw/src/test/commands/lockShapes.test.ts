@@ -17,7 +17,7 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
-	editor.deleteShapes()
+	editor.deleteShapes(editor.selectedIds)
 	editor.createShapes([
 		{
 			id: ids.lockedShapeA,

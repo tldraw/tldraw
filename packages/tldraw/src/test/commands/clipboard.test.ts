@@ -14,11 +14,11 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 
-	editor.selectAll().deleteShapes()
+	editor.selectAll().deleteShapes(editor.selectedIds)
 })
 
 afterEach(() => {
-	editor.selectAll().deleteShapes()
+	editor.selectAll().deleteShapes(editor.selectedIds)
 })
 
 const doMockClipboard = () => {

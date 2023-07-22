@@ -15,7 +15,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes()
+		.deleteShapes(editor.selectedIds)
 		.createShapes([
 			{
 				id: id,
@@ -213,7 +213,7 @@ describe('Misc', () => {
 		const duplicate = ids.filter((i) => i !== id)[0]
 		editor.select(duplicate)
 
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedIds)
 
 		ids = Array.from(editor.currentPageShapeIds.values())
 		expect(ids.length).toEqual(1)

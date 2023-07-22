@@ -600,7 +600,7 @@ export function useMenuClipboardEvents() {
 			if (editor.selectedIds.length === 0) return
 
 			handleNativeOrMenuCopy(editor)
-			editor.deleteShapes()
+			editor.deleteShapes(editor.selectedIds)
 			trackEvent('cut', { source })
 		},
 		[editor, trackEvent]
@@ -665,7 +665,7 @@ export function useNativeClipboardEvents() {
 			)
 				return
 			handleNativeOrMenuCopy(editor)
-			editor.deleteShapes()
+			editor.deleteShapes(editor.selectedIds)
 			trackEvent('cut', { source: 'kbd' })
 		}
 

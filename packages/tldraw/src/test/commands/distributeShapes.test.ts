@@ -19,7 +19,7 @@ beforeEach(() => {
 describe('distributeShapes command', () => {
 	beforeEach(() => {
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,
@@ -103,7 +103,7 @@ describe('distributeShapes command', () => {
 
 	it('distributeShapes shapes that are the child of another shape.', () => {
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,
@@ -145,7 +145,7 @@ describe('distributeShapes command', () => {
 
 	it('distributeShapes shapes that are the child of another shape when clustered.', () => {
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,
@@ -188,7 +188,7 @@ describe('distributeShapes command', () => {
 	it('distributeShapes shapes that are the child of another shape when a parent is rotated.', () => {
 		editor = new TestEditor()
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,

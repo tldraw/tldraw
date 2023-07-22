@@ -48,7 +48,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 		// Delete all of the shapes on the current page
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedIds)
 
 		// Create assets
 		const v1AssetIdsToV2AssetIds = new Map<string, TLAssetId>()

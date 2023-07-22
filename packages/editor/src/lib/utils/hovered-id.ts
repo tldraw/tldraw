@@ -4,7 +4,6 @@ import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { Vec2d } from '../primitives/Vec2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { pointInPolygon } from '../primitives/utils'
-import { sortByIndex } from './reordering/reordering'
 
 /** @public */
 export function getHoveredShapeId(editor: Editor) {
@@ -65,13 +64,11 @@ export function getSmallestShapeContainingPoint(
 	}
 ): TLShape | null {
 	// are we inside of a shape but not hovering it?
-	const { zoomLevel, renderingShapes } = editor
+	const { zoomLevel, renderingShapes, sortedShapesArray } = editor
 	const { filter, exact, hitInside } = opts
 
 	let smallestArea = Infinity
 	let hit: TLShape | null = null
-
-	let state = 'not-filled' as 'not-filled' | 'filled'
 
 	const shapesToCheck = renderingShapes
 		.filter((s) => {
@@ -81,7 +78,8 @@ export function getSmallestShapeContainingPoint(
 			return true
 		})
 		.map((s) => s.shape)
-		.sort(sortByIndex)
+		// .sort(sortByIndex)
+		.sort((a, b) => (sortedShapesArray.indexOf(a) > sortedShapesArray.indexOf(b) ? 1 : 0)) // yikes
 
 	for (const shape of shapesToCheck) {
 		let geometry = editor.getGeometry(shape)
@@ -98,21 +96,20 @@ export function getSmallestShapeContainingPoint(
 			if (distance > (exact ? 0 : geometry.margin / zoomLevel)) continue
 		}
 
-		if (state === 'not-filled' && (geometry.isFilled || !geometry.isClosed)) {
-			state = 'filled'
+		if (shape.type === 'frame') {
+			// Once we hit a frame, stop selecting; i.e. don't select
+			// the frame but also don't select anything behind it
+			return hit ?? null
 		}
 
-		if (state === 'filled') {
-			if (geometry.isFilled || !geometry.isClosed) {
-				hit = shape
-			}
-			continue
-		} else {
-			const { area } = geometry
-			if (area < smallestArea) {
-				smallestArea = area
-				hit = shape
-			}
+		if (geometry.isFilled || !geometry.isClosed) {
+			return shape
+		}
+
+		const { area } = geometry
+		if (area < smallestArea) {
+			smallestArea = area
+			hit = shape
 		}
 	}
 

@@ -711,7 +711,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (editor.currentToolId !== 'select') return
 					trackEvent('delete-shapes', { source })
 					editor.mark('delete')
-					editor.deleteShapes()
+					editor.deleteShapes(editor.selectedIds)
 				},
 			},
 			{

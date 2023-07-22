@@ -32,7 +32,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes()
+		.deleteShapes(editor.selectedIds)
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -293,7 +293,7 @@ describe('Other cases when arrow are moved', () => {
 		// create shapes in a group:
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedIds)
 			.createShapes([
 				{ id: ids.box3, type: 'geo', x: 0, y: 300, props: { w: 100, h: 100 } },
 				{ id: ids.box4, type: 'geo', x: 0, y: 600, props: { w: 100, h: 100 } },
@@ -360,7 +360,7 @@ describe('resizing', () => {
 	it('resizes', () => {
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedIds)
 			.setCurrentTool('arrow')
 			.pointerDown(0, 0)
 			.pointerMove(200, 200)
@@ -415,7 +415,7 @@ describe('resizing', () => {
 	it('flips bend when flipping x or y', () => {
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedIds)
 			.setCurrentTool('arrow')
 			.pointerDown(0, 0)
 			.pointerMove(200, 200)
@@ -484,7 +484,7 @@ describe("an arrow's parents", () => {
 	let boxCid: TLShapeId
 
 	beforeEach(() => {
-		editor.selectAll().deleteShapes()
+		editor.selectAll().deleteShapes(editor.selectedIds)
 
 		editor.setCurrentTool('frame')
 		editor.pointerDown(0, 0).pointerMove(100, 100).pointerUp()

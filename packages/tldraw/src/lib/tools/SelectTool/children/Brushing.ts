@@ -152,7 +152,7 @@ export class Brushing extends StateNode {
 				}
 
 				// Check whether any of the the brush edges intersect the shape
-				localCorners = Matrix2d.applyToPoints(Matrix2d.Inverse(pageTransform), corners)
+				localCorners = pageTransform.clone().invert().applyToPoints(corners)
 
 				hitTestBrushEdges: for (let i = 0; i < localCorners.length; i++) {
 					A = localCorners[i]
@@ -193,8 +193,7 @@ export class Brushing extends StateNode {
 
 		if (
 			pageMask &&
-			polygonsIntersect(pageMask, corners) !== null &&
-			!pointInPolygon(currentPagePoint, pageMask)
+			!(pointInPolygon(currentPagePoint, pageMask) || polygonsIntersect(pageMask, corners) !== null)
 		) {
 			return
 		}

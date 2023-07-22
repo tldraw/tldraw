@@ -17,7 +17,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes()
+		.deleteShapes(editor.selectedIds)
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -50,7 +50,7 @@ describe('Editor.deleteShapes', () => {
 	it('Deletes a shape', () => {
 		editor.select(ids.box3, ids.box4)
 		editor.mark()
-		editor.deleteShapes() // delete the selected shapes
+		editor.deleteShapes(editor.selectedIds) // delete the selected shapes
 		expect(editor.getShape(ids.box3)).toBeUndefined()
 		expect(editor.getShape(ids.box4)).toBeUndefined()
 		expect(editor.selectedIds).toMatchObject([])
@@ -67,7 +67,7 @@ describe('Editor.deleteShapes', () => {
 	it('Does nothing on an empty ids array', () => {
 		editor.selectNone()
 		const before = editor.store.serialize()
-		editor.deleteShapes() // should be a noop, nothing to delete
+		editor.deleteShapes(editor.selectedIds) // should be a noop, nothing to delete
 		expect(editor.store.serialize()).toStrictEqual(before)
 	})
 
@@ -75,7 +75,7 @@ describe('Editor.deleteShapes', () => {
 		editor.reparentShapes([ids.box4], ids.box3)
 		editor.select(ids.box3)
 		editor.mark()
-		editor.deleteShapes() // should be a noop, nothing to delete
+		editor.deleteShapes(editor.selectedIds) // should be a noop, nothing to delete
 		expect(editor.getShape(ids.box3)).toBeUndefined()
 		expect(editor.getShape(ids.box4)).toBeUndefined()
 		editor.undo()
@@ -96,7 +96,7 @@ describe('When deleting arrows', () => {
 		// @ts-expect-error
 		expect(editor._arrowBindingsIndex.value[ids.box2]).not.toBeUndefined()
 
-		editor.deleteShapes() // delete the selected shapes
+		editor.deleteShapes(editor.selectedIds) // delete the selected shapes
 		// @ts-expect-error
 		expect(editor._arrowBindingsIndex.value[ids.box1]).toBeUndefined()
 		// @ts-expect-error

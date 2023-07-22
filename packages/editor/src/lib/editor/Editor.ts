@@ -626,7 +626,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * editor.batch(() => {
 	 * 	editor.selectAll()
-	 * 	editor.deleteShapes()
+	 * 	editor.deleteShapes(editor.selectedIds)
 	 * 	editor.createShapes(myShapes)
 	 * 	editor.selectNone()
 	 * })
@@ -6190,6 +6190,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	/**
+	 * Create a single shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.createShape({ id: 'box1', type: 'text', props: { text: "ok" } })
+	 * ```
+	 *
+	 * @param partials - The shape partials to create.
+	 * @param select - Whether to select the created shapes. Defaults to false.
+	 *
+	 * @public
+	 */
+	createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select = false) {
+		this._createShapes([partial], select)
+		return this
+	}
+
 	/** @internal */
 	private _createShapes = this.history.createCommand(
 		'createShapes',
@@ -6591,6 +6609,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Update a shape using a partial of the shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updateShape({ id: 'box1', type: 'geo', props: { w: 100, h: 100 } })
+	 * ```
+	 *
+	 * @param partial - The shape partial to update.
+	 * @param squashing - (optional) Whether the change is ephemeral.
+	 *
+	 * @public
+	 */
+	updateShape<T extends TLUnknownShape>(
+		partial: TLShapePartial<T> | null | undefined,
+		squashing = false
+	) {
+		this.updateShapes([partial], squashing)
+		return this
+	}
+
+	/**
 	 * Update shapes using partials of each shape.
 	 *
 	 * @example
@@ -6735,16 +6774,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.deleteShapes()
 	 * editor.deleteShapes(['box1', 'box2'])
 	 * ```
 	 *
-	 * @param ids - The ids of the shapes to delete. Defaults to the selected shapes.
+	 * @param ids - The ids of the shapes to delete.
 	 *
 	 * @public
 	 */
-	deleteShapes(ids: TLShapeId[] = this.selectedIds) {
+	deleteShapes(ids: TLShapeId[]) {
 		this._deleteShapes(this._getUnlockedShapeIds(ids))
+		return this
+	}
+
+	/**
+	 * Delete a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deleteShapes(['box1', 'box2'])
+	 * ```
+	 *
+	 * @param id - The id of the shape to delete.
+	 *
+	 * @public
+	 */
+	deleteShape(id: TLShapeId) {
+		this.deleteShapes([id])
 		return this
 	}
 

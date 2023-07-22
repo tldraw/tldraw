@@ -15,7 +15,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes()
+		.deleteShapes(editor.selectedIds)
 		.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 })
 
@@ -170,7 +170,7 @@ describe('When double clicking a shape', () => {
 	it('begins editing a geo shapes label', () => {
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedIds)
 			.selectNone()
 			.createShapes([{ id: createShapeId(), type: 'geo' }])
 			.doubleClick(50, 50, { target: 'shape', shape: editor.shapesArray[0] })
@@ -183,7 +183,7 @@ describe('When pressing enter on a selected shape', () => {
 		const id = createShapeId()
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedIds)
 			.selectNone()
 			.createShapes([{ id, type: 'geo' }])
 			.select(id)
@@ -197,7 +197,7 @@ describe('When pressing enter on a selected shape', () => {
 //   const id2 = createShapeId()
 //   app
 //     .selectAll()
-//     .deleteShapes()
+//     .deleteShapes(editor.selectedIds)
 //     .selectNone()
 //     .createShapes([
 //       { id: id1, type: 'geo', x: 100, y: 100 },
@@ -214,7 +214,7 @@ describe('When double clicking the selection edge', () => {
 		const id = createShapeId()
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedIds)
 			.selectNone()
 			.createShapes([{ id, type: 'text', x: 100, y: 100, props: { scale: 2, text: 'hello' } }])
 			.select(id)
@@ -227,7 +227,7 @@ describe('When double clicking the selection edge', () => {
 		const id = createShapeId()
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedIds)
 			.selectNone()
 			.createShapes([
 				{
@@ -250,7 +250,7 @@ describe('When double clicking the selection edge', () => {
 		const id = createShapeId()
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedIds)
 			.selectNone()
 			.createShapes([
 				{
@@ -275,7 +275,7 @@ describe('When double clicking the selection edge', () => {
 		const id = createShapeId()
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedIds)
 			.selectNone()
 			.createShapes([
 				{

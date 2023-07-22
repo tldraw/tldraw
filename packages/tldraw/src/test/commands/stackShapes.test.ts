@@ -19,7 +19,7 @@ beforeEach(() => {
 describe('distributeShapes command', () => {
 	beforeEach(() => {
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,

@@ -231,7 +231,7 @@ describe('When shapes are parented to other shapes...', () => {
 	beforeEach(() => {
 		editor = new TestEditor()
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedIds)
 		ids = editor.createShapesFromJsx([
 			<TL.geo ref="boxA" x={0} y={0} w={100} h={100}>
 				<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />
@@ -291,7 +291,7 @@ describe('When shapes are parented to a rotated shape...', () => {
 	beforeEach(() => {
 		editor = new TestEditor()
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,

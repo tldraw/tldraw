@@ -23,7 +23,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes()
+		.deleteShapes(editor.selectedIds)
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -394,7 +394,7 @@ describe('When pointing an end shape', () => {
 
 describe('reparenting issue', () => {
 	it('Correctly sets index when reparenting', () => {
-		editor.selectAll().deleteShapes()
+		editor.selectAll().deleteShapes(editor.selectedIds)
 
 		// Create an arrow!
 		editor.setCurrentTool('arrow')
@@ -439,7 +439,7 @@ describe('reparenting issue', () => {
 	})
 
 	it('Correctly sets index when reparenting with multiple arrows', () => {
-		editor.selectAll().deleteShapes()
+		editor.selectAll().deleteShapes(editor.selectedIds)
 
 		// create two rectangles:
 		editor.createShapes([

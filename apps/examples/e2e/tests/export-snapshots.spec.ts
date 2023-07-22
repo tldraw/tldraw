@@ -172,7 +172,7 @@ export {}
 // 				editor
 // 					.updateInstanceState({ exportBackground: false })
 // 					.selectAll()
-// 					.deleteShapes()
+// 					.deleteShapes(editor.selectedIds)
 // 					.createShapes(shapes)
 // 			}, shapes as any)
 
@@ -189,7 +189,7 @@ export {}
 // 				editor
 // 					.updateInstanceState({ exportBackground: false })
 // 					.selectAll()
-// 					.deleteShapes()
+// 					.deleteShapes(editor.selectedIds)
 // 					.createShapes(shapes)
 // 			}, shapes as any)
 

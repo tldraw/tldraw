@@ -23,7 +23,7 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
-	editor.deleteShapes()
+	editor.deleteShapes(editor.selectedIds)
 	editor.createShapes([
 		{
 			id: ids.boxA,
@@ -352,7 +352,7 @@ describe('flipping rotated shapes', () => {
 		arrowD: createShapeId('arrowD'),
 	}
 	beforeEach(() => {
-		editor.selectAll().deleteShapes()
+		editor.selectAll().deleteShapes(editor.selectedIds)
 		const props: Partial<TLArrowShapeProps> = {
 			start: {
 				type: 'point',
@@ -558,7 +558,7 @@ describe('When flipping shapes that include arrows', () => {
 	})
 
 	it('Flips horizontally', () => {
-		editor.selectAll().deleteShapes().createShapes(shapes)
+		editor.selectAll().deleteShapes(editor.selectedIds).createShapes(shapes)
 
 		const boundsBefore = editor.selectionBounds!
 		editor.flipShapes('horizontal')
@@ -566,7 +566,7 @@ describe('When flipping shapes that include arrows', () => {
 	})
 
 	it('Flips vertically', () => {
-		editor.selectAll().deleteShapes().createShapes(shapes)
+		editor.selectAll().deleteShapes(editor.selectedIds).createShapes(shapes)
 
 		const boundsBefore = editor.selectionBounds!
 		editor.flipShapes('vertical')

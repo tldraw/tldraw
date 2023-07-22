@@ -363,7 +363,7 @@ it('pastes shapes with children', () => {
 describe('When pasting into frames...', () => {
 	it('Does not paste into a clipped frame', () => {
 		// clear the page
-		editor.selectAll().deleteShapes()
+		editor.selectAll().deleteShapes(editor.selectedIds)
 
 		editor
 			// move the two frames far from all other shapes
