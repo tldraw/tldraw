@@ -226,7 +226,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 					if (targetId) {
 						const target = this.editor.getShape(targetId)!
-						const targetBounds = this.editor.getGeometry(target).bounds
+						const targetGeometry = this.editor.getGeometry(target)
+						const targetBounds = targetGeometry.bounds
 						const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
 						let precise = isPrecise
@@ -258,7 +259,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						// Double check that we're not going to be doing an imprecise snap on
 						// the same shape twice, as this would result in a zero length line
 						if (!precise) {
-							if (!this.getGeometry(shape).isClosed) {
+							if (!targetGeometry.isClosed) {
 								precise = true
 							} else {
 								const otherHandle = next.props[handle.id === 'start' ? 'end' : 'start']
@@ -307,6 +308,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				if (Vec2d.Clockwise(point, end, med)) bend *= -1
 				next.props.bend = bend
 				break
+			}
+		}
+
+		if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
+			if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
+				if (Vec2d.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
+					throw Error(`Can't be bound to the same point at the same point`)
+				}
 			}
 		}
 

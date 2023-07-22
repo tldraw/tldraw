@@ -147,7 +147,9 @@ describe('arrows', () => {
 	let firstBox: TLShape
 	let secondBox: TLShape
 	let arrow: TLShape
+
 	beforeEach(() => {
+		editor.selectAll().deleteShapes()
 		// draw a first box
 		editor
 			.setCurrentTool('geo')
@@ -167,15 +169,23 @@ describe('arrows', () => {
 		secondBox = editor.onlySelectedShape!
 
 		// draw an arrow from the first box to the second box
-		editor.setCurrentTool('arrow').pointerDown(250, 250).pointerMove(450, 450).pointerUp(450, 450)
+		editor
+			.setCurrentTool('arrow')
+			.pointerDown(250, 250)
+			.pointerMove(449, 449)
+			.pointerMove(450, 450)
+			.pointerUp(450, 450)
 		arrow = editor.onlySelectedShape!
 	})
 
 	it("retains an arrow's bound position if it's bound shape is moved to another page", () => {
+		console.log(arrow.props)
 		expect(editor.getPageBounds(arrow)).toCloselyMatchObject({
 			// exiting at the bottom right corner of the first box
 			x: 300,
 			y: 300,
+			w: 100,
+			h: 100,
 		})
 
 		// move the second box up 200 px
