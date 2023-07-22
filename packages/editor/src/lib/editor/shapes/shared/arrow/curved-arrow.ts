@@ -160,7 +160,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		let intersections = fn(
 			centerInEndShapeLocalSpace,
 			handleArc.radius,
-			editor.getGeometry(endShapeInfo.shape).vertices
+			editor.getGeometry(endShapeInfo.shape).outerVertices
 		)
 
 		if (intersections) {

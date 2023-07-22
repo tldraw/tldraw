@@ -34,7 +34,7 @@ export function getBoundShapeInfoForTerminal(
 		isClosed: geometry.isClosed,
 		isExact: terminal.isExact,
 		didIntersect: false,
-		outline: geometry.vertices,
+		outline: geometry.outerVertices,
 	}
 }
 

@@ -159,6 +159,11 @@ export class Group2d extends Geometry2d {
 		}
 	}
 
+	get outerVertices() {
+		// todo: this is a temporary solution for arrow hit testing to prevent arrows from snapping to the label of a shape
+		return this.children[0].vertices
+	}
+
 	toSimpleSvgPath() {
 		let path = ''
 		for (const child of this.children) {
@@ -166,13 +171,21 @@ export class Group2d extends Geometry2d {
 		}
 
 		const corners = Box2d.FromPoints(this.vertices).corners
+		// draw just a few pixels around each corner, e.g. an L shape for the bottom left
 
-		path += `M${corners[0].x},${corners[0].y} `
-		path += `L${corners[1].x},${corners[1].y} `
-		path += `L${corners[2].x},${corners[2].y} `
-		path += `L${corners[3].x},${corners[3].y} `
-		path += 'Z'
+		for (let i = 0, n = corners.length; i < n; i++) {
+			const corner = corners[i]
+			const prevCorner = corners[(i - 1 + n) % n]
+			const prevDist = corner.dist(prevCorner)
+			const nextCorner = corners[(i + 1) % n]
+			const nextDist = corner.dist(nextCorner)
 
+			const A = corner.clone().lrp(prevCorner, 4 / prevDist)
+			const B = corner
+			const C = corner.clone().lrp(nextCorner, 4 / nextDist)
+
+			path += `M${A.x},${A.y} L${B.x},${B.y} L${C.x},${C.y} `
+		}
 		return path
 	}
 }

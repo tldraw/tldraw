@@ -962,6 +962,8 @@ export abstract class Geometry2d {
     // (undocumented)
     nearestPointOnLineSegment(A: Vec2d, B: Vec2d): Vec2d;
     // (undocumented)
+    get outerVertices(): Vec2d[];
+    // (undocumented)
     get snapPoints(): Vec2d[];
     // (undocumented)
     _snapPoints: undefined | Vec2d[];
@@ -1107,6 +1109,8 @@ export class Group2d extends Geometry2d {
     nearestPoint(point: Vec2d): Vec2d;
     // (undocumented)
     operation: 'exclude' | 'intersect' | 'subtract' | 'union';
+    // (undocumented)
+    get outerVertices(): Vec2d[];
     // (undocumented)
     toSimpleSvgPath(): string;
 }
