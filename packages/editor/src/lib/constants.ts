@@ -69,9 +69,9 @@ export const CAMERA_SLIDE_FRICTION = 0.09
 
 /** @public */
 export const GRID_STEPS = [
-	{ min: -1, mid: 0.15, step: 100 },
-	{ min: 0.05, mid: 0.375, step: 25 },
-	{ min: 0.15, mid: 1, step: 5 },
+	{ min: -1, mid: 0.15, step: 64 },
+	{ min: 0.05, mid: 0.375, step: 16 },
+	{ min: 0.15, mid: 1, step: 4 },
 	{ min: 0.7, mid: 2.5, step: 1 },
 ]
 

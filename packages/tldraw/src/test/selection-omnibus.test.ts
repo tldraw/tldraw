@@ -6,6 +6,9 @@ let editor: TestEditor
 const ids = {
 	box1: createShapeId('box1'),
 	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
+	box4: createShapeId('box4'),
+	box5: createShapeId('box5'),
 	frame1: createShapeId('frame1'),
 }
 
@@ -334,5 +337,119 @@ describe('when shape is selected', () => {
 	})
 })
 
+describe('When shapes are overlapping', () => {
+	let box1: TLGeoShape
+	let box2: TLGeoShape
+	let box3: TLGeoShape
+	let box4: TLGeoShape
+	let box5: TLGeoShape
+	beforeEach(() => {
+		editor.createShapes<TLGeoShape>([
+			{
+				id: ids.box1,
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: {
+					w: 300,
+					h: 300,
+				},
+			},
+			{
+				id: ids.box2,
+				type: 'geo',
+				x: 50,
+				y: 50,
+				props: {
+					w: 100,
+					h: 150,
+				},
+			},
+			{
+				id: ids.box3,
+				type: 'geo',
+				x: 75,
+				y: 75,
+				props: {
+					w: 100,
+					h: 100,
+				},
+			},
+			{
+				id: ids.box4,
+				type: 'geo',
+				x: 100,
+				y: 25,
+				props: {
+					w: 100,
+					h: 100,
+					fill: 'solid',
+				},
+			},
+			{
+				id: ids.box5,
+				type: 'geo',
+				x: 125,
+				y: 0,
+				props: {
+					w: 100,
+					h: 100,
+					fill: 'solid',
+				},
+			},
+		])
+
+		box1 = editor.getShape<TLGeoShape>(ids.box1)!
+		box2 = editor.getShape<TLGeoShape>(ids.box2)!
+		box3 = editor.getShape<TLGeoShape>(ids.box3)!
+		box4 = editor.getShape<TLGeoShape>(ids.box4)!
+		box5 = editor.getShape<TLGeoShape>(ids.box5)!
+
+		editor.sendToBack([ids.box4]) // filled shape at back
+		editor.bringToFront([ids.box5]) // filled shape in front
+		editor.bringToFront([ids.box2]) // filled shape in front
+	})
+
+	it('selects the filled shape behind the hollow shapes', () => {
+		editor.pointerDown(110, 90)
+		expect(editor.selectedIds).toEqual([box4.id])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([box4.id])
+	})
+
+	it('selects the hollow above the filled shapes when in margin', () => {
+		editor.pointerDown(110, 50)
+		expect(editor.selectedIds).toEqual([box2.id])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([box2.id])
+	})
+
+	it('selects the front-most filled shape', () => {
+		editor.pointerDown(175, 50)
+		expect(editor.selectedIds).toEqual([box5.id])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([box5.id])
+	})
+
+	it('selects the smallest overlapping hollow shape', () => {
+		editor.pointerDown(125, 150)
+		expect(editor.selectedIds).toEqual([])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([box3.id])
+		editor.selectNone()
+		editor.pointerDown(65, 65)
+		expect(editor.selectedIds).toEqual([])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([box2.id])
+		editor.selectNone()
+		editor.pointerDown(35, 35)
+		expect(editor.selectedIds).toEqual([])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([box1.id])
+	})
+})
+
 it.todo('selects behind selection on pointer up')
 it.todo('does not select behind a frame')
+it.todo('does not select a hollow closed shape that contains the viewport?')
+it.todo('does not select a hollow closed shape if the negative distance is more than X?')
