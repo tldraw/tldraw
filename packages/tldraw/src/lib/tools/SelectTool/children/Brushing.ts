@@ -193,7 +193,8 @@ export class Brushing extends StateNode {
 
 		if (
 			pageMask &&
-			!(pointInPolygon(currentPagePoint, pageMask) || polygonsIntersect(pageMask, corners) !== null)
+			!polygonsIntersect(pageMask, corners) &&
+			!pointInPolygon(currentPagePoint, pageMask)
 		) {
 			return
 		}

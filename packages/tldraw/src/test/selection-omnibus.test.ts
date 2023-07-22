@@ -266,6 +266,14 @@ describe('when a frame has multiple children', () => {
 		expect(editor.selectedIds).toEqual([ids.box1])
 	})
 
+	it('brush does not select a shape when brushing its masked parts', () => {
+		editor.pointerDown(110, 0)
+		editor.pointerMove(160, 160)
+		editor.expectPathToBe('root.select.brushing')
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([])
+	})
+
 	it('brush selects a shape inside of the frame', () => {
 		editor.pointerDown(10, 10)
 		editor.pointerMove(30, 30)
