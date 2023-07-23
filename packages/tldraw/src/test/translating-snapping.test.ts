@@ -52,7 +52,6 @@ class __TopLeftSnapOnlyShapeUtil extends ShapeUtil<__TopLeftSnapOnlyShape> {
 			width: shape.props.width,
 			height: shape.props.height,
 			isFilled: true,
-			margin: 8,
 		})
 	}
 }

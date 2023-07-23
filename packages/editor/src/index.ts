@@ -301,11 +301,6 @@ export { getIncrementedName } from './lib/utils/getIncrementedName'
 export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
-export {
-	getHoveredShapeId,
-	getSmallestShapeContainingPoint,
-	updateHoveredId,
-} from './lib/utils/hovered-id'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
 export { refreshPage } from './lib/utils/refreshPage'
 export {
@@ -324,6 +319,12 @@ export {
 	type TLRotationSnapshot,
 } from './lib/utils/rotation'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
+export {
+	getHoveredShapeId,
+	getSmallestShapeContainingPoint,
+	getTopSelectedIdUnderPoint,
+	updateHoveredId,
+} from './lib/utils/selection'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'

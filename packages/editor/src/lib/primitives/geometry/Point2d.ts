@@ -9,9 +9,8 @@ export class Point2d extends Geometry2d {
 		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & { margin: number; point: Vec2d }
 	) {
 		super({ ...config, isClosed: true, isFilled: true })
-		const { margin, point } = config
+		const { point } = config
 
-		this.margin = margin
 		this.point = point
 	}
 
@@ -23,7 +22,7 @@ export class Point2d extends Geometry2d {
 		return this.point
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d): boolean {
-		return Vec2d.DistanceToLineSegment(A, B, this.point) < this.margin
+	hitTestLineSegment(A: Vec2d, B: Vec2d, margin: number): boolean {
+		return Vec2d.DistanceToLineSegment(A, B, this.point) < margin
 	}
 }

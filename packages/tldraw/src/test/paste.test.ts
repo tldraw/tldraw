@@ -416,7 +416,7 @@ describe('When pasting into frames...', () => {
 			])
 			// Make sure that frame 1 is brought to front
 			.select(ids.frame1)
-			.bringToFront()
+			.bringToFront(editor.selectedIds)
 
 		editor.setCamera(-2000, -2000, 1)
 		editor.updateRenderingBounds()

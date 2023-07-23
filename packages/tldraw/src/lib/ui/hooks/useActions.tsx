@@ -602,7 +602,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'toFront', source })
 					editor.mark('bring to front')
-					editor.bringToFront()
+					editor.bringToFront(editor.selectedIds)
 				},
 			},
 			{
@@ -614,7 +614,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'forward', source })
 					editor.mark('bring forward')
-					editor.bringForward()
+					editor.bringForward(editor.selectedIds)
 				},
 			},
 			{
@@ -626,7 +626,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'backward', source })
 					editor.mark('send backward')
-					editor.sendBackward()
+					editor.sendBackward(editor.selectedIds)
 				},
 			},
 			{
@@ -638,7 +638,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('reorder-shapes', { operation: 'toBack', source })
 					editor.mark('send to back')
-					editor.sendToBack()
+					editor.sendToBack(editor.selectedIds)
 				},
 			},
 			{

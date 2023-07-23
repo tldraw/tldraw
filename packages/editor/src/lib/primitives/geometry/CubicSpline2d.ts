@@ -18,7 +18,7 @@ export class CubicSpline2d extends Geometry2d {
 	get segments() {
 		if (!this._segments) {
 			this._segments = []
-			const { points, margin } = this
+			const { points } = this
 
 			const len = points.length
 			const last = len - 2
@@ -40,7 +40,7 @@ export class CubicSpline2d extends Geometry2d {
 							: new Vec2d(p2.x - ((p3.x - p1.x) / 6) * k, p2.y - ((p3.y - p1.y) / 6) * k),
 					end = p2
 
-				this._segments.push(new CubicBezier2d({ start, cp1, cp2, end, margin }))
+				this._segments.push(new CubicBezier2d({ start, cp1, cp2, end }))
 			}
 		}
 

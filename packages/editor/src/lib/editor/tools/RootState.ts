@@ -1,4 +1,4 @@
-import { updateHoveredId } from '../../utils/hovered-id'
+import { updateHoveredId } from '../../utils/selection'
 import { TLEventHandlers } from '../types/event-types'
 import { StateNode } from './StateNode'
 

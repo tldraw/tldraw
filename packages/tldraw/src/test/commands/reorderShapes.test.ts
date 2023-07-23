@@ -916,3 +916,35 @@ describe('When shapes are parented...', () => {
 		)
 	})
 })
+
+test('When only two shapes exist', () => {
+	editor = new TestEditor()
+	editor.createShapes([
+		{
+			id: ids['A'],
+			type: 'geo',
+		},
+		{
+			id: ids['B'],
+			type: 'geo',
+		},
+	])
+
+	expectShapesInOrder(editor, ids['A'], ids['B'])
+
+	editor.sendToBack([ids['B']])
+
+	expectShapesInOrder(editor, ids['B'], ids['A'])
+
+	editor.bringToFront([ids['B']])
+
+	expectShapesInOrder(editor, ids['A'], ids['B'])
+
+	editor.sendBackward([ids['B']])
+
+	expectShapesInOrder(editor, ids['B'], ids['A'])
+
+	editor.bringForward([ids['B']])
+
+	expectShapesInOrder(editor, ids['A'], ids['B'])
+})

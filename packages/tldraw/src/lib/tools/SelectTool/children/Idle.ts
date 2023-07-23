@@ -1,5 +1,4 @@
 import {
-	Editor,
 	StateNode,
 	TLClickEventInfo,
 	TLEventHandlers,
@@ -11,7 +10,7 @@ import {
 	Vec2d,
 	createShapeId,
 	getSmallestShapeContainingPoint,
-	sortByIndex,
+	getTopSelectedIdUnderPoint,
 	updateHoveredId,
 } from '@tldraw/editor'
 
@@ -52,7 +51,7 @@ export class Idle extends StateNode {
 					getTopSelectedIdUnderPoint(this.editor, this.editor.inputs.currentPagePoint) ??
 					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint, {
 						hitInside: false,
-						exact: false,
+						margin: 0,
 					})
 
 				if (hitShape) {
@@ -63,6 +62,7 @@ export class Idle extends StateNode {
 					})
 					return
 				}
+
 				this.parent.transition('pointing_canvas', info)
 				break
 			}
@@ -466,11 +466,4 @@ export class Idle extends StateNode {
 
 		this.editor.nudgeShapes(this.editor.selectedIds, delta, shiftKey)
 	}
-}
-
-function getTopSelectedIdUnderPoint(editor: Editor, point: Vec2d) {
-	const { selectedShapes } = editor
-	return selectedShapes
-		.sort(sortByIndex)
-		.findLast((shape) => editor.isPointInShape(shape, point, { hitInside: true }))
 }

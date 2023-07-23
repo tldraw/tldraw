@@ -1,5 +1,6 @@
 import { track } from '@tldraw/state'
 import { modulate } from '@tldraw/utils'
+import { HIT_TEST_MARGIN } from '../constants'
 import { useEditor } from '../hooks/useEditor'
 
 export const GeometryDebuggingView = track(function GeometryDebuggingView({
@@ -39,7 +40,7 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 				const nearestPointOnShape = geometry.nearestPoint(pointInShapeSpace)
 				const distanceToPoint = geometry.distanceToPoint(pointInShapeSpace)
 
-				const { vertices, margin } = geometry
+				const { vertices } = geometry
 
 				return (
 					<g key={result.id + '_outline'} transform={pageTransform.toCssString()}>
@@ -69,7 +70,7 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 								x2={pointInShapeSpace.x}
 								y2={pointInShapeSpace.y}
 								strokeWidth={2}
-								stroke={distanceToPoint < margin / zoomLevel ? 'red' : 'pink'}
+								stroke={distanceToPoint < HIT_TEST_MARGIN / zoomLevel ? 'red' : 'pink'}
 							/>
 						)}
 					</g>

@@ -5,13 +5,11 @@ import { pointInPolygon } from '../utils'
 export interface Geometry2dOptions {
 	isFilled: boolean
 	isClosed: boolean
-	margin: number
 	isSnappable?: boolean
 }
 
 /** @public */
 export abstract class Geometry2d {
-	margin = 0
 	isFilled = false
 	isClosed = true
 	isSnappable = true
@@ -19,7 +17,6 @@ export abstract class Geometry2d {
 	constructor(opts: Geometry2dOptions) {
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
-		this.margin = opts.margin
 		this.isSnappable = opts.isSnappable ?? false
 	}
 
@@ -27,10 +24,9 @@ export abstract class Geometry2d {
 
 	abstract nearestPoint(point: Vec2d): Vec2d
 
-	hitTestPoint(point: Vec2d, zoom = 1, hitInside = false, exact = false) {
-		if (!this.expandedBounds.containsPoint(point)) return false
-		if (exact) return this.distanceToPoint(point, hitInside) <= 0
-		return this.distanceToPoint(point, hitInside) <= this.margin / zoom
+	hitTestPoint(point: Vec2d, margin = 0, hitInside = false) {
+		if (!this.bounds.containsPoint(point, margin)) return false
+		return this.distanceToPoint(point, hitInside) <= margin
 	}
 
 	distanceToPoint(point: Vec2d, hitInside = false) {
@@ -47,8 +43,8 @@ export abstract class Geometry2d {
 		return this.isClosed && this.isFilled && pointInPolygon(point, this.vertices) ? -dist : dist
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom = 1): boolean {
-		return this.distanceToLineSegment(A, B) <= this.margin / zoom
+	hitTestLineSegment(A: Vec2d, B: Vec2d, distance = 0): boolean {
+		return this.distanceToLineSegment(A, B) <= distance
 	}
 
 	nearestPointOnLineSegment(A: Vec2d, B: Vec2d): Vec2d {
@@ -66,8 +62,8 @@ export abstract class Geometry2d {
 		return nearest
 	}
 
-	isPointInBounds(point: Vec2d) {
-		const { bounds, margin } = this
+	isPointInBounds(point: Vec2d, margin = 0) {
+		const { bounds } = this
 		return !(
 			point.x < bounds.minX - margin ||
 			point.y < bounds.minY - margin ||
@@ -92,15 +88,6 @@ export abstract class Geometry2d {
 
 	getBounds() {
 		return Box2d.FromPoints(this.vertices)
-	}
-
-	_expandedBounds: Box2d | undefined
-
-	get expandedBounds(): Box2d {
-		if (!this._expandedBounds) {
-			this._expandedBounds = this.bounds.clone().expandBy(this.margin)
-		}
-		return this._expandedBounds
 	}
 
 	_bounds: Box2d | undefined

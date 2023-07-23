@@ -10,7 +10,6 @@ export class Group2d extends Geometry2d {
 	constructor(
 		config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
 			children: Geometry2d[]
-			margin: number
 			operation: 'union' | 'subtract' | 'exclude' | 'intersect'
 		}
 	) {
@@ -66,17 +65,14 @@ export class Group2d extends Geometry2d {
 		return Math.min(...this.children.map((c) => c.distanceToPoint(point, hitInside)))
 	}
 
-	override hitTestPoint(point: Vec2d, zoom: number, hitInside: boolean, exact: boolean): boolean {
-		const { children, operation, margin } = this
-		const min = margin / zoom
-
+	override hitTestPoint(point: Vec2d, margin: number, hitInside: boolean): boolean {
+		const { operation } = this
 		if (hitInside) {
-			if (exact) return this.bounds.containsPoint(point)
-			return this.expandedBounds.containsPoint(point)
+			return this.bounds.containsPoint(point, margin)
 		}
 
 		const dist = this.distanceToPoint(point)
-		const isCloseEnough = dist <= (exact ? 0 : min)
+		const isCloseEnough = dist <= margin
 		if (!isCloseEnough) return false
 
 		switch (operation) {
@@ -84,38 +80,41 @@ export class Group2d extends Geometry2d {
 				return true
 			}
 			case 'subtract': {
-				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
-					child = children[i]
+				throw Error(`not implemented`)
+				// for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
+				// 	child = children[i]
 
-					const nearest = child.nearestPoint(point)
-					const dist = nearest.dist(point)
+				// 	const nearest = child.nearestPoint(point)
+				// 	const dist = nearest.dist(point)
 
-					if (i === 0) {
-						if (dist > min) return false
-					} else {
-						if (dist < -margin) {
-							return false
-						}
-					}
-				}
-				return true
+				// 	if (i === 0) {
+				// 		if (dist > margin) return false
+				// 	} else {
+				// 		if (dist < -margin) {
+				// 			return false
+				// 		}
+				// 	}
+				// }
+				// return true
 			}
 			case 'exclude': {
-				let hits = 0
-				for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
-					child = children[i]
+				throw Error(`not implemented`)
+				// let hits = 0
+				// for (let i = 0, child: Geometry2d, n = children.length; i < n; i++) {
+				// 	child = children[i]
 
-					const nearest = child.nearestPoint(point)
-					const dist = nearest.dist(point)
+				// 	const nearest = child.nearestPoint(point)
+				// 	const dist = nearest.dist(point)
 
-					if (dist < -margin) {
-						hits++
-					}
-				}
-				return hits % 2 === 1
+				// 	if (dist < -margin) {
+				// 		hits++
+				// 	}
+				// }
+				// return hits % 2 === 1
 			}
 			case 'intersect': {
-				return children.every((child) => child.distanceToPoint(point) <= margin / zoom)
+				throw Error(`not implemented`)
+				// return children.every((child) => child.distanceToPoint(point) <= margin / zoom)
 			}
 		}
 	}

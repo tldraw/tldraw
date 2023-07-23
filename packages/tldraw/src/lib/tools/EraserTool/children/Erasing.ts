@@ -32,7 +32,7 @@ export class Erasing extends StateNode {
 							this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) &&
 							this.editor.isPointInShape(shape, originPagePoint, {
 								hitInside: true,
-								exact: true,
+								margin: 0,
 							}))
 				)
 				.map((shape) => shape.id)

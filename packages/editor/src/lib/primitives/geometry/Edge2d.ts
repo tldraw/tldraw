@@ -10,7 +10,7 @@ export class Edge2d extends Geometry2d {
 	u: Vec2d
 	length: number
 
-	constructor(config: { start: Vec2d; end: Vec2d; margin: number; isSnappable?: boolean }) {
+	constructor(config: { start: Vec2d; end: Vec2d; isSnappable?: boolean }) {
 		super({ ...config, isClosed: false, isFilled: false })
 		const { start, end } = config
 

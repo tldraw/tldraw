@@ -14,7 +14,7 @@ export class Pointing extends StateNode {
 			if (
 				this.editor.isPointInShape(shape, inputs.currentPagePoint, {
 					hitInside: true,
-					exact: true,
+					margin: 0,
 				})
 			) {
 				// Skip groups

@@ -92,7 +92,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			? new Edge2d({
 					start: Vec2d.From(info.start.point),
 					end: Vec2d.From(info.end.point),
-					margin: 8 + STROKE_SIZES[shape.props.size],
 			  })
 			: new Arc2d({
 					center: Vec2d.Cast(info.handleArc.center),
@@ -101,7 +100,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					end: Vec2d.Cast(info.end.point),
 					sweepFlag: info.bodyArc.sweepFlag,
 					largeArcFlag: info.bodyArc.largeArcFlag,
-					margin: 8 + STROKE_SIZES[shape.props.size],
 			  })
 
 		if (!shape.props.text.trim()) {
@@ -160,11 +158,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			width: width + 8,
 			height: height + 8,
 			isFilled: true,
-			margin: 8 + STROKE_SIZES[shape.props.size],
 		})
 
 		return new Group2d({
-			margin: 8 + STROKE_SIZES[shape.props.size],
 			children: [bodyGeom, labelGeom],
 			operation: 'union',
 			isSnappable: false,
@@ -245,9 +241,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const point = this.editor.getPageTransform(shape.id)!.applyToPoint(handle)
 
 		const target = getSmallestShapeContainingPoint(this.editor, point, {
-			filter: (shape, util) => util.canBind(shape),
+			filter: (shape) => this.editor.getShapeUtil(shape).canBind(shape),
 			hitInside: true,
-			exact: true,
+			hitFrameInside: true,
+			margin: 0,
 		})
 
 		if (!target) {

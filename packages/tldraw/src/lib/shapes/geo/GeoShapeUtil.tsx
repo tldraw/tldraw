@@ -96,7 +96,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const cy = h / 2
 
 		const strokeWidth = STROKE_SIZES[shape.props.size]
-		const margin = strokeWidth + 4
 		const isFilled = shape.props.fill !== 'none'
 
 		let body: Geometry2d
@@ -106,7 +105,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				body = new Polygon2d({
 					points: cloudOutline(w, h, shape.id, shape.props.size),
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -114,7 +112,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				body = new Polygon2d({
 					points: [new Vec2d(cx, 0), new Vec2d(w, h), new Vec2d(0, h)],
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -122,7 +119,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				body = new Polygon2d({
 					points: [new Vec2d(cx, 0), new Vec2d(w, cy), new Vec2d(cx, h), new Vec2d(0, cy)],
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -130,7 +126,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				body = new Polygon2d({
 					points: getPolygonVertices(w, h, 5),
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -138,7 +133,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				body = new Polygon2d({
 					points: getPolygonVertices(w, h, 6),
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -146,7 +140,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				body = new Polygon2d({
 					points: getPolygonVertices(w, h, 8),
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -155,7 +148,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					width: w,
 					height: h,
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -164,7 +156,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					width: w,
 					height: h,
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -206,7 +197,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						)
 					}),
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -220,7 +210,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						new Vec2d(0, h),
 					],
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -234,7 +223,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						new Vec2d(offset, h),
 					],
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -248,7 +236,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						new Vec2d(0, h),
 					],
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -266,7 +253,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						new Vec2d(0, h - oy),
 					],
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -284,7 +270,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						new Vec2d(0, h / 2),
 					],
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -302,7 +287,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						new Vec2d(0, oy),
 					],
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -320,7 +304,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						new Vec2d(ox, h - oy),
 					],
 					isFilled,
-					margin,
 				})
 				break
 			}
@@ -331,7 +314,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					width: w,
 					height: h,
 					isFilled,
-					margin,
 					isSnappable: true,
 				})
 			}
@@ -342,15 +324,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		// const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
 
 		const lines = getLines(shape.props, strokeWidth)
-		const edges = lines
-			? lines.map(
-					(line) =>
-						new Polyline2d({
-							points: line,
-							margin: 12,
-						})
-			  )
-			: []
+		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
 
 		return new Group2d({
 			children: [
@@ -366,7 +340,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				// }),
 				...edges,
 			],
-			margin: 12,
 			operation: 'union',
 			isSnappable: false,
 		})

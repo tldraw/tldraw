@@ -26,7 +26,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	getGeometry(shape: TLGroupShape): Geometry2d {
 		const children = this.editor.getSortedChildIds(shape.id)
 		if (children.length === 0) {
-			return new Rectangle2d({ width: 1, height: 1, isFilled: false, margin: 8 })
+			return new Rectangle2d({ width: 1, height: 1, isFilled: false })
 		}
 
 		return new Group2d({
@@ -39,17 +39,14 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 					return new Polygon2d({
 						points,
 						isFilled: true,
-						margin: 0,
 					})
 				}
 
 				return new Polyline2d({
 					points,
-					margin: 0,
 				})
 			}),
 			operation: 'union',
-			margin: 0,
 		})
 	}
 

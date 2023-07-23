@@ -176,9 +176,9 @@ export class Box2d {
     // (undocumented)
     contains(B: Box2d): boolean;
     // (undocumented)
-    static ContainsPoint: (A: Box2d, B: number | VecLike, y?: number) => boolean;
+    static ContainsPoint: (A: Box2d, B: VecLike, margin?: number) => boolean;
     // (undocumented)
-    containsPoint(V: number | VecLike, y?: number): boolean;
+    containsPoint(V: VecLike, margin?: number): boolean;
     // (undocumented)
     get corners(): Vec2d[];
     // (undocumented)
@@ -453,7 +453,6 @@ export class Edge2d extends Geometry2d {
     constructor(config: {
         start: Vec2d;
         end: Vec2d;
-        margin: number;
         isSnappable?: boolean;
     });
     // (undocumented)
@@ -502,8 +501,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     batch(fn: () => void): this;
     // (undocumented)
     blur: () => void;
-    bringForward(ids?: TLShapeId[]): this;
-    bringToFront(ids?: TLShapeId[]): this;
+    bringForward(shapes: TLShape[]): this;
+    // (undocumented)
+    bringForward(ids: TLShapeId[]): this;
+    bringToFront(shapes: TLShape[]): this;
+    // (undocumented)
+    bringToFront(ids: TLShapeId[]): this;
     get camera(): TLCamera;
     get cameraState(): "idle" | "moving";
     cancel(): this;
@@ -704,13 +707,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly isIos: boolean;
     get isMenuOpen(): boolean;
     isPointInShape(shape: TLShape, point: VecLike, opts?: {
+        margin?: number;
         hitInside?: boolean;
-        exact?: boolean;
     }): boolean;
     // (undocumented)
     isPointInShape(id: TLShapeId, point: VecLike, opts?: {
+        margin?: number;
         hitInside?: boolean;
-        exact?: boolean;
     }): boolean;
     readonly isSafari: boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
@@ -789,8 +792,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     get selectionPageCenter(): null | Vec2d;
     get selectionRotation(): number;
     selectNone(): this;
-    sendBackward(ids?: TLShapeId[]): this;
-    sendToBack(ids?: TLShapeId[]): this;
+    sendBackward(shapes: TLShape[]): this;
+    // (undocumented)
+    sendBackward(ids: TLShapeId[]): this;
+    sendToBack(shapes: TLShape[]): this;
+    // (undocumented)
+    sendToBack(ids: TLShapeId[]): this;
     setCamera(x: number, y: number, z?: number, { stopFollowing }?: TLViewportOptions): this;
     // (undocumented)
     setCroppingId(id: null | TLShapeId): this;
@@ -956,29 +963,23 @@ export abstract class Geometry2d {
     // (undocumented)
     distanceToPoint(point: Vec2d, hitInside?: boolean): number;
     // (undocumented)
-    get expandedBounds(): Box2d;
-    // (undocumented)
-    _expandedBounds: Box2d | undefined;
-    // (undocumented)
     getArea(): number;
     // (undocumented)
     getBounds(): Box2d;
     // (undocumented)
     abstract getVertices(): Vec2d[];
     // (undocumented)
-    hitTestLineSegment(A: Vec2d, B: Vec2d, zoom?: number): boolean;
+    hitTestLineSegment(A: Vec2d, B: Vec2d, distance?: number): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec2d, zoom?: number, hitInside?: boolean, exact?: boolean): boolean;
+    hitTestPoint(point: Vec2d, margin?: number, hitInside?: boolean): boolean;
     // (undocumented)
     isClosed: boolean;
     // (undocumented)
     isFilled: boolean;
     // (undocumented)
-    isPointInBounds(point: Vec2d): boolean;
+    isPointInBounds(point: Vec2d, margin?: number): boolean;
     // (undocumented)
     isSnappable: boolean;
-    // (undocumented)
-    margin: number;
     // (undocumented)
     abstract nearestPoint(point: Vec2d): Vec2d;
     // (undocumented)
@@ -1021,7 +1022,7 @@ export function getCurvedArrowHandlePath(info: ArrowInfo & {
 export function getFreshUserPreferences(): TLUserPreferences;
 
 // @public (undocumented)
-export function getHoveredShapeId(editor: Editor): null | TLShapeId;
+export function getHoveredShapeId(editor: Editor): TLShapeId | null;
 
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
@@ -1076,8 +1077,9 @@ export function getRotationSnapshot({ editor }: {
 // @public (undocumented)
 export function getSmallestShapeContainingPoint(editor: Editor, point: Vec2d, opts?: {
     hitInside?: boolean | undefined;
-    exact?: boolean | undefined;
-    filter?: ((shape: TLShape, util: ShapeUtil) => boolean) | undefined;
+    margin?: number | undefined;
+    hitFrameInside?: boolean | undefined;
+    filter?: ((shape: TLShape) => boolean) | undefined;
 }): null | TLShape;
 
 // @public
@@ -1105,6 +1107,9 @@ export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): strin
 export function getSweep(C: VecLike, A: VecLike, B: VecLike): number;
 
 // @public (undocumented)
+export function getTopSelectedIdUnderPoint(editor: Editor, point: Vec2d): TLShape | undefined;
+
+// @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
 
 // @internal (undocumented)
@@ -1121,7 +1126,6 @@ export const GRID_STEPS: {
 export class Group2d extends Geometry2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed' | 'isFilled'> & {
         children: Geometry2d[];
-        margin: number;
         operation: 'exclude' | 'intersect' | 'subtract' | 'union';
     });
     // (undocumented)
@@ -1135,7 +1139,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean;
     // (undocumented)
-    hitTestPoint(point: Vec2d, zoom: number, hitInside: boolean, exact: boolean): boolean;
+    hitTestPoint(point: Vec2d, margin: number, hitInside: boolean): boolean;
     // (undocumented)
     nearestPoint(point: Vec2d): Vec2d;
     // (undocumented)

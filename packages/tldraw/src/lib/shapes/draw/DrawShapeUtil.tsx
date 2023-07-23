@@ -81,7 +81,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		if (shape.props.isClosed) {
 			return new Polygon2d({
 				points: strokePoints,
-				margin: strokeWidth + 4,
 				isFilled: shape.props.fill !== 'none',
 			})
 		}
@@ -89,7 +88,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		// An open draw stroke
 		return new Polyline2d({
 			points: strokePoints,
-			margin: strokeWidth + 4,
 		})
 	}
 

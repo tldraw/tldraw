@@ -16,6 +16,29 @@ beforeEach(() => {
 	editor = new TestEditor()
 })
 
+it('lists a sorted shapes array correctly', () => {
+	editor.createShapes([
+		{ id: ids.box1, type: 'geo' },
+		{ id: ids.box2, type: 'geo' },
+		{ id: ids.box3, type: 'geo' },
+		{ id: ids.frame1, type: 'frame' },
+		{ id: ids.box4, type: 'geo', parentId: ids.frame1 },
+		{ id: ids.box5, type: 'geo', parentId: ids.frame1 },
+	])
+
+	editor.sendBackward([ids.frame1])
+	editor.sendBackward([ids.frame1])
+
+	expect(editor.sortedShapesArray.map((s) => s.id)).toEqual([
+		ids.box1,
+		ids.frame1,
+		ids.box4,
+		ids.box5,
+		ids.box2,
+		ids.box3,
+	])
+})
+
 describe('when shape is filled', () => {
 	let box1: TLGeoShape
 	beforeEach(() => {
@@ -148,6 +171,31 @@ describe('when shape is a frame', () => {
 	})
 })
 
+describe('When a shape is behind a frame', () => {
+	beforeEach(() => {
+		editor.selectAll().deleteShapes(editor.selectedIds)
+		editor.createShape<TLGeoShape>({ id: ids.box1, type: 'geo', x: 25, y: 25 })
+		editor.createShape<TLFrameShape>({ id: ids.frame1, type: 'frame', props: { w: 100, h: 100 } })
+	})
+
+	it('does not select the shape when clicked inside', () => {
+		editor.sendToBack([ids.box1]) // send it to back!
+		expect(editor.sortedShapesArray.map((s) => s.index)).toEqual(['a1', 'a2'])
+		expect(editor.sortedShapesArray.map((s) => s.id)).toEqual([ids.box1, ids.frame1])
+		editor.pointerDown(50, 50)
+		expect(editor.selectedIds).toEqual([])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([])
+	})
+
+	it('does not select the shape when clicked on its margin', () => {
+		editor.pointerDown(25, 25)
+		expect(editor.selectedIds).toEqual([])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([])
+	})
+})
+
 describe('when shape is inside of a frame', () => {
 	let frame1: TLFrameShape
 	let box1: TLGeoShape
@@ -192,7 +240,7 @@ describe('when shape is inside of a frame', () => {
 		expect(editor.selectedIds).toEqual([frame1.id])
 	})
 
-	it('hits shape on pointer down over shape margin where intersecting child shape margin (inside)', () => {
+	it('hits frame on pointer down over shape margin where intersecting child shape margin (inside)', () => {
 		editor.pointerDown(96, 25) // in margin of box1 AND frame1
 		expect(editor.selectedIds).toEqual([box1.id])
 		editor.pointerUp()
@@ -413,9 +461,17 @@ describe('When shapes are overlapping', () => {
 		box4 = editor.getShape<TLGeoShape>(ids.box4)!
 		box5 = editor.getShape<TLGeoShape>(ids.box5)!
 
-		editor.sendToBack([ids.box4]) // filled shape at back
-		editor.bringToFront([ids.box5]) // filled shape in front
-		editor.bringToFront([ids.box2]) // filled shape in front
+		editor.sendToBack([ids.box4])
+		editor.bringToFront([ids.box5])
+		editor.bringToFront([ids.box2])
+
+		expect(editor.sortedShapesArray.map((s) => s.id)).toEqual([
+			ids.box4, // filled
+			ids.box1, // hollow
+			ids.box3, // hollow
+			ids.box5, // filled
+			ids.box2, // hollow
+		])
 	})
 
 	it('selects the filled shape behind the hollow shapes', () => {
@@ -426,7 +482,15 @@ describe('When shapes are overlapping', () => {
 	})
 
 	it('selects the hollow above the filled shapes when in margin', () => {
-		editor.pointerDown(110, 50)
+		expect(editor.sortedShapesArray.map((s) => s.id)).toEqual([
+			ids.box4,
+			ids.box1,
+			ids.box3,
+			ids.box5,
+			ids.box2,
+		])
+
+		editor.pointerDown(125, 50)
 		expect(editor.selectedIds).toEqual([box2.id])
 		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([box2.id])
@@ -457,6 +521,10 @@ describe('When shapes are overlapping', () => {
 	})
 })
 
+it.todo('shift selects to add to and remove from the selection')
+it.todo('shift brushes to add to the selection')
+it.todo('scribble brushes to add to the selection')
+it.todo('alt brushes to select only when containing a shape')
 it.todo('selects behind selection on pointer up')
 it.todo('does not select behind a frame')
 it.todo('does not select a hollow closed shape that contains the viewport?')

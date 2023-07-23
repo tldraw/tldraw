@@ -46,7 +46,6 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 			width: shape.props.w,
 			height: shape.props.h,
 			isFilled: false,
-			margin: 8,
 		})
 	}
 

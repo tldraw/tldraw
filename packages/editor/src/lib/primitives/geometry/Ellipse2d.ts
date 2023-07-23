@@ -26,12 +26,12 @@ export class Ellipse2d extends Geometry2d {
 
 	get edges() {
 		if (!this._edges) {
-			const { vertices, margin } = this
+			const { vertices } = this
 			this._edges = []
 			for (let i = 0, n = vertices.length; i < n; i++) {
 				const start = vertices[i]
 				const end = vertices[(i + 1) % n]
-				this._edges.push(new Edge2d({ start, end, margin }))
+				this._edges.push(new Edge2d({ start, end }))
 			}
 		}
 

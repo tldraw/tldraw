@@ -4202,22 +4202,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isPointInShape(
 		shape: TLShape,
 		point: VecLike,
-		opts?: { hitInside?: boolean; exact?: boolean }
+		opts?: { margin?: number; hitInside?: boolean }
 	): boolean
 	isPointInShape(
 		id: TLShapeId,
 		point: VecLike,
-		opts?: { hitInside?: boolean; exact?: boolean }
+		opts?: { margin?: number; hitInside?: boolean }
 	): boolean
 	isPointInShape(
 		id: TLShape | TLShapeId,
 		point: VecLike,
 		opts = {} as {
+			margin?: number
 			hitInside?: boolean
-			exact?: boolean
 		}
 	): boolean {
-		const { hitInside = false, exact = false } = opts
+		const { hitInside = false, margin = 0 } = opts
 		if (typeof id !== 'string') id = id.id
 		// If the shape is masked, and if the point falls outside of that
 		// mask, then it's defintely a miss—we don't need to test further.
@@ -4226,9 +4226,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		return this.getGeometry(id).hitTestPoint(
 			this.getPointInShapeSpace(id, point),
-			this.zoomLevel,
-			hitInside,
-			exact
+			margin,
+			hitInside
 		)
 	}
 
@@ -4375,6 +4374,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get sortedShapesArray(): TLShape[] {
+		// todo: consider making a derivation or something, or merging with rendering shapes
 		const shapes = new Set(this.shapesArray.sort(sortByIndex))
 
 		const results: TLShape[] = []
@@ -4742,7 +4742,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']) {
 		const shapes = this.sortedShapesArray
-		const { zoomLevel } = this
 
 		for (let i = shapes.length - 1; i >= 0; i--) {
 			const shape = shapes[i]
@@ -4752,12 +4751,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				maskedPageBounds &&
 				maskedPageBounds.containsPoint(point) &&
-				this.getGeometry(shape).hitTestPoint(
-					this.getPointInShapeSpace(shape, point),
-					zoomLevel,
-					true,
-					true
-				)
+				this.getGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), 0, true)
 			) {
 				return shape.id
 			}
@@ -4778,7 +4772,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getDroppingShape(point: VecLike, droppingShapes: TLShape[] = []) {
 		const shapes = this.sortedShapesArray
-		const { zoomLevel } = this
 
 		for (let i = shapes.length - 1; i >= 0; i--) {
 			const shape = shapes[i]
@@ -4790,12 +4783,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (
 				maskedPageBounds &&
 				maskedPageBounds.containsPoint(point) &&
-				this.getGeometry(shape).hitTestPoint(
-					this.getPointInShapeSpace(shape, point),
-					zoomLevel,
-					true,
-					true
-				)
+				this.getGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), 0, true)
 			) {
 				return shape
 			}
@@ -5218,16 +5206,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.sendToBack()
 	 * editor.sendToBack(['id1', 'id2'])
+	 * editor.sendToBack(box1, box2)
 	 * ```
 	 *
-	 * @param ids - The ids of the shapes to move. Defaults to the ids of the selected shapes.
+	 * @param shapes - The shapes (or shape ids) to move.
 	 *
 	 * @public
 	 */
-	sendToBack(ids = this.currentPageState.selectedIds) {
-		const changes = getReorderingShapesChanges(this, 'toBack', ids)
+	sendToBack(shapes: TLShape[]): this
+	sendToBack(ids: TLShapeId[]): this
+	sendToBack(ids: TLShapeId[] | TLShape[]): this {
+		if (typeof ids[0] !== 'string') ids = (ids as TLShape[]).map((s) => s.id)
+		const changes = getReorderingShapesChanges(this, 'toBack', ids as TLShapeId[])
 		if (changes) this.updateShapes(changes)
 		return this
 	}
@@ -5237,16 +5228,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.sendBackward()
 	 * editor.sendBackward(['id1', 'id2'])
+	 * editor.sendBackward([box1, box2])
 	 * ```
 	 *
-	 * @param ids - The ids of the shapes to move. Defaults to the ids of the selected shapes.
+	 * @param shapes - The shapes (or shape ids) to move.
 	 *
 	 * @public
 	 */
-	sendBackward(ids = this.currentPageState.selectedIds) {
-		const changes = getReorderingShapesChanges(this, 'backward', ids)
+	sendBackward(shapes: TLShape[]): this
+	sendBackward(ids: TLShapeId[]): this
+	sendBackward(ids: TLShapeId[] | TLShape[]): this {
+		if (typeof ids[0] !== 'string') ids = (ids as TLShape[]).map((s) => s.id)
+		const changes = getReorderingShapesChanges(this, 'backward', ids as TLShapeId[])
 		if (changes) this.updateShapes(changes)
 		return this
 	}
@@ -5256,16 +5250,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.bringForward()
 	 * editor.bringForward(['id1', 'id2'])
+	 * editor.bringForward(box1,  box2)
 	 * ```
 	 *
-	 * @param ids - The ids of the shapes to move. Defaults to the ids of the selected shapes.
+	 * @param shapes - The shapes (or shape ids) to move.
 	 *
 	 * @public
 	 */
-	bringForward(ids = this.currentPageState.selectedIds) {
-		const changes = getReorderingShapesChanges(this, 'forward', ids)
+	bringForward(shapes: TLShape[]): this
+	bringForward(ids: TLShapeId[]): this
+	bringForward(ids: TLShapeId[] | TLShape[]): this {
+		if (typeof ids[0] !== 'string') ids = (ids as TLShape[]).map((s) => s.id)
+		const changes = getReorderingShapesChanges(this, 'forward', ids as TLShapeId[])
 		if (changes) this.updateShapes(changes)
 		return this
 	}
@@ -5275,16 +5272,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.bringToFront()
 	 * editor.bringToFront(['id1', 'id2'])
+	 * editor.bringToFront([box1, box2])
 	 * ```
 	 *
-	 * @param ids - The ids of the shapes to move. Defaults to the ids of the selected shapes.
+	 * @param shapes - The shapes (or shape ids) to move.
 	 *
 	 * @public
 	 */
-	bringToFront(ids = this.currentPageState.selectedIds) {
-		const changes = getReorderingShapesChanges(this, 'toFront', ids)
+	bringToFront(shapes: TLShape[]): this
+	bringToFront(ids: TLShapeId[]): this
+	bringToFront(ids: TLShapeId[] | TLShape[]): this {
+		if (typeof ids[0] !== 'string') ids = (ids as TLShape[]).map((s) => s.id)
+		const changes = getReorderingShapesChanges(this, 'toFront', ids as TLShapeId[])
 		if (changes) this.updateShapes(changes)
 		return this
 	}
@@ -6250,20 +6250,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Make sure that each partial will become the child of either the
 				// page or another shape that exists (or that will exist) in this page.
 
+				const { sortedShapesArray } = this
 				partials = partials.map((partial) => {
+					// If the partial does not provide the parentId OR if the provided
+					// parentId is NOT in the store AND NOT among the other shapes being
+					// created, then we need to find a parent for the shape. This can be
+					// another shape that exists under that point and which can receive
+					// children of the creating shape's type, or else the page itself.
 					if (
-						// No parentId provided
 						!partial.parentId ||
-						// A parentId is proved but the parent is neither a) in the store
-						// or b) among the other creating shape partials
-						(!this.store.get(partial.parentId) && !partials.find((p) => p.id === partial.parentId))
+						!(this.store.has(partial.parentId) || partials.some((p) => p.id === partial.parentId))
 					) {
 						partial = { ...partial }
-						const parentId = this.getParentIdForNewShapeAtPoint(
-							{ x: partial.x ?? 0, y: partial.y ?? 0 },
-							partial.type
-						)
+
+						const parentId =
+							sortedShapesArray.findLast(
+								(parent) =>
+									// parent.type === 'frame'
+									this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
+									this.isPointInShape(
+										parent,
+										// If no parent is provided, then we can treat the
+										// shape's provided x/y as being in the page's space.
+										{ x: partial.x ?? 0, y: partial.y ?? 0 },
+										{
+											margin: 0,
+											hitInside: true,
+										}
+									)
+							)?.id ?? this.focusLayerId
+
 						partial.parentId = parentId
+
 						// If the parent is a shape (rather than a page) then insert the
 						// shapes into the shape's children. Adjust the point and page rotation to be
 						// preserved relative to the parent.
@@ -6277,12 +6295,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 							partial.rotation =
 								-this.getPageTransform(parentId)!.rotation() + (partial.rotation ?? 0)
 						}
+
 						// a shape cannot be it's own parent. This was a rare issue with frames/groups in the syncFuzz tests.
 						if (partial.parentId === partial.id) {
 							partial.parentId = focusLayerId
 						}
-						return partial
 					}
+
 					return partial
 				})
 
@@ -6305,7 +6324,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 					let index = partial.index
 
 					if (!index) {
+						// Hello bug-seeker: have you just created a frame and then a shape
+						// and found that the shape is automatically the child of the frame?
+						// this is the reason why! It would be harder to have each shape specify
+						// the frame as the parent when creating a shape inside of a frame, so
+						// we do it here.
 						const parentId = partial.parentId ?? focusLayerId
+
 						if (!parentIndices.has(parentId)) {
 							parentIndices.set(parentId, this.getHighestIndexForParent(parentId))
 						}
