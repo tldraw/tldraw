@@ -641,10 +641,19 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d;
     // (undocumented)
     getPointInShapeSpace(id: TLShapeId, point: VecLike): Vec2d;
+    // (undocumented)
+    getSelectedShapeAtPoint(point: Vec2d): TLShape | undefined;
     getShape<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     // (undocumented)
     getShape<T extends TLShape = TLShape>(shape: TLShape): T | undefined;
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
+    // (undocumented)
+    getShapeAtPoint(point: Vec2d, opts?: {
+        hitInside?: boolean | undefined;
+        margin?: number | undefined;
+        hitFrameInside?: boolean | undefined;
+        filter?: ((shape: TLShape) => boolean) | undefined;
+    }): null | TLShape;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
     getShapesAtPoint(point: VecLike, opts?: {
         hitInside?: boolean | undefined;
@@ -847,6 +856,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingId' | 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
+    updateHoveredId(): void;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal
@@ -1021,9 +1031,6 @@ export function getCurvedArrowHandlePath(info: ArrowInfo & {
 // @public (undocumented)
 export function getFreshUserPreferences(): TLUserPreferences;
 
-// @public (undocumented)
-export function getHoveredShapeId(editor: Editor): TLShapeId | null;
-
 // @public
 export function getIncrementedName(name: string, others: string[]): string;
 
@@ -1074,14 +1081,6 @@ export function getRotationSnapshot({ editor }: {
     editor: Editor;
 }): null | TLRotationSnapshot;
 
-// @public (undocumented)
-export function getSmallestShapeContainingPoint(editor: Editor, point: Vec2d, opts?: {
-    hitInside?: boolean | undefined;
-    margin?: number | undefined;
-    hitFrameInside?: boolean | undefined;
-    filter?: ((shape: TLShape) => boolean) | undefined;
-}): null | TLShape;
-
 // @public
 export function getSolidCurvedArrowPath(info: ArrowInfo & {
     isStraight: false;
@@ -1105,9 +1104,6 @@ export function getSvgPathFromPoints(points: VecLike[], closed?: boolean): strin
 
 // @public
 export function getSweep(C: VecLike, A: VecLike, B: VecLike): number;
-
-// @public (undocumented)
-export function getTopSelectedIdUnderPoint(editor: Editor, point: Vec2d): TLShape | undefined;
 
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
@@ -2582,9 +2578,6 @@ export function uniq<T>(array: {
 
 // @public
 export function uniqueId(): string;
-
-// @public (undocumented)
-export function updateHoveredId(editor: Editor): void;
 
 export { useComputed }
 

@@ -69,6 +69,7 @@ import {
 	FOLLOW_CHASE_ZOOM_SNAP,
 	FOLLOW_CHASE_ZOOM_UNSNAP,
 	GRID_INCREMENT,
+	HIT_TEST_MARGIN,
 	INTERNAL_POINTER_IDS,
 	MAJOR_NUDGE_FACTOR,
 	MAX_PAGES,
@@ -84,6 +85,7 @@ import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
 import { Vec2d, VecLike } from '../primitives/Vec2d'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
+import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
@@ -1741,6 +1743,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	@computed get hoveredShape() {
 		return this.hoveredId ? this.getShape(this.hoveredId) : undefined
+	}
+
+	/**
+	 * Update the hovered id based on the current page point.
+	 *
+	 * @public
+	 */
+	updateHoveredId() {
+		// todo: consider replacing `get hoveredId` with this; it would mean keeping hoveredId in memory rather than in the store and possibly re-computing it more often than necessary
+		this.setHoveredId(
+			this.getShapeAtPoint(this.inputs.currentPagePoint, {
+				hitInside: false,
+				margin: HIT_TEST_MARGIN / this.zoomLevel,
+			})?.id ?? null
+		)
 	}
 
 	// Hinting ids
@@ -4182,6 +4199,127 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		return Matrix2d.applyToPoints(transform, corners)
+	}
+
+	getSelectedShapeAtPoint(point: Vec2d) {
+		const { selectedShapes } = this
+		return selectedShapes
+			.sort(sortByIndex)
+			.findLast((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
+	}
+
+	getShapeAtPoint(
+		point: Vec2d,
+		opts = {} as {
+			hitInside?: boolean
+			margin?: number
+			hitFrameInside?: boolean
+			filter?: (shape: TLShape) => boolean
+		}
+	): TLShape | null {
+		// are we inside of a shape but not hovering it?
+		const { viewportPageBounds, zoomLevel, sortedShapesArray } = this
+		const { filter, margin = 0, hitInside = false, hitFrameInside = false } = opts
+
+		let inHollowSmallestArea = Infinity
+		let inHollowSmallestAreaHit: TLShape | null = null
+
+		let inMarginClosestToEdgeDistance = Infinity
+		let inMarginClosestToEdgeHit: TLShape | null = null
+
+		const shapesToCheck = sortedShapesArray.filter((shape) => {
+			const pageMask = this.getPageMask(shape)
+			if (pageMask && !pointInPolygon(point, pageMask)) return false
+			if (filter) return filter(shape)
+			return true
+		})
+
+		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
+			const shape = shapesToCheck[i]
+			let geometry = this.getGeometry(shape)
+
+			// todo: this always presumes that the first child defines the bounds
+			if (geometry instanceof Group2d) {
+				geometry = geometry.children[0]
+			}
+
+			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
+			const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+
+			// On the rare case that we've hit a frame, test again hitInside to be forced true;
+			// this prevents clicks from passing through the body of a frame to shapes behhind it.
+			if (shape.type === 'frame') {
+				// If the hit is within the frame's outer margin, then select the frame
+				if (Math.abs(distance) <= margin) {
+					return inMarginClosestToEdgeHit || shape
+				}
+
+				if (geometry.hitTestPoint(pointInShapeSpace, 0, true)) {
+					// Once we've hit a frame, we want to end the search. If we have hit a shape
+					// already, then this would either be above the frame or a child of the frame,
+					// so we want to return that. Otherwise, the point is in the empty space of the
+					// frame. If `hitFrameInside` is true (e.g. used drawing an arrow into the
+					// frame) we the frame itself; other wise, (e.g. when hovering or pointing)
+					// we would want to return null.
+					return (
+						inMarginClosestToEdgeHit || inHollowSmallestAreaHit || (hitFrameInside ? shape : null)
+					)
+				}
+				continue
+			}
+
+			if (geometry.isClosed) {
+				// For closed shapes, the distance will be positive if outside of
+				// the shape or negative if inside of the shape. If the distance
+				// is greater than the margin, then it's a miss. Otherwise...
+				if (distance <= margin) {
+					if (geometry.isFilled) {
+						// If the shape is filled, then it's a hit. Remember, we're
+						// starting from the TOP-MOST shape in z-index order, so any
+						// other hits would be occluded by the shape.
+						return inMarginClosestToEdgeHit || shape
+					} else {
+						// If the shape is bigger than the viewport, then skip it.
+						if (this.getPageBounds(shape)!.contains(viewportPageBounds)) continue
+
+						// For hollow shapes...
+						if (Math.abs(distance) < margin) {
+							// We want to preference shapes where we're inside of the
+							// shape margin; and we would want to hit the shape with the
+							// edge closest to the point.
+							if (Math.abs(distance) < inMarginClosestToEdgeDistance) {
+								inMarginClosestToEdgeDistance = Math.abs(distance)
+								inMarginClosestToEdgeHit = shape
+							}
+						} else if (!inMarginClosestToEdgeHit) {
+							// If we're not within margin distnce to any edge, and if the
+							// shape is hollow, then we want to hit the shape with the
+							// smallest area. (There's a bug here with self-intersecting
+							// shapes, like a closed drawing of an "8", but that's a bigger
+							// problem to solve.)
+							const { area } = geometry
+							if (area < inHollowSmallestArea) {
+								inHollowSmallestArea = area
+								inHollowSmallestAreaHit = shape
+							}
+						}
+					}
+				}
+			} else {
+				// For open shapes (e.g. lines or draw shapes) always use the margin.
+				// If the distance is less than the margin, return the shape as the hit.
+				if (distance < HIT_TEST_MARGIN / zoomLevel) {
+					return shape
+				}
+			}
+		}
+
+		// If we haven't hit any filled shapes or frames, then return either
+		// the shape who we hit within the margin (and of those, the one that
+		// had the shortest distance between the point and the shape edge),
+		// or else the hollow shape with the smallest area—or if we didn't hit
+		// any margins or any hollow shapes, then null.
+		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || null
 	}
 
 	/**

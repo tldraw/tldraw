@@ -9,9 +9,6 @@ import {
 	TLTextShape,
 	Vec2d,
 	createShapeId,
-	getSmallestShapeContainingPoint,
-	getTopSelectedIdUnderPoint,
-	updateHoveredId,
 } from '@tldraw/editor'
 
 export class Idle extends StateNode {
@@ -20,11 +17,11 @@ export class Idle extends StateNode {
 	override onEnter = () => {
 		this.parent.currentToolIdMask = undefined
 		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
-		updateHoveredId(this.editor)
+		this.editor.updateHoveredId()
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		updateHoveredId(this.editor)
+		this.editor.updateHoveredId()
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
@@ -48,8 +45,8 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const hitShape =
 					this.editor.hoveredShape ??
-					getTopSelectedIdUnderPoint(this.editor, this.editor.inputs.currentPagePoint) ??
-					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint, {
+					this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
+					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 						hitInside: false,
 						margin: 0,
 					})
@@ -138,8 +135,8 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const hitShape =
 					this.editor.hoveredShape ??
-					getTopSelectedIdUnderPoint(this.editor, this.editor.inputs.currentPagePoint) ??
-					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
+					this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
+					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
 
 				if (hitShape) {
 					this.onDoubleClick({
@@ -254,7 +251,7 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const hitShape =
 					this.editor.hoveredShape ??
-					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
+					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onRightClick({
 						...info,

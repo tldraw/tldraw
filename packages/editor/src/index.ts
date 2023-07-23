@@ -319,12 +319,6 @@ export {
 	type TLRotationSnapshot,
 } from './lib/utils/rotation'
 export { runtime, setRuntimeOverrides } from './lib/utils/runtime'
-export {
-	getHoveredShapeId,
-	getSmallestShapeContainingPoint,
-	getTopSelectedIdUnderPoint,
-	updateHoveredId,
-} from './lib/utils/selection'
 export { type TLStoreWithStatus } from './lib/utils/sync/StoreWithStatus'
 export { hardReset } from './lib/utils/sync/hardReset'
 export { uniq } from './lib/utils/uniq'

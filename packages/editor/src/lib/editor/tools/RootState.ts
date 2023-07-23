@@ -1,4 +1,3 @@
-import { updateHoveredId } from '../../utils/selection'
 import { TLEventHandlers } from '../types/event-types'
 import { StateNode } from './StateNode'
 
@@ -24,6 +23,6 @@ export class RootState extends StateNode {
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = () => {
-		updateHoveredId(this.editor)
+		this.editor.updateHoveredId()
 	}
 }

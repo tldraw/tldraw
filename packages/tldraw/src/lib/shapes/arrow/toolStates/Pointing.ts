@@ -1,10 +1,4 @@
-import {
-	StateNode,
-	TLArrowShape,
-	TLEventHandlers,
-	createShapeId,
-	getSmallestShapeContainingPoint,
-} from '@tldraw/editor'
+import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -28,15 +22,11 @@ export class Pointing extends StateNode {
 	override onEnter = () => {
 		this.didTimeout = false
 
-		const target = getSmallestShapeContainingPoint(
-			this.editor,
-			this.editor.inputs.currentPagePoint,
-			{
-				filter: (shape) => this.editor.getShapeUtil(shape).canBind(shape),
-				margin: 0,
-				hitInside: true,
-			}
-		)
+		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+			filter: (shape) => this.editor.getShapeUtil(shape).canBind(shape),
+			margin: 0,
+			hitInside: true,
+		})
 
 		if (!target) {
 			this.createArrowShape()

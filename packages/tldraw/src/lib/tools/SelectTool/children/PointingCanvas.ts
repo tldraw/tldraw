@@ -1,9 +1,4 @@
-import {
-	StateNode,
-	TLEventHandlers,
-	getSmallestShapeContainingPoint,
-	isShapeId,
-} from '@tldraw/editor'
+import { StateNode, TLEventHandlers, isShapeId } from '@tldraw/editor'
 
 export class PointingCanvas extends StateNode {
 	static override id = 'pointing_canvas'
@@ -28,7 +23,7 @@ export class PointingCanvas extends StateNode {
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
 		const hitShape =
 			this.editor.hoveredShape ??
-			getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint, {
+			this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 				hitInside: true,
 				margin: 0,
 			})

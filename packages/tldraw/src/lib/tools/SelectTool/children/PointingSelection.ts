@@ -1,10 +1,4 @@
-import {
-	StateNode,
-	TLClickEvent,
-	TLEventHandlers,
-	TLPointerEventInfo,
-	getSmallestShapeContainingPoint,
-} from '@tldraw/editor'
+import { StateNode, TLClickEvent, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
 
 export class PointingSelection extends StateNode {
 	static override id = 'pointing_selection'
@@ -32,7 +26,7 @@ export class PointingSelection extends StateNode {
 	override onDoubleClick?: TLClickEvent | undefined = (info) => {
 		const hitShape =
 			this.editor.hoveredShape ??
-			getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint, {
+			this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 				hitInside: true,
 				margin: 0,
 			})

@@ -1,11 +1,4 @@
-import {
-	StateNode,
-	TLEventHandlers,
-	TLGeoShape,
-	TLTextShape,
-	getSmallestShapeContainingPoint,
-	updateHoveredId,
-} from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLGeoShape, TLTextShape } from '@tldraw/editor'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -14,15 +7,14 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'shape':
 			case 'canvas': {
-				updateHoveredId(this.editor)
+				this.editor.updateHoveredId()
 			}
 		}
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		const hitShape =
-			this.editor.hoveredShape ??
-			getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
+			this.editor.hoveredShape ?? this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
 		if (hitShape) {
 			if (this.editor.isShapeOfType<TLTextShape>(hitShape, 'text')) {
 				requestAnimationFrame(() => {

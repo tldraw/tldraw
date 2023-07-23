@@ -1,9 +1,4 @@
-import {
-	StateNode,
-	TLEventHandlers,
-	createShapeId,
-	getSmallestShapeContainingPoint,
-} from '@tldraw/tldraw'
+import { StateNode, TLEventHandlers, createShapeId } from '@tldraw/tldraw'
 
 /*
 This is a very small example of a state node that implements a "select" tool.
@@ -26,7 +21,7 @@ export class MicroSelectTool extends StateNode {
 			case 'canvas': {
 				const hitShape =
 					this.editor.hoveredShape ??
-					getSmallestShapeContainingPoint(this.editor, this.editor.inputs.currentPagePoint)
+					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onPointerDown({
 						...info,

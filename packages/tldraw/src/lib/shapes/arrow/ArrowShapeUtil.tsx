@@ -29,7 +29,6 @@ import {
 	getArrowheadPathForType,
 	getCurvedArrowHandlePath,
 	getDefaultColorTheme,
-	getSmallestShapeContainingPoint,
 	getSolidCurvedArrowPath,
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
@@ -240,7 +239,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const point = this.editor.getPageTransform(shape.id)!.applyToPoint(handle)
 
-		const target = getSmallestShapeContainingPoint(this.editor, point, {
+		const target = this.editor.getShapeAtPoint(point, {
 			filter: (shape) => this.editor.getShapeUtil(shape).canBind(shape),
 			hitInside: true,
 			hitFrameInside: true,
