@@ -24,11 +24,13 @@ describe(SelectTool, () => {
 
 			expect(editor.currentPageState.editingId).toBe(shapeId)
 
+			// note: this behavior has moved to the React hook useEditableText.
+			// clicking on the input will preserve selection, however you can
+			// click on the shape itself to select it as usual.
 			// clicking on the shape should not do anything
-			jest.advanceTimersByTime(1000)
-			editor.pointerDown(50, 50, shapeId)
-
-			expect(editor.currentPageState.editingId).toBe(shapeId)
+			// jest.advanceTimersByTime(1000)
+			// editor.pointerDown(50, 50, shapeId)
+			// expect(editor.currentPageState.editingId).toBe(shapeId)
 
 			// clicking outside the shape should end editing
 			jest.advanceTimersByTime(1000)
@@ -45,12 +47,6 @@ describe(SelectTool, () => {
 		editor._transformPointerUpSpy.mockRestore()
 		editor.setCurrentTool('select')
 		editor.doubleClick(50, 50, shapeId)
-
-		expect(editor.currentPageState.editingId).toBe(shapeId)
-
-		// clicking on the shape should not do anything
-		jest.advanceTimersByTime(1000)
-		editor.pointerDown(50, 50, shapeId)
 
 		expect(editor.currentPageState.editingId).toBe(shapeId)
 

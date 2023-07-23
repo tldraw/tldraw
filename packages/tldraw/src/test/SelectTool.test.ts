@@ -325,7 +325,9 @@ describe('When editing shapes', () => {
 		expect(editor.onlySelectedShape?.id).toBe(ids.text1)
 	})
 
-	it('Pointing a shape of a different type selects it and leaves editing', () => {
+	// The behavior described here will only work end to end, not with the library,
+	// because useEditableText implements the behavior in React
+	it.skip('Pointing a shape of a different type selects it and leaves editing', () => {
 		expect(editor.editingId).toBe(null)
 		expect(editor.selectedIds.length).toBe(0)
 
@@ -340,7 +342,8 @@ describe('When editing shapes', () => {
 		expect(editor.onlySelectedShape?.id).toBe(ids.geo2)
 	})
 
-	it('Works with text, too', () => {
+	// This works but only end to end — the logic had to move to React
+	it.skip('Works with text, too', () => {
 		expect(editor.editingId).toBe(null)
 		expect(editor.selectedIds.length).toBe(0)
 
