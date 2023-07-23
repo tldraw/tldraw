@@ -1,4 +1,5 @@
 import {
+	HIT_TEST_MARGIN,
 	StateNode,
 	TLClickEventInfo,
 	TLEventHandlers,
@@ -10,6 +11,7 @@ import {
 	Vec2d,
 	createShapeId,
 } from '@tldraw/editor'
+import { selectOnPointerUp } from './select-shared'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -37,6 +39,7 @@ export class Idle extends StateNode {
 					return
 				}
 			}
+
 			this.parent.transition('brushing', info)
 			return
 		}
@@ -166,20 +169,30 @@ export class Idle extends StateNode {
 
 	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
 		if (info.phase !== 'up') return
+		if (this.editor.inputs.shiftKey) return
 
 		switch (info.target) {
 			case 'canvas': {
 				const hitShape =
 					this.editor.hoveredShape ??
 					this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
-					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+						margin: HIT_TEST_MARGIN / this.editor.zoomLevel,
+						hitInside: true,
+					})
+
+				// ok, but what if it's a shape inside of a group
 
 				if (hitShape) {
-					this.onDoubleClick({
-						...info,
-						shape: hitShape,
-						target: 'shape',
-					})
+					if (this.editor.getOutermostSelectableShape(hitShape) === hitShape) {
+						this.onDoubleClick({
+							...info,
+							shape: hitShape,
+							target: 'shape',
+						})
+					} else {
+						selectOnPointerUp(this.editor)
+					}
 					return
 				}
 
@@ -253,6 +266,7 @@ export class Idle extends StateNode {
 						return
 					}
 				}
+
 				// If the shape can edit, then begin editing
 				if (this.shouldStartEditingShape(shape)) {
 					this.startEditingShape(shape, info)

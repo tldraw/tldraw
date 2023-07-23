@@ -1,13 +1,13 @@
-import { Editor, isShapeId } from '@tldraw/editor'
+import { Editor, HIT_TEST_MARGIN, Vec2d, isShapeId } from '@tldraw/editor'
 
 export function selectOnPointerUp(editor: Editor) {
-	const hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint, {
+	let hitShape = editor.getShapeAtPoint(editor.inputs.currentPagePoint, {
 		hitInside: true,
-		margin: 0,
+		margin: HIT_TEST_MARGIN / editor.zoomLevel,
 	})
 
 	const { selectedIds } = editor
-	const { shiftKey, altKey } = editor.inputs
+	const { shiftKey, altKey, currentPagePoint } = editor.inputs
 
 	// Note at the start: if we select a shape that is inside of a group,
 	// the editor will automatically adjust the selection to the outermost
@@ -17,8 +17,18 @@ export function selectOnPointerUp(editor: Editor) {
 	// the shape) is not the same as the editor's only selected shape, then
 	// we want to select the outermost selected shape instead of the shape
 
-	console.log('Here')
 	if (hitShape) {
+		const outermostSelectableShape = editor.getOutermostSelectableShape(hitShape)
+		if (outermostSelectableShape.id !== editor.focusLayerId) {
+			if (!selectedIds.includes(outermostSelectableShape.id)) {
+				hitShape = outermostSelectableShape
+			}
+		}
+
+		if (editor.getParentShape(hitShape)?.type === 'group') {
+			editor.cancelDoubleClick()
+		}
+
 		if (shiftKey && !altKey) {
 			if (!selectedIds.includes(hitShape.id)) {
 				editor.mark('shift selecting shape')
@@ -80,15 +90,15 @@ export function selectOnPointerUp(editor: Editor) {
 			// If the click was inside of the current focused group, then
 			// we keep that focused group; otherwise we clear the focused
 			// group (reset it to the page)
-			if (!clickWasInsideFocusedGroup(editor)) {
+			if (!clickWasInsideFocusedGroup(editor, currentPagePoint)) {
 				editor.setFocusLayerId(editor.currentPageId)
 			}
 		}
 	}
 }
 
-function clickWasInsideFocusedGroup(editor: Editor) {
-	const { focusLayerId, inputs } = editor
+export function clickWasInsideFocusedGroup(editor: Editor, point: Vec2d) {
+	const { focusLayerId } = editor
 
 	if (!isShapeId(focusLayerId)) {
 		return false
@@ -99,6 +109,6 @@ function clickWasInsideFocusedGroup(editor: Editor) {
 		return false
 	}
 
-	const clickPoint = editor.getPointInShapeSpace(groupShape, inputs.currentPagePoint)
+	const clickPoint = editor.getPointInShapeSpace(groupShape, point)
 	return editor.getGeometry(groupShape).hitTestPoint(clickPoint, 0, true)
 }

@@ -1233,6 +1233,9 @@ export function hardResetEditor(): void;
 export const HASH_PATTERN_ZOOM_NAMES: Record<string, string>;
 
 // @public (undocumented)
+export const HIT_TEST_MARGIN = 8;
+
+// @public (undocumented)
 export function HTMLContainer({ children, className, ...rest }: HTMLContainerProps): JSX.Element;
 
 // @public (undocumented)
