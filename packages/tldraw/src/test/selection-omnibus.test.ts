@@ -269,6 +269,29 @@ describe('when shape is inside of a frame', () => {
 		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([])
 	})
+
+	it('misses when shape is behind frame', () => {
+		editor.deleteShape(ids.box1)
+		editor.createShape({
+			id: ids.box5,
+			parentId: editor.currentPageId,
+			type: 'geo',
+			props: {
+				w: 75,
+				h: 75,
+			},
+		})
+		editor.sendToBack([ids.box5])
+		editor.pointerDown(50, 50)
+		expect(editor.selectedIds).toEqual([])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([])
+
+		editor.pointerDown(75, 75)
+		expect(editor.selectedIds).toEqual([])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([])
+	})
 })
 
 describe('when a frame has multiple children', () => {
@@ -595,13 +618,96 @@ describe('Selects inside of groups', () => {
 		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([ids.box1])
 	})
+
+	it('selects a solid shape in a group when double clicking it', () => {
+		editor.doubleClick(250, 50)
+		expect(editor.selectedIds).toEqual([ids.box2])
+		expect(editor.focusLayerId).toBe(ids.group1)
+	})
+
+	it('selects a solid shape in a group when double clicking its margin', () => {
+		editor.doubleClick(198, 50)
+		expect(editor.selectedIds).toEqual([ids.box2])
+		expect(editor.focusLayerId).toBe(ids.group1)
+	})
+
+	it('selects a hollow shape in a group when double clicking it', () => {
+		editor.doubleClick(50, 50)
+		expect(editor.selectedIds).toEqual([ids.box1])
+		expect(editor.focusLayerId).toBe(ids.group1)
+	})
+
+	it('selects a hollow shape in a group when double clicking its edge', () => {
+		editor.doubleClick(102, 50)
+		expect(editor.selectedIds).toEqual([ids.box1])
+		expect(editor.focusLayerId).toBe(ids.group1)
+	})
+
+	it('double clicks a hollow shape when the focus layer is the shapes parent', () => {
+		editor.doubleClick(50, 50)
+		editor.doubleClick(50, 50)
+		expect(editor.editingId).toBe(ids.box1)
+		editor.expectToBeIn('select.editing_shape')
+	})
+
+	it('double clicks a solid shape when the focus layer is the shapes parent', () => {
+		editor.doubleClick(250, 50)
+		editor.doubleClick(250, 50)
+		expect(editor.editingId).toBe(ids.box2)
+		editor.expectToBeIn('select.editing_shape')
+	})
+
+	it('double clicks a sibling shape when the focus layer is the shapes parent', () => {
+		editor.doubleClick(50, 50)
+		editor.doubleClick(250, 50)
+		expect(editor.editingId).toBe(ids.box2)
+		editor.expectToBeIn('select.editing_shape')
+	})
+
+	it('selects a different sibling shape when editing a layer', () => {
+		editor.doubleClick(50, 50)
+		editor.doubleClick(50, 50)
+		expect(editor.editingId).toBe(ids.box1)
+		editor.expectToBeIn('select.editing_shape')
+		editor.pointerDown(250, 50)
+		editor.expectToBeIn('select.pointing_shape')
+		expect(editor.editingId).toBe(null)
+		expect(editor.selectedIds).toEqual([ids.box2])
+	})
+})
+
+describe('when selecting behind selection', () => {
+	beforeEach(() => {
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 100, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
+			])
+			.select(ids.box2, ids.box3)
+	})
+
+	it('does not select on pointer down, only on pointer up', () => {
+		editor.pointerDown(150, 50) // inside of box 1
+		expect(editor.selectedIds).toEqual([ids.box2, ids.box3])
+		editor.pointerUp(150, 50)
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('can drag the selection', () => {
+		editor.pointerDown(150, 50) // inside of box 1
+		expect(editor.selectedIds).toEqual([ids.box2, ids.box3])
+		editor.pointerMove(250, 50)
+		editor.expectToBeIn('select.translating')
+		editor.pointerMove(150, 50)
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box2, ids.box3])
+	})
 })
 
 it.todo('shift selects to add to and remove from the selection')
 it.todo('shift brushes to add to the selection')
 it.todo('scribble brushes to add to the selection')
 it.todo('alt brushes to select only when containing a shape')
-it.todo('selects behind selection on pointer up')
-it.todo('does not select behind a frame')
 it.todo('does not select a hollow closed shape that contains the viewport?')
 it.todo('does not select a hollow closed shape if the negative distance is more than X?')

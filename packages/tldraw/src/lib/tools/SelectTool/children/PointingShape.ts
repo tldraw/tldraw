@@ -12,6 +12,9 @@ export class PointingShape extends StateNode {
 		this.eventTargetShape = info.shape
 
 		this.selectingShape = this.editor.getOutermostSelectableShape(info.shape)
+		if (this.selectingShape !== info.shape) {
+			this.editor.cancelDoubleClick()
+		}
 
 		const util = this.editor.getShapeUtil(info.shape)
 

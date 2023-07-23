@@ -28,57 +28,6 @@ export class EditingShape extends StateNode {
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		switch (info.target) {
-			case 'canvas': {
-				const hitShape =
-					this.editor.hoveredShape ??
-					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
-
-				if (hitShape) {
-					this.onPointerDown({
-						...info,
-						shape: hitShape,
-						target: 'shape',
-					})
-					return
-				}
-				break
-			}
-			case 'shape': {
-				const { shape } = info
-
-				const { editingId } = this.editor.currentPageState
-
-				if (editingId) {
-					if (shape.id === editingId) {
-						return
-					}
-
-					const editingShape = this.editor.getShape(editingId)
-
-					if (!editingShape) throw Error("Can't find editing shape")
-
-					const editingShapeUtil = this.editor.getShapeUtil(editingShape)
-					editingShapeUtil.onEditEnd?.(editingShape)
-
-					const util = this.editor.getShapeUtil(shape)
-
-					// If the user has clicked onto a different shape of the same type
-					// which is available to edit, select it and begin editing it.
-					if (
-						shape.type === editingShape.type &&
-						util.canEdit?.(shape) &&
-						!this.editor.isShapeOrAncestorLocked(shape)
-					) {
-						this.editor.setEditingId(shape.id)
-						this.editor.setHoveredId(shape.id)
-						this.editor.setSelectedIds([shape.id])
-						return
-					}
-				}
-			}
-		}
-
 		this.parent.transition('idle', info)
 		this.parent.current.value?.onPointerDown?.(info)
 	}

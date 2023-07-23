@@ -3,9 +3,9 @@
 import {
 	TLShape,
 	TLUnknownShape,
-	getPointerInfo,
 	preventDefault,
 	stopEventPropagation,
+	transact,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -204,21 +204,29 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				document.removeEventListener('selectionchange', updateSelection)
 			}
 		}
-	})
+	}, [])
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent) => {
-			editor.dispatch({
-				...getPointerInfo(e, editor.getContainer()),
-				type: 'pointer',
-				target: 'shape',
-				shape: editor.getShape(id)!,
-				name: 'pointer_down',
+			transact(() => {
+				if (isEditableFromHover) {
+					editor.setEditingId(id)
+					editor.setHoveredId(id)
+					editor.setSelectedIds([id])
+				}
 			})
+
 			stopEventPropagation(e)
 		},
-		[editor, id]
+		[editor, isEditableFromHover, id]
 	)
+
+	useEffect(() => {
+		const elm = rInput.current
+		if (elm && isEditing && document.activeElement !== elm) {
+			elm.focus()
+		}
+	}, [isEditing])
 
 	const handleDoubleClick = stopEventPropagation
 
