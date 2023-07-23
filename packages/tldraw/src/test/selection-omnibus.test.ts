@@ -522,20 +522,49 @@ describe('When shapes are overlapping', () => {
 	})
 })
 
-it('Selects inside of groups', () => {
+describe('Selects inside of groups', () => {
 	beforeEach(() => {
 		editor.createShapes([
-			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
-			{ id: ids.box2, type: 'geo', x: 300, y: 0 },
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100, fill: 'solid' } },
 		])
-		editor.selectAll().groupShapes(editor.selectedIds, ids.group1)
+		editor.groupShapes([ids.box1, ids.box2], ids.group1)
+		editor.selectNone()
 	})
 
-	it('selects the group when clicking a shape', () => {
-		editor.pointerDown(50, 50)
+	it('cretes the group with the correct bounds', () => {
+		expect(editor.getGeometry(ids.group1).bounds).toMatchObject({
+			x: 0,
+			y: 0,
+			w: 300,
+			h: 100,
+		})
+	})
+
+	it('does not selects the group when clicking over the group but between grouped shapes bounds', () => {
+		editor.pointerDown(150, 50)
 		expect(editor.selectedIds).toEqual([])
 		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([])
+	})
+
+	it('selects on page down when over a shape edge', () => {
+		editor.pointerDown(0, 0)
 		expect(editor.selectedIds).toEqual([ids.group1])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.group1])
+	})
+
+	it.only('drops selection when pointing up on the space between shapes in a group', () => {
+		editor.pointerDown(0, 0)
+		expect(editor.selectedIds).toEqual([ids.group1])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.group1])
+		editor.pointerDown(150, 50)
+		editor.expectToBeIn('select.pointing_selection')
+		expect(editor.selectedIds).toEqual([ids.group1])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([])
 	})
 })
 

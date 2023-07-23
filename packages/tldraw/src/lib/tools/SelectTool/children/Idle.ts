@@ -43,10 +43,12 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				const { currentPagePoint } = this.editor.inputs
+
 				const hitShape =
 					this.editor.hoveredShape ??
-					this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
-					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+					this.editor.getSelectedShapeAtPoint(currentPagePoint) ??
+					this.editor.getShapeAtPoint(currentPagePoint, {
 						hitInside: false,
 						margin: 0,
 					})
@@ -58,6 +60,21 @@ export class Idle extends StateNode {
 						target: 'shape',
 					})
 					return
+				}
+
+				const { selectedIds } = this.editor
+				if (selectedIds.length > 0) {
+					// If there's only one shape selected, and if that shape's
+					// geometry is open, then don't test the selection background
+					if (selectedIds.length > 1 || this.editor.getGeometry(selectedIds[0]).isClosed) {
+						if (this.editor.selectionBounds?.containsPoint(currentPagePoint)) {
+							this.onPointerDown({
+								...info,
+								target: 'selection',
+							})
+							return
+						}
+					}
 				}
 
 				this.parent.transition('pointing_canvas', info)

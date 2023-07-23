@@ -65,7 +65,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideRotateHandle: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape> = () => true
-	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true
 
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {

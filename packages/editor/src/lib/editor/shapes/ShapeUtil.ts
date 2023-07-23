@@ -150,13 +150,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	hideRotateHandle: TLShapeUtilFlag<Shape> = () => false
 
 	/**
-	 * Whether the shape should hide its selection bounds background when selected.
-	 *
-	 * @public
-	 */
-	hideSelectionBoundsBg: TLShapeUtilFlag<Shape> = () => false
-
-	/**
 	 * Whether the shape should hide its selection bounds foreground when selected.
 	 *
 	 * @public

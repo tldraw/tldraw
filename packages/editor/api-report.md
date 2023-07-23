@@ -21,6 +21,7 @@ import { HTMLProps } from 'react';
 import { JsonObject } from '@tldraw/utils';
 import { MemoExoticComponent } from 'react';
 import { Migrations } from '@tldraw/store';
+import { NamedExoticComponent } from 'react';
 import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
@@ -413,8 +414,57 @@ export const DEFAULT_ANIMATION_OPTIONS: {
     easing: (t: number) => number;
 };
 
-// @internal (undocumented)
+// @public (undocumented)
+export function DefaultBackground(): JSX.Element;
+
+// @public (undocumented)
+export const DefaultBrush: TLBrushComponent;
+
+// @public (undocumented)
+export const DefaultCollaboratorHint: TLCollaboratorHintComponent;
+
+// @public (undocumented)
+export const DefaultCursor: NamedExoticComponent<    {
+className?: string | undefined;
+point: null | Vec2dModel;
+zoom: number;
+color?: string | undefined;
+name: null | string;
+chatMessage: string;
+}>;
+
+// @public (undocumented)
 export const DefaultErrorFallback: TLErrorFallbackComponent;
+
+// @public (undocumented)
+export const DefaultGrid: TLGridComponent;
+
+// @public (undocumented)
+export const DefaultHandle: TLHandleComponent;
+
+// @public (undocumented)
+export const DefaultHandles: TLHandlesComponent;
+
+// @public (undocumented)
+export const DefaultHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
+
+// @public (undocumented)
+export const DefaultScribble: TLScribbleComponent;
+
+// @public (undocumented)
+export const DefaultSelectionBackground: TLSelectionBackgroundComponent;
+
+// @public (undocumented)
+export const DefaultSelectionForeground: TLSelectionForegroundComponent;
+
+// @public (undocumented)
+export const DefaultSnapLine: TLSnapLineComponent;
+
+// @public (undocumented)
+export const DefaultSpinner: TLSpinnerComponent;
+
+// @public (undocumented)
+export const DefaultSvgDefs: () => null;
 
 // @public
 export function degreesToRadians(d: number): number;
@@ -1157,8 +1207,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     getGeometry(shape: TLGroupShape): Geometry2d;
     // (undocumented)
-    hideSelectionBoundsBg: () => boolean;
-    // (undocumented)
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
     indicator(shape: TLGroupShape): JSX.Element;
@@ -1619,7 +1667,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     getOutlineSegments(shape: Shape): Vec2d[][];
     hideResizeHandles: TLShapeUtilFlag<Shape>;
     hideRotateHandle: TLShapeUtilFlag<Shape>;
-    hideSelectionBoundsBg: TLShapeUtilFlag<Shape>;
     hideSelectionBoundsFg: TLShapeUtilFlag<Shape>;
     abstract indicator(shape: Shape): any;
     isAspectRatioLocked: TLShapeUtilFlag<Shape>;
@@ -2388,10 +2435,16 @@ export type TLScribbleComponent = ComponentType<{
 }>;
 
 // @public (undocumented)
-export type TLSelectionBackgroundComponent = React_3.ComponentType<object>;
+export type TLSelectionBackgroundComponent = React_3.ComponentType<{
+    bounds: Box2d;
+    rotation: number;
+}>;
 
 // @public (undocumented)
-export type TLSelectionForegroundComponent = ComponentType<object>;
+export type TLSelectionForegroundComponent = ComponentType<{
+    bounds: Box2d;
+    rotation: number;
+}>;
 
 // @public (undocumented)
 export type TLSelectionHandle = RotateCorner | SelectionCorner | SelectionEdge;

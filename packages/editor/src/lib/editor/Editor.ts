@@ -4231,7 +4231,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the top-most selected shape at the given point.
+	 * Get the top-most selected shape at the given point, ignoring groups.
 	 *
 	 * @param point - The point to check.
 	 *
@@ -4240,7 +4240,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getSelectedShapeAtPoint(point: Vec2d): TLShape | undefined {
 		const { selectedIds } = this
 		return this.sortedShapesArray
-			.filter((shape) => selectedIds.includes(shape.id))
+			.filter((shape) => shape.type !== 'group' && selectedIds.includes(shape.id))
 			.findLast((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
 
@@ -4272,6 +4272,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		const shapesToCheck = sortedShapesArray.filter((shape) => {
+			if (shape.type === 'group') return false
 			const pageMask = this.getPageMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)

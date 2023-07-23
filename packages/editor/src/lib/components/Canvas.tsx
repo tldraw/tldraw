@@ -430,13 +430,19 @@ const UiLogger = track(() => {
 })
 
 export function SelectionForegroundWrapper() {
+	const editor = useEditor()
+	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.selectionBounds, [editor])
 	const { SelectionForeground } = useEditorComponents()
-	if (!SelectionForeground) return null
-	return <SelectionForeground />
+	if (!selectionBounds || !SelectionForeground) return null
+	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
 }
 
 export function SelectionBackgroundWrapper() {
+	const editor = useEditor()
+	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.selectionBounds, [editor])
 	const { SelectionBackground } = useEditorComponents()
-	if (!SelectionBackground) return null
-	return <SelectionBackground />
+	if (!selectionBounds || !SelectionBackground) return null
+	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />
 }

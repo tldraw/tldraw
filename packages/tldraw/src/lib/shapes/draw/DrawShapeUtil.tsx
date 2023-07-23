@@ -38,7 +38,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 
 	override hideResizeHandles = (shape: TLDrawShape) => getIsDot(shape)
 	override hideRotateHandle = (shape: TLDrawShape) => getIsDot(shape)
-	override hideSelectionBoundsBg = (shape: TLDrawShape) => getIsDot(shape)
 	override hideSelectionBoundsFg = (shape: TLDrawShape) => getIsDot(shape)
 
 	override getDefaultProps(): TLDrawShape['props'] {

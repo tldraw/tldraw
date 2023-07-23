@@ -32,7 +32,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
 
-	override hideSelectionBoundsBg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
 	override canEdit: TLShapeUtilFlag<TLEmbedShape> = () => true
 	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = (shape: TLEmbedShape) => {

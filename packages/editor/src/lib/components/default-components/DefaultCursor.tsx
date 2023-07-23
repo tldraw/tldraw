@@ -46,4 +46,5 @@ const _Cursor: TLCursorComponent = ({ className, zoom, point, color, name, chatM
 	)
 }
 
+/** @public */
 export const DefaultCursor = memo(_Cursor)
