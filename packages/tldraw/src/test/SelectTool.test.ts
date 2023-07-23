@@ -204,7 +204,7 @@ describe('When pressing enter on a selected shape', () => {
 //       { id: id2, type: 'geo', x: 200, y: 200 },
 //     ])
 //     .selectAll()
-//     .groupShapes()
+//     .groupShapes(editor.selectedIds)
 //     .doubleClick(50, 50, { target: 'shape', shape: editor.getShape(id1) })
 //     .expectToBeIn('select.editing_shape')
 // })

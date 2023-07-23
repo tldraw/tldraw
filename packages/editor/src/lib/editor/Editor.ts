@@ -902,14 +902,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return true
 			})
 
-			const nextFocusLayerId =
-				filtered.length === 0
-					? next?.focusLayerId
-					: this.findCommonAncestor(compact(filtered.map((id) => this.getShape(id))), (shape) =>
-							this.isShapeOfType<TLGroupShape>(shape, 'group')
-					  )
+			let nextFocusLayerId: null | TLShapeId = null
 
-			if (filtered.length !== next.selectedIds.length || nextFocusLayerId != next.focusLayerId) {
+			if (filtered.length > 0) {
+				const commonGroupAncestor = this.findCommonAncestor(
+					compact(filtered.map((id) => this.getShape(id))),
+					(shape) => this.isShapeOfType<TLGroupShape>(shape, 'group')
+				)
+
+				if (commonGroupAncestor) {
+					nextFocusLayerId = commonGroupAncestor
+				}
+			} else {
+				if (next?.focusLayerId) {
+					nextFocusLayerId = next.focusLayerId
+				}
+			}
+
+			if (filtered.length !== next.selectedIds.length || nextFocusLayerId !== next.focusLayerId) {
 				this.store.put([{ ...next, selectedIds: filtered, focusLayerId: nextFocusLayerId ?? null }])
 			}
 		}
@@ -1396,22 +1406,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _setSelectedIds = this.history.createCommand(
 		'setSelectedIds',
 		(ids: TLShapeId[], squashing = false) => {
-			const prevSelectedIds = this.currentPageState.selectedIds
+			const { selectedIds: prevSelectedIds } = this.currentPageState
 			const prevSet = new Set(prevSelectedIds)
 
 			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
 
-			return { data: { ids, prevSelectedIds }, squashing, preservesRedoStack: true }
+			return {
+				data: { selectedIds: ids, prevSelectedIds },
+				squashing,
+				preservesRedoStack: true,
+			}
 		},
 		{
-			do: ({ ids }) => {
-				this.store.put([{ ...this.currentPageState, selectedIds: ids }])
+			do: ({ selectedIds }) => {
+				this.store.put([{ ...this.currentPageState, selectedIds }])
 			},
 			undo: ({ prevSelectedIds }) => {
-				this.store.put([{ ...this.currentPageState, selectedIds: prevSelectedIds }])
+				this.store.put([
+					{
+						...this.currentPageState,
+						selectedIds: prevSelectedIds,
+					},
+				])
 			},
-			squash(prev, next) {
-				return { ids: next.ids, prevSelectedIds: prev.prevSelectedIds }
+			squash({ prevSelectedIds }, { selectedIds }) {
+				return {
+					selectedIds,
+					prevSelectedIds,
+				}
 			},
 		}
 	)
@@ -1752,12 +1774,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateHoveredId() {
 		// todo: consider replacing `get hoveredId` with this; it would mean keeping hoveredId in memory rather than in the store and possibly re-computing it more often than necessary
-		this.setHoveredId(
-			this.getShapeAtPoint(this.inputs.currentPagePoint, {
-				hitInside: false,
-				margin: HIT_TEST_MARGIN / this.zoomLevel,
-			})?.id ?? null
-		)
+		const shape = this.getShapeAtPoint(this.inputs.currentPagePoint, {
+			hitInside: false,
+			margin: HIT_TEST_MARGIN / this.zoomLevel,
+		})
+		if (!shape) return this.setHoveredId(null)
+
+		const outermostShape = this.getOutermostSelectableShape(shape)
+
+		if (outermostShape.id === this.focusLayerId) {
+			return this.setHoveredId(shape.id)
+		}
+
+		this.setHoveredId(outermostShape.id)
 	}
 
 	// Hinting ids
@@ -4201,13 +4230,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return Matrix2d.applyToPoints(transform, corners)
 	}
 
-	getSelectedShapeAtPoint(point: Vec2d) {
-		const { selectedShapes } = this
-		return selectedShapes
-			.sort(sortByIndex)
+	/**
+	 * Get the top-most selected shape at the given point.
+	 *
+	 * @param point - The point to check.
+	 *
+	 * @returns The top-most selected shape at the given point, or undefined if there is no shape at the point.
+	 */
+	getSelectedShapeAtPoint(point: Vec2d): TLShape | undefined {
+		const { selectedIds } = this
+		return this.sortedShapesArray
+			.filter((shape) => selectedIds.includes(shape.id))
 			.findLast((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
 
+	/**
+	 * Get the shape at the current point.
+	 *
+	 * @param point - The point to check.
+	 * @param opts - Options for the check: `hitInside` to check if the point is inside the shape, `margin` to check if the point is within a margin of the shape, `hitFrameInside` to check if the point is inside the frame, and `filter` to filter the shapes to check.
+	 *
+	 * @returns The shape at the given point, or undefined if there is no shape at the point.
+	 */
 	getShapeAtPoint(
 		point: Vec2d,
 		opts = {} as {
@@ -4216,7 +4260,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			hitFrameInside?: boolean
 			filter?: (shape: TLShape) => boolean
 		}
-	): TLShape | null {
+	): TLShape | undefined {
 		// are we inside of a shape but not hovering it?
 		const { viewportPageBounds, zoomLevel, sortedShapesArray } = this
 		const { filter, margin = 0, hitInside = false, hitFrameInside = false } = opts
@@ -4262,7 +4306,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// frame) we the frame itself; other wise, (e.g. when hovering or pointing)
 					// we would want to return null.
 					return (
-						inMarginClosestToEdgeHit || inHollowSmallestAreaHit || (hitFrameInside ? shape : null)
+						inMarginClosestToEdgeHit ||
+						inHollowSmallestAreaHit ||
+						(hitFrameInside ? shape : undefined)
 					)
 				}
 				continue
@@ -4319,7 +4365,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// had the shortest distance between the point and the shape edge),
 		// or else the hollow shape with the smallest area—or if we didn't hit
 		// any margins or any hollow shapes, then null.
-		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || null
+		return inMarginClosestToEdgeHit || inHollowSmallestAreaHit || undefined
 	}
 
 	/**
@@ -4512,6 +4558,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get sortedShapesArray(): TLShape[] {
+		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
 		// todo: consider making a derivation or something, or merging with rendering shapes
 		const shapes = new Set(this.shapesArray.sort(sortByIndex))
 
@@ -4945,6 +4992,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape {
 		let match = shape
 		let node = shape as TLShape | undefined
+
 		const focusLayerShape = this.focusLayerId ? this.getShape(this.focusLayerId) : undefined
 
 		while (node) {
@@ -6663,10 +6711,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	groupShapes(ids: TLShapeId[] = this.selectedIds, groupId = createShapeId()) {
+	groupShapes(ids: TLShapeId[], groupId?: TLShapeId): this
+	groupShapes(shapes: TLShape[], groupId?: TLShapeId): this
+	groupShapes(_ids: TLShapeId[] | TLShape[], groupId = createShapeId()): this {
 		if (this.instanceState.isReadonly) return this
 
-		if (ids.length <= 1) return this
+		if (_ids.length <= 1) return this
+
+		const ids =
+			typeof _ids[0] === 'string'
+				? (_ids as TLShapeId[])
+				: (_ids.map((s) => (s as TLShape).id) as TLShapeId[])
 
 		const shapes = compact(this._getUnlockedShapeIds(ids).map((id) => this.getShape(id)))
 		const sortedShapeIds = shapes.sort(sortByIndex).map((s) => s.id)

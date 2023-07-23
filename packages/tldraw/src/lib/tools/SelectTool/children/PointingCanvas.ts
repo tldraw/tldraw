@@ -21,16 +21,16 @@ export class PointingCanvas extends StateNode {
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
-		const hitShape =
-			this.editor.hoveredShape ??
-			this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-				hitInside: true,
-				margin: 0,
-			})
+		let hitShape = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+			hitInside: true,
+			margin: 0,
+		})
 
 		const { shiftKey } = this.editor.inputs
 
 		if (hitShape) {
+			hitShape = this.editor.getOutermostSelectableShape(hitShape)
+
 			const util = this.editor.getShapeUtil(hitShape)
 
 			if (hitShape.id !== this.editor.focusLayerId) {

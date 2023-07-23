@@ -10,6 +10,7 @@ const ids = {
 	box4: createShapeId('box4'),
 	box5: createShapeId('box5'),
 	frame1: createShapeId('frame1'),
+	group1: createShapeId('group1'),
 }
 
 beforeEach(() => {
@@ -518,6 +519,23 @@ describe('When shapes are overlapping', () => {
 		expect(editor.selectedIds).toEqual([])
 		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([box1.id])
+	})
+})
+
+it('Selects inside of groups', () => {
+	beforeEach(() => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 300, y: 0 },
+		])
+		editor.selectAll().groupShapes(editor.selectedIds, ids.group1)
+	})
+
+	it('selects the group when clicking a shape', () => {
+		editor.pointerDown(50, 50)
+		expect(editor.selectedIds).toEqual([])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.group1])
 	})
 })
 

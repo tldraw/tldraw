@@ -296,7 +296,7 @@ describe('When one shape is selected', () => {
 		const fn = jest.fn()
 
 		editor.selectAll()
-		editor.groupShapes() // this will also select the new group
+		editor.groupShapes(editor.selectedIds) // this will also select the new group
 		const groupBefore = editor.selectedShapes[0]
 		editor.on('change', fn)
 		editor.flipShapes('horizontal')

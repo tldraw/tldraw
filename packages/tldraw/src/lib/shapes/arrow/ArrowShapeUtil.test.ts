@@ -299,7 +299,7 @@ describe('Other cases when arrow are moved', () => {
 				{ id: ids.box4, type: 'geo', x: 0, y: 600, props: { w: 100, h: 100 } },
 			])
 			.selectAll()
-			.groupShapes()
+			.groupShapes(editor.selectedIds)
 
 		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
 		let arrow = editor.shapesArray[editor.shapesArray.length - 1]

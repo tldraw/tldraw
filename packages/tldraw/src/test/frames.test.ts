@@ -683,7 +683,7 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 
 	editor.setCurrentTool('select')
 	editor.select(boxBId, boxCId)
-	editor.groupShapes()
+	editor.groupShapes(editor.selectedIds)
 	const groupId = editor.onlySelectedShape!.id
 
 	editor.setCurrentTool('arrow')

@@ -422,7 +422,7 @@ describe('When copying and pasting', () => {
 		editor
 			// Create group
 			.selectAll()
-			.groupShapes()
+			.groupShapes(editor.selectedIds)
 			// Move the group
 			.updateShapes([
 				{

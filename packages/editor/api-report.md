@@ -641,19 +641,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d;
     // (undocumented)
     getPointInShapeSpace(id: TLShapeId, point: VecLike): Vec2d;
-    // (undocumented)
     getSelectedShapeAtPoint(point: Vec2d): TLShape | undefined;
     getShape<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     // (undocumented)
     getShape<T extends TLShape = TLShape>(shape: TLShape): T | undefined;
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
-    // (undocumented)
     getShapeAtPoint(point: Vec2d, opts?: {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
         hitFrameInside?: boolean | undefined;
         filter?: ((shape: TLShape) => boolean) | undefined;
-    }): null | TLShape;
+    }): TLShape | undefined;
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
     getShapesAtPoint(point: VecLike, opts?: {
         hitInside?: boolean | undefined;
@@ -678,7 +676,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     }>): Promise<SVGSVGElement | undefined>;
     getTransform(shape: TLShape): Matrix2d;
-    groupShapes(ids?: TLShapeId[], groupId?: TLShapeId): this;
+    groupShapes(ids: TLShapeId[], groupId?: TLShapeId): this;
+    // (undocumented)
+    groupShapes(shapes: TLShape[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | undefined, ancestorId: TLShapeId): boolean;
     get hintingIds(): TLShapeId[];
     readonly history: HistoryManager<this>;
@@ -856,7 +856,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingId' | 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateHoveredId(): void;
+    updateHoveredId(): this | undefined;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal
