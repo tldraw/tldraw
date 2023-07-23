@@ -48,6 +48,8 @@ export const TextLabel = React.memo(function TextLabel<
 		handleChange,
 		handleKeyDown,
 		handleBlur,
+		handlePointerDown,
+		handleDoubleClick,
 	} = useEditableText(id, type, text)
 
 	const isInteractive = isEditing || isEditableFromHover
@@ -109,6 +111,8 @@ export const TextLabel = React.memo(function TextLabel<
 						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
 						onContextMenu={stopEventPropagation}
+						onPointerDown={handlePointerDown}
+						onDoubleClick={handleDoubleClick}
 					/>
 				) : null}
 			</div>

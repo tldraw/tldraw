@@ -33,6 +33,7 @@ export class EditingShape extends StateNode {
 				const hitShape =
 					this.editor.hoveredShape ??
 					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+
 				if (hitShape) {
 					this.onPointerDown({
 						...info,
@@ -55,24 +56,24 @@ export class EditingShape extends StateNode {
 
 					const editingShape = this.editor.getShape(editingId)
 
-					if (editingShape) {
-						const editingShapeUtil = this.editor.getShapeUtil(editingShape)
-						editingShapeUtil.onEditEnd?.(editingShape)
+					if (!editingShape) throw Error("Can't find editing shape")
 
-						const util = this.editor.getShapeUtil(shape)
+					const editingShapeUtil = this.editor.getShapeUtil(editingShape)
+					editingShapeUtil.onEditEnd?.(editingShape)
 
-						// If the user has clicked onto a different shape of the same type
-						// which is available to edit, select it and begin editing it.
-						if (
-							shape.type === editingShape.type &&
-							util.canEdit?.(shape) &&
-							!this.editor.isShapeOrAncestorLocked(shape)
-						) {
-							this.editor.setEditingId(shape.id)
-							this.editor.setHoveredId(shape.id)
-							this.editor.setSelectedIds([shape.id])
-							return
-						}
+					const util = this.editor.getShapeUtil(shape)
+
+					// If the user has clicked onto a different shape of the same type
+					// which is available to edit, select it and begin editing it.
+					if (
+						shape.type === editingShape.type &&
+						util.canEdit?.(shape) &&
+						!this.editor.isShapeOrAncestorLocked(shape)
+					) {
+						this.editor.setEditingId(shape.id)
+						this.editor.setHoveredId(shape.id)
+						this.editor.setSelectedIds([shape.id])
+						return
 					}
 				}
 			}

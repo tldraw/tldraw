@@ -25,10 +25,6 @@ export function selectOnPointerUp(editor: Editor) {
 			}
 		}
 
-		if (editor.getParentShape(hitShape)?.type === 'group') {
-			editor.cancelDoubleClick()
-		}
-
 		if (shiftKey && !altKey) {
 			if (!selectedIds.includes(hitShape.id)) {
 				editor.mark('shift selecting shape')

@@ -181,18 +181,38 @@ export class Idle extends StateNode {
 						hitInside: true,
 					})
 
-				// ok, but what if it's a shape inside of a group
+				const { focusLayerId } = this.editor
 
 				if (hitShape) {
-					if (this.editor.getOutermostSelectableShape(hitShape) === hitShape) {
-						this.onDoubleClick({
-							...info,
-							shape: hitShape,
-							target: 'shape',
-						})
-					} else {
+					if (hitShape.type === 'group') {
+						// Probably select the shape
 						selectOnPointerUp(this.editor)
+						return
+					} else {
+						if (this.editor.getShape(hitShape.parentId)?.type === 'group') {
+							// The shape is the direct child of a group. If the group is
+							// selected, then we can select the shape. If the group is the
+							// focus layer id, then we can double click into it as usual.
+							if (focusLayerId && hitShape.parentId === focusLayerId) {
+								// noop, double click on the shape as normal below
+							} else {
+								// The shape is the child of some group other than our current
+								// focus layer. We should probably select the group instead.
+								selectOnPointerUp(this.editor)
+								return
+							}
+						}
 					}
+
+					// double click on the shape. We'll start editing the
+					// shape if it's editable or else do a double click on
+					// the canvas.
+					this.onDoubleClick({
+						...info,
+						shape: hitShape,
+						target: 'shape',
+					})
+
 					return
 				}
 

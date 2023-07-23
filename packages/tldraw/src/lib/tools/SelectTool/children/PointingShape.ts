@@ -1,10 +1,4 @@
-import {
-	StateNode,
-	TLEventHandlers,
-	TLGroupShape,
-	TLPointerEventInfo,
-	TLShape,
-} from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
@@ -42,11 +36,11 @@ export class PointingShape extends StateNode {
 		if (this.didSelectOnEnter) {
 			const { inputs, selectedIds } = this.editor
 
-			const parent = this.editor.getParentShape(info.shape)
+			// const parent = this.editor.getParentShape(info.shape)
 
-			if (parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')) {
-				this.editor.cancelDoubleClick()
-			}
+			// if (parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')) {
+			// 	this.editor.cancelDoubleClick()
+			// }
 
 			if (inputs.shiftKey && !inputs.altKey) {
 				if (!selectedIds.includes(this.selectingShape.id)) {

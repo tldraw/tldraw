@@ -8587,17 +8587,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					switch (info.name) {
 						case 'pointer_down': {
-							const { focusLayerId } = this
-							if (
-								isShapeId(focusLayerId) &&
-								!this.isPointInShape(focusLayerId, this.inputs.currentPagePoint, {
-									margin: 0,
-									hitInside: true,
-								})
-							) {
-								this.setFocusLayerId(this.currentPageId)
-							}
-
 							this._selectedIdsAtPointerDown = this.selectedIds.slice()
 
 							// Firefox bug fix...
