@@ -1,4 +1,5 @@
 import { StateNode, TLClickEvent, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { selectOnPointerUp } from './select-shared'
 
 export class PointingSelection extends StateNode {
 	static override id = 'pointing_selection'
@@ -12,7 +13,7 @@ export class PointingSelection extends StateNode {
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
-		this.editor.selectNone()
+		selectOnPointerUp(this.editor)
 		this.parent.transition('idle', info)
 	}
 

@@ -555,7 +555,14 @@ describe('Selects inside of groups', () => {
 		expect(editor.selectedIds).toEqual([ids.group1])
 	})
 
-	it.only('drops selection when pointing up on the space between shapes in a group', () => {
+	it('selects on page down when over a filled shape', () => {
+		editor.pointerDown(250, 50)
+		expect(editor.selectedIds).toEqual([ids.group1])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.group1])
+	})
+
+	it('drops selection when pointing up on the space between shapes in a group', () => {
 		editor.pointerDown(0, 0)
 		expect(editor.selectedIds).toEqual([ids.group1])
 		editor.pointerUp()
@@ -565,6 +572,28 @@ describe('Selects inside of groups', () => {
 		expect(editor.selectedIds).toEqual([ids.group1])
 		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([])
+	})
+
+	it('keeps selection when pointing on a filled child shape', () => {
+		editor.pointerDown(250, 0)
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.group1])
+		editor.pointerDown(250, 50)
+		editor.expectToBeIn('select.pointing_shape')
+		expect(editor.selectedIds).toEqual([ids.group1])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.group1])
+	})
+
+	it('keeps selection when pointing inside of a hollow child shape', () => {
+		editor.pointerDown(250, 0)
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.group1])
+		editor.pointerDown(50, 50)
+		editor.expectToBeIn('select.pointing_selection')
+		expect(editor.selectedIds).toEqual([ids.group1])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.group1])
 	})
 })
 
