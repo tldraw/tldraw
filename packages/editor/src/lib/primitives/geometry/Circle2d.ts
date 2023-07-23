@@ -17,7 +17,6 @@ export class Circle2d extends Geometry2d {
 			x?: number
 			y?: number
 			radius: number
-			margin: number
 			isFilled: boolean
 		}
 	) {

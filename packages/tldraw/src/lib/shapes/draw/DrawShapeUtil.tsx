@@ -65,7 +65,6 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 					x: -strokeWidth,
 					y: -strokeWidth,
 					radius: strokeWidth,
-					margin: 8,
 					isFilled: true,
 				})
 			}
