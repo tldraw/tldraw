@@ -574,7 +574,7 @@ describe('Selects inside of groups', () => {
 		expect(editor.selectedIds).toEqual([])
 	})
 
-	it('keeps selection when pointing on a filled child shape', () => {
+	it('selects child when pointing on a filled child shape', () => {
 		editor.pointerDown(250, 0)
 		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([ids.group1])
@@ -582,18 +582,18 @@ describe('Selects inside of groups', () => {
 		editor.expectToBeIn('select.pointing_shape')
 		expect(editor.selectedIds).toEqual([ids.group1])
 		editor.pointerUp()
-		expect(editor.selectedIds).toEqual([ids.group1])
+		expect(editor.selectedIds).toEqual([ids.box2])
 	})
 
-	it('keeps selection when pointing inside of a hollow child shape', () => {
-		editor.pointerDown(250, 0)
+	it('selects child when pointing inside of a hollow child shape', () => {
+		editor.pointerDown(50, 50)
 		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([ids.group1])
 		editor.pointerDown(50, 50)
 		editor.expectToBeIn('select.pointing_selection')
 		expect(editor.selectedIds).toEqual([ids.group1])
 		editor.pointerUp()
-		expect(editor.selectedIds).toEqual([ids.group1])
+		expect(editor.selectedIds).toEqual([ids.box1])
 	})
 })
 

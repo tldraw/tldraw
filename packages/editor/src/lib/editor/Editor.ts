@@ -4257,6 +4257,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as {
 			hitInside?: boolean
 			margin?: number
+			ignoreGroups?: boolean
 			hitFrameInside?: boolean
 			filter?: (shape: TLShape) => boolean
 		}

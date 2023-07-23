@@ -45,13 +45,32 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const { currentPagePoint } = this.editor.inputs
 
-				const hitShape =
-					this.editor.hoveredShape ??
-					this.editor.getSelectedShapeAtPoint(currentPagePoint) ??
-					this.editor.getShapeAtPoint(currentPagePoint, {
+				let hitShape: TLShape | undefined
+
+				const { hoveredShape } = this.editor
+
+				if (hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')) {
+					hitShape = hoveredShape
+				}
+
+				if (!hitShape) {
+					const selectedShape = this.editor.getSelectedShapeAtPoint(currentPagePoint)
+
+					if (selectedShape) {
+						hitShape = selectedShape
+					}
+				}
+
+				if (!hitShape) {
+					const shapeAtPoint = this.editor.getShapeAtPoint(currentPagePoint, {
 						hitInside: false,
 						margin: 0,
 					})
+
+					if (shapeAtPoint) {
+						hitShape = shapeAtPoint
+					}
+				}
 
 				if (hitShape) {
 					this.onPointerDown({
@@ -164,9 +183,11 @@ export class Idle extends StateNode {
 					return
 				}
 
-				// Create text shape and transition to editing_shape
-				if (this.editor.instanceState.isReadonly) break
-				this.handleDoubleClickOnCanvas(info)
+				if (!this.editor.inputs.shiftKey) {
+					// Create text shape and transition to editing_shape
+					if (this.editor.instanceState.isReadonly) break
+					this.handleDoubleClickOnCanvas(info)
+				}
 				break
 			}
 			case 'selection': {
@@ -438,17 +459,6 @@ export class Idle extends StateNode {
 
 		const shape = this.editor.getShape(id)
 		if (!shape) return
-
-		const bounds = this.editor.getGeometry(shape).bounds
-
-		this.editor.updateShapes([
-			{
-				id,
-				type: 'text',
-				x: shape.x - bounds.width / 2,
-				y: shape.y - bounds.height / 2,
-			},
-		])
 
 		this.editor.setEditingId(id)
 		this.editor.select(id)

@@ -699,6 +699,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAtPoint(point: Vec2d, opts?: {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
+        ignoreGroups?: boolean | undefined;
         hitFrameInside?: boolean | undefined;
         filter?: ((shape: TLShape) => boolean) | undefined;
     }): TLShape | undefined;

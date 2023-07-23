@@ -16,6 +16,7 @@ export class PointingShape extends StateNode {
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
 		this.eventTargetShape = info.shape
+
 		this.selectingShape = this.editor.getOutermostSelectableShape(info.shape)
 
 		const util = this.editor.getShapeUtil(info.shape)
