@@ -151,10 +151,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		const labelGeom = new Rectangle2d({
-			x: info.middle.x - width / 2 - 4,
-			y: info.middle.y - height / 2 - 4,
-			width: width + 8,
-			height: height + 8,
+			x: info.middle.x - width / 2 - 4.25,
+			y: info.middle.y - height / 2 - 4.25,
+			width: width + 8.5,
+			height: height + 8.5,
 			isFilled: true,
 		})
 
@@ -706,10 +706,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							/>
 							{labelGeometry && (
 								<rect
-									x={toDomPrecision(labelGeometry.x - 0.25)}
-									y={toDomPrecision(labelGeometry.y - 0.25)}
-									width={labelGeometry.w + 0.5}
-									height={labelGeometry.h + 0.5}
+									x={toDomPrecision(labelGeometry.x)}
+									y={toDomPrecision(labelGeometry.y)}
+									width={labelGeometry.w}
+									height={labelGeometry.h}
 									fill="black"
 									rx={3.5}
 									ry={3.5}
@@ -751,10 +751,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				{ae && <path d={ae} />}
 				{labelGeometry && (
 					<rect
-						x={toDomPrecision(labelGeometry.x - 0.25)}
-						y={toDomPrecision(labelGeometry.y - 0.25)}
-						width={labelGeometry.w + 0.5}
-						height={labelGeometry.h + 0.5}
+						x={toDomPrecision(labelGeometry.x)}
+						y={toDomPrecision(labelGeometry.y)}
+						width={labelGeometry.w}
+						height={labelGeometry.h}
 						rx={3.5}
 						ry={3.5}
 					/>
