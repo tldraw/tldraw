@@ -3,6 +3,7 @@
 import {
 	TLShape,
 	TLUnknownShape,
+	getPointerInfo,
 	preventDefault,
 	stopEventPropagation,
 	transact,
@@ -206,19 +207,33 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		}
 	}, [])
 
-	const handlePointerDown = useCallback(
+	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
-			transact(() => {
-				if (isEditableFromHover) {
+			if (isEditableFromHover) {
+				transact(() => {
 					editor.setEditingId(id)
 					editor.setHoveredId(id)
 					editor.setSelectedIds([id])
-				}
-			})
+				})
+			}
 
 			stopEventPropagation(e)
 		},
 		[editor, isEditableFromHover, id]
+	)
+
+	const handleContentPointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			editor.dispatch({
+				...getPointerInfo(e, editor.getContainer()),
+				type: 'pointer',
+				name: 'pointer_down',
+				target: 'shape',
+				shape: editor.getShape(id)!,
+			})
+			stopEventPropagation(e)
+		},
+		[editor, id]
 	)
 
 	useEffect(() => {
@@ -238,7 +253,8 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		handleBlur,
 		handleKeyDown,
 		handleChange,
-		handlePointerDown,
+		handleInputPointerDown,
+		handleContentPointerDown,
 		handleDoubleClick,
 		isEmpty,
 	}

@@ -19,20 +19,28 @@ export function selectOnPointerUp(editor: Editor) {
 
 	if (hitShape) {
 		const outermostSelectableShape = editor.getOutermostSelectableShape(hitShape)
-		if (outermostSelectableShape.id !== editor.focusLayerId) {
-			if (!selectedIds.includes(outermostSelectableShape.id)) {
-				hitShape = outermostSelectableShape
-			}
-		}
 
+		// If the user is holding shift, they're either adding to or removing from
+		// their selection. In order to select the outermost selectable shape, we
+		// would need to
 		if (shiftKey && !altKey) {
-			if (!selectedIds.includes(hitShape.id)) {
+			editor.cancelDoubleClick() // fuckin eh
+
+			if (!selectedIds.includes(outermostSelectableShape.id)) {
 				editor.mark('shift selecting shape')
-				editor.setSelectedIds([...selectedIds, hitShape.id])
+				editor.setSelectedIds([...selectedIds, outermostSelectableShape.id])
+			} else {
+				editor.deselect(outermostSelectableShape.id)
 			}
 		} else {
+			if (outermostSelectableShape.id !== editor.focusLayerId) {
+				if (!selectedIds.includes(outermostSelectableShape.id)) {
+					hitShape = outermostSelectableShape
+				}
+			}
+
 			editor.mark('selecting shape')
-			editor.select(hitShape.id)
+			editor.select(hitShape.id) // possibly the outermost selected shape
 		}
 
 		// const outermostSelectableShape = editor.getOutermostSelectableShape(hitShape)

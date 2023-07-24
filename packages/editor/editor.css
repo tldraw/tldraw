@@ -1046,6 +1046,10 @@ input,
 	height: 40px;
 }
 
+.tl-text-label[data-hastext='true'][data-isediting='false'] .tl-text-content {
+	pointer-events: all;
+}
+
 .tl-text-label__inner {
 	position: relative;
 	width: fit-content;

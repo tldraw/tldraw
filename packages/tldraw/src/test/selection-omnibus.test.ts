@@ -758,6 +758,8 @@ describe('when shift+selecting a group', () => {
 		expect(editor.selectedIds).toEqual([ids.box1])
 		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
+		editor.pointerDown(250, 50, { target: 'canvas' }, { shiftKey: true })
+		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
 		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
 		expect(editor.selectedIds).toEqual([ids.box1])
 	})

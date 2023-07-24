@@ -48,7 +48,8 @@ export const TextLabel = React.memo(function TextLabel<
 		handleChange,
 		handleKeyDown,
 		handleBlur,
-		handlePointerDown,
+		handleInputPointerDown,
+		handleContentPointerDown,
 		handleDoubleClick,
 	} = useEditableText(id, type, text)
 
@@ -58,6 +59,8 @@ export const TextLabel = React.memo(function TextLabel<
 	const legacyAlign = isLegacyAlign(align)
 	const theme = useDefaultColorTheme()
 
+	if (!isInteractive && !hasText) return null
+
 	return (
 		<div
 			className="tl-text-label"
@@ -66,14 +69,10 @@ export const TextLabel = React.memo(function TextLabel<
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
-			style={
-				hasText || isInteractive
-					? {
-							justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
-							alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
-					  }
-					: undefined
-			}
+			style={{
+				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
+				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+			}}
 		>
 			<div
 				className="tl-text-label__inner"
@@ -85,11 +84,10 @@ export const TextLabel = React.memo(function TextLabel<
 					color: theme[labelColor].solid,
 				}}
 			>
-				<div className="tl-text tl-text-content" dir="ltr">
+				<div className="tl-text tl-text-content" dir="ltr" onPointerDown={handleContentPointerDown}>
 					{finalText}
 				</div>
-				{isInteractive ? (
-					// Consider replacing with content-editable
+				{isInteractive && (
 					<textarea
 						ref={rInput}
 						className="tl-text tl-text-input"
@@ -111,10 +109,10 @@ export const TextLabel = React.memo(function TextLabel<
 						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
 						onContextMenu={stopEventPropagation}
-						onPointerDown={handlePointerDown}
+						onPointerDown={handleInputPointerDown}
 						onDoubleClick={handleDoubleClick}
 					/>
-				) : null}
+				)}
 			</div>
 		</div>
 	)
