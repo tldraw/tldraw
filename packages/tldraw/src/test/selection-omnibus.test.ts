@@ -965,6 +965,47 @@ describe('When pressing the enter key with groups selected', () => {
 	})
 })
 
+describe('When double clicking an editable shape', () => {
+	beforeEach(() => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{
+				id: ids.box2,
+				type: 'arrow',
+				x: 200,
+				y: 50,
+				props: {
+					start: { type: 'point', x: 0, y: 0 },
+					end: { type: 'point', x: 100, y: 0 },
+				},
+			},
+		])
+	})
+
+	it('starts editing on double click', () => {
+		editor.pointerMove(50, 50).doubleClick()
+		expect(editor.selectedIds).toEqual([ids.box1])
+		expect(editor.editingId).toBe(ids.box1)
+		editor.expectToBeIn('select.editing_shape')
+	})
+
+	it('does not start editing on double click if shift is down', () => {
+		editor.pointerMove(50, 50).keyDown('Shift').doubleClick()
+		expect(editor.selectedIds).toEqual([ids.box1])
+		expect(editor.editingId).toBe(null)
+		editor.expectToBeIn('select.idle')
+	})
+
+	it('starts editing arrow on double click', () => {
+		editor.pointerMove(250, 50).doubleClick()
+		expect(editor.selectedIds).toEqual([ids.box2])
+		editor.doubleClick()
+		expect(editor.selectedIds).toEqual([ids.box2])
+		expect(editor.editingId).toBe(ids.box2)
+		editor.expectToBeIn('select.editing_shape')
+	})
+})
+
 it.todo('shift selects to add to and remove from the selection')
 it.todo('shift brushes to add to the selection')
 it.todo('scribble brushes to add to the selection')

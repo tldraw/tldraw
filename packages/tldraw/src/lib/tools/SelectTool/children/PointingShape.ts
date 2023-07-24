@@ -46,7 +46,6 @@ export class PointingShape extends StateNode {
 
 		if (shiftKey && !altKey) {
 			this.editor.cancelDoubleClick()
-
 			if (!selectedIds.includes(outermostSelectingShape.id)) {
 				this.editor.mark('shift selecting shape')
 				this.editor.setSelectedIds([...selectedIds, outermostSelectingShape.id])
