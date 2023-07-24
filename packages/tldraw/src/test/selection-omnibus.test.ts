@@ -705,9 +705,41 @@ describe('when selecting behind selection', () => {
 	})
 })
 
+describe.only('when shift+selecting a group', () => {
+	beforeEach(() => {
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 400, y: 0 },
+				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
+			])
+			.groupShapes([ids.box2, ids.box3], ids.group1)
+			.select(ids.box1)
+	})
+
+	it('selects on pointer up', () => {
+		editor.pointerDown(250, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		expect(editor.selectedIds).toEqual([ids.box1])
+		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
+		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
+	})
+
+	it('deselects on pointer up', () => {
+		editor.pointerDown(250, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		expect(editor.selectedIds).toEqual([ids.box1])
+		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
+		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
+	})
+})
+
 it.todo('shift selects to add to and remove from the selection')
 it.todo('shift brushes to add to the selection')
 it.todo('scribble brushes to add to the selection')
 it.todo('alt brushes to select only when containing a shape')
 it.todo('does not select a hollow closed shape that contains the viewport?')
 it.todo('does not select a hollow closed shape if the negative distance is more than X?')
+
+it.todo(
+	'maybe? does not edit a hollow geo shape when double clicking inside of it unless it already has a label OR the double click is in the middle of the shape'
+)

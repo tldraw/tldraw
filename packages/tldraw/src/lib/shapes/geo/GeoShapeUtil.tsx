@@ -96,7 +96,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const cy = h / 2
 
 		const strokeWidth = STROKE_SIZES[shape.props.size]
-		const isFilled = shape.props.fill !== 'none'
+		const isFilled = shape.props.fill !== 'none' // || shape.props.text.trim().length > 0
 
 		let body: Geometry2d
 

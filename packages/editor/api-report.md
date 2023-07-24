@@ -530,6 +530,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | undefined;
     animateCamera(x: number, y: number, z?: number, opts?: TLAnimationOptions): this;
+    animateShape(partial: null | TLShapePartial | undefined, options?: Partial<{
+        duration: number;
+        ease: (t: number) => number;
+    }>): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], options?: {
         duration?: number;
         ease?: (t: number) => number;
@@ -599,7 +603,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteOpenMenu(id: string): this;
     deletePage(id: TLPageId): this;
     deleteShape(id: TLShapeId): this;
+    // (undocumented)
+    deleteShape(shape: TLShape): this;
     deleteShapes(ids: TLShapeId[]): this;
+    // (undocumented)
+    deleteShapes(shapes: TLShape[]): this;
     deselect(...ids: TLShapeId[]): this;
     dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
@@ -901,11 +909,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly textMeasure: TextManager;
     toggleLock(ids?: TLShapeId[]): this;
     undo(): HistoryManager<this>;
-    ungroupShapes(ids?: TLShapeId[]): this;
+    ungroupShapes(ids: TLShapeId[]): this;
+    // (undocumented)
+    ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingId' | 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateHoveredId(): this | undefined;
+    updateHoveredId(): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal

@@ -73,30 +73,36 @@ describe('When pointing a shape behind the current selection', () => {
 		])
 		editor.select(ids.A, ids.C)
 		// don't select it yet! It's behind the current selection
-		editor.pointerDown(100, 100, ids.B)
+		editor.pointerDown(75, 75)
 		expect(editor.selectedIds).toMatchObject([ids.A, ids.C])
-		editor.pointerUp(100, 100, ids.B)
+		editor.pointerUp(75, 75)
 		expect(editor.selectedIds).toMatchObject([ids.B])
 	})
 
 	it('Selects on shift+pointer up', () => {
 		editor.selectNone()
 		const ids = editor.createShapesFromJsx([
-			<TL.geo ref="A" x={0} y={0} w={100} h={100} />,
-			<TL.geo ref="B" x={50} y={50} w={100} h={100} />,
-			<TL.geo ref="C" x={100} y={100} w={100} h={100} />,
+			<TL.geo ref="A" x={0} y={0} w={50} h={50} />,
+			<TL.geo ref="B" x={50} y={50} w={50} h={50} />,
+			<TL.geo ref="C" x={100} y={100} w={50} h={50} />,
 		])
 		editor.select(ids.A, ids.C)
 		// don't select it yet! It's behind the current selection
-		editor.pointerDown(100, 100, ids.B, { shiftKey: true })
+		editor.pointerDown(75, 75, { target: 'canvas' }, { shiftKey: true })
+		editor.expectToBeIn('select.pointing_selection')
 		expect(editor.selectedIds).toMatchObject([ids.A, ids.C])
-		editor.pointerUp(100, 100, ids.B, { shiftKey: true })
+
+		editor.pointerUp(75, 75, { target: 'canvas' }, { shiftKey: true })
+		editor.expectToBeIn('select.idle')
 		expect(editor.selectedIds).toMatchObject([ids.A, ids.C, ids.B])
 
 		// and deselect
-		editor.pointerDown(100, 100, ids.B, { shiftKey: true })
+		editor.pointerDown(75, 75, { target: 'canvas' }, { shiftKey: true })
+		editor.expectToBeIn('select.pointing_shape')
 		expect(editor.selectedIds).toMatchObject([ids.A, ids.C, ids.B])
-		editor.pointerUp(100, 100, ids.B, { shiftKey: true })
+
+		editor.pointerUp(75, 75, { target: 'canvas' }, { shiftKey: true })
+		editor.expectToBeIn('select.idle')
 		expect(editor.selectedIds).toMatchObject([ids.A, ids.C])
 	})
 

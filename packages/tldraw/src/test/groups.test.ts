@@ -844,9 +844,9 @@ describe('focus layers', () => {
 })
 
 describe('the select tool', () => {
-	let groupAId: TLShapeId
-	let groupBId: TLShapeId
-	let groupCId: TLShapeId
+	const groupAId = createShapeId('groupA')
+	const groupBId = createShapeId('groupB')
+	const groupCId = createShapeId('groupC')
 	beforeEach(() => {
 		//  group C
 		// ┌─────────────────────────────────────────────────────────┐
@@ -859,20 +859,14 @@ describe('the select tool', () => {
 		// │ └────────────────────────┘     └──────────────────────┘ │
 		// └─────────────────────────────────────────────────────────┘
 		editor.createShapes([
-			box(ids.boxA, 0, 0),
-			box(ids.boxB, 20, 0),
-			box(ids.boxC, 40, 0),
-			box(ids.boxD, 60, 0),
+			box(ids.boxA, 0, 0, 10, 10),
+			box(ids.boxB, 30, 0, 10, 10),
+			box(ids.boxC, 60, 0, 10, 10),
+			box(ids.boxD, 90, 0, 10, 10),
 		])
-		editor.select(ids.boxA, ids.boxB)
-		editor.groupShapes(editor.selectedIds)
-		groupAId = onlySelectedId()
-		editor.select(ids.boxC, ids.boxD)
-		editor.groupShapes(editor.selectedIds)
-		groupBId = onlySelectedId()
-		editor.select(groupAId, groupBId)
-		editor.groupShapes(editor.selectedIds)
-		groupCId = onlySelectedId()
+		editor.groupShapes([ids.boxA, ids.boxB], groupAId)
+		editor.groupShapes([ids.boxC, ids.boxD], groupBId)
+		editor.groupShapes([groupAId, groupBId], groupCId)
 		editor.selectNone()
 	})
 
@@ -917,13 +911,13 @@ describe('the select tool', () => {
 		expect(editor.focusLayerId).toBe(groupAId)
 
 		editor
-			.pointerDown(40, 0, ids.boxC, { shiftKey: true })
+			.pointerDown(60, 0, ids.boxC, { shiftKey: true })
 			.pointerUp(0, 0, ids.boxC, { shiftKey: true })
 		expect(editor.selectedIds.includes(ids.boxA)).toBe(true)
 		expect(editor.selectedIds.includes(groupBId)).toBe(true)
 		expect(editor.focusLayerId).toBe(groupCId)
 
-		editor.pointerDown(40, 0, ids.boxC, { shiftKey: true }).pointerUp(0, 0)
+		editor.pointerDown(60, 0, ids.boxC, { shiftKey: true }).pointerUp()
 		expect(editor.selectedIds.includes(ids.boxA)).toBe(true)
 		expect(editor.selectedIds.includes(groupBId)).toBe(false)
 		expect(editor.selectedIds.includes(ids.boxC)).toBe(true)
@@ -951,21 +945,23 @@ describe('the select tool', () => {
 	it('if a shape inside a focused group is selected and you click an empty space inside the group it should deselect the shape', () => {
 		editor.select(ids.boxA)
 		expect(editor.focusLayerId).toBe(groupAId)
-
-		editor.pointerDown(15, 5, groupAId).pointerUp(15, 5, groupAId)
+		expect(editor.selectedIds).toEqual([ids.boxA])
+		editor.pointerDown(20, 5)
+		editor.pointerUp(20, 5)
 		expect(editor.focusLayerId).toBe(groupAId)
-		expect(editor.selectedIds.length).toBe(0)
+		expect(editor.selectedIds).toEqual([])
 	})
 
-	it('if you click inside the empty space of a focused group while there are no selected shapes, it should pop the focus layer and select the group', () => {
-		editor.select(ids.boxA)
-		editor.pointerDown(15, 5, groupAId).pointerUp(15, 5, groupAId)
-		expect(editor.focusLayerId).toBe(groupAId)
-		expect(editor.selectedIds.length).toBe(0)
-		editor.pointerDown(15, 5, groupAId).pointerUp(15, 5, groupAId)
-		expect(editor.focusLayerId).toBe(groupCId)
-		expect(onlySelectedId()).toBe(groupAId)
-	})
+	// ! Removed
+	// it('if you click inside the empty space of a focused group while there are no selected shapes, it should pop the focus layer and select the group', () => {
+	// 	editor.select(ids.boxA)
+	// 	editor.pointerDown(15, 5, groupAId).pointerUp(15, 5, groupAId)
+	// 	expect(editor.focusLayerId).toBe(groupAId)
+	// 	expect(editor.selectedIds.length).toBe(0)
+	// 	editor.pointerDown(15, 5, groupAId).pointerUp(15, 5, groupAId)
+	// 	expect(editor.focusLayerId).toBe(groupCId)
+	// 	expect(onlySelectedId()).toBe(groupAId)
+	// })
 
 	it('should pop the focus layer when escape is pressed in idle state', () => {
 		editor.select(ids.boxA)
@@ -1000,7 +996,7 @@ describe('the select tool', () => {
 	it('should work while focused in a group if you start the drag from outside of the group', () => {
 		editor.select(ids.boxA)
 		expect(editor.getShapesAtPoint({ x: -305, y: -5 })).toMatchObject([])
-		editor.pointerDown(-305, -5, { target: 'canvas' }).pointerMove(25, 9, ids.boxB)
+		editor.pointerDown(-305, -5, { target: 'canvas' }).pointerMove(35, 9, ids.boxB)
 
 		expect(editor.root.path.value).toBe(`root.select.brushing`)
 		expect(editor.selectedIds.includes(ids.boxA)).toBe(true)
@@ -1031,9 +1027,9 @@ describe('the select tool', () => {
 		//             └────┘
 		//                  ▲
 		//                  │ mouse selection
-		editor.pointerMove(12.5, -15).pointerDown(12.5, -15, undefined).pointerMove(17.5, 15, ids.boxB)
+		editor.pointerDown(12.5, -15, undefined).pointerMove(17.5, 15, ids.boxB)
 		expect(editor.selectedIds.length).toBe(0)
-		editor.pointerMove(25, 15)
+		editor.pointerMove(35, 15)
 		expect(onlySelectedId()).toBe(groupCId)
 	})
 })

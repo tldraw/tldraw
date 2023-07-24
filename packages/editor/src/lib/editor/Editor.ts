@@ -1772,7 +1772,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateHoveredId() {
+	updateHoveredId(): this {
 		// todo: consider replacing `get hoveredId` with this; it would mean keeping hoveredId in memory rather than in the store and possibly re-computing it more often than necessary
 		const shape = this.getShapeAtPoint(this.inputs.currentPagePoint, {
 			hitInside: false,
@@ -1786,7 +1786,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this.setHoveredId(shape.id)
 		}
 
-		this.setHoveredId(outermostShape.id)
+		return this.setHoveredId(outermostShape.id)
 	}
 
 	// Hinting ids
@@ -4273,7 +4273,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
 		const shapesToCheck = sortedShapesArray.filter((shape) => {
-			if (shape.type === 'group') return false
+			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getPageMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
 			if (filter) return filter(shape)
@@ -4294,7 +4294,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// On the rare case that we've hit a frame, test again hitInside to be forced true;
 			// this prevents clicks from passing through the body of a frame to shapes behhind it.
-			if (shape.type === 'frame') {
+			if (this.isShapeOfType(shape, 'frame')) {
 				// If the hit is within the frame's outer margin, then select the frame
 				if (Math.abs(distance) <= margin) {
 					return inMarginClosestToEdgeHit || shape
@@ -6361,24 +6361,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Create shapes.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.createShapes([{ id: 'box1', type: 'text', props: { text: "ok" } }])
-	 * ```
-	 *
-	 * @param partials - The shape partials to create.
-	 * @param select - Whether to select the created shapes. Defaults to false.
-	 *
-	 * @public
-	 */
-	createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select = false) {
-		this._createShapes(partials, select)
-		return this
-	}
-
-	/**
 	 * Create a single shape.
 	 *
 	 * @example
@@ -6393,6 +6375,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select = false) {
 		this._createShapes([partial], select)
+		return this
+	}
+
+	/**
+	 * Create shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.createShapes([{ id: 'box1', type: 'text', props: { text: "ok" } }])
+	 * ```
+	 *
+	 * @param partials - The shape partials to create.
+	 * @param select - Whether to select the created shapes. Defaults to false.
+	 *
+	 * @public
+	 */
+	createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select = false) {
+		if (!Array.isArray(partials)) {
+			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
+		}
+		this._createShapes(partials, select)
 		return this
 	}
 
@@ -6599,14 +6602,42 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private animatingShapes = new Map<TLShapeId, string>()
 
 	/**
+	 * Animate a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.animateShape({ id: 'box1', type: 'box', x: 100, y: 100 })
+	 * editor.animateShape({ id: 'box1', type: 'box', x: 100, y: 100 }, { duration: 100, ease: t => t*t })
+	 * ```
+	 *
+	 * @param partial - The shape partial to update.
+	 * @param options - (optional) The animation's options.
+	 *
+	 * @public
+	 */
+	animateShape(
+		partial: TLShapePartial | null | undefined,
+		options?: Partial<{
+			/** The animation's duration in milliseconds. */
+			duration: number
+			/** The animation's easing function. */
+			ease: (t: number) => number
+		}>
+	) {
+		return this.animateShapes([partial], options)
+	}
+
+	/**
 	 * Animate shapes.
 	 *
 	 * @example
 	 * ```ts
 	 * editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }])
+	 * editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }], { duration: 100, ease: t => t*t })
 	 * ```
 	 *
 	 * @param partials - The shape partials to update.
+	 * @param options - (optional) The animation's options.
 	 *
 	 * @public
 	 */
@@ -6716,6 +6747,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	groupShapes(ids: TLShapeId[], groupId?: TLShapeId): this
 	groupShapes(shapes: TLShape[], groupId?: TLShapeId): this
 	groupShapes(_ids: TLShapeId[] | TLShape[], groupId = createShapeId()): this {
+		if (!Array.isArray(_ids)) {
+			throw Error('Editor.groupShapes: must provide an array of shapes or shape ids')
+		}
 		if (this.instanceState.isReadonly) return this
 
 		if (_ids.length <= 1) return this
@@ -6775,7 +6809,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	ungroupShapes(ids: TLShapeId[] = this.selectedIds) {
+	ungroupShapes(ids: TLShapeId[]): this
+	ungroupShapes(ids: TLShape[]): this
+	ungroupShapes(_ids: TLShapeId[] | TLShape[]) {
+		const ids =
+			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
 		if (this.instanceState.isReadonly) return this
 		if (ids.length === 0) return this
 
@@ -7001,8 +7039,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	deleteShapes(ids: TLShapeId[]) {
-		this._deleteShapes(this._getUnlockedShapeIds(ids))
+	deleteShapes(ids: TLShapeId[]): this
+	deleteShapes(shapes: TLShape[]): this
+	deleteShapes(_ids: TLShapeId[] | TLShape[]) {
+		if (!Array.isArray(_ids)) {
+			throw Error('Editor.deleteShapes: must provide an array of shapes or shapeIds')
+		}
+		this._deleteShapes(
+			this._getUnlockedShapeIds(
+				typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
+			)
+		)
 		return this
 	}
 
@@ -7018,8 +7065,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	deleteShape(id: TLShapeId) {
-		this.deleteShapes([id])
+	deleteShape(id: TLShapeId): this
+	deleteShape(shape: TLShape): this
+	deleteShape(_id: TLShapeId | TLShape) {
+		this.deleteShapes([typeof _id === 'string' ? _id : _id.id])
 		return this
 	}
 

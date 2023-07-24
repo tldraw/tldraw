@@ -118,7 +118,7 @@ export class Idle extends StateNode {
 	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
 		// Without this, the double click's "settle" would trigger the reset
 		// after the user double clicked the edge to begin cropping
-		if (info.phase !== 'up') return
+		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
 
 		if (!this.editor.croppingId) return
 		const shape = this.editor.getShape(this.editor.croppingId)

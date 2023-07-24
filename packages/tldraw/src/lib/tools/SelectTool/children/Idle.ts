@@ -50,7 +50,10 @@ export class Idle extends StateNode {
 
 				let hitShape: TLShape | undefined
 
-				const { hoveredShape } = this.editor
+				const hoveredShape = this.editor.getShapeAtPoint(currentPagePoint, {
+					hitInside: false,
+					margin: HIT_TEST_MARGIN / this.editor.zoomLevel,
+				})
 
 				if (hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')) {
 					hitShape = hoveredShape
@@ -58,7 +61,6 @@ export class Idle extends StateNode {
 
 				if (!hitShape) {
 					const selectedShape = this.editor.getSelectedShapeAtPoint(currentPagePoint)
-
 					if (selectedShape) {
 						hitShape = selectedShape
 					}
@@ -168,8 +170,7 @@ export class Idle extends StateNode {
 	}
 
 	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
-		if (info.phase !== 'up') return
-		if (this.editor.inputs.shiftKey) return
+		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
 
 		switch (info.target) {
 			case 'canvas': {
@@ -184,16 +185,17 @@ export class Idle extends StateNode {
 				const { focusLayerId } = this.editor
 
 				if (hitShape) {
-					if (hitShape.type === 'group') {
+					if (this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
 						// Probably select the shape
 						selectOnPointerUp(this.editor)
 						return
 					} else {
-						if (this.editor.getShape(hitShape.parentId)?.type === 'group') {
+						const parent = this.editor.getShape(hitShape.parentId)
+						if (parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')) {
 							// The shape is the direct child of a group. If the group is
 							// selected, then we can select the shape. If the group is the
 							// focus layer id, then we can double click into it as usual.
-							if (focusLayerId && hitShape.parentId === focusLayerId) {
+							if (focusLayerId && parent.id === focusLayerId) {
 								// noop, double click on the shape as normal below
 							} else {
 								// The shape is the child of some group other than our current

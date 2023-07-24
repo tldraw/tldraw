@@ -1,4 +1,10 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo, TLShape } from '@tldraw/editor'
+import {
+	HIT_TEST_MARGIN,
+	StateNode,
+	TLEventHandlers,
+	TLPointerEventInfo,
+	TLShape,
+} from '@tldraw/editor'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
@@ -58,12 +64,22 @@ export class PointingShape extends StateNode {
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
-		const { shape } = info
+		// const { shape } = info
 
-		if (shape) {
-			const util = this.editor.getShapeUtil(shape)
+		const hitShape =
+			this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+				margin: HIT_TEST_MARGIN / this.editor.zoomLevel,
+				hitInside: true,
+			}) ?? this.eventTargetShape
+
+		const selectingShape = hitShape
+			? this.editor.getOutermostSelectableShape(hitShape)
+			: this.selectingShape
+
+		if (selectingShape) {
+			const util = this.editor.getShapeUtil(selectingShape)
 			if (util.onClick) {
-				const change = util.onClick?.(shape)
+				const change = util.onClick?.(selectingShape)
 				if (change) {
 					this.editor.updateShapes([change])
 					this.parent.transition('idle', info)
@@ -72,14 +88,14 @@ export class PointingShape extends StateNode {
 			}
 		}
 
-		if (!this.didSelectOnEnter && this.selectingShape.id !== this.editor.focusLayerId) {
+		if (!this.didSelectOnEnter && selectingShape.id !== this.editor.focusLayerId) {
 			this.editor.mark('selecting shape (pointer up)')
 			// if the shape has an ancestor which is a focusable layer and it is not focused but it is selected
 			// then we should focus the layer and select the shape
 
 			const { selectedIds } = this.editor
 			const targetShape = this.editor.getOutermostSelectableShape(
-				this.eventTargetShape,
+				hitShape,
 				// if a group is selected, we want to stop before reaching that group
 				// so we can drill down into the group
 				(parent) => !selectedIds.includes(parent.id)
@@ -89,8 +105,8 @@ export class PointingShape extends StateNode {
 				// same shape, so deselect it if shift is pressed, otherwise deselect all others
 				this.editor.setSelectedIds(
 					this.editor.inputs.shiftKey
-						? this.editor.selectedIds.filter((id) => id !== this.selectingShape.id)
-						: [this.selectingShape.id]
+						? this.editor.selectedIds.filter((id) => id !== selectingShape.id)
+						: [selectingShape.id]
 				)
 			} else if (this.editor.inputs.shiftKey) {
 				// Different shape, so we are drilling down into a group with shift key held.
@@ -105,7 +121,7 @@ export class PointingShape extends StateNode {
 				// different shape and we are drilling down, but no shift held so just select it straight up
 				this.editor.setSelectedIds([targetShape.id])
 			}
-		} else if (this.selectingShape.id === this.editor.focusLayerId) {
+		} else if (selectingShape.id === this.editor.focusLayerId) {
 			// clicking the 'background' of a focused group should deselect. equivalent to a click on the canvas
 			if (this.editor.selectedIds.length > 0) {
 				this.editor.setSelectedIds([])
