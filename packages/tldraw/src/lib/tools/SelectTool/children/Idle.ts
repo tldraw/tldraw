@@ -5,13 +5,13 @@ import {
 	TLEventHandlers,
 	TLGroupShape,
 	TLKeyboardEventInfo,
-	TLPointerEventInfo,
 	TLShape,
 	TLTextShape,
 	Vec2d,
 	createShapeId,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
+import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
@@ -30,7 +30,7 @@ export class Idle extends StateNode {
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		if (this.editor.isMenuOpen) return
 
-		const shouldEnterCropMode = this.shouldEnterCropMode(info, true)
+		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
 
 		if (info.ctrlKey && !shouldEnterCropMode) {
 			// On Mac, you can right click using the Control keys + Click.
@@ -47,10 +47,9 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const { currentPagePoint } = this.editor.inputs
-
+				// Check to see if we hit any shape under the pointer; if so,
+				// handle this as a pointer down on the shape instead of the canvas
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-
 				if (hitShape) {
 					this.onPointerDown({
 						...info,
@@ -60,7 +59,11 @@ export class Idle extends StateNode {
 					return
 				}
 
-				const { selectedIds } = this.editor
+				const {
+					selectedIds,
+					inputs: { currentPagePoint },
+				} = this.editor
+
 				if (selectedIds.length > 0) {
 					// If there's only one shape selected, and if that shape's
 					// geometry is open, then don't test the selection background
@@ -370,11 +373,12 @@ export class Idle extends StateNode {
 		if (this.editor.instanceState.isReadonly) {
 			switch (info.code) {
 				case 'Enter': {
-					if (this.shouldStartEditingShape() && this.editor.onlySelectedShape) {
-						this.startEditingShape(this.editor.onlySelectedShape, {
+					const { onlySelectedShape } = this.editor
+					if (onlySelectedShape && this.shouldStartEditingShape()) {
+						this.startEditingShape(onlySelectedShape, {
 							...info,
 							target: 'shape',
-							shape: this.editor.onlySelectedShape,
+							shape: onlySelectedShape,
 						})
 						return
 					}
@@ -386,6 +390,7 @@ export class Idle extends StateNode {
 				case 'Enter': {
 					const { selectedShapes } = this.editor
 
+					// On enter, if every selected shape is a group, then select all of the children of the groups
 					if (
 						selectedShapes.every((shape) => this.editor.isShapeOfType<TLGroupShape>(shape, 'group'))
 					) {
@@ -395,16 +400,19 @@ export class Idle extends StateNode {
 						return
 					}
 
-					if (this.shouldStartEditingShape() && this.editor.onlySelectedShape) {
-						this.startEditingShape(this.editor.onlySelectedShape, {
+					// If the only selected shape is editable, then begin editing it
+					const { onlySelectedShape } = this.editor
+					if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
+						this.startEditingShape(onlySelectedShape, {
 							...info,
 							target: 'shape',
-							shape: this.editor.onlySelectedShape,
+							shape: onlySelectedShape,
 						})
 						return
 					}
 
-					if (this.shouldEnterCropMode(info, false)) {
+					// If the only selected shape is croppable, then begin cropping it
+					if (getShouldEnterCropMode(this.editor)) {
 						this.parent.transition('crop', info)
 					}
 					break
@@ -416,26 +424,7 @@ export class Idle extends StateNode {
 	private shouldStartEditingShape(shape: TLShape | null = this.editor.onlySelectedShape): boolean {
 		if (!shape) return false
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return false
-
-		const util = this.editor.getShapeUtil(shape)
-		return util.canEdit(shape)
-	}
-
-	private shouldEnterCropMode(
-		info: TLPointerEventInfo | TLKeyboardEventInfo,
-		withCtrlKey: boolean
-	): boolean {
-		const singleShape = this.editor.onlySelectedShape
-		if (!singleShape) return false
-		if (this.editor.isShapeOrAncestorLocked(singleShape)) return false
-
-		const shapeUtil = this.editor.getShapeUtil(singleShape)
-		// Should the Ctrl key be pressed to enter crop mode
-		if (withCtrlKey) {
-			return shapeUtil.canCrop(singleShape) && info.ctrlKey
-		} else {
-			return shapeUtil.canCrop(singleShape)
-		}
+		return this.editor.getShapeUtil(shape).canEdit(shape)
 	}
 
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {

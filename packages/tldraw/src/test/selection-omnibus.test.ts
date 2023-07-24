@@ -11,6 +11,8 @@ const ids = {
 	box5: createShapeId('box5'),
 	frame1: createShapeId('frame1'),
 	group1: createShapeId('group1'),
+	group2: createShapeId('group2'),
+	group3: createShapeId('group3'),
 }
 
 beforeEach(() => {
@@ -705,6 +707,84 @@ describe('when selecting behind selection', () => {
 	})
 })
 
+describe('when shift+selecting', () => {
+	beforeEach(() => {
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
+			])
+			.select(ids.box1)
+	})
+
+	it('adds solid shape to selection on pointer down', () => {
+		editor.keyDown('Shift')
+		editor.pointerMove(450, 50) // inside of box 3
+		editor.pointerDown()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box3])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box3])
+	})
+
+	it('adds and removes solid shape from selection on pointer up (without causing a double click)', () => {
+		editor.keyDown('Shift')
+		editor.pointerMove(450, 50) // above box 3
+		editor.pointerDown()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box3])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box3])
+		editor.pointerDown()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box3])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('adds how shape to selection on pointer down when pointing margin', () => {
+		editor.keyDown('Shift')
+		editor.pointerMove(204, 50) // inside of box 2 margin
+		editor.pointerDown()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+	})
+
+	it('adds and removes hollow shape from selection on pointer up (without causing a double click) when pointing margin', () => {
+		editor.keyDown('Shift')
+		editor.pointerMove(204, 50) // inside of box 2 margin
+		editor.pointerDown()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+		editor.pointerDown()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('adds hollow shape to selection on pointer up', () => {
+		editor.keyDown('Shift')
+		editor.pointerMove(250, 50) // above box 2
+		editor.pointerDown()
+		expect(editor.selectedIds).toEqual([ids.box1])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+	})
+
+	it('adds and removes solid shape from selection on pointer up (without causing a double click)', () => {
+		editor.keyDown('Shift')
+		editor.pointerMove(250, 50) // above box 2
+		editor.pointerDown()
+		expect(editor.selectedIds).toEqual([ids.box1])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+		editor.pointerDown()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+})
+
 describe('when shift+selecting a group', () => {
 	beforeEach(() => {
 		editor
@@ -762,6 +842,126 @@ describe('when shift+selecting a group', () => {
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
 		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
 		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+})
+
+describe('When children / descendants of a group are selected', () => {
+	beforeEach(() => {
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
+				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
+				{ id: ids.box5, type: 'geo', x: 800, y: 0 },
+			])
+			.groupShapes([ids.box1, ids.box2], ids.group1)
+			.groupShapes([ids.box3, ids.box4], ids.group2)
+			.groupShapes([ids.group1, ids.group2], ids.group3)
+			.selectNone()
+	})
+
+	it('selects the child', () => {
+		editor.select(ids.box1)
+		expect(editor.selectedIds).toEqual([ids.box1])
+		expect(editor.focusLayerId).toBe(ids.group1)
+	})
+
+	it('selects the children', () => {
+		editor.select(ids.box1, ids.box2)
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+		expect(editor.focusLayerId).toBe(ids.group1)
+	})
+
+	it('does not allow parents and children to be selected, picking the parent', () => {
+		editor.select(ids.group1, ids.box1)
+		expect(editor.selectedIds).toEqual([ids.group1])
+		expect(editor.focusLayerId).toBe(ids.group3)
+
+		editor.select(ids.group1, ids.box1, ids.box2)
+		expect(editor.selectedIds).toEqual([ids.group1])
+		expect(editor.focusLayerId).toBe(ids.group3)
+	})
+
+	it('does not allow ancestors and children to be selected, picking the ancestor', () => {
+		editor.select(ids.group3, ids.box1)
+		expect(editor.selectedIds).toEqual([ids.group3])
+		expect(editor.focusLayerId).toBe(editor.currentPageId)
+
+		editor.select(ids.group3, ids.box1, ids.box2)
+		expect(editor.selectedIds).toEqual([ids.group3])
+		expect(editor.focusLayerId).toBe(editor.currentPageId)
+
+		editor.select(ids.group3, ids.group2, ids.box1)
+		expect(editor.selectedIds).toEqual([ids.group3])
+		expect(editor.focusLayerId).toBe(editor.currentPageId)
+	})
+
+	it('picks the highest common focus layer id', () => {
+		editor.select(ids.box1, ids.box4) // child of group1, child of group 2
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box4])
+		expect(editor.focusLayerId).toBe(ids.group3)
+	})
+
+	it('picks the highest common focus layer id', () => {
+		editor.select(ids.box1, ids.box5) // child of group1 and child of the page
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box5])
+		expect(editor.focusLayerId).toBe(editor.currentPageId)
+	})
+
+	// it('sets the parent to the highest common ancestor', () => {
+	// 	editor.selectNone()
+	// 	expect(editor.focusLayerId).toBe(editor.currentPageId)
+	// 	editor.select(ids.group3)
+	// 	expect(editor.focusLayerId).toBe(editor.currentPageId)
+	// 	editor.select(ids.group3, ids.box1)
+	// 	expect(editor.focusLayerId).toBe(editor.currentPageId)
+	// 	expect(editor.selectedIds).toEqual([ids.group3, ids.box1])
+	// })
+})
+
+describe('When pressing the enter key with groups selected', () => {
+	beforeEach(() => {
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
+				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
+				{ id: ids.box5, type: 'geo', x: 800, y: 0 },
+			])
+			.groupShapes([ids.box1, ids.box2], ids.group1)
+			.groupShapes([ids.box3, ids.box4], ids.group2)
+	})
+
+	it('selects the children of the groups on enter up', () => {
+		editor.select(ids.group1, ids.group2)
+		editor.keyDown('Enter')
+		expect(editor.selectedIds).toEqual([ids.group1, ids.group2])
+		expect(editor.focusLayerId).toBe(editor.currentPageId)
+		editor.keyUp('Enter')
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2, ids.box3, ids.box4])
+		expect(editor.focusLayerId).toBe(editor.currentPageId)
+	})
+
+	it('repeats children of the groups on enter up', () => {
+		editor.groupShapes([ids.group1, ids.group2], ids.group3)
+		editor.select(ids.group3)
+		expect(editor.selectedIds).toEqual([ids.group3])
+		editor.keyDown('Enter').keyUp('Enter')
+		expect(editor.selectedIds).toEqual([ids.group1, ids.group2])
+		expect(editor.focusLayerId).toBe(ids.group3)
+		editor.keyDown('Enter').keyUp('Enter')
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2, ids.box3, ids.box4])
+		expect(editor.focusLayerId).toBe(ids.group3)
+	})
+
+	it('does not select the children of the group if a non-group is also selected', () => {
+		editor.select(ids.group1, ids.group2, ids.box5)
+		editor.keyDown('Enter')
+		expect(editor.selectedIds).toEqual([ids.group1, ids.group2, ids.box5])
+		editor.keyUp('Enter')
+		expect(editor.selectedIds).toEqual([ids.group1, ids.group2, ids.box5])
 	})
 })
 

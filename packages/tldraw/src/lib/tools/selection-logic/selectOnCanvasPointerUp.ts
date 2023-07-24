@@ -37,8 +37,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 			let shapeToSelect: TLShape | undefined = undefined
 
 			if (outermostSelectableShape === hitShape) {
-				// There's no group around the shape.
-				// We can select either one.
+				// There's no group around the shape, so we can select it.
 				shapeToSelect = hitShape
 			} else {
 				// There's a group around the hit shape.
