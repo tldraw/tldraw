@@ -706,10 +706,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							/>
 							{labelGeometry && (
 								<rect
-									x={toDomPrecision(labelGeometry.x)}
-									y={toDomPrecision(labelGeometry.y)}
-									width={labelGeometry.w}
-									height={labelGeometry.h}
+									x={toDomPrecision(labelGeometry.x - 0.25)}
+									y={toDomPrecision(labelGeometry.y - 0.25)}
+									width={labelGeometry.w + 0.5}
+									height={labelGeometry.h + 0.5}
 									fill="black"
 									rx={3.5}
 									ry={3.5}
@@ -751,10 +751,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				{ae && <path d={ae} />}
 				{labelGeometry && (
 					<rect
-						x={toDomPrecision(labelGeometry.x)}
-						y={toDomPrecision(labelGeometry.y)}
-						width={labelGeometry.w}
-						height={labelGeometry.h}
+						x={toDomPrecision(labelGeometry.x - 0.25)}
+						y={toDomPrecision(labelGeometry.y - 0.25)}
+						width={labelGeometry.w + 0.5}
+						height={labelGeometry.h + 0.5}
 						rx={3.5}
 						ry={3.5}
 					/>
