@@ -16,8 +16,18 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	TLArrowShape['props'],
 	'text' | 'size' | 'font'
 >) {
-	const { rInput, isEditing, handleFocus, handleBlur, handleKeyDown, handleChange, isEmpty } =
-		useEditableText(id, 'arrow', text)
+	const {
+		rInput,
+		isEditing,
+		handleFocus,
+		handleBlur,
+		handleKeyDown,
+		handleChange,
+		isEmpty,
+		handleInputPointerDown,
+		handleContentPointerDown,
+		isEditableFromHover,
+	} = useEditableText(id, 'arrow', text)
 
 	if (!isEditing && isEmpty) {
 		return null
@@ -39,10 +49,10 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 			}}
 		>
 			<div className="tl-arrow-label__inner">
-				<p style={{ width: width ? width : '9px' }}>
+				<p style={{ width: width ? width : '9px' }} onPointerDown={handleContentPointerDown}>
 					{text ? TextHelpers.normalizeTextForDom(text) : ' '}
 				</p>
-				{isEditing && (
+				{(isEditing || isEditableFromHover) && (
 					// Consider replacing with content-editable
 					<textarea
 						ref={rInput}
@@ -65,6 +75,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
 						onContextMenu={stopEventPropagation}
+						onPointerDown={handleInputPointerDown}
 					/>
 				)}
 			</div>

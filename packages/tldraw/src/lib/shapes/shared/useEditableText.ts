@@ -231,6 +231,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				target: 'shape',
 				shape: editor.getShape(id)!,
 			})
+
 			stopEventPropagation(e)
 		},
 		[editor, id]
