@@ -609,6 +609,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     deleteShapes(shapes: TLShape[]): this;
     deselect(...ids: TLShapeId[]): this;
+    // (undocumented)
+    deselect(...shapes: TLShape[]): this;
     dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
     dispose(): void;
@@ -765,6 +767,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     get instanceState(): TLInstance;
     interrupt(): this;
     isAncestorSelected(id: TLShapeId): boolean;
+    // (undocumented)
+    isAncestorSelected(shape: TLShape): boolean;
     readonly isAndroid: boolean;
     readonly isChromeForIos: boolean;
     readonly isFirefox: boolean;
@@ -850,6 +854,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         z: number;
     };
     select(...ids: TLShapeId[]): this;
+    // (undocumented)
+    select(...shapes: TLShape[]): this;
     selectAll(): this;
     get selectedIds(): TLShapeId[];
     get selectedPageBounds(): Box2d | null;
@@ -917,7 +923,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingId' | 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateHoveredId(): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal

@@ -1445,8 +1445,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	isAncestorSelected(id: TLShapeId) {
-		const shape = this.getShape(id)
+	isAncestorSelected(id: TLShapeId): boolean
+	isAncestorSelected(shape: TLShape): boolean
+	isAncestorSelected(arg: TLShape | TLShapeId) {
+		const shape = this.getShape(typeof arg === 'string' ? arg : arg.id)
 		if (!shape) return false
 		const { selectedIds } = this
 		return !!this.findAncestor(shape, (parent) => selectedIds.includes(parent.id))
@@ -1465,7 +1467,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	select(...ids: TLShapeId[]) {
+	select(...ids: TLShapeId[]): this
+	select(...shapes: TLShape[]): this
+	select(...arg: TLShapeId[] | TLShape[]): this {
+		const ids =
+			typeof arg[0] === 'string'
+				? (arg as TLShapeId[])
+				: (arg as TLShape[]).map((shape) => shape.id)
 		this.setSelectedIds(ids)
 		return this
 	}
@@ -1480,7 +1488,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	deselect(...ids: TLShapeId[]) {
+	deselect(...ids: TLShapeId[]): this
+	deselect(...shapes: TLShape[]): this
+	deselect(..._ids: TLShapeId[] | TLShape[]): this {
+		const ids =
+			typeof _ids[0] === 'string'
+				? (_ids as TLShapeId[])
+				: (_ids as TLShape[]).map((shape) => shape.id)
 		const { selectedIds } = this
 		if (selectedIds.length > 0 && ids.length > 0) {
 			this.setSelectedIds(selectedIds.filter((id) => !ids.includes(id)))
@@ -1765,28 +1779,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	@computed get hoveredShape() {
 		return this.hoveredId ? this.getShape(this.hoveredId) : undefined
-	}
-
-	/**
-	 * Update the hovered id based on the current page point.
-	 *
-	 * @public
-	 */
-	updateHoveredId(): this {
-		// todo: consider replacing `get hoveredId` with this; it would mean keeping hoveredId in memory rather than in the store and possibly re-computing it more often than necessary
-		const shape = this.getShapeAtPoint(this.inputs.currentPagePoint, {
-			hitInside: false,
-			margin: HIT_TEST_MARGIN / this.zoomLevel,
-		})
-		if (!shape) return this.setHoveredId(null)
-
-		const outermostShape = this.getOutermostSelectableShape(shape)
-
-		if (outermostShape.id === this.focusLayerId) {
-			return this.setHoveredId(shape.id)
-		}
-
-		return this.setHoveredId(outermostShape.id)
 	}
 
 	// Hinting ids

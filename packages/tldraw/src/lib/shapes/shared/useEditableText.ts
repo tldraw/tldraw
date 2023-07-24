@@ -41,14 +41,14 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	const isEditableFromHover = useValue(
 		'is editable hovering',
 		() => {
-			const { hoveredId } = editor
+			const { hoveredId, editingId } = editor
 			if (type === 'text' && editor.isIn('text') && hoveredId === id) {
 				return true
 			}
 
 			if (isInEditingShapePath) {
-				const { editingId } = editor
-				const editingShape = editingId && editor.getShape(editingId)
+				if (!editingId) return false
+				const editingShape = editor.getShape(editingId)
 				if (!editingShape) return false
 
 				return (

@@ -21,8 +21,4 @@ export class RootState extends StateNode {
 			}
 		}
 	}
-
-	override onPointerDown: TLEventHandlers['onPointerDown'] = () => {
-		this.editor.updateHoveredId()
-	}
 }

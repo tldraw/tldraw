@@ -15,43 +15,38 @@ export class PointingShape extends StateNode {
 	didSelectOnEnter = false
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
+		const {
+			selectedIds,
+			focusLayerId,
+			selectionBounds,
+			inputs: { currentPagePoint, shiftKey, altKey },
+		} = this.editor
+
 		this.eventTargetShape = info.shape
 
 		this.selectingShape = this.editor.getOutermostSelectableShape(info.shape)
-		if (this.selectingShape !== info.shape) {
-			this.editor.cancelDoubleClick()
-		}
 
 		const util = this.editor.getShapeUtil(info.shape)
 
-		if (util.onClick || this.selectingShape.id === this.editor.focusLayerId) {
+		if (util.onClick || this.selectingShape.id === focusLayerId) {
 			this.didSelectOnEnter = false
 			return
 		}
 
 		const isWithinSelection =
-			this.editor.selectedIds.includes(this.selectingShape.id) ||
+			selectedIds.includes(this.selectingShape.id) ||
 			this.editor.isAncestorSelected(this.selectingShape.id)
 
 		const isBehindSelectionBounds =
-			this.editor.selectedIds.length > 1 && // only on 2+ selected shapes!
-			this.editor.selectionBounds?.containsPoint(this.editor.inputs.currentPagePoint)
+			selectedIds.length > 1 && // only on 2+ selected shapes!
+			selectionBounds?.containsPoint(currentPagePoint)
 
 		this.didSelectOnEnter =
-			!isWithinSelection &&
-			this.selectingShape.id !== this.editor.focusLayerId &&
-			!isBehindSelectionBounds
+			!isWithinSelection && this.selectingShape.id !== focusLayerId && !isBehindSelectionBounds
 
 		if (this.didSelectOnEnter) {
-			const { inputs, selectedIds } = this.editor
-
-			// const parent = this.editor.getParentShape(info.shape)
-
-			// if (parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')) {
-			// 	this.editor.cancelDoubleClick()
-			// }
-
-			if (inputs.shiftKey && !inputs.altKey) {
+			this.editor.cancelDoubleClick()
+			if (shiftKey && !altKey) {
 				if (!selectedIds.includes(this.selectingShape.id)) {
 					this.editor.mark('shift selecting shape')
 					this.editor.setSelectedIds([...selectedIds, this.selectingShape.id])

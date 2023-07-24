@@ -11,7 +11,9 @@ import {
 	Vec2d,
 	createShapeId,
 } from '@tldraw/editor'
-import { selectOnPointerUp } from './select-shared'
+import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
+import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
+import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -19,11 +21,10 @@ export class Idle extends StateNode {
 	override onEnter = () => {
 		this.parent.currentToolIdMask = undefined
 		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
-		this.editor.updateHoveredId()
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		this.editor.updateHoveredId()
+		updateHoveredId(this.editor)
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
@@ -48,34 +49,7 @@ export class Idle extends StateNode {
 			case 'canvas': {
 				const { currentPagePoint } = this.editor.inputs
 
-				let hitShape: TLShape | undefined
-
-				const hoveredShape = this.editor.getShapeAtPoint(currentPagePoint, {
-					hitInside: false,
-					margin: HIT_TEST_MARGIN / this.editor.zoomLevel,
-				})
-
-				if (hoveredShape && !this.editor.isShapeOfType(hoveredShape, 'group')) {
-					hitShape = hoveredShape
-				}
-
-				if (!hitShape) {
-					const selectedShape = this.editor.getSelectedShapeAtPoint(currentPagePoint)
-					if (selectedShape) {
-						hitShape = selectedShape
-					}
-				}
-
-				if (!hitShape) {
-					const shapeAtPoint = this.editor.getShapeAtPoint(currentPagePoint, {
-						hitInside: false,
-						margin: 0,
-					})
-
-					if (shapeAtPoint) {
-						hitShape = shapeAtPoint
-					}
-				}
+				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
 
 				if (hitShape) {
 					this.onPointerDown({
@@ -187,7 +161,7 @@ export class Idle extends StateNode {
 				if (hitShape) {
 					if (this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
 						// Probably select the shape
-						selectOnPointerUp(this.editor)
+						selectOnCanvasPointerUp(this.editor)
 						return
 					} else {
 						const parent = this.editor.getShape(hitShape.parentId)
@@ -200,7 +174,7 @@ export class Idle extends StateNode {
 							} else {
 								// The shape is the child of some group other than our current
 								// focus layer. We should probably select the group instead.
-								selectOnPointerUp(this.editor)
+								selectOnCanvasPointerUp(this.editor)
 								return
 							}
 						}
