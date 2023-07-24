@@ -909,15 +909,15 @@ describe('When children / descendants of a group are selected', () => {
 		expect(editor.focusLayerId).toBe(editor.currentPageId)
 	})
 
-	// it('sets the parent to the highest common ancestor', () => {
-	// 	editor.selectNone()
-	// 	expect(editor.focusLayerId).toBe(editor.currentPageId)
-	// 	editor.select(ids.group3)
-	// 	expect(editor.focusLayerId).toBe(editor.currentPageId)
-	// 	editor.select(ids.group3, ids.box1)
-	// 	expect(editor.focusLayerId).toBe(editor.currentPageId)
-	// 	expect(editor.selectedIds).toEqual([ids.group3, ids.box1])
-	// })
+	it('sets the parent to the highest common ancestor', () => {
+		editor.selectNone()
+		expect(editor.focusLayerId).toBe(editor.currentPageId)
+		editor.select(ids.group3)
+		expect(editor.focusLayerId).toBe(editor.currentPageId)
+		editor.select(ids.group3, ids.box1)
+		expect(editor.focusLayerId).toBe(editor.currentPageId)
+		expect(editor.selectedIds).toEqual([ids.group3])
+	})
 })
 
 describe('When pressing the enter key with groups selected', () => {
@@ -1020,7 +1020,7 @@ describe('When double clicking an editable shape', () => {
 	})
 })
 
-describe.only('shift brushes to add to the selection', () => {
+describe('shift brushes to add to the selection', () => {
 	beforeEach(() => {
 		editor
 			.createShapes([
@@ -1098,7 +1098,7 @@ describe.only('shift brushes to add to the selection', () => {
 	})
 })
 
-describe.only('scribble brushes to add to the selection', () => {
+describe('scribble brushes to add to the selection', () => {
 	beforeEach(() => {
 		editor
 			.createShapes([
@@ -1167,10 +1167,8 @@ describe.only('scribble brushes to add to the selection', () => {
 	})
 })
 
-it.todo('alt brushes to select only when containing a shape')
-it.todo('does not select a hollow closed shape that contains the viewport?')
-it.todo('does not select a hollow closed shape if the negative distance is more than X?')
-
+it.todo('maybe? does not select a hollow closed shape that contains the viewport?')
+it.todo('maybe? does not select a hollow closed shape if the negative distance is more than X?')
 it.todo(
 	'maybe? does not edit a hollow geo shape when double clicking inside of it unless it already has a label OR the double click is in the middle of the shape'
 )
