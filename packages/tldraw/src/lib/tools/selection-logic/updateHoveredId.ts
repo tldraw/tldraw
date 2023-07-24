@@ -6,6 +6,7 @@ export function updateHoveredId(editor: Editor) {
 		hitInside: false,
 		margin: HIT_TEST_MARGIN / editor.zoomLevel,
 	})
+
 	if (!hitShape) return editor.setHoveredId(null)
 
 	let shapeToHover: TLShape | undefined = undefined

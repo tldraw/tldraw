@@ -26,7 +26,6 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 		isEmpty,
 		handleInputPointerDown,
 		handleContentPointerDown,
-		isEditableFromHover,
 	} = useEditableText(id, 'arrow', text)
 
 	if (!isEditing && isEmpty) {
@@ -52,7 +51,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 				<p style={{ width: width ? width : '9px' }} onPointerDown={handleContentPointerDown}>
 					{text ? TextHelpers.normalizeTextForDom(text) : ' '}
 				</p>
-				{(isEditing || isEditableFromHover) && (
+				{isEditing && (
 					// Consider replacing with content-editable
 					<textarea
 						ref={rInput}

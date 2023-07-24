@@ -85,7 +85,6 @@ import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
 import { Vec2d, VecLike } from '../primitives/Vec2d'
 import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
-import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
@@ -4274,12 +4273,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
-			let geometry = this.getGeometry(shape)
-
-			// todo: this always presumes that the first child defines the bounds
-			if (geometry instanceof Group2d) {
-				geometry = geometry.children[0]
-			}
+			const geometry = this.getGeometry(shape)
 
 			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
 			const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)

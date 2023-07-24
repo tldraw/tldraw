@@ -62,7 +62,7 @@ export class Group2d extends Geometry2d {
 	}
 
 	override distanceToPoint(point: Vec2d, hitInside = false) {
-		return Math.min(...this.children.map((c) => c.distanceToPoint(point, hitInside)))
+		return Math.min(...this.children.map((c, i) => c.distanceToPoint(point, hitInside || i > 0)))
 	}
 
 	override hitTestPoint(point: Vec2d, margin: number, hitInside: boolean): boolean {
@@ -71,7 +71,7 @@ export class Group2d extends Geometry2d {
 			return this.bounds.containsPoint(point, margin)
 		}
 
-		const dist = this.distanceToPoint(point)
+		const dist = this.distanceToPoint(point, hitInside)
 		const isCloseEnough = dist <= margin
 		if (!isCloseEnough) return false
 
