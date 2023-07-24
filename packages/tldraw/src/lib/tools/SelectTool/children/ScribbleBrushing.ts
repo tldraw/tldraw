@@ -1,5 +1,6 @@
 import {
 	Geometry2d,
+	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
 	TLFrameShape,
@@ -7,6 +8,7 @@ import {
 	TLScribble,
 	TLShape,
 	TLShapeId,
+	Vec2d,
 	intersectLineSegmentPolyline,
 	pointInPolygon,
 } from '@tldraw/editor'
@@ -34,7 +36,8 @@ export class ScribbleBrushing extends StateNode {
 
 		this.startScribble()
 
-		this.updateBrushSelection()
+		this.updateScribbleSelection(true)
+
 		requestAnimationFrame(() => {
 			this.editor.updateInstanceState({ brush: null })
 		})
@@ -45,7 +48,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	override onPointerMove = () => {
-		this.updateBrushSelection()
+		this.updateScribbleSelection(true)
 	}
 
 	override onPointerUp = () => {
@@ -53,15 +56,23 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	override onKeyDown = () => {
-		this.updateBrushSelection()
+		this.updateScribbleSelection(false)
 	}
 
 	override onKeyUp = () => {
 		if (!this.editor.inputs.altKey) {
 			this.parent.transition('brushing', {})
 		} else {
-			this.updateBrushSelection()
+			this.updateScribbleSelection(false)
 		}
+	}
+
+	override onCancel: TLEventHandlers['onCancel'] = () => {
+		this.cancel()
+	}
+
+	override onComplete: TLEventHandlers['onComplete'] = () => {
+		this.complete()
 	}
 
 	private startScribble = () => {
@@ -94,17 +105,21 @@ export class ScribbleBrushing extends StateNode {
 		this.editor.updateInstanceState({ scribble: null })
 	}
 
-	private updateBrushSelection() {
+	private updateScribbleSelection(addPoint: boolean) {
 		const {
 			zoomLevel,
 			shapesArray,
-			inputs: { originPagePoint, previousPagePoint, currentPagePoint },
+			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
 		} = this.editor
 
-		this.pushPointToScribble()
+		const { newlySelectedIds, initialSelectedIds } = this
+
+		if (addPoint) {
+			this.pushPointToScribble()
+		}
 
 		const shapes = shapesArray
-		let shape: TLShape, geometry: Geometry2d
+		let shape: TLShape, geometry: Geometry2d, A: Vec2d, B: Vec2d
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
@@ -112,24 +127,21 @@ export class ScribbleBrushing extends StateNode {
 
 			if (
 				this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-				this.newlySelectedIds.has(shape.id) ||
+				newlySelectedIds.has(shape.id) ||
 				(this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
 					geometry.hitTestPoint(
 						this.editor.getPointInShapeSpace(shape, originPagePoint),
-						zoomLevel
+						0,
+						false
 					)) ||
 				this.editor.isShapeOrAncestorLocked(shape)
 			) {
 				continue
 			}
 
-			if (
-				geometry.hitTestLineSegment(
-					this.editor.getPointInShapeSpace(shape, previousPagePoint),
-					this.editor.getPointInShapeSpace(shape, currentPagePoint),
-					zoomLevel
-				)
-			) {
+			A = this.editor.getPointInShapeSpace(shape, previousPagePoint)
+			B = this.editor.getPointInShapeSpace(shape, currentPagePoint)
+			if (geometry.hitTestLineSegment(A, B, HIT_TEST_MARGIN / zoomLevel)) {
 				const outermostShape = this.editor.getOutermostSelectableShape(shape)
 
 				const pageMask = this.editor.getPageMask(outermostShape.id)
@@ -140,29 +152,24 @@ export class ScribbleBrushing extends StateNode {
 						currentPagePoint,
 						pageMask
 					)
-
 					if (intersection !== null) {
 						const isInMask = pointInPolygon(currentPagePoint, pageMask)
 						if (!isInMask) continue
 					}
 				}
 
-				this.newlySelectedIds.add(outermostShape.id)
+				newlySelectedIds.add(outermostShape.id)
 			}
 		}
 
 		this.editor.setSelectedIds(
-			[...new Set<TLShapeId>([...this.newlySelectedIds, ...this.initialSelectedIds])],
+			[
+				...new Set<TLShapeId>(
+					shiftKey ? [...newlySelectedIds, ...initialSelectedIds] : [...newlySelectedIds]
+				),
+			],
 			true
 		)
-	}
-
-	override onCancel: TLEventHandlers['onCancel'] = () => {
-		this.cancel()
-	}
-
-	override onComplete: TLEventHandlers['onComplete'] = () => {
-		this.complete()
 	}
 
 	private complete() {

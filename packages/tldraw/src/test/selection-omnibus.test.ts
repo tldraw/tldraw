@@ -1004,11 +1004,169 @@ describe('When double clicking an editable shape', () => {
 		expect(editor.editingId).toBe(ids.box2)
 		editor.expectToBeIn('select.editing_shape')
 	})
+
+	it('starts editing a child of a group on double click', () => {
+		editor.createShape({ id: ids.box2, type: 'geo', x: 300, y: 0 })
+		editor.groupShapes([ids.box1, ids.box2], ids.group1)
+		editor.selectNone()
+		editor.pointerMove(50, 50).doubleClick()
+		expect(editor.selectedIds).toEqual([ids.box1])
+		expect(editor.editingId).toBe(null)
+		editor.expectToBeIn('select.idle')
+		editor.pointerMove(50, 50).doubleClick()
+		expect(editor.selectedIds).toEqual([ids.box1])
+		expect(editor.editingId).toBe(ids.box1)
+		editor.expectToBeIn('select.editing_shape')
+	})
 })
 
-it.todo('shift selects to add to and remove from the selection')
-it.todo('shift brushes to add to the selection')
-it.todo('scribble brushes to add to the selection')
+describe.only('shift brushes to add to the selection', () => {
+	beforeEach(() => {
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 400, y: 0 },
+				{ id: ids.box4, type: 'geo', x: 600, y: 200 },
+			])
+			.groupShapes([ids.box3, ids.box4], ids.group1)
+	})
+
+	it('does not select when brushing into margin', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(-1, -1)
+		expect(editor.selectedIds).toEqual([])
+	})
+
+	it('selects when brushing into shape edge', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(1, 1)
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('selects when wrapping shape', () => {
+		editor.pointerMove(-50, -50)
+		editor.pointerDown()
+		editor.pointerMove(101, 101)
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('does not select when brushing into shape edge when holding control', () => {
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Control')
+		editor.pointerDown()
+		editor.pointerMove(1, 1)
+		expect(editor.selectedIds).toEqual([])
+	})
+
+	it('selects when wrapping shape when holding control', () => {
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Control')
+		editor.pointerDown()
+		editor.pointerMove(101, 101)
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('does not select a group when colliding only with the groups bounds', () => {
+		editor.pointerMove(650, -50)
+		editor.pointerDown()
+		editor.pointerMove(600, 50)
+		expect(editor.selectedIds).toEqual([])
+	})
+
+	it('selects a group when colliding with the groups child shape', () => {
+		editor.pointerMove(650, -50)
+		editor.pointerDown()
+		editor.pointerMove(600, 250)
+		expect(editor.selectedIds).toEqual([ids.group1])
+	})
+
+	it('adds to selection when shift + brushing into shape', () => {
+		editor.select(ids.box2)
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Shift')
+		editor.pointerDown()
+		editor.pointerMove(1, 1)
+		expect(editor.selectedIds).toEqual([ids.box2, ids.box1])
+		editor.keyUp('Shift')
+		jest.advanceTimersByTime(500)
+		expect(editor.selectedIds).toEqual([ids.box1])
+		editor.keyDown('Shift')
+		expect(editor.selectedIds).toEqual([ids.box2, ids.box1])
+	})
+})
+
+describe.only('scribble brushes to add to the selection', () => {
+	beforeEach(() => {
+		editor
+			.createShapes([
+				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 400, y: 0 },
+				{ id: ids.box4, type: 'geo', x: 600, y: 200 },
+			])
+			.groupShapes([ids.box3, ids.box4], ids.group1)
+	})
+
+	it('does not select when scribbling into margin', () => {
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		editor.pointerDown()
+		editor.pointerMove(-1, -1)
+		editor.expectToBeIn('select.scribble_brushing')
+		expect(editor.selectedIds).toEqual([])
+	})
+
+	it('selects when scribbling into shape edge', () => {
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		editor.pointerDown()
+		editor.pointerMove(1, 1)
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('selects when scribbling through shape', () => {
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		editor.pointerDown()
+		editor.pointerMove(101, 101)
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('does not select a group when scribble is colliding only with the groups bounds', () => {
+		editor.pointerMove(650, -50)
+		editor.keyDown('Alt')
+		editor.pointerDown()
+		editor.pointerMove(600, 50)
+		expect(editor.selectedIds).toEqual([])
+	})
+
+	it('selects a group when scribble is colliding with the groups child shape', () => {
+		editor.pointerMove(650, -50)
+		editor.keyDown('Alt')
+		editor.pointerDown()
+		editor.pointerMove(600, 250)
+		expect(editor.selectedIds).toEqual([ids.group1])
+	})
+
+	it('adds to selection when shift + scribbling into shape', () => {
+		editor.select(ids.box2)
+		editor.pointerMove(-50, -50)
+		editor.keyDown('Alt')
+		editor.keyDown('Shift')
+		editor.pointerDown()
+		editor.pointerMove(50, 50)
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+		editor.keyUp('Shift')
+		jest.advanceTimersByTime(500)
+		expect(editor.selectedIds).toEqual([ids.box1])
+		editor.keyDown('Shift')
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+	})
+})
+
 it.todo('alt brushes to select only when containing a shape')
 it.todo('does not select a hollow closed shape that contains the viewport?')
 it.todo('does not select a hollow closed shape if the negative distance is more than X?')

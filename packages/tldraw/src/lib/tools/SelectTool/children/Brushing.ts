@@ -1,5 +1,6 @@
 import {
 	Box2d,
+	HIT_TEST_MARGIN,
 	Matrix2d,
 	StateNode,
 	TLCancelEvent,
@@ -158,7 +159,7 @@ export class Brushing extends StateNode {
 					A = localCorners[i]
 					B = localCorners[(i + 1) % localCorners.length]
 
-					if (geometry.hitTestLineSegment(A, B, zoomLevel)) {
+					if (geometry.hitTestLineSegment(A, B, HIT_TEST_MARGIN / zoomLevel)) {
 						this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
 						break hitTestBrushEdges
 					}
