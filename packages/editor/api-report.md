@@ -896,7 +896,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this | undefined;
     readonly snaps: SnapManager;
     get sortedShapesArray(): TLShape[];
-    stackShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[], gap?: number): this;
+    stackShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
+    // (undocumented)
+    stackShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical', gap?: number): this;
     startFollowingUser(userId: string): this | undefined;
     stopCameraAnimation(): this;
     stopFollowingUser(): this;

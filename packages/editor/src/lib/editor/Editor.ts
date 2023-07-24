@@ -5551,11 +5551,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	stackShapes(
-		operation: 'horizontal' | 'vertical',
-		ids: TLShapeId[] = this.currentPageState.selectedIds,
-		gap?: number
-	) {
+	stackShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this
+	stackShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical', gap?: number): this
+	stackShapes(_ids: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical', gap?: number) {
+		const ids =
+			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
 		if (this.instanceState.isReadonly) return this
 
 		const shapes = compact(ids.map((id) => this.getShape(id))).filter((shape) => {

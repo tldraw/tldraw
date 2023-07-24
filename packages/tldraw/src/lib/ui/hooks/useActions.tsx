@@ -578,7 +578,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('stack-shapes', { operation: 'vertical', source })
 					editor.mark('stack-vertical')
-					editor.stackShapes('vertical', editor.selectedIds)
+					editor.stackShapes(editor.selectedIds, 'vertical')
 				},
 			},
 			{
@@ -590,7 +590,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('stack-shapes', { operation: 'horizontal', source })
 					editor.mark('stack-horizontal')
-					editor.stackShapes('horizontal', editor.selectedIds)
+					editor.stackShapes(editor.selectedIds, 'horizontal')
 				},
 			},
 			{

@@ -705,20 +705,48 @@ describe('when selecting behind selection', () => {
 	})
 })
 
-describe.only('when shift+selecting a group', () => {
+describe('when shift+selecting a group', () => {
 	beforeEach(() => {
 		editor
 			.createShapes([
 				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
 				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
-				{ id: ids.box3, type: 'geo', x: 400, y: 0 },
+				{ id: ids.box3, type: 'geo', x: 400, y: 0, props: { fill: 'solid' } },
 				{ id: ids.box4, type: 'geo', x: 600, y: 0 },
 			])
 			.groupShapes([ids.box2, ids.box3], ids.group1)
 			.select(ids.box1)
 	})
 
-	it('selects on pointer up', () => {
+	it('does not add group to selection when pointing empty space in the group', () => {
+		editor.pointerDown(350, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		expect(editor.selectedIds).toEqual([ids.box1])
+		editor.pointerUp(350, 50, { target: 'canvas' }, { shiftKey: true })
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('adds to selection on shift + on pointer up when clicking in hollow shape', () => {
+		editor.pointerDown(250, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		expect(editor.selectedIds).toEqual([ids.box1])
+		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
+		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
+	})
+
+	it('adds to selection on pointer down when clicking in margin', () => {
+		editor.pointerDown(304, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
+		editor.pointerUp(304, 50, { target: 'canvas' }, { shiftKey: true })
+		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
+	})
+
+	it('adds to selection on pointer down when clicking in filled', () => {
+		editor.pointerDown(450, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
+		editor.pointerUp(450, 50, { target: 'canvas' }, { shiftKey: true })
+		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
+	})
+
+	it('brushes on down + move', () => {
 		editor.pointerDown(250, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
 		expect(editor.selectedIds).toEqual([ids.box1])
 		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
@@ -730,6 +758,8 @@ describe.only('when shift+selecting a group', () => {
 		expect(editor.selectedIds).toEqual([ids.box1])
 		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
+		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
+		expect(editor.selectedIds).toEqual([ids.box1])
 	})
 })
 
