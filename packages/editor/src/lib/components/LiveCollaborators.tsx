@@ -81,7 +81,7 @@ const Collaborator = track(function Collaborator({
 	} = useEditorComponents()
 
 	const { viewportPageBounds, zoomLevel } = editor
-	const { userId, chatMessage, brush, scribble, selectedIds, userName, cursor, color } =
+	const { userId, chatMessage, brush, scribble, selectedShapeIds, userName, cursor, color } =
 		latestPresence
 
 	// Add a little padding to the top-left of the viewport
@@ -135,7 +135,7 @@ const Collaborator = track(function Collaborator({
 				/>
 			) : null}
 			{CollaboratorShapeIndicator &&
-				selectedIds.map((shapeId) => (
+				selectedShapeIds.map((shapeId) => (
 					<CollaboratorShapeIndicator
 						className="tl-collaborator__shape-indicator"
 						key={userId + '_' + shapeId}

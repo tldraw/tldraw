@@ -205,7 +205,7 @@ export class DraggingHandle extends StateNode {
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const {
 			user: { isSnapMode },
-			hintingIds,
+			hintingShapeIds,
 			snaps,
 			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
 		} = editor
@@ -278,7 +278,7 @@ export class DraggingHandle extends StateNode {
 			const bindingAfter = (next.props as any)[initialHandle.id] as TLArrowShapeTerminal | undefined
 
 			if (bindingAfter?.type === 'binding') {
-				if (hintingIds[0] !== bindingAfter.boundShapeId) {
+				if (hintingShapeIds[0] !== bindingAfter.boundShapeId) {
 					editor.setHintingIds([bindingAfter.boundShapeId])
 					this.pointingId = bindingAfter.boundShapeId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
@@ -286,7 +286,7 @@ export class DraggingHandle extends StateNode {
 					this.resetExactTimeout()
 				}
 			} else {
-				if (hintingIds.length > 0) {
+				if (hintingShapeIds.length > 0) {
 					editor.setHintingIds([])
 					this.pointingId = null
 					this.isPrecise = false

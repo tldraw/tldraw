@@ -52,16 +52,16 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	component(shape: TLGroupShape) {
 		// Not a class component, but eslint can't tell that :(
 		const {
-			erasingIdsSet,
-			currentPageState: { hintingIds, focusLayerId },
+			erasingShapeIdsSet,
+			currentPageState: { hintingShapeIds, focusedGroupId },
 			zoomLevel,
 		} = this.editor
 
-		const isErasing = erasingIdsSet.has(shape.id)
+		const isErasing = erasingShapeIdsSet.has(shape.id)
 
 		const isHintingOtherGroup =
-			hintingIds.length > 0 &&
-			hintingIds.some(
+			hintingShapeIds.length > 0 &&
+			hintingShapeIds.some(
 				(id) =>
 					id !== shape.id &&
 					this.editor.isShapeOfType<TLGroupShape>(this.editor.getShape(id)!, 'group')
@@ -72,7 +72,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			!isErasing &&
 			// show the outline while the group is focused unless something outside of the group is being hinted
 			// this happens dropping shapes from a group onto some outside group
-			(shape.id !== focusLayerId || isHintingOtherGroup)
+			(shape.id !== focusedGroupId || isHintingOtherGroup)
 		) {
 			return null
 		}
@@ -100,13 +100,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	override onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape> = (group) => {
 		const children = this.editor.getSortedChildIds(group.id)
 		if (children.length === 0) {
-			if (this.editor.currentPageState.focusLayerId === group.id) {
+			if (this.editor.currentPageState.focusedGroupId === group.id) {
 				this.editor.popFocusLayer()
 			}
 			this.editor.deleteShapes([group.id])
 			return
 		} else if (children.length === 1) {
-			if (this.editor.currentPageState.focusLayerId === group.id) {
+			if (this.editor.currentPageState.focusedGroupId === group.id) {
 				this.editor.popFocusLayer()
 			}
 			this.editor.reparentShapes(children, group.parentId)

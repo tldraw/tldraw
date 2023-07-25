@@ -48,7 +48,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 		// Delete all of the shapes on the current page
 		editor.selectAll()
-		editor.deleteShapes(editor.selectedIds)
+		editor.deleteShapes(editor.selectedShapeIds)
 
 		// Create assets
 		const v1AssetIdsToV2AssetIds = new Map<string, TLAssetId>()
@@ -780,12 +780,12 @@ function migrate(document: LegacyTldrawDocument, newVersion: number): LegacyTldr
 
 	// Cleanup
 	Object.values(document.pageStates).forEach((pageState) => {
-		pageState.selectedIds = pageState.selectedIds.filter((id) => {
+		pageState.selectedShapeIds = pageState.selectedShapeIds.filter((id) => {
 			return document.pages[pageState.id].shapes[id] !== undefined
 		})
 		pageState.bindingId = undefined
-		pageState.editingId = undefined
-		pageState.hoveredId = undefined
+		pageState.editingShapeId = undefined
+		pageState.hoveredShapeId = undefined
 		pageState.pointedId = undefined
 	})
 
@@ -1027,15 +1027,15 @@ interface TLV1Bounds {
 
 interface TLV1PageState {
 	id: string
-	selectedIds: string[]
+	selectedShapeIds: string[]
 	camera: {
 		point: number[]
 		zoom: number
 	}
 	brush?: TLV1Bounds | null
 	pointedId?: string | null
-	hoveredId?: string | null
-	editingId?: string | null
+	hoveredShapeId?: string | null
+	editingShapeId?: string | null
 	bindingId?: string | null
 }
 

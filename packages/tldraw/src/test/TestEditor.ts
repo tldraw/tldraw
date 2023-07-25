@@ -134,7 +134,7 @@ export class TestEditor extends Editor {
 
 	clipboard = null as TLContent | null
 
-	copy = (ids = this.selectedIds) => {
+	copy = (ids = this.selectedShapeIds) => {
 		if (ids.length > 0) {
 			const content = this.getContent()
 			if (content) {
@@ -144,7 +144,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	cut = (ids = this.selectedIds) => {
+	cut = (ids = this.selectedShapeIds) => {
 		if (ids.length > 0) {
 			const content = this.getContent()
 			if (content) {
@@ -473,7 +473,7 @@ export class TestEditor extends Editor {
 			shiftKey = false,
 		}: { handle?: RotateCorner; shiftKey?: boolean } = {}
 	) {
-		if (this.selectedIds.length === 0) {
+		if (this.selectedShapeIds.length === 0) {
 			throw new Error('No selection')
 		}
 
@@ -494,14 +494,14 @@ export class TestEditor extends Editor {
 	}
 
 	translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>) {
-		if (this.selectedIds.length === 0) {
+		if (this.selectedShapeIds.length === 0) {
 			throw new Error('No selection')
 		}
 		this.setCurrentTool('select')
 
 		const center = this.selectionPageCenter!
 
-		this.pointerDown(center.x, center.y, this.selectedIds[0])
+		this.pointerDown(center.x, center.y, this.selectedShapeIds[0])
 		const numSteps = 10
 		for (let i = 1; i < numSteps; i++) {
 			this.pointerMove(center.x + (i * dx) / numSteps, center.y + (i * dy) / numSteps, options)
@@ -515,7 +515,7 @@ export class TestEditor extends Editor {
 		handle: SelectionHandle,
 		options?: Partial<TLPointerEventInfo>
 	) {
-		if (this.selectedIds.length === 0) {
+		if (this.selectedShapeIds.length === 0) {
 			throw new Error('No selection')
 		}
 		this.setCurrentTool('select')

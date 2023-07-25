@@ -60,14 +60,17 @@ export class Idle extends StateNode {
 				}
 
 				const {
-					selectedIds,
+					selectedShapeIds,
 					inputs: { currentPagePoint },
 				} = this.editor
 
-				if (selectedIds.length > 0) {
+				if (selectedShapeIds.length > 0) {
 					// If there's only one shape selected, and if that shape's
 					// geometry is open, then don't test the selection background
-					if (selectedIds.length > 1 || this.editor.getGeometry(selectedIds[0]).isClosed) {
+					if (
+						selectedShapeIds.length > 1 ||
+						this.editor.getGeometry(selectedShapeIds[0]).isClosed
+					) {
 						if (this.editor.selectionBounds?.containsPoint(currentPagePoint)) {
 							this.onPointerDown({
 								...info,
@@ -129,7 +132,7 @@ export class Idle extends StateNode {
 					}
 					default: {
 						const { hoveredShape } = this.editor
-						if (hoveredShape && !this.editor.selectedIds.includes(hoveredShape.id)) {
+						if (hoveredShape && !this.editor.selectedShapeIds.includes(hoveredShape.id)) {
 							this.onPointerDown({
 								...info,
 								shape: hoveredShape,
@@ -161,7 +164,7 @@ export class Idle extends StateNode {
 								hitInside: true,
 						  })
 
-				const { focusLayerId } = this.editor
+				const { focusedGroupId } = this.editor
 
 				if (hitShape) {
 					if (this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
@@ -174,7 +177,7 @@ export class Idle extends StateNode {
 							// The shape is the direct child of a group. If the group is
 							// selected, then we can select the shape. If the group is the
 							// focus layer id, then we can double click into it as usual.
-							if (focusLayerId && parent.id === focusLayerId) {
+							if (focusedGroupId && parent.id === focusedGroupId) {
 								// noop, double click on the shape as normal below
 							} else {
 								// The shape is the child of some group other than our current
@@ -320,17 +323,17 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				const { selectedIds } = this.editor.currentPageState
+				const { selectedShapeIds } = this.editor.currentPageState
 				const { shape } = info
 
 				const targetShape = this.editor.getOutermostSelectableShape(
 					shape,
-					(parent) => !selectedIds.includes(parent.id)
+					(parent) => !selectedShapeIds.includes(parent.id)
 				)
 
-				if (!selectedIds.includes(targetShape.id)) {
+				if (!selectedShapeIds.includes(targetShape.id)) {
 					this.editor.mark('selecting shape')
-					this.editor.setSelectedIds([targetShape.id])
+					this.editor.setSelectedShapeIds([targetShape.id])
 				}
 				break
 			}
@@ -339,8 +342,8 @@ export class Idle extends StateNode {
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
 		if (
-			this.editor.focusLayerId !== this.editor.currentPageId &&
-			this.editor.selectedIds.length > 0
+			this.editor.focusedGroupId !== this.editor.currentPageId &&
+			this.editor.selectedShapeIds.length > 0
 		) {
 			this.editor.popFocusLayer()
 		} else {
@@ -398,7 +401,7 @@ export class Idle extends StateNode {
 					if (
 						selectedShapes.every((shape) => this.editor.isShapeOfType<TLGroupShape>(shape, 'group'))
 					) {
-						this.editor.setSelectedIds(
+						this.editor.setSelectedShapeIds(
 							selectedShapes.flatMap((shape) => this.editor.getSortedChildIds(shape.id))
 						)
 						return
@@ -491,6 +494,6 @@ export class Idle extends StateNode {
 
 		if (!ephemeral) this.editor.mark('nudge shapes')
 
-		this.editor.nudgeShapes(this.editor.selectedIds, delta, shiftKey)
+		this.editor.nudgeShapes(this.editor.selectedShapeIds, delta, shiftKey)
 	}
 }

@@ -24,7 +24,7 @@ export class Brushing extends StateNode {
 	info = {} as TLPointerEventInfo & { target: 'canvas' }
 
 	brush = new Box2d()
-	initialSelectedIds: TLShapeId[] = []
+	initialSelectedShapeIds: TLShapeId[] = []
 	excludedShapeIds = new Set<TLShapeId>()
 
 	// The shape that the brush started on
@@ -49,13 +49,13 @@ export class Brushing extends StateNode {
 		)
 
 		this.info = info
-		this.initialSelectedIds = this.editor.selectedIds.slice()
+		this.initialSelectedShapeIds = this.editor.selectedShapeIds.slice()
 		this.initialStartShape = this.editor.getShapesAtPoint(currentPagePoint)[0]
 		this.onPointerMove()
 	}
 
 	override onExit = () => {
-		this.initialSelectedIds = []
+		this.initialSelectedShapeIds = []
 		this.editor.updateInstanceState({ brush: null })
 	}
 
@@ -72,7 +72,7 @@ export class Brushing extends StateNode {
 	}
 
 	override onCancel?: TLCancelEvent | undefined = (info) => {
-		this.editor.setSelectedIds(this.initialSelectedIds, true)
+		this.editor.setSelectedShapeIds(this.initialSelectedShapeIds, true)
 		this.parent.transition('idle', info)
 	}
 
@@ -104,7 +104,7 @@ export class Brushing extends StateNode {
 		this.brush.setTo(Box2d.FromPoints([originPagePoint, currentPagePoint]))
 
 		// We'll be collecting shape ids
-		const results = new Set(shiftKey ? this.initialSelectedIds : [])
+		const results = new Set(shiftKey ? this.initialSelectedShapeIds : [])
 
 		let A: Vec2d,
 			B: Vec2d,
@@ -168,7 +168,7 @@ export class Brushing extends StateNode {
 		}
 
 		this.editor.updateInstanceState({ brush: { ...this.brush.toJson() } })
-		this.editor.setSelectedIds(Array.from(results), true)
+		this.editor.setSelectedShapeIds(Array.from(results), true)
 	}
 
 	override onInterrupt: TLInterruptEvent = () => {

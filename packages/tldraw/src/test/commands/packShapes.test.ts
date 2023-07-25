@@ -15,7 +15,7 @@ jest.useFakeTimers()
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
-	editor.deleteShapes(editor.selectedIds)
+	editor.deleteShapes(editor.selectedShapeIds)
 	editor.createShapes([
 		{
 			id: ids.boxA,

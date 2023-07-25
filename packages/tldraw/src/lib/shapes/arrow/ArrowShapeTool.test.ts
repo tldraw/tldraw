@@ -23,7 +23,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedIds)
+		.deleteShapes(editor.selectedShapeIds)
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -59,7 +59,7 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerUp(0, 0)
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore)
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 		editor.expectPathToBe('root.arrow.idle')
 	})
 
@@ -68,7 +68,7 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).cancel()
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore)
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 		editor.expectPathToBe('root.arrow.idle')
 	})
 
@@ -101,7 +101,7 @@ describe('When dragging the arrow', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10).pointerUp(10, 10)
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 		editor.expectPathToBe('root.select.idle')
 	})
 
@@ -111,7 +111,7 @@ describe('When dragging the arrow', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10).pointerUp(10, 10)
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 		editor.expectPathToBe('root.arrow.idle')
 	})
 
@@ -129,7 +129,7 @@ describe('When pointing a start shape', () => {
 		editor.setCurrentTool('arrow').pointerDown(375, 375)
 
 		// Set hinting ids when moving away
-		expect(editor.hintingIds.length).toBe(1)
+		expect(editor.hintingShapeIds.length).toBe(1)
 
 		// Fake some velocity
 		editor.inputs.pointerVelocity = new Vec2d(1, 1)
@@ -137,7 +137,7 @@ describe('When pointing a start shape', () => {
 		editor.pointerMove(375, 500)
 
 		// Clear hinting ids when moving away
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 
 		const arrow = editor.shapesArray[editor.shapesArray.length - 1]
 		editor.expectShapeToMatch(arrow, {
@@ -159,7 +159,7 @@ describe('When pointing a start shape', () => {
 		editor.pointerUp()
 
 		// Clear hinting ids on pointer up
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 	})
 })
 
@@ -168,7 +168,7 @@ describe('When pointing an end shape', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 0)
 
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 
 		// Fake some velocity
 		editor.inputs.pointerVelocity = new Vec2d(1, 1)
@@ -177,7 +177,7 @@ describe('When pointing an end shape', () => {
 		editor.pointerMove(375, 375)
 
 		// Set hinting id when pointing the shape
-		expect(editor.hintingIds.length).toBe(1)
+		expect(editor.hintingShapeIds.length).toBe(1)
 
 		const arrow = editor.shapesArray[editor.shapesArray.length - 1]
 		editor.expectShapeToMatch(arrow, {
@@ -198,7 +198,7 @@ describe('When pointing an end shape', () => {
 
 		// Clear hinting ids on pointer up
 		editor.pointerUp()
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 	})
 
 	it('unbinds and rebinds', () => {
@@ -210,7 +210,7 @@ describe('When pointing an end shape', () => {
 
 		let arrow = editor.shapesArray[editor.shapesArray.length - 1]
 
-		expect(editor.hintingIds.length).toBe(1)
+		expect(editor.hintingShapeIds.length).toBe(1)
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
@@ -249,7 +249,7 @@ describe('When pointing an end shape', () => {
 		})
 
 		editor.pointerMove(375, 0)
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 		arrow = editor.shapesArray[editor.shapesArray.length - 1]
 
 		editor.expectShapeToMatch(arrow, {
@@ -266,7 +266,7 @@ describe('When pointing an end shape', () => {
 		// Build up some velocity
 		editor.inputs.pointerVelocity = new Vec2d(1, 1)
 		editor.pointerMove(325, 325)
-		expect(editor.hintingIds.length).toBe(1)
+		expect(editor.hintingShapeIds.length).toBe(1)
 
 		arrow = editor.shapesArray[editor.shapesArray.length - 1]
 
@@ -308,7 +308,7 @@ describe('When pointing an end shape', () => {
 		})
 
 		editor.pointerUp()
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 	})
 
 	it('begins imprecise when moving quickly', () => {
@@ -318,7 +318,7 @@ describe('When pointing an end shape', () => {
 
 		const arrow = editor.shapesArray[editor.shapesArray.length - 1]
 
-		expect(editor.hintingIds.length).toBe(1)
+		expect(editor.hintingShapeIds.length).toBe(1)
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
@@ -353,14 +353,14 @@ describe('When pointing an end shape', () => {
 			},
 		})
 
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 
 		editor.inputs.pointerVelocity = new Vec2d(0.001, 0.001)
 		editor.pointerMove(375, 375)
 
 		arrow = editor.shapesArray[editor.shapesArray.length - 1]
 
-		expect(editor.hintingIds.length).toBe(1)
+		expect(editor.hintingShapeIds.length).toBe(1)
 
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
@@ -382,7 +382,7 @@ describe('When pointing an end shape', () => {
 
 describe('reparenting issue', () => {
 	it('Correctly sets index when reparenting', () => {
-		editor.selectAll().deleteShapes(editor.selectedIds)
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
 
 		// Create an arrow!
 		editor.setCurrentTool('arrow')
@@ -427,7 +427,7 @@ describe('reparenting issue', () => {
 	})
 
 	it('Correctly sets index when reparenting with multiple arrows', () => {
-		editor.selectAll().deleteShapes(editor.selectedIds)
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
 
 		// create two rectangles:
 		editor.createShapes([
@@ -481,7 +481,7 @@ describe('reparenting issue', () => {
 		expect(arrow2BoundIndex).toBe('a1G')
 
 		// nudge everything around and make sure we all stay in the right order
-		editor.selectAll().nudgeShapes(editor.selectedIds, { x: -1, y: 0 })
+		editor.selectAll().nudgeShapes(editor.selectedShapeIds, { x: -1, y: 0 })
 		expect(editor.getShape(arrow1Id)!.index).toBe('a1V')
 		expect(editor.getShape(arrow2Id)!.index).toBe('a1G')
 	})

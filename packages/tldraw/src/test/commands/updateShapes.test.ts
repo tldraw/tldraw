@@ -156,7 +156,7 @@ describe('When a shape has a different shape as a parent...', () => {
 })
 
 it('Throws out all shapes if any update is invalid', () => {
-	editor.selectAll().deleteShapes(editor.selectedIds)
+	editor.selectAll().deleteShapes(editor.selectedShapeIds)
 
 	editor.createShapes([
 		{ id: ids.box1, type: 'geo', x: 0, y: 0 },

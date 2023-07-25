@@ -22,7 +22,7 @@ export class Idle extends StateNode {
 		if (hitShape) {
 			if (this.editor.isShapeOfType<TLTextShape>(hitShape, 'text')) {
 				requestAnimationFrame(() => {
-					this.editor.setSelectedIds([hitShape.id])
+					this.editor.setSelectedShapeIds([hitShape.id])
 					this.editor.setEditingId(hitShape.id)
 					this.editor.setCurrentTool('select.editing_shape', {
 						...info,

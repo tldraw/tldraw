@@ -23,7 +23,7 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
-	editor.deleteShapes(editor.selectedIds)
+	editor.deleteShapes(editor.selectedShapeIds)
 	editor.createShapes([
 		{
 			id: ids.boxA,
@@ -296,7 +296,7 @@ describe('When one shape is selected', () => {
 		const fn = jest.fn()
 
 		editor.selectAll()
-		editor.groupShapes(editor.selectedIds) // this will also select the new group
+		editor.groupShapes(editor.selectedShapeIds) // this will also select the new group
 		const groupBefore = editor.selectedShapes[0]
 		editor.on('change', fn)
 		editor.flipShapes('horizontal')
@@ -352,7 +352,7 @@ describe('flipping rotated shapes', () => {
 		arrowD: createShapeId('arrowD'),
 	}
 	beforeEach(() => {
-		editor.selectAll().deleteShapes(editor.selectedIds)
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
 		const props: Partial<TLArrowShapeProps> = {
 			start: {
 				type: 'point',
@@ -558,7 +558,7 @@ describe('When flipping shapes that include arrows', () => {
 	})
 
 	it('Flips horizontally', () => {
-		editor.selectAll().deleteShapes(editor.selectedIds).createShapes(shapes)
+		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes)
 
 		const boundsBefore = editor.selectionBounds!
 		editor.flipShapes('horizontal')
@@ -566,7 +566,7 @@ describe('When flipping shapes that include arrows', () => {
 	})
 
 	it('Flips vertically', () => {
-		editor.selectAll().deleteShapes(editor.selectedIds).createShapes(shapes)
+		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes)
 
 		const boundsBefore = editor.selectionBounds!
 		editor.flipShapes('vertical')

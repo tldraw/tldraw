@@ -1,7 +1,7 @@
 import { Editor, HIT_TEST_MARGIN, TLShape, isShapeId } from '@tldraw/editor'
 
 export function selectOnCanvasPointerUp(editor: Editor) {
-	const { selectedIds } = editor
+	const { selectedShapeIds } = editor
 	const { shiftKey, altKey, currentPagePoint } = editor.inputs
 
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
@@ -24,14 +24,14 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 		if (shiftKey && !altKey) {
 			editor.cancelDoubleClick() // fuckin eh
 
-			if (selectedIds.includes(outermostSelectableShape.id)) {
+			if (selectedShapeIds.includes(outermostSelectableShape.id)) {
 				// Remove it from selected shapes
 				editor.mark('deselecting shape')
 				editor.deselect(outermostSelectableShape)
 			} else {
 				// Add it to selected shapes
 				editor.mark('shift selecting shape')
-				editor.setSelectedIds([...selectedIds, outermostSelectableShape.id])
+				editor.setSelectedShapeIds([...selectedShapeIds, outermostSelectableShape.id])
 			}
 		} else {
 			let shapeToSelect: TLShape | undefined = undefined
@@ -46,8 +46,8 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 				// Otherwise, if the group isn't selected and isn't our current
 				// focus layer, then we need to select the group instead.
 				if (
-					outermostSelectableShape.id === editor.focusLayerId ||
-					selectedIds.includes(outermostSelectableShape.id)
+					outermostSelectableShape.id === editor.focusedGroupId ||
+					selectedShapeIds.includes(outermostSelectableShape.id)
 				) {
 					shapeToSelect = hitShape
 				} else {
@@ -55,7 +55,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 				}
 			}
 
-			if (shapeToSelect && !selectedIds.includes(shapeToSelect.id)) {
+			if (shapeToSelect && !selectedShapeIds.includes(shapeToSelect.id)) {
 				editor.mark('selecting shape')
 				editor.select(shapeToSelect.id)
 			}
@@ -74,12 +74,12 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 			// If the click was inside of the current focused group, then
 			// we keep that focused group; otherwise we clear the focused
 			// group (reset it to the page)
-			const { focusLayerId } = editor
+			const { focusedGroupId } = editor
 
-			if (isShapeId(focusLayerId)) {
-				const groupShape = editor.getShape(focusLayerId)!
+			if (isShapeId(focusedGroupId)) {
+				const groupShape = editor.getShape(focusedGroupId)!
 				if (!editor.isPointInShape(groupShape, currentPagePoint, { margin: 0, hitInside: true })) {
-					editor.setFocusLayerId(editor.currentPageId)
+					editor.setFocusedGroupId(editor.currentPageId)
 				}
 			}
 		}

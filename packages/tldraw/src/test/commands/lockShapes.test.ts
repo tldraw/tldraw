@@ -17,7 +17,7 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
-	editor.deleteShapes(editor.selectedIds)
+	editor.deleteShapes(editor.selectedShapeIds)
 	editor.createShapes([
 		{
 			id: ids.lockedShapeA,
@@ -82,11 +82,11 @@ beforeEach(() => {
 
 describe('Locking', () => {
 	it('Can lock shapes', () => {
-		editor.setSelectedIds([ids.unlockedShapeA])
+		editor.setSelectedShapeIds([ids.unlockedShapeA])
 		editor.toggleLock()
 		expect(editor.getShape(ids.unlockedShapeA)!.isLocked).toBe(true)
 		// Locking deselects the shape
-		expect(editor.selectedIds).toEqual([])
+		expect(editor.selectedShapeIds).toEqual([])
 	})
 })
 
@@ -117,7 +117,7 @@ describe('Locked shapes', () => {
 
 	it('Cannot be selected with select all', () => {
 		editor.selectAll()
-		expect(editor.selectedIds).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
+		expect(editor.selectedShapeIds).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
 	})
 
 	it('Cannot be selected by clicking', () => {
@@ -128,7 +128,7 @@ describe('Locked shapes', () => {
 			.expectToBeIn('select.idle')
 			.pointerUp()
 			.expectToBeIn('select.idle')
-		expect(editor.selectedIds).not.toContain(shape.id)
+		expect(editor.selectedShapeIds).not.toContain(shape.id)
 	})
 
 	it('Cannot be edited', () => {
@@ -138,7 +138,7 @@ describe('Locked shapes', () => {
 		// We create a new shape and we edit that one
 		editor.doubleClick(10, 10, { target: 'shape', shape }).expectToBeIn('select.editing_shape')
 		expect(editor.shapesArray.length).toBe(shapeCount + 1)
-		expect(editor.selectedIds).not.toContain(shape.id)
+		expect(editor.selectedShapeIds).not.toContain(shape.id)
 	})
 
 	it('Cannot be grouped', () => {
@@ -164,7 +164,7 @@ describe('Locked shapes', () => {
 
 describe('Unlocking', () => {
 	it('Can unlock shapes', () => {
-		editor.setSelectedIds([ids.lockedShapeA, ids.lockedShapeB])
+		editor.setSelectedShapeIds([ids.lockedShapeA, ids.lockedShapeB])
 		let lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map(
 			(id) => editor.getShape(id)!.isLocked
 		)

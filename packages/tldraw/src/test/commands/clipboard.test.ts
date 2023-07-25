@@ -14,11 +14,11 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 
-	editor.selectAll().deleteShapes(editor.selectedIds)
+	editor.selectAll().deleteShapes(editor.selectedShapeIds)
 })
 
 afterEach(() => {
-	editor.selectAll().deleteShapes(editor.selectedIds)
+	editor.selectAll().deleteShapes(editor.selectedShapeIds)
 })
 
 const doMockClipboard = () => {
@@ -422,7 +422,7 @@ describe('When copying and pasting', () => {
 		editor
 			// Create group
 			.selectAll()
-			.groupShapes(editor.selectedIds)
+			.groupShapes(editor.selectedShapeIds)
 			// Move the group
 			.updateShapes([
 				{
@@ -434,7 +434,7 @@ describe('When copying and pasting', () => {
 			])
 			// Copy a shape from within the group
 			.selectNone()
-			.setSelectedIds([ids.box1])
+			.setSelectedShapeIds([ids.box1])
 			.copy()
 
 		await assertClipboardOfCorrectShape(mockClipboard.current)

@@ -167,7 +167,7 @@ export function usePrint() {
 				}
 			}
 
-			const { pages, currentPageId, selectedIds } = editor
+			const { pages, currentPageId, selectedShapeIds } = editor
 
 			const preserveAspectRatio = 'xMidYMid meet'
 
@@ -178,9 +178,9 @@ export function usePrint() {
 				preserveAspectRatio,
 			}
 
-			if (editor.selectedIds.length > 0) {
+			if (editor.selectedShapeIds.length > 0) {
 				// Print the selected ids from the current page
-				const svg = await editor.getSvg(selectedIds, svgOpts)
+				const svg = await editor.getSvg(selectedShapeIds, svgOpts)
 
 				if (svg) {
 					const page = pages.find((p) => p.id === currentPageId)

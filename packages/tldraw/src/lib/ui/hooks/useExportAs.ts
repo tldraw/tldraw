@@ -16,7 +16,10 @@ export function useExportAs() {
 	const msg = useTranslation()
 
 	return useCallback(
-		async function exportAs(ids: TLShapeId[] = editor.selectedIds, format: TLExportType = 'png') {
+		async function exportAs(
+			ids: TLShapeId[] = editor.selectedShapeIds,
+			format: TLExportType = 'png'
+		) {
 			if (ids.length === 0) {
 				ids = [...editor.currentPageShapeIds]
 			}

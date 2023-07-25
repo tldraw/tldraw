@@ -50,9 +50,9 @@ class IdleState extends StateNode {
 			}
 			case 'shape': {
 				if (editor.inputs.shiftKey) {
-					editor.select(...editor.selectedIds, info.shape.id)
+					editor.select(...editor.selectedShapeIds, info.shape.id)
 				} else {
-					if (!editor.selectedIds.includes(info.shape.id)) {
+					if (!editor.selectedShapeIds.includes(info.shape.id)) {
 						editor.select(info.shape.id)
 					}
 					this.parent.transition('pointing', info)

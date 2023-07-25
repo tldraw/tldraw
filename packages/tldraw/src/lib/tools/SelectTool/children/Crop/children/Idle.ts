@@ -61,13 +61,13 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				if (info.shape.id === this.editor.croppingId) {
+				if (info.shape.id === this.editor.croppingShapeId) {
 					this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					return
 				} else {
 					if (this.editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
 						this.editor.setCroppingId(info.shape.id)
-						this.editor.setSelectedIds([info.shape.id])
+						this.editor.setSelectedShapeIds([info.shape.id])
 						this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					} else {
 						this.cancel()
@@ -122,8 +122,8 @@ export class Idle extends StateNode {
 		// after the user double clicked the edge to begin cropping
 		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
 
-		if (!this.editor.croppingId) return
-		const shape = this.editor.getShape(this.editor.croppingId)
+		if (!this.editor.croppingShapeId) return
+		const shape = this.editor.getShape(this.editor.croppingShapeId)
 		if (!shape) return
 
 		const util = this.editor.getShapeUtil(shape)
@@ -158,7 +158,7 @@ export class Idle extends StateNode {
 	}
 
 	private cleanupCroppingState = () => {
-		if (!this.editor.croppingId) {
+		if (!this.editor.croppingShapeId) {
 			this.editor.setCurrentTool('select.idle', {})
 		}
 	}
@@ -186,7 +186,7 @@ export class Idle extends StateNode {
 
 		if (shiftKey) delta.mul(10)
 
-		const shape = this.editor.getShape(this.editor.croppingId!) as ShapeWithCrop
+		const shape = this.editor.getShape(this.editor.croppingShapeId!) as ShapeWithCrop
 		if (!shape) return
 		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 

@@ -20,7 +20,7 @@ beforeEach(() => {
 
 describe('when less than two shapes are selected', () => {
 	it('does nothing', () => {
-		editor.setSelectedIds([ids.boxB])
+		editor.setSelectedShapeIds([ids.boxB])
 
 		const fn = jest.fn()
 		editor.on('update', fn)
@@ -206,7 +206,7 @@ describe('when multiple shapes are selected', () => {
 			},
 		])
 
-		editor.setSelectedIds([ids.boxA, ids.boxB, ids.boxC])
+		editor.setSelectedShapeIds([ids.boxA, ids.boxB, ids.boxC])
 		editor.alignShapes('bottom')
 		jest.advanceTimersByTime(1000)
 		editor.alignShapes('right')
@@ -231,7 +231,7 @@ describe('When shapes are parented to other shapes...', () => {
 	beforeEach(() => {
 		editor = new TestEditor()
 		editor.selectAll()
-		editor.deleteShapes(editor.selectedIds)
+		editor.deleteShapes(editor.selectedShapeIds)
 		ids = editor.createShapesFromJsx([
 			<TL.geo ref="boxA" x={0} y={0} w={100} h={100}>
 				<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />
@@ -243,7 +243,7 @@ describe('When shapes are parented to other shapes...', () => {
 	})
 
 	it('Aligns to the top left.', () => {
-		editor.setSelectedIds([ids.boxC, ids.boxB])
+		editor.setSelectedShapeIds([ids.boxC, ids.boxB])
 
 		const commonBoundsBefore = Box2d.Common([
 			editor.getPageBounds(ids.boxC)!,
@@ -265,7 +265,7 @@ describe('When shapes are parented to other shapes...', () => {
 	})
 
 	it('Aligns to the bottom right.', () => {
-		editor.setSelectedIds([ids.boxC, ids.boxB])
+		editor.setSelectedShapeIds([ids.boxC, ids.boxB])
 
 		const commonBoundsBefore = Box2d.Common([
 			editor.getPageBounds(ids.boxC)!,
@@ -291,7 +291,7 @@ describe('When shapes are parented to a rotated shape...', () => {
 	beforeEach(() => {
 		editor = new TestEditor()
 		editor.selectAll()
-		editor.deleteShapes(editor.selectedIds)
+		editor.deleteShapes(editor.selectedShapeIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,
@@ -331,7 +331,7 @@ describe('When shapes are parented to a rotated shape...', () => {
 	})
 
 	it('Aligns to the top left.', () => {
-		editor.setSelectedIds([ids.boxC, ids.boxB])
+		editor.setSelectedShapeIds([ids.boxC, ids.boxB])
 
 		const commonBoundsBefore = Box2d.Common([
 			editor.getPageBounds(ids.boxC)!,
@@ -359,7 +359,7 @@ describe('When shapes are parented to a rotated shape...', () => {
 	})
 
 	it('Aligns to the bottom right.', () => {
-		editor.setSelectedIds([ids.boxC, ids.boxB])
+		editor.setSelectedShapeIds([ids.boxC, ids.boxB])
 
 		const commonBoundsBefore = Box2d.Common([
 			editor.getPageBounds(ids.boxC)!,

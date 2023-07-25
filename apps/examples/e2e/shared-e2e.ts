@@ -14,7 +14,7 @@ export function sleep(ms: number) {
 // }
 
 // export async function expectToHaveNSelectedShapes(page: Page, numberOfSelectedShapes: number) {
-// 	expect(await page.evaluate(() => editor.selectedIds.length)).toBe(numberOfSelectedShapes)
+// 	expect(await page.evaluate(() => editor.selectedShapeIds.length)).toBe(numberOfSelectedShapes)
 // }
 
 declare const editor: Editor

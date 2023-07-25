@@ -15,7 +15,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedIds)
+		.deleteShapes(editor.selectedShapeIds)
 		.createShapes([
 			{
 				id: id,
@@ -149,7 +149,7 @@ describe('Misc', () => {
 
 	it('nudges', () => {
 		editor.select(id)
-		editor.nudgeShapes(editor.selectedIds, { x: 1, y: 0 })
+		editor.nudgeShapes(editor.selectedShapeIds, { x: 1, y: 0 })
 
 		editor.expectShapeToMatch({
 			id: id,
@@ -157,7 +157,7 @@ describe('Misc', () => {
 			y: 150,
 		})
 
-		editor.nudgeShapes(editor.selectedIds, { x: 0, y: 1 }, true)
+		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: 1 }, true)
 
 		editor.expectShapeToMatch({
 			id: id,
@@ -176,12 +176,12 @@ describe('Misc', () => {
 		editor.select(boxID, id)
 
 		expect(editor.getPageBounds(box)!.maxX).not.toEqual(editor.getPageBounds(line)!.maxX)
-		editor.alignShapes('right', editor.selectedIds)
+		editor.alignShapes('right', editor.selectedShapeIds)
 		jest.advanceTimersByTime(1000)
 		expect(editor.getPageBounds(box)!.maxX).toEqual(editor.getPageBounds(line)!.maxX)
 
 		expect(editor.getPageBounds(box)!.maxY).not.toEqual(editor.getPageBounds(line)!.maxY)
-		editor.alignShapes('bottom', editor.selectedIds)
+		editor.alignShapes('bottom', editor.selectedShapeIds)
 		jest.advanceTimersByTime(1000)
 		expect(editor.getPageBounds(box)!.maxY).toEqual(editor.getPageBounds(line)!.maxY)
 	})
@@ -213,7 +213,7 @@ describe('Misc', () => {
 		const duplicate = ids.filter((i) => i !== id)[0]
 		editor.select(duplicate)
 
-		editor.deleteShapes(editor.selectedIds)
+		editor.deleteShapes(editor.selectedShapeIds)
 
 		ids = Array.from(editor.currentPageShapeIds.values())
 		expect(ids.length).toEqual(1)

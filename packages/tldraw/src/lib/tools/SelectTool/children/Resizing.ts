@@ -162,7 +162,7 @@ export class Resizing extends StateNode {
 			shapeSnapshots,
 			selectionBounds,
 			cursorHandleOffset,
-			selectedIds,
+			selectedShapeIds,
 			selectionRotation,
 			canShapesDeform,
 		} = this.snapshot
@@ -303,7 +303,10 @@ export class Resizing extends StateNode {
 				initialBounds: snapshot.bounds,
 				initialPageTransform: snapshot.pageTransform,
 				dragHandle,
-				mode: selectedIds.length === 1 && id === selectedIds[0] ? 'resize_bounds' : 'scale_shape',
+				mode:
+					selectedShapeIds.length === 1 && id === selectedShapeIds[0]
+						? 'resize_bounds'
+						: 'scale_shape',
 				scaleOrigin: scaleOriginPage,
 				scaleAxisRotation: selectionRotation,
 			})
@@ -357,7 +360,7 @@ export class Resizing extends StateNode {
 
 	_createSnapshot = () => {
 		const {
-			selectedIds,
+			selectedShapeIds,
 			selectionRotation,
 			inputs: { originPagePoint },
 		} = this.editor
@@ -374,11 +377,14 @@ export class Resizing extends StateNode {
 
 		const shapeSnapshots = new Map<TLShapeId, ShapeSnapshot>()
 
-		selectedIds.forEach((id) => {
+		selectedShapeIds.forEach((id) => {
 			const shape = this.editor.getShape(id)
 			if (shape) {
 				shapeSnapshots.set(shape.id, this._createShapeSnapshot(shape))
-				if (this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') && selectedIds.length === 1)
+				if (
+					this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
+					selectedShapeIds.length === 1
+				)
 					return
 				this.editor.visitDescendants(shape.id, (descendantId) => {
 					const descendent = this.editor.getShape(descendantId)
@@ -402,7 +408,7 @@ export class Resizing extends StateNode {
 			selectionBounds,
 			cursorHandleOffset,
 			selectionRotation,
-			selectedIds,
+			selectedShapeIds,
 			canShapesDeform,
 			initialSelectionPageBounds: this.editor.selectedPageBounds!,
 		}

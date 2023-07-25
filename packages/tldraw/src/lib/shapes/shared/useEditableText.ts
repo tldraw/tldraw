@@ -22,7 +22,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
 
-	const isEditing = useValue('isEditing', () => editor.currentPageState.editingId === id, [
+	const isEditing = useValue('isEditing', () => editor.currentPageState.editingShapeId === id, [
 		editor,
 		id,
 	])
@@ -41,18 +41,18 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	const isEditableFromHover = useValue(
 		'is editable hovering',
 		() => {
-			const { hoveredId, editingId } = editor
-			if (type === 'text' && editor.isIn('text') && hoveredId === id) {
+			const { hoveredShapeId, editingShapeId } = editor
+			if (type === 'text' && editor.isIn('text') && hoveredShapeId === id) {
 				return true
 			}
 
 			if (isInEditingShapePath) {
-				if (!editingId) return false
-				const editingShape = editor.getShape(editingId)
+				if (!editingShapeId) return false
+				const editingShape = editor.getShape(editingShapeId)
 				if (!editingShape) return false
 
 				return (
-					(hoveredId === id || editingId !== id) &&
+					(hoveredShapeId === id || editingShapeId !== id) &&
 					// the editing shape must be the same type as this shape
 					editingShape.type === type &&
 					// and this shape must be capable of being editing in its current form
@@ -101,7 +101,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 			if (elm && editor.isIn('select.editing_shape')) {
 				// important! these ^v are two different things
 				// is that shape OUR shape?
-				if (editor.editingId === id) {
+				if (editor.editingShapeId === id) {
 					if (ranges) {
 						if (!ranges.length) {
 							// If we don't have any ranges, restore selection
@@ -213,7 +213,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				transact(() => {
 					editor.setEditingId(id)
 					editor.setHoveredId(id)
-					editor.setSelectedIds([id])
+					editor.setSelectedShapeIds([id])
 				})
 			}
 

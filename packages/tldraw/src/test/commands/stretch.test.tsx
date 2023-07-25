@@ -14,7 +14,7 @@ function createVideoShape() {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
-	editor.deleteShapes(editor.selectedIds)
+	editor.deleteShapes(editor.selectedShapeIds)
 	ids = editor.createShapesFromJsx([
 		<TL.geo ref="boxA" x={0} y={0} w={100} h={100} />,
 		<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />,
@@ -25,7 +25,7 @@ beforeEach(() => {
 
 describe('when less than two shapes are selected', () => {
 	it('does nothing', () => {
-		editor.setSelectedIds([ids.boxB])
+		editor.setSelectedShapeIds([ids.boxB])
 		const fn = jest.fn()
 		editor.on('change-history', fn)
 		editor.stretchShapes('horizontal')
@@ -129,7 +129,7 @@ describe('When shapes are the child of a rotated shape.', () => {
 	beforeEach(() => {
 		editor = new TestEditor()
 		editor.selectAll()
-		editor.deleteShapes(editor.selectedIds)
+		editor.deleteShapes(editor.selectedShapeIds)
 		ids = editor.createShapesFromJsx([
 			<TL.geo ref="boxA" x={0} y={0} w={100} h={100} rotation={PI}>
 				<TL.geo ref="boxB" x={100} y={100} w={50} h={50} />
@@ -195,7 +195,7 @@ describe('When shapes are the child of a rotated shape.', () => {
 describe('When shapes have 0-width or 0-height', () => {
 	it('Does not error with 0-width', () => {
 		editor.selectAll()
-		editor.deleteShapes(editor.selectedIds)
+		editor.deleteShapes(editor.selectedShapeIds)
 
 		editor
 			.setCurrentTool('arrow')
@@ -219,7 +219,7 @@ describe('When shapes have 0-width or 0-height', () => {
 
 	it('Does not error with 0-height', () => {
 		editor.selectAll()
-		editor.deleteShapes(editor.selectedIds)
+		editor.deleteShapes(editor.selectedShapeIds)
 
 		editor
 			// draw a perfectly horiztonal arrow:

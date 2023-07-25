@@ -21,7 +21,7 @@ describe(GeoShapeTool, () => {
 
 		expect(editor.shapesArray.length).toBe(1)
 		expect(editor.shapesArray[0]?.type).toBe('geo')
-		expect(editor.selectedIds[0]).toBe(editor.shapesArray[0]?.id)
+		expect(editor.selectedShapeIds[0]).toBe(editor.shapesArray[0]?.id)
 
 		editor.undo()
 
@@ -41,7 +41,7 @@ describe(GeoShapeTool, () => {
 
 		expect(editor.shapesArray.length).toBe(1)
 		expect(editor.shapesArray[0]?.type).toBe('geo')
-		expect(editor.selectedIds[0]).toBe(editor.shapesArray[0]?.id)
+		expect(editor.selectedShapeIds[0]).toBe(editor.shapesArray[0]?.id)
 
 		editor.undo()
 

@@ -363,7 +363,7 @@ it('pastes shapes with children', () => {
 describe('When pasting into frames...', () => {
 	it('Does not paste into a clipped frame', () => {
 		// clear the page
-		editor.selectAll().deleteShapes(editor.selectedIds)
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
 
 		editor
 			// move the two frames far from all other shapes
@@ -416,7 +416,7 @@ describe('When pasting into frames...', () => {
 			])
 			// Make sure that frame 1 is brought to front
 			.select(ids.frame1)
-			.bringToFront(editor.selectedIds)
+			.bringToFront(editor.selectedShapeIds)
 
 		editor.setCamera(-2000, -2000, 1)
 		editor.updateRenderingBounds()

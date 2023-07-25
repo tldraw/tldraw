@@ -592,7 +592,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
     createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select?: boolean): this;
     createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select?: boolean): this;
-    get croppingId(): null | TLShapeId;
+    get croppingShapeId(): null | TLShapeId;
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
     get currentPageShapeIds(): Set<TLShapeId>;
@@ -618,9 +618,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     get documentSettings(): TLDocument;
     duplicatePage(id?: TLPageId, createId?: TLPageId): this;
     duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
-    get editingId(): null | TLShapeId;
-    get erasingIds(): TLShapeId[];
-    get erasingIdsSet(): Set<TLShapeId>;
+    get editingShapeId(): null | TLShapeId;
+    get erasingShapeIds(): TLShapeId[];
+    get erasingShapeIdsSet(): Set<TLShapeId>;
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAssetContent_2['type']]: {
@@ -642,7 +642,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
     // (undocumented)
     focus: () => void;
-    get focusLayerId(): TLPageId | TLShapeId;
+    get focusedGroupId(): TLPageId | TLShapeId;
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
     getAncestors(shape: TLShape, acc?: TLShape[]): TLShape[];
     getAncestorsById(id: TLShapeId, acc?: TLShape[]): TLShape[];
@@ -739,11 +739,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     groupShapes(shapes: TLShape[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | undefined, ancestorId: TLShapeId): boolean;
-    get hintingIds(): TLShapeId[];
+    get hintingShapeIds(): TLShapeId[];
     readonly history: HistoryManager<this>;
-    get hoveredId(): null | TLShapeId;
     // (undocumented)
     get hoveredShape(): TLUnknownShape | undefined;
+    get hoveredShapeId(): null | TLShapeId;
     inputs: {
         originPagePoint: Vec2d;
         originScreenPoint: Vec2d;
@@ -857,8 +857,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     select(...shapes: TLShape[]): this;
     selectAll(): this;
-    get selectedIds(): TLShapeId[];
     get selectedPageBounds(): Box2d | null;
+    get selectedShapeIds(): TLShapeId[];
     get selectedShapes(): TLShape[];
     get selectionBounds(): Box2d | undefined;
     get selectionPageCenter(): null | Vec2d;
@@ -880,13 +880,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     setErasingIds(ids: TLShapeId[]): this;
     // (undocumented)
-    setFocusLayerId(next: TLPageId | TLShapeId): this;
+    setFocusedGroupId(next: TLPageId | TLShapeId): this;
     // (undocumented)
     setHintingIds(ids: TLShapeId[]): this;
     // (undocumented)
     setHoveredId(id: null | TLShapeId): this;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
-    setSelectedIds(ids: TLShapeId[], squashing?: boolean): this;
+    setSelectedShapeIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
     get shapesArray(): TLShape[];
     shapeUtils: {
@@ -921,7 +921,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingId' | 'focusLayerId' | 'pageId' | 'selectedIds'>>, ephemeral?: boolean): this;
+    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, ephemeral?: boolean): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
@@ -2488,8 +2488,8 @@ export interface TLSessionStateSnapshot {
             y: number;
             z: number;
         };
-        selectedIds: TLShapeId[];
-        focusLayerId: null | TLShapeId;
+        selectedShapeIds: TLShapeId[];
+        focusedGroupId: null | TLShapeId;
     }>;
     // (undocumented)
     version: number;

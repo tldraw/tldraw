@@ -329,7 +329,7 @@ describe('frame shapes', () => {
 
 		expect(editor.onlySelectedShape!.id).toBe(boxAid)
 		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
-		expect(editor.hintingIds).toHaveLength(0)
+		expect(editor.hintingShapeIds).toHaveLength(0)
 		// box A should still be beneath box B
 		expect(editor.getShape(boxAid)!.index.localeCompare(editor.getShape(boxBid)!.index)).toBe(-1)
 	})
@@ -516,15 +516,15 @@ describe('frame shapes', () => {
 
 		const frameId = editor.onlySelectedShape!.id
 
-		expect(editor.selectedIds[0]).toBe(frameId)
-		expect(editor.currentPageState.editingId).toBe(null)
+		expect(editor.selectedShapeIds[0]).toBe(frameId)
+		expect(editor.currentPageState.editingShapeId).toBe(null)
 
 		editor.setCurrentTool('select')
 
 		editor.keyDown('Enter')
 		editor.keyUp('Enter')
 
-		expect(editor.currentPageState.editingId).toBe(frameId)
+		expect(editor.currentPageState.editingShapeId).toBe(frameId)
 	})
 
 	it('can be selected with box brushing only if the whole frame is selected', () => {
@@ -537,11 +537,11 @@ describe('frame shapes', () => {
 		editor.pointerDown(50, 50).pointerMove(150, 150)
 		editor.expectPathToBe('root.select.brushing')
 
-		expect(editor.selectedIds).toHaveLength(0)
+		expect(editor.selectedShapeIds).toHaveLength(0)
 
 		editor.pointerMove(250, 250)
 
-		expect(editor.selectedIds).toHaveLength(1)
+		expect(editor.selectedShapeIds).toHaveLength(1)
 		expect(editor.onlySelectedShape!.id).toBe(frameId)
 	})
 
@@ -556,7 +556,7 @@ describe('frame shapes', () => {
 		editor.pointerDown(150, 150).pointerMove(250, 250)
 		editor.expectPathToBe('root.select.brushing')
 
-		expect(editor.selectedIds).toHaveLength(0)
+		expect(editor.selectedShapeIds).toHaveLength(0)
 	})
 
 	it('children of a frame will not be selected from outside of the frame', () => {
@@ -574,14 +574,14 @@ describe('frame shapes', () => {
 		editor.pointerDown(500, 500).pointerMove(300, 300).pointerUp(300, 300)
 
 		// Check if the inner box was selected
-		expect(editor.selectedIds).toHaveLength(0)
+		expect(editor.selectedShapeIds).toHaveLength(0)
 
 		// Select from outside the frame via box brushing
 		// but also include the frame in the selection
 		editor.pointerDown(400, 0).pointerMove(195, 175).pointerUp(195, 175)
 
 		// Check if the inner box was selected
-		expect(editor.selectedIds).toHaveLength(1)
+		expect(editor.selectedShapeIds).toHaveLength(1)
 		expect(editor.onlySelectedShape!.id).toBe(innerBoxId)
 
 		// Deselect everything
@@ -595,7 +595,7 @@ describe('frame shapes', () => {
 
 		// Check if the inner box was selected
 		editor.pointerUp(300, 300)
-		expect(editor.selectedIds).toHaveLength(0)
+		expect(editor.selectedShapeIds).toHaveLength(0)
 	})
 
 	it('arrows will not bind to parts of shapes outside the frame', () => {
@@ -683,7 +683,7 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 
 	editor.setCurrentTool('select')
 	editor.select(boxBId, boxCId)
-	editor.groupShapes(editor.selectedIds)
+	editor.groupShapes(editor.selectedShapeIds)
 	const groupId = editor.onlySelectedShape!.id
 
 	editor.setCurrentTool('arrow')

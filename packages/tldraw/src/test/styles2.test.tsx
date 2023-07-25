@@ -151,7 +151,7 @@ describe('Editor.setStyle', () => {
 			<TL.geo ref="B" x={0} y={0} color="green" />,
 		])
 
-		editor.setSelectedIds([ids.A, ids.B])
+		editor.setSelectedShapeIds([ids.A, ids.B])
 		editor.setStyle(DefaultColorStyle, 'red')
 
 		expect(editor.getShape<TLGeoShape>(ids.A)!.props.color).toBe('red')
@@ -170,7 +170,7 @@ describe('Editor.setStyle', () => {
 			</TL.group>,
 		])
 
-		editor.setSelectedIds([ids.groupA])
+		editor.setSelectedShapeIds([ids.groupA])
 		editor.setStyle(DefaultColorStyle, 'red')
 
 		// a wasn't selected...

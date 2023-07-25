@@ -511,16 +511,76 @@ describe('Adding labelColor prop to propsForNextShape', () => {
 	})
 })
 
-describe('Adding croppingId to instancePageState', () => {
+describe('Adding croppingShapeId to instancePageState', () => {
 	const { up, down } = instancePageStateMigrations.migrators[1]
 	test('up works as expected', () => {
 		expect(up({})).toEqual({
-			croppingId: null,
+			croppingShapeId: null,
 		})
 	})
 
 	test('down works as expected', () => {
-		expect(down({ croppingId: null })).toEqual({})
+		expect(down({ croppingShapeId: null })).toEqual({})
+	})
+})
+
+describe('Renaming properties in instancePageState', () => {
+	const { up, down } =
+		instancePageStateMigrations.migrators[instancePageStateVersions.RenameProperties]
+	test('up works as expected', () => {
+		expect(
+			up({
+				selectedShapeIds: [],
+				hintingShapeIds: [],
+				erasingShapeIds: [],
+				hoveredShapeId: null,
+				editingShapeId: null,
+				croppingShapeId: null,
+				focusedGroupId: null,
+				meta: {
+					name: 'hallo',
+				},
+			})
+		).toEqual({
+			selectedShapeIds: [],
+			hintingShapeIds: [],
+			erasingShapeIds: [],
+			hoveredShapeId: null,
+			editingShapeId: null,
+			croppingShapeId: null,
+			focusedGroupId: null,
+			meta: {
+				name: 'hallo',
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				selectedShapeIds: [],
+				hintingShapeIds: [],
+				erasingShapeIds: [],
+				hoveredShapeId: null,
+				editingShapeId: null,
+				croppingShapeId: null,
+				focusedGroupId: null,
+				meta: {
+					name: 'hallo',
+				},
+			})
+		).toEqual({
+			selectedShapeIds: [],
+			hintingShapeIds: [],
+			erasingShapeIds: [],
+			hoveredShapeId: null,
+			editingShapeId: null,
+			croppingShapeId: null,
+			focusedGroupId: null,
+			meta: {
+				name: 'hallo',
+			},
+		})
 	})
 })
 
@@ -970,13 +1030,13 @@ describe('making instance state independent', () => {
 			typeName: 'instance_page_state',
 			instanceId: 'instance:123',
 			cameraId: 'camera:123',
-			selectedIds: [],
+			selectedShapeIds: [],
 		}
 
 		const next = {
 			id: 'instance_page_state:123',
 			typeName: 'instance_page_state',
-			selectedIds: [],
+			selectedShapeIds: [],
 		}
 
 		expect(up(prev)).toEqual(next)
@@ -986,7 +1046,7 @@ describe('making instance state independent', () => {
 		  "cameraId": "camera:void",
 		  "id": "instance_page_state:123",
 		  "instanceId": "instance:instance",
-		  "selectedIds": Array [],
+		  "selectedShapeIds": Array [],
 		  "typeName": "instance_page_state",
 		}
 	`)
@@ -1000,13 +1060,13 @@ describe('making instance state independent', () => {
 			id: 'instance_presence:123',
 			typeName: 'instance_presence',
 			instanceId: 'instance:123',
-			selectedIds: [],
+			selectedShapeIds: [],
 		}
 
 		const next = {
 			id: 'instance_presence:123',
 			typeName: 'instance_presence',
-			selectedIds: [],
+			selectedShapeIds: [],
 		}
 
 		expect(up(prev)).toEqual(next)
@@ -1016,7 +1076,7 @@ describe('making instance state independent', () => {
 		Object {
 		  "id": "instance_presence:123",
 		  "instanceId": "instance:instance",
-		  "selectedIds": Array [],
+		  "selectedShapeIds": Array [],
 		  "typeName": "instance_presence",
 		}
 	`)
@@ -1354,6 +1414,19 @@ describe('rename isReadOnly to isReadonly', () => {
 		expect(down({ isReadonly: false })).toStrictEqual({
 			isReadOnly: false,
 		})
+	})
+})
+
+describe('Renames selectedShapeIds in presence', () => {
+	const { up, down } =
+		instancePresenceMigrations.migrators[instancePresenceVersions.RenameSelectedShapeIds]
+
+	test('up adds the chatMessage property', () => {
+		expect(up({ selectedShapeIds: [] })).toEqual({ selectedShapeIds: [] })
+	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ selectedShapeIds: [] })).toEqual({ selectedShapeIds: [] })
 	})
 })
 

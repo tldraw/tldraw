@@ -59,11 +59,11 @@ export class Pointing extends StateNode {
 	}
 
 	complete() {
-		const { erasingIds } = this.editor
+		const { erasingShapeIds } = this.editor
 
-		if (erasingIds.length) {
+		if (erasingShapeIds.length) {
 			this.editor.mark('erase end')
-			this.editor.deleteShapes(erasingIds)
+			this.editor.deleteShapes(erasingShapeIds)
 		}
 
 		this.editor.setErasingIds([])

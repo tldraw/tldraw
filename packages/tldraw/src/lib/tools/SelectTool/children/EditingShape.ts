@@ -14,14 +14,14 @@ export class EditingShape extends StateNode {
 	}
 
 	override onExit = () => {
-		if (!this.editor.currentPageState.editingId) return
-		const { editingId } = this.editor.currentPageState
-		if (!editingId) return
+		if (!this.editor.currentPageState.editingShapeId) return
+		const { editingShapeId } = this.editor.currentPageState
+		if (!editingShapeId) return
 
 		// Clear the editing shape
 		this.editor.setEditingId(null)
 
-		const shape = this.editor.getShape(editingId)!
+		const shape = this.editor.getShape(editingShapeId)!
 		const util = this.editor.getShapeUtil(shape)
 
 		// Check for changes on editing end

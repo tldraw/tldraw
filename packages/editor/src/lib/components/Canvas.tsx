@@ -274,7 +274,11 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 
 function SelectedIdIndicators() {
 	const editor = useEditor()
-	const selectedIds = useValue('selectedIds', () => editor.currentPageState.selectedIds, [editor])
+	const selectedShapeIds = useValue(
+		'selectedShapeIds',
+		() => editor.currentPageState.selectedShapeIds,
+		[editor]
+	)
 	const shouldDisplay = useValue(
 		'should display selected ids',
 		() => {
@@ -297,7 +301,7 @@ function SelectedIdIndicators() {
 
 	return (
 		<>
-			{selectedIds.map((id) => (
+			{selectedShapeIds.map((id) => (
 				<ShapeIndicator key={id + '_indicator'} className="tl-user-indicator__selected" id={id} />
 			))}
 		</>
@@ -307,17 +311,19 @@ function SelectedIdIndicators() {
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const editor = useEditor()
 	const { HoveredShapeIndicator } = useEditorComponents()
-	const hoveredId = useValue('hovered id', () => editor.currentPageState.hoveredId, [editor])
+	const hoveredShapeId = useValue('hovered id', () => editor.currentPageState.hoveredShapeId, [
+		editor,
+	])
 
-	if (!hoveredId || !HoveredShapeIndicator) return null
+	if (!hoveredShapeId || !HoveredShapeIndicator) return null
 
-	return <HoveredShapeIndicator shapeId={hoveredId} />
+	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	const editor = useEditor()
 
-	const ids = dedupe(editor.hintingIds)
+	const ids = dedupe(editor.hintingShapeIds)
 
 	if (!ids.length) return null
 

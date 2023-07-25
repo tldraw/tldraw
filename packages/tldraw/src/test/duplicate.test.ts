@@ -14,12 +14,12 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 
-	editor.selectAll().deleteShapes(editor.selectedIds)
+	editor.selectAll().deleteShapes(editor.selectedShapeIds)
 })
 it('creates new bindings for arrows when pasting', async () => {
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedIds)
+		.deleteShapes(editor.selectedShapeIds)
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -174,7 +174,7 @@ describe('When duplicating shapes that include arrows', () => {
 	})
 
 	it('Preserves the same selection bounds', () => {
-		editor.selectAll().deleteShapes(editor.selectedIds).createShapes(shapes).selectAll()
+		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes).selectAll()
 
 		const boundsBefore = editor.selectionBounds!
 		editor.duplicateShapes()
@@ -184,7 +184,7 @@ describe('When duplicating shapes that include arrows', () => {
 	it('Preserves the same selection bounds when only duplicating the arrows', () => {
 		editor
 			.selectAll()
-			.deleteShapes(editor.selectedIds)
+			.deleteShapes(editor.selectedShapeIds)
 			.createShapes(shapes)
 			.select(
 				...editor.shapesArray

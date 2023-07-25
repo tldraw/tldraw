@@ -16,8 +16,8 @@ export class PointingShape extends StateNode {
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
 		const {
-			selectedIds,
-			focusLayerId,
+			selectedShapeIds,
+			focusedGroupId,
 			selectionBounds,
 			inputs: { currentPagePoint, shiftKey, altKey },
 		} = this.editor
@@ -29,12 +29,12 @@ export class PointingShape extends StateNode {
 			// If the shape has an onClick handler
 			this.editor.getShapeUtil(info.shape).onClick ||
 			// ...or if the shape is the focused layer (e.g. group)
-			outermostSelectingShape.id === focusLayerId ||
+			outermostSelectingShape.id === focusedGroupId ||
 			// ...or if the shape is within the selection
-			selectedIds.includes(outermostSelectingShape.id) ||
+			selectedShapeIds.includes(outermostSelectingShape.id) ||
 			this.editor.isAncestorSelected(outermostSelectingShape.id) ||
 			// ...or if the current point is NOT within the selection bounds
-			(selectedIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
+			(selectedShapeIds.length > 1 && selectionBounds?.containsPoint(currentPagePoint))
 		) {
 			// We won't select the shape on enter, though we might select it on pointer up!
 			this.didSelectOnEnter = false
@@ -46,13 +46,13 @@ export class PointingShape extends StateNode {
 
 		if (shiftKey && !altKey) {
 			this.editor.cancelDoubleClick()
-			if (!selectedIds.includes(outermostSelectingShape.id)) {
+			if (!selectedShapeIds.includes(outermostSelectingShape.id)) {
 				this.editor.mark('shift selecting shape')
-				this.editor.setSelectedIds([...selectedIds, outermostSelectingShape.id])
+				this.editor.setSelectedShapeIds([...selectedShapeIds, outermostSelectingShape.id])
 			}
 		} else {
 			this.editor.mark('selecting shape')
-			this.editor.setSelectedIds([outermostSelectingShape.id])
+			this.editor.setSelectedShapeIds([outermostSelectingShape.id])
 		}
 	}
 
@@ -61,8 +61,8 @@ export class PointingShape extends StateNode {
 
 		const {
 			zoomLevel,
-			focusLayerId,
-			selectedIds,
+			focusedGroupId,
+			selectedShapeIds,
 			inputs: { currentPagePoint, shiftKey },
 		} = this.editor
 
@@ -89,10 +89,10 @@ export class PointingShape extends StateNode {
 				}
 			}
 
-			if (selectingShape.id === focusLayerId) {
-				if (selectedIds.length > 0) {
+			if (selectingShape.id === focusedGroupId) {
+				if (selectedShapeIds.length > 0) {
 					this.editor.mark('clearing shape ids')
-					this.editor.setSelectedIds([])
+					this.editor.setSelectedShapeIds([])
 				} else {
 					this.editor.popFocusLayer()
 				}
@@ -109,11 +109,11 @@ export class PointingShape extends StateNode {
 				hitShape,
 				// if a group is selected, we want to stop before reaching that group
 				// so we can drill down into the group
-				(parent) => !selectedIds.includes(parent.id)
+				(parent) => !selectedShapeIds.includes(parent.id)
 			)
 
 			// If the outermost shape is selected, then either select or deselect the SELECTING shape
-			if (selectedIds.includes(outermostSelectableShape.id)) {
+			if (selectedShapeIds.includes(outermostSelectableShape.id)) {
 				// same shape, so deselect it if shift is pressed, otherwise deselect all others
 				if (shiftKey) {
 					this.editor.mark('deselecting on pointer up')
@@ -128,14 +128,14 @@ export class PointingShape extends StateNode {
 				const ancestors = this.editor.getAncestors(outermostSelectableShape)
 
 				this.editor.mark('shift deselecting on pointer up')
-				this.editor.setSelectedIds([
-					...this.editor.selectedIds.filter((id) => !ancestors.find((a) => a.id === id)),
+				this.editor.setSelectedShapeIds([
+					...this.editor.selectedShapeIds.filter((id) => !ancestors.find((a) => a.id === id)),
 					outermostSelectableShape.id,
 				])
 			} else {
 				this.editor.mark('selecting on pointer up')
 				// different shape and we are drilling down, but no shift held so just select it straight up
-				this.editor.setSelectedIds([outermostSelectableShape.id])
+				this.editor.setSelectedShapeIds([outermostSelectableShape.id])
 			}
 		}
 

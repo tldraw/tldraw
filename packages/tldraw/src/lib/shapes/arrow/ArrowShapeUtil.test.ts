@@ -32,7 +32,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedIds)
+		.deleteShapes(editor.selectedShapeIds)
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -179,7 +179,7 @@ describe('Other cases when arrow are moved', () => {
 		editor.select(ids.arrow1, ids.box2)
 
 		// When box one is not selected, unbinds box1 and keeps binding to box2
-		editor.nudgeShapes(editor.selectedIds, { x: 0, y: -1 })
+		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: -1 })
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
 			props: {
@@ -190,7 +190,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// unbinds when only the arrow is selected (not its bound shapes)
 		editor.select(ids.arrow1)
-		editor.nudgeShapes(editor.selectedIds, { x: 0, y: -1 })
+		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: -1 })
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
 			props: { start: { type: 'point' }, end: { type: 'point' } },
@@ -293,13 +293,13 @@ describe('Other cases when arrow are moved', () => {
 		// create shapes in a group:
 		editor
 			.selectAll()
-			.deleteShapes(editor.selectedIds)
+			.deleteShapes(editor.selectedShapeIds)
 			.createShapes([
 				{ id: ids.box3, type: 'geo', x: 0, y: 300, props: { w: 100, h: 100 } },
 				{ id: ids.box4, type: 'geo', x: 0, y: 600, props: { w: 100, h: 100 } },
 			])
 			.selectAll()
-			.groupShapes(editor.selectedIds)
+			.groupShapes(editor.selectedShapeIds)
 
 		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
 		let arrow = editor.shapesArray[editor.shapesArray.length - 1]
@@ -308,7 +308,7 @@ describe('Other cases when arrow are moved', () => {
 		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
 
 		// translate:
-		editor.selectAll().nudgeShapes(editor.selectedIds, { x: 0, y: 1 })
+		editor.selectAll().nudgeShapes(editor.selectedShapeIds, { x: 0, y: 1 })
 
 		// arrow should still be bound to box3
 		arrow = editor.getShape(arrow.id)!
@@ -360,7 +360,7 @@ describe('resizing', () => {
 	it('resizes', () => {
 		editor
 			.selectAll()
-			.deleteShapes(editor.selectedIds)
+			.deleteShapes(editor.selectedShapeIds)
 			.setCurrentTool('arrow')
 			.pointerDown(0, 0)
 			.pointerMove(200, 200)
@@ -415,7 +415,7 @@ describe('resizing', () => {
 	it('flips bend when flipping x or y', () => {
 		editor
 			.selectAll()
-			.deleteShapes(editor.selectedIds)
+			.deleteShapes(editor.selectedShapeIds)
 			.setCurrentTool('arrow')
 			.pointerDown(0, 0)
 			.pointerMove(200, 200)
@@ -484,7 +484,7 @@ describe("an arrow's parents", () => {
 	let boxCid: TLShapeId
 
 	beforeEach(() => {
-		editor.selectAll().deleteShapes(editor.selectedIds)
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
 
 		editor.setCurrentTool('frame')
 		editor.pointerDown(0, 0).pointerMove(100, 100).pointerUp()

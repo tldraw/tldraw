@@ -96,7 +96,7 @@ export class Erasing extends StateNode {
 		const {
 			zoomLevel,
 			shapesArray,
-			erasingIdsSet,
+			erasingShapeIdsSet,
 			inputs: { currentPagePoint, previousPagePoint },
 		} = this.editor
 
@@ -104,7 +104,7 @@ export class Erasing extends StateNode {
 
 		this.pushPointToScribble()
 
-		const erasing = new Set<TLShapeId>(erasingIdsSet)
+		const erasing = new Set<TLShapeId>(erasingShapeIdsSet)
 
 		for (const shape of shapesArray) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
@@ -132,7 +132,7 @@ export class Erasing extends StateNode {
 	}
 
 	complete() {
-		this.editor.deleteShapes(this.editor.currentPageState.erasingIds)
+		this.editor.deleteShapes(this.editor.currentPageState.erasingShapeIds)
 		this.editor.setErasingIds([])
 		this.parent.transition('idle', {})
 	}

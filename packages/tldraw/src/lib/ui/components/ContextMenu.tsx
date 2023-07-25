@@ -30,7 +30,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 				const { onlySelectedShape } = editor
 
 				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
-					editor.setSelectedIds([])
+					editor.setSelectedShapeIds([])
 				}
 			} else {
 				// Weird route: selecting locked shapes on long press

@@ -208,8 +208,8 @@ describe('When cloning...', () => {
 		// Start cloning!
 		editor.keyDown('Alt')
 		expect(editor.currentPageShapeIds.size).toBe(5) // Two new shapes!
-		const newShapeA = editor.getShape(editor.selectedIds[0])!
-		const newShapeB = editor.getShape(editor.selectedIds[1])!
+		const newShapeA = editor.getShape(editor.selectedShapeIds[0])!
+		const newShapeB = editor.getShape(editor.selectedShapeIds[1])!
 		expect(newShapeA).toBeDefined()
 		expect(newShapeB).toBeDefined()
 
@@ -245,7 +245,7 @@ describe('When cloning...', () => {
 		editor.keyDown('Alt', { altKey: true })
 		expect(editor.currentPageShapeIds.size).toBe(5) // Creates a clone of B and C (its descendant)
 
-		const newShapeA = editor.getShape(editor.selectedIds[0])!
+		const newShapeA = editor.getShape(editor.selectedShapeIds[0])!
 		const newShapeB = editor.getShape(editor.getSortedChildIds(newShapeA.id)[0])!
 
 		expect(newShapeA).toBeDefined()
@@ -1570,7 +1570,7 @@ describe('translating a shape with a bound shape', () => {
 		// |      └───┘        |
 		// └───────────────────┘
 
-		expect(editor.getShape(editor.selectedIds[0])?.type).toBe('arrow')
+		expect(editor.getShape(editor.selectedShapeIds[0])?.type).toBe('arrow')
 
 		editor.pointerDown(50, 50, ids.box1).pointerMove(84, 110, { ctrlKey: true })
 

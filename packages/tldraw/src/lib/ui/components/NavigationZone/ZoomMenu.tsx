@@ -13,7 +13,7 @@ export const ZoomMenu = track(function ZoomMenu() {
 
 	const zoom = editor.zoomLevel
 	const hasShapes = editor.currentPageShapeIds.size > 0
-	const hasSelected = editor.selectedIds.length > 0
+	const hasSelected = editor.selectedShapeIds.length > 0
 	const isZoomedTo100 = editor.zoomLevel === 1
 
 	const handleDoubleClick = React.useCallback(() => {

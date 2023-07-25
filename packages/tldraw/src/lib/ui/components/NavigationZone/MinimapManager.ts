@@ -176,7 +176,7 @@ export class MinimapManager {
 		const { editor, canvasScreenBounds, canvasPageBounds, contentPageBounds, contentScreenBounds } =
 			this
 		const { width: cw, height: ch } = canvasScreenBounds
-		const { viewportPageBounds, selectedIds } = editor
+		const { viewportPageBounds, selectedShapeIds } = editor
 
 		if (!cvs || !pageBounds) {
 			return
@@ -225,7 +225,7 @@ export class MinimapManager {
 		for (let i = 0, n = pageBounds.length; i < n; i++) {
 			pb = pageBounds[i]
 			MinimapManager.roundedRect(
-				selectedIds.includes(pb.id) ? selectedPath : shapesPath,
+				selectedShapeIds.includes(pb.id) ? selectedPath : shapesPath,
 				pb.minX,
 				pb.minY,
 				pb.width,

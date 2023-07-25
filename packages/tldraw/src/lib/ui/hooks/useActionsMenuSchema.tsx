@@ -40,7 +40,7 @@ export const ActionsMenuSchemaProvider = track(function ActionsMenuSchemaProvide
 	const editor = useEditor()
 	const actions = useActions()
 
-	const selectedCount = editor.selectedIds.length
+	const selectedCount = editor.selectedShapeIds.length
 
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1

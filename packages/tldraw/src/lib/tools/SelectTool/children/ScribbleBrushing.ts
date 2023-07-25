@@ -23,14 +23,14 @@ export class ScribbleBrushing extends StateNode {
 
 	scribble = {} as ScribbleManager
 
-	initialSelectedIds = new Set<TLShapeId>()
-	newlySelectedIds = new Set<TLShapeId>()
+	initialSelectedShapeIds = new Set<TLShapeId>()
+	newlySelectedShapeIds = new Set<TLShapeId>()
 
 	override onEnter = () => {
-		this.initialSelectedIds = new Set<TLShapeId>(
-			this.editor.inputs.shiftKey ? this.editor.selectedIds : []
+		this.initialSelectedShapeIds = new Set<TLShapeId>(
+			this.editor.inputs.shiftKey ? this.editor.selectedShapeIds : []
 		)
-		this.newlySelectedIds = new Set<TLShapeId>()
+		this.newlySelectedShapeIds = new Set<TLShapeId>()
 		this.size = 0
 		this.hits.clear()
 
@@ -112,7 +112,7 @@ export class ScribbleBrushing extends StateNode {
 			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
 		} = this.editor
 
-		const { newlySelectedIds, initialSelectedIds } = this
+		const { newlySelectedShapeIds, initialSelectedShapeIds } = this
 
 		if (addPoint) {
 			this.pushPointToScribble()
@@ -127,7 +127,7 @@ export class ScribbleBrushing extends StateNode {
 
 			if (
 				this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-				newlySelectedIds.has(shape.id) ||
+				newlySelectedShapeIds.has(shape.id) ||
 				(this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
 					geometry.hitTestPoint(
 						this.editor.getPointInShapeSpace(shape, originPagePoint),
@@ -158,14 +158,16 @@ export class ScribbleBrushing extends StateNode {
 					}
 				}
 
-				newlySelectedIds.add(outermostShape.id)
+				newlySelectedShapeIds.add(outermostShape.id)
 			}
 		}
 
-		this.editor.setSelectedIds(
+		this.editor.setSelectedShapeIds(
 			[
 				...new Set<TLShapeId>(
-					shiftKey ? [...newlySelectedIds, ...initialSelectedIds] : [...newlySelectedIds]
+					shiftKey
+						? [...newlySelectedShapeIds, ...initialSelectedShapeIds]
+						: [...newlySelectedShapeIds]
 				),
 			],
 			true
@@ -177,7 +179,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private cancel() {
-		this.editor.setSelectedIds([...this.initialSelectedIds], true)
+		this.editor.setSelectedShapeIds([...this.initialSelectedShapeIds], true)
 		this.parent.transition('idle', {})
 	}
 }

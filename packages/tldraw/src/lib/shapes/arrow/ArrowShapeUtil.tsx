@@ -332,13 +332,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// If at least one bound shape is in the selection, do nothing;
 		// If no bound shapes are in the selection, unbind any bound shapes
 
-		const { selectedIds } = this.editor
+		const { selectedShapeIds } = this.editor
 
 		if (
 			(startBindingId &&
-				(selectedIds.includes(startBindingId) || this.editor.isAncestorSelected(startBindingId))) ||
+				(selectedShapeIds.includes(startBindingId) ||
+					this.editor.isAncestorSelected(startBindingId))) ||
 			(endBindingId &&
-				(selectedIds.includes(endBindingId) || this.editor.isAncestorSelected(endBindingId)))
+				(selectedShapeIds.includes(endBindingId) || this.editor.isAncestorSelected(endBindingId)))
 		) {
 			return
 		}

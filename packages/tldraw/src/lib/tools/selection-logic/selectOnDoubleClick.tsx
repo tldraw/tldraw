@@ -12,7 +12,7 @@ export function selectOnDoubleClick(editor: Editor) {
 					hitInside: true,
 			  })
 
-	const { focusLayerId } = editor
+	const { focusedGroupId } = editor
 
 	if (hitShape) {
 		if (editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
@@ -25,7 +25,7 @@ export function selectOnDoubleClick(editor: Editor) {
 				// The shape is the direct child of a group. If the group is
 				// selected, then we can select the shape. If the group is the
 				// focus layer id, then we can double click into it as usual.
-				if (focusLayerId && parent.id === focusLayerId) {
+				if (focusedGroupId && parent.id === focusedGroupId) {
 					// noop, double click on the shape as normal below
 				} else {
 					// The shape is the child of some group other than our current

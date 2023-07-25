@@ -284,7 +284,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	const pagePoints: Vec2d[] = []
 
 	const shapeSnapshots = compact(
-		editor.selectedIds.map((id): null | MovingShapeSnapshot => {
+		editor.selectedShapeIds.map((id): null | MovingShapeSnapshot => {
 			const shape = editor.getShape(id)
 			if (!shape) return null
 			movingShapes.push(shape)
@@ -311,8 +311,8 @@ function getTranslatingSnapshot(editor: Editor) {
 		shapeSnapshots,
 		initialPageBounds: editor.selectedPageBounds!,
 		initialSnapPoints:
-			editor.selectedIds.length === 1
-				? editor.snaps.snapPointsCache.get(editor.selectedIds[0])!
+			editor.selectedShapeIds.length === 1
+				? editor.snaps.snapPointsCache.get(editor.selectedShapeIds[0])!
 				: editor.selectedPageBounds
 				? editor.selectedPageBounds.snapPoints.map((p, i) => ({
 						id: 'selection:' + i,

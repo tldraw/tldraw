@@ -361,7 +361,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 			}
 		})
 	)
-	editor.setSelectedIds(rootShapeIds)
+	editor.setSelectedShapeIds(rootShapeIds)
 }
 
 /* --------------- Translating Helpers --------_------ */
