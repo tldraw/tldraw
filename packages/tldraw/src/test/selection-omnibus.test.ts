@@ -1216,6 +1216,51 @@ describe('scribble brushes to add to the selection', () => {
 	})
 })
 
+describe('Hovering shapes', () => {
+	beforeEach(() => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+	})
+
+	it('hovers the margins of hollow shapes but not their insides', () => {
+		expect(editor.hoveredId).toBe(null)
+		editor.pointerMove(-4, 50)
+		expect(editor.hoveredId).toBe(ids.box1)
+		editor.pointerMove(-50, 50)
+		expect(editor.hoveredId).toBe(null)
+		editor.pointerMove(4, 50)
+		expect(editor.hoveredId).toBe(ids.box1)
+		editor.pointerMove(50, 50)
+		expect(editor.hoveredId).toBe(null)
+	})
+
+	it('hovers the margins or inside of hollow shapes', () => {
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { fill: 'solid' } })
+		expect(editor.hoveredId).toBe(null)
+		editor.pointerMove(-4, 50)
+		expect(editor.hoveredId).toBe(ids.box1)
+		editor.pointerMove(-50, 50)
+		expect(editor.hoveredId).toBe(null)
+		editor.pointerMove(4, 50)
+		expect(editor.hoveredId).toBe(ids.box1)
+		editor.pointerMove(50, 50)
+		expect(editor.hoveredId).toBe(ids.box1)
+	})
+
+	it('hovers the closest edge or else the highest shape', () => {
+		// box2 is above box1
+		editor.createShapes([{ id: ids.box2, type: 'geo', x: 6, y: 0, props: { w: 100, h: 100 } }])
+		editor.pointerMove(2, 50)
+		expect(editor.hoveredId).toBe(ids.box1)
+		editor.pointerMove(4, 50)
+		expect(editor.hoveredId).toBe(ids.box2)
+		editor.pointerMove(3, 50)
+		expect(editor.hoveredId).toBe(ids.box2)
+		editor.sendToBack([ids.box2])
+		editor.pointerMove(3, 50) // ! does not update automatically, only on move
+		expect(editor.hoveredId).toBe(ids.box1)
+	})
+})
+
 it.todo('maybe? does not select a hollow closed shape that contains the viewport?')
 it.todo('maybe? does not select a hollow closed shape if the negative distance is more than X?')
 it.todo(
