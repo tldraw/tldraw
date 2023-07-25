@@ -44,7 +44,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).cancel().pointerUp(100, 100)
 		expect(editor.onlySelectedShape?.type).toBe(undefined)
-		expect(editor.shapesArray).toHaveLength(0)
+		expect(editor.shapesOnCurrentPage).toHaveLength(0)
 	})
 	it('can be canceled while dragging', () => {
 		editor.setCurrentTool('frame')
@@ -53,19 +53,19 @@ describe('creating frames', () => {
 		editor.cancel()
 		editor.pointerUp()
 		expect(editor.onlySelectedShape?.type).toBe(undefined)
-		expect(editor.shapesArray).toHaveLength(0)
+		expect(editor.shapesOnCurrentPage).toHaveLength(0)
 	})
 	it('can be undone', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
 		expect(editor.onlySelectedShape?.type).toBe('frame')
-		expect(editor.shapesArray).toHaveLength(1)
+		expect(editor.shapesOnCurrentPage).toHaveLength(1)
 
 		editor.undo()
 
 		expect(editor.onlySelectedShape?.type).toBe(undefined)
-		expect(editor.shapesArray).toHaveLength(0)
+		expect(editor.shapesOnCurrentPage).toHaveLength(0)
 	})
 	it('can be done inside other frames', () => {
 		editor.setCurrentTool('frame')
@@ -76,7 +76,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
-		expect(editor.shapesArray).toHaveLength(2)
+		expect(editor.shapesOnCurrentPage).toHaveLength(2)
 
 		expect(editor.onlySelectedShape?.parentId).toEqual(frameAId)
 
@@ -98,7 +98,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
-		expect(editor.shapesArray).toHaveLength(2)
+		expect(editor.shapesOnCurrentPage).toHaveLength(2)
 
 		expect(editor.onlySelectedShape?.parentId).toEqual(frameAId)
 
@@ -146,7 +146,7 @@ describe('creating frames', () => {
 describe('frame shapes', () => {
 	it('can receive new children when shapes are drawn on top and the frame is rotated', () => {
 		// We should be starting from an empty canvas
-		expect(editor.shapesArray).toHaveLength(0)
+		expect(editor.shapesOnCurrentPage).toHaveLength(0)
 
 		const frameId = createShapeId('frame')
 
@@ -169,16 +169,16 @@ describe('frame shapes', () => {
 			.pointerUp()
 
 		// The two shapes should have been created
-		expect(editor.shapesArray).toHaveLength(3)
+		expect(editor.shapesOnCurrentPage).toHaveLength(3)
 
 		// The shapes should be the child of the frame
-		const childIds = editor.getSortedChildIds(frameId)
+		const childIds = editor.getSortedChildIdsForParent(frameId)
 		expect(childIds.length).toBe(2)
 
 		// The absolute rotation should be zero
 		childIds.forEach((id) => expect(editor.getPageRotationById(id)).toBe(0))
 		// Which means the local rotation should be -PI/2
-		childIds.forEach((id) => expect(editor.getShapeById(id)!.rotation).toBe(-Math.PI / 2))
+		childIds.forEach((id) => expect(editor.getShape(id)!.rotation).toBe(-Math.PI / 2))
 	})
 
 	it('can be resized', () => {
@@ -223,13 +223,13 @@ describe('frame shapes', () => {
 
 		editor.resizeSelection({ scaleX: 0.5, scaleY: 0.5 }, 'bottom_right')
 
-		expect(editor.getPageBoundsById(frameId)).toCloselyMatchObject({
+		expect(editor.getPageBounds(frameId)).toCloselyMatchObject({
 			x: 100,
 			y: 100,
 			w: 50,
 			h: 50,
 		})
-		expect(editor.getPageBoundsById(boxId)).toCloselyMatchObject({
+		expect(editor.getPageBounds(boxId)).toCloselyMatchObject({
 			x: 125,
 			y: 125,
 			w: 50,
@@ -329,11 +329,9 @@ describe('frame shapes', () => {
 
 		expect(editor.onlySelectedShape!.id).toBe(boxAid)
 		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
-		expect(editor.hintingIds).toHaveLength(0)
+		expect(editor.hintingShapeIds).toHaveLength(0)
 		// box A should still be beneath box B
-		expect(
-			editor.getShapeById(boxAid)!.index.localeCompare(editor.getShapeById(boxBid)!.index)
-		).toBe(-1)
+		expect(editor.getShape(boxAid)!.index.localeCompare(editor.getShape(boxBid)!.index)).toBe(-1)
 	})
 
 	it('can be snapped to when dragging other shapes', () => {
@@ -347,9 +345,9 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.select(ids.boxA)
 		editor.pointerDown(275, 275, ids.boxA).pointerMove(275, 74)
-		expect(editor.getPageBoundsById(ids.boxA)).toMatchObject({ y: 49 })
+		expect(editor.getPageBounds(ids.boxA)).toMatchObject({ y: 49 })
 		editor.keyDown('Control')
-		expect(editor.getPageBoundsById(ids.boxA)).toMatchObject({ y: 50 })
+		expect(editor.getPageBounds(ids.boxA)).toMatchObject({ y: 50 })
 		expect(editor.snaps.lines).toHaveLength(1)
 	})
 
@@ -388,7 +386,7 @@ describe('frame shapes', () => {
 		})
 		expect(editor.snaps.lines).toHaveLength(0)
 		// and if we unparent the box it should snap
-		editor.reparentShapesById([innerBoxId], editor.currentPageId)
+		editor.reparentShapes([innerBoxId], editor.currentPageId)
 
 		editor.pointerMove(287.5, 126.5).pointerMove(277.5, 126.5)
 		expect(editor.snaps.lines).toHaveLength(1)
@@ -421,7 +419,7 @@ describe('frame shapes', () => {
 		expect(editor.snaps.lines).toHaveLength(0)
 
 		// move shape inside the frame to make sure it snaps in there
-		editor.reparentShapesById([outerBoxId], frameId).pointerMove(150, 149, { ctrlKey: true })
+		editor.reparentShapes([outerBoxId], frameId).pointerMove(150, 149, { ctrlKey: true })
 
 		expect(editor.snaps.lines).toHaveLength(1)
 	})
@@ -441,13 +439,13 @@ describe('frame shapes', () => {
 		})
 
 		// mask should be a 50px box around the top left corner
-		expect(editor.getClipPathById(editor.onlySelectedShape!.id)).toMatchInlineSnapshot(
+		expect(editor.getClipPath(editor.onlySelectedShape!.id)).toMatchInlineSnapshot(
 			`"polygon(-50px -50px,50px -50px,50px 50px,-50px 50px)"`
 		)
 
-		editor.reparentShapesById([editor.onlySelectedShape!.id], editor.currentPageId)
+		editor.reparentShapes([editor.onlySelectedShape!.id], editor.currentPageId)
 
-		expect(editor.getClipPathById(editor.onlySelectedShape!.id)).toBeUndefined()
+		expect(editor.getClipPath(editor.onlySelectedShape!.id)).toBeUndefined()
 	})
 
 	it('masks its nested children', () => {
@@ -464,10 +462,10 @@ describe('frame shapes', () => {
 
 		const boxId = editor.onlySelectedShape!.id
 
-		editor.reparentShapesById([boxId], innerFrameId)
+		editor.reparentShapes([boxId], innerFrameId)
 
 		// should be a 50px box starting in the middle of the outer frame
-		expect(editor.getClipPathById(boxId)).toMatchInlineSnapshot(
+		expect(editor.getClipPath(boxId)).toMatchInlineSnapshot(
 			`"polygon(50px 50px,100px 50px,100px 100px,50px 100px)"`
 		)
 	})
@@ -518,15 +516,15 @@ describe('frame shapes', () => {
 
 		const frameId = editor.onlySelectedShape!.id
 
-		expect(editor.selectedIds[0]).toBe(frameId)
-		expect(editor.currentPageState.editingId).toBe(null)
+		expect(editor.selectedShapeIds[0]).toBe(frameId)
+		expect(editor.currentPageState.editingShapeId).toBe(null)
 
 		editor.setCurrentTool('select')
 
 		editor.keyDown('Enter')
 		editor.keyUp('Enter')
 
-		expect(editor.currentPageState.editingId).toBe(frameId)
+		expect(editor.currentPageState.editingShapeId).toBe(frameId)
 	})
 
 	it('can be selected with box brushing only if the whole frame is selected', () => {
@@ -539,24 +537,26 @@ describe('frame shapes', () => {
 		editor.pointerDown(50, 50).pointerMove(150, 150)
 		editor.expectPathToBe('root.select.brushing')
 
-		expect(editor.selectedIds).toHaveLength(0)
+		expect(editor.selectedShapeIds).toHaveLength(0)
 
 		editor.pointerMove(250, 250)
 
-		expect(editor.selectedIds).toHaveLength(1)
+		expect(editor.selectedShapeIds).toHaveLength(1)
 		expect(editor.onlySelectedShape!.id).toBe(frameId)
 	})
 
 	it('can be selected with scribble brushing only if the drag starts outside the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
+		editor.expectPathToBe('root.select.idle')
 
 		// select from inside the frame
+		editor.selectNone()
 		editor.setCurrentTool('select')
 		editor.pointerDown(150, 150).pointerMove(250, 250)
 		editor.expectPathToBe('root.select.brushing')
 
-		expect(editor.selectedIds).toHaveLength(0)
+		expect(editor.selectedShapeIds).toHaveLength(0)
 	})
 
 	it('children of a frame will not be selected from outside of the frame', () => {
@@ -574,14 +574,14 @@ describe('frame shapes', () => {
 		editor.pointerDown(500, 500).pointerMove(300, 300).pointerUp(300, 300)
 
 		// Check if the inner box was selected
-		expect(editor.selectedIds).toHaveLength(0)
+		expect(editor.selectedShapeIds).toHaveLength(0)
 
 		// Select from outside the frame via box brushing
 		// but also include the frame in the selection
 		editor.pointerDown(400, 0).pointerMove(195, 175).pointerUp(195, 175)
 
 		// Check if the inner box was selected
-		expect(editor.selectedIds).toHaveLength(1)
+		expect(editor.selectedShapeIds).toHaveLength(1)
 		expect(editor.onlySelectedShape!.id).toBe(innerBoxId)
 
 		// Deselect everything
@@ -595,7 +595,7 @@ describe('frame shapes', () => {
 
 		// Check if the inner box was selected
 		editor.pointerUp(300, 300)
-		expect(editor.selectedIds).toHaveLength(0)
+		expect(editor.selectedShapeIds).toHaveLength(0)
 	})
 
 	it('arrows will not bind to parts of shapes outside the frame', () => {
@@ -683,7 +683,7 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 
 	editor.setCurrentTool('select')
 	editor.select(boxBId, boxCId)
-	editor.groupShapes()
+	editor.groupShapes(editor.selectedShapeIds)
 	const groupId = editor.onlySelectedShape!.id
 
 	editor.setCurrentTool('arrow')
@@ -695,7 +695,7 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	expect(editor.getArrowsBoundTo(boxCId)).toHaveLength(0)
 
 	// expect group parent to be the frame
-	expect(editor.getShapeById(groupId)!.parentId).toBe(frameId)
+	expect(editor.getShape(groupId)!.parentId).toBe(frameId)
 
 	// move the group outside of the frame
 	editor.setCurrentTool('select')
@@ -703,11 +703,9 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	editor.translateSelection(200, 0)
 
 	// expect group parent to be the page
-	expect(editor.getShapeById(groupId)!.parentId).toBe(editor.currentPageId)
+	expect(editor.getShape(groupId)!.parentId).toBe(editor.currentPageId)
 	// expect arrow parent to be the page
-	expect(editor.getShapeById(arrowId)!.parentId).toBe(editor.currentPageId)
+	expect(editor.getShape(arrowId)!.parentId).toBe(editor.currentPageId)
 	// expect arrow index to be greater than group index
-	expect(
-		editor.getShapeById(arrowId)?.index.localeCompare(editor.getShapeById(groupId)!.index)
-	).toBe(1)
+	expect(editor.getShape(arrowId)?.index.localeCompare(editor.getShape(groupId)!.index)).toBe(1)
 })

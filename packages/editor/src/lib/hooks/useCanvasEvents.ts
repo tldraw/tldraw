@@ -56,28 +56,6 @@ export function useCanvasEvents() {
 				})
 			}
 
-			function onPointerEnter(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
-
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_enter',
-					...getPointerInfo(e, editor.getContainer()),
-				})
-			}
-
-			function onPointerLeave(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
-
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_leave',
-					...getPointerInfo(e, editor.getContainer()),
-				})
-			}
-
 			function onTouchStart(e: React.TouchEvent) {
 				;(e as any).isKilled = true
 				// todo: investigate whether this effects keyboard shortcuts
@@ -120,8 +98,6 @@ export function useCanvasEvents() {
 				onPointerDown,
 				onPointerMove,
 				onPointerUp,
-				onPointerEnter,
-				onPointerLeave,
 				onDragOver,
 				onDrop,
 				onTouchStart,

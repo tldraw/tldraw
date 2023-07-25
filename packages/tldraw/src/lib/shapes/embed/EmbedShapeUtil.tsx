@@ -32,7 +32,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	static override props = embedShapeProps
 	static override migrations = embedShapeMigrations
 
-	override hideSelectionBoundsBg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
 	override hideSelectionBoundsFg: TLShapeUtilFlag<TLEmbedShape> = (shape) => !this.canResize(shape)
 	override canEdit: TLShapeUtilFlag<TLEmbedShape> = () => true
 	override canUnmount: TLShapeUtilFlag<TLEmbedShape> = (shape: TLEmbedShape) => {
@@ -84,10 +83,10 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const isHoveringWhileEditingSameShape = useValue(
 			'is hovering',
 			() => {
-				const { editingId, hoveredId } = this.editor.currentPageState
+				const { editingShapeId, hoveredShapeId } = this.editor.currentPageState
 
-				if (editingId && hoveredId !== editingId) {
-					const editingShape = this.editor.getShapeById(editingId)
+				if (editingShapeId && hoveredShapeId !== editingShapeId) {
+					const editingShape = this.editor.getShape(editingShapeId)
 					if (editingShape && this.editor.isShapeOfType<TLEmbedShape>(editingShape, 'embed')) {
 						return true
 					}
@@ -98,7 +97,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			[]
 		)
 
-		const pageRotation = this.editor.getPageRotation(shape)
+		const pageRotation = this.editor.getPageTransform(shape)!.rotation()
 
 		const isInteractive = isEditing || isHoveringWhileEditingSameShape
 

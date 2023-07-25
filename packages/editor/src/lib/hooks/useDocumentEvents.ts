@@ -74,9 +74,6 @@ export function useDocumentEvents() {
 						preventDefault(e)
 						if (!editor.inputs.keys.has('Comma')) {
 							const { x, y, z } = editor.inputs.currentScreenPoint
-							const {
-								currentPageState: { hoveredId },
-							} = editor
 							editor.inputs.keys.add('Comma')
 
 							const info: TLPointerEventInfo = {
@@ -89,14 +86,7 @@ export function useDocumentEvents() {
 								pointerId: 0,
 								button: 0,
 								isPen: editor.instanceState.isPenMode,
-								...(hoveredId
-									? {
-											target: 'shape',
-											shape: editor.getShapeById(hoveredId)!,
-									  }
-									: {
-											target: 'canvas',
-									  }),
+								target: 'canvas',
 							}
 
 							editor.dispatch(info)
@@ -152,9 +142,6 @@ export function useDocumentEvents() {
 				if (document.activeElement?.ELEMENT_NODE) preventDefault(e)
 				if (editor.inputs.keys.has(e.code)) {
 					const { x, y, z } = editor.inputs.currentScreenPoint
-					const {
-						currentPageState: { hoveredId },
-					} = editor
 
 					editor.inputs.keys.delete(e.code)
 
@@ -168,14 +155,7 @@ export function useDocumentEvents() {
 						pointerId: 0,
 						button: 0,
 						isPen: editor.instanceState.isPenMode,
-						...(hoveredId
-							? {
-									target: 'shape',
-									shape: editor.getShapeById(hoveredId)!,
-							  }
-							: {
-									target: 'canvas',
-							  }),
+						target: 'canvas',
 					}
 					editor.dispatch(info)
 					return

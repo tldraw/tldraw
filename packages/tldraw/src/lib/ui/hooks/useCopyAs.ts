@@ -18,9 +18,9 @@ export function useCopyAs() {
 		//
 		// this is fine for navigator.clipboard.write, but for fallbacks it's a
 		// little awkward.
-		function copyAs(ids: TLShapeId[] = editor.selectedIds, format: TLCopyType = 'svg') {
+		function copyAs(ids: TLShapeId[] = editor.selectedShapeIds, format: TLCopyType = 'svg') {
 			if (ids.length === 0) {
-				ids = [...editor.currentPageShapeIds]
+				ids = [...editor.shapeIdsOnCurrentPage]
 			}
 
 			if (ids.length === 0) {

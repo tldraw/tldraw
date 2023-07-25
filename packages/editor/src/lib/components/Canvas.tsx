@@ -101,6 +101,7 @@ export const Canvas = track(function Canvas() {
 					<ShapesToDisplay />
 				</div>
 				<div className="tl-overlays">
+					{/* <GeometryDebuggingView /> */}
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />
@@ -273,7 +274,11 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 
 function SelectedIdIndicators() {
 	const editor = useEditor()
-	const selectedIds = useValue('selectedIds', () => editor.currentPageState.selectedIds, [editor])
+	const selectedShapeIds = useValue(
+		'selectedShapeIds',
+		() => editor.currentPageState.selectedShapeIds,
+		[editor]
+	)
 	const shouldDisplay = useValue(
 		'should display selected ids',
 		() => {
@@ -296,7 +301,7 @@ function SelectedIdIndicators() {
 
 	return (
 		<>
-			{selectedIds.map((id) => (
+			{selectedShapeIds.map((id) => (
 				<ShapeIndicator key={id + '_indicator'} className="tl-user-indicator__selected" id={id} />
 			))}
 		</>
@@ -306,16 +311,19 @@ function SelectedIdIndicators() {
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const editor = useEditor()
 	const { HoveredShapeIndicator } = useEditorComponents()
-	const hoveredId = useValue('hovered id', () => editor.currentPageState.hoveredId, [editor])
-	if (!hoveredId || !HoveredShapeIndicator) return null
+	const hoveredShapeId = useValue('hovered id', () => editor.currentPageState.hoveredShapeId, [
+		editor,
+	])
 
-	return <HoveredShapeIndicator shapeId={hoveredId} />
+	if (!hoveredShapeId || !HoveredShapeIndicator) return null
+
+	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	const editor = useEditor()
 
-	const ids = dedupe(editor.hintingIds)
+	const ids = dedupe(editor.hintingShapeIds)
 
 	if (!ids.length) return null
 
@@ -370,7 +378,7 @@ function ArrowheadCross() {
 
 const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 	const editor = useEditor()
-	const shape = editor.getShapeById(id)
+	const shape = editor.getShape(id)
 
 	const [html, setHtml] = React.useState('')
 
@@ -383,7 +391,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = editor.getPageBoundsById(id)
+			const bb = editor.getPageBounds(id)
 			const el = await editor.getSvg([id], { padding: 0 })
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')
@@ -428,13 +436,19 @@ const UiLogger = track(() => {
 })
 
 export function SelectionForegroundWrapper() {
+	const editor = useEditor()
+	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.selectionBounds, [editor])
 	const { SelectionForeground } = useEditorComponents()
-	if (!SelectionForeground) return null
-	return <SelectionForeground />
+	if (!selectionBounds || !SelectionForeground) return null
+	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
 }
 
 export function SelectionBackgroundWrapper() {
+	const editor = useEditor()
+	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.selectionBounds, [editor])
 	const { SelectionBackground } = useEditorComponents()
-	if (!SelectionBackground) return null
-	return <SelectionBackground />
+	if (!selectionBounds || !SelectionBackground) return null
+	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />
 }

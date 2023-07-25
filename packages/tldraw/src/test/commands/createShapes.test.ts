@@ -84,24 +84,24 @@ it('Uses typescript generics', () => {
 
 it('Parents shapes to the current page if the parent is not found', () => {
 	editor.createShapes([{ id: ids.box1, parentId: ids.missing, type: 'geo' }])
-	expect(editor.getShapeById(ids.box1)!.parentId).toEqual(editor.currentPageId)
+	expect(editor.getShape(ids.box1)!.parentId).toEqual(editor.currentPageId)
 })
 
 it('Creates shapes with the current style', () => {
 	expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe(undefined)
 	editor.createShapes([{ id: ids.box1, type: 'geo' }])
-	expect(editor.getShapeById<TLGeoShape>(ids.box1)!.props.color).toEqual('black')
+	expect(editor.getShape<TLGeoShape>(ids.box1)!.props.color).toEqual('black')
 
 	editor.setStyle(DefaultColorStyle, 'red')
 	expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('red')
 	editor.createShapes([{ id: ids.box2, type: 'geo' }])
-	expect(editor.getShapeById<TLGeoShape>(ids.box2)!.props.color).toEqual('red')
+	expect(editor.getShape<TLGeoShape>(ids.box2)!.props.color).toEqual('red')
 })
 
 it('Creates shapes with the current opacity', () => {
 	editor.setOpacity(0.5)
 	editor.createShapes([{ id: ids.box3, type: 'geo' }])
-	expect(editor.getShapeById<TLGeoShape>(ids.box3)!.opacity).toEqual(0.5)
+	expect(editor.getShape<TLGeoShape>(ids.box3)!.opacity).toEqual(0.5)
 })
 
 it('Creates shapes at the correct index', () => {
@@ -109,21 +109,21 @@ it('Creates shapes at the correct index', () => {
 		{ id: ids.box3, type: 'geo' },
 		{ id: ids.box4, type: 'geo' },
 	])
-	expect(editor.getShapeById(ids.box3)!.index).toEqual('a1')
-	expect(editor.getShapeById(ids.box4)!.index).toEqual('a2')
+	expect(editor.getShape(ids.box3)!.index).toEqual('a1')
+	expect(editor.getShape(ids.box4)!.index).toEqual('a2')
 
 	editor.createShapes([{ id: ids.box5, type: 'geo' }])
-	expect(editor.getShapeById(ids.box5)!.index).toEqual('a3')
+	expect(editor.getShape(ids.box5)!.index).toEqual('a3')
 })
 
 it('Throws out all shapes if any shape is invalid', () => {
-	const n = editor.currentPageShapeIds.size
+	const n = editor.shapeIdsOnCurrentPage.size
 
 	expect(() => {
 		editor.createShapes([{ id: ids.box1, type: 'geo' }])
 	}).not.toThrow()
 
-	expect(editor.currentPageShapeIds.size).toBe(n + 1)
+	expect(editor.shapeIdsOnCurrentPage.size).toBe(n + 1)
 
 	console.error = jest.fn()
 
@@ -136,5 +136,5 @@ it('Throws out all shapes if any shape is invalid', () => {
 		])
 	}).toThrow()
 
-	expect(editor.currentPageShapeIds.size).toBe(n + 1)
+	expect(editor.shapeIdsOnCurrentPage.size).toBe(n + 1)
 })

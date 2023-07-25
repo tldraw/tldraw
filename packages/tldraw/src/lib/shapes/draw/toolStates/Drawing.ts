@@ -176,7 +176,7 @@ export class Drawing extends StateNode {
 		this.lastRecordedPoint = originPagePoint.clone()
 
 		if (this.initialShape) {
-			const shape = this.editor.getShapeById<DrawableShape>(this.initialShape.id)
+			const shape = this.editor.getShape<DrawableShape>(this.initialShape.id)
 
 			if (shape && this.segmentMode === 'straight') {
 				// Connect dots
@@ -210,7 +210,7 @@ export class Drawing extends StateNode {
 
 				// Convert prevPoint to page space
 				const prevPointPageSpace = Matrix2d.applyToPoint(
-					this.editor.getPageTransformById(shape.id)!,
+					this.editor.getPageTransform(shape.id)!,
 					prevPoint
 				)
 				this.pagePointWhereCurrentSegmentChanged = prevPointPageSpace
@@ -269,7 +269,7 @@ export class Drawing extends StateNode {
 			},
 		])
 		this.currentLineLength = 0
-		this.initialShape = this.editor.getShapeById<DrawableShape>(id)
+		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
 	private updateShapes() {
@@ -283,7 +283,7 @@ export class Drawing extends StateNode {
 			props: { size },
 		} = initialShape
 
-		const shape = this.editor.getShapeById<DrawableShape>(id)!
+		const shape = this.editor.getShape<DrawableShape>(id)!
 
 		if (!shape) return
 
@@ -639,7 +639,7 @@ export class Drawing extends StateNode {
 						},
 					])
 
-					this.initialShape = structuredClone(this.editor.getShapeById<DrawableShape>(newShapeId)!)
+					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
 					this.mergeNextPoint = false
 					this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 					this.currentLineLength = 0

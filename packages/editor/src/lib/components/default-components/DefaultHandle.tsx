@@ -9,6 +9,7 @@ export type TLHandleComponent = ComponentType<{
 	className?: string
 }>
 
+/** @public */
 export const DefaultHandle: TLHandleComponent = ({ handle, className }) => {
 	return (
 		<g

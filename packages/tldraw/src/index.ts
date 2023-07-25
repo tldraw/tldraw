@@ -2,7 +2,6 @@
 
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
-
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw } from './lib/Tldraw'
@@ -110,6 +109,7 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
+export { setDefaultEditorAssetUrls } from './lib/utils/assetUrls'
 export { ACCEPTED_IMG_TYPE, getFileMetaData, isImage } from './lib/utils/assets'
 export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
 export { getEmbedInfo } from './lib/utils/embeds'

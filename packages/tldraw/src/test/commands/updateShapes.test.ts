@@ -91,7 +91,7 @@ it('updates shapes', () => {
 		},
 	])
 
-	expect(editor.getShapeById(ids.box1)).toMatchObject({
+	expect(editor.getShape(ids.box1)).toMatchObject({
 		x: 200,
 		y: 200,
 		id: ids.box1,
@@ -110,7 +110,7 @@ it('updates shapes', () => {
 
 	editor.undo()
 
-	expect(editor.getShapeById(ids.box1)).toMatchObject({
+	expect(editor.getShape(ids.box1)).toMatchObject({
 		x: 100,
 		y: 100,
 		id: ids.box1,
@@ -129,7 +129,7 @@ it('updates shapes', () => {
 
 	editor.redo()
 
-	expect(editor.getShapeById(ids.box1)).toMatchObject({
+	expect(editor.getShape(ids.box1)).toMatchObject({
 		x: 200,
 		y: 200,
 		id: ids.box1,
@@ -156,7 +156,7 @@ describe('When a shape has a different shape as a parent...', () => {
 })
 
 it('Throws out all shapes if any update is invalid', () => {
-	editor.selectAll().deleteShapes()
+	editor.selectAll().deleteShapes(editor.selectedShapeIds)
 
 	editor.createShapes([
 		{ id: ids.box1, type: 'geo', x: 0, y: 0 },

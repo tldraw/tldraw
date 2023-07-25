@@ -53,7 +53,9 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.editAfterComplete = editAfterComplete
 
-		this.markId = isCreating ? 'creating' : this.editor.mark('translating')
+		this.markId = isCreating
+			? this.editor.mark(`creating:${this.editor.onlySelectedShape!.id}`)
+			: this.editor.mark('translating')
 		this.handleEnter(info)
 		this.editor.on('tick', this.updateParent)
 	}
@@ -111,7 +113,7 @@ export class Translating extends StateNode {
 		this.reset()
 		this.markId = this.editor.mark('translating')
 
-		this.editor.duplicateShapes()
+		this.editor.duplicateShapes(Array.from(this.editor.selectedShapeIds))
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
 		this.handleStart()
@@ -209,7 +211,7 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const current = this.editor.getShapeById(shape.id)!
+			const current = this.editor.getShape(shape.id)!
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onTranslateEnd?.(shape, current)
 			if (change) {
@@ -228,7 +230,7 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const current = this.editor.getShapeById(shape.id)!
+			const current = this.editor.getShape(shape.id)!
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onTranslate?.(shape, current)
 			if (change) {
@@ -264,13 +266,13 @@ export class Translating extends StateNode {
 		const movingShapes: TLShape[] = []
 
 		shapeSnapshots.forEach((shapeSnapshot) => {
-			const shape = editor.getShapeById(shapeSnapshot.shape.id)
+			const shape = editor.getShape(shapeSnapshot.shape.id)
 			if (!shape) return null
 			movingShapes.push(shape)
 
 			const parentTransform = isPageId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getPageTransformById(shape.parentId)!)
+				: Matrix2d.Inverse(editor.getPageTransform(shape.parentId)!)
 
 			shapeSnapshot.parentTransform = parentTransform
 		})
@@ -282,18 +284,18 @@ function getTranslatingSnapshot(editor: Editor) {
 	const pagePoints: Vec2d[] = []
 
 	const shapeSnapshots = compact(
-		editor.selectedIds.map((id): null | MovingShapeSnapshot => {
-			const shape = editor.getShapeById(id)
+		editor.selectedShapeIds.map((id): null | MovingShapeSnapshot => {
+			const shape = editor.getShape(id)
 			if (!shape) return null
 			movingShapes.push(shape)
 
-			const pagePoint = editor.getPagePointById(id)
+			const pagePoint = editor.getPageTransform(id)!.point()
 			if (!pagePoint) return null
 			pagePoints.push(pagePoint)
 
 			const parentTransform = PageRecordType.isId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getPageTransformById(shape.parentId)!)
+				: Matrix2d.Inverse(editor.getPageTransform(shape.parentId)!)
 
 			return {
 				shape,
@@ -309,8 +311,8 @@ function getTranslatingSnapshot(editor: Editor) {
 		shapeSnapshots,
 		initialPageBounds: editor.selectedPageBounds!,
 		initialSnapPoints:
-			editor.selectedIds.length === 1
-				? editor.snaps.snapPointsCache.get(editor.selectedIds[0])!
+			editor.selectedShapeIds.length === 1
+				? editor.snaps.snapPointsCache.get(editor.selectedShapeIds[0])!
 				: editor.selectedPageBounds
 				? editor.selectedPageBounds.snapPoints.map((p, i) => ({
 						id: 'selection:' + i,

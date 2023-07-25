@@ -331,7 +331,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 	for (const groupedShapeIds of groupShapeIdToChildren.values()) {
 		if (groupedShapeIds.length > 1) {
 			editor.groupShapes(groupedShapeIds)
-			const groupShape = editor.getShapeById(groupedShapeIds[0])
+			const groupShape = editor.getShape(groupedShapeIds[0])
 			if (groupShape?.parentId && isShapeId(groupShape.parentId)) {
 				rootShapeIds.push(groupShape.parentId)
 			}
@@ -343,7 +343,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 		editor.rotateShapesBy([id], angle)
 	}
 
-	const rootShapes = compact(rootShapeIds.map((id) => editor.getShapeById(id)))
+	const rootShapes = compact(rootShapeIds.map((id) => editor.getShape(id)))
 	const bounds = Box2d.Common(rootShapes.map((s) => editor.getPageBounds(s)!))
 	const viewPortCenter = editor.viewportPageBounds.center
 	editor.updateShapes(
@@ -361,7 +361,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 			}
 		})
 	)
-	editor.setSelectedIds(rootShapeIds)
+	editor.setSelectedShapeIds(rootShapeIds)
 }
 
 /* --------------- Translating Helpers --------_------ */

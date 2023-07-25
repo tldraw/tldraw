@@ -24,13 +24,13 @@ export function useDefaultColorTheme() {
 export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }: ShapeFillProps) {
 	switch (fill) {
 		case 'none': {
-			return <path className={'tl-hitarea-stroke'} fill="none" d={d} />
+			return null
 		}
 		case 'solid': {
-			return <path className={'tl-hitarea-fill-solid'} fill={theme[color].semi} d={d} />
+			return <path fill={theme[color].semi} d={d} />
 		}
 		case 'semi': {
-			return <path className={'tl-hitarea-fill-solid'} fill={theme.solid} d={d} />
+			return <path fill={theme.solid} d={d} />
 		}
 		case 'pattern': {
 			return <PatternFill theme={theme} color={color} fill={fill} d={d} />
@@ -47,7 +47,7 @@ const PatternFill = function PatternFill({ d, color, theme }: ShapeFillProps) {
 
 	return (
 		<>
-			<path className={'tl-hitarea-fill-solid'} fill={theme[color].pattern} d={d} />
+			<path fill={theme[color].pattern} d={d} />
 			<path
 				fill={
 					teenyTiny

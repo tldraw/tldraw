@@ -132,7 +132,7 @@ function findAdjacentGaps(
 	intersection: [number, number],
 	depth: number
 ): Gap[] {
-	if (depth > 20) return []
+	if (depth > 100) return []
 
 	// TODO: take advantage of the fact that gaps is sorted by starting position?
 	const matches = gaps.filter(
@@ -235,15 +235,13 @@ export class SnapManager {
 	@computed get snapPointsCache() {
 		const { editor } = this
 		return editor.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
-			const pageTransfrorm = editor.getPageTransformById(shape.id)
+			const pageTransfrorm = editor.getPageTransform(shape.id)
 			if (!pageTransfrorm) return undefined
-			return editor
-				.getShapeUtil(shape)
-				.snapPoints(shape)
-				.map((point, i) => {
-					const { x, y } = Matrix2d.applyToPoint(pageTransfrorm, point)
-					return { x, y, id: `${shape.id}:${i}` }
-				})
+			const snapPoints = this.editor.getGeometry(shape).snapPoints
+			return snapPoints.map((point, i) => {
+				const { x, y } = Matrix2d.applyToPoint(pageTransfrorm, point)
+				return { x, y, id: `${shape.id}:${i}` }
+			})
 		})
 	}
 
@@ -254,29 +252,33 @@ export class SnapManager {
 	// TODO: make this an incremental derivation
 	@computed get snappableShapes(): GapNode[] {
 		const { editor } = this
-		const { selectedIds, renderingBounds: renderingBounds } = editor
+		const { selectedShapeIds, renderingBounds: renderingBounds } = editor
 
 		const snappableShapes: GapNode[] = []
 
 		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
-			const sortedChildIds = editor.getSortedChildIds(parentId)
+			const sortedChildIds = editor.getSortedChildIdsForParent(parentId)
 			for (const childId of sortedChildIds) {
 				// Skip any selected ids
-				if (selectedIds.includes(childId)) continue
-				const childShape = editor.getShapeById(childId)
+				if (selectedShapeIds.includes(childId)) continue
+				const childShape = editor.getShape(childId)
 				if (!childShape) continue
 				const util = editor.getShapeUtil(childShape)
 				// Skip any shapes that don't allow snapping
 				if (!util.canSnap(childShape)) continue
 				// Only consider shapes if they're inside of the viewport page bounds
-				const pageBounds = editor.getPageBoundsById(childId)
+				const pageBounds = editor.getPageBounds(childId)
 				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
 				// Snap to children of groups but not group itself
 				if (editor.isShapeOfType<TLGroupShape>(childShape, 'group')) {
 					collectSnappableShapesFromParent(childId)
 					continue
 				}
-				snappableShapes.push({ id: childId, pageBounds, isClosed: util.isClosed(childShape) })
+				snappableShapes.push({
+					id: childId,
+					pageBounds,
+					isClosed: editor.getGeometry(childShape).isClosed,
+				})
 			}
 		}
 
@@ -311,15 +313,15 @@ export class SnapManager {
 
 		let startNode: GapNode, endNode: GapNode
 
-		const sortedShapesHorizontal = this.snappableShapes.sort((a, b) => {
+		const sortedShapesOnCurrentPageHorizontal = this.snappableShapes.sort((a, b) => {
 			return a.pageBounds.minX - b.pageBounds.minX
 		})
 
 		// Collect horizontal gaps
-		for (let i = 0; i < sortedShapesHorizontal.length; i++) {
-			startNode = sortedShapesHorizontal[i]
-			for (let j = i + 1; j < sortedShapesHorizontal.length; j++) {
-				endNode = sortedShapesHorizontal[j]
+		for (let i = 0; i < sortedShapesOnCurrentPageHorizontal.length; i++) {
+			startNode = sortedShapesOnCurrentPageHorizontal[i]
+			for (let j = i + 1; j < sortedShapesOnCurrentPageHorizontal.length; j++) {
+				endNode = sortedShapesOnCurrentPageHorizontal[j]
 
 				if (
 					// is there space between the boxes
@@ -356,14 +358,14 @@ export class SnapManager {
 		}
 
 		// Collect vertical gaps
-		const sortedShapesVertical = sortedShapesHorizontal.sort((a, b) => {
+		const sortedShapesOnCurrentPageVertical = sortedShapesOnCurrentPageHorizontal.sort((a, b) => {
 			return a.pageBounds.minY - b.pageBounds.minY
 		})
 
-		for (let i = 0; i < sortedShapesVertical.length; i++) {
-			startNode = sortedShapesVertical[i]
-			for (let j = i + 1; j < sortedShapesVertical.length; j++) {
-				endNode = sortedShapesVertical[j]
+		for (let i = 0; i < sortedShapesOnCurrentPageVertical.length; i++) {
+			startNode = sortedShapesOnCurrentPageVertical[i]
+			for (let j = i + 1; j < sortedShapesOnCurrentPageVertical.length; j++) {
+				endNode = sortedShapesOnCurrentPageVertical[j]
 
 				if (
 					// is there space between the boxes
@@ -496,9 +498,9 @@ export class SnapManager {
 
 	@computed get outlinesInPageSpace() {
 		return this.snappableShapes.map(({ id, isClosed }) => {
-			const outline = deepCopy(this.editor.getOutlineById(id))
+			const outline = deepCopy(this.editor.getGeometry(id).vertices)
 			if (isClosed) outline.push(outline[0])
-			const pageTransform = this.editor.getPageTransformById(id)
+			const pageTransform = this.editor.getPageTransform(id)
 			if (!pageTransform) throw Error('No page transform')
 			return Matrix2d.applyToPoints(pageTransform, outline)
 		})

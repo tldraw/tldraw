@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLExitEventHandler, Vec2d } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLExitEventHandler, TLGroupShape, Vec2d } from '@tldraw/editor'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
@@ -17,7 +17,7 @@ export class Idle extends StateNode {
 		this.editor.mark('crop')
 
 		if (onlySelectedShape) {
-			this.editor.croppingId = onlySelectedShape.id
+			this.editor.setCroppingId(onlySelectedShape.id)
 		}
 	}
 
@@ -28,7 +28,7 @@ export class Idle extends StateNode {
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
-		this.editor.croppingId = null
+		this.editor.setCroppingId(null)
 		this.editor.setCurrentTool('select.idle', {})
 	}
 
@@ -36,24 +36,38 @@ export class Idle extends StateNode {
 		if (this.editor.isMenuOpen) return
 
 		if (info.ctrlKey) {
-			this.editor.croppingId = null
+			this.editor.setCroppingId(null)
 			this.editor.setCurrentTool('select.brushing', info)
 			return
 		}
 
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredShape } = this.editor
+				const hitShape =
+					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+						? hoveredShape
+						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+				if (hitShape) {
+					this.onPointerDown({
+						...info,
+						shape: hitShape,
+						target: 'shape',
+					})
+					return
+				}
+
 				this.cancel()
 				break
 			}
 			case 'shape': {
-				if (info.shape.id === this.editor.croppingId) {
+				if (info.shape.id === this.editor.croppingShapeId) {
 					this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					return
 				} else {
 					if (this.editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
-						this.editor.croppingId = info.shape.id
-						this.editor.setSelectedIds([info.shape.id])
+						this.editor.setCroppingId(info.shape.id)
+						this.editor.setSelectedShapeIds([info.shape.id])
 						this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					} else {
 						this.cancel()
@@ -106,10 +120,10 @@ export class Idle extends StateNode {
 	override onDoubleClick: TLEventHandlers['onDoubleClick'] = (info) => {
 		// Without this, the double click's "settle" would trigger the reset
 		// after the user double clicked the edge to begin cropping
-		if (info.phase !== 'up') return
+		if (this.editor.inputs.shiftKey || info.phase !== 'up') return
 
-		if (!this.editor.croppingId) return
-		const shape = this.editor.getShapeById(this.editor.croppingId)
+		if (!this.editor.croppingShapeId) return
+		const shape = this.editor.getShape(this.editor.croppingShapeId)
 		if (!shape) return
 
 		const util = this.editor.getShapeUtil(shape)
@@ -131,7 +145,7 @@ export class Idle extends StateNode {
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		switch (info.code) {
 			case 'Enter': {
-				this.editor.croppingId = null
+				this.editor.setCroppingId(null)
 				this.editor.setCurrentTool('select.idle', {})
 				break
 			}
@@ -139,12 +153,12 @@ export class Idle extends StateNode {
 	}
 
 	private cancel() {
-		this.editor.croppingId = null
+		this.editor.setCroppingId(null)
 		this.editor.setCurrentTool('select.idle', {})
 	}
 
 	private cleanupCroppingState = () => {
-		if (!this.editor.croppingId) {
+		if (!this.editor.croppingShapeId) {
 			this.editor.setCurrentTool('select.idle', {})
 		}
 	}
@@ -172,7 +186,7 @@ export class Idle extends StateNode {
 
 		if (shiftKey) delta.mul(10)
 
-		const shape = this.editor.getShapeById(this.editor.croppingId!) as ShapeWithCrop
+		const shape = this.editor.getShape(this.editor.croppingShapeId!) as ShapeWithCrop
 		if (!shape) return
 		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 

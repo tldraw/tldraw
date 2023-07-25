@@ -19,74 +19,73 @@ export class Pointing extends StateNode {
 
 	shape = {} as TLLineShape
 
-	markPointId = ''
+	markId: string | undefined
 
 	override onEnter = (info: { shapeId?: TLShapeId }) => {
 		const { inputs } = this.editor
 		const { currentPagePoint } = inputs
 
-		this.markPointId = this.editor.mark('creating')
+		this.markId = undefined
 
-		let shapeExists = false
-		if (info.shapeId) {
-			const shape = this.editor.getShapeById<TLLineShape>(info.shapeId)
-			if (shape) {
-				shapeExists = true
-				this.shape = shape
-			}
-		}
+		const shape = info.shapeId && this.editor.getShape<TLLineShape>(info.shapeId)
 
-		// if user is holding shift then we are adding points to an existing line
-		if (inputs.shiftKey && shapeExists) {
-			const handles = this.editor.getHandles(this.shape)
-			if (!handles) return
+		if (shape) {
+			this.markId = this.editor.mark(`creating:${shape.id}`)
+			this.shape = shape
 
-			const vertexHandles = handles.filter((h) => h.type === 'vertex').sort(sortByIndex)
-			const endHandle = vertexHandles[vertexHandles.length - 1]
+			if (inputs.shiftKey) {
+				const handles = this.editor.getHandles(this.shape)
+				if (!handles) return
 
-			const shapePagePoint = Matrix2d.applyToPoint(
-				this.editor.getParentTransform(this.shape)!,
-				new Vec2d(this.shape.x, this.shape.y)
-			)
+				const vertexHandles = handles.filter((h) => h.type === 'vertex').sort(sortByIndex)
+				const endHandle = vertexHandles[vertexHandles.length - 1]
 
-			let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
+				const shapePagePoint = Matrix2d.applyToPoint(
+					this.editor.getParentTransform(this.shape)!,
+					new Vec2d(this.shape.x, this.shape.y)
+				)
 
-			if (vertexHandles.length === 2 && vertexHandles[1].x === 1 && vertexHandles[1].y === 1) {
-				nextEndHandleIndex = vertexHandles[1].index
-				nextEndHandleId = vertexHandles[1].id
-				nextEndHandle = {
-					...vertexHandles[1],
-					x: currentPagePoint.x - shapePagePoint.x,
-					y: currentPagePoint.y - shapePagePoint.y,
+				let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
+
+				if (vertexHandles.length === 2 && vertexHandles[1].x === 1 && vertexHandles[1].y === 1) {
+					nextEndHandleIndex = vertexHandles[1].index
+					nextEndHandleId = vertexHandles[1].id
+					nextEndHandle = {
+						...vertexHandles[1],
+						x: currentPagePoint.x - shapePagePoint.x,
+						y: currentPagePoint.y - shapePagePoint.y,
+					}
+				} else {
+					nextEndHandleIndex = getIndexAbove(endHandle.index)
+					nextEndHandleId = 'handle:' + nextEndHandleIndex
+					nextEndHandle = {
+						x: currentPagePoint.x - shapePagePoint.x,
+						y: currentPagePoint.y - shapePagePoint.y,
+						index: nextEndHandleIndex,
+						canBind: false,
+						type: 'vertex',
+						id: nextEndHandleId,
+					}
 				}
-			} else {
-				nextEndHandleIndex = getIndexAbove(endHandle.index)
-				nextEndHandleId = 'handle:' + nextEndHandleIndex
-				nextEndHandle = {
-					x: currentPagePoint.x - shapePagePoint.x,
-					y: currentPagePoint.y - shapePagePoint.y,
-					index: nextEndHandleIndex,
-					canBind: false,
-					type: 'vertex',
-					id: nextEndHandleId,
-				}
-			}
 
-			const nextHandles = structuredClone(this.shape.props.handles)
+				const nextHandles = structuredClone(this.shape.props.handles)
 
-			nextHandles[nextEndHandle.id] = nextEndHandle
+				nextHandles[nextEndHandle.id] = nextEndHandle
 
-			this.editor.updateShapes([
-				{
-					id: this.shape.id,
-					type: this.shape.type,
-					props: {
-						handles: nextHandles,
+				this.editor.updateShapes([
+					{
+						id: this.shape.id,
+						type: this.shape.type,
+						props: {
+							handles: nextHandles,
+						},
 					},
-				},
-			])
+				])
+			}
 		} else {
 			const id = createShapeId()
+
+			this.markId = this.editor.mark(`creating:${id}`)
 
 			this.editor.createShapes<TLLineShape>([
 				{
@@ -98,7 +97,7 @@ export class Pointing extends StateNode {
 			])
 
 			this.editor.select(id)
-			this.shape = this.editor.getShapeById(id)!
+			this.shape = this.editor.getShape(id)!
 		}
 	}
 
@@ -108,7 +107,7 @@ export class Pointing extends StateNode {
 		if (this.editor.inputs.isDragging) {
 			const handles = this.editor.getHandles(this.shape)
 			if (!handles) {
-				this.editor.bailToMark('creating')
+				if (this.markId) this.editor.bailToMark(this.markId)
 				throw Error('No handles found')
 			}
 
@@ -135,7 +134,7 @@ export class Pointing extends StateNode {
 
 	override onInterrupt: TLInterruptEvent = () => {
 		this.parent.transition('idle', {})
-		this.editor.bailToMark('creating')
+		if (this.markId) this.editor.bailToMark(this.markId)
 		this.editor.snaps.clear()
 	}
 
@@ -145,7 +144,7 @@ export class Pointing extends StateNode {
 	}
 
 	cancel() {
-		this.editor.bailToMark(this.markPointId)
+		if (this.markId) this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', { shapeId: this.shape.id })
 		this.editor.snaps.clear()
 	}

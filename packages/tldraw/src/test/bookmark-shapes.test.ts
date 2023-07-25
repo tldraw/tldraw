@@ -74,12 +74,12 @@ describe('The URL formatter', () => {
 			},
 		])
 
-		const a = editor.getShapeById<TLBookmarkShape>(ids.a)!
-		const b = editor.getShapeById<TLBookmarkShape>(ids.b)!
-		const c = editor.getShapeById<TLBookmarkShape>(ids.c)!
-		const d = editor.getShapeById<TLBookmarkShape>(ids.d)!
-		const e = editor.getShapeById<TLBookmarkShape>(ids.e)!
-		const f = editor.getShapeById<TLBookmarkShape>(ids.f)!
+		const a = editor.getShape<TLBookmarkShape>(ids.a)!
+		const b = editor.getShape<TLBookmarkShape>(ids.b)!
+		const c = editor.getShape<TLBookmarkShape>(ids.c)!
+		const d = editor.getShape<TLBookmarkShape>(ids.d)!
+		const e = editor.getShape<TLBookmarkShape>(ids.e)!
+		const f = editor.getShape<TLBookmarkShape>(ids.f)!
 
 		expect(getHumanReadableAddress(a)).toBe('www.github.com')
 		expect(getHumanReadableAddress(b)).toBe('www.github.com')
@@ -126,7 +126,7 @@ describe('The URL formatter', () => {
 			},
 		])
 
-		const oldBookmark = editor.getShapeById(ids.bookmark) as TLBookmarkShape
+		const oldBookmark = editor.getShape(ids.bookmark) as TLBookmarkShape
 		expect(oldBookmark.props.w).toBe(300)
 		expect(oldBookmark.props.h).toBe(320)
 
@@ -134,7 +134,7 @@ describe('The URL formatter', () => {
 		editor.pointerDown(20, 20, { target: 'selection', handle: 'bottom_right' })
 		editor.pointerMove(30, 30)
 
-		const newBookmark = editor.getShapeById(ids.bookmark) as TLBookmarkShape
+		const newBookmark = editor.getShape(ids.bookmark) as TLBookmarkShape
 		expect(newBookmark.props.w).toBe(300)
 		expect(newBookmark.props.h).toBe(320)
 	})

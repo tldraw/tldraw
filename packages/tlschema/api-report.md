@@ -1049,23 +1049,23 @@ export type TLInstanceId = RecordId<TLInstance>;
 // @public
 export interface TLInstancePageState extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
     // (undocumented)
-    croppingId: null | TLShapeId;
+    croppingShapeId: null | TLShapeId;
     // (undocumented)
-    editingId: null | TLShapeId;
+    editingShapeId: null | TLShapeId;
     // (undocumented)
-    erasingIds: TLShapeId[];
+    erasingShapeIds: TLShapeId[];
     // (undocumented)
-    focusLayerId: null | TLShapeId;
+    focusedGroupId: null | TLShapeId;
     // (undocumented)
-    hintingIds: TLShapeId[];
+    hintingShapeIds: TLShapeId[];
     // (undocumented)
-    hoveredId: null | TLShapeId;
+    hoveredShapeId: null | TLShapeId;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
     pageId: RecordId<TLPage>;
     // (undocumented)
-    selectedIds: TLShapeId[];
+    selectedShapeIds: TLShapeId[];
 }
 
 // @public (undocumented)
@@ -1102,7 +1102,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     scribble: null | TLScribble;
     // (undocumented)
-    selectedIds: TLShapeId[];
+    selectedShapeIds: TLShapeId[];
     // (undocumented)
     userId: string;
     // (undocumented)

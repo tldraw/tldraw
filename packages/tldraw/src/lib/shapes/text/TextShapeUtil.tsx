@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-	Box2d,
 	DefaultFontFamilies,
 	Editor,
 	HTMLContainer,
+	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
 	TLOnEditEndHandler,
@@ -49,26 +49,19 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
 	}
 
-	getBounds(shape: TLTextShape) {
+	getGeometry(shape: TLTextShape) {
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
-		return new Box2d(0, 0, width * scale, height * scale)
+		return new Rectangle2d({
+			width: width * scale,
+			height: height * scale,
+			isFilled: true,
+		})
 	}
 
 	override canEdit = () => true
 
 	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
-
-	override getOutline(shape: TLTextShape) {
-		const bounds = this.editor.getBounds(shape)
-
-		return [
-			new Vec2d(0, 0),
-			new Vec2d(bounds.width, 0),
-			new Vec2d(bounds.width, bounds.height),
-			new Vec2d(0, bounds.height),
-		]
-	}
 
 	component(shape: TLTextShape) {
 		const {
@@ -89,6 +82,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			handleChange,
 			handleKeyDown,
 			handleBlur,
+			handleInputPointerDown,
+			handleContentPointerDown,
 		} = useEditableText(id, type, text)
 
 		return (
@@ -110,7 +105,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 						color: theme[color].solid,
 					}}
 				>
-					<div className="tl-text tl-text-content" dir="ltr">
+					<div
+						className="tl-text tl-text-content"
+						dir="ltr"
+						onPointerDown={handleContentPointerDown}
+					>
 						{text}
 					</div>
 					{isEditing || isEditableFromHover ? (
@@ -136,6 +135,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 							onBlur={handleBlur}
 							onTouchEnd={stopEventPropagation}
 							onContextMenu={stopEventPropagation}
+							onPointerDown={handleInputPointerDown}
 						/>
 					) : null}
 				</div>
@@ -144,7 +144,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	indicator(shape: TLTextShape) {
-		const bounds = this.getBounds(shape)
+		const bounds = this.editor.getGeometry(shape).bounds
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
@@ -152,7 +152,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
-		const bounds = this.getBounds(shape)
+		const bounds = this.editor.getGeometry(shape).bounds
 		const text = shape.props.text
 
 		const width = bounds.width / (shape.props.scale ?? 1)

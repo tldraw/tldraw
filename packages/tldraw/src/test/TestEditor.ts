@@ -1,6 +1,7 @@
 import {
 	Box2dModel,
 	Editor,
+	Matrix2d,
 	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
@@ -13,6 +14,7 @@ import {
 	TLKeyboardEventInfo,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
+	TLShape,
 	TLShapeId,
 	TLShapePartial,
 	TLWheelEventInfo,
@@ -132,9 +134,9 @@ export class TestEditor extends Editor {
 
 	clipboard = null as TLContent | null
 
-	copy = (ids = this.selectedIds) => {
+	copy = (ids = this.selectedShapeIds) => {
 		if (ids.length > 0) {
-			const content = this.getContent()
+			const content = this.getContent(ids)
 			if (content) {
 				this.clipboard = content
 			}
@@ -142,9 +144,9 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	cut = (ids = this.selectedIds) => {
+	cut = (ids = this.selectedShapeIds) => {
 		if (ids.length > 0) {
-			const content = this.getContent()
+			const content = this.getContent(ids)
 			if (content) {
 				this.clipboard = content
 			}
@@ -211,7 +213,7 @@ export class TestEditor extends Editor {
 
 	expectShapeToMatch = (...model: RequiredKeys<TLShapePartial, 'id'>[]) => {
 		model.forEach((model) => {
-			const shape = this.getShapeById(model.id)!
+			const shape = this.getShape(model.id)!
 			const next = { ...shape, ...model }
 			expect(shape).toCloselyMatchObject(next)
 		})
@@ -224,7 +226,7 @@ export class TestEditor extends Editor {
 		return typeof info === 'string'
 			? ({
 					target: 'shape',
-					shape: this.getShapeById(info as any),
+					shape: this.getShape(info as any),
 			  } as T)
 			: info
 	}
@@ -236,7 +238,7 @@ export class TestEditor extends Editor {
 		modifiers?: EventModifiers
 	): TLPointerEventInfo => {
 		if (typeof options === 'string') {
-			options = { target: 'shape', shape: this.getShapeById(options) }
+			options = { target: 'shape', shape: this.getShape(options) }
 		} else if (options === undefined) {
 			options = { target: 'canvas' }
 		}
@@ -324,32 +326,6 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			...this.getPointerEventInfo(x, y, options, modifiers),
 			name: 'pointer_up',
-		})
-		return this
-	}
-
-	pointerEnter = (
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) => {
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			name: 'pointer_enter',
-		})
-		return this
-	}
-
-	pointerLeave = (
-		x = this.inputs.currentScreenPoint.x,
-		y = this.inputs.currentScreenPoint.y,
-		options?: PointerEventInit,
-		modifiers?: EventModifiers
-	) => {
-		this.dispatch({
-			...this.getPointerEventInfo(x, y, options, modifiers),
-			name: 'pointer_leave',
 		})
 		return this
 	}
@@ -497,7 +473,7 @@ export class TestEditor extends Editor {
 			shiftKey = false,
 		}: { handle?: RotateCorner; shiftKey?: boolean } = {}
 	) {
-		if (this.selectedIds.length === 0) {
+		if (this.selectedShapeIds.length === 0) {
 			throw new Error('No selection')
 		}
 
@@ -518,14 +494,14 @@ export class TestEditor extends Editor {
 	}
 
 	translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>) {
-		if (this.selectedIds.length === 0) {
+		if (this.selectedShapeIds.length === 0) {
 			throw new Error('No selection')
 		}
 		this.setCurrentTool('select')
 
 		const center = this.selectionPageCenter!
 
-		this.pointerDown(center.x, center.y, this.selectedIds[0])
+		this.pointerDown(center.x, center.y, this.selectedShapeIds[0])
 		const numSteps = 10
 		for (let i = 1; i < numSteps; i++) {
 			this.pointerMove(center.x + (i * dx) / numSteps, center.y + (i * dy) / numSteps, options)
@@ -539,7 +515,7 @@ export class TestEditor extends Editor {
 		handle: SelectionHandle,
 		options?: Partial<TLPointerEventInfo>
 	) {
-		if (this.selectedIds.length === 0) {
+		if (this.selectedShapeIds.length === 0) {
 			throw new Error('No selection')
 		}
 		this.setCurrentTool('select')
@@ -572,6 +548,47 @@ export class TestEditor extends Editor {
 		const { shapes, ids } = shapesFromJsx(shapesJsx)
 		this.createShapes(shapes)
 		return ids
+	}
+
+	/**
+	 * Get the page point (or absolute point) of a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPagePoint(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape to get the page point for.
+	 *
+	 * @public
+	 */
+	getPageCenter(shape: TLShape) {
+		const pageTransform = this.getPageTransform(shape.id)
+		if (!pageTransform) return null
+		const center = this.getGeometry(shape).bounds.center
+		return Matrix2d.applyToPoint(pageTransform, center)
+	}
+
+	/**
+	 * Get the page rotation (or absolute rotation) of a shape by its id.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPageRotationById(myShapeId)
+	 * ```
+	 *
+	 * @param id - The id of the shape to get the page rotation for.
+	 */
+	getPageRotationById(id: TLShapeId): number {
+		const pageTransform = this.getPageTransform(id)
+		if (pageTransform) {
+			return Matrix2d.Decompose(pageTransform).rotation
+		}
+		return 0
+	}
+
+	getPageRotation(shape: TLShape) {
+		return this.getPageRotationById(shape.id)
 	}
 }
 

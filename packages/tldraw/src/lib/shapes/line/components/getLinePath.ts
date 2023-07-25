@@ -1,41 +1,9 @@
-import { TLLineShape, Vec2d, getSvgPathFromPoints } from '@tldraw/editor'
+import { CubicSpline2d, Polyline2d, TLLineShape, getSvgPathFromPoints } from '@tldraw/editor'
 import { getStrokeOutlinePoints } from '../../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../../shared/freehand/svg'
-import { CubicSpline2d } from '../../shared/splines/CubicSpline2d'
-import { Polyline2d } from '../../shared/splines/Polyline2d'
-
-export function getLinePoints(spline: CubicSpline2d | Polyline2d) {
-	const { segments } = spline
-
-	const allPoints: Vec2d[] = []
-
-	for (let j = 0, k = segments.length; j < k; j++) {
-		const segment = segments[j]
-		const lut = segment.lut
-
-		const n = lut.length - 1
-
-		if (j > 0) {
-			allPoints.push(Vec2d.Lrp(lut[0], lut[1], 0.25))
-		} else {
-			allPoints.push(lut[0])
-		}
-
-		for (let i = 1; i < n; i++) {
-			allPoints.push(lut[i])
-		}
-
-		if (j < k - 1) {
-			allPoints.push(Vec2d.Lrp(lut[n - 1], lut[n], 0.75))
-		} else {
-			allPoints.push(lut[n])
-		}
-	}
-
-	return allPoints
-}
+import { getSvgPathForLineGeometry } from './svg'
 
 export function getLineDrawFreehandOptions(strokeWidth: number) {
 	return {
@@ -64,10 +32,9 @@ export function getLineStrokePoints(
 	spline: CubicSpline2d | Polyline2d,
 	strokeWidth: number
 ) {
-	const points = getLinePoints(spline)
-
+	// const points = getLinePoints(spline)
+	const points = spline.vertices
 	const options = getLineDrawFreehandOptions(strokeWidth)
-
 	return getStrokePoints(points, options)
 }
 
@@ -120,5 +87,5 @@ export function getLineIndicatorPath(
 		return getSvgPathFromStrokePoints(strokePoints)
 	}
 
-	return spline.path
+	return getSvgPathForLineGeometry(spline)
 }

@@ -43,21 +43,60 @@ export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLCon
 export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export { ShapeIndicator, type TLShapeIndicatorComponent } from './lib/components/ShapeIndicator'
-export { type TLBackgroundComponent } from './lib/components/default-components/DefaultBackground'
-export { type TLBrushComponent } from './lib/components/default-components/DefaultBrush'
-export { type TLCollaboratorHintComponent } from './lib/components/default-components/DefaultCollaboratorHint'
-export { type TLCursorComponent } from './lib/components/default-components/DefaultCursor'
+export {
+	DefaultBackground,
+	type TLBackgroundComponent,
+} from './lib/components/default-components/DefaultBackground'
+export {
+	DefaultBrush,
+	type TLBrushComponent,
+} from './lib/components/default-components/DefaultBrush'
+export {
+	DefaultCollaboratorHint,
+	type TLCollaboratorHintComponent,
+} from './lib/components/default-components/DefaultCollaboratorHint'
+export {
+	DefaultCursor,
+	type TLCursorComponent,
+} from './lib/components/default-components/DefaultCursor'
 export { DefaultErrorFallback } from './lib/components/default-components/DefaultErrorFallback'
-export { type TLGridComponent } from './lib/components/default-components/DefaultGrid'
-export { type TLHandleComponent } from './lib/components/default-components/DefaultHandle'
-export { type TLHandlesComponent } from './lib/components/default-components/DefaultHandles'
-export { type TLHoveredShapeIndicatorComponent } from './lib/components/default-components/DefaultHoveredShapeIndicator'
-export { type TLScribbleComponent } from './lib/components/default-components/DefaultScribble'
-export { type TLSelectionBackgroundComponent } from './lib/components/default-components/DefaultSelectionBackground'
-export { type TLSelectionForegroundComponent } from './lib/components/default-components/DefaultSelectionForeground'
-export { type TLSnapLineComponent } from './lib/components/default-components/DefaultSnapLine'
-export { type TLSpinnerComponent } from './lib/components/default-components/DefaultSpinner'
-export { type TLSvgDefsComponent } from './lib/components/default-components/DefaultSvgDefs'
+export { DefaultGrid, type TLGridComponent } from './lib/components/default-components/DefaultGrid'
+export {
+	DefaultHandle,
+	type TLHandleComponent,
+} from './lib/components/default-components/DefaultHandle'
+export {
+	DefaultHandles,
+	type TLHandlesComponent,
+} from './lib/components/default-components/DefaultHandles'
+export {
+	DefaultHoveredShapeIndicator,
+	type TLHoveredShapeIndicatorComponent,
+} from './lib/components/default-components/DefaultHoveredShapeIndicator'
+export {
+	DefaultScribble,
+	type TLScribbleComponent,
+} from './lib/components/default-components/DefaultScribble'
+export {
+	DefaultSelectionBackground,
+	type TLSelectionBackgroundComponent,
+} from './lib/components/default-components/DefaultSelectionBackground'
+export {
+	DefaultSelectionForeground,
+	type TLSelectionForegroundComponent,
+} from './lib/components/default-components/DefaultSelectionForeground'
+export {
+	DefaultSnapLine,
+	type TLSnapLineComponent,
+} from './lib/components/default-components/DefaultSnapLine'
+export {
+	DefaultSpinner,
+	type TLSpinnerComponent,
+} from './lib/components/default-components/DefaultSpinner'
+export {
+	DefaultSvgDefs,
+	type TLSvgDefsComponent,
+} from './lib/components/default-components/DefaultSvgDefs'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
@@ -86,14 +125,12 @@ export {
 	DEFAULT_ANIMATION_OPTIONS,
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
-	GRID_INCREMENT,
 	GRID_STEPS,
 	HASH_PATTERN_ZOOM_NAMES,
-	MAJOR_NUDGE_FACTOR,
+	HIT_TEST_MARGIN,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
-	MINOR_NUDGE_FACTOR,
 	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
 	SVG_PADDING,
@@ -222,6 +259,18 @@ export {
 export { Matrix2d, type Matrix2dModel } from './lib/primitives/Matrix2d'
 export { Vec2d, type VecLike } from './lib/primitives/Vec2d'
 export { EASINGS } from './lib/primitives/easings'
+export { Arc2d } from './lib/primitives/geometry/Arc2d'
+export { Circle2d } from './lib/primitives/geometry/Circle2d'
+export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
+export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
+export { Edge2d } from './lib/primitives/geometry/Edge2d'
+export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
+export { Geometry2d } from './lib/primitives/geometry/Geometry2d'
+export { Group2d } from './lib/primitives/geometry/Group2d'
+export { Polygon2d } from './lib/primitives/geometry/Polygon2d'
+export { Polyline2d } from './lib/primitives/geometry/Polyline2d'
+export { Rectangle2d } from './lib/primitives/geometry/Rectangle2d'
+export { Stadium2d } from './lib/primitives/geometry/Stadium2d'
 export {
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,

@@ -56,7 +56,7 @@ it('updates the rendering viewport when the camera stops moving', () => {
 
 	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
 	expect(editor.renderingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
-	expect(editor.getPageBoundsById(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
+	expect(editor.getPageBounds(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 
 it('lists shapes in viewport', () => {

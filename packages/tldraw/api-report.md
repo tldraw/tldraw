@@ -47,6 +47,7 @@ import { TLKeyboardEvent } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLanguage } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
+import { TLNoteShape } from '@tldraw/editor';
 import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPointerEventName } from '@tldraw/editor';
@@ -281,6 +282,9 @@ export function serializeTldrawJson(store: TLStore): Promise<string>;
 
 // @public (undocumented)
 export function serializeTldrawJsonBlob(store: TLStore): Promise<Blob>;
+
+// @public (undocumented)
+export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;

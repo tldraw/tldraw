@@ -3,12 +3,14 @@
 import {
 	TLShape,
 	TLUnknownShape,
+	getPointerInfo,
 	preventDefault,
 	stopEventPropagation,
+	transact,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
-import { useCallback, useEffect, useRef } from 'react'
+import React, { useCallback, useEffect, useRef } from 'react'
 import { INDENT, TextHelpers } from './TextHelpers'
 
 export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(
@@ -20,10 +22,18 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 	const rInput = useRef<HTMLTextAreaElement>(null)
 
-	const isEditing = useValue('isEditing', () => editor.currentPageState.editingId === id, [
+	const isEditing = useValue('isEditing', () => editor.currentPageState.editingShapeId === id, [
 		editor,
 		id,
 	])
+
+	const isInEditingShapePath = useValue(
+		'isInEditingShapePath',
+		() => {
+			return editor.isIn('select.editing_shape')
+		},
+		[editor]
+	)
 
 	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
@@ -31,17 +41,18 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	const isEditableFromHover = useValue(
 		'is editable hovering',
 		() => {
-			if (type === 'text' && editor.isIn('text') && editor.hoveredId === id) {
+			const { hoveredShapeId, editingShapeId } = editor
+			if (type === 'text' && editor.isIn('text') && hoveredShapeId === id) {
 				return true
 			}
 
-			if (editor.isIn('select.editing_shape')) {
-				const { editingId } = editor
-				const editingShape = editingId && editor.getShapeById(editingId)
+			if (isInEditingShapePath) {
+				if (!editingShapeId) return false
+				const editingShape = editor.getShape(editingShapeId)
 				if (!editingShape) return false
+
 				return (
-					// The shape must be hovered
-					editor.hoveredId === id &&
+					(hoveredShapeId === id || editingShapeId !== id) &&
 					// the editing shape must be the same type as this shape
 					editingShape.type === type &&
 					// and this shape must be capable of being editing in its current form
@@ -51,20 +62,22 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 			return false
 		},
-		[type, id]
+		[type, id, isInEditingShapePath]
 	)
 
 	// When the label receives focus, set the value to the most
 	// recent text value and select all of the text
 	const handleFocus = useCallback(() => {
+		// We only want to do the select all thing if the shape
+		// was the first shape to become editing. Switching from
+		// one editing shape to another should not select all.
 		if (isEditableFromHover) return
 
 		requestAnimationFrame(() => {
 			const elm = rInput.current
-
 			if (!elm) return
 
-			const shape = editor.getShapeById<TLShape & { props: { text: string } }>(id)
+			const shape = editor.getShape<TLShape & { props: { text: string } }>(id)
 			if (shape) {
 				elm.value = shape.props.text
 				if (elm.value.length && !rSkipSelectOnFocus.current) {
@@ -84,31 +97,36 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 		requestAnimationFrame(() => {
 			const elm = rInput.current
-			if (editor.isIn('select.editing_shape') && elm) {
-				if (ranges) {
-					if (!ranges.length) {
-						// If we don't have any ranges, restore selection
-						// and select all of the text
-						elm.focus()
-					} else {
-						// Otherwise, skip the select-all-on-focus behavior
-						// and restore the selection
-						rSkipSelectOnFocus.current = true
-						elm.focus()
-						const selection = window.getSelection()
-						if (selection) {
-							ranges.forEach((range) => selection.addRange(range))
+			// Did we move to a different shape?
+			if (elm && editor.isIn('select.editing_shape')) {
+				// important! these ^v are two different things
+				// is that shape OUR shape?
+				if (editor.editingShapeId === id) {
+					if (ranges) {
+						if (!ranges.length) {
+							// If we don't have any ranges, restore selection
+							// and select all of the text
+							elm.focus()
+						} else {
+							// Otherwise, skip the select-all-on-focus behavior
+							// and restore the selection
+							rSkipSelectOnFocus.current = true
+							elm.focus()
+							const selection = window.getSelection()
+							if (selection) {
+								ranges.forEach((range) => selection.addRange(range))
+							}
 						}
+					} else {
+						elm.focus()
 					}
-				} else {
-					elm.focus()
 				}
 			} else {
 				window.getSelection()?.removeAllRanges()
 				editor.complete()
 			}
 		})
-	}, [editor])
+	}, [editor, id])
 
 	// When the user presses ctrl / meta enter, complete the editing state.
 	// When the user presses tab, indent or unindent the text.
@@ -187,7 +205,46 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				document.removeEventListener('selectionchange', updateSelection)
 			}
 		}
-	})
+	}, [])
+
+	const handleInputPointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			if (isEditableFromHover) {
+				transact(() => {
+					editor.setEditingId(id)
+					editor.setHoveredId(id)
+					editor.setSelectedShapeIds([id])
+				})
+			}
+
+			stopEventPropagation(e)
+		},
+		[editor, isEditableFromHover, id]
+	)
+
+	const handleContentPointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			editor.dispatch({
+				...getPointerInfo(e, editor.getContainer()),
+				type: 'pointer',
+				name: 'pointer_down',
+				target: 'shape',
+				shape: editor.getShape(id)!,
+			})
+
+			stopEventPropagation(e)
+		},
+		[editor, id]
+	)
+
+	useEffect(() => {
+		const elm = rInput.current
+		if (elm && isEditing && document.activeElement !== elm) {
+			elm.focus()
+		}
+	}, [isEditing])
+
+	const handleDoubleClick = stopEventPropagation
 
 	return {
 		rInput,
@@ -197,6 +254,9 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		handleBlur,
 		handleKeyDown,
 		handleChange,
+		handleInputPointerDown,
+		handleContentPointerDown,
+		handleDoubleClick,
 		isEmpty,
 	}
 }

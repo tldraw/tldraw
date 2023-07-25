@@ -1,28 +1,46 @@
-import { StateNode, TLEventHandlers, TLFrameShape, TLGroupShape, TLShapeId } from '@tldraw/editor'
+import {
+	HIT_TEST_MARGIN,
+	StateNode,
+	TLEventHandlers,
+	TLFrameShape,
+	TLGroupShape,
+	TLShapeId,
+} from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
 	override onEnter = () => {
-		const { inputs } = this.editor
+		const {
+			inputs: { currentPagePoint },
+			sortedShapesOnCurrentPage,
+			zoomLevel,
+		} = this.editor
 
 		const erasing = new Set<TLShapeId>()
 
 		const initialSize = erasing.size
 
-		for (const shape of [...this.editor.sortedShapesArray].reverse()) {
-			if (this.editor.isPointInShape(inputs.currentPagePoint, shape)) {
-				// Skip groups
-				if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
+		for (let n = sortedShapesOnCurrentPage.length, i = n - 1; i >= 0; i--) {
+			const shape = sortedShapesOnCurrentPage[i]
+			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) {
+				continue
+			}
 
+			if (
+				this.editor.isPointInShape(shape, currentPagePoint, {
+					hitInside: false,
+					margin: HIT_TEST_MARGIN / zoomLevel,
+				})
+			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)
-
 				// If we've hit a frame after hitting any other shape, stop here
 				if (
 					this.editor.isShapeOfType<TLFrameShape>(hitShape, 'frame') &&
 					erasing.size > initialSize
-				)
+				) {
 					break
+				}
 
 				erasing.add(hitShape.id)
 			}
@@ -54,11 +72,11 @@ export class Pointing extends StateNode {
 	}
 
 	complete() {
-		const { erasingIds } = this.editor
+		const { erasingShapeIds } = this.editor
 
-		if (erasingIds.length) {
+		if (erasingShapeIds.length) {
 			this.editor.mark('erase end')
-			this.editor.deleteShapes(erasingIds)
+			this.editor.deleteShapes(erasingShapeIds)
 		}
 
 		this.editor.setErasingIds([])

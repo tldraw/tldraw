@@ -4,7 +4,6 @@ import * as React from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
-import { useShapeEvents } from '../hooks/useShapeEvents'
 import { Matrix2d } from '../primitives/Matrix2d'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
@@ -21,12 +20,16 @@ opacity based on its own opacity and that of its parent's.
 */
 export const Shape = track(function Shape({
 	id,
+	shape,
+	util,
 	index,
 	backgroundIndex,
 	opacity,
 	isCulled,
 }: {
 	id: TLShapeId
+	shape: TLShape
+	util: ShapeUtil
 	index: number
 	backgroundIndex: number
 	opacity: number
@@ -35,8 +38,6 @@ export const Shape = track(function Shape({
 	const editor = useEditor()
 
 	const { ShapeErrorFallback } = useEditorComponents()
-
-	const events = useShapeEvents(id)
 
 	const containerRef = React.useRef<HTMLDivElement>(null)
 	const backgroundContainerRef = React.useRef<HTMLDivElement>(null)
@@ -49,11 +50,10 @@ export const Shape = track(function Shape({
 	useQuickReactor(
 		'set shape container transform position',
 		() => {
-			const shape = editor.getShapeById(id)
-			const pageTransform = editor.getPageTransformById(id)
+			const shape = editor.getShape(id)
+			if (!shape) return // probably the shape was just deleted
 
-			if (!shape || !pageTransform) return null
-
+			const pageTransform = editor.getPageTransform(id)
 			const transform = Matrix2d.toCssString(pageTransform)
 			setProperty('transform', transform)
 		},
@@ -63,10 +63,10 @@ export const Shape = track(function Shape({
 	useQuickReactor(
 		'set shape container clip path',
 		() => {
-			const shape = editor.getShapeById(id)
+			const shape = editor.getShape(id)
 			if (!shape) return null
 
-			const clipPath = editor.getClipPathById(id)
+			const clipPath = editor.getClipPath(id)
 			setProperty('clip-path', clipPath ?? 'none')
 		},
 		[editor, setProperty]
@@ -75,12 +75,12 @@ export const Shape = track(function Shape({
 	useQuickReactor(
 		'set shape height and width',
 		() => {
-			const shape = editor.getShapeById(id)
+			const shape = editor.getShape(id)
 			if (!shape) return null
 
-			const bounds = editor.getBounds(shape)
-			setProperty('width', Math.ceil(bounds.width) + 'px')
-			setProperty('height', Math.ceil(bounds.height) + 'px')
+			const bounds = editor.getGeometry(shape).bounds
+			setProperty('width', Math.max(1, Math.ceil(bounds.width)) + 'px')
+			setProperty('height', Math.max(1, Math.ceil(bounds.height)) + 'px')
 		},
 		[editor]
 	)
@@ -92,7 +92,7 @@ export const Shape = track(function Shape({
 		backgroundContainerRef.current?.style.setProperty('z-index', backgroundIndex + '')
 	}, [opacity, index, backgroundIndex, setProperty])
 
-	const shape = editor.getShapeById(id)
+	// const shape = editor.getShape(id)
 
 	const annotateError = React.useCallback(
 		(error: any) => {
@@ -102,8 +102,6 @@ export const Shape = track(function Shape({
 	)
 
 	if (!shape) return null
-
-	const util = editor.getShapeUtil(shape)
 
 	return (
 		<>
@@ -121,17 +119,7 @@ export const Shape = track(function Shape({
 					)}
 				</div>
 			)}
-			<div
-				ref={containerRef}
-				className="tl-shape"
-				data-shape-type={shape.type}
-				draggable={false}
-				onPointerDown={events.onPointerDown}
-				onPointerMove={events.onPointerMove}
-				onPointerUp={events.onPointerUp}
-				onPointerEnter={events.onPointerEnter}
-				onPointerLeave={events.onPointerLeave}
-			>
+			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
 				{isCulled && util.canUnmount(shape) ? (
 					<CulledShape shape={shape} />
 				) : (
@@ -167,15 +155,15 @@ const InnerShapeBackground = React.memo(
 const CulledShape = React.memo(
 	function CulledShape<T extends TLShape>({ shape }: { shape: T }) {
 		const editor = useEditor()
-		const bounds = editor.getBounds(shape)
+		const bounds = editor.getGeometry(shape).bounds
 
 		return (
 			<div
 				className="tl-shape__culled"
 				style={{
 					transform: `translate(${bounds.minX}px, ${bounds.minY}px)`,
-					width: bounds.width,
-					height: bounds.height,
+					width: Math.max(1, bounds.width),
+					height: Math.max(1, bounds.height),
 				}}
 			/>
 		)

@@ -16,9 +16,12 @@ export function useExportAs() {
 	const msg = useTranslation()
 
 	return useCallback(
-		async function exportAs(ids: TLShapeId[] = editor.selectedIds, format: TLExportType = 'png') {
+		async function exportAs(
+			ids: TLShapeId[] = editor.selectedShapeIds,
+			format: TLExportType = 'png'
+		) {
 			if (ids.length === 0) {
-				ids = [...editor.currentPageShapeIds]
+				ids = [...editor.shapeIdsOnCurrentPage]
 			}
 
 			if (ids.length === 0) {
@@ -35,7 +38,7 @@ export function useExportAs() {
 			let name = 'shapes'
 
 			if (ids.length === 1) {
-				const first = editor.getShapeById(ids[0])!
+				const first = editor.getShape(ids[0])!
 				if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
 					name = first.props.name ?? 'frame'
 				} else {

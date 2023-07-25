@@ -60,7 +60,7 @@ describe('editor.rotateShapes', () => {
 		const { selectionPageCenter } = editor
 
 		// Rotate the shape...
-		editor.rotateShapesBy(editor.selectedIds, Math.PI)
+		editor.rotateShapesBy(editor.selectedShapeIds, Math.PI)
 
 		// Once for each shape
 		expect(fnStart).toHaveBeenCalledTimes(2)

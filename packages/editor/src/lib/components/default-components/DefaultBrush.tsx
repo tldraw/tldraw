@@ -11,6 +11,7 @@ export type TLBrushComponent = ComponentType<{
 	className?: string
 }>
 
+/** @public */
 export const DefaultBrush: TLBrushComponent = ({ brush, color, opacity }) => {
 	const rSvg = useRef<SVGSVGElement>(null)
 	useTransform(rSvg, brush.x, brush.y)

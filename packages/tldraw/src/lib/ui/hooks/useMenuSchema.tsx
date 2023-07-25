@@ -60,9 +60,9 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 		[editor]
 	)
 
-	const emptyPage = useValue('emptyPage', () => editor.currentPageShapeIds.size === 0, [editor])
+	const emptyPage = useValue('emptyPage', () => editor.shapeIdsOnCurrentPage.size === 0, [editor])
 
-	const selectedCount = useValue('selectedCount', () => editor.selectedIds.length, [editor])
+	const selectedCount = useValue('selectedCount', () => editor.selectedShapeIds.length, [editor])
 	const noneSelected = selectedCount === 0
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1

@@ -10,6 +10,7 @@ import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicator'
 import { TldrawScribble } from './canvas/TldrawScribble'
+import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
@@ -39,6 +40,7 @@ export function Tldraw(
 			() => ({
 				Scribble: TldrawScribble,
 				SelectionForeground: TldrawSelectionForeground,
+				SelectionBackground: TldrawSelectionBackground,
 				Handles: TldrawHandles,
 				HoveredShapeIndicator: TldrawHoveredShapeIndicator,
 				...rest.components,

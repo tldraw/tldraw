@@ -11,42 +11,46 @@ import {
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
+	markId = ''
+
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+		this.complete()
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
 			const id = createShapeId()
 
-			this.editor.mark('creating')
+			this.markId = `creating:${id}`
 
-			this.editor.createShapes<TLGeoShape>([
-				{
-					id,
-					type: 'geo',
-					x: originPagePoint.x,
-					y: originPagePoint.y,
-					props: {
-						w: 1,
-						h: 1,
-						geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
+			this.editor.mark(this.markId)
+
+			this.editor
+				.createShapes<TLGeoShape>([
+					{
+						id,
+						type: 'geo',
+						x: originPagePoint.x,
+						y: originPagePoint.y,
+						props: {
+							w: 1,
+							h: 1,
+							geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
+						},
 					},
-				},
-			])
-
-			this.editor.select(id)
-			this.editor.setCurrentTool('select.resizing', {
-				...info,
-				target: 'selection',
-				handle: 'bottom_right',
-				isCreating: true,
-				creationCursorOffset: { x: 1, y: 1 },
-				onInteractionEnd: 'geo',
-			})
+				])
+				.select(id)
+				.setCurrentTool('select.resizing', {
+					...info,
+					target: 'selection',
+					handle: 'bottom_right',
+					isCreating: true,
+					creationCursorOffset: { x: 1, y: 1 },
+					onInteractionEnd: 'geo',
+				})
 		}
-	}
-
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
-		this.complete()
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
@@ -66,7 +70,9 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.editor.mark('creating')
+		this.markId = `creating:${id}`
+
+		this.editor.mark(this.markId)
 
 		this.editor.createShapes<TLGeoShape>([
 			{
@@ -82,7 +88,7 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const shape = this.editor.getShapeById<TLGeoShape>(id)!
+		const shape = this.editor.getShape<TLGeoShape>(id)!
 		if (!shape) return
 
 		const bounds =
@@ -91,7 +97,10 @@ export class Pointing extends StateNode {
 				: shape.props.geo === 'cloud'
 				? new Box2d(0, 0, 300, 180)
 				: new Box2d(0, 0, 200, 200)
-		const delta = this.editor.getDeltaInParentSpace(shape, bounds.center)
+
+		const delta = bounds.center
+		const parentTransform = this.editor.getParentTransform(shape)
+		if (parentTransform) delta.rot(-parentTransform.rotation())
 
 		this.editor.select(id)
 		this.editor.updateShapes<TLGeoShape>([
@@ -116,6 +125,7 @@ export class Pointing extends StateNode {
 	}
 
 	private cancel() {
+		// we should not have created any shapes yet, so no need to bail
 		this.parent.transition('idle', {})
 	}
 }

@@ -1,4 +1,5 @@
 import {
+	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
 	TLFrameShape,
@@ -24,13 +25,16 @@ export class Erasing extends StateNode {
 
 		const { originPagePoint } = this.editor.inputs
 		this.excludedShapeIds = new Set(
-			this.editor.shapesArray
+			this.editor.shapesOnCurrentPage
 				.filter(
 					(shape) =>
 						this.editor.isShapeOrAncestorLocked(shape) ||
 						((this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
 							this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) &&
-							this.editor.isPointInShape(originPagePoint, shape))
+							this.editor.isPointInShape(shape, originPagePoint, {
+								hitInside: true,
+								margin: 0,
+							}))
 				)
 				.map((shape) => shape.id)
 		)
@@ -90,8 +94,9 @@ export class Erasing extends StateNode {
 
 	update() {
 		const {
-			shapesArray,
-			erasingIdsSet,
+			zoomLevel,
+			shapesOnCurrentPage,
+			erasingShapeIdsSet,
 			inputs: { currentPagePoint, previousPagePoint },
 		} = this.editor
 
@@ -99,24 +104,23 @@ export class Erasing extends StateNode {
 
 		this.pushPointToScribble()
 
-		const erasing = new Set<TLShapeId>(erasingIdsSet)
+		const erasing = new Set<TLShapeId>(erasingShapeIdsSet)
 
-		for (const shape of shapesArray) {
+		for (const shape of shapesOnCurrentPage) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
-			const pageMask = this.editor.getPageMaskById(shape.id)
+			const pageMask = this.editor.getPageMask(shape.id)
 			if (pageMask && !pointInPolygon(currentPagePoint, pageMask)) {
 				continue
 			}
 
 			// Hit test the shape using a line segment
-			const util = this.editor.getShapeUtil(shape)
+			const geometry = this.editor.getGeometry(shape)
 			const A = this.editor.getPointInShapeSpace(shape, previousPagePoint)
 			const B = this.editor.getPointInShapeSpace(shape, currentPagePoint)
 
-			// If it's a hit, erase the outermost selectable shape
-			if (util.hitTestLineSegment(shape, A, B)) {
+			if (geometry.hitTestLineSegment(A, B, HIT_TEST_MARGIN / zoomLevel)) {
 				erasing.add(this.editor.getOutermostSelectableShape(shape).id)
 			}
 		}
@@ -128,7 +132,7 @@ export class Erasing extends StateNode {
 	}
 
 	complete() {
-		this.editor.deleteShapes(this.editor.currentPageState.erasingIds)
+		this.editor.deleteShapes(this.editor.currentPageState.erasingShapeIds)
 		this.editor.setErasingIds([])
 		this.parent.transition('idle', {})
 	}

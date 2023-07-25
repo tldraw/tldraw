@@ -10,11 +10,11 @@ export function sleep(ms: number) {
 // }
 
 // export async function expectToHaveNShapes(page: Page, numberOfShapes: number) {
-// 	expect(await page.evaluate(() => editor.shapesArray.length)).toBe(numberOfShapes)
+// 	expect(await page.evaluate(() => editor.shapesOnCurrentPage.length)).toBe(numberOfShapes)
 // }
 
 // export async function expectToHaveNSelectedShapes(page: Page, numberOfSelectedShapes: number) {
-// 	expect(await page.evaluate(() => editor.selectedIds.length)).toBe(numberOfSelectedShapes)
+// 	expect(await page.evaluate(() => editor.selectedShapeIds.length)).toBe(numberOfSelectedShapes)
 // }
 
 declare const editor: Editor

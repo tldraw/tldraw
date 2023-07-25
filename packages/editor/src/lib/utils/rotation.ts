@@ -29,7 +29,7 @@ export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationS
 		initialSelectionRotation: selectionRotation,
 		shapeSnapshots: selectedShapes.map((shape) => ({
 			shape: structuredClone(shape),
-			initialPagePoint: editor.getPagePointById(shape.id)!,
+			initialPagePoint: editor.getPageTransform(shape.id)!.point(),
 		})),
 	}
 }
@@ -74,7 +74,7 @@ export function applyRotationToSnapshotShapes({
 			// around the pivot point (the average center of all rotating shapes.)
 
 			const parentTransform = isShapeId(shape.parentId)
-				? editor.getPageTransformById(shape.parentId)!
+				? editor.getPageTransform(shape.parentId)!
 				: Matrix2d.Identity()
 
 			const newPagePoint = Vec2d.RotWith(initialPagePoint, selectionPageCenter, delta)
@@ -102,7 +102,7 @@ export function applyRotationToSnapshotShapes({
 	const changes: TLShapePartial[] = []
 
 	shapeSnapshots.forEach(({ shape }) => {
-		const current = editor.getShapeById(shape.id)
+		const current = editor.getShape(shape.id)
 		if (!current) return
 		const util = editor.getShapeUtil(shape)
 

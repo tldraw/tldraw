@@ -29,7 +29,7 @@ export class PointingCropHandle extends StateNode {
 		if (!selectedShape) return
 
 		this.updateCursor(selectedShape)
-		this.editor.croppingId = selectedShape.id
+		this.editor.setCroppingId(selectedShape.id)
 	}
 
 	override onExit = () => {
@@ -52,7 +52,7 @@ export class PointingCropHandle extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.croppingId = null
+			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})
 		}
 	}
@@ -73,7 +73,7 @@ export class PointingCropHandle extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.croppingId = null
+			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})
 		}
 	}

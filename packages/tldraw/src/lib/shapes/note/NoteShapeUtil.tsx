@@ -1,12 +1,11 @@
 import {
-	Box2d,
 	DefaultFontFamilies,
 	Editor,
+	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
 	TLNoteShape,
 	TLOnEditEndHandler,
-	Vec2d,
 	getDefaultColorTheme,
 	noteShapeMigrations,
 	noteShapeProps,
@@ -29,7 +28,6 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 
 	override canEdit = () => true
 	override hideResizeHandles = () => true
-	override hideSelectionBoundsBg = () => true
 	override hideSelectionBoundsFg = () => true
 
 	getDefaultProps(): TLNoteShape['props'] {
@@ -49,17 +47,9 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		return NOTE_SIZE + shape.props.growY
 	}
 
-	getBounds(shape: TLNoteShape) {
+	getGeometry(shape: TLNoteShape) {
 		const height = this.getHeight(shape)
-		return new Box2d(0, 0, NOTE_SIZE, height)
-	}
-
-	override getOutline(shape: TLNoteShape) {
-		return this.editor.getBounds(shape).corners
-	}
-
-	override getCenter(_shape: TLNoteShape) {
-		return new Vec2d(NOTE_SIZE / 2, this.getHeight(_shape) / 2)
+		return new Rectangle2d({ width: NOTE_SIZE, height, isFilled: true })
 	}
 
 	component(shape: TLNoteShape) {
@@ -83,7 +73,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 					}}
 				>
 					<div
-						className="tl-note__container tl-hitarea-fill"
+						className="tl-note__container"
 						style={{
 							color: theme[adjustedColor].solid,
 							backgroundColor: theme[adjustedColor].solid,
@@ -123,7 +113,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 	override toSvg(shape: TLNoteShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
-		const bounds = this.getBounds(shape)
+		const bounds = this.editor.getGeometry(shape).bounds
 
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 

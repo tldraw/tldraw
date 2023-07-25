@@ -6,6 +6,7 @@ export type TLHandlesComponent = ComponentType<{
 	children: any
 }>
 
+/** @public */
 export const DefaultHandles: TLHandlesComponent = ({ children }) => {
 	return <svg className="tl-user-handles tl-overlays__item">{children}</svg>
 }

@@ -30,7 +30,7 @@ beforeEach(() => {
 
 	const page1 = editor.currentPageId
 	editor.createPage('page 2', ids.page2)
-	editor.setCurrentPageId(page1)
+	editor.setCurrentPage(page1)
 })
 
 const moveShapesToPage2 = () => {
@@ -44,82 +44,82 @@ const moveShapesToPage2 = () => {
 }
 
 describe('shapes that are moved to another page', () => {
-	it("should be excluded from the previous page's focusLayerId", () => {
-		editor.focusLayerId = ids.group1
-		expect(editor.focusLayerId).toBe(ids.group1)
+	it("should be excluded from the previous page's focusedGroupId", () => {
+		editor.setFocusedGroupId(ids.group1)
+		expect(editor.focusedGroupId).toBe(ids.group1)
 		moveShapesToPage2()
-		expect(editor.focusLayerId).toBe(editor.currentPageId)
+		expect(editor.focusedGroupId).toBe(editor.currentPageId)
 	})
 
-	describe("should be excluded from the previous page's hintingIds", () => {
+	describe("should be excluded from the previous page's hintingShapeIds", () => {
 		test('[boxes]', () => {
-			editor.hintingIds = [ids.box1, ids.box2, ids.box3]
-			expect(editor.hintingIds).toEqual([ids.box1, ids.box2, ids.box3])
+			editor.setHintingIds([ids.box1, ids.box2, ids.box3])
+			expect(editor.hintingShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.hintingIds).toEqual([])
+			expect(editor.hintingShapeIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.hintingIds = [ids.frame1]
-			expect(editor.hintingIds).toEqual([ids.frame1])
+			editor.setHintingIds([ids.frame1])
+			expect(editor.hintingShapeIds).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.hintingIds).toEqual([ids.frame1])
+			expect(editor.hintingShapeIds).toEqual([ids.frame1])
 		})
 	})
 
-	describe("should be excluded from the previous page's editingId", () => {
+	describe("should be excluded from the previous page's editingShapeId", () => {
 		test('[root shape]', () => {
 			editor.setEditingId(ids.box1)
-			expect(editor.editingId).toBe(ids.box1)
+			expect(editor.editingShapeId).toBe(ids.box1)
 			moveShapesToPage2()
-			expect(editor.editingId).toBe(null)
+			expect(editor.editingShapeId).toBe(null)
 		})
 		test('[child of frame]', () => {
 			editor.setEditingId(ids.box2)
-			expect(editor.editingId).toBe(ids.box2)
+			expect(editor.editingShapeId).toBe(ids.box2)
 			moveShapesToPage2()
-			expect(editor.editingId).toBe(null)
+			expect(editor.editingShapeId).toBe(null)
 		})
 		test('[child of group]', () => {
 			editor.setEditingId(ids.box3)
-			expect(editor.editingId).toBe(ids.box3)
+			expect(editor.editingShapeId).toBe(ids.box3)
 			moveShapesToPage2()
-			expect(editor.editingId).toBe(null)
+			expect(editor.editingShapeId).toBe(null)
 		})
 		test('[frame that doesnt move]', () => {
 			editor.setEditingId(ids.frame1)
-			expect(editor.editingId).toBe(ids.frame1)
+			expect(editor.editingShapeId).toBe(ids.frame1)
 			moveShapesToPage2()
-			expect(editor.editingId).toBe(ids.frame1)
+			expect(editor.editingShapeId).toBe(ids.frame1)
 		})
 	})
 
-	describe("should be excluded from the previous page's erasingIds", () => {
+	describe("should be excluded from the previous page's erasingShapeIds", () => {
 		test('[boxes]', () => {
 			editor.setErasingIds([ids.box1, ids.box2, ids.box3])
-			expect(editor.erasingIds).toEqual([ids.box1, ids.box2, ids.box3])
+			expect(editor.erasingShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.erasingIds).toEqual([])
+			expect(editor.erasingShapeIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
 			editor.setErasingIds([ids.frame1])
-			expect(editor.erasingIds).toEqual([ids.frame1])
+			expect(editor.erasingShapeIds).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.erasingIds).toEqual([ids.frame1])
+			expect(editor.erasingShapeIds).toEqual([ids.frame1])
 		})
 	})
 
-	describe("should be excluded from the previous page's selectedIds", () => {
+	describe("should be excluded from the previous page's selectedShapeIds", () => {
 		test('[boxes]', () => {
-			editor.setSelectedIds([ids.box1, ids.box2, ids.box3])
-			expect(editor.selectedIds).toEqual([ids.box1, ids.box2, ids.box3])
+			editor.setSelectedShapeIds([ids.box1, ids.box2, ids.box3])
+			expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.selectedIds).toEqual([])
+			expect(editor.selectedShapeIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.setSelectedIds([ids.frame1])
-			expect(editor.selectedIds).toEqual([ids.frame1])
+			editor.setSelectedShapeIds([ids.frame1])
+			expect(editor.selectedShapeIds).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.selectedIds).toEqual([ids.frame1])
+			expect(editor.selectedShapeIds).toEqual([ids.frame1])
 		})
 	})
 })
@@ -156,7 +156,7 @@ describe('Editor.sharedOpacity', () => {
 
 	it('should return opacity for a single selected shape', () => {
 		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
-		editor.setSelectedIds([A])
+		editor.setSelectedShapeIds([A])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
@@ -165,7 +165,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
 			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
 		])
-		editor.setSelectedIds([A, B])
+		editor.setSelectedShapeIds([A, B])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
@@ -174,7 +174,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
 			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
 		])
-		editor.setSelectedIds([A, B])
+		editor.setSelectedShapeIds([A, B])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'mixed' })
 	})
 
@@ -184,7 +184,7 @@ describe('Editor.sharedOpacity', () => {
 				<TL.geo ref="A" opacity={0.3} x={0} y={0} />
 			</TL.group>,
 		])
-		editor.setSelectedIds([ids.group])
+		editor.setSelectedShapeIds([ids.group])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 })
@@ -196,11 +196,11 @@ describe('Editor.setOpacity', () => {
 			<TL.geo ref="B" opacity={0.4} x={0} y={0} />,
 		])
 
-		editor.setSelectedIds([ids.A, ids.B])
+		editor.setSelectedShapeIds([ids.A, ids.B])
 		editor.setOpacity(0.5)
 
-		expect(editor.getShapeById(ids.A)!.opacity).toBe(0.5)
-		expect(editor.getShapeById(ids.B)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.A)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.B)!.opacity).toBe(0.5)
 	})
 
 	it('should traverse into groups and set opacity in their children', () => {
@@ -215,20 +215,20 @@ describe('Editor.setOpacity', () => {
 			</TL.group>,
 		])
 
-		editor.setSelectedIds([ids.groupA])
+		editor.setSelectedShapeIds([ids.groupA])
 		editor.setOpacity(0.5)
 
 		// a wasn't selected...
-		expect(editor.getShapeById(ids.boxA)!.opacity).toBe(1)
+		expect(editor.getShape(ids.boxA)!.opacity).toBe(1)
 
 		// b, c, & d were within a selected group...
-		expect(editor.getShapeById(ids.boxB)!.opacity).toBe(0.5)
-		expect(editor.getShapeById(ids.boxC)!.opacity).toBe(0.5)
-		expect(editor.getShapeById(ids.boxD)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxB)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxC)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxD)!.opacity).toBe(0.5)
 
 		// groups get skipped
-		expect(editor.getShapeById(ids.groupA)!.opacity).toBe(1)
-		expect(editor.getShapeById(ids.groupB)!.opacity).toBe(1)
+		expect(editor.getShape(ids.groupA)!.opacity).toBe(1)
+		expect(editor.getShape(ids.groupB)!.opacity).toBe(1)
 	})
 
 	it('stores opacity on opacityForNextShape', () => {
@@ -472,11 +472,11 @@ describe('getShapeUtil', () => {
 		])
 		const page1 = editor.currentPageId
 		editor.createPage('page 2', ids.page2)
-		editor.setCurrentPageId(page1)
+		editor.setCurrentPage(page1)
 	})
 
 	it('accepts shapes', () => {
-		const shape = editor.getShapeById(ids.box1)!
+		const shape = editor.getShape(ids.box1)!
 		const util = editor.getShapeUtil(shape)
 		expect(util).toBeInstanceOf(myUtil)
 	})

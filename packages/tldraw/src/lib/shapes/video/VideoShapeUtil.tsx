@@ -70,8 +70,9 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 	videoUtil: VideoShapeUtil
 }) {
 	const { shape, videoUtil } = props
-	const showControls = videoUtil.editor.getBounds(shape).w * videoUtil.editor.zoomLevel >= 110
-	const asset = shape.props.assetId ? videoUtil.editor.getAssetById(shape.props.assetId) : null
+	const showControls =
+		videoUtil.editor.getGeometry(shape).bounds.w * videoUtil.editor.zoomLevel >= 110
+	const asset = shape.props.assetId ? videoUtil.editor.getAsset(shape.props.assetId) : null
 	const { time, playing } = shape.props
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
@@ -177,7 +178,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 					{asset?.props.src ? (
 						<video
 							ref={rVideo}
-							className={`tl-video tl-video-shape-${shape.id.split(':')[1]} tl-hitarea-stroke`}
+							className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
 							width="100%"
 							height="100%"
 							draggable={false}

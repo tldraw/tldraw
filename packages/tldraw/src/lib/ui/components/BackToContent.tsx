@@ -22,7 +22,8 @@ export function BackToContent() {
 			// viewport... so we also need to narrow down the list to only shapes that
 			// are ALSO in the viewport.
 			const visibleShapes = renderingShapes.filter((s) => s.isInViewport)
-			const showBackToContentNow = visibleShapes.length === 0 && editor.shapesArray.length > 0
+			const showBackToContentNow =
+				visibleShapes.length === 0 && editor.shapesOnCurrentPage.length > 0
 
 			if (showBackToContentPrev !== showBackToContentNow) {
 				setShowBackToContent(showBackToContentNow)

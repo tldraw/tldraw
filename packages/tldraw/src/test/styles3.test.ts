@@ -27,7 +27,7 @@ it("When changing the style of a geo shape, if the text label is empty, don't me
 		},
 	])
 
-	const boundsBefore = editor.getBoundsById(id)!
+	const boundsBefore = editor.getGeometry(id).bounds
 
 	editor.updateShapes([
 		{
@@ -37,7 +37,7 @@ it("When changing the style of a geo shape, if the text label is empty, don't me
 		},
 	])
 
-	expect(editor.getBoundsById(id)).toMatchObject(boundsBefore)
+	expect(editor.getGeometry(id).bounds).toMatchObject(boundsBefore)
 })
 
 it('When changing the style of a geo shape, if the text label has text, measure it and possibly update the size', () => {
@@ -56,7 +56,7 @@ it('When changing the style of a geo shape, if the text label has text, measure 
 		},
 	])
 
-	const boundsBefore = editor.getBoundsById(id)!
+	const boundsBefore = editor.getGeometry(id).bounds!
 
 	editor.updateShapes([
 		{
@@ -66,5 +66,5 @@ it('When changing the style of a geo shape, if the text label has text, measure 
 		},
 	])
 
-	expect(editor.getBoundsById(id)).not.toMatchObject(boundsBefore)
+	expect(editor.getGeometry(id).bounds).not.toMatchObject(boundsBefore)
 })

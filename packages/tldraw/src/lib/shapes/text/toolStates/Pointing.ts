@@ -5,8 +5,10 @@ export class Pointing extends StateNode {
 
 	shape?: TLTextShape
 
+	markId = ''
+
 	override onExit = () => {
-		this.editor.hintingIds = []
+		this.editor.setHintingIds([])
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
@@ -17,7 +19,7 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
-			this.editor.mark('creating')
+			this.markId = this.editor.mark(`creating:${id}`)
 
 			this.editor.createShapes<TLTextShape>([
 				{
@@ -35,7 +37,7 @@ export class Pointing extends StateNode {
 
 			this.editor.select(id)
 
-			this.shape = this.editor.getShapeById(id)
+			this.shape = this.editor.getShape(id)
 			if (!this.shape) return
 
 			this.editor.setCurrentTool('select.resizing', {
@@ -93,6 +95,6 @@ export class Pointing extends StateNode {
 
 	private cancel() {
 		this.parent.transition('idle', {})
-		this.editor.bailToMark('creating')
+		this.editor.bailToMark(this.markId)
 	}
 }

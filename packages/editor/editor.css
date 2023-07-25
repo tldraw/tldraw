@@ -95,7 +95,7 @@
 	--color-background: rgb(249, 250, 251);
 	--color-brush-fill: rgba(144, 144, 144, 0.102);
 	--color-brush-stroke: rgba(144, 144, 144, 0.251);
-	--color-grid: rgba(144, 144, 144, 0.902);
+	--color-grid: rgb(109, 109, 109);
 	--color-low: rgb(237, 240, 242);
 	--color-culled: rgb(235, 238, 240);
 	--color-muted-0: rgba(0, 0, 0, 0.02);
@@ -135,7 +135,7 @@
 	--color-background: #212529;
 	--color-brush-fill: rgba(180, 180, 180, 0.05);
 	--color-brush-stroke: rgba(180, 180, 180, 0.25);
-	--color-grid: #909090e6;
+	--color-grid: #909090;
 	--color-low: #2c3136;
 	--color-culled: rgb(47, 52, 57);
 	--color-muted-0: rgba(255, 255, 255, 0.02);
@@ -235,6 +235,8 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
+	height: 1px;
+	width: 1px;
 	overflow: visible;
 	pointer-events: none;
 	transform-origin: top left;
@@ -324,26 +326,6 @@ input,
 .tl-shape__culled {
 	position: relative;
 	background-color: var(--color-culled);
-}
-
-.tl-hitarea-stroke {
-	fill: none;
-	stroke: transparent;
-	pointer-events: stroke;
-	stroke-width: min(100px, calc(24px * var(--tl-scale)));
-}
-
-.tl-hitarea-fill {
-	fill: var(--color-background);
-	stroke: transparent;
-	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--tl-scale)));
-}
-
-.tl-hitarea-fill-solid {
-	stroke: transparent;
-	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
 /* ---------------- Shape Containers ---------------- */
@@ -755,6 +737,10 @@ input,
 	text-shadow: var(--tl-text-outline);
 }
 
+.tl-text-shape__wrapper[data-isediting='true'] {
+	outline: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
+}
+
 .tl-text-shape__wrapper[data-align='start'] {
 	text-align: left;
 }
@@ -959,7 +945,7 @@ input,
 	font-size: 16px;
 	font-weight: bold;
 	padding-bottom: var(--space-2);
-	margin: 4px 0px;
+	margin: 8px 0px;
 }
 
 .tl-bookmark__description {
@@ -1051,8 +1037,13 @@ input,
 	align-items: center;
 	color: var(--color-text);
 	text-shadow: var(--tl-text-outline);
-	overflow: hidden;
 	line-height: inherit;
+	position: relative;
+	z-index: 10;
+}
+
+.tl-text-label[data-isediting='true'] {
+	outline: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
 }
 
 .tl-text-label[data-isediting='true'] .tl-text-content {
@@ -1062,6 +1053,10 @@ input,
 .tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
 	width: 40px;
 	height: 40px;
+}
+
+.tl-text-label[data-hastext='true'][data-isediting='false'] .tl-text-content {
+	pointer-events: all;
 }
 
 .tl-text-label__inner {
@@ -1450,15 +1445,17 @@ input,
 	border-style: solid;
 	border-radius: calc(var(--radius-1) * var(--tl-scale));
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	text-align: left;
 	position: relative;
 	pointer-events: all;
 	overflow: hidden;
 	padding: var(--space-2);
 }
 
-.tl-shape-error-boundary::after {
+.tl-shape-error-boundary::before {
 	transform: scale(var(--tl-scale));
 	content: 'Error';
 	font-size: 12px;

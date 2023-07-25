@@ -21,7 +21,7 @@ const IS_FIREFOX =
 	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
 export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
-	function SelectionFg() {
+	function TldrawSelectionForeground({ bounds, rotation }) {
 		const editor = useEditor()
 		const rSvg = useRef<SVGSVGElement>(null)
 
@@ -38,7 +38,6 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		const isDefaultCursor = !editor.isMenuOpen && editor.instanceState.cursor.type === 'default'
 		const isCoarsePointer = editor.instanceState.isCoarsePointer
 
-		let bounds = editor.selectionBounds
 		const shapes = editor.selectedShapes
 		const onlyShape = editor.onlySelectedShape
 		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
@@ -57,7 +56,6 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		bounds = bounds.clone().expandBy(expandOutlineBy)
 
 		const zoom = editor.zoomLevel
-		const rotation = editor.selectionRotation
 		const isChangingStyle = editor.instanceState.isChangingStyle
 
 		const width = Math.max(1, bounds.width)
@@ -94,8 +92,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					'select.crop.idle',
 					'select.crop.pointing_crop',
 					'select.pointing_resize_handle',
-					'select.pointing_crop_handle',
-					'select.editing_shape'
+					'select.pointing_crop_handle'
 				)) ||
 			(showSelectionBounds &&
 				editor.isIn('select.resizing') &&

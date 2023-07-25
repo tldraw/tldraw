@@ -39,7 +39,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 		const firstPageId = editor.pages[0].id
 
 		// Set the current page to the first page
-		editor.setCurrentPageId(firstPageId)
+		editor.setCurrentPage(firstPageId)
 
 		// Delete all pages except first page
 		for (const page of editor.pages.slice(1)) {
@@ -48,7 +48,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 		// Delete all of the shapes on the current page
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedShapeIds)
 
 		// Create assets
 		const v1AssetIdsToV2AssetIds = new Map<string, TLAssetId>()
@@ -121,7 +121,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 			.sort((a, b) => ((a.childIndex ?? 1) < (b.childIndex ?? 1) ? -1 : 1))
 			.forEach((v1Page) => {
 				// Set the current page id to the current page
-				editor.setCurrentPageId(v1PageIdsToV2PageIds.get(v1Page.id)!)
+				editor.setCurrentPage(v1PageIdsToV2PageIds.get(v1Page.id)!)
 
 				const v1ShapeIdsToV2ShapeIds = new Map<string, TLShapeId>()
 				const v1GroupShapeIdsToV1ChildIds = new Map<string, string[]>()
@@ -219,7 +219,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getPageBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -232,7 +232,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							])
 
 							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShapeById<TLGeoShape>(inCommon.id)!
+								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
 								const h = coerceDimension(shape.props.h)
@@ -274,7 +274,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getPageBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -287,7 +287,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							])
 
 							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShapeById<TLGeoShape>(inCommon.id)!
+								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
 								const h = coerceDimension(shape.props.h)
@@ -329,7 +329,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getPageBoundsById(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getPageBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -342,7 +342,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							])
 
 							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
-								const shape = editor.getShapeById<TLGeoShape>(inCommon.id)!
+								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
 								const h = coerceDimension(shape.props.h)
@@ -534,15 +534,15 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 							const targetId = v1ShapeIdsToV2ShapeIds.get(binding.toId)!
 
-							const targetShape = editor.getShapeById(targetId)!
+							const targetShape = editor.getShape(targetId)!
 
 							// (unexpected) We didn't create the target shape
 							if (!targetShape) continue
 
 							if (targetId) {
-								const bounds = editor.getPageBoundsById(targetId)!
+								const bounds = editor.getPageBounds(targetId)!
 
-								const v2ShapeFresh = editor.getShapeById<TLArrowShape>(v2ShapeId)!
+								const v2ShapeFresh = editor.getShape<TLArrowShape>(v2ShapeId)!
 
 								const nx = clamp((coerceNumber(binding.point[0]) + 0.5) / 2, 0.2, 0.8)
 								const ny = clamp((coerceNumber(binding.point[1]) + 0.5) / 2, 0.2, 0.8)
@@ -585,13 +585,13 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 			})
 
 		// Set the current page to the first page again
-		editor.setCurrentPageId(firstPageId)
+		editor.setCurrentPage(firstPageId)
 
 		editor.history.clear()
 		editor.selectNone()
 		editor.updateViewportScreenBounds()
 
-		const bounds = editor.allShapesCommonBounds
+		const bounds = editor.commonBoundsOfAllShapesOnCurrentPage
 		if (bounds) {
 			editor.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
 		}
@@ -780,12 +780,12 @@ function migrate(document: LegacyTldrawDocument, newVersion: number): LegacyTldr
 
 	// Cleanup
 	Object.values(document.pageStates).forEach((pageState) => {
-		pageState.selectedIds = pageState.selectedIds.filter((id) => {
+		pageState.selectedShapeIds = pageState.selectedShapeIds.filter((id) => {
 			return document.pages[pageState.id].shapes[id] !== undefined
 		})
 		pageState.bindingId = undefined
-		pageState.editingId = undefined
-		pageState.hoveredId = undefined
+		pageState.editingShapeId = undefined
+		pageState.hoveredShapeId = undefined
 		pageState.pointedId = undefined
 	})
 
@@ -1027,15 +1027,15 @@ interface TLV1Bounds {
 
 interface TLV1PageState {
 	id: string
-	selectedIds: string[]
+	selectedShapeIds: string[]
 	camera: {
 		point: number[]
 		zoom: number
 	}
 	brush?: TLV1Bounds | null
 	pointedId?: string | null
-	hoveredId?: string | null
-	editingId?: string | null
+	hoveredShapeId?: string | null
+	editingShapeId?: string | null
 	bindingId?: string | null
 }
 

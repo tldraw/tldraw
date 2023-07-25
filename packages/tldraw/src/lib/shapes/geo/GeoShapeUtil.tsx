@@ -1,12 +1,17 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
-	Box2d,
 	DefaultFontFamilies,
 	Editor,
-	PI,
+	Ellipse2d,
+	Geometry2d,
+	Group2d,
 	PI2,
+	Polygon2d,
+	Polyline2d,
+	Rectangle2d,
 	SVGContainer,
+	Stadium2d,
 	SvgExportContext,
 	TAU,
 	TLDefaultDashStyle,
@@ -15,13 +20,10 @@ import {
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
 	Vec2d,
-	VecLike,
 	geoShapeMigrations,
 	geoShapeProps,
 	getDefaultColorTheme,
 	getPolygonVertices,
-	linesIntersect,
-	pointInPolygon,
 } from '@tldraw/editor'
 
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -87,145 +89,75 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 	}
 
-	override hitTestLineSegment(shape: TLGeoShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.editor.getOutline(shape)
-
-		// Check the outline
-		for (let i = 0; i < outline.length; i++) {
-			const C = outline[i]
-			const D = outline[(i + 1) % outline.length]
-			if (linesIntersect(A, B, C, D)) return true
-		}
-
-		// Also check lines, if any
-		const lines = getLines(shape.props, 0)
-		if (lines !== undefined) {
-			for (const [C, D] of lines) {
-				if (linesIntersect(A, B, C, D)) return true
-			}
-		}
-
-		return false
-	}
-
-	override hitTestPoint(shape: TLGeoShape, point: VecLike): boolean {
-		const outline = this.editor.getOutline(shape)
-
-		if (shape.props.fill === 'none') {
-			const zoomLevel = this.editor.zoomLevel
-			const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
-			// Check the outline
-			for (let i = 0; i < outline.length; i++) {
-				const C = outline[i]
-				const D = outline[(i + 1) % outline.length]
-				if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
-			}
-
-			// Also check lines, if any
-			const lines = getLines(shape.props, 1)
-			if (lines !== undefined) {
-				for (const [C, D] of lines) {
-					if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
-				}
-			}
-
-			return false
-		}
-
-		return pointInPolygon(point, outline)
-	}
-
-	override getBounds(shape: TLGeoShape) {
-		return new Box2d(0, 0, shape.props.w, shape.props.h + shape.props.growY)
-	}
-
-	override getCenter(shape: TLGeoShape) {
-		return new Vec2d(shape.props.w / 2, (shape.props.h + shape.props.growY) / 2)
-	}
-
-	override getOutline(shape: TLGeoShape) {
+	override getGeometry(shape: TLGeoShape): Geometry2d {
 		const w = Math.max(1, shape.props.w)
 		const h = Math.max(1, shape.props.h + shape.props.growY)
 		const cx = w / 2
 		const cy = h / 2
 
+		const strokeWidth = STROKE_SIZES[shape.props.size]
+		const isFilled = shape.props.fill !== 'none' // || shape.props.text.trim().length > 0
+
+		let body: Geometry2d
+
 		switch (shape.props.geo) {
 			case 'cloud': {
-				return cloudOutline(w, h, shape.id, shape.props.size)
+				body = new Polygon2d({
+					points: cloudOutline(w, h, shape.id, shape.props.size),
+					isFilled,
+				})
+				break
 			}
 			case 'triangle': {
-				return [new Vec2d(cx, 0), new Vec2d(w, h), new Vec2d(0, h)]
+				body = new Polygon2d({
+					points: [new Vec2d(cx, 0), new Vec2d(w, h), new Vec2d(0, h)],
+					isFilled,
+				})
+				break
 			}
 			case 'diamond': {
-				return [new Vec2d(cx, 0), new Vec2d(w, cy), new Vec2d(cx, h), new Vec2d(0, cy)]
+				body = new Polygon2d({
+					points: [new Vec2d(cx, 0), new Vec2d(w, cy), new Vec2d(cx, h), new Vec2d(0, cy)],
+					isFilled,
+				})
+				break
 			}
 			case 'pentagon': {
-				return getPolygonVertices(w, h, 5)
+				body = new Polygon2d({
+					points: getPolygonVertices(w, h, 5),
+					isFilled,
+				})
+				break
 			}
 			case 'hexagon': {
-				return getPolygonVertices(w, h, 6)
+				body = new Polygon2d({
+					points: getPolygonVertices(w, h, 6),
+					isFilled,
+				})
+				break
 			}
 			case 'octagon': {
-				return getPolygonVertices(w, h, 8)
+				body = new Polygon2d({
+					points: getPolygonVertices(w, h, 8),
+					isFilled,
+				})
+				break
 			}
 			case 'ellipse': {
-				// Perimeter of the ellipse
-
-				const q = Math.pow(cx - cy, 2) / Math.pow(cx + cy, 2)
-				const p = PI * (cx + cy) * (1 + (3 * q) / (10 + Math.sqrt(4 - 3 * q)))
-
-				// Number of points
-				let len = Math.max(4, Math.ceil(p / 10))
-
-				// Round length to nearest multiple of 4
-				// In some cases, this stops the outline overlapping with the indicator
-				// (it doesn't prevent all cases though, eg: when the shape is on the edge of a group)
-				len = Math.ceil(len / 4) * 4
-
-				// Size of step
-				const step = PI2 / len
-
-				const a = Math.cos(step)
-				const b = Math.sin(step)
-
-				let sin = 0
-				let cos = 1
-				let ts = 0
-				let tc = 1
-
-				const points: Vec2d[] = Array(len)
-
-				for (let i = 0; i < len; i++) {
-					points[i] = new Vec2d(cx + cx * cos, cy + cy * sin)
-					ts = b * cos + a * sin
-					tc = a * cos - b * sin
-					sin = ts
-					cos = tc
-				}
-
-				return points
+				body = new Ellipse2d({
+					width: w,
+					height: h,
+					isFilled,
+				})
+				break
 			}
 			case 'oval': {
-				const len = 10
-				const points: Vec2d[] = Array(len * 2)
-
-				if (h > w) {
-					for (let i = 0; i < len; i++) {
-						const t1 = -PI + (PI * i) / (len - 2)
-						const t2 = (PI * i) / (len - 2)
-						points[i] = new Vec2d(cx + cx * Math.cos(t1), cx + cx * Math.sin(t1))
-						points[i + len] = new Vec2d(cx + cx * Math.cos(t2), h - cx + cx * Math.sin(t2))
-					}
-				} else {
-					for (let i = 0; i < len; i++) {
-						const t1 = -TAU + (PI * i) / (len - 2)
-						const t2 = TAU + (PI * -i) / (len - 2)
-						points[i] = new Vec2d(w - cy + cy * Math.cos(t1), h - cy + cy * Math.sin(t1))
-						points[i + len] = new Vec2d(cy - cy * Math.cos(t2), h - cy + cy * Math.sin(t2))
-					}
-				}
-
-				return points
+				body = new Stadium2d({
+					width: w,
+					height: h,
+					isFilled,
+				})
+				break
 			}
 			case 'star': {
 				// Most of this code is to offset the center, a 5 point star
@@ -256,84 +188,162 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				const ix = (ox * ratio) / 2
 				const iy = (oy * ratio) / 2
 
-				return Array.from(Array(sides * 2)).map((_, i) => {
-					const theta = -TAU + i * step
-					return new Vec2d(
-						cx + (i % 2 ? ix : ox) * Math.cos(theta),
-						cy + (i % 2 ? iy : oy) * Math.sin(theta)
-					)
+				body = new Polygon2d({
+					points: Array.from(Array(sides * 2)).map((_, i) => {
+						const theta = -TAU + i * step
+						return new Vec2d(
+							cx + (i % 2 ? ix : ox) * Math.cos(theta),
+							cy + (i % 2 ? iy : oy) * Math.sin(theta)
+						)
+					}),
+					isFilled,
 				})
+				break
 			}
 			case 'rhombus': {
 				const offset = Math.min(w * 0.38, h * 0.38)
-				return [new Vec2d(offset, 0), new Vec2d(w, 0), new Vec2d(w - offset, h), new Vec2d(0, h)]
+				body = new Polygon2d({
+					points: [
+						new Vec2d(offset, 0),
+						new Vec2d(w, 0),
+						new Vec2d(w - offset, h),
+						new Vec2d(0, h),
+					],
+					isFilled,
+				})
+				break
 			}
 			case 'rhombus-2': {
 				const offset = Math.min(w * 0.38, h * 0.38)
-				return [new Vec2d(0, 0), new Vec2d(w - offset, 0), new Vec2d(w, h), new Vec2d(offset, h)]
+				body = new Polygon2d({
+					points: [
+						new Vec2d(0, 0),
+						new Vec2d(w - offset, 0),
+						new Vec2d(w, h),
+						new Vec2d(offset, h),
+					],
+					isFilled,
+				})
+				break
 			}
 			case 'trapezoid': {
 				const offset = Math.min(w * 0.38, h * 0.38)
-				return [new Vec2d(offset, 0), new Vec2d(w - offset, 0), new Vec2d(w, h), new Vec2d(0, h)]
+				body = new Polygon2d({
+					points: [
+						new Vec2d(offset, 0),
+						new Vec2d(w - offset, 0),
+						new Vec2d(w, h),
+						new Vec2d(0, h),
+					],
+					isFilled,
+				})
+				break
 			}
 			case 'arrow-right': {
 				const ox = Math.min(w, h) * 0.38
 				const oy = h * 0.16
-				return [
-					new Vec2d(0, oy),
-					new Vec2d(w - ox, oy),
-					new Vec2d(w - ox, 0),
-					new Vec2d(w, h / 2),
-					new Vec2d(w - ox, h),
-					new Vec2d(w - ox, h - oy),
-					new Vec2d(0, h - oy),
-				]
+				body = new Polygon2d({
+					points: [
+						new Vec2d(0, oy),
+						new Vec2d(w - ox, oy),
+						new Vec2d(w - ox, 0),
+						new Vec2d(w, h / 2),
+						new Vec2d(w - ox, h),
+						new Vec2d(w - ox, h - oy),
+						new Vec2d(0, h - oy),
+					],
+					isFilled,
+				})
+				break
 			}
 			case 'arrow-left': {
 				const ox = Math.min(w, h) * 0.38
 				const oy = h * 0.16
-				return [
-					new Vec2d(ox, 0),
-					new Vec2d(ox, oy),
-					new Vec2d(w, oy),
-					new Vec2d(w, h - oy),
-					new Vec2d(ox, h - oy),
-					new Vec2d(ox, h),
-					new Vec2d(0, h / 2),
-				]
+				body = new Polygon2d({
+					points: [
+						new Vec2d(ox, 0),
+						new Vec2d(ox, oy),
+						new Vec2d(w, oy),
+						new Vec2d(w, h - oy),
+						new Vec2d(ox, h - oy),
+						new Vec2d(ox, h),
+						new Vec2d(0, h / 2),
+					],
+					isFilled,
+				})
+				break
 			}
 			case 'arrow-up': {
 				const ox = w * 0.16
 				const oy = Math.min(w, h) * 0.38
-				return [
-					new Vec2d(w / 2, 0),
-					new Vec2d(w, oy),
-					new Vec2d(w - ox, oy),
-					new Vec2d(w - ox, h),
-					new Vec2d(ox, h),
-					new Vec2d(ox, oy),
-					new Vec2d(0, oy),
-				]
+				body = new Polygon2d({
+					points: [
+						new Vec2d(w / 2, 0),
+						new Vec2d(w, oy),
+						new Vec2d(w - ox, oy),
+						new Vec2d(w - ox, h),
+						new Vec2d(ox, h),
+						new Vec2d(ox, oy),
+						new Vec2d(0, oy),
+					],
+					isFilled,
+				})
+				break
 			}
 			case 'arrow-down': {
 				const ox = w * 0.16
 				const oy = Math.min(w, h) * 0.38
-				return [
-					new Vec2d(ox, 0),
-					new Vec2d(w - ox, 0),
-					new Vec2d(w - ox, h - oy),
-					new Vec2d(w, h - oy),
-					new Vec2d(w / 2, h),
-					new Vec2d(0, h - oy),
-					new Vec2d(ox, h - oy),
-				]
+				body = new Polygon2d({
+					points: [
+						new Vec2d(ox, 0),
+						new Vec2d(w - ox, 0),
+						new Vec2d(w - ox, h - oy),
+						new Vec2d(w, h - oy),
+						new Vec2d(w / 2, h),
+						new Vec2d(0, h - oy),
+						new Vec2d(ox, h - oy),
+					],
+					isFilled,
+				})
+				break
 			}
 			case 'check-box':
 			case 'x-box':
 			case 'rectangle': {
-				return [new Vec2d(0, 0), new Vec2d(w, 0), new Vec2d(w, h), new Vec2d(0, h)]
+				body = new Rectangle2d({
+					width: w,
+					height: h,
+					isFilled,
+					isSnappable: true,
+				})
+				break
 			}
 		}
+
+		// const labelSize = getLabelSize(this.editor, shape)
+		// const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
+		// const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
+
+		const lines = getLines(shape.props, strokeWidth)
+		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
+
+		return new Group2d({
+			children: [
+				body,
+				// new Rectangle2d({
+				// 	x: w / 2 - labelWidth / 2,
+				// 	y: h / 2 - labelHeight / 2,
+				// 	width: labelWidth,
+				// 	height: labelHeight,
+				// 	isFilled: true,
+				// 	isSnappable: false,
+				// 	margin: 12,
+				// }),
+				...edges,
+			],
+			operation: 'union',
+			isSnappable: false,
+		})
 	}
 
 	override onEditEnd: TLOnEditEndHandler<TLGeoShape> = (shape) => {
@@ -460,7 +470,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					break
 				}
 				default: {
-					const outline = this.editor.getOutline(shape)
+					const geometry = this.editor.getGeometry(shape)
+					const outline =
+						geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 					const lines = getLines(shape.props, strokeWidth)
 
 					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
@@ -546,7 +558,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 
 			default: {
-				const outline = this.editor.getOutline(shape)
+				const geometry = this.editor.getGeometry(shape)
+				const outline =
+					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 				let path: string
 
 				if (props.dash === 'draw' && !forceSolid) {
@@ -704,7 +718,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				break
 			}
 			default: {
-				const outline = this.editor.getOutline(shape)
+				const geometry = this.editor.getGeometry(shape)
+				const outline =
+					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 				const lines = getLines(shape.props, strokeWidth)
 
 				switch (props.dash) {
@@ -748,7 +764,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (props.text) {
-			const bounds = this.editor.getBounds(shape)
+			const bounds = this.editor.getGeometry(shape).bounds
 
 			ctx.addExportDef(getFontDefForExport(shape.props.font))
 

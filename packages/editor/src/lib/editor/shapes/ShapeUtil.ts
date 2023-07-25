@@ -2,8 +2,8 @@
 import { Migrations } from '@tldraw/store'
 import { ShapeProps, TLHandle, TLShape, TLShapePartial, TLUnknownShape } from '@tldraw/tlschema'
 import { Box2d } from '../../primitives/Box2d'
-import { Vec2d, VecLike } from '../../primitives/Vec2d'
-import { linesIntersect } from '../../primitives/intersect'
+import { Vec2d } from '../../primitives/Vec2d'
+import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
 import { SvgExportContext } from '../types/SvgExportContext'
 import { TLResizeHandle } from '../types/selection-types'
@@ -47,6 +47,14 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	abstract getDefaultProps(): Shape['props']
+
+	/**
+	 * Get the shape's geometry.
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	abstract getGeometry(shape: Shape): Geometry2d
 
 	/**
 	 * Get a JSX element for the shape (as an HTML element).
@@ -128,13 +136,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	}
 
 	/**
-	 * Whether the shape's outline is closed.
-	 *
-	 * @public
-	 */
-	isClosed: TLShapeUtilFlag<Shape> = () => true
-
-	/**
 	 * Whether the shape should hide its resize handles when selected.
 	 *
 	 * @public
@@ -147,13 +148,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	hideRotateHandle: TLShapeUtilFlag<Shape> = () => false
-
-	/**
-	 * Whether the shape should hide its selection bounds background when selected.
-	 *
-	 * @public
-	 */
-	hideSelectionBoundsBg: TLShapeUtilFlag<Shape> = () => false
 
 	/**
 	 * Whether the shape should hide its selection bounds foreground when selected.
@@ -207,55 +201,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	getOutlineSegments(shape: Shape): Vec2d[][] {
-		return [this.editor.getOutline(shape)]
-	}
-
-	/**
-	 * Get the (not cached) bounds for the shape.
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	abstract getBounds(shape: Shape): Box2d
-
-	/**
-	 * Get the shape's (not cached) outline.
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	getOutline(shape: Shape): Vec2d[] {
-		return this.editor.getBounds(shape).corners
-	}
-
-	/**
-	 * Get the shape's snap points.
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	snapPoints(shape: Shape) {
-		return this.editor.getBounds(shape).snapPoints
-	}
-
-	/**
-	 * Get the shape's cached center.
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	center(shape: Shape): Vec2d {
-		return this.getCenter(shape)
-	}
-
-	/**
-	 * Get the shape's (not cached) center.
-	 *
-	 * @param shape - The shape.
-	 * @public
-	 */
-	getCenter(shape: Shape) {
-		return this.editor.getBounds(shape).center
+		return [this.editor.getGeometry(shape).vertices]
 	}
 
 	/**
@@ -302,39 +248,6 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	/** @internal */
 	expandSelectionOutlinePx(shape: Shape): number {
 		return 0
-	}
-
-	/**
-	 * Get whether a point intersects the shape.
-	 *
-	 * @param shape - The shape.
-	 * @param point - The point to test.
-	 * @returns Whether the point intersects the shape.
-	 * @public
-	 */
-	hitTestPoint(shape: Shape, point: VecLike): boolean {
-		return this.editor.getBounds(shape).containsPoint(point)
-	}
-
-	/**
-	 * Get whether a point intersects the shape.
-	 *
-	 * @param shape - The shape.
-	 * @param A - The line segment's first point.
-	 * @param B - The line segment's second point.
-	 * @returns Whether the line segment intersects the shape.
-	 * @public
-	 */
-	hitTestLineSegment(shape: Shape, A: VecLike, B: VecLike): boolean {
-		const outline = this.editor.getOutline(shape)
-
-		for (let i = 0; i < outline.length; i++) {
-			const C = outline[i]
-			const D = outline[(i + 1) % outline.length]
-			if (linesIntersect(A, B, C, D)) return true
-		}
-
-		return false
 	}
 
 	/**

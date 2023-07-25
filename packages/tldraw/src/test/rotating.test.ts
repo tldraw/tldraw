@@ -118,7 +118,7 @@ describe('When rotating...', () => {
 	it('rotates a single shape', () => {
 		editor.select(ids.box1)
 
-		const shapeA = editor.getShapeById(ids.box1)!
+		const shapeA = editor.getShape(ids.box1)!
 		const box = editor.selectedPageBounds!
 		const center = box.center.clone().toFixed()
 
@@ -151,10 +151,10 @@ describe('When rotating...', () => {
 	})
 
 	it('rotates multiple shapes', () => {
-		const shapeA = editor.getShapeById(ids.box1)!
+		const shapeA = editor.getShape(ids.box1)!
 		const centerA = editor.getPageCenter(shapeA)!.clone()
 
-		const shapeB = editor.getShapeById(ids.box2)!
+		const shapeB = editor.getShape(ids.box2)!
 		const centerB = editor.getPageCenter(shapeB)!.clone()
 
 		editor.select(ids.box1, ids.box2)
@@ -222,7 +222,7 @@ describe('When rotating...', () => {
 		const box = editor.selectedPageBounds!
 		const center = box.center.clone()
 
-		const shapeA = editor.getShapeById(ids.box1)!
+		const shapeA = editor.getShape(ids.box1)!
 		const centerA = editor.getPageCenter(shapeA)!
 
 		editor
@@ -286,7 +286,7 @@ describe('When rotating...', () => {
 			.pointerMove(50, 100)
 			.pointerUp()
 
-		expect(editor.getShapeById(ids.box1)).toBeUndefined()
+		expect(editor.getShape(ids.box1)).toBeUndefined()
 	})
 
 	// todo

@@ -14,12 +14,12 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 
-	editor.selectAll().deleteShapes()
+	editor.selectAll().deleteShapes(editor.selectedShapeIds)
 })
 it('creates new bindings for arrows when pasting', async () => {
 	editor
 		.selectAll()
-		.deleteShapes()
+		.deleteShapes(editor.selectedShapeIds)
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -45,11 +45,11 @@ it('creates new bindings for arrows when pasting', async () => {
 			},
 		])
 
-	const shapesBefore = editor.shapesArray
+	const shapesBefore = editor.shapesOnCurrentPage
 
-	editor.selectAll().duplicateShapes()
+	editor.selectAll().duplicateShapes(editor.selectedShapeIds)
 
-	const shapesAfter = editor.shapesArray
+	const shapesAfter = editor.shapesOnCurrentPage
 
 	// We should not have changed the original shapes
 	expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
@@ -174,26 +174,26 @@ describe('When duplicating shapes that include arrows', () => {
 	})
 
 	it('Preserves the same selection bounds', () => {
-		editor.selectAll().deleteShapes().createShapes(shapes).selectAll()
+		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes).selectAll()
 
 		const boundsBefore = editor.selectionBounds!
-		editor.duplicateShapes()
+		editor.duplicateShapes(editor.selectedShapeIds)
 		expect(editor.selectionBounds).toCloselyMatchObject(boundsBefore)
 	})
 
 	it('Preserves the same selection bounds when only duplicating the arrows', () => {
 		editor
 			.selectAll()
-			.deleteShapes()
+			.deleteShapes(editor.selectedShapeIds)
 			.createShapes(shapes)
 			.select(
-				...editor.shapesArray
+				...editor.shapesOnCurrentPage
 					.filter((s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow'))
 					.map((s) => s.id)
 			)
 
 		const boundsBefore = editor.selectionBounds!
-		editor.duplicateShapes()
+		editor.duplicateShapes(editor.selectedShapeIds)
 		const boundsAfter = editor.selectionBounds!
 
 		// It's not exactly exact, but close enough is plenty close

@@ -32,13 +32,13 @@ describe('resizing a shape', () => {
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
 		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
 
-		expect(editor.getPageBoundsById(ids.boxA)).toCloselyMatchObject({
+		expect(editor.getPageBounds(ids.boxA)).toCloselyMatchObject({
 			w: 800,
 			h: 800,
 		})
 
 		editor.undo()
-		expect(editor.getPageBoundsById(ids.boxA)).toCloselyMatchObject({
+		expect(editor.getPageBounds(ids.boxA)).toCloselyMatchObject({
 			w: 100,
 			h: 100,
 		})
@@ -48,7 +48,7 @@ describe('resizing a shape', () => {
 		editor.createShapes([{ id: ids.boxA, type: 'geo', props: { w: 100, h: 100 } }])
 
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.getPageBoundsById(ids.boxA)).toCloselyMatchObject({
+		expect(editor.getPageBounds(ids.boxA)).toCloselyMatchObject({
 			x: -50,
 			y: -50,
 			w: 200,

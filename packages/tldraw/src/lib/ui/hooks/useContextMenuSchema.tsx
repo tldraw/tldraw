@@ -55,16 +55,16 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 
-	const selectedCount = editor.selectedIds.length
+	const selectedCount = editor.selectedShapeIds.length
 
 	const oneSelected = selectedCount > 0
 
 	// const oneEmbedSelected = useValue(
 	// 	'oneEmbedSelected',
 	// 	() => {
-	// 		if (editor.selectedIds.length !== 1) return false
-	// 		return editor.selectedIds.some((selectedId) => {
-	// 			const shape = editor.getShapeById(selectedId)
+	// 		if (editor.selectedShapeIds.length !== 1) return false
+	// 		return editor.selectedShapeIds.some((selectedId) => {
+	// 			const shape = editor.getShape(selectedId)
 	// 			return shape && editor.isShapeOfType<TLEmbedShape>(shape, 'embed') && shape.props.url
 	// 		})
 	// 	},
@@ -74,9 +74,9 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	// const oneEmbeddableBookmarkSelected = useValue(
 	// 	'oneEmbeddableBookmarkSelected',
 	// 	() => {
-	// 		if (editor.selectedIds.length !== 1) return false
-	// 		return editor.selectedIds.some((selectedId) => {
-	// 			const shape = editor.getShapeById(selectedId)
+	// 		if (editor.selectedShapeIds.length !== 1) return false
+	// 		return editor.selectedShapeIds.some((selectedId) => {
+	// 			const shape = editor.getShape(selectedId)
 	// 			return (
 	// 				shape &&
 	// 				editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') &&
@@ -93,7 +93,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	const threeStackableItems = useThreeStackableItems()
 	const atLeastOneShapeOnPage = useValue(
 		'atLeastOneShapeOnPage',
-		() => editor.currentPageShapeIds.size > 0,
+		() => editor.shapeIdsOnCurrentPage.size > 0,
 		[]
 	)
 	const isTransparentBg = useValue(

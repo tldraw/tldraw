@@ -37,9 +37,9 @@ function getRelevantStyles(
 	editor: Editor
 ): { styles: ReadonlySharedStyleMap; opacity: SharedStyle<number> } | null {
 	const styles = new SharedStyleMap(editor.sharedStyles)
-	const hasShape = editor.selectedIds.length > 0 || !!editor.root.current.value?.shapeType
+	const hasShape = editor.selectedShapeIds.length > 0 || !!editor.root.current.value?.shapeType
 
-	if (styles.size === 0 && editor.isIn('select') && editor.selectedIds.length === 0) {
+	if (styles.size === 0 && editor.isIn('select') && editor.selectedShapeIds.length === 0) {
 		for (const style of selectToolStyles) {
 			styles.applyValue(style, editor.getStyleForNextShape(style))
 		}

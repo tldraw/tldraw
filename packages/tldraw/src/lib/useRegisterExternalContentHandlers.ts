@@ -317,7 +317,7 @@ export function useRegisterExternalContentHandlers() {
 			const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 
 			// Use an existing asset if we have one, or else else create a new one
-			let asset = editor.getAssetById(assetId) as TLAsset
+			let asset = editor.getAsset(assetId) as TLAsset
 			let shouldAlsoCreateAsset = false
 			if (!asset) {
 				shouldAlsoCreateAsset = true
@@ -399,7 +399,7 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 
 	editor.batch(() => {
 		// Create any assets
-		const assetsToCreate = assets.filter((asset) => !editor.getAssetById(asset.id))
+		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
 		if (assetsToCreate.length) {
 			editor.createAssets(assetsToCreate)
 		}
