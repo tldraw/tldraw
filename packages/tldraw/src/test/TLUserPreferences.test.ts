@@ -9,11 +9,11 @@ beforeEach(() => {
 
 describe('TLUserPreferences', () => {
 	it('allows updating user preferences on the editor', () => {
-		expect(editor.isSnapMode).toBe(false)
+		expect(editor.user.isSnapMode).toBe(false)
 
 		editor.user.updateUserPreferences({ isSnapMode: true })
 
-		expect(editor.isSnapMode).toBe(true)
+		expect(editor.user.isSnapMode).toBe(true)
 	})
 
 	it('can be customized', () => {
@@ -34,18 +34,18 @@ describe('TLUserPreferences', () => {
 			}),
 		})
 
-		expect(editor.isDarkMode).toBe(true)
+		expect(editor.user.isDarkMode).toBe(true)
 
 		userPreferences.set({
 			...userPreferences.value,
 			isDarkMode: false,
 		})
 
-		expect(editor.isDarkMode).toBe(false)
+		expect(editor.user.isDarkMode).toBe(false)
 
-		editor.isDarkMode = true
+		editor.user.updateUserPreferences({ isDarkMode: true })
 
-		expect(editor.isDarkMode).toBe(true)
+		expect(editor.user.isDarkMode).toBe(true)
 		expect(userPreferences.value.isDarkMode).toBe(true)
 	})
 })

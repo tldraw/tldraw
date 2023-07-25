@@ -25,7 +25,7 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 
 	return (
 		<>
-			<ShapeFill d={innerPath} fill={fill} color={color} />
+			<ShapeFill theme={theme} d={innerPath} fill={fill} color={color} />
 			{lines &&
 				lines.map((l, i) => (
 					<path

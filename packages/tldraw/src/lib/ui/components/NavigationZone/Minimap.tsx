@@ -35,9 +35,12 @@ export const Minimap = track(function Minimap({
 
 	const rPointing = React.useRef(false)
 
-	const minimap = React.useMemo(() => new MinimapManager(editor, editor.devicePixelRatio), [editor])
+	const minimap = React.useMemo(
+		() => new MinimapManager(editor, editor.instanceState.devicePixelRatio),
+		[editor]
+	)
 
-	const isDarkMode = editor.isDarkMode
+	const isDarkMode = editor.user.isDarkMode
 
 	React.useEffect(() => {
 		// Must check after render
@@ -130,7 +133,7 @@ export const Minimap = track(function Minimap({
 				name: 'pointer_move',
 				...getPointerInfo(e, editor.getContainer()),
 				point: screenPoint,
-				isPen: editor.isPenMode,
+				isPen: editor.instanceState.isPenMode,
 			}
 
 			editor.dispatch(info)
@@ -162,7 +165,9 @@ export const Minimap = track(function Minimap({
 	useQuickReactor(
 		'update dpr',
 		() => {
-			const { devicePixelRatio } = editor
+			const {
+				instanceState: { devicePixelRatio },
+			} = editor
 			minimap.setDpr(devicePixelRatio)
 
 			const canvas = rCanvas.current as HTMLCanvasElement
@@ -187,7 +192,11 @@ export const Minimap = track(function Minimap({
 	useQuickReactor(
 		'minimap render when pagebounds or collaborators changes',
 		() => {
-			const { devicePixelRatio, viewportPageBounds, allShapesCommonBounds } = editor
+			const {
+				instanceState: { devicePixelRatio },
+				viewportPageBounds,
+				allShapesCommonBounds,
+			} = editor
 
 			devicePixelRatio // dereference dpr so that it renders then, too
 

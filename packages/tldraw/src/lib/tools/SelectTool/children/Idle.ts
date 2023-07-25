@@ -38,10 +38,10 @@ export class Idle extends StateNode {
 					if (hoveringShape.type !== 'geo') break
 					const cursorType = (hoveringShape as TLGeoShape).props.text
 					try {
-						this.editor.cursor = { type: cursorType, rotation: 0 }
+						this.editor.updateInstanceState({ cursor: { type: cursorType, rotation: 0 } }, true)
 					} catch (e) {
 						console.error(`Cursor type not recognized: '${cursorType}'`)
-						this.editor.cursor = { type: 'default', rotation: 0 }
+						this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 					}
 				}
 
@@ -87,7 +87,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.isReadOnly) break
+				if (this.editor.instanceState.isReadonly) break
 				if (this.editor.inputs.altKey) {
 					this.parent.transition('pointing_shape', info)
 				} else {
@@ -142,12 +142,12 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				// Create text shape and transition to editing_shape
-				if (this.editor.isReadOnly) break
+				if (this.editor.instanceState.isReadonly) break
 				this.handleDoubleClickOnCanvas(info)
 				break
 			}
 			case 'selection': {
-				if (this.editor.isReadOnly) break
+				if (this.editor.instanceState.isReadonly) break
 
 				const { onlySelectedShape } = this.editor
 				if (onlySelectedShape) {
@@ -188,7 +188,12 @@ export class Idle extends StateNode {
 				const util = this.editor.getShapeUtil(shape)
 
 				// Allow playing videos and embeds
-				if (shape.type !== 'video' && shape.type !== 'embed' && this.editor.isReadOnly) break
+				if (
+					shape.type !== 'video' &&
+					shape.type !== 'embed' &&
+					this.editor.instanceState.isReadonly
+				)
+					break
 
 				if (util.onDoubleClick) {
 					// Call the shape's double click handler
@@ -216,7 +221,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.isReadOnly) break
+				if (this.editor.instanceState.isReadonly) break
 				const { shape, handle } = info
 
 				const util = this.editor.getShapeUtil(shape)
@@ -242,12 +247,12 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				const { selectedIds } = this.editor.pageState
+				const { selectedIds } = this.editor.currentPageState
 				const { shape } = info
 
 				const targetShape = this.editor.getOutermostSelectableShape(
 					shape,
-					(parent) => !this.editor.isSelected(parent.id)
+					(parent) => !selectedIds.includes(parent.id)
 				)
 
 				if (!selectedIds.includes(targetShape.id)) {
@@ -261,7 +266,7 @@ export class Idle extends StateNode {
 
 	override onEnter = () => {
 		this.editor.hoveredId = null
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 		this.parent.currentToolIdMask = undefined
 	}
 
@@ -302,7 +307,7 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyUp = (info: TLKeyboardEventInfo) => {
-		if (this.editor.isReadOnly) {
+		if (this.editor.instanceState.isReadonly) {
 			switch (info.code) {
 				case 'Enter': {
 					if (this.shouldStartEditingShape() && this.editor.onlySelectedShape) {
@@ -376,7 +381,7 @@ export class Idle extends StateNode {
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.editor.mark('editing shape')
-		this.editor.editingId = shape.id
+		this.editor.setEditingId(shape.id)
 		this.parent.transition('editing_shape', info)
 	}
 
@@ -416,7 +421,7 @@ export class Idle extends StateNode {
 			},
 		])
 
-		this.editor.editingId = id
+		this.editor.setEditingId(id)
 		this.editor.select(id)
 		this.parent.transition('editing_shape', info)
 	}

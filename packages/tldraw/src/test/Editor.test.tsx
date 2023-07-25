@@ -68,25 +68,25 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's editingId", () => {
 		test('[root shape]', () => {
-			editor.editingId = ids.box1
+			editor.setEditingId(ids.box1)
 			expect(editor.editingId).toBe(ids.box1)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(null)
 		})
 		test('[child of frame]', () => {
-			editor.editingId = ids.box2
+			editor.setEditingId(ids.box2)
 			expect(editor.editingId).toBe(ids.box2)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(null)
 		})
 		test('[child of group]', () => {
-			editor.editingId = ids.box3
+			editor.setEditingId(ids.box3)
 			expect(editor.editingId).toBe(ids.box3)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(null)
 		})
 		test('[frame that doesnt move]', () => {
-			editor.editingId = ids.frame1
+			editor.setEditingId(ids.frame1)
 			expect(editor.editingId).toBe(ids.frame1)
 			moveShapesToPage2()
 			expect(editor.editingId).toBe(ids.frame1)
@@ -95,13 +95,13 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's erasingIds", () => {
 		test('[boxes]', () => {
-			editor.erasingIds = [ids.box1, ids.box2, ids.box3]
+			editor.setErasingIds([ids.box1, ids.box2, ids.box3])
 			expect(editor.erasingIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
 			expect(editor.erasingIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.erasingIds = [ids.frame1]
+			editor.setErasingIds([ids.frame1])
 			expect(editor.erasingIds).toEqual([ids.frame1])
 			moveShapesToPage2()
 			expect(editor.erasingIds).toEqual([ids.frame1])
@@ -285,7 +285,8 @@ describe("App's default tool", () => {
 	})
 	it('Is hand for readonly mode', () => {
 		editor = new TestEditor()
-		editor.isReadOnly = true
+		editor.updateInstanceState({ isReadonly: true })
+		editor.setCurrentTool('hand')
 		expect(editor.currentToolId).toBe('hand')
 	})
 })
@@ -345,73 +346,80 @@ describe('currentToolId', () => {
 
 describe('isFocused', () => {
 	it('is false by default', () => {
-		expect(editor.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes true when you call .focus()', () => {
-		editor.isFocused = true
-		expect(editor.isFocused).toBe(true)
+		editor.updateInstanceState({ isFocused: true })
+		expect(editor.instanceState.isFocused).toBe(true)
 	})
 
 	it('becomes false when you call .blur()', () => {
-		editor.isFocused = true
-		expect(editor.isFocused).toBe(true)
+		editor.updateInstanceState({ isFocused: true })
+		expect(editor.instanceState.isFocused).toBe(true)
 
-		editor.isFocused = false
-		expect(editor.isFocused).toBe(false)
+		editor.updateInstanceState({ isFocused: false })
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('remains false when you call .blur()', () => {
-		expect(editor.isFocused).toBe(false)
-		editor.isFocused = false
-		expect(editor.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
+		editor.updateInstanceState({ isFocused: false })
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
-		expect(editor.isFocused).toBe(false)
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 
 		editor.elm.focus()
 
-		expect(editor.isFocused).toBe(true)
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
-		editor.isFocused = true
-		expect(editor.isFocused).toBe(true)
+		editor.elm.focus()
+
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(true)
 
 		editor.elm.blur()
 
-		expect(editor.isFocused).toBe(false)
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
-	it('becomes true when a child of the app container div receives a focusin event', () => {
+	it.skip('becomes true when a child of the app container div receives a focusin event', () => {
+		// We need to skip this one because it's not actually true: the focusin event will bubble
+		// to the document.body, resulting in that being the active element. In reality, the editor's
+		// container would also have received a focus event, and after the editor's debounce ends,
+		// the container (or one of its descendants) will be the focused element.
 		editor.elm.blur()
-
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
-
-		expect(editor.isFocused).toBe(false)
-
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
-
-		expect(editor.isFocused).toBe(true)
-
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(true)
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
-
-		expect(editor.isFocused).toBe(false)
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes false when a child of the app container div receives a focusout event', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 
-		editor.isFocused = true
+		editor.updateInstanceState({ isFocused: true })
 
-		expect(editor.isFocused).toBe(true)
+		expect(editor.instanceState.isFocused).toBe(true)
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		expect(editor.isFocused).toBe(false)
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('calls .focus() and .blur() on the container div when you call .focus() and .blur() on the editor', () => {
@@ -421,12 +429,12 @@ describe('isFocused', () => {
 		expect(focusMock).not.toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.isFocused = true
+		editor.focus()
 
 		expect(focusMock).toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.isFocused = false
+		editor.blur()
 
 		expect(blurMock).toHaveBeenCalled()
 	})

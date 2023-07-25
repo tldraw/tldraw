@@ -191,18 +191,6 @@ export function getFileMetaData(file: File): Promise<{
     isAnimated: boolean;
 }>;
 
-// @public
-export function getImageSizeFromSrc(dataURL: string): Promise<{
-    w: number;
-    h: number;
-}>;
-
-// @public
-export function getVideoSizeFromSrc(src: string): Promise<{
-    w: number;
-    h: number;
-}>;
-
 // @public (undocumented)
 function Group({ children, size, }: {
     children: any;

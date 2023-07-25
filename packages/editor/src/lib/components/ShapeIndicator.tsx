@@ -45,12 +45,13 @@ export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }
 	)
 }
 
-export type TLShapeIndicatorComponent = (props: {
+/** @public */
+export type TLShapeIndicatorComponent = React.ComponentType<{
 	id: TLShapeId
 	color?: string | undefined
 	opacity?: number
 	className?: string
-}) => JSX.Element | null
+}>
 
 const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opacity }) => {
 	const editor = useEditor()
@@ -79,4 +80,5 @@ const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opac
 	)
 }
 
+/** @public */
 export const ShapeIndicator = React.memo(_ShapeIndicator)

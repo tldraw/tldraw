@@ -1,5 +1,6 @@
 import { ComponentType } from 'react'
 
+/** @public */
 export type TLSpinnerComponent = ComponentType<object>
 
 export const DefaultSpinner: TLSpinnerComponent = () => {

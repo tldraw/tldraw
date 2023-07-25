@@ -412,14 +412,15 @@ describe('When in readonly mode', () => {
 				props: { w: 100, h: 100, url: '' },
 			},
 		])
-		editor.isReadOnly = true
+		editor.updateInstanceState({ isReadonly: true })
+		editor.setCurrentTool('hand')
 		editor.setCurrentTool('select')
 	})
 
 	it('Begins editing embed when double clicked', () => {
 		expect(editor.editingId).toBe(null)
 		expect(editor.selectedIds.length).toBe(0)
-		expect(editor.isReadOnly).toBe(true)
+		expect(editor.instanceState.isReadonly).toBe(true)
 
 		const shape = editor.getShapeById(ids.embed1)
 		editor.doubleClick(100, 100, { target: 'shape', shape })
@@ -429,7 +430,7 @@ describe('When in readonly mode', () => {
 	it('Begins editing embed when pressing Enter on a selected embed', () => {
 		expect(editor.editingId).toBe(null)
 		expect(editor.selectedIds.length).toBe(0)
-		expect(editor.isReadOnly).toBe(true)
+		expect(editor.instanceState.isReadonly).toBe(true)
 
 		editor.setSelectedIds([ids.embed1])
 		expect(editor.selectedIds.length).toBe(1)

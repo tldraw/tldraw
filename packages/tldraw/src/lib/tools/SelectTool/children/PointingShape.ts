@@ -26,7 +26,7 @@ export class PointingShape extends StateNode {
 		}
 
 		const isWithinSelection =
-			this.editor.isSelected(this.selectingShape.id) ||
+			this.editor.selectedIds.includes(this.selectingShape.id) ||
 			this.editor.isAncestorSelected(this.selectingShape.id)
 
 		const isBehindSelectionBounds =
@@ -79,11 +79,12 @@ export class PointingShape extends StateNode {
 			// if the shape has an ancestor which is a focusable layer and it is not focused but it is selected
 			// then we should focus the layer and select the shape
 
+			const { selectedIds } = this.editor
 			const targetShape = this.editor.getOutermostSelectableShape(
 				this.eventTargetShape,
 				// if a group is selected, we want to stop before reaching that group
 				// so we can drill down into the group
-				(parent) => !this.editor.isSelected(parent.id)
+				(parent) => !selectedIds.includes(parent.id)
 			)
 
 			if (this.editor.selectedIds.includes(targetShape.id)) {
@@ -120,7 +121,7 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			if (this.editor.isReadOnly) return
+			if (this.editor.instanceState.isReadonly) return
 			this.parent.transition('translating', info)
 		}
 	}

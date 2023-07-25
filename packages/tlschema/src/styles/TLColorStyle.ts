@@ -31,6 +31,7 @@ export type TLDefaultColorThemeColor = {
 /** @public */
 export type TLDefaultColorTheme = Expand<
 	{
+		id: 'light' | 'dark'
 		text: string
 		background: string
 		solid: string
@@ -43,6 +44,7 @@ export const DefaultColorThemePalette: {
 	darkMode: TLDefaultColorTheme
 } = {
 	lightMode: {
+		id: 'light',
 		text: '#000000',
 		background: 'rgb(249, 250, 251)',
 		solid: '#fcfffe',
@@ -157,6 +159,7 @@ export const DefaultColorThemePalette: {
 		},
 	},
 	darkMode: {
+		id: 'dark',
 		text: '#f8f9fa',
 		background: '#212529',
 		solid: '#28292e',

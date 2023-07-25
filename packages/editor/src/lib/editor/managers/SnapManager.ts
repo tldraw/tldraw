@@ -233,15 +233,17 @@ export class SnapManager {
 	constructor(public readonly editor: Editor) {}
 
 	@computed get snapPointsCache() {
-		return this.editor.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
-			const pageTransfrorm = this.editor.getPageTransformById(shape.id)
+		const { editor } = this
+		return editor.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
+			const pageTransfrorm = editor.getPageTransformById(shape.id)
 			if (!pageTransfrorm) return undefined
-			const util = this.editor.getShapeUtil(shape)
-			const snapPoints = util.snapPoints(shape)
-			return snapPoints.map((point, i) => {
-				const { x, y } = Matrix2d.applyToPoint(pageTransfrorm, point)
-				return { x, y, id: `${shape.id}:${i}` }
-			})
+			return editor
+				.getShapeUtil(shape)
+				.snapPoints(shape)
+				.map((point, i) => {
+					const { x, y } = Matrix2d.applyToPoint(pageTransfrorm, point)
+					return { x, y, id: `${shape.id}:${i}` }
+				})
 		})
 	}
 

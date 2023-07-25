@@ -161,6 +161,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			return (
 				<SVGContainer id={shape.id}>
 					<ShapeFill
+						theme={theme}
 						fill={shape.props.isClosed ? shape.props.fill : 'none'}
 						color={shape.props.color}
 						d={solidStrokePath}
@@ -177,6 +178,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 		return (
 			<SVGContainer id={shape.id}>
 				<ShapeFill
+					theme={theme}
 					color={shape.props.color}
 					fill={shape.props.isClosed ? shape.props.fill : 'none'}
 					d={solidStrokePath}
@@ -221,7 +223,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 	}
 
 	override toSvg(shape: TLDrawShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		const { color } = shape.props

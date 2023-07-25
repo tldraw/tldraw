@@ -3,11 +3,12 @@ import React from 'react'
 import { debugFlags } from '../utils/debug-flags'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
+import { useIsDarkMode } from './useIsDarkMode'
 
 export function useDarkMode() {
 	const editor = useEditor()
 	const container = useContainer()
-	const isDarkMode = useValue('isDarkMode', () => editor.isDarkMode, [editor])
+	const isDarkMode = useIsDarkMode()
 	const forceSrgb = useValue(debugFlags.forceSrgb)
 
 	React.useEffect(() => {

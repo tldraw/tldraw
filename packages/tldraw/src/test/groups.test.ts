@@ -279,7 +279,8 @@ describe('creating groups', () => {
 		// │ A │   │ B │   │ C │
 		// └───┘   └───┘   └───┘
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
-		editor.isReadOnly = true
+		editor.updateInstanceState({ isReadonly: true })
+		editor.setCurrentTool('hand')
 		editor.selectAll()
 		expect(editor.selectedIds.length).toBe(3)
 		editor.groupShapes()
@@ -490,7 +491,8 @@ describe('ungrouping shapes', () => {
 		expect(editor.selectedIds.length).toBe(3)
 		editor.groupShapes()
 		expect(editor.selectedIds.length).toBe(1)
-		editor.isReadOnly = true
+		editor.updateInstanceState({ isReadonly: true })
+		editor.setCurrentTool('hand')
 
 		editor.ungroupShapes()
 		expect(editor.selectedIds.length).toBe(1)
@@ -1446,8 +1448,8 @@ describe('erasing', () => {
 
 		// erase D
 		editor.pointerDown(65, 5, ids.boxD)
-		expect(editor.pageState.erasingIds.length).toBe(1)
-		expect(editor.pageState.erasingIds[0]).toBe(groupCId)
+		expect(editor.currentPageState.erasingIds.length).toBe(1)
+		expect(editor.currentPageState.erasingIds[0]).toBe(groupCId)
 		editor.pointerUp()
 		expect(editor.getShapeById(groupCId)).toBeFalsy()
 	})
@@ -1468,8 +1470,8 @@ describe('erasing', () => {
 
 		// erase B
 		editor.pointerDown(25, 5, ids.boxB)
-		expect(editor.pageState.erasingIds.length).toBe(1)
-		expect(editor.pageState.erasingIds[0]).toBe(ids.boxB)
+		expect(editor.currentPageState.erasingIds.length).toBe(1)
+		expect(editor.currentPageState.erasingIds[0]).toBe(ids.boxB)
 		editor.pointerUp()
 
 		// group A disappears
@@ -1484,8 +1486,8 @@ describe('erasing', () => {
 
 		// erase E
 		editor.pointerDown(5, 25, ids.boxE)
-		expect(editor.pageState.erasingIds.length).toBe(1)
-		expect(editor.pageState.erasingIds[0]).toBe(ids.boxE)
+		expect(editor.currentPageState.erasingIds.length).toBe(1)
+		expect(editor.currentPageState.erasingIds[0]).toBe(ids.boxE)
 
 		// move to group B
 		editor.pointerMove(65, 5)

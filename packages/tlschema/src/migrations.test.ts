@@ -1311,6 +1311,52 @@ describe('removes cursor color', () => {
 	})
 })
 
+describe('adds lonely properties', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddLonelyProperties]
+
+	test('up works as expected', () => {
+		expect(up({})).toStrictEqual({
+			canMoveCamera: true,
+			isFocused: false,
+			devicePixelRatio: 1,
+			isCoarsePointer: false,
+			openMenus: [],
+			isChangingStyle: false,
+			isReadOnly: false,
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				canMoveCamera: true,
+				isFocused: false,
+				devicePixelRatio: 1,
+				isCoarsePointer: false,
+				openMenus: [],
+				isChangingStyle: false,
+				isReadOnly: false,
+			})
+		).toStrictEqual({})
+	})
+})
+
+describe('rename isReadOnly to isReadonly', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.ReadOnlyReadonly]
+
+	test('up works as expected', () => {
+		expect(up({ isReadOnly: false })).toStrictEqual({
+			isReadonly: false,
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(down({ isReadonly: false })).toStrictEqual({
+			isReadOnly: false,
+		})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

@@ -2,6 +2,7 @@ import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import classNames from 'classnames'
 import { ComponentType } from 'react'
 
+/** @public */
 export type TLHandleComponent = ComponentType<{
 	shapeId: TLShapeId
 	handle: TLHandle
@@ -13,7 +14,10 @@ export const DefaultHandle: TLHandleComponent = ({ handle, className }) => {
 		<g
 			className={classNames(
 				'tl-handle',
-				{ 'tl-handle__hint': handle.type !== 'vertex' },
+				{
+					'tl-handle__virtual': handle.type === 'virtual',
+					'tl-handle__create': handle.type === 'create',
+				},
 				className
 			)}
 		>

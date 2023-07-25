@@ -7,6 +7,8 @@ import {
 	TldrawEditorProps,
 } from '@tldraw/editor'
 import { useMemo } from 'react'
+import { TldrawHandles } from './canvas/TldrawHandles'
+import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicator'
 import { TldrawScribble } from './canvas/TldrawScribble'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { defaultShapeTools } from './defaultShapeTools'
@@ -37,6 +39,8 @@ export function Tldraw(
 			() => ({
 				Scribble: TldrawScribble,
 				SelectionForeground: TldrawSelectionForeground,
+				Handles: TldrawHandles,
+				HoveredShapeIndicator: TldrawHoveredShapeIndicator,
 				...rest.components,
 			}),
 			[rest.components]

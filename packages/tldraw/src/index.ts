@@ -110,13 +110,7 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
-export {
-	ACCEPTED_IMG_TYPE,
-	getFileMetaData,
-	getImageSizeFromSrc,
-	getVideoSizeFromSrc,
-	isImage,
-} from './lib/utils/assets'
+export { ACCEPTED_IMG_TYPE, getFileMetaData, isImage } from './lib/utils/assets'
 export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
 export { getEmbedInfo } from './lib/utils/embeds'
 export {

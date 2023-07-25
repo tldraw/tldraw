@@ -873,6 +873,7 @@ export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{
+    id: 'dark' | 'light';
     text: string;
     background: string;
     solid: string;
@@ -991,11 +992,15 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     brush: Box2dModel | null;
     // (undocumented)
+    canMoveCamera: boolean;
+    // (undocumented)
     chatMessage: string;
     // (undocumented)
     currentPageId: TLPageId;
     // (undocumented)
     cursor: TLCursor;
+    // (undocumented)
+    devicePixelRatio: number;
     // (undocumented)
     exportBackground: boolean;
     // (undocumented)
@@ -1003,9 +1008,15 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     highlightedUserIds: string[];
     // (undocumented)
+    isChangingStyle: boolean;
+    // (undocumented)
     isChatting: boolean;
     // (undocumented)
+    isCoarsePointer: boolean;
+    // (undocumented)
     isDebugMode: boolean;
+    // (undocumented)
+    isFocused: boolean;
     // (undocumented)
     isFocusMode: boolean;
     // (undocumented)
@@ -1013,11 +1024,15 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     isPenMode: boolean;
     // (undocumented)
+    isReadonly: boolean;
+    // (undocumented)
     isToolLocked: boolean;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
     opacityForNextShape: TLOpacityType;
+    // (undocumented)
+    openMenus: string[];
     // (undocumented)
     screenBounds: Box2dModel;
     // (undocumented)

@@ -1,4 +1,4 @@
-import { MAX_PAGES } from '@tldraw/editor'
+import { MAX_PAGES, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -7,7 +7,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor.createShapes([
 		{
-			id: TestEditor.CreateShapeId(),
+			id: createShapeId(),
 			type: 'geo',
 		},
 	])

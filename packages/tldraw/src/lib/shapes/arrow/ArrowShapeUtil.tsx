@@ -17,7 +17,6 @@ import {
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
 	TLOnTranslateStartHandler,
-	TLShapeId,
 	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
@@ -218,7 +217,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 			{
 				id: 'middle',
-				type: 'vertex',
+				type: 'virtual',
 				index: 'a2',
 				x: info.middle.x,
 				y: info.middle.y,
@@ -370,25 +369,23 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {
-		let startBinding: TLShapeId | null =
+		const startBindingId =
 			shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : null
-		let endBinding: TLShapeId | null =
-			shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : null
+		const endBindingId = shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : null
 
 		// If at least one bound shape is in the selection, do nothing;
 		// If no bound shapes are in the selection, unbind any bound shapes
 
+		const { selectedIds } = this.editor
+
 		if (
-			(startBinding &&
-				(this.editor.isSelected(startBinding) || this.editor.isAncestorSelected(startBinding))) ||
-			(endBinding &&
-				(this.editor.isSelected(endBinding) || this.editor.isAncestorSelected(endBinding)))
+			(startBindingId &&
+				(selectedIds.includes(startBindingId) || this.editor.isAncestorSelected(startBindingId))) ||
+			(endBindingId &&
+				(selectedIds.includes(endBindingId) || this.editor.isAncestorSelected(endBindingId)))
 		) {
 			return
 		}
-
-		startBinding = null
-		endBinding = null
 
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
@@ -560,7 +557,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'select.pointing_handle',
 				'select.dragging_handle',
 				'arrow.dragging'
-			) && !this.editor.isReadOnly
+			) && !this.editor.instanceState.isReadonly
 
 		const info = this.editor.getArrowInfo(shape)
 		const bounds = this.editor.getBounds(shape)
@@ -715,10 +712,10 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							/>
 						</g>
 						{as && maskStartArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={as} color={shape.props.color} fill={shape.props.fill} />
+							<ShapeFill theme={theme} d={as} color={shape.props.color} fill={shape.props.fill} />
 						)}
 						{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={ae} color={shape.props.color} fill={shape.props.fill} />
+							<ShapeFill theme={theme} d={ae} color={shape.props.color} fill={shape.props.fill} />
 						)}
 						{as && <path d={as} />}
 						{ae && <path d={ae} />}
@@ -732,7 +729,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					size={shape.props.size}
 					position={info.middle}
 					width={labelSize?.w ?? 0}
-					labelColor={shape.props.labelColor}
+					labelColor={theme[shape.props.labelColor].solid}
 				/>
 			</>
 		)
@@ -914,7 +911,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		const color = theme[shape.props.color].solid

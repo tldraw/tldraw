@@ -202,7 +202,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 				return (
 					<SVGContainer id={shape.id}>
-						<ShapeFill d={pathData} fill={'none'} color={color} />
+						<ShapeFill d={pathData} fill={'none'} color={color} theme={theme} />
 						<path d={pathData} stroke={theme[color].solid} strokeWidth={strokeWidth} fill="none" />
 					</SVGContainer>
 				)
@@ -214,7 +214,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 				return (
 					<SVGContainer id={shape.id}>
-						<ShapeFill d={pathData} fill={'none'} color={color} />
+						<ShapeFill d={pathData} fill={'none'} color={color} theme={theme} />
 						<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
 							{spline.segments.map((segment, i) => {
 								const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -248,7 +248,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 				return (
 					<SVGContainer id={shape.id}>
-						<ShapeFill d={innerPathData} fill={'none'} color={color} />
+						<ShapeFill d={innerPathData} fill={'none'} color={color} theme={theme} />
 						<path
 							d={outerPathData}
 							stroke={theme[color].solid}
@@ -267,7 +267,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
 				return (
 					<SVGContainer id={shape.id}>
-						<ShapeFill d={splinePath} fill={'none'} color={color} />
+						<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
 						<path
 							strokeWidth={strokeWidth}
 							stroke={theme[color].solid}
@@ -281,7 +281,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			if (dash === 'dashed' || dash === 'dotted') {
 				return (
 					<SVGContainer id={shape.id}>
-						<ShapeFill d={splinePath} fill={'none'} color={color} />
+						<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
 						<g stroke={theme[color].solid} strokeWidth={strokeWidth}>
 							{spline.segments.map((segment, i) => {
 								const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
@@ -312,7 +312,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			if (dash === 'draw') {
 				return (
 					<SVGContainer id={shape.id}>
-						<ShapeFill d={splinePath} fill={'none'} color={color} />
+						<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
 						<path
 							d={getLineDrawPath(shape, spline, strokeWidth)}
 							strokeWidth={1}
@@ -348,7 +348,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	}
 
 	override toSvg(shape: TLLineShape) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		const color = theme[shape.props.color].solid
 		const spline = getSplineForLineShape(shape)
 		return getLineSvg(shape, spline, color, STROKE_SIZES[shape.props.size])

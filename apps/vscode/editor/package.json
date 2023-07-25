@@ -43,7 +43,7 @@
 		"concurrently": "7.0.0",
 		"create-serve": "1.0.1",
 		"dotenv": "^16.0.3",
-		"esbuild": "^0.18.3",
+		"esbuild": "^0.18.4",
 		"fs-extra": "^11.1.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"react": "^18.2.0",

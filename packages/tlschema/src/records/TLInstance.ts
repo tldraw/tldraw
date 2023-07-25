@@ -18,11 +18,12 @@ import { pageIdValidator, TLPageId } from './TLPage'
  */
 export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	currentPageId: TLPageId
+	opacityForNextShape: TLOpacityType
+	stylesForNextShape: Record<string, unknown>
+	// ephemeral
 	followingUserId: string | null
 	highlightedUserIds: string[]
 	brush: Box2dModel | null
-	opacityForNextShape: TLOpacityType
-	stylesForNextShape: Record<string, unknown>
 	cursor: TLCursor
 	scribble: TLScribble | null
 	isFocusMode: boolean
@@ -35,6 +36,13 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	isChatting: boolean
 	isPenMode: boolean
 	isGridMode: boolean
+	canMoveCamera: boolean
+	isFocused: boolean
+	devicePixelRatio: number
+	isCoarsePointer: boolean
+	openMenus: string[]
+	isChangingStyle: boolean
+	isReadonly: boolean
 	meta: JsonObject
 }
 
@@ -73,6 +81,13 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: T.string,
 			isChatting: T.boolean,
 			highlightedUserIds: T.arrayOf(T.string),
+			canMoveCamera: T.boolean,
+			isFocused: T.boolean,
+			devicePixelRatio: T.number,
+			isCoarsePointer: T.boolean,
+			openMenus: T.arrayOf(T.string),
+			isChangingStyle: T.boolean,
+			isReadonly: T.boolean,
 			meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 		})
 	)
@@ -103,6 +118,13 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			chatMessage: '',
 			isChatting: false,
 			highlightedUserIds: [],
+			canMoveCamera: true,
+			isFocused: false,
+			devicePixelRatio: typeof window === 'undefined' ? 1 : window.devicePixelRatio,
+			isCoarsePointer: false,
+			openMenus: [] as string[],
+			isChangingStyle: false,
+			isReadonly: false,
 			meta: {},
 		})
 	)
@@ -128,11 +150,13 @@ export const instanceVersions = {
 	ReplacePropsForNextShapeWithStylesForNextShape: 16,
 	AddMeta: 17,
 	RemoveCursorColor: 18,
+	AddLonelyProperties: 19,
+	ReadOnlyReadonly: 20,
 } as const
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.RemoveCursorColor,
+	currentVersion: instanceVersions.ReadOnlyReadonly,
 	migrators: {
 		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -384,6 +408,48 @@ export const instanceMigrations = defineMigrations({
 						...record.cursor,
 						color: 'black',
 					},
+				}
+			},
+		},
+		[instanceVersions.AddLonelyProperties]: {
+			up: (record) => {
+				return {
+					...record,
+					canMoveCamera: true,
+					isFocused: false,
+					devicePixelRatio: 1,
+					isCoarsePointer: false,
+					openMenus: [],
+					isChangingStyle: false,
+					isReadOnly: false,
+				}
+			},
+			down: ({
+				canMoveCamera: _canMoveCamera,
+				isFocused: _isFocused,
+				devicePixelRatio: _devicePixelRatio,
+				isCoarsePointer: _isCoarsePointer,
+				openMenus: _openMenus,
+				isChangingStyle: _isChangingStyle,
+				isReadOnly: _isReadOnly,
+				...record
+			}) => {
+				return {
+					...record,
+				}
+			},
+		},
+		[instanceVersions.ReadOnlyReadonly]: {
+			up: ({ isReadOnly: _isReadOnly, ...record }) => {
+				return {
+					...record,
+					isReadonly: _isReadOnly,
+				}
+			},
+			down: ({ isReadonly: _isReadonly, ...record }) => {
+				return {
+					...record,
+					isReadOnly: _isReadonly,
 				}
 			},
 		},
