@@ -1421,6 +1421,15 @@ describe('scribble brushes to add to the selection', () => {
 	})
 })
 
+describe('creating text on double click', () => {
+	it('creates text on double click', () => {
+		editor.doubleClick()
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
+		editor.pointerMove(0, 100)
+		editor.click()
+	})
+})
+
 it.todo('maybe? does not select a hollow closed shape that contains the viewport?')
 it.todo('maybe? does not select a hollow closed shape if the negative distance is more than X?')
 it.todo(
