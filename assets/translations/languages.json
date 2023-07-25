@@ -52,6 +52,10 @@
 		"label": "日本語"
 	},
 	{
+		"locale": "km",
+		"label": "ភាសាខ្មែរ"
+	},
+	{
 		"locale": "ko-kr",
 		"label": "한국어"
 	},

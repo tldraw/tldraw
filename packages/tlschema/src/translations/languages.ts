@@ -16,6 +16,7 @@ export const LANGUAGES = [
 	{ locale: 'he', label: 'עברית' },
 	{ locale: 'it', label: 'Italiano' },
 	{ locale: 'ja', label: '日本語' },
+	{ locale: 'km', label: 'ភាសាខ្មែរ' },
 	{ locale: 'ko-kr', label: '한국어' },
 	{ locale: 'ku', label: 'کوردی' },
 	{ locale: 'hi-in', label: 'हिन्दी' },

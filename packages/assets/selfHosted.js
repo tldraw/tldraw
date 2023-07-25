@@ -200,6 +200,7 @@ export function getAssetUrls(opts) {
 			hu: formatAssetUrl('./translations/hu.json', opts),
 			it: formatAssetUrl('./translations/it.json', opts),
 			ja: formatAssetUrl('./translations/ja.json', opts),
+			km: formatAssetUrl('./translations/km.json', opts),
 			'ko-kr': formatAssetUrl('./translations/ko-kr.json', opts),
 			ku: formatAssetUrl('./translations/ku.json', opts),
 			languages: formatAssetUrl('./translations/languages.json', opts),

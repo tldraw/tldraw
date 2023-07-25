@@ -190,6 +190,7 @@ export type AssetUrls = {
 		hu: string
 		it: string
 		ja: string
+		km: string
 		'ko-kr': string
 		ku: string
 		languages: string

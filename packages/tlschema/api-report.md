@@ -587,6 +587,9 @@ export const LANGUAGES: readonly [{
     readonly locale: "ja";
     readonly label: "日本語";
 }, {
+    readonly locale: "km";
+    readonly label: "ភាសាខ្មែរ";
+}, {
     readonly locale: "ko-kr";
     readonly label: "한국어";
 }, {

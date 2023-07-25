@@ -563,6 +563,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			hu: formatAssetUrl(new URL('./translations/hu.json', import.meta.url).href, opts),
 			it: formatAssetUrl(new URL('./translations/it.json', import.meta.url).href, opts),
 			ja: formatAssetUrl(new URL('./translations/ja.json', import.meta.url).href, opts),
+			km: formatAssetUrl(new URL('./translations/km.json', import.meta.url).href, opts),
 			'ko-kr': formatAssetUrl(new URL('./translations/ko-kr.json', import.meta.url).href, opts),
 			ku: formatAssetUrl(new URL('./translations/ku.json', import.meta.url).href, opts),
 			languages: formatAssetUrl(

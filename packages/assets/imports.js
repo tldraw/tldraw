@@ -202,6 +202,7 @@ import translationsHiIn from './translations/hi-in.json'
 import translationsHu from './translations/hu.json'
 import translationsIt from './translations/it.json'
 import translationsJa from './translations/ja.json'
+import translationsKm from './translations/km.json'
 import translationsKoKr from './translations/ko-kr.json'
 import translationsKu from './translations/ku.json'
 import translationsLanguages from './translations/languages.json'
@@ -415,6 +416,7 @@ export function getAssetUrlsByImport(opts) {
 			hu: formatAssetUrl(translationsHu, opts),
 			it: formatAssetUrl(translationsIt, opts),
 			ja: formatAssetUrl(translationsJa, opts),
+			km: formatAssetUrl(translationsKm, opts),
 			'ko-kr': formatAssetUrl(translationsKoKr, opts),
 			ku: formatAssetUrl(translationsKu, opts),
 			languages: formatAssetUrl(translationsLanguages, opts),
