@@ -92,8 +92,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					'select.crop.idle',
 					'select.crop.pointing_crop',
 					'select.pointing_resize_handle',
-					'select.pointing_crop_handle',
-					'select.editing_shape'
+					'select.pointing_crop_handle'
 				)) ||
 			(showSelectionBounds &&
 				editor.isIn('select.resizing') &&

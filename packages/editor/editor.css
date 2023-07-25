@@ -737,6 +737,10 @@ input,
 	text-shadow: var(--tl-text-outline);
 }
 
+.tl-text-shape__wrapper[data-isediting='true'] {
+	outline: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
+}
+
 .tl-text-shape__wrapper[data-align='start'] {
 	text-align: left;
 }
@@ -1033,8 +1037,13 @@ input,
 	align-items: center;
 	color: var(--color-text);
 	text-shadow: var(--tl-text-outline);
-	overflow: hidden;
 	line-height: inherit;
+	position: relative;
+	z-index: 10;
+}
+
+.tl-text-label[data-isediting='true'] {
+	outline: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
 }
 
 .tl-text-label[data-isediting='true'] .tl-text-content {
