@@ -197,14 +197,14 @@ describe('When binding an arrow to a shape', () => {
 describe('When shapes are overlapping', () => {
 	beforeEach(() => {
 		editor.createShapes([
-			{ id: ids.box1, type: 'geo', x: 100, y: 0, props: { w: 100, h: 100, fill: 'solid' } },
+			{ id: ids.box1, type: 'geo', x: 100, y: 0, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 150, y: 50, props: { w: 100, h: 100 } },
-			{ id: ids.box3, type: 'geo', x: 200, y: 50, props: { w: 100, h: 100, fill: 'solid' } },
+			{ id: ids.box3, type: 'geo', x: 200, y: 50, props: { w: 100, h: 100 } },
 			{ id: ids.box4, type: 'geo', x: 250, y: 50, props: { w: 100, h: 100 } },
 		])
 	})
 
-	it('binds to the highest shape', () => {
+	it('binds to the highest shape or to the first filled shape', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
 		editor.pointerMove(125, 50) // over box1 only
@@ -215,6 +215,23 @@ describe('When shapes are overlapping', () => {
 		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
 		editor.pointerMove(275, 50) // box4 is higher
 		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box4 })
+	})
+
+	it('binds to the highest shape or to the first filled shape', () => {
+		editor.updateShapes([
+			{ id: ids.box1, type: 'geo', props: { fill: 'solid' } },
+			{ id: ids.box3, type: 'geo', props: { fill: 'solid' } },
+		])
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(0, 50)
+		editor.pointerMove(125, 50) // over box1 only
+		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box1 })
+		editor.pointerMove(175, 50) // box2 is higher
+		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box1 })
+		editor.pointerMove(225, 50) // box3 is higher
+		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
+		editor.pointerMove(275, 50) // box4 is higher
+		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
 	})
 
 	it('binds to the smallest shape regardless of order', () => {
@@ -428,7 +445,7 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		})
 	})
 
-	it.only('starts a filled shape if it is above the hollow shape', () => {
+	it('starts a filled shape if it is above the hollow shape', () => {
 		// box2 - small, hollow
 		// box1 - big, filled
 		editor.updateShape({ id: ids.box1, type: 'geo', props: { fill: 'solid' } })
