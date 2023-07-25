@@ -132,7 +132,7 @@ function findAdjacentGaps(
 	intersection: [number, number],
 	depth: number
 ): Gap[] {
-	if (depth > 20) return []
+	if (depth > 100) return []
 
 	// TODO: take advantage of the fact that gaps is sorted by starting position?
 	const matches = gaps.filter(
