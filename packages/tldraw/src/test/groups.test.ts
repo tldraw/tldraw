@@ -14,7 +14,6 @@ import {
 	createShapeId,
 	sortByIndex,
 } from '@tldraw/editor'
-import { EraserTool } from '../lib/tools/EraserTool/EraserTool'
 import { TestEditor } from './TestEditor'
 
 jest.mock('nanoid', () => {
@@ -1429,8 +1428,8 @@ describe('erasing', () => {
 		editor.createShapes([
 			box(ids.boxA, 0, 0),
 			box(ids.boxB, 20, 0),
-			box(ids.boxC, 40, 0),
-			box(ids.boxD, 60, 0),
+			box(ids.boxC, 60, 0),
+			box(ids.boxD, 80, 0),
 			box(ids.boxE, 0, 20),
 		])
 		editor.select(ids.boxA, ids.boxB)
@@ -1446,7 +1445,7 @@ describe('erasing', () => {
 	})
 
 	it('erases whole groups if you hit one of their shapes', () => {
-		editor.setCurrentTool(EraserTool.id)
+		editor.setCurrentTool('eraser')
 
 		// erase D
 		editor.pointerDown(65, 5, ids.boxD)
@@ -1457,9 +1456,9 @@ describe('erasing', () => {
 	})
 
 	it('does not erase whole groups if you do not hit on one of their shapes', () => {
-		editor.setCurrentTool(EraserTool.id)
-		editor.pointerDown(35, 5)
-		expect(editor.erasingShapeIdsSet.size).toBe(0)
+		editor.setCurrentTool('eraser')
+		editor.pointerDown(40, 5)
+		expect(editor.erasingShapeIds).toEqual([])
 	})
 
 	it('works inside of groups', () => {
@@ -1467,7 +1466,7 @@ describe('erasing', () => {
 		expect(editor.focusedGroupId === groupAId).toBe(true)
 		const groupA = editor.getShape(groupAId)!
 
-		editor.setCurrentTool(EraserTool.id)
+		editor.setCurrentTool('eraser')
 
 		// erase B
 		editor.pointerDown(25, 5, ids.boxB)
@@ -1483,7 +1482,7 @@ describe('erasing', () => {
 		editor.select(ids.boxA)
 		expect(editor.focusedGroupId === groupAId).toBe(true)
 
-		editor.setCurrentTool(EraserTool.id)
+		editor.setCurrentTool('eraser')
 
 		// erase E
 		editor.pointerDown(5, 25, ids.boxE)

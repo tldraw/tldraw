@@ -23,7 +23,9 @@ export class Pointing extends StateNode {
 
 		for (let n = sortedShapesOnCurrentPage.length, i = n - 1; i >= 0; i--) {
 			const shape = sortedShapesOnCurrentPage[i]
-			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
+			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) {
+				continue
+			}
 
 			if (
 				this.editor.isPointInShape(shape, currentPagePoint, {
@@ -32,7 +34,6 @@ export class Pointing extends StateNode {
 				})
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)
-
 				// If we've hit a frame after hitting any other shape, stop here
 				if (
 					this.editor.isShapeOfType<TLFrameShape>(hitShape, 'frame') &&
