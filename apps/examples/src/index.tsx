@@ -21,6 +21,7 @@ import ExampleScroll from './6-scroll/ScrollExample'
 import ExampleMultiple from './7-multiple/MultipleExample'
 import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
 import HideUiExample from './9-hide-ui/HideUiExample'
+import CanvasEventsExample from './CanvasEventsExample'
 import ExamplesTldrawLogo from './ExamplesTldrawLogo'
 import { ListLink } from './components/ListLink'
 import EndToEnd from './end-to-end/end-to-end'
@@ -101,6 +102,11 @@ export const allExamples: Example[] = [
 		title: 'UI events',
 		path: '/ui-events',
 		element: <UiEventsExample />,
+	},
+	{
+		title: 'Canvas events',
+		path: '/canvas-events',
+		element: <CanvasEventsExample />,
 	},
 	{
 		title: 'Store events',
