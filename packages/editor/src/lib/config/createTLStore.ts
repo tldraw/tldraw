@@ -2,11 +2,14 @@ import { HistoryEntry, SerializedStore, Store, StoreSchema } from '@tldraw/store
 import {
 	SchemaShapeInfo,
 	TLRecord,
+	TLSchema,
 	TLStore,
 	TLStoreProps,
 	TLUnknownShape,
 	createTLSchema,
 } from '@tldraw/tlschema'
+import { EditorExtension } from '../editor/extensions/EditorExtension'
+import { EditorExtensionManager } from '../editor/extensions/ExtensionManager'
 import { TLShapeUtilConstructor } from '../editor/shapes/ShapeUtil'
 import { TLAnyShapeUtilConstructor, checkShapesAndAddCore } from './defaultShapes'
 
@@ -15,12 +18,29 @@ export type TLStoreOptions = {
 	initialData?: SerializedStore<TLRecord>
 	defaultName?: string
 } & (
-	| { shapeUtils: readonly TLAnyShapeUtilConstructor[] }
+	| {
+			shapeUtils: readonly TLAnyShapeUtilConstructor[]
+			/** @alpha */
+			extensions?: readonly EditorExtension<any>[]
+	  }
 	| { schema: StoreSchema<TLRecord, TLStoreProps> }
 )
 
 /** @public */
 export type TLStoreEventInfo = HistoryEntry<TLRecord>
+
+/** @alpha */
+export function createTLSchemaFromExtensions({
+	extensions = [],
+	shapeUtils = [],
+}: {
+	extensions?: readonly EditorExtension<any>[]
+	shapeUtils?: readonly TLAnyShapeUtilConstructor[]
+} = {}): TLSchema {
+	const ext = new EditorExtensionManager(null, extensions)
+	const allShapeUtils = checkShapesAndAddCore([...ext.shapes, ...shapeUtils])
+	return createTLSchema({ shapes: shapesArrayToShapeMap(allShapeUtils) })
+}
 
 /**
  * A helper for creating a TLStore. Custom shapes cannot override default shapes.
@@ -29,10 +49,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>
  *
  * @public */
 export function createTLStore({ initialData, defaultName = '', ...rest }: TLStoreOptions): TLStore {
-	const schema =
-		'schema' in rest
-			? rest.schema
-			: createTLSchema({ shapes: shapesArrayToShapeMap(checkShapesAndAddCore(rest.shapeUtils)) })
+	const schema = 'schema' in rest ? rest.schema : createTLSchemaFromExtensions(rest)
 	return new Store({
 		schema,
 		initialData,
@@ -42,7 +59,7 @@ export function createTLStore({ initialData, defaultName = '', ...rest }: TLStor
 	})
 }
 
-function shapesArrayToShapeMap(shapeUtils: TLShapeUtilConstructor<TLUnknownShape>[]) {
+function shapesArrayToShapeMap(shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[]) {
 	return Object.fromEntries(
 		shapeUtils.map((s): [string, SchemaShapeInfo] => [
 			s.type,

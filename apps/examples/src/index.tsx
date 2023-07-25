@@ -25,6 +25,7 @@ import ExamplesTldrawLogo from './ExamplesTldrawLogo'
 import { ListLink } from './components/ListLink'
 import EndToEnd from './end-to-end/end-to-end'
 import OnlyEditorExample from './only-editor/OnlyEditor'
+import ExtensionsExample from './wip-extensions/ExtensionsExample'
 import YjsExample from './yjs/YjsExample'
 
 // This example is only used for end to end tests
@@ -141,6 +142,10 @@ export const allExamples: Example[] = [
 	{
 		path: '/end-to-end',
 		element: <EndToEnd />,
+	},
+	{
+		path: '/wip-extensions',
+		element: <ExtensionsExample />,
 	},
 ]
 

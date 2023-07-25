@@ -42,6 +42,9 @@ export type Expand<T> = T extends infer O ? {
     [K in keyof O]: O[K];
 } : never;
 
+// @internal (undocumented)
+export function expectType<T>(value: T): T;
+
 // @public
 export class FileHelpers {
     // @internal (undocumented)

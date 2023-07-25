@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+env:
+  CI: 1
+  TLDRAW_RELEASE_CHANNEL: alpha
+
 jobs:
   deploy:
     name: 'Publish Canary Packages'

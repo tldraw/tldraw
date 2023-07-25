@@ -138,7 +138,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	 *
 	 * @public
 	 */
-	_currentToolIdMask = atom('curent tool id mask', undefined as string | undefined)
+	_currentToolIdMask = atom('current tool id mask', undefined as string | undefined)
 
 	@computed get currentToolIdMask() {
 		return this._currentToolIdMask.value

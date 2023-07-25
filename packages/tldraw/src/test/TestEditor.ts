@@ -61,7 +61,10 @@ export class TestEditor extends Editor {
 			...options,
 			shapeUtils: [...shapeUtilsWithDefaults],
 			tools: [...defaultTools, ...defaultShapeTools, ...(options.tools ?? [])],
-			store: createTLStore({ shapeUtils: [...shapeUtilsWithDefaults] }),
+			store: createTLStore({
+				shapeUtils: [...shapeUtilsWithDefaults],
+				extensions: options.extensions ?? [],
+			}),
 			getContainer: () => elm,
 			initialState: 'select',
 		})

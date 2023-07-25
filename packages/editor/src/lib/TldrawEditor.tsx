@@ -17,7 +17,9 @@ import { DefaultErrorFallback } from './components/default-components/DefaultErr
 import { TLUser, createTLUser } from './config/createTLUser'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { Editor } from './editor/Editor'
+import { EditorExtension } from './editor/extensions/EditorExtension'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
+import { useArrayShallowEquality } from './hooks/useArrayShallowEquality'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDarkMode } from './hooks/useDarkMode'
@@ -98,6 +100,12 @@ export interface TldrawEditorBaseProps {
 	 * A classname to pass to the editor's container.
 	 */
 	className?: string
+
+	/**
+	 * Extensions to the editor
+	 * @alpha
+	 */
+	extensions?: readonly EditorExtension<any>[]
 }
 
 /**
@@ -141,6 +149,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
+		extensions: useArrayShallowEquality(rest.extensions ?? []),
 	}
 
 	return (
@@ -178,12 +187,17 @@ export const TldrawEditor = memo(function TldrawEditor({
 })
 
 function TldrawEditorWithOwnStore(
-	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapeUtils' | 'tools'>
+	props: Required<
+		TldrawEditorProps & { store: undefined; user: TLUser },
+		'shapeUtils' | 'tools' | 'extensions'
+	>
 ) {
-	const { defaultName, initialData, shapeUtils, persistenceKey, sessionId, user } = props
+	const { defaultName, initialData, shapeUtils, extensions, persistenceKey, sessionId, user } =
+		props
 
 	const syncedStore = useLocalStore({
 		shapeUtils,
+		extensions,
 		initialData,
 		persistenceKey,
 		sessionId,
@@ -240,6 +254,7 @@ function TldrawEditorWithReadyStore({
 	store,
 	tools,
 	shapeUtils,
+	extensions,
 	autoFocus,
 	user,
 	initialState,
@@ -259,6 +274,7 @@ function TldrawEditorWithReadyStore({
 			store,
 			shapeUtils,
 			tools,
+			extensions,
 			getContainer: () => container,
 			user,
 			initialState,
@@ -270,7 +286,7 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapeUtils, tools, store, user, initialState])
+	}, [container, shapeUtils, tools, store, user, initialState, extensions])
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) {

@@ -103,6 +103,8 @@ import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { EditorExtension } from './extensions/EditorExtension'
+import { EditorExtensionManager } from './extensions/ExtensionManager'
 import { ClickManager } from './managers/ClickManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { SnapManager } from './managers/SnapManager'
@@ -161,14 +163,34 @@ export interface TLEditorOptions {
 	getContainer: () => HTMLElement
 
 	initialState?: string
+
+	/**
+	 * An array of extensions to use with the editor.
+	 * @alpha
+	 */
+	extensions?: readonly EditorExtension<any>[]
 }
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions) {
+	constructor(options: TLEditorOptions) {
+		const { store, user, shapeUtils, tools, getContainer, initialState, extensions } = options
 		super()
 
 		this.store = store
+
+		this.extensions = new EditorExtensionManager(this, [
+			EditorExtension.create({
+				name: '__core__',
+				addShapes() {
+					return shapeUtils ?? []
+				},
+				addTools() {
+					return tools ?? []
+				},
+			}),
+			...(extensions ?? []),
+		])
 
 		this.snaps = new SnapManager(this)
 
@@ -185,7 +207,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.root = new NewRoot(this)
 		this.root.children = {}
 
-		const allShapeUtils = checkShapesAndAddCore(shapeUtils)
+		const allShapeUtils = checkShapesAndAddCore(this.extensions.shapes)
 
 		const shapeTypesInSchema = new Set(
 			Object.keys(store.schema.types.shape.migrations.subTypeMigrations!)
@@ -233,7 +255,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// Tools.
 		// Accept tools from constructor parameters which may not conflict with the root note's default or
 		// "baked in" tools, select and zoom.
-		for (const Tool of [...tools]) {
+		for (const Tool of this.extensions.tools) {
 			if (hasOwnProperty(this.root.children!, Tool.id)) {
 				throw Error(`Can't override tool with id "${Tool.id}"`)
 			}
@@ -370,6 +392,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly store: TLStore
+
+	/**
+	 * The editor's extensions
+	 * @alpha
+	 */
+	readonly extensions: EditorExtensionManager
 
 	/**
 	 * The root state of the statechart.

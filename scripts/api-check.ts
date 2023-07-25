@@ -16,48 +16,56 @@ const packagesOurTypesCanDependOn = [
 main()
 
 async function main() {
-	const tsconfig: any = {
-		compilerOptions: {
-			lib: ['es2015', 'dom'],
-			strict: true,
-			rootDir: '.',
-			paths: {},
-			esModuleInterop: true,
-		},
-		files: [],
-	}
+	for (const dtsFileName of ['public.d.ts', 'alpha.d.ts']) {
+		nicelog(`Checking ${dtsFileName}`)
 
-	const tempDir = (await exec('mktemp', ['-d'])).trim()
-	nicelog(`Working in ${tempDir}`)
-
-	const packages = (await getAllWorkspacePackages()).filter(
-		({ packageJson }) => !packageJson.private
-	)
-
-	nicelog(
-		'Checking packages:',
-		packages.map(({ packageJson }) => packageJson.name)
-	)
-
-	for (const { name, relativePath } of packages) {
-		const unprefixedName = name.replace('@tldraw/', '')
-		const dtsFile = await readFileIfExists(join(relativePath, 'api', 'public.d.ts'))
-		if (!dtsFile) {
-			nicelog(`No public.d.ts for ${name}, skipping`)
-			continue
+		const tsconfig: any = {
+			compilerOptions: {
+				lib: ['es2015', 'dom'],
+				strict: true,
+				rootDir: '.',
+				paths: {},
+				esModuleInterop: true,
+			},
+			files: [],
 		}
 
-		writeFileSync(join(tempDir, `${unprefixedName}.d.ts`), dtsFile, 'utf8')
-		tsconfig.compilerOptions.paths[name] = [`./${unprefixedName}.d.ts`]
-		tsconfig.files.push(`./${unprefixedName}.d.ts`)
+		const tempDir = (await exec('mktemp', ['-d'])).trim()
+		nicelog(`Working in ${tempDir}`)
+
+		const packages = (await getAllWorkspacePackages()).filter(
+			({ packageJson }) => !packageJson.private
+		)
+
+		nicelog(
+			'Checking packages:',
+			packages.map(({ packageJson }) => packageJson.name)
+		)
+
+		for (const { name, relativePath } of packages) {
+			const unprefixedName = name.replace('@tldraw/', '')
+			const dtsFile = await readFileIfExists(join(relativePath, 'api', dtsFileName))
+			if (!dtsFile) {
+				nicelog(`No ${dtsFileName} for ${name}, skipping`)
+				continue
+			}
+
+			writeFileSync(join(tempDir, `${unprefixedName}.d.ts`), dtsFile, 'utf8')
+			tsconfig.compilerOptions.paths[name] = [`./${unprefixedName}.d.ts`]
+			tsconfig.files.push(`./${unprefixedName}.d.ts`)
+		}
+
+		nicelog('Checking with tsconfig:', tsconfig)
+		writeFileSync(`${tempDir}/tsconfig.json`, JSON.stringify(tsconfig, null, '\t'), 'utf8')
+		writeFileSync(
+			`${tempDir}/package.json`,
+			JSON.stringify({ dependencies: {} }, null, '\t'),
+			'utf8'
+		)
+
+		await exec('npm', ['install', ...packagesOurTypesCanDependOn], { pwd: tempDir })
+		await exec(resolve('./node_modules/.bin/tsc'), [], { pwd: tempDir })
+
+		await exec('rm', ['-rf', tempDir])
 	}
-
-	nicelog('Checking with tsconfig:', tsconfig)
-	writeFileSync(`${tempDir}/tsconfig.json`, JSON.stringify(tsconfig, null, '\t'), 'utf8')
-	writeFileSync(`${tempDir}/package.json`, JSON.stringify({ dependencies: {} }, null, '\t'), 'utf8')
-
-	await exec('npm', ['install', ...packagesOurTypesCanDependOn], { pwd: tempDir })
-	await exec(resolve('./node_modules/.bin/tsc'), [], { pwd: tempDir })
-
-	await exec('rm', ['-rf', tempDir])
 }

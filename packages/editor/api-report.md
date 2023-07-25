@@ -52,6 +52,7 @@ import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLSchema } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
@@ -268,6 +269,12 @@ export const coreShapes: readonly [typeof GroupShapeUtil];
 // @public
 export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | TLSessionStateSnapshot>;
 
+// @alpha (undocumented)
+export function createTLSchemaFromExtensions({ extensions, shapeUtils, }?: {
+    extensions?: readonly EditorExtension<any>[];
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
+}): TLSchema;
+
 // @public
 export function createTLStore({ initialData, defaultName, ...rest }: TLStoreOptions): TLStore;
 
@@ -342,7 +349,7 @@ export const EASINGS: {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions);
+    constructor(options: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
     get allShapesCommonBounds(): Box2d | null;
@@ -423,6 +430,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     get editingId(): null | TLShapeId;
     get erasingIds(): TLShapeId[];
     get erasingIdsSet(): Set<TLShapeId>;
+    // @alpha
+    readonly extensions: EditorExtensionManager;
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAssetContent_2['type']]: {
@@ -689,6 +698,69 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomToContent(): this;
     zoomToFit(opts?: TLAnimationOptions): this;
     zoomToSelection(opts?: TLAnimationOptions): this;
+}
+
+// @alpha (undocumented)
+export class EditorExtension<Options> {
+    // (undocumented)
+    readonly config: EditorExtensionConfig<Options>;
+    // (undocumented)
+    configure(options: ((defaults: Options) => Options) | Options): EditorExtension<Options>;
+    // Warning: (ae-incompatible-release-tags) The symbol "create" is marked as @public, but its signature references "EditorExtensionConfig" which is marked as @alpha
+    //
+    // @public
+    static create<Options = undefined>(config: EditorExtensionConfig<Options>): EditorExtension<Options>;
+    // (undocumented)
+    get name(): string;
+    // (undocumented)
+    readonly parent: EditorExtensionConfig<Options> | null;
+}
+
+// @alpha (undocumented)
+export interface EditorExtensionConfig<Options> {
+    // (undocumented)
+    addOptions?(this: EditorExtensionInstance<never>): Options;
+    // (undocumented)
+    addShapes?(this: EditorExtensionInstance<Options>): readonly TLAnyShapeUtilConstructor[];
+    // (undocumented)
+    addTools?(this: EditorExtensionInstance<Options>): readonly TLStateNodeConstructor[];
+    // (undocumented)
+    readonly name: string;
+}
+
+// @alpha (undocumented)
+export class EditorExtensionInstance<Options> {
+    constructor(editor: Editor | null, extension: EditorExtension<Options>);
+    // (undocumented)
+    addShapes?: () => readonly TLAnyShapeUtilConstructor[];
+    // (undocumented)
+    addTools?: () => readonly TLStateNodeConstructor[];
+    // (undocumented)
+    readonly config: EditorExtensionConfig<Options>;
+    // (undocumented)
+    get editor(): Editor;
+    // (undocumented)
+    readonly extension: EditorExtension<Options>;
+    // (undocumented)
+    readonly name: string;
+    // (undocumented)
+    readonly options: Options;
+}
+
+// @alpha (undocumented)
+export class EditorExtensionManager {
+    // (undocumented)
+    [Symbol.iterator](): IterableIterator<EditorExtensionInstance<any>>;
+    constructor(editor: Editor | null, extensions: readonly EditorExtension<any>[]);
+    // Warning: (ae-incompatible-release-tags) The symbol "get" is marked as @public, but its signature references "EditorExtension" which is marked as @alpha
+    // Warning: (ae-incompatible-release-tags) The symbol "get" is marked as @public, but its signature references "EditorExtensionInstance" which is marked as @alpha
+    //
+    // @public
+    get<Options>(ext: EditorExtension<Options>): EditorExtensionInstance<Options>;
+    // (undocumented)
+    readonly shapes: ReadonlyKeyedSet<'name', TLAnyShapeUtilConstructor>;
+    // (undocumented)
+    readonly tools: ReadonlyKeyedSet<'name', TLStateNodeConstructor>;
 }
 
 export { EMPTY_ARRAY }
@@ -1645,6 +1717,8 @@ export interface TldrawEditorBaseProps {
     children?: any;
     className?: string;
     components?: Partial<TLEditorComponents>;
+    // @alpha
+    extensions?: readonly EditorExtension<any>[];
     initialState?: string;
     onMount?: TLOnMountHandler;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
@@ -1673,6 +1747,8 @@ export type TLEditorComponents = {
 
 // @public (undocumented)
 export interface TLEditorOptions {
+    // @alpha
+    extensions?: readonly EditorExtension<any>[];
     getContainer: () => HTMLElement;
     // (undocumented)
     initialState?: string;
@@ -2129,6 +2205,7 @@ export type TLStoreOptions = {
     schema: StoreSchema<TLRecord, TLStoreProps>;
 } | {
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
+    extensions?: readonly EditorExtension<any>[];
 });
 
 // @public (undocumented)

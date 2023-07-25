@@ -1,3 +1,4 @@
+import { T } from '@tldraw/validate'
 import { build } from 'esbuild'
 import { copyFileSync, existsSync } from 'fs'
 import glob from 'glob'
@@ -7,8 +8,17 @@ import rimraf from 'rimraf'
 import { pathToFileURL } from 'url'
 import { addJsExtensions } from './lib/add-extensions'
 
+const releaseChannelValidator = T.literalEnum('public', 'alpha')
+type ReleaseChannel = T.TypeOf<typeof releaseChannelValidator>
+
 /** Prepares the package for publishing. the tarball in case it will be written to disk. */
-async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) {
+async function buildPackage({
+	sourcePackageDir,
+	releaseChannel,
+}: {
+	sourcePackageDir: string
+	releaseChannel: ReleaseChannel
+}) {
 	// this depends on `build-types` being run first, but we'll rely on turbo to
 	// make that happen.
 
@@ -32,12 +42,12 @@ async function buildPackage({ sourcePackageDir }: { sourcePackageDir: string }) 
 	await buildCjs({ sourceFiles, sourcePackageDir })
 
 	copyFileSync(
-		path.join(sourcePackageDir, `api/public.d.ts`),
+		path.join(sourcePackageDir, `api/${releaseChannel}.d.ts`),
 		path.join(sourcePackageDir, 'dist-cjs/index.d.ts')
 	)
 
 	copyFileSync(
-		path.join(sourcePackageDir, `api/public.d.ts`),
+		path.join(sourcePackageDir, `api/${releaseChannel}.d.ts`),
 		path.join(sourcePackageDir, 'dist-esm/index.d.mts')
 	)
 }
@@ -102,6 +112,9 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
 	;(async () => {
 		await buildPackage({
 			sourcePackageDir: process.cwd(),
+			releaseChannel: releaseChannelValidator.validate(
+				process.env.TLDRAW_RELEASE_CHANNEL ?? 'public'
+			),
 		})
 	})()
 }

@@ -10,3 +10,8 @@ type _Required<T> = { [K in keyof T]-?: T[K] }
 
 /** @internal */
 export type Required<T, K extends keyof T> = Expand<Omit<T, K> & _Required<Pick<T, K>>>
+
+/** @internal */
+export function expectType<T>(value: T) {
+	return value
+}

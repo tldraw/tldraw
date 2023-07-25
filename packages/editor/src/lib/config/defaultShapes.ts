@@ -12,7 +12,7 @@ export const coreShapes = [
 
 const coreShapeTypes = new Set<string>(coreShapes.map((s) => s.type))
 
-export function checkShapesAndAddCore(customShapes: readonly TLAnyShapeUtilConstructor[]) {
+export function checkShapesAndAddCore(customShapes: Iterable<TLAnyShapeUtilConstructor>) {
 	const shapes = [...coreShapes] as TLAnyShapeUtilConstructor[]
 
 	const addedCustomShapeTypes = new Set<string>()

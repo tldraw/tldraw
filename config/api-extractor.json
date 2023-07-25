@@ -247,7 +247,7 @@
 		 * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
 		 * DEFAULT VALUE: ""
 		 */
-		// "alphaTrimmedFilePath": "0.0.0",
+		"alphaTrimmedFilePath": "<projectFolder>/packages/<unscopedPackageName>/api/alpha.d.ts",
 		/**
 		 * Specifies the output path for a .d.ts rollup file to be generated with trimming for a "beta" release.
 		 * This file will include only declarations that are marked as "@public" or "@beta".

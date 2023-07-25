@@ -73,6 +73,7 @@ export {
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'
 export {
+	createTLSchemaFromExtensions,
 	createTLStore,
 	type TLStoreEventInfo,
 	type TLStoreOptions,
@@ -100,6 +101,12 @@ export {
 	ZOOMS,
 } from './lib/constants'
 export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export {
+	EditorExtension,
+	EditorExtensionInstance,
+	type EditorExtensionConfig,
+} from './lib/editor/extensions/EditorExtension'
+export { EditorExtensionManager } from './lib/editor/extensions/ExtensionManager'
 export {
 	SnapManager,
 	type GapsSnapLine,

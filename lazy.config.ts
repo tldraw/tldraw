@@ -91,7 +91,7 @@ export function generateSharedScripts(bublic: '<rootDir>' | '<rootDir>/bublic') 
 			baseCommand: `tsx ${bublic}/scripts/api-check.ts`,
 			runsAfter: { 'build-api': {} },
 			cache: {
-				inputs: [`${bublic}/packages/*/api/public.d.ts`],
+				inputs: [`${bublic}/packages/*/api/{public,alpha}.d.ts`],
 			},
 		},
 	} satisfies LazyConfig['scripts']
