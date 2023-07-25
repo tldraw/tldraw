@@ -141,7 +141,7 @@ describe('When clicking', () => {
 
 		const shapesBeforeCount = editor.shapesOnCurrentPage.length
 
-		editor.pointerDown(99, 99) // neat to box1 AND in box2
+		editor.pointerDown(99, 99) // next to box1 AND in box2
 
 		expect(new Set(editor.erasingShapeIds)).toEqual(new Set([ids.box1, ids.box2]))
 		expect(editor.erasingShapeIdsSet).toEqual(new Set([ids.box1, ids.box2]))
@@ -210,22 +210,22 @@ describe('When clicking', () => {
 		expect(editor.getShape(ids.frame1)).toBeDefined()
 	})
 
-	it('Erases a frame and its children when the frame was the first clicked shape', () => {
+	it('Erases a frame only when its clicked on the edge', () => {
 		editor.setCurrentTool('eraser')
 
 		const shapesBeforeCount = editor.shapesOnCurrentPage.length
 
 		editor.pointerDown(325, 25) // directly on frame1, not its children
-		expect(editor.erasingShapeIdsSet).toEqual(new Set([ids.frame1]))
+		expect(editor.erasingShapeIdsSet).toEqual(new Set([]))
 
 		editor.pointerUp() // without dragging!
 
 		const shapesAfterCount = editor.shapesOnCurrentPage.length
-		expect(shapesAfterCount).toBe(shapesBeforeCount - 2)
+		expect(shapesAfterCount).toBe(shapesBeforeCount)
 
 		// Erases BOTH the frame and its child
-		expect(editor.getShape(ids.box4)).toBeUndefined()
-		expect(editor.getShape(ids.frame1)).toBeUndefined()
+		expect(editor.getShape(ids.box4)).toBeDefined()
+		expect(editor.getShape(ids.frame1)).toBeDefined()
 	})
 
 	it('Only erases masked shapes when pointer is inside the mask', () => {
@@ -431,6 +431,23 @@ describe('When clicking and dragging', () => {
 		editor.pointerMove(53, 50)
 		editor.pointerUp()
 		expect(editor.instanceState.scribble).not.toBe(null)
+	})
+})
+
+describe('Does not erase hollow shapes on click', () => {
+	it('Returns to select on cancel', () => {
+		editor.selectAll().deleteShapes(editor.selectedShapes)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
+		editor.createShape({
+			id: createShapeId(),
+			type: 'geo',
+		})
+		editor.setCurrentTool('eraser')
+		editor.pointerMove(50, 50)
+		editor.pointerDown()
+		expect(editor.erasingShapeIds).toEqual([])
+		editor.pointerUp()
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
 	})
 })
 
