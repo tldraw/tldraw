@@ -6392,28 +6392,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (this.instanceState.isReadonly) return null
 			if (partials.length <= 0) return null
 
-			const { currentPageShapeIds: shapeIds, selectedIds } = this
-
-			const prevSelectedIds = select ? selectedIds : undefined
+			const { currentPageShapeIds: shapeIds } = this
 
 			const maxShapesReached = partials.length + shapeIds.size > MAX_SHAPES_PER_PAGE
 
 			if (maxShapesReached) {
+				// can't create more shapes than fit on the page
 				alertMaxShapes(this)
+				return
 			}
 
-			const partialsToCreate = maxShapesReached
-				? partials.slice(0, MAX_SHAPES_PER_PAGE - shapeIds.size)
-				: partials
+			if (partials.length === 0) return null
 
-			if (partialsToCreate.length === 0) return null
+			const prevSelectedIds = select ? this.selectedIds : undefined
 
 			return {
 				data: {
 					currentPageId: this.currentPageId,
 					createdIds: partials.map((p) => p.id),
 					prevSelectedIds,
-					partials: partialsToCreate,
+					partials,
 					select,
 				},
 			}

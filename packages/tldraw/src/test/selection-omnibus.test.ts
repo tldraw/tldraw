@@ -603,7 +603,7 @@ describe('Selects inside of groups', () => {
 		editor.pointerDown(250, 0)
 		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([ids.group1])
-		editor.pointerDown(250, 50)
+		editor.pointerDown()
 		editor.expectToBeIn('select.pointing_shape')
 		expect(editor.selectedIds).toEqual([ids.group1])
 		editor.pointerUp()
@@ -614,7 +614,7 @@ describe('Selects inside of groups', () => {
 		editor.pointerDown(50, 50)
 		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([ids.group1])
-		editor.pointerDown(50, 50)
+		editor.pointerDown()
 		editor.expectToBeIn('select.pointing_selection')
 		expect(editor.selectedIds).toEqual([ids.group1])
 		editor.pointerUp()
@@ -647,14 +647,14 @@ describe('Selects inside of groups', () => {
 
 	it('double clicks a hollow shape when the focus layer is the shapes parent', () => {
 		editor.doubleClick(50, 50)
-		editor.doubleClick(50, 50)
+		editor.doubleClick()
 		expect(editor.editingId).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')
 	})
 
 	it('double clicks a solid shape when the focus layer is the shapes parent', () => {
 		editor.doubleClick(250, 50)
-		editor.doubleClick(250, 50)
+		editor.doubleClick()
 		expect(editor.editingId).toBe(ids.box2)
 		editor.expectToBeIn('select.editing_shape')
 	})
@@ -668,7 +668,7 @@ describe('Selects inside of groups', () => {
 
 	it('selects a different sibling shape when editing a layer', () => {
 		editor.doubleClick(50, 50)
-		editor.doubleClick(50, 50)
+		editor.doubleClick()
 		expect(editor.editingId).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')
 		editor.pointerDown(250, 50)
@@ -740,6 +740,15 @@ describe('when shift+selecting', () => {
 		expect(editor.selectedIds).toEqual([ids.box1])
 	})
 
+	it('adds and removes solid shape from selection on double clicks (without causing an edit by double clicks)', () => {
+		editor.keyDown('Shift')
+		editor.pointerMove(450, 50) // above box 2
+		editor.doubleClick()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box3])
+		editor.doubleClick()
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
 	it('adds how shape to selection on pointer down when pointing margin', () => {
 		editor.keyDown('Shift')
 		editor.pointerMove(204, 50) // inside of box 2 margin
@@ -771,7 +780,7 @@ describe('when shift+selecting', () => {
 		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
 	})
 
-	it('adds and removes solid shape from selection on pointer up (without causing a double click)', () => {
+	it('adds and removes hollow shape from selection on pointer up (without causing an edit by double clicks)', () => {
 		editor.keyDown('Shift')
 		editor.pointerMove(250, 50) // above box 2
 		editor.pointerDown()
@@ -781,6 +790,15 @@ describe('when shift+selecting', () => {
 		editor.pointerDown()
 		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
 		editor.pointerUp()
+		expect(editor.selectedIds).toEqual([ids.box1])
+	})
+
+	it('adds and removes hollow shape from selection on double clicks (without causing an edit by double clicks)', () => {
+		editor.keyDown('Shift')
+		editor.pointerMove(250, 50) // above box 2
+		editor.doubleClick()
+		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+		editor.doubleClick()
 		expect(editor.selectedIds).toEqual([ids.box1])
 	})
 })
@@ -799,48 +817,57 @@ describe('when shift+selecting a group', () => {
 	})
 
 	it('does not add group to selection when pointing empty space in the group', () => {
-		editor.pointerDown(350, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		editor.keyDown('Shift')
+		editor.pointerDown(350, 50) // inside of box 2, inside of group 1
 		expect(editor.selectedIds).toEqual([ids.box1])
-		editor.pointerUp(350, 50, { target: 'canvas' }, { shiftKey: true })
+		editor.pointerUp(350, 50)
 		expect(editor.selectedIds).toEqual([ids.box1])
 	})
 
 	it('adds to selection on shift + on pointer up when clicking in hollow shape', () => {
-		editor.pointerDown(250, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		editor.keyDown('Shift')
+		editor.pointerMove(250, 50)
+		editor.pointerDown() // inside of box 2, inside of group 1
 		expect(editor.selectedIds).toEqual([ids.box1])
-		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
+		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
 	})
 
 	it('adds to selection on pointer down when clicking in margin', () => {
-		editor.pointerDown(304, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		editor.keyDown('Shift')
+		editor.pointerDown(304, 50) // inside of box 2, inside of group 1
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
-		editor.pointerUp(304, 50, { target: 'canvas' }, { shiftKey: true })
+		editor.pointerUp(304, 50)
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
 	})
 
 	it('adds to selection on pointer down when clicking in filled', () => {
-		editor.pointerDown(450, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		editor.keyDown('Shift')
+		editor.pointerDown(450, 50) // inside of box 2, inside of group 1
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
-		editor.pointerUp(450, 50, { target: 'canvas' }, { shiftKey: true })
+		editor.pointerUp(450, 50)
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
 	})
 
 	it('brushes on down + move', () => {
-		editor.pointerDown(250, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		editor.keyDown('Shift')
+		editor.pointerMove(250, 50)
+		editor.pointerDown() // inside of box 2, inside of group 1
 		expect(editor.selectedIds).toEqual([ids.box1])
-		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
+		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
 	})
 
 	it('deselects on pointer up', () => {
-		editor.pointerDown(250, 50, { target: 'canvas' }, { shiftKey: true }) // inside of box 2, inside of group 1
+		editor.keyDown('Shift')
+		editor.pointerMove(250, 50)
+		editor.pointerDown() // inside of box 2, inside of group 1
 		expect(editor.selectedIds).toEqual([ids.box1])
-		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
+		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
-		editor.pointerDown(250, 50, { target: 'canvas' }, { shiftKey: true })
+		editor.pointerDown()
 		expect(editor.selectedIds).toEqual([ids.box1, ids.group1])
-		editor.pointerUp(250, 50, { target: 'canvas' }, { shiftKey: true })
+		editor.pointerUp()
 		expect(editor.selectedIds).toEqual([ids.box1])
 	})
 })
@@ -1091,23 +1118,25 @@ describe('shift brushes to add to the selection', () => {
 		editor.pointerMove(1, 1)
 		expect(editor.selectedIds).toEqual([ids.box2, ids.box1])
 		editor.keyUp('Shift')
+		// there's a timer here—we should keep the shift mode until the timer expires
+		expect(editor.selectedIds).toEqual([ids.box2, ids.box1])
 		jest.advanceTimersByTime(500)
+		// once the timer expires, we should be back in regular mode
 		expect(editor.selectedIds).toEqual([ids.box1])
 		editor.keyDown('Shift')
+		// there's no timer on key down, so go right into shift mode again
 		expect(editor.selectedIds).toEqual([ids.box2, ids.box1])
 	})
 })
 
 describe('scribble brushes to add to the selection', () => {
 	beforeEach(() => {
-		editor
-			.createShapes([
-				{ id: ids.box1, type: 'geo', x: 0, y: 0 },
-				{ id: ids.box2, type: 'geo', x: 200, y: 0 },
-				{ id: ids.box3, type: 'geo', x: 400, y: 0 },
-				{ id: ids.box4, type: 'geo', x: 600, y: 200 },
-			])
-			.groupShapes([ids.box3, ids.box4], ids.group1)
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+			{ id: ids.box3, type: 'geo', x: 400, y: 0 },
+			{ id: ids.box4, type: 'geo', x: 600, y: 200 },
+		])
 	})
 
 	it('does not select when scribbling into margin', () => {
@@ -1144,6 +1173,7 @@ describe('scribble brushes to add to the selection', () => {
 	})
 
 	it('selects a group when scribble is colliding with the groups child shape', () => {
+		editor.groupShapes([ids.box3, ids.box4], ids.group1)
 		editor.pointerMove(650, -50)
 		editor.keyDown('Alt')
 		editor.pointerDown()
@@ -1164,6 +1194,25 @@ describe('scribble brushes to add to the selection', () => {
 		expect(editor.selectedIds).toEqual([ids.box1])
 		editor.keyDown('Shift')
 		expect(editor.selectedIds).toEqual([ids.box1, ids.box2])
+	})
+
+	it('selects when switching between moves', () => {
+		editor.ungroupShapes([ids.group1]) // ungroup boxes 3 and 4
+		editor.pointerMove(650, 0)
+		editor.keyDown('Alt') // scribble
+		editor.pointerDown()
+		editor.pointerMove(650, 250) // into box 4
+		expect(editor.selectedIds).toEqual([ids.box4])
+		editor.pointerMove(450, 250) // below box 3
+		expect(editor.selectedIds).toEqual([ids.box4])
+		editor.keyUp('Alt') // scribble
+		expect(editor.selectedIds).toEqual([ids.box4]) // still in timer
+		jest.advanceTimersByTime(1000) // let timer expire
+		expect(editor.selectedIds).toEqual([ids.box3, ids.box4]) // brushed!
+		editor.keyDown('Alt') // scribble
+		expect(editor.selectedIds).toEqual([ids.box4]) // back to brushed only
+		editor.pointerMove(450, 240) // below box 3
+		expect(editor.selectedIds).toEqual([ids.box4]) // back to brushed only
 	})
 })
 
