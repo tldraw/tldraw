@@ -2,13 +2,15 @@ import { Editor, HIT_TEST_MARGIN, TLGroupShape } from '@tldraw/editor'
 import { selectOnCanvasPointerUp } from './selectOnCanvasPointerUp'
 
 export function selectOnDoubleClick(editor: Editor) {
+	const { hoveredShape } = editor
 	const hitShape =
-		editor.hoveredShape ??
-		editor.getSelectedShapeAtPoint(editor.inputs.currentPagePoint) ??
-		editor.getShapeAtPoint(editor.inputs.currentPagePoint, {
-			margin: HIT_TEST_MARGIN / editor.zoomLevel,
-			hitInside: true,
-		})
+		hoveredShape && !editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+			? hoveredShape
+			: editor.getSelectedShapeAtPoint(editor.inputs.currentPagePoint) ??
+			  editor.getShapeAtPoint(editor.inputs.currentPagePoint, {
+					margin: HIT_TEST_MARGIN / editor.zoomLevel,
+					hitInside: true,
+			  })
 
 	const { focusLayerId } = editor
 

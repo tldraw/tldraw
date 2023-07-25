@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLExitEventHandler, Vec2d } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLExitEventHandler, TLGroupShape, Vec2d } from '@tldraw/editor'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
@@ -43,9 +43,11 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredShape } = this.editor
 				const hitShape =
-					this.editor.hoveredShape ??
-					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+						? hoveredShape
+						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onPointerDown({
 						...info,

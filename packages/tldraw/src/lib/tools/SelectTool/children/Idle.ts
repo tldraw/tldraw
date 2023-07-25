@@ -151,13 +151,15 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredShape } = this.editor
 				const hitShape =
-					this.editor.hoveredShape ??
-					this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
-					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-						margin: HIT_TEST_MARGIN / this.editor.zoomLevel,
-						hitInside: true,
-					})
+					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+						? hoveredShape
+						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
+						  this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+								margin: HIT_TEST_MARGIN / this.editor.zoomLevel,
+								hitInside: true,
+						  })
 
 				const { focusLayerId } = this.editor
 
@@ -300,9 +302,11 @@ export class Idle extends StateNode {
 	override onRightClick: TLEventHandlers['onRightClick'] = (info) => {
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredShape } = this.editor
 				const hitShape =
-					this.editor.hoveredShape ??
-					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+						? hoveredShape
+						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onRightClick({
 						...info,

@@ -1,4 +1,10 @@
-import { StateNode, TLEventHandlers, TLUnknownShape, createShapeId } from '@tldraw/tldraw'
+import {
+	StateNode,
+	TLEventHandlers,
+	TLGroupShape,
+	TLUnknownShape,
+	createShapeId,
+} from '@tldraw/tldraw'
 
 /*
 This is a bigger example of a state node that implements a "select" tool.
@@ -21,9 +27,11 @@ class IdleState extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredShape } = this.editor
 				const hitShape =
-					this.editor.hoveredShape ??
-					this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+						? hoveredShape
+						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
 				if (hitShape) {
 					this.onPointerDown({
 						...info,

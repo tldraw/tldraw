@@ -1,4 +1,10 @@
-import { StateNode, TLClickEvent, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import {
+	StateNode,
+	TLClickEvent,
+	TLEventHandlers,
+	TLGroupShape,
+	TLPointerEventInfo,
+} from '@tldraw/editor'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 
 export class PointingSelection extends StateNode {
@@ -25,12 +31,14 @@ export class PointingSelection extends StateNode {
 	}
 
 	override onDoubleClick?: TLClickEvent | undefined = (info) => {
+		const { hoveredShape } = this.editor
 		const hitShape =
-			this.editor.hoveredShape ??
-			this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-				hitInside: true,
-				margin: 0,
-			})
+			hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+				? hoveredShape
+				: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+						hitInside: true,
+						margin: 0,
+				  })
 
 		if (hitShape) {
 			// todo: extract the double click shape logic from idle so that we can share it here
