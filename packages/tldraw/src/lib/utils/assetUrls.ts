@@ -21,7 +21,7 @@ export let defaultEditorAssetUrls: TLEditorAssetUrls = {
 	},
 }
 
-/** @internal */
+/** @public */
 export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls) {
 	defaultEditorAssetUrls = assetUrls
 }

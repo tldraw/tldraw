@@ -1,32 +1,38 @@
 import { getAssetUrlsByMetaUrl } from '@tldraw/assets/urls'
-import { DefaultErrorFallback, ErrorBoundary, setDefaultUiAssetUrls } from '@tldraw/tldraw'
-import { setDefaultEditorAssetUrls } from '@tldraw/tldraw/src/lib/utils/assetUrls'
+import {
+	DefaultErrorFallback,
+	ErrorBoundary,
+	setDefaultEditorAssetUrls,
+	setDefaultUiAssetUrls,
+} from '@tldraw/tldraw'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
-import ExampleBasic from './1-basic/BasicExample'
-import CustomComponentsExample from './10-custom-components/CustomComponentsExample'
-import UserPresenceExample from './11-user-presence/UserPresenceExample'
-import UiEventsExample from './12-ui-events/UiEventsExample'
-import StoreEventsExample from './13-store-events/StoreEventsExample'
-import PersistenceExample from './14-persistence/PersistenceExample'
-import ZonesExample from './15-custom-zones/ZonesExample'
-import CustomStylesExample from './16-custom-styles/CustomStylesExample'
-import ShapeMetaExample from './17-shape-meta/ShapeMetaExample'
-import ExampleApi from './2-api/APIExample'
-import CustomConfigExample from './3-custom-config/CustomConfigExample'
-import CustomUiExample from './4-custom-ui/CustomUiExample'
-import ExplodedExample from './5-exploded/ExplodedExample'
-import ExampleScroll from './6-scroll/ScrollExample'
-import ExampleMultiple from './7-multiple/MultipleExample'
-import ErrorBoundaryExample from './8-error-boundary/ErrorBoundaryExample'
-import HideUiExample from './9-hide-ui/HideUiExample'
-import CanvasEventsExample from './CanvasEventsExample'
-import ExamplesTldrawLogo from './ExamplesTldrawLogo'
+
+import ExamplesTldrawLogo from './components/ExamplesTldrawLogo'
 import { ListLink } from './components/ListLink'
-import EndToEnd from './end-to-end/end-to-end'
+
+import BasicExample from './BasicExample'
+import APIExample from './examples/APIExample'
+import CanvasEventsExample from './examples/CanvasEventsExample'
+import CustomComponentsExample from './examples/CustomComponentsExample'
+import CustomConfigExample from './examples/CustomConfigExample/CustomConfigExample'
+import CustomStylesExample from './examples/CustomStylesExample/CustomStylesExample'
+import CustomUiExample from './examples/CustomUiExample/CustomUiExample'
+import ErrorBoundaryExample from './examples/ErrorBoundaryExample/ErrorBoundaryExample'
+import ExplodedExample from './examples/ExplodedExample'
+import HideUiExample from './examples/HideUiExample'
+import MultipleExample from './examples/MultipleExample'
+import PersistenceExample from './examples/PersistenceExample'
+import ScrollExample from './examples/ScrollExample'
+import ShapeMetaExample from './examples/ShapeMetaExample'
+import StoreEventsExample from './examples/StoreEventsExample'
+import UiEventsExample from './examples/UiEventsExample'
+import UserPresenceExample from './examples/UserPresenceExample'
+import ZonesExample from './examples/ZonesExample'
+import EndToEnd from './examples/end-to-end/end-to-end'
+import YjsExample from './examples/yjs/YjsExample'
 import OnlyEditorExample from './only-editor/OnlyEditor'
-import YjsExample from './yjs/YjsExample'
 
 // This example is only used for end to end tests
 
@@ -46,7 +52,7 @@ export const allExamples: Example[] = [
 	{
 		title: 'Basic (development)',
 		path: '/develop',
-		element: <ExampleBasic />,
+		element: <BasicExample />,
 	},
 	{
 		title: 'Collaboration (with Yjs)',
@@ -56,17 +62,17 @@ export const allExamples: Example[] = [
 	{
 		title: 'Editor API',
 		path: '/api',
-		element: <ExampleApi />,
+		element: <APIExample />,
 	},
 	{
 		title: 'Multiple editors',
 		path: '/multiple',
-		element: <ExampleMultiple />,
+		element: <MultipleExample />,
 	},
 	{
 		title: 'Scroll example',
 		path: '/scroll',
-		element: <ExampleScroll />,
+		element: <ScrollExample />,
 	},
 	{
 		title: 'Custom config',

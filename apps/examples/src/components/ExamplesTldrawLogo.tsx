@@ -1,4 +1,4 @@
-export default function () {
+export default function ExamplesTldrawLogo() {
 	return (
 		<svg
 			width="722"
