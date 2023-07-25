@@ -53,7 +53,9 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.editAfterComplete = editAfterComplete
 
-		this.markId = isCreating ? 'creating' : this.editor.mark('translating')
+		this.markId = isCreating
+			? this.editor.mark(`creating:${this.editor.onlySelectedShape!.id}`)
+			: this.editor.mark('translating')
 		this.handleEnter(info)
 		this.editor.on('tick', this.updateParent)
 	}

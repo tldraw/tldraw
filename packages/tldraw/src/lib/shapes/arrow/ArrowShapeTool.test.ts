@@ -40,7 +40,7 @@ it('enters the arrow state', () => {
 describe('When in the idle state', () => {
 	it('enters the pointing state and creates a shape on pointer down', () => {
 		const shapesBefore = editor.shapesArray.length
-		editor.setCurrentTool('arrow').pointerDown(0, 0, { target: 'canvas' })
+		editor.setCurrentTool('arrow').pointerDown(0, 0)
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		editor.expectPathToBe('root.arrow.pointing')
@@ -56,7 +56,7 @@ describe('When in the idle state', () => {
 describe('When in the pointing state', () => {
 	it('cancels on pointer up', () => {
 		const shapesBefore = editor.shapesArray.length
-		editor.setCurrentTool('arrow').pointerDown(0, 0, { target: 'canvas' }).pointerUp(0, 0)
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerUp(0, 0)
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore)
 		expect(editor.hintingIds.length).toBe(0)
@@ -65,7 +65,7 @@ describe('When in the pointing state', () => {
 
 	it('bails on cancel', () => {
 		const shapesBefore = editor.shapesArray.length
-		editor.setCurrentTool('arrow').pointerDown(0, 0, { target: 'canvas' }).cancel()
+		editor.setCurrentTool('arrow').pointerDown(0, 0).cancel()
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore)
 		expect(editor.hintingIds.length).toBe(0)
@@ -73,7 +73,7 @@ describe('When in the pointing state', () => {
 	})
 
 	it('enters the dragging state on pointer move', () => {
-		editor.setCurrentTool('arrow').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10)
 		editor.expectPathToBe('root.select.dragging_handle')
 	})
 })
@@ -81,7 +81,7 @@ describe('When in the pointing state', () => {
 // This could be moved to dragging_handle
 describe('When dragging the arrow', () => {
 	it('updates the arrow on pointer move', () => {
-		editor.setCurrentTool('arrow').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10)
 		const arrow = editor.shapesArray[editor.shapesArray.length - 1]
 		editor.expectShapeToMatch(arrow, {
 			id: arrow.id,
@@ -98,11 +98,7 @@ describe('When dragging the arrow', () => {
 
 	it('returns to select.idle, keeping shape, on pointer up', () => {
 		const shapesBefore = editor.shapesArray.length
-		editor
-			.setCurrentTool('arrow')
-			.pointerDown(0, 0, { target: 'canvas' })
-			.pointerMove(10, 10)
-			.pointerUp(10, 10)
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10).pointerUp(10, 10)
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		expect(editor.hintingIds.length).toBe(0)
@@ -112,11 +108,7 @@ describe('When dragging the arrow', () => {
 	it('returns to arrow.idle, keeping shape, on pointer up when tool lock is active', () => {
 		editor.updateInstanceState({ isToolLocked: true })
 		const shapesBefore = editor.shapesArray.length
-		editor
-			.setCurrentTool('arrow')
-			.pointerDown(0, 0, { target: 'canvas' })
-			.pointerMove(10, 10)
-			.pointerUp(10, 10)
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10).pointerUp(10, 10)
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		expect(editor.hintingIds.length).toBe(0)
@@ -125,11 +117,7 @@ describe('When dragging the arrow', () => {
 
 	it('bails on cancel', () => {
 		const shapesBefore = editor.shapesArray.length
-		editor
-			.setCurrentTool('arrow')
-			.pointerDown(0, 0, { target: 'canvas' })
-			.pointerMove(10, 10)
-			.cancel()
+		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(10, 10).cancel()
 		const shapesAfter = editor.shapesArray.length
 		expect(shapesAfter).toBe(shapesBefore)
 		editor.expectPathToBe('root.arrow.idle')

@@ -16,22 +16,27 @@ export class Pointing extends StateNode {
 
 	wasFocusedOnEnter = false
 
-	markPointId = 'creating'
+	markId = ''
+
+	shape = {} as TLNoteShape
 
 	override onEnter = () => {
 		this.wasFocusedOnEnter = !this.editor.isMenuOpen
+		if (this.wasFocusedOnEnter) {
+			this.shape = this.createShape()
+		}
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			this.editor.mark(this.markPointId)
-			const shape = this.createShape()
-			if (!shape) return
+			if (!this.wasFocusedOnEnter) {
+				this.shape = this.createShape()
+			}
 
 			this.editor.setCurrentTool('select.translating', {
 				...info,
 				target: 'shape',
-				shape,
+				shape: this.shape,
 				isCreating: true,
 				editAfterComplete: true,
 				onInteractionEnd: 'note',
@@ -56,29 +61,22 @@ export class Pointing extends StateNode {
 	}
 
 	private complete() {
-		if (!this.wasFocusedOnEnter) {
-			return
-		}
-
-		this.editor.mark(this.markPointId)
-		const shape = this.createShape()
-
-		if (this.editor.instanceState.isToolLocked) {
-			this.parent.transition('idle', {})
-		} else {
-			if (!shape) return
-
-			this.editor.setEditingId(shape.id)
-			this.editor.setCurrentTool('select.editing_shape', {
-				...this.info,
-				target: 'shape',
-				shape,
-			})
+		if (this.wasFocusedOnEnter) {
+			if (this.editor.instanceState.isToolLocked) {
+				this.parent.transition('idle', {})
+			} else {
+				this.editor.setEditingId(this.shape.id)
+				this.editor.setCurrentTool('select.editing_shape', {
+					...this.info,
+					target: 'shape',
+					shape: this.shape,
+				})
+			}
 		}
 	}
 
 	private cancel() {
-		this.editor.bailToMark(this.markPointId)
+		this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}
 
@@ -88,6 +86,8 @@ export class Pointing extends StateNode {
 		} = this.editor
 
 		const id = createShapeId()
+		this.markId = `creating:${id}`
+		this.editor.mark(this.markId)
 
 		this.editor.createShapes(
 			[
@@ -114,6 +114,6 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		return this.editor.getShape(id)
+		return this.editor.getShape<TLNoteShape>(id)!
 	}
 }

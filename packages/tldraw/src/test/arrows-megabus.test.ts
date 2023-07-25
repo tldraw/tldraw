@@ -1,4 +1,4 @@
-import { TLArrowShape, createShapeId } from '@tldraw/editor'
+import { TLArrowShape, Vec2d, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -249,6 +249,14 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		expect(arrow()).toBe(null)
 	})
 
+	it('does not create a shape if pointer up before drag', () => {
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(50, 50)
+		expect(editor.shapesArray.length).toBe(1)
+		editor.pointerUp(50, 50)
+		expect(editor.shapesArray.length).toBe(1)
+	})
+
 	it('creates the arrow after a drag, bound to the shape', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(50, 50)
@@ -347,8 +355,157 @@ describe('When starting an arrow inside of multiple shapes', () => {
 })
 
 describe('When starting an arrow inside of multiple shapes', () => {
-	it('starts the shape inside of the smallest shape', () => {
+	beforeEach(() => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+		editor.createShapes([{ id: ids.box2, type: 'geo', x: 0, y: 0, props: { w: 50, h: 50 } }])
+	})
+
+	it('starts the shape inside of the smallest hollow shape when hovering only hollow shapes', () => {
+		editor.sendToBack([ids.box2])
+		// box1 is bigger and is below box2
+
 		editor.setCurrentTool('arrow')
-		editor.pointerDown(0, 50)
+		editor.pointerDown(25, 25)
+		expect(editor.shapesArray.length).toBe(2)
+		expect(arrow()).toBe(null)
+		editor.pointerMove(30, 30)
+		expect(editor.shapesArray.length).toBe(3)
+		expect(arrow()).toMatchObject({
+			x: 25,
+			y: 25,
+			props: {
+				start: {
+					type: 'binding',
+					boundShapeId: ids.box2,
+					normalizedAnchor: {
+						x: 0.5,
+						y: 0.5,
+					},
+				},
+				end: {
+					type: 'binding',
+					boundShapeId: ids.box2,
+					normalizedAnchor: {
+						x: 0.6,
+						y: 0.6,
+					},
+				},
+			},
+		})
+	})
+
+	it('starts the shape inside of the smallest hollow shape regardless of which is above when hovering only hollow shapes', () => {
+		editor.sendToBack([ids.box2])
+		// box1 is bigger and is above box2
+
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(25, 25)
+		expect(editor.shapesArray.length).toBe(2)
+		expect(arrow()).toBe(null)
+		editor.pointerMove(30, 30)
+		expect(editor.shapesArray.length).toBe(3)
+		expect(arrow()).toMatchObject({
+			x: 25,
+			y: 25,
+			props: {
+				start: {
+					type: 'binding',
+					boundShapeId: ids.box2,
+					normalizedAnchor: {
+						x: 0.5,
+						y: 0.5,
+					},
+				},
+				end: {
+					type: 'binding',
+					boundShapeId: ids.box2,
+					normalizedAnchor: {
+						x: 0.6,
+						y: 0.6,
+					},
+				},
+			},
+		})
+	})
+
+	it.only('starts a filled shape if it is above the hollow shape', () => {
+		// box2 - small, hollow
+		// box1 - big, filled
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { fill: 'solid' } })
+		editor.bringToFront([ids.box1])
+
+		expect(
+			editor.getShapeAtPoint(new Vec2d(25, 25), {
+				filter: (shape) => editor.getShapeUtil(shape).canBind(shape),
+				hitInside: true,
+				hitFrameInside: true,
+				margin: 0,
+			})?.id
+		).toBe(ids.box1)
+
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(25, 25)
+		expect(editor.shapesArray.length).toBe(2)
+		expect(arrow()).toBe(null)
+		editor.pointerMove(30, 30)
+		expect(editor.shapesArray.length).toBe(3)
+		expect(arrow()).toMatchObject({
+			x: 25,
+			y: 25,
+			props: {
+				start: {
+					type: 'binding',
+					boundShapeId: ids.box1,
+					normalizedAnchor: {
+						x: 0.5,
+						y: 0.5,
+					},
+				},
+				end: {
+					type: 'binding',
+					boundShapeId: ids.box1,
+					normalizedAnchor: {
+						x: 0.3,
+						y: 0.3,
+					},
+				},
+			},
+		})
+	})
+
+	it('starts a small hollow shape if it is above the bigger filled shape', () => {
+		// box1 - big, hollow
+		// box2 - small, filled
+		editor.updateShape({ id: ids.box2, type: 'geo', props: { fill: 'solid' } })
+		editor.bringToFront([ids.box2])
+
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(25, 25)
+		expect(editor.shapesArray.length).toBe(2)
+		expect(arrow()).toBe(null)
+		editor.pointerMove(30, 30)
+		expect(editor.shapesArray.length).toBe(3)
+		expect(arrow()).toMatchObject({
+			x: 25,
+			y: 25,
+			props: {
+				start: {
+					type: 'binding',
+					boundShapeId: ids.box2,
+					normalizedAnchor: {
+						x: 0.5,
+						y: 0.5,
+					},
+				},
+				end: {
+					type: 'binding',
+					boundShapeId: ids.box2,
+					normalizedAnchor: {
+						x: 0.6,
+						y: 0.6,
+					},
+				},
+			},
+		})
 	})
 })

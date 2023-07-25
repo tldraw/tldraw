@@ -11,42 +11,46 @@ import {
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
+	markId = ''
+
+	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+		this.complete()
+	}
+
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
 			const { originPagePoint } = this.editor.inputs
 
 			const id = createShapeId()
 
-			this.editor.mark('creating')
+			this.markId = `creating:${id}`
 
-			this.editor.createShapes<TLGeoShape>([
-				{
-					id,
-					type: 'geo',
-					x: originPagePoint.x,
-					y: originPagePoint.y,
-					props: {
-						w: 1,
-						h: 1,
-						geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
+			this.editor.mark(this.markId)
+
+			this.editor
+				.createShapes<TLGeoShape>([
+					{
+						id,
+						type: 'geo',
+						x: originPagePoint.x,
+						y: originPagePoint.y,
+						props: {
+							w: 1,
+							h: 1,
+							geo: this.editor.getStyleForNextShape(GeoShapeGeoStyle),
+						},
 					},
-				},
-			])
-
-			this.editor.select(id)
-			this.editor.setCurrentTool('select.resizing', {
-				...info,
-				target: 'selection',
-				handle: 'bottom_right',
-				isCreating: true,
-				creationCursorOffset: { x: 1, y: 1 },
-				onInteractionEnd: 'geo',
-			})
+				])
+				.select(id)
+				.setCurrentTool('select.resizing', {
+					...info,
+					target: 'selection',
+					handle: 'bottom_right',
+					isCreating: true,
+					creationCursorOffset: { x: 1, y: 1 },
+					onInteractionEnd: 'geo',
+				})
 		}
-	}
-
-	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
-		this.complete()
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
@@ -66,7 +70,9 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.editor.mark('creating')
+		this.markId = `creating:${id}`
+
+		this.editor.mark(this.markId)
 
 		this.editor.createShapes<TLGeoShape>([
 			{
@@ -116,6 +122,7 @@ export class Pointing extends StateNode {
 	}
 
 	private cancel() {
+		// we should not have created any shapes yet, so no need to bail
 		this.parent.transition('idle', {})
 	}
 }

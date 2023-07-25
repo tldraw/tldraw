@@ -5,19 +5,7 @@ export class Pointing extends StateNode {
 
 	shape?: TLArrowShape
 
-	preciseTimeout = -1
-	didTimeout = false
-
-	private startPreciseTimeout() {
-		this.preciseTimeout = window.setTimeout(() => {
-			if (!this.isActive) return
-			this.didTimeout = true
-		}, 320)
-	}
-
-	private clearPreciseTimeout() {
-		clearTimeout(this.preciseTimeout)
-	}
+	markId = ''
 
 	override onEnter = () => {
 		this.didTimeout = false
@@ -79,17 +67,20 @@ export class Pointing extends StateNode {
 	}
 
 	cancel() {
-		this.editor.bailToMark('creating')
+		if (this.shape) {
+			// the arrow might not have been created yet!
+			this.editor.bailToMark(this.markId)
+		}
 		this.editor.setHintingIds([])
 		this.parent.transition('idle', {})
 	}
 
 	createArrowShape() {
-		this.editor.mark('creating')
+		const { originPagePoint } = this.editor.inputs
 
 		const id = createShapeId()
 
-		const { originPagePoint } = this.editor.inputs
+		this.markId = this.editor.mark(`creating:${id}`)
 
 		this.editor.createShapes<TLArrowShape>([
 			{
@@ -168,5 +159,17 @@ export class Pointing extends StateNode {
 
 		// Cache the current shape after those changes
 		this.shape = this.editor.getShape(shape.id)
+	}
+
+	private preciseTimeout = -1
+	private didTimeout = false
+	private startPreciseTimeout() {
+		this.preciseTimeout = window.setTimeout(() => {
+			if (!this.isActive) return
+			this.didTimeout = true
+		}, 320)
+	}
+	private clearPreciseTimeout() {
+		clearTimeout(this.preciseTimeout)
 	}
 }

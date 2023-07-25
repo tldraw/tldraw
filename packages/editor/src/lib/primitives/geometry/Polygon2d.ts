@@ -4,7 +4,6 @@ import { Polyline2d } from './Polyline2d'
 
 /** @public */
 export class Polygon2d extends Polyline2d {
-	type = 'polyline' as const
 	constructor(config: Omit<Geometry2dOptions, 'isClosed'> & { points: Vec2d[] }) {
 		super({ ...config })
 		this.isClosed = true

@@ -1478,8 +1478,6 @@ export class Polygon2d extends Polyline2d {
     constructor(config: Omit<Geometry2dOptions, 'isClosed'> & {
         points: Vec2d[];
     });
-    // (undocumented)
-    type: "polyline";
 }
 
 // @public (undocumented)

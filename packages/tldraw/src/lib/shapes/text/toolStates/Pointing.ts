@@ -5,6 +5,8 @@ export class Pointing extends StateNode {
 
 	shape?: TLTextShape
 
+	markId = ''
+
 	override onExit = () => {
 		this.editor.setHintingIds([])
 	}
@@ -17,7 +19,7 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
-			this.editor.mark('creating')
+			this.markId = this.editor.mark(`creating:${id}`)
 
 			this.editor.createShapes<TLTextShape>([
 				{
@@ -93,6 +95,6 @@ export class Pointing extends StateNode {
 
 	private cancel() {
 		this.parent.transition('idle', {})
-		this.editor.bailToMark('creating')
+		this.editor.bailToMark(this.markId)
 	}
 }

@@ -60,7 +60,9 @@ export class Resizing extends StateNode {
 		}
 
 		this.snapshot = this._createSnapshot()
-		this.markId = isCreating ? 'creating' : this.editor.mark('starting resizing')
+		this.markId = isCreating
+			? `creating:${this.editor.onlySelectedShape!.id}`
+			: this.editor.mark('starting resizing')
 
 		this.handleResizeStart()
 		this.updateShapes()

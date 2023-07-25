@@ -47,6 +47,7 @@ import { TLKeyboardEvent } from '@tldraw/editor';
 import { TLKeyboardEventInfo } from '@tldraw/editor';
 import { TLLanguage } from '@tldraw/editor';
 import { TLLineShape } from '@tldraw/editor';
+import { TLNoteShape } from '@tldraw/editor';
 import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPointerEventName } from '@tldraw/editor';

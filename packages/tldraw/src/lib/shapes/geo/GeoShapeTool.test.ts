@@ -17,7 +17,7 @@ describe(GeoShapeTool, () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)
-		editor.pointerUp(100, 100)
+		editor.pointerUp()
 
 		expect(editor.shapesArray.length).toBe(1)
 		expect(editor.shapesArray[0]?.type).toBe('geo')

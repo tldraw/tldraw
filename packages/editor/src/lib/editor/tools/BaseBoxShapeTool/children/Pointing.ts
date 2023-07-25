@@ -8,7 +8,7 @@ import { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	markId = 'creating'
+	markId = ''
 
 	wasFocusedOnEnter = false
 
@@ -24,6 +24,8 @@ export class Pointing extends StateNode {
 			const shapeType = (this.parent as BaseBoxShapeTool)!.shapeType
 
 			const id = createShapeId()
+
+			this.markId = `creating:${id}`
 
 			this.editor.mark(this.markId)
 

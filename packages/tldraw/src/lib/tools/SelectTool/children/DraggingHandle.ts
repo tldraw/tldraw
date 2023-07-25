@@ -52,7 +52,7 @@ export class DraggingHandle extends StateNode {
 		this.info = info
 		this.parent.currentToolIdMask = info.onInteractionEnd
 		this.shapeId = shape.id
-		this.markId = isCreating ? 'creating' : this.editor.mark('dragging handle')
+		this.markId = isCreating ? `creating:${shape.id}` : this.editor.mark('dragging handle')
 		this.initialHandle = deepCopy(handle)
 		this.initialPageTransform = this.editor.getPageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()

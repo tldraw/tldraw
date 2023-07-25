@@ -316,6 +316,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					isFilled,
 					isSnappable: true,
 				})
+				break
 			}
 		}
 
