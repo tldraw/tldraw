@@ -12,44 +12,44 @@ afterEach(() => {
 
 describe(GeoShapeTool, () => {
 	it('Creates geo shapes on click-and-drag, supports undo and redo', () => {
-		expect(editor.shapesArray.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)
 		editor.pointerUp()
 
-		expect(editor.shapesArray.length).toBe(1)
-		expect(editor.shapesArray[0]?.type).toBe('geo')
-		expect(editor.selectedShapeIds[0]).toBe(editor.shapesArray[0]?.id)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
+		expect(editor.shapesOnCurrentPage[0]?.type).toBe('geo')
+		expect(editor.selectedShapeIds[0]).toBe(editor.shapesOnCurrentPage[0]?.id)
 
 		editor.undo()
 
-		expect(editor.shapesArray.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 
 		editor.redo()
 
-		expect(editor.shapesArray.length).toBe(1)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
 	})
 
 	it('Creates geo shapes on click, supports undo and redo', () => {
-		expect(editor.shapesArray.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 
-		expect(editor.shapesArray.length).toBe(1)
-		expect(editor.shapesArray[0]?.type).toBe('geo')
-		expect(editor.selectedShapeIds[0]).toBe(editor.shapesArray[0]?.id)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
+		expect(editor.shapesOnCurrentPage[0]?.type).toBe('geo')
+		expect(editor.selectedShapeIds[0]).toBe(editor.shapesOnCurrentPage[0]?.id)
 
 		editor.undo()
 
-		expect(editor.shapesArray.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 
 		editor.redo()
 
-		expect(editor.shapesArray.length).toBe(1)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
 	})
 })
 
@@ -100,7 +100,7 @@ describe('When in the idle state', () => {
 		editor.pointerMove(200, 200)
 		editor.pointerUp(200, 200)
 
-		expect(editor.shapesArray.length).toBe(2)
+		expect(editor.shapesOnCurrentPage.length).toBe(2)
 
 		editor.selectAll()
 		expect(editor.selectedShapes.length).toBe(2)
@@ -143,22 +143,22 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Creates a geo and returns to select tool on pointer up', () => {
-		expect(editor.shapesArray.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 		editor.expectPathToBe('root.select.idle')
-		expect(editor.shapesArray.length).toBe(1)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
 	})
 
 	it('Creates a geo and returns to geo.idle on pointer up if tool lock is enabled', () => {
 		editor.updateInstanceState({ isToolLocked: true })
-		expect(editor.shapesArray.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 		editor.expectPathToBe('root.geo.idle')
-		expect(editor.shapesArray.length).toBe(1)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
 	})
 })
 

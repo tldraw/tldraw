@@ -257,7 +257,7 @@ export class SnapManager {
 		const snappableShapes: GapNode[] = []
 
 		const collectSnappableShapesFromParent = (parentId: TLParentId) => {
-			const sortedChildIds = editor.getSortedChildIds(parentId)
+			const sortedChildIds = editor.getSortedChildIdsForParent(parentId)
 			for (const childId of sortedChildIds) {
 				// Skip any selected ids
 				if (selectedShapeIds.includes(childId)) continue
@@ -313,15 +313,15 @@ export class SnapManager {
 
 		let startNode: GapNode, endNode: GapNode
 
-		const sortedShapesHorizontal = this.snappableShapes.sort((a, b) => {
+		const sortedShapesOnCurrentPageHorizontal = this.snappableShapes.sort((a, b) => {
 			return a.pageBounds.minX - b.pageBounds.minX
 		})
 
 		// Collect horizontal gaps
-		for (let i = 0; i < sortedShapesHorizontal.length; i++) {
-			startNode = sortedShapesHorizontal[i]
-			for (let j = i + 1; j < sortedShapesHorizontal.length; j++) {
-				endNode = sortedShapesHorizontal[j]
+		for (let i = 0; i < sortedShapesOnCurrentPageHorizontal.length; i++) {
+			startNode = sortedShapesOnCurrentPageHorizontal[i]
+			for (let j = i + 1; j < sortedShapesOnCurrentPageHorizontal.length; j++) {
+				endNode = sortedShapesOnCurrentPageHorizontal[j]
 
 				if (
 					// is there space between the boxes
@@ -358,14 +358,14 @@ export class SnapManager {
 		}
 
 		// Collect vertical gaps
-		const sortedShapesVertical = sortedShapesHorizontal.sort((a, b) => {
+		const sortedShapesOnCurrentPageVertical = sortedShapesOnCurrentPageHorizontal.sort((a, b) => {
 			return a.pageBounds.minY - b.pageBounds.minY
 		})
 
-		for (let i = 0; i < sortedShapesVertical.length; i++) {
-			startNode = sortedShapesVertical[i]
-			for (let j = i + 1; j < sortedShapesVertical.length; j++) {
-				endNode = sortedShapesVertical[j]
+		for (let i = 0; i < sortedShapesOnCurrentPageVertical.length; i++) {
+			startNode = sortedShapesOnCurrentPageVertical[i]
+			for (let j = i + 1; j < sortedShapesOnCurrentPageVertical.length; j++) {
+				endNode = sortedShapesOnCurrentPageVertical[j]
 
 				if (
 					// is there space between the boxes

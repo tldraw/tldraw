@@ -39,7 +39,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 		const firstPageId = editor.pages[0].id
 
 		// Set the current page to the first page
-		editor.setCurrentPageId(firstPageId)
+		editor.setCurrentPage(firstPageId)
 
 		// Delete all pages except first page
 		for (const page of editor.pages.slice(1)) {
@@ -121,7 +121,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 			.sort((a, b) => ((a.childIndex ?? 1) < (b.childIndex ?? 1) ? -1 : 1))
 			.forEach((v1Page) => {
 				// Set the current page id to the current page
-				editor.setCurrentPageId(v1PageIdsToV2PageIds.get(v1Page.id)!)
+				editor.setCurrentPage(v1PageIdsToV2PageIds.get(v1Page.id)!)
 
 				const v1ShapeIdsToV2ShapeIds = new Map<string, TLShapeId>()
 				const v1GroupShapeIdsToV1ChildIds = new Map<string, string[]>()
@@ -585,13 +585,13 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 			})
 
 		// Set the current page to the first page again
-		editor.setCurrentPageId(firstPageId)
+		editor.setCurrentPage(firstPageId)
 
 		editor.history.clear()
 		editor.selectNone()
 		editor.updateViewportScreenBounds()
 
-		const bounds = editor.allShapesCommonBounds
+		const bounds = editor.commonBoundsOfAllShapesOnCurrentPage
 		if (bounds) {
 			editor.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
 		}

@@ -419,7 +419,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'left', source })
 					editor.mark('align left')
-					editor.alignShapes('left', editor.selectedShapeIds)
+					editor.alignShapes(editor.selectedShapeIds, 'left')
 				},
 			},
 			{
@@ -432,7 +432,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'center-horizontal', source })
 					editor.mark('align center horizontal')
-					editor.alignShapes('center-horizontal', editor.selectedShapeIds)
+					editor.alignShapes(editor.selectedShapeIds, 'center-horizontal')
 				},
 			},
 			{
@@ -444,7 +444,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'right', source })
 					editor.mark('align right')
-					editor.alignShapes('right', editor.selectedShapeIds)
+					editor.alignShapes(editor.selectedShapeIds, 'right')
 				},
 			},
 			{
@@ -457,7 +457,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'center-vertical', source })
 					editor.mark('align center vertical')
-					editor.alignShapes('center-vertical', editor.selectedShapeIds)
+					editor.alignShapes(editor.selectedShapeIds, 'center-vertical')
 				},
 			},
 			{
@@ -469,7 +469,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'top', source })
 					editor.mark('align top')
-					editor.alignShapes('top', editor.selectedShapeIds)
+					editor.alignShapes(editor.selectedShapeIds, 'top')
 				},
 			},
 			{
@@ -481,7 +481,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('align-shapes', { operation: 'bottom', source })
 					editor.mark('align bottom')
-					editor.alignShapes('bottom', editor.selectedShapeIds)
+					editor.alignShapes(editor.selectedShapeIds, 'bottom')
 				},
 			},
 			{
@@ -494,7 +494,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'horizontal', source })
 					editor.mark('distribute horizontal')
-					editor.distributeShapes('horizontal', editor.selectedShapeIds)
+					editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 				},
 			},
 			{
@@ -507,7 +507,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('distribute-shapes', { operation: 'vertical', source })
 					editor.mark('distribute vertical')
-					editor.distributeShapes('vertical', editor.selectedShapeIds)
+					editor.distributeShapes(editor.selectedShapeIds, 'vertical')
 				},
 			},
 			{
@@ -519,7 +519,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('stretch-shapes', { operation: 'horizontal', source })
 					editor.mark('stretch horizontal')
-					editor.stretchShapes('horizontal', editor.selectedShapeIds)
+					editor.stretchShapes(editor.selectedShapeIds, 'horizontal')
 				},
 			},
 			{
@@ -531,7 +531,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('stretch-shapes', { operation: 'vertical', source })
 					editor.mark('stretch vertical')
-					editor.stretchShapes('vertical', editor.selectedShapeIds)
+					editor.stretchShapes(editor.selectedShapeIds, 'vertical')
 				},
 			},
 			{
@@ -543,7 +543,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('flip-shapes', { operation: 'horizontal', source })
 					editor.mark('flip horizontal')
-					editor.flipShapes('horizontal', editor.selectedShapeIds)
+					editor.flipShapes(editor.selectedShapeIds, 'horizontal')
 				},
 			},
 			{
@@ -555,7 +555,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('flip-shapes', { operation: 'vertical', source })
 					editor.mark('flip vertical')
-					editor.flipShapes('vertical', editor.selectedShapeIds)
+					editor.flipShapes(editor.selectedShapeIds, 'vertical')
 				},
 			},
 			{
@@ -566,7 +566,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('pack-shapes', { source })
 					editor.mark('pack')
-					editor.packShapes(editor.selectedShapeIds)
+					editor.packShapes(editor.selectedShapeIds, 16)
 				},
 			},
 			{
@@ -578,7 +578,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('stack-shapes', { operation: 'vertical', source })
 					editor.mark('stack-vertical')
-					editor.stackShapes(editor.selectedShapeIds, 'vertical')
+					editor.stackShapes(editor.selectedShapeIds, 'vertical', 16)
 				},
 			},
 			{
@@ -590,7 +590,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('stack-shapes', { operation: 'horizontal', source })
 					editor.mark('stack-horizontal')
-					editor.stackShapes(editor.selectedShapeIds, 'horizontal')
+					editor.stackShapes(editor.selectedShapeIds, 'horizontal', 16)
 				},
 			},
 			{
@@ -953,7 +953,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '!l',
 				onSelect(source) {
 					trackEvent('toggle-lock', { source })
-					editor.toggleLock()
+					editor.toggleLock(editor.selectedShapeIds)
 				},
 			},
 		])

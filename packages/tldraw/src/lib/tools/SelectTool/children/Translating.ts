@@ -113,7 +113,7 @@ export class Translating extends StateNode {
 		this.reset()
 		this.markId = this.editor.mark('translating')
 
-		this.editor.duplicateShapes()
+		this.editor.duplicateShapes(Array.from(this.editor.selectedShapeIds))
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
 		this.handleStart()

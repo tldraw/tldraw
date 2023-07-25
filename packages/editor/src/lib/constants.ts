@@ -29,14 +29,6 @@ export const FOLLOW_CHASE_ZOOM_SNAP = 0.005
 export const FOLLOW_CHASE_ZOOM_UNSNAP = 0.05
 
 /** @internal */
-export const MAJOR_NUDGE_FACTOR = 10
-/** @internal */
-export const MINOR_NUDGE_FACTOR = 1
-
-/** @internal */
-export const GRID_INCREMENT = 5
-
-/** @internal */
 export const DOUBLE_CLICK_DURATION = 450
 /** @internal */
 export const MULTI_CLICK_DURATION = 200

@@ -157,7 +157,7 @@ describe('Misc', () => {
 			y: 150,
 		})
 
-		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: 1 }, true)
+		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: 10 }, true)
 
 		editor.expectShapeToMatch({
 			id: id,
@@ -176,12 +176,12 @@ describe('Misc', () => {
 		editor.select(boxID, id)
 
 		expect(editor.getPageBounds(box)!.maxX).not.toEqual(editor.getPageBounds(line)!.maxX)
-		editor.alignShapes('right', editor.selectedShapeIds)
+		editor.alignShapes(editor.selectedShapeIds, 'right')
 		jest.advanceTimersByTime(1000)
 		expect(editor.getPageBounds(box)!.maxX).toEqual(editor.getPageBounds(line)!.maxX)
 
 		expect(editor.getPageBounds(box)!.maxY).not.toEqual(editor.getPageBounds(line)!.maxY)
-		editor.alignShapes('bottom', editor.selectedShapeIds)
+		editor.alignShapes(editor.selectedShapeIds, 'bottom')
 		jest.advanceTimersByTime(1000)
 		expect(editor.getPageBounds(box)!.maxY).toEqual(editor.getPageBounds(line)!.maxY)
 	})
@@ -195,7 +195,7 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		expect(Array.from(editor.currentPageShapeIds.values()).length).toEqual(2)
+		expect(Array.from(editor.shapeIdsOnCurrentPage.values()).length).toEqual(2)
 	})
 
 	it('deletes', () => {
@@ -207,7 +207,7 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		let ids = Array.from(editor.currentPageShapeIds.values())
+		let ids = Array.from(editor.shapeIdsOnCurrentPage.values())
 		expect(ids.length).toEqual(2)
 
 		const duplicate = ids.filter((i) => i !== id)[0]
@@ -215,7 +215,7 @@ describe('Misc', () => {
 
 		editor.deleteShapes(editor.selectedShapeIds)
 
-		ids = Array.from(editor.currentPageShapeIds.values())
+		ids = Array.from(editor.shapeIdsOnCurrentPage.values())
 		expect(ids.length).toEqual(1)
 		expect(ids[0]).toEqual(id)
 	})

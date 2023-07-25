@@ -17,7 +17,9 @@ export function getReorderingShapesChanges(
 		const { parentId } = shape
 		if (!parents.has(parentId)) {
 			parents.set(parentId, {
-				children: compact(editor.getSortedChildIds(parentId).map((id) => editor.getShape(id))),
+				children: compact(
+					editor.getSortedChildIdsForParent(parentId).map((id) => editor.getShape(id))
+				),
 				moving: new Set(),
 			})
 		}

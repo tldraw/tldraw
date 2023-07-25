@@ -39,7 +39,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(editor.allShapesCommonBounds).toCloselyMatchObject({
+	expect(editor.commonBoundsOfAllShapesOnCurrentPage).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 600,
@@ -62,7 +62,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(editor.allShapesCommonBounds).toCloselyMatchObject({
+	expect(editor.commonBoundsOfAllShapesOnCurrentPage).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 700,
@@ -82,7 +82,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(editor.allShapesCommonBounds).toCloselyMatchObject({
+	expect(editor.commonBoundsOfAllShapesOnCurrentPage).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 700,

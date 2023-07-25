@@ -3565,13 +3565,13 @@ describe('nodes that have do not resize', () => {
 
 		editor.select(ids.boxA, noteBId, noteCId)
 
-		editor.flipShapes('horizontal')
+		editor.flipShapes(editor.selectedShapeIds, 'horizontal')
 
 		expect(editor.getPageBounds(ids.boxA)).toMatchObject({ x: 300, y: 0, w: 200, h: 200 })
 		expect(editor.getPageBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
 		expect(editor.getPageBounds(noteCId)).toMatchObject({ x: 300, y: 300, w: 200, h: 200 })
 
-		editor.flipShapes('vertical')
+		editor.flipShapes(editor.selectedShapeIds, 'vertical')
 
 		expect(editor.getPageBounds(ids.boxA)).toMatchObject({ x: 300, y: 300, w: 200, h: 200 })
 		expect(editor.getPageBounds(noteBId)).toMatchObject({ x: 0, y: 300, w: 200, h: 200 })

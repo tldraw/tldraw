@@ -21,7 +21,7 @@ beforeEach(() => {
 		{ id: ids.box2, parentId: ids.box1, type: 'geo', x: 150, y: 150 },
 	])
 	editor.createPage(ids.page2, ids.page2)
-	editor.setCurrentPageId(ids.page1)
+	editor.setCurrentPage(ids.page1)
 
 	expect(editor.getShape(ids.box1)!.parentId).toEqual(ids.page1)
 	expect(editor.getShape(ids.box2)!.parentId).toEqual(ids.box1)
@@ -38,13 +38,13 @@ describe('Editor.moveShapesToPage', () => {
 		// box1 didn't get moved, still on page 1
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.page1)
 
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2, ids.ellipse1])
+		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([ids.box2, ids.ellipse1])
 
 		expect(editor.currentPageId).toBe(ids.page2)
 
-		editor.setCurrentPageId(ids.page1)
+		editor.setCurrentPage(ids.page1)
 
-		expect([...editor.currentPageShapeIds]).toEqual([ids.box1])
+		expect([...editor.shapeIdsOnCurrentPage]).toEqual([ids.box1])
 	})
 
 	it('Moves children to page', () => {
@@ -80,23 +80,31 @@ describe('Editor.moveShapesToPage', () => {
 
 	it('Restores on undo / redo', () => {
 		expect(editor.currentPageId).toBe(ids.page1)
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
+		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([
+			ids.box1,
+			ids.box2,
+			ids.ellipse1,
+		])
 
 		editor.mark('move shapes to page')
 		editor.moveShapesToPage([ids.box2], ids.page2)
 
 		expect(editor.currentPageId).toBe(ids.page2)
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2])
+		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([ids.box2])
 
 		editor.undo()
 
 		expect(editor.currentPageId).toBe(ids.page1)
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
+		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([
+			ids.box1,
+			ids.box2,
+			ids.ellipse1,
+		])
 
 		editor.redo()
 
 		expect(editor.currentPageId).toBe(ids.page2)
-		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2])
+		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([ids.box2])
 	})
 
 	it('Sets the correct indices', () => {
@@ -122,7 +130,7 @@ describe('Editor.moveShapesToPage', () => {
 			index: 'a1',
 		})
 
-		editor.setCurrentPageId(page2Id)
+		editor.setCurrentPage(page2Id)
 		editor.select(ids.box1)
 		editor.moveShapesToPage([ids.box1], page3Id)
 

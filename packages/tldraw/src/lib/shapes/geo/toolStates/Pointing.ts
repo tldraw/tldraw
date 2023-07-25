@@ -97,7 +97,10 @@ export class Pointing extends StateNode {
 				: shape.props.geo === 'cloud'
 				? new Box2d(0, 0, 300, 180)
 				: new Box2d(0, 0, 200, 200)
-		const delta = this.editor.getDeltaInParentSpace(shape, bounds.center)
+
+		const delta = bounds.center
+		const parentTransform = this.editor.getParentTransform(shape)
+		if (parentTransform) delta.rot(-parentTransform.rotation())
 
 		this.editor.select(id)
 		this.editor.updateShapes<TLGeoShape>([

@@ -218,7 +218,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
 		const bounds = this.editor.getPageBounds(shape)!
-		const children = this.editor.getSortedChildIds(shape.id)
+		const children = this.editor.getSortedChildIdsForParent(shape.id)
 
 		const shapesToReparent: TLShapeId[] = []
 

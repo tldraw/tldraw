@@ -172,15 +172,15 @@ describe('When cloning...', () => {
 		])
 	})
 	it('clones a single shape and restores when stopping cloning', () => {
-		expect(editor.currentPageShapeIds.size).toBe(3)
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
 		editor.select(ids.box1).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 
 		// Start cloning!
 		editor.keyDown('Alt')
-		expect(editor.currentPageShapeIds.size).toBe(4)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(4)
 		const newShape = editor.selectedShapes[0]
 		expect(newShape.id).not.toBe(ids.box1)
 
@@ -201,13 +201,13 @@ describe('When cloning...', () => {
 
 	it('clones multiple single shape and restores when stopping cloning', () => {
 		editor.select(ids.box1, ids.box2).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 		editor.expectShapeToMatch({ id: ids.box2, x: 200, y: 190 }) // Translated B...
 
 		// Start cloning!
 		editor.keyDown('Alt')
-		expect(editor.currentPageShapeIds.size).toBe(5) // Two new shapes!
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(5) // Two new shapes!
 		const newShapeA = editor.getShape(editor.selectedShapeIds[0])!
 		const newShapeB = editor.getShape(editor.selectedShapeIds[1])!
 		expect(newShapeA).toBeDefined()
@@ -241,12 +241,12 @@ describe('When cloning...', () => {
 		expect(editor.getShape(ids.line1)!.parentId).toBe(ids.box2)
 		editor.select(ids.box2).pointerDown(250, 250, ids.box2).pointerMove(250, 240) // [0, -10]
 
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
 		editor.keyDown('Alt', { altKey: true })
-		expect(editor.currentPageShapeIds.size).toBe(5) // Creates a clone of B and C (its descendant)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(5) // Creates a clone of B and C (its descendant)
 
 		const newShapeA = editor.getShape(editor.selectedShapeIds[0])!
-		const newShapeB = editor.getShape(editor.getSortedChildIds(newShapeA.id)[0])!
+		const newShapeB = editor.getShape(editor.getSortedChildIdsForParent(newShapeA.id)[0])!
 
 		expect(newShapeA).toBeDefined()
 		expect(newShapeB).toBeDefined()
@@ -276,28 +276,28 @@ describe('When cloning...', () => {
 	it('Clones twice', () => {
 		const groupId = createShapeId('g')
 		editor.groupShapes([ids.box1, ids.box2], groupId)
-		const count1 = editor.shapesArray.length
+		const count1 = editor.shapesOnCurrentPage.length
 
 		editor.pointerDown(50, 50, { shape: editor.getShape(groupId)!, target: 'shape' })
 		editor.expectPathToBe('root.select.pointing_shape')
 
 		editor.pointerMove(199, 199)
 		editor.expectPathToBe('root.select.translating')
-		expect(editor.shapesArray.length).toBe(count1) // 2 new box and group
+		expect(editor.shapesOnCurrentPage.length).toBe(count1) // 2 new box and group
 
 		editor.keyDown('Alt')
 
 		editor.expectPathToBe('root.select.translating')
-		expect(editor.shapesArray.length).toBe(count1 + 3) // 2 new box and group
+		expect(editor.shapesOnCurrentPage.length).toBe(count1 + 3) // 2 new box and group
 
 		editor.keyUp('Alt')
 		jest.advanceTimersByTime(500)
 
-		expect(editor.shapesArray.length).toBe(count1) // 2 new box and group
+		expect(editor.shapesOnCurrentPage.length).toBe(count1) // 2 new box and group
 
 		editor.keyDown('Alt')
 
-		expect(editor.shapesArray.length).toBe(count1 + 3) // 2 new box and group
+		expect(editor.shapesOnCurrentPage.length).toBe(count1 + 3) // 2 new box and group
 	})
 })
 
@@ -1648,7 +1648,7 @@ describe('translating a shape with a bound shape', () => {
 			props: { start: { type: 'binding' }, end: { type: 'binding' } },
 		})
 
-		const newArrow = editor.shapesArray.find(
+		const newArrow = editor.shapesOnCurrentPage.find(
 			(s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1
 		)
 		expect(newArrow).toMatchObject({

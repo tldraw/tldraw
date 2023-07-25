@@ -77,7 +77,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-const getAllShapes = () => editor.shapesArray
+const getAllShapes = () => editor.shapesOnCurrentPage
 
 const onlySelectedId = () => {
 	expect(editor.selectedShapeIds).toHaveLength(1)
@@ -90,7 +90,9 @@ const onlySelectedShape = () => {
 }
 
 const children = (shape: TLShape) => {
-	return new Set(compact(editor.getSortedChildIds(shape.id).map((id) => editor.getShape(id))))
+	return new Set(
+		compact(editor.getSortedChildIdsForParent(shape.id).map((id) => editor.getShape(id)))
+	)
 }
 
 const isRemoved = (shape: TLShape) => {
@@ -303,12 +305,12 @@ describe('creating groups', () => {
 
 		const groupAId = onlySelectedId()
 		const sortedGroupChildrenIds = editor
-			.getSortedChildIds(groupAId)
+			.getSortedChildIdsForParent(groupAId)
 			.map((id) => editor.getShape(id)!)
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
 
-		const sortedIds = editor.getSortedChildIds(editor.currentPageId)
+		const sortedIds = editor.getSortedChildIdsForParent(editor.currentPageId)
 		expect(sortedIds.length).toBe(3)
 		expect(sortedIds[0]).toBe(ids.boxA)
 		expect(sortedIds[1]).toBe(groupAId)
@@ -337,12 +339,12 @@ describe('creating groups', () => {
 		const groupAId = onlySelectedId()
 
 		const sortedGroupChildrenIds = editor
-			.getSortedChildIds(groupAId)
+			.getSortedChildIdsForParent(groupAId)
 			.map((id) => editor.getShape(id)!)
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
 
-		const sortedIds = editor.getSortedChildIds(editor.currentPageId)
+		const sortedIds = editor.getSortedChildIdsForParent(editor.currentPageId)
 		expect(sortedIds.length).toBe(3)
 		expect(sortedIds[0]).toBe(ids.boxB)
 		expect(sortedIds[1]).toBe(groupAId)
@@ -514,12 +516,14 @@ describe('ungrouping shapes', () => {
 		editor.groupShapes(editor.selectedShapeIds)
 		editor.ungroupShapes(editor.selectedShapeIds)
 
-		const sortedShapes = editor.shapesArray.sort(sortByIndex).map((shape) => shape.id)
-		expect(sortedShapes.length).toBe(4)
-		expect(sortedShapes[0]).toBe(ids.boxA)
-		expect(sortedShapes[1]).toBe(ids.boxB)
-		expect(sortedShapes[2]).toBe(ids.boxC)
-		expect(sortedShapes[3]).toBe(ids.boxD)
+		const sortedShapesOnCurrentPage = editor.shapesOnCurrentPage
+			.sort(sortByIndex)
+			.map((shape) => shape.id)
+		expect(sortedShapesOnCurrentPage.length).toBe(4)
+		expect(sortedShapesOnCurrentPage[0]).toBe(ids.boxA)
+		expect(sortedShapesOnCurrentPage[1]).toBe(ids.boxB)
+		expect(sortedShapesOnCurrentPage[2]).toBe(ids.boxC)
+		expect(sortedShapesOnCurrentPage[3]).toBe(ids.boxD)
 	})
 	it('keeps order correct complex', () => {
 		// 0   10  20  30  40  50  60  70
@@ -537,12 +541,14 @@ describe('ungrouping shapes', () => {
 		editor.groupShapes(editor.selectedShapeIds)
 		editor.ungroupShapes(editor.selectedShapeIds)
 
-		const sortedShapes = editor.shapesArray.sort(sortByIndex).map((shape) => shape.id)
-		expect(sortedShapes.length).toBe(4)
-		expect(sortedShapes[0]).toBe(ids.boxB)
-		expect(sortedShapes[1]).toBe(ids.boxA)
-		expect(sortedShapes[2]).toBe(ids.boxC)
-		expect(sortedShapes[3]).toBe(ids.boxD)
+		const sortedShapesOnCurrentPage = editor.shapesOnCurrentPage
+			.sort(sortByIndex)
+			.map((shape) => shape.id)
+		expect(sortedShapesOnCurrentPage.length).toBe(4)
+		expect(sortedShapesOnCurrentPage[0]).toBe(ids.boxB)
+		expect(sortedShapesOnCurrentPage[1]).toBe(ids.boxA)
+		expect(sortedShapesOnCurrentPage[2]).toBe(ids.boxC)
+		expect(sortedShapesOnCurrentPage[3]).toBe(ids.boxD)
 	})
 })
 
@@ -1788,7 +1794,7 @@ describe('moving handles within a group', () => {
 // 		expect(onlySelectedId()).not.toBe(groupAId)
 // 		expect(onlySelectedShape().type).toBe(GroupShapeUtil.type)
 // 		expect(
-// 			editor.getSortedChildIds(onlySelectedShape().id).map((id) => editor.getShape(id)!.type)
+// 			editor.getSortedChildIdsForParent(onlySelectedShape().id).map((id) => editor.getShape(id)!.type)
 // 		).toEqual(['geo', 'geo'])
 // 	})
 
@@ -1803,7 +1809,7 @@ describe('moving handles within a group', () => {
 // 		expect(onlySelectedId()).not.toBe(groupAId)
 // 		expect(onlySelectedShape().type).toBe(GroupShapeUtil.type)
 // 		expect(
-// 			editor.getSortedChildIds(onlySelectedShape().id).map((id) => editor.getShape(id)!.type)
+// 			editor.getSortedChildIdsForParent(onlySelectedShape().id).map((id) => editor.getShape(id)!.type)
 // 		).toEqual(['geo', 'geo'])
 // 		expect(editor.getPageBounds(groupAId)).toCloselyMatchObject(
 // 			editor.getPageBounds(onlySelectedId())
@@ -1820,7 +1826,7 @@ describe('moving handles within a group', () => {
 // 		expect(onlySelectedId()).not.toBe(groupCId)
 // 		expect(onlySelectedShape().parentId).toBe(groupAId)
 // 		expect(onlySelectedShape().type).toBe(GroupShapeUtil.type)
-// 		expect(editor.getSortedChildIds(onlySelectedId()).map((id) => editor.getShape(id)!.type)).toEqual(
+// 		expect(editor.getSortedChildIdsForParent(onlySelectedId()).map((id) => editor.getShape(id)!.type)).toEqual(
 // 			[GroupShapeUtil.type, GroupShapeUtil.type]
 // 		)
 // 	})

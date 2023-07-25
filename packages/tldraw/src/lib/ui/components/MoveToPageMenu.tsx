@@ -50,7 +50,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 													type: 'primary',
 													onClick: () => {
 														editor.mark('change-page')
-														editor.setCurrentPageId(currentPageId)
+														editor.setCurrentPage(currentPageId)
 													},
 												},
 											],
@@ -83,7 +83,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 								const oldPageId = editor.currentPageId
 								editor.batch(() => {
 									editor.createPage('Page 1', newPageId)
-									editor.setCurrentPageId(oldPageId)
+									editor.setCurrentPage(oldPageId)
 									editor.moveShapesToPage(ids, newPageId)
 								})
 							}}

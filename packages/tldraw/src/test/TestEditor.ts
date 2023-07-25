@@ -136,7 +136,7 @@ export class TestEditor extends Editor {
 
 	copy = (ids = this.selectedShapeIds) => {
 		if (ids.length > 0) {
-			const content = this.getContent()
+			const content = this.getContent(ids)
 			if (content) {
 				this.clipboard = content
 			}
@@ -146,7 +146,7 @@ export class TestEditor extends Editor {
 
 	cut = (ids = this.selectedShapeIds) => {
 		if (ids.length > 0) {
-			const content = this.getContent()
+			const content = this.getContent(ids)
 			if (content) {
 				this.clipboard = content
 			}

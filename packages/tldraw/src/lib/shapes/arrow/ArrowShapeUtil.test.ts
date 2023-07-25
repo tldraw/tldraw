@@ -202,7 +202,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// When box one is not selected, unbinds box1 and keeps binding to box2
 		editor.select(ids.arrow1, ids.box2, ids.box3)
-		editor.alignShapes('right')
+		editor.alignShapes(editor.selectedShapeIds, 'right')
 		jest.advanceTimersByTime(1000)
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
@@ -214,7 +214,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// unbinds when only the arrow is selected (not its bound shapes)
 		editor.select(ids.arrow1, ids.box3)
-		editor.alignShapes('top')
+		editor.alignShapes(editor.selectedShapeIds, 'top')
 		jest.advanceTimersByTime(1000)
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
@@ -237,7 +237,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// When box one is not selected, unbinds box1 and keeps binding to box2
 		editor.select(ids.arrow1, ids.box2, ids.box3)
-		editor.distributeShapes('horizontal')
+		editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 		jest.advanceTimersByTime(1000)
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
@@ -255,7 +255,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// unbinds when only the arrow is selected (not its bound shapes) if the arrow itself has moved
 		editor.select(ids.arrow1, ids.box3, ids.box4)
-		editor.distributeShapes('vertical')
+		editor.distributeShapes(editor.selectedShapeIds, 'vertical')
 		jest.advanceTimersByTime(1000)
 
 		// The arrow didn't actually move
@@ -274,7 +274,7 @@ describe('Other cases when arrow are moved', () => {
 
 		// The arrow will move this time, so it should unbind
 		editor.updateShapes([{ id: ids.box4, type: 'geo', y: -600 }])
-		editor.distributeShapes('vertical')
+		editor.distributeShapes(editor.selectedShapeIds, 'vertical')
 		jest.advanceTimersByTime(1000)
 
 		expect(editor.getShape(ids.arrow1)).toMatchObject({
@@ -302,7 +302,7 @@ describe('Other cases when arrow are moved', () => {
 			.groupShapes(editor.selectedShapeIds)
 
 		editor.setCurrentTool('arrow').pointerDown(1000, 1000).pointerMove(50, 350).pointerUp(50, 350)
-		let arrow = editor.shapesArray[editor.shapesArray.length - 1]
+		let arrow = editor.shapesOnCurrentPage[editor.shapesOnCurrentPage.length - 1]
 		assert(editor.isShapeOfType<TLArrowShape>(arrow, 'arrow'))
 		assert(arrow.props.end.type === 'binding')
 		expect(arrow.props.end.boundShapeId).toBe(ids.box3)
@@ -322,7 +322,7 @@ describe('When a shape it rotated', () => {
 	it('binds correctly', () => {
 		editor.setCurrentTool('arrow').pointerDown(0, 0).pointerMove(375, 375)
 
-		const arrow = editor.shapesArray[editor.shapesArray.length - 1]
+		const arrow = editor.shapesOnCurrentPage[editor.shapesOnCurrentPage.length - 1]
 
 		expect(editor.getShape(arrow.id)).toMatchObject({
 			props: {
@@ -371,8 +371,8 @@ describe('resizing', () => {
 			.pointerUp()
 			.setCurrentTool('select')
 
-		const arrow1 = editor.shapesArray.at(-2)!
-		const arrow2 = editor.shapesArray.at(-1)!
+		const arrow1 = editor.shapesOnCurrentPage.at(-2)!
+		const arrow2 = editor.shapesOnCurrentPage.at(-1)!
 
 		editor
 			.select(arrow1.id, arrow2.id)
@@ -426,8 +426,8 @@ describe('resizing', () => {
 			.pointerUp()
 			.setCurrentTool('select')
 
-		const arrow1 = editor.shapesArray.at(-2)!
-		const arrow2 = editor.shapesArray.at(-1)!
+		const arrow1 = editor.shapesOnCurrentPage.at(-2)!
+		const arrow2 = editor.shapesOnCurrentPage.at(-1)!
 
 		editor.updateShapes([{ id: arrow1.id, type: 'arrow', props: { bend: 50 } }])
 

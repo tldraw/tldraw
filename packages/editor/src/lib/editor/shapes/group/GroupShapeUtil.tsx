@@ -23,7 +23,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	}
 
 	getGeometry(shape: TLGroupShape): Geometry2d {
-		const children = this.editor.getSortedChildIds(shape.id)
+		const children = this.editor.getSortedChildIdsForParent(shape.id)
 		if (children.length === 0) {
 			return new Rectangle2d({ width: 1, height: 1, isFilled: false })
 		}
@@ -32,7 +32,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			children: children.map((childId) => {
 				const shape = this.editor.getShape(childId)!
 				const geometry = this.editor.getGeometry(childId)
-				const points = this.editor.getTransform(shape).applyToPoints(geometry.vertices)
+				const points = this.editor.getTransform(shape)!.applyToPoints(geometry.vertices)
 
 				if (geometry.isClosed) {
 					return new Polygon2d({
@@ -98,7 +98,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	}
 
 	override onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape> = (group) => {
-		const children = this.editor.getSortedChildIds(group.id)
+		const children = this.editor.getSortedChildIdsForParent(group.id)
 		if (children.length === 0) {
 			if (this.editor.currentPageState.focusedGroupId === group.id) {
 				this.editor.popFocusLayer()

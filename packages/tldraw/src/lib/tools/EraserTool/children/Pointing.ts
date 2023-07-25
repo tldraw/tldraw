@@ -10,7 +10,7 @@ export class Pointing extends StateNode {
 
 		const initialSize = erasing.size
 
-		for (const shape of [...this.editor.sortedShapesArray].reverse()) {
+		for (const shape of [...this.editor.sortedShapesOnCurrentPage].reverse()) {
 			if (
 				this.editor.isPointInShape(shape, inputs.currentPagePoint, {
 					hitInside: true,

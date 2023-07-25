@@ -24,7 +24,7 @@ describe('when less than two shapes are selected', () => {
 
 		const fn = jest.fn()
 		editor.on('update', fn)
-		editor.alignShapes('top')
+		editor.alignShapes(editor.selectedShapeIds, 'top')
 		jest.advanceTimersByTime(1000)
 		expect(fn).not.toHaveBeenCalled()
 	})
@@ -33,7 +33,7 @@ describe('when less than two shapes are selected', () => {
 describe('when multiple shapes are selected', () => {
 	it('does, undoes and redoes command', () => {
 		editor.mark('align')
-		editor.alignShapes('top')
+		editor.alignShapes(editor.selectedShapeIds, 'top')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch({ id: ids.boxB, y: 0 })
@@ -44,7 +44,7 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('aligns top', () => {
-		editor.alignShapes('top')
+		editor.alignShapes(editor.selectedShapeIds, 'top')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
@@ -55,7 +55,7 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('aligns right', () => {
-		editor.alignShapes('right')
+		editor.alignShapes(editor.selectedShapeIds, 'right')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
@@ -66,7 +66,7 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('aligns bottom', () => {
-		editor.alignShapes('bottom')
+		editor.alignShapes(editor.selectedShapeIds, 'bottom')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
@@ -77,7 +77,7 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('aligns left', () => {
-		editor.alignShapes('left')
+		editor.alignShapes(editor.selectedShapeIds, 'left')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
@@ -88,7 +88,7 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('aligns center horizontal', () => {
-		editor.alignShapes('center-horizontal')
+		editor.alignShapes(editor.selectedShapeIds, 'center-horizontal')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
@@ -99,7 +99,7 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('aligns center vertical', () => {
-		editor.alignShapes('center-vertical')
+		editor.alignShapes(editor.selectedShapeIds, 'center-vertical')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
@@ -128,9 +128,9 @@ describe('when multiple shapes are selected', () => {
 			},
 		])
 
-		editor.alignShapes('center-vertical')
+		editor.alignShapes(editor.selectedShapeIds, 'center-vertical')
 		jest.advanceTimersByTime(1000)
-		editor.alignShapes('center-horizontal')
+		editor.alignShapes(editor.selectedShapeIds, 'center-horizontal')
 		jest.advanceTimersByTime(1000)
 
 		const commonBounds = Box2d.Common([
@@ -167,9 +167,9 @@ describe('when multiple shapes are selected', () => {
 			},
 		])
 
-		editor.alignShapes('top')
+		editor.alignShapes(editor.selectedShapeIds, 'top')
 		jest.advanceTimersByTime(1000)
-		editor.alignShapes('left')
+		editor.alignShapes(editor.selectedShapeIds, 'left')
 		jest.advanceTimersByTime(1000)
 
 		const commonBounds = Box2d.Common([
@@ -207,9 +207,9 @@ describe('when multiple shapes are selected', () => {
 		])
 
 		editor.setSelectedShapeIds([ids.boxA, ids.boxB, ids.boxC])
-		editor.alignShapes('bottom')
+		editor.alignShapes(editor.selectedShapeIds, 'bottom')
 		jest.advanceTimersByTime(1000)
-		editor.alignShapes('right')
+		editor.alignShapes(editor.selectedShapeIds, 'right')
 		jest.advanceTimersByTime(1000)
 
 		const commonBounds = Box2d.Common([
@@ -250,9 +250,9 @@ describe('When shapes are parented to other shapes...', () => {
 			editor.getPageBounds(ids.boxB)!,
 		])
 
-		editor.alignShapes('top')
+		editor.alignShapes(editor.selectedShapeIds, 'top')
 		jest.advanceTimersByTime(1000)
-		editor.alignShapes('left')
+		editor.alignShapes(editor.selectedShapeIds, 'left')
 		jest.advanceTimersByTime(1000)
 
 		const commonBoundsAfter = Box2d.Common([
@@ -272,9 +272,9 @@ describe('When shapes are parented to other shapes...', () => {
 			editor.getPageBounds(ids.boxB)!,
 		])
 
-		editor.alignShapes('bottom')
+		editor.alignShapes(editor.selectedShapeIds, 'bottom')
 		jest.advanceTimersByTime(1000)
-		editor.alignShapes('right')
+		editor.alignShapes(editor.selectedShapeIds, 'right')
 		jest.advanceTimersByTime(1000)
 
 		const commonBoundsAfter = Box2d.Common([
@@ -338,9 +338,9 @@ describe('When shapes are parented to a rotated shape...', () => {
 			editor.getPageBounds(ids.boxB)!,
 		])
 
-		editor.alignShapes('top')
+		editor.alignShapes(editor.selectedShapeIds, 'top')
 		jest.advanceTimersByTime(1000)
-		editor.alignShapes('left')
+		editor.alignShapes(editor.selectedShapeIds, 'left')
 		jest.advanceTimersByTime(1000)
 
 		const commonBoundsAfter = Box2d.Common([
@@ -366,9 +366,9 @@ describe('When shapes are parented to a rotated shape...', () => {
 			editor.getPageBounds(ids.boxB)!,
 		])
 
-		editor.alignShapes('bottom')
+		editor.alignShapes(editor.selectedShapeIds, 'bottom')
 		jest.advanceTimersByTime(1000)
-		editor.alignShapes('right')
+		editor.alignShapes(editor.selectedShapeIds, 'right')
 		jest.advanceTimersByTime(1000)
 
 		const commonBoundsAfter = Box2d.Common([

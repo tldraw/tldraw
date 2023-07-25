@@ -362,7 +362,7 @@ export const PageMenu = function PageMenu() {
 								>
 									<Button
 										className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
-										onClick={() => editor.setCurrentPageId(page.id)}
+										onClick={() => editor.setCurrentPage(page.id)}
 										onDoubleClick={toggleEditing}
 										isChecked={page.id === currentPage.id}
 										title={msg('page-menu.go-to-page')}
@@ -386,7 +386,7 @@ export const PageMenu = function PageMenu() {
 														}
 													} else {
 														setIsEditing(true)
-														editor.setCurrentPageId(page.id)
+														editor.setCurrentPage(page.id)
 													}
 												}}
 											/>

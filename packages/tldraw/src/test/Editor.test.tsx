@@ -30,7 +30,7 @@ beforeEach(() => {
 
 	const page1 = editor.currentPageId
 	editor.createPage('page 2', ids.page2)
-	editor.setCurrentPageId(page1)
+	editor.setCurrentPage(page1)
 })
 
 const moveShapesToPage2 = () => {
@@ -472,7 +472,7 @@ describe('getShapeUtil', () => {
 		])
 		const page1 = editor.currentPageId
 		editor.createPage('page 2', ids.page2)
-		editor.setCurrentPageId(page1)
+		editor.setCurrentPage(page1)
 	})
 
 	it('accepts shapes', () => {

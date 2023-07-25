@@ -4,19 +4,19 @@ import { TestEditor } from '../TestEditor'
 let editor: TestEditor
 
 function expectShapesInOrder(editor: TestEditor, ...ids: TLShapeId[]) {
-	expect(editor.sortedShapesArray.map((shape) => shape.id)).toMatchObject(ids)
+	expect(editor.sortedShapesOnCurrentPage.map((shape) => shape.id)).toMatchObject(ids)
 }
 
 function getSiblingBelow(editor: TestEditor, id: TLShapeId) {
 	const shape = editor.getShape(id)!
-	const siblings = editor.getSortedChildIds(shape.parentId)
+	const siblings = editor.getSortedChildIdsForParent(shape.parentId)
 	const index = siblings.indexOf(id)
 	return siblings[index - 1]
 }
 
 function getSiblingAbove(editor: TestEditor, id: TLShapeId) {
 	const shape = editor.getShape(id)!
-	const siblings = editor.getSortedChildIds(shape.parentId)
+	const siblings = editor.getSortedChildIdsForParent(shape.parentId)
 	const index = siblings.indexOf(id)
 	return siblings[index + 1]
 }
@@ -68,7 +68,7 @@ beforeEach(() => {
 
 describe('When running zindex tests', () => {
 	it('Correctly initializes indices', () => {
-		expect(editor.sortedShapesArray.map((shape) => shape.index)).toMatchObject([
+		expect(editor.sortedShapesOnCurrentPage.map((shape) => shape.index)).toMatchObject([
 			'a1',
 			'a2',
 			'a3',

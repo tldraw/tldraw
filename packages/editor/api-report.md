@@ -527,8 +527,9 @@ export class Edge2d extends Geometry2d {
 export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions);
     addOpenMenu(id: string): this;
-    alignShapes(operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top', ids?: TLShapeId[]): this;
-    get allShapesCommonBounds(): Box2d | undefined;
+    alignShapes(shapes: TLShape[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
+    // (undocumented)
+    alignShapes(ids: TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateCamera(x: number, y: number, z?: number, opts?: TLAnimationOptions): this;
     animateShape(partial: null | TLShapePartial | undefined, options?: Partial<{
         duration: number;
@@ -570,6 +571,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     centerOnPoint(x: number, y: number, opts?: TLAnimationOptions): this;
     // @internal
     protected _clickManager: ClickManager;
+    get commonBoundsOfAllShapesOnCurrentPage(): Box2d | undefined;
     complete(): this;
     // @internal (undocumented)
     crash(error: unknown): void;
@@ -595,12 +597,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     get croppingShapeId(): null | TLShapeId;
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
-    get currentPageShapeIds(): Set<TLShapeId>;
     get currentPageState(): TLInstancePageState;
     get currentTool(): StateNode | undefined;
     get currentToolId(): string;
+    deleteAssets(assets: TLAsset[]): this;
+    // (undocumented)
     deleteAssets(ids: TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
+    deletePage(page: TLPage): this;
+    // (undocumented)
     deletePage(id: TLPageId): this;
     deleteShape(id: TLShapeId): this;
     // (undocumented)
@@ -614,10 +619,16 @@ export class Editor extends EventEmitter<TLEventMap> {
     dispatch(info: TLEventInfo): this;
     readonly disposables: Set<() => void>;
     dispose(): void;
-    distributeShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
+    distributeShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical'): this;
+    // (undocumented)
+    distributeShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     get documentSettings(): TLDocument;
-    duplicatePage(id?: TLPageId, createId?: TLPageId): this;
-    duplicateShapes(ids?: TLShapeId[], offset?: VecLike): this;
+    duplicatePage(page: TLPage, createId?: TLPageId): this;
+    // (undocumented)
+    duplicatePage(id: TLPageId, createId?: TLPageId): this;
+    duplicateShapes(shapes: TLShape[], offset?: VecLike): this;
+    // (undocumented)
+    duplicateShapes(ids: TLShapeId[], offset?: VecLike): this;
     get editingShapeId(): null | TLShapeId;
     get erasingShapeIds(): TLShapeId[];
     get erasingShapeIdsSet(): Set<TLShapeId>;
@@ -638,44 +649,57 @@ export class Editor extends EventEmitter<TLEventMap> {
         }[K];
     };
     findAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
+    // (undocumented)
+    findAncestor(id: TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
-    flipShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
+    // (undocumented)
+    findCommonAncestor(ids: TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
+    flipShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical'): this;
+    // (undocumented)
+    flipShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
     focus: () => void;
     get focusedGroupId(): TLPageId | TLShapeId;
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
+    // (undocumented)
+    getAncestorPageId(shapeId?: TLShapeId): TLPageId | undefined;
     getAncestors(shape: TLShape, acc?: TLShape[]): TLShape[];
-    getAncestorsById(id: TLShapeId, acc?: TLShape[]): TLShape[];
+    // (undocumented)
+    getAncestors(id: TLShapeId, acc?: TLShape[]): TLShape[];
     // (undocumented)
     getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
     getArrowsBoundTo(shapeId: TLShapeId): {
         arrowId: TLShapeId;
         handleId: "end" | "start";
     }[];
-    getAsset(id: TLAssetId): TLAsset | undefined;
-    // (undocumented)
     getAsset(asset: TLAsset): TLAsset | undefined;
+    // (undocumented)
+    getAsset(id: TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent_2): Promise<TLAsset | undefined>;
     getClipPath(shape: TLShape): string | undefined;
     // (undocumented)
     getClipPath(id: TLShapeId): string | undefined;
     getContainer: () => HTMLElement;
-    getContent(ids?: TLShapeId[]): TLContent | undefined;
-    getDeltaInParentSpace(shape: TLShape, delta: VecLike): Vec2d;
-    getDeltaInShapeSpace(shape: TLShape, delta: VecLike): Vec2d;
-    getDroppingShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getContent(ids: TLShapeId[]): TLContent | undefined;
+    // (undocumented)
+    getContent(shapes: TLShape[]): TLContent | undefined;
+    getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLShape | undefined;
     getGeometry<T extends Geometry2d>(id: TLShapeId): T;
     // (undocumented)
     getGeometry<T extends Geometry2d>(shape: TLShape): T;
     getHandles<T extends TLShape>(id: T['id']): TLHandle[] | undefined;
     // (undocumented)
     getHandles<T extends TLShape>(shape: T): TLHandle[] | undefined;
-    getHighestIndexForParent(parentId: TLPageId | TLShapeId): string;
+    getHighestIndexForParent(parent: TLPage | TLShape): string;
+    // (undocumented)
+    getHighestIndexForParent(parentId: TLParentId): string;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getMaskedPageBounds(id: TLShapeId): Box2d | undefined;
     // (undocumented)
     getMaskedPageBounds(shape: TLShape): Box2d | undefined;
     getOutermostSelectableShape(shape: TLShape, filter?: (shape: TLShape) => boolean): TLShape;
+    // (undocumented)
+    getOutermostSelectableShape(id: TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getOutlineSegments<T extends TLShape>(shape: T): Vec2d[][];
     // (undocumented)
     getOutlineSegments<T extends TLShape>(id: T['id']): Vec2d[][];
@@ -685,36 +709,42 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageBounds(shape: TLShape): Box2d | undefined;
     // (undocumented)
     getPageBounds(id: TLShapeId): Box2d | undefined;
-    getPageCorners(shape: TLShape): Vec2d[];
     getPageMask(id: TLShapeId): undefined | VecLike[];
     // (undocumented)
     getPageMask(shape: TLShape): undefined | VecLike[];
-    getPageTransform(id: TLShapeId): Matrix2d | undefined;
+    getPageTransform(id: TLShapeId): Matrix2d;
     // (undocumented)
-    getPageTransform(shape: TLShape): Matrix2d | undefined;
-    getParentIdForNewShapeAtPoint(point: VecLike, shapeType: TLShape['type']): TLPageId | TLShapeId;
+    getPageTransform(shape: TLShape): Matrix2d;
     getParentShape(shape?: TLShape): TLShape | undefined;
+    // (undocumented)
+    getParentShape(shapeId?: TLShapeId): TLShape | undefined;
     getParentTransform(shape: TLShape): Matrix2d;
-    getPointInParentSpace(shapeId: TLShapeId, point: VecLike): Vec2d;
+    // (undocumented)
+    getParentTransform(id: TLShapeId): Matrix2d;
+    getPointInParentSpace(shape: TLShape, point: VecLike): Vec2d;
+    // (undocumented)
+    getPointInParentSpace(id: TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape, point: VecLike): Vec2d;
     // (undocumented)
     getPointInShapeSpace(id: TLShapeId, point: VecLike): Vec2d;
-    getSelectedShapeAtPoint(point: Vec2d): TLShape | undefined;
+    getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getShape<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     // (undocumented)
     getShape<T extends TLShape = TLShape>(shape: TLShape): T | undefined;
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
-    getShapeAtPoint(point: Vec2d, opts?: {
+    getShapeAtPoint(point: VecLike, opts?: {
         hitInside?: boolean | undefined;
         margin?: number | undefined;
         ignoreGroups?: boolean | undefined;
         hitFrameInside?: boolean | undefined;
         filter?: ((shape: TLShape) => boolean) | undefined;
     }): TLShape | undefined;
+    getShapeIdsInPage(page: TLPage): Set<TLShapeId>;
+    // (undocumented)
     getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
     getShapesAtPoint(point: VecLike, opts?: {
+        margin?: number | undefined;
         hitInside?: boolean | undefined;
-        exact?: boolean | undefined;
     }): TLShape[];
     // (undocumented)
     getShapeStyleIfExists<T>(shape: TLShape, style: StyleProp<T>): T | undefined;
@@ -723,11 +753,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeUtil<S extends TLUnknownShape>(type: S['type']): ShapeUtil<S>;
     // (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
-    getSortedChildIds(parentId: TLParentId): TLShapeId[];
+    getSortedChildIdsForParent(parent: TLPage | TLShape): TLShapeId[];
+    // (undocumented)
+    getSortedChildIdsForParent(parentId: TLParentId): TLShapeId[];
     getStateDescendant(path: string): StateNode | undefined;
     // @internal (undocumented)
     getStyleForNextShape<T>(style: StyleProp<T>): T;
-    getSvg(ids?: TLShapeId[], opts?: Partial<{
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<{
         scale: number;
         background: boolean;
         padding: number;
@@ -735,10 +767,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     }>): Promise<SVGSVGElement | undefined>;
     getTransform(shape: TLShape): Matrix2d;
+    // (undocumented)
+    getTransform(id: TLShapeId): Matrix2d;
     groupShapes(ids: TLShapeId[], groupId?: TLShapeId): this;
     // (undocumented)
     groupShapes(shapes: TLShape[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | undefined, ancestorId: TLShapeId): boolean;
+    // (undocumented)
+    hasAncestor(shapeId: TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     get hintingShapeIds(): TLShapeId[];
     readonly history: HistoryManager<this>;
     // (undocumented)
@@ -787,17 +823,29 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): boolean;
     readonly isSafari: boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
+    // (undocumented)
+    isShapeInPage(shapeId: TLShapeId, pageId?: TLPageId): boolean;
     isShapeOfType<T extends TLUnknownShape>(shape: TLUnknownShape, type: T['type']): shape is T;
+    // (undocumented)
+    isShapeOfType<T extends TLUnknownShape>(shapeId: TLUnknownShape['id'], type: T['type']): shapeId is T['id'];
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
+    // (undocumented)
+    isShapeOrAncestorLocked(id?: TLShapeId): boolean;
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): string;
+    moveShapesToPage(shapes: TLShape[], pageId: TLPageId): this;
+    // (undocumented)
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
-    nudgeShapes(ids: TLShapeId[], direction: Vec2dModel, major?: boolean, ephemeral?: boolean): this;
+    nudgeShapes(shapes: TLShape[], offset: VecLike, ephemeral?: boolean): this;
+    // (undocumented)
+    nudgeShapes(ids: TLShapeId[], offset: VecLike, ephemeral?: boolean): this;
     get onlySelectedShape(): null | TLShape;
     get openMenus(): string[];
-    packShapes(ids?: TLShapeId[], padding?: number): this;
+    packShapes(shapes: TLShape[], gap: number): this;
+    // (undocumented)
+    packShapes(ids: TLShapeId[], gap: number): this;
     get pages(): TLPage[];
     get pageStates(): TLInstancePageState[];
-    pageToScreen(x: number, y: number, z?: number, camera?: Vec2dModel): {
+    pageToScreen(x: number, y: number, z?: number, camera?: VecLike): {
         x: number;
         y: number;
         z: number;
@@ -819,6 +867,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent_2['type']>(type: T, handler: ((info: T extends TLExternalContent_2['type'] ? TLExternalContent_2 & {
         type: T;
     } : TLExternalContent_2) => void) | null): this;
+    renamePage(page: TLPage, name: string, squashing?: boolean): this;
+    // (undocumented)
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingBounds(): Box2d;
     get renderingBoundsExpanded(): Box2d;
@@ -847,8 +897,10 @@ export class Editor extends EventEmitter<TLEventMap> {
         mode?: TLResizeMode;
     }): this;
     readonly root: RootState;
+    rotateShapesBy(shapes: TLShape[], delta: number): this;
+    // (undocumented)
     rotateShapesBy(ids: TLShapeId[], delta: number): this;
-    screenToPage(x: number, y: number, z?: number, camera?: Vec2dModel): {
+    screenToPage(x: number, y: number, z?: number, camera?: VecLike): {
         x: number;
         y: number;
         z: number;
@@ -873,7 +925,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     setCamera(x: number, y: number, z?: number, { stopFollowing }?: TLViewportOptions): this;
     // (undocumented)
     setCroppingId(id: null | TLShapeId): this;
-    setCurrentPageId(pageId: TLPageId, { stopFollowing }?: TLViewportOptions): this;
+    setCurrentPage(page: TLPage, opts?: TLViewportOptions): this;
+    // (undocumented)
+    setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     // (undocumented)
     setEditingId(id: null | TLShapeId): this;
@@ -888,7 +942,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     setSelectedShapeIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
-    get shapesArray(): TLShape[];
+    get shapeIdsOnCurrentPage(): Set<TLShapeId>;
+    get shapesOnCurrentPage(): TLShape[];
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -896,26 +951,30 @@ export class Editor extends EventEmitter<TLEventMap> {
     get sharedStyles(): ReadonlySharedStyleMap;
     slideCamera(opts?: {
         speed: number;
-        direction: Vec2d;
+        direction: VecLike;
         friction: number;
         speedThreshold?: number | undefined;
     }): this | undefined;
     readonly snaps: SnapManager;
-    get sortedShapesArray(): TLShape[];
-    stackShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical', gap?: number): this;
+    get sortedShapesOnCurrentPage(): TLShape[];
+    stackShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical', gap: number): this;
     // (undocumented)
-    stackShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical', gap?: number): this;
+    stackShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
     startFollowingUser(userId: string): this | undefined;
     stopCameraAnimation(): this;
     stopFollowingUser(): this;
     readonly store: TLStore;
-    stretchShapes(operation: 'horizontal' | 'vertical', ids?: TLShapeId[]): this;
+    stretchShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical'): this;
+    // (undocumented)
+    stretchShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
     styleProps: {
         [key: string]: Map<StyleProp<unknown>, string>;
     };
     readonly textMeasure: TextManager;
-    toggleLock(ids?: TLShapeId[]): this;
+    toggleLock(shapes: TLShape[]): this;
+    // (undocumented)
+    toggleLock(ids: TLShapeId[]): this;
     undo(): HistoryManager<this>;
     ungroupShapes(ids: TLShapeId[]): this;
     // (undocumented)
@@ -935,7 +994,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     get viewportPageCenter(): Vec2d;
     get viewportScreenBounds(): Box2d;
     get viewportScreenCenter(): Vec2d;
-    visitDescendants(parentId: TLParentId, visitor: (id: TLShapeId) => false | void): void;
+    visitDescendants(parent: TLPage | TLShape, visitor: (id: TLShapeId) => false | void): this;
+    // (undocumented)
+    visitDescendants(parentId: TLParentId, visitor: (id: TLShapeId) => false | void): this;
     zoomIn(point?: Vec2d, opts?: TLAnimationOptions): this;
     get zoomLevel(): number;
     zoomOut(point?: Vec2d, opts?: TLAnimationOptions): this;
@@ -1174,9 +1235,6 @@ export function getSweep(C: VecLike, A: VecLike, B: VecLike): number;
 // @public (undocumented)
 export function getUserPreferences(): TLUserPreferences;
 
-// @internal (undocumented)
-export const GRID_INCREMENT = 5;
-
 // @public (undocumented)
 export const GRID_STEPS: {
     min: number;
@@ -1290,9 +1348,6 @@ export function longAngleDist(a0: number, a1: number): number;
 
 // @public (undocumented)
 export function loopToHtmlElement(elm: Element): HTMLElement;
-
-// @internal (undocumented)
-export const MAJOR_NUDGE_FACTOR = 10;
 
 // @public (undocumented)
 export class Matrix2d {
@@ -1411,9 +1466,6 @@ export const MAX_ZOOM = 8;
 
 // @internal (undocumented)
 export const MIN_ZOOM = 0.1;
-
-// @internal (undocumented)
-export const MINOR_NUDGE_FACTOR = 1;
 
 // @internal (undocumented)
 export const MULTI_CLICK_DURATION = 200;

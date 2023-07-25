@@ -258,7 +258,8 @@ export class DraggingHandle extends StateNode {
 			})
 
 			if (snapDelta) {
-				point.add(editor.getDeltaInShapeSpace(shape, snapDelta))
+				snapDelta.rot(-editor.getParentTransform(shape)!.rotation())
+				point.add(snapDelta)
 			}
 		}
 

@@ -32,7 +32,7 @@ it('lists a sorted shapes array correctly', () => {
 	editor.sendBackward([ids.frame1])
 	editor.sendBackward([ids.frame1])
 
-	expect(editor.sortedShapesArray.map((s) => s.id)).toEqual([
+	expect(editor.sortedShapesOnCurrentPage.map((s) => s.id)).toEqual([
 		ids.box1,
 		ids.frame1,
 		ids.box4,
@@ -261,8 +261,8 @@ describe('When a shape is behind a frame', () => {
 
 	it('does not select the shape when clicked inside', () => {
 		editor.sendToBack([ids.box1]) // send it to back!
-		expect(editor.sortedShapesArray.map((s) => s.index)).toEqual(['a1', 'a2'])
-		expect(editor.sortedShapesArray.map((s) => s.id)).toEqual([ids.box1, ids.frame1])
+		expect(editor.sortedShapesOnCurrentPage.map((s) => s.index)).toEqual(['a1', 'a2'])
+		expect(editor.sortedShapesOnCurrentPage.map((s) => s.id)).toEqual([ids.box1, ids.frame1])
 
 		editor.pointerMove(50, 50)
 		expect(editor.hoveredShapeId).toBe(null)
@@ -622,7 +622,7 @@ describe('When shapes are overlapping', () => {
 		editor.bringToFront([ids.box5])
 		editor.bringToFront([ids.box2])
 
-		expect(editor.sortedShapesArray.map((s) => s.id)).toEqual([
+		expect(editor.sortedShapesOnCurrentPage.map((s) => s.id)).toEqual([
 			ids.box4, // filled
 			ids.box1, // hollow
 			ids.box3, // hollow
@@ -641,7 +641,7 @@ describe('When shapes are overlapping', () => {
 	})
 
 	it('selects the hollow above the filled shapes when in margin', () => {
-		expect(editor.sortedShapesArray.map((s) => s.id)).toEqual([
+		expect(editor.sortedShapesOnCurrentPage.map((s) => s.id)).toEqual([
 			ids.box4,
 			ids.box1,
 			ids.box3,

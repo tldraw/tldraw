@@ -402,7 +402,7 @@ export class Idle extends StateNode {
 						selectedShapes.every((shape) => this.editor.isShapeOfType<TLGroupShape>(shape, 'group'))
 					) {
 						this.editor.setSelectedShapeIds(
-							selectedShapes.flatMap((shape) => this.editor.getSortedChildIds(shape.id))
+							selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
 						)
 						return
 					}
@@ -494,6 +494,20 @@ export class Idle extends StateNode {
 
 		if (!ephemeral) this.editor.mark('nudge shapes')
 
-		this.editor.nudgeShapes(this.editor.selectedShapeIds, delta, shiftKey)
+		const { gridSize } = this.editor.documentSettings
+
+		const step = this.editor.instanceState.isGridMode
+			? shiftKey
+				? gridSize * GRID_INCREMENT
+				: gridSize
+			: shiftKey
+			? MAJOR_NUDGE_FACTOR
+			: MINOR_NUDGE_FACTOR
+
+		this.editor.nudgeShapes(this.editor.selectedShapeIds, delta.mul(step))
 	}
 }
+
+export const MAJOR_NUDGE_FACTOR = 10
+export const MINOR_NUDGE_FACTOR = 1
+export const GRID_INCREMENT = 5

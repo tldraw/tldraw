@@ -234,7 +234,7 @@ describe('arrowBindingsIndex', () => {
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(3)
 
 			editor.selectAll()
-			editor.duplicateShapes()
+			editor.duplicateShapes(editor.selectedShapeIds)
 
 			const [box1Clone, box2Clone] = editor.selectedShapes
 				.filter((shape) => editor.isShapeOfType<TLGeoShape>(shape, 'geo'))

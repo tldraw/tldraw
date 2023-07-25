@@ -192,7 +192,7 @@ export function usePrint() {
 					// Print all pages
 					for (let i = 0; i < pages.length; i++) {
 						const page = pages[i]
-						const svg = await editor.getSvg(editor.getSortedChildIds(page.id), svgOpts)
+						const svg = await editor.getSvg(editor.getSortedChildIdsForParent(page.id), svgOpts)
 						if (svg) {
 							addPageToPrint(`tldraw — ${page.name}`, `${i}/${pages.length}`, svg)
 						}
@@ -200,7 +200,7 @@ export function usePrint() {
 					triggerPrint()
 				} else {
 					const page = editor.currentPage
-					const svg = await editor.getSvg(editor.getSortedChildIds(page.id), svgOpts)
+					const svg = await editor.getSvg(editor.getSortedChildIdsForParent(page.id), svgOpts)
 					if (svg) {
 						addPageToPrint(`tldraw — ${page.name}`, null, svg)
 						triggerPrint()
