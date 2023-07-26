@@ -409,10 +409,10 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 
 		// Re-position shapes so that the center of the group is at the provided point
 		const { viewportPageBounds } = editor
-		let { selectedPageBounds } = editor
+		let { selectionPageBounds } = editor
 
-		if (selectedPageBounds) {
-			const offset = selectedPageBounds!.center.sub(position)
+		if (selectionPageBounds) {
+			const offset = selectionPageBounds!.center.sub(position)
 
 			editor.updateShapes(
 				paritals.map((partial) => {
@@ -427,8 +427,8 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 		}
 
 		// Zoom out to fit the shapes, if necessary
-		selectedPageBounds = editor.selectedPageBounds
-		if (selectedPageBounds && !viewportPageBounds.contains(selectedPageBounds)) {
+		selectionPageBounds = editor.selectionPageBounds
+		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 			editor.zoomToSelection()
 		}
 	})

@@ -909,10 +909,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     select(...shapes: TLShape[]): this;
     selectAll(): this;
-    get selectedPageBounds(): Box2d | null;
     get selectedShapeIds(): TLShapeId[];
     get selectedShapes(): TLShape[];
     get selectionBounds(): Box2d | undefined;
+    get selectionPageBounds(): Box2d | null;
     get selectionPageCenter(): null | Vec2d;
     get selectionRotation(): number;
     selectNone(): this;
