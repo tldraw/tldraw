@@ -560,16 +560,16 @@ describe('When flipping shapes that include arrows', () => {
 	it('Flips horizontally', () => {
 		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes)
 
-		const boundsBefore = editor.selectionBounds!
+		const boundsBefore = editor.page.bounds!
 		editor.flipShapes(editor.selectedShapeIds, 'horizontal')
-		expect(editor.selectionBounds).toCloselyMatchObject(boundsBefore)
+		expect(editor.page.bounds).toCloselyMatchObject(boundsBefore)
 	})
 
 	it('Flips vertically', () => {
 		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes)
 
-		const boundsBefore = editor.selectionBounds!
+		const boundsBefore = editor.page.bounds!
 		editor.flipShapes(editor.selectedShapeIds, 'vertical')
-		expect(editor.selectionBounds).toCloselyMatchObject(boundsBefore)
+		expect(editor.page.bounds).toCloselyMatchObject(boundsBefore)
 	})
 })

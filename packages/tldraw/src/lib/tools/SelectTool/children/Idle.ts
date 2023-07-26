@@ -71,7 +71,7 @@ export class Idle extends StateNode {
 						selectedShapeIds.length > 1 ||
 						this.editor.getGeometry(selectedShapeIds[0]).isClosed
 					) {
-						if (this.editor.selectionBounds?.containsPoint(currentPagePoint)) {
+						if (this.editor.page.bounds?.containsPoint(currentPagePoint)) {
 							this.onPointerDown({
 								...info,
 								target: 'selection',

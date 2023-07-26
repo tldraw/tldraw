@@ -185,7 +185,9 @@ function HandlesWrapper() {
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
-	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
+	const onlySelectedShape = useValue('onlySelectedShape', () => editor.page.onlySelectedShape, [
+		editor,
+	])
 	const isChangingStyle = useValue('isChangingStyle', () => editor.instanceState.isChangingStyle, [
 		editor,
 	])
@@ -438,7 +440,7 @@ const UiLogger = track(() => {
 export function SelectionForegroundWrapper() {
 	const editor = useEditor()
 	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
-	const selectionBounds = useValue('selection bounds', () => editor.selectionBounds, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.page.bounds, [editor])
 	const { SelectionForeground } = useEditorComponents()
 	if (!selectionBounds || !SelectionForeground) return null
 	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
@@ -447,7 +449,7 @@ export function SelectionForegroundWrapper() {
 export function SelectionBackgroundWrapper() {
 	const editor = useEditor()
 	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
-	const selectionBounds = useValue('selection bounds', () => editor.selectionBounds, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.page.bounds, [editor])
 	const { SelectionBackground } = useEditorComponents()
 	if (!selectionBounds || !SelectionBackground) return null
 	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />

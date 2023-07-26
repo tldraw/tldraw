@@ -230,7 +230,7 @@ export class Cropping extends StateNode {
 
 		const shape = this.editor.onlySelectedShape as TLImageShape
 
-		const selectionBounds = this.editor.selectionBounds!
+		const selectionBounds = this.editor.page.bounds!
 
 		const dragHandlePoint = Vec2d.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),

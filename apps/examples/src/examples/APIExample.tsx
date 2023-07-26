@@ -93,7 +93,7 @@ const InsideOfEditorContext = () => {
 			const selection = [...editor.selectedShapeIds]
 			editor.selectAll()
 			editor.setStyle(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
-			editor.setSelectedShapeIds(selection)
+			editor.page.setSelectedShapeIds(selection)
 			i++
 		}, 1000)
 

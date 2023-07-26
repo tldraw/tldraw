@@ -41,13 +41,13 @@ beforeEach(() => {
 describe('editor.packShapes', () => {
 	it('packs shapes', () => {
 		editor.selectAll()
-		const centerBefore = editor.selectionBounds!.center.clone()
+		const centerBefore = editor.page.bounds!.center.clone()
 		editor.packShapes(editor.selectedShapeIds, 16)
 		jest.advanceTimersByTime(1000)
 		expect(editor.shapesOnCurrentPage.map((s) => ({ ...s, parentId: 'wahtever' }))).toMatchSnapshot(
 			'packed shapes'
 		)
-		const centerAfter = editor.selectionBounds!.center.clone()
+		const centerAfter = editor.page.bounds!.center.clone()
 		expect(centerBefore).toMatchObject(centerAfter)
 	})
 
