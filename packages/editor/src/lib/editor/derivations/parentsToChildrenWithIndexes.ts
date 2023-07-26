@@ -1,30 +1,33 @@
 import { computed, isUninitialized, RESET_VALUE } from '@tldraw/state'
 import { RecordsDiff } from '@tldraw/store'
-import { isShape, TLParentId, TLRecord, TLShapeId, TLStore } from '@tldraw/tlschema'
+import { isShape, TLParentId, TLRecord, TLShape, TLShapeId, TLStore } from '@tldraw/tlschema'
+import { sortByIndex } from '../../utils/reordering/reordering'
 
-type Parents2Children = Record<TLParentId, [id: TLShapeId, index: string][]>
+type Parents2Children = Record<TLParentId, TLShapeId[]>
 
 export const parentsToChildrenWithIndexes = (store: TLStore) => {
-	const shapeIds = store.query.ids<'shape'>('shape')
+	const shapeIdsQuery = store.query.ids<'shape'>('shape')
+
 	function fromScratch() {
 		const result: Parents2Children = {}
+		const shapeIds = shapeIdsQuery.value
+		const shapes = Array(shapeIds.size) as TLShape[]
+		shapeIds.forEach((id) => shapes.push(store.get(id)!))
+
+		// Sort the shapes by index
+		shapes.sort(sortByIndex)
 
 		// Populate the result object with an array for each parent.
-		shapeIds.value.forEach((id) => {
-			const shape = store.get(id)!
-
+		shapes.forEach((shape) => {
 			if (!result[shape.parentId]) {
 				result[shape.parentId] = []
 			}
-
-			result[shape.parentId].push([id, shape.index])
+			result[shape.parentId].push(shape.id)
 		})
-
-		// Sort the children by index
-		Object.values(result).forEach((arr) => arr.sort((a, b) => (a[1] < b[1] ? -1 : 1)))
 
 		return result
 	}
+
 	return computed<Parents2Children>(
 		'parentsToChildrenWithIndexes',
 		(lastValue, lastComputedEpoch) => {
@@ -40,7 +43,7 @@ export const parentsToChildrenWithIndexes = (store: TLStore) => {
 
 			if (diff.length === 0) return lastValue
 
-			let newValue: Record<TLParentId, [id: TLShapeId, index: string][]> | null = null
+			let newValue: Record<TLParentId, TLShapeId[]> | null = null
 
 			const ensureNewArray = (parentId: TLParentId) => {
 				if (!newValue) {
@@ -53,7 +56,7 @@ export const parentsToChildrenWithIndexes = (store: TLStore) => {
 				}
 			}
 
-			const toSort = new Set<[id: TLShapeId, index: string][]>()
+			const toSort = new Set<TLShapeId[]>()
 
 			let changes: RecordsDiff<TLRecord>
 
@@ -64,7 +67,7 @@ export const parentsToChildrenWithIndexes = (store: TLStore) => {
 				for (const record of Object.values(changes.added)) {
 					if (!isShape(record)) continue
 					ensureNewArray(record.parentId)
-					newValue![record.parentId].push([record.id, record.index])
+					newValue![record.parentId].push(record.id)
 					toSort.add(newValue![record.parentId])
 				}
 
@@ -77,17 +80,14 @@ export const parentsToChildrenWithIndexes = (store: TLStore) => {
 						// If the parents have changed, remove the new value from the old parent and add it to the new parent
 						ensureNewArray(from.parentId)
 						ensureNewArray(to.parentId)
-						newValue![from.parentId].splice(
-							newValue![from.parentId].findIndex((i) => i[0] === to.id),
-							1
-						)
-						newValue![to.parentId].push([to.id, to.index])
+						newValue![from.parentId].splice(newValue![from.parentId].indexOf(to.id), 1)
+						newValue![to.parentId].push(to.id)
 						toSort.add(newValue![to.parentId])
 					} else if (from.index !== to.index) {
 						// If the parent is the same but the index has changed (e.g. if they've been reordered), update the parent's array at the new index
 						ensureNewArray(to.parentId)
-						const idx = newValue![to.parentId].findIndex((i) => i[0] === to.id)
-						newValue![to.parentId][idx] = [to.id, to.index]
+						const idx = newValue![to.parentId].indexOf(to.id)
+						newValue![to.parentId][idx] = to.id
 						toSort.add(newValue![to.parentId])
 					}
 				}
@@ -96,16 +96,15 @@ export const parentsToChildrenWithIndexes = (store: TLStore) => {
 				for (const record of Object.values(changes.removed)) {
 					if (!isShape(record)) continue
 					ensureNewArray(record.parentId)
-					newValue![record.parentId].splice(
-						newValue![record.parentId].findIndex((i) => i[0] === record.id),
-						1
-					)
+					newValue![record.parentId].splice(newValue![record.parentId].indexOf(record.id), 1)
 				}
 			}
 
 			// Sort the arrays that have been marked for sorting
 			for (const arr of toSort) {
-				arr.sort((a, b) => (a[1] < b[1] ? -1 : 1))
+				const shapesInArr = arr.map((id) => store.get(id)!)
+				shapesInArr.sort(sortByIndex)
+				arr.splice(0, arr.length, ...shapesInArr.map((shape) => shape.id))
 			}
 
 			return newValue ?? lastValue
