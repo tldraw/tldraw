@@ -541,13 +541,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): this;
     animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
     animateToUser(userId: string): void;
-    // @internal (undocumented)
-    annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
-        origin: string;
-        willCrashApp: boolean;
-        tags?: Record<string, boolean | number | string>;
-        extras?: Record<string, unknown>;
-    }): void;
     get assets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     bail(): this;
     bailToMark(id: string): this;
@@ -578,19 +571,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     get crashingError(): unknown;
     createAssets(assets: TLAsset[]): this;
-    // @internal (undocumented)
-    createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
-        tags: {
-            origin: string;
-            willCrashApp: 'unknown' | boolean;
-        };
-        extras: {
-            activeStateNode?: string;
-            selectedShapes?: TLUnknownShape[];
-            editingShape?: TLUnknownShape;
-            inputs?: Record<string, unknown>;
-        };
-    };
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
     createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select?: boolean): this;
     createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select?: boolean): this;
@@ -1292,6 +1272,14 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     static type: "group";
 }
+
+// @public (undocumented)
+export function handleEditorError(editor: Editor, error: unknown, { origin, willCrashApp, tags, extras, }: {
+    origin: string;
+    willCrashApp: boolean;
+    tags?: Record<string, boolean | number | string>;
+    extras?: Record<string, unknown>;
+}): void;
 
 // @public
 export function hardReset({ shouldReload }?: {
