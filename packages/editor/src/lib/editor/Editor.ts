@@ -100,7 +100,7 @@ import {
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
-import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
+import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager'
 import { HistoryManager } from './managers/HistoryManager'
@@ -296,7 +296,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this._shapeIdsOnCurrentPage = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
-		this._parentIdsToChildIds = parentsToChildrenWithIndexes(this.store)
+		this._parentIdsToChildIds = parentsToChildren(this.store)
 
 		this.disposables.add(
 			this.store.listen((changes) => {
@@ -4716,7 +4716,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	private readonly _parentIdsToChildIds: ReturnType<typeof parentsToChildrenWithIndexes>
+	private readonly _parentIdsToChildIds: ReturnType<typeof parentsToChildren>
 
 	/**
 	 * Reparent shapes to a new parent. This operation preserves the shape's current page positions /
@@ -4835,7 +4835,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!children || children.length === 0) {
 			return 'a1'
 		}
-		return getIndexAbove(children[children.length - 1][1])
+		const shape = this.getShape(children[children.length - 1])!
+		return getIndexAbove(shape.index)
 	}
 
 	/**
@@ -4861,9 +4862,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getSortedChildIdsForParent(parentId: TLParentId): TLShapeId[]
 	getSortedChildIdsForParent(arg: TLParentId | TLPage | TLShape): TLShapeId[] {
 		const parentId = typeof arg === 'string' ? arg : arg.id
-		const withIndices = this._parentIdsToChildIds.value[parentId]
-		if (!withIndices) return EMPTY_ARRAY
-		return this._childIdsCache.get(withIndices, () => withIndices.map(([id]) => id))
+		const ids = this._parentIdsToChildIds.value[parentId]
+		if (!ids) return EMPTY_ARRAY
+		return this._childIdsCache.get(ids, () => ids)
 	}
 
 	/**
@@ -7170,7 +7171,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!childIds) return
 
 			for (let i = 0, n = childIds.length; i < n; i++) {
-				this._extractSharedStyles(this.getShape(childIds[i][0])!, sharedStyleMap)
+				this._extractSharedStyles(this.getShape(childIds[i])!, sharedStyleMap)
 			}
 		} else {
 			for (const [style, propKey] of this.styleProps[shape.type]) {
