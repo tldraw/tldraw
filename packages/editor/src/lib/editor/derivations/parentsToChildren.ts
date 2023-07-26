@@ -5,7 +5,7 @@ import { sortByIndex } from '../../utils/reordering/reordering'
 
 type Parents2Children = Record<TLParentId, TLShapeId[]>
 
-export const parentsToChildrenWithIndexes = (store: TLStore) => {
+export const parentsToChildren = (store: TLStore) => {
 	const shapeIdsQuery = store.query.ids<'shape'>('shape')
 
 	function fromScratch() {

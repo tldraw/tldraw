@@ -100,7 +100,7 @@ import {
 import { applyRotationToSnapshotShapes, getRotationSnapshot } from '../utils/rotation'
 import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
-import { parentsToChildrenWithIndexes } from './derivations/parentsToChildrenWithIndexes'
+import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager'
 import { HistoryManager } from './managers/HistoryManager'
@@ -296,7 +296,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this._shapeIdsOnCurrentPage = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
-		this._parentIdsToChildIds = parentsToChildrenWithIndexes(this.store)
+		this._parentIdsToChildIds = parentsToChildren(this.store)
 
 		this.disposables.add(
 			this.store.listen((changes) => {
@@ -4716,7 +4716,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @internal
 	 */
-	private readonly _parentIdsToChildIds: ReturnType<typeof parentsToChildrenWithIndexes>
+	private readonly _parentIdsToChildIds: ReturnType<typeof parentsToChildren>
 
 	/**
 	 * Reparent shapes to a new parent. This operation preserves the shape's current page positions /
