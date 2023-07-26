@@ -1,24 +1,16 @@
+import { transact } from '@tldraw/state'
 import {
-	Editor,
-	FileHelpers,
 	MigrationFailureReason,
 	MigrationResult,
 	RecordId,
-	Result,
 	SerializedSchema,
 	SerializedStore,
-	T,
-	TLAsset,
-	TLAssetId,
-	TLRecord,
-	TLSchema,
-	TLStore,
 	UnknownRecord,
-	createTLStore,
-	exhaustiveSwitchError,
-	partition,
-	transact,
-} from '@tldraw/editor'
+} from '@tldraw/store'
+import { TLAsset, TLAssetId, TLRecord, TLSchema, TLStore } from '@tldraw/tlschema'
+import { FileHelpers, Result, exhaustiveSwitchError, partition } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
+import { Editor, createTLStore } from '../editor'
 import { TLUiToastsContextType } from '../ui/hooks/useToastsProvider'
 import { TLUiTranslationKey } from '../ui/hooks/useTranslation/TLUiTranslationKey'
 import { buildFromV1Document } from './buildFromV1Document'

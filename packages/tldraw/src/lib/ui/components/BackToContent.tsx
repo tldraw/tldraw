@@ -1,5 +1,5 @@
-import { useEditor } from '@tldraw/editor'
 import { useEffect, useState } from 'react'
+import { useEditor } from '../../editor'
 import { useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 

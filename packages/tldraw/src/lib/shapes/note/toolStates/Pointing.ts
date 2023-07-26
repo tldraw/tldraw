@@ -1,11 +1,5 @@
-import {
-	StateNode,
-	TLEventHandlers,
-	TLInterruptEvent,
-	TLNoteShape,
-	TLPointerEventInfo,
-	createShapeId,
-} from '@tldraw/editor'
+import { TLNoteShape, createShapeId } from '@tldraw/tlschema'
+import { StateNode, TLEventHandlers, TLInterruptEvent, TLPointerEventInfo } from '../../../editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

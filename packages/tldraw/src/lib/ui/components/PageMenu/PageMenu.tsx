@@ -1,13 +1,7 @@
-import {
-	MAX_PAGES,
-	PageRecordType,
-	TLPageId,
-	releasePointerCapture,
-	setPointerCapture,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
+import { PageRecordType, TLPageId } from '@tldraw/tlschema'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { MAX_PAGES, releasePointerCapture, setPointerCapture, useEditor } from '../../../editor'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'

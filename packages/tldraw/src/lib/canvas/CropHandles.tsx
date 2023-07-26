@@ -1,5 +1,5 @@
-import { toDomPrecision } from '@tldraw/editor'
 import classNames from 'classnames'
+import { toDomPrecision } from '../editor'
 
 interface CropHandlesProps {
 	size: number

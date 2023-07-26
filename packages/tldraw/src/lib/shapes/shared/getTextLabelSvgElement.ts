@@ -1,4 +1,5 @@
-import { Box2d, Editor, TLGeoShape, TLNoteShape } from '@tldraw/editor'
+import { TLGeoShape, TLNoteShape } from '@tldraw/tlschema'
+import { Box2d, Editor } from '../../editor'
 import { createTextSvgElementFromSpans } from './createTextSvgElementFromSpans'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'
 import { getLegacyOffsetX } from './legacyProps'

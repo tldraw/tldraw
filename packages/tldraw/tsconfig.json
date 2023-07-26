@@ -8,5 +8,11 @@
 		"noImplicitReturns": false,
 		"rootDir": "src"
 	},
-	"references": [{ "path": "../editor" }]
+	"references": [
+		{ "path": "../tlschema" },
+		{ "path": "../store" },
+		{ "path": "../validate" },
+		{ "path": "../utils" },
+		{ "path": "../state" }
+	]
 }

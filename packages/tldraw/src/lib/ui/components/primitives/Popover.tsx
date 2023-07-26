@@ -1,6 +1,6 @@
 import * as PopoverPrimitive from '@radix-ui/react-popover'
-import { useContainer } from '@tldraw/editor'
 import React, { FC } from 'react'
+import { useContainer } from '../../../editor'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 
 type PopoverProps = {

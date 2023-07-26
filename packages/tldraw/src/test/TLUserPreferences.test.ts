@@ -1,4 +1,5 @@
-import { TLUserPreferences, atom, createTLUser } from '@tldraw/editor'
+import { atom } from '@tldraw/state'
+import { TLUserPreferences, createTLUser } from '../lib/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

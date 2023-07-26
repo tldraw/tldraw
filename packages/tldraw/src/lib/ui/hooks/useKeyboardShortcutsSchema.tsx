@@ -1,5 +1,7 @@
-import { Editor, compact, track, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
+import { compact } from '@tldraw/utils'
 import React, { useMemo } from 'react'
+import { Editor, useEditor } from '../../editor'
 import { TLUiMenuSchema, menuGroup, menuItem } from './menuHelpers'
 import { TLUiActionsContextType, useActions } from './useActions'
 import { TLUiToolsContextType, useTools } from './useTools'

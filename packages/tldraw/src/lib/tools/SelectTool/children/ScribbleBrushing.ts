@@ -1,17 +1,13 @@
+import { TLFrameShape, TLGroupShape, TLScribble, TLShape, TLShapeId } from '@tldraw/tlschema'
 import {
 	Geometry2d,
 	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
-	TLFrameShape,
-	TLGroupShape,
-	TLScribble,
-	TLShape,
-	TLShapeId,
 	Vec2d,
 	intersectLineSegmentPolyline,
 	pointInPolygon,
-} from '@tldraw/editor'
+} from '../../../editor'
 import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
 
 export class ScribbleBrushing extends StateNode {

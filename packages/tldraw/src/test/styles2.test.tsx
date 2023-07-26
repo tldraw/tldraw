@@ -1,11 +1,7 @@
 /// <reference types="react" />
-import {
-	DefaultColorStyle,
-	ReadonlySharedStyleMap,
-	SharedStyle,
-	TLGeoShape,
-	TLGroupShape,
-} from '@tldraw/editor'
+
+import { DefaultColorStyle, TLGeoShape, TLGroupShape } from '@tldraw/tlschema'
+import { ReadonlySharedStyleMap, SharedStyle } from '../lib/editor'
 import { TestEditor, createDefaultShapes, defaultShapesIds } from './TestEditor'
 import { TL } from './test-jsx'
 

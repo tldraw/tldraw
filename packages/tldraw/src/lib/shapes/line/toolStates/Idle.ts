@@ -1,4 +1,5 @@
-import { StateNode, TLEventHandlers, TLShapeId } from '@tldraw/editor'
+import { TLShapeId } from '@tldraw/tlschema'
+import { StateNode, TLEventHandlers } from '../../../editor'
 
 export class Idle extends StateNode {
 	static override id = 'idle'

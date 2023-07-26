@@ -1,4 +1,6 @@
-import { TLTextShape, useEditor, useValue } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
+import { TLTextShape } from '@tldraw/tlschema'
+import { useEditor } from '../../editor'
 
 export function useShowAutoSizeToggle() {
 	const editor = useEditor()

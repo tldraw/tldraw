@@ -1,11 +1,5 @@
-import {
-	HIT_TEST_MARGIN,
-	StateNode,
-	TLEventHandlers,
-	TLFrameShape,
-	TLGroupShape,
-	TLShapeId,
-} from '@tldraw/editor'
+import { TLFrameShape, TLGroupShape, TLShapeId } from '@tldraw/tlschema'
+import { HIT_TEST_MARGIN, StateNode, TLEventHandlers } from '../../../editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

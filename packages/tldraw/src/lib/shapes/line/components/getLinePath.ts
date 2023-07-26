@@ -1,4 +1,5 @@
-import { CubicSpline2d, Polyline2d, TLLineShape, getSvgPathFromPoints } from '@tldraw/editor'
+import { TLLineShape } from '@tldraw/tlschema'
+import { CubicSpline2d, Polyline2d, getSvgPathFromPoints } from '../../../editor'
 import { getStrokeOutlinePoints } from '../../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../../shared/freehand/getStrokePoints'
 import { setStrokePointRadii } from '../../shared/freehand/setStrokePointRadii'

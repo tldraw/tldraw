@@ -1,17 +1,15 @@
+import { track, useValue } from '@tldraw/state'
+import { TLShapePartial, createShapeId } from '@tldraw/tlschema'
+import * as React from 'react'
 import {
-	createShapeId,
 	DebugFlag,
-	debugFlags,
 	Editor,
+	debugFlags,
 	featureFlags,
 	hardResetEditor,
-	TLShapePartial,
-	track,
 	uniqueId,
 	useEditor,
-	useValue,
-} from '@tldraw/editor'
-import * as React from 'react'
+} from '../../editor'
 import { useDialogs } from '../hooks/useDialogsProvider'
 import { useToasts } from '../hooks/useToastsProvider'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'

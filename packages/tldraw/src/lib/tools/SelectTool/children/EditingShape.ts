@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers } from '@tldraw/editor'
+import { StateNode, TLEventHandlers } from '../../../editor'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
 export class EditingShape extends StateNode {

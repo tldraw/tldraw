@@ -1,3 +1,4 @@
+import { TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
 import {
 	EPSILON,
 	GapsSnapLine,
@@ -6,13 +7,10 @@ import {
 	PointsSnapLine,
 	RotateCorner,
 	TLSelectionHandle,
-	TLShapeId,
-	TLShapePartial,
 	Vec2d,
 	canonicalizeRotation,
-	createShapeId,
 	rotateSelectionHandle,
-} from '@tldraw/editor'
+} from '../lib/editor'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 import { roundedBox } from './roundedBox'

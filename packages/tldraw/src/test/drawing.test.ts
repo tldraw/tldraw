@@ -1,4 +1,5 @@
-import { TLDrawShape, TLHighlightShape, last } from '@tldraw/editor'
+import { TLDrawShape, TLHighlightShape } from '@tldraw/tlschema'
+import { last } from '@tldraw/utils'
 import { TestEditor } from './TestEditor'
 
 jest.useFakeTimers()

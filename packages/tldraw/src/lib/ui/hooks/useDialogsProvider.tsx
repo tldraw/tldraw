@@ -1,5 +1,5 @@
-import { Editor, uniqueId, useEditor } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
+import { Editor, uniqueId, useEditor } from '../../editor'
 import { useEvents } from './useEventsProvider'
 
 /** @public */

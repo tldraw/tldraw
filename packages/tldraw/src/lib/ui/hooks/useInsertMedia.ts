@@ -1,5 +1,5 @@
-import { useEditor } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
+import { useEditor } from '../../editor'
 
 export function useInsertMedia() {
 	const editor = useEditor()

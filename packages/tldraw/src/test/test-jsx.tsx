@@ -1,13 +1,6 @@
-import {
-	TLDefaultShape,
-	TLShapeId,
-	TLShapePartial,
-	assert,
-	assertExists,
-	createShapeId,
-	getIndexAbove,
-	omitFromStackTrace,
-} from '@tldraw/editor'
+import { TLDefaultShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
+import { assert, assertExists, omitFromStackTrace } from '@tldraw/utils'
+import { getIndexAbove } from '../lib/editor'
 
 const shapeTypeSymbol = Symbol('shapeJsx')
 

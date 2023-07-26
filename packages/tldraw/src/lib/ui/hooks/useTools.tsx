@@ -1,5 +1,7 @@
-import { Editor, GeoShapeGeoStyle, featureFlags, useEditor, useValue } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
+import { GeoShapeGeoStyle } from '@tldraw/tlschema'
 import * as React from 'react'
+import { Editor, featureFlags, useEditor } from '../../editor'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './useDialogsProvider'

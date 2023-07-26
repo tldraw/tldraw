@@ -1,4 +1,5 @@
-import { CubicSpline2d, Polyline2d, TLDefaultDashStyle, TLLineShape } from '@tldraw/editor'
+import { TLDefaultDashStyle, TLLineShape } from '@tldraw/tlschema'
+import { CubicSpline2d, Polyline2d } from '../../../editor'
 import { getPerfectDashProps } from '../../shared/getPerfectDashProps'
 import { getLineDrawPath } from './getLinePath'
 import { getSvgPathForBezierCurve, getSvgPathForEdge, getSvgPathForLineGeometry } from './svg'

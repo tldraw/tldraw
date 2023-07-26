@@ -1,3 +1,4 @@
+import { TLFrameShape, TLGroupShape, TLPageId, TLShape, TLShapeId } from '@tldraw/tlschema'
 import {
 	Box2d,
 	HIT_TEST_MARGIN,
@@ -5,18 +6,13 @@ import {
 	StateNode,
 	TLCancelEvent,
 	TLEventHandlers,
-	TLFrameShape,
-	TLGroupShape,
 	TLInterruptEvent,
 	TLKeyboardEvent,
-	TLPageId,
 	TLPointerEventInfo,
-	TLShape,
-	TLShapeId,
 	Vec2d,
 	pointInPolygon,
 	polygonsIntersect,
-} from '@tldraw/editor'
+} from '../../../editor'
 
 export class Brushing extends StateNode {
 	static override id = 'brushing'

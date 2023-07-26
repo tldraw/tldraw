@@ -1,5 +1,6 @@
-import { track, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
 import * as React from 'react'
+import { useEditor } from '../../editor'
 
 /** @internal */
 export const HTMLCanvas = track(function HTMLCanvas() {

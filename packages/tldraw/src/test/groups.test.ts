@@ -1,19 +1,14 @@
 import {
-	Box2d,
-	GroupShapeUtil,
 	TLArrowShape,
 	TLGroupShape,
 	TLLineShape,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
-	VecLike,
-	approximately,
-	assert,
-	compact,
 	createShapeId,
-	sortByIndex,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
+import { assert, compact } from '@tldraw/utils'
+import { Box2d, GroupShapeUtil, VecLike, approximately, sortByIndex } from '../lib/editor'
 import { TestEditor } from './TestEditor'
 
 jest.mock('nanoid', () => {

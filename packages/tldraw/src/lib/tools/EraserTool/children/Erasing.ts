@@ -1,14 +1,11 @@
+import { TLFrameShape, TLGroupShape, TLScribble, TLShapeId } from '@tldraw/tlschema'
 import {
 	HIT_TEST_MARGIN,
 	StateNode,
 	TLEventHandlers,
-	TLFrameShape,
-	TLGroupShape,
 	TLPointerEventInfo,
-	TLScribble,
-	TLShapeId,
 	pointInPolygon,
-} from '@tldraw/editor'
+} from '../../../editor'
 import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
 
 export class Erasing extends StateNode {

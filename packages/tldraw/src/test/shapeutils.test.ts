@@ -1,4 +1,4 @@
-import { createShapeId, TLFrameShape, TLGeoShape } from '@tldraw/editor'
+import { createShapeId, TLFrameShape, TLGeoShape } from '@tldraw/tlschema'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

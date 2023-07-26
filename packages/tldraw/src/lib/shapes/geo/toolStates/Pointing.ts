@@ -1,12 +1,5 @@
-import {
-	Box2d,
-	GeoShapeGeoStyle,
-	StateNode,
-	TLEventHandlers,
-	TLGeoShape,
-	createShapeId,
-	getStarBounds,
-} from '@tldraw/editor'
+import { GeoShapeGeoStyle, TLGeoShape, createShapeId } from '@tldraw/tlschema'
+import { Box2d, StateNode, TLEventHandlers, getStarBounds } from '../../../editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'

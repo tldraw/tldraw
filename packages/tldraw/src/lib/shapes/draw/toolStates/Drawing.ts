@@ -1,22 +1,24 @@
 import {
-	DRAG_DISTANCE,
-	Matrix2d,
-	StateNode,
 	TLDefaultSizeStyle,
 	TLDrawShape,
 	TLDrawShapeSegment,
-	TLEventHandlers,
 	TLHighlightShape,
-	TLPointerEventInfo,
 	TLShapePartial,
-	Vec2d,
 	Vec2dModel,
 	createShapeId,
-	last,
+} from '@tldraw/tlschema'
+import { last } from '@tldraw/utils'
+import {
+	DRAG_DISTANCE,
+	Matrix2d,
+	StateNode,
+	TLEventHandlers,
+	TLPointerEventInfo,
+	Vec2d,
 	snapAngle,
 	toFixed,
 	uniqueId,
-} from '@tldraw/editor'
+} from '../../../editor'
 import { STROKE_SIZES } from '../../shared/default-shape-constants'
 
 type DrawableShape = TLDrawShape | TLHighlightShape

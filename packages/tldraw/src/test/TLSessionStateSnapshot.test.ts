@@ -1,10 +1,10 @@
+import react from 'react'
 import {
 	TLSessionStateSnapshot,
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
-	react,
-} from '@tldraw/editor'
+} from '../lib/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

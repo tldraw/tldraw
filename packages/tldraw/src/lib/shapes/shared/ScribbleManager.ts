@@ -1,4 +1,5 @@
-import { TLScribble, TLTickEvent, Vec2d, Vec2dModel, VecLike } from '@tldraw/editor'
+import { TLScribble, Vec2dModel } from '@tldraw/tlschema'
+import { TLTickEvent, Vec2d, VecLike } from '../../editor'
 
 /** @public */
 export class ScribbleManager implements TLScribble {

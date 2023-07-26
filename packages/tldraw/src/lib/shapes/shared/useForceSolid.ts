@@ -1,4 +1,5 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
+import { useEditor } from '../../editor'
 
 export function useForceSolid() {
 	const editor = useEditor()

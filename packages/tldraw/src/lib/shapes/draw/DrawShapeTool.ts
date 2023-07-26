@@ -1,4 +1,4 @@
-import { StateNode } from '@tldraw/editor'
+import { StateNode } from '../../editor'
 import { Drawing } from './toolStates/Drawing'
 import { Idle } from './toolStates/Idle'
 

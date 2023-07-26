@@ -1,13 +1,34 @@
 /// <reference types="react" />
-
-import * as Dialog from './lib/ui/components/primitives/Dialog'
-import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
+export {
+	EMPTY_ARRAY,
+	atom,
+	computed,
+	react,
+	track,
+	transact,
+	transaction,
+	useComputed,
+	useQuickReactor,
+	useReactor,
+	useValue,
+	whyAmIRunning,
+	type Atom,
+	type Signal,
+} from '@tldraw/state'
 // eslint-disable-next-line local/no-export-star
-export * from '@tldraw/editor'
+export * from '@tldraw/store'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/tlschema'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/utils'
+// eslint-disable-next-line local/no-export-star
+export * from '@tldraw/validate'
 export { Tldraw } from './lib/Tldraw'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { defaultTools } from './lib/defaultTools'
+// eslint-disable-next-line local/no-export-star
+export * from './lib/editor'
 // UI
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export {
@@ -123,3 +144,5 @@ export {
 } from './lib/utils/file'
 export { truncateStringWithEllipsis } from './lib/utils/text'
 export { Dialog, DropdownMenu }
+import * as Dialog from './lib/ui/components/primitives/Dialog'
+import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'

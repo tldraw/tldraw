@@ -1,5 +1,5 @@
-import { useEditor } from '@tldraw/editor'
 import { useEffect } from 'react'
+import { useEditor } from '../../editor'
 import { useToasts } from './useToastsProvider'
 
 /** @internal */

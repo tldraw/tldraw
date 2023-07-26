@@ -1,5 +1,5 @@
-import { uniqueId, useEditor } from '@tldraw/editor'
 import { useCallback, useRef } from 'react'
+import { uniqueId, useEditor } from '../../editor'
 
 /** @internal */
 export function usePrint() {

@@ -1,4 +1,5 @@
-import { createShapeId, getIndexAbove, getIndexBetween } from '@tldraw/editor'
+import { createShapeId } from '@tldraw/tlschema'
+import { getIndexAbove, getIndexBetween } from '../lib/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

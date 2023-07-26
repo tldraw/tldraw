@@ -1,11 +1,5 @@
-import {
-	Box2d,
-	TLBaseBoxShape,
-	TLResizeHandle,
-	TLResizeMode,
-	Vec2d,
-	Vec2dModel,
-} from '@tldraw/editor'
+import { Vec2dModel } from '@tldraw/tlschema'
+import { Box2d, TLBaseBoxShape, TLResizeHandle, TLResizeMode, Vec2d } from '../../editor'
 
 /** @public */
 export type ResizeBoxOptions = Partial<{

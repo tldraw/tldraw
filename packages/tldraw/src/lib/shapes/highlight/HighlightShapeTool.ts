@@ -1,5 +1,5 @@
 // shared custody
-import { StateNode } from '@tldraw/editor'
+import { StateNode } from '../../editor'
 import { Drawing } from '../draw/toolStates/Drawing'
 import { Idle } from '../draw/toolStates/Idle'
 

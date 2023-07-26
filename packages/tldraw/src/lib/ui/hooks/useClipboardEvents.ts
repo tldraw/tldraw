@@ -1,19 +1,15 @@
+import { useValue } from '@tldraw/state'
 import {
-	Editor,
 	TLArrowShape,
 	TLBookmarkShape,
-	TLContent,
 	TLEmbedShape,
 	TLGeoShape,
 	TLTextShape,
-	VecLike,
-	isNonNull,
-	uniq,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
+import { isNonNull } from '@tldraw/utils'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
+import { Editor, TLContent, VecLike, uniq, useEditor } from '../../editor'
 import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'

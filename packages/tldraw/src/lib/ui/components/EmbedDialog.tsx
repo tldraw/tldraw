@@ -1,5 +1,7 @@
-import { EMBED_DEFINITIONS, EmbedDefinition, track, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
+import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 import { useRef, useState } from 'react'
+import { useEditor } from '../../editor'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds'
 import { useAssetUrls } from '../hooks/useAssetUrls'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'

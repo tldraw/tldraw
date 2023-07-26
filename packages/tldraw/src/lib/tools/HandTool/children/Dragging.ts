@@ -1,4 +1,4 @@
-import { CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec2d } from '@tldraw/editor'
+import { CAMERA_SLIDE_FRICTION, StateNode, TLEventHandlers, Vec2d } from '../../../editor'
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'

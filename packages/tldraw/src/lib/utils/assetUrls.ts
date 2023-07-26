@@ -1,4 +1,4 @@
-import { RecursivePartial } from '@tldraw/editor'
+import { RecursivePartial } from '@tldraw/utils'
 import { useMemo } from 'react'
 import { version } from '../ui/version'
 

@@ -1,12 +1,7 @@
-import {
-	assert,
-	createShapeId,
-	TAU,
-	TLArrowShape,
-	TLArrowShapeTerminal,
-	TLShapeId,
-} from '@tldraw/editor'
+import { createShapeId, TLArrowShape, TLArrowShapeTerminal, TLShapeId } from '@tldraw/tlschema'
+import { assert } from '@tldraw/utils'
 import { TestEditor } from '../../../test/TestEditor'
+import { TAU } from '../../editor'
 
 let editor: TestEditor
 

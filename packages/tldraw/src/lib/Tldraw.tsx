@@ -1,11 +1,4 @@
-import {
-	Canvas,
-	ErrorScreen,
-	LoadingScreen,
-	RecursivePartial,
-	TldrawEditor,
-	TldrawEditorProps,
-} from '@tldraw/editor'
+import { RecursivePartial } from '@tldraw/utils'
 import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicator'
@@ -15,6 +8,7 @@ import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
 import { defaultTools } from './defaultTools'
+import { Canvas, ErrorScreen, LoadingScreen, TldrawEditor, TldrawEditorProps } from './editor'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
 import { useRegisterExternalContentHandlers } from './useRegisterExternalContentHandlers'

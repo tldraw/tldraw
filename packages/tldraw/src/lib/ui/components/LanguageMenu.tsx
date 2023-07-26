@@ -1,5 +1,5 @@
-import { useEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { useEditor } from '../../editor'
 import { TLUiTranslation } from '../hooks/useTranslation/translations'
 import { useLanguages } from '../hooks/useTranslation/useLanguages'
 import * as D from './primitives/DropdownMenu'

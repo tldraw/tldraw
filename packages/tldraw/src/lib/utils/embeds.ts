@@ -1,4 +1,4 @@
-import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/editor'
+import { EMBED_DEFINITIONS, EmbedDefinition } from '@tldraw/tlschema'
 
 // https://github.com/sindresorhus/escape-string-regexp/blob/main/index.js
 function escapeStringRegexp(string: string) {

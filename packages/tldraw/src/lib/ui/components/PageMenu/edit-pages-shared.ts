@@ -1,4 +1,5 @@
-import { Editor, getIndexAbove, getIndexBelow, getIndexBetween, TLPageId } from '@tldraw/editor'
+import { TLPageId } from '@tldraw/tlschema'
+import { Editor, getIndexAbove, getIndexBelow, getIndexBetween } from '../../../editor'
 
 export const onMovePage = (editor: Editor, id: TLPageId, from: number, to: number) => {
 	let index: string

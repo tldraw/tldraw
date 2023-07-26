@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { preventDefault, useContainer } from '@tldraw/editor'
+import { preventDefault, useContainer } from '../../../editor'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { Button, TLUiButtonProps } from './Button'

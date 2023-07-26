@@ -1,5 +1,6 @@
-import { Editor, objectMapEntries } from '@tldraw/editor'
+import { objectMapEntries } from '@tldraw/utils'
 import { useMemo } from 'react'
+import { Editor } from '../editor'
 import { ActionsProviderProps } from './hooks/useActions'
 import { ActionsMenuSchemaProviderProps } from './hooks/useActionsMenuSchema'
 import { useBreakpoint } from './hooks/useBreakpoint'

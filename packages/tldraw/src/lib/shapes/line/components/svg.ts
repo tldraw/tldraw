@@ -1,4 +1,4 @@
-import { CubicBezier2d, CubicSpline2d, Edge2d, Polyline2d, Vec2d } from '@tldraw/editor'
+import { CubicBezier2d, CubicSpline2d, Edge2d, Polyline2d, Vec2d } from '../../../editor'
 
 export function getSvgPathForEdge(edge: Edge2d, first: boolean) {
 	const { start, end } = edge

@@ -1,5 +1,6 @@
-import { TLPageId, useEditor } from '@tldraw/editor'
+import { TLPageId } from '@tldraw/tlschema'
 import { useCallback, useRef } from 'react'
+import { useEditor } from '../../../editor'
 import { Input } from '../primitives/Input'
 
 export const PageItemInput = function PageItemInput({

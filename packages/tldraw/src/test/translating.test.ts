@@ -1,13 +1,5 @@
-import {
-	GapsSnapLine,
-	PointsSnapLine,
-	SnapLine,
-	TLArrowShape,
-	TLShapeId,
-	TLShapePartial,
-	Vec2d,
-	createShapeId,
-} from '@tldraw/editor'
+import { TLArrowShape, TLShapeId, TLShapePartial, createShapeId } from '@tldraw/tlschema'
+import { GapsSnapLine, PointsSnapLine, SnapLine, Vec2d } from '../lib/editor'
 import { TestEditor } from './TestEditor'
 import { getSnapLines } from './getSnapLines'
 

@@ -1,16 +1,9 @@
 /* eslint-disable no-inner-declarations */
 
-import {
-	TLShape,
-	TLUnknownShape,
-	getPointerInfo,
-	preventDefault,
-	stopEventPropagation,
-	transact,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+import { transact, useValue } from '@tldraw/state'
+import { TLShape, TLUnknownShape } from '@tldraw/tlschema'
 import React, { useCallback, useEffect, useRef } from 'react'
+import { getPointerInfo, preventDefault, stopEventPropagation, useEditor } from '../../editor'
 import { INDENT, TextHelpers } from './TextHelpers'
 
 export function useEditableText<T extends Extract<TLShape, { props: { text: string } }>>(

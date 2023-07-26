@@ -56,7 +56,12 @@
 		"canvas-size": "^1.2.6",
 		"classnames": "^2.3.2",
 		"hotkeys-js": "^3.11.2",
-		"lz-string": "^1.4.4"
+		"lz-string": "^1.4.4",
+		"@tldraw/state": "workspace:*",
+		"@tldraw/store": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*"
 	},
 	"peerDependencies": {
 		"react": "^18",

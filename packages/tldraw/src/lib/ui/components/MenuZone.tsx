@@ -1,4 +1,5 @@
-import { track, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
+import { useEditor } from '../../editor'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useReadonly } from '../hooks/useReadonly'
 import { ActionsMenu } from './ActionsMenu'

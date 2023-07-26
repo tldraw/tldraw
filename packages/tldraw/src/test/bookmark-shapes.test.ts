@@ -1,4 +1,4 @@
-import { TLBookmarkShape, createShapeId } from '@tldraw/editor'
+import { createShapeId, TLBookmarkShape } from '@tldraw/tlschema'
 import {
 	BookmarkShapeUtil,
 	getHumanReadableAddress,

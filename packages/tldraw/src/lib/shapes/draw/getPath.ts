@@ -1,12 +1,5 @@
-import {
-	EASINGS,
-	PI,
-	SIN,
-	TLDefaultDashStyle,
-	TLDrawShape,
-	TLDrawShapeSegment,
-	Vec2d,
-} from '@tldraw/editor'
+import { TLDefaultDashStyle, TLDrawShape, TLDrawShapeSegment } from '@tldraw/tlschema'
+import { EASINGS, PI, SIN, Vec2d } from '../../editor'
 import { StrokeOptions } from '../shared/freehand/types'
 
 const PEN_EASING = (t: number) => t * 0.65 + SIN((t * PI) / 2) * 0.35

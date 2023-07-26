@@ -1,8 +1,3 @@
-import { StateNode, TLInterruptEvent, TLKeyboardEvent, TLPointerEventInfo } from '@tldraw/editor'
-import { Idle } from './children/Idle'
-import { Pointing } from './children/Pointing'
-import { ZoomBrushing } from './children/ZoomBrushing'
-
 export class ZoomTool extends StateNode {
 	static override id = 'zoom'
 	static override initial = 'idle'

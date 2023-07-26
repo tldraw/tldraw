@@ -1,17 +1,16 @@
 import { act, render, screen } from '@testing-library/react'
+import { TLBaseShape, createShapeId } from '@tldraw/tlschema'
+import { noop } from '@tldraw/utils'
+import { defaultTools } from '../lib/defaultTools'
 import {
 	BaseBoxShapeTool,
 	BaseBoxShapeUtil,
 	Canvas,
 	Editor,
 	HTMLContainer,
-	TLBaseShape,
 	TldrawEditor,
-	createShapeId,
 	createTLStore,
-	noop,
-} from '@tldraw/editor'
-import { defaultTools } from '../lib/defaultTools'
+} from '../lib/editor'
 import { GeoShapeUtil } from '../lib/shapes/geo/GeoShapeUtil'
 
 let originalFetch: typeof window.fetch

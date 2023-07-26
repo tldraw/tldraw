@@ -1,5 +1,5 @@
-import { EASINGS, TLScribbleComponent, getSvgPathFromPoints } from '@tldraw/editor'
 import classNames from 'classnames'
+import { EASINGS, TLScribbleComponent, getSvgPathFromPoints } from '../editor'
 import { getStroke } from '../shapes/shared/freehand/getStroke'
 
 export const TldrawScribble: TLScribbleComponent = ({

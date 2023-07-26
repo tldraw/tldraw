@@ -1,15 +1,12 @@
+import { TLGroupShape, TLShape, TLTextShape, createShapeId } from '@tldraw/tlschema'
 import {
 	HIT_TEST_MARGIN,
 	StateNode,
 	TLClickEventInfo,
 	TLEventHandlers,
-	TLGroupShape,
 	TLKeyboardEventInfo,
-	TLShape,
-	TLTextShape,
 	Vec2d,
-	createShapeId,
-} from '@tldraw/editor'
+} from '../../../editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
 import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'

@@ -1,16 +1,14 @@
+import { useValue } from '@tldraw/state'
 import {
 	DefaultColorStyle,
-	SharedStyle,
 	StyleProp,
 	TLDefaultColorStyle,
-	clamp,
 	getDefaultColorTheme,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
 import classNames from 'classnames'
 import * as React from 'react'
 import { useRef } from 'react'
+import { SharedStyle, clamp, useEditor } from '../../../editor'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TLUiIconType } from '../../icon-types'

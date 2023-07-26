@@ -1,4 +1,5 @@
-import { LANGUAGES, TLLanguage, useEditor } from '@tldraw/editor'
+import { LANGUAGES, TLLanguage } from '@tldraw/tlschema'
+import { useEditor } from '../../../editor'
 
 /** @internal */
 export function useLanguages() {

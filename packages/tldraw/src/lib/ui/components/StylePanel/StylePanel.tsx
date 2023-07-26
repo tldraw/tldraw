@@ -1,3 +1,4 @@
+import { useValue } from '@tldraw/state'
 import {
 	ArrowShapeArrowheadEndStyle,
 	ArrowShapeArrowheadStartStyle,
@@ -8,18 +9,19 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
-	Editor,
 	GeoShapeGeoStyle,
 	LineShapeSplineStyle,
+	StyleProp,
+} from '@tldraw/tlschema'
+import { minBy } from '@tldraw/utils'
+import React, { useCallback } from 'react'
+import {
+	Editor,
 	ReadonlySharedStyleMap,
 	SharedStyle,
 	SharedStyleMap,
-	StyleProp,
-	minBy,
 	useEditor,
-	useValue,
-} from '@tldraw/editor'
-import React, { useCallback } from 'react'
+} from '../../../editor'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'

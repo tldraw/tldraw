@@ -1,5 +1,6 @@
-import { useEditor, useValue } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import { useCallback, useEffect, useRef } from 'react'
+import { useEditor } from '../../editor'
 import { useEvents } from './useEventsProvider'
 
 /** @public */

@@ -1,13 +1,5 @@
-import {
-	Box2d,
-	Editor,
-	PI2,
-	TLInstancePresence,
-	TLShapeId,
-	Vec2d,
-	clamp,
-	uniqueId,
-} from '@tldraw/editor'
+import { TLInstancePresence, TLShapeId } from '@tldraw/tlschema'
+import { Box2d, Editor, PI2, Vec2d, clamp, uniqueId } from '../../../editor'
 
 export class MinimapManager {
 	constructor(public editor: Editor, private dpr: number) {}

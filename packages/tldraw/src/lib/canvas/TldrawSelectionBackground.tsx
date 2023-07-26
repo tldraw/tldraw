@@ -1,9 +1,5 @@
-import {
-	DefaultSelectionBackground,
-	TLSelectionBackgroundComponent,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
+import { DefaultSelectionBackground, TLSelectionBackgroundComponent, useEditor } from '../editor'
 
 export const TldrawSelectionBackground: TLSelectionBackgroundComponent = ({ bounds, rotation }) => {
 	const editor = useEditor()

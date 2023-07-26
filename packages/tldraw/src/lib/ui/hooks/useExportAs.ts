@@ -1,5 +1,6 @@
-import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
+import { TLFrameShape, TLShapeId } from '@tldraw/tlschema'
 import { useCallback } from 'react'
+import { useEditor } from '../../editor'
 import {
 	TLExportType,
 	downloadDataURLAsFile,

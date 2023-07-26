@@ -1,4 +1,5 @@
-import { Editor, HIT_TEST_MARGIN, TLGroupShape } from '@tldraw/editor'
+import { TLGroupShape } from '@tldraw/tlschema'
+import { Editor, HIT_TEST_MARGIN } from '../../editor'
 import { selectOnCanvasPointerUp } from './selectOnCanvasPointerUp'
 
 export function selectOnDoubleClick(editor: Editor) {

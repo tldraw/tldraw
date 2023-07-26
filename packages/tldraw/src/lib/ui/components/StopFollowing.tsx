@@ -1,4 +1,5 @@
-import { track, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
+import { useEditor } from '../../editor'
 import { useActions } from '../hooks/useActions'
 import { Button } from './primitives/Button'
 

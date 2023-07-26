@@ -1,5 +1,5 @@
-import { Editor, useEditor } from '@tldraw/editor'
 import * as React from 'react'
+import { Editor, useEditor } from '../../editor'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useMenuSchema } from '../hooks/useMenuSchema'

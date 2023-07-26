@@ -1,10 +1,5 @@
-import {
-	StateNode,
-	TLCursorType,
-	TLEventHandlers,
-	TLPointerEventInfo,
-	TLSelectionHandle,
-} from '@tldraw/editor'
+import { TLCursorType } from '@tldraw/tlschema'
+import { StateNode, TLEventHandlers, TLPointerEventInfo, TLSelectionHandle } from '../../../editor'
 
 export const CursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
 	bottom: 'ns-resize',

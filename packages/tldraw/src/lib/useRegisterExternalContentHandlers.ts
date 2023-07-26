@@ -1,21 +1,16 @@
 import {
 	AssetRecordType,
-	Editor,
-	MediaHelpers,
 	TLAsset,
 	TLAssetId,
 	TLEmbedShape,
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
-	Vec2d,
-	VecLike,
-	compact,
 	createShapeId,
-	getHashForString,
-	useEditor,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
+import { MediaHelpers, compact, getHashForString } from '@tldraw/utils'
 import { useEffect } from 'react'
+import { Editor, Vec2d, VecLike, useEditor } from './editor'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
 import {
 	ACCEPTED_IMG_TYPE,

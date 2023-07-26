@@ -1,8 +1,17 @@
 import {
 	Box2dModel,
+	PageRecordType,
+	TLShape,
+	TLShapeId,
+	TLShapePartial,
+	createShapeId,
+} from '@tldraw/tlschema'
+import { defaultShapeTools } from '../lib/defaultShapeTools'
+import { defaultShapeUtils } from '../lib/defaultShapeUtils'
+import { defaultTools } from '../lib/defaultTools'
+import {
 	Editor,
 	Matrix2d,
-	PageRecordType,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	RequiredKeys,
 	RotateCorner,
@@ -14,19 +23,12 @@ import {
 	TLKeyboardEventInfo,
 	TLPinchEventInfo,
 	TLPointerEventInfo,
-	TLShape,
-	TLShapeId,
-	TLShapePartial,
 	TLWheelEventInfo,
 	Vec2d,
 	VecLike,
-	createShapeId,
 	createTLStore,
 	rotateSelectionHandle,
-} from '@tldraw/editor'
-import { defaultShapeTools } from '../lib/defaultShapeTools'
-import { defaultShapeUtils } from '../lib/defaultShapeUtils'
-import { defaultTools } from '../lib/defaultTools'
+} from '../lib/editor'
 import { shapesFromJsx } from './test-jsx'
 
 jest.useFakeTimers()

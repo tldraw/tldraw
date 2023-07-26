@@ -1,9 +1,5 @@
-import {
-	ShapeIndicator,
-	TLHoveredShapeIndicatorComponent,
-	useEditor,
-	useValue,
-} from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
+import { ShapeIndicator, TLHoveredShapeIndicatorComponent, useEditor } from '../editor'
 
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent = ({ shapeId }) => {
 	const editor = useEditor()

@@ -1,7 +1,5 @@
 import {
 	AssetRecordType,
-	Editor,
-	MAX_SHAPES_PER_PAGE,
 	PageRecordType,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
@@ -21,11 +19,10 @@ import {
 	TLShapeId,
 	TLTextShape,
 	TLVideoShape,
-	Vec2d,
 	Vec2dModel,
-	clamp,
 	createShapeId,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
+import { Editor, MAX_SHAPES_PER_PAGE, Vec2d, clamp } from '../editor'
 
 const TLDRAW_V1_VERSION = 15.5
 

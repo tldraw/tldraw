@@ -1,4 +1,4 @@
-import { Vec2d, VecLike } from '@tldraw/editor'
+import { Vec2d, VecLike } from '../../../editor'
 import type { StrokeOptions, StrokePoint } from './types'
 
 const MIN_START_PRESSURE = 0.025

@@ -1,10 +1,7 @@
 import {
 	AssetRecordType,
-	Box2d,
-	Editor,
 	TLArrowShapeArrowheadStyle,
 	TLAssetId,
-	TLContent,
 	TLDefaultColorStyle,
 	TLDefaultDashStyle,
 	TLDefaultFillStyle,
@@ -13,15 +10,20 @@ import {
 	TLDefaultSizeStyle,
 	TLOpacityType,
 	TLShapeId,
+	createShapeId,
+	isShapeId,
+} from '@tldraw/tlschema'
+import { compact } from '@tldraw/utils'
+import {
+	Box2d,
+	Editor,
+	TLContent,
 	Vec2d,
 	VecLike,
-	compact,
-	createShapeId,
 	getIndexAbove,
 	getIndices,
-	isShapeId,
 	uniqueId,
-} from '@tldraw/editor'
+} from '../../../editor'
 
 /**
  * When the clipboard has excalidraw content, paste it into the scene.

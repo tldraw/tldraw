@@ -1,5 +1,7 @@
-import { DefaultColorStyle, getDefaultColorTheme, useEditor, useValue } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
+import { DefaultColorStyle, getDefaultColorTheme } from '@tldraw/tlschema'
 import { useCallback } from 'react'
+import { useEditor } from '../../editor'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { StylePanel } from './StylePanel/StylePanel'
 import { Button } from './primitives/Button'

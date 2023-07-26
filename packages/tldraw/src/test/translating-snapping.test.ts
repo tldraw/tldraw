@@ -1,4 +1,5 @@
-import { Geometry2d, Rectangle2d, ShapeUtil, SnapLine, createShapeId } from '@tldraw/editor'
+import { createShapeId } from '@tldraw/tlschema'
+import { Geometry2d, Rectangle2d, ShapeUtil, SnapLine } from '../lib/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

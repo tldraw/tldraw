@@ -1,4 +1,5 @@
-import { StateNode, TLEventHandlers, TLGeoShape, TLGroupShape, TLTextShape } from '@tldraw/editor'
+import { TLGeoShape, TLGroupShape, TLTextShape } from '@tldraw/tlschema'
+import { StateNode, TLEventHandlers } from '../../../editor'
 import { updateHoveredId } from '../../../tools/selection-logic/updateHoveredId'
 
 export class Idle extends StateNode {

@@ -1,17 +1,16 @@
+import { track } from '@tldraw/state'
+import { TLEmbedShape, TLTextShape } from '@tldraw/tlschema'
+import classNames from 'classnames'
+import { useRef } from 'react'
 import {
 	RotateCorner,
-	TLEmbedShape,
 	TLSelectionForegroundComponent,
-	TLTextShape,
 	getCursor,
 	toDomPrecision,
-	track,
 	useEditor,
 	useSelectionEvents,
 	useTransform,
-} from '@tldraw/editor'
-import classNames from 'classnames'
-import { useRef } from 'react'
+} from '../editor'
 import { useReadonly } from '../ui/hooks/useReadonly'
 import { CropHandles } from './CropHandles'
 

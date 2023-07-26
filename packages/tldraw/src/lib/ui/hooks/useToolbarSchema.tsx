@@ -1,5 +1,7 @@
-import { Editor, compact, featureFlags, useEditor, useValue } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
+import { compact } from '@tldraw/utils'
 import React from 'react'
+import { Editor, featureFlags, useEditor } from '../../editor'
 import { TLUiToolItem, TLUiToolsContextType, useTools } from './useTools'
 
 /** @public */

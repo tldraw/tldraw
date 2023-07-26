@@ -1,12 +1,11 @@
 import {
-	Matrix2d,
-	PI,
 	TLArrowShape,
 	TLArrowShapeProps,
 	TLShapeId,
 	TLShapePartial,
 	createShapeId,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
+import { Matrix2d, PI } from '../lib/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor

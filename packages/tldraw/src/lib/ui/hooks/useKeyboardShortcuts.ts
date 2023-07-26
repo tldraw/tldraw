@@ -1,6 +1,7 @@
-import { preventDefault, useEditor, useValue } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
+import { preventDefault, useEditor } from '../../editor'
 import { useActions } from './useActions'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'

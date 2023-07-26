@@ -1,4 +1,4 @@
-import { createShapeId, TLImageShape } from '@tldraw/editor'
+import { createShapeId, TLImageShape } from '@tldraw/tlschema'
 import { MIN_CROP_SIZE } from '../lib/tools/SelectTool/children/Crop/crop-constants'
 import { TestEditor } from './TestEditor'
 

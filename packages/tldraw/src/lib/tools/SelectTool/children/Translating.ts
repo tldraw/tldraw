@@ -1,19 +1,16 @@
+import { PageRecordType, TLShape, TLShapePartial, isPageId } from '@tldraw/tlschema'
+import { compact } from '@tldraw/utils'
 import {
 	Box2d,
 	Editor,
 	Matrix2d,
 	Matrix2dModel,
-	PageRecordType,
 	SnapPoint,
 	StateNode,
 	TLEventHandlers,
 	TLPointerEventInfo,
-	TLShape,
-	TLShapePartial,
 	Vec2d,
-	compact,
-	isPageId,
-} from '@tldraw/editor'
+} from '../../../editor'
 import { DragAndDropManager } from '../DragAndDropManager'
 
 export class Translating extends StateNode {

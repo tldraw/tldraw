@@ -1,12 +1,6 @@
-import {
-	PI,
-	TLDefaultSizeStyle,
-	Vec2d,
-	Vec2dModel,
-	getPointOnCircle,
-	rng,
-	shortAngleDist,
-} from '@tldraw/editor'
+import { TLDefaultSizeStyle, Vec2dModel } from '@tldraw/tlschema'
+import { rng } from '@tldraw/utils'
+import { PI, Vec2d, getPointOnCircle, shortAngleDist } from '../../editor'
 
 function getPillCircumference(width: number, height: number) {
 	const radius = Math.min(width, height) / 2

@@ -1,19 +1,18 @@
+import { track, useQuickReactor } from '@tldraw/state'
+import { TLShapeId } from '@tldraw/tlschema'
+import * as React from 'react'
 import {
 	ANIMATION_MEDIUM_MS,
 	Box2d,
 	TLPointerEventInfo,
-	TLShapeId,
 	Vec2d,
 	getPointerInfo,
 	intersectPolygonPolygon,
 	normalizeWheel,
 	setPointerCapture,
-	track,
 	useContainer,
 	useEditor,
-	useQuickReactor,
-} from '@tldraw/editor'
-import * as React from 'react'
+} from '../../../editor'
 import { MinimapManager } from './MinimapManager'
 
 export interface MinimapProps {

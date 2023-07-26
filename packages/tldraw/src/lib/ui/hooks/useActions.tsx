@@ -1,22 +1,24 @@
 import {
-	ANIMATION_MEDIUM_MS,
-	Box2d,
-	Editor,
-	TAU,
 	TLBookmarkShape,
 	TLEmbedShape,
 	TLGroupShape,
 	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
+	createShapeId,
+} from '@tldraw/tlschema'
+import { compact } from '@tldraw/utils'
+import * as React from 'react'
+import {
+	ANIMATION_MEDIUM_MS,
+	Box2d,
+	Editor,
+	TAU,
 	Vec2d,
 	approximately,
-	compact,
-	createShapeId,
 	openWindow,
 	useEditor,
-} from '@tldraw/editor'
-import * as React from 'react'
+} from '../../editor'
 import { getEmbedInfo } from '../../utils/embeds'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'

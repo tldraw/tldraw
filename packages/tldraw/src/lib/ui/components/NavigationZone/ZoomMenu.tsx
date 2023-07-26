@@ -1,5 +1,6 @@
-import { ANIMATION_MEDIUM_MS, track, useEditor } from '@tldraw/editor'
+import { track } from '@tldraw/state'
 import * as React from 'react'
+import { ANIMATION_MEDIUM_MS, useEditor } from '../../../editor'
 import { useActions } from '../../hooks/useActions'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'

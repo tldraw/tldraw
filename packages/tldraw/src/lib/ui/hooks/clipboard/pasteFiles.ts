@@ -1,4 +1,4 @@
-import { Editor, VecLike } from '@tldraw/editor'
+import { Editor, VecLike } from '../../../editor'
 
 /**
  * When the clipboard has a file, create an image shape from the file and paste it into the scene

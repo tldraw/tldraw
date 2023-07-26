@@ -1,10 +1,9 @@
 import {
-	Box2d,
 	Box2dModel,
-	Editor,
 	TLDefaultHorizontalAlignStyle,
 	TLDefaultVerticalAlignStyle,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
+import { Box2d, Editor } from '../../editor'
 
 function correctSpacesToNbsp(input: string) {
 	return input.replace(/\s/g, '\xa0')

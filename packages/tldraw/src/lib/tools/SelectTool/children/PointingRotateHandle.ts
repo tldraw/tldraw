@@ -1,4 +1,4 @@
-import { RotateCorner, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { RotateCorner, StateNode, TLEventHandlers, TLPointerEventInfo } from '../../../editor'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
