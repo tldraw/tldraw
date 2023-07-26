@@ -30,15 +30,16 @@ export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }
 	const { ShapeIndicatorErrorFallback } = useEditorComponents()
 
 	if (!shape.shape) return null
+
 	return (
 		<OptionalErrorBoundary
 			fallback={ShapeIndicatorErrorFallback}
-			onError={(error) =>
+			onError={(error) => {
 				handleEditorError(editor, error, {
 					origin: 'react.shapeIndicator',
 					willCrashApp: false,
 				})
-			}
+			}}
 		>
 			<EvenInnererIndicator
 				key={shape.shape.id}

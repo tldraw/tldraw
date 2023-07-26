@@ -466,6 +466,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	dispose() {
 		this.disposables.forEach((dispose) => dispose())
 		this.disposables.clear()
+		this.removeAllListeners()
 	}
 
 	/* ------------------- Shape Utils ------------------ */

@@ -1029,7 +1029,7 @@ export class ErrorBoundary extends React_3.Component<React_3.PropsWithRef<React_
         error: Error;
     };
     // (undocumented)
-    render(): boolean | JSX.Element | null | number | React_3.ReactFragment | string | undefined;
+    render(): any;
     // (undocumented)
     state: TLErrorBoundaryState;
 }
@@ -1469,9 +1469,7 @@ export function normalizeWheel(event: React.WheelEvent<HTMLElement> | WheelEvent
 export function openWindow(url: string, target?: string): void;
 
 // @internal (undocumented)
-export function OptionalErrorBoundary({ children, fallback, ...props }: Omit<TLErrorBoundaryProps, 'fallback'> & {
-    fallback: TLErrorFallbackComponent;
-}): JSX.Element;
+export const OptionalErrorBoundary: React_3.ComponentType<RequiredKeys<TLErrorBoundaryProps, 'fallback'>>;
 
 // @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
@@ -2157,7 +2155,7 @@ export type TLEnterEventHandler = (info: any, from: string) => void;
 // @public (undocumented)
 export interface TLErrorBoundaryProps {
     // (undocumented)
-    children: React_3.ReactNode;
+    children: any;
     // (undocumented)
     fallback: TLErrorFallbackComponent;
     // (undocumented)

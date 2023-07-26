@@ -1,14 +1,7 @@
 import { SerializedStore, Store } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
-import React, {
-	memo,
-	useCallback,
-	useLayoutEffect,
-	useMemo,
-	useState,
-	useSyncExternalStore,
-} from 'react'
+import React, { memo, useLayoutEffect, useMemo, useState } from 'react'
 
 import classNames from 'classnames'
 import { Canvas } from './components/Canvas'
@@ -254,6 +247,7 @@ function TldrawEditorWithReadyStore({
 	const { ErrorFallback } = useEditorComponents()
 	const container = useContainer()
 	const [editor, setEditor] = useState<Editor | null>(null)
+	const [crashingError, setCrashingError] = useState<unknown>(null)
 
 	useLayoutEffect(() => {
 		const editor = new Editor({
@@ -267,6 +261,7 @@ function TldrawEditorWithReadyStore({
 		;(window as any).app = editor
 		;(window as any).editor = editor
 		setEditor(editor)
+		editor.on('crash', (error) => setCrashingError(error))
 
 		return () => {
 			editor.dispose()
@@ -289,22 +284,6 @@ function TldrawEditorWithReadyStore({
 	React.useLayoutEffect(() => {
 		if (editor) return onMountEvent?.(editor)
 	}, [editor, onMountEvent])
-
-	const crashingError = useSyncExternalStore(
-		useCallback(
-			(onStoreChange) => {
-				if (editor) {
-					editor.on('crash', onStoreChange)
-					return () => editor.off('crash', onStoreChange)
-				}
-				return () => {
-					// noop
-				}
-			},
-			[editor]
-		),
-		() => editor?.crashingError ?? null
-	)
 
 	if (!editor) {
 		return null
