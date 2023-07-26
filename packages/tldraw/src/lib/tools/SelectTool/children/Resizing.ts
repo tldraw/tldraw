@@ -410,7 +410,7 @@ export class Resizing extends StateNode {
 			selectionRotation,
 			selectedShapeIds,
 			canShapesDeform,
-			initialSelectionPageBounds: this.editor.selectedPageBounds!,
+			initialSelectionPageBounds: this.editor.selectionPageBounds!,
 		}
 	}
 

@@ -309,12 +309,12 @@ function getTranslatingSnapshot(editor: Editor) {
 		averagePagePoint: Vec2d.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
-		initialPageBounds: editor.selectedPageBounds!,
+		initialPageBounds: editor.selectionPageBounds!,
 		initialSnapPoints:
 			editor.selectedShapeIds.length === 1
 				? editor.snaps.snapPointsCache.get(editor.selectedShapeIds[0])!
-				: editor.selectedPageBounds
-				? editor.selectedPageBounds.snapPoints.map((p, i) => ({
+				: editor.selectionPageBounds
+				? editor.selectionPageBounds.snapPoints.map((p, i) => ({
 						id: 'selection:' + i,
 						x: p.x,
 						y: p.y,

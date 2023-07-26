@@ -73,14 +73,14 @@ describe('When a shape is selected...', () => {
 		editor.setSelectedShapeIds([ids.boxA])
 
 		editor.keyDown('ArrowUp')
-		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 9 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 10, y: 9 })
 		editor.keyUp('ArrowUp')
 
 		editor.undo()
-		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 10 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 10, y: 10 })
 
 		editor.redo()
-		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 9 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 10, y: 9 })
 	})
 
 	it('nudges and holds', () => {
@@ -93,34 +93,34 @@ describe('When a shape is selected...', () => {
 		editor.keyRepeat('ArrowUp')
 		editor.keyUp('ArrowUp')
 
-		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 5 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 10, y: 5 })
 
 		// Undoing should go back to the keydown state, all those
 		// repeats should be ephemeral and squashed down
 		editor.undo()
-		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 10 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 10, y: 10 })
 
 		editor.redo()
-		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 5 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 10, y: 5 })
 	})
 
 	it('nudges a shape correctly', () => {
 		editor.setSelectedShapeIds([ids.boxA])
 
 		editor.keyDown('ArrowUp')
-		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 9 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 10, y: 9 })
 		editor.keyUp('ArrowUp')
 
 		editor.keyDown('ArrowRight')
-		expect(editor.selectedPageBounds).toMatchObject({ x: 11, y: 9 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 11, y: 9 })
 		editor.keyUp('ArrowRight')
 
 		editor.keyDown('ArrowDown')
-		expect(editor.selectedPageBounds).toMatchObject({ x: 11, y: 10 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 11, y: 10 })
 		editor.keyUp('ArrowDown')
 
 		editor.keyDown('ArrowLeft')
-		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 10 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 10, y: 10 })
 		editor.keyUp('ArrowLeft')
 	})
 })
@@ -141,13 +141,13 @@ describe('When a shape is rotated...', () => {
 
 		// Here's the selection page bounds and shape before we nudge it
 		editor.setSelectedShapeIds([ids.boxA])
-		expect(editor.selectedPageBounds).toCloselyMatchObject({ x: 10, y: 10, w: 100, h: 100 })
+		expect(editor.selectionPageBounds).toCloselyMatchObject({ x: 10, y: 10, w: 100, h: 100 })
 		expect(editor.getShape(ids.boxA)).toCloselyMatchObject({ x: 10, y: -10 })
 
 		// Select box A and move it up. The page bounds should move up, but the
 		// shape should move left (since its parent is rotated 90 degrees)
 		editor.keyDown('ArrowUp')
-		expect(editor.selectedPageBounds).toMatchObject({ x: 10, y: 9, w: 100, h: 100 })
+		expect(editor.selectionPageBounds).toMatchObject({ x: 10, y: 9, w: 100, h: 100 })
 		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 9, y: -10 })
 		editor.keyUp('ArrowUp')
 	})
