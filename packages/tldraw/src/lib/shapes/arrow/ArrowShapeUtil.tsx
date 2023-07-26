@@ -571,7 +571,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
 		)
 		const maskEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
-		const includeMask = maskStartArrowhead || maskEndArrowhead || !!labelGeometry
 
 		// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
 		// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
@@ -580,44 +579,42 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return (
 			<>
 				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
-					{includeMask && (
-						<defs>
-							<mask id={maskId}>
+					<defs>
+						<mask id={maskId}>
+							<rect
+								x={toDomPrecision(-100 + bounds.minX)}
+								y={toDomPrecision(-100 + bounds.minY)}
+								width={toDomPrecision(bounds.width + 200)}
+								height={toDomPrecision(bounds.height + 200)}
+								fill="white"
+							/>
+							{labelGeometry && (
 								<rect
-									x={toDomPrecision(-100 + bounds.minX)}
-									y={toDomPrecision(-100 + bounds.minY)}
-									width={toDomPrecision(bounds.width + 200)}
-									height={toDomPrecision(bounds.height + 200)}
-									fill="white"
+									x={labelGeometry.x}
+									y={labelGeometry.y}
+									width={labelGeometry.w}
+									height={labelGeometry.h}
+									fill="black"
+									rx={4}
+									ry={4}
 								/>
-								{labelGeometry && (
-									<rect
-										x={labelGeometry.x}
-										y={labelGeometry.y}
-										width={labelGeometry.w}
-										height={labelGeometry.h}
-										fill="black"
-										rx={4}
-										ry={4}
-									/>
-								)}
-								{as && maskStartArrowhead && (
-									<path
-										d={as}
-										fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'}
-										stroke="none"
-									/>
-								)}
-								{ae && maskEndArrowhead && (
-									<path
-										d={ae}
-										fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'}
-										stroke="none"
-									/>
-								)}
-							</mask>
-						</defs>
-					)}
+							)}
+							{as && maskStartArrowhead && (
+								<path
+									d={as}
+									fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'}
+									stroke="none"
+								/>
+							)}
+							{ae && maskEndArrowhead && (
+								<path
+									d={ae}
+									fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'}
+									stroke="none"
+								/>
+							)}
+						</mask>
+					</defs>
 					<g
 						fill="none"
 						stroke={theme[shape.props.color].solid}
@@ -628,17 +625,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					>
 						{handlePath}
 						{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
-						<g {...(includeMask ? { mask: `url(#${maskId})` } : undefined)}>
-							{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
-							{includeMask && (
-								<rect
-									x={toDomPrecision(bounds.minX - 100)}
-									y={toDomPrecision(bounds.minY - 100)}
-									width={toDomPrecision(bounds.width + 200)}
-									height={toDomPrecision(bounds.height + 200)}
-									opacity={0}
-								/>
-							)}
+						<g mask={`url(#${maskId})`}>
+							<rect
+								x={toDomPrecision(bounds.minX - 100)}
+								y={toDomPrecision(bounds.minY - 100)}
+								width={toDomPrecision(bounds.width + 200)}
+								height={toDomPrecision(bounds.height + 200)}
+								opacity={0}
+							/>
 							<path
 								d={path}
 								strokeDasharray={strokeDasharray}
