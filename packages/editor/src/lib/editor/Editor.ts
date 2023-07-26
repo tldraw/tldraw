@@ -39,7 +39,6 @@ import {
 } from '@tldraw/tlschema'
 import {
 	JsonObject,
-	annotateError,
 	assert,
 	compact,
 	debounce,
@@ -87,6 +86,7 @@ import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
+import { handleEditorError } from '../utils/errors'
 import { getIncrementedName } from '../utils/getIncrementedName'
 import { getReorderingShapesChanges } from '../utils/reorderShapes'
 import {
@@ -515,7 +515,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this,
 		() => this._complete(),
 		(error) => {
-			this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
+			handleEditorError(this, error, { origin: 'history.batch', willCrashApp: true })
 			this.crash(error)
 		}
 	)
@@ -942,68 +942,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/* --------------------- Errors --------------------- */
-
-	/** @internal */
-	annotateError(
-		error: unknown,
-		{
-			origin,
-			willCrashApp,
-			tags,
-			extras,
-		}: {
-			origin: string
-			willCrashApp: boolean
-			tags?: Record<string, string | boolean | number>
-			extras?: Record<string, unknown>
-		}
-	) {
-		const defaultAnnotations = this.createErrorAnnotations(origin, willCrashApp)
-		annotateError(error, {
-			tags: { ...defaultAnnotations.tags, ...tags },
-			extras: { ...defaultAnnotations.extras, ...extras },
-		})
-		if (willCrashApp) {
-			this.store.markAsPossiblyCorrupted()
-		}
-	}
-
-	/** @internal */
-	createErrorAnnotations(
-		origin: string,
-		willCrashApp: boolean | 'unknown'
-	): {
-		tags: { origin: string; willCrashApp: boolean | 'unknown' }
-		extras: {
-			activeStateNode?: string
-			selectedShapes?: TLUnknownShape[]
-			editingShape?: TLUnknownShape
-			inputs?: Record<string, unknown>
-		}
-	} {
-		try {
-			return {
-				tags: {
-					origin: origin,
-					willCrashApp,
-				},
-				extras: {
-					activeStateNode: this.root.path.value,
-					selectedShapes: this.selectedShapes,
-					editingShape: this.editingShapeId ? this.getShape(this.editingShapeId) : undefined,
-					inputs: this.inputs,
-				},
-			}
-		} catch {
-			return {
-				tags: {
-					origin: origin,
-					willCrashApp,
-				},
-				extras: {},
-			}
-		}
-	}
 
 	/** @internal */
 	private _crashingError: unknown | null = null

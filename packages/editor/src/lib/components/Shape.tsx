@@ -5,6 +5,7 @@ import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Matrix2d } from '../primitives/Matrix2d'
+import { handleEditorError } from '../utils/errors'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
@@ -96,7 +97,7 @@ export const Shape = track(function Shape({
 
 	const annotateError = React.useCallback(
 		(error: any) => {
-			editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
+			handleEditorError(editor, error, { origin: 'react.shape', willCrashApp: false })
 		},
 		[editor]
 	)

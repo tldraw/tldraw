@@ -32,6 +32,7 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
+import { handleEditorError } from './utils/errors'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
@@ -319,7 +320,7 @@ function TldrawEditorWithReadyStore({
 		<OptionalErrorBoundary
 			fallback={ErrorFallback as any}
 			onError={(error) =>
-				editor.annotateError(error, { origin: 'react.tldraw', willCrashApp: true })
+				handleEditorError(editor, error, { origin: 'react.tldraw', willCrashApp: true })
 			}
 		>
 			{crashingError ? (

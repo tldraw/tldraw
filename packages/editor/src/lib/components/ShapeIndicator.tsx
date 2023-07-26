@@ -6,6 +6,7 @@ import { useEditor } from '../..'
 import type { Editor } from '../editor/Editor'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditorComponents } from '../hooks/useEditorComponents'
+import { handleEditorError } from '../utils/errors'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 class ShapeWithPropsEquality {
@@ -33,7 +34,10 @@ export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }
 		<OptionalErrorBoundary
 			fallback={ShapeIndicatorErrorFallback}
 			onError={(error) =>
-				editor.annotateError(error, { origin: 'react.shapeIndicator', willCrashApp: false })
+				handleEditorError(editor, error, {
+					origin: 'react.shapeIndicator',
+					willCrashApp: false,
+				})
 			}
 		>
 			<EvenInnererIndicator

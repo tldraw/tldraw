@@ -16,6 +16,7 @@ import {
 	UnknownRecord,
 	createTLStore,
 	exhaustiveSwitchError,
+	handleEditorError,
 	partition,
 	transact,
 } from '@tldraw/editor'
@@ -229,7 +230,7 @@ export async function parseAndLoadDocument(
 		let description
 		switch (parseFileResult.error.type) {
 			case 'notATldrawFile':
-				editor.annotateError(parseFileResult.error.cause, {
+				handleEditorError(editor, parseFileResult.error.cause, {
 					origin: 'file-system.open.parse',
 					willCrashApp: false,
 					tags: { parseErrorType: parseFileResult.error.type },
@@ -248,7 +249,7 @@ export async function parseAndLoadDocument(
 				}
 				break
 			case 'invalidRecords':
-				editor.annotateError(parseFileResult.error.cause, {
+				handleEditorError(editor, parseFileResult.error.cause, {
 					origin: 'file-system.open.parse',
 					willCrashApp: false,
 					tags: { parseErrorType: parseFileResult.error.type },
