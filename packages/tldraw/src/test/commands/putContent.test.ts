@@ -1,4 +1,4 @@
-import { TLContent, structuredClone } from '@tldraw/editor'
+import { TLContent } from '../../lib/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

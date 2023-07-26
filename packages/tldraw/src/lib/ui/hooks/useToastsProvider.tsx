@@ -1,5 +1,5 @@
-import { Editor, uniqueId } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
+import { Editor, uniqueId } from '../../editor'
 
 /** @public */
 export interface TLUiToast {

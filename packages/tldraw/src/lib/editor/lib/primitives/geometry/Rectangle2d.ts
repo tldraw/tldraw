@@ -34,7 +34,7 @@ export class Rectangle2d extends Polygon2d {
 		this.h = height
 	}
 
-	getBounds() {
+	override getBounds() {
 		return new Box2d(this.x, this.y, this.w, this.h)
 	}
 }

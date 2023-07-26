@@ -1,16 +1,18 @@
 import {
 	DefaultFontFamilies,
+	TLNoteShape,
+	getDefaultColorTheme,
+	noteShapeMigrations,
+	noteShapeProps,
+} from '@tldraw/tlschema'
+import {
 	Editor,
 	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
-	TLNoteShape,
 	TLOnEditEndHandler,
-	getDefaultColorTheme,
-	noteShapeMigrations,
-	noteShapeProps,
 	toDomPrecision,
-} from '@tldraw/editor'
+} from '../../editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { TextLabel } from '../shared/TextLabel'

@@ -1,19 +1,22 @@
 /* eslint-disable react-hooks/rules-of-hooks */
+
+import { useValue } from '@tldraw/state'
+import {
+	TLImageShape,
+	TLShapePartial,
+	imageShapeMigrations,
+	imageShapeProps,
+} from '@tldraw/tlschema'
+import { deepCopy } from '@tldraw/utils'
+import { useEffect, useState } from 'react'
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
-	TLImageShape,
 	TLOnDoubleClickHandler,
-	TLShapePartial,
 	Vec2d,
-	deepCopy,
-	imageShapeMigrations,
-	imageShapeProps,
 	toDomPrecision,
 	useIsCropping,
-	useValue,
-} from '@tldraw/editor'
-import { useEffect, useState } from 'react'
+} from '../../editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 

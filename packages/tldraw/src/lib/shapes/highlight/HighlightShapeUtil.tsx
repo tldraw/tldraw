@@ -1,19 +1,15 @@
 /* eslint-disable react-hooks/rules-of-hooks */
+
 import {
-	Polyline2d,
-	SVGContainer,
-	ShapeUtil,
 	TLDefaultColorTheme,
 	TLDrawShapeSegment,
 	TLHighlightShape,
-	TLOnResizeHandler,
-	VecLike,
 	getDefaultColorTheme,
 	highlightShapeMigrations,
 	highlightShapeProps,
-	last,
-	rng,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
+import { last, rng } from '@tldraw/utils'
+import { Polyline2d, SVGContainer, ShapeUtil, TLOnResizeHandler, VecLike } from '../../editor'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { FONT_SIZES } from '../shared/default-shape-constants'

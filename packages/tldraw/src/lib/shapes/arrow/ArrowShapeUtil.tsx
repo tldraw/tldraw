@@ -1,40 +1,42 @@
 import {
-	Arc2d,
 	DefaultFontFamilies,
-	Edge2d,
-	Group2d,
-	Rectangle2d,
-	SVGContainer,
-	ShapeUtil,
-	SvgExportContext,
 	TLArrowShape,
 	TLArrowShapeArrowheadStyle,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLHandle,
+	TLShapePartial,
+	Vec2dModel,
+	arrowShapeMigrations,
+	arrowShapeProps,
+	getDefaultColorTheme,
+} from '@tldraw/tlschema'
+import { deepCopy } from '@tldraw/utils'
+import React from 'react'
+import {
+	Arc2d,
+	Edge2d,
+	Group2d,
+	Rectangle2d,
+	SVGContainer,
+	ShapeUtil,
+	SvgExportContext,
 	TLOnEditEndHandler,
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
 	TLOnTranslateStartHandler,
-	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec2d,
-	Vec2dModel,
-	arrowShapeMigrations,
-	arrowShapeProps,
-	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getArrowheadPathForType,
 	getCurvedArrowHandlePath,
-	getDefaultColorTheme,
 	getSolidCurvedArrowPath,
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
 	toDomPrecision,
-} from '@tldraw/editor'
-import React from 'react'
+} from '../../editor'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import {

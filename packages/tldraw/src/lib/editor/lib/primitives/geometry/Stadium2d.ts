@@ -5,13 +5,11 @@ import { Geometry2dOptions } from './Geometry2d'
 
 /** @public */
 export class Stadium2d extends Ellipse2d {
-	constructor(
-		public config: Omit<Geometry2dOptions, 'isClosed'> & { width: number; height: number }
-	) {
+	constructor(config: Omit<Geometry2dOptions, 'isClosed'> & { width: number; height: number }) {
 		super({ ...config })
 	}
 
-	getVertices() {
+	override getVertices() {
 		// Perimeter of the ellipse
 		const w = Math.max(1, this.w)
 		const h = Math.max(1, this.h)

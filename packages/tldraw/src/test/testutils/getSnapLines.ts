@@ -1,4 +1,4 @@
-import { Editor } from '@tldraw/editor'
+import { Editor } from '../../lib/editor'
 
 const simplifyNumber = (n: number) => {
 	if (Math.abs(Math.round(n) - n) < 0.0001) {

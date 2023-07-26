@@ -1,20 +1,22 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 
+import { useValue } from '@tldraw/state'
 import {
-	BaseBoxShapeUtil,
-	HTMLContainer,
 	TLEmbedShape,
 	TLEmbedShapePermissions,
-	TLOnResizeHandler,
-	TLShapeUtilFlag,
 	embedShapeMigrations,
 	embedShapePermissionDefaults,
 	embedShapeProps,
+} from '@tldraw/tlschema'
+import { useMemo } from 'react'
+import {
+	BaseBoxShapeUtil,
+	HTMLContainer,
+	TLOnResizeHandler,
+	TLShapeUtilFlag,
 	toDomPrecision,
 	useIsEditing,
-	useValue,
-} from '@tldraw/editor'
-import { useMemo } from 'react'
+} from '../../editor'
 import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds'
 import { getRotatedBoxShadow } from '../../utils/rotated-box-shadow'
 import { resizeBox } from '../shared/resizeBox'

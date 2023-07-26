@@ -6,9 +6,9 @@ import {
 	TLDefaultSizeStyle,
 	TLDefaultVerticalAlignStyle,
 	TLShape,
-	stopEventPropagation,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
 import React from 'react'
+import { stopEventPropagation } from '../../editor'
 import { useDefaultColorTheme } from './ShapeFill'
 import { TextHelpers } from './TextHelpers'
 import { LABEL_FONT_SIZES, TEXT_PROPS } from './default-shape-constants'

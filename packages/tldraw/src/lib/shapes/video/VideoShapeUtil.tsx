@@ -1,14 +1,7 @@
-import {
-	BaseBoxShapeUtil,
-	HTMLContainer,
-	TLVideoShape,
-	toDomPrecision,
-	track,
-	useIsEditing,
-	videoShapeMigrations,
-	videoShapeProps,
-} from '@tldraw/editor'
+import { track } from '@tldraw/state'
+import { TLVideoShape, videoShapeMigrations, videoShapeProps } from '@tldraw/tlschema'
 import React from 'react'
+import { BaseBoxShapeUtil, HTMLContainer, toDomPrecision, useIsEditing } from '../../editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { usePrefersReducedMotion } from '../shared/usePrefersReducedMotion'
 

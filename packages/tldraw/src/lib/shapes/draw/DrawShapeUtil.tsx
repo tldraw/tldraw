@@ -1,4 +1,13 @@
 /* eslint-disable react-hooks/rules-of-hooks */
+
+import {
+	TLDrawShape,
+	TLDrawShapeSegment,
+	drawShapeMigrations,
+	drawShapeProps,
+	getDefaultColorTheme,
+} from '@tldraw/tlschema'
+import { last, rng } from '@tldraw/utils'
 import {
 	Box2d,
 	Circle2d,
@@ -7,19 +16,12 @@ import {
 	SVGContainer,
 	ShapeUtil,
 	SvgExportContext,
-	TLDrawShape,
-	TLDrawShapeSegment,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
 	VecLike,
-	drawShapeMigrations,
-	drawShapeProps,
-	getDefaultColorTheme,
 	getSvgPathFromPoints,
-	last,
-	rng,
 	toFixed,
-} from '@tldraw/editor'
+} from '../../editor'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'

@@ -1,5 +1,6 @@
-import { TLArrowShape, TLShapeId, VecLike, stopEventPropagation } from '@tldraw/editor'
+import { TLArrowShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
+import { VecLike, stopEventPropagation } from '../../../editor'
 import { TextHelpers } from '../../shared/TextHelpers'
 import { ARROW_LABEL_FONT_SIZES, TEXT_PROPS } from '../../shared/default-shape-constants'
 import { useEditableText } from '../../shared/useEditableText'

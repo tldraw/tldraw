@@ -1,3 +1,7 @@
+import { TLBaseShape, TLImageShapeCrop, TLShapePartial } from '@tldraw/tlschema'
+import { deepCopy } from '@tldraw/utils'
+import { Editor, Vec2d } from '../../../../../editor'
+
 export type ShapeWithCrop = TLBaseShape<string, { w: number; h: number; crop: TLImageShapeCrop }>
 
 export function getTranslateCroppedImageChange(

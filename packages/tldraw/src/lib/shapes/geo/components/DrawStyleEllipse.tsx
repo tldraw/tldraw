@@ -1,17 +1,7 @@
-import {
-	EASINGS,
-	PI2,
-	TAU,
-	TLDefaultColorTheme,
-	TLGeoShape,
-	TLShapeId,
-	Vec2d,
-	getSvgPathFromPoints,
-	perimeterOfEllipse,
-	rng,
-} from '@tldraw/editor'
-
+import { TLDefaultColorTheme, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
+import { rng } from '@tldraw/utils'
 import * as React from 'react'
+import { EASINGS, PI2, TAU, Vec2d, getSvgPathFromPoints, perimeterOfEllipse } from '../../../editor'
 import {
 	ShapeFill,
 	getShapeFillSvg,

@@ -1,4 +1,4 @@
-import react from 'react'
+import { react } from '@tldraw/state'
 import {
 	TLSessionStateSnapshot,
 	createSessionStateSnapshotSignal,

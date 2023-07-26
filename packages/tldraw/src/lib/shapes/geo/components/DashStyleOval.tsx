@@ -1,5 +1,6 @@
-import { TLDefaultColorTheme, TLGeoShape, TLShapeId, toDomPrecision } from '@tldraw/editor'
+import { TLDefaultColorTheme, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
+import { toDomPrecision } from '../../../editor'
 import {
 	ShapeFill,
 	getShapeFillSvg,

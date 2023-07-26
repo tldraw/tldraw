@@ -125,17 +125,17 @@ export class Group2d extends Geometry2d {
 		return children[0].hitTestLineSegment(A, B, zoom)
 	}
 
-	get outerVertices() {
+	override get outerVertices() {
 		// todo: this is a temporary solution for arrow hit testing to prevent arrows from snapping to the label of a shape
 		return this.children[0].vertices
 	}
 
-	getArea() {
+	override getArea() {
 		// todo: this is a temporary solution, assuming that the first child defines the group size
 		return this.children[0].area
 	}
 
-	toSimpleSvgPath() {
+	override toSimpleSvgPath() {
 		let path = ''
 		for (const child of this.children) {
 			path += child.toSimpleSvgPath()

@@ -1,11 +1,6 @@
-import {
-	TLDefaultColorTheme,
-	TLGeoShape,
-	TLShapeId,
-	Vec2d,
-	canonicalizeRotation,
-} from '@tldraw/editor'
+import { TLDefaultColorTheme, TLGeoShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
+import { Vec2d, canonicalizeRotation } from '../../../editor'
 import {
 	ShapeFill,
 	getShapeFillSvg,

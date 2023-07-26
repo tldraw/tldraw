@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLPointerEventInfo } from '../../../../../editor'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
 type Snapshot = ReturnType<TranslatingCrop['createSnapshot']>

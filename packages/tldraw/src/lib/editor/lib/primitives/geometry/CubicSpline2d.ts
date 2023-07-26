@@ -80,7 +80,7 @@ export class CubicSpline2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
+	override hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
 		return this.segments.some((segment) => segment.hitTestLineSegment(A, B, zoom))
 	}
 }

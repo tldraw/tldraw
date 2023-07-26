@@ -1,5 +1,6 @@
-import { TLDefaultColorTheme, TLGeoShape, Vec2d, VecLike } from '@tldraw/editor'
+import { TLDefaultColorTheme, TLGeoShape } from '@tldraw/tlschema'
 import * as React from 'react'
+import { Vec2d, VecLike } from '../../../editor'
 import {
 	ShapeFill,
 	getShapeFillSvg,

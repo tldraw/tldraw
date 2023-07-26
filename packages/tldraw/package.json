@@ -41,7 +41,9 @@
 		"lint": "yarn run -T tsx ../../scripts/lint.ts"
 	},
 	"files": [
-		"tldraw.css"
+		"tldraw.css",
+		"src/lib/ui/ui.css",
+		"src/lib/editor/editor.css"
 	],
 	"dependencies": {
 		"@radix-ui/react-alert-dialog": "^1.0.0",
@@ -52,16 +54,23 @@
 		"@radix-ui/react-select": "^1.2.0",
 		"@radix-ui/react-slider": "^1.1.0",
 		"@radix-ui/react-toast": "^1.1.1",
-		"@tldraw/editor": "workspace:*",
-		"canvas-size": "^1.2.6",
-		"classnames": "^2.3.2",
-		"hotkeys-js": "^3.11.2",
-		"lz-string": "^1.4.4",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
-		"@tldraw/validate": "workspace:*"
+		"@tldraw/validate": "workspace:*",
+		"@use-gesture/react": "^10.2.27",
+		"canvas-size": "^1.2.6",
+		"classnames": "^2.3.2",
+		"core-js": "^3.31.1",
+		"eventemitter3": "^5.0.1",
+		"hotkeys-js": "^3.11.2",
+		"idb": "^7.1.1",
+		"is-plain-object": "^5.0.0",
+		"lodash.throttle": "^4.1.1",
+		"lodash.uniq": "^4.5.0",
+		"lz-string": "^1.4.4",
+		"nanoid": "^3.3.6"
 	},
 	"peerDependencies": {
 		"react": "^18",
@@ -69,15 +78,24 @@
 	},
 	"devDependencies": {
 		"@peculiar/webcrypto": "^1.4.0",
-		"@testing-library/jest-dom": "^5.14.1",
+		"@testing-library/jest-dom": "^5.16.5",
 		"@testing-library/react": "^14.0.0",
+		"@types/benchmark": "^2.1.2",
 		"@types/canvas-size": "^1.2.0",
 		"@types/classnames": "^2.3.1",
+		"@types/core-js": "^2.5.5",
+		"@types/lodash.throttle": "^4.1.7",
+		"@types/lodash.uniq": "^4.5.7",
 		"@types/lz-string": "^1.3.34",
+		"@types/react-test-renderer": "^18.0.0",
+		"@types/wicg-file-system-access": "^2020.9.5",
+		"benchmark": "^2.1.4",
 		"chokidar-cli": "^3.0.0",
+		"fake-indexeddb": "^4.0.0",
 		"jest-canvas-mock": "^2.5.2",
-		"jest-environment-jsdom": "^28.1.2",
+		"jest-environment-jsdom": "^29.4.3",
 		"lazyrepo": "0.0.0-alpha.27",
+		"react-test-renderer": "^18.2.0",
 		"resize-observer-polyfill": "^1.5.1"
 	},
 	"jest": {

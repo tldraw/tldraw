@@ -18,3 +18,5 @@ apps/example/www/index.css
 *.cjs
 
 packages/tldraw/tldraw.css
+packages/tldraw/ui.css
+packages/tldraw/editor.css

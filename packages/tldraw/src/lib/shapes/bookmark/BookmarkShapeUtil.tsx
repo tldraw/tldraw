@@ -1,21 +1,21 @@
 import {
 	AssetRecordType,
-	BaseBoxShapeUtil,
-	Editor,
-	HTMLContainer,
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
-	TLOnBeforeCreateHandler,
-	TLOnBeforeUpdateHandler,
 	bookmarkShapeMigrations,
 	bookmarkShapeProps,
-	debounce,
-	getHashForString,
-	isValidUrl,
+} from '@tldraw/tlschema'
+import { debounce, getHashForString, isValidUrl } from '@tldraw/utils'
+import {
+	BaseBoxShapeUtil,
+	Editor,
+	HTMLContainer,
+	TLOnBeforeCreateHandler,
+	TLOnBeforeUpdateHandler,
 	stopEventPropagation,
 	toDomPrecision,
-} from '@tldraw/editor'
+} from '../../editor'
 import { getRotatedBoxShadow } from '../../utils/rotated-box-shadow'
 import { truncateStringWithEllipsis } from '../../utils/text'
 import { HyperlinkButton } from '../shared/HyperlinkButton'

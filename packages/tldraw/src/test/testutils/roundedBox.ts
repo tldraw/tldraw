@@ -1,4 +1,4 @@
-import { Box2d } from '@tldraw/editor'
+import { Box2d } from '../../lib/editor'
 
 export const roundedBox = (box: Box2d, accuracy = 0.01) => {
 	// for some reason jest treats -0 and 0 as not equal, so prevent -0s from appearing

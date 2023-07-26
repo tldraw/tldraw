@@ -1,7 +1,15 @@
 /* eslint-disable react-hooks/rules-of-hooks */
+
+import {
+	DefaultFontFamilies,
+	TLDefaultDashStyle,
+	TLGeoShape,
+	geoShapeMigrations,
+	geoShapeProps,
+	getDefaultColorTheme,
+} from '@tldraw/tlschema'
 import {
 	BaseBoxShapeUtil,
-	DefaultFontFamilies,
 	Editor,
 	Ellipse2d,
 	Geometry2d,
@@ -14,18 +22,12 @@ import {
 	Stadium2d,
 	SvgExportContext,
 	TAU,
-	TLDefaultDashStyle,
-	TLGeoShape,
 	TLOnEditEndHandler,
 	TLOnResizeHandler,
 	TLShapeUtilCanvasSvgDef,
 	Vec2d,
-	geoShapeMigrations,
-	geoShapeProps,
-	getDefaultColorTheme,
 	getPolygonVertices,
-} from '@tldraw/editor'
-
+} from '../../editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import {

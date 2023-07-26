@@ -22,7 +22,7 @@ export class Point2d extends Geometry2d {
 		return this.point
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d, margin: number): boolean {
+	override hitTestLineSegment(A: Vec2d, B: Vec2d, margin: number): boolean {
 		return Vec2d.DistanceToLineSegment(A, B, this.point) < margin
 	}
 }

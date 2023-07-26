@@ -1,21 +1,23 @@
 import {
+	TLFrameShape,
+	TLGroupShape,
+	TLShape,
+	TLShapeId,
+	frameShapeMigrations,
+	frameShapeProps,
+	getDefaultColorTheme,
+} from '@tldraw/tlschema'
+import { last } from '@tldraw/utils'
+import {
 	BaseBoxShapeUtil,
 	Geometry2d,
 	Rectangle2d,
 	SVGContainer,
 	SelectionEdge,
-	TLFrameShape,
-	TLGroupShape,
 	TLOnResizeEndHandler,
-	TLShape,
-	TLShapeId,
 	canonicalizeRotation,
-	frameShapeMigrations,
-	frameShapeProps,
-	getDefaultColorTheme,
-	last,
 	toDomPrecision,
-} from '@tldraw/editor'
+} from '../../editor'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FrameHeading } from './components/FrameHeading'

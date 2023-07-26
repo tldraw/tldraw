@@ -1,5 +1,6 @@
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import { memo } from 'react'
+import { useContainer } from '../../editor'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useActionsMenuSchema } from '../hooks/useActionsMenuSchema'
 import { useReadonly } from '../hooks/useReadonly'

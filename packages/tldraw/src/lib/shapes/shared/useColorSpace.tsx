@@ -1,5 +1,6 @@
-import { debugFlags, useValue } from '@tldraw/editor'
+import { useValue } from '@tldraw/state'
 import { useEffect, useState } from 'react'
+import { debugFlags } from '../../editor'
 
 export function useColorSpace(): 'srgb' | 'p3' {
 	const [supportsP3, setSupportsP3] = useState(false)

@@ -28,7 +28,7 @@ export class Circle2d extends Geometry2d {
 		this.radius = radius
 	}
 
-	getBounds() {
+	override getBounds() {
 		return new Box2d(this.x, this.y, this.radius * 2, this.radius * 2)
 	}
 
@@ -48,7 +48,7 @@ export class Circle2d extends Geometry2d {
 		return _center.clone().add(point.clone().sub(_center).uni().mul(radius))
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean {
+	override hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean {
 		const { _center, radius } = this
 		return intersectLineSegmentCircle(A, B, _center, radius) !== null
 	}

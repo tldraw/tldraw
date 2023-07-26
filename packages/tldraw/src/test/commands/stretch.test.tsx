@@ -1,4 +1,5 @@
-import { PI, TLShapeId } from '@tldraw/editor'
+import { TLShapeId } from '@tldraw/tlschema'
+import { PI } from '../../lib/editor'
 import { TestEditor } from '../TestEditor'
 import { TL } from '../test-jsx'
 

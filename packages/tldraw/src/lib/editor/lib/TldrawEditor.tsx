@@ -134,9 +134,6 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	// apply defaults. if you're using the bare @tldraw/editor package, we
-	// default these to the "tldraw zero" configuration. We have different
-	// defaults applied in @tldraw/tldraw.
 	const withDefaults = {
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,

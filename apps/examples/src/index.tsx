@@ -31,8 +31,8 @@ import UiEventsExample from './examples/UiEventsExample'
 import UserPresenceExample from './examples/UserPresenceExample'
 import ZonesExample from './examples/ZonesExample'
 import EndToEnd from './examples/end-to-end/end-to-end'
+import OnlyEditorExample from './examples/only-editor/OnlyEditor'
 import YjsExample from './examples/yjs/YjsExample'
-import OnlyEditorExample from './only-editor/OnlyEditor'
 
 // This example is only used for end to end tests
 

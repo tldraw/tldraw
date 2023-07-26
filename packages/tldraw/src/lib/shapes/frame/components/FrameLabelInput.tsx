@@ -1,5 +1,6 @@
-import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
+import { TLFrameShape, TLShapeId } from '@tldraw/tlschema'
 import { forwardRef, useCallback } from 'react'
+import { useEditor } from '../../../editor'
 import { defaultEmptyAs } from '../FrameShapeUtil'
 
 export const FrameLabelInput = forwardRef<

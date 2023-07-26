@@ -2,17 +2,19 @@ import {
 	DefaultColorThemePalette,
 	DefaultFontFamilies,
 	DefaultFontStyle,
-	HASH_PATTERN_ZOOM_NAMES,
-	MAX_ZOOM,
-	SvgExportDef,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
+} from '@tldraw/tlschema'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+	HASH_PATTERN_ZOOM_NAMES,
+	MAX_ZOOM,
+	SvgExportDef,
 	TLShapeUtilCanvasSvgDef,
 	debugFlags,
 	useEditor,
-} from '@tldraw/editor'
-import { useEffect, useMemo, useRef, useState } from 'react'
+} from '../../editor'
 
 /** @public */
 export function getFontDefForExport(fontStyle: TLDefaultFontStyle): SvgExportDef {

@@ -1,4 +1,5 @@
-import { MAX_PAGES, PageRecordType } from '@tldraw/editor'
+import { PageRecordType } from '@tldraw/tlschema'
+import { MAX_PAGES } from '../../lib/editor'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor

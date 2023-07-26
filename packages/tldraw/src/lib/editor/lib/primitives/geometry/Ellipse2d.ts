@@ -88,11 +88,11 @@ export class Ellipse2d extends Geometry2d {
 		return nearest
 	}
 
-	hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
+	override hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
 		return this.edges.some((edge) => edge.hitTestLineSegment(A, B, zoom))
 	}
 
-	getBounds() {
+	override getBounds() {
 		return new Box2d(0, 0, this.w, this.h)
 	}
 }

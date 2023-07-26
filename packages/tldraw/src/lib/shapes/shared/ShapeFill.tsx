@@ -1,14 +1,12 @@
+import { useValue } from '@tldraw/state'
 import {
-	HASH_PATTERN_ZOOM_NAMES,
 	TLDefaultColorStyle,
 	TLDefaultColorTheme,
 	TLDefaultFillStyle,
 	getDefaultColorTheme,
-	useEditor,
-	useIsDarkMode,
-	useValue,
-} from '@tldraw/editor'
+} from '@tldraw/tlschema'
 import React from 'react'
+import { HASH_PATTERN_ZOOM_NAMES, useEditor, useIsDarkMode } from '../../editor'
 
 export interface ShapeFillProps {
 	d: string

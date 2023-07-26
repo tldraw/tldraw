@@ -50,10 +50,7 @@ export function setAllVersions(version: string) {
 			path.join(packageDetails.dir, 'package.json'),
 			JSON.stringify(manifest, null, '\t') + '\n'
 		)
-		if (manifest.name === '@tldraw/editor') {
-			const versionFileContents = `export const version = '${version}'\n`
-			writeFileSync(path.join(packageDetails.dir, 'src', 'version.ts'), versionFileContents)
-		}
+
 		if (manifest.name === '@tldraw/tldraw') {
 			const versionFileContents = `export const version = '${version}'\n`
 			writeFileSync(

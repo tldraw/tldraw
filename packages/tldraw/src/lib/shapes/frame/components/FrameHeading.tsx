@@ -1,13 +1,13 @@
+import { TLShapeId } from '@tldraw/tlschema'
+import { useCallback, useEffect, useRef } from 'react'
 import {
 	SelectionEdge,
-	TLShapeId,
 	canonicalizeRotation,
 	getPointerInfo,
 	toDomPrecision,
 	useEditor,
 	useIsEditing,
-} from '@tldraw/editor'
-import { useCallback, useEffect, useRef } from 'react'
+} from '../../../editor'
 import { FrameLabelInput } from './FrameLabelInput'
 
 export const FrameHeading = function FrameHeading({
