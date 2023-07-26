@@ -1583,7 +1583,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get selectedPageBounds(): Box2d | null {
+	@computed get selectionPageBounds(): Box2d | null {
 		const {
 			currentPageState: { selectedShapeIds },
 		} = this
@@ -1631,7 +1631,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { selectionRotation } = this
 		if (selectionRotation === 0) {
-			return this.selectedPageBounds!
+			return this.selectionPageBounds!
 		}
 
 		if (selectedShapeIds.length === 1) {
@@ -2064,7 +2064,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToContent() {
-		const bounds = this.selectedPageBounds ?? this.commonBoundsOfAllShapesOnCurrentPage
+		const bounds = this.selectionPageBounds ?? this.commonBoundsOfAllShapesOnCurrentPage
 
 		if (bounds) {
 			this.zoomToBounds(
@@ -5263,9 +5263,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If we've offset the duplicated shapes, check to see whether their new bounds is entirely
 				// contained in the current viewport. If not, then animate the camera to be centered on the
 				// new shapes.
-				const { viewportPageBounds, selectedPageBounds } = this
-				if (selectedPageBounds && !viewportPageBounds.contains(selectedPageBounds)) {
-					this.centerOnPoint(selectedPageBounds.center.x, selectedPageBounds.center.y, {
+				const { viewportPageBounds, selectionPageBounds: selectionPageBounds } = this
+				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+					this.centerOnPoint(selectionPageBounds.center.x, selectionPageBounds.center.y, {
 						duration: ANIMATION_MEDIUM_MS,
 					})
 				}

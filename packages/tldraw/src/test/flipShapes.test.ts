@@ -104,11 +104,11 @@ describe('When flipping horizontally', () => {
 	it('Flips rotated shapes', () => {
 		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
 		editor.select(ids.boxA, ids.boxB)
-		const a = editor.selectedPageBounds
+		const a = editor.selectionPageBounds
 		editor.mark('flipped')
 		editor.flipShapes(editor.selectedShapeIds, 'horizontal')
 
-		const b = editor.selectedPageBounds
+		const b = editor.selectionPageBounds
 		expect(a!).toCloselyMatchObject(b!)
 
 		editor.expectShapeToMatch(
@@ -129,11 +129,11 @@ describe('When flipping horizontally', () => {
 		editor.reparentShapes([ids.boxB], ids.boxA)
 		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
 		editor.select(ids.boxB, ids.boxC)
-		const a = editor.selectedPageBounds
+		const a = editor.selectionPageBounds
 		editor.mark('flipped')
 		editor.flipShapes(editor.selectedShapeIds, 'horizontal')
 
-		const b = editor.selectedPageBounds
+		const b = editor.selectionPageBounds
 		expect(a).toCloselyMatchObject(b!)
 	})
 })
@@ -184,11 +184,11 @@ describe('When flipping vertically', () => {
 	it('Flips rotated shapes', () => {
 		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
 		editor.select(ids.boxA, ids.boxB)
-		const a = editor.selectedPageBounds
+		const a = editor.selectionPageBounds
 		editor.mark('flipped')
 		editor.flipShapes(editor.selectedShapeIds, 'vertical')
 
-		const b = editor.selectedPageBounds
+		const b = editor.selectionPageBounds
 		expect(a).toCloselyMatchObject(b!)
 		editor.expectShapeToMatch(
 			{
@@ -208,27 +208,27 @@ describe('When flipping vertically', () => {
 		editor.reparentShapes([ids.boxB], ids.boxA)
 		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: PI }])
 		editor.select(ids.boxB, ids.boxC)
-		const a = editor.selectedPageBounds
+		const a = editor.selectionPageBounds
 		editor.mark('flipped')
 		editor.flipShapes(editor.selectedShapeIds, 'vertical')
 
-		const b = editor.selectedPageBounds
+		const b = editor.selectionPageBounds
 		expect(a).toCloselyMatchObject(b!)
 	})
 })
 
 it('Preserves the selection bounds.', () => {
 	editor.selectAll()
-	const a = editor.selectedPageBounds
+	const a = editor.selectionPageBounds
 	editor.mark('flipped')
 	editor.flipShapes(editor.selectedShapeIds, 'horizontal')
 
-	const b = editor.selectedPageBounds
+	const b = editor.selectionPageBounds
 	expect(a).toMatchObject(b!)
 	editor.mark('flipped')
 	editor.flipShapes(editor.selectedShapeIds, 'vertical')
 
-	const c = editor.selectedPageBounds
+	const c = editor.selectionPageBounds
 	expect(a).toMatchObject(c!)
 })
 
