@@ -780,12 +780,12 @@ function migrate(document: LegacyTldrawDocument, newVersion: number): LegacyTldr
 
 	// Cleanup
 	Object.values(document.pageStates).forEach((pageState) => {
-		pageState.selectedShapeIds = pageState.selectedShapeIds.filter((id) => {
+		pageState.selectedIds = pageState.selectedIds.filter((id) => {
 			return document.pages[pageState.id].shapes[id] !== undefined
 		})
 		pageState.bindingId = undefined
-		pageState.editingShapeId = undefined
-		pageState.hoveredShapeId = undefined
+		pageState.editingId = undefined
+		pageState.hoveredId = undefined
 		pageState.pointedId = undefined
 	})
 
@@ -1027,15 +1027,15 @@ interface TLV1Bounds {
 
 interface TLV1PageState {
 	id: string
-	selectedShapeIds: string[]
+	selectedIds: string[]
 	camera: {
 		point: number[]
 		zoom: number
 	}
 	brush?: TLV1Bounds | null
 	pointedId?: string | null
-	hoveredShapeId?: string | null
-	editingShapeId?: string | null
+	hoveredId?: string | null
+	editingId?: string | null
 	bindingId?: string | null
 }
 
