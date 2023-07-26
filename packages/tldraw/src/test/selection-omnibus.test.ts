@@ -195,6 +195,74 @@ describe('when shape is hollow', () => {
 		editor.pointerUp()
 		expect(editor.selectedShapeIds).toEqual([])
 	})
+
+	it('drags draw shape child', () => {
+		editor
+			.selectAll()
+			.deleteShapes(editor.selectedShapeIds)
+			.setCurrentTool('draw')
+			.pointerMove(500, 500)
+			.pointerDown()
+			.pointerMove(501, 501)
+			.pointerMove(550, 550)
+			.pointerMove(599, 599)
+			.pointerMove(600, 600)
+			.pointerUp()
+			.selectAll()
+			.setCurrentTool('select')
+
+		expect(editor.selectedShapeIds.length).toBe(1)
+
+		// Not inside of the shape but inside of the selection bounds
+		editor.pointerMove(510, 590)
+		expect(editor.hoveredShapeId).toBe(null)
+
+		// Draw shapes have `hideSelectionBoundsBg` set to false
+		editor.pointerDown()
+		editor.expectToBeIn('select.pointing_selection')
+		editor.pointerUp()
+
+		editor.selectAll()
+		editor.rotateSelection(Math.PI)
+		editor.setCurrentTool('select')
+		editor.pointerMove(590, 510)
+
+		editor.pointerDown()
+		editor.expectToBeIn('select.pointing_selection')
+		editor.pointerUp()
+	})
+
+	it('does not drag arrow shape', () => {
+		editor
+			.selectAll()
+			.deleteShapes(editor.selectedShapeIds)
+			.setCurrentTool('arrow')
+			.pointerMove(500, 500)
+			.pointerDown()
+			.pointerMove(600, 600)
+			.pointerUp()
+			.selectAll()
+			.setCurrentTool('select')
+
+		expect(editor.selectedShapeIds.length).toBe(1)
+
+		// Not inside of the shape but inside of the selection bounds
+		editor.pointerMove(510, 590)
+		expect(editor.hoveredShapeId).toBe(null)
+
+		// Arrow shapes have `hideSelectionBoundsBg` set to true
+		editor.pointerDown()
+		editor.expectToBeIn('select.pointing_canvas')
+
+		editor.selectAll()
+		editor.rotateSelection(Math.PI)
+		editor.setCurrentTool('select')
+		editor.pointerMove(590, 510)
+
+		editor.pointerDown()
+		editor.expectToBeIn('select.pointing_canvas')
+		editor.pointerUp()
+	})
 })
 
 describe('when shape is a frame', () => {

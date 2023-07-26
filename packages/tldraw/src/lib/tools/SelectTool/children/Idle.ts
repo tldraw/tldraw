@@ -1,4 +1,5 @@
 import {
+	Editor,
 	HIT_TEST_MARGIN,
 	StateNode,
 	TLClickEventInfo,
@@ -8,7 +9,9 @@ import {
 	TLShape,
 	TLTextShape,
 	Vec2d,
+	VecLike,
 	createShapeId,
+	pointInPolygon,
 } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { getShouldEnterCropMode } from '../../selection-logic/getShouldEnterCropModeOnPointerDown'
@@ -60,24 +63,22 @@ export class Idle extends StateNode {
 				}
 
 				const {
+					onlySelectedShape,
 					selectedShapeIds,
 					inputs: { currentPagePoint },
 				} = this.editor
 
-				if (selectedShapeIds.length > 0) {
-					// If there's only one shape selected, and if that shape's
-					// geometry is open, then don't test the selection background
-					if (
-						selectedShapeIds.length > 1 ||
-						this.editor.getGeometry(selectedShapeIds[0]).isClosed
-					) {
-						if (this.editor.selectionBounds?.containsPoint(currentPagePoint)) {
-							this.onPointerDown({
-								...info,
-								target: 'selection',
-							})
-							return
-						}
+				if (
+					selectedShapeIds.length > 1 ||
+					(onlySelectedShape &&
+						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
+				) {
+					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
+						this.onPointerDown({
+							...info,
+							target: 'selection',
+						})
+						return
 					}
 				}
 
@@ -511,3 +512,16 @@ export class Idle extends StateNode {
 export const MAJOR_NUDGE_FACTOR = 10
 export const MINOR_NUDGE_FACTOR = 1
 export const GRID_INCREMENT = 5
+
+function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
+	const { selectionBounds } = editor
+	if (!selectionBounds) return false
+
+	const { selectionRotation } = editor
+	if (!selectionRotation) return selectionBounds.containsPoint(point)
+
+	return pointInPolygon(
+		point,
+		selectionBounds.corners.map((c) => Vec2d.RotWith(c, selectionBounds.point, selectionRotation))
+	)
+}

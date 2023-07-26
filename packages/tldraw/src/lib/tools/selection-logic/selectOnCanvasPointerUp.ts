@@ -69,7 +69,11 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 		} else {
 			// Otherwise, we clear the selction because the user selected
 			// nothing instead of their current selection.
-			editor.selectNone()
+
+			if (selectedShapeIds.length > 0) {
+				editor.mark('selecting none')
+				editor.selectNone()
+			}
 
 			// If the click was inside of the current focused group, then
 			// we keep that focused group; otherwise we clear the focused

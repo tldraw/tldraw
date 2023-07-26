@@ -99,13 +99,10 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 				onlyShape &&
 				editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
 
-		if (
-			onlyShape &&
-			editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed') &&
-			shouldDisplayBox &&
-			IS_FIREFOX
-		) {
-			shouldDisplayBox = false
+		if (onlyShape && shouldDisplayBox) {
+			if (IS_FIREFOX && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
+				shouldDisplayBox = false
+			}
 		}
 
 		const showCropHandles =
