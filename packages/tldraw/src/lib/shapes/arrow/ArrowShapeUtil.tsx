@@ -579,6 +579,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return (
 			<>
 				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
+					{/* Yep */}
 					<defs>
 						<mask id={maskId}>
 							<rect
