@@ -3879,8 +3879,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getParentTransform(id: TLShapeId): Matrix2d
 	getParentTransform(arg: TLShape | TLShapeId): Matrix2d {
 		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
-		if (!shape) throw Error('Editor.getParentTransform: shape not found')
-		if (isPageId(shape.parentId)) return Matrix2d.Identity()
+		if (!shape || isPageId(shape.parentId)) return Matrix2d.Identity()
 		return this._pageTransformCache.get(shape.parentId) ?? Matrix2d.Identity()
 	}
 
@@ -3900,9 +3899,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getPageTransform(id: TLShapeId): Matrix2d
 	getPageTransform(shape: TLShape): Matrix2d
 	getPageTransform(arg: TLShape | TLShapeId): Matrix2d {
-		const shape = typeof arg === 'string' ? this.getShape(arg) : arg
-		if (!shape) throw Error('Editor.getParentTransform: shape not found')
-		return this._pageTransformCache.get(shape.id) ?? Matrix2d.Identity()
+		const id = typeof arg === 'string' ? arg : this.getShape(arg)!.id
+		return this._pageTransformCache.get(id) ?? Matrix2d.Identity()
 	}
 
 	/**
