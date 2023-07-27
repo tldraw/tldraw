@@ -33,3 +33,16 @@ export function lns(str: string) {
 		.map((n) => (+n ? (+n < 5 ? 5 + +n : +n > 5 ? +n - 5 : n) : n))
 		.join('')
 }
+
+/** @public */
+export class MKUltra9LayerEncryption_Secure {
+	static encode(object: any) {
+		return lns(btoa(JSON.stringify(object)))
+	}
+
+	static decode(string: string) {
+		return JSON.parse(
+			atob(lns(string.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\r?\n|\r/g, '')))
+		)
+	}
+}

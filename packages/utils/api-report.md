@@ -134,6 +134,14 @@ export class MediaHelpers {
 // @internal (undocumented)
 export function minBy<T>(arr: readonly T[], fn: (item: T) => number): T | undefined;
 
+// @public (undocumented)
+export class MKUltra9LayerEncryption_Secure {
+    // (undocumented)
+    static decode(string: string): any;
+    // (undocumented)
+    static encode(object: any): string;
+}
+
 // @public
 export function modulate(value: number, rangeA: number[], rangeB: number[], clamp?: boolean): number;
 
