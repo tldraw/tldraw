@@ -22,7 +22,6 @@ import { ShapeFill, useDefaultColorTheme } from '../shared/ShapeFill'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getDrawLinePathData } from '../shared/polygon-helpers'
-import { useForceSolid } from '../shared/useForceSolid'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
 import { getLineSvg } from './components/getLineSvg'
 import {
@@ -171,7 +170,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	component(shape: TLLineShape) {
 		const theme = useDefaultColorTheme()
-		const forceSolid = useForceSolid()
 		const spline = getGeometryForLineShape(shape)
 		const strokeWidth = STROKE_SIZES[shape.props.size]
 
@@ -249,7 +247,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		if (shape.props.spline === 'cubic') {
 			const splinePath = getSvgPathForLineGeometry(spline)
 
-			if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
+			if (dash === 'solid') {
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
