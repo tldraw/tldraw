@@ -10,7 +10,9 @@ import {
 } from '@tldraw/editor'
 
 export class MinimapManager {
-	constructor(public editor: Editor, private dpr: number) {}
+	constructor(public editor: Editor) {}
+
+	dpr = 1
 
 	colors = {
 		shapeFill: 'rgba(144, 144, 144, .1)',
@@ -212,7 +214,6 @@ export class MinimapManager {
 		const by = ry / 4
 
 		// shapes
-
 		const shapesPath = new Path2D()
 		const selectedPath = new Path2D()
 
@@ -234,6 +235,7 @@ export class MinimapManager {
 				clamp(ry, ay, pb.height / by)
 			)
 		}
+
 		// Fill the shapes paths
 		ctx.fillStyle = shapeFill
 		ctx.fill(shapesPath)
