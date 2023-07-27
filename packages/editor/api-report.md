@@ -913,7 +913,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get selectedShapes(): TLShape[];
     get selectionBounds(): Box2d | undefined;
     get selectionPageBounds(): Box2d | null;
-    get selectionPageCenter(): null | Vec2d;
     get selectionRotation(): number;
     selectNone(): this;
     sendBackward(shapes: TLShape[]): this;

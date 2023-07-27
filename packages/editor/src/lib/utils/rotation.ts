@@ -9,7 +9,7 @@ import { Vec2d } from '../primitives/Vec2d'
 export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationSnapshot | null {
 	const {
 		selectionRotation,
-		selectionPageCenter,
+		selectionBounds,
 		inputs: { originPagePoint },
 		selectedShapes,
 	} = editor
@@ -19,9 +19,13 @@ export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationS
 	// will produce the wrong results
 
 	// Return null if there are no selected shapes
-	if (!selectionPageCenter) {
+	if (!selectionBounds) {
 		return null
 	}
+
+	const selectionPageCenter = selectionBounds.center
+		.clone()
+		.rotWith(selectionBounds.point, selectionRotation)
 
 	return {
 		selectionPageCenter: selectionPageCenter,

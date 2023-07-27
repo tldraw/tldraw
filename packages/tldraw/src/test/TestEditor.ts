@@ -493,6 +493,18 @@ export class TestEditor extends Editor {
 		return this
 	}
 
+	/**
+	 * The center of the selection bounding box.
+	 *
+	 * @readonly
+	 * @public
+	 */
+	get selectionPageCenter() {
+		const { selectionBounds, selectionRotation } = this
+		if (!selectionBounds) return null
+		return Vec2d.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
+	}
+
 	translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>) {
 		if (this.selectedShapeIds.length === 0) {
 			throw new Error('No selection')

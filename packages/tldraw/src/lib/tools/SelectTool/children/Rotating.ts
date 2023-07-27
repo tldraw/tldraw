@@ -139,13 +139,19 @@ export class Rotating extends StateNode {
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
 		const {
-			selectionPageCenter,
+			selectionBounds,
+			selectionRotation,
 			inputs: { shiftKey, currentPagePoint },
 		} = this.editor
 		const { initialCursorAngle, initialSelectionRotation } = this.snapshot
 
+		if (!selectionBounds) return initialSelectionRotation
+
+		const selectionPageCenter = selectionBounds.center
+			.clone()
+			.rotWith(selectionBounds.point, selectionRotation)
+
 		// The delta is the difference between the current angle and the initial angle
-		if (!selectionPageCenter) return initialSelectionRotation
 		const preSnapRotationDelta = selectionPageCenter.angle(currentPagePoint) - initialCursorAngle
 		let newSelectionRotation = initialSelectionRotation + preSnapRotationDelta
 
