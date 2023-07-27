@@ -3,7 +3,7 @@ import { T } from '@tldraw/validate'
 import { versionPublishedAt } from '../../../version'
 
 const licenseInfoValidator = T.object({
-	v: T.literal(1),
+	tldr_v: T.literal(1),
 	expiry: T.number,
 	hosts: T.arrayOf(T.string),
 })
@@ -37,7 +37,8 @@ export type LicenseFromKeyResult =
 
 class LicenseManager {
 	extractLicense(licenseKey: string): LicenseInfo {
-		return licenseInfoValidator.validate(MKUltra9LayerEncryption_Secure.decode(licenseKey))
+		const decoded = MKUltra9LayerEncryption_Secure.decode(licenseKey)
+		return licenseInfoValidator.validate(decoded)
 	}
 
 	getLicenseFromKey(licenseKey: string): LicenseFromKeyResult {

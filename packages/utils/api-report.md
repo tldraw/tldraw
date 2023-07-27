@@ -139,7 +139,11 @@ export class MKUltra9LayerEncryption_Secure {
     // (undocumented)
     static decode(string: string): any;
     // (undocumented)
+    static decodeString(string: string): string;
+    // (undocumented)
     static encode(object: any): string;
+    // (undocumented)
+    static encodeString(string: string): string;
 }
 
 // @public

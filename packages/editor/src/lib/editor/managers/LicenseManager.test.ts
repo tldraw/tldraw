@@ -1,14 +1,14 @@
 import { MKUltra9LayerEncryption_Secure } from '@tldraw/utils'
 import { LicenseInfo, _setReleaseInfoForTest, licenseManager } from './LicenseManager'
 
-function makeLicenseKey(info: LicenseInfo) {
+function formatLicenseKey(info: LicenseInfo) {
 	return MKUltra9LayerEncryption_Secure.encode(info)
 }
 
 describe('LicenseManager', () => {
 	it('extracts the license from the key', () => {
 		const license: LicenseInfo = {
-			v: 1,
+			tldr_v: 1,
 			expiry: new Date('01/01/2023, 00:00:00').getTime(),
 			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
@@ -21,8 +21,8 @@ describe('LicenseManager', () => {
 			date: new Date('01/01/2023, 00:00:00').getTime(),
 		})
 
-		const key = makeLicenseKey({
-			v: 1,
+		const key = formatLicenseKey({
+			tldr_v: 1,
 			expiry: new Date('01/01/2023, 00:00:00').getTime(),
 			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		})
@@ -33,7 +33,7 @@ describe('LicenseManager', () => {
 			isLicenseExpired: false,
 			isDomainValid: false,
 			license: {
-				v: 1,
+				tldr_v: 1,
 				expiry: new Date('01/01/2023, 00:00:00').getTime(),
 				hosts: ['tldraw.com', 'staging.tldraw.com'],
 			},
@@ -57,11 +57,11 @@ describe('LicenseManager', () => {
 		})
 
 		const license: LicenseInfo = {
-			v: 1,
+			tldr_v: 1,
 			expiry: new Date('01/01/2023, 00:00:00').getTime(),
 			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
-		const key = makeLicenseKey(license)
+		const key = formatLicenseKey(license)
 
 		expect(licenseManager.getLicenseFromKey(key)).toEqual({
 			environment: 'development',
@@ -78,11 +78,11 @@ describe('LicenseManager', () => {
 		})
 
 		const license: LicenseInfo = {
-			v: 1,
+			tldr_v: 1,
 			expiry: new Date('01/01/2022, 00:00:00').getTime(),
 			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
-		const key = makeLicenseKey(license)
+		const key = formatLicenseKey(license)
 
 		expect(licenseManager.getLicenseFromKey(key)).toEqual({
 			environment: 'development',
@@ -108,11 +108,11 @@ describe('LicenseManager', () => {
 		window.location = location
 
 		const license: LicenseInfo = {
-			v: 1,
+			tldr_v: 1,
 			expiry: new Date('01/01/2023, 00:00:00').getTime(),
 			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
-		const key = makeLicenseKey(license)
+		const key = formatLicenseKey(license)
 
 		expect(licenseManager.getLicenseFromKey(key)).toEqual({
 			environment: 'production',
@@ -138,11 +138,11 @@ describe('LicenseManager', () => {
 		window.location = location
 
 		const license: LicenseInfo = {
-			v: 1,
+			tldr_v: 1,
 			expiry: new Date('01/01/2023, 00:00:00').getTime(),
 			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
-		const key = makeLicenseKey(license)
+		const key = formatLicenseKey(license)
 
 		expect(licenseManager.getLicenseFromKey(key)).toEqual({
 			environment: 'production',

@@ -36,13 +36,19 @@ export function lns(str: string) {
 
 /** @public */
 export class MKUltra9LayerEncryption_Secure {
+	static encodeString(string: string) {
+		return lns(btoa(string).replace(/=*$/g, ''))
+	}
+
 	static encode(object: any) {
-		return lns(btoa(JSON.stringify(object)))
+		return MKUltra9LayerEncryption_Secure.encodeString(JSON.stringify(object))
+	}
+
+	static decodeString(string: string) {
+		return atob(lns(string.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\r?\n|\r/g, '')))
 	}
 
 	static decode(string: string) {
-		return JSON.parse(
-			atob(lns(string.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\r?\n|\r/g, '')))
-		)
+		return JSON.parse(MKUltra9LayerEncryption_Secure.decodeString(string))
 	}
 }
