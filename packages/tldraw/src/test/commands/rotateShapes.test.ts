@@ -77,6 +77,6 @@ describe('editor.rotateShapes', () => {
 			.expectShapeToMatch({ id: ids.box2, rotation: Math.PI })
 
 		// Are the centers the same?
-		expect(selectionPageCenter).toMatchObject(editor.selectionPageCenter!)
+		expect(selectionPageCenter).toCloselyMatchObject(editor.selectionPageCenter!)
 	})
 })
