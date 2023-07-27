@@ -4239,7 +4239,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const bounds = this.getMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {
-				commonBounds = bounds
+				commonBounds = bounds.clone()
 			} else {
 				commonBounds = commonBounds.expand(bounds)
 			}
