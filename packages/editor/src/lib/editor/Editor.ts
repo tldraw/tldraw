@@ -1657,18 +1657,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return box
 	}
 
-	/**
-	 * The center of the selection bounding box.
-	 *
-	 * @readonly
-	 * @public
-	 */
-	@computed get selectionPageCenter() {
-		const { selectionBounds, selectionRotation } = this
-		if (!selectionBounds) return null
-		return Vec2d.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
-	}
-
 	// Focus Layer Id
 
 	/**
@@ -4239,7 +4227,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const bounds = this.getMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {
-				commonBounds = bounds
+				commonBounds = bounds.clone()
 			} else {
 				commonBounds = commonBounds.expand(bounds)
 			}
