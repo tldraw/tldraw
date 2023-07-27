@@ -1,12 +1,25 @@
 import { MKUltra9LayerEncryption_Secure } from '@tldraw/utils'
+import { T } from '@tldraw/validate'
+import { versionPublishedAt } from '../../../version'
 
-type LicenseInfo = {
-	expiry: number
-	origins: string[]
-}
+const licenseInfoValidator = T.object({
+	v: T.literal(1),
+	expiry: T.number,
+	hosts: T.arrayOf(T.string),
+})
+
+export type LicenseInfo = T.TypeOf<typeof licenseInfoValidator>
 
 type ReleaseInfo = {
 	date: number
+}
+
+let releaseInfo = {
+	date: new Date(versionPublishedAt).getTime(),
+}
+
+export function _setReleaseInfoForTest(newReleaseInfo: ReleaseInfo) {
+	releaseInfo = newReleaseInfo
 }
 
 export type LicenseFromKeyResult =
@@ -18,19 +31,13 @@ export type LicenseFromKeyResult =
 			isLicenseValid: true
 			environment: 'production' | 'development'
 			license: LicenseInfo
-			isOriginValid: boolean
+			isDomainValid: boolean
 			isLicenseExpired: boolean
 	  }
 
 class LicenseManager {
-	RELEASE_INFO = 'release_info_replace_me_at_runtime'
-
 	extractLicense(licenseKey: string): LicenseInfo {
-		return MKUltra9LayerEncryption_Secure.decode(licenseKey) as LicenseInfo
-	}
-
-	extractRelease(releaseInfo: string): ReleaseInfo {
-		return MKUltra9LayerEncryption_Secure.decode(releaseInfo) as ReleaseInfo
+		return licenseInfoValidator.validate(MKUltra9LayerEncryption_Secure.decode(licenseKey))
 	}
 
 	getLicenseFromKey(licenseKey: string): LicenseFromKeyResult {
@@ -58,13 +65,13 @@ class LicenseManager {
 			return { environment, isLicenseValid: false }
 		}
 
-		const releaseInfo = this.extractRelease(this.RELEASE_INFO)
-
 		return {
 			environment,
 			license,
 			isLicenseValid: true,
-			isOriginValid: license.origins.includes(window.location.origin),
+			isDomainValid: license.hosts.some(
+				(host) => host.toLowerCase() === window.location.hostname.toLowerCase()
+			),
 			isLicenseExpired: license.expiry < releaseInfo.date,
 		}
 	}

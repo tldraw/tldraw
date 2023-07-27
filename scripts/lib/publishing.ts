@@ -3,7 +3,7 @@ import { fetch } from 'cross-fetch'
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { compare, parse } from 'semver'
-import { BUBLIC_ROOT } from './file'
+import { BUBLIC_ROOT, writeCodeFile } from './file'
 import { nicelog } from './nicelog'
 
 export type PackageDetails = {
@@ -41,7 +41,7 @@ export function getAllPackageDetails(): Record<string, PackageDetails> {
 	return Object.fromEntries(results.map((result) => [result.name, result]))
 }
 
-export function setAllVersions(version: string) {
+export async function setAllVersions(version: string) {
 	const packages = getAllPackageDetails()
 	for (const packageDetails of Object.values(packages)) {
 		const manifest = JSON.parse(readFileSync(path.join(packageDetails.dir, 'package.json'), 'utf8'))
@@ -50,13 +50,22 @@ export function setAllVersions(version: string) {
 			path.join(packageDetails.dir, 'package.json'),
 			JSON.stringify(manifest, null, '\t') + '\n'
 		)
+		const versionFileContents = `
+			export const version = ${JSON.stringify(version)}
+			export const versionPublishedAt = ${JSON.stringify(new Date())}
+		`
 		if (manifest.name === '@tldraw/editor') {
-			const versionFileContents = `export const version = '${version}'\n`
-			writeFileSync(path.join(packageDetails.dir, 'src', 'version.ts'), versionFileContents)
+			await writeCodeFile(
+				'scripts/lib/publishing.ts',
+				'typescript',
+				path.join(packageDetails.dir, 'src', 'version.ts'),
+				versionFileContents
+			)
 		}
 		if (manifest.name === '@tldraw/tldraw') {
-			const versionFileContents = `export const version = '${version}'\n`
-			writeFileSync(
+			await writeCodeFile(
+				'scripts/lib/publishing.ts',
+				'typescript',
 				path.join(packageDetails.dir, 'src', 'lib', 'ui', 'version.ts'),
 				versionFileContents
 			)

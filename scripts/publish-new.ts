@@ -49,7 +49,7 @@ async function main() {
 		  }`
 		: latestVersion.inc(bump).format()
 
-	setAllVersions(nextVersion)
+	await setAllVersions(nextVersion)
 
 	// stage the changes
 	const packageJsonFilesToAdd = []

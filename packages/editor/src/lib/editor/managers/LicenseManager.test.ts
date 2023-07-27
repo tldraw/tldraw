@@ -1,57 +1,49 @@
 import { MKUltra9LayerEncryption_Secure } from '@tldraw/utils'
-import { licenseManager } from './LicenseManager'
+import { LicenseInfo, _setReleaseInfoForTest, licenseManager } from './LicenseManager'
+
+function makeLicenseKey(info: LicenseInfo) {
+	return MKUltra9LayerEncryption_Secure.encode(info)
+}
 
 describe('LicenseManager', () => {
-	it('extracts the release info from the key', () => {
-		const release = {
-			date: new Date('01/01/2023, 00:00:00').toISOString(),
-		}
-		const releaseStr = MKUltra9LayerEncryption_Secure.encode(release)
-		expect(licenseManager.extractRelease(releaseStr)).toEqual(release)
-	})
-
 	it('extracts the license from the key', () => {
-		const license = {
-			expiry: new Date('01/01/2023, 00:00:00').toISOString(),
-			origins: ['https://tldraw.com', 'https://staging.tldraw.com'],
+		const license: LicenseInfo = {
+			v: 1,
+			expiry: new Date('01/01/2023, 00:00:00').getTime(),
+			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
 		const key = MKUltra9LayerEncryption_Secure.encode(license)
 		expect(licenseManager.extractLicense(key)).toEqual(license)
 	})
 
 	it('produces the correct result from the key', () => {
-		const release = {
-			date: new Date('01/01/2023, 00:00:00').toISOString(),
-		}
-		const releaseStr = MKUltra9LayerEncryption_Secure.encode(release)
+		_setReleaseInfoForTest({
+			date: new Date('01/01/2023, 00:00:00').getTime(),
+		})
 
-		licenseManager.RELEASE_INFO = releaseStr
-
-		const license = {
-			expiry: new Date('01/01/2023, 00:00:00').toISOString(),
-			origins: ['https://tldraw.com', 'https://staging.tldraw.com'],
-		}
-		const key = MKUltra9LayerEncryption_Secure.encode(license)
+		const key = makeLicenseKey({
+			v: 1,
+			expiry: new Date('01/01/2023, 00:00:00').getTime(),
+			hosts: ['tldraw.com', 'staging.tldraw.com'],
+		})
 
 		expect(licenseManager.getLicenseFromKey(key)).toEqual({
 			environment: 'development',
 			isLicenseValid: true,
 			isLicenseExpired: false,
-			isOriginValid: false,
+			isDomainValid: false,
 			license: {
-				expiry: '2023-01-01T00:00:00.000Z',
-				origins: ['https://tldraw.com', 'https://staging.tldraw.com'],
+				v: 1,
+				expiry: new Date('01/01/2023, 00:00:00').getTime(),
+				hosts: ['tldraw.com', 'staging.tldraw.com'],
 			},
 		})
 	})
 
 	it('when key is malformed', () => {
-		const release = {
-			date: new Date('01/01/2023, 00:00:00').toISOString(),
-		}
-		const releaseStr = MKUltra9LayerEncryption_Secure.encode(release)
-
-		licenseManager.RELEASE_INFO = releaseStr
+		_setReleaseInfoForTest({
+			date: new Date('01/01/2023, 00:00:00').getTime(),
+		})
 
 		expect(licenseManager.getLicenseFromKey('abc123')).toEqual({
 			environment: 'development',
@@ -60,58 +52,51 @@ describe('LicenseManager', () => {
 	})
 
 	it('when everything is ok', () => {
-		const release = {
-			date: new Date('01/01/2023, 00:00:00').toISOString(),
-		}
-		const releaseStr = MKUltra9LayerEncryption_Secure.encode(release)
+		_setReleaseInfoForTest({
+			date: new Date('01/01/2023, 00:00:00').getTime(),
+		})
 
-		licenseManager.RELEASE_INFO = releaseStr
-
-		const license = {
-			expiry: new Date('01/01/2023, 00:00:00').toISOString(),
-			origins: ['https://tldraw.com', 'https://staging.tldraw.com'],
+		const license: LicenseInfo = {
+			v: 1,
+			expiry: new Date('01/01/2023, 00:00:00').getTime(),
+			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
-		const key = MKUltra9LayerEncryption_Secure.encode(license)
+		const key = makeLicenseKey(license)
 
 		expect(licenseManager.getLicenseFromKey(key)).toEqual({
 			environment: 'development',
 			isLicenseValid: true,
 			isLicenseExpired: false,
-			isOriginValid: false,
+			isDomainValid: false,
 			license,
 		})
 	})
 
 	it('when license is expired', () => {
-		const release = {
-			date: new Date('01/01/2023, 00:00:00').toISOString(),
-		}
-		const releaseStr = MKUltra9LayerEncryption_Secure.encode(release)
+		_setReleaseInfoForTest({
+			date: new Date('01/01/2023, 00:00:00').getTime(),
+		})
 
-		licenseManager.RELEASE_INFO = releaseStr
-
-		const license = {
-			expiry: new Date('01/01/2022, 00:00:00').toISOString(),
-			origins: ['https://tldraw.com', 'https://staging.tldraw.com'],
+		const license: LicenseInfo = {
+			v: 1,
+			expiry: new Date('01/01/2022, 00:00:00').getTime(),
+			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
-		const key = MKUltra9LayerEncryption_Secure.encode(license)
+		const key = makeLicenseKey(license)
 
 		expect(licenseManager.getLicenseFromKey(key)).toEqual({
 			environment: 'development',
 			isLicenseValid: true,
 			isLicenseExpired: true,
-			isOriginValid: false,
+			isDomainValid: false,
 			license,
 		})
 	})
 
 	it('when origin is production and origin is valid', () => {
-		const release = {
-			date: new Date('01/01/2023, 00:00:00').toISOString(),
-		}
-		const releaseStr = MKUltra9LayerEncryption_Secure.encode(release)
-
-		licenseManager.RELEASE_INFO = releaseStr
+		_setReleaseInfoForTest({
+			date: new Date('01/01/2023, 00:00:00').getTime(),
+		})
 
 		const location = new URL('https://tldraw.com') as any
 		location.assign = jest.fn()
@@ -122,28 +107,26 @@ describe('LicenseManager', () => {
 		delete window.location
 		window.location = location
 
-		const license = {
-			expiry: new Date('01/01/2023, 00:00:00').toISOString(),
-			origins: ['https://tldraw.com', 'https://staging.tldraw.com'],
+		const license: LicenseInfo = {
+			v: 1,
+			expiry: new Date('01/01/2023, 00:00:00').getTime(),
+			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
-		const key = MKUltra9LayerEncryption_Secure.encode(license)
+		const key = makeLicenseKey(license)
 
 		expect(licenseManager.getLicenseFromKey(key)).toEqual({
 			environment: 'production',
 			isLicenseValid: true,
 			isLicenseExpired: false,
-			isOriginValid: true,
+			isDomainValid: true,
 			license,
 		})
 	})
 
 	it('when origin is production and origin is invalid', () => {
-		const release = {
-			date: new Date('01/01/2023, 00:00:00').toISOString(),
-		}
-		const releaseStr = MKUltra9LayerEncryption_Secure.encode(release)
-
-		licenseManager.RELEASE_INFO = releaseStr
+		_setReleaseInfoForTest({
+			date: new Date('01/01/2023, 00:00:00').getTime(),
+		})
 
 		const location = new URL('https://www.aol.com') as any
 		location.assign = jest.fn()
@@ -154,17 +137,18 @@ describe('LicenseManager', () => {
 		delete window.location
 		window.location = location
 
-		const license = {
-			expiry: new Date('01/01/2023, 00:00:00').toISOString(),
-			origins: ['https://tldraw.com', 'https://staging.tldraw.com'],
+		const license: LicenseInfo = {
+			v: 1,
+			expiry: new Date('01/01/2023, 00:00:00').getTime(),
+			hosts: ['tldraw.com', 'staging.tldraw.com'],
 		}
-		const key = MKUltra9LayerEncryption_Secure.encode(license)
+		const key = makeLicenseKey(license)
 
 		expect(licenseManager.getLicenseFromKey(key)).toEqual({
 			environment: 'production',
 			isLicenseValid: true,
 			isLicenseExpired: false,
-			isOriginValid: false,
+			isDomainValid: false,
 			license,
 		})
 	})
