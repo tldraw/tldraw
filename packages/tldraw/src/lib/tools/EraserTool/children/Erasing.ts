@@ -96,7 +96,7 @@ export class Erasing extends StateNode {
 		const {
 			zoomLevel,
 			shapesOnCurrentPage,
-			erasingShapeIdsSet,
+			erasingShapeIds,
 			inputs: { currentPagePoint, previousPagePoint },
 		} = this.editor
 
@@ -104,7 +104,7 @@ export class Erasing extends StateNode {
 
 		this.pushPointToScribble()
 
-		const erasing = new Set<TLShapeId>(erasingShapeIdsSet)
+		const erasing = new Set<TLShapeId>(erasingShapeIds)
 
 		for (const shape of shapesOnCurrentPage) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
@@ -128,17 +128,17 @@ export class Erasing extends StateNode {
 		// Remove the hit shapes, except if they're in the list of excluded shapes
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
-		this.editor.setErasingIds([...erasing].filter((id) => !excludedShapeIds.has(id)))
+		this.editor.setErasingShapeIds([...erasing].filter((id) => !excludedShapeIds.has(id)))
 	}
 
 	complete() {
 		this.editor.deleteShapes(this.editor.currentPageState.erasingShapeIds)
-		this.editor.setErasingIds([])
+		this.editor.setErasingShapeIds([])
 		this.parent.transition('idle', {})
 	}
 
 	cancel() {
-		this.editor.setErasingIds([])
+		this.editor.setErasingShapeIds([])
 		this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}

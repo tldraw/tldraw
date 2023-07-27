@@ -95,7 +95,7 @@ export class DraggingHandle extends StateNode {
 		this.isPrecise = false
 
 		if (initialTerminal?.type === 'binding') {
-			this.editor.setHintingIds([initialTerminal.boundShapeId])
+			this.editor.setHintingShapeIds([initialTerminal.boundShapeId])
 
 			this.isPrecise = !Vec2d.Equals(initialTerminal.normalizedAnchor, { x: 0.5, y: 0.5 })
 			if (this.isPrecise) {
@@ -104,7 +104,7 @@ export class DraggingHandle extends StateNode {
 				this.resetExactTimeout()
 			}
 		} else {
-			this.editor.setHintingIds([])
+			this.editor.setHintingShapeIds([])
 		}
 		// -->
 
@@ -166,7 +166,7 @@ export class DraggingHandle extends StateNode {
 
 	override onExit = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.setHintingIds([])
+		this.editor.setHintingShapeIds([])
 		this.editor.snaps.clear()
 		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 	}
@@ -280,7 +280,7 @@ export class DraggingHandle extends StateNode {
 
 			if (bindingAfter?.type === 'binding') {
 				if (hintingShapeIds[0] !== bindingAfter.boundShapeId) {
-					editor.setHintingIds([bindingAfter.boundShapeId])
+					editor.setHintingShapeIds([bindingAfter.boundShapeId])
 					this.pointingId = bindingAfter.boundShapeId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
 					this.isPreciseId = this.isPrecise ? bindingAfter.boundShapeId : null
@@ -288,7 +288,7 @@ export class DraggingHandle extends StateNode {
 				}
 			} else {
 				if (hintingShapeIds.length > 0) {
-					editor.setHintingIds([])
+					editor.setHintingShapeIds([])
 					this.pointingId = null
 					this.isPrecise = false
 					this.isPreciseId = null

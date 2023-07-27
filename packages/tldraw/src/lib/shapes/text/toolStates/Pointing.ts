@@ -8,7 +8,7 @@ export class Pointing extends StateNode {
 	markId = ''
 
 	override onExit = () => {
-		this.editor.setHintingIds([])
+		this.editor.setHintingShapeIds([])
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
@@ -88,7 +88,7 @@ export class Pointing extends StateNode {
 			true
 		)
 
-		this.editor.setEditingId(id)
+		this.editor.setEditingShapeId(id)
 		this.editor.setCurrentTool('select')
 		this.editor.root.current.value?.transition('editing_shape', {})
 	}

@@ -7,7 +7,7 @@ export function updateHoveredId(editor: Editor) {
 		margin: HIT_TEST_MARGIN / editor.zoomLevel,
 	})
 
-	if (!hitShape) return editor.setHoveredId(null)
+	if (!hitShape) return editor.setHoveredShapeId(null)
 
 	let shapeToHover: TLShape | undefined = undefined
 
@@ -26,5 +26,5 @@ export function updateHoveredId(editor: Editor) {
 		}
 	}
 
-	return editor.setHoveredId(shapeToHover.id)
+	return editor.setHoveredShapeId(shapeToHover.id)
 }

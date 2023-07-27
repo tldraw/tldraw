@@ -752,6 +752,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 	}
 
+	getRecordType = <T extends R>(record: R): T => {
+		const type = this.schema.types[record.typeName as R['typeName']]
+		if (!type) {
+			throw new Error(`Record type ${record.typeName} not found`)
+		}
+		return type as unknown as T
+	}
+
 	private _integrityChecker?: () => void | undefined
 
 	/** @internal */

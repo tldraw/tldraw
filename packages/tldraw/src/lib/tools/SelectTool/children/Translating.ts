@@ -148,7 +148,7 @@ export class Translating extends StateNode {
 			if (this.editAfterComplete) {
 				const onlySelected = this.editor.onlySelectedShape
 				if (onlySelected) {
-					this.editor.setEditingId(onlySelected.id)
+					this.editor.setEditingShapeId(onlySelected.id)
 					this.editor.setCurrentTool('select')
 					this.editor.root.current.value!.transition('editing_shape', {})
 				}

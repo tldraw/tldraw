@@ -48,10 +48,12 @@ import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
+import { TLInstancePageStateId } from '@tldraw/tlschema/.tsbuild/records/TLPageState';
 import { TLInstancePresence } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPointer } from '@tldraw/tlschema/.tsbuild/records/TLPointer';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
@@ -598,6 +600,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
     get currentPageState(): TLInstancePageState;
+    // @internal (undocumented)
+    get currentPageStateId(): TLInstancePageStateId;
     get currentTool(): StateNode | undefined;
     get currentToolId(): string;
     deleteAssets(assets: TLAsset[]): this;
@@ -629,9 +633,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(shapes: TLShape[], offset?: VecLike): this;
     // (undocumented)
     duplicateShapes(ids: TLShapeId[], offset?: VecLike): this;
+    // (undocumented)
+    get editingShape(): TLUnknownShape | undefined;
     get editingShapeId(): null | TLShapeId;
     get erasingShapeIds(): TLShapeId[];
-    get erasingShapeIdsSet(): Set<TLShapeId>;
+    // (undocumented)
+    get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAssetContent_2['type']]: {
@@ -712,6 +719,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageMask(id: TLShapeId): undefined | VecLike[];
     // (undocumented)
     getPageMask(shape: TLShape): undefined | VecLike[];
+    getPageState(pageId: TLPageId): TLInstancePageState;
     getPageTransform(id: TLShapeId): Matrix2d;
     // (undocumented)
     getPageTransform(shape: TLShape): Matrix2d;
@@ -776,6 +784,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     hasAncestor(shapeId: TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     get hintingShapeIds(): TLShapeId[];
+    // (undocumented)
+    get hintingShapes(): NonNullable<TLShape | undefined>[];
     readonly history: HistoryManager<this>;
     // (undocumented)
     get hoveredShape(): TLUnknownShape | undefined;
@@ -923,23 +933,23 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendToBack(ids: TLShapeId[]): this;
     setCamera(x: number, y: number, z?: number, { stopFollowing }?: TLViewportOptions): this;
     // (undocumented)
-    setCroppingId(id: null | TLShapeId): this;
+    setCroppingShapeId(id: null | TLShapeId): this;
     setCurrentPage(page: TLPage, opts?: TLViewportOptions): this;
     // (undocumented)
     setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     // (undocumented)
-    setEditingId(id: null | TLShapeId): this;
+    setEditingShapeId(id: null | TLShapeId): this;
     // (undocumented)
-    setErasingIds(ids: TLShapeId[]): this;
+    setErasingShapeIds(ids: TLShapeId[]): this;
     // (undocumented)
-    setFocusedGroupId(next: TLPageId | TLShapeId): this;
+    setFocusedGroupId(id: TLPageId | TLShapeId): this;
     // (undocumented)
-    setHintingIds(ids: TLShapeId[]): this;
+    setHintingShapeIds(ids: TLShapeId[]): this;
     // (undocumented)
-    setHoveredId(id: null | TLShapeId): this;
+    setHoveredShapeId(id: null | TLShapeId): this;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
-    setSelectedShapeIds(ids: TLShapeId[], squashing?: boolean): this;
+    setSelectedShapeIds(ids: TLShapeId[], squash?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
     get shapeIdsOnCurrentPage(): Set<TLShapeId>;
     get shapesOnCurrentPage(): TLShape[];
@@ -979,14 +989,24 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, ephemeral?: boolean): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
-    updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squash?: boolean): this;
+    updatePage(partial: RequiredKeys<TLPage, 'id'>, squash?: boolean): this;
+    updatePageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId'>>, opts?: {
+        ephemeral?: boolean;
+        squashing?: boolean;
+        preservesRedoStack?: boolean;
+    }): this;
     // @internal
     updateRenderingBounds(): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, squashing?: boolean): this;
     updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
+    // (undocumented)
+    updateStoreRecord: (partial: RequiredKeys<TLCamera | TLInstancePresence | TLPointer | TLAsset | TLDocument | TLInstance | TLInstancePageState | TLPage, "id">, opts?: {
+        ephemeral?: boolean | undefined;
+        squash?: boolean | undefined;
+        preservesRedoStack?: boolean | undefined;
+    } | undefined) => this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
     get viewportPageBounds(): Box2d;

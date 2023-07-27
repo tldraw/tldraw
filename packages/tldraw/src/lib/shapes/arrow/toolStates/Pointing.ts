@@ -19,7 +19,7 @@ export class Pointing extends StateNode {
 		if (!target) {
 			this.createArrowShape()
 		} else {
-			this.editor.setHintingIds([target.id])
+			this.editor.setHintingShapeIds([target.id])
 		}
 
 		this.startPreciseTimeout()
@@ -27,7 +27,7 @@ export class Pointing extends StateNode {
 
 	override onExit = () => {
 		this.shape = undefined
-		this.editor.setHintingIds([])
+		this.editor.setHintingShapeIds([])
 		this.clearPreciseTimeout()
 	}
 
@@ -71,7 +71,7 @@ export class Pointing extends StateNode {
 			// the arrow might not have been created yet!
 			this.editor.bailToMark(this.markId)
 		}
-		this.editor.setHintingIds([])
+		this.editor.setHintingShapeIds([])
 		this.parent.transition('idle', {})
 	}
 
@@ -107,7 +107,7 @@ export class Pointing extends StateNode {
 		if (change) {
 			const startTerminal = change.props?.start
 			if (startTerminal?.type === 'binding') {
-				this.editor.setHintingIds([startTerminal.boundShapeId])
+				this.editor.setHintingShapeIds([startTerminal.boundShapeId])
 			}
 			this.editor.updateShapes([change], true)
 		}
@@ -137,7 +137,7 @@ export class Pointing extends StateNode {
 			if (change) {
 				const endTerminal = change.props?.end
 				if (endTerminal?.type === 'binding') {
-					this.editor.setHintingIds([endTerminal.boundShapeId])
+					this.editor.setHintingShapeIds([endTerminal.boundShapeId])
 				}
 				this.editor.updateShapes([change], true)
 			}

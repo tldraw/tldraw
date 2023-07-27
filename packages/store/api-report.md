@@ -244,6 +244,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
+    // (undocumented)
+    getRecordType: <T extends R>(record: R) => T;
     getSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has: <K extends IdOf<R>>(id: K) => boolean;
     readonly history: Atom<number, RecordsDiff<R>>;

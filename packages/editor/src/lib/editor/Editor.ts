@@ -24,6 +24,7 @@ import {
 	TLPage,
 	TLPageId,
 	TLParentId,
+	TLRecord,
 	TLShape,
 	TLShapeId,
 	TLShapePartial,
@@ -275,6 +276,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this._pageStateDidChange(prev, next)
 			}
 
+			if (prev.typeName === 'instance' && next.typeName === 'instance') {
+				if (prev.isChangingStyle !== next.isChangingStyle) {
+					clearTimeout(this._isChangingStyleTimeout)
+					if (next.isChangingStyle === true) {
+						// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
+						this._isChangingStyleTimeout = setTimeout(() => {
+							this.updateInstanceState({ isChangingStyle: false })
+						}, 2000)
+					}
+				}
+			}
+
+			if (prev.typeName === 'instance_page_state' && next.typeName === 'instance_page_state') {
+				if (prev.editingShapeId !== next.editingShapeId && next.editingShapeId) {
+					const shape = this.getShape(next.editingShapeId)
+					if (shape && this.getShapeUtil(shape).canEdit(shape)) {
+						this.setHoveredShapeId(null)
+					}
+				}
+			}
+
 			this._updateDepth--
 		}
 		this.store.onAfterCreate = (record) => {
@@ -337,13 +359,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.ensureStoreIsUsable()
 
 		// clear ephemeral state
-		this._setInstancePageState(
+		this.updateStoreRecord(
 			{
+				id: this.currentPageStateId,
 				editingShapeId: null,
 				hoveredShapeId: null,
 				erasingShapeIds: [],
 			},
-			true
+			{ ephemeral: true }
 		)
 
 		if (initialState && this.root.children[initialState] === undefined) {
@@ -1182,48 +1205,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	updateInstanceState(
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		ephemeral = true,
-		squashing = true
+		squash = true
 	) {
-		this._updateInstanceState(partial, ephemeral, squashing)
-
-		if (partial.isChangingStyle !== undefined) {
-			clearTimeout(this._isChangingStyleTimeout)
-			if (partial.isChangingStyle === true) {
-				// If we've set to true, set a new reset timeout to change the value back to false after 2 seconds
-				this._isChangingStyleTimeout = setTimeout(() => {
-					this.updateInstanceState({ isChangingStyle: false })
-				}, 2000)
-			}
-		}
-
+		this.updateStoreRecord({ id: this.instanceState.id, ...partial }, { ephemeral, squash })
 		return this
 	}
-
-	/** @internal */
-	private _updateInstanceState = this.history.createCommand(
-		'updateInstanceState',
-		(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral = false, squashing = false) => {
-			const prev = this.instanceState
-			const next = { ...prev, ...partial }
-
-			return {
-				data: { prev, next },
-				squashing,
-				ephemeral,
-			}
-		},
-		{
-			do: ({ next }) => {
-				this.store.put([next])
-			},
-			undo: ({ prev }) => {
-				this.store.put([prev])
-			},
-			squash({ prev }, { next }) {
-				return { prev, next }
-			},
-		}
-	)
 
 	/** @internal */
 	private _isChangingStyleTimeout = -1 as any
@@ -1321,15 +1307,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get the page state for a given page.
+	 *
+	 * @param pageId - The id of the page to get the state for.
+	 *
+	 * @returns The page state.
+	 */
+	getPageState(pageId: TLPageId): TLInstancePageState {
+		return this.store.get(InstancePageStateRecordType.createId(pageId))!
+	}
+
+	/**
 	 * The current page state.
 	 *
 	 * @public
 	 */
 	@computed get currentPageState(): TLInstancePageState {
-		return this.store.get(this._currentPageStateId)!
+		return this.store.get(this.currentPageStateId)!
 	}
 	/** @internal */
-	@computed private get _currentPageStateId() {
+	@computed get currentPageStateId() {
 		return InstancePageStateRecordType.createId(this.currentPageId)
 	}
 
@@ -1338,8 +1335,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' })
-	 * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' }, true)
+	 * editor.updatePageState({ id: 'page1', editingShapeId: 'shape:123' })
+	 * editor.updatePageState({ id: 'page1', editingShapeId: 'shape:123' }, true)
 	 * ```
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
@@ -1347,32 +1344,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateCurrentPageState(
-		partial: Partial<
-			Omit<TLInstancePageState, 'selectedShapeIds' | 'editingShapeId' | 'pageId' | 'focusedGroupId'>
-		>,
-		ephemeral = false
+	updatePageState(
+		partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'pageId' | 'focusedGroupId'>>,
+		opts?: { ephemeral?: boolean; squashing?: boolean; preservesRedoStack?: boolean }
 	): this {
-		this._setInstancePageState(partial, ephemeral)
+		this.updateStoreRecord({ ...partial, id: partial.id ?? this.currentPageStateId }, opts)
 		return this
 	}
-
-	/** @internal */
-	private _setInstancePageState = this.history.createCommand(
-		'setInstancePageState',
-		(partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>, ephemeral = false) => {
-			const prev = this.store.get(partial.id ?? this.currentPageState.id)!
-			return { data: { prev, partial }, ephemeral }
-		},
-		{
-			do: ({ prev, partial }) => {
-				this.store.update(prev.id, (state) => ({ ...state, ...partial }))
-			},
-			undo: ({ prev }) => {
-				this.store.update(prev.id, () => prev)
-			},
-		}
-	)
 
 	/**
 	 * The current selected ids.
@@ -1398,46 +1376,88 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setSelectedShapeIds(ids: TLShapeId[], squashing = false) {
-		this._setSelectedShapeIds(ids, squashing)
+	setSelectedShapeIds(ids: TLShapeId[], squash = false) {
+		const { selectedShapeIds } = this.currentPageState
+		if (
+			ids.length !== selectedShapeIds.length ||
+			ids.some((id) => !selectedShapeIds.includes(id))
+		) {
+			this.updateStoreRecord(
+				{ id: this.currentPageStateId, selectedShapeIds: ids },
+				{ ephemeral: false, squash, preservesRedoStack: true }
+			)
+		}
 		return this
 	}
 
-	/** @internal */
-	private _setSelectedShapeIds = this.history.createCommand(
-		'setSelectedShapeIds',
-		(ids: TLShapeId[], squashing = false) => {
-			const { selectedShapeIds: prevSelectedShapeIds } = this.currentPageState
-			const prevSet = new Set(prevSelectedShapeIds)
+	/** @public */
+	updateStoreRecord = this.history.createCommand(
+		'updateRecord',
+		<T extends Exclude<TLRecord, TLShape>>(
+			partial: RequiredKeys<T, 'id'>,
+			opts?: { ephemeral?: boolean; squash?: boolean; preservesRedoStack?: boolean }
+		) => {
+			const prev = this.store.get(partial.id)!
 
-			if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
+			if (this.instanceState.isReadonly) {
+				const recordType = this.store.schema.types[prev.typeName as TLRecord['typeName']]
+				if (!recordType) throw Error(`Cannot get record type for ${prev.typeName}`)
+				// When in readonly mode, do not update document records
+				if (recordType.scope === 'document') return
+			}
 
 			return {
-				data: { selectedShapeIds: ids, prevSelectedShapeIds },
-				squashing,
-				preservesRedoStack: true,
+				data: { prev, next: { ...prev, ...partial } as T },
+				ephemeral: opts?.ephemeral ?? false,
+				squash: opts?.squash,
+				preservesRedoStack: opts?.preservesRedoStack ?? false,
 			}
 		},
 		{
-			do: ({ selectedShapeIds }) => {
-				this.store.put([{ ...this.currentPageState, selectedShapeIds }])
+			do: ({ next }) => {
+				this.store.put([next])
 			},
-			undo: ({ prevSelectedShapeIds }) => {
-				this.store.put([
-					{
-						...this.currentPageState,
-						selectedShapeIds: prevSelectedShapeIds,
-					},
-				])
-			},
-			squash({ prevSelectedShapeIds }, { selectedShapeIds }) {
-				return {
-					selectedShapeIds,
-					prevSelectedShapeIds,
-				}
+			undo: ({ prev }) => {
+				this.store.put([prev])
 			},
 		}
 	)
+
+	/** @internal */
+	// private _setSelectedShapeIds = this.history.createCommand(
+	// 	'setSelectedShapeIds',
+	// 	(pageId: TLPageId, ids: TLShapeId[], squashing = false) => {
+	// 		const { selectedShapeIds: prevSelectedShapeIds } = this.getPageState(pageId)
+	// 		const prevSet = new Set(prevSelectedShapeIds)
+
+	// 		if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
+
+	// 		return {
+	// 			data: { selectedShapeIds: ids, prevSelectedShapeIds },
+	// 			squashing,
+	// 			preservesRedoStack: true,
+	// 		}
+	// 	},
+	// 	{
+	// 		do: ({ selectedShapeIds }) => {
+	// 			this.store.put([{ ...this.currentPageState, selectedShapeIds }])
+	// 		},
+	// 		undo: ({ prevSelectedShapeIds }) => {
+	// 			this.store.put([
+	// 				{
+	// 					...this.currentPageState,
+	// 					selectedShapeIds: prevSelectedShapeIds,
+	// 				},
+	// 			])
+	// 		},
+	// 		squash({ prevSelectedShapeIds }, { selectedShapeIds }) {
+	// 			return {
+	// 				selectedShapeIds,
+	// 				prevSelectedShapeIds,
+	// 			}
+	// 		},
+	// 	}
+	// )
 
 	/**
 	 * Determine whether or not any of a shape's ancestors are selected.
@@ -1668,41 +1688,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.currentPageState.focusedGroupId ?? this.currentPageId
 	}
 
-	setFocusedGroupId(next: TLShapeId | TLPageId): this {
-		this._setFocusedGroupId(next)
+	setFocusedGroupId(id: TLShapeId | TLPageId): this {
+		const {
+			currentPageState: { focusedGroupId, id: currentPageStateId },
+		} = this
+		const next = isPageId(id as string) ? null : (id as TLShapeId)
+		const curr = focusedGroupId
+		if (next === curr) return this
+		this.updateStoreRecord(
+			{ id: currentPageStateId, focusedGroupId: next },
+			{ ephemeral: false, squash: true, preservesRedoStack: true }
+		)
 		return this
 	}
-	/** @internal */
-	private _setFocusedGroupId = this.history.createCommand(
-		'setFocusedGroupId',
-		(next: undefined | TLShapeId | TLPageId) => {
-			next = isPageId(next as string) ? undefined : (next as TLShapeId | undefined)
-			// When we first click an empty canvas we don't want this to show up in the undo stack
-			if (!next && !this.canUndo) {
-				return
-			}
-			const prev = this.currentPageState.focusedGroupId
-			return {
-				data: {
-					prev,
-					next,
-				},
-				preservesRedoStack: true,
-				squashing: true,
-			}
-		},
-		{
-			do: ({ next }) => {
-				this.store.update(this.currentPageState.id, (s) => ({ ...s, focusedGroupId: next ?? null }))
-			},
-			undo: ({ prev }) => {
-				this.store.update(this.currentPageState.id, (s) => ({ ...s, focusedGroupId: prev }))
-			},
-			squash({ prev }, { next }) {
-				return { prev, next }
-			},
-		}
-	)
 
 	/**
 	 * Exit the current focus layer, moving up to the next group if there is one.
@@ -1735,21 +1733,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get editingShapeId() {
+	@computed get editingShapeId() {
 		return this.currentPageState.editingShapeId
 	}
-	setEditingId(id: TLShapeId | null): this {
-		if (!id) {
-			this._setInstancePageState({ editingShapeId: null })
-		} else {
-			if (id !== this.editingShapeId) {
-				const shape = this.getShape(id)!
-				const util = this.getShapeUtil(shape)
-				if (shape && util.canEdit(shape)) {
-					this._setInstancePageState({ editingShapeId: id, hoveredShapeId: null }, false)
-				}
-			}
-		}
+	@computed get editingShape() {
+		return this.editingShapeId ? this.getShape(this.editingShapeId) : undefined
+	}
+	setEditingShapeId(id: TLShapeId | null): this {
+		if (id === this.currentPageState.editingShapeId) return this
+		this.updateStoreRecord({ id: this.currentPageStateId, editingShapeId: id })
 		return this
 	}
 
@@ -1764,13 +1756,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get hoveredShapeId() {
 		return this.currentPageState.hoveredShapeId
 	}
-	setHoveredId(id: TLShapeId | null): this {
-		if (id === this.currentPageState.hoveredShapeId) return this
-		this.updateCurrentPageState({ hoveredShapeId: id }, true)
-		return this
-	}
 	@computed get hoveredShape() {
 		return this.hoveredShapeId ? this.getShape(this.hoveredShapeId) : undefined
+	}
+	setHoveredShapeId(id: TLShapeId | null): this {
+		if (id === this.currentPageState.hoveredShapeId) return this
+		this.updateStoreRecord({ id: this.currentPageStateId, hoveredShapeId: id }, { ephemeral: true })
+		return this
 	}
 
 	// Hinting ids
@@ -1783,9 +1775,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get hintingShapeIds() {
 		return this.currentPageState.hintingShapeIds
 	}
-	setHintingIds(ids: TLShapeId[]): this {
-		// always ephemeral
-		this.store.update(this.currentPageState.id, (s) => ({ ...s, hintingShapeIds: dedupe(ids) }))
+	@computed get hintingShapes() {
+		return compact(this.currentPageState.hintingShapeIds.map((id) => this.getShape(id)))
+	}
+	setHintingShapeIds(ids: TLShapeId[]): this {
+		this.updateStoreRecord(
+			{ id: this.currentPageStateId, hintingShapeIds: dedupe(ids) },
+			{ ephemeral: true }
+		)
 		return this
 	}
 
@@ -1797,22 +1794,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get erasingShapeIds() {
 		return this.currentPageState.erasingShapeIds
 	}
-
-	setErasingIds(ids: TLShapeId[]): this {
-		const erasingShapeIds = this.erasingShapeIdsSet
-		if (ids.length === erasingShapeIds.size && ids.every((id) => erasingShapeIds.has(id)))
+	@computed get erasingShapes() {
+		return compact(this.currentPageState.erasingShapeIds.map((id) => this.getShape(id)))
+	}
+	setErasingShapeIds(ids: TLShapeId[]): this {
+		const { erasingShapeIds } = this
+		if (ids.length === erasingShapeIds.length && ids.every((id) => erasingShapeIds.includes(id))) {
 			return this
-		this._setInstancePageState({ erasingShapeIds: ids }, true)
+		}
+		this.updateStoreRecord(
+			{ id: this.currentPageStateId, erasingShapeIds: ids },
+			{ ephemeral: true }
+		)
 		return this
 	}
 
-	/**
-	 * A derived set containing the current erasing ids.
-	 *
-	 * @public
-	 */
-	@computed get erasingShapeIdsSet() {
-		return new Set<TLShapeId>(this.erasingShapeIds)
+	@computed private get erasingShapeIdsSet() {
+		return new Set(this.erasingShapeIds)
 	}
 
 	/**
@@ -1823,10 +1821,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	get croppingShapeId() {
 		return this.currentPageState.croppingShapeId
 	}
-	setCroppingId(id: TLShapeId | null): this {
+	setCroppingShapeId(id: TLShapeId | null): this {
 		if (id !== this.croppingShapeId) {
 			if (!id) {
-				this.updateCurrentPageState({ croppingShapeId: null })
+				this.updatePageState({ croppingShapeId: null })
 				if (this.isInAny('select.crop', 'select.pointing_crop_handle', 'select.cropping')) {
 					this.setCurrentTool('select.idle')
 				}
@@ -1834,7 +1832,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const shape = this.getShape(id)!
 				const util = this.getShapeUtil(shape)
 				if (shape && util.canCrop(shape)) {
-					this.updateCurrentPageState({ croppingShapeId: id })
+					this.updatePageState({ croppingShapeId: id })
 				}
 			}
 		}
@@ -3343,37 +3341,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing = false): this {
-		this._updatePage(partial, squashing)
+	updatePage(partial: RequiredKeys<TLPage, 'id'>, squash = false): this {
+		this.updateStoreRecord(partial, { squash })
 		return this
 	}
-	/** @internal */
-	private _updatePage = this.history.createCommand(
-		'updatePage',
-		(partial: RequiredKeys<TLPage, 'id'>, squashing = false) => {
-			if (this.instanceState.isReadonly) return null
-
-			const prev = this.getPage(partial.id)
-
-			if (!prev) return null
-
-			return { data: { prev, partial }, squashing }
-		},
-		{
-			do: ({ partial }) => {
-				this.store.update(partial.id, (page) => ({ ...page, ...partial }))
-			},
-			undo: ({ prev, partial }) => {
-				this.store.update(partial.id, () => prev)
-			},
-			squash(prevData, nextData) {
-				return {
-					prev: { ...prevData.prev, ...nextData.prev },
-					partial: nextData.partial,
-				}
-			},
-		}
-	)
 
 	/**
 	 * Create a page.

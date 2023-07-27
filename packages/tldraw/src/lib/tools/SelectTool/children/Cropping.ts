@@ -207,7 +207,7 @@ export class Cropping extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.setCroppingId(null)
+			this.editor.setCroppingShapeId(null)
 			this.parent.transition('idle', {})
 		}
 	}
@@ -217,7 +217,7 @@ export class Cropping extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.setCroppingId(null)
+			this.editor.setCroppingShapeId(null)
 			this.parent.transition('idle', {})
 		}
 	}
