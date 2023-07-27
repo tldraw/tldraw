@@ -48,7 +48,7 @@ class LicenseManager {
 		try {
 			if (
 				// what about framework-specific, i.e. vite?
-				process.env.NODE_ENV === 'production' ||
+				process.env.NODE_ENV !== 'production' ||
 				window.location.origin.includes('localhost')
 			) {
 				environment = 'development'

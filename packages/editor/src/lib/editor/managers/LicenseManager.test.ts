@@ -93,63 +93,74 @@ describe('LicenseManager', () => {
 		})
 	})
 
-	it('when origin is production and origin is valid', () => {
-		_setReleaseInfoForTest({
-			date: new Date('01/01/2023, 00:00:00').getTime(),
+	describe('in a production environment', () => {
+		let originalEnv: string
+		beforeAll(() => {
+			originalEnv = process.env.NODE_ENV!
+			process.env.NODE_ENV = 'production'
+		})
+		afterAll(() => {
+			process.env.NODE_ENV = originalEnv
 		})
 
-		const location = new URL('https://tldraw.com') as any
-		location.assign = jest.fn()
-		location.replace = jest.fn()
-		location.reload = jest.fn()
+		it('when origin is production and origin is valid', () => {
+			_setReleaseInfoForTest({
+				date: new Date('01/01/2023, 00:00:00').getTime(),
+			})
 
-		// @ts-expect-error
-		delete window.location
-		window.location = location
+			const location = new URL('https://tldraw.com') as any
+			location.assign = jest.fn()
+			location.replace = jest.fn()
+			location.reload = jest.fn()
 
-		const license: LicenseInfo = {
-			tldr_v: 1,
-			expiry: new Date('01/01/2023, 00:00:00').getTime(),
-			hosts: ['tldraw.com', 'staging.tldraw.com'],
-		}
-		const key = formatLicenseKey(license)
+			// @ts-expect-error
+			delete window.location
+			window.location = location
 
-		expect(licenseManager.getLicenseFromKey(key)).toEqual({
-			environment: 'production',
-			isLicenseValid: true,
-			isLicenseExpired: false,
-			isDomainValid: true,
-			license,
+			const license: LicenseInfo = {
+				tldr_v: 1,
+				expiry: new Date('01/01/2023, 00:00:00').getTime(),
+				hosts: ['tldraw.com', 'staging.tldraw.com'],
+			}
+			const key = formatLicenseKey(license)
+
+			expect(licenseManager.getLicenseFromKey(key)).toEqual({
+				environment: 'production',
+				isLicenseValid: true,
+				isLicenseExpired: false,
+				isDomainValid: true,
+				license,
+			})
 		})
-	})
 
-	it('when origin is production and origin is invalid', () => {
-		_setReleaseInfoForTest({
-			date: new Date('01/01/2023, 00:00:00').getTime(),
-		})
+		it('when origin is production and origin is invalid', () => {
+			_setReleaseInfoForTest({
+				date: new Date('01/01/2023, 00:00:00').getTime(),
+			})
 
-		const location = new URL('https://www.aol.com') as any
-		location.assign = jest.fn()
-		location.replace = jest.fn()
-		location.reload = jest.fn()
+			const location = new URL('https://www.aol.com') as any
+			location.assign = jest.fn()
+			location.replace = jest.fn()
+			location.reload = jest.fn()
 
-		// @ts-expect-error
-		delete window.location
-		window.location = location
+			// @ts-expect-error
+			delete window.location
+			window.location = location
 
-		const license: LicenseInfo = {
-			tldr_v: 1,
-			expiry: new Date('01/01/2023, 00:00:00').getTime(),
-			hosts: ['tldraw.com', 'staging.tldraw.com'],
-		}
-		const key = formatLicenseKey(license)
+			const license: LicenseInfo = {
+				tldr_v: 1,
+				expiry: new Date('01/01/2023, 00:00:00').getTime(),
+				hosts: ['tldraw.com', 'staging.tldraw.com'],
+			}
+			const key = formatLicenseKey(license)
 
-		expect(licenseManager.getLicenseFromKey(key)).toEqual({
-			environment: 'production',
-			isLicenseValid: true,
-			isLicenseExpired: false,
-			isDomainValid: false,
-			license,
+			expect(licenseManager.getLicenseFromKey(key)).toEqual({
+				environment: 'production',
+				isLicenseValid: true,
+				isLicenseExpired: false,
+				isDomainValid: false,
+				license,
+			})
 		})
 	})
 })
