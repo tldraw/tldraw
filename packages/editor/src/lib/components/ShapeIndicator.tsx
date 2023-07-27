@@ -28,7 +28,8 @@ export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }
 
 	const { ShapeIndicatorErrorFallback } = useEditorComponents()
 
-	if (!shape.shape) return null
+	if (!shape.shape || shape.shape.isLocked) return null
+
 	return (
 		<OptionalErrorBoundary
 			fallback={ShapeIndicatorErrorFallback}
