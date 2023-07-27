@@ -178,16 +178,13 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	useQuickReactor(
 		'minimap render when pagebounds or collaborators changes',
 		() => {
-			const {
-				shapeIdsOnCurrentPage,
-				viewportPageBounds,
-				commonBoundsOfAllShapesOnCurrentPage: allShapesCommonBounds,
-			} = editor
+			const { shapeIdsOnCurrentPage, viewportPageBounds, commonBoundsOfAllShapesOnCurrentPage } =
+				editor
 
 			const _dpr = devicePixelRatio.value
 
-			minimap.contentPageBounds = allShapesCommonBounds
-				? Box2d.Expand(allShapesCommonBounds, viewportPageBounds)
+			minimap.contentPageBounds = commonBoundsOfAllShapesOnCurrentPage
+				? Box2d.Expand(commonBoundsOfAllShapesOnCurrentPage, viewportPageBounds)
 				: viewportPageBounds
 
 			minimap.updateContentScreenBounds()
