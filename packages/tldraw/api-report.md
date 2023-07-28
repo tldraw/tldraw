@@ -176,6 +176,15 @@ interface DropdownMenuItemProps extends TLUiButtonProps {
 }
 
 // @public (undocumented)
+export function EventsProvider({ onEvent, children }: EventsProviderProps): JSX.Element;
+
+// @public (undocumented)
+export type EventsProviderProps = {
+    onEvent?: TLUiEventHandler;
+    children: any;
+};
+
+// @public (undocumented)
 export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiMenuChild;
 
 // @public (undocumented)

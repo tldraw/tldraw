@@ -59,7 +59,9 @@ export {
 	type TLUiDialogsContextType,
 } from './lib/ui/hooks/useDialogsProvider'
 export {
+	EventsProvider,
 	useEvents,
+	type EventsProviderProps,
 	type TLUiEventContextType,
 	type TLUiEventHandler,
 	type TLUiEventSource,

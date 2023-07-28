@@ -104,13 +104,13 @@ export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>
 /** @internal */
 export const EventsContext = React.createContext<TLUiEventContextType>({} as TLUiEventContextType)
 
-/** @internal */
+/** @public */
 export type EventsProviderProps = {
 	onEvent?: TLUiEventHandler
 	children: any
 }
 
-/** @internal */
+/** @public */
 export function EventsProvider({ onEvent, children }: EventsProviderProps) {
 	return (
 		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>
