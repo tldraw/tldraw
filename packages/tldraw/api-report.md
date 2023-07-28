@@ -176,6 +176,12 @@ interface DropdownMenuItemProps extends TLUiButtonProps {
 }
 
 // @public (undocumented)
+export type EventsProviderProps = {
+    onEvent?: TLUiEventHandler;
+    children: any;
+};
+
+// @public (undocumented)
 export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiMenuChild;
 
 // @public (undocumented)
@@ -722,6 +728,9 @@ function Trigger({ children, 'data-testid': testId, }: {
 export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
 
 // @public (undocumented)
+export function UiEventsProvider({ onEvent, children }: EventsProviderProps): JSX.Element;
+
+// @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
 // @public (undocumented)
@@ -764,9 +773,6 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
-
-// @public (undocumented)
-export function useEvents(): TLUiEventContextType;
 
 // @public (undocumented)
 export function useExportAs(): (ids?: TLShapeId[], format?: TLExportType) => Promise<void>;
@@ -813,6 +819,9 @@ export function useTools(): TLUiToolsContextType;
 
 // @public
 export function useTranslation(): (id: TLUiTranslationKey) => string;
+
+// @public (undocumented)
+export function useUiEvents(): TLUiEventContextType;
 
 
 export * from "@tldraw/editor";
