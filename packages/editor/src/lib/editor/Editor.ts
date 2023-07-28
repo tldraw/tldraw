@@ -86,7 +86,7 @@ import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
 import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
-import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
+import { ReadonlySharedStyleMap, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
 import { getIncrementedName } from '../utils/getIncrementedName'
@@ -264,6 +264,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const reparentArrow = (arrowId: TLArrowShape['id']) => {
 			const arrow = this.getShape<TLArrowShape>(arrowId)
 			if (!arrow) return
+
 			const { start, end } = arrow.props
 			const startShape = start.type === 'binding' ? this.getShape(start.boundShapeId) : undefined
 			const endShape = end.type === 'binding' ? this.getShape(end.boundShapeId) : undefined
@@ -341,7 +342,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (finalIndex !== reparentedArrow.index) {
-				this.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }])
+				this.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }], true)
 			}
 		}
 
@@ -358,6 +359,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					unbindArrowTerminal(arrow, handle)
 				}
 			}
+
 			// always check the arrow parents
 			reparentArrow(arrow.id)
 		}
@@ -415,11 +417,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Before create cleanup handlers
 
-		this.cleanup.registerBeforeCreateHandler('shape', (record) => {
-			if (record.typeName === 'shape') {
-				const shapeAfterUtilOnBeforeCreate = this.getShapeUtil(record)?.onBeforeCreate?.(record)
-				if (shapeAfterUtilOnBeforeCreate) {
-					return shapeAfterUtilOnBeforeCreate
+		this.cleanup.registerBeforeCreateHandler('shape', (record, scope) => {
+			if (scope === 'user') {
+				if (record.typeName === 'shape') {
+					const shapeAfterUtilOnBeforeCreate = this.getShapeUtil(record)?.onBeforeCreate?.(record)
+					if (shapeAfterUtilOnBeforeCreate) {
+						return shapeAfterUtilOnBeforeCreate
+					}
 				}
 			}
 			return record
@@ -427,9 +431,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// After create cleanup handlers
 
-		this.cleanup.registerAfterCreateHandler('shape', (record) => {
-			if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
-				arrowDidUpdate(record)
+		this.cleanup.registerAfterCreateHandler('shape', (record, scope) => {
+			if (scope === 'user') {
+				if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
+					arrowDidUpdate(record)
+				}
 			}
 		})
 
@@ -465,7 +471,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return next
 		})
 
-		this.cleanup.registerBeforeChangeHandler('instance_page_state', (prev, next) => {
+		this.cleanup.registerBeforeChangeHandler('instance_page_state', (prev, next, source) => {
+			if (source !== 'user') return next
 			if (next.editingShapeId && next.editingShapeId !== (prev as typeof next).editingShapeId) {
 				// editing shape change
 				const shape = this.getShape(next.editingShapeId)
@@ -1516,7 +1523,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const menus = new Set(this.openMenus)
 		if (!menus.has(id)) {
 			menus.add(id)
-			this.updateInstanceState({ openMenus: [...menus] })
+			this.updateInstanceState({ openMenus: [...menus] }, true)
 		}
 		return this
 	}
@@ -1535,7 +1542,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const menus = new Set(this.openMenus)
 		if (menus.has(id)) {
 			menus.delete(id)
-			this.updateInstanceState({ openMenus: [...menus] })
+			this.updateInstanceState({ openMenus: [...menus] }, true)
 		}
 		return this
 	}
@@ -6960,7 +6967,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		this.updateRecords(shapesToUpdate, { squashing })
-
 		return this
 	}
 
@@ -7157,48 +7163,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the currently selected shared opacity.
-	 * If any shapes are selected, this returns the shared opacity of the selected shapes.
-	 * Otherwise, this returns the chosen opacity for the next shape.
-	 *
-	 * @public
-	 */
-	@computed get sharedOpacity(): SharedStyle<number> {
-		if (this.isIn('select') && this.selectedShapeIds.length > 0) {
-			const shapesToCheck: TLShape[] = []
-			const addShape = (shapeId: TLShapeId) => {
-				const shape = this.getShape(shapeId)
-				if (!shape) return
-				// For groups, ignore the opacity of the group shape and instead include
-				// the opacity of the group's children. These are the shapes that would have
-				// their opacity changed if the user called `setOpacity` on the current selection.
-				if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
-					for (const childId of this.getSortedChildIdsForParent(shape.id)) {
-						addShape(childId)
-					}
-				} else {
-					shapesToCheck.push(shape)
-				}
-			}
-			for (const shapeId of this.selectedShapeIds) {
-				addShape(shapeId)
-			}
-
-			let opacity: number | null = null
-			for (const shape of shapesToCheck) {
-				if (opacity === null) {
-					opacity = shape.opacity
-				} else if (opacity !== shape.opacity) {
-					return { type: 'mixed' }
-				}
-			}
-
-			if (opacity !== null) return { type: 'shared', value: opacity }
-		}
-		return { type: 'shared', value: this.instanceState.opacityForNextShape }
-	}
-
-	/**
 	 * Set the current opacity. This will effect any selected shapes, or the
 	 * next-created shape.
 	 *
@@ -7213,49 +7177,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param squashing - Whether the opacity change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
 	 */
 	setOpacity(opacity: number, ephemeral = false, squashing = false): this {
-		this.history.batch(() => {
-			if (this.isIn('select')) {
-				const {
-					currentPageState: { selectedShapeIds },
-				} = this
-
-				const shapesToUpdate: TLShape[] = []
-
-				// We can have many deep levels of grouped shape
-				// Making a recursive function to look through all the levels
-				const addShapeById = (id: TLShape['id']) => {
-					const shape = this.getShape(id)
-					if (!shape) return
-					if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
-						const childIds = this.getSortedChildIdsForParent(id)
-						for (const childId of childIds) {
-							addShapeById(childId)
-						}
-					} else {
-						shapesToUpdate.push(shape)
-					}
-				}
-
-				if (selectedShapeIds.length > 0) {
-					for (const id of selectedShapeIds) {
-						addShapeById(id)
-					}
-
-					this.updateShapes(
-						shapesToUpdate.map((shape) => {
-							return {
-								id: shape.id,
-								type: shape.type,
-								opacity,
-							}
-						}),
-						ephemeral
-					)
-				}
-			}
-
-			this.updateInstanceState({ opacityForNextShape: opacity }, ephemeral, squashing)
-		})
+		this.updateInstanceState({ opacityForNextShape: opacity }, ephemeral, squashing)
 
 		return this
 	}

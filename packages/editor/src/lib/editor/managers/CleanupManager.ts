@@ -3,89 +3,106 @@ import { Editor } from '../Editor'
 
 export class CleanupManager {
 	constructor(public editor: Editor) {
-		editor.store.onBeforeChange = (prev, next) => {
+		editor.store.onBeforeChange = (prev, next, source) => {
 			if (this._beforeChangeHandlers[next.typeName]) {
 				// @ts-expect-error
-				return this._beforeChangeHandlers[next.typeName](prev, next)
+				return this._beforeChangeHandlers[next.typeName](prev, next, source)
 			}
 			return next
 		}
 
 		let updateDepth = 0
 
-		editor.store.onAfterChange = (prev, next) => {
+		editor.store.onAfterChange = (prev, next, source) => {
 			updateDepth++
 			if (updateDepth > 1000) {
 				console.error('[onAfterChange] Maximum update depth exceeded, bailing out.')
 			}
 
 			// @ts-expect-error
-			this._afterChangeHandlers[next.typeName]?.(prev, next)
+			this._afterChangeHandlers[next.typeName]?.(prev, next, source)
 
 			updateDepth--
 		}
 
-		editor.store.onBeforeCreate = (record) => {
+		editor.store.onBeforeCreate = (record, source) => {
 			if (this._beforeCreateHandlers[record.typeName]) {
 				// @ts-expect-error
-				return this._beforeCreateHandlers[record.typeName](record)
+				return this._beforeCreateHandlers[record.typeName](record, source)
 			}
 
 			return record
 		}
 
-		editor.store.onAfterCreate = (record) => {
+		editor.store.onAfterCreate = (record, source) => {
 			if (this._afterCreateHandlers[record.typeName]) {
 				// @ts-expect-error
-				this._afterCreateHandlers[record.typeName](record)
+				this._afterCreateHandlers[record.typeName](record, source)
 			}
 		}
 
-		editor.store.onBeforeDelete = (record) => {
+		editor.store.onBeforeDelete = (record, source) => {
 			if (this._beforeDeleteHandlers[record.typeName]) {
 				// @ts-expect-error
-				return this._beforeDeleteHandlers[record.typeName](record)
+				return this._beforeDeleteHandlers[record.typeName](record, source)
 			}
 		}
 
-		editor.store.onAfterDelete = (record) => {
+		editor.store.onAfterDelete = (record, source) => {
 			if (this._afterDeleteHandlers[record.typeName]) {
 				// @ts-expect-error
-				this._afterDeleteHandlers[record.typeName](record)
+				this._afterDeleteHandlers[record.typeName](record, source)
 			}
 		}
 	}
 
 	private _beforeCreateHandlers: Partial<{
-		[K in TLRecord['typeName']]: (record: TLRecord & { typeName: K }) => TLRecord & { typeName: K }
+		[K in TLRecord['typeName']]: (
+			record: TLRecord & { typeName: K },
+			source: 'remote' | 'user'
+		) => TLRecord & { typeName: K }
 	}> = {}
 	private _afterCreateHandlers: Partial<{
-		[K in TLRecord['typeName']]: (record: TLRecord & { typeName: K }) => void
+		[K in TLRecord['typeName']]: (
+			record: TLRecord & { typeName: K },
+			source: 'remote' | 'user'
+		) => void
 	}> = {}
 	private _beforeChangeHandlers: Partial<{
 		[K in TLRecord['typeName']]: (
 			prev: TLRecord & { typeName: K },
-			next: TLRecord & { typeName: K }
+			next: TLRecord & { typeName: K },
+			source: 'remote' | 'user'
 		) => TLRecord & { typeName: K }
 	}> = {}
 	private _afterChangeHandlers: Partial<{
 		[K in TLRecord['typeName']]: (
 			prev: TLRecord & { typeName: K },
-			next: TLRecord & { typeName: K }
+			next: TLRecord & { typeName: K },
+			source: 'remote' | 'user'
 		) => void
 	}> = {}
 
 	private _beforeDeleteHandlers: Partial<{
-		[K in TLRecord['typeName']]: (record: TLRecord & { typeName: K }) => void | false
+		[K in TLRecord['typeName']]: (
+			record: TLRecord & { typeName: K },
+			source: 'remote' | 'user'
+		) => void | false
 	}> = {}
 
 	private _afterDeleteHandlers: Partial<{
-		[K in TLRecord['typeName']]: (record: TLRecord & { typeName: K }) => void
+		[K in TLRecord['typeName']]: (
+			record: TLRecord & { typeName: K },
+			source: 'remote' | 'user'
+		) => void
 	}> = {}
 
 	registerBeforeCreateHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (record: TLRecord & { typeName: T }) => TLRecord & { typeName: T }
+		handler: (
+			record: TLRecord & { typeName: T },
+			source: 'remote' | 'user'
+		) => TLRecord & { typeName: T }
 	) {
 		// @ts-expect-error
 		this._beforeCreateHandlers[typeName] = handler
@@ -93,7 +110,7 @@ export class CleanupManager {
 
 	registerAfterCreateHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (record: TLRecord & { typeName: T }) => void
+		handler: (record: TLRecord & { typeName: T }, source: 'remote' | 'user') => void
 	) {
 		// @ts-expect-error
 		this._afterCreateHandlers[typeName] = handler
@@ -103,7 +120,8 @@ export class CleanupManager {
 		typeName: T,
 		handler: (
 			prev: TLRecord & { typeName: T },
-			next: TLRecord & { typeName: T }
+			next: TLRecord & { typeName: T },
+			source: 'remote' | 'user'
 		) => TLRecord & { typeName: T }
 	) {
 		// @ts-expect-error
@@ -112,7 +130,11 @@ export class CleanupManager {
 
 	registerAfterChangeHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (prev: TLRecord & { typeName: T }, next: TLRecord & { typeName: T }) => void
+		handler: (
+			prev: TLRecord & { typeName: T },
+			next: TLRecord & { typeName: T },
+			source: 'remote' | 'user'
+		) => void
 	) {
 		// @ts-expect-error
 		this._afterChangeHandlers[typeName] = handler
@@ -120,7 +142,7 @@ export class CleanupManager {
 
 	registerBeforeDeleteHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (record: TLRecord & { typeName: T }) => void | false
+		handler: (record: TLRecord & { typeName: T }, source: 'remote' | 'user') => void | false
 	) {
 		// @ts-expect-error
 		this._beforeDeleteHandlers[typeName] = handler
@@ -128,7 +150,7 @@ export class CleanupManager {
 
 	registerAfterDeleteHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (record: TLRecord & { typeName: T }) => void
+		handler: (record: TLRecord & { typeName: T }, source: 'remote' | 'user') => void
 	) {
 		// @ts-expect-error
 		this._afterDeleteHandlers[typeName] = handler

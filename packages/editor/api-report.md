@@ -967,7 +967,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
-    get sharedOpacity(): SharedStyle<number>;
     get sharedStyles(): ReadonlySharedStyleMap;
     slideCamera(opts?: {
         speed: number;

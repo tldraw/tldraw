@@ -257,12 +257,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;
     mergeRemoteChanges: (fn: () => void) => void;
-    onAfterChange?: (prev: R, next: R) => void;
-    onAfterCreate?: (record: R) => void;
-    onAfterDelete?: (prev: R) => void;
-    onBeforeChange?: (prev: R, next: R) => R;
-    onBeforeCreate?: (next: R) => R;
-    onBeforeDelete?: (prev: R) => false | void;
+    onAfterChange?: (prev: R, next: R, source: 'remote' | 'user') => void;
+    onAfterCreate?: (record: R, source: 'remote' | 'user') => void;
+    onAfterDelete?: (prev: R, source: 'remote' | 'user') => void;
+    onBeforeChange?: (prev: R, next: R, source: 'remote' | 'user') => R;
+    onBeforeCreate?: (next: R, source: 'remote' | 'user') => R;
+    onBeforeDelete?: (prev: R, source: 'remote' | 'user') => false | void;
     // (undocumented)
     readonly props: Props;
     put: (records: R[], phaseOverride?: 'initialize') => void;
