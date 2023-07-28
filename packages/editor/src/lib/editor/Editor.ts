@@ -1156,8 +1156,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			undo: ({ prevRecords }) => {
 				this.store.put(Object.values(prevRecords))
 			},
-			squash: ({ prevRecords: prevPrev }, { prevRecords: prevNext, nextRecords }) => {
-				return { prevRecords: { ...prevNext, ...prevPrev }, nextRecords }
+			squash: (
+				{ prevRecords: prevPrev, nextRecords: prevNext },
+				{ prevRecords: nextPrev, nextRecords: nextNext }
+			) => {
+				// Sooometimes the new records will have more "prev" records than the old records
+				return {
+					prevRecords: { ...nextPrev, ...prevPrev },
+					nextRecords: { ...prevNext, ...nextNext },
+				}
 			},
 		}
 	)
