@@ -121,5 +121,6 @@ export function EventsProvider({ onEvent, children }: EventsProviderProps) {
 
 /** @public */
 export function useEvents() {
-	return React.useContext(EventsContext)
+	const eventHandler = React.useContext(EventsContext)
+	return eventHandler ?? defaultEventHandler
 }
