@@ -41,6 +41,35 @@ export const EMBED_DEFINITIONS = [
 		},
 	},
 	{
+		type: 'val_town',
+		title: 'Val Town',
+		hostnames: ['val.town'],
+		minWidth: 260,
+		minHeight: 100,
+		width: 720,
+		height: 500,
+		doesResize: true,
+		canUnmount: false,
+		toEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			// e.g. extract "steveruizok.mathFact" from https://www.val.town/v/steveruizok.mathFact
+			const matches = urlObj && urlObj.pathname.match(/\/v\/([^/]+)\/?/)
+			if (matches) {
+				return `https://www.val.town/embed/${matches[1]}`
+			}
+			return
+		},
+		fromEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			// e.g. extract "steveruizok.mathFact" from https://www.val.town/v/steveruizok.mathFact
+			const matches = urlObj && urlObj.pathname.match(/\/embed\/([^/]+)\/?/)
+			if (matches) {
+				return `https://www.val.town/v/${matches[1]}`
+			}
+			return
+		},
+	},
+	{
 		type: 'codesandbox',
 		title: 'CodeSandbox',
 		hostnames: ['codesandbox.io'],
