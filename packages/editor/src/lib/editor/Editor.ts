@@ -275,6 +275,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.store.onBeforeChange = (prev, next) => {
 			if (next.typeName === 'shape') {
+				if (next.isLocked && next.isLocked === (prev as typeof next).isLocked) {
+					// If the shape is locked and the isLocked prop hasn't changed, don't update the shape
+					return prev
+				}
+
 				const shapeAfterUtilOnBeforeUpdate = this.getShapeUtil(next)?.onBeforeUpdate?.(
 					prev as typeof next,
 					next
@@ -6654,7 +6659,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
-				this._updateShapes(tPartials, true)
+				this.updateShapes(tPartials, true)
 			} catch (e) {
 				// noop
 			}
@@ -6904,106 +6909,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		return this
 	}
-
-	/** @internal */
-	private _updateShapes = this.history.createCommand(
-		'updateShapes',
-		(_partials: (TLShapePartial | null | undefined)[], squashing = false) => {
-			if (this.instanceState.isReadonly) return null
-
-			const partials = compact(_partials)
-
-			const snapshots = Object.fromEntries(
-				compact(partials.map(({ id }) => this.getShape(id))).map((shape) => {
-					return [shape.id, shape]
-				})
-			)
-
-			if (partials.length <= 0) return null
-
-			const updated = compact(
-				partials.map((partial) => {
-					const prev = snapshots[partial.id]
-					if (!prev) return null
-					let newRecord = null as null | TLShape
-					for (const [k, v] of Object.entries(partial)) {
-						if (v === undefined) continue
-						switch (k) {
-							case 'id':
-							case 'type':
-								continue
-							default: {
-								if (v !== (prev as any)[k]) {
-									if (!newRecord) {
-										newRecord = { ...prev }
-									}
-
-									if (k === 'props') {
-										// props property
-										const nextProps = { ...prev.props } as JsonObject
-										for (const [propKey, propValue] of Object.entries(v as object)) {
-											if (propValue !== undefined) {
-												nextProps[propKey] = propValue
-											}
-										}
-										newRecord!.props = nextProps
-									} else if (k === 'meta') {
-										// meta property
-										const nextMeta = { ...prev.meta } as JsonObject
-										for (const [metaKey, metaValue] of Object.entries(v as object)) {
-											if (metaValue !== undefined) {
-												nextMeta[metaKey] = metaValue
-											}
-										}
-										newRecord!.meta = nextMeta
-									} else {
-										// base property
-										;(newRecord as any)[k] = v
-									}
-								}
-							}
-						}
-					}
-
-					return newRecord ?? prev
-				})
-			)
-
-			const updates = Object.fromEntries(updated.map((shape) => [shape.id, shape]))
-
-			return { data: { snapshots, updates }, squashing }
-		},
-		{
-			do: ({ updates }) => {
-				// Iterate through array; if any shape has an onUpdate handler, call it
-				// and, if the handler returns a new shape, replace the old shape with
-				// the new one. This is used for example when repositioning a text shape
-				// based on its new text content.
-				const result = Object.values(updates)
-				for (let i = 0; i < result.length; i++) {
-					const shape = result[i]
-					const current = this.store.get(shape.id)
-					if (!current) continue
-					const next = this.getShapeUtil(shape).onBeforeUpdate?.(current, shape)
-					if (next) {
-						result[i] = next
-					}
-				}
-				this.store.put(result)
-			},
-			undo: ({ snapshots }) => {
-				this.store.put(Object.values(snapshots))
-			},
-			squash(prevData, nextData) {
-				return {
-					// keep the oldest snapshots
-					snapshots: { ...nextData.snapshots, ...prevData.snapshots },
-					// keep the newest updates
-					updates: { ...prevData.updates, ...nextData.updates },
-				}
-			},
-		}
-	)
 
 	/** @internal */
 	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
