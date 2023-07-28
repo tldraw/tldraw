@@ -165,12 +165,13 @@ describe('Locked shapes', () => {
 describe('Unlocking', () => {
 	it('Can unlock shapes', () => {
 		editor.setSelectedShapeIds([ids.lockedShapeA, ids.lockedShapeB])
-		let lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map(
-			(id) => editor.getShape(id)!.isLocked
-		)
-		expect(lockedStatus).toStrictEqual([true, true])
-		editor.toggleLock(editor.selectedShapeIds)
-		lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map((id) => editor.getShape(id)!.isLocked)
-		expect(lockedStatus).toStrictEqual([false, false])
+		expect(editor.selectedShapeIds).toEqual([]) // can't select locked shapes!
+
+		const before = [ids.lockedShapeA, ids.lockedShapeB].map((id) => editor.getShape(id)!.isLocked)
+		expect(before).toStrictEqual([true, true])
+
+		editor.toggleLock([ids.lockedShapeA, ids.lockedShapeB])
+		const after = [ids.lockedShapeA, ids.lockedShapeB].map((id) => editor.getShape(id)!.isLocked)
+		expect(after).toStrictEqual([false, false])
 	})
 })

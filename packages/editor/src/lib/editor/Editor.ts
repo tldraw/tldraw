@@ -257,6 +257,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.store.onBeforeDelete = (record) => {
 			if (record.typeName === 'shape') {
+				if (record.isLocked) {
+					return false // don't delete the locked shape
+				}
+
 				this._shapeWillBeDeleted(record)
 			} else if (record.typeName === 'page') {
 				this._pageWillBeDeleted(record)
@@ -285,9 +289,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 					next
 				)
 				if (shapeAfterUtilOnBeforeUpdate) {
-					return shapeAfterUtilOnBeforeUpdate
+					next = shapeAfterUtilOnBeforeUpdate
 				}
 			}
+
+			if (next.typeName === 'instance_page_state') {
+				if (next.editingShapeId && next.editingShapeId !== (prev as typeof next).editingShapeId) {
+					// editing shape change
+					const shape = this.getShape(next.editingShapeId)
+					if (shape && shape.isLocked) {
+						next = { ...next, editingShapeId: (prev as typeof next).editingShapeId }
+					}
+				}
+
+				if (
+					next.selectedShapeIds.length &&
+					next.selectedShapeIds !== (prev as typeof next).selectedShapeIds
+				) {
+					// selected shape changes, make sure that they're not locked
+					next = {
+						...next,
+						selectedShapeIds: next.selectedShapeIds.filter((id) => {
+							const shape = this.getShape(id)
+							if (shape) {
+								return !shape.isLocked
+							}
+						}),
+					}
+				}
+			}
+
 			return next
 		}
 
@@ -1673,7 +1704,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const ids = this.getSortedChildIdsForParent(this.currentPageId)
 		// page might have no shapes
 		if (ids.length <= 0) return this
-		this.setSelectedShapeIds(this._getUnlockedShapeIds(ids))
+		this.setSelectedShapeIds(ids)
 
 		return this
 	}
@@ -5318,16 +5349,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 		}
-		if (allUnlocked) {
-			this.updateShapes(shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true })))
-			this.setSelectedShapeIds([])
-		} else if (allLocked) {
-			this.updateShapes(
-				shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: false }))
-			)
-		} else {
-			this.updateShapes(shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true })))
-		}
+
+		this.batch(() => {
+			if (allUnlocked) {
+				this.updateShapes(
+					shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true }))
+				)
+				this.setSelectedShapeIds([])
+			} else if (allLocked) {
+				this.updateShapes(
+					shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: false }))
+				)
+			} else {
+				this.updateShapes(
+					shapes.map((shape) => ({ id: shape.id, type: shape.type, isLocked: true }))
+				)
+			}
+		})
 
 		return this
 	}
@@ -6934,9 +6972,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			throw Error('Editor.deleteShapes: must provide an array of shapes or shapeIds')
 		}
 		this._deleteShapes(
-			this._getUnlockedShapeIds(
-				typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
-			)
+			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
 		)
 		return this
 	}

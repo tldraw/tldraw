@@ -334,7 +334,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @param prev - The record that will be deleted.
 	 */
-	onBeforeDelete?: (prev: R) => void
+	onBeforeDelete?: (prev: R) => false | void
 
 	/**
 	 * A callback fired after a record is deleted.
@@ -467,12 +467,16 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	remove = (ids: IdOf<R>[]): void => {
 		transact(() => {
+			const cancelled = [] as IdOf<R>[]
+
 			if (this.onBeforeDelete && this._runCallbacks) {
 				for (const id of ids) {
 					const atom = this.atoms.__unsafe__getWithoutCapture()[id]
 					if (!atom) continue
 
-					this.onBeforeDelete(atom.value)
+					if (this.onBeforeDelete(atom.value) === false) {
+						cancelled.push(id)
+					}
 				}
 			}
 
@@ -483,6 +487,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				let result: typeof atoms | undefined = undefined
 
 				for (const id of ids) {
+					if (cancelled.includes(id)) continue
 					if (!(id in atoms)) continue
 					if (!result) result = { ...atoms }
 					if (!removed) removed = {} as Record<IdOf<R>, R>
@@ -619,6 +624,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			console.error(`Record ${id} not found. This is probably an error`)
 			return
 		}
+
 		this.put([updater(atom.__unsafe__getWithoutCapture() as any as RecFromId<K>) as any])
 	}
 

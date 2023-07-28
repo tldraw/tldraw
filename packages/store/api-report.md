@@ -262,7 +262,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     onAfterDelete?: (prev: R) => void;
     onBeforeChange?: (prev: R, next: R) => R;
     onBeforeCreate?: (next: R) => R;
-    onBeforeDelete?: (prev: R) => void;
+    onBeforeDelete?: (prev: R) => false | void;
     // (undocumented)
     readonly props: Props;
     put: (records: R[], phaseOverride?: 'initialize') => void;
