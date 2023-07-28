@@ -111,7 +111,7 @@ export type EventsProviderProps = {
 }
 
 /** @public */
-export function EventsProvider({ onEvent, children }: EventsProviderProps) {
+export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 	return (
 		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>
 			{children}
@@ -120,7 +120,7 @@ export function EventsProvider({ onEvent, children }: EventsProviderProps) {
 }
 
 /** @public */
-export function useEvents() {
+export function useUiEvents() {
 	const eventHandler = React.useContext(EventsContext)
 	return eventHandler ?? defaultEventHandler
 }

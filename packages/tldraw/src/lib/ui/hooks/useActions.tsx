@@ -24,7 +24,7 @@ import { TLUiIconType } from '../icon-types'
 import { useMenuClipboardEvents } from './useClipboardEvents'
 import { useCopyAs } from './useCopyAs'
 import { useDialogs } from './useDialogsProvider'
-import { TLUiEventSource, useEvents } from './useEventsProvider'
+import { TLUiEventSource, useUiEvents } from './useEventsProvider'
 import { useExportAs } from './useExportAs'
 import { useInsertMedia } from './useInsertMedia'
 import { usePrint } from './usePrint'
@@ -79,7 +79,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const copyAs = useCopyAs()
 	const exportAs = useExportAs()
 
-	const trackEvent = useEvents()
+	const trackEvent = useUiEvents()
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
