@@ -994,7 +994,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     toggleLock(shapes: TLShape[]): this;
     // (undocumented)
     toggleLock(ids: TLShapeId[]): this;
-    undo(): HistoryManager<this>;
+    undo(): this;
     ungroupShapes(ids: TLShapeId[]): this;
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;

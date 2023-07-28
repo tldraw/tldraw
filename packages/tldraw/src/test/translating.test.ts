@@ -1747,3 +1747,55 @@ describe('When dragging a shape onto a parent', () => {
 		expect(editor.getShape(ids.box1)?.parentId).toBe(editor.currentPageId)
 	})
 })
+
+describe('When dragging shapes', () => {
+	it('should drag and undo and redo', () => {
+		editor.deleteShapes(editor.shapesOnCurrentPage)
+
+		editor.setCurrentTool('arrow').pointerMove(0, 0).pointerDown().pointerMove(100, 100).pointerUp()
+
+		editor.expectShapeToMatch({
+			id: editor.shapesOnCurrentPage[0]!.id,
+			x: 0,
+			y: 0,
+		})
+
+		editor.setCurrentTool('geo').pointerMove(-10, 100).pointerDown().pointerUp()
+
+		editor.expectShapeToMatch({
+			id: editor.shapesOnCurrentPage[1]!.id,
+			x: -110,
+			y: 0,
+		})
+
+		editor
+			.selectAll()
+			.pointerMove(50, 50)
+			.pointerDown()
+			.pointerMove(100, 50)
+			.pointerUp()
+			.expectShapeToMatch({
+				id: editor.shapesOnCurrentPage[0]!.id,
+				x: 50, // 50 to the right
+				y: 0,
+			})
+			.expectShapeToMatch({
+				id: editor.shapesOnCurrentPage[1]!.id,
+				x: -60, // 50 to the right
+				y: 0,
+			})
+
+		editor
+			.undo()
+			.expectShapeToMatch({
+				id: editor.shapesOnCurrentPage[0]!.id,
+				x: 0, // 50 to the right
+				y: 0,
+			})
+			.expectShapeToMatch({
+				id: editor.shapesOnCurrentPage[1]!.id,
+				x: -110, // 50 to the right
+				y: 0,
+			})
+	})
+})

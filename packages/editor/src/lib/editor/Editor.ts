@@ -961,7 +961,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	undo() {
-		return this.history.undo()
+		this.history.undo()
+		return this
 	}
 
 	/**
@@ -1117,20 +1118,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 			opts?: { ephemeral?: boolean; squashing?: boolean; preservesRedoStack?: boolean }
 		) => {
 			const compactedPartials = compact(partials)
-			const prevRecords = new Array(compactedPartials.length) as TLRecord[]
-			const nextRecords = new Array(compactedPartials.length) as TLRecord[]
+			const prevRecords = {} as Record<TLRecord['id'], TLRecord>
+			const nextRecords = {} as Record<TLRecord['id'], TLRecord>
 
 			for (let i = 0, n = compactedPartials.length; i < n; i++) {
 				const partial = compactedPartials[i]
 				if (!partial.id) throw Error()
 				const prev = this.store.get(partial.id)
 				if (!prev) throw Error(`Cannot find record with id: "${partial.id}"`)
-				prevRecords[i] = prev
-				nextRecords[i] = { ...prev, ...partial } as TLRecord
+				prevRecords[partial.id] = prev
+				nextRecords[partial.id] = { ...prev, ...partial } as TLRecord
 			}
 
 			if (this.instanceState.isReadonly) {
-				const typeNames = dedupe(nextRecords.map((record) => record.typeName))
+				const typeNames = dedupe(Object.values(nextRecords).map((record) => record.typeName))
 				for (const typeName of typeNames) {
 					const recordType = this.store.schema.types[typeName as TLRecord['typeName']]
 					if (!recordType) throw Error(`Cannot get record type for ${typeName}`)
@@ -1150,13 +1151,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ nextRecords }) => {
-				this.store.put(nextRecords)
+				this.store.put(Object.values(nextRecords))
 			},
 			undo: ({ prevRecords }) => {
-				this.store.put(prevRecords)
+				this.store.put(Object.values(prevRecords))
 			},
-			squash: ({ prevRecords }, { nextRecords }) => {
-				return { prevRecords, nextRecords }
+			squash: ({ prevRecords: prevPrev }, { prevRecords: prevNext, nextRecords }) => {
+				return { prevRecords: { ...prevNext, ...prevPrev }, nextRecords }
 			},
 		}
 	)
