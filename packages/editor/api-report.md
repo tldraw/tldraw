@@ -573,6 +573,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(x: number, y: number, opts?: TLAnimationOptions): this;
+    // (undocumented)
+    readonly cleanup: CleanupManager;
     // @internal
     protected _clickManager: ClickManager;
     get commonBoundsOfAllShapesOnCurrentPage(): Box2d | undefined;
