@@ -908,13 +908,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- History -------------------- */
 
 	/**
+	 * _invalidParents is used to trigger the 'onChildrenChange' callback that shapes can have.
+	 *
+	 * @internal
+	 */
+	private readonly _invalidParents = new Set<TLShapeId>()
+
+	/**
 	 * A manager for the app's history.
 	 *
 	 * @readonly
 	 */
 	readonly history = new HistoryManager(
 		this,
-		() => this._complete(),
+		() => {
+			for (const parentId of this._invalidParents) {
+				this._invalidParents.delete(parentId)
+				const parent = this.getShape(parentId)
+				if (!parent) continue
+
+				const util = this.getShapeUtil(parent)
+				const changes = util.onChildrenChange?.(parent)
+
+				if (changes?.length) {
+					this.updateShapes(changes, true)
+				}
+			}
+
+			this.emit('update')
+		},
 		(error) => {
 			this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
 			this.crash(error)
@@ -1203,31 +1225,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	getArrowInfo(shape: TLArrowShape) {
 		return this.arrowInfoCache.get(shape.id)
-	}
-
-	/**
-	 * _invalidParents is used to trigger the 'onChildrenChange' callback that shapes can have.
-	 *
-	 * @internal
-	 */
-	private readonly _invalidParents = new Set<TLShapeId>()
-
-	/** @internal */
-	private _complete() {
-		for (const parentId of this._invalidParents) {
-			this._invalidParents.delete(parentId)
-			const parent = this.getShape(parentId)
-			if (!parent) continue
-
-			const util = this.getShapeUtil(parent)
-			const changes = util.onChildrenChange?.(parent)
-
-			if (changes?.length) {
-				this.updateShapes(changes, true)
-			}
-		}
-
-		this.emit('update')
 	}
 
 	/* --------------------- Errors --------------------- */
