@@ -326,7 +326,7 @@ export const PageMenu = function PageMenu() {
 											onClick={() => {
 												const name = window.prompt('Rename page', page.name)
 												if (name && name !== page.name) {
-													editor.renamePage(page.id, name)
+													editor.updatePage({ id: page.id, name }, true)
 												}
 											}}
 											onDoubleClick={toggleEditing}
@@ -382,7 +382,7 @@ export const PageMenu = function PageMenu() {
 													if (editor.isIos) {
 														const name = window.prompt('Rename page', page.name)
 														if (name && name !== page.name) {
-															editor.renamePage(page.id, name)
+															editor.updatePage({ id: page.id, name }, true)
 														}
 													} else {
 														setIsEditing(true)

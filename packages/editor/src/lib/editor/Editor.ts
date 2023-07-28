@@ -120,7 +120,7 @@ import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
-import { RequiredKeys } from './types/misc-types'
+import { OptionalKeys, RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
@@ -286,6 +286,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						}, 2000)
 					}
 				}
+
+				if (prev.currentPageId !== next.currentPageId) {
+					this.updateRenderingBounds()
+				}
 			}
 
 			if (prev.typeName === 'instance_page_state' && next.typeName === 'instance_page_state') {
@@ -359,7 +363,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.ensureStoreIsUsable()
 
 		// clear ephemeral state
-		this.updateStoreRecord(
+		this.updateRecord(
 			{
 				id: this.currentPageStateId,
 				editingShapeId: null,
@@ -661,6 +665,104 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.history.batch(fn)
 		return this
 	}
+
+	/* ---------------------- Store --------------------- */
+
+	/** @public */
+	updateRecord = this.history.createCommand(
+		'updateRecord',
+		<T extends Exclude<TLRecord, TLShape>>(
+			partial: RequiredKeys<T, 'id'>,
+			opts?: { ephemeral?: boolean; squash?: boolean; preservesRedoStack?: boolean }
+		) => {
+			const prev = this.store.get(partial.id)!
+
+			if (this.instanceState.isReadonly) {
+				const recordType = this.store.schema.types[prev.typeName as TLRecord['typeName']]
+				if (!recordType) throw Error(`Cannot get record type for ${prev.typeName}`)
+				// When in readonly mode, do not update document records
+				if (recordType.scope === 'document') {
+					throw Error('Cannot delete records while in readOnly mode')
+				}
+			}
+
+			return {
+				data: { prev, next: { ...prev, ...partial } as T },
+				ephemeral: opts?.ephemeral ?? false,
+				squash: opts?.squash ?? false,
+				preservesRedoStack: opts?.preservesRedoStack ?? false,
+			}
+		},
+		{
+			do: ({ next }) => {
+				this.store.put([next])
+			},
+			undo: ({ prev }) => {
+				this.store.put([prev])
+			},
+		}
+	)
+
+	/** @public */
+	createRecord = this.history.createCommand(
+		'createRecord',
+		<T extends Exclude<TLRecord, TLShape>>(partial: OptionalKeys<T, 'meta'>) => {
+			const recordType = this.store.schema.types[partial.typeName as TLRecord['typeName']]
+
+			if (this.instanceState.isReadonly) {
+				if (!recordType) throw Error(`Cannot get record type for ${partial.typeName}`)
+				// When in readonly mode, do not update document records
+				if (recordType.scope === 'document') {
+					throw Error('Cannot delete records while in readOnly mode')
+				}
+			}
+
+			const record = recordType.create(partial)
+
+			return {
+				data: { record },
+			}
+		},
+		{
+			do: ({ record }) => {
+				this.store.put([record])
+			},
+			undo: ({ record }) => {
+				this.store.remove([record.id])
+			},
+		}
+	)
+
+	/** @public */
+	deleteRecord = this.history.createCommand(
+		'deleteRecord',
+		<T extends Exclude<TLRecord, TLShape>>(record: T['id'] | T) => {
+			const id = typeof record === 'string' ? record : record.id
+			const deletedRecord = this.store.get(id) as T // fresh copy just in case
+			if (!deletedRecord) return null
+
+			if (this.instanceState.isReadonly) {
+				const recordType = this.store.schema.types[deletedRecord.typeName as TLRecord['typeName']]
+				if (!recordType) throw Error(`Cannot get record type for ${deletedRecord.typeName}`)
+				// When in readonly mode, do not update document records
+				if (recordType.scope === 'document') {
+					throw Error('Cannot delete records while in readOnly mode')
+				}
+			}
+
+			return {
+				data: { deletedRecord },
+			}
+		},
+		{
+			do: ({ deletedRecord }) => {
+				this.store.remove([deletedRecord.id])
+			},
+			undo: ({ deletedRecord }) => {
+				this.store.put([deletedRecord])
+			},
+		}
+	)
 
 	/* --------------------- Arrows --------------------- */
 	// todo: move these to tldraw or replace with a bindings API
@@ -1207,7 +1309,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		ephemeral = true,
 		squash = true
 	) {
-		this.updateStoreRecord({ id: this.instanceState.id, ...partial }, { ephemeral, squash })
+		this.updateRecord({ id: this.instanceState.id, ...partial }, { ephemeral, squash })
 		return this
 	}
 
@@ -1348,7 +1450,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'pageId' | 'focusedGroupId'>>,
 		opts?: { ephemeral?: boolean; squashing?: boolean; preservesRedoStack?: boolean }
 	): this {
-		this.updateStoreRecord({ ...partial, id: partial.id ?? this.currentPageStateId }, opts)
+		this.updateRecord({ ...partial, id: partial.id ?? this.currentPageStateId }, opts)
 		return this
 	}
 
@@ -1382,46 +1484,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			ids.length !== selectedShapeIds.length ||
 			ids.some((id) => !selectedShapeIds.includes(id))
 		) {
-			this.updateStoreRecord(
+			this.updateRecord(
 				{ id: this.currentPageStateId, selectedShapeIds: ids },
 				{ ephemeral: false, squash, preservesRedoStack: true }
 			)
 		}
 		return this
 	}
-
-	/** @public */
-	updateStoreRecord = this.history.createCommand(
-		'updateRecord',
-		<T extends Exclude<TLRecord, TLShape>>(
-			partial: RequiredKeys<T, 'id'>,
-			opts?: { ephemeral?: boolean; squash?: boolean; preservesRedoStack?: boolean }
-		) => {
-			const prev = this.store.get(partial.id)!
-
-			if (this.instanceState.isReadonly) {
-				const recordType = this.store.schema.types[prev.typeName as TLRecord['typeName']]
-				if (!recordType) throw Error(`Cannot get record type for ${prev.typeName}`)
-				// When in readonly mode, do not update document records
-				if (recordType.scope === 'document') return
-			}
-
-			return {
-				data: { prev, next: { ...prev, ...partial } as T },
-				ephemeral: opts?.ephemeral ?? false,
-				squash: opts?.squash,
-				preservesRedoStack: opts?.preservesRedoStack ?? false,
-			}
-		},
-		{
-			do: ({ next }) => {
-				this.store.put([next])
-			},
-			undo: ({ prev }) => {
-				this.store.put([prev])
-			},
-		}
-	)
 
 	/** @internal */
 	// private _setSelectedShapeIds = this.history.createCommand(
@@ -1695,7 +1764,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const next = isPageId(id as string) ? null : (id as TLShapeId)
 		const curr = focusedGroupId
 		if (next === curr) return this
-		this.updateStoreRecord(
+		this.updateRecord(
 			{ id: currentPageStateId, focusedGroupId: next },
 			{ ephemeral: false, squash: true, preservesRedoStack: true }
 		)
@@ -1741,7 +1810,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	setEditingShapeId(id: TLShapeId | null): this {
 		if (id === this.currentPageState.editingShapeId) return this
-		this.updateStoreRecord({ id: this.currentPageStateId, editingShapeId: id })
+		this.updateRecord({ id: this.currentPageStateId, editingShapeId: id })
 		return this
 	}
 
@@ -1761,7 +1830,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	setHoveredShapeId(id: TLShapeId | null): this {
 		if (id === this.currentPageState.hoveredShapeId) return this
-		this.updateStoreRecord({ id: this.currentPageStateId, hoveredShapeId: id }, { ephemeral: true })
+		this.updateRecord({ id: this.currentPageStateId, hoveredShapeId: id }, { ephemeral: true })
 		return this
 	}
 
@@ -1779,7 +1848,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return compact(this.currentPageState.hintingShapeIds.map((id) => this.getShape(id)))
 	}
 	setHintingShapeIds(ids: TLShapeId[]): this {
-		this.updateStoreRecord(
+		this.updateRecord(
 			{ id: this.currentPageStateId, hintingShapeIds: dedupe(ids) },
 			{ ephemeral: true }
 		)
@@ -1802,10 +1871,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length === erasingShapeIds.length && ids.every((id) => erasingShapeIds.includes(id))) {
 			return this
 		}
-		this.updateStoreRecord(
-			{ id: this.currentPageStateId, erasingShapeIds: ids },
-			{ ephemeral: true }
-		)
+		this.updateRecord({ id: this.currentPageStateId, erasingShapeIds: ids }, { ephemeral: true })
 		return this
 	}
 
@@ -3181,25 +3247,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The current page.
-	 *
-	 * @public
-	 */
-	get currentPage(): TLPage {
-		const page = this.getPage(this.currentPageId)!
-		return page
-	}
-
-	/**
-	 * The current page id.
-	 *
-	 * @public
-	 */
-	get currentPageId(): TLPageId {
-		return this.instanceState.currentPageId
-	}
-
-	/**
 	 * Get a page.
 	 *
 	 * @example
@@ -3213,6 +3260,231 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getPage(id: TLPageId): TLPage | undefined
 	getPage(id: TLPageId | TLPage): TLPage | undefined {
 		return this.store.get(typeof id === 'string' ? id : id.id)
+	}
+
+	/**
+	 * Update a page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.updatePage({ id: 'page2', name: 'Page 2' })
+	 * ```
+	 *
+	 * @param partial - The partial of the shape to update.
+	 *
+	 * @public
+	 */
+	updatePage(partial: RequiredKeys<TLPage, 'id'>, squash = false): this {
+		this.updateRecord(partial, { squash })
+		return this
+	}
+
+	/**
+	 * Create a page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.createPage('New Page')
+	 * editor.createPage('New Page', 'page1')
+	 * ```
+	 *
+	 * @param id - The new page's id.
+	 * @param title - The new page's title.
+	 *
+	 * @public
+	 */
+	createPage(
+		title: string,
+		id: TLPageId = PageRecordType.createId(),
+		belowPageIndex?: string
+	): this {
+		if (this.instanceState.isReadonly) return this
+		if (this.pages.length >= MAX_PAGES) return this
+
+		const pageInfo = this.pages
+		const topIndex = belowPageIndex ?? pageInfo[pageInfo.length - 1]?.index ?? 'a1'
+		const bottomIndex = pageInfo[pageInfo.findIndex((p) => p.index === topIndex) + 1]?.index
+
+		title = getIncrementedName(
+			title,
+			pageInfo.map((p) => p.name)
+		)
+
+		const newPage = PageRecordType.create({
+			id,
+			name: title,
+			index:
+				bottomIndex && topIndex !== bottomIndex
+					? getIndexBetween(topIndex, bottomIndex)
+					: getIndexAbove(topIndex),
+			meta: {},
+		})
+
+		const newCamera = CameraRecordType.create({
+			id: CameraRecordType.createId(newPage.id),
+		})
+
+		const newPageState = InstancePageStateRecordType.create({
+			id: InstancePageStateRecordType.createId(newPage.id),
+			pageId: newPage.id,
+		})
+
+		this.batch(() => {
+			this.createRecord(newPage)
+			this.createRecord(newCamera)
+			this.createRecord(newPageState)
+			this.updateRecord({ ...this.instanceState, currentPageId: newPage.id })
+		})
+
+		return this
+	}
+
+	/**
+	 * Delete a page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deletePage('page1')
+	 * ```
+	 *
+	 * @param id - The id of the page to delete.
+	 *
+	 * @public
+	 */
+	deletePage(page: TLPage): this
+	deletePage(pageId: TLPageId): this
+	deletePage(arg: TLPageId | TLPage): this {
+		const { pages } = this
+		if (this.instanceState.isReadonly) return this
+		if (this.pages.length === 1) return this
+
+		const pageId = typeof arg === 'string' ? arg : arg.id
+		const deletedPage = this.getPage(pageId)
+		if (!deletedPage) return this
+
+		this.batch(() => {
+			if (pageId === this.currentPageId) {
+				const index = pages.findIndex((page) => page.id === pageId)
+				const next = pages[index - 1] ?? pages[index + 1]
+				this.setCurrentPage(next.id)
+			}
+
+			this.deleteRecord(arg)
+
+			const deletedPageState = this.pageStates.find((s) => s.pageId === pageId)
+			if (deletedPageState) {
+				this.deleteRecord(deletedPageState)
+			}
+		})
+
+		return this
+	}
+
+	/**
+	 * Duplicate a page.
+	 *
+	 * @param id - The id of the page to duplicate. Defaults to the current page.
+	 * @param createId - The id of the new page. Defaults to a new id.
+	 *
+	 * @public
+	 */
+	duplicatePage(page: TLPage, createId?: TLPageId): this
+	duplicatePage(id: TLPageId, createId?: TLPageId): this
+	duplicatePage(arg: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
+		if (this.pages.length >= MAX_PAGES) return this
+		const id = typeof arg === 'string' ? arg : arg.id
+		const page = this.getPage(id) // get the most recent version of the page anyway
+		if (!page) return this
+
+		const camera = { ...this.camera }
+		const content = this.getContent(this.getSortedChildIdsForParent(page.id))
+
+		this.batch(() => {
+			this.createPage(page.name + ' Copy', createId, page.index)
+			this.setCurrentPage(createId)
+			this.setCamera(camera.x, camera.y, camera.z)
+
+			// will change page automatically
+			if (content) {
+				return this.putContent(content)
+			}
+		})
+
+		return this
+	}
+
+	/* ------------------ Current Page ------------------ */
+
+	/**
+	 * The current page id.
+	 *
+	 * @public
+	 */
+	get currentPageId(): TLPageId {
+		return this.instanceState.currentPageId
+	}
+
+	/**
+	 * The current page.
+	 *
+	 * @public
+	 */
+	get currentPage(): TLPage {
+		const page = this.getPage(this.currentPageId)!
+		return page
+	}
+
+	/**
+	 * Set the current page.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setCurrentPage('page1')
+	 * ```
+	 *
+	 * @param pageId - The id of the page to set as the current page.
+	 * @param options - Options for setting the current page.
+	 *
+	 * @public
+	 */
+	setCurrentPage(page: TLPage, opts?: TLViewportOptions): this
+	setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions): this
+	setCurrentPage(arg: TLPageId | TLPage, { stopFollowing = true }: TLViewportOptions = {}): this {
+		const pageId = typeof arg === 'string' ? arg : arg.id
+		if (pageId === this.currentPageId) return this
+
+		if (!this.store.has(pageId)) {
+			console.error("Tried to set the current page id to a page that doesn't exist.")
+			return this
+		}
+
+		if (stopFollowing && this.instanceState.followingUserId) {
+			this.stopFollowingUser()
+		}
+
+		this.batch(() => {
+			// If we don't have page states, create them
+			if (!this.pageStates.find((p) => p.pageId === pageId)) {
+				this.createRecord(
+					CameraRecordType.create({
+						id: CameraRecordType.createId(pageId),
+					})
+				)
+				this.createRecord(
+					InstancePageStateRecordType.create({
+						id: InstancePageStateRecordType.createId(pageId),
+						pageId,
+					})
+				)
+			}
+
+			this.updateRecord(
+				{ ...this.instanceState, currentPageId: pageId },
+				{ preservesRedoStack: true }
+			)
+		})
+
+		return this
 	}
 
 	/**
@@ -3252,306 +3524,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.getShapeAndDescendantIds(result.map((s) => s.id))
 	}
 
-	/**
-	 * Set the current page.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.setCurrentPage('page1')
-	 * ```
-	 *
-	 * @param pageId - The id of the page to set as the current page.
-	 * @param options - Options for setting the current page.
-	 *
-	 * @public
-	 */
-	setCurrentPage(page: TLPage, opts?: TLViewportOptions): this
-	setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions): this
-	setCurrentPage(arg: TLPageId | TLPage, { stopFollowing = true }: TLViewportOptions = {}): this {
-		const pageId = typeof arg === 'string' ? arg : arg.id
-		this._setCurrentPageId(pageId, { stopFollowing })
-		return this
-	}
-	/** @internal */
-	private _setCurrentPageId = this.history.createCommand(
-		'setCurrentPage',
-		(pageId: TLPageId, { stopFollowing = true }: TLViewportOptions = {}) => {
-			if (!this.store.has(pageId)) {
-				console.error("Tried to set the current page id to a page that doesn't exist.")
-				return
-			}
-
-			if (stopFollowing && this.instanceState.followingUserId) {
-				this.stopFollowingUser()
-			}
-
-			return {
-				data: { toId: pageId, fromId: this.currentPageId },
-				squashing: true,
-				preservesRedoStack: true,
-			}
-		},
-		{
-			do: ({ toId }) => {
-				if (!this.store.has(toId)) {
-					// in multiplayer contexts this page might have been deleted
-					return
-				}
-				if (!this.pageStates.find((p) => p.pageId === toId)) {
-					const camera = CameraRecordType.create({
-						id: CameraRecordType.createId(toId),
-					})
-					this.store.put([
-						camera,
-						InstancePageStateRecordType.create({
-							id: InstancePageStateRecordType.createId(toId),
-							pageId: toId,
-						}),
-					])
-				}
-
-				this.store.put([{ ...this.instanceState, currentPageId: toId }])
-
-				this.updateRenderingBounds()
-			},
-			undo: ({ fromId }) => {
-				if (!this.store.has(fromId)) {
-					// in multiplayer contexts this page might have been deleted
-					return
-				}
-				this.store.put([{ ...this.instanceState, currentPageId: fromId }])
-
-				this.updateRenderingBounds()
-			},
-			squash: ({ fromId }, { toId }) => {
-				return { toId, fromId }
-			},
-		}
-	)
-
-	/**
-	 * Update a page.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.updatePage({ id: 'page2', name: 'Page 2' })
-	 * ```
-	 *
-	 * @param partial - The partial of the shape to update.
-	 *
-	 * @public
-	 */
-	updatePage(partial: RequiredKeys<TLPage, 'id'>, squash = false): this {
-		this.updateStoreRecord(partial, { squash })
-		return this
-	}
-
-	/**
-	 * Create a page.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.createPage('New Page')
-	 * editor.createPage('New Page', 'page1')
-	 * ```
-	 *
-	 * @param id - The new page's id.
-	 * @param title - The new page's title.
-	 *
-	 * @public
-	 */
-	createPage(
-		title: string,
-		id: TLPageId = PageRecordType.createId(),
-		belowPageIndex?: string
-	): this {
-		this._createPage(title, id, belowPageIndex)
-		return this
-	}
-	/** @internal */
-	private _createPage = this.history.createCommand(
-		'createPage',
-		(title: string, id: TLPageId = PageRecordType.createId(), belowPageIndex?: string) => {
-			if (this.instanceState.isReadonly) return null
-			if (this.pages.length >= MAX_PAGES) return null
-			const pageInfo = this.pages
-			const topIndex = belowPageIndex ?? pageInfo[pageInfo.length - 1]?.index ?? 'a1'
-			const bottomIndex = pageInfo[pageInfo.findIndex((p) => p.index === topIndex) + 1]?.index
-
-			title = getIncrementedName(
-				title,
-				pageInfo.map((p) => p.name)
-			)
-
-			const newPage = PageRecordType.create({
-				id,
-				name: title,
-				index:
-					bottomIndex && topIndex !== bottomIndex
-						? getIndexBetween(topIndex, bottomIndex)
-						: getIndexAbove(topIndex),
-				meta: {},
-			})
-
-			const newCamera = CameraRecordType.create({
-				id: CameraRecordType.createId(newPage.id),
-			})
-
-			const newTabPageState = InstancePageStateRecordType.create({
-				id: InstancePageStateRecordType.createId(newPage.id),
-				pageId: newPage.id,
-			})
-
-			return {
-				data: {
-					prevSelectedPageId: this.currentPageId,
-					newPage,
-					newTabPageState,
-					newCamera,
-				},
-			}
-		},
-		{
-			do: ({ newPage, newTabPageState, newCamera }) => {
-				this.store.put([
-					newPage,
-					newCamera,
-					newTabPageState,
-					{ ...this.instanceState, currentPageId: newPage.id },
-				])
-				this.updateRenderingBounds()
-			},
-			undo: ({ newPage, prevSelectedPageId, newTabPageState, newCamera }) => {
-				if (this.pages.length === 1) return
-				this.store.remove([newTabPageState.id, newPage.id, newCamera.id])
-
-				if (this.store.has(prevSelectedPageId) && this.currentPageId !== prevSelectedPageId) {
-					this.store.put([{ ...this.instanceState, currentPageId: prevSelectedPageId }])
-				}
-
-				this.updateRenderingBounds()
-			},
-		}
-	)
-
-	/**
-	 * Delete a page.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.deletePage('page1')
-	 * ```
-	 *
-	 * @param id - The id of the page to delete.
-	 *
-	 * @public
-	 */
-	deletePage(page: TLPage): this
-	deletePage(id: TLPageId): this
-	deletePage(arg: TLPageId | TLPage): this {
-		const id = typeof arg === 'string' ? arg : arg.id
-		this._deletePage(id)
-		return this
-	}
-	/** @internal */
-	private _deletePage = this.history.createCommand(
-		'delete_page',
-		(id: TLPageId) => {
-			if (this.instanceState.isReadonly) return null
-			const { pages } = this
-			if (pages.length === 1) return null
-
-			const deletedPage = this.getPage(id)
-			const deletedPageStates = this.pageStates.filter((s) => s.pageId === id)
-
-			if (!deletedPage) return null
-
-			if (id === this.currentPageId) {
-				const index = pages.findIndex((page) => page.id === id)
-				const next = pages[index - 1] ?? pages[index + 1]
-				this.setCurrentPage(next.id)
-			}
-
-			return { data: { id, deletedPage, deletedPageStates } }
-		},
-		{
-			do: ({ deletedPage, deletedPageStates }) => {
-				const { pages } = this
-				if (pages.length === 1) return
-
-				if (deletedPage.id === this.currentPageId) {
-					const index = pages.findIndex((page) => page.id === deletedPage.id)
-					const next = pages[index - 1] ?? pages[index + 1]
-					this.setCurrentPage(next.id)
-				}
-
-				this.store.remove(deletedPageStates.map((s) => s.id)) // remove the page state
-				this.store.remove([deletedPage.id]) // remove the page
-				this.updateRenderingBounds()
-			},
-			undo: ({ deletedPage, deletedPageStates }) => {
-				this.store.put([deletedPage])
-				this.store.put(deletedPageStates)
-				this.updateRenderingBounds()
-			},
-		}
-	)
-
-	/**
-	 * Duplicate a page.
-	 *
-	 * @param id - The id of the page to duplicate. Defaults to the current page.
-	 * @param createId - The id of the new page. Defaults to a new id.
-	 *
-	 * @public
-	 */
-	duplicatePage(page: TLPage, createId?: TLPageId): this
-	duplicatePage(id: TLPageId, createId?: TLPageId): this
-	duplicatePage(arg: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
-		if (this.pages.length >= MAX_PAGES) return this
-		const id = typeof arg === 'string' ? arg : arg.id
-		const page = this.getPage(id) // get the most recent version of the page anyway
-		if (!page) return this
-
-		const camera = { ...this.camera }
-		const content = this.getContent(this.getSortedChildIdsForParent(page.id))
-
-		this.batch(() => {
-			this.createPage(page.name + ' Copy', createId, page.index)
-			this.setCurrentPage(createId)
-			this.setCamera(camera.x, camera.y, camera.z)
-
-			// will change page automatically
-			if (content) {
-				return this.putContent(content)
-			}
-		})
-
-		return this
-	}
-
-	/**
-	 * Rename a page.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.renamePage('page1', 'My Page')
-	 * ```
-	 *
-	 * @param id - The id of the page to rename.
-	 * @param name - The new name.
-	 *
-	 * @public
-	 */
-	renamePage(page: TLPage, name: string, squashing?: boolean): this
-	renamePage(id: TLPageId, name: string, squashing?: boolean): this
-	renamePage(arg: TLPageId | TLPage, name: string, squashing = false) {
-		const id = typeof arg === 'string' ? arg : arg.id
-		if (this.instanceState.isReadonly) return this
-		this.updatePage({ id, name }, squashing)
-		return this
-	}
-
 	/* --------------------- Assets --------------------- */
 
 	/** @internal */
@@ -3569,6 +3541,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Get an asset.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getAsset('asset1')
+	 * editor.getAsset(myAsset)
+	 * ```
+	 *
+	 * @param asset - The asset (or asset id) to get.
+	 *
+	 * @public
+	 */
+	getAsset(asset: TLAsset): TLAsset | undefined
+	getAsset(id: TLAssetId): TLAsset | undefined
+	getAsset(id: TLAssetId | TLAsset): TLAsset | undefined {
+		return this.store.get(typeof id === 'string' ? id : id.id) as TLAsset | undefined
+	}
+
+	/**
 	 * Create one or more assets.
 	 *
 	 * @example
@@ -3581,29 +3572,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	createAssets(assets: TLAsset[]) {
-		this._createAssets(assets)
+		this.batch(() => {
+			assets.forEach((asset) => this.createRecord(asset))
+		})
 		return this
 	}
-	/** @internal */
-	private _createAssets = this.history.createCommand(
-		'createAssets',
-		(assets: TLAsset[]) => {
-			if (this.instanceState.isReadonly) return null
-			if (assets.length <= 0) return null
-
-			return { data: { assets } }
-		},
-		{
-			do: ({ assets }) => {
-				this.store.put(assets)
-			},
-			undo: ({ assets }) => {
-				// todo: should we actually remove assets here? or on cleanup elsewhere?
-				this.store.remove(assets.map((a) => a.id))
-			},
-		}
-	)
-
 	/**
 	 * Update one or more assets.
 	 *
@@ -3617,7 +3590,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateAssets(assets: TLAssetPartial[]) {
-		this._updateAssets(assets)
+		this.batch(() => {
+			assets.forEach((asset) => this.updateRecord(asset as TLAsset))
+		})
 		return this
 	}
 	/** @internal */
@@ -3691,24 +3666,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 		}
 	)
-
-	/**
-	 * Get an asset by its id.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.getAsset('asset1')
-	 * ```
-	 *
-	 * @param asset - The asset (or asset id) to get.
-	 *
-	 * @public
-	 */
-	getAsset(asset: TLAsset): TLAsset | undefined
-	getAsset(id: TLAssetId): TLAsset | undefined
-	getAsset(id: TLAssetId | TLAsset): TLAsset | undefined {
-		return this.store.get(typeof id === 'string' ? id : id.id) as TLAsset | undefined
-	}
 
 	/* --------------------- Shapes --------------------- */
 

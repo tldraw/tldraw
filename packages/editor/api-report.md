@@ -26,6 +26,7 @@ import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
+import { RecordId } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -40,6 +41,7 @@ import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
+import { TLCameraId } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
@@ -47,13 +49,16 @@ import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
+import { TLInstanceId } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePageStateId } from '@tldraw/tlschema/.tsbuild/records/TLPageState';
 import { TLInstancePresence } from '@tldraw/tlschema';
+import { TLInstancePresenceID } from '@tldraw/tlschema/.tsbuild/records/TLPresence';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPointer } from '@tldraw/tlschema/.tsbuild/records/TLPointer';
+import { TLPointerId } from '@tldraw/tlschema/.tsbuild/records/TLPointer';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
@@ -594,6 +599,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         };
     };
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
+    // (undocumented)
+    createRecord: (partial: OptionalKeys<TLCamera | TLInstancePresence | TLPointer | TLAsset | TLDocument | TLInstance | TLInstancePageState | TLPage, "meta">) => this;
     createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select?: boolean): this;
     createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select?: boolean): this;
     get croppingShapeId(): null | TLShapeId;
@@ -610,7 +617,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteOpenMenu(id: string): this;
     deletePage(page: TLPage): this;
     // (undocumented)
-    deletePage(id: TLPageId): this;
+    deletePage(pageId: TLPageId): this;
+    // (undocumented)
+    deleteRecord: (record: RecordId<TLDocument> | TLCamera | TLCameraId | TLInstanceId | TLInstancePresence | TLInstancePageStateId | TLPointer | TLPointerId | TLInstancePresenceID | TLAsset | TLAssetId | TLDocument | TLInstance | TLInstancePageState | TLPage | TLPageId) => this;
     deleteShape(id: TLShapeId): this;
     // (undocumented)
     deleteShape(shape: TLShape): this;
@@ -877,9 +886,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent_2['type']>(type: T, handler: ((info: T extends TLExternalContent_2['type'] ? TLExternalContent_2 & {
         type: T;
     } : TLExternalContent_2) => void) | null): this;
-    renamePage(page: TLPage, name: string, squashing?: boolean): this;
-    // (undocumented)
-    renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingBounds(): Box2d;
     get renderingBoundsExpanded(): Box2d;
     get renderingShapes(): {
@@ -997,16 +1003,16 @@ export class Editor extends EventEmitter<TLEventMap> {
         squashing?: boolean;
         preservesRedoStack?: boolean;
     }): this;
-    // @internal
-    updateRenderingBounds(): this;
-    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, squashing?: boolean): this;
-    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
     // (undocumented)
-    updateStoreRecord: (partial: RequiredKeys<TLCamera | TLInstancePresence | TLPointer | TLAsset | TLDocument | TLInstance | TLInstancePageState | TLPage, "id">, opts?: {
+    updateRecord: (partial: RequiredKeys<TLCamera | TLInstancePresence | TLPointer | TLAsset | TLDocument | TLInstance | TLInstancePageState | TLPage, "id">, opts?: {
         ephemeral?: boolean | undefined;
         squash?: boolean | undefined;
         preservesRedoStack?: boolean | undefined;
     } | undefined) => this;
+    // @internal
+    updateRenderingBounds(): this;
+    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, squashing?: boolean): this;
+    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
     get viewportPageBounds(): Box2d;
