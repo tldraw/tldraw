@@ -362,6 +362,53 @@ export class Editor extends EventEmitter<TLEventMap> {
 			reparentArrow(arrow.id)
 		}
 
+		const cleanupInstancePageState = (
+			prevPageState: TLInstancePageState,
+			shapesNoLongerInPage: Set<TLShapeId>
+		) => {
+			let nextPageState = null as null | TLInstancePageState
+
+			const selectedShapeIds = prevPageState.selectedShapeIds.filter(
+				(id) => !shapesNoLongerInPage.has(id)
+			)
+			if (selectedShapeIds.length !== prevPageState.selectedShapeIds.length) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.selectedShapeIds = selectedShapeIds
+			}
+
+			const erasingShapeIds = prevPageState.erasingShapeIds.filter(
+				(id) => !shapesNoLongerInPage.has(id)
+			)
+			if (erasingShapeIds.length !== prevPageState.erasingShapeIds.length) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.erasingShapeIds = erasingShapeIds
+			}
+
+			if (prevPageState.hoveredShapeId && shapesNoLongerInPage.has(prevPageState.hoveredShapeId)) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.hoveredShapeId = null
+			}
+
+			if (prevPageState.editingShapeId && shapesNoLongerInPage.has(prevPageState.editingShapeId)) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.editingShapeId = null
+			}
+
+			const hintingShapeIds = prevPageState.hintingShapeIds.filter(
+				(id) => !shapesNoLongerInPage.has(id)
+			)
+			if (hintingShapeIds.length !== prevPageState.hintingShapeIds.length) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.hintingShapeIds = hintingShapeIds
+			}
+
+			if (prevPageState.focusedGroupId && shapesNoLongerInPage.has(prevPageState.focusedGroupId)) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.focusedGroupId = null
+			}
+			return nextPageState
+		}
+
 		// STORE / STATE CLEANUP HANDLERS
 
 		this.cleanup = new CleanupManager(this)
@@ -476,7 +523,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				for (const instancePageState of this.pageStates) {
 					if (instancePageState.pageId === next.parentId) continue
-					const nextPageState = this._cleanupInstancePageState(instancePageState, allMovingIds)
+					const nextPageState = cleanupInstancePageState(instancePageState, allMovingIds)
 
 					if (nextPageState) {
 						this.store.put([nextPageState])
@@ -616,13 +663,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 					unbindArrowTerminal(arrow, handleId)
 				}
 			}
+
 			const deletedIds = new Set([record.id])
 			const updates = compact(
 				this.pageStates.map((pageState) => {
-					return this._cleanupInstancePageState(pageState, deletedIds)
+					return cleanupInstancePageState(pageState, deletedIds)
 				})
 			)
-
 			if (updates.length) {
 				this.store.put(updates)
 			}
@@ -2021,54 +2068,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 		return this
-	}
-
-	/** @internal */
-	private _cleanupInstancePageState(
-		prevPageState: TLInstancePageState,
-		shapesNoLongerInPage: Set<TLShapeId>
-	) {
-		let nextPageState = null as null | TLInstancePageState
-
-		const selectedShapeIds = prevPageState.selectedShapeIds.filter(
-			(id) => !shapesNoLongerInPage.has(id)
-		)
-		if (selectedShapeIds.length !== prevPageState.selectedShapeIds.length) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.selectedShapeIds = selectedShapeIds
-		}
-
-		const erasingShapeIds = prevPageState.erasingShapeIds.filter(
-			(id) => !shapesNoLongerInPage.has(id)
-		)
-		if (erasingShapeIds.length !== prevPageState.erasingShapeIds.length) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.erasingShapeIds = erasingShapeIds
-		}
-
-		if (prevPageState.hoveredShapeId && shapesNoLongerInPage.has(prevPageState.hoveredShapeId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.hoveredShapeId = null
-		}
-
-		if (prevPageState.editingShapeId && shapesNoLongerInPage.has(prevPageState.editingShapeId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.editingShapeId = null
-		}
-
-		const hintingShapeIds = prevPageState.hintingShapeIds.filter(
-			(id) => !shapesNoLongerInPage.has(id)
-		)
-		if (hintingShapeIds.length !== prevPageState.hintingShapeIds.length) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.hintingShapeIds = hintingShapeIds
-		}
-
-		if (prevPageState.focusedGroupId && shapesNoLongerInPage.has(prevPageState.focusedGroupId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.focusedGroupId = null
-		}
-		return nextPageState
 	}
 
 	/* --------------------- Camera --------------------- */
