@@ -20,6 +20,7 @@ import {
 	TLImageAsset,
 	TLInstance,
 	TLInstancePageState,
+	TLInstancePresence,
 	TLPOINTER_ID,
 	TLPage,
 	TLPageId,
@@ -262,6 +263,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
+		this.store.onBeforeCreate = (next) => {
+			if (next.typeName === 'shape') {
+				const shapeAfterUtilOnBeforeCreate = this.getShapeUtil(next)?.onBeforeCreate?.(next)
+				if (shapeAfterUtilOnBeforeCreate) {
+					return shapeAfterUtilOnBeforeCreate
+				}
+			}
+			return next
+		}
+
+		this.store.onBeforeChange = (prev, next) => {
+			if (next.typeName === 'shape') {
+				const shapeAfterUtilOnBeforeUpdate = this.getShapeUtil(next)?.onBeforeUpdate?.(
+					prev as typeof next,
+					next
+				)
+				if (shapeAfterUtilOnBeforeUpdate) {
+					return shapeAfterUtilOnBeforeUpdate
+				}
+			}
+			return next
+		}
+
 		this.store.onAfterChange = (prev, next) => {
 			this._updateDepth++
 			if (this._updateDepth > 1000) {
@@ -303,6 +327,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			this._updateDepth--
 		}
+
 		this.store.onAfterCreate = (record) => {
 			if (record.typeName === 'shape' && this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
 				this._arrowDidUpdate(record)
@@ -363,13 +388,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store.ensureStoreIsUsable()
 
 		// clear ephemeral state
-		this.updateRecord(
-			{
-				id: this.currentPageStateId,
-				editingShapeId: null,
-				hoveredShapeId: null,
-				erasingShapeIds: [],
-			},
+		this.updateRecords(
+			[
+				{
+					id: this.currentPageStateId,
+					editingShapeId: null,
+					hoveredShapeId: null,
+					erasingShapeIds: [],
+				},
+			],
 			{ ephemeral: true }
 		)
 
@@ -610,8 +637,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	mark(markId?: string, onUndo?: boolean, onRedo?: boolean) {
-		return this.history.mark(markId, onUndo, onRedo)
+	mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this {
+		this.history.mark(markId, onUndo, onRedo)
+		return this
 	}
 
 	/**
@@ -669,97 +697,130 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* ---------------------- Store --------------------- */
 
 	/** @public */
-	updateRecord = this.history.createCommand(
-		'updateRecord',
-		<T extends Exclude<TLRecord, TLShape>>(
-			partial: RequiredKeys<T, 'id'>,
-			opts?: { ephemeral?: boolean; squash?: boolean; preservesRedoStack?: boolean }
+	createRecords = this.history.createCommand(
+		'createRecords',
+		<T extends Exclude<TLRecord, TLDocument | TLInstance | TLInstancePresence>>(
+			partials: OptionalKeys<T, 'meta'>[],
+			opts?: { ephemeral?: boolean; preservesRedoStack?: boolean }
 		) => {
-			const prev = this.store.get(partial.id)!
+			const records = partials.map((partial) => {
+				const recordType = this.store.schema.types[partial.typeName as TLRecord['typeName']]
 
-			if (this.instanceState.isReadonly) {
-				const recordType = this.store.schema.types[prev.typeName as TLRecord['typeName']]
-				if (!recordType) throw Error(`Cannot get record type for ${prev.typeName}`)
-				// When in readonly mode, do not update document records
-				if (recordType.scope === 'document') {
-					throw Error('Cannot delete records while in readOnly mode')
+				if (this.instanceState.isReadonly) {
+					if (!recordType) throw Error(`Cannot get record type for ${partial.typeName}`)
+					// When in readonly mode, do not update document records
+					if (recordType.scope === 'document') {
+						throw Error('Cannot delete records while in readOnly mode')
+					}
 				}
-			}
+
+				return recordType.create(partial)
+			})
 
 			return {
-				data: { prev, next: { ...prev, ...partial } as T },
+				data: { records },
 				ephemeral: opts?.ephemeral ?? false,
-				squash: opts?.squash ?? false,
 				preservesRedoStack: opts?.preservesRedoStack ?? false,
 			}
 		},
 		{
-			do: ({ next }) => {
-				this.store.put([next])
+			do: ({ records }) => {
+				this.store.put(records)
 			},
-			undo: ({ prev }) => {
-				this.store.put([prev])
-			},
-		}
-	)
-
-	/** @public */
-	createRecord = this.history.createCommand(
-		'createRecord',
-		<T extends Exclude<TLRecord, TLShape>>(partial: OptionalKeys<T, 'meta'>) => {
-			const recordType = this.store.schema.types[partial.typeName as TLRecord['typeName']]
-
-			if (this.instanceState.isReadonly) {
-				if (!recordType) throw Error(`Cannot get record type for ${partial.typeName}`)
-				// When in readonly mode, do not update document records
-				if (recordType.scope === 'document') {
-					throw Error('Cannot delete records while in readOnly mode')
-				}
-			}
-
-			const record = recordType.create(partial)
-
-			return {
-				data: { record },
-			}
-		},
-		{
-			do: ({ record }) => {
-				this.store.put([record])
-			},
-			undo: ({ record }) => {
-				this.store.remove([record.id])
+			undo: ({ records }) => {
+				this.store.remove(records.map((r) => r.id))
 			},
 		}
 	)
 
 	/** @public */
-	deleteRecord = this.history.createCommand(
-		'deleteRecord',
-		<T extends Exclude<TLRecord, TLShape>>(record: T['id'] | T) => {
-			const id = typeof record === 'string' ? record : record.id
-			const deletedRecord = this.store.get(id) as T // fresh copy just in case
-			if (!deletedRecord) return null
+	updateRecords = this.history.createCommand(
+		'updateRecords',
+		<T extends TLRecord>(
+			partials: Partial<T>[],
+			opts?: { ephemeral?: boolean; squashing?: boolean; preservesRedoStack?: boolean }
+		) => {
+			const compactedPartials = compact(partials)
+			const prevRecords = new Array(compactedPartials.length) as TLRecord[]
+			const nextRecords = new Array(compactedPartials.length) as TLRecord[]
+
+			for (let i = 0, n = compactedPartials.length; i < n; i++) {
+				const partial = compactedPartials[i]
+				if (!partial.id) throw Error()
+				const prev = this.store.get(partial.id)
+				if (!prev) throw Error(`Cannot find record with id: "${partial.id}"`)
+				prevRecords[i] = prev
+				nextRecords[i] = { ...prev, ...partial } as TLRecord
+			}
 
 			if (this.instanceState.isReadonly) {
-				const recordType = this.store.schema.types[deletedRecord.typeName as TLRecord['typeName']]
-				if (!recordType) throw Error(`Cannot get record type for ${deletedRecord.typeName}`)
-				// When in readonly mode, do not update document records
-				if (recordType.scope === 'document') {
-					throw Error('Cannot delete records while in readOnly mode')
+				const typeNames = dedupe(nextRecords.map((record) => record.typeName))
+				for (const typeName of typeNames) {
+					const recordType = this.store.schema.types[typeName as TLRecord['typeName']]
+					if (!recordType) throw Error(`Cannot get record type for ${typeName}`)
+					// When in readonly mode, do not update document records
+					if (recordType.scope === 'document') {
+						throw Error('Cannot update records while in readOnly mode')
+					}
 				}
 			}
 
 			return {
-				data: { deletedRecord },
+				data: { prevRecords, nextRecords },
+				ephemeral: opts?.ephemeral ?? false,
+				squashing: opts?.squashing ?? false,
+				preservesRedoStack: opts?.preservesRedoStack ?? false,
 			}
 		},
 		{
-			do: ({ deletedRecord }) => {
-				this.store.remove([deletedRecord.id])
+			do: ({ nextRecords }) => {
+				this.store.put(nextRecords)
 			},
-			undo: ({ deletedRecord }) => {
-				this.store.put([deletedRecord])
+			undo: ({ prevRecords }) => {
+				this.store.put(prevRecords)
+			},
+			squash: ({ prevRecords }, { nextRecords }) => {
+				return { prevRecords, nextRecords }
+			},
+		}
+	)
+
+	/** @public */
+	deleteRecords = this.history.createCommand(
+		'deleteRecords',
+		<T extends Exclude<TLRecord, TLDocument | TLInstance | TLInstancePresence>>(
+			records: T['id'][] | T[],
+			opts?: { ephemeral?: boolean; preservesRedoStack?: boolean }
+		) => {
+			const ids =
+				typeof records[0] === 'string' ? (records as T['id'][]) : (records as T[]).map((r) => r.id)
+
+			const deletedRecords = compact(ids.map((id) => this.store.get(id)))
+
+			if (this.instanceState.isReadonly) {
+				const typeNames = dedupe(deletedRecords.map((record) => record.typeName))
+				for (const typeName of typeNames) {
+					const recordType = this.store.schema.types[typeName as TLRecord['typeName']]
+					if (!recordType) throw Error(`Cannot get record type for ${typeName}`)
+					// When in readonly mode, do not update document records
+					if (recordType.scope === 'document') {
+						throw Error('Cannot delete records while in readOnly mode')
+					}
+				}
+			}
+
+			return {
+				data: { deletedRecords },
+				ephemeral: opts?.ephemeral ?? false,
+				preservesRedoStack: opts?.preservesRedoStack ?? false,
+			}
+		},
+		{
+			do: ({ deletedRecords }) => {
+				this.store.remove(deletedRecords.map((r) => r.id))
+			},
+			undo: ({ deletedRecords }) => {
+				this.store.put(deletedRecords)
 			},
 		}
 	)
@@ -1307,9 +1368,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	updateInstanceState(
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		ephemeral = true,
-		squash = true
+		squashing = true
 	) {
-		this.updateRecord({ id: this.instanceState.id, ...partial }, { ephemeral, squash })
+		this.updateRecords([{ id: this.instanceState.id, ...partial }], { ephemeral, squashing })
 		return this
 	}
 
@@ -1448,9 +1509,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updatePageState(
 		partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'pageId' | 'focusedGroupId'>>,
-		opts?: { ephemeral?: boolean; squashing?: boolean; preservesRedoStack?: boolean }
+		opts?: { ephemeral?: boolean; squash?: boolean; preservesRedoStack?: boolean }
 	): this {
-		this.updateRecord({ ...partial, id: partial.id ?? this.currentPageStateId }, opts)
+		this.updateRecords([{ ...partial, id: partial.id ?? this.currentPageStateId }], opts)
 		return this
 	}
 
@@ -1478,16 +1539,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setSelectedShapeIds(ids: TLShapeId[], squash = false) {
+	setSelectedShapeIds(ids: TLShapeId[], squashing = false) {
 		const { selectedShapeIds } = this.currentPageState
 		if (
 			ids.length !== selectedShapeIds.length ||
 			ids.some((id) => !selectedShapeIds.includes(id))
 		) {
-			this.updateRecord(
-				{ id: this.currentPageStateId, selectedShapeIds: ids },
-				{ ephemeral: false, squash, preservesRedoStack: true }
-			)
+			this.updateRecords([{ id: this.currentPageStateId, selectedShapeIds: ids }], {
+				ephemeral: false,
+				squashing,
+				preservesRedoStack: true,
+			})
 		}
 		return this
 	}
@@ -1764,10 +1826,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const next = isPageId(id as string) ? null : (id as TLShapeId)
 		const curr = focusedGroupId
 		if (next === curr) return this
-		this.updateRecord(
-			{ id: currentPageStateId, focusedGroupId: next },
-			{ ephemeral: false, squash: true, preservesRedoStack: true }
-		)
+		this.updateRecords([{ id: currentPageStateId, focusedGroupId: next }], {
+			ephemeral: false,
+			squashing: true,
+			preservesRedoStack: true,
+		})
 		return this
 	}
 
@@ -1810,7 +1873,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	setEditingShapeId(id: TLShapeId | null): this {
 		if (id === this.currentPageState.editingShapeId) return this
-		this.updateRecord({ id: this.currentPageStateId, editingShapeId: id })
+		this.updateRecords([{ id: this.currentPageStateId, editingShapeId: id }])
 		return this
 	}
 
@@ -1830,7 +1893,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	setHoveredShapeId(id: TLShapeId | null): this {
 		if (id === this.currentPageState.hoveredShapeId) return this
-		this.updateRecord({ id: this.currentPageStateId, hoveredShapeId: id }, { ephemeral: true })
+		this.updateRecords([{ id: this.currentPageStateId, hoveredShapeId: id }], { ephemeral: true })
 		return this
 	}
 
@@ -1848,10 +1911,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return compact(this.currentPageState.hintingShapeIds.map((id) => this.getShape(id)))
 	}
 	setHintingShapeIds(ids: TLShapeId[]): this {
-		this.updateRecord(
-			{ id: this.currentPageStateId, hintingShapeIds: dedupe(ids) },
-			{ ephemeral: true }
-		)
+		this.updateRecords([{ id: this.currentPageStateId, hintingShapeIds: dedupe(ids) }], {
+			ephemeral: true,
+		})
 		return this
 	}
 
@@ -1871,7 +1933,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length === erasingShapeIds.length && ids.every((id) => erasingShapeIds.includes(id))) {
 			return this
 		}
-		this.updateRecord({ id: this.currentPageStateId, erasingShapeIds: ids }, { ephemeral: true })
+		this.updateRecords([{ id: this.currentPageStateId, erasingShapeIds: ids }], { ephemeral: true })
 		return this
 	}
 
@@ -3274,8 +3336,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updatePage(partial: RequiredKeys<TLPage, 'id'>, squash = false): this {
-		this.updateRecord(partial, { squash })
+	updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing = false): this {
+		this.updateRecords([partial], { squashing })
 		return this
 	}
 
@@ -3330,10 +3392,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.batch(() => {
-			this.createRecord(newPage)
-			this.createRecord(newCamera)
-			this.createRecord(newPageState)
-			this.updateRecord({ ...this.instanceState, currentPageId: newPage.id })
+			this.createRecords([newPage, newCamera, newPageState])
+			this.updateRecords([{ ...this.instanceState, currentPageId: newPage.id }])
 		})
 
 		return this
@@ -3369,11 +3429,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.setCurrentPage(next.id)
 			}
 
-			this.deleteRecord(arg)
+			this.deleteRecords([pageId])
 
 			const deletedPageState = this.pageStates.find((s) => s.pageId === pageId)
 			if (deletedPageState) {
-				this.deleteRecord(deletedPageState)
+				this.deleteRecords([deletedPageState])
 			}
 		})
 
@@ -3465,23 +3525,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.batch(() => {
 			// If we don't have page states, create them
 			if (!this.pageStates.find((p) => p.pageId === pageId)) {
-				this.createRecord(
+				this.createRecords([
 					CameraRecordType.create({
 						id: CameraRecordType.createId(pageId),
-					})
-				)
-				this.createRecord(
+					}),
 					InstancePageStateRecordType.create({
 						id: InstancePageStateRecordType.createId(pageId),
 						pageId,
-					})
-				)
+					}),
+				])
 			}
 
-			this.updateRecord(
-				{ ...this.instanceState, currentPageId: pageId },
-				{ preservesRedoStack: true }
-			)
+			this.updateRecords([{ ...this.instanceState, currentPageId: pageId }], {
+				preservesRedoStack: true,
+			})
 		})
 
 		return this
@@ -3572,9 +3629,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	createAssets(assets: TLAsset[]) {
-		this.batch(() => {
-			assets.forEach((asset) => this.createRecord(asset))
-		})
+		this.createRecords(assets)
 		return this
 	}
 	/**
@@ -3589,42 +3644,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateAssets(assets: TLAssetPartial[]) {
-		this.batch(() => {
-			assets.forEach((asset) => this.updateRecord(asset as TLAsset))
-		})
+	updateAssets(assets: TLAssetPartial[]): this {
+		if (this.instanceState.isReadonly) return this
+		if (assets.length === 0) return this
+		const recordType = this.store.schema.types['asset']
+		this.updateRecords(assets.map((asset) => recordType.create(asset)))
 		return this
 	}
-	/** @internal */
-	private _updateAssets = this.history.createCommand(
-		'updateAssets',
-		(assets: TLAssetPartial[]) => {
-			if (this.instanceState.isReadonly) return
-			if (assets.length <= 0) return
-
-			const snapshots: Record<string, TLAsset> = {}
-
-			return { data: { snapshots, assets } }
-		},
-		{
-			do: ({ assets, snapshots }) => {
-				this.store.put(
-					assets.map((a) => {
-						const asset = this.store.get(a.id)!
-						snapshots[a.id] = asset
-
-						return {
-							...asset,
-							...a,
-						}
-					})
-				)
-			},
-			undo: ({ snapshots }) => {
-				this.store.put(Object.values(snapshots))
-			},
-		}
-	)
 
 	/**
 	 * Delete one or more assets.
@@ -5448,7 +5474,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 						mode: 'scale_shape',
 						scaleOrigin: scaleOriginPage,
 						scaleAxisRotation: 0,
-					}
+					},
+					false
 				)
 			}
 		})
@@ -5989,13 +6016,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (parentTransform) localOffset.rot(-parentTransform.rotation())
 
 						const { x, y } = Vec2d.Add(localOffset, shape)
-						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], true)
+						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], false)
 						const scale = new Vec2d(1, commonBounds.height / pageBounds.height)
-						this.resizeShape(shape.id, scale, {
-							initialBounds: bounds,
-							scaleOrigin: new Vec2d(pageBounds.center.x, commonBounds.minY),
-							scaleAxisRotation: 0,
-						})
+						this.resizeShape(
+							shape.id,
+							scale,
+							{
+								initialBounds: bounds,
+								scaleOrigin: new Vec2d(pageBounds.center.x, commonBounds.minY),
+								scaleAxisRotation: 0,
+							},
+							false
+						)
 					}
 				})
 				break
@@ -6012,13 +6044,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (parentTransform) localOffset.rot(-parentTransform.rotation())
 
 						const { x, y } = Vec2d.Add(localOffset, shape)
-						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], true)
+						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], false)
 						const scale = new Vec2d(commonBounds.width / pageBounds.width, 1)
-						this.resizeShape(shape.id, scale, {
-							initialBounds: bounds,
-							scaleOrigin: new Vec2d(commonBounds.minX, pageBounds.center.y),
-							scaleAxisRotation: 0,
-						})
+						this.resizeShape(
+							shape.id,
+							scale,
+							{
+								initialBounds: bounds,
+								scaleOrigin: new Vec2d(commonBounds.minX, pageBounds.center.y),
+								scaleAxisRotation: 0,
+							},
+							false
+						)
 					}
 				})
 
@@ -6050,7 +6087,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialPageTransform?: MatLike
 			dragHandle?: TLResizeHandle
 			mode?: TLResizeMode
-		} = {}
+		} = {},
+		ephemeral = true
 	) {
 		if (this.instanceState.isReadonly) return this
 
@@ -6155,7 +6193,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						),
 					},
 				],
-				true
+				ephemeral
 			)
 		} else {
 			const initialPageCenter = Matrix2d.applyToPoint(pageTransform, initialBounds.center)
@@ -6184,7 +6222,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						y: initialShape.y + delta.y,
 					},
 				],
-				true
+				ephemeral
 			)
 		}
 
@@ -6319,8 +6357,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select = false) {
-		this._createShapes([partial], select)
+	createShape<T extends TLUnknownShape>(partial: OptionalKeys<TLShapePartial<T>, 'id'>) {
+		this.createShapes([partial])
 		return this
 	}
 
@@ -6337,211 +6375,158 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select = false) {
+	createShapes<T extends TLUnknownShape>(partials: OptionalKeys<TLShapePartial<T>, 'id'>[]): this {
 		if (!Array.isArray(partials)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}
-		this._createShapes(partials, select)
+		if (this.instanceState.isReadonly) return this
+		if (partials.length <= 0) return this
+
+		// can't create more shapes than fit on the page
+		if (partials.length + this.shapeIdsOnCurrentPage.size > MAX_SHAPES_PER_PAGE) {
+			alertMaxShapes(this)
+			return this
+		}
+
+		const { focusedGroupId, sortedShapesOnCurrentPage } = this
+
+		// 1. Parents
+
+		// Make sure that each partial will become the child of either the
+		// page or another shape that exists (or that will exist) in this page.
+
+		const shapesToCreate: TLShapePartial[] = partials.map((partial) => {
+			const id = partial.id ?? createShapeId()
+			;(partial as any).id = id
+
+			// If the partial does not provide the parentId OR if the provided
+			// parentId is NOT in the store AND NOT among the other shapes being
+			// created, then we need to find a parent for the shape. This can be
+			// another shape that exists under that point and which can receive
+			// children of the creating shape's type, or else the page itself.
+			if (
+				!partial.parentId ||
+				!(this.store.has(partial.parentId) || partials.some((p) => p.id === partial.parentId))
+			) {
+				partial = { ...partial }
+
+				const parentId =
+					sortedShapesOnCurrentPage.findLast(
+						(parent) =>
+							// parent.type === 'frame'
+							this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
+							this.isPointInShape(
+								parent,
+								// If no parent is provided, then we can treat the
+								// shape's provided x/y as being in the page's space.
+								{ x: partial.x ?? 0, y: partial.y ?? 0 },
+								{
+									margin: 0,
+									hitInside: true,
+								}
+							)
+					)?.id ?? this.focusedGroupId
+
+				partial.parentId = parentId
+
+				// If the parent is a shape (rather than a page) then insert the
+				// shapes into the shape's children. Adjust the point and page rotation to be
+				// preserved relative to the parent.
+				if (isShapeId(parentId)) {
+					const point = this.getPointInShapeSpace(this.getShape(parentId)!, {
+						x: partial.x ?? 0,
+						y: partial.y ?? 0,
+					})
+					partial.x = point.x
+					partial.y = point.y
+					partial.rotation = -this.getPageTransform(parentId)!.rotation() + (partial.rotation ?? 0)
+				}
+
+				// a shape cannot be it's own parent. This was a rare issue with frames/groups in the syncFuzz tests.
+				if (partial.parentId === partial.id) {
+					partial.parentId = focusedGroupId
+				}
+			}
+
+			return partial as TLShapePartial
+		})
+
+		// 2. Indices
+
+		// Get the highest index among the parents of each of the
+		// the shapes being created; we'll increment from there.
+
+		const parentIndices = new Map<string, string>()
+
+		const shapeRecordsToCreate: TLShape[] = []
+
+		for (const partial of shapesToCreate) {
+			const util = this.getShapeUtil(partial)
+
+			// If an index is not explicitly provided, then add the
+			// shapes to the top of their parents' children; using the
+			// value in parentsMappedToIndex, get the index above, use it,
+			// and set it back to parentsMappedToIndex for next time.
+			let index = partial.index
+
+			if (!index) {
+				// Hello bug-seeker: have you just created a frame and then a shape
+				// and found that the shape is automatically the child of the frame?
+				// this is the reason why! It would be harder to have each shape specify
+				// the frame as the parent when creating a shape inside of a frame, so
+				// we do it here.
+				const parentId = partial.parentId ?? focusedGroupId
+
+				if (!parentIndices.has(parentId)) {
+					parentIndices.set(parentId, this.getHighestIndexForParent(parentId))
+				}
+				index = parentIndices.get(parentId)!
+				parentIndices.set(parentId, getIndexAbove(index))
+			}
+
+			// The initial props starts as the shape utility's default props
+			const initialProps = util.getDefaultProps()
+
+			// We then look up each key in the tab state's styles; and if it's there,
+			// we use the value from the tab state's styles instead of the default.
+			for (const [style, propKey] of this.styleProps[partial.type]) {
+				;(initialProps as any)[propKey] = this.getStyleForNextShape(style)
+			}
+
+			// When we create the shape, take in the partial (the props coming into the
+			// function) and merge it with the default props.
+			const shapeRecordToCreate = (
+				this.store.schema.types.shape as RecordType<
+					TLShape,
+					'type' | 'props' | 'index' | 'parentId'
+				>
+			).create({
+				...partial,
+				index,
+				opacity: partial.opacity ?? this.instanceState.opacityForNextShape,
+				parentId: partial.parentId ?? focusedGroupId,
+				props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
+			})
+
+			if (shapeRecordToCreate.index === undefined) {
+				throw Error('no index!')
+			}
+
+			shapeRecordsToCreate.push(shapeRecordToCreate)
+		}
+
+		// Add meta properties, if any, to the shapes
+		shapeRecordsToCreate.forEach((shape) => {
+			shape.meta = {
+				...this.getInitialMetaForShape(shape),
+				...shape.meta,
+			}
+		})
+
+		this.createRecords(shapeRecordsToCreate)
+
 		return this
 	}
-
-	/** @internal */
-	private _createShapes = this.history.createCommand(
-		'createShapes',
-		(partials: TLShapePartial[], select = false) => {
-			if (this.instanceState.isReadonly) return null
-			if (partials.length <= 0) return null
-
-			const { shapeIdsOnCurrentPage: shapeIds } = this
-
-			const maxShapesReached = partials.length + shapeIds.size > MAX_SHAPES_PER_PAGE
-
-			if (maxShapesReached) {
-				// can't create more shapes than fit on the page
-				alertMaxShapes(this)
-				return
-			}
-
-			if (partials.length === 0) return null
-
-			const prevSelectedShapeIds = select ? this.selectedShapeIds : undefined
-
-			return {
-				data: {
-					currentPageId: this.currentPageId,
-					createdIds: partials.map((p) => p.id),
-					prevSelectedShapeIds,
-					partials,
-					select,
-				},
-			}
-		},
-		{
-			do: ({ createdIds, partials, select }) => {
-				const { focusedGroupId } = this
-
-				// 1. Parents
-
-				// Make sure that each partial will become the child of either the
-				// page or another shape that exists (or that will exist) in this page.
-
-				const { sortedShapesOnCurrentPage } = this
-				partials = partials.map((partial) => {
-					// If the partial does not provide the parentId OR if the provided
-					// parentId is NOT in the store AND NOT among the other shapes being
-					// created, then we need to find a parent for the shape. This can be
-					// another shape that exists under that point and which can receive
-					// children of the creating shape's type, or else the page itself.
-					if (
-						!partial.parentId ||
-						!(this.store.has(partial.parentId) || partials.some((p) => p.id === partial.parentId))
-					) {
-						partial = { ...partial }
-
-						const parentId =
-							sortedShapesOnCurrentPage.findLast(
-								(parent) =>
-									// parent.type === 'frame'
-									this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
-									this.isPointInShape(
-										parent,
-										// If no parent is provided, then we can treat the
-										// shape's provided x/y as being in the page's space.
-										{ x: partial.x ?? 0, y: partial.y ?? 0 },
-										{
-											margin: 0,
-											hitInside: true,
-										}
-									)
-							)?.id ?? this.focusedGroupId
-
-						partial.parentId = parentId
-
-						// If the parent is a shape (rather than a page) then insert the
-						// shapes into the shape's children. Adjust the point and page rotation to be
-						// preserved relative to the parent.
-						if (isShapeId(parentId)) {
-							const point = this.getPointInShapeSpace(this.getShape(parentId)!, {
-								x: partial.x ?? 0,
-								y: partial.y ?? 0,
-							})
-							partial.x = point.x
-							partial.y = point.y
-							partial.rotation =
-								-this.getPageTransform(parentId)!.rotation() + (partial.rotation ?? 0)
-						}
-
-						// a shape cannot be it's own parent. This was a rare issue with frames/groups in the syncFuzz tests.
-						if (partial.parentId === partial.id) {
-							partial.parentId = focusedGroupId
-						}
-					}
-
-					return partial
-				})
-
-				// 2. Indices
-
-				// Get the highest index among the parents of each of the
-				// the shapes being created; we'll increment from there.
-
-				const parentIndices = new Map<string, string>()
-
-				const shapeRecordsToCreate: TLShape[] = []
-
-				for (const partial of partials) {
-					const util = this.getShapeUtil(partial)
-
-					// If an index is not explicitly provided, then add the
-					// shapes to the top of their parents' children; using the
-					// value in parentsMappedToIndex, get the index above, use it,
-					// and set it back to parentsMappedToIndex for next time.
-					let index = partial.index
-
-					if (!index) {
-						// Hello bug-seeker: have you just created a frame and then a shape
-						// and found that the shape is automatically the child of the frame?
-						// this is the reason why! It would be harder to have each shape specify
-						// the frame as the parent when creating a shape inside of a frame, so
-						// we do it here.
-						const parentId = partial.parentId ?? focusedGroupId
-
-						if (!parentIndices.has(parentId)) {
-							parentIndices.set(parentId, this.getHighestIndexForParent(parentId))
-						}
-						index = parentIndices.get(parentId)!
-						parentIndices.set(parentId, getIndexAbove(index))
-					}
-
-					// The initial props starts as the shape utility's default props
-					const initialProps = util.getDefaultProps()
-
-					// We then look up each key in the tab state's styles; and if it's there,
-					// we use the value from the tab state's styles instead of the default.
-					for (const [style, propKey] of this.styleProps[partial.type]) {
-						;(initialProps as any)[propKey] = this.getStyleForNextShape(style)
-					}
-
-					// When we create the shape, take in the partial (the props coming into the
-					// function) and merge it with the default props.
-					let shapeRecordToCreate = (
-						this.store.schema.types.shape as RecordType<
-							TLShape,
-							'type' | 'props' | 'index' | 'parentId'
-						>
-					).create({
-						...partial,
-						index,
-						opacity: partial.opacity ?? this.instanceState.opacityForNextShape,
-						parentId: partial.parentId ?? focusedGroupId,
-						props: 'props' in partial ? { ...initialProps, ...partial.props } : initialProps,
-					})
-
-					if (shapeRecordToCreate.index === undefined) {
-						throw Error('no index!')
-					}
-
-					const next = this.getShapeUtil(shapeRecordToCreate).onBeforeCreate?.(shapeRecordToCreate)
-
-					if (next) {
-						shapeRecordToCreate = next
-					}
-
-					shapeRecordsToCreate.push(shapeRecordToCreate)
-				}
-
-				// Add meta properties, if any, to the shapes
-				shapeRecordsToCreate.forEach((shape) => {
-					shape.meta = {
-						...this.getInitialMetaForShape(shape),
-						...shape.meta,
-					}
-				})
-
-				this.store.put(shapeRecordsToCreate)
-
-				// If we're also selecting the newly created shapes, attempt to select all of them;
-
-				// the engine will filter out any shapes that are descendants of other new shapes.
-				if (select) {
-					this.store.update(this.currentPageState.id, (state) => ({
-						...state,
-						selectedShapeIds: createdIds,
-					}))
-				}
-			},
-			undo: ({ createdIds, prevSelectedShapeIds }) => {
-				this.store.remove(createdIds)
-
-				if (prevSelectedShapeIds) {
-					this.store.update(this.currentPageState.id, (state) => ({
-						...state,
-						selectedShapeIds: prevSelectedShapeIds,
-					}))
-				}
-			},
-		}
-	)
 
 	private animatingShapes = new Map<TLShapeId, string>()
 
@@ -6848,6 +6833,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partials: (TLShapePartial<T> | null | undefined)[],
 		squashing = false
 	) {
+		if (this.instanceState.isReadonly) return this
+
 		let compactedPartials = compact(partials)
 		if (this.animatingShapes.size > 0) {
 			compactedPartials.forEach((p) => this.animatingShapes.delete(p.id))
@@ -6862,7 +6849,59 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return true
 		})
 
-		this._updateShapes(compactedPartials, squashing)
+		if (compactedPartials.length <= 0) return this
+
+		const shapesToUpdate = compact(
+			compactedPartials.map((partial) => {
+				const prev = this.getShape(partial.id)
+				if (!prev) return null
+
+				let newRecord = null as null | TLShape
+				for (const [k, v] of Object.entries(partial)) {
+					if (v === undefined) continue
+					switch (k) {
+						case 'id':
+						case 'type':
+							continue
+						default: {
+							if (v !== (prev as any)[k]) {
+								if (!newRecord) {
+									newRecord = { ...prev }
+								}
+
+								if (k === 'props') {
+									// props property
+									const nextProps = { ...prev.props } as JsonObject
+									for (const [propKey, propValue] of Object.entries(v as object)) {
+										if (propValue !== undefined) {
+											nextProps[propKey] = propValue
+										}
+									}
+									newRecord!.props = nextProps
+								} else if (k === 'meta') {
+									// meta property
+									const nextMeta = { ...prev.meta } as JsonObject
+									for (const [metaKey, metaValue] of Object.entries(v as object)) {
+										if (metaValue !== undefined) {
+											nextMeta[metaKey] = metaValue
+										}
+									}
+									newRecord!.meta = nextMeta
+								} else {
+									// base property
+									;(newRecord as any)[k] = v
+								}
+							}
+						}
+					}
+				}
+
+				return newRecord ?? prev
+			})
+		)
+
+		this.updateRecords(shapesToUpdate, { squashing })
+
 		return this
 	}
 
@@ -7850,7 +7889,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Create the shapes with root shapes as children of the page
-			this.createShapes(newShapes, select)
+			this.createShapes(newShapes)
 
 			// And then, if needed, reparent the root shapes to the paste parent
 			if (pasteParentId !== currentPageId) {
@@ -7908,6 +7947,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return { id: s.id, type: s.type, x: point!.x + delta.x, y: point!.y + delta.y }
 				})
 			)
+
+			if (select) {
+				this.setSelectedShapeIds(rootShapes.map((s) => s.id))
+			}
 		})
 
 		return this

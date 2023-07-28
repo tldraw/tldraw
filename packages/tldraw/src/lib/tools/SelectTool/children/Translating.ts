@@ -53,9 +53,9 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.editAfterComplete = editAfterComplete
 
-		this.markId = isCreating
-			? this.editor.mark(`creating:${this.editor.onlySelectedShape!.id}`)
-			: this.editor.mark('translating')
+		this.markId = isCreating ? `creating:${this.editor.onlySelectedShape!.id}` : 'translating'
+		if (!isCreating) this.editor.mark(this.markId)
+
 		this.handleEnter(info)
 		this.editor.on('tick', this.updateParent)
 	}
@@ -111,7 +111,9 @@ export class Translating extends StateNode {
 
 		this.isCloning = true
 		this.reset()
-		this.markId = this.editor.mark('translating')
+
+		this.markId = 'translating'
+		this.editor.mark(this.markId)
 
 		this.editor.duplicateShapes(Array.from(this.editor.selectedShapeIds))
 
@@ -124,7 +126,10 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.snapshot = this.selectionSnapshot
 		this.reset()
-		this.markId = this.editor.mark('translating')
+
+		this.markId = 'translating'
+		this.editor.mark(this.markId)
+
 		this.updateShapes()
 	}
 

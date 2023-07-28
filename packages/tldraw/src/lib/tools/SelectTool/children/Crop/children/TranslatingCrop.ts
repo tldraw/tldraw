@@ -25,8 +25,8 @@ export class TranslatingCrop extends StateNode {
 	) => {
 		this.info = info
 		this.snapshot = this.createSnapshot()
-
 		this.editor.mark(this.markId)
+
 		this.editor.updateInstanceState({ cursor: { type: 'move', rotation: 0 } }, true)
 		this.updateShapes()
 	}

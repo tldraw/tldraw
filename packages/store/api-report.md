@@ -260,6 +260,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     onAfterChange?: (prev: R, next: R) => void;
     onAfterCreate?: (record: R) => void;
     onAfterDelete?: (prev: R) => void;
+    onBeforeChange?: (prev: R, next: R) => R;
+    onBeforeCreate?: (next: R) => R;
     onBeforeDelete?: (prev: R) => void;
     // (undocumented)
     readonly props: Props;

@@ -62,7 +62,7 @@ describe('Translating', () => {
 		editor.select(id)
 
 		const shape = editor.getShape<TLLineShape>(id)!
-		shape.rotation = Math.PI / 2
+		editor.updateShape({ ...shape, rotation: Math.PI / 2 })
 
 		editor.pointerDown(250, 250, { target: 'shape', shape: shape })
 		editor.pointerMove(300, 400) // Move shape by 50, 150

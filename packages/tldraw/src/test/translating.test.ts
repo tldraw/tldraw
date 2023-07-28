@@ -76,6 +76,7 @@ describe('When translating...', () => {
 				props: {
 					w: 100,
 					h: 100,
+					fill: 'solid',
 				},
 			},
 			{
@@ -86,6 +87,7 @@ describe('When translating...', () => {
 				props: {
 					w: 100,
 					h: 100,
+					fill: 'solid',
 				},
 			},
 			{
@@ -117,14 +119,27 @@ describe('When translating...', () => {
 	})
 
 	it('translates a single shape', () => {
+		const before = editor.getShape(ids.box1)!
+
 		editor
-			.pointerDown(50, 50, ids.box1)
+			.pointerMove(50, 50)
+			.pointerDown()
 			.pointerMove(50, 40) // [0, -10]
 			.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 })
 			.pointerMove(100, 100) // [50, 50]
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 			.pointerUp()
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
+
+		const after = editor.getShape(ids.box1)!
+
+		editor.undo()
+
+		expect(editor.getShape(ids.box1)).toMatchObject(before)
+
+		editor.redo()
+
+		expect(editor.getShape(ids.box1)).toMatchObject(after)
 	})
 
 	it('translates multiple shapes', () => {
@@ -171,6 +186,7 @@ describe('When cloning...', () => {
 			},
 		])
 	})
+
 	it('clones a single shape and restores when stopping cloning', () => {
 		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
 		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)

@@ -19,23 +19,23 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
-			this.markId = this.editor.mark(`creating:${id}`)
-
-			this.editor.createShapes<TLTextShape>([
-				{
-					id,
-					type: 'text',
-					x: originPagePoint.x,
-					y: originPagePoint.y,
-					props: {
-						text: '',
-						autoSize: false,
-						w: 20,
+			this.markId = `creating:${id}`
+			this.editor
+				.mark(this.markId)
+				.createShapes<TLTextShape>([
+					{
+						id,
+						type: 'text',
+						x: originPagePoint.x,
+						y: originPagePoint.y,
+						props: {
+							text: '',
+							autoSize: false,
+							w: 20,
+						},
 					},
-				},
-			])
-
-			this.editor.select(id)
+				])
+				.select(id)
 
 			this.shape = this.editor.getShape(id)
 			if (!this.shape) return
@@ -72,8 +72,8 @@ export class Pointing extends StateNode {
 		this.editor.mark('creating text shape')
 		const id = createShapeId()
 		const { x, y } = this.editor.inputs.currentPagePoint
-		this.editor.createShapes(
-			[
+		this.editor
+			.createShapes([
 				{
 					id,
 					type: 'text',
@@ -84,9 +84,8 @@ export class Pointing extends StateNode {
 						autoSize: true,
 					},
 				},
-			],
-			true
-		)
+			])
+			.select(id)
 
 		this.editor.setEditingShapeId(id)
 		this.editor.setCurrentTool('select')

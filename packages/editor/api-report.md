@@ -26,7 +26,6 @@ import { PointerEventHandler } from 'react';
 import { react } from '@tldraw/state';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
-import { RecordId } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
@@ -49,11 +48,9 @@ import { TLGroupShape } from '@tldraw/tlschema';
 import { TLHandle } from '@tldraw/tlschema';
 import { TLImageAsset } from '@tldraw/tlschema';
 import { TLInstance } from '@tldraw/tlschema';
-import { TLInstanceId } from '@tldraw/tlschema';
 import { TLInstancePageState } from '@tldraw/tlschema';
 import { TLInstancePageStateId } from '@tldraw/tlschema/.tsbuild/records/TLPageState';
 import { TLInstancePresence } from '@tldraw/tlschema';
-import { TLInstancePresenceID } from '@tldraw/tlschema/.tsbuild/records/TLPresence';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
@@ -600,9 +597,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
     // (undocumented)
-    createRecord: (partial: OptionalKeys<TLCamera | TLInstancePresence | TLPointer | TLAsset | TLDocument | TLInstance | TLInstancePageState | TLPage, "meta">) => this;
-    createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select?: boolean): this;
-    createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select?: boolean): this;
+    createRecords: (partials: OptionalKeys<TLCamera | TLPointer | TLAsset | TLInstancePageState | TLPage | TLShape, "meta">[], opts?: {
+        ephemeral?: boolean | undefined;
+        preservesRedoStack?: boolean | undefined;
+    } | undefined) => this;
+    createShape<T extends TLUnknownShape>(partial: OptionalKeys<TLShapePartial<T>, 'id'>): this;
+    createShapes<T extends TLUnknownShape>(partials: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     get croppingShapeId(): null | TLShapeId;
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
@@ -619,7 +619,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     deletePage(pageId: TLPageId): this;
     // (undocumented)
-    deleteRecord: (record: RecordId<TLDocument> | TLCamera | TLCameraId | TLInstanceId | TLInstancePresence | TLInstancePageStateId | TLPointer | TLPointerId | TLInstancePresenceID | TLAsset | TLAssetId | TLDocument | TLInstance | TLInstancePageState | TLPage | TLPageId) => this;
+    deleteRecords: (records: (TLCamera | TLPointer | TLAsset | TLInstancePageState | TLPage | TLShape)[] | (TLCameraId | TLInstancePageStateId | TLPointerId | TLAssetId | TLPageId | TLShapeId)[], opts?: {
+        ephemeral?: boolean | undefined;
+        preservesRedoStack?: boolean | undefined;
+    } | undefined) => this;
     deleteShape(id: TLShapeId): this;
     // (undocumented)
     deleteShape(shape: TLShape): this;
@@ -850,7 +853,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
-    mark(markId?: string, onUndo?: boolean, onRedo?: boolean): string;
+    mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this;
     moveShapesToPage(shapes: TLShape[], pageId: TLPageId): this;
     // (undocumented)
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
@@ -911,7 +914,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         initialPageTransform?: MatLike;
         dragHandle?: TLResizeHandle;
         mode?: TLResizeMode;
-    }): this;
+    }, ephemeral?: boolean): this;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[], delta: number): this;
     // (undocumented)
@@ -955,7 +958,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     setHoveredShapeId(id: null | TLShapeId): this;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
-    setSelectedShapeIds(ids: TLShapeId[], squash?: boolean): this;
+    setSelectedShapeIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
     get shapeIdsOnCurrentPage(): Set<TLShapeId>;
     get shapesOnCurrentPage(): TLShape[];
@@ -996,17 +999,17 @@ export class Editor extends EventEmitter<TLEventMap> {
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squash?: boolean): this;
-    updatePage(partial: RequiredKeys<TLPage, 'id'>, squash?: boolean): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
+    updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updatePageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId'>>, opts?: {
         ephemeral?: boolean;
-        squashing?: boolean;
+        squash?: boolean;
         preservesRedoStack?: boolean;
     }): this;
     // (undocumented)
-    updateRecord: (partial: RequiredKeys<TLCamera | TLInstancePresence | TLPointer | TLAsset | TLDocument | TLInstance | TLInstancePageState | TLPage, "id">, opts?: {
+    updateRecords: (partials: Partial<TLRecord>[], opts?: {
         ephemeral?: boolean | undefined;
-        squash?: boolean | undefined;
+        squashing?: boolean | undefined;
         preservesRedoStack?: boolean | undefined;
     } | undefined) => this;
     // @internal
@@ -1654,7 +1657,7 @@ export function refreshPage(): void;
 export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
 // @public (undocumented)
-export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
+export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>;
 
 // @public (undocumented)
 export function resizeBox(shape: TLBaseBoxShape, info: {

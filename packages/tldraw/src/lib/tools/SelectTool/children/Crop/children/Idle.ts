@@ -14,8 +14,6 @@ export class Idle extends StateNode {
 		// (which clears the cropping id) but still remain in this state.
 		this.editor.on('change-history', this.cleanupCroppingState)
 
-		this.editor.mark('crop')
-
 		if (onlySelectedShape) {
 			this.editor.setCroppingShapeId(onlySelectedShape.id)
 		}

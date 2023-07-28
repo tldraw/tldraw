@@ -152,10 +152,8 @@ describe('frame shapes', () => {
 
 		editor
 			// Create a frame
-			.createShapes(
-				[{ id: frameId, type: 'frame', x: 100, y: 100, props: { w: 100, h: 100 } }],
-				true
-			)
+			.createShapes([{ id: frameId, type: 'frame', x: 100, y: 100, props: { w: 100, h: 100 } }])
+			.select(frameId)
 			// Rotate it by PI/2
 			.rotateSelection(Math.PI / 2)
 			// Draw a shape into the frame

@@ -298,12 +298,28 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
+	 * A callback fired after each record's change.
+	 *
+	 * @param prev - The previous value, if any.
+	 * @param next - The next value.
+	 */
+	onBeforeCreate?: (next: R) => R
+
+	/**
 	 * A callback fired after a record is created. Use this to perform related updates to other
 	 * records in the store.
 	 *
 	 * @param record - The record to be created
 	 */
 	onAfterCreate?: (record: R) => void
+
+	/**
+	 * A callback before after each record's change.
+	 *
+	 * @param prev - The previous value, if any.
+	 * @param next - The next value.
+	 */
+	onBeforeChange?: (prev: R, next: R) => R
 
 	/**
 	 * A callback fired after each record's change.
@@ -353,12 +369,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// changes (e.g. additions, deletions, or updates that produce a new value).
 			let didChange = false
 
+			const beforeCreate = this.onBeforeCreate && this._runCallbacks ? this.onBeforeCreate : null
+			const beforeUpdate = this.onBeforeChange && this._runCallbacks ? this.onBeforeChange : null
+
 			for (let i = 0, n = records.length; i < n; i++) {
 				record = records[i]
 
 				const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
 				if (recordAtom) {
+					if (beforeUpdate) record = beforeUpdate(recordAtom.value, record)
+
 					// If we already have an atom for this record, update its value.
 
 					const initialValue = recordAtom.__unsafe__getWithoutCapture()
@@ -382,6 +403,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						updates[record.id] = [initialValue, finalValue]
 					}
 				} else {
+					if (beforeCreate) record = beforeCreate(record)
+
 					didChange = true
 
 					// If we don't have an atom, create one.

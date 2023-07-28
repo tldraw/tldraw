@@ -20,17 +20,22 @@ beforeEach(() => {
 // this file is mainly for testing the default parameters and associated logic
 
 describe('resizing a shape', () => {
-	it('always squashes history entries', () => {
+	it.only('always squashes history entries', () => {
+		const startHistoryLength = editor.history.numUndos
+		expect(startHistoryLength).toBe(0)
+
 		editor.createShapes([{ id: ids.boxA, type: 'geo', props: { w: 100, h: 100 } }])
+		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
 
 		editor.mark('start')
-		const startHistoryLength = editor.history.numUndos
+		expect(editor.history.numUndos).toBe(startHistoryLength + 2)
+
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
+		expect(editor.history.numUndos).toBe(startHistoryLength + 3)
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
+		expect(editor.history.numUndos).toBe(startHistoryLength + 3)
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
+		expect(editor.history.numUndos).toBe(startHistoryLength + 3)
 
 		expect(editor.getPageBounds(ids.boxA)).toCloselyMatchObject({
 			w: 800,
