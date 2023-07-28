@@ -3,6 +3,7 @@ import { Dragging } from './children/Dragging'
 import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'
 
+/** @public */
 export class HandTool extends StateNode {
 	static override id = 'hand'
 	static override initial = 'idle'
