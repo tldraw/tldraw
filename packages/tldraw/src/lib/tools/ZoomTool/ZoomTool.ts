@@ -3,6 +3,7 @@ import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'
 import { ZoomBrushing } from './children/ZoomBrushing'
 
+/** @public */
 export class ZoomTool extends StateNode {
 	static override id = 'zoom'
 	static override initial = 'idle'
