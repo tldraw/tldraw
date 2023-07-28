@@ -41,6 +41,74 @@ export const EMBED_DEFINITIONS = [
 		},
 	},
 	{
+		type: 'figma',
+		title: 'Figma',
+		hostnames: ['figma.com'],
+		width: 720,
+		height: 500,
+		doesResize: true,
+		canUnmount: true,
+		toEmbedUrl: (url) => {
+			if (
+				!!url.match(
+					// eslint-disable-next-line no-useless-escape
+					/https:\/\/([\w\.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/
+				) &&
+				!url.includes('figma.com/embed')
+			) {
+				return `https://www.figma.com/embed?embed_host=share&url=${url}`
+			}
+			return
+		},
+		fromEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			if (urlObj && urlObj.pathname.match(/^\/embed\/?$/)) {
+				const outUrl = urlObj.searchParams.get('url')
+				if (outUrl) {
+					return outUrl
+				}
+			}
+			return
+		},
+	},
+	{
+		type: 'google_maps',
+		title: 'Google Maps',
+		hostnames: ['google.*'],
+		width: 720,
+		height: 500,
+		doesResize: true,
+		canUnmount: false,
+		toEmbedUrl: (url) => {
+			if (url.includes('/maps/')) {
+				const match = url.match(/@(.*),(.*),(.*)z/)
+				let result: string
+				if (match) {
+					const [, lat, lng, z] = match
+					const host = new URL(url).host.replace('www.', '')
+					result = `https://${host}/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=${lat},${lng}&zoom=${z}`
+				} else {
+					result = ''
+				}
+
+				return result
+			}
+			return
+		},
+		fromEmbedUrl: (url) => {
+			const urlObj = safeParseUrl(url)
+			if (!urlObj) return
+
+			const matches = urlObj.pathname.match(/^\/maps\/embed\/v1\/view\/?$/)
+			if (matches && urlObj.searchParams.has('center') && urlObj.searchParams.get('zoom')) {
+				const zoom = urlObj.searchParams.get('zoom')
+				const [lat, lon] = urlObj.searchParams.get('center')!.split(',')
+				return `https://www.google.com/maps/@${lat},${lon},${zoom}z`
+			}
+			return
+		},
+	},
+	{
 		type: 'val_town',
 		title: 'Val Town',
 		hostnames: ['val.town'],
@@ -191,74 +259,6 @@ export const EMBED_DEFINITIONS = [
 				if (matches) {
 					return `https://www.youtube.com/watch?v=${matches[1]}`
 				}
-			}
-			return
-		},
-	},
-	{
-		type: 'figma',
-		title: 'Figma',
-		hostnames: ['figma.com'],
-		width: 720,
-		height: 500,
-		doesResize: true,
-		canUnmount: true,
-		toEmbedUrl: (url) => {
-			if (
-				!!url.match(
-					// eslint-disable-next-line no-useless-escape
-					/https:\/\/([\w\.-]+\.)?figma.com\/(file|proto)\/([0-9a-zA-Z]{22,128})(?:\/.*)?$/
-				) &&
-				!url.includes('figma.com/embed')
-			) {
-				return `https://www.figma.com/embed?embed_host=share&url=${url}`
-			}
-			return
-		},
-		fromEmbedUrl: (url) => {
-			const urlObj = safeParseUrl(url)
-			if (urlObj && urlObj.pathname.match(/^\/embed\/?$/)) {
-				const outUrl = urlObj.searchParams.get('url')
-				if (outUrl) {
-					return outUrl
-				}
-			}
-			return
-		},
-	},
-	{
-		type: 'google_maps',
-		title: 'Google Maps',
-		hostnames: ['google.*'],
-		width: 720,
-		height: 500,
-		doesResize: true,
-		canUnmount: false,
-		toEmbedUrl: (url) => {
-			if (url.includes('/maps/')) {
-				const match = url.match(/@(.*),(.*),(.*)z/)
-				let result: string
-				if (match) {
-					const [, lat, lng, z] = match
-					const host = new URL(url).host.replace('www.', '')
-					result = `https://${host}/maps/embed/v1/view?key=${process.env.NEXT_PUBLIC_GC_API_KEY}&center=${lat},${lng}&zoom=${z}`
-				} else {
-					result = ''
-				}
-
-				return result
-			}
-			return
-		},
-		fromEmbedUrl: (url) => {
-			const urlObj = safeParseUrl(url)
-			if (!urlObj) return
-
-			const matches = urlObj.pathname.match(/^\/maps\/embed\/v1\/view\/?$/)
-			if (matches && urlObj.searchParams.has('center') && urlObj.searchParams.get('zoom')) {
-				const zoom = urlObj.searchParams.get('zoom')
-				const [lat, lon] = urlObj.searchParams.get('center')!.split(',')
-				return `https://www.google.com/maps/@${lat},${lon},${zoom}z`
 			}
 			return
 		},

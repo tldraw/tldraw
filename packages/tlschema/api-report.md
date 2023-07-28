@@ -214,6 +214,26 @@ export const EMBED_DEFINITIONS: readonly [{
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
+    readonly type: "figma";
+    readonly title: "Figma";
+    readonly hostnames: readonly ["figma.com"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly canUnmount: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "google_maps";
+    readonly title: "Google Maps";
+    readonly hostnames: readonly ["google.*"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly canUnmount: false;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
     readonly type: "val_town";
     readonly title: "Val Town";
     readonly hostnames: readonly ["val.town"];
@@ -271,26 +291,6 @@ export const EMBED_DEFINITIONS: readonly [{
         readonly 'allow-presentation': true;
     };
     readonly isAspectRatioLocked: true;
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-}, {
-    readonly type: "figma";
-    readonly title: "Figma";
-    readonly hostnames: readonly ["figma.com"];
-    readonly width: 720;
-    readonly height: 500;
-    readonly doesResize: true;
-    readonly canUnmount: true;
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-}, {
-    readonly type: "google_maps";
-    readonly title: "Google Maps";
-    readonly hostnames: readonly ["google.*"];
-    readonly width: 720;
-    readonly height: 500;
-    readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
