@@ -236,6 +236,7 @@ export function getAssetUrls(opts) {
 			scratch: formatAssetUrl('./embed-icons/scratch.png', opts),
 			spotify: formatAssetUrl('./embed-icons/spotify.png', opts),
 			tldraw: formatAssetUrl('./embed-icons/tldraw.png', opts),
+			val_town: formatAssetUrl('./embed-icons/val_town.png', opts),
 			vimeo: formatAssetUrl('./embed-icons/vimeo.png', opts),
 			youtube: formatAssetUrl('./embed-icons/youtube.png', opts),
 		},
