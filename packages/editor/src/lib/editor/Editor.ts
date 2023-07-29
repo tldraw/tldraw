@@ -284,10 +284,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 
-		const reparentArrow = (arrowId: TLArrowShape['id']) => {
-			let arrow = this.getShape<TLArrowShape>(arrowId)
-			if (!arrow) return
-
+		const reparentArrow = (arrow: TLArrowShape, scope: 'user' | 'remote') => {
 			const { start, end } = arrow.props
 			const startShape = start.type === 'binding' ? this.getShape(start.boundShapeId) : undefined
 			const endShape = end.type === 'binding' ? this.getShape(end.boundShapeId) : undefined
@@ -307,8 +304,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (nextParentId && nextParentId !== arrow.parentId) {
-				this.reparentShapes([arrowId], nextParentId, { squashing: true })
-				arrow = this.getShape<TLArrowShape>(arrowId)
+				this.reparentShapes([arrow], nextParentId, { squashing: true })
+				arrow = this.getShape<TLArrowShape>(arrow.id)!
 				if (!arrow) throw Error('no reparented arrow')
 			}
 
@@ -365,7 +362,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (finalIndex !== arrow.index) {
 				this.updateRecords([{ id: arrow.id, type: 'arrow', index: finalIndex }], {
-					ephemeral: false,
+					ephemeral: scope === 'remote',
 					squashing: true,
 				})
 			}
@@ -387,9 +384,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// ...yeah I'm not sure about this one, it's causing problems!
-
 			// always check the arrow parents
-			// reparentArrow(arrow.id)
+			// reparentArrow(arrow, scope)
 		}
 
 		const cleanupInstancePageState = (
@@ -546,7 +542,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const boundArrows = this._arrowBindingsIndex.value[id]
 					if (boundArrows?.length) {
 						for (const arrow of boundArrows) {
-							reparentArrow(arrow.arrowId)
+							reparentArrow(this.getShape(arrow.arrowId)!, scope)
 						}
 					}
 				}

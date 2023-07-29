@@ -123,20 +123,12 @@ export class Pointing extends StateNode {
 	}
 
 	updateArrowShapeEndHandle() {
-		let shape = this.editor.getShape(this.shape!.id) as TLArrowShape
-		if (!shape) throw Error(`expected shape`)
-
-		const handles = this.editor.getHandles(shape)
-		if (!handles) throw Error(`expected handles for arrow`)
-
 		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 
 		// end update
 		{
-			const point = this.editor.getPointInShapeSpace(
-				this.editor.getShape(shape.id)!,
-				this.editor.inputs.currentPagePoint
-			)
+			const shape = this.editor.getShape(this.shape!.id)! as TLArrowShape
+			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
 			const endHandle = this.editor.getHandles(shape)!.find((h) => h.id === 'end')!
 			const change = util.onHandleChange?.(shape, {
 				handle: { ...endHandle, x: point.x, y: point.y },
@@ -154,9 +146,9 @@ export class Pointing extends StateNode {
 
 		// start update
 		{
-			shape = this.editor.getShape(this.shape!.id) as TLArrowShape
+			const shape = this.editor.getShape(this.shape!.id)! as TLArrowShape
 			const startHandle = this.editor.getHandles(shape)!.find((h) => h.id === 'start')!
-			const change = util.onHandleChange?.(this.editor.getShape(shape.id)!, {
+			const change = util.onHandleChange?.(shape, {
 				handle: { ...startHandle, x: 0, y: 0 },
 				isPrecise: this.didTimeout, // sure about that?
 			})
@@ -167,7 +159,7 @@ export class Pointing extends StateNode {
 		}
 
 		// Cache the current shape after those changes
-		this.shape = this.editor.getShape(shape.id)
+		this.shape = this.editor.getShape(this.shape!.id)
 	}
 
 	private preciseTimeout = -1

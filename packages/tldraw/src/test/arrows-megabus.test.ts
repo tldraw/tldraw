@@ -403,8 +403,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -437,8 +437,8 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						x: 0.55,
+						y: 0.5,
 					},
 				},
 			},
@@ -518,8 +518,34 @@ describe('When starting an arrow inside of multiple shapes', () => {
 					type: 'binding',
 					boundShapeId: ids.box2,
 					normalizedAnchor: {
-						x: 0.6,
-						y: 0.6,
+						// kicked over because it was too close to the center, and we can't have both bound there
+						x: 0.55,
+						y: 0.5,
+					},
+				},
+			},
+		})
+		editor.pointerMove(35, 35)
+		expect(editor.shapesOnCurrentPage.length).toBe(3)
+		expect(arrow()).toMatchObject({
+			x: 25,
+			y: 25,
+			props: {
+				start: {
+					type: 'binding',
+					boundShapeId: ids.box2,
+					normalizedAnchor: {
+						x: 0.5,
+						y: 0.5,
+					},
+				},
+				end: {
+					type: 'binding',
+					boundShapeId: ids.box2,
+					normalizedAnchor: {
+						// kicked over because it was too close to the center, and we can't have both bound there
+						x: 0.7,
+						y: 0.7,
 					},
 				},
 			},
