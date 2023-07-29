@@ -3,7 +3,7 @@ import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
 import { useDialogs } from './useDialogsProvider'
-import { TLUiEventSource, useEvents } from './useEventsProvider'
+import { TLUiEventSource, useUiEvents } from './useEventsProvider'
 import { useInsertMedia } from './useInsertMedia'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
@@ -40,7 +40,7 @@ export type TLUiToolsProviderProps = {
 /** @internal */
 export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 	const editor = useEditor()
-	const trackEvent = useEvents()
+	const trackEvent = useUiEvents()
 
 	const { addDialog } = useDialogs()
 	const insertMedia = useInsertMedia()

@@ -20,6 +20,11 @@ export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
 export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
 export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
 export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
+export { EraserTool } from './lib/tools/EraserTool/EraserTool'
+export { HandTool } from './lib/tools/HandTool/HandTool'
+export { LaserTool } from './lib/tools/LaserTool/LaserTool'
+export { SelectTool } from './lib/tools/SelectTool/SelectTool'
+export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export {
@@ -71,7 +76,9 @@ export {
 	type TLUiDialogsContextType,
 } from './lib/ui/hooks/useDialogsProvider'
 export {
-	useEvents,
+	UiEventsProvider,
+	useUiEvents,
+	type EventsProviderProps,
 	type TLUiEventContextType,
 	type TLUiEventHandler,
 	type TLUiEventSource,

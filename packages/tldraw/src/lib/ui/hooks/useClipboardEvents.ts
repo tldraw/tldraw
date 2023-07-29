@@ -18,7 +18,7 @@ import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
-import { TLUiEventSource, useEvents } from './useEventsProvider'
+import { TLUiEventSource, useUiEvents } from './useEventsProvider'
 
 /** @public */
 export const isValidHttpURL = (url: string) => {
@@ -583,7 +583,7 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 /** @public */
 export function useMenuClipboardEvents() {
 	const editor = useEditor()
-	const trackEvent = useEvents()
+	const trackEvent = useUiEvents()
 
 	const copy = useCallback(
 		function onCopy(source: TLUiEventSource) {
@@ -640,7 +640,7 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const editor = useEditor()
-	const trackEvent = useEvents()
+	const trackEvent = useUiEvents()
 
 	const appIsFocused = useValue('editor.isFocused', () => editor.instanceState.isFocused, [editor])
 

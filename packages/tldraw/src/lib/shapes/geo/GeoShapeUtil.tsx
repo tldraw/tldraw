@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	BaseBoxShapeUtil,
 	DefaultFontFamilies,
@@ -41,7 +40,6 @@ import {
 } from '../shared/defaultStyleDefs'
 import { getTextLabelSvgElement } from '../shared/getTextLabelSvgElement'
 import { getRoundedInkyPolygonPath, getRoundedPolygonPoints } from '../shared/polygon-helpers'
-import { useForceSolid } from '../shared/useForceSolid'
 import { cloudOutline, cloudSvgPath } from './cloudOutline'
 import { DashStyleCloud, DashStyleCloudSvg } from './components/DashStyleCloud'
 import { DashStyleEllipse, DashStyleEllipseSvg } from './components/DashStyleEllipse'
@@ -369,7 +367,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	component(shape: TLGeoShape) {
 		const { id, type, props } = shape
 
-		const forceSolid = useForceSolid()
 		const strokeWidth = STROKE_SIZES[props.size]
 
 		const { w, color, labelColor, fill, dash, growY, font, align, verticalAlign, size, text } =
@@ -380,7 +377,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 			switch (props.geo) {
 				case 'cloud': {
-					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
+					if (dash === 'solid') {
 						return (
 							<SolidStyleCloud
 								color={color}
@@ -402,7 +399,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 								h={h}
 								id={id}
 								size={size}
-								dash={dash === 'dashed' ? dash : size === 's' && forceSolid ? 'dashed' : dash}
+								dash={dash}
 							/>
 						)
 					} else if (dash === 'draw') {
@@ -422,7 +419,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					break
 				}
 				case 'ellipse': {
-					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
+					if (dash === 'solid') {
 						return (
 							<SolidStyleEllipse strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
 						)
@@ -433,7 +430,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 								strokeWidth={strokeWidth}
 								w={w}
 								h={h}
-								dash={dash === 'dashed' ? dash : size === 's' && forceSolid ? 'dashed' : dash}
+								dash={dash}
 								color={color}
 								fill={fill}
 							/>
@@ -446,7 +443,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					break
 				}
 				case 'oval': {
-					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
+					if (dash === 'solid') {
 						return (
 							<SolidStyleOval strokeWidth={strokeWidth} w={w} h={h} color={color} fill={fill} />
 						)
@@ -457,7 +454,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 								strokeWidth={strokeWidth}
 								w={w}
 								h={h}
-								dash={dash === 'dashed' ? dash : size === 's' && forceSolid ? 'dashed' : dash}
+								dash={dash}
 								color={color}
 								fill={fill}
 							/>
@@ -475,7 +472,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 						geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 					const lines = getLines(shape.props, strokeWidth)
 
-					if (dash === 'solid' || (dash === 'draw' && forceSolid)) {
+					if (dash === 'solid') {
 						return (
 							<SolidStylePolygon
 								fill={fill}
@@ -488,7 +485,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					} else if (dash === 'dashed' || dash === 'dotted') {
 						return (
 							<DashStylePolygon
-								dash={dash === 'dashed' ? dash : size === 's' && forceSolid ? 'dashed' : dash}
+								dash={dash}
 								fill={fill}
 								color={color}
 								strokeWidth={strokeWidth}
@@ -539,12 +536,11 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const { w, size } = props
 		const h = props.h + props.growY
 
-		const forceSolid = useForceSolid()
 		const strokeWidth = STROKE_SIZES[size]
 
 		switch (props.geo) {
 			case 'ellipse': {
-				if (props.dash === 'draw' && !forceSolid) {
+				if (props.dash === 'draw') {
 					return <path d={getEllipseIndicatorPath(id, w, h, strokeWidth)} />
 				}
 
@@ -563,7 +559,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 				let path: string
 
-				if (props.dash === 'draw' && !forceSolid) {
+				if (props.dash === 'draw') {
 					const polygonPoints = getRoundedPolygonPoints(id, outline, 0, strokeWidth * 2, 1)
 					path = getRoundedInkyPolygonPath(polygonPoints)
 				} else {

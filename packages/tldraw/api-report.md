@@ -7,13 +7,13 @@
 /// <reference types="react" />
 
 import { Arc2d } from '@tldraw/editor';
-import { ArrayOfValidator } from '@tldraw/validate/.tsbuild/lib/validation';
+import { ArrayOfValidator } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
 import { Box2d } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { CubicSpline2d } from '@tldraw/editor';
-import { DictValidator } from '@tldraw/validate/.tsbuild/lib/validation';
+import { DictValidator } from '@tldraw/editor';
 import { Edge2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
@@ -28,7 +28,7 @@ import { Matrix2dModel } from '@tldraw/editor';
 import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
-import { ObjectValidator } from '@tldraw/validate/.tsbuild/lib/validation';
+import { ObjectValidator } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
@@ -96,7 +96,7 @@ import { TLTextShape } from '@tldraw/editor';
 import { TLTickEvent } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
-import { UnionValidator } from '@tldraw/validate/.tsbuild/lib/validation';
+import { UnionValidator } from '@tldraw/editor';
 import { UnknownRecord } from '@tldraw/editor';
 import { Validator } from '@tldraw/editor';
 import { Vec2d } from '@tldraw/editor';
@@ -403,6 +403,24 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 }
 
 // @public (undocumented)
+export class EraserTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Erasing | typeof Idle_7 | typeof Pointing_6)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    onEnter: () => void;
+}
+
+// @public (undocumented)
+export type EventsProviderProps = {
+    onEvent?: TLUiEventHandler;
+    children: any;
+};
+
+// @public (undocumented)
 export function findMenuItem(menu: TLUiMenuSchema, path: string[]): TLUiMenuChild;
 
 // @public (undocumented)
@@ -603,6 +621,22 @@ function Group({ children, size, }: {
 }): JSX.Element;
 
 // @public (undocumented)
+export class HandTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Dragging | typeof Idle_8 | typeof Pointing_7)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    onDoubleClick: TLClickEvent;
+    // (undocumented)
+    onQuadrupleClick: TLClickEvent;
+    // (undocumented)
+    onTripleClick: TLClickEvent;
+}
+
+// @public (undocumented)
 function Header({ className, children }: {
     className?: string;
     children: any;
@@ -701,6 +735,18 @@ export const isImage: (ext: string) => boolean;
 
 // @public (undocumented)
 function Item({ noClose, ...props }: DropdownMenuItemProps): JSX.Element;
+
+// @public (undocumented)
+export class LaserTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Idle_9 | typeof Lasering)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    onEnter: () => void;
+}
 
 // @internal (undocumented)
 export interface LegacyTldrawDocument {
@@ -886,6 +932,18 @@ function Root({ id, children, modal, }: {
     children: any;
     modal?: boolean;
 }): JSX.Element;
+
+// @public (undocumented)
+export class SelectTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Brushing | typeof Crop | typeof Cropping | typeof DraggingHandle | typeof EditingShape | typeof Idle_11 | typeof PointingCanvas | typeof PointingCropHandle | typeof PointingHandle | typeof PointingResizeHandle | typeof PointingRotateHandle | typeof PointingSelection | typeof PointingShape | typeof Resizing | typeof Rotating | typeof ScribbleBrushing | typeof Translating)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    onExit: () => void;
+}
 
 // @public (undocumented)
 export function serializeTldrawJson(store: TLStore): Promise<string>;
@@ -1438,6 +1496,9 @@ function Trigger({ children, 'data-testid': testId, }: {
 export const truncateStringWithEllipsis: (str: string, maxLength: number) => string;
 
 // @public (undocumented)
+export function UiEventsProvider({ onEvent, children }: EventsProviderProps): JSX.Element;
+
+// @public (undocumented)
 export function useActions(): TLUiActionsContextType;
 
 // @public (undocumented)
@@ -1480,9 +1541,6 @@ export function useDefaultHelpers(): {
 
 // @public (undocumented)
 export function useDialogs(): TLUiDialogsContextType;
-
-// @public (undocumented)
-export function useEvents(): TLUiEventContextType;
 
 // @public (undocumented)
 export function useExportAs(): (ids?: TLShapeId[], format?: TLExportType) => Promise<void>;
@@ -1531,6 +1589,9 @@ export function useTools(): TLUiToolsContextType;
 export function useTranslation(): (id: TLUiTranslationKey) => string;
 
 // @public (undocumented)
+export function useUiEvents(): TLUiEventContextType;
+
+// @public (undocumented)
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     // (undocumented)
     canEdit: () => boolean;
@@ -1557,6 +1618,32 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
     toSvg(shape: TLVideoShape): SVGGElement;
     // (undocumented)
     static type: "video";
+}
+
+// @public (undocumented)
+export class ZoomTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Idle_12 | typeof Pointing_8 | typeof ZoomBrushing)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    info: TLPointerEventInfo & {
+        onInteractionEnd?: string | undefined;
+    };
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    onEnter: (info: TLPointerEventInfo & {
+        onInteractionEnd: string;
+    }) => void;
+    // (undocumented)
+    onExit: () => void;
+    // (undocumented)
+    onInterrupt: TLInterruptEvent;
+    // (undocumented)
+    onKeyDown: TLKeyboardEvent | undefined;
+    // (undocumented)
+    onKeyUp: TLKeyboardEvent;
 }
 
 

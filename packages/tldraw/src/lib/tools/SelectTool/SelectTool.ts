@@ -17,6 +17,7 @@ import { Rotating } from './children/Rotating'
 import { ScribbleBrushing } from './children/ScribbleBrushing'
 import { Translating } from './children/Translating'
 
+/** @public */
 export class SelectTool extends StateNode {
 	static override id = 'select'
 	static override initial = 'idle'
