@@ -284,7 +284,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 
-		const reparentArrow = (arrow: TLArrowShape, scope: 'user' | 'remote') => {
+		// Cleanup helpers
+
+		const arrowsDidUpdateIndex = new Set<TLShapeId>()
+
+		const reparentArrow = (id: TLArrowShape['id'], scope: 'user' | 'remote') => {
+			let arrow = this.store.get(id) as TLArrowShape
 			const { start, end } = arrow.props
 			const startShape = start.type === 'binding' ? this.getShape(start.boundShapeId) : undefined
 			const endShape = end.type === 'binding' ? this.getShape(end.boundShapeId) : undefined
@@ -307,64 +312,70 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.reparentShapes([arrow], nextParentId, { squashing: true })
 				arrow = this.getShape<TLArrowShape>(arrow.id)!
 				if (!arrow) throw Error('no reparented arrow')
-			}
-
-			const startSibling = this.getShapeNearestSibling(arrow, startShape)
-			const endSibling = this.getShapeNearestSibling(arrow, endShape)
-
-			let highestSibling: TLShape | undefined
-
-			if (startSibling && endSibling) {
-				highestSibling = startSibling.index > endSibling.index ? startSibling : endSibling
-			} else if (startSibling && !endSibling) {
-				highestSibling = startSibling
-			} else if (endSibling && !startSibling) {
-				highestSibling = endSibling
 			} else {
-				return
-			}
+				// There's a crazy loop around where this will happen twice
+				// and cause the undo redo history to fail. Remove and check
+				// the effects on tests. This was _really_ hard to find.
+				if (arrowsDidUpdateIndex.has(id)) return
+				arrowsDidUpdateIndex.add(id)
 
-			let finalIndex: string
+				const startSibling = this.getShapeNearestSibling(arrow, startShape)
+				const endSibling = this.getShapeNearestSibling(arrow, endShape)
 
-			const higherSiblings = this.getSortedChildIdsForParent(highestSibling.parentId)
-				.map((id) => this.getShape(id)!)
-				.filter((sibling) => sibling.index > highestSibling!.index)
+				let highestSibling: TLShape | undefined
 
-			if (higherSiblings.length) {
-				// there are siblings above the highest bound sibling, we need to
-				// insert between them.
-
-				// if the next sibling is also a bound arrow though, we can end up
-				// all fighting for the same indexes. so lets find the next
-				// non-arrow sibling...
-				const nextHighestNonArrowSibling = higherSiblings.find(
-					(sibling) => sibling.type !== 'arrow'
-				)
-
-				if (
-					// ...then, if we're above the last shape we want to be above...
-					arrow.index > highestSibling.index &&
-					// ...but below the next non-arrow sibling...
-					(!nextHighestNonArrowSibling || arrow.index < nextHighestNonArrowSibling.index)
-				) {
-					// ...then we're already in the right place. no need to update!
+				if (startSibling && endSibling) {
+					highestSibling = startSibling.index > endSibling.index ? startSibling : endSibling
+				} else if (startSibling && !endSibling) {
+					highestSibling = startSibling
+				} else if (endSibling && !startSibling) {
+					highestSibling = endSibling
+				} else {
 					return
 				}
 
-				// otherwise, we need to find the index between the highest sibling
-				// we want to be above, and the next highest sibling we want to be
-				// below:
-				finalIndex = getIndexBetween(highestSibling.index, higherSiblings[0].index)
-			} else {
-				// if there are no siblings above us, we can just get the next index:
-				finalIndex = getIndexAbove(highestSibling.index)
-			}
+				let finalIndex: string
 
-			if (finalIndex !== arrow.index) {
-				this.updateRecords([{ id: arrow.id, type: 'arrow', index: finalIndex }], {
-					ephemeral: scope === 'remote',
-					squashing: true,
-				})
+				const higherSiblings = this.getSortedChildIdsForParent(highestSibling.parentId)
+					.map((id) => this.getShape(id)!)
+					.filter((sibling) => sibling.index > highestSibling!.index)
+
+				if (higherSiblings.length) {
+					// there are siblings above the highest bound sibling, we need to
+					// insert between them.
+
+					// if the next sibling is also a bound arrow though, we can end up
+					// all fighting for the same indexes. so lets find the next
+					// non-arrow sibling...
+					const nextHighestNonArrowSibling = higherSiblings.find(
+						(sibling) => sibling.type !== 'arrow'
+					)
+
+					if (
+						// ...then, if we're above the last shape we want to be above...
+						arrow.index > highestSibling.index &&
+						// ...but below the next non-arrow sibling...
+						(!nextHighestNonArrowSibling || arrow.index < nextHighestNonArrowSibling.index)
+					) {
+						// ...then we're already in the right place. no need to update!
+						return
+					}
+
+					// otherwise, we need to find the index between the highest sibling
+					// we want to be above, and the next highest sibling we want to be
+					// below:
+					finalIndex = getIndexBetween(highestSibling.index, higherSiblings[0].index)
+				} else {
+					// if there are no siblings above us, we can just get the next index:
+					finalIndex = getIndexAbove(highestSibling.index)
+				}
+
+				if (finalIndex !== arrow.index) {
+					this.updateRecords([{ ...arrow, index: finalIndex }], {
+						ephemeral: scope === 'remote',
+						squashing: false,
+					})
+				}
 			}
 		}
 
@@ -385,7 +396,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			// ...yeah I'm not sure about this one, it's causing problems!
 			// always check the arrow parents
-			// reparentArrow(arrow, scope)
+			reparentArrow(arrow.id, scope)
 		}
 
 		const cleanupInstancePageState = (
@@ -542,7 +553,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const boundArrows = this._arrowBindingsIndex.value[id]
 					if (boundArrows?.length) {
 						for (const arrow of boundArrows) {
-							reparentArrow(this.getShape(arrow.arrowId)!, scope)
+							reparentArrow(arrow.arrowId, scope)
 						}
 					}
 				}
@@ -748,6 +759,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			deletedShapeIdsInTransaction.clear()
+			arrowsDidUpdateIndex.clear()
 			invalidParents.clear()
 
 			this.emit('update')
