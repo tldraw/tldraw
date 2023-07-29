@@ -1714,42 +1714,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/** @internal */
-	// private _setSelectedShapeIds = this.history.createCommand(
-	// 	'setSelectedShapeIds',
-	// 	(pageId: TLPageId, ids: TLShapeId[], squashing = false) => {
-	// 		const { selectedShapeIds: prevSelectedShapeIds } = this.getPageState(pageId)
-	// 		const prevSet = new Set(prevSelectedShapeIds)
-
-	// 		if (ids.length === prevSet.size && ids.every((id) => prevSet.has(id))) return null
-
-	// 		return {
-	// 			data: { selectedShapeIds: ids, prevSelectedShapeIds },
-	// 			squashing,
-	// 			preservesRedoStack: true,
-	// 		}
-	// 	},
-	// 	{
-	// 		do: ({ selectedShapeIds }) => {
-	// 			this.store.put([{ ...this.currentPageState, selectedShapeIds }])
-	// 		},
-	// 		undo: ({ prevSelectedShapeIds }) => {
-	// 			this.store.put([
-	// 				{
-	// 					...this.currentPageState,
-	// 					selectedShapeIds: prevSelectedShapeIds,
-	// 				},
-	// 			])
-	// 		},
-	// 		squash({ prevSelectedShapeIds }, { selectedShapeIds }) {
-	// 			return {
-	// 				selectedShapeIds,
-	// 				prevSelectedShapeIds,
-	// 			}
-	// 		},
-	// 	}
-	// )
-
 	/**
 	 * Determine whether or not any of a shape's ancestors are selected.
 	 *
@@ -7067,59 +7031,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.deleteRecords([typeof _id === 'string' ? _id : _id.id])
 		return this
 	}
-
-	// /** @internal */
-	// private _deleteShapes = this.history.createCommand(
-	// 	'delete_shapes',
-	// 	(ids: TLShapeId[]) => {
-	// 		if (this.instanceState.isReadonly) return null
-	// 		if (ids.length === 0) return null
-	// 		const prevSelectedShapeIds = [...this.currentPageState.selectedShapeIds]
-
-	// 		const allIds = new Set(ids)
-
-	// 		for (const id of ids) {
-	// 			this.visitDescendants(id, (childId) => {
-	// 				allIds.add(childId)
-	// 			})
-	// 		}
-
-	// 		const deletedIds = [...allIds]
-	// 		const arrowBindings = this._arrowBindingsIndex.value
-	// 		const snapshots = compact(
-	// 			deletedIds.flatMap((id) => {
-	// 				const shape = this.getShape(id)
-
-	// 				// Add any bound arrows to the snapshots, so that we can restore the bindings on undo
-	// 				const bindings = arrowBindings[id]
-	// 				if (bindings && bindings.length > 0) {
-	// 					return bindings.map(({ arrowId }) => this.getShape(arrowId)).concat(shape)
-	// 				}
-	// 				return shape
-	// 			})
-	// 		)
-
-	// 		const postSelectedShapeIds = prevSelectedShapeIds.filter((id) => !allIds.has(id))
-
-	// 		return { data: { deletedIds, snapshots, prevSelectedShapeIds, postSelectedShapeIds } }
-	// 	},
-	// 	{
-	// 		do: ({ deletedIds, postSelectedShapeIds }) => {
-	// 			this.store.remove(deletedIds)
-	// 			this.store.update(this.currentPageState.id, (state) => ({
-	// 				...state,
-	// 				selectedShapeIds: postSelectedShapeIds,
-	// 			}))
-	// 		},
-	// 		undo: ({ snapshots, prevSelectedShapeIds }) => {
-	// 			this.store.put(snapshots)
-	// 			this.store.update(this.currentPageState.id, (state) => ({
-	// 				...state,
-	// 				selectedShapeIds: prevSelectedShapeIds,
-	// 			}))
-	// 		},
-	// 	}
-	// )
 
 	/* --------------------- Styles --------------------- */
 
