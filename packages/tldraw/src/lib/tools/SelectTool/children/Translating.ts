@@ -31,6 +31,7 @@ export class Translating extends StateNode {
 	snapshot: TranslatingSnapshot = {} as any
 
 	markId = ''
+	initialMarkId = ''
 
 	isCloning = false
 	isCreating = false
@@ -53,7 +54,10 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.editAfterComplete = editAfterComplete
 
-		this.markId = isCreating ? `creating:${this.editor.onlySelectedShape!.id}` : 'translating'
+		this.initialMarkId = isCreating
+			? `creating:${this.editor.onlySelectedShape!.id}`
+			: 'translating'
+		this.markId = this.initialMarkId
 		if (!isCreating) this.editor.mark(this.markId)
 
 		this.handleEnter(info)
@@ -112,7 +116,7 @@ export class Translating extends StateNode {
 		this.isCloning = true
 		this.reset()
 
-		this.markId = 'translating'
+		this.markId = 'cloning'
 		this.editor.mark(this.markId)
 
 		this.editor.duplicateShapes(Array.from(this.editor.selectedShapeIds))
@@ -127,7 +131,7 @@ export class Translating extends StateNode {
 		this.snapshot = this.selectionSnapshot
 		this.reset()
 
-		this.markId = 'translating'
+		this.markId = this.initialMarkId
 		this.editor.mark(this.markId)
 
 		this.updateShapes()

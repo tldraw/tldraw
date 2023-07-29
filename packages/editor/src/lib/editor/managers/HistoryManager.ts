@@ -29,7 +29,6 @@ export class HistoryManager<
 
 	constructor(
 		private readonly ctx: CTX,
-		private readonly onBatchComplete: () => void,
 		private readonly annotateError: (error: unknown) => void
 	) {}
 
@@ -68,13 +67,14 @@ export class HistoryManager<
 
 			const { data, ephemeral, squashing, preservesRedoStack } = result
 
-			this.ignoringUpdates((undos, redos) => {
-				handle.do(data)
-				return { undos, redos }
-			})
+			// this.ignoringUpdates((undos, redos) => {
+			handle.do(data)
+			// return { undos, redos }
+			// })
 
 			if (!ephemeral) {
 				const prev = this._undos.value.head
+
 				if (
 					squashing &&
 					prev &&
@@ -116,7 +116,19 @@ export class HistoryManager<
 		return exec
 	}
 
+	onBatchStart = () => {
+		// noop
+	}
+
+	onBatchComplete = () => {
+		// noop
+	}
+
 	batch = (fn: () => void) => {
+		if (this._batchDepth === 0) {
+			this.onBatchStart()
+		}
+
 		try {
 			this._batchDepth++
 			if (this._batchDepth === 1) {

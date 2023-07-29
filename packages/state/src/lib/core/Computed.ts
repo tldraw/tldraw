@@ -26,7 +26,7 @@ type UNINITIALIZED = typeof UNINITIALIZED
  * const count = atom('count', 0)
  * const double = computed('double', (prevValue) => {
  *   if (isUninitialized(prevValue)) {
- *     console.log('First time!')
+ *     print('First time!')
  *   }
  *   return count.value * 2
  * })
@@ -296,7 +296,7 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
  * ```ts
  * const name = atom('name', 'John')
  * const greeting = computed('greeting', () => `Hello ${name.value}!`)
- * console.log(greeting.value) // 'Hello John!'
+ * print(greeting.value) // 'Hello John!'
  * ```
  *
  * `computed` may also be used as a decorator for creating computed class properties.

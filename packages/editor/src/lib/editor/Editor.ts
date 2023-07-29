@@ -256,13 +256,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.isAndroid = false
 		}
 
-		const unbindArrowTerminal = (arrow: TLArrowShape, handleId: 'start' | 'end') => {
+		const unbindArrowTerminal = (
+			arrowId: TLArrowShape['id'],
+			handleId: 'start' | 'end',
+			scope: 'user' | 'remote'
+		) => {
+			const arrow = this.getShape<TLArrowShape>(arrowId)
+			if (!arrow) return
+
 			const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
-			this.store.put([{ ...arrow, props: { ...arrow.props, [handleId]: { type: 'point', x, y } } }])
+			this.updateRecords(
+				[
+					{
+						...arrow,
+						id: arrow.id,
+						type: arrow.type,
+						props: {
+							...arrow.props,
+							[handleId]: { type: 'point', x, y },
+						},
+					},
+				],
+				{
+					ephemeral: scope === 'remote',
+					squashing: true,
+				}
+			)
 		}
 
 		const reparentArrow = (arrowId: TLArrowShape['id']) => {
-			const arrow = this.getShape<TLArrowShape>(arrowId)
+			let arrow = this.getShape<TLArrowShape>(arrowId)
 			if (!arrow) return
 
 			const { start, end } = arrow.props
@@ -284,14 +307,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (nextParentId && nextParentId !== arrow.parentId) {
-				this.reparentShapes([arrowId], nextParentId)
+				this.reparentShapes([arrowId], nextParentId, { squashing: true })
+				arrow = this.getShape<TLArrowShape>(arrowId)
+				if (!arrow) throw Error('no reparented arrow')
 			}
 
-			const reparentedArrow = this.getShape<TLArrowShape>(arrowId)
-			if (!reparentedArrow) throw Error('no reparented arrow')
-
-			const startSibling = this.getShapeNearestSibling(reparentedArrow, startShape)
-			const endSibling = this.getShapeNearestSibling(reparentedArrow, endShape)
+			const startSibling = this.getShapeNearestSibling(arrow, startShape)
+			const endSibling = this.getShapeNearestSibling(arrow, endShape)
 
 			let highestSibling: TLShape | undefined
 
@@ -324,9 +346,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				if (
 					// ...then, if we're above the last shape we want to be above...
-					reparentedArrow.index > highestSibling.index &&
+					arrow.index > highestSibling.index &&
 					// ...but below the next non-arrow sibling...
-					(!nextHighestNonArrowSibling || reparentedArrow.index < nextHighestNonArrowSibling.index)
+					(!nextHighestNonArrowSibling || arrow.index < nextHighestNonArrowSibling.index)
 				) {
 					// ...then we're already in the right place. no need to update!
 					return
@@ -341,12 +363,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 				finalIndex = getIndexAbove(highestSibling.index)
 			}
 
-			if (finalIndex !== reparentedArrow.index) {
-				this.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }], true)
+			if (finalIndex !== arrow.index) {
+				this.updateRecords([{ id: arrow.id, type: 'arrow', index: finalIndex }], {
+					ephemeral: false,
+					squashing: true,
+				})
 			}
 		}
 
-		const arrowDidUpdate = (arrow: TLArrowShape) => {
+		const arrowDidUpdate = (id: TLArrowShape['id'], scope: 'user' | 'remote') => {
+			const arrow = this.store.get(id) as TLArrowShape
 			// if the shape is an arrow and its bound shape is on another page
 			// or was deleted, unbind it
 			for (const handle of ['start', 'end'] as const) {
@@ -356,12 +382,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const isShapeInSamePageAsArrow =
 					this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
 				if (!boundShape || !isShapeInSamePageAsArrow) {
-					unbindArrowTerminal(arrow, handle)
+					unbindArrowTerminal(arrow.id, handle, scope)
 				}
 			}
 
+			// ...yeah I'm not sure about this one, it's causing problems!
+
 			// always check the arrow parents
-			reparentArrow(arrow.id)
+			// reparentArrow(arrow.id)
 		}
 
 		const cleanupInstancePageState = (
@@ -415,6 +443,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.cleanup = new CleanupManager(this)
 
+		// invalidParents is used to trigger the 'onChildrenChange' callback that shapes can have.
+		const invalidParents = new Set<TLShapeId>()
+		const deletedShapeIdsInTransaction = new Set<TLShapeId>()
+
 		// Before create cleanup handlers
 
 		this.cleanup.registerBeforeCreateHandler('shape', (record, scope) => {
@@ -434,7 +466,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.cleanup.registerAfterCreateHandler('shape', (record, scope) => {
 			if (scope === 'user') {
 				if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
-					arrowDidUpdate(record)
+					arrowDidUpdate(record.id, scope)
 				}
 			}
 		})
@@ -481,6 +513,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
+			// todo: double check this
 			if (
 				next.selectedShapeIds.length &&
 				next.selectedShapeIds !== (prev as typeof next).selectedShapeIds
@@ -502,9 +535,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// After change cleanup handlers
 
-		this.cleanup.registerAfterChangeHandler('shape', (prev, next) => {
+		this.cleanup.registerAfterChangeHandler('shape', (prev, next, scope) => {
 			if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
-				arrowDidUpdate(next)
+				arrowDidUpdate(next.id, scope)
 			}
 
 			// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
@@ -539,11 +572,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (prev.parentId && isShapeId(prev.parentId)) {
-				this._invalidParents.add(prev.parentId)
+				invalidParents.add(prev.parentId)
 			}
 
 			if (next.parentId !== prev.parentId && isShapeId(next.parentId)) {
-				this._invalidParents.add(next.parentId)
+				invalidParents.add(next.parentId)
 			}
 		})
 
@@ -652,33 +685,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Before delete cleanup handlers
 
-		this.cleanup.registerBeforeDeleteHandler('shape', (record) => {
+		this.cleanup.registerBeforeDeleteHandler('shape', (record, scope) => {
 			if (record.isLocked) {
 				return false // don't delete the locked shape
 			}
 
+			// collect descendants and delete them
+			// deselect the shape and its children
+			const { currentPageState } = this
+			if (currentPageState.selectedShapeIds.includes(record.id)) {
+				this.updatePageState(
+					{
+						...currentPageState,
+						selectedShapeIds: currentPageState.selectedShapeIds.filter((id) => id !== record.id),
+					},
+					{ squashing: true, ephemeral: false }
+				)
+			}
+
+			const childIds = this.getSortedChildIdsForParent(record.id)
+
+			if (childIds.length) {
+				this.deleteRecords(childIds)
+			}
+
 			// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
 			if (record.parentId && isShapeId(record.parentId)) {
-				this._invalidParents.add(record.parentId)
+				invalidParents.add(record.parentId)
 			}
+
 			// clean up any arrows bound to this shape
 			const bindings = this._arrowBindingsIndex.value[record.id]
 			if (bindings?.length) {
 				for (const { arrowId, handleId } of bindings) {
-					const arrow = this.getShape<TLArrowShape>(arrowId)
-					if (!arrow) continue
-					unbindArrowTerminal(arrow, handleId)
+					unbindArrowTerminal(arrowId, handleId, scope)
 				}
-			}
-
-			const deletedIds = new Set([record.id])
-			const updates = compact(
-				this.pageStates.map((pageState) => {
-					return cleanupInstancePageState(pageState, deletedIds)
-				})
-			)
-			if (updates.length) {
-				this.store.put(updates)
 			}
 		})
 
@@ -694,6 +735,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const cameraId = CameraRecordType.createId(record.id)
 			const instance_PageStateId = InstancePageStateRecordType.createId(record.id)
 			this.store.remove([cameraId, instance_PageStateId])
+		})
+
+		this.cleanup.registerBatchCompleteHandler(() => {
+			for (const parentId of invalidParents) {
+				invalidParents.delete(parentId)
+				const parent = this.getShape(parentId)
+				if (!parent) continue
+
+				const util = this.getShapeUtil(parent)
+				const changes = util.onChildrenChange?.(parent)
+
+				if (changes?.length) {
+					this.updateShapes(changes, true)
+				}
+			}
+
+			deletedShapeIdsInTransaction.clear()
+			invalidParents.clear()
+
+			this.emit('update')
 		})
 
 		// Kickoff!
@@ -915,40 +976,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* --------------------- History -------------------- */
 
 	/**
-	 * _invalidParents is used to trigger the 'onChildrenChange' callback that shapes can have.
-	 *
-	 * @internal
-	 */
-	private readonly _invalidParents = new Set<TLShapeId>()
-
-	/**
 	 * A manager for the app's history.
 	 *
 	 * @readonly
 	 */
-	readonly history = new HistoryManager(
-		this,
-		() => {
-			for (const parentId of this._invalidParents) {
-				this._invalidParents.delete(parentId)
-				const parent = this.getShape(parentId)
-				if (!parent) continue
-
-				const util = this.getShapeUtil(parent)
-				const changes = util.onChildrenChange?.(parent)
-
-				if (changes?.length) {
-					this.updateShapes(changes, true)
-				}
-			}
-
-			this.emit('update')
-		},
-		(error) => {
-			this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
-			this.crash(error)
-		}
-	)
+	readonly history = new HistoryManager(this, (error) => {
+		this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
+		this.crash(error)
+	})
 
 	/**
 	 * Undo to the last mark.
@@ -1161,10 +1196,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				{ prevRecords: nextPrev, nextRecords: nextNext }
 			) => {
 				// Sooometimes the new records will have more "prev" records than the old records
-				return {
+				const data = {
 					prevRecords: { ...nextPrev, ...prevPrev },
 					nextRecords: { ...prevNext, ...nextNext },
 				}
+				if (data === undefined) throw Error()
+				return data
 			},
 		}
 	)
@@ -1624,7 +1661,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updatePageState(
 		partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'pageId' | 'focusedGroupId'>>,
-		opts?: { ephemeral?: boolean; squash?: boolean; preservesRedoStack?: boolean }
+		opts?: { ephemeral?: boolean; squashing?: boolean; preservesRedoStack?: boolean }
 	): this {
 		this.updateRecords([{ ...partial, id: partial.id ?? this.currentPageStateId }], opts)
 		return this
@@ -3734,31 +3771,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteAssets(assets: TLAsset[]): this
 	deleteAssets(ids: TLAssetId[]): this
 	deleteAssets(arg: TLAssetId[] | TLAsset[]) {
+		if (this.instanceState.isReadonly) return
 		const ids =
 			typeof arg[0] === 'string' ? (arg as TLAssetId[]) : (arg as TLAsset[]).map((a) => a.id)
-		this._deleteAssets(ids)
+		this.deleteRecords(ids)
 		return this
 	}
-	/** @internal */
-	private _deleteAssets = this.history.createCommand(
-		'deleteAssets',
-		(ids: TLAssetId[]) => {
-			if (this.instanceState.isReadonly) return
-			if (ids.length <= 0) return
-
-			const prev = compact(ids.map((id) => this.store.get(id)))
-
-			return { data: { ids, prev } }
-		},
-		{
-			do: ({ ids }) => {
-				this.store.remove(ids)
-			},
-			undo: ({ prev }) => {
-				this.store.put(prev)
-			},
-		}
-	)
 
 	/* --------------------- Shapes --------------------- */
 
@@ -4742,11 +4760,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	reparentShapes(shapes: TLShape[], parentId: TLParentId, insertIndex?: string): this
-	reparentShapes(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this
-	reparentShapes(_ids: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: string) {
+	reparentShapes(
+		shapes: TLShape[],
+		parentId: TLParentId,
+		opts?: { insertIndex?: string; squashing?: boolean }
+	): this
+	reparentShapes(
+		ids: TLShapeId[],
+		parentId: TLParentId,
+		opts?: { insertIndex?: string; squashing?: boolean }
+	): this
+	reparentShapes(
+		_ids: TLShapeId[] | TLShape[],
+		parentId: TLParentId,
+		opts = {} as { insertIndex?: string; squashing?: boolean }
+	) {
 		const ids =
 			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : _ids.map((s) => (s as TLShape).id)
+		if (ids.length === 0) return this
+
+		const { insertIndex, squashing = false } = opts
+
 		const changes: TLShapePartial[] = []
 
 		const parentTransform = isPageId(parentId)
@@ -4820,7 +4854,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		}
 
-		this.updateShapes(changes)
+		this.updateShapes(changes, squashing)
 		return this
 	}
 
@@ -6859,7 +6893,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					idsToSelect.add(childIds[j])
 				}
 
-				this.reparentShapes(childIds, group.parentId, group.index)
+				this.reparentShapes(childIds, group.parentId, { insertIndex: group.index })
 			}
 
 			this.deleteShapes(groups.map((group) => group.id))
@@ -7001,7 +7035,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!Array.isArray(_ids)) {
 			throw Error('Editor.deleteShapes: must provide an array of shapes or shapeIds')
 		}
-		this._deleteShapes(
+		this.deleteRecords(
 			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
 		)
 		return this
@@ -7022,62 +7056,62 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteShape(id: TLShapeId): this
 	deleteShape(shape: TLShape): this
 	deleteShape(_id: TLShapeId | TLShape) {
-		this.deleteShapes([typeof _id === 'string' ? _id : _id.id])
+		this.deleteRecords([typeof _id === 'string' ? _id : _id.id])
 		return this
 	}
 
-	/** @internal */
-	private _deleteShapes = this.history.createCommand(
-		'delete_shapes',
-		(ids: TLShapeId[]) => {
-			if (this.instanceState.isReadonly) return null
-			if (ids.length === 0) return null
-			const prevSelectedShapeIds = [...this.currentPageState.selectedShapeIds]
+	// /** @internal */
+	// private _deleteShapes = this.history.createCommand(
+	// 	'delete_shapes',
+	// 	(ids: TLShapeId[]) => {
+	// 		if (this.instanceState.isReadonly) return null
+	// 		if (ids.length === 0) return null
+	// 		const prevSelectedShapeIds = [...this.currentPageState.selectedShapeIds]
 
-			const allIds = new Set(ids)
+	// 		const allIds = new Set(ids)
 
-			for (const id of ids) {
-				this.visitDescendants(id, (childId) => {
-					allIds.add(childId)
-				})
-			}
+	// 		for (const id of ids) {
+	// 			this.visitDescendants(id, (childId) => {
+	// 				allIds.add(childId)
+	// 			})
+	// 		}
 
-			const deletedIds = [...allIds]
-			const arrowBindings = this._arrowBindingsIndex.value
-			const snapshots = compact(
-				deletedIds.flatMap((id) => {
-					const shape = this.getShape(id)
+	// 		const deletedIds = [...allIds]
+	// 		const arrowBindings = this._arrowBindingsIndex.value
+	// 		const snapshots = compact(
+	// 			deletedIds.flatMap((id) => {
+	// 				const shape = this.getShape(id)
 
-					// Add any bound arrows to the snapshots, so that we can restore the bindings on undo
-					const bindings = arrowBindings[id]
-					if (bindings && bindings.length > 0) {
-						return bindings.map(({ arrowId }) => this.getShape(arrowId)).concat(shape)
-					}
-					return shape
-				})
-			)
+	// 				// Add any bound arrows to the snapshots, so that we can restore the bindings on undo
+	// 				const bindings = arrowBindings[id]
+	// 				if (bindings && bindings.length > 0) {
+	// 					return bindings.map(({ arrowId }) => this.getShape(arrowId)).concat(shape)
+	// 				}
+	// 				return shape
+	// 			})
+	// 		)
 
-			const postSelectedShapeIds = prevSelectedShapeIds.filter((id) => !allIds.has(id))
+	// 		const postSelectedShapeIds = prevSelectedShapeIds.filter((id) => !allIds.has(id))
 
-			return { data: { deletedIds, snapshots, prevSelectedShapeIds, postSelectedShapeIds } }
-		},
-		{
-			do: ({ deletedIds, postSelectedShapeIds }) => {
-				this.store.remove(deletedIds)
-				this.store.update(this.currentPageState.id, (state) => ({
-					...state,
-					selectedShapeIds: postSelectedShapeIds,
-				}))
-			},
-			undo: ({ snapshots, prevSelectedShapeIds }) => {
-				this.store.put(snapshots)
-				this.store.update(this.currentPageState.id, (state) => ({
-					...state,
-					selectedShapeIds: prevSelectedShapeIds,
-				}))
-			},
-		}
-	)
+	// 		return { data: { deletedIds, snapshots, prevSelectedShapeIds, postSelectedShapeIds } }
+	// 	},
+	// 	{
+	// 		do: ({ deletedIds, postSelectedShapeIds }) => {
+	// 			this.store.remove(deletedIds)
+	// 			this.store.update(this.currentPageState.id, (state) => ({
+	// 				...state,
+	// 				selectedShapeIds: postSelectedShapeIds,
+	// 			}))
+	// 		},
+	// 		undo: ({ snapshots, prevSelectedShapeIds }) => {
+	// 			this.store.put(snapshots)
+	// 			this.store.update(this.currentPageState.id, (state) => ({
+	// 				...state,
+	// 				selectedShapeIds: prevSelectedShapeIds,
+	// 			}))
+	// 		},
+	// 	}
+	// )
 
 	/* --------------------- Styles --------------------- */
 
@@ -7143,7 +7177,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * const color = editor.sharedStyles.get(DefaultColorStyle)
 	 * if (color && color.type === 'shared') {
-	 *   console.log('All selected shapes have the same color:', color.value)
+	 *   print('All selected shapes have the same color:', color.value)
 	 * }
 	 * ```
 	 *

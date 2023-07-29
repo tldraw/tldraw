@@ -508,8 +508,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			// If we have an onAfterChange, run it for each removed record.
 			if (this.onAfterDelete && this._runCallbacks) {
+				let record: R
 				for (let i = 0, n = ids.length; i < n; i++) {
-					this.onAfterDelete(removed[ids[i]], source)
+					record = removed[ids[i]]
+					if (record) {
+						this.onAfterDelete(record, source)
+					}
 				}
 			}
 		})

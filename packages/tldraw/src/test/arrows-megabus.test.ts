@@ -526,3 +526,53 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		})
 	})
 })
+
+describe('When deleting shapes with bound arrows', () => {
+	beforeEach(() => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100, fill: 'solid' } },
+		])
+		editor.createShapes([
+			{ id: ids.box2, type: 'geo', x: 200, y: 0, props: { w: 100, h: 100, fill: 'solid' } },
+		])
+	})
+
+	it('also removes the binding', () => {
+		function arrow() {
+			return editor.shapesOnCurrentPage.find((s) => s.type === 'arrow') as TLArrowShape
+		}
+
+		editor
+			// create arrow from box1 to box2
+			.setCurrentTool('arrow')
+			.pointerMove(50, 50)
+
+		editor.history.clear()
+
+		editor.pointerDown()
+
+		expect(editor.history._undos.value.length).toBe(0)
+
+		editor.pointerMove(250, 50)
+
+		editor.pointerUp()
+
+		expect(arrow().props.end.type).toBe('binding')
+
+		// select box2
+		editor.click(275, 25)
+
+		editor.mark('deleting')
+		editor.deleteShapes([ids.box2])
+
+		expect(arrow().props.end.type).toBe('point')
+
+		editor.undo()
+
+		expect(arrow().props.end.type).toBe('binding')
+
+		editor.redo()
+
+		expect(arrow().props.end.type).toBe('point')
+	})
+})

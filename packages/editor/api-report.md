@@ -904,9 +904,15 @@ export class Editor extends EventEmitter<TLEventMap> {
         isInViewport: boolean;
         maskedPageBounds: Box2d | undefined;
     }[];
-    reparentShapes(shapes: TLShape[], parentId: TLParentId, insertIndex?: string): this;
+    reparentShapes(shapes: TLShape[], parentId: TLParentId, opts?: {
+        insertIndex?: string;
+        squashing?: boolean;
+    }): this;
     // (undocumented)
-    reparentShapes(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
+    reparentShapes(ids: TLShapeId[], parentId: TLParentId, opts?: {
+        insertIndex?: string;
+        squashing?: boolean;
+    }): this;
     resetZoom(point?: Vec2d, opts?: TLAnimationOptions): this;
     resizeShape(id: TLShapeId, scale: VecLike, options?: {
         initialBounds?: Box2d;
@@ -1004,7 +1010,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updatePageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId'>>, opts?: {
         ephemeral?: boolean;
-        squash?: boolean;
+        squashing?: boolean;
         preservesRedoStack?: boolean;
     }): this;
     // (undocumented)

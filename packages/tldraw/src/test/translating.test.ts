@@ -185,6 +185,7 @@ describe('When cloning...', () => {
 				y: 100,
 			},
 		])
+		editor.mark()
 	})
 
 	it('clones a single shape and restores when stopping cloning', () => {

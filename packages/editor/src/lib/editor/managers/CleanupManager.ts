@@ -54,6 +54,10 @@ export class CleanupManager {
 				this._afterDeleteHandlers[record.typeName](record, source)
 			}
 		}
+
+		editor.history.onBatchComplete = () => {
+			this._batchCompleteHandler?.()
+		}
 	}
 
 	private _beforeCreateHandlers: Partial<{
@@ -96,6 +100,8 @@ export class CleanupManager {
 			source: 'remote' | 'user'
 		) => void
 	}> = {}
+
+	private _batchCompleteHandler: (() => void) | undefined
 
 	registerBeforeCreateHandler<T extends TLRecord['typeName']>(
 		typeName: T,
@@ -154,5 +160,9 @@ export class CleanupManager {
 	) {
 		// @ts-expect-error
 		this._afterDeleteHandlers[typeName] = handler
+	}
+
+	registerBatchCompleteHandler(handler: () => void) {
+		this._batchCompleteHandler = handler
 	}
 }

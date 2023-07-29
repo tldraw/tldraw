@@ -1,4 +1,4 @@
-import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
+import { StateNode, TLArrowShape, TLEventHandlers, TLHandle, createShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -6,6 +6,8 @@ export class Pointing extends StateNode {
 	shape?: TLArrowShape
 
 	markId = ''
+
+	initialEndHandle = {} as TLHandle
 
 	override onEnter = () => {
 		this.didTimeout = false
@@ -43,7 +45,7 @@ export class Pointing extends StateNode {
 
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
-				handle: this.editor.getHandles(this.shape)!.find((h) => h.id === 'end')!,
+				handle: this.initialEndHandle,
 				isCreating: true,
 				onInteractionEnd: 'arrow',
 			})
@@ -109,26 +111,33 @@ export class Pointing extends StateNode {
 			if (startTerminal?.type === 'binding') {
 				this.editor.setHintingShapeIds([startTerminal.boundShapeId])
 			}
+			// squash me
 			this.editor.updateShapes([change], true)
 		}
 
 		// Cache the current shape after those changes
 		this.shape = this.editor.getShape(id)
-		this.editor.select(id)
+		this.editor.setSelectedShapeIds([id], true)
+
+		this.initialEndHandle = this.editor.getHandles(this.shape!)!.find((h) => h.id === 'end')!
 	}
 
 	updateArrowShapeEndHandle() {
-		const shape = this.shape
+		let shape = this.editor.getShape(this.shape!.id) as TLArrowShape
 		if (!shape) throw Error(`expected shape`)
 
 		const handles = this.editor.getHandles(shape)
 		if (!handles) throw Error(`expected handles for arrow`)
 
+		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
+
 		// end update
 		{
-			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
-			const endHandle = handles.find((h) => h.id === 'end')!
+			const point = this.editor.getPointInShapeSpace(
+				this.editor.getShape(shape.id)!,
+				this.editor.inputs.currentPagePoint
+			)
+			const endHandle = this.editor.getHandles(shape)!.find((h) => h.id === 'end')!
 			const change = util.onHandleChange?.(shape, {
 				handle: { ...endHandle, x: point.x, y: point.y },
 				isPrecise: false, // sure about that?
@@ -145,9 +154,9 @@ export class Pointing extends StateNode {
 
 		// start update
 		{
-			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
-			const startHandle = handles.find((h) => h.id === 'start')!
-			const change = util.onHandleChange?.(shape, {
+			shape = this.editor.getShape(this.shape!.id) as TLArrowShape
+			const startHandle = this.editor.getHandles(shape)!.find((h) => h.id === 'start')!
+			const change = util.onHandleChange?.(this.editor.getShape(shape.id)!, {
 				handle: { ...startHandle, x: 0, y: 0 },
 				isPrecise: this.didTimeout, // sure about that?
 			})

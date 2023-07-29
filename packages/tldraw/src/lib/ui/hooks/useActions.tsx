@@ -704,7 +704,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'delete',
 				label: 'action.delete',
-				kbd: '⌫,del,backspace',
+				kbd: '⌫,del', // removed backspace; it was firing twice on mac
 				icon: 'trash',
 				readonlyOk: false,
 				onSelect(source) {

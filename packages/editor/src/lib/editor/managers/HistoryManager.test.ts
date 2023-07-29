@@ -2,13 +2,9 @@ import { HistoryManager } from './HistoryManager'
 import { stack } from './Stack'
 
 function createCounterHistoryManager() {
-	const manager = new HistoryManager(
-		{ emit: () => void null },
-		() => null,
-		() => {
-			return
-		}
-	)
+	const manager = new HistoryManager({ emit: () => void null }, () => {
+		return
+	})
 	const state = {
 		count: 0,
 		name: 'David',
