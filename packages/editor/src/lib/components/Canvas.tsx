@@ -190,15 +190,20 @@ function HandlesWrapper() {
 		editor,
 	])
 	const isReadonly = useValue('isChangingStyle', () => editor.instanceState.isReadonly, [editor])
+	const handles = useValue(
+		'handles',
+		() => (editor.onlySelectedShape ? editor.getHandles(editor.onlySelectedShape) : undefined),
+		[editor]
+	)
+	const transform = useValue(
+		'transform',
+		() =>
+			editor.onlySelectedShape ? editor.getPageTransform(editor.onlySelectedShape) : undefined,
+		[editor]
+	)
 
 	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly) return null
-
-	const handles = editor.getHandles(onlySelectedShape)
-
 	if (!handles) return null
-
-	const transform = editor.getPageTransform(onlySelectedShape)
-
 	if (!transform) return null
 
 	// Don't display a temporary handle if the distance between it and its neighbors is too small.
