@@ -1069,6 +1069,9 @@ export interface TLInstancePageState extends BaseRecord<'instance_page_state', T
 }
 
 // @public (undocumented)
+export type TLInstancePageStateId = RecordId<TLInstancePageState>;
+
+// @public (undocumented)
 export interface TLInstancePresence extends BaseRecord<'instance_presence', TLInstancePresenceID> {
     // (undocumented)
     brush: Box2dModel | null;
@@ -1137,8 +1140,23 @@ export type TLPageId = RecordId<TLPage>;
 // @public (undocumented)
 export type TLParentId = TLPageId | TLShapeId;
 
+// @public
+export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
+    // (undocumented)
+    lastActivityTimestamp: number;
+    // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
+    x: number;
+    // (undocumented)
+    y: number;
+}
+
 // @public (undocumented)
 export const TLPOINTER_ID: TLPointerId;
+
+// @public (undocumented)
+export type TLPointerId = RecordId<TLPointer>;
 
 // @public (undocumented)
 export type TLRecord = TLAsset | TLCamera | TLDocument | TLInstance | TLInstancePageState | TLInstancePresence | TLPage | TLPointer | TLShape;
