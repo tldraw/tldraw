@@ -257,13 +257,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		const unbindArrowTerminal = (
-			arrowId: TLArrowShape['id'],
+			arrow: TLArrowShape,
 			handleId: 'start' | 'end',
 			scope: 'user' | 'remote'
 		) => {
-			const arrow = this.getShape<TLArrowShape>(arrowId)
-			if (!arrow) return
-
 			const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
 			this.updateRecords(
 				[
@@ -379,8 +376,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		const arrowDidUpdate = (id: TLArrowShape['id'], scope: 'user' | 'remote') => {
-			const arrow = this.store.get(id) as TLArrowShape
+		const arrowDidUpdate = (arrow: TLArrowShape, scope: 'user' | 'remote') => {
 			// if the shape is an arrow and its bound shape is on another page
 			// or was deleted, unbind it
 			for (const handle of ['start', 'end'] as const) {
@@ -390,11 +386,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const isShapeInSamePageAsArrow =
 					this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
 				if (!boundShape || !isShapeInSamePageAsArrow) {
-					unbindArrowTerminal(arrow.id, handle, scope)
+					unbindArrowTerminal(arrow, handle, scope)
 				}
 			}
 
-			// ...yeah I'm not sure about this one, it's causing problems!
 			// always check the arrow parents
 			reparentArrow(arrow.id, scope)
 		}
@@ -473,7 +468,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.cleanup.registerAfterCreateHandler('shape', (record, scope) => {
 			if (scope === 'user') {
 				if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
-					arrowDidUpdate(record.id, scope)
+					arrowDidUpdate(record, scope)
 				}
 			}
 		})
@@ -544,7 +539,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.cleanup.registerAfterChangeHandler('shape', (prev, next, scope) => {
 			if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
-				arrowDidUpdate(next.id, scope)
+				arrowDidUpdate(next, scope)
 			}
 
 			// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
@@ -725,7 +720,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const bindings = this._arrowBindingsIndex.value[record.id]
 			if (bindings?.length) {
 				for (const { arrowId, handleId } of bindings) {
-					unbindArrowTerminal(arrowId, handleId, scope)
+					const arrow = this.getShape<TLArrowShape>(arrowId)
+					if (!arrow) continue
+					unbindArrowTerminal(arrow, handleId, scope)
 				}
 			}
 		})
