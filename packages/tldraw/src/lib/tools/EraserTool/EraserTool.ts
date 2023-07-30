@@ -10,6 +10,9 @@ export class EraserTool extends StateNode {
 	static override children = () => [Idle, Pointing, Erasing]
 
 	override onEnter = () => {
-		this.editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'cross', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 	}
 }

@@ -56,7 +56,10 @@ export class Resizing extends StateNode {
 		this.creationCursorOffset = creationCursorOffset
 
 		if (info.isCreating) {
-			this.editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, true)
+			this.editor.updateInstanceState(
+				{ cursor: { type: 'cross', rotation: 0 } },
+				{ ephemeral: true, squashing: true }
+			)
 		}
 
 		this.snapshot = this._createSnapshot()
@@ -349,12 +352,15 @@ export class Resizing extends StateNode {
 
 		nextCursor.rotation = rotation
 
-		this.editor.updateInstanceState({ cursor: nextCursor })
+		this.editor.updateInstanceState({ cursor: nextCursor }, { ephemeral: true, squashing: true })
 	}
 
 	override onExit = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 		this.editor.snaps.clear()
 	}
 

@@ -9,7 +9,10 @@ beforeEach(() => {
 it('Sets the brush', () => {
 	expect(editor.instanceState.brush).toEqual(null)
 
-	editor.updateInstanceState({ brush: { x: 0, y: 0, w: 100, h: 100 } })
+	editor.updateInstanceState(
+		{ brush: { x: 0, y: 0, w: 100, h: 100 } },
+		{ ephemeral: true, squashing: true }
+	)
 
 	expect(editor.instanceState.brush).toMatchObject({
 		x: 0,

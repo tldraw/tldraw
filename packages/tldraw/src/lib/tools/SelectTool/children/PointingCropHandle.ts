@@ -33,7 +33,10 @@ export class PointingCropHandle extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 		this.parent.currentToolIdMask = undefined
 	}
 

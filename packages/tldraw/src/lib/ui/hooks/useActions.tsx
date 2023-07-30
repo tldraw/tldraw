@@ -838,10 +838,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-transparent', { source })
 					editor.updateInstanceState(
-						{
-							exportBackground: !editor.instanceState.exportBackground,
-						},
-						true
+						{ exportBackground: !editor.instanceState.exportBackground },
+						{ ephemeral: true, squashing: true }
 					)
 				},
 				checkbox: true,
@@ -901,7 +899,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						{
 							isDebugMode: !editor.instanceState.isDebugMode,
 						},
-						true
+						{ ephemeral: true, squashing: true }
 					)
 				},
 				checkbox: true,

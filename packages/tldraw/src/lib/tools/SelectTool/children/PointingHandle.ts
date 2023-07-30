@@ -14,12 +14,18 @@ export class PointingHandle extends StateNode {
 			this.editor.setHintingShapeIds([initialTerminal.boundShapeId])
 		}
 
-		this.editor.updateInstanceState({ cursor: { type: 'grabbing', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'grabbing', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 	}
 
 	override onExit = () => {
 		this.editor.setHintingShapeIds([])
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

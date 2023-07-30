@@ -967,9 +967,15 @@ export class Editor extends EventEmitter<TLEventMap> {
     setHintingShapeIds(ids: TLShapeId[]): this;
     // (undocumented)
     setHoveredShapeId(id: null | TLShapeId): this;
-    setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
+    setOpacity(opacity: number, opts?: {
+        squashing?: boolean;
+        ephemeral?: boolean;
+    }): this;
     setSelectedShapeIds(ids: TLShapeId[], squashing?: boolean): this;
-    setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
+    setStyle<T>(style: StyleProp<T>, value: T, opts?: {
+        squashing?: boolean;
+        ephemeral?: boolean;
+    }): this;
     get shapeIdsOnCurrentPage(): Set<TLShapeId>;
     get shapesOnCurrentPage(): TLShape[];
     shapeUtils: {
@@ -1008,7 +1014,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, opts?: {
+        squashing?: boolean;
+        ephemeral?: boolean;
+    }): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     updatePageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId'>>, opts?: {
         ephemeral?: boolean;

@@ -1521,10 +1521,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateInstanceState(
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
-		ephemeral = true,
-		squashing = true
+		opts?: { squashing?: boolean; ephemeral?: boolean }
 	) {
-		this.updateRecords([{ id: this.instanceState.id, ...partial }], { ephemeral, squashing })
+		this.updateRecords([{ id: this.instanceState.id, ...partial }], {
+			ephemeral: true,
+			squashing: true,
+			...opts,
+		})
 		return this
 	}
 
@@ -1570,7 +1573,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const menus = new Set(this.openMenus)
 		if (!menus.has(id)) {
 			menus.add(id)
-			this.updateInstanceState({ openMenus: [...menus] }, true)
+			this.updateInstanceState({ openMenus: [...menus] }, { ephemeral: true })
 		}
 		return this
 	}
@@ -1589,7 +1592,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const menus = new Set(this.openMenus)
 		if (menus.has(id)) {
 			menus.delete(id)
-			this.updateInstanceState({ openMenus: [...menus] }, true)
+			this.updateInstanceState({ openMenus: [...menus] }, { ephemeral: true })
 		}
 		return this
 	}
@@ -2868,19 +2871,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (_willSetInitialBounds) {
 				// If we have just received the initial bounds, don't center the camera.
 				this._willSetInitialBounds = false
-				this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
+				this.updateInstanceState(
+					{ screenBounds: screenBounds.toJson() },
+					{ ephemeral: true, squashing: true }
+				)
 			} else {
 				const { zoomLevel } = this
 				if (center) {
 					const before = this.viewportPageCenter
-					this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
+					this.updateInstanceState(
+						{ screenBounds: screenBounds.toJson() },
+						{ ephemeral: true, squashing: true }
+					)
 					const after = this.viewportPageCenter
 					if (!this.instanceState.followingUserId) {
 						this.pan((after.x - before.x) * zoomLevel, (after.y - before.y) * zoomLevel)
 					}
 				} else {
 					const before = this.screenToPage(0, 0)
-					this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
+					this.updateInstanceState(
+						{ screenBounds: screenBounds.toJson() },
+						{ ephemeral: true, squashing: true }
+					)
 					const after = this.screenToPage(0, 0)
 					if (!this.instanceState.followingUserId) {
 						this.pan((after.x - before.x) * zoomLevel, (after.y - before.y) * zoomLevel)
@@ -3015,8 +3027,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		transact(() => {
 			this.stopFollowingUser()
-
-			this.updateInstanceState({ followingUserId: userId }, true)
+			this.updateInstanceState({ followingUserId: userId }, { ephemeral: true, squashing: true })
 		})
 
 		const cancel = () => {
@@ -3119,7 +3130,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stopFollowingUser() {
-		this.updateInstanceState({ followingUserId: null }, true)
+		this.updateInstanceState({ followingUserId: null }, { ephemeral: true, squashing: true })
 		this.emit('stop-following')
 		return this
 	}
@@ -7127,8 +7138,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param ephemeral - Whether the opacity change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
 	 * @param squashing - Whether the opacity change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
 	 */
-	setOpacity(opacity: number, ephemeral = false, squashing = false): this {
-		this.updateInstanceState({ opacityForNextShape: opacity }, ephemeral, squashing)
+	setOpacity(opacity: number, opts?: { squashing?: boolean; ephemeral?: boolean }): this {
+		this.updateInstanceState({ opacityForNextShape: opacity }, opts)
 
 		return this
 	}
@@ -7152,7 +7163,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setStyle<T>(style: StyleProp<T>, value: T, ephemeral = false, squashing = false): this {
+	setStyle<T>(
+		style: StyleProp<T>,
+		value: T,
+		opts?: { squashing?: boolean; ephemeral?: boolean }
+	): this {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {
@@ -7200,17 +7215,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					this.updateShapes(
 						updates.map(({ updatePartial }) => updatePartial),
-						{ ephemeral }
+						opts
 					)
 				}
 			}
 
 			this.updateInstanceState(
-				{
-					stylesForNextShape: { ...this.instanceState.stylesForNextShape, [style.id]: value },
-				},
-				ephemeral,
-				squashing
+				{ stylesForNextShape: { ...this.instanceState.stylesForNextShape, [style.id]: value } },
+				{ ...opts, ephemeral: true }
 			)
 		})
 
