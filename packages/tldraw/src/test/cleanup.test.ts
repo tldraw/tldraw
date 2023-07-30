@@ -50,7 +50,7 @@ describe('restoring bound arrows', () => {
 		expect(arrow().props.end.type).toBe('point')
 	})
 
-	it.only('removes / restores multiple bindings', () => {
+	it('removes / restores multiple bindings', () => {
 		editor.mark('deleting')
 		expect(arrow().props.start.type).toBe('binding')
 		expect(arrow().props.end.type).toBe('binding')
