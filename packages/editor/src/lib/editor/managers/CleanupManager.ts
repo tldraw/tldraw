@@ -1,20 +1,37 @@
 import { TLRecord } from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
-type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => R
-type TLAfterCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void
-type TLBeforeChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => R
-type TLAfterChangeHandler<R extends TLRecord> = (
+/** @public */
+export type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => R
+/** @public */
+export type TLAfterCreateHandler<R extends TLRecord> = (
+	record: R,
+	source: 'remote' | 'user'
+) => void
+/** @public */
+export type TLBeforeChangeHandler<R extends TLRecord> = (
+	prev: R,
+	next: R,
+	source: 'remote' | 'user'
+) => R
+/** @public */
+export type TLAfterChangeHandler<R extends TLRecord> = (
 	prev: R,
 	next: R,
 	source: 'remote' | 'user'
 ) => void
-type TLBeforeDeleteHandler<R extends TLRecord> = (
+/** @public */
+export type TLBeforeDeleteHandler<R extends TLRecord> = (
 	record: R,
 	source: 'remote' | 'user'
 ) => void | false
-type TLAfterDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void
-type TLBatchCompleteHandler = () => void
+/** @public */
+export type TLAfterDeleteHandler<R extends TLRecord> = (
+	record: R,
+	source: 'remote' | 'user'
+) => void
+/** @public */
+export type TLBatchCompleteHandler = () => void
 
 /**
  * The cleanup manager (aka a "side effect wrangler and correct state enforcer")
@@ -23,6 +40,8 @@ type TLBatchCompleteHandler = () => void
  * arrows when their binding target is deleted; etc.
  *
  * We could consider moving this to the store instead.
+ *
+ * @public
  */
 export class CleanupManager {
 	constructor(public editor: Editor) {
@@ -138,7 +157,7 @@ export class CleanupManager {
 		[K in TLRecord['typeName']]: TLAfterDeleteHandler<TLRecord & { typeName: K }>[]
 	}> = {}
 
-	private _batchCompleteHandlers: TLBatchCompleteHandler[] = [() => void null]
+	private _batchCompleteHandlers: TLBatchCompleteHandler[] = []
 
 	registerBeforeCreateHandler<T extends TLRecord['typeName']>(
 		typeName: T,
@@ -194,6 +213,30 @@ export class CleanupManager {
 		this._afterDeleteHandlers[typeName]!.push(handler as TLAfterDeleteHandler<any>)
 	}
 
+	/**
+	 * Register a handler to be called when a store completes a batch.
+	 *
+	 * @example
+	 * ```ts
+	 * let count = 0
+	 *
+	 * editor.cleanup.registerBatchCompleteHandler(() => count++)
+	 *
+	 * editor.selectAll()
+	 * expect(count).toBe(1)
+	 *
+	 * editor.batch(() => {
+	 *	editor.selectNone()
+	 * 	editor.selectAll()
+	 * })
+	 *
+	 * expect(count).toBe(2)
+	 * ```
+	 *
+	 * @param handler - The handler to call
+	 *
+	 * @public
+	 */
 	registerBatchCompleteHandler(handler: TLBatchCompleteHandler) {
 		this._batchCompleteHandlers.push(handler)
 	}
