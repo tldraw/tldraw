@@ -146,7 +146,7 @@ function CommonStylePickerSet({
 				if (editor.isIn('select')) {
 					editor.updateShapes(
 						editor.selectedShapes.map((s) => ({ ...s, opacity: item })),
-						true
+						{ squashing: true }
 					)
 				}
 				editor.updateInstanceState({ isChangingStyle: true }, ephemeral, true)

@@ -299,7 +299,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (changes) {
-			editor.updateShapes([next], true)
+			editor.updateShapes([next], { squashing: true })
 		}
 	}
 }

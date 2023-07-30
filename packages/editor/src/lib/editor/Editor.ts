@@ -256,6 +256,66 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.isAndroid = false
 		}
 
+		// Container
+
+		const container = this.getContainer()
+
+		// We need to debounce this because when focus changes, the body
+		// becomes focused for a brief moment. Debouncing means that we
+		// check only when focus stops changing: when it settles, what
+		// has it settled on? If it's settled on the container or something
+		// inside of the container, then focus or preserve the current focus;
+		// if not, then turn off focus. Turning off focus is a trigger to
+		// also turn off keyboard shortcuts and other things.
+		const updateFocus = debounce(() => {
+			const { activeElement } = document
+			const { isFocused } = this.instanceState
+			const hasFocus = container === activeElement || container.contains(activeElement)
+			if ((!isFocused && hasFocus) || (isFocused && !hasFocus)) {
+				this.updateInstanceState({ isFocused: hasFocus })
+			}
+		}, 32)
+
+		container.addEventListener('focusin', updateFocus)
+		container.addEventListener('focus', updateFocus)
+		container.addEventListener('focusout', updateFocus)
+		container.addEventListener('blur', updateFocus)
+
+		this.disposables.add(() => {
+			container.removeEventListener('focusin', updateFocus)
+			container.removeEventListener('focus', updateFocus)
+			container.removeEventListener('focusout', updateFocus)
+			container.removeEventListener('blur', updateFocus)
+		})
+
+		this.store.ensureStoreIsUsable()
+		this._shapeIdsOnCurrentPage = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
+		this._parentIdsToChildIds = parentsToChildren(this.store)
+
+		// clear ephemeral state
+		this.store.put([
+			{
+				...this.currentPageState,
+				editingShapeId: null,
+				hoveredShapeId: null,
+				erasingShapeIds: [],
+			},
+		])
+
+		if (initialState && this.root.children[initialState] === undefined) {
+			throw Error(`No state found for initialState "${initialState}".`)
+		}
+
+		this.root.enter(undefined, 'initial')
+
+		if (this.instanceState.followingUserId) {
+			this.stopFollowingUser()
+		}
+
+		this.updateRenderingBounds()
+
+		/* --------------------- Cleanup -------------------- */
+
 		const unbindArrowTerminal = (
 			arrow: TLArrowShape,
 			handleId: 'start' | 'end',
@@ -275,13 +335,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 					},
 				],
 				{
-					ephemeral: scope === 'remote',
+					ephemeral: false,
 					squashing: true,
 				}
 			)
 		}
-
-		// Cleanup helpers
 
 		const arrowsDidUpdateIndex = new Set<TLShapeId>()
 
@@ -306,7 +364,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (nextParentId && nextParentId !== arrow.parentId) {
-				this.reparentShapes([arrow], nextParentId, { squashing: true })
+				this.reparentShapes([arrow], nextParentId, { ephemeral: false, squashing: true })
 				arrow = this.getShape<TLArrowShape>(arrow.id)!
 				if (!arrow) throw Error('no reparented arrow')
 			} else {
@@ -368,9 +426,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 
 				if (finalIndex !== arrow.index) {
+					// this puts a stale record
 					this.updateRecords([{ ...arrow, index: finalIndex }], {
-						ephemeral: scope === 'remote',
-						squashing: false,
+						ephemeral: true,
+						squashing: true,
 					})
 				}
 			}
@@ -701,7 +760,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						...currentPageState,
 						selectedShapeIds: currentPageState.selectedShapeIds.filter((id) => id !== record.id),
 					},
-					{ squashing: true, ephemeral: false }
+					{ ephemeral: false, squashing: true }
 				)
 			}
 
@@ -751,7 +810,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const changes = util.onChildrenChange?.(parent)
 
 				if (changes?.length) {
-					this.updateShapes(changes, true)
+					this.updateShapes(changes, { squashing: true })
 				}
 			}
 
@@ -762,74 +821,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.emit('update')
 		})
 
-		// Kickoff!
-
-		this._shapeIdsOnCurrentPage = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
-		this._parentIdsToChildIds = parentsToChildren(this.store)
-
 		this.disposables.add(
 			this.store.listen((changes) => {
 				this.emit('change', changes)
 			})
 		)
 
-		const container = this.getContainer()
-
-		// We need to debounce this because when focus changes, the body
-		// becomes focused for a brief moment. Debouncing means that we
-		// check only when focus stops changing: when it settles, what
-		// has it settled on? If it's settled on the container or something
-		// inside of the container, then focus or preserve the current focus;
-		// if not, then turn off focus. Turning off focus is a trigger to
-		// also turn off keyboard shortcuts and other things.
-		const updateFocus = debounce(() => {
-			const { activeElement } = document
-			const { isFocused } = this.instanceState
-			const hasFocus = container === activeElement || container.contains(activeElement)
-			if ((!isFocused && hasFocus) || (isFocused && !hasFocus)) {
-				this.updateInstanceState({ isFocused: hasFocus })
-			}
-		}, 32)
-
-		container.addEventListener('focusin', updateFocus)
-		container.addEventListener('focus', updateFocus)
-		container.addEventListener('focusout', updateFocus)
-		container.addEventListener('blur', updateFocus)
-
-		this.disposables.add(() => {
-			container.removeEventListener('focusin', updateFocus)
-			container.removeEventListener('focus', updateFocus)
-			container.removeEventListener('focusout', updateFocus)
-			container.removeEventListener('blur', updateFocus)
-		})
-
-		this.store.ensureStoreIsUsable()
-
-		// clear ephemeral state
-		this.updateRecords(
-			[
-				{
-					id: this.currentPageStateId,
-					editingShapeId: null,
-					hoveredShapeId: null,
-					erasingShapeIds: [],
-				},
-			],
-			{ ephemeral: true }
-		)
-
-		if (initialState && this.root.children[initialState] === undefined) {
-			throw Error(`No state found for initialState "${initialState}".`)
-		}
-
-		this.root.enter(undefined, 'initial')
-
-		if (this.instanceState.followingUserId) {
-			this.stopFollowingUser()
-		}
-
-		this.updateRenderingBounds()
-
+		// Start tick manager
 		requestAnimationFrame(() => {
 			this._tickManager.start()
 		})
@@ -2014,7 +2012,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 	setHoveredShapeId(id: TLShapeId | null): this {
 		if (id === this.currentPageState.hoveredShapeId) return this
-		this.updateRecords([{ id: this.currentPageStateId, hoveredShapeId: id }], { ephemeral: true })
+		this.updateRecords([{ id: this.currentPageStateId, hoveredShapeId: id }], { squashing: true })
 		return this
 	}
 
@@ -2054,7 +2052,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length === erasingShapeIds.length && ids.every((id) => erasingShapeIds.includes(id))) {
 			return this
 		}
-		this.updateRecords([{ id: this.currentPageStateId, erasingShapeIds: ids }], { ephemeral: true })
+		this.updateRecords([{ id: this.currentPageStateId, erasingShapeIds: ids }], { squashing: true })
 		return this
 	}
 
@@ -2081,7 +2079,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const shape = this.getShape(id)!
 				const util = this.getShapeUtil(shape)
 				if (shape && util.canCrop(shape)) {
-					this.updatePageState({ croppingShapeId: id })
+					this.updatePageState({ croppingShapeId: id }, { ephemeral: false, squashing: true }) // weird
 				}
 			}
 		}
@@ -4732,23 +4730,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	reparentShapes(
 		shapes: TLShape[],
 		parentId: TLParentId,
-		opts?: { insertIndex?: string; squashing?: boolean }
+		opts?: { insertIndex?: string; ephemeral?: boolean; squashing?: boolean }
 	): this
 	reparentShapes(
 		ids: TLShapeId[],
 		parentId: TLParentId,
-		opts?: { insertIndex?: string; squashing?: boolean }
+		opts?: { insertIndex?: string; ephemeral?: boolean; squashing?: boolean }
 	): this
 	reparentShapes(
 		_ids: TLShapeId[] | TLShape[],
 		parentId: TLParentId,
-		opts = {} as { insertIndex?: string; squashing?: boolean }
+		opts = {} as { insertIndex?: string; ephemeral?: boolean; squashing?: boolean }
 	) {
 		const ids =
 			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : _ids.map((s) => (s as TLShape).id)
 		if (ids.length === 0) return this
 
-		const { insertIndex, squashing = false } = opts
+		const { insertIndex, ephemeral = false, squashing = false } = opts
 
 		const changes: TLShapePartial[] = []
 
@@ -4823,7 +4821,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		}
 
-		this.updateShapes(changes, squashing)
+		this.updateShapes(changes, { squashing, ephemeral })
 		return this
 	}
 
@@ -5089,7 +5087,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 
-		this.updateShapes(changes, ephemeral)
+		this.updateShapes(changes, { ephemeral })
 
 		return this
 	}
@@ -6093,7 +6091,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (parentTransform) localOffset.rot(-parentTransform.rotation())
 
 						const { x, y } = Vec2d.Add(localOffset, shape)
-						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], false)
+						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], {
+							squashing: true,
+							ephemeral: false,
+						})
 						const scale = new Vec2d(1, commonBounds.height / pageBounds.height)
 						this.resizeShape(
 							shape.id,
@@ -6121,7 +6122,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 						if (parentTransform) localOffset.rot(-parentTransform.rotation())
 
 						const { x, y } = Vec2d.Add(localOffset, shape)
-						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], false)
+						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], {
+							squashing: true,
+							ephemeral: false,
+						})
 						const scale = new Vec2d(commonBounds.width / pageBounds.width, 1)
 						this.resizeShape(
 							shape.id,
@@ -6270,7 +6274,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						),
 					},
 				],
-				ephemeral
+				{ ephemeral: false, squashing: true }
 			)
 		} else {
 			const initialPageCenter = Matrix2d.applyToPoint(pageTransform, initialBounds.center)
@@ -6299,7 +6303,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						y: initialShape.y + delta.y,
 					},
 				],
-				ephemeral
+				{ ephemeral: false, squashing: true }
 			)
 		}
 
@@ -6345,7 +6349,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
 			let { rotation } = Matrix2d.Decompose(options.initialPageTransform)
 			rotation -= 2 * rotation
-			this.updateShapes([{ id, type, rotation }], true)
+			this.updateShapes([{ id, type, rotation }], { squashing: true })
 		}
 
 		// Next we need to translate the shape so that it's center point ends up in the right place.
@@ -6375,7 +6379,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const postScaleShapePagePoint = Vec2d.Add(shapePageTransformOrigin, pageDelta)
 		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint)
 
-		this.updateShapes([{ id, type, x, y }], true)
+		this.updateShapes([{ id, type, x, y }], { squashing: true })
 
 		return this
 	}
@@ -6701,7 +6705,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					(p) => p && animatingShapes.get(p.id) === animationId
 				)
 				if (partialsToUpdate.length) {
-					this.updateShapes(partialsToUpdate, false)
+					this.updateShapes(partialsToUpdate, { squashing: true, ephemeral: false })
 					// update shapes also removes the shape from animating shapes
 				}
 
@@ -6731,7 +6735,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
-				this.updateShapes(tPartials, true)
+				this.updateShapes(tPartials, { squashing: true })
 			} catch (e) {
 				// noop
 			}
@@ -6887,9 +6891,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateShape<T extends TLUnknownShape>(
 		partial: TLShapePartial<T> | null | undefined,
-		squashing = false
+		opts?: { squashing?: boolean; ephemeral?: boolean }
 	) {
-		this.updateShapes([partial], squashing)
+		this.updateShapes([partial], opts)
 		return this
 	}
 
@@ -6908,7 +6912,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateShapes<T extends TLUnknownShape>(
 		partials: (TLShapePartial<T> | null | undefined)[],
-		squashing = false
+		opts?: { squashing?: boolean; ephemeral?: boolean }
 	) {
 		if (this.instanceState.isReadonly) return this
 
@@ -6977,13 +6981,32 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 		)
 
-		this.updateRecords(shapesToUpdate, { squashing })
+		this.updateRecords(shapesToUpdate, opts)
 		return this
 	}
 
 	/** @internal */
 	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
 		return ids.filter((id) => !this.getShape(id)?.isLocked)
+	}
+
+	/**
+	 * Delete a shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.deleteShapes(['box1', 'box2'])
+	 * ```
+	 *
+	 * @param id - The id of the shape to delete.
+	 *
+	 * @public
+	 */
+	deleteShape(id: TLShapeId): this
+	deleteShape(shape: TLShape): this
+	deleteShape(_id: TLShapeId | TLShape) {
+		this.deleteShapes([typeof _id === 'string' ? _id : _id.id])
+		return this
 	}
 
 	/**
@@ -7005,27 +7028,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			throw Error('Editor.deleteShapes: must provide an array of shapes or shapeIds')
 		}
 		this.deleteRecords(
-			typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
+			this._getUnlockedShapeIds(
+				typeof _ids[0] === 'string' ? (_ids as TLShapeId[]) : (_ids as TLShape[]).map((s) => s.id)
+			)
 		)
-		return this
-	}
-
-	/**
-	 * Delete a shape.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.deleteShapes(['box1', 'box2'])
-	 * ```
-	 *
-	 * @param id - The id of the shape to delete.
-	 *
-	 * @public
-	 */
-	deleteShape(id: TLShapeId): this
-	deleteShape(shape: TLShape): this
-	deleteShape(_id: TLShapeId | TLShape) {
-		this.deleteRecords([typeof _id === 'string' ? _id : _id.id])
 		return this
 	}
 
@@ -7207,7 +7213,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 					this.updateShapes(
 						updates.map(({ updatePartial }) => updatePartial),
-						ephemeral
+						{ ephemeral }
 					)
 				}
 			}

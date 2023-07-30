@@ -20,7 +20,7 @@ beforeEach(() => {
 // this file is mainly for testing the default parameters and associated logic
 
 describe('resizing a shape', () => {
-	it.only('always squashes history entries', () => {
+	it('always squashes history entries', () => {
 		const startHistoryLength = editor.history.numUndos
 		expect(startHistoryLength).toBe(0)
 

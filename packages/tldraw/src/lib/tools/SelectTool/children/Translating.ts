@@ -210,7 +210,7 @@ export class Translating extends StateNode {
 		})
 
 		if (changes.length > 0) {
-			this.editor.updateShapes(changes, true)
+			this.editor.updateShapes(changes, { squashing: true })
 		}
 	}
 
@@ -415,6 +415,6 @@ export function moveShapesToPoint({
 				}
 			})
 		),
-		true
+		{ squashing: true }
 	)
 }

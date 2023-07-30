@@ -906,11 +906,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     reparentShapes(shapes: TLShape[], parentId: TLParentId, opts?: {
         insertIndex?: string;
+        ephemeral?: boolean;
         squashing?: boolean;
     }): this;
     // (undocumented)
     reparentShapes(ids: TLShapeId[], parentId: TLParentId, opts?: {
         insertIndex?: string;
+        ephemeral?: boolean;
         squashing?: boolean;
     }): this;
     resetZoom(point?: Vec2d, opts?: TLAnimationOptions): this;
@@ -1021,8 +1023,14 @@ export class Editor extends EventEmitter<TLEventMap> {
     } | undefined) => this;
     // @internal
     updateRenderingBounds(): this;
-    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, squashing?: boolean): this;
-    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
+    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, opts?: {
+        squashing?: boolean;
+        ephemeral?: boolean;
+    }): this;
+    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], opts?: {
+        squashing?: boolean;
+        ephemeral?: boolean;
+    }): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
     get viewportPageBounds(): Box2d;
