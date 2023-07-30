@@ -381,7 +381,7 @@ describe('When pointing an end shape', () => {
 })
 
 describe('reparenting issue', () => {
-	it.only('Correctly sets index when reparenting', () => {
+	it('Correctly sets index when reparenting', () => {
 		editor.selectAll().deleteShapes(editor.selectedShapeIds)
 
 		// Create an arrow!
