@@ -551,6 +551,7 @@ describe("an arrow's parents", () => {
 		})
 		// move b outside of frame
 		editor.select(boxBid).translateSelection(200, 0)
+		jest.advanceTimersByTime(500)
 		expect(editor.getShape(arrowId)).toMatchObject({
 			parentId: editor.currentPageId,
 			props: {
@@ -565,6 +566,10 @@ describe("an arrow's parents", () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(115, 15).pointerUp()
 		const arrowId = editor.onlySelectedShape!.id
+
+		expect(editor.getShape(boxAid)!.parentId).toBe(frameId)
+		expect(editor.getShape(boxCid)!.parentId).not.toBe(frameId)
+
 		expect(editor.getShape(arrowId)).toMatchObject({
 			parentId: editor.currentPageId,
 			props: {
@@ -575,6 +580,12 @@ describe("an arrow's parents", () => {
 
 		// move c inside of frame
 		editor.select(boxCid).translateSelection(-40, 0)
+
+		jest.advanceTimersByTime(500)
+
+		expect(editor.getShape(boxAid)!.parentId).toBe(frameId)
+		expect(editor.getShape(boxCid)!.parentId).toBe(frameId)
+		expect(editor.getShape(arrowId)!.parentId).toBe(frameId)
 
 		expect(editor.getShape(arrowId)).toMatchObject({
 			parentId: frameId,
