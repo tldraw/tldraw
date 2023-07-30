@@ -1,13 +1,69 @@
 import { TLRecord } from '@tldraw/tlschema'
 import { Editor } from '../Editor'
 
+type TLBeforeCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => R
+type TLAfterCreateHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void
+type TLBeforeChangeHandler<R extends TLRecord> = (prev: R, next: R, source: 'remote' | 'user') => R
+type TLAfterChangeHandler<R extends TLRecord> = (
+	prev: R,
+	next: R,
+	source: 'remote' | 'user'
+) => void
+type TLBeforeDeleteHandler<R extends TLRecord> = (
+	record: R,
+	source: 'remote' | 'user'
+) => void | false
+type TLAfterDeleteHandler<R extends TLRecord> = (record: R, source: 'remote' | 'user') => void
+type TLBatchCompleteHandler = () => void
+
+/**
+ * The cleanup manager (aka a "side effect wrangler and correct state enforcer")
+ * is responsible for making sure that the editor's state is always correct. This
+ * includes things like: deleting a shape if its parent is deleted; unbinding
+ * arrows when their binding target is deleted; etc.
+ *
+ * We could consider moving this to the store instead.
+ */
 export class CleanupManager {
 	constructor(public editor: Editor) {
-		editor.store.onBeforeChange = (prev, next, source) => {
-			if (this._beforeChangeHandlers[next.typeName]) {
-				// @ts-expect-error
-				return this._beforeChangeHandlers[next.typeName](prev, next, source)
+		editor.store.onBeforeCreate = (record, source) => {
+			const handlers = this._beforeCreateHandlers[
+				record.typeName
+			] as TLBeforeCreateHandler<TLRecord>[]
+			if (handlers) {
+				let r = record
+				for (const handler of handlers) {
+					r = handler(r, source)
+				}
+				return r
 			}
+
+			return record
+		}
+
+		editor.store.onAfterCreate = (record, source) => {
+			const handlers = this._afterCreateHandlers[
+				record.typeName
+			] as TLAfterCreateHandler<TLRecord>[]
+			if (handlers) {
+				for (const handler of handlers) {
+					handler(record, source)
+				}
+			}
+		}
+
+		editor.store.onBeforeChange = (prev, next, source) => {
+			const handlers = this._beforeChangeHandlers[
+				next.typeName
+			] as TLBeforeChangeHandler<TLRecord>[]
+			if (handlers) {
+				let r = next
+				for (const handler of handlers) {
+					r = handler(prev, r, source)
+				}
+				return r
+			}
+
 			return next
 		}
 
@@ -15,154 +71,130 @@ export class CleanupManager {
 
 		editor.store.onAfterChange = (prev, next, source) => {
 			updateDepth++
-			if (updateDepth > 1000) {
-				console.error('[onAfterChange] Maximum update depth exceeded, bailing out.')
-			}
 
-			// @ts-expect-error
-			this._afterChangeHandlers[next.typeName]?.(prev, next, source)
+			if (updateDepth > 1000) {
+				console.error('[CleanupManager.onAfterChange] Maximum update depth exceeded, bailing out.')
+			} else {
+				const handlers = this._afterChangeHandlers[
+					next.typeName
+				] as TLAfterChangeHandler<TLRecord>[]
+				if (handlers) {
+					for (const handler of handlers) {
+						handler(prev, next, source)
+					}
+				}
+			}
 
 			updateDepth--
 		}
 
-		editor.store.onBeforeCreate = (record, source) => {
-			if (this._beforeCreateHandlers[record.typeName]) {
-				// @ts-expect-error
-				return this._beforeCreateHandlers[record.typeName](record, source)
-			}
-
-			return record
-		}
-
-		editor.store.onAfterCreate = (record, source) => {
-			if (this._afterCreateHandlers[record.typeName]) {
-				// @ts-expect-error
-				this._afterCreateHandlers[record.typeName](record, source)
-			}
-		}
-
 		editor.store.onBeforeDelete = (record, source) => {
-			if (this._beforeDeleteHandlers[record.typeName]) {
-				// @ts-expect-error
-				return this._beforeDeleteHandlers[record.typeName](record, source)
+			const handlers = this._beforeDeleteHandlers[
+				record.typeName
+			] as TLBeforeDeleteHandler<TLRecord>[]
+			if (handlers) {
+				for (const handler of handlers) {
+					if (handler(record, source) === false) {
+						return false
+					}
+				}
 			}
 		}
 
 		editor.store.onAfterDelete = (record, source) => {
-			if (this._afterDeleteHandlers[record.typeName]) {
-				// @ts-expect-error
-				this._afterDeleteHandlers[record.typeName](record, source)
+			const handlers = this._afterDeleteHandlers[
+				record.typeName
+			] as TLAfterDeleteHandler<TLRecord>[]
+			if (handlers) {
+				for (const handler of handlers) {
+					handler(record, source)
+				}
 			}
 		}
 
 		editor.history.onBatchComplete = () => {
-			this._batchCompleteHandler?.()
+			this._batchCompleteHandlers.forEach((fn) => fn())
 		}
 	}
 
 	private _beforeCreateHandlers: Partial<{
-		[K in TLRecord['typeName']]: (
-			record: TLRecord & { typeName: K },
-			source: 'remote' | 'user'
-		) => TLRecord & { typeName: K }
+		[K in TLRecord['typeName']]: TLBeforeCreateHandler<TLRecord & { typeName: K }>[]
 	}> = {}
 	private _afterCreateHandlers: Partial<{
-		[K in TLRecord['typeName']]: (
-			record: TLRecord & { typeName: K },
-			source: 'remote' | 'user'
-		) => void
+		[K in TLRecord['typeName']]: TLAfterCreateHandler<TLRecord & { typeName: K }>[]
 	}> = {}
 	private _beforeChangeHandlers: Partial<{
-		[K in TLRecord['typeName']]: (
-			prev: TLRecord & { typeName: K },
-			next: TLRecord & { typeName: K },
-			source: 'remote' | 'user'
-		) => TLRecord & { typeName: K }
+		[K in TLRecord['typeName']]: TLBeforeChangeHandler<TLRecord & { typeName: K }>[]
 	}> = {}
 	private _afterChangeHandlers: Partial<{
-		[K in TLRecord['typeName']]: (
-			prev: TLRecord & { typeName: K },
-			next: TLRecord & { typeName: K },
-			source: 'remote' | 'user'
-		) => void
+		[K in TLRecord['typeName']]: TLAfterChangeHandler<TLRecord & { typeName: K }>[]
 	}> = {}
 
 	private _beforeDeleteHandlers: Partial<{
-		[K in TLRecord['typeName']]: (
-			record: TLRecord & { typeName: K },
-			source: 'remote' | 'user'
-		) => void | false
+		[K in TLRecord['typeName']]: TLBeforeDeleteHandler<TLRecord & { typeName: K }>[]
 	}> = {}
 
 	private _afterDeleteHandlers: Partial<{
-		[K in TLRecord['typeName']]: (
-			record: TLRecord & { typeName: K },
-			source: 'remote' | 'user'
-		) => void
+		[K in TLRecord['typeName']]: TLAfterDeleteHandler<TLRecord & { typeName: K }>[]
 	}> = {}
 
-	private _batchCompleteHandler: (() => void) | undefined
+	private _batchCompleteHandlers: TLBatchCompleteHandler[] = [() => void null]
 
 	registerBeforeCreateHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (
-			record: TLRecord & { typeName: T },
-			source: 'remote' | 'user'
-		) => TLRecord & { typeName: T }
+		handler: TLBeforeCreateHandler<TLRecord & { typeName: T }>
 	) {
-		// @ts-expect-error
-		this._beforeCreateHandlers[typeName] = handler
+		const handlers = this._beforeCreateHandlers[typeName] as TLBeforeCreateHandler<any>[]
+		if (!handlers) this._beforeCreateHandlers[typeName] = []
+		this._beforeCreateHandlers[typeName]!.push(handler)
 	}
 
 	registerAfterCreateHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (record: TLRecord & { typeName: T }, source: 'remote' | 'user') => void
+		handler: TLAfterCreateHandler<TLRecord & { typeName: T }>
 	) {
-		// @ts-expect-error
-		this._afterCreateHandlers[typeName] = handler
+		const handlers = this._afterCreateHandlers[typeName] as TLAfterCreateHandler<any>[]
+		if (!handlers) this._afterCreateHandlers[typeName] = []
+		this._afterCreateHandlers[typeName]!.push(handler)
 	}
 
 	registerBeforeChangeHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (
-			prev: TLRecord & { typeName: T },
-			next: TLRecord & { typeName: T },
-			source: 'remote' | 'user'
-		) => TLRecord & { typeName: T }
+		handler: TLBeforeChangeHandler<TLRecord & { typeName: T }>
 	) {
-		// @ts-expect-error
-		this._beforeChangeHandlers[typeName] = handler
+		const handlers = this._beforeChangeHandlers[typeName] as TLBeforeChangeHandler<any>[]
+		if (!handlers) this._beforeChangeHandlers[typeName] = []
+		this._beforeChangeHandlers[typeName]!.push(handler)
 	}
 
 	registerAfterChangeHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (
-			prev: TLRecord & { typeName: T },
-			next: TLRecord & { typeName: T },
-			source: 'remote' | 'user'
-		) => void
+		handler: TLAfterChangeHandler<TLRecord & { typeName: T }>
 	) {
-		// @ts-expect-error
-		this._afterChangeHandlers[typeName] = handler
+		const handlers = this._afterChangeHandlers[typeName] as TLAfterChangeHandler<any>[]
+		if (!handlers) this._afterChangeHandlers[typeName] = []
+		this._afterChangeHandlers[typeName]!.push(handler as TLAfterChangeHandler<any>)
 	}
 
 	registerBeforeDeleteHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (record: TLRecord & { typeName: T }, source: 'remote' | 'user') => void | false
+		handler: TLBeforeDeleteHandler<TLRecord & { typeName: T }>
 	) {
-		// @ts-expect-error
-		this._beforeDeleteHandlers[typeName] = handler
+		const handlers = this._beforeDeleteHandlers[typeName] as TLBeforeDeleteHandler<any>[]
+		if (!handlers) this._beforeDeleteHandlers[typeName] = []
+		this._beforeDeleteHandlers[typeName]!.push(handler as TLBeforeDeleteHandler<any>)
 	}
 
 	registerAfterDeleteHandler<T extends TLRecord['typeName']>(
 		typeName: T,
-		handler: (record: TLRecord & { typeName: T }, source: 'remote' | 'user') => void
+		handler: TLAfterDeleteHandler<TLRecord & { typeName: T }>
 	) {
-		// @ts-expect-error
-		this._afterDeleteHandlers[typeName] = handler
+		const handlers = this._afterDeleteHandlers[typeName] as TLAfterDeleteHandler<any>[]
+		if (!handlers) this._afterDeleteHandlers[typeName] = []
+		this._afterDeleteHandlers[typeName]!.push(handler as TLAfterDeleteHandler<any>)
 	}
 
-	registerBatchCompleteHandler(handler: () => void) {
-		this._batchCompleteHandler = handler
+	registerBatchCompleteHandler(handler: TLBatchCompleteHandler) {
+		this._batchCompleteHandlers.push(handler)
 	}
 }
