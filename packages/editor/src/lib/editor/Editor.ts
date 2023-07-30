@@ -316,11 +316,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		/* --------------------- Cleanup -------------------- */
 
-		const unbindArrowTerminal = (
-			arrow: TLArrowShape,
-			handleId: 'start' | 'end',
-			scope: 'user' | 'remote'
-		) => {
+		const unbindArrowTerminal = (arrow: TLArrowShape, handleId: 'start' | 'end') => {
 			const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
 			this.updateRecords(
 				[
@@ -343,7 +339,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const arrowsDidUpdateIndex = new Set<TLShapeId>()
 
-		const reparentArrow = (id: TLArrowShape['id'], scope: 'user' | 'remote') => {
+		const reparentArrow = (id: TLArrowShape['id']) => {
 			let arrow = this.store.get(id) as TLArrowShape
 			const { start, end } = arrow.props
 			const startShape = start.type === 'binding' ? this.getShape(start.boundShapeId) : undefined
@@ -364,7 +360,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			if (nextParentId && nextParentId !== arrow.parentId) {
-				this.reparentShapes([arrow], nextParentId, { ephemeral: false, squashing: true })
+				this.reparentShapes([arrow], nextParentId, {
+					ephemeral: true,
+					squashing: true,
+				})
 				arrow = this.getShape<TLArrowShape>(arrow.id)!
 				if (!arrow) throw Error('no reparented arrow')
 			} else {
@@ -435,7 +434,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		const arrowDidUpdate = (arrow: TLArrowShape, scope: 'user' | 'remote') => {
+		const arrowDidUpdate = (arrow: TLArrowShape) => {
 			// if the shape is an arrow and its bound shape is on another page
 			// or was deleted, unbind it
 			for (const handle of ['start', 'end'] as const) {
@@ -445,12 +444,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const isShapeInSamePageAsArrow =
 					this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
 				if (!boundShape || !isShapeInSamePageAsArrow) {
-					unbindArrowTerminal(arrow, handle, scope)
+					unbindArrowTerminal(arrow, handle)
 				}
 			}
 
 			// always check the arrow parents
-			reparentArrow(arrow.id, scope)
+			reparentArrow(arrow.id)
 		}
 
 		const cleanupInstancePageState = (
@@ -527,7 +526,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.cleanup.registerAfterCreateHandler('shape', (record, scope) => {
 			if (scope === 'user') {
 				if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
-					arrowDidUpdate(record, scope)
+					arrowDidUpdate(record)
 				}
 			}
 		})
@@ -596,9 +595,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// After change cleanup handlers
 
-		this.cleanup.registerAfterChangeHandler('shape', (prev, next, scope) => {
+		this.cleanup.registerAfterChangeHandler('shape', (prev, next) => {
 			if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
-				arrowDidUpdate(next, scope)
+				arrowDidUpdate(next)
 			}
 
 			// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
@@ -607,7 +606,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					const boundArrows = this._arrowBindingsIndex.value[id]
 					if (boundArrows?.length) {
 						for (const arrow of boundArrows) {
-							reparentArrow(arrow.arrowId, scope)
+							reparentArrow(arrow.arrowId)
 						}
 					}
 				}
@@ -746,7 +745,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Before delete cleanup handlers
 
-		this.cleanup.registerBeforeDeleteHandler('shape', (record, scope) => {
+		this.cleanup.registerBeforeDeleteHandler('shape', (record) => {
 			if (record.isLocked) {
 				return false // don't delete the locked shape
 			}
@@ -781,7 +780,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				for (const { arrowId, handleId } of bindings) {
 					const arrow = this.getShape<TLArrowShape>(arrowId)
 					if (!arrow) continue
-					unbindArrowTerminal(arrow, handleId, scope)
+					unbindArrowTerminal(arrow, handleId)
 				}
 			}
 		})
@@ -1183,7 +1182,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return {
 				data: { prevRecords, nextRecords },
 				ephemeral: opts?.ephemeral ?? false,
-				squashing: opts?.squashing ?? false,
+				squashing: opts?.squashing ?? false, // todo: we might set this to true always
 				preservesRedoStack: opts?.preservesRedoStack ?? false,
 			}
 		},
@@ -5549,8 +5548,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						mode: 'scale_shape',
 						scaleOrigin: scaleOriginPage,
 						scaleAxisRotation: 0,
-					},
-					false
+					}
 				)
 			}
 		})
@@ -6096,16 +6094,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 							ephemeral: false,
 						})
 						const scale = new Vec2d(1, commonBounds.height / pageBounds.height)
-						this.resizeShape(
-							shape.id,
-							scale,
-							{
-								initialBounds: bounds,
-								scaleOrigin: new Vec2d(pageBounds.center.x, commonBounds.minY),
-								scaleAxisRotation: 0,
-							},
-							false
-						)
+						this.resizeShape(shape.id, scale, {
+							initialBounds: bounds,
+							scaleOrigin: new Vec2d(pageBounds.center.x, commonBounds.minY),
+							scaleAxisRotation: 0,
+						})
 					}
 				})
 				break
@@ -6127,16 +6120,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 							ephemeral: false,
 						})
 						const scale = new Vec2d(commonBounds.width / pageBounds.width, 1)
-						this.resizeShape(
-							shape.id,
-							scale,
-							{
-								initialBounds: bounds,
-								scaleOrigin: new Vec2d(commonBounds.minX, pageBounds.center.y),
-								scaleAxisRotation: 0,
-							},
-							false
-						)
+						this.resizeShape(shape.id, scale, {
+							initialBounds: bounds,
+							scaleOrigin: new Vec2d(commonBounds.minX, pageBounds.center.y),
+							scaleAxisRotation: 0,
+						})
 					}
 				})
 
@@ -6168,8 +6156,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			initialPageTransform?: MatLike
 			dragHandle?: TLResizeHandle
 			mode?: TLResizeMode
-		} = {},
-		ephemeral = true
+		} = {}
 	) {
 		if (this.instanceState.isReadonly) return this
 

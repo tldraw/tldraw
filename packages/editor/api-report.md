@@ -924,7 +924,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         initialPageTransform?: MatLike;
         dragHandle?: TLResizeHandle;
         mode?: TLResizeMode;
-    }, ephemeral?: boolean): this;
+    }): this;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[], delta: number): this;
     // (undocumented)
