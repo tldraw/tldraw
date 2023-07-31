@@ -608,6 +608,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     get croppingShapeId(): null | TLShapeId;
     get currentPage(): TLPage;
     get currentPageId(): TLPageId;
+    get currentPageShapeIds(): Set<TLShapeId>;
+    get currentPageShapes(): TLShape[];
+    get currentPageShapesSorted(): TLShape[];
     get currentPageState(): TLInstancePageState;
     // @internal (undocumented)
     get currentPageStateId(): TLInstancePageStateId;
@@ -734,6 +737,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageMask(id: TLShapeId): undefined | VecLike[];
     // (undocumented)
     getPageMask(shape: TLShape): undefined | VecLike[];
+    getPageShapeIds(page: TLPage): Set<TLShapeId>;
+    // (undocumented)
+    getPageShapeIds(pageId: TLPageId): Set<TLShapeId>;
     getPageState(pageId: TLPageId): TLInstancePageState;
     getPageTransform(id: TLShapeId): Matrix2d;
     // (undocumented)
@@ -762,9 +768,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         hitFrameInside?: boolean | undefined;
         filter?: ((shape: TLShape) => boolean) | undefined;
     }): TLShape | undefined;
-    getShapeIdsInPage(page: TLPage): Set<TLShapeId>;
-    // (undocumented)
-    getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>;
     getShapesAtPoint(point: VecLike, opts?: {
         margin?: number | undefined;
         hitInside?: boolean | undefined;
@@ -972,8 +975,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         squashing?: boolean;
         ephemeral?: boolean;
     }): this;
-    get shapeIdsOnCurrentPage(): Set<TLShapeId>;
-    get shapesOnCurrentPage(): TLShape[];
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -985,7 +986,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         speedThreshold?: number | undefined;
     }): this | undefined;
     readonly snaps: SnapManager;
-    get sortedShapesOnCurrentPage(): TLShape[];
     stackShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical', gap: number): this;
     // (undocumented)
     stackShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;

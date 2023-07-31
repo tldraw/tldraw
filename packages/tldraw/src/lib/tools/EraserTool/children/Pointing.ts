@@ -13,7 +13,7 @@ export class Pointing extends StateNode {
 	override onEnter = () => {
 		const {
 			inputs: { currentPagePoint },
-			sortedShapesOnCurrentPage,
+			currentPageShapesSorted,
 			zoomLevel,
 		} = this.editor
 
@@ -21,8 +21,8 @@ export class Pointing extends StateNode {
 
 		const initialSize = erasing.size
 
-		for (let n = sortedShapesOnCurrentPage.length, i = n - 1; i >= 0; i--) {
-			const shape = sortedShapesOnCurrentPage[i]
+		for (let n = currentPageShapesSorted.length, i = n - 1; i >= 0; i--) {
+			const shape = currentPageShapesSorted[i]
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) {
 				continue
 			}

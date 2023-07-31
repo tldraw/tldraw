@@ -99,7 +99,7 @@ describe('When clicking', () => {
 		// Starts in idle
 		editor.expectPathToBe('root.eraser.idle')
 
-		const shapesBeforeCount = editor.shapesOnCurrentPage.length
+		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(0, 0) // near enough to box1
 
@@ -111,7 +111,7 @@ describe('When clicking', () => {
 
 		editor.pointerUp()
 
-		const shapesAfterCount = editor.shapesOnCurrentPage.length
+		const shapesAfterCount = editor.currentPageShapes.length
 
 		// Deletes the erasing shapes
 		expect(editor.getShape(ids.box1)).toBeUndefined()
@@ -126,18 +126,18 @@ describe('When clicking', () => {
 		editor.undo()
 
 		expect(editor.getShape(ids.box1)).toBeDefined()
-		expect(editor.shapesOnCurrentPage.length).toBe(shapesBeforeCount)
+		expect(editor.currentPageShapes.length).toBe(shapesBeforeCount)
 
 		editor.redo()
 
 		expect(editor.getShape(ids.box1)).toBeUndefined()
-		expect(editor.shapesOnCurrentPage.length).toBe(shapesBeforeCount - 1)
+		expect(editor.currentPageShapes.length).toBe(shapesBeforeCount - 1)
 	})
 
 	it('Erases all shapes under the cursor on click', () => {
 		editor.setCurrentTool('eraser')
 
-		const shapesBeforeCount = editor.shapesOnCurrentPage.length
+		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(99, 99) // next to box1 AND in box2
 
@@ -148,7 +148,7 @@ describe('When clicking', () => {
 		expect(editor.getShape(ids.box1)).toBeUndefined()
 		expect(editor.getShape(ids.box2)).toBeUndefined()
 
-		const shapesAfterCount = editor.shapesOnCurrentPage.length
+		const shapesAfterCount = editor.currentPageShapes.length
 		expect(shapesAfterCount).toBe(shapesBeforeCount - 2)
 	})
 
@@ -156,7 +156,7 @@ describe('When clicking', () => {
 		editor.groupShapes([ids.box2, ids.box3], ids.group1)
 		editor.setCurrentTool('eraser')
 
-		const shapesBeforeCount = editor.shapesOnCurrentPage.length
+		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(350, 350) // in box3
 
@@ -164,7 +164,7 @@ describe('When clicking', () => {
 
 		editor.pointerUp()
 
-		const shapesAfterCount = editor.shapesOnCurrentPage.length
+		const shapesAfterCount = editor.currentPageShapes.length
 
 		expect(editor.getShape(ids.box2)).toBeUndefined()
 		expect(editor.getShape(ids.box3)).toBeUndefined()
@@ -177,26 +177,26 @@ describe('When clicking', () => {
 		editor.groupShapes([ids.box2, ids.box3], ids.group1)
 		editor.setCurrentTool('eraser')
 
-		const shapesBeforeCount = editor.shapesOnCurrentPage.length
+		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(275, 275) // in between box2 AND box3, so over of the new group
 
 		editor.pointerUp()
 
-		const shapesAfterCount = editor.shapesOnCurrentPage.length
+		const shapesAfterCount = editor.currentPageShapes.length
 		expect(shapesAfterCount).toBe(shapesBeforeCount)
 	})
 
 	it('Stops erasing when it reaches a frame when the frame was not was the top-most hovered shape', () => {
 		editor.setCurrentTool('eraser')
 
-		const shapesBeforeCount = editor.shapesOnCurrentPage.length
+		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(375, 75) // inside of the box4 shape inside of box3
 
 		editor.pointerUp()
 
-		const shapesAfterCount = editor.shapesOnCurrentPage.length
+		const shapesAfterCount = editor.currentPageShapes.length
 		expect(shapesAfterCount).toBe(shapesBeforeCount - 1)
 
 		// Erases the child but does not erase the frame
@@ -207,13 +207,13 @@ describe('When clicking', () => {
 	it('Erases a frame only when its clicked on the edge', () => {
 		editor.setCurrentTool('eraser')
 
-		const shapesBeforeCount = editor.shapesOnCurrentPage.length
+		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(325, 25) // directly on frame1, not its children
 
 		editor.pointerUp() // without dragging!
 
-		const shapesAfterCount = editor.shapesOnCurrentPage.length
+		const shapesAfterCount = editor.currentPageShapes.length
 		expect(shapesAfterCount).toBe(shapesBeforeCount)
 
 		// Erases BOTH the frame and its child
@@ -224,13 +224,13 @@ describe('When clicking', () => {
 	it('Only erases masked shapes when pointer is inside the mask', () => {
 		editor.setCurrentTool('eraser')
 
-		const shapesBeforeCount = editor.shapesOnCurrentPage.length
+		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(425, 125) // inside of box4's bounds, but outside of its parent's mask
 
 		editor.pointerUp() // without dragging!
 
-		const shapesAfterCount = editor.shapesOnCurrentPage.length
+		const shapesAfterCount = editor.currentPageShapes.length
 		expect(shapesAfterCount).toBe(shapesBeforeCount)
 
 		// Erases NEITHER the frame nor its child
@@ -242,7 +242,7 @@ describe('When clicking', () => {
 		editor.setCurrentTool('eraser')
 		editor.expectPathToBe('root.eraser.idle')
 
-		const shapesBeforeCount = editor.shapesOnCurrentPage.length
+		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(0, 0) // in box1
 		editor.expectPathToBe('root.eraser.pointing')
@@ -253,7 +253,7 @@ describe('When clicking', () => {
 
 		editor.pointerUp()
 
-		const shapesAfterCount = editor.shapesOnCurrentPage.length
+		const shapesAfterCount = editor.currentPageShapes.length
 
 		editor.expectPathToBe('root.eraser.idle')
 
@@ -267,7 +267,7 @@ describe('When clicking', () => {
 		editor.setCurrentTool('eraser')
 		editor.expectPathToBe('root.eraser.idle')
 
-		const shapesBeforeCount = editor.shapesOnCurrentPage.length
+		const shapesBeforeCount = editor.currentPageShapes.length
 
 		editor.pointerDown(0, 0) // near to box1
 		editor.expectPathToBe('root.eraser.pointing')
@@ -278,7 +278,7 @@ describe('When clicking', () => {
 
 		editor.pointerUp()
 
-		const shapesAfterCount = editor.shapesOnCurrentPage.length
+		const shapesAfterCount = editor.currentPageShapes.length
 
 		editor.expectPathToBe('root.eraser.idle')
 
@@ -414,7 +414,7 @@ describe('When clicking and dragging', () => {
 describe('Does not erase hollow shapes on click', () => {
 	it('Returns to select on cancel', () => {
 		editor.selectAll().deleteShapes(editor.selectedShapes)
-		expect(editor.shapesOnCurrentPage.length).toBe(0)
+		expect(editor.currentPageShapes.length).toBe(0)
 		editor.createShape({
 			id: createShapeId(),
 			type: 'geo',
@@ -424,7 +424,7 @@ describe('Does not erase hollow shapes on click', () => {
 		editor.pointerDown()
 		expect(editor.erasingShapeIds).toEqual([])
 		editor.pointerUp()
-		expect(editor.shapesOnCurrentPage.length).toBe(1)
+		expect(editor.currentPageShapes.length).toBe(1)
 	})
 })
 

@@ -278,7 +278,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.store.ensureStoreIsUsable()
-		this._shapeIdsOnCurrentPage = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
+		this._currentPageShapeIds = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
 		this._parentIdsToChildIds = parentsToChildren(this.store)
 
 		// clear ephemeral state
@@ -2306,7 +2306,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToFit(opts?: TLAnimationOptions): this {
 		if (!this.instanceState.canMoveCamera) return this
 
-		const ids = [...this.shapeIdsOnCurrentPage]
+		const ids = [...this.currentPageShapeIds]
 		if (ids.length <= 0) return this
 
 		const pageBounds = Box2d.Common(compact(ids.map((id) => this.getPageBounds(id))))
@@ -3631,17 +3631,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.batch(() => {
 			// If we don't have page states, create them
-			if (!this.pageStates.find((p) => p.pageId === pageId)) {
-				this.createRecords([
-					CameraRecordType.create({
-						id: CameraRecordType.createId(pageId),
-					}),
-					InstancePageStateRecordType.create({
-						id: InstancePageStateRecordType.createId(pageId),
-						pageId,
-					}),
-				])
-			}
+			// if (!this.pageStates.find((p) => p.pageId === pageId)) {
+			// 	this.createRecords([
+			// 		CameraRecordType.create({
+			// 			id: CameraRecordType.createId(pageId),
+			// 		}),
+			// 		InstancePageStateRecordType.create({
+			// 			id: InstancePageStateRecordType.createId(pageId),
+			// 			pageId,
+			// 		}),
+			// 	])
+			// }
 
 			this.updateRecords([{ ...this.instanceState, currentPageId: pageId }], {
 				preservesRedoStack: true,
@@ -3652,40 +3652,40 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * A cache of shape ids in the current page.
-	 *
-	 * @internal
-	 */
-	private readonly _shapeIdsOnCurrentPage: ReturnType<typeof deriveShapeIdsInCurrentPage>
-
-	/**
-	 * An array of all of the shapes on the current page.
-	 *
-	 * @public
-	 */
-	get shapeIdsOnCurrentPage() {
-		return this._shapeIdsOnCurrentPage.value
-	}
-
-	/**
 	 * Get the ids of shapes on a page.
 	 *
 	 * @example
 	 * ```ts
-	 * const idsOnPage1 = editor.getShapeIdsInPage('page1')
-	 * const idsOnPage2 = editor.getShapeIdsInPage('page2')
+	 * const idsOnPage1 = editor.getPageShapeIds('page1')
+	 * const idsOnPage2 = editor.getPageShapeIds('page2')
 	 * ```
 	 *
 	 * @param pageId - The id of the page.
 	 *
 	 * @public
 	 **/
-	getShapeIdsInPage(page: TLPage): Set<TLShapeId>
-	getShapeIdsInPage(pageId: TLPageId): Set<TLShapeId>
-	getShapeIdsInPage(arg: TLPageId | TLPage): Set<TLShapeId> {
+	getPageShapeIds(page: TLPage): Set<TLShapeId>
+	getPageShapeIds(pageId: TLPageId): Set<TLShapeId>
+	getPageShapeIds(arg: TLPageId | TLPage): Set<TLShapeId> {
 		const pageId = typeof arg === 'string' ? arg : arg.id
 		const result = this.store.query.exec('shape', { parentId: { eq: pageId } })
 		return this.getShapeAndDescendantIds(result.map((s) => s.id))
+	}
+
+	/**
+	 * A cache of shape ids in the current page.
+	 *
+	 * @internal
+	 */
+	private readonly _currentPageShapeIds: ReturnType<typeof deriveShapeIdsInCurrentPage>
+
+	/**
+	 * An array of all of the shapes on the current page.
+	 *
+	 * @public
+	 */
+	get currentPageShapeIds() {
+		return this._currentPageShapeIds.value
 	}
 
 	/* --------------------- Assets --------------------- */
@@ -4263,7 +4263,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get commonBoundsOfAllShapesOnCurrentPage(): Box2d | undefined {
 		let commonBounds: Box2d | undefined
 
-		this.shapeIdsOnCurrentPage.forEach((shapeId) => {
+		this.currentPageShapeIds.forEach((shapeId) => {
 			const bounds = this.getMaskedPageBounds(shapeId)
 			if (!bounds) return
 			if (!commonBounds) {
@@ -4285,7 +4285,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSelectedShapeAtPoint(point: VecLike): TLShape | undefined {
 		const { selectedShapeIds } = this
-		return this.sortedShapesOnCurrentPage
+		return this.currentPageShapesSorted
 			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
 			.findLast((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
@@ -4309,7 +4309,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	): TLShape | undefined {
 		// are we inside of a shape but not hovering it?
-		const { viewportPageBounds, zoomLevel, sortedShapesOnCurrentPage } = this
+		const { viewportPageBounds, zoomLevel, currentPageShapesSorted } = this
 		const { filter, margin = 0, hitInside = false, hitFrameInside = false } = opts
 
 		let inHollowSmallestArea = Infinity
@@ -4318,7 +4318,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
-		const shapesToCheck = sortedShapesOnCurrentPage.filter((shape) => {
+		const shapesToCheck = currentPageShapesSorted.filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getPageMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
@@ -4432,7 +4432,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		point: VecLike,
 		opts = {} as { margin?: number; hitInside?: boolean }
 	): TLShape[] {
-		return this.shapesOnCurrentPage.filter((shape) => this.isPointInShape(shape, point, opts))
+		return this.currentPageShapes.filter((shape) => this.isPointInShape(shape, point, opts))
 	}
 
 	/**
@@ -4536,15 +4536,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.shapesOnCurrentPage
+	 * editor.currentPageShapes
 	 * ```
 	 *
 	 * @readonly
 	 *
 	 * @public
 	 */
-	@computed get shapesOnCurrentPage() {
-		return Array.from(this.shapeIdsOnCurrentPage, (id) => this.store.get(id)! as TLShape)
+	@computed get currentPageShapes() {
+		return Array.from(this.currentPageShapeIds, (id) => this.store.get(id)! as TLShape)
 	}
 
 	/**
@@ -4553,17 +4553,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.sortedShapesOnCurrentPage
+	 * editor.currentPageShapesSorted
 	 * ```
 	 *
 	 * @readonly
 	 *
 	 * @public
 	 */
-	@computed get sortedShapesOnCurrentPage(): TLShape[] {
+	@computed get currentPageShapesSorted(): TLShape[] {
 		// todo: consider making into a function call that includes options for selected-only, rendering, etc.
 		// todo: consider making a derivation or something, or merging with rendering shapes
-		const shapes = new Set(this.shapesOnCurrentPage.sort(sortByIndex))
+		const shapes = new Set(this.currentPageShapes.sort(sortByIndex))
 
 		const results: TLShape[] = []
 
@@ -4978,7 +4978,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getDroppingOverShape(point: VecLike, droppingShapes: TLShape[] = []) {
 		// starting from the top...
-		return this.sortedShapesOnCurrentPage.findLast((shape) => {
+		return this.currentPageShapesSorted.findLast((shape) => {
 			if (
 				// only allow shapes that can receive children
 				!this.getShapeUtil(shape).canDropShapes(shape, droppingShapes) ||
@@ -5288,14 +5288,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.history.batch(() => {
 			const maxShapesReached =
-				shapesToCreate.length + this.shapeIdsOnCurrentPage.size > MAX_SHAPES_PER_PAGE
+				shapesToCreate.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE
 
 			if (maxShapesReached) {
 				alertMaxShapes(this)
 			}
 
 			const newShapes = maxShapesReached
-				? shapesToCreate.slice(0, MAX_SHAPES_PER_PAGE - this.shapeIdsOnCurrentPage.size)
+				? shapesToCreate.slice(0, MAX_SHAPES_PER_PAGE - this.currentPageShapeIds.size)
 				: shapesToCreate
 
 			const ids = newShapes.map((s) => s.id)
@@ -5354,7 +5354,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If there is no space on pageId, or if the selected shapes
 		// would take the new page above the limit, don't move the shapes
-		if (this.getShapeIdsInPage(pageId).size + content.shapes.length > MAX_SHAPES_PER_PAGE) {
+		if (this.getPageShapeIds(pageId).size + content.shapes.length > MAX_SHAPES_PER_PAGE) {
 			alertMaxShapes(this, pageId)
 			return this
 		}
@@ -6488,12 +6488,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (partials.length <= 0) return this
 
 		// can't create more shapes than fit on the page
-		if (partials.length + this.shapeIdsOnCurrentPage.size > MAX_SHAPES_PER_PAGE) {
+		if (partials.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE) {
 			alertMaxShapes(this)
 			return this
 		}
 
-		const { focusedGroupId, sortedShapesOnCurrentPage } = this
+		const { focusedGroupId, currentPageShapesSorted } = this
 
 		// 1. Parents
 
@@ -6516,7 +6516,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				partial = { ...partial }
 
 				const parentId =
-					sortedShapesOnCurrentPage.findLast(
+					currentPageShapesSorted.findLast(
 						(parent) =>
 							// parent.type === 'frame'
 							this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
@@ -7667,7 +7667,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return newShape
 		})
 
-		if (newShapes.length + this.shapeIdsOnCurrentPage.size > MAX_SHAPES_PER_PAGE) {
+		if (newShapes.length + this.currentPageShapeIds.size > MAX_SHAPES_PER_PAGE) {
 			// There's some complexity here involving children
 			// that might be created without their parents, so
 			// if we're going over the limit then just don't paste.
