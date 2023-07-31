@@ -42,6 +42,8 @@ export class HistoryManager<
 		return this._redos.value.length
 	}
 
+	skipHistory = false
+
 	createCommand = <Name extends string, Constructor extends CommandFn<any>>(
 		name: Name,
 		constructor: Constructor,
@@ -69,7 +71,7 @@ export class HistoryManager<
 
 			// this.ignoringUpdates((undos, redos) => {
 			handle.do(data)
-			// return { undos, redos }
+			// 	return { undos, redos }
 			// })
 
 			if (!ephemeral) {
@@ -103,6 +105,7 @@ export class HistoryManager<
 					)
 				}
 
+				// clear the redo stack unless the command explicitly says not to
 				if (!result.preservesRedoStack) {
 					this._redos.set(stack())
 				}

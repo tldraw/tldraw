@@ -40,6 +40,7 @@ describe('restoring bound arrows', () => {
 			.pointerMove(250, 50)
 			.pointerUp()
 	})
+
 	it('removes bound arrows on delete, restores them on undo but only when change was done by user', () => {
 		editor.mark('deleting')
 		editor.deleteShapes([ids.box2])
@@ -66,5 +67,63 @@ describe('restoring bound arrows', () => {
 		editor.redo()
 		expect(arrow().props.start.type).toBe('point')
 		expect(arrow().props.end.type).toBe('point')
+	})
+})
+
+describe('restoring bound arrows multiplayer', () => {
+	it('restores bound arrows after the shape was deleted by a different client', () => {
+		editor.mark()
+		editor.createShapes([{ id: ids.box2, type: 'geo', x: 100, y: 0 }])
+
+		editor.setCurrentTool('arrow').pointerMove(0, 50).pointerDown().pointerMove(150, 50).pointerUp()
+
+		// console.log(JSON.stringify(editor.history._undos.value.toArray(), null, 2))
+
+		expect(arrow().props.start.type).toBe('point')
+		expect(arrow().props.end.type).toBe('binding')
+
+		// Merge a change from a remote source that deletes box 2
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.remove([ids.box2])
+		})
+
+		// box is gone
+		expect(editor.getShape(ids.box2)).toBeUndefined()
+		// arrow is still there, but without its binding
+		expect(arrow()).not.toBeUndefined()
+		expect(arrow().props.start.type).toBe('point')
+		expect(arrow().props.end.type).toBe('point')
+
+		editor.undo() // undo creating the arrow
+
+		// arrow is gone too now
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(0)
+
+		editor.redo() // redo creating the arrow
+
+		expect(editor.getShape(ids.box2)).toBeUndefined()
+		expect(arrow()).not.toBeUndefined()
+		expect(arrow().props.start.type).toBe('point')
+		expect(arrow().props.end.type).toBe('point')
+
+		editor.undo() // undo creating arrow
+
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(0)
+
+		editor.undo() // undo creating box
+
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(0)
+
+		editor.redo() // redo creating box
+
+		// box is back! arrow is gone
+		expect(editor.getShape(ids.box2)).not.toBeUndefined()
+		expect(arrow()).toBeUndefined()
+
+		editor.redo() // redo creating arrow
+
+		// box is back! arrow should be bound
+		expect(arrow().props.start.type).toBe('point')
+		expect(arrow().props.end.type).toBe('binding')
 	})
 })

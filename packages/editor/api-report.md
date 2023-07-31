@@ -1030,6 +1030,12 @@ export class Editor extends EventEmitter<TLEventMap> {
         squashing?: boolean | undefined;
         preservesRedoStack?: boolean | undefined;
     } | undefined) => this;
+    // (undocumented)
+    updateRecordsInSideEffect: (partials: Partial<TLRecord>[], opts?: {
+        ephemeral?: boolean | undefined;
+        squashing?: boolean | undefined;
+        preservesRedoStack?: boolean | undefined;
+    } | undefined) => this;
     // @internal
     updateRenderingBounds(): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, opts?: {

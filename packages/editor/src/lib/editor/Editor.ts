@@ -316,9 +316,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		/* --------------------- Cleanup -------------------- */
 
-		const unbindArrowTerminal = (arrow: TLArrowShape, handleId: 'start' | 'end') => {
+		const unbindArrowTerminal = (
+			arrow: TLArrowShape,
+			handleId: 'start' | 'end',
+			source: 'user' | 'remote'
+		) => {
 			const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
-			this.updateRecords(
+
+			this.updateRecordsInSideEffect(
 				[
 					{
 						...arrow,
@@ -331,7 +336,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					},
 				],
 				{
-					ephemeral: false,
+					ephemeral: source === 'remote',
 					squashing: true,
 				}
 			)
@@ -426,7 +431,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				if (finalIndex !== arrow.index) {
 					// this puts a stale record
-					this.updateRecords([{ ...arrow, index: finalIndex }], {
+					this.updateRecordsInSideEffect([{ ...arrow, index: finalIndex }], {
 						ephemeral: true,
 						squashing: true,
 					})
@@ -434,7 +439,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		const arrowDidUpdate = (arrow: TLArrowShape) => {
+		const arrowDidUpdate = (arrow: TLArrowShape, source: 'user' | 'remote') => {
 			// if the shape is an arrow and its bound shape is on another page
 			// or was deleted, unbind it
 			for (const handle of ['start', 'end'] as const) {
@@ -444,7 +449,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const isShapeInSamePageAsArrow =
 					this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
 				if (!boundShape || !isShapeInSamePageAsArrow) {
-					unbindArrowTerminal(arrow, handle)
+					unbindArrowTerminal(arrow, handle, source)
 				}
 			}
 
@@ -526,7 +531,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.cleanup.registerAfterCreateHandler('shape', (record, scope) => {
 			if (scope === 'user') {
 				if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
-					arrowDidUpdate(record)
+					arrowDidUpdate(record, scope)
 				}
 			}
 		})
@@ -595,9 +600,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// After change cleanup handlers
 
-		this.cleanup.registerAfterChangeHandler('shape', (prev, next) => {
+		this.cleanup.registerAfterChangeHandler('shape', (prev, next, source) => {
 			if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
-				arrowDidUpdate(next)
+				arrowDidUpdate(next, source)
 			}
 
 			// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
@@ -745,7 +750,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// Before delete cleanup handlers
 
-		this.cleanup.registerBeforeDeleteHandler('shape', (record) => {
+		this.cleanup.registerBeforeDeleteHandler('shape', (record, source) => {
 			if (record.isLocked) {
 				return false // don't delete the locked shape
 			}
@@ -780,7 +785,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				for (const { arrowId, handleId } of bindings) {
 					const arrow = this.getShape<TLArrowShape>(arrowId)
 					if (!arrow) continue
-					unbindArrowTerminal(arrow, handleId)
+					unbindArrowTerminal(arrow, handleId, source)
 				}
 			}
 		})
@@ -1143,6 +1148,67 @@ export class Editor extends EventEmitter<TLEventMap> {
 			},
 			undo: ({ records }) => {
 				this.store.remove(records.map((r) => r.id))
+			},
+		}
+	)
+
+	/** @public */
+	updateRecordsInSideEffect = this.history.createCommand(
+		'updateRecordsInSideEffect',
+		<T extends TLRecord>(
+			partials: Partial<T>[],
+			opts?: { ephemeral?: boolean; squashing?: boolean; preservesRedoStack?: boolean }
+		) => {
+			const compactedPartials = compact(partials)
+			const prevRecords = {} as Record<TLRecord['id'], TLRecord>
+			const nextRecords = {} as Record<TLRecord['id'], TLRecord>
+
+			for (let i = 0, n = compactedPartials.length; i < n; i++) {
+				const partial = compactedPartials[i]
+				if (!partial.id) throw Error()
+				const prev = this.store.get(partial.id)
+				if (!prev) throw Error(`Cannot find record with id: "${partial.id}"`)
+				prevRecords[partial.id] = prev
+				nextRecords[partial.id] = { ...prev, ...partial } as TLRecord
+			}
+
+			if (this.instanceState.isReadonly) {
+				const typeNames = dedupe(Object.values(nextRecords).map((record) => record.typeName))
+				for (const typeName of typeNames) {
+					const recordType = this.store.schema.types[typeName as TLRecord['typeName']]
+					if (!recordType) throw Error(`Cannot get record type for ${typeName}`)
+					// When in readonly mode, do not update document records
+					if (recordType.scope === 'document') {
+						throw Error('Cannot update records while in readOnly mode')
+					}
+				}
+			}
+
+			return {
+				data: { prevRecords, nextRecords },
+				ephemeral: opts?.ephemeral ?? false,
+				squashing: opts?.squashing ?? false, // todo: we might set this to true always
+				preservesRedoStack: opts?.preservesRedoStack ?? false,
+			}
+		},
+		{
+			do: ({ nextRecords }) => {
+				this.store.put(Object.values(nextRecords))
+			},
+			undo: ({ prevRecords }) => {
+				this.store.put(Object.values(prevRecords))
+			},
+			squash: (
+				{ prevRecords: prevPrev, nextRecords: prevNext },
+				{ prevRecords: nextPrev, nextRecords: nextNext }
+			) => {
+				// Sooometimes the new records will have more "prev" records than the old records
+				const data = {
+					prevRecords: { ...nextPrev, ...prevPrev },
+					nextRecords: { ...prevNext, ...nextNext },
+				}
+				if (data === undefined) throw Error()
+				return data
 			},
 		}
 	)
