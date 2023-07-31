@@ -93,7 +93,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					data-font={shape.props.font}
 					data-align={shape.props.align}
 					data-hastext={!isEmpty}
-					data-isediting={isEditing || isEditableFromHover}
+					data-isediting={isEditing}
 					data-textwrap={true}
 					style={{
 						fontSize: FONT_SIZES[shape.props.size],
