@@ -612,7 +612,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPageShapes(): TLShape[];
     get currentPageShapesSorted(): TLShape[];
     get currentPageState(): TLInstancePageState;
-    // @internal (undocumented)
     get currentPageStateId(): TLInstancePageStateId;
     get currentTool(): StateNode | undefined;
     get currentToolId(): string;
@@ -868,7 +867,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     packShapes(ids: TLShapeId[], gap: number): this;
     get pages(): TLPage[];
     get pageStates(): TLInstancePageState[];
-    pageToScreen(x: number, y: number, z?: number, camera?: VecLike): {
+    pageToScreen(x: number, y: number, z?: number): {
         x: number;
         y: number;
         z: number;
@@ -949,12 +948,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendToBack(shapes: TLShape[]): this;
     // (undocumented)
     sendToBack(ids: TLShapeId[]): this;
-    setCamera(x: number, y: number, z?: number, { stopFollowing }?: TLViewportOptions): this;
+    setCamera(x: number, y: number, z?: number): this;
     // (undocumented)
     setCroppingShapeId(id: null | TLShapeId): this;
-    setCurrentPage(page: TLPage, opts?: TLViewportOptions): this;
+    setCurrentPage(page: TLPage): this;
     // (undocumented)
-    setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions): this;
+    setCurrentPage(pageId: TLPageId): this;
     setCurrentTool(id: string, info?: {}): this;
     // (undocumented)
     setEditingShapeId(id: null | TLShapeId): this;
@@ -1026,12 +1025,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         squashing?: boolean | undefined;
         preservesRedoStack?: boolean | undefined;
     } | undefined) => this;
-    // (undocumented)
-    updateRecordsInSideEffect: (partials: Partial<TLRecord>[], opts?: {
-        ephemeral?: boolean | undefined;
-        squashing?: boolean | undefined;
-        preservesRedoStack?: boolean | undefined;
-    } | undefined) => this;
     // @internal
     updateRenderingBounds(): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, opts?: {
@@ -1054,7 +1047,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     zoomIn(point?: Vec2d, opts?: TLAnimationOptions): this;
     get zoomLevel(): number;
     zoomOut(point?: Vec2d, opts?: TLAnimationOptions): this;
-    zoomToBounds(x: number, y: number, width: number, height: number, targetZoom?: number, opts?: TLAnimationOptions): this;
+    zoomToBounds(bounds: Box2d, targetZoom?: number, opts?: TLAnimationOptions): this;
     zoomToContent(): this;
     zoomToFit(opts?: TLAnimationOptions): this;
     zoomToSelection(opts?: TLAnimationOptions): this;

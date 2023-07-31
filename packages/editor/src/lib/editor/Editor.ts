@@ -133,12 +133,6 @@ export type TLAnimationOptions = Partial<{
 }>
 
 /** @public */
-export type TLViewportOptions = Partial<{
-	/** Whether to animate the viewport change or not. Defaults to true. */
-	stopFollowing: boolean
-}>
-
-/** @public */
 export interface TLEditorOptions {
 	/**
 	 * The Store instance to use for keeping the app's data. This may be prepopulated, e.g. by loading
@@ -312,7 +306,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) => {
 			const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
 
-			this.updateRecordsInSideEffect(
+			this.updateRecords(
 				[
 					{
 						...arrow,
@@ -420,7 +414,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				if (finalIndex !== arrow.index) {
 					// this puts a stale record
-					this.updateRecordsInSideEffect([{ ...arrow, index: finalIndex }], {
+					this.updateRecords([{ ...arrow, index: finalIndex }], {
 						ephemeral: true,
 						squashing: true,
 					})
@@ -557,8 +551,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return next
 		})
 
+		this.cleanup.registerBeforeChangeHandler('instance', (prev, next) => {
+			// when the following user changes, stop following the previous user
+			if (prev.followingUserId && next.followingUserId !== prev.followingUserId) {
+				this.emit('stop-following')
+			}
+
+			// When the page changes, stop following any user
+			if (next.currentPageId !== prev.currentPageId) {
+				if (next.followingUserId) {
+					next.followingUserId = null
+					this.emit('stop-following')
+				}
+			}
+			return next
+		})
+
 		this.cleanup.registerBeforeChangeHandler('instance_page_state', (prev, next, source) => {
 			if (source !== 'user') return next
+
 			if (next.editingShapeId && next.editingShapeId !== (prev as typeof next).editingShapeId) {
 				// editing shape change
 				const shape = this.getShape(next.editingShapeId)
@@ -1113,67 +1124,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	)
 
 	/** @public */
-	updateRecordsInSideEffect = this.history.createCommand(
-		'updateRecordsInSideEffect',
-		<T extends TLRecord>(
-			partials: Partial<T>[],
-			opts?: { ephemeral?: boolean; squashing?: boolean; preservesRedoStack?: boolean }
-		) => {
-			const compactedPartials = compact(partials)
-			const prevRecords = {} as Record<TLRecord['id'], TLRecord>
-			const nextRecords = {} as Record<TLRecord['id'], TLRecord>
-
-			for (let i = 0, n = compactedPartials.length; i < n; i++) {
-				const partial = compactedPartials[i]
-				if (!partial.id) throw Error()
-				const prev = this.store.get(partial.id)
-				if (!prev) throw Error(`Cannot find record with id: "${partial.id}"`)
-				prevRecords[partial.id] = prev
-				nextRecords[partial.id] = { ...prev, ...partial } as TLRecord
-			}
-
-			if (this.instanceState.isReadonly) {
-				const typeNames = dedupe(Object.values(nextRecords).map((record) => record.typeName))
-				for (const typeName of typeNames) {
-					const recordType = this.store.schema.types[typeName as TLRecord['typeName']]
-					if (!recordType) throw Error(`Cannot get record type for ${typeName}`)
-					// When in readonly mode, do not update document records
-					if (recordType.scope === 'document') {
-						throw Error('Cannot update records while in readOnly mode')
-					}
-				}
-			}
-
-			return {
-				data: { prevRecords, nextRecords },
-				ephemeral: opts?.ephemeral ?? false,
-				squashing: opts?.squashing ?? false, // todo: we might set this to true always
-				preservesRedoStack: opts?.preservesRedoStack ?? false,
-			}
-		},
-		{
-			do: ({ nextRecords }) => {
-				this.store.put(Object.values(nextRecords))
-			},
-			undo: ({ prevRecords }) => {
-				this.store.put(Object.values(prevRecords))
-			},
-			squash: (
-				{ prevRecords: prevPrev, nextRecords: prevNext },
-				{ prevRecords: nextPrev, nextRecords: nextNext }
-			) => {
-				// Sooometimes the new records will have more "prev" records than the old records
-				const data = {
-					prevRecords: { ...nextPrev, ...prevPrev },
-					nextRecords: { ...prevNext, ...nextNext },
-				}
-				if (data === undefined) throw Error()
-				return data
-			},
-		}
-	)
-
-	/** @public */
 	updateRecords = this.history.createCommand(
 		'updateRecords',
 		<T extends TLRecord>(
@@ -1671,7 +1621,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed get currentPageState(): TLInstancePageState {
 		return this.store.get(this.currentPageStateId)!
 	}
-	/** @internal */
+
+	/**
+	 * The current page state id.
+	 *
+	 * @public
+	 */
 	@computed get currentPageStateId() {
 		return InstancePageStateRecordType.createId(this.currentPageId)
 	}
@@ -2144,13 +2099,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _willSetInitialBounds = true
 
 	/** @internal */
-	private _setCamera(x: number, y: number, z = this.camera.z): this {
+	private _setCamera(x: number, y: number, z: number): this {
 		const currentCamera = this.camera
 		if (currentCamera.x === x && currentCamera.y === y && currentCamera.z === z) return this
-		const nextCamera = { ...currentCamera, x, y, z }
 
 		this.batch(() => {
-			this.store.put([nextCamera])
+			this.store.put([{ ...currentCamera, x, y, z }]) // include id and meta here
 
 			const { currentScreenPoint } = this.inputs
 
@@ -2189,16 +2143,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setCamera(
-		x: number,
-		y: number,
-		z = this.camera.z,
-		{ stopFollowing = true }: TLViewportOptions = {}
-	): this {
+	setCamera(x: number, y: number, z = this.camera.z): this {
 		this.stopCameraAnimation()
-		if (stopFollowing && this.instanceState.followingUserId) {
+		if (this.instanceState.followingUserId) {
 			this.stopFollowingUser()
 		}
+
 		x = Number.isNaN(x) ? 0 : x
 		y = Number.isNaN(y) ? 0 : y
 		z = Number.isNaN(z) ? 1 : z
@@ -2247,11 +2197,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.centerOnPoint(100, 100)
+	 * editor.centerOnPoint(100, 100, { duration: 200 })
 	 * ```
 	 *
 	 * @param x - The x position of the point.
 	 * @param y - The y position of the point.
-	 * @param opts - The options for an animation.
+	 * @param opts - (optional) The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2274,20 +2225,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Move the camera to the nearest content.
 	 *
+	 * @example
+	 * ```ts
+	 * editor.zoomToContent()
+	 * editor.zoomToContent({ duration: 200 })
+	 * ```
+	 *
+	 * @param opts - (optional) The options for an animation.
+	 *
 	 * @public
 	 */
 	zoomToContent() {
 		const bounds = this.selectionPageBounds ?? this.commonBoundsOfAllShapesOnCurrentPage
 
 		if (bounds) {
-			this.zoomToBounds(
-				bounds.minX,
-				bounds.minY,
-				bounds.width,
-				bounds.height,
-				Math.min(1, this.zoomLevel),
-				{ duration: 220 }
-			)
+			this.zoomToBounds(bounds, Math.min(1, this.zoomLevel), { duration: 220 })
 		}
 
 		return this
@@ -2299,7 +2251,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.zoomToFit()
+	 * editor.zoomToFit({ duration: 200 })
 	 * ```
+	 *
+	 * @param opts - (optional) The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2310,14 +2265,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length <= 0) return this
 
 		const pageBounds = Box2d.Common(compact(ids.map((id) => this.getPageBounds(id))))
-		this.zoomToBounds(
-			pageBounds.minX,
-			pageBounds.minY,
-			pageBounds.width,
-			pageBounds.height,
-			undefined,
-			opts
-		)
+		this.zoomToBounds(pageBounds, undefined, opts)
 		return this
 	}
 
@@ -2327,9 +2275,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.resetZoom()
+	 * editor.resetZoom(editor.viewportScreenCenter)
+	 * editor.resetZoom(editor.viewportScreenCenter, { duration: 200 })
 	 * ```
 	 *
-	 * @param opts - The options for an animation.
+	 * @param point - (optional) The screen point to zoom out on. Defaults to the viewport screen center.
+	 * @param opts - (optional) The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2357,7 +2308,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })
 	 * ```
 	 *
-	 * @param opts - The options for an animation.
+	 * @param opts - (optional) The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2401,7 +2352,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })
 	 * ```
 	 *
-	 * @param opts - The options for an animation.
+	 * @param opts - (optional) The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2444,7 +2395,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomToSelection()
 	 * ```
 	 *
-	 * @param opts - The options for an animation.
+	 * @param opts - (optional) The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2454,16 +2405,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const ids = this.selectedShapeIds
 		if (ids.length <= 0) return this
 
-		const selectedBounds = Box2d.Common(compact(ids.map((id) => this.getPageBounds(id))))
+		const selectionBounds = Box2d.Common(compact(ids.map((id) => this.getPageBounds(id))))
 
-		this.zoomToBounds(
-			selectedBounds.minX,
-			selectedBounds.minY,
-			selectedBounds.width,
-			selectedBounds.height,
-			Math.max(1, this.camera.z),
-			opts
-		)
+		this.zoomToBounds(selectionBounds, Math.max(1, this.camera.z), opts)
 
 		return this
 	}
@@ -2480,19 +2424,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!this.instanceState.canMoveCamera) return this
 
 		if (ids.length <= 0) return this
-		const selectedBounds = Box2d.Common(compact(ids.map((id) => this.getPageBounds(id))))
+		const selectionBounds = Box2d.Common(compact(ids.map((id) => this.getPageBounds(id))))
 
 		const { viewportPageBounds } = this
 
-		if (viewportPageBounds.h < selectedBounds.h || viewportPageBounds.w < selectedBounds.w) {
-			this.zoomToBounds(
-				selectedBounds.minX,
-				selectedBounds.minY,
-				selectedBounds.width,
-				selectedBounds.height,
-				this.camera.z,
-				opts
-			)
+		if (viewportPageBounds.h < selectionBounds.h || viewportPageBounds.w < selectionBounds.w) {
+			this.zoomToBounds(selectionBounds, this.camera.z, opts)
 
 			return this
 		} else {
@@ -2500,22 +2437,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			let offsetX = 0
 			let offsetY = 0
-			if (insetViewport.maxY < selectedBounds.maxY) {
+			if (insetViewport.maxY < selectionBounds.maxY) {
 				// off bottom
-				offsetY = insetViewport.maxY - selectedBounds.maxY
-			} else if (insetViewport.minY > selectedBounds.minY) {
+				offsetY = insetViewport.maxY - selectionBounds.maxY
+			} else if (insetViewport.minY > selectionBounds.minY) {
 				// off top
-				offsetY = insetViewport.minY - selectedBounds.minY
+				offsetY = insetViewport.minY - selectionBounds.minY
 			} else {
 				// inside y-bounds
 			}
 
-			if (insetViewport.maxX < selectedBounds.maxX) {
+			if (insetViewport.maxX < selectionBounds.maxX) {
 				// off right
-				offsetX = insetViewport.maxX - selectedBounds.maxX
-			} else if (insetViewport.minX > selectedBounds.minX) {
+				offsetX = insetViewport.maxX - selectionBounds.maxX
+			} else if (insetViewport.minX > selectionBounds.minX) {
 				// off left
-				offsetX = insetViewport.minX - selectedBounds.minX
+				offsetX = insetViewport.minX - selectionBounds.minX
 			} else {
 				// inside x-bounds
 			}
@@ -2537,25 +2474,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.zoomToBounds(0, 0, 100, 100)
+	 * editor.zoomToBounds(myBounds)
+	 * editor.zoomToBounds(myBounds, 1)
+	 * editor.zoomToBounds(myBounds, 1, { duration: 100 })
 	 * ```
 	 *
-	 * @param x - The bounding box's x position.
-	 * @param y - The bounding box's y position.
-	 * @param width - The bounding box's width.
-	 * @param height - The bounding box's height.
+	 * @param bounds - The bounding box.
 	 * @param targetZoom - The desired zoom level. Defaults to 0.1.
+	 * @param opts - (optional) The options for an animation.
 	 *
 	 * @public
 	 */
-	zoomToBounds(
-		x: number,
-		y: number,
-		width: number,
-		height: number,
-		targetZoom?: number,
-		opts?: TLAnimationOptions
-	): this {
+	zoomToBounds(bounds: Box2d, targetZoom?: number, opts?: TLAnimationOptions): this {
 		if (!this.instanceState.canMoveCamera) return this
 
 		const { viewportScreenBounds } = this
@@ -2564,8 +2494,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		let zoom = clamp(
 			Math.min(
-				(viewportScreenBounds.width - inset) / width,
-				(viewportScreenBounds.height - inset) / height
+				(viewportScreenBounds.width - inset) / bounds.width,
+				(viewportScreenBounds.height - inset) / bounds.height
 			),
 			MIN_ZOOM,
 			MAX_ZOOM
@@ -2577,15 +2507,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (opts?.duration) {
 			this.animateCamera(
-				-x + (viewportScreenBounds.width - width * zoom) / 2 / zoom,
-				-y + (viewportScreenBounds.height - height * zoom) / 2 / zoom,
+				-bounds.minX + (viewportScreenBounds.width - bounds.width * zoom) / 2 / zoom,
+				-bounds.minY + (viewportScreenBounds.height - bounds.height * zoom) / 2 / zoom,
 				zoom,
 				opts
 			)
 		} else {
 			this.setCamera(
-				-x + (viewportScreenBounds.width - width * zoom) / 2 / zoom,
-				-y + (viewportScreenBounds.height - height * zoom) / 2 / zoom,
+				-bounds.minX + (viewportScreenBounds.width - bounds.width * zoom) / 2 / zoom,
+				-bounds.minY + (viewportScreenBounds.height - bounds.height * zoom) / 2 / zoom,
 				zoom
 			)
 		}
@@ -2604,7 +2534,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param dx - The amount to pan on the x axis.
 	 * @param dy - The amount to pan on the y axis.
-	 * @param opts - The animation options
+	 * @param opts - (optional) The animation options.
 	 */
 	pan(dx: number, dy: number, opts?: TLAnimationOptions): this {
 		if (!this.instanceState.canMoveCamera) return this
@@ -3004,7 +2934,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Convert a point in page space to a point in screen space.
+	 * Convert a point in page space to a point in current screen space.
 	 *
 	 * @example
 	 * ```ts
@@ -3013,12 +2943,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param x - The x coordinate of the point in screen space.
 	 * @param y - The y coordinate of the point in screen space.
-	 * @param camera - The camera to use. Defaults to the current camera.
 	 *
 	 * @public
 	 */
-	pageToScreen(x: number, y: number, z = 0.5, camera: VecLike = this.camera) {
-		const { x: cx, y: cy, z: cz = 1 } = camera
+	pageToScreen(x: number, y: number, z = 0.5) {
+		const { x: cx, y: cy, z: cz = 1 } = this.camera
 		return {
 			x: x + cx * cz,
 			y: y + cy * cz,
@@ -3052,6 +2981,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		transact(() => {
+			// todo: move to side effects
 			this.stopFollowingUser()
 			this.updateInstanceState({ followingUserId: userId }, { ephemeral: true, squashing: true })
 		})
@@ -3064,22 +2994,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let isCaughtUp = false
 
 		const moveTowardsUser = () => {
-			// Stop following if we can't find the user
+			// Look for the most recent presence of the leader
 			const leaderPresence = [...leaderPresences.value]
 				.sort((a, b) => {
 					return a.lastActivityTimestamp - b.lastActivityTimestamp
 				})
 				.pop()
+
+			// If the leader is no longer present, then stop following them
 			if (!leaderPresence) {
 				this.stopFollowingUser()
 				return
 			}
 
-			// Change page if leader is on a different page
+			// If they've moved to a different page, change pages
 			const isOnSamePage = leaderPresence.currentPageId === this.currentPageId
 			const chaseProportion = isOnSamePage ? FOLLOW_CHASE_PROPORTION : 1
 			if (!isOnSamePage) {
-				this.setCurrentPage(leaderPresence.currentPageId, { stopFollowing: false })
+				this.setCurrentPage(leaderPresence.currentPageId)
+				// changes pages will stop following user, so start following them again
+				this.startFollowingUser(userId)
+				return
 			}
 
 			// Get the bounds of the follower (me) and the leader (them)
@@ -3133,14 +3068,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return
 			}
 
-			// Update the camera!
+			// Update the camera! (manually)
 			isCaughtUp = false
 			this.stopCameraAnimation()
-			this.setCamera(
+			this._setCamera(
 				-(targetCenter.x - targetWidth / 2),
 				-(targetCenter.y - targetHeight / 2),
-				targetZoom,
-				{ stopFollowing: false }
+				targetZoom
 			)
 		}
 
@@ -3614,19 +3548,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setCurrentPage(page: TLPage, opts?: TLViewportOptions): this
-	setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions): this
-	setCurrentPage(arg: TLPageId | TLPage, { stopFollowing = true }: TLViewportOptions = {}): this {
+	setCurrentPage(page: TLPage): this
+	setCurrentPage(pageId: TLPageId): this
+	setCurrentPage(arg: TLPageId | TLPage): this {
 		const pageId = typeof arg === 'string' ? arg : arg.id
 		if (pageId === this.currentPageId) return this
 
 		if (!this.store.has(pageId)) {
 			console.error("Tried to set the current page id to a page that doesn't exist.")
 			return this
-		}
-
-		if (stopFollowing && this.instanceState.followingUserId) {
-			this.stopFollowingUser()
 		}
 
 		this.batch(() => {
