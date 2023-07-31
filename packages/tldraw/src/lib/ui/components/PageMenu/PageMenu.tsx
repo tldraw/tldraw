@@ -379,7 +379,7 @@ export const PageMenu = function PageMenu() {
 												item={page}
 												listSize={pages.length}
 												onRename={() => {
-													if (editor.isIos) {
+													if (editor.environment.isIos) {
 														const name = window.prompt('Rename page', page.name)
 														if (name && name !== page.name) {
 															editor.updatePage({ id: page.id, name }, true)

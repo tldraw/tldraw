@@ -156,10 +156,10 @@ export function usePrint() {
 			}
 
 			function triggerPrint() {
-				if (editor.isChromeForIos) {
+				if (editor.environment.isChromeForIos) {
 					beforePrintHandler()
 					window.print()
-				} else if (editor.isSafari) {
+				} else if (editor.environment.isSafari) {
 					beforePrintHandler()
 					document.execCommand('print', false)
 				} else {

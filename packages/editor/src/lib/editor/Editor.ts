@@ -106,6 +106,7 @@ import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { CleanupManager } from './managers/CleanupManager'
 import { ClickManager } from './managers/ClickManager'
+import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -242,19 +243,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.root.children![Tool.id] = new Tool(this, this.root)
 		}
 
-		if (typeof window !== 'undefined' && 'navigator' in window) {
-			this.isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent)
-			this.isIos = !!navigator.userAgent.match(/iPad/i) || !!navigator.userAgent.match(/iPhone/i)
-			this.isChromeForIos = /crios.*safari/i.test(navigator.userAgent)
-			this.isFirefox = /firefox/i.test(navigator.userAgent)
-			this.isAndroid = /android/i.test(navigator.userAgent)
-		} else {
-			this.isSafari = false
-			this.isIos = false
-			this.isChromeForIos = false
-			this.isFirefox = false
-			this.isAndroid = false
-		}
+		this.environment = new EnvironmentManager(this)
 
 		// Container
 
@@ -888,40 +877,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	readonly textMeasure: TextManager
 
 	/**
-	 * Whether the editor is running in Safari.
+	 * A helper for managing the editor's environment.
 	 *
 	 * @public
 	 */
-	readonly isSafari: boolean
-
-	/**
-	 * Whether the editor is running on iOS.
-	 *
-	 * @public
-	 */
-	readonly isIos: boolean
-
-	/**
-	 * Whether the editor is running on iOS.
-	 *
-	 * @public
-	 */
-	readonly isChromeForIos: boolean
-
-	/**
-	 * Whether the editor is running on Firefox.
-	 *
-	 * @public
-	 */
-	readonly isFirefox: boolean
-
-	/**
-	 * Whether the editor is running on Android.
-	 *
-	 * @public
-	 */
-	readonly isAndroid: boolean
-
+	readonly environment: EnvironmentManager
 	/**
 	 * The current HTML element containing the editor.
 	 *
