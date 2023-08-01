@@ -8,7 +8,7 @@ beforeEach(() => {
 })
 
 describe('When zooming to bounds', () => {
-	it.only('centers the camera on the new bounds', () => {
+	it('centers the camera on the new bounds', () => {
 		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
 
 		editor.setScreenBounds({ x: 0, y: 0, w: 1000, h: 1000 })

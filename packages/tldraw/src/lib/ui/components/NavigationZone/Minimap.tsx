@@ -174,6 +174,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			const { currentPageShapeIds, viewportPageBounds, commonBoundsOfAllShapesOnCurrentPage } =
 				editor
 
+			// deref
 			const _dpr = devicePixelRatio.value
 
 			minimap.contentPageBounds = commonBoundsOfAllShapesOnCurrentPage
@@ -210,7 +211,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			minimap.collaborators = presences.value
 			minimap.render()
 		},
-		[editor, minimap]
+		[editor, minimap, devicePixelRatio]
 	)
 
 	return (
