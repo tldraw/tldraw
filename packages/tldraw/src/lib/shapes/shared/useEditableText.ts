@@ -211,8 +211,8 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		(e: React.PointerEvent) => {
 			if (isEditableFromHover) {
 				transact(() => {
-					editor.setEditingShapeId(id)
-					editor.setHoveredShapeId(id)
+					editor.setEditingId(id)
+					editor.setHoveredId(id)
 					editor.setSelectedShapeIds([id])
 				})
 			}

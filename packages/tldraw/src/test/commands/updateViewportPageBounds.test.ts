@@ -51,17 +51,17 @@ describe('When resizing', () => {
 
 describe('When center is false', () => {
 	it('keeps the same top left when resized', () => {
-		const a = editor.screenToPage({ x: 0, y: 0 })
+		const a = editor.screenToPage(0, 0)
 		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, false)
-		const b = editor.screenToPage({ x: 0, y: 0 })
+		const b = editor.screenToPage(0, 0)
 		expect(a).toMatchObject(b)
 	})
 
 	it('keeps the same top left when resized while panned / zoomed', () => {
-		editor.setCamera({ x: -100, y: -100, z: 1.2 })
-		const a = editor.screenToPage({ x: 0, y: 0 })
+		editor.setCamera(-100, -100, 1.2)
+		const a = editor.screenToPage(0, 0)
 		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, false)
-		const b = editor.screenToPage({ x: 0, y: 0 })
+		const b = editor.screenToPage(0, 0)
 		expect(a).toMatchObject(b)
 	})
 })
@@ -75,7 +75,7 @@ describe('When center is true', () => {
 	})
 
 	it('keep the same page center when resized while panned / zoomed', () => {
-		editor.setCamera({ x: -100, y: -100, z: 1.2 })
+		editor.setCamera(-100, -100, 1.2)
 		const a = editor.viewportPageCenter.toJson()
 		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, true)
 		const b = editor.viewportPageCenter.toJson()

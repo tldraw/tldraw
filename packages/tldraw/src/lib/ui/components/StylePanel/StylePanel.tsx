@@ -16,7 +16,6 @@ import {
 	SharedStyleMap,
 	StyleProp,
 	minBy,
-	useComputed,
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
@@ -34,7 +33,9 @@ interface StylePanelProps {
 }
 
 const selectToolStyles = [DefaultColorStyle, DefaultDashStyle, DefaultFillStyle, DefaultSizeStyle]
-function getRelevantStyles(editor: Editor): ReadonlySharedStyleMap | null {
+function getRelevantStyles(
+	editor: Editor
+): { styles: ReadonlySharedStyleMap; opacity: SharedStyle<number> } | null {
 	const styles = new SharedStyleMap(editor.sharedStyles)
 	const hasShape = editor.selectedShapeIds.length > 0 || !!editor.root.current.value?.shapeType
 
@@ -45,38 +46,14 @@ function getRelevantStyles(editor: Editor): ReadonlySharedStyleMap | null {
 	}
 
 	if (styles.size === 0 && !hasShape) return null
-	return styles
+	return { styles, opacity: editor.sharedOpacity }
 }
 
 /** @internal */
 export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	const editor = useEditor()
 
-	const sharedOpacity = useComputed<SharedStyle<number>>(
-		'sharedOpacity',
-		() => {
-			if (editor.isIn('select') && editor.selectedShapeIds.length > 0) {
-				let opacity: number | null = null
-				for (const shape of editor.selectedShapes) {
-					if (opacity === null) {
-						opacity = shape.opacity
-					} else if (opacity !== shape.opacity) {
-						return { type: 'mixed' }
-					}
-				}
-
-				if (opacity !== null) {
-					return { type: 'shared', value: opacity }
-				}
-			}
-
-			return { type: 'shared', value: editor.instanceState.opacityForNextShape }
-		},
-		[editor]
-	)
-
 	const relevantStyles = useValue('getRelevantStyles', () => getRelevantStyles(editor), [editor])
-	const opacity = useValue('opacity', () => sharedOpacity.value, [sharedOpacity])
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
@@ -86,7 +63,7 @@ export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 
 	if (!relevantStyles) return null
 
-	const styles = relevantStyles
+	const { styles, opacity } = relevantStyles
 	const geo = styles.get(GeoShapeGeoStyle)
 	const arrowheadEnd = styles.get(ArrowShapeArrowheadEndStyle)
 	const arrowheadStart = styles.get(ArrowShapeArrowheadStartStyle)
@@ -118,8 +95,8 @@ function useStyleChangeCallback() {
 
 	return React.useMemo(() => {
 		return function <T>(style: StyleProp<T>, value: T, squashing: boolean) {
-			editor.setStyle(style, value, { ephemeral: false, squashing })
-			editor.updateInstanceState({ isChangingStyle: true }, { ephemeral: true, squashing: true })
+			editor.setStyle(style, value, squashing)
+			editor.updateInstanceState({ isChangingStyle: true })
 		}
 	}, [editor])
 }
@@ -141,16 +118,8 @@ function CommonStylePickerSet({
 	const handleOpacityValueChange = React.useCallback(
 		(value: number, ephemeral: boolean) => {
 			const item = tldrawSupportedOpacities[value]
-			editor.batch(() => {
-				editor.setOpacity(item, { ephemeral, squashing: true })
-				if (editor.isIn('select')) {
-					editor.updateShapes(
-						editor.selectedShapes.map((s) => ({ ...s, opacity: item })),
-						{ squashing: true, ephemeral: false }
-					)
-				}
-				editor.updateInstanceState({ isChangingStyle: true }, { ephemeral, squashing: true })
-			})
+			editor.setOpacity(item, ephemeral)
+			editor.updateInstanceState({ isChangingStyle: true })
 		},
 		[editor]
 	)

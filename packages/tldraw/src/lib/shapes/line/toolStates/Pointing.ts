@@ -30,8 +30,7 @@ export class Pointing extends StateNode {
 		const shape = info.shapeId && this.editor.getShape<TLLineShape>(info.shapeId)
 
 		if (shape) {
-			this.markId = `creating:${shape.id}`
-			this.editor.mark(this.markId)
+			this.markId = this.editor.mark(`creating:${shape.id}`)
 			this.shape = shape
 
 			if (inputs.shiftKey) {
@@ -86,20 +85,18 @@ export class Pointing extends StateNode {
 		} else {
 			const id = createShapeId()
 
-			this.markId = `creating:${id}`
+			this.markId = this.editor.mark(`creating:${id}`)
 
-			this.editor
-				.mark(this.markId)
-				.createShapes<TLLineShape>([
-					{
-						id,
-						type: 'line',
-						x: currentPagePoint.x,
-						y: currentPagePoint.y,
-					},
-				])
-				.select(id)
+			this.editor.createShapes<TLLineShape>([
+				{
+					id,
+					type: 'line',
+					x: currentPagePoint.x,
+					y: currentPagePoint.y,
+				},
+			])
 
+			this.editor.select(id)
 			this.shape = this.editor.getShape(id)!
 		}
 	}

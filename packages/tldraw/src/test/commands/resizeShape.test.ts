@@ -21,21 +21,16 @@ beforeEach(() => {
 
 describe('resizing a shape', () => {
 	it('always squashes history entries', () => {
-		const startHistoryLength = editor.history.numUndos
-		expect(startHistoryLength).toBe(0)
-
 		editor.createShapes([{ id: ids.boxA, type: 'geo', props: { w: 100, h: 100 } }])
-		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
 
 		editor.mark('start')
-		expect(editor.history.numUndos).toBe(startHistoryLength + 2)
-
+		const startHistoryLength = editor.history.numUndos
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.history.numUndos).toBe(startHistoryLength + 3)
+		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.history.numUndos).toBe(startHistoryLength + 3)
+		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
 		editor.resizeShape(ids.boxA, { x: 2, y: 2 })
-		expect(editor.history.numUndos).toBe(startHistoryLength + 3)
+		expect(editor.history.numUndos).toBe(startHistoryLength + 1)
 
 		expect(editor.getPageBounds(ids.boxA)).toCloselyMatchObject({
 			w: 800,

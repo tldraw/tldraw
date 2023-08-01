@@ -13,7 +13,7 @@ export class Pointing extends StateNode {
 	override onEnter = () => {
 		const {
 			inputs: { currentPagePoint },
-			currentPageShapesSorted,
+			sortedShapesOnCurrentPage,
 			zoomLevel,
 		} = this.editor
 
@@ -21,8 +21,8 @@ export class Pointing extends StateNode {
 
 		const initialSize = erasing.size
 
-		for (let n = currentPageShapesSorted.length, i = n - 1; i >= 0; i--) {
-			const shape = currentPageShapesSorted[i]
+		for (let n = sortedShapesOnCurrentPage.length, i = n - 1; i >= 0; i--) {
+			const shape = sortedShapesOnCurrentPage[i]
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) {
 				continue
 			}
@@ -46,7 +46,7 @@ export class Pointing extends StateNode {
 			}
 		}
 
-		this.editor.setErasingShapeIds([...erasing])
+		this.editor.setErasingIds([...erasing])
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
@@ -79,12 +79,12 @@ export class Pointing extends StateNode {
 			this.editor.deleteShapes(erasingShapeIds)
 		}
 
-		this.editor.setErasingShapeIds([])
+		this.editor.setErasingIds([])
 		this.parent.transition('idle', {})
 	}
 
 	cancel() {
-		this.editor.setErasingShapeIds([])
+		this.editor.setErasingIds([])
 		this.parent.transition('idle', {})
 	}
 }

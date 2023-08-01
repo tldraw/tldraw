@@ -17,7 +17,7 @@ export const PageItemInput = function PageItemInput({
 
 	const handleChange = useCallback(
 		(value: string) => {
-			editor.updatePage({ id, name: value ? value : 'New Page' }, true)
+			editor.renamePage(id, value ? value : 'New Page', true)
 		},
 		[editor, id]
 	)
@@ -25,7 +25,7 @@ export const PageItemInput = function PageItemInput({
 	const handleComplete = useCallback(
 		(value: string) => {
 			editor.mark('rename page')
-			editor.updatePage({ id, name: value || 'New Page' }, false)
+			editor.renamePage(id, value || 'New Page', false)
 		},
 		[editor, id]
 	)

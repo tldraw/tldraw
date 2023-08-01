@@ -143,7 +143,7 @@ export let currentTransaction = null as Transaction | null
  * const lastName = atom('Doe')
  *
  * react('greet', () => {
- *   print(`Hello, ${firstName.value} ${lastName.value}!`)
+ *   console.log(`Hello, ${firstName.value} ${lastName.value}!`)
  * })
  *
  * // Logs "Hello, John Doe!"
@@ -164,7 +164,7 @@ export let currentTransaction = null as Transaction | null
  * const lastName = atom('Doe')
  *
  * react('greet', () => {
- *   print(`Hello, ${firstName.value} ${lastName.value}!`)
+ *   console.log(`Hello, ${firstName.value} ${lastName.value}!`)
  * })
  *
  * // Logs "Hello, John Doe!"
@@ -187,7 +187,7 @@ export let currentTransaction = null as Transaction | null
  * const lastName = atom('Doe')
  *
  * react('greet', () => {
- *   print(`Hello, ${firstName.value} ${lastName.value}!`)
+ *   console.log(`Hello, ${firstName.value} ${lastName.value}!`)
  * })
  *
  * // Logs "Hello, John Doe!"

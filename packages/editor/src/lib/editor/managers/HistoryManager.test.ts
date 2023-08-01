@@ -2,9 +2,13 @@ import { HistoryManager } from './HistoryManager'
 import { stack } from './Stack'
 
 function createCounterHistoryManager() {
-	const manager = new HistoryManager({ emit: () => void null }, () => {
-		return
-	})
+	const manager = new HistoryManager(
+		{ emit: () => void null },
+		() => null,
+		() => {
+			return
+		}
+	)
 	const state = {
 		count: 0,
 		name: 'David',
@@ -247,10 +251,7 @@ describe(HistoryManager, () => {
 		expect(editor.getAge()).toBe(35)
 	})
 
-	// I had to turn off ignoringUpdates in command's initial "do" in order to make the cleanup methods undoable
-	// If there are other side effects here that we need to know about, then we should add tests for them;
-	// but so far everything seems ok.
-	it.skip('does not allow new history entries to be pushed if a command invokes them while doing or undoing', () => {
+	it('does not allow new history entries to be pushed if a command invokes them while doing or undoing', () => {
 		editor.incrementTwice()
 		expect(editor.history.numUndos).toBe(1)
 		expect(editor.getCount()).toBe(2)
@@ -259,7 +260,7 @@ describe(HistoryManager, () => {
 		expect(editor.history.numUndos).toBe(0)
 	})
 
-	it.skip('does not allow new history entries to be pushed if a command invokes them while bailing', () => {
+	it('does not allow new history entries to be pushed if a command invokes them while bailing', () => {
 		editor.history.mark('0')
 		editor.incrementTwice()
 		editor.history.mark('2')

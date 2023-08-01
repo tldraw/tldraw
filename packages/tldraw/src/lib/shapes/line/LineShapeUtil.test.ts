@@ -62,7 +62,7 @@ describe('Translating', () => {
 		editor.select(id)
 
 		const shape = editor.getShape<TLLineShape>(id)!
-		editor.updateShape({ ...shape, rotation: Math.PI / 2 })
+		shape.rotation = Math.PI / 2
 
 		editor.pointerDown(250, 250, { target: 'shape', shape: shape })
 		editor.pointerMove(300, 400) // Move shape by 50, 150
@@ -195,7 +195,7 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		expect(Array.from(editor.currentPageShapeIds.values()).length).toEqual(2)
+		expect(Array.from(editor.shapeIdsOnCurrentPage.values()).length).toEqual(2)
 	})
 
 	it('deletes', () => {
@@ -207,7 +207,7 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		let ids = Array.from(editor.currentPageShapeIds.values())
+		let ids = Array.from(editor.shapeIdsOnCurrentPage.values())
 		expect(ids.length).toEqual(2)
 
 		const duplicate = ids.filter((i) => i !== id)[0]
@@ -215,7 +215,7 @@ describe('Misc', () => {
 
 		editor.deleteShapes(editor.selectedShapeIds)
 
-		ids = Array.from(editor.currentPageShapeIds.values())
+		ids = Array.from(editor.shapeIdsOnCurrentPage.values())
 		expect(ids.length).toEqual(1)
 		expect(ids[0]).toEqual(id)
 	})

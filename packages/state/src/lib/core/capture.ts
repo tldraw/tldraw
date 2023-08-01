@@ -39,7 +39,7 @@ let stack: CaptureStackFrame | null = null
  * })
  *
  * react('log name changes', () => {
- * 	 print(name.value, 'was changed at', unsafe__withoutCapture(() => time.value))
+ * 	 console.log(name.value, 'was changed at', unsafe__withoutCapture(() => time.value))
  * })
  *
  * ```
@@ -134,7 +134,7 @@ export function maybeCaptureParent(p: Signal<any, any>) {
  * const name = atom('name', 'Bob')
  * react('greeting', () => {
  * 	whyAmIRunning()
- *	print('Hello', name.value)
+ *	console.log('Hello', name.value)
  * })
  *
  * name.set('Alice')

@@ -76,7 +76,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-const getAllShapes = () => editor.currentPageShapes
+const getAllShapes = () => editor.shapesOnCurrentPage
 
 const onlySelectedId = () => {
 	expect(editor.selectedShapeIds).toHaveLength(1)
@@ -515,14 +515,14 @@ describe('ungrouping shapes', () => {
 		editor.groupShapes(editor.selectedShapeIds)
 		editor.ungroupShapes(editor.selectedShapeIds)
 
-		const currentPageShapesSorted = editor.currentPageShapes
+		const sortedShapesOnCurrentPage = editor.shapesOnCurrentPage
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
-		expect(currentPageShapesSorted.length).toBe(4)
-		expect(currentPageShapesSorted[0]).toBe(ids.boxA)
-		expect(currentPageShapesSorted[1]).toBe(ids.boxB)
-		expect(currentPageShapesSorted[2]).toBe(ids.boxC)
-		expect(currentPageShapesSorted[3]).toBe(ids.boxD)
+		expect(sortedShapesOnCurrentPage.length).toBe(4)
+		expect(sortedShapesOnCurrentPage[0]).toBe(ids.boxA)
+		expect(sortedShapesOnCurrentPage[1]).toBe(ids.boxB)
+		expect(sortedShapesOnCurrentPage[2]).toBe(ids.boxC)
+		expect(sortedShapesOnCurrentPage[3]).toBe(ids.boxD)
 	})
 	it('keeps order correct complex', () => {
 		// 0   10  20  30  40  50  60  70
@@ -540,14 +540,14 @@ describe('ungrouping shapes', () => {
 		editor.groupShapes(editor.selectedShapeIds)
 		editor.ungroupShapes(editor.selectedShapeIds)
 
-		const currentPageShapesSorted = editor.currentPageShapes
+		const sortedShapesOnCurrentPage = editor.shapesOnCurrentPage
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
-		expect(currentPageShapesSorted.length).toBe(4)
-		expect(currentPageShapesSorted[0]).toBe(ids.boxB)
-		expect(currentPageShapesSorted[1]).toBe(ids.boxA)
-		expect(currentPageShapesSorted[2]).toBe(ids.boxC)
-		expect(currentPageShapesSorted[3]).toBe(ids.boxD)
+		expect(sortedShapesOnCurrentPage.length).toBe(4)
+		expect(sortedShapesOnCurrentPage[0]).toBe(ids.boxB)
+		expect(sortedShapesOnCurrentPage[1]).toBe(ids.boxA)
+		expect(sortedShapesOnCurrentPage[2]).toBe(ids.boxC)
+		expect(sortedShapesOnCurrentPage[3]).toBe(ids.boxD)
 	})
 })
 
@@ -1492,7 +1492,7 @@ describe('erasing', () => {
 		// move to group B
 		editor.pointerMove(65, 5)
 
-		expect(editor.erasingShapeIds.length).toBe(2)
+		expect(editor.erasingShapeIdsSet.size).toBe(2)
 	})
 })
 

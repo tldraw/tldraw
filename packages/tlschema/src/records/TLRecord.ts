@@ -14,8 +14,8 @@ export type TLRecord =
 	| TLCamera
 	| TLDocument
 	| TLInstance
-	| TLInstancePresence
 	| TLInstancePageState
 	| TLPage
 	| TLShape
+	| TLInstancePresence
 	| TLPointer

@@ -54,15 +54,16 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 	const onDoubleClick = React.useCallback(
 		(e: React.MouseEvent<HTMLCanvasElement>) => {
-			if (!editor.currentPageShapeIds.size) return
+			if (!editor.shapeIdsOnCurrentPage.size) return
 
-			const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
+			const { x, y } = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
+
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
 			minimap.originPagePoint.setTo(clampedPoint)
 			minimap.originPageCenter.setTo(editor.viewportPageBounds.center)
 
-			editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
+			editor.centerOnPoint(x, y, { duration: ANIMATION_MEDIUM_MS })
 		},
 		[editor, minimap]
 	)
@@ -70,13 +71,14 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	const onPointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
 			setPointerCapture(e.currentTarget, e)
-			if (!editor.currentPageShapeIds.size) return
+			if (!editor.shapeIdsOnCurrentPage.size) return
 
 			rPointing.current = true
 
 			minimap.isInViewport = false
 
-			const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
+			const { x, y } = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
+
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
 			const _vpPageBounds = editor.viewportPageBounds
@@ -87,7 +89,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			minimap.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
 
 			if (!minimap.isInViewport) {
-				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
+				editor.centerOnPoint(x, y, { duration: ANIMATION_MEDIUM_MS })
 			}
 		},
 		[editor, minimap]
@@ -96,21 +98,26 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	const onPointerMove = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
 			if (rPointing.current) {
-				const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, e.shiftKey, true)
+				const { x, y } = minimap.minimapScreenPointToPagePoint(
+					e.clientX,
+					e.clientY,
+					e.shiftKey,
+					true
+				)
 
 				if (minimap.isInViewport) {
-					const delta = Vec2d.Sub(point, minimap.originPagePoint)
+					const delta = Vec2d.Sub({ x, y }, minimap.originPagePoint)
 					const center = Vec2d.Add(minimap.originPageCenter, delta)
-					editor.centerOnPoint(center)
+					editor.centerOnPoint(center.x, center.y)
 					return
 				}
 
-				editor.centerOnPoint(point)
+				editor.centerOnPoint(x, y)
 			}
 
 			const pagePoint = minimap.getPagePoint(e.clientX, e.clientY)
 
-			const screenPoint = editor.pageToScreen(pagePoint)
+			const screenPoint = editor.pageToScreen(pagePoint.x, pagePoint.y)
 
 			const info: TLPointerEventInfo = {
 				type: 'pointer',
@@ -171,10 +178,9 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	useQuickReactor(
 		'minimap render when pagebounds or collaborators changes',
 		() => {
-			const { currentPageShapeIds, viewportPageBounds, commonBoundsOfAllShapesOnCurrentPage } =
+			const { shapeIdsOnCurrentPage, viewportPageBounds, commonBoundsOfAllShapesOnCurrentPage } =
 				editor
 
-			// deref
 			const _dpr = devicePixelRatio.value
 
 			minimap.contentPageBounds = commonBoundsOfAllShapesOnCurrentPage
@@ -187,7 +193,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 			const allShapeBounds = [] as (Box2d & { id: TLShapeId })[]
 
-			currentPageShapeIds.forEach((id) => {
+			shapeIdsOnCurrentPage.forEach((id) => {
 				let pageBounds = editor.getPageBounds(id) as Box2d & { id: TLShapeId }
 				if (!pageBounds) return
 
@@ -211,7 +217,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			minimap.collaborators = presences.value
 			minimap.render()
 		},
-		[editor, minimap, devicePixelRatio]
+		[editor, minimap]
 	)
 
 	return (

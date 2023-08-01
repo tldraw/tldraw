@@ -37,8 +37,7 @@ export class Cropping extends StateNode {
 		}
 	) => {
 		this.info = info
-		this.markId = 'cropping'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.mark('cropping')
 		this.snapshot = this.createSnapshot()
 		this.updateShapes()
 	}
@@ -200,7 +199,7 @@ export class Cropping extends StateNode {
 			},
 		}
 
-		this.editor.updateShapes([partial], { squashing: true })
+		this.editor.updateShapes([partial], true)
 		this.updateCursor()
 	}
 
@@ -208,7 +207,7 @@ export class Cropping extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.setCroppingShapeId(null)
+			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})
 		}
 	}
@@ -218,7 +217,7 @@ export class Cropping extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.setCroppingShapeId(null)
+			this.editor.setCroppingId(null)
 			this.parent.transition('idle', {})
 		}
 	}

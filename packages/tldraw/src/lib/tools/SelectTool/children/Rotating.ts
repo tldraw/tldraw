@@ -29,8 +29,7 @@ export class Rotating extends StateNode {
 		this.info = info
 		this.parent.currentToolIdMask = info.onInteractionEnd
 
-		this.markId = 'rotate start'
-		this.editor.mark(this.markId)
+		this.markId = this.editor.mark('rotate start')
 
 		const snapshot = getRotationSnapshot({ editor: this.editor })
 		if (!snapshot) return this.parent.transition('idle', this.info)
@@ -41,10 +40,7 @@ export class Rotating extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'none', rotation: 0 } },
-			{ ephemeral: true, squashing: true }
-		)
+		this.editor.updateInstanceState({ cursor: { type: 'none', rotation: 0 } }, true)
 		this.parent.currentToolIdMask = undefined
 
 		this.snapshot = {} as TLRotationSnapshot
