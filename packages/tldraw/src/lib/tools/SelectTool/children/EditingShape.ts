@@ -19,7 +19,7 @@ export class EditingShape extends StateNode {
 		if (!editingShapeId) return
 
 		// Clear the editing shape
-		this.editor.setEditingShapeId(null)
+		this.editor.setEditingId(null)
 
 		const shape = this.editor.getShape(editingShapeId)!
 		const util = this.editor.getShapeUtil(shape)

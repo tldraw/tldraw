@@ -39,7 +39,7 @@ export class Brushing extends StateNode {
 		}
 
 		this.excludedShapeIds = new Set(
-			this.editor.currentPageShapes
+			this.editor.shapesOnCurrentPage
 				.filter(
 					(shape) =>
 						this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
@@ -96,7 +96,7 @@ export class Brushing extends StateNode {
 		const {
 			zoomLevel,
 			currentPageId,
-			currentPageShapes,
+			shapesOnCurrentPage,
 			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
 		} = this.editor
 
@@ -118,8 +118,8 @@ export class Brushing extends StateNode {
 
 		const { excludedShapeIds } = this
 
-		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
-			shape = currentPageShapes[i]
+		testAllShapes: for (let i = 0, n = shapesOnCurrentPage.length; i < n; i++) {
+			shape = shapesOnCurrentPage[i]
 			if (excludedShapeIds.has(shape.id)) continue testAllShapes
 			if (results.has(shape.id)) continue testAllShapes
 

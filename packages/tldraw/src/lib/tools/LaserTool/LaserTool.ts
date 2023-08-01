@@ -9,9 +9,6 @@ export class LaserTool extends StateNode {
 	static override children = () => [Idle, Lasering]
 
 	override onEnter = () => {
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'cross', rotation: 0 } },
-			{ ephemeral: true, squashing: true }
-		)
+		this.editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, true)
 	}
 }

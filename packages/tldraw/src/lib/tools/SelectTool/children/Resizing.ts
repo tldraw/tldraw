@@ -56,16 +56,13 @@ export class Resizing extends StateNode {
 		this.creationCursorOffset = creationCursorOffset
 
 		if (info.isCreating) {
-			this.editor.updateInstanceState(
-				{ cursor: { type: 'cross', rotation: 0 } },
-				{ ephemeral: true, squashing: true }
-			)
+			this.editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, true)
 		}
 
 		this.snapshot = this._createSnapshot()
-
-		this.markId = isCreating ? `creating:${this.editor.onlySelectedShape!.id}` : 'starting resizing'
-		if (!isCreating) this.editor.mark(this.markId)
+		this.markId = isCreating
+			? `creating:${this.editor.onlySelectedShape!.id}`
+			: this.editor.mark('starting resizing')
 
 		this.handleResizeStart()
 		this.updateShapes()
@@ -108,7 +105,7 @@ export class Resizing extends StateNode {
 		this.handleResizeEnd()
 
 		if (this.editAfterComplete && this.editor.onlySelectedShape) {
-			this.editor.setEditingShapeId(this.editor.onlySelectedShape.id)
+			this.editor.setEditingId(this.editor.onlySelectedShape.id)
 			this.editor.setCurrentTool('select')
 			this.editor.root.current.value!.transition('editing_shape', {})
 			return
@@ -352,15 +349,12 @@ export class Resizing extends StateNode {
 
 		nextCursor.rotation = rotation
 
-		this.editor.updateInstanceState({ cursor: nextCursor }, { ephemeral: true, squashing: true })
+		this.editor.updateInstanceState({ cursor: nextCursor })
 	}
 
 	override onExit = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.updateInstanceState(
-			{ cursor: { type: 'default', rotation: 0 } },
-			{ ephemeral: true, squashing: true }
-		)
+		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
 		this.editor.snaps.clear()
 	}
 

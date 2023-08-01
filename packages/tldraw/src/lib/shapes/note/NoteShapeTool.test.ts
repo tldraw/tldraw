@@ -12,47 +12,47 @@ afterEach(() => {
 
 describe(NoteShapeTool, () => {
 	it('Creates note shapes on click-and-drag, supports undo and redo', () => {
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)
 		editor.pointerUp(100, 100)
 
-		expect(editor.currentPageShapes.length).toBe(1)
-		expect(editor.currentPageShapes[0]?.type).toBe('note')
-		expect(editor.selectedShapeIds[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
+		expect(editor.shapesOnCurrentPage[0]?.type).toBe('note')
+		expect(editor.selectedShapeIds[0]).toBe(editor.shapesOnCurrentPage[0]?.id)
 
 		editor.cancel() // leave edit mode
 
 		editor.undo() // undoes the selection change
 		editor.undo()
 
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 
 		editor.redo()
 
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
 	})
 
 	it('Creates note shapes on click, supports undo and redo', () => {
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 
-		expect(editor.currentPageShapes.length).toBe(1)
-		expect(editor.currentPageShapes[0]?.type).toBe('note')
-		expect(editor.selectedShapeIds[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
+		expect(editor.shapesOnCurrentPage[0]?.type).toBe('note')
+		expect(editor.selectedShapeIds[0]).toBe(editor.shapesOnCurrentPage[0]?.id)
 
 		editor.undo()
 
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 
 		editor.redo()
 
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
 	})
 })
 
@@ -126,21 +126,21 @@ describe('When in the pointing state', () => {
 	})
 
 	it('Creates a note and begins editing on pointer up', () => {
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 		editor.expectPathToBe('root.select.editing_shape')
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
 	})
 
 	it('Creates a frame and returns to frame.idle on pointer up if tool lock is enabled', () => {
 		editor.updateInstanceState({ isToolLocked: true })
-		expect(editor.currentPageShapes.length).toBe(0)
+		expect(editor.shapesOnCurrentPage.length).toBe(0)
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
 		editor.expectPathToBe('root.note.idle')
-		expect(editor.currentPageShapes.length).toBe(1)
+		expect(editor.shapesOnCurrentPage.length).toBe(1)
 	})
 })

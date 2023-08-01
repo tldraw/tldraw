@@ -1,5 +1,6 @@
 import { BaseBoxShapeUtil, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
+import { TL } from './test-jsx'
 
 let editor: TestEditor
 
@@ -52,13 +53,13 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's hintingShapeIds", () => {
 		test('[boxes]', () => {
-			editor.setHintingShapeIds([ids.box1, ids.box2, ids.box3])
+			editor.setHintingIds([ids.box1, ids.box2, ids.box3])
 			expect(editor.hintingShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
 			expect(editor.hintingShapeIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.setHintingShapeIds([ids.frame1])
+			editor.setHintingIds([ids.frame1])
 			expect(editor.hintingShapeIds).toEqual([ids.frame1])
 			moveShapesToPage2()
 			expect(editor.hintingShapeIds).toEqual([ids.frame1])
@@ -67,25 +68,25 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's editingShapeId", () => {
 		test('[root shape]', () => {
-			editor.setEditingShapeId(ids.box1)
+			editor.setEditingId(ids.box1)
 			expect(editor.editingShapeId).toBe(ids.box1)
 			moveShapesToPage2()
 			expect(editor.editingShapeId).toBe(null)
 		})
 		test('[child of frame]', () => {
-			editor.setEditingShapeId(ids.box2)
+			editor.setEditingId(ids.box2)
 			expect(editor.editingShapeId).toBe(ids.box2)
 			moveShapesToPage2()
 			expect(editor.editingShapeId).toBe(null)
 		})
 		test('[child of group]', () => {
-			editor.setEditingShapeId(ids.box3)
+			editor.setEditingId(ids.box3)
 			expect(editor.editingShapeId).toBe(ids.box3)
 			moveShapesToPage2()
 			expect(editor.editingShapeId).toBe(null)
 		})
 		test('[frame that doesnt move]', () => {
-			editor.setEditingShapeId(ids.frame1)
+			editor.setEditingId(ids.frame1)
 			expect(editor.editingShapeId).toBe(ids.frame1)
 			moveShapesToPage2()
 			expect(editor.editingShapeId).toBe(ids.frame1)
@@ -94,13 +95,13 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's erasingShapeIds", () => {
 		test('[boxes]', () => {
-			editor.setErasingShapeIds([ids.box1, ids.box2, ids.box3])
+			editor.setErasingIds([ids.box1, ids.box2, ids.box3])
 			expect(editor.erasingShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
 			expect(editor.erasingShapeIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.setErasingShapeIds([ids.frame1])
+			editor.setErasingIds([ids.frame1])
 			expect(editor.erasingShapeIds).toEqual([ids.frame1])
 			moveShapesToPage2()
 			expect(editor.erasingShapeIds).toEqual([ids.frame1])
@@ -146,89 +147,89 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 	expect(editor.canUndo).toBe(false)
 })
 
-// describe('Editor.sharedOpacity', () => {
-// 	it('should return the current opacity', () => {
-// 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 1 })
-// 		editor.setOpacity(0.5)
-// 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.5 })
-// 	})
+describe('Editor.sharedOpacity', () => {
+	it('should return the current opacity', () => {
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 1 })
+		editor.setOpacity(0.5)
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.5 })
+	})
 
-// 	it('should return opacity for a single selected shape', () => {
-// 		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
-// 		editor.setSelectedShapeIds([A])
-// 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
-// 	})
+	it('should return opacity for a single selected shape', () => {
+		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
+		editor.setSelectedShapeIds([A])
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
+	})
 
-// 	it('should return opacity for multiple selected shapes', () => {
-// 		const { A, B } = editor.createShapesFromJsx([
-// 			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
-// 			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
-// 		])
-// 		editor.setSelectedShapeIds([A, B])
-// 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
-// 	})
+	it('should return opacity for multiple selected shapes', () => {
+		const { A, B } = editor.createShapesFromJsx([
+			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
+			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
+		])
+		editor.setSelectedShapeIds([A, B])
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
+	})
 
-// 	it('should return mixed when multiple selected shapes have different opacity', () => {
-// 		const { A, B } = editor.createShapesFromJsx([
-// 			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
-// 			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
-// 		])
-// 		editor.setSelectedShapeIds([A, B])
-// 		expect(editor.sharedOpacity).toStrictEqual({ type: 'mixed' })
-// 	})
+	it('should return mixed when multiple selected shapes have different opacity', () => {
+		const { A, B } = editor.createShapesFromJsx([
+			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
+			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
+		])
+		editor.setSelectedShapeIds([A, B])
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'mixed' })
+	})
 
-// 	it('ignores the opacity of groups and returns the opacity of their children', () => {
-// 		const ids = editor.createShapesFromJsx([
-// 			<TL.group ref="group" x={0} y={0}>
-// 				<TL.geo ref="A" opacity={0.3} x={0} y={0} />
-// 			</TL.group>,
-// 		])
-// 		editor.setSelectedShapeIds([ids.group])
-// 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
-// 	})
-// })
+	it('ignores the opacity of groups and returns the opacity of their children', () => {
+		const ids = editor.createShapesFromJsx([
+			<TL.group ref="group" x={0} y={0}>
+				<TL.geo ref="A" opacity={0.3} x={0} y={0} />
+			</TL.group>,
+		])
+		editor.setSelectedShapeIds([ids.group])
+		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
+	})
+})
 
 describe('Editor.setOpacity', () => {
-	// it('should set opacity for selected shapes', () => {
-	// 	const ids = editor.createShapesFromJsx([
-	// 		<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
-	// 		<TL.geo ref="B" opacity={0.4} x={0} y={0} />,
-	// 	])
+	it('should set opacity for selected shapes', () => {
+		const ids = editor.createShapesFromJsx([
+			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
+			<TL.geo ref="B" opacity={0.4} x={0} y={0} />,
+		])
 
-	// 	editor.setSelectedShapeIds([ids.A, ids.B])
-	// 	editor.setOpacity(0.5)
+		editor.setSelectedShapeIds([ids.A, ids.B])
+		editor.setOpacity(0.5)
 
-	// 	expect(editor.getShape(ids.A)!.opacity).toBe(0.5)
-	// 	expect(editor.getShape(ids.B)!.opacity).toBe(0.5)
-	// })
+		expect(editor.getShape(ids.A)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.B)!.opacity).toBe(0.5)
+	})
 
-	// it('should traverse into groups and set opacity in their children', () => {
-	// 	const ids = editor.createShapesFromJsx([
-	// 		<TL.geo ref="boxA" x={0} y={0} />,
-	// 		<TL.group ref="groupA" x={0} y={0}>
-	// 			<TL.geo ref="boxB" x={0} y={0} />
-	// 			<TL.group ref="groupB" x={0} y={0}>
-	// 				<TL.geo ref="boxC" x={0} y={0} />
-	// 				<TL.geo ref="boxD" x={0} y={0} />
-	// 			</TL.group>
-	// 		</TL.group>,
-	// 	])
+	it('should traverse into groups and set opacity in their children', () => {
+		const ids = editor.createShapesFromJsx([
+			<TL.geo ref="boxA" x={0} y={0} />,
+			<TL.group ref="groupA" x={0} y={0}>
+				<TL.geo ref="boxB" x={0} y={0} />
+				<TL.group ref="groupB" x={0} y={0}>
+					<TL.geo ref="boxC" x={0} y={0} />
+					<TL.geo ref="boxD" x={0} y={0} />
+				</TL.group>
+			</TL.group>,
+		])
 
-	// 	editor.setSelectedShapeIds([ids.groupA])
-	// 	editor.setOpacity(0.5)
+		editor.setSelectedShapeIds([ids.groupA])
+		editor.setOpacity(0.5)
 
-	// 	// a wasn't selected...
-	// 	expect(editor.getShape(ids.boxA)!.opacity).toBe(1)
+		// a wasn't selected...
+		expect(editor.getShape(ids.boxA)!.opacity).toBe(1)
 
-	// 	// b, c, & d were within a selected group...
-	// 	expect(editor.getShape(ids.boxB)!.opacity).toBe(0.5)
-	// 	expect(editor.getShape(ids.boxC)!.opacity).toBe(0.5)
-	// 	expect(editor.getShape(ids.boxD)!.opacity).toBe(0.5)
+		// b, c, & d were within a selected group...
+		expect(editor.getShape(ids.boxB)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxC)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxD)!.opacity).toBe(0.5)
 
-	// 	// groups get skipped
-	// 	expect(editor.getShape(ids.groupA)!.opacity).toBe(1)
-	// 	expect(editor.getShape(ids.groupB)!.opacity).toBe(1)
-	// })
+		// groups get skipped
+		expect(editor.getShape(ids.groupA)!.opacity).toBe(1)
+		expect(editor.getShape(ids.groupB)!.opacity).toBe(1)
+	})
 
 	it('stores opacity on opacityForNextShape', () => {
 		editor.setOpacity(0.5)

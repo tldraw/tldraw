@@ -111,7 +111,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 									[GeoShapeGeoStyle.id]: id,
 								},
 							},
-							{ ephemeral: true, squashing: true }
+							true
 						)
 						editor.setCurrentTool('geo')
 						trackEvent('select-tool', { source, id: `geo-${id}` })

@@ -1,4 +1,4 @@
-import { StateNode, TLArrowShape, TLEventHandlers, TLHandle, createShapeId } from '@tldraw/editor'
+import { StateNode, TLArrowShape, TLEventHandlers, createShapeId } from '@tldraw/editor'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -6,8 +6,6 @@ export class Pointing extends StateNode {
 	shape?: TLArrowShape
 
 	markId = ''
-
-	initialEndHandle = {} as TLHandle
 
 	override onEnter = () => {
 		this.didTimeout = false
@@ -21,7 +19,7 @@ export class Pointing extends StateNode {
 		if (!target) {
 			this.createArrowShape()
 		} else {
-			this.editor.setHintingShapeIds([target.id])
+			this.editor.setHintingIds([target.id])
 		}
 
 		this.startPreciseTimeout()
@@ -29,7 +27,7 @@ export class Pointing extends StateNode {
 
 	override onExit = () => {
 		this.shape = undefined
-		this.editor.setHintingShapeIds([])
+		this.editor.setHintingIds([])
 		this.clearPreciseTimeout()
 	}
 
@@ -45,7 +43,7 @@ export class Pointing extends StateNode {
 
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
-				handle: this.initialEndHandle,
+				handle: this.editor.getHandles(this.shape)!.find((h) => h.id === 'end')!,
 				isCreating: true,
 				onInteractionEnd: 'arrow',
 			})
@@ -73,7 +71,7 @@ export class Pointing extends StateNode {
 			// the arrow might not have been created yet!
 			this.editor.bailToMark(this.markId)
 		}
-		this.editor.setHintingShapeIds([])
+		this.editor.setHintingIds([])
 		this.parent.transition('idle', {})
 	}
 
@@ -82,9 +80,9 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 
-		this.markId = `creating:${id}`
+		this.markId = this.editor.mark(`creating:${id}`)
 
-		this.editor.mark(this.markId).createShapes<TLArrowShape>([
+		this.editor.createShapes<TLArrowShape>([
 			{
 				id,
 				type: 'arrow',
@@ -109,27 +107,28 @@ export class Pointing extends StateNode {
 		if (change) {
 			const startTerminal = change.props?.start
 			if (startTerminal?.type === 'binding') {
-				this.editor.setHintingShapeIds([startTerminal.boundShapeId])
+				this.editor.setHintingIds([startTerminal.boundShapeId])
 			}
-			// squash me
-			this.editor.updateShape(change, { squashing: true })
+			this.editor.updateShapes([change], true)
 		}
 
 		// Cache the current shape after those changes
 		this.shape = this.editor.getShape(id)
-		this.editor.setSelectedShapeIds([id], true)
-
-		this.initialEndHandle = this.editor.getHandles(this.shape!)!.find((h) => h.id === 'end')!
+		this.editor.select(id)
 	}
 
 	updateArrowShapeEndHandle() {
-		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
+		const shape = this.shape
+		if (!shape) throw Error(`expected shape`)
+
+		const handles = this.editor.getHandles(shape)
+		if (!handles) throw Error(`expected handles for arrow`)
 
 		// end update
 		{
-			const shape = this.editor.getShape(this.shape!.id)! as TLArrowShape
+			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
-			const endHandle = this.editor.getHandles(shape)!.find((h) => h.id === 'end')!
+			const endHandle = handles.find((h) => h.id === 'end')!
 			const change = util.onHandleChange?.(shape, {
 				handle: { ...endHandle, x: point.x, y: point.y },
 				isPrecise: false, // sure about that?
@@ -138,28 +137,28 @@ export class Pointing extends StateNode {
 			if (change) {
 				const endTerminal = change.props?.end
 				if (endTerminal?.type === 'binding') {
-					this.editor.setHintingShapeIds([endTerminal.boundShapeId])
+					this.editor.setHintingIds([endTerminal.boundShapeId])
 				}
-				this.editor.updateShape(change, { squashing: true })
+				this.editor.updateShapes([change], true)
 			}
 		}
 
 		// start update
 		{
-			const shape = this.editor.getShape(this.shape!.id)! as TLArrowShape
-			const startHandle = this.editor.getHandles(shape)!.find((h) => h.id === 'start')!
+			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
+			const startHandle = handles.find((h) => h.id === 'start')!
 			const change = util.onHandleChange?.(shape, {
 				handle: { ...startHandle, x: 0, y: 0 },
 				isPrecise: this.didTimeout, // sure about that?
 			})
 
 			if (change) {
-				this.editor.updateShape(change, { squashing: true })
+				this.editor.updateShapes([change], true)
 			}
 		}
 
 		// Cache the current shape after those changes
-		this.shape = this.editor.getShape(this.shape!.id)
+		this.shape = this.editor.getShape(shape.id)
 	}
 
 	private preciseTimeout = -1

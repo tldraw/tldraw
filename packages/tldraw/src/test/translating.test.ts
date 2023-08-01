@@ -76,7 +76,6 @@ describe('When translating...', () => {
 				props: {
 					w: 100,
 					h: 100,
-					fill: 'solid',
 				},
 			},
 			{
@@ -87,7 +86,6 @@ describe('When translating...', () => {
 				props: {
 					w: 100,
 					h: 100,
-					fill: 'solid',
 				},
 			},
 			{
@@ -119,27 +117,14 @@ describe('When translating...', () => {
 	})
 
 	it('translates a single shape', () => {
-		const before = editor.getShape(ids.box1)!
-
 		editor
-			.pointerMove(50, 50)
-			.pointerDown()
+			.pointerDown(50, 50, ids.box1)
 			.pointerMove(50, 40) // [0, -10]
 			.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 })
 			.pointerMove(100, 100) // [50, 50]
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
 			.pointerUp()
 			.expectShapeToMatch({ id: ids.box1, x: 60, y: 60 })
-
-		const after = editor.getShape(ids.box1)!
-
-		editor.undo()
-
-		expect(editor.getShape(ids.box1)).toMatchObject(before)
-
-		editor.redo()
-
-		expect(editor.getShape(ids.box1)).toMatchObject(after)
 	})
 
 	it('translates multiple shapes', () => {
@@ -185,19 +170,17 @@ describe('When cloning...', () => {
 				y: 100,
 			},
 		])
-		editor.mark()
 	})
-
 	it('clones a single shape and restores when stopping cloning', () => {
-		expect(editor.currentPageShapeIds.size).toBe(3)
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
 		editor.select(ids.box1).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 
 		// Start cloning!
 		editor.keyDown('Alt')
-		expect(editor.currentPageShapeIds.size).toBe(4)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(4)
 		const newShape = editor.selectedShapes[0]
 		expect(newShape.id).not.toBe(ids.box1)
 
@@ -218,13 +201,13 @@ describe('When cloning...', () => {
 
 	it('clones multiple single shape and restores when stopping cloning', () => {
 		editor.select(ids.box1, ids.box2).pointerDown(50, 50, ids.box1).pointerMove(50, 40) // [0, -10]
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
 		editor.expectShapeToMatch({ id: ids.box1, x: 10, y: 0 }) // Translated A...
 		editor.expectShapeToMatch({ id: ids.box2, x: 200, y: 190 }) // Translated B...
 
 		// Start cloning!
 		editor.keyDown('Alt')
-		expect(editor.currentPageShapeIds.size).toBe(5) // Two new shapes!
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(5) // Two new shapes!
 		const newShapeA = editor.getShape(editor.selectedShapeIds[0])!
 		const newShapeB = editor.getShape(editor.selectedShapeIds[1])!
 		expect(newShapeA).toBeDefined()
@@ -258,9 +241,9 @@ describe('When cloning...', () => {
 		expect(editor.getShape(ids.line1)!.parentId).toBe(ids.box2)
 		editor.select(ids.box2).pointerDown(250, 250, ids.box2).pointerMove(250, 240) // [0, -10]
 
-		expect(editor.currentPageShapeIds.size).toBe(3)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(3)
 		editor.keyDown('Alt', { altKey: true })
-		expect(editor.currentPageShapeIds.size).toBe(5) // Creates a clone of B and C (its descendant)
+		expect(editor.shapeIdsOnCurrentPage.size).toBe(5) // Creates a clone of B and C (its descendant)
 
 		const newShapeA = editor.getShape(editor.selectedShapeIds[0])!
 		const newShapeB = editor.getShape(editor.getSortedChildIdsForParent(newShapeA.id)[0])!
@@ -293,28 +276,28 @@ describe('When cloning...', () => {
 	it('Clones twice', () => {
 		const groupId = createShapeId('g')
 		editor.groupShapes([ids.box1, ids.box2], groupId)
-		const count1 = editor.currentPageShapes.length
+		const count1 = editor.shapesOnCurrentPage.length
 
 		editor.pointerDown(50, 50, { shape: editor.getShape(groupId)!, target: 'shape' })
 		editor.expectPathToBe('root.select.pointing_shape')
 
 		editor.pointerMove(199, 199)
 		editor.expectPathToBe('root.select.translating')
-		expect(editor.currentPageShapes.length).toBe(count1) // 2 new box and group
+		expect(editor.shapesOnCurrentPage.length).toBe(count1) // 2 new box and group
 
 		editor.keyDown('Alt')
 
 		editor.expectPathToBe('root.select.translating')
-		expect(editor.currentPageShapes.length).toBe(count1 + 3) // 2 new box and group
+		expect(editor.shapesOnCurrentPage.length).toBe(count1 + 3) // 2 new box and group
 
 		editor.keyUp('Alt')
 		jest.advanceTimersByTime(500)
 
-		expect(editor.currentPageShapes.length).toBe(count1) // 2 new box and group
+		expect(editor.shapesOnCurrentPage.length).toBe(count1) // 2 new box and group
 
 		editor.keyDown('Alt')
 
-		expect(editor.currentPageShapes.length).toBe(count1 + 3) // 2 new box and group
+		expect(editor.shapesOnCurrentPage.length).toBe(count1 + 3) // 2 new box and group
 	})
 })
 
@@ -1665,7 +1648,7 @@ describe('translating a shape with a bound shape', () => {
 			props: { start: { type: 'binding' }, end: { type: 'binding' } },
 		})
 
-		const newArrow = editor.currentPageShapes.find(
+		const newArrow = editor.shapesOnCurrentPage.find(
 			(s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow') && s.id !== arrow1
 		)
 		expect(newArrow).toMatchObject({
@@ -1746,57 +1729,5 @@ describe('When dragging a shape onto a parent', () => {
 
 		// It should not become the child of frame2 because it is clipped
 		expect(editor.getShape(ids.box1)?.parentId).toBe(editor.currentPageId)
-	})
-})
-
-describe('When dragging shapes', () => {
-	it('should drag and undo and redo', () => {
-		editor.deleteShapes(editor.currentPageShapes)
-
-		editor.setCurrentTool('arrow').pointerMove(0, 0).pointerDown().pointerMove(100, 100).pointerUp()
-
-		editor.expectShapeToMatch({
-			id: editor.currentPageShapes[0]!.id,
-			x: 0,
-			y: 0,
-		})
-
-		editor.setCurrentTool('geo').pointerMove(-10, 100).pointerDown().pointerUp()
-
-		editor.expectShapeToMatch({
-			id: editor.currentPageShapes[1]!.id,
-			x: -110,
-			y: 0,
-		})
-
-		editor
-			.selectAll()
-			.pointerMove(50, 50)
-			.pointerDown()
-			.pointerMove(100, 50)
-			.pointerUp()
-			.expectShapeToMatch({
-				id: editor.currentPageShapes[0]!.id,
-				x: 50, // 50 to the right
-				y: 0,
-			})
-			.expectShapeToMatch({
-				id: editor.currentPageShapes[1]!.id,
-				x: -60, // 50 to the right
-				y: 0,
-			})
-
-		editor
-			.undo()
-			.expectShapeToMatch({
-				id: editor.currentPageShapes[0]!.id,
-				x: 0, // 50 to the right
-				y: 0,
-			})
-			.expectShapeToMatch({
-				id: editor.currentPageShapes[1]!.id,
-				x: -110, // 50 to the right
-				y: 0,
-			})
 	})
 })

@@ -52,12 +52,12 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	component(shape: TLGroupShape) {
 		// Not a class component, but eslint can't tell that :(
 		const {
-			erasingShapeIds,
+			erasingShapeIdsSet,
 			currentPageState: { hintingShapeIds, focusedGroupId },
 			zoomLevel,
 		} = this.editor
 
-		const isErasing = erasingShapeIds.includes(shape.id)
+		const isErasing = erasingShapeIdsSet.has(shape.id)
 
 		const isHintingOtherGroup =
 			hintingShapeIds.length > 0 &&

@@ -244,8 +244,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get: <K extends IdOf<R>>(id: K) => RecFromId<K> | undefined;
-    // (undocumented)
-    getRecordType: <T extends R>(record: R) => T;
     getSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has: <K extends IdOf<R>>(id: K) => boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
@@ -257,12 +255,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;
     mergeRemoteChanges: (fn: () => void) => void;
-    onAfterChange?: (prev: R, next: R, source: 'remote' | 'user') => void;
-    onAfterCreate?: (record: R, source: 'remote' | 'user') => void;
-    onAfterDelete?: (prev: R, source: 'remote' | 'user') => void;
-    onBeforeChange?: (prev: R, next: R, source: 'remote' | 'user') => R;
-    onBeforeCreate?: (next: R, source: 'remote' | 'user') => R;
-    onBeforeDelete?: (prev: R, source: 'remote' | 'user') => false | void;
+    onAfterChange?: (prev: R, next: R) => void;
+    onAfterCreate?: (record: R) => void;
+    onAfterDelete?: (prev: R) => void;
+    onBeforeDelete?: (prev: R) => void;
     // (undocumented)
     readonly props: Props;
     put: (records: R[], phaseOverride?: 'initialize') => void;

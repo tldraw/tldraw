@@ -178,7 +178,7 @@ export function useRegisterExternalContentHandlers() {
 				},
 			}
 
-			editor.createShapes([shapePartial]).select(shapePartial.id)
+			editor.createShapes([shapePartial], true)
 		})
 
 		// files
@@ -405,7 +405,7 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 		}
 
 		// Create the shapes
-		editor.createShapes(paritals).select(...paritals.map((p) => p.id))
+		editor.createShapes(paritals, true)
 
 		// Re-position shapes so that the center of the group is at the provided point
 		const { viewportPageBounds } = editor

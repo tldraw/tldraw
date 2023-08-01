@@ -364,7 +364,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShape<TLDrawShape | TLHighlightShape>(shapePartial, { squashing: true })
+					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial], true)
 				}
 				break
 			}
@@ -424,7 +424,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShape(shapePartial, { squashing: true })
+					this.editor.updateShapes([shapePartial], true)
 				}
 
 				break
@@ -566,7 +566,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShape(shapePartial, { squashing: true })
+				this.editor.updateShapes([shapePartial], true)
 
 				break
 			}
@@ -611,14 +611,11 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShape(shapePartial, { squashing: true })
+				this.editor.updateShapes([shapePartial], true)
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > 500) {
-					this.editor.updateShape(
-						{ id, type: this.shapeType, props: { isComplete: true } },
-						{ squashing: true }
-					)
+					this.editor.updateShapes([{ id, type: this.shapeType, props: { isComplete: true } }])
 
 					const { currentPagePoint } = this.editor.inputs
 

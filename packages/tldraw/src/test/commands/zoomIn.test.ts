@@ -26,16 +26,16 @@ it('zooms by increments', () => {
 })
 
 it('zooms to from B to D when B >= (C - A)/2, else zooms from B to C', () => {
-	editor.setCamera({ x: 0, y: 0, z: (ZOOMS[2] + ZOOMS[3]) / 2 })
+	editor.setCamera(0, 0, (ZOOMS[2] + ZOOMS[3]) / 2)
 	editor.zoomIn()
 	expect(editor.zoomLevel).toBe(ZOOMS[4])
-	editor.setCamera({ x: 0, y: 0, z: (ZOOMS[2] + ZOOMS[3]) / 2 - 0.1 })
+	editor.setCamera(0, 0, (ZOOMS[2] + ZOOMS[3]) / 2 - 0.1)
 	editor.zoomIn()
 	expect(editor.zoomLevel).toBe(ZOOMS[3])
 })
 
 it('does not zoom when camera is frozen', () => {
-	editor.setCamera({ x: 0, y: 0, z: 1 })
+	editor.setCamera(0, 0, 1)
 	expect(editor.camera).toMatchObject({ x: 0, y: 0, z: 1 })
 	editor.updateInstanceState({ canMoveCamera: false })
 	editor.zoomIn()

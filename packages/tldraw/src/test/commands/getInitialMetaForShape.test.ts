@@ -8,16 +8,12 @@ beforeEach(() => {
 })
 
 it('Sets shape meta by default to an empty object', () => {
-	const id = createShapeId()
-	editor.createShapes([{ id, type: 'geo' }])
-	editor.select(id)
+	editor.createShapes([{ id: createShapeId(), type: 'geo' }], true)
 	expect(editor.onlySelectedShape!.meta).toStrictEqual({})
 })
 
 it('Sets shape meta', () => {
 	editor.getInitialMetaForShape = (shape) => ({ firstThreeCharactersOfId: shape.id.slice(0, 3) })
-	const id = createShapeId()
-	editor.createShapes([{ id, type: 'geo' }])
-	editor.select(id)
+	editor.createShapes([{ id: createShapeId(), type: 'geo' }], true)
 	expect(editor.onlySelectedShape!.meta).toStrictEqual({ firstThreeCharactersOfId: 'sha' })
 })

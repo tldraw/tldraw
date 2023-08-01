@@ -21,7 +21,7 @@ export function useExportAs() {
 			format: TLExportType = 'png'
 		) {
 			if (ids.length === 0) {
-				ids = [...editor.currentPageShapeIds]
+				ids = [...editor.shapeIdsOnCurrentPage]
 			}
 
 			if (ids.length === 0) {

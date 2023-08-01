@@ -87,7 +87,7 @@ beforeEach(() => {
 })
 
 function getShapes() {
-	const arr = editor.currentPageShapes as any[]
+	const arr = editor.shapesOnCurrentPage as any[]
 
 	const results = { old: {}, new: {} } as {
 		old: Record<string, TLGeoShape | TLFrameShape>
@@ -110,7 +110,7 @@ it('Gets pasted shapes correctly', () => {
 	editor.selectNone()
 	let shapes = getShapes()
 
-	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
+	expect(editor.sortedShapesOnCurrentPage.map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -124,7 +124,7 @@ it('Gets pasted shapes correctly', () => {
 
 	shapes = getShapes()
 
-	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
+	expect(editor.sortedShapesOnCurrentPage.map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -174,7 +174,7 @@ describe('When pasting', () => {
 		expect(shapes.new.box1?.parentId).toBe(editor.currentPageId)
 		expect(shapes.new.box2?.parentId).toBe(editor.currentPageId)
 
-		expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
+		expect(editor.sortedShapesOnCurrentPage.map((m) => m.id)).toStrictEqual([
 			shapes.old.frame1.id,
 			shapes.old.frame2.id,
 			shapes.old.frame3.id,
@@ -418,17 +418,17 @@ describe('When pasting into frames...', () => {
 			.select(ids.frame1)
 			.bringToFront(editor.selectedShapeIds)
 
-		editor.setCamera({ x: -2000, y: -2000, z: 1 })
+		editor.setCamera(-2000, -2000, 1)
 		editor.updateRenderingBounds()
 
 		// Copy box 1 (should be out of viewport)
 		editor.select(ids.box1).copy()
 
-		const shapesBefore = editor.currentPageShapes
+		const shapesBefore = editor.shapesOnCurrentPage
 		// Paste it
 		editor.paste()
 
-		const newShape = editor.currentPageShapes.find((s) => !shapesBefore.includes(s))!
+		const newShape = editor.shapesOnCurrentPage.find((s) => !shapesBefore.includes(s))!
 
 		// it should be on the canvas, NOT a child of frame2
 		expect(newShape.parentId).not.toBe(ids.frame2)

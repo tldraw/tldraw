@@ -4,17 +4,13 @@ import { uniqueId } from '../../utils/uniqueId'
 import { TLCommandHandler, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
 
-/** @public */
-export type CommandHistoryOptions = Partial<{
-	squashing: boolean
-	ephemeral: boolean
-	preservesRedoStack: boolean
-}>
-
 type CommandFn<Data> = (...args: any[]) =>
-	| ({
+	| {
 			data: Data
-	  } & CommandHistoryOptions)
+			squashing?: boolean
+			ephemeral?: boolean
+			preservesRedoStack?: boolean
+	  }
 	| null
 	| undefined
 	| void
@@ -33,6 +29,7 @@ export class HistoryManager<
 
 	constructor(
 		private readonly ctx: CTX,
+		private readonly onBatchComplete: () => void,
 		private readonly annotateError: (error: unknown) => void
 	) {}
 
@@ -45,8 +42,6 @@ export class HistoryManager<
 	get numRedos() {
 		return this._redos.value.length
 	}
-
-	skipHistory = false
 
 	createCommand = <Name extends string, Constructor extends CommandFn<any>>(
 		name: Name,
@@ -73,14 +68,13 @@ export class HistoryManager<
 
 			const { data, ephemeral, squashing, preservesRedoStack } = result
 
-			// this.ignoringUpdates((undos, redos) => {
-			handle.do(data)
-			// 	return { undos, redos }
-			// })
+			this.ignoringUpdates((undos, redos) => {
+				handle.do(data)
+				return { undos, redos }
+			})
 
 			if (!ephemeral) {
 				const prev = this._undos.value.head
-
 				if (
 					squashing &&
 					prev &&
@@ -109,7 +103,6 @@ export class HistoryManager<
 					)
 				}
 
-				// clear the redo stack unless the command explicitly says not to
 				if (!result.preservesRedoStack) {
 					this._redos.set(stack())
 				}
@@ -123,19 +116,7 @@ export class HistoryManager<
 		return exec
 	}
 
-	onBatchStart = () => {
-		// noop
-	}
-
-	onBatchComplete = () => {
-		// noop
-	}
-
 	batch = (fn: () => void) => {
-		if (this._batchDepth === 0) {
-			this.onBatchStart()
-		}
-
 		try {
 			this._batchDepth++
 			if (this._batchDepth === 1) {
