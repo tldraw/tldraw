@@ -56,14 +56,13 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 		(e: React.MouseEvent<HTMLCanvasElement>) => {
 			if (!editor.currentPageShapeIds.size) return
 
-			const { x, y } = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
-
+			const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
 			minimap.originPagePoint.setTo(clampedPoint)
 			minimap.originPageCenter.setTo(editor.viewportPageBounds.center)
 
-			editor.centerOnPoint(x, y, { duration: ANIMATION_MEDIUM_MS })
+			editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
 		},
 		[editor, minimap]
 	)
@@ -77,8 +76,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 			minimap.isInViewport = false
 
-			const { x, y } = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
-
+			const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, false)
 			const clampedPoint = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, false, true)
 
 			const _vpPageBounds = editor.viewportPageBounds
@@ -89,7 +87,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			minimap.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
 
 			if (!minimap.isInViewport) {
-				editor.centerOnPoint(x, y, { duration: ANIMATION_MEDIUM_MS })
+				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
 			}
 		},
 		[editor, minimap]
@@ -98,26 +96,21 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	const onPointerMove = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
 			if (rPointing.current) {
-				const { x, y } = minimap.minimapScreenPointToPagePoint(
-					e.clientX,
-					e.clientY,
-					e.shiftKey,
-					true
-				)
+				const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, e.shiftKey, true)
 
 				if (minimap.isInViewport) {
-					const delta = Vec2d.Sub({ x, y }, minimap.originPagePoint)
+					const delta = Vec2d.Sub(point, minimap.originPagePoint)
 					const center = Vec2d.Add(minimap.originPageCenter, delta)
-					editor.centerOnPoint(center.x, center.y)
+					editor.centerOnPoint(center)
 					return
 				}
 
-				editor.centerOnPoint(x, y)
+				editor.centerOnPoint(point)
 			}
 
 			const pagePoint = minimap.getPagePoint(e.clientX, e.clientY)
 
-			const screenPoint = editor.pageToScreen(pagePoint.x, pagePoint.y)
+			const screenPoint = editor.pageToScreen(pagePoint)
 
 			const info: TLPointerEventInfo = {
 				type: 'pointer',

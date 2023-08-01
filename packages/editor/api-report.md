@@ -534,7 +534,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     alignShapes(shapes: TLShape[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     // (undocumented)
     alignShapes(ids: TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
-    animateCamera(x: number, y: number, z?: number, opts?: TLAnimationOptions): this;
     animateShape(partial: null | TLShapePartial | undefined, options?: Partial<{
         duration: number;
         ease: (t: number) => number;
@@ -565,6 +564,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     bringToFront(ids: TLShapeId[]): this;
     get camera(): TLCamera;
+    get cameraId(): TLCameraId;
     get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
@@ -572,7 +572,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get canUndo(): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
-    centerOnPoint(x: number, y: number, opts?: TLAnimationOptions): this;
+    centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this;
     // (undocumented)
     readonly cleanup: CleanupManager;
     // @internal
@@ -583,7 +583,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     crash(error: unknown): void;
     // @internal
     get crashingError(): unknown;
-    createAssets(assets: TLAsset[]): this;
+    createAsset(asset: TLAsset): this;
+    createAssets(assets: TLAsset[], opts?: {
+        ephemeral?: boolean;
+        squashing?: boolean;
+    }): this;
     // @internal (undocumented)
     createErrorAnnotations(origin: string, willCrashApp: 'unknown' | boolean): {
         tags: {
@@ -599,10 +603,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
     // (undocumented)
-    createRecords: (partials: OptionalKeys<TLCamera | TLPointer | TLAsset | TLInstancePageState | TLPage | TLShape, "meta">[], opts?: {
-        ephemeral?: boolean | undefined;
-        preservesRedoStack?: boolean | undefined;
-    } | undefined) => this;
+    createRecords: (partials: OptionalKeys<TLCamera | TLPointer | TLAsset | TLInstancePageState | TLPage | TLShape, "meta">[], opts?: Partial<{
+        squashing: boolean;
+        ephemeral: boolean;
+        preservesRedoStack: boolean;
+    }> | undefined) => this;
     createShape<T extends TLUnknownShape>(partial: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(partials: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     get croppingShapeId(): null | TLShapeId;
@@ -615,6 +620,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPageStateId(): TLInstancePageStateId;
     get currentTool(): StateNode | undefined;
     get currentToolId(): string;
+    deleteAsset(assets: TLAsset): this;
+    // (undocumented)
+    deleteAsset(ids: TLAssetId): this;
     deleteAssets(assets: TLAsset[]): this;
     // (undocumented)
     deleteAssets(ids: TLAssetId[]): this;
@@ -623,10 +631,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     deletePage(pageId: TLPageId): this;
     // (undocumented)
-    deleteRecords: (records: (TLCamera | TLPointer | TLAsset | TLInstancePageState | TLPage | TLShape)[] | (TLCameraId | TLInstancePageStateId | TLPointerId | TLAssetId | TLPageId | TLShapeId)[], opts?: {
-        ephemeral?: boolean | undefined;
-        preservesRedoStack?: boolean | undefined;
-    } | undefined) => this;
+    deleteRecords: (records: (TLCamera | TLPointer | TLAsset | TLInstancePageState | TLPage | TLShape)[] | (TLCameraId | TLInstancePageStateId | TLPointerId | TLAssetId | TLPageId | TLShapeId)[], opts?: Partial<{
+        squashing: boolean;
+        ephemeral: boolean;
+        preservesRedoStack: boolean;
+    }> | undefined) => this;
     deleteShape(id: TLShapeId): this;
     // (undocumented)
     deleteShape(shape: TLShape): this;
@@ -867,13 +876,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     packShapes(ids: TLShapeId[], gap: number): this;
     get pages(): TLPage[];
     get pageStates(): TLInstancePageState[];
-    pageToScreen(x: number, y: number, z?: number): {
+    pageToScreen(point: VecLike): {
         x: number;
         y: number;
         z: number;
     };
-    pan(dx: number, dy: number, opts?: TLAnimationOptions): this;
-    panZoomIntoView(ids: TLShapeId[], opts?: TLAnimationOptions): this;
+    pan(offset: VecLike, animation?: TLAnimationOptions): this;
+    panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
     popFocusLayer(): this;
     putContent(content: TLContent, options?: {
         point?: VecLike;
@@ -904,16 +913,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     reparentShapes(shapes: TLShape[], parentId: TLParentId, opts?: {
         insertIndex?: string;
-        ephemeral?: boolean;
-        squashing?: boolean;
-    }): this;
+    } & CommandHistoryOptions): this;
     // (undocumented)
     reparentShapes(ids: TLShapeId[], parentId: TLParentId, opts?: {
         insertIndex?: string;
-        ephemeral?: boolean;
-        squashing?: boolean;
-    }): this;
-    resetZoom(point?: Vec2d, opts?: TLAnimationOptions): this;
+    } & CommandHistoryOptions): this;
+    resetZoom(point?: Vec2d, animation?: TLAnimationOptions): this;
     resizeShape(id: TLShapeId, scale: VecLike, options?: {
         initialBounds?: Box2d;
         scaleOrigin?: VecLike;
@@ -927,7 +932,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     rotateShapesBy(shapes: TLShape[], delta: number): this;
     // (undocumented)
     rotateShapesBy(ids: TLShapeId[], delta: number): this;
-    screenToPage(x: number, y: number, z?: number, camera?: VecLike): {
+    screenToPage(point: VecLike): {
         x: number;
         y: number;
         z: number;
@@ -948,7 +953,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendToBack(shapes: TLShape[]): this;
     // (undocumented)
     sendToBack(ids: TLShapeId[]): this;
-    setCamera(x: number, y: number, z?: number): this;
+    setCamera(point: VecLike, animation?: TLAnimationOptions): this;
     // (undocumented)
     setCroppingShapeId(id: null | TLShapeId): this;
     setCurrentPage(page: TLPage): this;
@@ -965,15 +970,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     setHintingShapeIds(ids: TLShapeId[]): this;
     // (undocumented)
     setHoveredShapeId(id: null | TLShapeId): this;
-    setOpacity(opacity: number, opts?: {
-        squashing?: boolean;
-        ephemeral?: boolean;
-    }): this;
+    setOpacity(opacity: number, opts?: CommandHistoryOptions): this;
     setSelectedShapeIds(ids: TLShapeId[], squashing?: boolean): this;
-    setStyle<T>(style: StyleProp<T>, value: T, opts?: {
-        squashing?: boolean;
-        ephemeral?: boolean;
-    }): this;
+    setStyle<T>(style: StyleProp<T>, value: T, opts?: CommandHistoryOptions): this;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -1007,34 +1006,28 @@ export class Editor extends EventEmitter<TLEventMap> {
     ungroupShapes(ids: TLShapeId[]): this;
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;
-    updateAssets(assets: TLAssetPartial[]): this;
+    updateAsset(partial: TLAssetPartial, opts?: {
+        ephemeral?: boolean;
+        squashing?: boolean;
+    }): this;
+    updateAssets(partials: TLAssetPartial[], opts?: {
+        ephemeral?: boolean;
+        squashing?: boolean;
+    }): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, opts?: {
-        squashing?: boolean;
-        ephemeral?: boolean;
-    }): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, opts?: CommandHistoryOptions): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
-    updatePageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId'>>, opts?: {
-        ephemeral?: boolean;
-        squashing?: boolean;
-        preservesRedoStack?: boolean;
-    }): this;
+    updatePageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId'>>, opts?: CommandHistoryOptions): this;
     // (undocumented)
-    updateRecords: (partials: Partial<TLRecord>[], opts?: {
-        ephemeral?: boolean | undefined;
-        squashing?: boolean | undefined;
-        preservesRedoStack?: boolean | undefined;
-    } | undefined) => this;
+    updateRecords: (partials: Partial<TLRecord>[], opts?: Partial<{
+        squashing: boolean;
+        ephemeral: boolean;
+        preservesRedoStack: boolean;
+    }> | undefined) => this;
     // @internal
     updateRenderingBounds(): this;
-    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, opts?: {
-        squashing?: boolean;
-        ephemeral?: boolean;
-    }): this;
-    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], opts?: {
-        squashing?: boolean;
-        ephemeral?: boolean;
-    }): this;
+    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, opts?: CommandHistoryOptions): this;
+    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], opts?: CommandHistoryOptions): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
     get viewportPageBounds(): Box2d;
@@ -1044,13 +1037,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     visitDescendants(parent: TLPage | TLShape, visitor: (id: TLShapeId) => false | void): this;
     // (undocumented)
     visitDescendants(parentId: TLParentId, visitor: (id: TLShapeId) => false | void): this;
-    zoomIn(point?: Vec2d, opts?: TLAnimationOptions): this;
+    zoomIn(point?: Vec2d, animation?: TLAnimationOptions): this;
     get zoomLevel(): number;
-    zoomOut(point?: Vec2d, opts?: TLAnimationOptions): this;
-    zoomToBounds(bounds: Box2d, targetZoom?: number, opts?: TLAnimationOptions): this;
+    zoomOut(point?: Vec2d, animation?: TLAnimationOptions): this;
+    zoomToBounds(bounds: Box2d, targetZoom?: number, animation?: TLAnimationOptions): this;
     zoomToContent(): this;
-    zoomToFit(opts?: TLAnimationOptions): this;
-    zoomToSelection(opts?: TLAnimationOptions): this;
+    zoomToFit(animation?: TLAnimationOptions): this;
+    zoomToSelection(animation?: TLAnimationOptions): this;
 }
 
 // @public (undocumented)

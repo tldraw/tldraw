@@ -51,7 +51,7 @@ it('updates the rendering viewport when the camera stops moving', () => {
 	const ids = createShapes()
 
 	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
-	editor.pan(-201, -201)
+	editor.pan({ x: -201, y: -201 })
 	jest.advanceTimersByTime(500)
 
 	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
@@ -71,7 +71,7 @@ it('lists shapes in viewport', () => {
 	])
 
 	// Move the camera 201 pixels to the right and 201 pixels down
-	editor.pan(-201, -201)
+	editor.pan({ x: -201, y: -201 })
 	jest.advanceTimersByTime(500)
 
 	expect(
@@ -83,7 +83,7 @@ it('lists shapes in viewport', () => {
 		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
 	])
 
-	editor.pan(-100, -100)
+	editor.pan({ x: -100, y: -100 })
 	jest.advanceTimersByTime(500)
 
 	expect(
@@ -95,7 +95,7 @@ it('lists shapes in viewport', () => {
 		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
 	])
 
-	editor.pan(-900, -900)
+	editor.pan({ x: -900, y: -900 })
 	jest.advanceTimersByTime(500)
 	expect(
 		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])

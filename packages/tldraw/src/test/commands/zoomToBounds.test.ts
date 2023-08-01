@@ -12,7 +12,7 @@ describe('When zooming to bounds', () => {
 		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
 
 		editor.setScreenBounds({ x: 0, y: 0, w: 1000, h: 1000 })
-		editor.setCamera(0, 0, 1)
+		editor.setCamera({ x: 0, y: 0, z: 1 })
 		editor.zoomToBounds(new Box2d(200, 300, 300, 300))
 		expect(editor.viewportPageCenter.toJson()).toCloselyMatchObject({ x: 350, y: 450 })
 	})

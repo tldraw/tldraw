@@ -4,13 +4,17 @@ import { uniqueId } from '../../utils/uniqueId'
 import { TLCommandHandler, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
 
+/** @public */
+export type CommandHistoryOptions = Partial<{
+	squashing: boolean
+	ephemeral: boolean
+	preservesRedoStack: boolean
+}>
+
 type CommandFn<Data> = (...args: any[]) =>
-	| {
+	| ({
 			data: Data
-			squashing?: boolean
-			ephemeral?: boolean
-			preservesRedoStack?: boolean
-	  }
+	  } & CommandHistoryOptions)
 	| null
 	| undefined
 	| void

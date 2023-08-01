@@ -75,7 +75,11 @@ describe('When copying and pasting', () => {
 
 		const testOffsetX = 100
 		const testOffsetY = 100
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
 		const shapesAfter = editor.currentPageShapes
@@ -116,7 +120,11 @@ describe('When copying and pasting', () => {
 
 		const testOffsetX = 1800
 		const testOffsetY = 0
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
 		const shapesAfter = editor.currentPageShapes
@@ -154,7 +162,11 @@ describe('When copying and pasting', () => {
 		const testOffsetY = 3000
 
 		const { w: screenWidth, h: screenHeight } = editor.viewportScreenBounds
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
 		const shapesAfter = editor.currentPageShapes
@@ -280,7 +292,11 @@ describe('When copying and pasting', () => {
 
 		const testOffsetX = 100
 		const testOffsetY = 100
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
 		const shapesAfter = editor.currentPageShapes
@@ -306,7 +322,11 @@ describe('When copying and pasting', () => {
 
 		const testOffsetX = 1800
 		const testOffsetY = 0
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
 		const shapesAfter = editor.currentPageShapes
@@ -335,7 +355,11 @@ describe('When copying and pasting', () => {
 		const testOffsetY = 3000
 
 		const { w: screenWidth, h: screenHeight } = editor.viewportScreenBounds
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
 		const shapesAfter = editor.currentPageShapes
