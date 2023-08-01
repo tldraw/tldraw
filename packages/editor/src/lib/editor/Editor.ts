@@ -2101,12 +2101,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _setCamera(point: VecLike): this {
 		const currentCamera = this.camera
-		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z)
+
+		if (currentCamera.x === point.x && currentCamera.y === point.y && currentCamera.z === point.z) {
 			return this
+		}
 
 		this.batch(() => {
 			this.store.put([{ ...currentCamera, ...point }]) // include id and meta here
 
+			// Dispatch a new pointer move because the pointer's page will have changed
+			// (its screen position will compute to a new page position given the new camera position)
 			const { currentScreenPoint } = this.inputs
 
 			this.dispatch({
@@ -2133,9 +2137,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setCamera({x: 0, y: 0})
-	 * editor.setCamera({x: 0, y: 0, z: 1.5})
-	 * editor.setCamera({x: 0, y: 0, z: 1.5}, { duration: 1000, easing: (t) => t * t })
+	 * editor.setCamera({ x: 0, y: 0})
+	 * editor.setCamera({ x: 0, y: 0, z: 1.5})
+	 * editor.setCamera({ x: 0, y: 0, z: 1.5}, { duration: 1000, easing: (t) => t * t })
 	 * ```
 	 *
 	 * @param point - The new camera position.
@@ -2171,8 +2175,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.centerOnPoint({x: 100, y: 100 })
-	 * editor.centerOnPoint({x: 100, y: 100 }, { duration: 200 })
+	 * editor.centerOnPoint({ x: 100, y: 100 })
+	 * editor.centerOnPoint({ x: 100, y: 100 }, { duration: 200 })
 	 * ```
 	 *
 	 * @param point - The point in page space to center on.
@@ -2478,8 +2482,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.pan({x: 100, y: 100 })
-	 * editor.pan({x: 100, y: 100 }, { duration: 1000 })
+	 * editor.pan({ x: 100, y: 100 })
+	 * editor.pan({ x: 100, y: 100 }, { duration: 1000 })
 	 * ```
 	 *
 	 * @param offset - The offset in page space.
@@ -2832,10 +2836,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get viewportPageBounds() {
-		const { x, y, w, h } = this.viewportScreenBounds
-		const tl = this.screenToPage({ x, y })
-		const br = this.screenToPage({ x: x + w, y: y + h })
-		return new Box2d(tl.x, tl.y, br.x - tl.x, br.y - tl.y)
+		const { w, h } = this.viewportScreenBounds
+		const { x: cx, y: cy, z: cz } = this.camera
+		return new Box2d(-cx, -cy, w / cz, h / cz)
 	}
 
 	/**
@@ -2852,7 +2855,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.screenToPage({x: 100, y: 100 })
+	 * editor.screenToPage({ x: 100, y: 100 })
 	 * ```
 	 *
 	 * @param point - The point in screen space.
@@ -2863,8 +2866,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz = 1 } = this.camera
 		return {
-			x: (point.x - screenBounds.x) / cz - cx,
-			y: (point.y - screenBounds.y) / cz - cy,
+			x: (point.x - screenBounds.x - cx) / cz,
+			y: (point.y - screenBounds.y - cy) / cz,
 			z: point.z ?? 0.5,
 		}
 	}
@@ -2874,20 +2877,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.pageToScreen(100, 100)
+	 * editor.pageToScreen({ x: 100, y: 100 })
 	 * ```
 	 *
-	 * @param x - The x coordinate of the point in screen space.
-	 * @param y - The y coordinate of the point in screen space.
+	 * @param point - The point in screen space.
 	 *
 	 * @public
 	 */
 	pageToScreen(point: VecLike) {
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz = 1 } = this.camera
+
 		return {
-			x: point.x + screenBounds.x + cx * cz,
-			y: point.y + screenBounds.y + cy * cz,
+			x: point.x * cz + cx + screenBounds.x,
+			y: point.y * cz + cy + screenBounds.y,
 			z: point.z ?? 0.5,
 		}
 	}
@@ -3088,11 +3091,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		{
 			renderingBounds,
 			renderingBoundsExpanded,
+			selectedShapeIds,
 			erasingShapeIdsSet,
 			editingShapeId,
 		}: {
 			renderingBounds?: Box2d
 			renderingBoundsExpanded?: Box2d
+			selectedShapeIds?: TLShapeId[]
 			erasingShapeIdsSet?: Set<TLShapeId>
 			editingShapeId?: TLShapeId | null
 		} = {}
@@ -3152,9 +3157,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Whether the shape should actually be culled / unmounted.
 			// - Use the "expanded" rendering viewport to include shapes that are just off-screen.
 			// - Editing shapes should never be culled.
-			const isCulled = maskedPageBounds
-				? (editingShapeId !== id && !renderingBoundsExpanded?.includes(maskedPageBounds)) ?? true
-				: true
+			const isCulled =
+				(maskedPageBounds
+					? (editingShapeId !== id && !renderingBoundsExpanded?.includes(maskedPageBounds)) ?? true
+					: true) && !selectedShapeIds?.includes(id)
 
 			const util = this.getShapeUtil(shape)
 
@@ -3208,6 +3214,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId], {
 			renderingBounds: this.renderingBounds,
 			renderingBoundsExpanded: this.renderingBoundsExpanded,
+			selectedShapeIds: this.selectedShapeIds,
 			erasingShapeIdsSet: this.erasingShapeIdsSet,
 			editingShapeId: this.editingShapeId,
 		})
@@ -3266,9 +3273,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { viewportPageBounds } = this
 		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
 		this._renderingBounds.set(viewportPageBounds.clone())
-		this._renderingBoundsExpanded.set(viewportPageBounds.clone().expandBy(100 / this.zoomLevel))
+		this._renderingBoundsExpanded.set(
+			viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.zoomLevel)
+		)
 		return this
 	}
+
+	renderingBoundsMargin = 100
 
 	/* --------------------- Pages ---------------------- */
 

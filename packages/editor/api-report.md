@@ -900,6 +900,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     } : TLExternalContent_2) => void) | null): this;
     get renderingBounds(): Box2d;
     get renderingBoundsExpanded(): Box2d;
+    // (undocumented)
+    renderingBoundsMargin: number;
     get renderingShapes(): {
         id: TLShapeId;
         shape: TLShape;
