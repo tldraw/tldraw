@@ -23,7 +23,10 @@ export class Idle extends StateNode {
 
 	override onEnter = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
@@ -438,7 +441,7 @@ export class Idle extends StateNode {
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.editor.mark('editing shape')
-		this.editor.setEditingId(shape.id)
+		this.editor.setEditingShapeId(shape.id)
 		this.parent.transition('editing_shape', info)
 	}
 
@@ -467,7 +470,7 @@ export class Idle extends StateNode {
 		const shape = this.editor.getShape(id)
 		if (!shape) return
 
-		this.editor.setEditingId(id)
+		this.editor.setEditingShapeId(id)
 		this.editor.select(id)
 		this.parent.transition('editing_shape', info)
 	}

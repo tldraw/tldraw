@@ -25,14 +25,20 @@ export class TranslatingCrop extends StateNode {
 	) => {
 		this.info = info
 		this.snapshot = this.createSnapshot()
-
 		this.editor.mark(this.markId)
-		this.editor.updateInstanceState({ cursor: { type: 'move', rotation: 0 } }, true)
+
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'move', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 		this.updateShapes()
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 	}
 
 	override onPointerMove = () => {
@@ -99,7 +105,7 @@ export class TranslatingCrop extends StateNode {
 		const partial = getTranslateCroppedImageChange(this.editor, shape, delta)
 
 		if (partial) {
-			this.editor.updateShapes([partial], true)
+			this.editor.updateShapes([partial], { squashing: true })
 		}
 	}
 }

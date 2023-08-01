@@ -372,12 +372,18 @@ describe('When in the select.crop.pointing_crop state', () => {
 
 describe('When in the select.crop.translating_crop state', () => {
 	it('moving the pointer should adjust the crop', () => {
+		expect(editor.history.numUndos).toBe(1)
+
 		editor
 			.expectPathToBe('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
 			.expectPathToBe('root.select.crop.idle')
+
+		editor
 			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.expectPathToBe('root.select.crop.pointing_crop')
+
+		expect(editor.history.numUndos).toBe(5)
 
 		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
@@ -391,6 +397,8 @@ describe('When in the select.crop.translating_crop state', () => {
 			.pointerMove(550 - imageWidth / 4, 550 - imageHeight / 4)
 			.expectPathToBe('root.select.crop.translating_crop')
 
+		expect(editor.history.numUndos).toBe(7) // mark, then change
+
 		// Update should have run right away
 		const afterFirst = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
@@ -401,6 +409,8 @@ describe('When in the select.crop.translating_crop state', () => {
 
 		// and back to the start
 		editor.pointerMove(550, 550)
+
+		expect(editor.history.numUndos).toBe(7) // squashed
 
 		// Update should have run right away
 		const afterSecond = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
@@ -413,9 +423,20 @@ describe('When in the select.crop.translating_crop state', () => {
 		// and back to the left again (first)
 		editor.pointerMove(250, 250)
 
+		expect(editor.history.numUndos).toBe(7) // squashed
+
 		const afterEnd = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor.pointerUp()
+
+		expect(afterEnd.topLeft.x).toBe(0.25)
+		expect(afterEnd.topLeft.y).toBe(0.375)
+		expect(afterEnd.bottomRight.x).toBe(0.75)
+		expect(afterEnd.bottomRight.y).toBe(0.875)
+
+		expect(editor.history.numUndos).toBe(7) // squashed
+
+		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(afterEnd)
 
 		editor.undo()
 

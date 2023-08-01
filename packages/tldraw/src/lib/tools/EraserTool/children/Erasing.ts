@@ -20,12 +20,14 @@ export class Erasing extends StateNode {
 	private excludedShapeIds = new Set<TLShapeId>()
 
 	override onEnter = (info: TLPointerEventInfo) => {
-		this.markId = this.editor.mark('erase scribble begin')
 		this.info = info
+
+		this.markId = 'erase scribble begin'
+		this.editor.mark(this.markId)
 
 		const { originPagePoint } = this.editor.inputs
 		this.excludedShapeIds = new Set(
-			this.editor.shapesOnCurrentPage
+			this.editor.currentPageShapes
 				.filter(
 					(shape) =>
 						this.editor.isShapeOrAncestorLocked(shape) ||
@@ -95,8 +97,8 @@ export class Erasing extends StateNode {
 	update() {
 		const {
 			zoomLevel,
-			shapesOnCurrentPage,
-			erasingShapeIdsSet,
+			currentPageShapes,
+			erasingShapeIds,
 			inputs: { currentPagePoint, previousPagePoint },
 		} = this.editor
 
@@ -104,9 +106,9 @@ export class Erasing extends StateNode {
 
 		this.pushPointToScribble()
 
-		const erasing = new Set<TLShapeId>(erasingShapeIdsSet)
+		const erasing = new Set<TLShapeId>(erasingShapeIds)
 
-		for (const shape of shapesOnCurrentPage) {
+		for (const shape of currentPageShapes) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
@@ -128,17 +130,17 @@ export class Erasing extends StateNode {
 		// Remove the hit shapes, except if they're in the list of excluded shapes
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
-		this.editor.setErasingIds([...erasing].filter((id) => !excludedShapeIds.has(id)))
+		this.editor.setErasingShapeIds([...erasing].filter((id) => !excludedShapeIds.has(id)))
 	}
 
 	complete() {
 		this.editor.deleteShapes(this.editor.currentPageState.erasingShapeIds)
-		this.editor.setErasingIds([])
+		this.editor.setErasingShapeIds([])
 		this.parent.transition('idle', {})
 	}
 
 	cancel() {
-		this.editor.setErasingIds([])
+		this.editor.setErasingShapeIds([])
 		this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}

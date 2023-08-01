@@ -313,15 +313,15 @@ export class SnapManager {
 
 		let startNode: GapNode, endNode: GapNode
 
-		const sortedShapesOnCurrentPageHorizontal = this.snappableShapes.sort((a, b) => {
+		const currentPageShapesSortedHorizontal = this.snappableShapes.sort((a, b) => {
 			return a.pageBounds.minX - b.pageBounds.minX
 		})
 
 		// Collect horizontal gaps
-		for (let i = 0; i < sortedShapesOnCurrentPageHorizontal.length; i++) {
-			startNode = sortedShapesOnCurrentPageHorizontal[i]
-			for (let j = i + 1; j < sortedShapesOnCurrentPageHorizontal.length; j++) {
-				endNode = sortedShapesOnCurrentPageHorizontal[j]
+		for (let i = 0; i < currentPageShapesSortedHorizontal.length; i++) {
+			startNode = currentPageShapesSortedHorizontal[i]
+			for (let j = i + 1; j < currentPageShapesSortedHorizontal.length; j++) {
+				endNode = currentPageShapesSortedHorizontal[j]
 
 				if (
 					// is there space between the boxes
@@ -358,14 +358,14 @@ export class SnapManager {
 		}
 
 		// Collect vertical gaps
-		const sortedShapesOnCurrentPageVertical = sortedShapesOnCurrentPageHorizontal.sort((a, b) => {
+		const currentPageShapesSortedVertical = currentPageShapesSortedHorizontal.sort((a, b) => {
 			return a.pageBounds.minY - b.pageBounds.minY
 		})
 
-		for (let i = 0; i < sortedShapesOnCurrentPageVertical.length; i++) {
-			startNode = sortedShapesOnCurrentPageVertical[i]
-			for (let j = i + 1; j < sortedShapesOnCurrentPageVertical.length; j++) {
-				endNode = sortedShapesOnCurrentPageVertical[j]
+		for (let i = 0; i < currentPageShapesSortedVertical.length; i++) {
+			startNode = currentPageShapesSortedVertical[i]
+			for (let j = i + 1; j < currentPageShapesSortedVertical.length; j++) {
+				endNode = currentPageShapesSortedVertical[j]
 
 				if (
 					// is there space between the boxes

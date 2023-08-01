@@ -15,7 +15,7 @@ export const FrameLabelInput = forwardRef<
 				// and sending us back into edit mode
 				e.stopPropagation()
 				e.currentTarget.blur()
-				editor.setEditingId(null)
+				editor.setEditingShapeId(null)
 			}
 		},
 		[editor]
@@ -30,16 +30,7 @@ export const FrameLabelInput = forwardRef<
 			const value = e.currentTarget.value.trim()
 			if (name === value) return
 
-			editor.updateShapes(
-				[
-					{
-						id,
-						type: 'frame',
-						props: { name: value },
-					},
-				],
-				true
-			)
+			editor.updateShape({ id, type: 'frame', props: { name: value } }, { squashing: true })
 		},
 		[id, editor]
 	)
@@ -53,16 +44,7 @@ export const FrameLabelInput = forwardRef<
 			const value = e.currentTarget.value
 			if (name === value) return
 
-			editor.updateShapes(
-				[
-					{
-						id,
-						type: 'frame',
-						props: { name: value },
-					},
-				],
-				true
-			)
+			editor.updateShape({ id, type: 'frame', props: { name: value } }, { squashing: true })
 		},
 		[id, editor]
 	)

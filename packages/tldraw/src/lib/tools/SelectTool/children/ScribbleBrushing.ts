@@ -108,7 +108,7 @@ export class ScribbleBrushing extends StateNode {
 	private updateScribbleSelection(addPoint: boolean) {
 		const {
 			zoomLevel,
-			shapesOnCurrentPage,
+			currentPageShapes,
 			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
 		} = this.editor
 
@@ -118,7 +118,7 @@ export class ScribbleBrushing extends StateNode {
 			this.pushPointToScribble()
 		}
 
-		const shapes = shapesOnCurrentPage
+		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec2d, B: Vec2d
 
 		for (let i = 0, n = shapes.length; i < n; i++) {

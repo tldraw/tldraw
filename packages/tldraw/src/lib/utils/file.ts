@@ -293,7 +293,7 @@ export async function parseAndLoadDocument(
 
 		const bounds = editor.commonBoundsOfAllShapesOnCurrentPage
 		if (bounds) {
-			editor.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
+			editor.zoomToBounds(bounds, 1)
 		}
 	})
 

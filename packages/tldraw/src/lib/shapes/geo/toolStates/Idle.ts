@@ -8,7 +8,10 @@ export class Idle extends StateNode {
 	}
 
 	override onEnter = () => {
-		this.editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'cross', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 	}
 
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
@@ -17,7 +20,7 @@ export class Idle extends StateNode {
 			if (shape && this.editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
 				// todo: ensure that this only works with the most recently created shape, not just any geo shape that happens to be selected at the time
 				this.editor.mark('editing shape')
-				this.editor.setEditingId(shape.id)
+				this.editor.setEditingShapeId(shape.id)
 				this.editor.setCurrentTool('select.editing_shape', {
 					...info,
 					target: 'shape',

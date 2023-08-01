@@ -84,12 +84,14 @@ export function useCanvasEvents() {
 
 				const files = Array.from(e.dataTransfer.files)
 
+				// the drop point should be offset by the position of the editor's container
 				const rect = editor.getContainer().getBoundingClientRect()
+				const point = editor.screenToPage({ x: e.clientX - rect.x, y: e.clientY - rect.y })
 
 				await editor.putExternalContent({
 					type: 'files',
 					files,
-					point: editor.screenToPage(e.clientX - rect.x, e.clientY - rect.y),
+					point,
 					ignoreParent: false,
 				})
 			}

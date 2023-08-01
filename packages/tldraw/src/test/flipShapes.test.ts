@@ -234,8 +234,20 @@ it('Preserves the selection bounds.', () => {
 
 it('Does, undoes and redoes', () => {
 	editor.mark('flip vertical')
-	editor.flipShapes([ids.boxA, ids.boxB], 'vertical')
+	editor.expectShapeToMatch(
+		{
+			id: ids.boxA,
+			type: 'geo',
+			y: 0,
+		},
+		{
+			id: ids.boxB,
+			type: 'geo',
+			y: 150,
+		}
+	)
 
+	editor.flipShapes([ids.boxA, ids.boxB], 'vertical')
 	editor.expectShapeToMatch(
 		{
 			id: ids.boxA,
@@ -248,6 +260,7 @@ it('Does, undoes and redoes', () => {
 			y: 0,
 		}
 	)
+
 	editor.undo()
 	editor.expectShapeToMatch(
 		{

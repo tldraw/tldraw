@@ -7,7 +7,10 @@ export class Idle extends StateNode {
 
 	override onEnter = (info: { shapeId: TLShapeId }) => {
 		this.shapeId = info.shapeId
-		this.editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'cross', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = () => {

@@ -31,6 +31,7 @@ export class Translating extends StateNode {
 	snapshot: TranslatingSnapshot = {} as any
 
 	markId = ''
+	initialMarkId = ''
 
 	isCloning = false
 	isCreating = false
@@ -53,9 +54,12 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.editAfterComplete = editAfterComplete
 
-		this.markId = isCreating
-			? this.editor.mark(`creating:${this.editor.onlySelectedShape!.id}`)
-			: this.editor.mark('translating')
+		this.initialMarkId = isCreating
+			? `creating:${this.editor.onlySelectedShape!.id}`
+			: 'translating'
+		this.markId = this.initialMarkId
+		if (!isCreating) this.editor.mark(this.markId)
+
 		this.handleEnter(info)
 		this.editor.on('tick', this.updateParent)
 	}
@@ -66,7 +70,10 @@ export class Translating extends StateNode {
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clear()
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 		this.dragAndDropManager.clear()
 	}
 
@@ -111,7 +118,9 @@ export class Translating extends StateNode {
 
 		this.isCloning = true
 		this.reset()
-		this.markId = this.editor.mark('translating')
+
+		this.markId = 'cloning'
+		this.editor.mark(this.markId)
 
 		this.editor.duplicateShapes(Array.from(this.editor.selectedShapeIds))
 
@@ -124,7 +133,10 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.snapshot = this.selectionSnapshot
 		this.reset()
-		this.markId = this.editor.mark('translating')
+
+		this.markId = this.initialMarkId
+		this.editor.mark(this.markId)
+
 		this.updateShapes()
 	}
 
@@ -148,7 +160,7 @@ export class Translating extends StateNode {
 			if (this.editAfterComplete) {
 				const onlySelected = this.editor.onlySelectedShape
 				if (onlySelected) {
-					this.editor.setEditingId(onlySelected.id)
+					this.editor.setEditingShapeId(onlySelected.id)
 					this.editor.setCurrentTool('select')
 					this.editor.root.current.value!.transition('editing_shape', {})
 				}
@@ -171,7 +183,10 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.info = info
 
-		this.editor.updateInstanceState({ cursor: { type: 'move', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'move', rotation: 0 } },
+			{ ephemeral: true, squashing: true }
+		)
 		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
 
 		// Don't clone on create; otherwise clone on altKey
@@ -201,7 +216,7 @@ export class Translating extends StateNode {
 		})
 
 		if (changes.length > 0) {
-			this.editor.updateShapes(changes)
+			this.editor.updateShapes(changes, { squashing: true })
 		}
 	}
 
@@ -406,6 +421,6 @@ export function moveShapesToPoint({
 				}
 			})
 		),
-		true
+		{ squashing: true }
 	)
 }

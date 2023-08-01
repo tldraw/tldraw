@@ -65,7 +65,7 @@ export class Pointing extends StateNode {
 			if (this.editor.instanceState.isToolLocked) {
 				this.parent.transition('idle', {})
 			} else {
-				this.editor.setEditingId(this.shape.id)
+				this.editor.setEditingShapeId(this.shape.id)
 				this.editor.setCurrentTool('select.editing_shape', {
 					...this.info,
 					target: 'shape',
@@ -87,19 +87,17 @@ export class Pointing extends StateNode {
 
 		const id = createShapeId()
 		this.markId = `creating:${id}`
-		this.editor.mark(this.markId)
-
-		this.editor.createShapes(
-			[
+		this.editor
+			.mark(this.markId)
+			.createShapes([
 				{
 					id,
 					type: 'note',
 					x: originPagePoint.x,
 					y: originPagePoint.y,
 				},
-			],
-			true
-		)
+			])
+			.select(id)
 
 		const shape = this.editor.getShape<TLNoteShape>(id)!
 		const bounds = this.editor.getGeometry(shape).bounds

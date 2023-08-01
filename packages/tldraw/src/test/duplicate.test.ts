@@ -45,11 +45,11 @@ it('creates new bindings for arrows when pasting', async () => {
 			},
 		])
 
-	const shapesBefore = editor.shapesOnCurrentPage
+	const shapesBefore = editor.currentPageShapes
 
 	editor.selectAll().duplicateShapes(editor.selectedShapeIds)
 
-	const shapesAfter = editor.shapesOnCurrentPage
+	const shapesAfter = editor.currentPageShapes
 
 	// We should not have changed the original shapes
 	expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
@@ -187,7 +187,7 @@ describe('When duplicating shapes that include arrows', () => {
 			.deleteShapes(editor.selectedShapeIds)
 			.createShapes(shapes)
 			.select(
-				...editor.shapesOnCurrentPage
+				...editor.currentPageShapes
 					.filter((s) => editor.isShapeOfType<TLArrowShape>(s, 'arrow'))
 					.map((s) => s.id)
 			)

@@ -704,7 +704,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'delete',
 				label: 'action.delete',
-				kbd: '⌫,del,backspace',
+				kbd: '⌫,del', // removed backspace; it was firing twice on mac
 				icon: 'trash',
 				readonlyOk: false,
 				onSelect(source) {
@@ -838,10 +838,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-transparent', { source })
 					editor.updateInstanceState(
-						{
-							exportBackground: !editor.instanceState.exportBackground,
-						},
-						true
+						{ exportBackground: !editor.instanceState.exportBackground },
+						{ ephemeral: true, squashing: true }
 					)
 				},
 				checkbox: true,
@@ -901,7 +899,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						{
 							isDebugMode: !editor.instanceState.isDebugMode,
 						},
-						true
+						{ ephemeral: true, squashing: true }
 					)
 				},
 				checkbox: true,

@@ -68,17 +68,21 @@ describe('When copying and pasting', () => {
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
 		])
 
-		const shapesBefore = editor.shapesOnCurrentPage
+		const shapesBefore = editor.currentPageShapes
 		editor.selectAll().copy()
 
 		await assertClipboardOfCorrectShape(mockClipboard.current)
 
 		const testOffsetX = 100
 		const testOffsetY = 100
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
-		const shapesAfter = editor.shapesOnCurrentPage
+		const shapesAfter = editor.currentPageShapes
 
 		// We should not have changed the original shapes
 		expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
@@ -109,17 +113,21 @@ describe('When copying and pasting', () => {
 			{ id: ids.box2, type: 'geo', x: 1900, y: 0, props: { w: 100, h: 100 } },
 		])
 
-		const shapesBefore = editor.shapesOnCurrentPage
+		const shapesBefore = editor.currentPageShapes
 		editor.selectAll().copy()
 
 		await assertClipboardOfCorrectShape(mockClipboard.current)
 
 		const testOffsetX = 1800
 		const testOffsetY = 0
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
-		const shapesAfter = editor.shapesOnCurrentPage
+		const shapesAfter = editor.currentPageShapes
 
 		// We should not have changed the original shapes
 		expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
@@ -145,7 +153,7 @@ describe('When copying and pasting', () => {
 			{ id: ids.box2, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
 		])
 
-		const shapesBefore = editor.shapesOnCurrentPage
+		const shapesBefore = editor.currentPageShapes
 		editor.selectAll().copy()
 
 		await assertClipboardOfCorrectShape(mockClipboard.current)
@@ -154,10 +162,14 @@ describe('When copying and pasting', () => {
 		const testOffsetY = 3000
 
 		const { w: screenWidth, h: screenHeight } = editor.viewportScreenBounds
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
-		const shapesAfter = editor.shapesOnCurrentPage
+		const shapesAfter = editor.currentPageShapes
 
 		// We should not have changed the original shapes
 		expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
@@ -214,14 +226,14 @@ describe('When copying and pasting', () => {
 			},
 		])
 
-		const shapesBefore = editor.shapesOnCurrentPage
+		const shapesBefore = editor.currentPageShapes
 		editor.selectAll().copy()
 
 		// Test the shape of the clipboard data.
 		await assertClipboardOfCorrectShape(mockClipboard.current)
 
 		editor.paste()
-		const shapesAfter = editor.shapesOnCurrentPage
+		const shapesAfter = editor.currentPageShapes
 
 		// We should not have changed the original shapes
 		expect(shapesBefore[0]).toMatchObject(shapesAfter[0])
@@ -273,17 +285,21 @@ describe('When copying and pasting', () => {
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
 		])
 
-		const shapesBefore = editor.shapesOnCurrentPage
+		const shapesBefore = editor.currentPageShapes
 		editor.selectAll().cut()
 
 		await assertClipboardOfCorrectShape(mockClipboard.current)
 
 		const testOffsetX = 100
 		const testOffsetY = 100
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
-		const shapesAfter = editor.shapesOnCurrentPage
+		const shapesAfter = editor.currentPageShapes
 
 		// The new shapes should match the old shapes, except for their id
 		expect(shapesAfter.length).toBe(shapesBefore.length)
@@ -299,17 +315,21 @@ describe('When copying and pasting', () => {
 			{ id: ids.box2, type: 'geo', x: 1900, y: 0, props: { w: 100, h: 100 } },
 		])
 
-		const shapesBefore = editor.shapesOnCurrentPage
+		const shapesBefore = editor.currentPageShapes
 		editor.selectAll().cut()
 
 		await assertClipboardOfCorrectShape(mockClipboard.current)
 
 		const testOffsetX = 1800
 		const testOffsetY = 0
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
-		const shapesAfter = editor.shapesOnCurrentPage
+		const shapesAfter = editor.currentPageShapes
 
 		// The new shapes should match the old shapes, except for their id
 		expect(shapesAfter.length).toBe(shapesBefore.length)
@@ -326,7 +346,7 @@ describe('When copying and pasting', () => {
 			{ id: ids.box2, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
 		])
 
-		const shapesBefore = editor.shapesOnCurrentPage
+		const shapesBefore = editor.currentPageShapes
 		editor.selectAll().cut()
 
 		await assertClipboardOfCorrectShape(mockClipboard.current)
@@ -335,10 +355,14 @@ describe('When copying and pasting', () => {
 		const testOffsetY = 3000
 
 		const { w: screenWidth, h: screenHeight } = editor.viewportScreenBounds
-		editor.setCamera(editor.camera.x - testOffsetX, editor.camera.y - testOffsetY, editor.zoomLevel)
+		editor.setCamera({
+			x: editor.camera.x - testOffsetX,
+			y: editor.camera.y - testOffsetY,
+			z: editor.zoomLevel,
+		})
 
 		editor.paste()
-		const shapesAfter = editor.shapesOnCurrentPage
+		const shapesAfter = editor.currentPageShapes
 
 		// The new shapes should match the old shapes, except for the should be positioned on the new viewport center.
 		expect(shapesAfter.length).toBe(shapesBefore.length)
@@ -384,7 +408,7 @@ describe('When copying and pasting', () => {
 			},
 		])
 
-		const shapesBefore = editor.shapesOnCurrentPage
+		const shapesBefore = editor.currentPageShapes
 
 		editor.selectAll().cut()
 
@@ -392,7 +416,7 @@ describe('When copying and pasting', () => {
 		await assertClipboardOfCorrectShape(mockClipboard.current)
 
 		editor.paste()
-		const shapesAfter = editor.shapesOnCurrentPage
+		const shapesAfter = editor.currentPageShapes
 
 		// The new shapes should match the old shapes, except for their id and the arrow's bindings!
 		expect(shapesAfter.length).toBe(shapesBefore.length)
@@ -426,7 +450,7 @@ describe('When copying and pasting', () => {
 			// Move the group
 			.updateShapes([
 				{
-					id: editor.shapesOnCurrentPage[2].id,
+					id: editor.currentPageShapes[2].id,
 					type: 'group',
 					x: 400,
 					y: 400,
@@ -440,12 +464,12 @@ describe('When copying and pasting', () => {
 		await assertClipboardOfCorrectShape(mockClipboard.current)
 
 		// Paste the shape
-		expect(editor.shapesOnCurrentPage.length).toEqual(3)
+		expect(editor.currentPageShapes.length).toEqual(3)
 		editor.paste()
-		expect(editor.shapesOnCurrentPage.length).toEqual(4)
+		expect(editor.currentPageShapes.length).toEqual(4)
 
 		// Check if the position is correct
-		const pastedShape = editor.shapesOnCurrentPage[editor.shapesOnCurrentPage.length - 1]
+		const pastedShape = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		const pastedPoint = { x: pastedShape.x, y: pastedShape.y }
 
 		expect(pastedPoint).toMatchObject({ x: 150, y: 150 }) // center of group

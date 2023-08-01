@@ -49,7 +49,7 @@ export const TL = new Proxy(
 
 export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
 	const ids = {} as Record<string, TLShapeId>
-	const shapesOnCurrentPage: Array<TLShapePartial> = []
+	const currentPageShapes: Array<TLShapePartial> = []
 
 	function addChildren(children: JSX.Element | Array<JSX.Element>, parentId?: TLShapeId) {
 		let nextIndex = 'a0'
@@ -104,7 +104,7 @@ export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
 				;(shapePartial.props as Record<string, unknown>)[key] = value
 			}
 
-			shapesOnCurrentPage.push(shapePartial)
+			currentPageShapes.push(shapePartial)
 
 			if (el.props.children) {
 				addChildren(el.props.children, id)
@@ -129,6 +129,6 @@ export function shapesFromJsx(shapes: JSX.Element | Array<JSX.Element>) {
 				return target[key as string]
 			}),
 		}),
-		shapes: shapesOnCurrentPage,
+		shapes: currentPageShapes,
 	}
 }

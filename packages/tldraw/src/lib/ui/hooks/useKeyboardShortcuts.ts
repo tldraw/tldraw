@@ -1,4 +1,4 @@
-import { preventDefault, useEditor, useValue } from '@tldraw/editor'
+import { preventDefault, uniqueId, useEditor, useValue } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from './useActions'
@@ -26,12 +26,12 @@ export function useKeyboardShortcuts() {
 	useEffect(() => {
 		if (!isFocused) return
 
+		const scope = uniqueId()
+
 		const container = editor.getContainer()
 
-		hotkeys.setScope(editor.store.id)
-
 		const hot = (keys: string, callback: (event: KeyboardEvent) => void) => {
-			hotkeys(keys, { element: container, scope: editor.store.id }, callback)
+			hotkeys(keys, { element: container, scope }, callback)
 		}
 
 		// Add hotkeys for actions and tools.
@@ -65,8 +65,11 @@ export function useKeyboardShortcuts() {
 			})
 		}
 
+		// When focused, hotkeys should only respond to kbds in this scope
+		hotkeys.setScope(scope)
+
 		return () => {
-			hotkeys.deleteScope(editor.store.id)
+			hotkeys.deleteScope(scope)
 		}
 	}, [actions, tools, isReadonly, editor, isFocused])
 }

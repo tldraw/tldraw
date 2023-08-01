@@ -89,10 +89,9 @@ describe('when multiple shapes are selected', () => {
 	})
 
 	it('does, undoes and redoes command', () => {
+		editor.expectShapeToMatch({ id: ids.boxB, x: 100, props: { w: 50 } })
 		editor.mark('stretch')
 		editor.stretchShapes(editor.selectedShapeIds, 'horizontal')
-		jest.advanceTimersByTime(1000)
-
 		editor.expectShapeToMatch({ id: ids.boxB, x: 0, props: { w: 500 } })
 		editor.undo()
 		editor.expectShapeToMatch({ id: ids.boxB, x: 100, props: { w: 50 } })
