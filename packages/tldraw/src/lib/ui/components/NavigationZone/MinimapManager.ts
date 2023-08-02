@@ -104,11 +104,11 @@ export class MinimapManager {
 
 		const { x: screenX, y: screenY } = this.getScreenPoint(x, y)
 
-		return {
-			x: canvasPageBounds.minX + (screenX * contentPageBounds.width) / contentScreenBounds.width,
-			y: canvasPageBounds.minY + (screenY * contentPageBounds.height) / contentScreenBounds.height,
-			z: 1,
-		}
+		return new Vec2d(
+			canvasPageBounds.minX + (screenX * contentPageBounds.width) / contentScreenBounds.width,
+			canvasPageBounds.minY + (screenY * contentPageBounds.height) / contentScreenBounds.height,
+			1
+		)
 	}
 
 	minimapScreenPointToPagePoint = (
@@ -168,7 +168,7 @@ export class MinimapManager {
 			}
 		}
 
-		return { x: px, y: py }
+		return new Vec2d(px, py)
 	}
 
 	render = () => {

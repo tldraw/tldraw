@@ -593,7 +593,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 
 		const bounds = editor.commonBoundsOfAllShapesOnCurrentPage
 		if (bounds) {
-			editor.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
+			editor.zoomToBounds(bounds, 1)
 		}
 	})
 }

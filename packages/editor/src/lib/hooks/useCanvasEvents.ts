@@ -84,12 +84,10 @@ export function useCanvasEvents() {
 
 				const files = Array.from(e.dataTransfer.files)
 
-				const rect = editor.getContainer().getBoundingClientRect()
-
 				await editor.putExternalContent({
 					type: 'files',
 					files,
-					point: editor.screenToPage(e.clientX - rect.x, e.clientY - rect.y),
+					point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
 					ignoreParent: false,
 				})
 			}
