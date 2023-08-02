@@ -225,7 +225,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	const handleContentPointerDown = useCallback(
 		(e: React.PointerEvent) => {
 			editor.dispatch({
-				...getPointerInfo(e, editor.getContainer()),
+				...getPointerInfo(e),
 				type: 'pointer',
 				name: 'pointer_down',
 				target: 'shape',

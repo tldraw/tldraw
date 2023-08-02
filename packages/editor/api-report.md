@@ -530,7 +530,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     alignShapes(shapes: TLShape[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     // (undocumented)
     alignShapes(ids: TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
-    animateCamera(x: number, y: number, z?: number, opts?: TLAnimationOptions): this;
     animateShape(partial: null | TLShapePartial | undefined, options?: Partial<{
         duration: number;
         ease: (t: number) => number;
@@ -568,7 +567,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get canUndo(): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
-    centerOnPoint(x: number, y: number, opts?: TLAnimationOptions): this;
+    centerOnPoint(point: VecLike, animation?: TLAnimationOptions): this;
     // @internal
     protected _clickManager: ClickManager;
     get commonBoundsOfAllShapesOnCurrentPage(): Box2d | undefined;
@@ -841,13 +840,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     packShapes(ids: TLShapeId[], gap: number): this;
     get pages(): TLPage[];
     get pageStates(): TLInstancePageState[];
-    pageToScreen(x: number, y: number, z?: number, camera?: VecLike): {
+    pageToScreen(point: VecLike): {
         x: number;
         y: number;
         z: number;
     };
-    pan(dx: number, dy: number, opts?: TLAnimationOptions): this;
-    panZoomIntoView(ids: TLShapeId[], opts?: TLAnimationOptions): this;
+    pan(offset: VecLike, animation?: TLAnimationOptions): this;
+    panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
     popFocusLayer(): this;
     putContent(content: TLContent, options?: {
         point?: VecLike;
@@ -882,7 +881,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     reparentShapes(shapes: TLShape[], parentId: TLParentId, insertIndex?: string): this;
     // (undocumented)
     reparentShapes(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
-    resetZoom(point?: Vec2d, opts?: TLAnimationOptions): this;
+    resetZoom(point?: Vec2d, animation?: TLAnimationOptions): this;
     resizeShape(id: TLShapeId, scale: VecLike, options?: {
         initialBounds?: Box2d;
         scaleOrigin?: VecLike;
@@ -896,7 +895,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     rotateShapesBy(shapes: TLShape[], delta: number): this;
     // (undocumented)
     rotateShapesBy(ids: TLShapeId[], delta: number): this;
-    screenToPage(x: number, y: number, z?: number, camera?: VecLike): {
+    screenToPage(point: VecLike): {
         x: number;
         y: number;
         z: number;
@@ -917,7 +916,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendToBack(shapes: TLShape[]): this;
     // (undocumented)
     sendToBack(ids: TLShapeId[]): this;
-    setCamera(x: number, y: number, z?: number, { stopFollowing }?: TLViewportOptions): this;
+    setCamera(point: VecLike, animation?: TLAnimationOptions): this;
     // (undocumented)
     setCroppingId(id: null | TLShapeId): this;
     setCurrentPage(page: TLPage, opts?: TLViewportOptions): this;
@@ -993,13 +992,13 @@ export class Editor extends EventEmitter<TLEventMap> {
     visitDescendants(parent: TLPage | TLShape, visitor: (id: TLShapeId) => false | void): this;
     // (undocumented)
     visitDescendants(parentId: TLParentId, visitor: (id: TLShapeId) => false | void): this;
-    zoomIn(point?: Vec2d, opts?: TLAnimationOptions): this;
+    zoomIn(point?: Vec2d, animation?: TLAnimationOptions): this;
     get zoomLevel(): number;
-    zoomOut(point?: Vec2d, opts?: TLAnimationOptions): this;
-    zoomToBounds(x: number, y: number, width: number, height: number, targetZoom?: number, opts?: TLAnimationOptions): this;
+    zoomOut(point?: Vec2d, animation?: TLAnimationOptions): this;
+    zoomToBounds(bounds: Box2d, targetZoom?: number, animation?: TLAnimationOptions): this;
     zoomToContent(): this;
-    zoomToFit(opts?: TLAnimationOptions): this;
-    zoomToSelection(opts?: TLAnimationOptions): this;
+    zoomToFit(animation?: TLAnimationOptions): this;
+    zoomToSelection(animation?: TLAnimationOptions): this;
 }
 
 // @public (undocumented)
@@ -1179,7 +1178,7 @@ export function getIndicesBelow(above: string, n: number): string[];
 export function getIndicesBetween(below: string | undefined, above: string | undefined, n: number): string[];
 
 // @public (undocumented)
-export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: HTMLElement): {
+export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
     point: {
         x: number;
         y: number;
@@ -1625,7 +1624,7 @@ export function refreshPage(): void;
 export function releasePointerCapture(element: Element, event: PointerEvent | React_2.PointerEvent<Element>): void;
 
 // @public (undocumented)
-export type RequiredKeys<T, K extends keyof T> = Pick<T, K> & Partial<T>;
+export type RequiredKeys<T, K extends keyof T> = Partial<Omit<T, K>> & Pick<T, K>;
 
 // @public (undocumented)
 export function resizeBox(shape: TLBaseBoxShape, info: {

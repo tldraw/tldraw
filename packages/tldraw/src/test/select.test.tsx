@@ -129,7 +129,7 @@ describe('When brushing arrows', () => {
 		const ids = editor
 			.selectAll()
 			.deleteShapes(editor.selectedShapeIds)
-			.setCamera(0, 0, 1)
+			.setCamera({ x: 0, y: 0, z: 1 })
 			.createShapesFromJsx([
 				<TL.arrow
 					ref="arrow1"
@@ -151,7 +151,7 @@ describe('When brushing arrows', () => {
 		editor
 			.selectAll()
 			.deleteShapes(editor.selectedShapeIds)
-			.setCamera(0, 0, 1)
+			.setCamera({ x: 0, y: 0, z: 1 })
 			.createShapesFromJsx([
 				<TL.arrow
 					ref="arrow1"
