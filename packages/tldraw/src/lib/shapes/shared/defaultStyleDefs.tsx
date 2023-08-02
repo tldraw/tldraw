@@ -250,7 +250,7 @@ function PatternFillDefForCanvas() {
 	const { defs, isReady } = usePattern()
 
 	useEffect(() => {
-		if (isReady && editor.isSafari) {
+		if (isReady && editor.environment.isSafari) {
 			const htmlLayer = findHtmlLayerParent(containerRef.current!)
 			if (htmlLayer) {
 				// Wait for `patternContext` to be picked up

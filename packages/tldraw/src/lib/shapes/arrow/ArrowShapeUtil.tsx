@@ -495,7 +495,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const changeIndex = React.useMemo<number>(() => {
-			return this.editor.isSafari ? (globalRenderIndex += 1) : 0
+			return this.editor.environment.isSafari ? (globalRenderIndex += 1) : 0
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [shape])
 
