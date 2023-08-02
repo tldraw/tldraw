@@ -47,7 +47,7 @@ const box = (id: TLShapeId, x: number, y: number, w = 10, h = 10): TLShapePartia
 })
 
 const roundedPageBounds = (shapeId: TLShapeId, accuracy = 0.01) => {
-	return roundedBox(editor.getShapeAbsoluteBounds(shapeId)!, accuracy)
+	return roundedBox(editor.getShapePageBounds(shapeId)!, accuracy)
 }
 
 // function getGapAndPointLines(snaps: SnapLine[]) {
@@ -240,7 +240,7 @@ describe('When resizing a rotated shape...', () => {
 
 		editor.select(ids.boxA)
 
-		const initialPagePoint = editor.getAbsoluteTransform(ids.boxA)!.point()
+		const initialPagePoint = editor.getShapePageTransform(ids.boxA)!.point()
 
 		const pt0 = Vec2d.From(initialPagePoint)
 		const pt1 = Vec2d.RotWith(initialPagePoint, editor.selectionPageBounds!.center, rotation)
@@ -259,12 +259,12 @@ describe('When resizing a rotated shape...', () => {
 
 		// The shape's point should now be at pt1 (it rotates from the top left corner)
 
-		expect(editor.getAbsoluteTransform(ids.boxA)!.rotation()).toBeCloseTo(rotation)
-		expect(editor.getAbsoluteTransform(ids.boxA)!.point()).toCloselyMatchObject(pt1)
+		expect(editor.getShapePageTransform(ids.boxA)!.rotation()).toBeCloseTo(rotation)
+		expect(editor.getShapePageTransform(ids.boxA)!.point()).toCloselyMatchObject(pt1)
 
 		// Resize by moving the top left resize handle to pt2. Should be a delta of [10, 10].
 
-		expect(Vec2d.Dist(editor.getAbsoluteTransform(ids.boxA)!.point(), pt2)).toBeCloseTo(
+		expect(Vec2d.Dist(editor.getShapePageTransform(ids.boxA)!.point(), pt2)).toBeCloseTo(
 			offset.len()
 		)
 
@@ -278,7 +278,7 @@ describe('When resizing a rotated shape...', () => {
 
 		// The shape should have moved its point to pt2 and be delta bigger.
 
-		expect(editor.getAbsoluteTransform(ids.boxA)!.point()).toCloselyMatchObject(pt2)
+		expect(editor.getShapePageTransform(ids.boxA)!.point()).toCloselyMatchObject(pt2)
 		editor.expectShapeToMatch({ id: ids.boxA, props: { w: 110, h: 110 } })
 	})
 })
@@ -324,7 +324,7 @@ describe('When resizing mulitple shapes...', () => {
 
 			// Rotate the shape by $rotation from its top left corner
 
-			const rotateStart = editor.getAbsoluteTransform(ids.boxA)!.point()
+			const rotateStart = editor.getShapePageTransform(ids.boxA)!.point()
 			const rotateCenter = editor.getPageCenter(shapeA)!
 			const rotateEnd = Vec2d.RotWith(rotateStart, rotateCenter, rotation)
 
@@ -359,8 +359,8 @@ describe('When resizing mulitple shapes...', () => {
 			expect(Vec2d.Dist(resizeStart, resizeEnd)).toBeCloseTo(offset.len())
 			expect(
 				Vec2d.Min(
-					editor.getShapeAbsoluteBounds(shapeB)!.point,
-					editor.getShapeAbsoluteBounds(shapeC)!.point
+					editor.getShapePageBounds(shapeB)!.point,
+					editor.getShapePageBounds(shapeC)!.point
 				)
 			).toCloselyMatchObject(resizeStart)
 
@@ -2331,10 +2331,10 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 				.pointerUp(100, 40, { shiftKey: true })
 		}
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.x).toBeCloseTo(40)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.y).toBeCloseTo(40)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.w).toBeCloseTo(60)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.h).toBeCloseTo(60)
+		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(40)
+		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(40)
+		expect(editor.getShapePageBounds(ids.boxX)!.w).toBeCloseTo(60)
+		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(60)
 		expect(editor.getShape(ids.boxX)!.rotation).toEqual(
 			canonicalizeRotation(((PI / 2) * times) % (PI * 2))
 		)
@@ -2364,7 +2364,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 			.pointerMove(121, 70, { ctrlKey: true, shiftKey: false })
 		jest.advanceTimersByTime(200)
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 40,
 			y: 40,
 			w: 80,
@@ -2394,7 +2394,7 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		// 140                └───┘
 		editor.keyDown('Alt', { altKey: true, ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 20,
 			y: 40,
 			w: 100,
@@ -2432,10 +2432,10 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 			.pointerMove(70, 18, { ctrlKey: true, shiftKey: false })
 		jest.advanceTimersByTime(200)
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.x).toBeCloseTo(40)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.y).toBeCloseTo(20)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.w).toBeCloseTo(60)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.h).toBeCloseTo(80)
+		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(40)
+		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(20)
+		expect(editor.getShapePageBounds(ids.boxX)!.w).toBeCloseTo(60)
+		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(80)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
       Array [
@@ -2460,10 +2460,10 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		//                    │ C │
 		// 140                └───┘
 		editor.keyDown('Shift', { ctrlKey: true })
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.x).toBeCloseTo(30)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.y).toBeCloseTo(20)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.w).toBeCloseTo(80)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.h).toBeCloseTo(80)
+		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(30)
+		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(20)
+		expect(editor.getShapePageBounds(ids.boxX)!.w).toBeCloseTo(80)
+		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(80)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
       Array [
@@ -2495,10 +2495,10 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 			.pointerDown(40, 100, { target: 'selection', handle: 'top_left' })
 			.pointerMove(18, 118, { ctrlKey: true, shiftKey: false })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.x).toBeCloseTo(20)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.y).toBeCloseTo(40)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.w).toBeCloseTo(80)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.h).toBeCloseTo(80)
+		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(20)
+		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(40)
+		expect(editor.getShapePageBounds(ids.boxX)!.w).toBeCloseTo(80)
+		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(80)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
       Array [
@@ -2526,10 +2526,10 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 
 		editor.keyDown('Alt', { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.x).toBeCloseTo(20)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.y).toBeCloseTo(20)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.w).toBeCloseTo(100)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.h).toBeCloseTo(100)
+		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(20)
+		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(20)
+		expect(editor.getShapePageBounds(ids.boxX)!.w).toBeCloseTo(100)
+		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(100)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
       Array [
@@ -2564,10 +2564,10 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 			.pointerMove(121, 70, { ctrlKey: true, shiftKey: false })
 		jest.advanceTimersByTime(200)
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.x).toBeCloseTo(40)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.y).toBeCloseTo(40)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.w).toBeCloseTo(80)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.h).toBeCloseTo(60)
+		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(40)
+		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(40)
+		expect(editor.getShapePageBounds(ids.boxX)!.w).toBeCloseTo(80)
+		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(60)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
       Array [
@@ -2593,10 +2593,10 @@ describe('snapping while resizing a shape that has been rotated by multiples of 
 		// 140                └───┘
 		editor.keyDown('Alt', { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.x).toBeCloseTo(20)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.y).toBeCloseTo(40)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.w).toBeCloseTo(100)
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!.h).toBeCloseTo(60)
+		expect(editor.getShapePageBounds(ids.boxX)!.x).toBeCloseTo(20)
+		expect(editor.getShapePageBounds(ids.boxX)!.y).toBeCloseTo(40)
+		expect(editor.getShapePageBounds(ids.boxX)!.w).toBeCloseTo(100)
+		expect(editor.getShapePageBounds(ids.boxX)!.h).toBeCloseTo(60)
 
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
       Array [
@@ -2659,7 +2659,7 @@ describe('snapping while resizing an inverted shape', () => {
 			})
 			.pointerMove(70, 123, { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 40,
 			y: 100,
 			w: 60,
@@ -2698,7 +2698,7 @@ describe('snapping while resizing an inverted shape', () => {
 			})
 			.pointerMove(18, 70, { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 20,
 			y: 40,
 			w: 20,
@@ -2737,7 +2737,7 @@ describe('snapping while resizing an inverted shape', () => {
 			})
 			.pointerMove(70, 23, { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 40,
 			y: 20,
 			w: 60,
@@ -2776,7 +2776,7 @@ describe('snapping while resizing an inverted shape', () => {
 			})
 			.pointerMove(122, 70, { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 100,
 			y: 40,
 			w: 20,
@@ -2814,7 +2814,7 @@ describe('snapping while resizing an inverted shape', () => {
 			})
 			.pointerMove(19, 121, { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 20,
 			y: 100,
 			w: 20,
@@ -2854,7 +2854,7 @@ describe('snapping while resizing an inverted shape', () => {
 			})
 			.pointerMove(19, 21, { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 20,
 			y: 20,
 			w: 20,
@@ -2892,7 +2892,7 @@ describe('snapping while resizing an inverted shape', () => {
 			})
 			.pointerMove(123, 21, { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 100,
 			y: 20,
 			w: 20,
@@ -2930,7 +2930,7 @@ describe('snapping while resizing an inverted shape', () => {
 			})
 			.pointerMove(123, 118, { ctrlKey: true })
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxX)!).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxX)!).toMatchObject({
 			x: 100,
 			y: 100,
 			w: 20,
@@ -2973,7 +2973,7 @@ describe('snapping while the grid is enabled', () => {
 			.pointerMove(59, 10)
 
 		// rounds up to nearest 10
-		expect(editor.getShapeAbsoluteBounds(ids.boxA)!.w).toEqual(60)
+		expect(editor.getShapePageBounds(ids.boxA)!.w).toEqual(60)
 
 		// engage snap mode and it should indeed snap to B
 
@@ -2982,7 +2982,7 @@ describe('snapping while the grid is enabled', () => {
 		//  │ A         │ B │
 		//  x───────────x───x
 		editor.keyDown('Control')
-		expect(editor.getShapeAbsoluteBounds(ids.boxA)!.w).toEqual(60)
+		expect(editor.getShapePageBounds(ids.boxA)!.w).toEqual(60)
 		expect(getSnapLines(editor)).toMatchInlineSnapshot(`
       Array [
         "0,0 60,0 80,0",
@@ -2993,7 +2993,7 @@ describe('snapping while the grid is enabled', () => {
 
 		// and if not snapping we can make the box any size
 		editor.pointerMove(19, 10, { ctrlKey: true })
-		expect(editor.getShapeAbsoluteBounds(ids.boxA)!.w).toEqual(19)
+		expect(editor.getShapePageBounds(ids.boxA)!.w).toEqual(19)
 	})
 })
 
@@ -3023,7 +3023,7 @@ describe('resizing a shape with a child', () => {
 		expect(editor.snaps.lines.length).toBe(0)
 		expect(editor.getShape(ids.boxA)).toMatchObject({ x: 25, y: 25, props: { w: 25, h: 25 } })
 		expect(editor.getShape(ids.boxB)).toMatchObject({ x: 0.5, y: 0.5, props: { w: 5, h: 5 } })
-		expect(editor.getShapeAbsoluteBounds(ids.boxB)).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxB)).toMatchObject({
 			x: 25.5,
 			y: 25.5,
 			w: 5,
@@ -3548,16 +3548,16 @@ describe('nodes that have do not resize', () => {
 		editor.createShapes([box(ids.boxA, 0, 0, 200, 200), { id: noteBId, type: 'note', x: 0, y: 0 }])
 
 		// the default width and height of a note is 200
-		expect(editor.getShapeAbsoluteBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
-		expect(editor.getShapeAbsoluteBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
+		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
+		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
 
 		editor.select(ids.boxA, noteBId)
 
 		editor.resizeSelection({ scaleX: 2, scaleY: 2 }, 'bottom_right')
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 400, h: 400 })
+		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 400, h: 400 })
 		// noteB should be in the middle of boxA
-		expect(editor.getShapeAbsoluteBounds(noteBId)).toMatchObject({ x: 100, y: 100, w: 200, h: 200 })
+		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 100, y: 100, w: 200, h: 200 })
 	})
 	it('can flip', () => {
 		const noteBId = createShapeId('noteB')
@@ -3572,20 +3572,20 @@ describe('nodes that have do not resize', () => {
 
 		editor.flipShapes(editor.selectedShapeIds, 'horizontal')
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxA)).toMatchObject({ x: 300, y: 0, w: 200, h: 200 })
-		expect(editor.getShapeAbsoluteBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
-		expect(editor.getShapeAbsoluteBounds(noteCId)).toMatchObject({ x: 300, y: 300, w: 200, h: 200 })
+		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ x: 300, y: 0, w: 200, h: 200 })
+		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
+		expect(editor.getShapePageBounds(noteCId)).toMatchObject({ x: 300, y: 300, w: 200, h: 200 })
 
 		editor.flipShapes(editor.selectedShapeIds, 'vertical')
 
-		expect(editor.getShapeAbsoluteBounds(ids.boxA)).toMatchObject({
+		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({
 			x: 300,
 			y: 300,
 			w: 200,
 			h: 200,
 		})
-		expect(editor.getShapeAbsoluteBounds(noteBId)).toMatchObject({ x: 0, y: 300, w: 200, h: 200 })
-		expect(editor.getShapeAbsoluteBounds(noteCId)).toMatchObject({ x: 300, y: 0, w: 200, h: 200 })
+		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 0, y: 300, w: 200, h: 200 })
+		expect(editor.getShapePageBounds(noteCId)).toMatchObject({ x: 300, y: 0, w: 200, h: 200 })
 	})
 })
 

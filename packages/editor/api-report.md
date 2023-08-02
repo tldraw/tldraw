@@ -663,9 +663,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     focus: () => void;
     get focusedGroupId(): TLPageId | TLShapeId;
-    getAbsoluteTransform(id: TLShapeId): Matrix2d;
-    // (undocumented)
-    getAbsoluteTransform(shape: TLShape): Matrix2d;
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
     // (undocumented)
     getAncestorPageId(shapeId?: TLShapeId): TLPageId | undefined;
@@ -707,9 +704,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShape<T extends TLShape = TLShape>(id: TLParentId): T | undefined;
     // (undocumented)
     getShape<T extends TLShape = TLShape>(shape: TLShape): T | undefined;
-    getShapeAbsoluteBounds(shape: TLShape): Box2d | undefined;
-    // (undocumented)
-    getShapeAbsoluteBounds(id: TLShapeId): Box2d | undefined;
     getShapeAncestors(shape: TLShape, acc?: TLShape[]): TLShape[];
     // (undocumented)
     getShapeAncestors(id: TLShapeId, acc?: TLShape[]): TLShape[];
@@ -736,12 +730,18 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeMask(id: TLShapeId): undefined | VecLike[];
     // (undocumented)
     getShapeMask(shape: TLShape): undefined | VecLike[];
-    getShapeMaskedAbsoluteBounds(id: TLShapeId): Box2d | undefined;
+    getShapeMaskedPageBounds(id: TLShapeId): Box2d | undefined;
     // (undocumented)
-    getShapeMaskedAbsoluteBounds(shape: TLShape): Box2d | undefined;
+    getShapeMaskedPageBounds(shape: TLShape): Box2d | undefined;
     getShapeOutlineSegments<T extends TLShape>(shape: T): Vec2d[][];
     // (undocumented)
     getShapeOutlineSegments<T extends TLShape>(id: T['id']): Vec2d[][];
+    getShapePageBounds(shape: TLShape): Box2d | undefined;
+    // (undocumented)
+    getShapePageBounds(id: TLShapeId): Box2d | undefined;
+    getShapePageTransform(id: TLShapeId): Matrix2d;
+    // (undocumented)
+    getShapePageTransform(shape: TLShape): Matrix2d;
     getShapeParent(shape?: TLShape): TLShape | undefined;
     // (undocumented)
     getShapeParent(shapeId?: TLShapeId): TLShape | undefined;

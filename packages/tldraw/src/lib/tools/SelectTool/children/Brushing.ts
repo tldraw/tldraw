@@ -109,7 +109,7 @@ export class Brushing extends StateNode {
 		let A: Vec2d,
 			B: Vec2d,
 			shape: TLShape,
-			absoluteBounds: Box2d | undefined,
+			pageBounds: Box2d | undefined,
 			pageTransform: Matrix2d | undefined,
 			localCorners: Vec2d[]
 
@@ -123,11 +123,11 @@ export class Brushing extends StateNode {
 			if (excludedShapeIds.has(shape.id)) continue testAllShapes
 			if (results.has(shape.id)) continue testAllShapes
 
-			absoluteBounds = this.editor.getShapeAbsoluteBounds(shape)
-			if (!absoluteBounds) continue testAllShapes
+			pageBounds = this.editor.getShapePageBounds(shape)
+			if (!pageBounds) continue testAllShapes
 
 			// If the brush fully wraps a shape, it's almost certainly a hit
-			if (this.brush.contains(absoluteBounds)) {
+			if (this.brush.contains(pageBounds)) {
 				this.handleHit(shape, currentPagePoint, currentPageId, results, corners)
 				continue testAllShapes
 			}
@@ -141,12 +141,12 @@ export class Brushing extends StateNode {
 
 			// If the brush collides the page bounds, then do hit tests against
 			// each of the brush's four sides.
-			if (this.brush.collides(absoluteBounds)) {
+			if (this.brush.collides(pageBounds)) {
 				// Shapes expect to hit test line segments in their own coordinate system,
 				// so we first need to get the brush corners in the shape's local space.
 				const geometry = this.editor.getShapeGeometry(shape)
 
-				pageTransform = this.editor.getAbsoluteTransform(shape)
+				pageTransform = this.editor.getShapePageTransform(shape)
 
 				if (!pageTransform) {
 					continue testAllShapes

@@ -58,7 +58,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		return getStraightArrowInfo(editor, shape)
 	}
 
-	const arrowPageTransform = editor.getAbsoluteTransform(shape)!
+	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		// Points in page space

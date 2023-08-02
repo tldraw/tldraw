@@ -54,7 +54,7 @@ export class DraggingHandle extends StateNode {
 		this.shapeId = shape.id
 		this.markId = isCreating ? `creating:${shape.id}` : this.editor.mark('dragging handle')
 		this.initialHandle = deepCopy(handle)
-		this.initialPageTransform = this.editor.getAbsoluteTransform(shape)!
+		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
 		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
 
@@ -233,7 +233,7 @@ export class DraggingHandle extends StateNode {
 
 		if (isSnapMode ? !ctrlKey : ctrlKey) {
 			// We're snapping
-			const pageTransform = editor.getAbsoluteTransform(shape.id)
+			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 
 			// Get all the outline segments from the shape

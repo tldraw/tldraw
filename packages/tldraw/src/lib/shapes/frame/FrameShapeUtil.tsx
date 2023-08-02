@@ -91,7 +91,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 		// Text label
 		const pageRotation = canonicalizeRotation(
-			this.editor.getAbsoluteTransform(shape.id)!.rotation()
+			this.editor.getShapePageTransform(shape.id)!.rotation()
 		)
 		// rotate right 45 deg
 		const offsetRotation = pageRotation + Math.PI / 4
@@ -219,13 +219,13 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
-		const bounds = this.editor.getShapeAbsoluteBounds(shape)!
+		const bounds = this.editor.getShapePageBounds(shape)!
 		const children = this.editor.getSortedChildIdsForParent(shape.id)
 
 		const shapesToReparent: TLShapeId[] = []
 
 		for (const childId of children) {
-			const childBounds = this.editor.getShapeAbsoluteBounds(childId)!
+			const childBounds = this.editor.getShapePageBounds(childId)!
 			if (!bounds.includes(childBounds)) {
 				shapesToReparent.push(childId)
 			}

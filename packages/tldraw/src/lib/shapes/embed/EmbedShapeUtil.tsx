@@ -97,7 +97,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			[]
 		)
 
-		const pageRotation = this.editor.getAbsoluteTransform(shape)!.rotation()
+		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		const isInteractive = isEditing || isHoveringWhileEditingSameShape
 

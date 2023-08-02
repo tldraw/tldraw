@@ -175,23 +175,15 @@ describe('Misc', () => {
 
 		editor.select(boxID, id)
 
-		expect(editor.getShapeAbsoluteBounds(box)!.maxX).not.toEqual(
-			editor.getShapeAbsoluteBounds(line)!.maxX
-		)
+		expect(editor.getShapePageBounds(box)!.maxX).not.toEqual(editor.getShapePageBounds(line)!.maxX)
 		editor.alignShapes(editor.selectedShapeIds, 'right')
 		jest.advanceTimersByTime(1000)
-		expect(editor.getShapeAbsoluteBounds(box)!.maxX).toEqual(
-			editor.getShapeAbsoluteBounds(line)!.maxX
-		)
+		expect(editor.getShapePageBounds(box)!.maxX).toEqual(editor.getShapePageBounds(line)!.maxX)
 
-		expect(editor.getShapeAbsoluteBounds(box)!.maxY).not.toEqual(
-			editor.getShapeAbsoluteBounds(line)!.maxY
-		)
+		expect(editor.getShapePageBounds(box)!.maxY).not.toEqual(editor.getShapePageBounds(line)!.maxY)
 		editor.alignShapes(editor.selectedShapeIds, 'bottom')
 		jest.advanceTimersByTime(1000)
-		expect(editor.getShapeAbsoluteBounds(box)!.maxY).toEqual(
-			editor.getShapeAbsoluteBounds(line)!.maxY
-		)
+		expect(editor.getShapePageBounds(box)!.maxY).toEqual(editor.getShapePageBounds(line)!.maxY)
 	})
 
 	it('duplicates', () => {

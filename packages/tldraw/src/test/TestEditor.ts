@@ -575,7 +575,7 @@ export class TestEditor extends Editor {
 	 * @public
 	 */
 	getPageCenter(shape: TLShape) {
-		const pageTransform = this.getAbsoluteTransform(shape.id)
+		const pageTransform = this.getShapePageTransform(shape.id)
 		if (!pageTransform) return null
 		const center = this.getShapeGeometry(shape).bounds.center
 		return Matrix2d.applyToPoint(pageTransform, center)
@@ -592,7 +592,7 @@ export class TestEditor extends Editor {
 	 * @param id - The id of the shape to get the page rotation for.
 	 */
 	getPageRotationById(id: TLShapeId): number {
-		const pageTransform = this.getAbsoluteTransform(id)
+		const pageTransform = this.getShapePageTransform(id)
 		if (pageTransform) {
 			return Matrix2d.Decompose(pageTransform).rotation
 		}

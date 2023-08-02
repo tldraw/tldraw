@@ -1419,7 +1419,7 @@ describe('translating while the grid is enabled', () => {
 		editor.select(ids.box1).pointerDown(10, 10, ids.box1).pointerMove(39, 10)
 
 		// rounds to nearest 10
-		expect(editor.getShapeAbsoluteBounds(ids.box1)!.x).toEqual(30)
+		expect(editor.getShapePageBounds(ids.box1)!.x).toEqual(30)
 
 		// engage snap mode and it should indeed snap to B
 
@@ -1428,11 +1428,11 @@ describe('translating while the grid is enabled', () => {
 		//          │ A │ B │
 		//          └───┴───┘
 		editor.keyDown('Control')
-		expect(editor.getShapeAbsoluteBounds(ids.box1)!.x).toEqual(30)
+		expect(editor.getShapePageBounds(ids.box1)!.x).toEqual(30)
 
 		// and we can move the box anywhere if there are no snaps nearby
 		editor.pointerMove(-19, -32, { ctrlKey: true })
-		expect(editor.getShapeAbsoluteBounds(ids.box1)!).toMatchObject({ x: -29, y: -42 })
+		expect(editor.getShapePageBounds(ids.box1)!).toMatchObject({ x: -29, y: -42 })
 	})
 })
 
@@ -1539,7 +1539,7 @@ describe('translating a shape with a child', () => {
 			props: { w: 50, h: 50 },
 		})
 		expect(editor.getShape(ids.box2)).toMatchObject({ x: 1, y: 1, props: { w: 10, h: 10 } })
-		expect(editor.getShapeAbsoluteBounds(ids.box2)).toMatchObject({
+		expect(editor.getShapePageBounds(ids.box2)).toMatchObject({
 			x: 26,
 			y: 1,
 			w: 10,

@@ -272,7 +272,7 @@ export class Translating extends StateNode {
 
 			const parentTransform = isPageId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getAbsoluteTransform(shape.parentId)!)
+				: Matrix2d.Inverse(editor.getShapePageTransform(shape.parentId)!)
 
 			shapeSnapshot.parentTransform = parentTransform
 		})
@@ -289,13 +289,13 @@ function getTranslatingSnapshot(editor: Editor) {
 			if (!shape) return null
 			movingShapes.push(shape)
 
-			const pagePoint = editor.getAbsoluteTransform(id)!.point()
+			const pagePoint = editor.getShapePageTransform(id)!.point()
 			if (!pagePoint) return null
 			pagePoints.push(pagePoint)
 
 			const parentTransform = PageRecordType.isId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getAbsoluteTransform(shape.parentId)!)
+				: Matrix2d.Inverse(editor.getShapePageTransform(shape.parentId)!)
 
 			return {
 				shape,

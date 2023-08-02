@@ -223,7 +223,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const next = deepCopy(shape) as TLArrowShape
 
-		const pageTransform = this.editor.getAbsoluteTransform(next.id)!
+		const pageTransform = this.editor.getShapePageTransform(next.id)!
 		const pointInPageSpace = pageTransform.applyToPoint(handle)
 
 		if (this.editor.inputs.ctrlKey) {
@@ -237,7 +237,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return next
 		}
 
-		const point = this.editor.getAbsoluteTransform(shape.id)!.applyToPoint(handle)
+		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
 
 		const target = this.editor.getShapeAtPoint(point, {
 			filter: (shape) => this.editor.getShapeUtil(shape).canBind(shape),

@@ -14,7 +14,7 @@ describe('When panning', () => {
 		editor.expectCameraToBe(200, 200, 1)
 	})
 
-	it('Updates the absoluteBounds', () => {
+	it('Updates the pageBounds', () => {
 		const screenBounds = editor.viewportScreenBounds
 		const beforeScreenBounds = new Box2d(
 			screenBounds.x,

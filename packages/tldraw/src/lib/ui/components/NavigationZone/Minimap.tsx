@@ -192,26 +192,26 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			const allShapeBounds = [] as (Box2d & { id: TLShapeId })[]
 
 			shapeIdsOnCurrentPage.forEach((id) => {
-				let absoluteBounds = editor.getShapeAbsoluteBounds(id) as Box2d & { id: TLShapeId }
-				if (!absoluteBounds) return
+				let pageBounds = editor.getShapePageBounds(id) as Box2d & { id: TLShapeId }
+				if (!pageBounds) return
 
 				const pageMask = editor.getShapeMask(id)
 
 				if (pageMask) {
-					const intersection = intersectPolygonPolygon(pageMask, absoluteBounds.corners)
+					const intersection = intersectPolygonPolygon(pageMask, pageBounds.corners)
 					if (!intersection) {
 						return
 					}
-					absoluteBounds = Box2d.FromPoints(intersection) as Box2d & { id: TLShapeId }
+					pageBounds = Box2d.FromPoints(intersection) as Box2d & { id: TLShapeId }
 				}
 
-				if (absoluteBounds) {
-					absoluteBounds.id = id // kinda dirty but we want to include the id here
-					allShapeBounds.push(absoluteBounds)
+				if (pageBounds) {
+					pageBounds.id = id // kinda dirty but we want to include the id here
+					allShapeBounds.push(pageBounds)
 				}
 			})
 
-			minimap.absoluteBounds = allShapeBounds
+			minimap.pageBounds = allShapeBounds
 			minimap.collaborators = presences.value
 			minimap.render()
 		},

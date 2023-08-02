@@ -82,7 +82,7 @@ type NearestSnap =
 
 type GapNode = {
 	id: TLShapeId
-	absoluteBounds: Box2d
+	pageBounds: Box2d
 	isClosed: boolean
 }
 
@@ -235,7 +235,7 @@ export class SnapManager {
 	@computed get snapPointsCache() {
 		const { editor } = this
 		return editor.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
-			const pageTransfrorm = editor.getAbsoluteTransform(shape.id)
+			const pageTransfrorm = editor.getShapePageTransform(shape.id)
 			if (!pageTransfrorm) return undefined
 			const snapPoints = this.editor.getShapeGeometry(shape).snapPoints
 			return snapPoints.map((point, i) => {
@@ -267,8 +267,8 @@ export class SnapManager {
 				// Skip any shapes that don't allow snapping
 				if (!util.canSnap(childShape)) continue
 				// Only consider shapes if they're inside of the viewport page bounds
-				const absoluteBounds = editor.getShapeAbsoluteBounds(childId)
-				if (!(absoluteBounds && renderingBounds.includes(absoluteBounds))) continue
+				const pageBounds = editor.getShapePageBounds(childId)
+				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
 				// Snap to children of groups but not group itself
 				if (editor.isShapeOfType<TLGroupShape>(childShape, 'group')) {
 					collectSnappableShapesFromParent(childId)
@@ -276,7 +276,7 @@ export class SnapManager {
 				}
 				snappableShapes.push({
 					id: childId,
-					absoluteBounds,
+					pageBounds,
 					isClosed: editor.getShapeGeometry(childShape).isClosed,
 				})
 			}
@@ -314,7 +314,7 @@ export class SnapManager {
 		let startNode: GapNode, endNode: GapNode
 
 		const sortedShapesOnCurrentPageHorizontal = this.snappableShapes.sort((a, b) => {
-			return a.absoluteBounds.minX - b.absoluteBounds.minX
+			return a.pageBounds.minX - b.pageBounds.minX
 		})
 
 		// Collect horizontal gaps
@@ -325,32 +325,32 @@ export class SnapManager {
 
 				if (
 					// is there space between the boxes
-					startNode.absoluteBounds.maxX < endNode.absoluteBounds.minX &&
+					startNode.pageBounds.maxX < endNode.pageBounds.minX &&
 					// and they overlap in the y axis
 					rangesOverlap(
-						startNode.absoluteBounds.minY,
-						startNode.absoluteBounds.maxY,
-						endNode.absoluteBounds.minY,
-						endNode.absoluteBounds.maxY
+						startNode.pageBounds.minY,
+						startNode.pageBounds.maxY,
+						endNode.pageBounds.minY,
+						endNode.pageBounds.maxY
 					)
 				) {
 					horizontal.push({
 						startNode,
 						endNode,
 						startEdge: [
-							new Vec2d(startNode.absoluteBounds.maxX, startNode.absoluteBounds.minY),
-							new Vec2d(startNode.absoluteBounds.maxX, startNode.absoluteBounds.maxY),
+							new Vec2d(startNode.pageBounds.maxX, startNode.pageBounds.minY),
+							new Vec2d(startNode.pageBounds.maxX, startNode.pageBounds.maxY),
 						],
 						endEdge: [
-							new Vec2d(endNode.absoluteBounds.minX, endNode.absoluteBounds.minY),
-							new Vec2d(endNode.absoluteBounds.minX, endNode.absoluteBounds.maxY),
+							new Vec2d(endNode.pageBounds.minX, endNode.pageBounds.minY),
+							new Vec2d(endNode.pageBounds.minX, endNode.pageBounds.maxY),
 						],
-						length: endNode.absoluteBounds.minX - startNode.absoluteBounds.maxX,
+						length: endNode.pageBounds.minX - startNode.pageBounds.maxX,
 						breadthIntersection: rangeIntersection(
-							startNode.absoluteBounds.minY,
-							startNode.absoluteBounds.maxY,
-							endNode.absoluteBounds.minY,
-							endNode.absoluteBounds.maxY
+							startNode.pageBounds.minY,
+							startNode.pageBounds.maxY,
+							endNode.pageBounds.minY,
+							endNode.pageBounds.maxY
 						)!,
 					})
 				}
@@ -359,7 +359,7 @@ export class SnapManager {
 
 		// Collect vertical gaps
 		const sortedShapesOnCurrentPageVertical = sortedShapesOnCurrentPageHorizontal.sort((a, b) => {
-			return a.absoluteBounds.minY - b.absoluteBounds.minY
+			return a.pageBounds.minY - b.pageBounds.minY
 		})
 
 		for (let i = 0; i < sortedShapesOnCurrentPageVertical.length; i++) {
@@ -369,32 +369,32 @@ export class SnapManager {
 
 				if (
 					// is there space between the boxes
-					startNode.absoluteBounds.maxY < endNode.absoluteBounds.minY &&
+					startNode.pageBounds.maxY < endNode.pageBounds.minY &&
 					// do they overlap in the x axis
 					rangesOverlap(
-						startNode.absoluteBounds.minX,
-						startNode.absoluteBounds.maxX,
-						endNode.absoluteBounds.minX,
-						endNode.absoluteBounds.maxX
+						startNode.pageBounds.minX,
+						startNode.pageBounds.maxX,
+						endNode.pageBounds.minX,
+						endNode.pageBounds.maxX
 					)
 				) {
 					vertical.push({
 						startNode,
 						endNode,
 						startEdge: [
-							new Vec2d(startNode.absoluteBounds.minX, startNode.absoluteBounds.maxY),
-							new Vec2d(startNode.absoluteBounds.maxX, startNode.absoluteBounds.maxY),
+							new Vec2d(startNode.pageBounds.minX, startNode.pageBounds.maxY),
+							new Vec2d(startNode.pageBounds.maxX, startNode.pageBounds.maxY),
 						],
 						endEdge: [
-							new Vec2d(endNode.absoluteBounds.minX, endNode.absoluteBounds.minY),
-							new Vec2d(endNode.absoluteBounds.maxX, endNode.absoluteBounds.minY),
+							new Vec2d(endNode.pageBounds.minX, endNode.pageBounds.minY),
+							new Vec2d(endNode.pageBounds.maxX, endNode.pageBounds.minY),
 						],
-						length: endNode.absoluteBounds.minY - startNode.absoluteBounds.maxY,
+						length: endNode.pageBounds.minY - startNode.pageBounds.maxY,
 						breadthIntersection: rangeIntersection(
-							startNode.absoluteBounds.minX,
-							startNode.absoluteBounds.maxX,
-							endNode.absoluteBounds.minX,
-							endNode.absoluteBounds.maxX
+							startNode.pageBounds.minX,
+							startNode.pageBounds.maxX,
+							endNode.pageBounds.minX,
+							endNode.pageBounds.maxX
 						)!,
 					})
 				}
@@ -500,7 +500,7 @@ export class SnapManager {
 		return this.snappableShapes.map(({ id, isClosed }) => {
 			const outline = deepCopy(this.editor.getShapeGeometry(id).vertices)
 			if (isClosed) outline.push(outline[0])
-			const pageTransform = this.editor.getAbsoluteTransform(id)
+			const pageTransform = this.editor.getShapePageTransform(id)
 			if (!pageTransform) throw Error('No page transform')
 			return Matrix2d.applyToPoints(pageTransform, outline)
 		})
@@ -857,7 +857,7 @@ export class SnapManager {
 			}
 
 			// check for duplication left match
-			const duplicationLeftX = gap.startNode.absoluteBounds.minX - gap.length
+			const duplicationLeftX = gap.startNode.pageBounds.minX - gap.length
 			const selectionRightX = selectionPageBounds.maxX
 
 			const duplicationLeftNudge = duplicationLeftX - selectionRightX
@@ -877,7 +877,7 @@ export class SnapManager {
 			}
 
 			// check for duplication right match
-			const duplicationRightX = gap.endNode.absoluteBounds.maxX + gap.length
+			const duplicationRightX = gap.endNode.pageBounds.maxX + gap.length
 			const selectionLeftX = selectionPageBounds.minX
 
 			const duplicationRightNudge = duplicationRightX - selectionLeftX
@@ -993,7 +993,7 @@ export class SnapManager {
 			}
 
 			// check for duplication top match
-			const duplicationTopY = gap.startNode.absoluteBounds.minY - gap.length
+			const duplicationTopY = gap.startNode.pageBounds.minY - gap.length
 			const selectionBottomY = selectionPageBounds.maxY
 
 			const duplicationTopNudge = duplicationTopY - selectionBottomY
@@ -1013,7 +1013,7 @@ export class SnapManager {
 			}
 
 			// check for duplication bottom match
-			const duplicationBottomY = gap.endNode.absoluteBounds.maxY + gap.length
+			const duplicationBottomY = gap.endNode.pageBounds.maxY + gap.length
 			const selectionTopY = selectionPageBounds.minY
 
 			const duplicationBottomNudge = duplicationBottomY - selectionTopY
@@ -1176,7 +1176,7 @@ export class SnapManager {
 											{
 												startEdge: selectionSides.right,
 												endEdge: startEdge.map((v) =>
-													v.clone().addXY(-startNode.absoluteBounds.width, 0)
+													v.clone().addXY(-startNode.pageBounds.width, 0)
 												) as [Vec2d, Vec2d],
 											},
 											{ startEdge, endEdge },
@@ -1201,7 +1201,7 @@ export class SnapManager {
 											{ startEdge, endEdge },
 											{
 												startEdge: endEdge.map((v) =>
-													v.clone().addXY(snap.gap.endNode.absoluteBounds.width, 0)
+													v.clone().addXY(snap.gap.endNode.pageBounds.width, 0)
 												) as [Vec2d, Vec2d],
 												endEdge: selectionSides.left,
 											},
@@ -1284,7 +1284,7 @@ export class SnapManager {
 												{
 													startEdge: selectionSides.bottom,
 													endEdge: startEdge.map((v) =>
-														v.clone().addXY(0, -startNode.absoluteBounds.height)
+														v.clone().addXY(0, -startNode.pageBounds.height)
 													) as [Vec2d, Vec2d],
 												},
 												{ startEdge, endEdge },
@@ -1309,7 +1309,7 @@ export class SnapManager {
 												{ startEdge, endEdge },
 												{
 													startEdge: endEdge.map((v) =>
-														v.clone().addXY(0, endNode.absoluteBounds.height)
+														v.clone().addXY(0, endNode.pageBounds.height)
 													) as [Vec2d, Vec2d],
 													endEdge: selectionSides.top,
 												},

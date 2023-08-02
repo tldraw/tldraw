@@ -184,7 +184,7 @@ describe('arrows', () => {
 		editor.pointerUp(450, 450)
 		const arrow = editor.onlySelectedShape!
 
-		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
 			// exiting at the bottom right corner of the first box
 			x: 300,
 			y: 300,
@@ -202,7 +202,7 @@ describe('arrows', () => {
 		expect(editor.getArrowsBoundTo(firstBox.id).length).toBe(1)
 		expect(editor.getArrowsBoundTo(secondBox.id).length).toBe(0)
 
-		expect(editor.getShapeAbsoluteBounds(arrow)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(arrow)).toCloselyMatchObject({
 			x: 300,
 			y: 250,
 			w: 150,

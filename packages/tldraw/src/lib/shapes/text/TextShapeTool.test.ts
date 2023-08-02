@@ -115,7 +115,7 @@ describe('When in the pointing state', () => {
 		const y = 0
 		editor.pointerDown(x, y)
 		editor.pointerUp()
-		const bounds = editor.getShapeAbsoluteBounds(editor.currentPageShapes[0])!
+		const bounds = editor.getShapePageBounds(editor.currentPageShapes[0])!
 		expect(editor.currentPageShapes[0]).toMatchObject({
 			x: x - bounds.width / 2,
 			y: y - bounds.height / 2,

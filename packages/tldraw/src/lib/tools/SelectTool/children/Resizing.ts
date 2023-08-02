@@ -415,7 +415,7 @@ export class Resizing extends StateNode {
 	}
 
 	_createShapeSnapshot = (shape: TLShape) => {
-		const pageTransform = this.editor.getAbsoluteTransform(shape)!
+		const pageTransform = this.editor.getShapePageTransform(shape)!
 		const util = this.editor.getShapeUtil(shape)
 
 		return {

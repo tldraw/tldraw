@@ -219,7 +219,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const absoluteBoundsBeforeLabel = editor.getShapeAbsoluteBounds(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -231,7 +231,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							if (absoluteBoundsBeforeLabel.width === absoluteBoundsBeforeLabel.height) {
+							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
 								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
@@ -274,7 +274,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const absoluteBoundsBeforeLabel = editor.getShapeAbsoluteBounds(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -286,7 +286,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							if (absoluteBoundsBeforeLabel.width === absoluteBoundsBeforeLabel.height) {
+							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
 								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
@@ -329,7 +329,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const absoluteBoundsBeforeLabel = editor.getShapeAbsoluteBounds(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getShapePageBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -341,7 +341,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							if (absoluteBoundsBeforeLabel.width === absoluteBoundsBeforeLabel.height) {
+							if (pageBoundsBeforeLabel.width === pageBoundsBeforeLabel.height) {
 								const shape = editor.getShape<TLGeoShape>(inCommon.id)!
 								const { growY } = shape.props
 								const w = coerceDimension(shape.props.w)
@@ -540,7 +540,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							if (!targetShape) continue
 
 							if (targetId) {
-								const bounds = editor.getShapeAbsoluteBounds(targetId)!
+								const bounds = editor.getShapePageBounds(targetId)!
 
 								const v2ShapeFresh = editor.getShape<TLArrowShape>(v2ShapeId)!
 

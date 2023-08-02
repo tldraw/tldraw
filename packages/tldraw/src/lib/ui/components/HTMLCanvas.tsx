@@ -19,7 +19,7 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 		ctx.translate(camera.x, camera.y)
 
 		for (const shape of shapes) {
-			const bounds = editor.getShapeAbsoluteBounds(shape)!
+			const bounds = editor.getShapePageBounds(shape)!
 			path.rect(bounds.minX, bounds.minY, bounds.width, bounds.height)
 		}
 

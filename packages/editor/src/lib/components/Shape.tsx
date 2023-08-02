@@ -53,7 +53,7 @@ export const Shape = track(function Shape({
 			const shape = editor.getShape(id)
 			if (!shape) return // probably the shape was just deleted
 
-			const pageTransform = editor.getAbsoluteTransform(id)
+			const pageTransform = editor.getShapePageTransform(id)
 			const transform = Matrix2d.toCssString(pageTransform)
 			setProperty('transform', transform)
 		},

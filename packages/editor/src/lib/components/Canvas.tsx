@@ -198,7 +198,7 @@ function HandlesWrapper() {
 	const transform = useValue(
 		'transform',
 		() =>
-			editor.onlySelectedShape ? editor.getAbsoluteTransform(editor.onlySelectedShape) : undefined,
+			editor.onlySelectedShape ? editor.getShapePageTransform(editor.onlySelectedShape) : undefined,
 		[editor]
 	)
 
@@ -396,7 +396,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = editor.getShapeAbsoluteBounds(id)
+			const bb = editor.getShapePageBounds(id)
 			const el = await editor.getSvg([id], { padding: 0 })
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')
