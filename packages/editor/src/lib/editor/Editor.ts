@@ -590,6 +590,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const hasFocus = container === activeElement || container.contains(activeElement)
 			if ((!isFocused && hasFocus) || (isFocused && !hasFocus)) {
 				this.updateInstanceState({ isFocused: hasFocus })
+				this.updateViewportScreenBounds()
 			}
 		}, 32)
 
