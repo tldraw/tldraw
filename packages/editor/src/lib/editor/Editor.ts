@@ -2082,21 +2082,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-
-	/**
-	 * Zoom the camera in.
-	 *
-	 * @example
-	 * ```ts
-	 * editor.zoomIn()
-	 * editor.zoomIn(editor.viewportScreenCenter, { duration: 120 })
-	 * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })
-	 * ```
-	 *
-	 * @param animation - (optional) The options for an animation.
-	 *
-	 * @public
-	 */
 	zoomIn(point = this.viewportScreenCenter, animation?: TLAnimationOptions): this {
 		if (!this.instanceState.canMoveCamera) return this
 
@@ -3101,6 +3086,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.getPage(myPage.id)
+	 * editor.getPage(myPage)
 	 * ```
 	 *
 	 * @public
@@ -3129,7 +3115,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * const idsOnPage1 = editor.getCurrentPageShapeIds('page1')
-	 * const idsOnPage2 = editor.getCurrentPageShapeIds('page2')
+	 * const idsOnPage2 = editor.getCurrentPageShapeIds(myPage2)
 	 * ```
 	 *
 	 * @param page - The page (or page id) to get.
@@ -3150,9 +3136,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.setCurrentPage('page1')
+	 * editor.setCurrentPage(myPage1)
 	 * ```
 	 *
-	 * @param pageId - The id of the page to set as the current page.
+	 * @param page - The page (or page id) to set as the current page.
 	 * @param options - Options for setting the current page.
 	 *
 	 * @public
@@ -3227,6 +3214,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.updatePage({ id: 'page2', name: 'Page 2' })
+	 * editor.updatePage({ id: 'page2', name: 'Page 2' }, true)
 	 * ```
 	 *
 	 * @param partial - The partial of the shape to update.
@@ -3272,10 +3260,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```ts
 	 * editor.createPage('New Page')
 	 * editor.createPage('New Page', 'page1')
+	 * editor.createPage('New Page', 'page1', 'a2')
 	 * ```
 	 *
 	 * @param id - The new page's id.
 	 * @param title - The new page's title.
+	 * @param belowPageIndex - (optional) The index to create below.
 	 *
 	 * @public
 	 */
