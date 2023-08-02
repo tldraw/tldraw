@@ -89,17 +89,16 @@ export class Pointing extends StateNode {
 		this.markId = `creating:${id}`
 		this.editor.mark(this.markId)
 
-		this.editor.createShapes(
-			[
+		this.editor
+			.createShapes([
 				{
 					id,
 					type: 'note',
 					x: originPagePoint.x,
 					y: originPagePoint.y,
 				},
-			],
-			true
-		)
+			])
+			.select(id)
 
 		const shape = this.editor.getShape<TLNoteShape>(id)!
 		const bounds = this.editor.getShapeGeometry(shape).bounds

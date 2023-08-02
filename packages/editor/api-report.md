@@ -539,14 +539,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         ease?: (t: number) => number;
     }): this;
     animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
-    animateToUser(userId: string): void;
+    animateToUser(userId: string): this;
     // @internal (undocumented)
     annotateError(error: unknown, { origin, willCrashApp, tags, extras, }: {
         origin: string;
         willCrashApp: boolean;
         tags?: Record<string, boolean | number | string>;
         extras?: Record<string, unknown>;
-    }): void;
+    }): this;
     get assets(): (TLBookmarkAsset | TLImageAsset | TLVideoAsset)[];
     bail(): this;
     bailToMark(id: string): this;
@@ -572,7 +572,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     protected _clickManager: ClickManager;
     complete(): this;
     // @internal (undocumented)
-    crash(error: unknown): void;
+    crash(error: unknown): this;
     // @internal
     get crashingError(): unknown;
     createAssets(assets: TLAsset[]): this;
@@ -590,8 +590,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         };
     };
     createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
-    createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select?: boolean): this;
-    createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select?: boolean): this;
+    createShape<T extends TLUnknownShape>(partial: OptionalKeys<TLShapePartial<T>, 'id'>): this;
+    createShapes<T extends TLUnknownShape>(partials: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     get croppingShapeId(): null | TLShapeId;
     get currentPage(): TLPage;
     get currentPageBounds(): Box2d | undefined;
@@ -919,7 +919,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     sendToBack(ids: TLShapeId[]): this;
     setCamera(point: VecLike, animation?: TLAnimationOptions): this;
-    // (undocumented)
     setCroppingId(id: null | TLShapeId): this;
     setCurrentPage(page: TLPage, opts?: TLViewportOptions): this;
     // (undocumented)
@@ -944,12 +943,12 @@ export class Editor extends EventEmitter<TLEventMap> {
         direction: VecLike;
         friction: number;
         speedThreshold?: number | undefined;
-    }): this | undefined;
+    }): this;
     readonly snaps: SnapManager;
     stackShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical', gap: number): this;
     // (undocumented)
     stackShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
-    startFollowingUser(userId: string): this | undefined;
+    startFollowingUser(userId: string): this;
     stopCameraAnimation(): this;
     stopFollowingUser(): this;
     readonly store: TLStore;

@@ -29,8 +29,8 @@ export class Pointing extends StateNode {
 
 			this.editor.mark(this.markId)
 
-			this.editor.createShapes<TLBaseBoxShape>(
-				[
+			this.editor
+				.createShapes<TLBaseBoxShape>([
 					{
 						id,
 						type: shapeType,
@@ -41,9 +41,8 @@ export class Pointing extends StateNode {
 							h: 1,
 						},
 					},
-				],
-				true
-			)
+				])
+				.select(id)
 			this.editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',

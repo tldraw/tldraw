@@ -121,7 +121,7 @@ import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
-import { RequiredKeys } from './types/misc-types'
+import { OptionalKeys, RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
@@ -860,7 +860,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	bailToMark(id: string) {
+	bailToMark(id: string): this {
 		this.history.bailToMark(id)
 		return this
 	}
@@ -882,7 +882,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	batch(fn: () => void) {
+	batch(fn: () => void): this {
 		this.history.batch(fn)
 		return this
 	}
@@ -941,7 +941,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			tags?: Record<string, string | boolean | number>
 			extras?: Record<string, unknown>
 		}
-	) {
+	): this {
 		const defaultAnnotations = this.createErrorAnnotations(origin, willCrashApp)
 		annotateError(error, {
 			tags: { ...defaultAnnotations.tags, ...tags },
@@ -950,6 +950,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (willCrashApp) {
 			this.store.markAsPossiblyCorrupted()
 		}
+		return this
 	}
 
 	/** @internal */
@@ -1006,10 +1007,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	crash(error: unknown) {
+	crash(error: unknown): this {
 		this._crashingError = error
 		this.store.markAsPossiblyCorrupted()
 		this.emit('crash', { error })
+		return this
 	}
 
 	/* ------------------- Statechart ------------------- */
@@ -1167,7 +1169,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 		ephemeral = true,
 		squashing = true
-	) {
+	): this {
 		this._updateInstanceState(partial, ephemeral, squashing)
 
 		if (partial.isChangingStyle !== undefined) {
@@ -1382,7 +1384,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setSelectedShapeIds(ids: TLShapeId[], squashing = false) {
+	setSelectedShapeIds(ids: TLShapeId[], squashing = false): this {
 		this._setSelectedShapeIds(ids, squashing)
 		return this
 	}
@@ -1432,7 +1434,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	isAncestorSelected(id: TLShapeId): boolean
 	isAncestorSelected(shape: TLShape): boolean
-	isAncestorSelected(arg: TLShape | TLShapeId) {
+	isAncestorSelected(arg: TLShape | TLShapeId): boolean {
 		const shape = this.getShape(typeof arg === 'string' ? arg : arg.id)
 		if (!shape) return false
 		const { selectedShapeIds } = this
@@ -1497,7 +1499,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	selectAll() {
+	selectAll(): this {
 		const ids = this.getSortedChildIdsForParent(this.currentPageId)
 		// page might have no shapes
 		if (ids.length <= 0) return this
@@ -1851,6 +1853,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	get croppingShapeId() {
 		return this.currentPageState.croppingShapeId
 	}
+
+	/**
+	 * Set the current cropping shape id.
+	 *
+	 * @param id - The shape id to set as cropping.
+	 *
+	 * @public
+	 */
 	setCroppingId(id: TLShapeId | null): this {
 		if (id !== this.croppingShapeId) {
 			if (!id) {
@@ -2006,7 +2016,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	zoomToContent() {
+	zoomToContent(): this {
 		const bounds = this.selectionPageBounds ?? this.currentPageBounds
 
 		if (bounds) {
@@ -2296,9 +2306,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	stopCameraAnimation() {
+	stopCameraAnimation(): this {
 		this.emit('stop-camera-animation')
-
 		return this
 	}
 
@@ -2394,14 +2403,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 			friction: number
 			speedThreshold?: number
 		}
-	) {
+	): this {
 		if (!this.instanceState.canMoveCamera) return this
 
 		this.stopCameraAnimation()
 
 		const { animationSpeed } = this.user
 
-		if (animationSpeed === 0) return
+		if (animationSpeed === 0) return this
 
 		const { speed, friction, direction, speedThreshold = 0.01 } = opts
 		let currentSpeed = Math.min(speed, 1)
@@ -2438,7 +2447,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param userId - The id of the user to aniamte to.
 	 * @public
 	 */
-	animateToUser(userId: string) {
+	animateToUser(userId: string): this {
 		const presences = this.store.query.records('instance_presence', () => ({
 			userId: { eq: userId },
 		}))
@@ -2449,7 +2458,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 			.pop()
 
-		if (!presence) return
+		if (!presence) return this
 
 		this.batch(() => {
 			// If we're following someone, stop following them
@@ -2481,6 +2490,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.updateInstanceState({ highlightedUserIds })
 			}, COLLABORATOR_IDLE_TIMEOUT)
 		})
+
+		return this
 	}
 
 	/**
@@ -2538,7 +2549,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateViewportScreenBounds(center = false) {
+	updateViewportScreenBounds(center = false): this {
 		const container = this.getContainer()
 
 		if (!container) return this
@@ -2678,7 +2689,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	startFollowingUser(userId: string) {
+	startFollowingUser(userId: string): this {
 		const leaderPresences = this.store.query.records('instance_presence', () => ({
 			userId: { eq: userId },
 		}))
@@ -2691,7 +2702,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If the leader is following us, then we can't follow them
 		if (leaderPresences.value.some((p) => p.followingUserId === thisUserId)) {
-			return
+			return this
 		}
 
 		transact(() => {
@@ -2801,7 +2812,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	stopFollowingUser() {
+	stopFollowingUser(): this {
 		this.updateInstanceState({ followingUserId: null }, true)
 		this.emit('stop-following')
 		return this
@@ -3489,7 +3500,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createAssets(assets: TLAsset[]) {
+	createAssets(assets: TLAsset[]): this {
 		this._createAssets(assets)
 		return this
 	}
@@ -3525,7 +3536,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updateAssets(assets: TLAssetPartial[]) {
+	updateAssets(assets: TLAssetPartial[]): this {
 		this._updateAssets(assets)
 		return this
 	}
@@ -3574,7 +3585,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	deleteAssets(assets: TLAsset[]): this
 	deleteAssets(ids: TLAssetId[]): this
-	deleteAssets(arg: TLAssetId[] | TLAsset[]) {
+	deleteAssets(arg: TLAssetId[] | TLAsset[]): this {
 		const ids =
 			typeof arg[0] === 'string' ? (arg as TLAssetId[]) : (arg as TLAsset[]).map((a) => a.id)
 		this._deleteAssets(ids)
@@ -3949,8 +3960,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const ancestors = editor.getAncestors(myShape)
-	 * const ancestors = editor.getAncestors(myShapeId)
+	 * const ancestors = editor.getShapeAncestors(myShape)
+	 * const ancestors = editor.getShapeAncestors(myShapeId)
 	 * ```
 	 *
 	 * @param shape - The shape (or shape id) to get the ancestors for.
@@ -3979,7 +3990,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * const ancestor = editor.findAncestor(myShape)
+	 * const ancestor = editor.findShapeAncestor(myShape)
+	 * const ancestor = editor.findShapeAncestor(myShape.id)
+	 * const ancestor = editor.findShapeAncestor(myShape.id, (shape) => shape.type === 'frame')
 	 * ```
 	 *
 	 * @param shape - The shape to check the ancestors for.
@@ -4341,13 +4354,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Convert a delta in page space to a point in the local space of a shape. For example, if a
-	 * shape's page point were `{ x: 100, y: 100 }`, a page point at `{ x: 110, y: 110 }` would be at
-	 * `{ x: 10, y: 10 }` in the shape's local space.
+	 * Convert a delta in page space to a point in the local space of a shape's parent.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.getPointInShapeSpace(myShape.id, { x: 100, y: 100 })
+	 * editor.getPointInParentSpace(myShape.id, { x: 100, y: 100 })
 	 * ```
 	 *
 	 * @param shape - The shape to get the point in the local space of.
@@ -4389,7 +4400,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.sortedShapesOnCurrentPage
+	 * editor.currentPageShapesSorted
 	 * ```
 	 *
 	 * @readonly
@@ -5428,7 +5439,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	stackShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical', gap: number): this
 	stackShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this
-	stackShapes(arg: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical', gap: number) {
+	stackShapes(
+		arg: TLShapeId[] | TLShape[],
+		operation: 'horizontal' | 'vertical',
+		gap: number
+	): this {
 		const ids =
 			typeof arg[0] === 'string' ? (arg as TLShapeId[]) : (arg as TLShape[]).map((s) => s.id)
 		if (this.instanceState.isReadonly) return this
@@ -6274,8 +6289,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createShape<T extends TLUnknownShape>(partial: TLShapePartial<T>, select = false) {
-		this._createShapes([partial], select)
+	createShape<T extends TLUnknownShape>(partial: OptionalKeys<TLShapePartial<T>, 'id'>): this {
+		this._createShapes([partial])
 		return this
 	}
 
@@ -6292,24 +6307,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	createShapes<T extends TLUnknownShape>(partials: TLShapePartial<T>[], select = false) {
+	createShapes<T extends TLUnknownShape>(partials: OptionalKeys<TLShapePartial<T>, 'id'>[]) {
 		if (!Array.isArray(partials)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}
-		this._createShapes(partials, select)
+		this._createShapes(partials)
 		return this
 	}
 
 	/** @internal */
 	private _createShapes = this.history.createCommand(
 		'createShapes',
-		(partials: TLShapePartial[], select = false) => {
+		(partials: OptionalKeys<TLShapePartial, 'id'>[]) => {
 			if (this.instanceState.isReadonly) return null
 			if (partials.length <= 0) return null
 
-			const { currentPageShapeIds: shapeIds } = this
+			const { currentPageShapeIds } = this
 
-			const maxShapesReached = partials.length + shapeIds.size > MAX_SHAPES_PER_PAGE
+			const maxShapesReached = partials.length + currentPageShapeIds.size > MAX_SHAPES_PER_PAGE
 
 			if (maxShapesReached) {
 				// can't create more shapes than fit on the page
@@ -6319,20 +6334,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			if (partials.length === 0) return null
 
-			const prevSelectedShapeIds = select ? this.selectedShapeIds : undefined
-
 			return {
 				data: {
 					currentPageId: this.currentPageId,
-					createdIds: partials.map((p) => p.id),
-					prevSelectedShapeIds,
-					partials,
-					select,
+					partials: partials.map((p) =>
+						p.id ? p : { ...p, id: createShapeId() }
+					) as TLShapePartial[],
 				},
 			}
 		},
 		{
-			do: ({ createdIds, partials, select }) => {
+			do: ({ partials }) => {
 				const { focusedGroupId } = this
 
 				// 1. Parents
@@ -6474,26 +6486,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				})
 
 				this.store.put(shapeRecordsToCreate)
-
-				// If we're also selecting the newly created shapes, attempt to select all of them;
-
-				// the engine will filter out any shapes that are descendants of other new shapes.
-				if (select) {
-					this.store.update(this.currentPageState.id, (state) => ({
-						...state,
-						selectedShapeIds: createdIds,
-					}))
-				}
 			},
-			undo: ({ createdIds, prevSelectedShapeIds }) => {
-				this.store.remove(createdIds)
-
-				if (prevSelectedShapeIds) {
-					this.store.update(this.currentPageState.id, (state) => ({
-						...state,
-						selectedShapeIds: prevSelectedShapeIds,
-					}))
-				}
+			undo: ({ partials }) => {
+				this.store.remove(partials.map((p) => p.id))
 			},
 		}
 	)
@@ -7805,7 +7800,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			// Create the shapes with root shapes as children of the page
-			this.createShapes(newShapes, select)
+			this.createShapes(newShapes)
+
+			if (select) {
+				this.select(...rootShapes.map((s) => s.id))
+			}
 
 			// And then, if needed, reparent the root shapes to the paste parent
 			if (pasteParentId !== currentPageId) {
