@@ -289,7 +289,7 @@ export class SnapManager {
 
 	// This needs to be external from any expensive work
 	@computed get currentCommonAncestor() {
-		return this.editor.findCommonShapeAncestor(this.editor.selectedShapes)
+		return this.editor.findCommonAncestor(this.editor.selectedShapes)
 	}
 
 	// Points which belong to snappable shapes

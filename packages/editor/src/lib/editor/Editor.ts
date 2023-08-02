@@ -260,7 +260,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			let nextParentId: TLParentId
 			if (startShape && endShape) {
 				// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
-				nextParentId = this.findCommonShapeAncestor([startShape, endShape]) ?? parentPageId
+				nextParentId = this.findCommonAncestor([startShape, endShape]) ?? parentPageId
 			} else if (startShape || endShape) {
 				// if arrow has one binding, keep arrow on its own page
 				nextParentId = parentPageId
@@ -522,7 +522,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				let nextFocusedGroupId: null | TLShapeId = null
 
 				if (filtered.length > 0) {
-					const commonGroupAncestor = this.findCommonShapeAncestor(
+					const commonGroupAncestor = this.findCommonAncestor(
 						compact(filtered.map((id) => this.getShape(id))),
 						(shape) => this.isShapeOfType<TLGroupShape>(shape, 'group')
 					)
@@ -4039,15 +4039,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param shapes - The shapes (or shape ids) to check.
 	 * @param predicate - The predicate to match.
 	 */
-	findCommonShapeAncestor(
+	findCommonAncestor(
 		shapes: TLShape[],
 		predicate?: (shape: TLShape) => boolean
 	): TLShapeId | undefined
-	findCommonShapeAncestor(
+	findCommonAncestor(
 		ids: TLShapeId[],
 		predicate?: (shape: TLShape) => boolean
 	): TLShapeId | undefined
-	findCommonShapeAncestor(
+	findCommonAncestor(
 		arg: TLShape[] | TLShapeId[],
 		predicate?: (shape: TLShape) => boolean
 	): TLShapeId | undefined {
@@ -6659,7 +6659,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const { x, y } = pageBounds.point
 
-		const parentId = this.findCommonShapeAncestor(shapes) ?? this.currentPageId
+		const parentId = this.findCommonAncestor(shapes) ?? this.currentPageId
 
 		// Only group when the select tool is active
 		if (this.currentToolId !== 'select') return this

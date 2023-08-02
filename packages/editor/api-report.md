@@ -651,9 +651,9 @@ export class Editor extends EventEmitter<TLEventMap> {
             }) => void) | null;
         }[K];
     };
-    findCommonShapeAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
+    findCommonAncestor(shapes: TLShape[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     // (undocumented)
-    findCommonShapeAncestor(ids: TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
+    findCommonAncestor(ids: TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     // (undocumented)
     findShapeAncestor(id: TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
