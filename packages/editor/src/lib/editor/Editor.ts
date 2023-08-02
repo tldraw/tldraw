@@ -105,6 +105,7 @@ import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
+import { SideEffectManager } from './managers/SideEffectManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
@@ -242,47 +243,328 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.environment = new EnvironmentManager(this)
 
-		this.store.onBeforeDelete = (record) => {
-			if (record.typeName === 'shape') {
-				this._shapeWillBeDeleted(record)
-			} else if (record.typeName === 'page') {
-				this._pageWillBeDeleted(record)
-			}
-		}
+		// Cleanup
 
-		this.store.onAfterChange = (prev, next) => {
-			this._updateDepth++
-			if (this._updateDepth > 1000) {
-				console.error('[onAfterChange] Maximum update depth exceeded, bailing out.')
-			}
-			if (prev.typeName === 'shape' && next.typeName === 'shape') {
-				this._shapeDidChange(prev, next)
-			} else if (
-				prev.typeName === 'instance_page_state' &&
-				next.typeName === 'instance_page_state'
-			) {
-				this._pageStateDidChange(prev, next)
+		const invalidParents = new Set<TLShapeId>()
+
+		const reparentArrow = (arrowId: TLArrowShape['id']) => {
+			const arrow = this.getShape<TLArrowShape>(arrowId)
+			if (!arrow) return
+			const { start, end } = arrow.props
+			const startShape = start.type === 'binding' ? this.getShape(start.boundShapeId) : undefined
+			const endShape = end.type === 'binding' ? this.getShape(end.boundShapeId) : undefined
+
+			const parentPageId = this.getAncestorPageId(arrow)
+			if (!parentPageId) return
+
+			let nextParentId: TLParentId
+			if (startShape && endShape) {
+				// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
+				nextParentId = this.findCommonAncestor([startShape, endShape]) ?? parentPageId
+			} else if (startShape || endShape) {
+				// if arrow has one binding, keep arrow on its own page
+				nextParentId = parentPageId
+			} else {
+				return
 			}
 
-			this._updateDepth--
-		}
-		this.store.onAfterCreate = (record) => {
-			if (record.typeName === 'shape' && this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
-				this._arrowDidUpdate(record)
+			if (nextParentId && nextParentId !== arrow.parentId) {
+				this.reparentShapes([arrowId], nextParentId)
 			}
-			if (record.typeName === 'page') {
-				const cameraId = CameraRecordType.createId(record.id)
-				const _pageStateId = InstancePageStateRecordType.createId(record.id)
-				if (!this.store.has(cameraId)) {
-					this.store.put([CameraRecordType.create({ id: cameraId })])
+
+			const reparentedArrow = this.getShape<TLArrowShape>(arrowId)
+			if (!reparentedArrow) throw Error('no reparented arrow')
+
+			const startSibling = this.getShapeNearestSibling(reparentedArrow, startShape)
+			const endSibling = this.getShapeNearestSibling(reparentedArrow, endShape)
+
+			let highestSibling: TLShape | undefined
+
+			if (startSibling && endSibling) {
+				highestSibling = startSibling.index > endSibling.index ? startSibling : endSibling
+			} else if (startSibling && !endSibling) {
+				highestSibling = startSibling
+			} else if (endSibling && !startSibling) {
+				highestSibling = endSibling
+			} else {
+				return
+			}
+
+			let finalIndex: string
+
+			const higherSiblings = this.getSortedChildIdsForParent(highestSibling.parentId)
+				.map((id) => this.getShape(id)!)
+				.filter((sibling) => sibling.index > highestSibling!.index)
+
+			if (higherSiblings.length) {
+				// there are siblings above the highest bound sibling, we need to
+				// insert between them.
+
+				// if the next sibling is also a bound arrow though, we can end up
+				// all fighting for the same indexes. so lets find the next
+				// non-arrow sibling...
+				const nextHighestNonArrowSibling = higherSiblings.find(
+					(sibling) => sibling.type !== 'arrow'
+				)
+
+				if (
+					// ...then, if we're above the last shape we want to be above...
+					reparentedArrow.index > highestSibling.index &&
+					// ...but below the next non-arrow sibling...
+					(!nextHighestNonArrowSibling || reparentedArrow.index < nextHighestNonArrowSibling.index)
+				) {
+					// ...then we're already in the right place. no need to update!
+					return
 				}
-				if (!this.store.has(_pageStateId)) {
+
+				// otherwise, we need to find the index between the highest sibling
+				// we want to be above, and the next highest sibling we want to be
+				// below:
+				finalIndex = getIndexBetween(highestSibling.index, higherSiblings[0].index)
+			} else {
+				// if there are no siblings above us, we can just get the next index:
+				finalIndex = getIndexAbove(highestSibling.index)
+			}
+
+			if (finalIndex !== reparentedArrow.index) {
+				this.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }])
+			}
+		}
+
+		const unbindArrowTerminal = (arrow: TLArrowShape, handleId: 'start' | 'end') => {
+			const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
+			this.store.put([{ ...arrow, props: { ...arrow.props, [handleId]: { type: 'point', x, y } } }])
+		}
+
+		const arrowDidUpdate = (arrow: TLArrowShape) => {
+			// if the shape is an arrow and its bound shape is on another page
+			// or was deleted, unbind it
+			for (const handle of ['start', 'end'] as const) {
+				const terminal = arrow.props[handle]
+				if (terminal.type !== 'binding') continue
+				const boundShape = this.getShape(terminal.boundShapeId)
+				const isShapeInSamePageAsArrow =
+					this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
+				if (!boundShape || !isShapeInSamePageAsArrow) {
+					unbindArrowTerminal(arrow, handle)
+				}
+			}
+
+			// always check the arrow parents
+			reparentArrow(arrow.id)
+		}
+
+		const cleanupInstancePageState = (
+			prevPageState: TLInstancePageState,
+			shapesNoLongerInPage: Set<TLShapeId>
+		) => {
+			let nextPageState = null as null | TLInstancePageState
+
+			const selectedShapeIds = prevPageState.selectedShapeIds.filter(
+				(id) => !shapesNoLongerInPage.has(id)
+			)
+			if (selectedShapeIds.length !== prevPageState.selectedShapeIds.length) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.selectedShapeIds = selectedShapeIds
+			}
+
+			const erasingShapeIds = prevPageState.erasingShapeIds.filter(
+				(id) => !shapesNoLongerInPage.has(id)
+			)
+			if (erasingShapeIds.length !== prevPageState.erasingShapeIds.length) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.erasingShapeIds = erasingShapeIds
+			}
+
+			if (prevPageState.hoveredShapeId && shapesNoLongerInPage.has(prevPageState.hoveredShapeId)) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.hoveredShapeId = null
+			}
+
+			if (prevPageState.editingShapeId && shapesNoLongerInPage.has(prevPageState.editingShapeId)) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.editingShapeId = null
+			}
+
+			const hintingShapeIds = prevPageState.hintingShapeIds.filter(
+				(id) => !shapesNoLongerInPage.has(id)
+			)
+			if (hintingShapeIds.length !== prevPageState.hintingShapeIds.length) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.hintingShapeIds = hintingShapeIds
+			}
+
+			if (prevPageState.focusedGroupId && shapesNoLongerInPage.has(prevPageState.focusedGroupId)) {
+				if (!nextPageState) nextPageState = { ...prevPageState }
+				nextPageState.focusedGroupId = null
+			}
+			return nextPageState
+		}
+
+		this.sideEffects = new SideEffectManager(this)
+
+		this.sideEffects.registerBatchCompleteHandler(() => {
+			for (const parentId of invalidParents) {
+				invalidParents.delete(parentId)
+				const parent = this.getShape(parentId)
+				if (!parent) continue
+
+				const util = this.getShapeUtil(parent)
+				const changes = util.onChildrenChange?.(parent)
+
+				if (changes?.length) {
+					this.updateShapes(changes, true)
+				}
+			}
+
+			this.emit('update')
+		})
+
+		this.sideEffects.registerBeforeDeleteHandler('shape', (record) => {
+			// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
+			if (record.parentId && isShapeId(record.parentId)) {
+				invalidParents.add(record.parentId)
+			}
+			// clean up any arrows bound to this shape
+			const bindings = this._arrowBindingsIndex.value[record.id]
+			if (bindings?.length) {
+				for (const { arrowId, handleId } of bindings) {
+					const arrow = this.getShape<TLArrowShape>(arrowId)
+					if (!arrow) continue
+					unbindArrowTerminal(arrow, handleId)
+				}
+			}
+			const deletedIds = new Set([record.id])
+			const updates = compact(
+				this.pageStates.map((pageState) => {
+					return cleanupInstancePageState(pageState, deletedIds)
+				})
+			)
+
+			if (updates.length) {
+				this.store.put(updates)
+			}
+		})
+
+		this.sideEffects.registerBeforeDeleteHandler('page', (record) => {
+			// page was deleted, need to check whether it's the current page and select another one if so
+			if (this.instanceState.currentPageId !== record.id) return
+
+			const backupPageId = this.pages.find((p) => p.id !== record.id)?.id
+			if (!backupPageId) return
+			this.store.put([{ ...this.instanceState, currentPageId: backupPageId }])
+
+			// delete the camera and state for the page if necessary
+			const cameraId = CameraRecordType.createId(record.id)
+			const instance_PageStateId = InstancePageStateRecordType.createId(record.id)
+			this.store.remove([cameraId, instance_PageStateId])
+		})
+
+		this.sideEffects.registerAfterChangeHandler('shape', (prev, next) => {
+			if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
+				arrowDidUpdate(next)
+			}
+
+			// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
+			if (prev.parentId !== next.parentId) {
+				const reparentBoundArrows = (id: TLShapeId) => {
+					const boundArrows = this._arrowBindingsIndex.value[id]
+					if (boundArrows?.length) {
+						for (const arrow of boundArrows) {
+							reparentArrow(arrow.arrowId)
+						}
+					}
+				}
+				reparentBoundArrows(next.id)
+				this.visitDescendants(next.id, reparentBoundArrows)
+			}
+
+			// if this shape moved to a new page, clean up any previous page's instance state
+			if (prev.parentId !== next.parentId && isPageId(next.parentId)) {
+				const allMovingIds = new Set([prev.id])
+				this.visitDescendants(prev.id, (id) => {
+					allMovingIds.add(id)
+				})
+
+				for (const instancePageState of this.pageStates) {
+					if (instancePageState.pageId === next.parentId) continue
+					const nextPageState = cleanupInstancePageState(instancePageState, allMovingIds)
+
+					if (nextPageState) {
+						this.store.put([nextPageState])
+					}
+				}
+			}
+
+			if (prev.parentId && isShapeId(prev.parentId)) {
+				invalidParents.add(prev.parentId)
+			}
+
+			if (next.parentId !== prev.parentId && isShapeId(next.parentId)) {
+				invalidParents.add(next.parentId)
+			}
+		})
+
+		this.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
+			if (prev?.selectedShapeIds !== next?.selectedShapeIds) {
+				// ensure that descendants and ancestors are not selected at the same time
+				const filtered = next.selectedShapeIds.filter((id) => {
+					let parentId = this.getShape(id)?.parentId
+					while (isShapeId(parentId)) {
+						if (next.selectedShapeIds.includes(parentId)) {
+							return false
+						}
+						parentId = this.getShape(parentId)?.parentId
+					}
+					return true
+				})
+
+				let nextFocusedGroupId: null | TLShapeId = null
+
+				if (filtered.length > 0) {
+					const commonGroupAncestor = this.findCommonAncestor(
+						compact(filtered.map((id) => this.getShape(id))),
+						(shape) => this.isShapeOfType<TLGroupShape>(shape, 'group')
+					)
+
+					if (commonGroupAncestor) {
+						nextFocusedGroupId = commonGroupAncestor
+					}
+				} else {
+					if (next?.focusedGroupId) {
+						nextFocusedGroupId = next.focusedGroupId
+					}
+				}
+
+				if (
+					filtered.length !== next.selectedShapeIds.length ||
+					nextFocusedGroupId !== next.focusedGroupId
+				) {
 					this.store.put([
-						InstancePageStateRecordType.create({ id: _pageStateId, pageId: record.id }),
+						{ ...next, selectedShapeIds: filtered, focusedGroupId: nextFocusedGroupId ?? null },
 					])
 				}
 			}
-		}
+		})
+
+		this.sideEffects.registerAfterCreateHandler('shape', (record) => {
+			if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
+				arrowDidUpdate(record)
+			}
+		})
+
+		this.sideEffects.registerAfterCreateHandler('page', (record) => {
+			const cameraId = CameraRecordType.createId(record.id)
+			const _pageStateId = InstancePageStateRecordType.createId(record.id)
+			if (!this.store.has(cameraId)) {
+				this.store.put([CameraRecordType.create({ id: cameraId })])
+			}
+			if (!this.store.has(_pageStateId)) {
+				this.store.put([
+					InstancePageStateRecordType.create({ id: _pageStateId, pageId: record.id }),
+				])
+			}
+		})
 
 		this._shapeIdsOnCurrentPage = deriveShapeIdsInCurrentPage(this.store, () => this.currentPageId)
 		this._parentIdsToChildIds = parentsToChildren(this.store)
@@ -376,9 +658,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _tickManager = new TickManager(this)
 
-	/** @internal */
-	private _updateDepth = 0
-
 	/**
 	 * A manager for the app's snapping feature.
 	 *
@@ -418,6 +697,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getContainer: () => HTMLElement
+
+	/**
+	 * A manager for side effects and correct state enforcement.
+	 *
+	 * @public
+	 */
+	readonly sideEffects: SideEffectManager<this>
 
 	/**
 	 * Dispose the editor.
@@ -474,7 +760,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	readonly history = new HistoryManager(
 		this,
-		() => this._complete(),
+		// () => this._complete(),
 		(error) => {
 			this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
 			this.crash(error)
@@ -620,95 +906,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._arrowBindingsIndex.value[shapeId] || EMPTY_ARRAY
 	}
 
-	/** @internal */
-	private _reparentArrow(arrowId: TLShapeId) {
-		const arrow = this.getShape<TLArrowShape>(arrowId)
-		if (!arrow) return
-		const { start, end } = arrow.props
-		const startShape = start.type === 'binding' ? this.getShape(start.boundShapeId) : undefined
-		const endShape = end.type === 'binding' ? this.getShape(end.boundShapeId) : undefined
-
-		const parentPageId = this.getAncestorPageId(arrow)
-		if (!parentPageId) return
-
-		let nextParentId: TLParentId
-		if (startShape && endShape) {
-			// if arrow has two bindings, always parent arrow to closest common ancestor of the bindings
-			nextParentId = this.findCommonAncestor([startShape, endShape]) ?? parentPageId
-		} else if (startShape || endShape) {
-			// if arrow has one binding, keep arrow on its own page
-			nextParentId = parentPageId
-		} else {
-			return
-		}
-
-		if (nextParentId && nextParentId !== arrow.parentId) {
-			this.reparentShapes([arrowId], nextParentId)
-		}
-
-		const reparentedArrow = this.getShape<TLArrowShape>(arrowId)
-		if (!reparentedArrow) throw Error('no reparented arrow')
-
-		const startSibling = this.getShapeNearestSibling(reparentedArrow, startShape)
-		const endSibling = this.getShapeNearestSibling(reparentedArrow, endShape)
-
-		let highestSibling: TLShape | undefined
-
-		if (startSibling && endSibling) {
-			highestSibling = startSibling.index > endSibling.index ? startSibling : endSibling
-		} else if (startSibling && !endSibling) {
-			highestSibling = startSibling
-		} else if (endSibling && !startSibling) {
-			highestSibling = endSibling
-		} else {
-			return
-		}
-
-		let finalIndex: string
-
-		const higherSiblings = this.getSortedChildIdsForParent(highestSibling.parentId)
-			.map((id) => this.getShape(id)!)
-			.filter((sibling) => sibling.index > highestSibling!.index)
-
-		if (higherSiblings.length) {
-			// there are siblings above the highest bound sibling, we need to
-			// insert between them.
-
-			// if the next sibling is also a bound arrow though, we can end up
-			// all fighting for the same indexes. so lets find the next
-			// non-arrow sibling...
-			const nextHighestNonArrowSibling = higherSiblings.find((sibling) => sibling.type !== 'arrow')
-
-			if (
-				// ...then, if we're above the last shape we want to be above...
-				reparentedArrow.index > highestSibling.index &&
-				// ...but below the next non-arrow sibling...
-				(!nextHighestNonArrowSibling || reparentedArrow.index < nextHighestNonArrowSibling.index)
-			) {
-				// ...then we're already in the right place. no need to update!
-				return
-			}
-
-			// otherwise, we need to find the index between the highest sibling
-			// we want to be above, and the next highest sibling we want to be
-			// below:
-			finalIndex = getIndexBetween(highestSibling.index, higherSiblings[0].index)
-		} else {
-			// if there are no siblings above us, we can just get the next index:
-			finalIndex = getIndexAbove(highestSibling.index)
-		}
-
-		if (finalIndex !== reparentedArrow.index) {
-			this.updateShapes<TLArrowShape>([{ id: arrowId, type: 'arrow', index: finalIndex }])
-		}
-	}
-
-	/** @internal */
-	private _unbindArrowTerminal(arrow: TLArrowShape, handleId: 'start' | 'end') {
-		const { x, y } = getArrowTerminalsInArrowSpace(this, arrow)[handleId]
-		this.store.put([{ ...arrow, props: { ...arrow.props, [handleId]: { type: 'point', x, y } } }])
-	}
-
 	@computed
 	private get arrowInfoCache() {
 		return this.store.createComputedCache<ArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
@@ -726,181 +923,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	// 	const update = this.getShapeUtil(next).onUpdate?.(prev, next)
 	// 	return update ?? next
 	// }
-
-	/** @internal */
-	private _shapeWillBeDeleted(deletedShape: TLShape) {
-		// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
-		if (deletedShape.parentId && isShapeId(deletedShape.parentId)) {
-			this._invalidParents.add(deletedShape.parentId)
-		}
-		// clean up any arrows bound to this shape
-		const bindings = this._arrowBindingsIndex.value[deletedShape.id]
-		if (bindings?.length) {
-			for (const { arrowId, handleId } of bindings) {
-				const arrow = this.getShape<TLArrowShape>(arrowId)
-				if (!arrow) continue
-				this._unbindArrowTerminal(arrow, handleId)
-			}
-		}
-		const deletedIds = new Set([deletedShape.id])
-		const updates = compact(
-			this.pageStates.map((pageState) => {
-				return this._cleanupInstancePageState(pageState, deletedIds)
-			})
-		)
-
-		if (updates.length) {
-			this.store.put(updates)
-		}
-	}
-
-	/** @internal */
-	private _arrowDidUpdate(arrow: TLArrowShape) {
-		// if the shape is an arrow and its bound shape is on another page
-		// or was deleted, unbind it
-		for (const handle of ['start', 'end'] as const) {
-			const terminal = arrow.props[handle]
-			if (terminal.type !== 'binding') continue
-			const boundShape = this.getShape(terminal.boundShapeId)
-			const isShapeInSamePageAsArrow =
-				this.getAncestorPageId(arrow) === this.getAncestorPageId(boundShape)
-			if (!boundShape || !isShapeInSamePageAsArrow) {
-				this._unbindArrowTerminal(arrow, handle)
-			}
-		}
-
-		// always check the arrow parents
-		this._reparentArrow(arrow.id)
-	}
-
-	/**
-	 * _invalidParents is used to trigger the 'onChildrenChange' callback that shapes can have.
-	 *
-	 * @internal
-	 */
-	private readonly _invalidParents = new Set<TLShapeId>()
-
-	/** @internal */
-	private _complete() {
-		for (const parentId of this._invalidParents) {
-			this._invalidParents.delete(parentId)
-			const parent = this.getShape(parentId)
-			if (!parent) continue
-
-			const util = this.getShapeUtil(parent)
-			const changes = util.onChildrenChange?.(parent)
-
-			if (changes?.length) {
-				this.updateShapes(changes, true)
-			}
-		}
-
-		this.emit('update')
-	}
-
-	/** @internal */
-	private _shapeDidChange(prev: TLShape, next: TLShape) {
-		if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
-			this._arrowDidUpdate(next)
-		}
-
-		// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
-		if (prev.parentId !== next.parentId) {
-			const reparentBoundArrows = (id: TLShapeId) => {
-				const boundArrows = this._arrowBindingsIndex.value[id]
-				if (boundArrows?.length) {
-					for (const arrow of boundArrows) {
-						this._reparentArrow(arrow.arrowId)
-					}
-				}
-			}
-			reparentBoundArrows(next.id)
-			this.visitDescendants(next.id, reparentBoundArrows)
-		}
-
-		// if this shape moved to a new page, clean up any previous page's instance state
-		if (prev.parentId !== next.parentId && isPageId(next.parentId)) {
-			const allMovingIds = new Set([prev.id])
-			this.visitDescendants(prev.id, (id) => {
-				allMovingIds.add(id)
-			})
-
-			for (const instancePageState of this.pageStates) {
-				if (instancePageState.pageId === next.parentId) continue
-				const nextPageState = this._cleanupInstancePageState(instancePageState, allMovingIds)
-
-				if (nextPageState) {
-					this.store.put([nextPageState])
-				}
-			}
-		}
-
-		if (prev.parentId && isShapeId(prev.parentId)) {
-			this._invalidParents.add(prev.parentId)
-		}
-
-		if (next.parentId !== prev.parentId && isShapeId(next.parentId)) {
-			this._invalidParents.add(next.parentId)
-		}
-	}
-
-	/** @internal */
-	private _pageStateDidChange(prev: TLInstancePageState, next: TLInstancePageState) {
-		if (prev?.selectedShapeIds !== next?.selectedShapeIds) {
-			// ensure that descendants and ancestors are not selected at the same time
-			const filtered = next.selectedShapeIds.filter((id) => {
-				let parentId = this.getShape(id)?.parentId
-				while (isShapeId(parentId)) {
-					if (next.selectedShapeIds.includes(parentId)) {
-						return false
-					}
-					parentId = this.getShape(parentId)?.parentId
-				}
-				return true
-			})
-
-			let nextFocusedGroupId: null | TLShapeId = null
-
-			if (filtered.length > 0) {
-				const commonGroupAncestor = this.findCommonAncestor(
-					compact(filtered.map((id) => this.getShape(id))),
-					(shape) => this.isShapeOfType<TLGroupShape>(shape, 'group')
-				)
-
-				if (commonGroupAncestor) {
-					nextFocusedGroupId = commonGroupAncestor
-				}
-			} else {
-				if (next?.focusedGroupId) {
-					nextFocusedGroupId = next.focusedGroupId
-				}
-			}
-
-			if (
-				filtered.length !== next.selectedShapeIds.length ||
-				nextFocusedGroupId !== next.focusedGroupId
-			) {
-				this.store.put([
-					{ ...next, selectedShapeIds: filtered, focusedGroupId: nextFocusedGroupId ?? null },
-				])
-			}
-		}
-	}
-
-	/** @internal */
-	private _pageWillBeDeleted(page: TLPage) {
-		// page was deleted, need to check whether it's the current page and select another one if so
-		if (this.instanceState.currentPageId !== page.id) return
-
-		const backupPageId = this.pages.find((p) => p.id !== page.id)?.id
-		if (!backupPageId) return
-		this.store.put([{ ...this.instanceState, currentPageId: backupPageId }])
-
-		// delete the camera and state for the page if necessary
-		const cameraId = CameraRecordType.createId(page.id)
-		const instance_PageStateId = InstancePageStateRecordType.createId(page.id)
-		this.store.remove([cameraId, instance_PageStateId])
-	}
 
 	/* --------------------- Errors --------------------- */
 
@@ -1800,54 +1822,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 		return this
-	}
-
-	/** @internal */
-	private _cleanupInstancePageState(
-		prevPageState: TLInstancePageState,
-		shapesNoLongerInPage: Set<TLShapeId>
-	) {
-		let nextPageState = null as null | TLInstancePageState
-
-		const selectedShapeIds = prevPageState.selectedShapeIds.filter(
-			(id) => !shapesNoLongerInPage.has(id)
-		)
-		if (selectedShapeIds.length !== prevPageState.selectedShapeIds.length) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.selectedShapeIds = selectedShapeIds
-		}
-
-		const erasingShapeIds = prevPageState.erasingShapeIds.filter(
-			(id) => !shapesNoLongerInPage.has(id)
-		)
-		if (erasingShapeIds.length !== prevPageState.erasingShapeIds.length) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.erasingShapeIds = erasingShapeIds
-		}
-
-		if (prevPageState.hoveredShapeId && shapesNoLongerInPage.has(prevPageState.hoveredShapeId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.hoveredShapeId = null
-		}
-
-		if (prevPageState.editingShapeId && shapesNoLongerInPage.has(prevPageState.editingShapeId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.editingShapeId = null
-		}
-
-		const hintingShapeIds = prevPageState.hintingShapeIds.filter(
-			(id) => !shapesNoLongerInPage.has(id)
-		)
-		if (hintingShapeIds.length !== prevPageState.hintingShapeIds.length) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.hintingShapeIds = hintingShapeIds
-		}
-
-		if (prevPageState.focusedGroupId && shapesNoLongerInPage.has(prevPageState.focusedGroupId)) {
-			if (!nextPageState) nextPageState = { ...prevPageState }
-			nextPageState.focusedGroupId = null
-		}
-		return nextPageState
 	}
 
 	/* --------------------- Camera --------------------- */

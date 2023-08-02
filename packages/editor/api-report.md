@@ -944,6 +944,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     get sharedOpacity(): SharedStyle<number>;
     get sharedStyles(): ReadonlySharedStyleMap;
+    readonly sideEffects: SideEffectManager<this>;
     slideCamera(opts?: {
         speed: number;
         direction: VecLike;
