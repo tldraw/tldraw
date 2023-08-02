@@ -1178,7 +1178,7 @@ export function getIndicesBelow(above: string, n: number): string[];
 export function getIndicesBetween(below: string | undefined, above: string | undefined, n: number): string[];
 
 // @public (undocumented)
-export function getPointerInfo(e: PointerEvent | React.PointerEvent, container: HTMLElement): {
+export function getPointerInfo(e: PointerEvent | React.PointerEvent): {
     point: {
         x: number;
         y: number;

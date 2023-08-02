@@ -118,7 +118,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				type: 'pointer',
 				target: 'canvas',
 				name: 'pointer_move',
-				...getPointerInfo(e, editor.getContainer()),
+				...getPointerInfo(e),
 				point: screenPoint,
 				isPen: editor.instanceState.isPenMode,
 			}

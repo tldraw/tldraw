@@ -18,8 +18,8 @@ describe('When resizing', () => {
 	it('sets the viewport bounds with Editor.resize', () => {
 		editor.setScreenBounds({ x: 100, y: 200, w: 700, h: 600 })
 		expect(editor.viewportScreenBounds).toMatchObject({
-			x: 0,
-			y: 0,
+			x: 100,
+			y: 200,
 			w: 700,
 			h: 600,
 		})
@@ -31,8 +31,8 @@ describe('When resizing', () => {
 		editor.undo() // this should have no effect
 
 		expect(editor.viewportScreenBounds).toMatchObject({
-			x: 0,
-			y: 0,
+			x: 100,
+			y: 200,
 			w: 700,
 			h: 600,
 		})
@@ -41,8 +41,8 @@ describe('When resizing', () => {
 	it('clamps bounds to minimim 0,0,1,1', () => {
 		editor.setScreenBounds({ x: -100, y: -200, w: -700, h: 0 })
 		expect(editor.viewportScreenBounds).toMatchObject({
-			x: 0,
-			y: 0,
+			x: -100,
+			y: -200,
 			w: 1,
 			h: 1,
 		})
@@ -52,17 +52,48 @@ describe('When resizing', () => {
 describe('When center is false', () => {
 	it('keeps the same top left when resized', () => {
 		const a = editor.screenToPage({ x: 0, y: 0 })
+		expect(a).toMatchObject({ x: 0, y: 0 })
 		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, false)
+		expect(editor.viewportScreenBounds).toMatchObject({
+			x: 100,
+			y: 200,
+			w: 500,
+			h: 600,
+		})
 		const b = editor.screenToPage({ x: 0, y: 0 })
-		expect(a).toMatchObject(b)
+		expect(b).toMatchObject({ x: -100, y: -200 })
+	})
+
+	it('keeps the same top left when resized while panned', () => {
+		editor.setCamera({ x: -100, y: -100, z: 1 })
+		const a = editor.screenToPage({ x: 0, y: 0 })
+		expect(a).toMatchObject({ x: 100, y: 100 })
+
+		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, false)
+		expect(editor.viewportScreenBounds).toMatchObject({
+			x: 100,
+			y: 200,
+			w: 500,
+			h: 600,
+		})
+		const b = editor.screenToPage({ x: 0, y: 0 })
+		expect(b).toMatchObject({ x: 0, y: -100 })
 	})
 
 	it('keeps the same top left when resized while panned / zoomed', () => {
-		editor.setCamera({ x: -100, y: -100, z: 1.2 })
-		const a = editor.screenToPage({ x: 0, y: 0 })
-		editor.setScreenBounds({ x: 100, y: 200, w: 500, h: 600 }, false)
-		const b = editor.screenToPage({ x: 0, y: 0 })
-		expect(a).toMatchObject(b)
+		editor.setCamera({ x: -100, y: -100, z: 1 })
+		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 100, y: 100 })
+		editor.setCamera({ x: -100, y: -100, z: 2 })
+		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 50, y: 50 })
+
+		editor.setScreenBounds({ x: 100, y: 100, w: 500, h: 600 }, false)
+		expect(editor.viewportScreenBounds).toMatchObject({
+			x: 100,
+			y: 100,
+			w: 500,
+			h: 600,
+		})
+		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 0, y: 0 })
 	})
 })
 

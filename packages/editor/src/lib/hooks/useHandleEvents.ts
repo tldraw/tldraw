@@ -32,7 +32,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				handle,
 				shape,
 				name: 'pointer_down',
-				...getPointerInfo(e, editor.getContainer()),
+				...getPointerInfo(e),
 			})
 		}
 
@@ -55,7 +55,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				handle,
 				shape,
 				name: 'pointer_move',
-				...getPointerInfo(e, editor.getContainer()),
+				...getPointerInfo(e),
 			})
 		}
 
@@ -75,7 +75,7 @@ export function useHandleEvents(id: TLShapeId, handleId: string) {
 				handle,
 				shape,
 				name: 'pointer_up',
-				...getPointerInfo(e, editor.getContainer()),
+				...getPointerInfo(e),
 			})
 		}
 

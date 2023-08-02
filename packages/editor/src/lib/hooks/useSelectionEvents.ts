@@ -34,7 +34,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 				e.stopPropagation()
 			}
@@ -54,7 +54,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
@@ -67,7 +67,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 

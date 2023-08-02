@@ -1,13 +1,11 @@
 /** @public */
-export function getPointerInfo(e: React.PointerEvent | PointerEvent, container: HTMLElement) {
+export function getPointerInfo(e: React.PointerEvent | PointerEvent) {
 	;(e as any).isKilled = true
-
-	const { top, left } = container.getBoundingClientRect()
 
 	return {
 		point: {
-			x: e.clientX - left,
-			y: e.clientY - top,
+			x: e.clientX,
+			y: e.clientY,
 			z: e.pressure,
 		},
 		shiftKey: e.shiftKey,

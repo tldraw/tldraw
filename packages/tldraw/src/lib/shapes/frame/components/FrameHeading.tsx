@@ -30,7 +30,7 @@ export const FrameHeading = function FrameHeading({
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent) => {
-			const event = getPointerInfo(e, editor.getContainer())
+			const event = getPointerInfo(e)
 			editor.dispatch({
 				type: 'pointer',
 				name: 'pointer_down',

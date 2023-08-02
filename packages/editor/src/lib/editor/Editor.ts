@@ -1851,9 +1851,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _willSetInitialBounds = true
-
-	/** @internal */
 	private _setCamera(point: VecLike): this {
 		const currentCamera = this.camera
 
@@ -2496,6 +2493,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	// Viewport
 
+	/** @internal */
+	private _willSetInitialBounds = true
+
 	/**
 	 * Update the viewport. The viewport will measure the size and screen position of its container
 	 * element. This should be done whenever the container's position on the screen changes.
@@ -2515,11 +2515,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (!container) return this
 		const rect = container.getBoundingClientRect()
-		const screenBounds = new Box2d(0, 0, Math.max(rect.width, 1), Math.max(rect.height, 1))
-
+		const screenBounds = new Box2d(
+			rect.left || rect.x,
+			rect.top || rect.y,
+			Math.max(rect.width, 1),
+			Math.max(rect.height, 1)
+		)
 		const boundsAreEqual = screenBounds.equals(this.viewportScreenBounds)
 
-		// Get the current value
 		const { _willSetInitialBounds } = this
 
 		if (boundsAreEqual) {
@@ -2530,21 +2533,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this._willSetInitialBounds = false
 				this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
 			} else {
-				const { zoomLevel } = this
-				if (center) {
+				if (center && !this.instanceState.followingUserId) {
+					// Get the page center before the change, make the change, and restore it
 					const before = this.viewportPageCenter
 					this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
-					const after = this.viewportPageCenter
-					if (!this.instanceState.followingUserId) {
-						this.pan({ x: (after.x - before.x) * zoomLevel, y: (after.y - before.y) * zoomLevel })
-					}
+					this.centerOnPoint(before)
 				} else {
-					const before = this.screenToPage({ x: 0, y: 0 })
+					// Otherwise,
 					this.updateInstanceState({ screenBounds: screenBounds.toJson() }, true, true)
-					const after = this.screenToPage({ x: 0, y: 0 })
-					if (!this.instanceState.followingUserId) {
-						this.pan({ x: (after.x - before.x) * zoomLevel, y: (after.y - before.y) * zoomLevel })
-					}
 				}
 			}
 		}

@@ -21,7 +21,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_down',
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
@@ -36,7 +36,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_move',
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
@@ -52,7 +52,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_up',
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
