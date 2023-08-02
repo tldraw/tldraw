@@ -569,7 +569,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(x: number, y: number, opts?: TLAnimationOptions): this;
-    readonly cleanup: CleanupManager<this>;
     // @internal
     protected _clickManager: ClickManager;
     get commonBoundsOfAllShapesOnCurrentPage(): Box2d | undefined;
@@ -949,6 +948,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     get sharedOpacity(): SharedStyle<number>;
     get sharedStyles(): ReadonlySharedStyleMap;
+    readonly sideEffects: SideEffectManager<this>;
     slideCamera(opts?: {
         speed: number;
         direction: VecLike;

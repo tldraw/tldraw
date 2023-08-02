@@ -33,14 +33,14 @@ export type TLAfterDeleteHandler<R extends TLRecord> = (
 export type TLBatchCompleteHandler = () => void
 
 /**
- * The cleanup manager (aka a "side effect wrangler and correct state enforcer")
- * is responsible for making sure that the editor's state is always correct. This
- * includes things like: deleting a shape if its parent is deleted; unbinding
+ * The side effect manager (aka a "correct state enforcer") is responsible
+ * for making sure that the editor's state is always correct. This includes
+ * things like: deleting a shape if its parent is deleted; unbinding
  * arrows when their binding target is deleted; etc.
  *
  * @public
  */
-export class CleanupManager<
+export class SideEffectManager<
 	CTX extends {
 		store: TLStore
 		history: { onBatchComplete: () => void }

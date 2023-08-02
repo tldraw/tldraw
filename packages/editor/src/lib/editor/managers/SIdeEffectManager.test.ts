@@ -8,7 +8,7 @@
 // 	})
 // })
 
-describe('Cleanup manager', () => {
+describe('Side effect manager', () => {
 	it.todo('Registers an onBeforeCreate handler')
 	it.todo('Registers an onAfterCreate handler')
 	it.todo('Registers an onBeforeChange handler')

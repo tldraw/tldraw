@@ -102,9 +102,9 @@ import { uniqueId } from '../utils/uniqueId'
 import { arrowBindingsIndex } from './derivations/arrowBindingsIndex'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
-import { CleanupManager } from './managers/CleanupManager'
 import { ClickManager } from './managers/ClickManager'
 import { HistoryManager } from './managers/HistoryManager'
+import { SideEffectManager } from './managers/SideEffectManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
@@ -412,9 +412,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return nextPageState
 		}
 
-		this.cleanup = new CleanupManager(this)
+		this.sideEffects = new SideEffectManager(this)
 
-		this.cleanup.registerBatchCompleteHandler(() => {
+		this.sideEffects.registerBatchCompleteHandler(() => {
 			for (const parentId of invalidParents) {
 				invalidParents.delete(parentId)
 				const parent = this.getShape(parentId)
@@ -431,7 +431,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.emit('update')
 		})
 
-		this.cleanup.registerBeforeDeleteHandler('shape', (record) => {
+		this.sideEffects.registerBeforeDeleteHandler('shape', (record) => {
 			// if the deleted shape has a parent shape make sure we call it's onChildrenChange callback
 			if (record.parentId && isShapeId(record.parentId)) {
 				invalidParents.add(record.parentId)
@@ -457,7 +457,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		})
 
-		this.cleanup.registerBeforeDeleteHandler('page', (record) => {
+		this.sideEffects.registerBeforeDeleteHandler('page', (record) => {
 			// page was deleted, need to check whether it's the current page and select another one if so
 			if (this.instanceState.currentPageId !== record.id) return
 
@@ -471,7 +471,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.store.remove([cameraId, instance_PageStateId])
 		})
 
-		this.cleanup.registerAfterChangeHandler('shape', (prev, next) => {
+		this.sideEffects.registerAfterChangeHandler('shape', (prev, next) => {
 			if (this.isShapeOfType<TLArrowShape>(next, 'arrow')) {
 				arrowDidUpdate(next)
 			}
@@ -516,7 +516,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		})
 
-		this.cleanup.registerAfterChangeHandler('instance_page_state', (prev, next) => {
+		this.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
 			if (prev?.selectedShapeIds !== next?.selectedShapeIds) {
 				// ensure that descendants and ancestors are not selected at the same time
 				const filtered = next.selectedShapeIds.filter((id) => {
@@ -558,13 +558,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		})
 
-		this.cleanup.registerAfterCreateHandler('shape', (record) => {
+		this.sideEffects.registerAfterCreateHandler('shape', (record) => {
 			if (this.isShapeOfType<TLArrowShape>(record, 'arrow')) {
 				arrowDidUpdate(record)
 			}
 		})
 
-		this.cleanup.registerAfterCreateHandler('page', (record) => {
+		this.sideEffects.registerAfterCreateHandler('page', (record) => {
 			const cameraId = CameraRecordType.createId(record.id)
 			const _pageStateId = InstancePageStateRecordType.createId(record.id)
 			if (!this.store.has(cameraId)) {
@@ -738,11 +738,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getContainer: () => HTMLElement
 
 	/**
-	 * A manager for side effects and cleanup.
+	 * A manager for side effects and correct state enforcement.
 	 *
 	 * @public
 	 */
-	readonly cleanup: CleanupManager<this>
+	readonly sideEffects: SideEffectManager<this>
 
 	/**
 	 * Dispose the editor.
