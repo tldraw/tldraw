@@ -630,6 +630,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     duplicateShapes(ids: TLShapeId[], offset?: VecLike): this;
     get editingShapeId(): null | TLShapeId;
+    readonly environment: EnvironmentManager;
     get erasingShapeIds(): TLShapeId[];
     get erasingShapeIdsSet(): Set<TLShapeId>;
     // @internal (undocumented)
@@ -805,12 +806,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     isAncestorSelected(id: TLShapeId): boolean;
     // (undocumented)
     isAncestorSelected(shape: TLShape): boolean;
-    readonly isAndroid: boolean;
-    readonly isChromeForIos: boolean;
-    readonly isFirefox: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
-    readonly isIos: boolean;
     get isMenuOpen(): boolean;
     isPointInShape(shape: TLShape, point: VecLike, opts?: {
         margin?: number;
@@ -821,7 +818,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         margin?: number;
         hitInside?: boolean;
     }): boolean;
-    readonly isSafari: boolean;
     isShapeInPage(shape: TLShape, pageId?: TLPageId): boolean;
     // (undocumented)
     isShapeInPage(shapeId: TLShapeId, pageId?: TLPageId): boolean;
