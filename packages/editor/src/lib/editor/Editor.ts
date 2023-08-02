@@ -2035,8 +2035,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const ids = [...this.currentPageShapeIds]
 		if (ids.length <= 0) return this
 
-		const pageBounds = Box2d.Common(compact(ids.map((id) => this.getShapeAbsoluteBounds(id))))
-		this.zoomToBounds(pageBounds, undefined, animation)
+		const absoluteBounds = Box2d.Common(compact(ids.map((id) => this.getShapeAbsoluteBounds(id))))
+		this.zoomToBounds(absoluteBounds, undefined, animation)
 		return this
 	}
 
@@ -3803,7 +3803,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	@computed private get _shapeAbsoluteBoundsCache(): ComputedCache<Box2d, TLShape> {
-		return this.store.createComputedCache<Box2d, TLShape>('pageBoundsCache', (shape) => {
+		return this.store.createComputedCache<Box2d, TLShape>('absoluteBoundsCache', (shape) => {
 			const pageTransform = this._shapeAbsoluteTransformCache.get(shape.id)
 
 			if (!pageTransform) return new Box2d()
@@ -3950,16 +3950,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getShapeMaskedAbsoluteBounds(shape: TLShape): Box2d | undefined
 	getShapeMaskedAbsoluteBounds(id: TLShapeId | TLShape): Box2d | undefined {
 		if (typeof id !== 'string') id = id.id
-		const pageBounds = this._shapeAbsoluteBoundsCache.get(id)
-		if (!pageBounds) return
+		const absoluteBounds = this._shapeAbsoluteBoundsCache.get(id)
+		if (!absoluteBounds) return
 		const pageMask = this._shapeMaskCache.get(id)
 		if (pageMask) {
-			const intersection = intersectPolygonPolygon(pageMask, pageBounds.corners)
+			const intersection = intersectPolygonPolygon(pageMask, absoluteBounds.corners)
 			if (!intersection) return
 			return Box2d.FromPoints(intersection)
 		}
 
-		return pageBounds
+		return absoluteBounds
 	}
 
 	/**
@@ -5467,7 +5467,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if ((gap === 0 && len < 3) || len < 2) return this
 
-		const pageBounds = Object.fromEntries(
+		const absoluteBounds = Object.fromEntries(
 			shapes.map((shape) => [shape.id, this.getShapeAbsoluteBounds(shape)!])
 		)
 
@@ -5493,7 +5493,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (gap === 0) {
 			const gaps: { gap: number; count: number }[] = []
 
-			shapes.sort((a, b) => pageBounds[a.id][min] - pageBounds[b.id][min])
+			shapes.sort((a, b) => absoluteBounds[a.id][min] - absoluteBounds[b.id][min])
 
 			// Collect all of the gaps between shapes. We want to find
 			// patterns (equal gaps between shapes) and use the most common
@@ -5502,8 +5502,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const shape = shapes[i]
 				const nextShape = shapes[i + 1]
 
-				const bounds = pageBounds[shape.id]
-				const nextBounds = pageBounds[nextShape.id]
+				const bounds = absoluteBounds[shape.id]
+				const nextBounds = absoluteBounds[nextShape.id]
 
 				const gap = nextBounds[min] - bounds[max]
 
@@ -5536,13 +5536,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const changes: TLShapePartial[] = []
 
-		let v = pageBounds[shapes[0].id][max]
+		let v = absoluteBounds[shapes[0].id][max]
 
 		shapes.forEach((shape, i) => {
 			if (i === 0) return
 
 			const delta = { x: 0, y: 0 }
-			delta[val] = v + shapeGap - pageBounds[shape.id][val]
+			delta[val] = v + shapeGap - absoluteBounds[shape.id][val]
 
 			const parent = this.getShapeParent(shape)
 			const localDelta = parent
@@ -5564,7 +5564,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					  }
 			)
 
-			v += pageBounds[shape.id][dim] + shapeGap
+			v += absoluteBounds[shape.id][dim] + shapeGap
 		})
 
 		this.updateShapes(changes)
@@ -5771,34 +5771,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const changes: TLShapePartial[] = []
 
 		shapes.forEach((shape) => {
-			const pageBounds = shapePageBounds[shape.id]
-			if (!pageBounds) return
+			const absoluteBounds = shapePageBounds[shape.id]
+			if (!absoluteBounds) return
 
 			const delta = { x: 0, y: 0 }
 
 			switch (operation) {
 				case 'top': {
-					delta.y = commonBounds.minY - pageBounds.minY
+					delta.y = commonBounds.minY - absoluteBounds.minY
 					break
 				}
 				case 'center-vertical': {
-					delta.y = commonBounds.midY - pageBounds.minY - pageBounds.height / 2
+					delta.y = commonBounds.midY - absoluteBounds.minY - absoluteBounds.height / 2
 					break
 				}
 				case 'bottom': {
-					delta.y = commonBounds.maxY - pageBounds.minY - pageBounds.height
+					delta.y = commonBounds.maxY - absoluteBounds.minY - absoluteBounds.height
 					break
 				}
 				case 'left': {
-					delta.x = commonBounds.minX - pageBounds.minX
+					delta.x = commonBounds.minX - absoluteBounds.minX
 					break
 				}
 				case 'center-horizontal': {
-					delta.x = commonBounds.midX - pageBounds.minX - pageBounds.width / 2
+					delta.x = commonBounds.midX - absoluteBounds.minX - absoluteBounds.width / 2
 					break
 				}
 				case 'right': {
-					delta.x = commonBounds.maxX - pageBounds.minX - pageBounds.width
+					delta.x = commonBounds.maxX - absoluteBounds.minX - absoluteBounds.width
 					break
 				}
 			}
@@ -5855,7 +5855,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const len = ids.length
 		const shapes = compact(ids.map((id) => this.getShape(id)))
-		const pageBounds = Object.fromEntries(
+		const absoluteBounds = Object.fromEntries(
 			shapes.map((shape) => [shape.id, this.getShapeAbsoluteBounds(shape)!])
 		)
 
@@ -5881,19 +5881,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const changes: TLShapePartial[] = []
 
 		// Clustered
-		const first = shapes.sort((a, b) => pageBounds[a.id][min] - pageBounds[b.id][min])[0]
-		const last = shapes.sort((a, b) => pageBounds[b.id][max] - pageBounds[a.id][max])[0]
+		const first = shapes.sort((a, b) => absoluteBounds[a.id][min] - absoluteBounds[b.id][min])[0]
+		const last = shapes.sort((a, b) => absoluteBounds[b.id][max] - absoluteBounds[a.id][max])[0]
 
-		const midFirst = pageBounds[first.id][mid]
-		const step = (pageBounds[last.id][mid] - midFirst) / (len - 1)
+		const midFirst = absoluteBounds[first.id][mid]
+		const step = (absoluteBounds[last.id][mid] - midFirst) / (len - 1)
 		const v = midFirst + step
 
 		shapes
 			.filter((shape) => shape !== first && shape !== last)
-			.sort((a, b) => pageBounds[a.id][mid] - pageBounds[b.id][mid])
+			.sort((a, b) => absoluteBounds[a.id][mid] - absoluteBounds[b.id][mid])
 			.forEach((shape, i) => {
 				const delta = { x: 0, y: 0 }
-				delta[val] = v + step * i - pageBounds[shape.id][dim] / 2 - pageBounds[shape.id][val]
+				delta[val] =
+					v + step * i - absoluteBounds[shape.id][dim] / 2 - absoluteBounds[shape.id][val]
 
 				const parent = this.getShapeParent(shape)
 				const localDelta = parent
@@ -5958,17 +5959,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 						const pageRotation = this.getAbsoluteTransform(shape)!.rotation()
 						if (pageRotation % PI2) continue
 						const bounds = shapeBounds[shape.id]
-						const pageBounds = shapePageBounds[shape.id]
-						const localOffset = new Vec2d(0, commonBounds.minY - pageBounds.minY)
+						const absoluteBounds = shapePageBounds[shape.id]
+						const localOffset = new Vec2d(0, commonBounds.minY - absoluteBounds.minY)
 						const parentTransform = this.getShapeParentTransform(shape)
 						if (parentTransform) localOffset.rot(-parentTransform.rotation())
 
 						const { x, y } = Vec2d.Add(localOffset, shape)
 						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], true)
-						const scale = new Vec2d(1, commonBounds.height / pageBounds.height)
+						const scale = new Vec2d(1, commonBounds.height / absoluteBounds.height)
 						this.resizeShape(shape.id, scale, {
 							initialBounds: bounds,
-							scaleOrigin: new Vec2d(pageBounds.center.x, commonBounds.minY),
+							scaleOrigin: new Vec2d(absoluteBounds.center.x, commonBounds.minY),
 							scaleAxisRotation: 0,
 						})
 					}
@@ -5979,19 +5980,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.batch(() => {
 					for (const shape of shapes) {
 						const bounds = shapeBounds[shape.id]
-						const pageBounds = shapePageBounds[shape.id]
+						const absoluteBounds = shapePageBounds[shape.id]
 						const pageRotation = this.getAbsoluteTransform(shape)!.rotation()
 						if (pageRotation % PI2) continue
-						const localOffset = new Vec2d(commonBounds.minX - pageBounds.minX, 0)
+						const localOffset = new Vec2d(commonBounds.minX - absoluteBounds.minX, 0)
 						const parentTransform = this.getShapeParentTransform(shape)
 						if (parentTransform) localOffset.rot(-parentTransform.rotation())
 
 						const { x, y } = Vec2d.Add(localOffset, shape)
 						this.updateShapes([{ id: shape.id, type: shape.type, x, y }], true)
-						const scale = new Vec2d(commonBounds.width / pageBounds.width, 1)
+						const scale = new Vec2d(commonBounds.width / absoluteBounds.width, 1)
 						this.resizeShape(shape.id, scale, {
 							initialBounds: bounds,
-							scaleOrigin: new Vec2d(commonBounds.minX, pageBounds.center.y),
+							scaleOrigin: new Vec2d(commonBounds.minX, absoluteBounds.center.y),
 							scaleAxisRotation: 0,
 						})
 					}
@@ -6224,9 +6225,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 
 		// now calculate how far away the shape is from where it needs to be
-		const pageBounds = this.getShapeAbsoluteBounds(id)!
+		const absoluteBounds = this.getShapeAbsoluteBounds(id)!
 		const pageTransform = this.getAbsoluteTransform(id)!
-		const currentPageCenter = pageBounds.center
+		const currentPageCenter = absoluteBounds.center
 		const shapePageTransformOrigin = pageTransform.point()
 		if (!currentPageCenter || !shapePageTransformOrigin) return this
 		const pageDelta = Vec2d.Sub(postScaleShapePageCenter, currentPageCenter)
@@ -6680,9 +6681,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapes = compact(this._getUnlockedShapeIds(ids).map((id) => this.getShape(id)))
 		const sortedShapeIds = shapes.sort(sortByIndex).map((s) => s.id)
-		const pageBounds = Box2d.Common(compact(shapes.map((id) => this.getShapeAbsoluteBounds(id))))
+		const absoluteBounds = Box2d.Common(
+			compact(shapes.map((id) => this.getShapeAbsoluteBounds(id)))
+		)
 
-		const { x, y } = pageBounds.point
+		const { x, y } = absoluteBounds.point
 
 		const parentId = this.findCommonShapeAncestor(shapes) ?? this.currentPageId
 

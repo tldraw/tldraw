@@ -22,7 +22,7 @@ export class MinimapManager {
 
 	id = uniqueId()
 	cvs: HTMLCanvasElement | null = null
-	pageBounds: (Box2d & { id: TLShapeId })[] = []
+	absoluteBounds: (Box2d & { id: TLShapeId })[] = []
 	collaborators: TLInstancePresence[] = []
 
 	canvasScreenBounds = new Box2d()
@@ -172,7 +172,7 @@ export class MinimapManager {
 	}
 
 	render = () => {
-		const { cvs, pageBounds } = this
+		const { cvs, absoluteBounds } = this
 		this.updateCanvasPageBounds()
 
 		const { editor, canvasScreenBounds, canvasPageBounds, contentPageBounds, contentScreenBounds } =
@@ -180,7 +180,7 @@ export class MinimapManager {
 		const { width: cw, height: ch } = canvasScreenBounds
 		const { viewportPageBounds, selectedShapeIds } = editor
 
-		if (!cvs || !pageBounds) {
+		if (!cvs || !absoluteBounds) {
 			return
 		}
 
@@ -223,8 +223,8 @@ export class MinimapManager {
 		// consider using the shape's size instead.
 
 		let pb: Box2d & { id: TLShapeId }
-		for (let i = 0, n = pageBounds.length; i < n; i++) {
-			pb = pageBounds[i]
+		for (let i = 0, n = absoluteBounds.length; i < n; i++) {
+			pb = absoluteBounds[i]
 			MinimapManager.roundedRect(
 				selectedShapeIds.includes(pb.id) ? selectedPath : shapesPath,
 				pb.minX,
@@ -246,7 +246,7 @@ export class MinimapManager {
 
 		if (this.debug) {
 			// Page bounds
-			const commonBounds = Box2d.Common(pageBounds)
+			const commonBounds = Box2d.Common(absoluteBounds)
 			const { minX, minY, width, height } = commonBounds
 			ctx.strokeStyle = 'green'
 			ctx.lineWidth = 2 / sx
