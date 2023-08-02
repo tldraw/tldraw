@@ -210,7 +210,7 @@ export class Drawing extends StateNode {
 
 				// Convert prevPoint to page space
 				const prevPointPageSpace = Matrix2d.applyToPoint(
-					this.editor.getPageTransform(shape.id)!,
+					this.editor.getShapePageTransform(shape.id)!,
 					prevPoint
 				)
 				this.pagePointWhereCurrentSegmentChanged = prevPointPageSpace
@@ -336,7 +336,7 @@ export class Drawing extends StateNode {
 							points: [{ ...prevLastPoint }, newLastPoint],
 						}
 
-						const transform = this.editor.getPageTransform(shape)!
+						const transform = this.editor.getShapePageTransform(shape)!
 
 						this.pagePointWhereCurrentSegmentChanged = Matrix2d.applyToPoint(
 							transform,
@@ -500,7 +500,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (didSnap && snapSegment) {
-					const transform = this.editor.getPageTransform(shape)!
+					const transform = this.editor.getShapePageTransform(shape)!
 					const first = snapSegment.points[0]
 					const lastPoint = last(snapSegment.points)
 					if (!lastPoint) throw Error('Expected a last point!')

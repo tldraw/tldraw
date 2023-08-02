@@ -33,8 +33,8 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 		>
 			{renderingShapes.map((result) => {
 				const shape = editor.getShape(result.id)!
-				const geometry = editor.getGeometry(shape)
-				const pageTransform = editor.getPageTransform(shape)!
+				const geometry = editor.getShapeGeometry(shape)
+				const pageTransform = editor.getShapePageTransform(shape)!
 
 				const pointInShapeSpace = editor.getPointInShapeSpace(shape, currentPagePoint)
 				const nearestPointOnShape = geometry.nearestPoint(pointInShapeSpace)

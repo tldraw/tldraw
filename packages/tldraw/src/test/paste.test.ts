@@ -87,7 +87,7 @@ beforeEach(() => {
 })
 
 function getShapes() {
-	const arr = editor.shapesOnCurrentPage as any[]
+	const arr = editor.currentPageShapes as any[]
 
 	const results = { old: {}, new: {} } as {
 		old: Record<string, TLGeoShape | TLFrameShape>
@@ -110,7 +110,7 @@ it('Gets pasted shapes correctly', () => {
 	editor.selectNone()
 	let shapes = getShapes()
 
-	expect(editor.sortedShapesOnCurrentPage.map((m) => m.id)).toStrictEqual([
+	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -124,7 +124,7 @@ it('Gets pasted shapes correctly', () => {
 
 	shapes = getShapes()
 
-	expect(editor.sortedShapesOnCurrentPage.map((m) => m.id)).toStrictEqual([
+	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -174,7 +174,7 @@ describe('When pasting', () => {
 		expect(shapes.new.box1?.parentId).toBe(editor.currentPageId)
 		expect(shapes.new.box2?.parentId).toBe(editor.currentPageId)
 
-		expect(editor.sortedShapesOnCurrentPage.map((m) => m.id)).toStrictEqual([
+		expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
 			shapes.old.frame1.id,
 			shapes.old.frame2.id,
 			shapes.old.frame3.id,
@@ -270,8 +270,8 @@ describe('When pasting', () => {
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
-		expect(editor.getPageBounds(shapes.old.box1)).toMatchObject(
-			editor.getPageBounds(shapes.new.box1)!
+		expect(editor.getShapePageBounds(shapes.old.box1)).toMatchObject(
+			editor.getShapePageBounds(shapes.new.box1)!
 		)
 	})
 
@@ -424,11 +424,11 @@ describe('When pasting into frames...', () => {
 		// Copy box 1 (should be out of viewport)
 		editor.select(ids.box1).copy()
 
-		const shapesBefore = editor.shapesOnCurrentPage
+		const shapesBefore = editor.currentPageShapes
 		// Paste it
 		editor.paste()
 
-		const newShape = editor.shapesOnCurrentPage.find((s) => !shapesBefore.includes(s))!
+		const newShape = editor.currentPageShapes.find((s) => !shapesBefore.includes(s))!
 
 		// it should be on the canvas, NOT a child of frame2
 		expect(newShape.parentId).not.toBe(ids.frame2)

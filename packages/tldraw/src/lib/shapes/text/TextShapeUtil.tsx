@@ -144,7 +144,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	indicator(shape: TLTextShape) {
-		const bounds = this.editor.getGeometry(shape).bounds
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
@@ -152,7 +152,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
-		const bounds = this.editor.getGeometry(shape).bounds
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const text = shape.props.text
 
 		const width = bounds.width / (shape.props.scale ?? 1)

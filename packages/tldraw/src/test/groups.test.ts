@@ -76,7 +76,7 @@ afterEach(() => {
 	editor?.dispose()
 })
 
-const getAllShapes = () => editor.shapesOnCurrentPage
+const getAllShapes = () => editor.currentPageShapes
 
 const onlySelectedId = () => {
 	expect(editor.selectedShapeIds).toHaveLength(1)
@@ -119,7 +119,12 @@ describe('creating groups', () => {
 
 		const group = onlySelectedShape()
 		expect(group.type).toBe(GroupShapeUtil.type)
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({ x: 0, y: 0, w: 30, h: 10 })
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
+			x: 0,
+			y: 0,
+			w: 30,
+			h: 10,
+		})
 		expect(children(group).has(editor.getShape(ids.boxA)!)).toBe(true)
 		expect(children(group).has(editor.getShape(ids.boxB)!)).toBe(true)
 		expect(children(group).has(editor.getShape(ids.boxC)!)).toBe(false)
@@ -158,9 +163,9 @@ describe('creating groups', () => {
 			editor.createShapes(shapes)
 
 			const initialPageBounds = {
-				A: editor.getPageBounds(ids.boxA)!.clone(),
-				B: editor.getPageBounds(ids.boxB)!.clone(),
-				C: editor.getPageBounds(ids.boxC)!.clone(),
+				A: editor.getShapePageBounds(ids.boxA)!.clone(),
+				B: editor.getShapePageBounds(ids.boxB)!.clone(),
+				C: editor.getShapePageBounds(ids.boxC)!.clone(),
 			}
 
 			const initialPageRotations = {
@@ -174,9 +179,9 @@ describe('creating groups', () => {
 
 			try {
 				expect({
-					A: editor.getPageBounds(ids.boxA)!.clone(),
-					B: editor.getPageBounds(ids.boxB)!.clone(),
-					C: editor.getPageBounds(ids.boxC)!.clone(),
+					A: editor.getShapePageBounds(ids.boxA)!.clone(),
+					B: editor.getShapePageBounds(ids.boxB)!.clone(),
+					C: editor.getShapePageBounds(ids.boxC)!.clone(),
 				}).toCloselyMatchObject(initialPageBounds)
 				expect({
 					A: editor.getPageRotationById(ids.boxA),
@@ -216,7 +221,7 @@ describe('creating groups', () => {
 
 		const uberGroup = onlySelectedShape()
 		expect(uberGroup.type).toBe(GroupShapeUtil.type)
-		expect(editor.getPageBounds(uberGroup.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(uberGroup.id)!).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 			w: 70,
@@ -373,14 +378,14 @@ describe('ungrouping shapes', () => {
 		expect(isRemoved(groupA)).toBe(true)
 		expect(new Set(editor.selectedShapeIds)).toEqual(new Set([ids.boxA, ids.boxB]))
 
-		expect(editor.getPageBounds(ids.boxA)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(ids.boxA)!).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 			w: 10,
 			h: 10,
 		})
 
-		expect(editor.getPageBounds(ids.boxB)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(ids.boxB)!).toCloselyMatchObject({
 			x: 20,
 			y: 0,
 			w: 10,
@@ -419,9 +424,9 @@ describe('ungrouping shapes', () => {
 			editor.createShapes(shapes)
 
 			const initialPageBounds = {
-				A: editor.getPageBounds(ids.boxA)!.clone(),
-				B: editor.getPageBounds(ids.boxB)!.clone(),
-				C: editor.getPageBounds(ids.boxC)!.clone(),
+				A: editor.getShapePageBounds(ids.boxA)!.clone(),
+				B: editor.getShapePageBounds(ids.boxB)!.clone(),
+				C: editor.getShapePageBounds(ids.boxC)!.clone(),
 			}
 
 			const initialPageRotations = {
@@ -437,9 +442,9 @@ describe('ungrouping shapes', () => {
 
 			try {
 				expect({
-					A: editor.getPageBounds(ids.boxA)!.clone(),
-					B: editor.getPageBounds(ids.boxB)!.clone(),
-					C: editor.getPageBounds(ids.boxC)!.clone(),
+					A: editor.getShapePageBounds(ids.boxA)!.clone(),
+					B: editor.getShapePageBounds(ids.boxB)!.clone(),
+					C: editor.getShapePageBounds(ids.boxC)!.clone(),
 				}).toCloselyMatchObject(initialPageBounds)
 				expect({
 					A: editor.getPageRotationById(ids.boxA),
@@ -515,7 +520,7 @@ describe('ungrouping shapes', () => {
 		editor.groupShapes(editor.selectedShapeIds)
 		editor.ungroupShapes(editor.selectedShapeIds)
 
-		const sortedShapesOnCurrentPage = editor.shapesOnCurrentPage
+		const sortedShapesOnCurrentPage = editor.currentPageShapes
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
 		expect(sortedShapesOnCurrentPage.length).toBe(4)
@@ -540,7 +545,7 @@ describe('ungrouping shapes', () => {
 		editor.groupShapes(editor.selectedShapeIds)
 		editor.ungroupShapes(editor.selectedShapeIds)
 
-		const sortedShapesOnCurrentPage = editor.shapesOnCurrentPage
+		const sortedShapesOnCurrentPage = editor.currentPageShapes
 			.sort(sortByIndex)
 			.map((shape) => shape.id)
 		expect(sortedShapesOnCurrentPage.length).toBe(4)
@@ -572,18 +577,18 @@ describe('the bounds of a group', () => {
 		editor.groupShapes(editor.selectedShapeIds)
 		const group = onlySelectedShape()
 
-		expect(editor.getPageBounds(group.id)!.minX).toBe(0)
+		expect(editor.getShapePageBounds(group.id)!.minX).toBe(0)
 
 		editor.select(ids.boxA).rotateSelection(Math.PI / 4)
 
 		// pythagoras to the rescue
 		const expectedLeftBound = 50 - Math.sqrt(2 * (100 * 100)) / 2
-		expect(editor.getPageBounds(group.id)!.minX).toBeCloseTo(expectedLeftBound)
+		expect(editor.getShapePageBounds(group.id)!.minX).toBeCloseTo(expectedLeftBound)
 
 		// rotating the circle doesn't move the right edge because it's outline doesn't change
-		expect(editor.getPageBounds(group.id)!.maxX).toBe(300)
+		expect(editor.getShapePageBounds(group.id)!.maxX).toBe(300)
 		editor.select(ids.boxB).rotateSelection(Math.PI / 4)
-		expect(approximately(editor.getPageBounds(group.id)!.maxX, 300, 1)).toBe(true)
+		expect(approximately(editor.getShapePageBounds(group.id)!.maxX, 300, 1)).toBe(true)
 	})
 
 	it('changes when shapes translate', () => {
@@ -597,7 +602,7 @@ describe('the bounds of a group', () => {
 		editor.groupShapes(editor.selectedShapeIds)
 		const group = onlySelectedShape()
 
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 			w: 50,
@@ -606,7 +611,7 @@ describe('the bounds of a group', () => {
 
 		// move A to the left
 		editor.select(ids.boxA).translateSelection(-10, 0)
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: -10,
 			y: 0,
 			w: 60,
@@ -614,7 +619,7 @@ describe('the bounds of a group', () => {
 		})
 		// move C up and to the right
 		editor.select(ids.boxC).translateSelection(10, -10)
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: -10,
 			y: -10,
 			w: 70,
@@ -633,7 +638,7 @@ describe('the bounds of a group', () => {
 		editor.groupShapes(editor.selectedShapeIds)
 		const group = onlySelectedShape()
 
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 			w: 50,
@@ -642,7 +647,7 @@ describe('the bounds of a group', () => {
 
 		// resize A to the left
 		editor.select(ids.boxA).resizeSelection({ scaleX: 2 }, 'left')
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: -10,
 			y: 0,
 			w: 60,
@@ -650,7 +655,7 @@ describe('the bounds of a group', () => {
 		})
 		// resize C up and to the right
 		editor.select(ids.boxC).resizeSelection({ scaleY: 2, scaleX: 2 }, 'top_right')
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: -10,
 			y: -10,
 			w: 70,
@@ -682,7 +687,7 @@ describe('the bounds of a rotated group', () => {
 
 		editor.rotateSelection(Math.PI / 2)
 
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 			w: 300,
@@ -693,12 +698,12 @@ describe('the bounds of a rotated group', () => {
 
 		// pythagoras to the rescue
 		const expectedTopBound = 50 - Math.sqrt(2 * (100 * 100)) / 2
-		expect(editor.getPageBounds(group.id)!.minY).toBeCloseTo(expectedTopBound)
+		expect(editor.getShapePageBounds(group.id)!.minY).toBeCloseTo(expectedTopBound)
 
 		// rotating the circle doesn't move the right edge because it's outline doesn't change
-		expect(editor.getPageBounds(group.id)!.maxY).toBe(300)
+		expect(editor.getShapePageBounds(group.id)!.maxY).toBe(300)
 		editor.select(ids.boxB).rotateSelection(Math.PI / 4)
-		expect(approximately(editor.getPageBounds(group.id)!.maxY, 300, 1)).toBe(true)
+		expect(approximately(editor.getShapePageBounds(group.id)!.maxY, 300, 1)).toBe(true)
 	})
 
 	it('changes when shapes translate', () => {
@@ -714,7 +719,7 @@ describe('the bounds of a rotated group', () => {
 		const group = onlySelectedShape()
 		editor.updateShapes([{ id: group.id, type: 'group', rotation: Math.PI / 2, x: 10, y: 0 }])
 
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 			w: 10,
@@ -723,7 +728,7 @@ describe('the bounds of a rotated group', () => {
 
 		// move A up and to the left
 		editor.select(ids.boxA).translateSelection(-10, -10)
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: -10,
 			y: -10,
 			w: 20,
@@ -731,7 +736,7 @@ describe('the bounds of a rotated group', () => {
 		})
 		// move C up and to the right
 		editor.select(ids.boxC).translateSelection(10, -10)
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: -10,
 			y: -10,
 			w: 30,
@@ -747,14 +752,14 @@ describe('the bounds of a rotated group', () => {
 		// rotate this all 90 degrees
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0), box(ids.boxC, 40, 0)])
 
-		expect(editor.getGeometry(ids.boxA)!.bounds).toMatchObject({ x: 0, y: 0, w: 10, h: 10 })
+		expect(editor.getShapeGeometry(ids.boxA)!.bounds).toMatchObject({ x: 0, y: 0, w: 10, h: 10 })
 
 		editor.select(ids.boxA, ids.boxB, ids.boxC)
 		editor.groupShapes(editor.selectedShapeIds)
 		const group = onlySelectedShape()
 		editor.updateShapes([{ id: group.id, type: 'group', rotation: Math.PI / 2, x: 10, y: 0 }])
 
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 			w: 10,
@@ -763,7 +768,7 @@ describe('the bounds of a rotated group', () => {
 
 		// resize A to up
 		editor.select(ids.boxA).resizeSelection({ scaleX: 2 }, 'left')
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: 0,
 			y: -10,
 			w: 10,
@@ -771,7 +776,7 @@ describe('the bounds of a rotated group', () => {
 		})
 		// resize C up and to the right
 		editor.select(ids.boxC).resizeSelection({ scaleY: 2, scaleX: 2 }, 'top_right')
-		expect(editor.getPageBounds(group.id)!).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(group.id)!).toCloselyMatchObject({
 			x: 0,
 			y: -10,
 			w: 20,
@@ -1117,7 +1122,7 @@ describe('creating new shapes', () => {
 			const boxC = onlySelectedShape()
 
 			expect(boxC.parentId).toBe(editor.currentPageId)
-			expect(editor.getPageBounds(boxC.id)).toCloselyMatchObject({
+			expect(editor.getShapePageBounds(boxC.id)).toCloselyMatchObject({
 				x: 20,
 				y: 20,
 				w: 60,
@@ -1134,7 +1139,7 @@ describe('creating new shapes', () => {
 			const boxC = onlySelectedShape()
 
 			expect(boxC.parentId).toBe(groupA.id)
-			expect(editor.getPageBounds(boxC.id)).toCloselyMatchObject({
+			expect(editor.getShapePageBounds(boxC.id)).toCloselyMatchObject({
 				x: 20,
 				y: 20,
 				w: 60,
@@ -1150,21 +1155,21 @@ describe('creating new shapes', () => {
 			editor.setCurrentTool('geo')
 			editor.pointerDown(20, 20).pointerMove(-10, -10)
 
-			expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+			expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 				x: -10,
 				y: -10,
 				w: 110,
 				h: 110,
 			})
 			editor.pointerMove(-20, -20).pointerUp(-20, -20)
-			expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+			expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 				x: -20,
 				y: -20,
 				w: 120,
 				h: 120,
 			})
 			const boxC = onlySelectedShape()
-			expect(editor.getPageBounds(boxC.id)).toCloselyMatchObject({
+			expect(editor.getShapePageBounds(boxC.id)).toCloselyMatchObject({
 				x: -20,
 				y: -20,
 				w: 40,
@@ -1179,7 +1184,7 @@ describe('creating new shapes', () => {
 			editor.setCurrentTool('geo')
 			editor.pointerDown(-50, -50).pointerMove(-100, -100).pointerUp()
 
-			expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+			expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 				x: -100,
 				y: -100,
 				w: 200,
@@ -1187,7 +1192,7 @@ describe('creating new shapes', () => {
 			})
 
 			const boxC = onlySelectedShape()
-			expect(editor.getPageBounds(boxC.id)).toCloselyMatchObject({
+			expect(editor.getShapePageBounds(boxC.id)).toCloselyMatchObject({
 				x: -100,
 				y: -100,
 				w: 50,
@@ -1238,7 +1243,7 @@ describe('creating new shapes', () => {
 				}
 			}
 
-			expect(roundToNearestTen(editor.getPageBounds(groupA.id)!)).toCloselyMatchObject({
+			expect(roundToNearestTen(editor.getShapePageBounds(groupA.id)!)).toCloselyMatchObject({
 				x: -20,
 				y: -20,
 				w: 120,
@@ -1266,7 +1271,7 @@ describe('creating new shapes', () => {
 				}
 			}
 
-			expect(roundToNearestTen(editor.getPageBounds(groupA.id)!)).toCloselyMatchObject({
+			expect(roundToNearestTen(editor.getShapePageBounds(groupA.id)!)).toCloselyMatchObject({
 				x: -100,
 				y: -100,
 				w: 200,
@@ -1307,11 +1312,13 @@ describe('creating new shapes', () => {
 				editor.setCurrentTool('line')
 				editor.pointerDown(20, 20).pointerMove(-10, -10)
 
-				expect(editor.getPageBounds(groupA.id)).toMatchSnapshot('group with line shape')
+				expect(editor.getShapePageBounds(groupA.id)).toMatchSnapshot('group with line shape')
 				editor.pointerMove(-20, -20).pointerUp(-20, -20)
-				expect(editor.getPageBounds(groupA.id)).toMatchSnapshot('group shape after second resize')
+				expect(editor.getShapePageBounds(groupA.id)).toMatchSnapshot(
+					'group shape after second resize'
+				)
 				const boxC = onlySelectedShape()
-				expect(editor.getPageBounds(boxC.id)).toMatchSnapshot('box shape after second resize')
+				expect(editor.getShapePageBounds(boxC.id)).toMatchSnapshot('box shape after second resize')
 			})
 
 			it('works if the shape drawing begins outside of the current group bounds', () => {
@@ -1321,10 +1328,10 @@ describe('creating new shapes', () => {
 				editor.setCurrentTool('line')
 				editor.pointerDown(-50, -50).pointerMove(-100, -100).pointerUp()
 
-				expect(editor.getPageBounds(groupA.id)).toMatchSnapshot('group with line')
+				expect(editor.getShapePageBounds(groupA.id)).toMatchSnapshot('group with line')
 
 				const boxC = onlySelectedShape()
-				expect(editor.getPageBounds(boxC.id)).toMatchSnapshot('box shape after resize')
+				expect(editor.getShapePageBounds(boxC.id)).toMatchSnapshot('box shape after resize')
 			})
 		})
 
@@ -1355,7 +1362,7 @@ describe('creating new shapes', () => {
 				editor.select(ids.boxA)
 				expect(editor.focusedGroupId === groupA.id).toBe(true)
 
-				expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+				expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 					x: 0,
 					y: 0,
 					w: 100,
@@ -1366,7 +1373,7 @@ describe('creating new shapes', () => {
 				editor.pointerDown(80, 80)
 				editor.pointerUp()
 				// default size is 200x200, and it centers it, so add 100px around the pointer
-				expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+				expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 					x: -20,
 					y: -20,
 					w: 200,
@@ -1375,7 +1382,7 @@ describe('creating new shapes', () => {
 
 				editor.pointerMove(20, 20)
 				editor.pointerUp(20, 20)
-				expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+				expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 					x: -20,
 					y: -20,
 					w: 200,
@@ -1388,14 +1395,14 @@ describe('creating new shapes', () => {
 				expect(editor.focusedGroupId === groupA.id).toBe(true)
 
 				editor.setCurrentTool('note')
-				expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+				expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 					x: 0,
 					y: 0,
 					w: 100,
 					h: 100,
 				})
 				editor.pointerDown(-20, -20).pointerUp(-20, -20)
-				expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+				expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 					x: -120,
 					y: -120,
 					w: 220,
@@ -1687,7 +1694,7 @@ describe('moving handles within a group', () => {
 
 		editor.expectToBeIn('select.idle')
 
-		expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 			x: 0,
 			y: 0,
 			w: 100,
@@ -1697,7 +1704,7 @@ describe('moving handles within a group', () => {
 		editor.pointerDown(60, 60, {
 			target: 'handle',
 			shape: arrow,
-			handle: editor.getHandles<TLArrowShape>(arrow)!.find((h) => h.id === 'end'),
+			handle: editor.getShapeHandles<TLArrowShape>(arrow)!.find((h) => h.id === 'end'),
 		})
 
 		editor.expectToBeIn('select.pointing_handle')
@@ -1721,7 +1728,7 @@ describe('moving handles within a group', () => {
 			expect(arrow.props.end.y).toBe(-60)
 		}
 
-		expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 			x: 0,
 			y: -10,
 			w: 100,
@@ -1735,7 +1742,7 @@ describe('moving handles within a group', () => {
 
 		editor.pointerUp()
 
-		expect(editor.getPageBounds(groupA.id)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(groupA.id)).toCloselyMatchObject({
 			x: -30,
 			y: -30,
 			w: 130,

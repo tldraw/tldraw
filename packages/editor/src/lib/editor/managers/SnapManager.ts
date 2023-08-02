@@ -235,9 +235,9 @@ export class SnapManager {
 	@computed get snapPointsCache() {
 		const { editor } = this
 		return editor.store.createComputedCache<SnapPoint[], TLShape>('snapPoints', (shape) => {
-			const pageTransfrorm = editor.getPageTransform(shape.id)
+			const pageTransfrorm = editor.getShapePageTransform(shape.id)
 			if (!pageTransfrorm) return undefined
-			const snapPoints = this.editor.getGeometry(shape).snapPoints
+			const snapPoints = this.editor.getShapeGeometry(shape).snapPoints
 			return snapPoints.map((point, i) => {
 				const { x, y } = Matrix2d.applyToPoint(pageTransfrorm, point)
 				return { x, y, id: `${shape.id}:${i}` }
@@ -267,7 +267,7 @@ export class SnapManager {
 				// Skip any shapes that don't allow snapping
 				if (!util.canSnap(childShape)) continue
 				// Only consider shapes if they're inside of the viewport page bounds
-				const pageBounds = editor.getPageBounds(childId)
+				const pageBounds = editor.getShapePageBounds(childId)
 				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
 				// Snap to children of groups but not group itself
 				if (editor.isShapeOfType<TLGroupShape>(childShape, 'group')) {
@@ -277,7 +277,7 @@ export class SnapManager {
 				snappableShapes.push({
 					id: childId,
 					pageBounds,
-					isClosed: editor.getGeometry(childShape).isClosed,
+					isClosed: editor.getShapeGeometry(childShape).isClosed,
 				})
 			}
 		}
@@ -498,9 +498,9 @@ export class SnapManager {
 
 	@computed get outlinesInPageSpace() {
 		return this.snappableShapes.map(({ id, isClosed }) => {
-			const outline = deepCopy(this.editor.getGeometry(id).vertices)
+			const outline = deepCopy(this.editor.getShapeGeometry(id).vertices)
 			if (isClosed) outline.push(outline[0])
-			const pageTransform = this.editor.getPageTransform(id)
+			const pageTransform = this.editor.getShapePageTransform(id)
 			if (!pageTransform) throw Error('No page transform')
 			return Matrix2d.applyToPoints(pageTransform, outline)
 		})

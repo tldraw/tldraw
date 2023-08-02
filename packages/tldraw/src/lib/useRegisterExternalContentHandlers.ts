@@ -166,8 +166,10 @@ export function useRegisterExternalContentHandlers() {
 
 			const { width, height } = embed
 
+			const id = createShapeId()
+
 			const shapePartial: TLShapePartial<TLEmbedShape> = {
-				id: createShapeId(),
+				id,
 				type: 'embed',
 				x: position.x - (width || 450) / 2,
 				y: position.y - (height || 450) / 2,
@@ -178,7 +180,7 @@ export function useRegisterExternalContentHandlers() {
 				},
 			}
 
-			editor.createShapes([shapePartial], true)
+			editor.createShapes([shapePartial]).select(id)
 		})
 
 		// files
@@ -405,7 +407,7 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 		}
 
 		// Create the shapes
-		editor.createShapes(paritals, true)
+		editor.createShapes(paritals).select(...paritals.map((p) => p.id))
 
 		// Re-position shapes so that the center of the group is at the provided point
 		const { viewportPageBounds } = editor

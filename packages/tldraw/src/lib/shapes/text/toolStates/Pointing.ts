@@ -72,8 +72,8 @@ export class Pointing extends StateNode {
 		this.editor.mark('creating text shape')
 		const id = createShapeId()
 		const { x, y } = this.editor.inputs.currentPagePoint
-		this.editor.createShapes(
-			[
+		this.editor
+			.createShapes([
 				{
 					id,
 					type: 'text',
@@ -84,9 +84,8 @@ export class Pointing extends StateNode {
 						autoSize: true,
 					},
 				},
-			],
-			true
-		)
+			])
+			.select(id)
 
 		this.editor.setEditingId(id)
 		this.editor.setCurrentTool('select')

@@ -405,7 +405,7 @@ describe('flipping rotated shapes', () => {
 	})
 
 	const getStartAndEndPoints = (id: TLShapeId) => {
-		const transform = editor.getPageTransform(id)
+		const transform = editor.getShapePageTransform(id)
 		if (!transform) throw new Error('no transform')
 		const arrow = editor.getShape<TLArrowShape>(id)!
 		if (arrow.props.start.type !== 'point' || arrow.props.end.type !== 'point')
@@ -560,16 +560,16 @@ describe('When flipping shapes that include arrows', () => {
 	it('Flips horizontally', () => {
 		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes)
 
-		const boundsBefore = editor.selectionBounds!
+		const boundsBefore = editor.selectionRotatedPageBounds!
 		editor.flipShapes(editor.selectedShapeIds, 'horizontal')
-		expect(editor.selectionBounds).toCloselyMatchObject(boundsBefore)
+		expect(editor.selectionRotatedPageBounds).toCloselyMatchObject(boundsBefore)
 	})
 
 	it('Flips vertically', () => {
 		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes)
 
-		const boundsBefore = editor.selectionBounds!
+		const boundsBefore = editor.selectionRotatedPageBounds!
 		editor.flipShapes(editor.selectedShapeIds, 'vertical')
-		expect(editor.selectionBounds).toCloselyMatchObject(boundsBefore)
+		expect(editor.selectionRotatedPageBounds).toCloselyMatchObject(boundsBefore)
 	})
 })

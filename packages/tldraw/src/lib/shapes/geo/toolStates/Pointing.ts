@@ -99,7 +99,7 @@ export class Pointing extends StateNode {
 				: new Box2d(0, 0, 200, 200)
 
 		const delta = bounds.center
-		const parentTransform = this.editor.getParentTransform(shape)
+		const parentTransform = this.editor.getShapeParentTransform(shape)
 		if (parentTransform) delta.rot(-parentTransform.rotation())
 
 		this.editor.select(id)

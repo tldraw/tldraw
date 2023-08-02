@@ -29,8 +29,8 @@ export class Pointing extends StateNode {
 
 			this.editor.mark(this.markId)
 
-			this.editor.createShapes<TLBaseBoxShape>(
-				[
+			this.editor
+				.createShapes<TLBaseBoxShape>([
 					{
 						id,
 						type: shapeType,
@@ -41,9 +41,8 @@ export class Pointing extends StateNode {
 							h: 1,
 						},
 					},
-				],
-				true
-			)
+				])
+				.select(id)
 			this.editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
@@ -99,7 +98,7 @@ export class Pointing extends StateNode {
 		const { w, h } = this.editor.getShapeUtil(shape).getDefaultProps() as TLBaseBoxShape['props']
 		const delta = new Vec2d(w / 2, h / 2)
 
-		const parentTransform = this.editor.getParentTransform(shape)
+		const parentTransform = this.editor.getShapeParentTransform(shape)
 		if (parentTransform) delta.rot(-parentTransform.rotation())
 
 		this.editor.updateShapes<TLBaseBoxShape>([

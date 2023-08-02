@@ -208,7 +208,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	getOutlineSegments(shape: Shape): Vec2d[][] {
-		return [this.editor.getGeometry(shape).vertices]
+		return [this.editor.getShapeGeometry(shape).vertices]
 	}
 
 	/**

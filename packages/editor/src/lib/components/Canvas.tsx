@@ -192,13 +192,13 @@ function HandlesWrapper() {
 	const isReadonly = useValue('isChangingStyle', () => editor.instanceState.isReadonly, [editor])
 	const handles = useValue(
 		'handles',
-		() => (editor.onlySelectedShape ? editor.getHandles(editor.onlySelectedShape) : undefined),
+		() => (editor.onlySelectedShape ? editor.getShapeHandles(editor.onlySelectedShape) : undefined),
 		[editor]
 	)
 	const transform = useValue(
 		'transform',
 		() =>
-			editor.onlySelectedShape ? editor.getPageTransform(editor.onlySelectedShape) : undefined,
+			editor.onlySelectedShape ? editor.getShapePageTransform(editor.onlySelectedShape) : undefined,
 		[editor]
 	)
 
@@ -396,7 +396,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = editor.getPageBounds(id)
+			const bb = editor.getShapePageBounds(id)
 			const el = await editor.getSvg([id], { padding: 0 })
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')
@@ -443,7 +443,9 @@ const UiLogger = track(() => {
 export function SelectionForegroundWrapper() {
 	const editor = useEditor()
 	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
-	const selectionBounds = useValue('selection bounds', () => editor.selectionBounds, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
+		editor,
+	])
 	const { SelectionForeground } = useEditorComponents()
 	if (!selectionBounds || !SelectionForeground) return null
 	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
@@ -452,7 +454,9 @@ export function SelectionForegroundWrapper() {
 export function SelectionBackgroundWrapper() {
 	const editor = useEditor()
 	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
-	const selectionBounds = useValue('selection bounds', () => editor.selectionBounds, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
+		editor,
+	])
 	const { SelectionBackground } = useEditorComponents()
 	if (!selectionBounds || !SelectionBackground) return null
 	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />

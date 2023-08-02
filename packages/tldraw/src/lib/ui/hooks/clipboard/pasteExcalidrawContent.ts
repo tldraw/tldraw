@@ -344,7 +344,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 	}
 
 	const rootShapes = compact(rootShapeIds.map((id) => editor.getShape(id)))
-	const bounds = Box2d.Common(rootShapes.map((s) => editor.getPageBounds(s)!))
+	const bounds = Box2d.Common(rootShapes.map((s) => editor.getShapePageBounds(s)!))
 	const viewPortCenter = editor.viewportPageBounds.center
 	editor.updateShapes(
 		rootShapes.map((s) => {

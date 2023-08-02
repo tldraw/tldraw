@@ -63,7 +63,7 @@ it('Does not get an SVG when no ids are provided', async () => {
 
 it('Gets the bounding box at the correct size', async () => {
 	const svg = await editor.getSvg(editor.selectedShapeIds)
-	const bbox = editor.selectionBounds!
+	const bbox = editor.selectionRotatedPageBounds!
 	const expanded = bbox.expandBy(SVG_PADDING) // adds 32px padding
 
 	expect(svg!.getAttribute('width')).toMatch(expanded.width + '')
@@ -72,7 +72,7 @@ it('Gets the bounding box at the correct size', async () => {
 
 it('Gets the bounding box at the correct size', async () => {
 	const svg = (await editor.getSvg(editor.selectedShapeIds))!
-	const bbox = editor.selectionBounds!
+	const bbox = editor.selectionRotatedPageBounds!
 	const expanded = bbox.expandBy(SVG_PADDING) // adds 32px padding
 
 	expect(svg!.getAttribute('width')).toMatch(expanded.width + '')

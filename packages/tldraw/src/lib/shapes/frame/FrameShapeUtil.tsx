@@ -50,7 +50,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override component(shape: TLFrameShape) {
-		const bounds = this.editor.getGeometry(shape).bounds
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
@@ -90,7 +90,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		g.appendChild(rect)
 
 		// Text label
-		const pageRotation = canonicalizeRotation(this.editor.getPageTransform(shape.id)!.rotation())
+		const pageRotation = canonicalizeRotation(
+			this.editor.getShapePageTransform(shape.id)!.rotation()
+		)
 		// rotate right 45 deg
 		const offsetRotation = pageRotation + Math.PI / 4
 		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
@@ -163,7 +165,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	indicator(shape: TLFrameShape) {
-		const bounds = this.editor.getGeometry(shape).bounds
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 
 		return (
 			<rect
@@ -217,13 +219,13 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
-		const bounds = this.editor.getPageBounds(shape)!
+		const bounds = this.editor.getShapePageBounds(shape)!
 		const children = this.editor.getSortedChildIdsForParent(shape.id)
 
 		const shapesToReparent: TLShapeId[] = []
 
 		for (const childId of children) {
-			const childBounds = this.editor.getPageBounds(childId)!
+			const childBounds = this.editor.getShapePageBounds(childId)!
 			if (!bounds.includes(childBounds)) {
 				shapesToReparent.push(childId)
 			}

@@ -32,7 +32,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 	const startShapeInfo = getBoundShapeInfoForTerminal(editor, start)
 	const endShapeInfo = getBoundShapeInfoForTerminal(editor, end)
 
-	const arrowPageTransform = editor.getPageTransform(shape)!
+	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
 	// Update the position of the arrowhead's end point
 	updateArrowheadPointWithBoundShape(

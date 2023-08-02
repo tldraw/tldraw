@@ -58,7 +58,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		return getStraightArrowInfo(editor, shape)
 	}
 
-	const arrowPageTransform = editor.getPageTransform(shape)!
+	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		// Points in page space
@@ -80,7 +80,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		let intersections = fn(
 			centerInStartShapeLocalSpace,
 			handleArc.radius,
-			editor.getGeometry(startShapeInfo.shape).vertices
+			editor.getShapeGeometry(startShapeInfo.shape).vertices
 		)
 
 		if (intersections) {
@@ -160,7 +160,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		let intersections = fn(
 			centerInEndShapeLocalSpace,
 			handleArc.radius,
-			editor.getGeometry(endShapeInfo.shape).outerVertices
+			editor.getShapeGeometry(endShapeInfo.shape).outerVertices
 		)
 
 		if (intersections) {

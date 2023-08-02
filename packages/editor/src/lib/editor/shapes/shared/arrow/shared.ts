@@ -25,8 +25,8 @@ export function getBoundShapeInfoForTerminal(
 	}
 
 	const shape = editor.getShape(terminal.boundShapeId)!
-	const transform = editor.getPageTransform(shape)!
-	const geometry = editor.getGeometry(shape)
+	const transform = editor.getShapePageTransform(shape)!
+	const geometry = editor.getShapeGeometry(shape)
 
 	return {
 		shape,
@@ -56,9 +56,9 @@ export function getArrowTerminalInArrowSpace(
 		// Find the actual local point of the normalized terminal on
 		// the bound shape and transform it to page space, then transform
 		// it to arrow space
-		const { point, size } = editor.getGeometry(boundShape).bounds
+		const { point, size } = editor.getShapeGeometry(boundShape).bounds
 		const shapePoint = Vec2d.Add(point, Vec2d.MulV(terminal.normalizedAnchor, size))
-		const pagePoint = Matrix2d.applyToPoint(editor.getPageTransform(boundShape)!, shapePoint)
+		const pagePoint = Matrix2d.applyToPoint(editor.getShapePageTransform(boundShape)!, shapePoint)
 		const arrowPoint = Matrix2d.applyToPoint(Matrix2d.Inverse(arrowPageTransform), pagePoint)
 		return arrowPoint
 	}
@@ -66,7 +66,7 @@ export function getArrowTerminalInArrowSpace(
 
 /** @public */
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape) {
-	const arrowPageTransform = editor.getPageTransform(shape)!
+	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
 	const start = getArrowTerminalInArrowSpace(editor, arrowPageTransform, shape.props.start)
 	const end = getArrowTerminalInArrowSpace(editor, arrowPageTransform, shape.props.end)

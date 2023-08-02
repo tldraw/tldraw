@@ -53,7 +53,7 @@ export const Shape = track(function Shape({
 			const shape = editor.getShape(id)
 			if (!shape) return // probably the shape was just deleted
 
-			const pageTransform = editor.getPageTransform(id)
+			const pageTransform = editor.getShapePageTransform(id)
 			const transform = Matrix2d.toCssString(pageTransform)
 			setProperty('transform', transform)
 		},
@@ -66,7 +66,7 @@ export const Shape = track(function Shape({
 			const shape = editor.getShape(id)
 			if (!shape) return null
 
-			const clipPath = editor.getClipPath(id)
+			const clipPath = editor.getShapeClipPath(id)
 			setProperty('clip-path', clipPath ?? 'none')
 		},
 		[editor, setProperty]
@@ -78,7 +78,7 @@ export const Shape = track(function Shape({
 			const shape = editor.getShape(id)
 			if (!shape) return null
 
-			const bounds = editor.getGeometry(shape).bounds
+			const bounds = editor.getShapeGeometry(shape).bounds
 			setProperty('width', Math.max(1, Math.ceil(bounds.width)) + 'px')
 			setProperty('height', Math.max(1, Math.ceil(bounds.height)) + 'px')
 		},
@@ -155,7 +155,7 @@ const InnerShapeBackground = React.memo(
 const CulledShape = React.memo(
 	function CulledShape<T extends TLShape>({ shape }: { shape: T }) {
 		const editor = useEditor()
-		const bounds = editor.getGeometry(shape).bounds
+		const bounds = editor.getShapeGeometry(shape).bounds
 
 		return (
 			<div
