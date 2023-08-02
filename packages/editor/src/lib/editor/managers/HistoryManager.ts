@@ -29,9 +29,10 @@ export class HistoryManager<
 
 	constructor(
 		private readonly ctx: CTX,
-		private readonly onBatchComplete: () => void,
 		private readonly annotateError: (error: unknown) => void
 	) {}
+
+	onBatchComplete: () => void = () => void null
 
 	private _commands: Record<string, TLCommandHandler<any>> = {}
 
