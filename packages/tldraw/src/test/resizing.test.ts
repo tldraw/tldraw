@@ -3821,9 +3821,9 @@ describe('bugs', () => {
 	// 			},
 	// 		])
 	// 		.select(shapeId)
-	// 	expect(editor.selectionBounds!.width).toBe(0)
+	// 	expect(editor.selectionRotatedBounds!.width).toBe(0)
 	// 	editor.pointerDown(0, 100, { target: 'selection', handle: 'bottom_right' }).pointerMove(10, 110)
-	// 	expect(editor.selectionBounds!.width).toBe(0)
+	// 	expect(editor.selectionRotatedBounds!.width).toBe(0)
 	// })
 })
 

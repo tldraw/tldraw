@@ -908,8 +908,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     selectAll(): this;
     get selectedShapeIds(): TLShapeId[];
     get selectedShapes(): TLShape[];
-    get selectionBounds(): Box2d | undefined;
     get selectionPageBounds(): Box2d | null;
+    get selectionRotatedPageBounds(): Box2d | undefined;
     get selectionRotation(): number;
     selectNone(): this;
     sendBackward(shapes: TLShape[]): this;

@@ -139,7 +139,7 @@ export class Rotating extends StateNode {
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
 		const {
-			selectionBounds,
+			selectionRotatedPageBounds: selectionBounds,
 			selectionRotation,
 			inputs: { shiftKey, currentPagePoint },
 		} = this.editor

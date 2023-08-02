@@ -1560,8 +1560,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The current page bounds of all the selected shapes (Not the same thing as the page bounds of
-	 * the selection bounding box when the selection has been rotated)
+	 * The current page bounds of all the selected shapes. If the
+	 * selection is rotated, then these bounds are the axis-aligned
+	 * box that the rotated bounds would fit inside of.
 	 *
 	 * @readonly
 	 *
@@ -1578,7 +1579,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The rotation of the selection bounding box.
+	 * The rotation of the selection bounding box in page space.
 	 *
 	 * @readonly
 	 * @public
@@ -1601,12 +1602,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The bounds of the selection bounding box.
+	 * The bounds of the selection bounding box in page space.
 	 *
 	 * @readonly
 	 * @public
 	 */
-	@computed get selectionBounds(): Box2d | undefined {
+	@computed get selectionRotatedPageBounds(): Box2d | undefined {
 		const { selectedShapeIds } = this
 
 		if (selectedShapeIds.length === 0) {
@@ -1620,25 +1621,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (selectedShapeIds.length === 1) {
 			const bounds = this.getShapeGeometry(selectedShapeIds[0]).bounds.clone()
-			bounds.point = Matrix2d.applyToPoint(
-				this.getShapePageTransform(selectedShapeIds[0])!,
-				bounds.point
-			)
+			const pageTransform = this.getShapePageTransform(selectedShapeIds[0])!
+			bounds.point = pageTransform.applyToPoint(bounds.point)
 			return bounds
 		}
 
 		// need to 'un-rotate' all the outlines of the existing nodes so we can fit them inside a box
-		const allPoints = this.selectedShapeIds
-			.flatMap((id) => {
-				const pageTransform = this.getShapePageTransform(id)
-				if (!pageTransform) return []
-				return pageTransform.applyToPoints(this.getShapeGeometry(id).vertices)
-			})
-			.map((p) => Vec2d.Rot(p, -selectionRotation))
-		const box = Box2d.FromPoints(allPoints)
+		const boxFromRotatedVertices = Box2d.FromPoints(
+			this.selectedShapeIds
+				.flatMap((id) => {
+					const pageTransform = this.getShapePageTransform(id)
+					if (!pageTransform) return []
+					return pageTransform.applyToPoints(this.getShapeGeometry(id).vertices)
+				})
+				.map((p) => Vec2d.Rot(p, -selectionRotation))
+		)
 		// now position box so that it's top-left corner is in the right place
-		box.point = box.point.rot(selectionRotation)
-		return box
+		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
+		return boxFromRotatedVertices
 	}
 
 	// Focus Layer Id
@@ -2179,12 +2179,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToSelection(animation?: TLAnimationOptions): this {
 		if (!this.instanceState.canMoveCamera) return this
 
-		const ids = this.selectedShapeIds
-		if (ids.length <= 0) return this
+		const { selectionPageBounds } = this
+		if (!selectionPageBounds) return this
 
-		const selectionBounds = Box2d.Common(compact(ids.map((id) => this.getShapePageBounds(id))))
-
-		this.zoomToBounds(selectionBounds, Math.max(1, this.camera.z), animation)
+		this.zoomToBounds(selectionPageBounds, Math.max(1, this.zoomLevel), animation)
 
 		return this
 	}
@@ -5211,7 +5209,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// "from" page's camera, then center the "to" page's camera on the
 			// pasted shapes
 			this.setCamera({ ...this.camera, z: fromPageZ })
-			this.centerOnPoint(this.selectionBounds!.center)
+			this.centerOnPoint(this.selectionRotatedPageBounds!.center)
 		})
 
 		return this

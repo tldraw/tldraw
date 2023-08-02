@@ -18,7 +18,7 @@ export class PointingShape extends StateNode {
 		const {
 			selectedShapeIds,
 			focusedGroupId,
-			selectionBounds,
+			selectionRotatedPageBounds: selectionBounds,
 			inputs: { currentPagePoint, shiftKey, altKey },
 		} = this.editor
 

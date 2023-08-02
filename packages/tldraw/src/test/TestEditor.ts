@@ -479,11 +479,11 @@ export class TestEditor extends Editor {
 
 		this.setCurrentTool('select')
 
-		const handlePoint = this.selectionBounds!.getHandlePoint(
+		const handlePoint = this.selectionRotatedPageBounds!.getHandlePoint(
 			ROTATE_CORNER_TO_SELECTION_CORNER[handle]
 		)
 			.clone()
-			.rotWith(this.selectionBounds!.point, this.selectionRotation)
+			.rotWith(this.selectionRotatedPageBounds!.point, this.selectionRotation)
 
 		const targetHandlePoint = Vec2d.RotWith(handlePoint, this.selectionPageCenter!, angleRadians)
 
@@ -500,7 +500,7 @@ export class TestEditor extends Editor {
 	 * @public
 	 */
 	get selectionPageCenter() {
-		const { selectionBounds, selectionRotation } = this
+		const { selectionRotatedPageBounds: selectionBounds, selectionRotation } = this
 		if (!selectionBounds) return null
 		return Vec2d.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
 	}
@@ -531,7 +531,7 @@ export class TestEditor extends Editor {
 			throw new Error('No selection')
 		}
 		this.setCurrentTool('select')
-		const bounds = this.selectionBounds!
+		const bounds = this.selectionRotatedPageBounds!
 		const preRotationHandlePoint = bounds.getHandlePoint(handle)
 
 		const preRotationScaleOriginPoint = options?.altKey
