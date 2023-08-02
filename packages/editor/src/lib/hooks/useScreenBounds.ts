@@ -6,9 +6,17 @@ export function useScreenBounds() {
 	const editor = useEditor()
 
 	useLayoutEffect(() => {
-		const updateBounds = throttle(() => editor.updateViewportScreenBounds(), 200, {
-			trailing: true,
-		})
+		const updateBounds = throttle(
+			() => {
+				if (editor.instanceState.isFocused) {
+					editor.updateViewportScreenBounds()
+				}
+			},
+			200,
+			{
+				trailing: true,
+			}
+		)
 
 		// Rather than running getClientRects on every frame, we'll
 		// run it once a second or when the window resizes / scrolls.
