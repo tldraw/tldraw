@@ -26,7 +26,7 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsA = editor.getPageBounds(id)
+		const boundsA = editor.getShapeAbsoluteBounds(id)
 		editor.updateShapes([
 			{
 				id,
@@ -36,7 +36,7 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsB = editor.getPageBounds(id)
+		const boundsB = editor.getShapeAbsoluteBounds(id)
 		expect(boundsA!.x).not.toEqual(boundsB!.x)
 		expect(boundsA!.y).toEqual(boundsB!.y)
 		expect(boundsA!.midX).toEqual(boundsB!.midX)
@@ -62,9 +62,9 @@ describe('When editing text', () => {
 			},
 		])
 
-		const boundsA = editor.getPageBounds(id)!
+		const boundsA = editor.getShapeAbsoluteBounds(id)!
 		editor.updateShapes([{ id, type: 'text', props: { text: 'Hello, world!' } }])
-		const boundsB = editor.getPageBounds(id)!
+		const boundsB = editor.getShapeAbsoluteBounds(id)!
 		expect(boundsA.x).toBeCloseTo(boundsB.x)
 		expect(boundsA.y).not.toBeCloseTo(boundsB.y)
 		expect(boundsA.midX).toBeCloseTo(boundsB.midX)
@@ -86,7 +86,7 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsA = editor.getPageBounds(id)
+		const boundsA = editor.getShapeAbsoluteBounds(id)
 		editor.updateShapes([
 			{
 				id,
@@ -96,7 +96,7 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsB = editor.getPageBounds(id)
+		const boundsB = editor.getShapeAbsoluteBounds(id)
 		expect(boundsA!.x).toEqual(boundsB!.x)
 		expect(boundsA!.y).toEqual(boundsB!.y)
 		expect(boundsA!.midX).not.toEqual(boundsB!.midX)
@@ -120,7 +120,7 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsA = editor.getPageBounds(id)
+		const boundsA = editor.getShapeAbsoluteBounds(id)
 		editor.updateShapes([
 			{
 				id,
@@ -130,7 +130,7 @@ describe('When editing text', () => {
 				},
 			},
 		])
-		const boundsB = editor.getPageBounds(id)
+		const boundsB = editor.getShapeAbsoluteBounds(id)
 		expect(boundsA!.x).not.toEqual(boundsB!.x)
 		expect(boundsA!.y).toEqual(boundsB!.y)
 		expect(boundsA!.midX).not.toEqual(boundsB!.midX)
@@ -157,7 +157,7 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsA = editor.getPageBounds(id)
+		const boundsA = editor.getShapeAbsoluteBounds(id)
 		editor.updateShapes([
 			{
 				id,
@@ -167,7 +167,7 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsB = editor.getPageBounds(id)
+		const boundsB = editor.getShapeAbsoluteBounds(id)
 		expect(boundsA!.x).not.toEqual(boundsB!.x)
 		expect(boundsA!.y).not.toEqual(boundsB!.y)
 		expect(boundsA!.midX).toEqual(boundsB!.midX)
@@ -192,7 +192,7 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsA = editor.getPageBounds(id)
+		const boundsA = editor.getShapeAbsoluteBounds(id)
 		editor.updateShapes([
 			{
 				id,
@@ -202,7 +202,7 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsB = editor.getPageBounds(id)
+		const boundsB = editor.getShapeAbsoluteBounds(id)
 		expect(boundsA!.x).toEqual(boundsB!.x)
 		expect(boundsA!.y).not.toEqual(boundsB!.y)
 		expect(boundsA!.midX).not.toEqual(boundsB!.midX)
@@ -227,7 +227,7 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsA = editor.getPageBounds(id)
+		const boundsA = editor.getShapeAbsoluteBounds(id)
 		editor.updateShapes([
 			{
 				id,
@@ -237,7 +237,7 @@ describe('When changing text size', () => {
 				},
 			},
 		])
-		const boundsB = editor.getPageBounds(id)
+		const boundsB = editor.getShapeAbsoluteBounds(id)
 		expect(boundsA!.x).not.toEqual(boundsB!.x)
 		expect(boundsA!.y).not.toEqual(boundsB!.y)
 		expect(boundsA!.midX).not.toEqual(boundsB!.midX)

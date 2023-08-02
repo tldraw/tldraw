@@ -7,7 +7,7 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 	const rCanvas = React.useRef<HTMLCanvasElement>(null)
 
 	const camera = editor.camera
-	const shapes = editor.shapesOnCurrentPage
+	const shapes = editor.currentPageShapes
 	if (rCanvas.current) {
 		const cvs = rCanvas.current
 		const ctx = cvs.getContext('2d')!
@@ -19,7 +19,7 @@ export const HTMLCanvas = track(function HTMLCanvas() {
 		ctx.translate(camera.x, camera.y)
 
 		for (const shape of shapes) {
-			const bounds = editor.getPageBounds(shape)!
+			const bounds = editor.getShapeAbsoluteBounds(shape)!
 			path.rect(bounds.minX, bounds.minY, bounds.width, bounds.height)
 		}
 

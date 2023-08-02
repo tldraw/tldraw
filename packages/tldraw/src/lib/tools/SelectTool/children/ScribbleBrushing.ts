@@ -108,7 +108,7 @@ export class ScribbleBrushing extends StateNode {
 	private updateScribbleSelection(addPoint: boolean) {
 		const {
 			zoomLevel,
-			shapesOnCurrentPage,
+			currentPageShapes: currentPageShapes,
 			inputs: { shiftKey, originPagePoint, previousPagePoint, currentPagePoint },
 		} = this.editor
 
@@ -118,12 +118,12 @@ export class ScribbleBrushing extends StateNode {
 			this.pushPointToScribble()
 		}
 
-		const shapes = shapesOnCurrentPage
+		const shapes = currentPageShapes
 		let shape: TLShape, geometry: Geometry2d, A: Vec2d, B: Vec2d
 
 		for (let i = 0, n = shapes.length; i < n; i++) {
 			shape = shapes[i]
-			geometry = this.editor.getGeometry(shape)
+			geometry = this.editor.getShapeGeometry(shape)
 
 			if (
 				this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
@@ -144,7 +144,7 @@ export class ScribbleBrushing extends StateNode {
 			if (geometry.hitTestLineSegment(A, B, HIT_TEST_MARGIN / zoomLevel)) {
 				const outermostShape = this.editor.getOutermostSelectableShape(shape)
 
-				const pageMask = this.editor.getPageMask(outermostShape.id)
+				const pageMask = this.editor.getShapeMask(outermostShape.id)
 
 				if (pageMask) {
 					const intersection = intersectLineSegmentPolyline(

@@ -25,7 +25,7 @@ export class Erasing extends StateNode {
 
 		const { originPagePoint } = this.editor.inputs
 		this.excludedShapeIds = new Set(
-			this.editor.shapesOnCurrentPage
+			this.editor.currentPageShapes
 				.filter(
 					(shape) =>
 						this.editor.isShapeOrAncestorLocked(shape) ||
@@ -95,7 +95,7 @@ export class Erasing extends StateNode {
 	update() {
 		const {
 			zoomLevel,
-			shapesOnCurrentPage,
+			currentPageShapes: currentPageShapes,
 			erasingShapeIdsSet,
 			inputs: { currentPagePoint, previousPagePoint },
 		} = this.editor
@@ -106,17 +106,17 @@ export class Erasing extends StateNode {
 
 		const erasing = new Set<TLShapeId>(erasingShapeIdsSet)
 
-		for (const shape of shapesOnCurrentPage) {
+		for (const shape of currentPageShapes) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
-			const pageMask = this.editor.getPageMask(shape.id)
+			const pageMask = this.editor.getShapeMask(shape.id)
 			if (pageMask && !pointInPolygon(currentPagePoint, pageMask)) {
 				continue
 			}
 
 			// Hit test the shape using a line segment
-			const geometry = this.editor.getGeometry(shape)
+			const geometry = this.editor.getShapeGeometry(shape)
 			const A = this.editor.getPointInShapeSpace(shape, previousPagePoint)
 			const B = this.editor.getPointInShapeSpace(shape, currentPagePoint)
 

@@ -54,7 +54,7 @@ export class DraggingHandle extends StateNode {
 		this.shapeId = shape.id
 		this.markId = isCreating ? `creating:${shape.id}` : this.editor.mark('dragging handle')
 		this.initialHandle = deepCopy(handle)
-		this.initialPageTransform = this.editor.getPageTransform(shape)!
+		this.initialPageTransform = this.editor.getAbsoluteTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
 		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
 
@@ -64,7 +64,7 @@ export class DraggingHandle extends StateNode {
 		)
 
 		// <!-- Only relevant to arrows
-		const handles = this.editor.getHandles(shape)!.sort(sortByIndex)
+		const handles = this.editor.getShapeHandles(shape)!.sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
 
 		// Find the adjacent handle
@@ -233,7 +233,7 @@ export class DraggingHandle extends StateNode {
 
 		if (isSnapMode ? !ctrlKey : ctrlKey) {
 			// We're snapping
-			const pageTransform = editor.getPageTransform(shape.id)
+			const pageTransform = editor.getAbsoluteTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 
 			// Get all the outline segments from the shape
@@ -245,7 +245,7 @@ export class DraggingHandle extends StateNode {
 			// find the index of the handle that shares the same index property
 			// as the initial dragging handle; this catches a quirk of create handles
 			const handleIndex = editor
-				.getHandles(shape)!
+				.getShapeHandles(shape)!
 				.filter(({ type }) => type === 'vertex')
 				.sort(sortByIndex)
 				.findIndex(({ index }) => initialHandle.index === index)
@@ -258,7 +258,7 @@ export class DraggingHandle extends StateNode {
 			})
 
 			if (snapDelta) {
-				snapDelta.rot(-editor.getParentTransform(shape)!.rotation())
+				snapDelta.rot(-editor.getShapeParentTransform(shape)!.rotation())
 				point.add(snapDelta)
 			}
 		}

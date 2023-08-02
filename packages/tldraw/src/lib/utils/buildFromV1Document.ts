@@ -219,7 +219,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getPageBounds(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getShapeAbsoluteBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -274,7 +274,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getPageBounds(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getShapeAbsoluteBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -329,7 +329,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 								},
 							])
 
-							const pageBoundsBeforeLabel = editor.getPageBounds(inCommon.id)!
+							const pageBoundsBeforeLabel = editor.getShapeAbsoluteBounds(inCommon.id)!
 
 							editor.updateShapes([
 								{
@@ -540,7 +540,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 							if (!targetShape) continue
 
 							if (targetId) {
-								const bounds = editor.getPageBounds(targetId)!
+								const bounds = editor.getShapeAbsoluteBounds(targetId)!
 
 								const v2ShapeFresh = editor.getShape<TLArrowShape>(v2ShapeId)!
 
@@ -552,7 +552,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 									y: bounds.minY + bounds.height * ny,
 								})
 
-								const handles = editor.getHandles(v2ShapeFresh)!
+								const handles = editor.getShapeHandles(v2ShapeFresh)!
 
 								const change = util.onHandleChange!(v2ShapeFresh, {
 									handle: {
@@ -591,7 +591,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 		editor.selectNone()
 		editor.updateViewportScreenBounds()
 
-		const bounds = editor.commonBoundsOfAllShapesOnCurrentPage
+		const bounds = editor.currentPageBounds
 		if (bounds) {
 			editor.zoomToBounds(bounds, 1)
 		}

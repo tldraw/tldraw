@@ -467,7 +467,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					break
 				}
 				default: {
-					const geometry = this.editor.getGeometry(shape)
+					const geometry = this.editor.getShapeGeometry(shape)
 					const outline =
 						geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 					const lines = getLines(shape.props, strokeWidth)
@@ -554,7 +554,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 
 			default: {
-				const geometry = this.editor.getGeometry(shape)
+				const geometry = this.editor.getShapeGeometry(shape)
 				const outline =
 					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 				let path: string
@@ -714,7 +714,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				break
 			}
 			default: {
-				const geometry = this.editor.getGeometry(shape)
+				const geometry = this.editor.getShapeGeometry(shape)
 				const outline =
 					geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
 				const lines = getLines(shape.props, strokeWidth)
@@ -760,7 +760,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (props.text) {
-			const bounds = this.editor.getGeometry(shape).bounds
+			const bounds = this.editor.getShapeGeometry(shape).bounds
 
 			ctx.addExportDef(getFontDefForExport(shape.props.font))
 

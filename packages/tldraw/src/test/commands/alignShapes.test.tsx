@@ -134,18 +134,18 @@ describe('when multiple shapes are selected', () => {
 		jest.advanceTimersByTime(1000)
 
 		const commonBounds = Box2d.Common([
-			editor.getPageBounds(ids.boxA)!,
-			editor.getPageBounds(ids.boxB)!,
-			editor.getPageBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxA)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
 		])
 
-		expect(commonBounds.midX).toBeCloseTo(editor.getPageBounds(ids.boxA)!.midX, 5)
-		expect(commonBounds.midX).toBeCloseTo(editor.getPageBounds(ids.boxB)!.midX, 5)
-		expect(commonBounds.midX).toBeCloseTo(editor.getPageBounds(ids.boxC)!.midX, 5)
+		expect(commonBounds.midX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxA)!.midX, 5)
+		expect(commonBounds.midX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.midX, 5)
+		expect(commonBounds.midX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.midX, 5)
 
-		expect(commonBounds.midY).toBeCloseTo(editor.getPageBounds(ids.boxA)!.midY, 5)
-		expect(commonBounds.midY).toBeCloseTo(editor.getPageBounds(ids.boxB)!.midY, 5)
-		expect(commonBounds.midY).toBeCloseTo(editor.getPageBounds(ids.boxC)!.midY, 5)
+		expect(commonBounds.midY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxA)!.midY, 5)
+		expect(commonBounds.midY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.midY, 5)
+		expect(commonBounds.midY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.midY, 5)
 	})
 
 	it('aligns top-left, when shapes are rotated', () => {
@@ -173,18 +173,18 @@ describe('when multiple shapes are selected', () => {
 		jest.advanceTimersByTime(1000)
 
 		const commonBounds = Box2d.Common([
-			editor.getPageBounds(ids.boxA)!,
-			editor.getPageBounds(ids.boxB)!,
-			editor.getPageBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxA)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
 		])
 
-		expect(commonBounds.minX).toBeCloseTo(editor.getPageBounds(ids.boxA)!.minX, 5)
-		expect(commonBounds.minX).toBeCloseTo(editor.getPageBounds(ids.boxB)!.minX, 5)
-		expect(commonBounds.minX).toBeCloseTo(editor.getPageBounds(ids.boxC)!.minX, 5)
+		expect(commonBounds.minX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxA)!.minX, 5)
+		expect(commonBounds.minX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.minX, 5)
+		expect(commonBounds.minX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.minX, 5)
 
-		expect(commonBounds.minY).toBeCloseTo(editor.getPageBounds(ids.boxA)!.minY, 5)
-		expect(commonBounds.minY).toBeCloseTo(editor.getPageBounds(ids.boxB)!.minY, 5)
-		expect(commonBounds.minY).toBeCloseTo(editor.getPageBounds(ids.boxC)!.minY, 5)
+		expect(commonBounds.minY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxA)!.minY, 5)
+		expect(commonBounds.minY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.minY, 5)
+		expect(commonBounds.minY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.minY, 5)
 	})
 
 	it('aligns bottom-right, when shapes are rotated', () => {
@@ -213,17 +213,17 @@ describe('when multiple shapes are selected', () => {
 		jest.advanceTimersByTime(1000)
 
 		const commonBounds = Box2d.Common([
-			editor.getPageBounds(ids.boxA)!,
-			editor.getPageBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxA)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
 		])
 
-		expect(commonBounds.maxX).toBeCloseTo(editor.getPageBounds(ids.boxA)!.maxX, 5)
-		expect(commonBounds.maxX).toBeCloseTo(editor.getPageBounds(ids.boxB)!.maxX, 5)
-		expect(commonBounds.maxX).toBeCloseTo(editor.getPageBounds(ids.boxC)!.maxX, 5)
+		expect(commonBounds.maxX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxA)!.maxX, 5)
+		expect(commonBounds.maxX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.maxX, 5)
+		expect(commonBounds.maxX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.maxX, 5)
 
-		expect(commonBounds.maxX).toBeCloseTo(editor.getPageBounds(ids.boxA)!.maxX, 5)
-		expect(commonBounds.maxY).toBeCloseTo(editor.getPageBounds(ids.boxB)!.maxY, 5)
-		expect(commonBounds.maxY).toBeCloseTo(editor.getPageBounds(ids.boxC)!.maxY, 5)
+		expect(commonBounds.maxX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxA)!.maxX, 5)
+		expect(commonBounds.maxY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.maxY, 5)
+		expect(commonBounds.maxY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.maxY, 5)
 	})
 })
 
@@ -246,8 +246,8 @@ describe('When shapes are parented to other shapes...', () => {
 		editor.setSelectedShapeIds([ids.boxC, ids.boxB])
 
 		const commonBoundsBefore = Box2d.Common([
-			editor.getPageBounds(ids.boxC)!,
-			editor.getPageBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
 		])
 
 		editor.alignShapes(editor.selectedShapeIds, 'top')
@@ -256,8 +256,8 @@ describe('When shapes are parented to other shapes...', () => {
 		jest.advanceTimersByTime(1000)
 
 		const commonBoundsAfter = Box2d.Common([
-			editor.getPageBounds(ids.boxC)!,
-			editor.getPageBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
 		])
 
 		expect(commonBoundsBefore.minX).toBeCloseTo(commonBoundsAfter.minX)
@@ -268,8 +268,8 @@ describe('When shapes are parented to other shapes...', () => {
 		editor.setSelectedShapeIds([ids.boxC, ids.boxB])
 
 		const commonBoundsBefore = Box2d.Common([
-			editor.getPageBounds(ids.boxC)!,
-			editor.getPageBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
 		])
 
 		editor.alignShapes(editor.selectedShapeIds, 'bottom')
@@ -278,8 +278,8 @@ describe('When shapes are parented to other shapes...', () => {
 		jest.advanceTimersByTime(1000)
 
 		const commonBoundsAfter = Box2d.Common([
-			editor.getPageBounds(ids.boxC)!,
-			editor.getPageBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
 		])
 
 		expect(commonBoundsBefore.maxX).toBeCloseTo(commonBoundsAfter.maxX)
@@ -334,8 +334,8 @@ describe('When shapes are parented to a rotated shape...', () => {
 		editor.setSelectedShapeIds([ids.boxC, ids.boxB])
 
 		const commonBoundsBefore = Box2d.Common([
-			editor.getPageBounds(ids.boxC)!,
-			editor.getPageBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
 		])
 
 		editor.alignShapes(editor.selectedShapeIds, 'top')
@@ -344,26 +344,26 @@ describe('When shapes are parented to a rotated shape...', () => {
 		jest.advanceTimersByTime(1000)
 
 		const commonBoundsAfter = Box2d.Common([
-			editor.getPageBounds(ids.boxC)!,
-			editor.getPageBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
 		])
 
 		expect(commonBoundsBefore.minX).toBeCloseTo(commonBoundsAfter.minX)
 		expect(commonBoundsBefore.minY).toBeCloseTo(commonBoundsAfter.minY)
 
-		expect(commonBoundsAfter.minX).toBeCloseTo(editor.getPageBounds(ids.boxB)!.minX, 5)
-		expect(commonBoundsAfter.minX).toBeCloseTo(editor.getPageBounds(ids.boxC)!.minX, 5)
+		expect(commonBoundsAfter.minX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.minX, 5)
+		expect(commonBoundsAfter.minX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.minX, 5)
 
-		expect(commonBoundsAfter.minY).toBeCloseTo(editor.getPageBounds(ids.boxB)!.minY, 5)
-		expect(commonBoundsAfter.minY).toBeCloseTo(editor.getPageBounds(ids.boxC)!.minY, 5)
+		expect(commonBoundsAfter.minY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.minY, 5)
+		expect(commonBoundsAfter.minY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.minY, 5)
 	})
 
 	it('Aligns to the bottom right.', () => {
 		editor.setSelectedShapeIds([ids.boxC, ids.boxB])
 
 		const commonBoundsBefore = Box2d.Common([
-			editor.getPageBounds(ids.boxC)!,
-			editor.getPageBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
 		])
 
 		editor.alignShapes(editor.selectedShapeIds, 'bottom')
@@ -372,17 +372,17 @@ describe('When shapes are parented to a rotated shape...', () => {
 		jest.advanceTimersByTime(1000)
 
 		const commonBoundsAfter = Box2d.Common([
-			editor.getPageBounds(ids.boxC)!,
-			editor.getPageBounds(ids.boxB)!,
+			editor.getShapeAbsoluteBounds(ids.boxC)!,
+			editor.getShapeAbsoluteBounds(ids.boxB)!,
 		])
 
 		expect(commonBoundsBefore.maxX).toBeCloseTo(commonBoundsAfter.maxX)
 		expect(commonBoundsBefore.maxY).toBeCloseTo(commonBoundsAfter.maxY)
 
-		expect(commonBoundsAfter.maxX).toBeCloseTo(editor.getPageBounds(ids.boxB)!.maxX, 5)
-		expect(commonBoundsAfter.maxX).toBeCloseTo(editor.getPageBounds(ids.boxC)!.maxX, 5)
+		expect(commonBoundsAfter.maxX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.maxX, 5)
+		expect(commonBoundsAfter.maxX).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.maxX, 5)
 
-		expect(commonBoundsAfter.maxY).toBeCloseTo(editor.getPageBounds(ids.boxB)!.maxY, 5)
-		expect(commonBoundsAfter.maxY).toBeCloseTo(editor.getPageBounds(ids.boxC)!.maxY, 5)
+		expect(commonBoundsAfter.maxY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxB)!.maxY, 5)
+		expect(commonBoundsAfter.maxY).toBeCloseTo(editor.getShapeAbsoluteBounds(ids.boxC)!.maxY, 5)
 	})
 })

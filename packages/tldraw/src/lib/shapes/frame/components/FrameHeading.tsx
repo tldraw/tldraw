@@ -23,7 +23,7 @@ export const FrameHeading = function FrameHeading({
 }) {
 	const editor = useEditor()
 
-	const pageRotation = canonicalizeRotation(editor.getPageTransform(id)!.rotation())
+	const pageRotation = canonicalizeRotation(editor.getAbsoluteTransform(id)!.rotation())
 	const isEditing = useIsEditing(id)
 
 	const rInput = useRef<HTMLInputElement>(null)

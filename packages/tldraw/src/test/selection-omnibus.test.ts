@@ -32,7 +32,7 @@ it('lists a sorted shapes array correctly', () => {
 	editor.sendBackward([ids.frame1])
 	editor.sendBackward([ids.frame1])
 
-	expect(editor.sortedShapesOnCurrentPage.map((s) => s.id)).toEqual([
+	expect(editor.currentPageShapesSorted.map((s) => s.id)).toEqual([
 		ids.box1,
 		ids.frame1,
 		ids.box4,
@@ -329,8 +329,8 @@ describe('When a shape is behind a frame', () => {
 
 	it('does not select the shape when clicked inside', () => {
 		editor.sendToBack([ids.box1]) // send it to back!
-		expect(editor.sortedShapesOnCurrentPage.map((s) => s.index)).toEqual(['a1', 'a2'])
-		expect(editor.sortedShapesOnCurrentPage.map((s) => s.id)).toEqual([ids.box1, ids.frame1])
+		expect(editor.currentPageShapesSorted.map((s) => s.index)).toEqual(['a1', 'a2'])
+		expect(editor.currentPageShapesSorted.map((s) => s.id)).toEqual([ids.box1, ids.frame1])
 
 		editor.pointerMove(50, 50)
 		expect(editor.hoveredShapeId).toBe(null)
@@ -690,7 +690,7 @@ describe('When shapes are overlapping', () => {
 		editor.bringToFront([ids.box5])
 		editor.bringToFront([ids.box2])
 
-		expect(editor.sortedShapesOnCurrentPage.map((s) => s.id)).toEqual([
+		expect(editor.currentPageShapesSorted.map((s) => s.id)).toEqual([
 			ids.box4, // filled
 			ids.box1, // hollow
 			ids.box3, // hollow
@@ -709,7 +709,7 @@ describe('When shapes are overlapping', () => {
 	})
 
 	it('selects the hollow above the filled shapes when in margin', () => {
-		expect(editor.sortedShapesOnCurrentPage.map((s) => s.id)).toEqual([
+		expect(editor.currentPageShapesSorted.map((s) => s.id)).toEqual([
 			ids.box4,
 			ids.box1,
 			ids.box3,
@@ -772,7 +772,7 @@ describe('Selects inside of groups', () => {
 	})
 
 	it('cretes the group with the correct bounds', () => {
-		expect(editor.getGeometry(ids.group1).bounds).toMatchObject({
+		expect(editor.getShapeGeometry(ids.group1).bounds).toMatchObject({
 			x: 0,
 			y: 0,
 			w: 300,
@@ -1492,7 +1492,7 @@ describe('scribble brushes to add to the selection', () => {
 describe('creating text on double click', () => {
 	it('creates text on double click', () => {
 		editor.doubleClick()
-		expect(editor.shapesOnCurrentPage.length).toBe(1)
+		expect(editor.currentPageShapes.length).toBe(1)
 		editor.pointerMove(0, 100)
 		editor.click()
 	})

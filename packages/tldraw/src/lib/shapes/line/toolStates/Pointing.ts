@@ -34,14 +34,14 @@ export class Pointing extends StateNode {
 			this.shape = shape
 
 			if (inputs.shiftKey) {
-				const handles = this.editor.getHandles(this.shape)
+				const handles = this.editor.getShapeHandles(this.shape)
 				if (!handles) return
 
 				const vertexHandles = handles.filter((h) => h.type === 'vertex').sort(sortByIndex)
 				const endHandle = vertexHandles[vertexHandles.length - 1]
 
 				const shapePagePoint = Matrix2d.applyToPoint(
-					this.editor.getParentTransform(this.shape)!,
+					this.editor.getShapeParentTransform(this.shape)!,
 					new Vec2d(this.shape.x, this.shape.y)
 				)
 
@@ -105,7 +105,7 @@ export class Pointing extends StateNode {
 		if (!this.shape) return
 
 		if (this.editor.inputs.isDragging) {
-			const handles = this.editor.getHandles(this.shape)
+			const handles = this.editor.getShapeHandles(this.shape)
 			if (!handles) {
 				if (this.markId) this.editor.bailToMark(this.markId)
 				throw Error('No handles found')

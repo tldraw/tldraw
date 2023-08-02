@@ -83,7 +83,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 			if (isShapeId(focusedGroupId)) {
 				const groupShape = editor.getShape(focusedGroupId)!
 				if (!editor.isPointInShape(groupShape, currentPagePoint, { margin: 0, hitInside: true })) {
-					editor.setFocusedGroupId(editor.currentPageId)
+					editor.setFocusedGroupId(null)
 				}
 			}
 		}

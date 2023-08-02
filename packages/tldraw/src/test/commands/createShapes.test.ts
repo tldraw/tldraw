@@ -117,13 +117,13 @@ it('Creates shapes at the correct index', () => {
 })
 
 it('Throws out all shapes if any shape is invalid', () => {
-	const n = editor.shapeIdsOnCurrentPage.size
+	const n = editor.currentPageShapeIds.size
 
 	expect(() => {
 		editor.createShapes([{ id: ids.box1, type: 'geo' }])
 	}).not.toThrow()
 
-	expect(editor.shapeIdsOnCurrentPage.size).toBe(n + 1)
+	expect(editor.currentPageShapeIds.size).toBe(n + 1)
 
 	console.error = jest.fn()
 
@@ -136,5 +136,5 @@ it('Throws out all shapes if any shape is invalid', () => {
 		])
 	}).toThrow()
 
-	expect(editor.shapeIdsOnCurrentPage.size).toBe(n + 1)
+	expect(editor.currentPageShapeIds.size).toBe(n + 1)
 })

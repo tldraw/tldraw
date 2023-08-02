@@ -125,7 +125,7 @@ export class PointingShape extends StateNode {
 			} else if (shiftKey) {
 				// Different shape, so we are drilling down into a group with shift key held.
 				// Deselect any ancestors and add the target shape to the selection
-				const ancestors = this.editor.getAncestors(outermostSelectableShape)
+				const ancestors = this.editor.getShapeAncestors(outermostSelectableShape)
 
 				this.editor.mark('shift deselecting on pointer up')
 				this.editor.setSelectedShapeIds([

@@ -223,7 +223,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const next = deepCopy(shape) as TLArrowShape
 
-		const pageTransform = this.editor.getPageTransform(next.id)!
+		const pageTransform = this.editor.getAbsoluteTransform(next.id)!
 		const pointInPageSpace = pageTransform.applyToPoint(handle)
 
 		if (this.editor.inputs.ctrlKey) {
@@ -237,7 +237,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			return next
 		}
 
-		const point = this.editor.getPageTransform(shape.id)!.applyToPoint(handle)
+		const point = this.editor.getAbsoluteTransform(shape.id)!.applyToPoint(handle)
 
 		const target = this.editor.getShapeAtPoint(point, {
 			filter: (shape) => this.editor.getShapeUtil(shape).canBind(shape),
@@ -258,7 +258,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		// we've got a target! the handle is being dragged over a shape, bind to it
 
-		const targetGeometry = this.editor.getGeometry(target)
+		const targetGeometry = this.editor.getShapeGeometry(target)
 		const targetBounds = targetGeometry.bounds
 		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
@@ -491,7 +491,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			) && !this.editor.instanceState.isReadonly
 
 		const info = this.editor.getArrowInfo(shape)
-		const bounds = this.editor.getGeometry(shape).bounds
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const changeIndex = React.useMemo<number>(() => {
@@ -564,7 +564,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		)
 
 		const labelGeometry = shape.props.text.trim()
-			? (this.editor.getGeometry<Group2d>(shape).children[1] as Rectangle2d)
+			? (this.editor.getShapeGeometry<Group2d>(shape).children[1] as Rectangle2d)
 			: null
 
 		const maskStartArrowhead = !(
@@ -667,7 +667,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
 		const info = this.editor.getArrowInfo(shape)
-		const geometry = this.editor.getGeometry<Group2d>(shape)
+		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const bounds = geometry.bounds
 
 		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
@@ -799,7 +799,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// Arrowhead end path
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
-		const geometry = this.editor.getGeometry<Group2d>(shape)
+		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
 		const bounds = geometry.bounds
 
 		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null

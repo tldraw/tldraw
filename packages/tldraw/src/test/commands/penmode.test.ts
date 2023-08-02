@@ -23,5 +23,5 @@ it('ignores touch events while in pen mode', async () => {
 		target: 'canvas',
 	})
 
-	expect(editor.shapesOnCurrentPage.length).toBe(0)
+	expect(editor.currentPageShapes.length).toBe(0)
 })

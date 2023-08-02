@@ -21,7 +21,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 		expect(editor.onlySelectedShape?.type).toBe('frame')
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 100,
 			y: 100,
 			w: 100,
@@ -33,7 +33,7 @@ describe('creating frames', () => {
 		editor.pointerDown(100, 100).pointerUp(100, 100)
 		expect(editor.onlySelectedShape?.type).toBe('frame')
 		const { w, h } = editor.getShapeUtil<TLFrameShape>('frame').getDefaultProps()
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 100 - w / 2,
 			y: 100 - h / 2,
 			w,
@@ -44,7 +44,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).cancel().pointerUp(100, 100)
 		expect(editor.onlySelectedShape?.type).toBe(undefined)
-		expect(editor.shapesOnCurrentPage).toHaveLength(0)
+		expect(editor.currentPageShapes).toHaveLength(0)
 	})
 	it('can be canceled while dragging', () => {
 		editor.setCurrentTool('frame')
@@ -53,19 +53,19 @@ describe('creating frames', () => {
 		editor.cancel()
 		editor.pointerUp()
 		expect(editor.onlySelectedShape?.type).toBe(undefined)
-		expect(editor.shapesOnCurrentPage).toHaveLength(0)
+		expect(editor.currentPageShapes).toHaveLength(0)
 	})
 	it('can be undone', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
 		expect(editor.onlySelectedShape?.type).toBe('frame')
-		expect(editor.shapesOnCurrentPage).toHaveLength(1)
+		expect(editor.currentPageShapes).toHaveLength(1)
 
 		editor.undo()
 
 		expect(editor.onlySelectedShape?.type).toBe(undefined)
-		expect(editor.shapesOnCurrentPage).toHaveLength(0)
+		expect(editor.currentPageShapes).toHaveLength(0)
 	})
 	it('can be done inside other frames', () => {
 		editor.setCurrentTool('frame')
@@ -76,11 +76,11 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
-		expect(editor.shapesOnCurrentPage).toHaveLength(2)
+		expect(editor.currentPageShapes).toHaveLength(2)
 
 		expect(editor.onlySelectedShape?.parentId).toEqual(frameAId)
 
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 125,
 			y: 125,
 			w: 50,
@@ -98,11 +98,11 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
-		expect(editor.shapesOnCurrentPage).toHaveLength(2)
+		expect(editor.currentPageShapes).toHaveLength(2)
 
 		expect(editor.onlySelectedShape?.parentId).toEqual(frameAId)
 
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
 			x: 125,
 			y: 125,
 			w: 50,
@@ -118,7 +118,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(49, 149)
 
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 49,
 			y: 100,
 			w: 51,
@@ -128,7 +128,7 @@ describe('creating frames', () => {
 		// x should snap
 		editor.keyDown('Control')
 		expect(editor.snaps.lines).toHaveLength(1)
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 50,
 			y: 100,
 			w: 50,
@@ -146,7 +146,7 @@ describe('creating frames', () => {
 describe('frame shapes', () => {
 	it('can receive new children when shapes are drawn on top and the frame is rotated', () => {
 		// We should be starting from an empty canvas
-		expect(editor.shapesOnCurrentPage).toHaveLength(0)
+		expect(editor.currentPageShapes).toHaveLength(0)
 
 		const frameId = createShapeId('frame')
 
@@ -169,7 +169,7 @@ describe('frame shapes', () => {
 			.pointerUp()
 
 		// The two shapes should have been created
-		expect(editor.shapesOnCurrentPage).toHaveLength(3)
+		expect(editor.currentPageShapes).toHaveLength(3)
 
 		// The shapes should be the child of the frame
 		const childIds = editor.getSortedChildIdsForParent(frameId)
@@ -186,7 +186,7 @@ describe('frame shapes', () => {
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
 		editor.resizeSelection({ scaleX: 0.5, scaleY: 0.5 }, 'bottom_right')
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
 			x: 100,
 			y: 100,
 			w: 50,
@@ -200,7 +200,7 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 		editor.resizeSelection({ scaleX: 0.5, scaleY: 0.5 }, 'bottom_right', { altKey: true })
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
 			x: 125,
 			y: 125,
 			w: 50,
@@ -223,13 +223,13 @@ describe('frame shapes', () => {
 
 		editor.resizeSelection({ scaleX: 0.5, scaleY: 0.5 }, 'bottom_right')
 
-		expect(editor.getPageBounds(frameId)).toCloselyMatchObject({
+		expect(editor.getShapeAbsoluteBounds(frameId)).toCloselyMatchObject({
 			x: 100,
 			y: 100,
 			w: 50,
 			h: 50,
 		})
-		expect(editor.getPageBounds(boxId)).toCloselyMatchObject({
+		expect(editor.getShapeAbsoluteBounds(boxId)).toCloselyMatchObject({
 			x: 125,
 			y: 125,
 			w: 50,
@@ -345,9 +345,9 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('select')
 		editor.select(ids.boxA)
 		editor.pointerDown(275, 275, ids.boxA).pointerMove(275, 74)
-		expect(editor.getPageBounds(ids.boxA)).toMatchObject({ y: 49 })
+		expect(editor.getShapeAbsoluteBounds(ids.boxA)).toMatchObject({ y: 49 })
 		editor.keyDown('Control')
-		expect(editor.getPageBounds(ids.boxA)).toMatchObject({ y: 50 })
+		expect(editor.getShapeAbsoluteBounds(ids.boxA)).toMatchObject({ y: 50 })
 		expect(editor.snaps.lines).toHaveLength(1)
 	})
 
@@ -362,7 +362,7 @@ describe('frame shapes', () => {
 		// make a shape outside the frame
 		editor.setCurrentTool('geo')
 		editor.pointerDown(275, 125).pointerMove(280, 130).pointerUp(280, 130)
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 275,
 			y: 125,
 			w: 5,
@@ -378,7 +378,7 @@ describe('frame shapes', () => {
 
 		// now try to snap
 		editor.keyDown('Control')
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 275,
 			y: 124,
 			w: 5,
@@ -390,7 +390,7 @@ describe('frame shapes', () => {
 
 		editor.pointerMove(287.5, 126.5).pointerMove(277.5, 126.5)
 		expect(editor.snaps.lines).toHaveLength(1)
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 275,
 			y: 125,
 			w: 5,
@@ -431,7 +431,7 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(150, 150).pointerMove(250, 250).pointerUp(250, 250)
 
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toMatchObject({
 			x: 150,
 			y: 150,
 			w: 100,
@@ -439,13 +439,13 @@ describe('frame shapes', () => {
 		})
 
 		// mask should be a 50px box around the top left corner
-		expect(editor.getClipPath(editor.onlySelectedShape!.id)).toMatchInlineSnapshot(
+		expect(editor.getShapeClipPath(editor.onlySelectedShape!.id)).toMatchInlineSnapshot(
 			`"polygon(-50px -50px,50px -50px,50px 50px,-50px 50px)"`
 		)
 
 		editor.reparentShapes([editor.onlySelectedShape!.id], editor.currentPageId)
 
-		expect(editor.getClipPath(editor.onlySelectedShape!.id)).toBeUndefined()
+		expect(editor.getShapeClipPath(editor.onlySelectedShape!.id)).toBeUndefined()
 	})
 
 	it('masks its nested children', () => {
@@ -465,7 +465,7 @@ describe('frame shapes', () => {
 		editor.reparentShapes([boxId], innerFrameId)
 
 		// should be a 50px box starting in the middle of the outer frame
-		expect(editor.getClipPath(boxId)).toMatchInlineSnapshot(
+		expect(editor.getShapeClipPath(boxId)).toMatchInlineSnapshot(
 			`"polygon(50px 50px,100px 50px,100px 100px,50px 100px)"`
 		)
 	})

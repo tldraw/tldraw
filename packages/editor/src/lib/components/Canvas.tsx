@@ -192,13 +192,13 @@ function HandlesWrapper() {
 	const isReadonly = useValue('isChangingStyle', () => editor.instanceState.isReadonly, [editor])
 	const handles = useValue(
 		'handles',
-		() => (editor.onlySelectedShape ? editor.getHandles(editor.onlySelectedShape) : undefined),
+		() => (editor.onlySelectedShape ? editor.getShapeHandles(editor.onlySelectedShape) : undefined),
 		[editor]
 	)
 	const transform = useValue(
 		'transform',
 		() =>
-			editor.onlySelectedShape ? editor.getPageTransform(editor.onlySelectedShape) : undefined,
+			editor.onlySelectedShape ? editor.getAbsoluteTransform(editor.onlySelectedShape) : undefined,
 		[editor]
 	)
 
@@ -396,7 +396,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = editor.getPageBounds(id)
+			const bb = editor.getShapeAbsoluteBounds(id)
 			const el = await editor.getSvg([id], { padding: 0 })
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')

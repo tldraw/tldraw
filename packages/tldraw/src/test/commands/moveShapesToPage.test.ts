@@ -38,13 +38,13 @@ describe('Editor.moveShapesToPage', () => {
 		// box1 didn't get moved, still on page 1
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.page1)
 
-		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([ids.box2, ids.ellipse1])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2, ids.ellipse1])
 
 		expect(editor.currentPageId).toBe(ids.page2)
 
 		editor.setCurrentPage(ids.page1)
 
-		expect([...editor.shapeIdsOnCurrentPage]).toEqual([ids.box1])
+		expect([...editor.currentPageShapeIds]).toEqual([ids.box1])
 	})
 
 	it('Moves children to page', () => {
@@ -80,31 +80,23 @@ describe('Editor.moveShapesToPage', () => {
 
 	it('Restores on undo / redo', () => {
 		expect(editor.currentPageId).toBe(ids.page1)
-		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([
-			ids.box1,
-			ids.box2,
-			ids.ellipse1,
-		])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
 
 		editor.mark('move shapes to page')
 		editor.moveShapesToPage([ids.box2], ids.page2)
 
 		expect(editor.currentPageId).toBe(ids.page2)
-		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([ids.box2])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2])
 
 		editor.undo()
 
 		expect(editor.currentPageId).toBe(ids.page1)
-		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([
-			ids.box1,
-			ids.box2,
-			ids.ellipse1,
-		])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box1, ids.box2, ids.ellipse1])
 
 		editor.redo()
 
 		expect(editor.currentPageId).toBe(ids.page2)
-		expect([...editor.shapeIdsOnCurrentPage].sort()).toMatchObject([ids.box2])
+		expect([...editor.currentPageShapeIds].sort()).toMatchObject([ids.box2])
 	})
 
 	it('Sets the correct indices', () => {
@@ -192,7 +184,7 @@ describe('arrows', () => {
 		editor.pointerUp(450, 450)
 		const arrow = editor.onlySelectedShape!
 
-		expect(editor.getPageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapeAbsoluteBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
 			// exiting at the bottom right corner of the first box
 			x: 300,
 			y: 300,
@@ -210,7 +202,7 @@ describe('arrows', () => {
 		expect(editor.getArrowsBoundTo(firstBox.id).length).toBe(1)
 		expect(editor.getArrowsBoundTo(secondBox.id).length).toBe(0)
 
-		expect(editor.getPageBounds(arrow)).toCloselyMatchObject({
+		expect(editor.getShapeAbsoluteBounds(arrow)).toCloselyMatchObject({
 			x: 300,
 			y: 250,
 			w: 150,

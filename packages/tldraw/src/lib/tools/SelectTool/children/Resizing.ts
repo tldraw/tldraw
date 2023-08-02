@@ -415,12 +415,12 @@ export class Resizing extends StateNode {
 	}
 
 	_createShapeSnapshot = (shape: TLShape) => {
-		const pageTransform = this.editor.getPageTransform(shape)!
+		const pageTransform = this.editor.getAbsoluteTransform(shape)!
 		const util = this.editor.getShapeUtil(shape)
 
 		return {
 			shape,
-			bounds: this.editor.getGeometry(shape).bounds,
+			bounds: this.editor.getShapeGeometry(shape).bounds,
 			pageTransform,
 			pageRotation: Matrix2d.Decompose(pageTransform!).rotation,
 			isAspectRatioLocked: util.isAspectRatioLocked(shape),

@@ -71,7 +71,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 }) {
 	const { shape, videoUtil } = props
 	const showControls =
-		videoUtil.editor.getGeometry(shape).bounds.w * videoUtil.editor.zoomLevel >= 110
+		videoUtil.editor.getShapeGeometry(shape).bounds.w * videoUtil.editor.zoomLevel >= 110
 	const asset = shape.props.assetId ? videoUtil.editor.getAsset(shape.props.assetId) : null
 	const { time, playing } = shape.props
 	const isEditing = useIsEditing(shape.id)

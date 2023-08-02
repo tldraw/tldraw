@@ -31,8 +31,8 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		return new Group2d({
 			children: children.map((childId) => {
 				const shape = this.editor.getShape(childId)!
-				const geometry = this.editor.getGeometry(childId)
-				const points = this.editor.getTransform(shape)!.applyToPoints(geometry.vertices)
+				const geometry = this.editor.getShapeGeometry(childId)
+				const points = this.editor.getShapeLocalTransform(shape)!.applyToPoints(geometry.vertices)
 
 				if (geometry.isClosed) {
 					return new Polygon2d({
@@ -77,7 +77,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			return null
 		}
 
-		const bounds = this.editor.getGeometry(shape).bounds
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 
 		return (
 			<SVGContainer id={shape.id}>
@@ -92,7 +92,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			camera: { z: zoomLevel },
 		} = this.editor
 
-		const bounds = this.editor.getGeometry(shape).bounds
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 
 		return <DashedOutlineBox className="" bounds={bounds} zoomLevel={zoomLevel} />
 	}

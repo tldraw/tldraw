@@ -175,15 +175,23 @@ describe('Misc', () => {
 
 		editor.select(boxID, id)
 
-		expect(editor.getPageBounds(box)!.maxX).not.toEqual(editor.getPageBounds(line)!.maxX)
+		expect(editor.getShapeAbsoluteBounds(box)!.maxX).not.toEqual(
+			editor.getShapeAbsoluteBounds(line)!.maxX
+		)
 		editor.alignShapes(editor.selectedShapeIds, 'right')
 		jest.advanceTimersByTime(1000)
-		expect(editor.getPageBounds(box)!.maxX).toEqual(editor.getPageBounds(line)!.maxX)
+		expect(editor.getShapeAbsoluteBounds(box)!.maxX).toEqual(
+			editor.getShapeAbsoluteBounds(line)!.maxX
+		)
 
-		expect(editor.getPageBounds(box)!.maxY).not.toEqual(editor.getPageBounds(line)!.maxY)
+		expect(editor.getShapeAbsoluteBounds(box)!.maxY).not.toEqual(
+			editor.getShapeAbsoluteBounds(line)!.maxY
+		)
 		editor.alignShapes(editor.selectedShapeIds, 'bottom')
 		jest.advanceTimersByTime(1000)
-		expect(editor.getPageBounds(box)!.maxY).toEqual(editor.getPageBounds(line)!.maxY)
+		expect(editor.getShapeAbsoluteBounds(box)!.maxY).toEqual(
+			editor.getShapeAbsoluteBounds(line)!.maxY
+		)
 	})
 
 	it('duplicates', () => {
@@ -195,7 +203,7 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		expect(Array.from(editor.shapeIdsOnCurrentPage.values()).length).toEqual(2)
+		expect(Array.from(editor.currentPageShapeIds.values()).length).toEqual(2)
 	})
 
 	it('deletes', () => {
@@ -207,7 +215,7 @@ describe('Misc', () => {
 		editor.pointerMove(50, 50) // Move shape by 25, 25
 		editor.pointerUp().keyUp('Alt')
 
-		let ids = Array.from(editor.shapeIdsOnCurrentPage.values())
+		let ids = Array.from(editor.currentPageShapeIds.values())
 		expect(ids.length).toEqual(2)
 
 		const duplicate = ids.filter((i) => i !== id)[0]
@@ -215,7 +223,7 @@ describe('Misc', () => {
 
 		editor.deleteShapes(editor.selectedShapeIds)
 
-		ids = Array.from(editor.shapeIdsOnCurrentPage.values())
+		ids = Array.from(editor.currentPageShapeIds.values())
 		expect(ids.length).toEqual(1)
 		expect(ids[0]).toEqual(id)
 	})

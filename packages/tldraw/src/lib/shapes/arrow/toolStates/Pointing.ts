@@ -43,7 +43,7 @@ export class Pointing extends StateNode {
 
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
-				handle: this.editor.getHandles(this.shape)!.find((h) => h.id === 'end')!,
+				handle: this.editor.getShapeHandles(this.shape)!.find((h) => h.id === 'end')!,
 				isCreating: true,
 				onInteractionEnd: 'arrow',
 			})
@@ -94,7 +94,7 @@ export class Pointing extends StateNode {
 		const shape = this.editor.getShape<TLArrowShape>(id)
 		if (!shape) throw Error(`expected shape`)
 
-		const handles = this.editor.getHandles(shape)
+		const handles = this.editor.getShapeHandles(shape)
 		if (!handles) throw Error(`expected handles for arrow`)
 
 		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
@@ -121,7 +121,7 @@ export class Pointing extends StateNode {
 		const shape = this.shape
 		if (!shape) throw Error(`expected shape`)
 
-		const handles = this.editor.getHandles(shape)
+		const handles = this.editor.getShapeHandles(shape)
 		if (!handles) throw Error(`expected handles for arrow`)
 
 		// end update

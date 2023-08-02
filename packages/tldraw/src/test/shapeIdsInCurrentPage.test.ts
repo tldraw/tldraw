@@ -19,30 +19,30 @@ const ids = {
 
 describe('shapeIdsInCurrentPage', () => {
 	it('keeps the shape ids in the current page', () => {
-		expect(new Set(editor.shapeIdsOnCurrentPage)).toEqual(new Set([]))
+		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([]))
 		editor.createShapes([{ type: 'geo', id: ids.box1 }])
 
-		expect(new Set(editor.shapeIdsOnCurrentPage)).toEqual(new Set([ids.box1]))
+		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box1]))
 
 		editor.createShapes([{ type: 'geo', id: ids.box2 }])
 
-		expect(new Set(editor.shapeIdsOnCurrentPage)).toEqual(new Set([ids.box1, ids.box2]))
+		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box1, ids.box2]))
 
 		editor.createShapes([{ type: 'geo', id: ids.box3 }])
 
-		expect(new Set(editor.shapeIdsOnCurrentPage)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
+		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
 
 		editor.deleteShapes([ids.box2])
 
-		expect(new Set(editor.shapeIdsOnCurrentPage)).toEqual(new Set([ids.box1, ids.box3]))
+		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box1, ids.box3]))
 
 		editor.deleteShapes([ids.box1])
 
-		expect(new Set(editor.shapeIdsOnCurrentPage)).toEqual(new Set([ids.box3]))
+		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box3]))
 
 		editor.deleteShapes([ids.box3])
 
-		expect(new Set(editor.shapeIdsOnCurrentPage)).toEqual(new Set([]))
+		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([]))
 	})
 
 	it('changes when the current page changes', () => {
@@ -60,10 +60,10 @@ describe('shapeIdsInCurrentPage', () => {
 			{ type: 'geo', id: ids.box6 },
 		])
 
-		expect(new Set(editor.shapeIdsOnCurrentPage)).toEqual(new Set([ids.box4, ids.box5, ids.box6]))
+		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box4, ids.box5, ids.box6]))
 
 		editor.setCurrentPage(editor.pages[0].id)
 
-		expect(new Set(editor.shapeIdsOnCurrentPage)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
+		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
 	})
 })

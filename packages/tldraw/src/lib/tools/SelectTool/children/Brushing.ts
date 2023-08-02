@@ -39,7 +39,7 @@ export class Brushing extends StateNode {
 		}
 
 		this.excludedShapeIds = new Set(
-			this.editor.shapesOnCurrentPage
+			this.editor.currentPageShapes
 				.filter(
 					(shape) =>
 						this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
@@ -96,7 +96,7 @@ export class Brushing extends StateNode {
 		const {
 			zoomLevel,
 			currentPageId,
-			shapesOnCurrentPage,
+			currentPageShapes: currentPageShapes,
 			inputs: { originPagePoint, currentPagePoint, shiftKey, ctrlKey },
 		} = this.editor
 
@@ -118,12 +118,12 @@ export class Brushing extends StateNode {
 
 		const { excludedShapeIds } = this
 
-		testAllShapes: for (let i = 0, n = shapesOnCurrentPage.length; i < n; i++) {
-			shape = shapesOnCurrentPage[i]
+		testAllShapes: for (let i = 0, n = currentPageShapes.length; i < n; i++) {
+			shape = currentPageShapes[i]
 			if (excludedShapeIds.has(shape.id)) continue testAllShapes
 			if (results.has(shape.id)) continue testAllShapes
 
-			pageBounds = this.editor.getPageBounds(shape)
+			pageBounds = this.editor.getShapeAbsoluteBounds(shape)
 			if (!pageBounds) continue testAllShapes
 
 			// If the brush fully wraps a shape, it's almost certainly a hit
@@ -144,9 +144,9 @@ export class Brushing extends StateNode {
 			if (this.brush.collides(pageBounds)) {
 				// Shapes expect to hit test line segments in their own coordinate system,
 				// so we first need to get the brush corners in the shape's local space.
-				const geometry = this.editor.getGeometry(shape)
+				const geometry = this.editor.getShapeGeometry(shape)
 
-				pageTransform = this.editor.getPageTransform(shape)
+				pageTransform = this.editor.getAbsoluteTransform(shape)
 
 				if (!pageTransform) {
 					continue testAllShapes
@@ -190,7 +190,7 @@ export class Brushing extends StateNode {
 		// Find the outermost selectable shape, check to see if it has a
 		// page mask; and if so, check to see if the brush intersects it
 		const selectedShape = this.editor.getOutermostSelectableShape(shape)
-		const pageMask = this.editor.getPageMask(selectedShape.id)
+		const pageMask = this.editor.getShapeMask(selectedShape.id)
 
 		if (
 			pageMask &&
