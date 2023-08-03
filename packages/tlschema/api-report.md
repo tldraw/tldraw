@@ -204,7 +204,7 @@ export const drawShapeProps: {
 export const EMBED_DEFINITIONS: readonly [{
     readonly type: "tldraw";
     readonly title: "tldraw";
-    readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
+    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com"];
     readonly minWidth: 300;
     readonly minHeight: 300;
     readonly width: 720;

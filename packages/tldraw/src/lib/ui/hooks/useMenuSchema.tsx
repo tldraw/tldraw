@@ -1,5 +1,6 @@
-import { Editor, compact, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLBookmarkShape, TLEmbedShape, compact, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
+import { getEmbedInfo } from '../../utils/embeds'
 import {
 	TLUiMenuSchema,
 	menuCustom,
@@ -77,6 +78,35 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const canRedo = useCanRedo()
 	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.zoomLevel === 1, [editor])
 
+	const oneEmbedSelected = useValue(
+		'oneEmbedSelected',
+		() => {
+			const { onlySelectedShape } = editor
+			if (!onlySelectedShape) return false
+			return !!(
+				editor.isShapeOfType<TLEmbedShape>(onlySelectedShape, 'embed') &&
+				onlySelectedShape.props.url &&
+				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+			)
+		},
+		[]
+	)
+
+	const oneEmbeddableBookmarkSelected = useValue(
+		'oneEmbeddableBookmarkSelected',
+		() => {
+			const { onlySelectedShape } = editor
+			if (!onlySelectedShape) return false
+			return !!(
+				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
+				onlySelectedShape.props.url &&
+				getEmbedInfo(onlySelectedShape.props.url) &&
+				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+			)
+		},
+		[]
+	)
+
 	const menuSchema = useMemo<TLUiMenuSchema>(() => {
 		const menuSchema = compact([
 			menuGroup(
@@ -144,7 +174,13 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 						allowGroup && menuItem(actions['group']),
 						allowUngroup && menuItem(actions['ungroup'])
 					),
-					menuGroup('delete-group', menuItem(actions['delete'], { disabled: !oneSelected }))
+					menuGroup('delete-group', menuItem(actions['delete'], { disabled: !oneSelected })),
+					menuGroup(
+						'embeds',
+						oneEmbedSelected && menuItem(actions['open-embed-link']),
+						oneEmbedSelected && menuItem(actions['convert-to-bookmark']),
+						oneEmbeddableBookmarkSelected && menuItem(actions['convert-to-embed'])
+					)
 				),
 				menuSubmenu(
 					'view',
@@ -217,6 +253,8 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 		exportBackground,
 		isDebugMode,
 		isZoomedTo100,
+		oneEmbeddableBookmarkSelected,
+		oneEmbedSelected,
 	])
 
 	return (
