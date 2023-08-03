@@ -1739,7 +1739,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setEditingId(id: TLShapeId | null): this {
+	setEditingShapeId(id: TLShapeId | null): this {
 		if (!id) {
 			this._setInstancePageState({ editingShapeId: null })
 		} else {
@@ -1773,7 +1773,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setHoveredId(id: TLShapeId | null): this {
+	setHoveredShapeId(id: TLShapeId | null): this {
 		if (id === this.currentPageState.hoveredShapeId) return this
 		this.updateCurrentPageState({ hoveredShapeId: id }, true)
 		return this
@@ -1828,7 +1828,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setErasingIds(ids: TLShapeId[]): this {
+	setErasingShapeIds(ids: TLShapeId[]): this {
 		const erasingShapeIds = this.erasingShapeIdsSet
 		if (ids.length === erasingShapeIds.size && ids.every((id) => erasingShapeIds.has(id)))
 			return this
@@ -1861,7 +1861,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setCroppingId(id: TLShapeId | null): this {
+	setCroppingShapeId(id: TLShapeId | null): this {
 		if (id !== this.croppingShapeId) {
 			if (!id) {
 				this.updateCurrentPageState({ croppingShapeId: null })

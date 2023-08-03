@@ -919,16 +919,16 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     sendToBack(ids: TLShapeId[]): this;
     setCamera(point: VecLike, animation?: TLAnimationOptions): this;
-    setCroppingId(id: null | TLShapeId): this;
+    setCroppingShapeId(id: null | TLShapeId): this;
     setCurrentPage(page: TLPage, opts?: TLViewportOptions): this;
     // (undocumented)
     setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions): this;
     setCurrentTool(id: string, info?: {}): this;
-    setEditingId(id: null | TLShapeId): this;
-    setErasingIds(ids: TLShapeId[]): this;
+    setEditingShapeId(id: null | TLShapeId): this;
+    setErasingShapeIds(ids: TLShapeId[]): this;
     setFocusedGroupId(next: null | TLShapeId): this;
     setHintingIds(ids: TLShapeId[]): this;
-    setHoveredId(id: null | TLShapeId): this;
+    setHoveredShapeId(id: null | TLShapeId): this;
     setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
     setSelectedShapeIds(ids: TLShapeId[], squashing?: boolean): this;
     setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;

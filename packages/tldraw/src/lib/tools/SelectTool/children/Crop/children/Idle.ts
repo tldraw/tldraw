@@ -17,7 +17,7 @@ export class Idle extends StateNode {
 		this.editor.mark('crop')
 
 		if (onlySelectedShape) {
-			this.editor.setCroppingId(onlySelectedShape.id)
+			this.editor.setCroppingShapeId(onlySelectedShape.id)
 		}
 	}
 
@@ -28,7 +28,7 @@ export class Idle extends StateNode {
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
-		this.editor.setCroppingId(null)
+		this.editor.setCroppingShapeId(null)
 		this.editor.setCurrentTool('select.idle', {})
 	}
 
@@ -36,7 +36,7 @@ export class Idle extends StateNode {
 		if (this.editor.isMenuOpen) return
 
 		if (info.ctrlKey) {
-			this.editor.setCroppingId(null)
+			this.editor.setCroppingShapeId(null)
 			this.editor.setCurrentTool('select.brushing', info)
 			return
 		}
@@ -66,7 +66,7 @@ export class Idle extends StateNode {
 					return
 				} else {
 					if (this.editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
-						this.editor.setCroppingId(info.shape.id)
+						this.editor.setCroppingShapeId(info.shape.id)
 						this.editor.setSelectedShapeIds([info.shape.id])
 						this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					} else {
@@ -145,7 +145,7 @@ export class Idle extends StateNode {
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		switch (info.code) {
 			case 'Enter': {
-				this.editor.setCroppingId(null)
+				this.editor.setCroppingShapeId(null)
 				this.editor.setCurrentTool('select.idle', {})
 				break
 			}
@@ -153,7 +153,7 @@ export class Idle extends StateNode {
 	}
 
 	private cancel() {
-		this.editor.setCroppingId(null)
+		this.editor.setCroppingShapeId(null)
 		this.editor.setCurrentTool('select.idle', {})
 	}
 
