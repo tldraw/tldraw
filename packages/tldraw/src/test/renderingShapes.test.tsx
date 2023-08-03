@@ -60,7 +60,7 @@ it('updates the rendering viewport when the camera stops moving', () => {
 	expect(editor.getShapePageBounds(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
 })
 
-it.only('lists shapes in viewport', () => {
+it('lists shapes in viewport', () => {
 	const ids = createShapes()
 	editor.selectNone()
 	expect(
