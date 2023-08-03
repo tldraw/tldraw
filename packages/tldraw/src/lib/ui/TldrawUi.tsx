@@ -1,5 +1,5 @@
 import { ToastProvider } from '@radix-ui/react-toast'
-import { preventDefault, useEditor, useValue } from '@tldraw/editor'
+import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawUiContextProvider'
@@ -135,7 +135,6 @@ const TldrawUiContent = React.memo(function TldrawUI({
 				className={classNames('tlui-layout', {
 					'tlui-layout__mobile': breakpoint < 5,
 				})}
-				onPointerDown={preventDefault}
 			>
 				{isFocusMode ? (
 					<div className="tlui-layout__top">
