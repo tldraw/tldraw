@@ -65,7 +65,7 @@ export class Pointing extends StateNode {
 			if (this.editor.instanceState.isToolLocked) {
 				this.parent.transition('idle', {})
 			} else {
-				this.editor.setEditingId(this.shape.id)
+				this.editor.setEditingShapeId(this.shape.id)
 				this.editor.setCurrentTool('select.editing_shape', {
 					...this.info,
 					target: 'shape',
