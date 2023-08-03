@@ -1,3 +1,4 @@
+import { useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -54,6 +55,7 @@ export const Input = React.forwardRef<HTMLInputElement, TLUiInputProps>(function
 	},
 	ref
 ) {
+	const editor = useEditor()
 	const rInputRef = React.useRef<HTMLInputElement>(null)
 
 	// combine rInputRef and ref
@@ -118,6 +120,8 @@ export const Input = React.forwardRef<HTMLInputElement, TLUiInputProps>(function
 	)
 
 	React.useEffect(() => {
+		if (!editor.environment.isIos) return
+
 		const visualViewport = window.visualViewport
 		if (isFocused && shouldManuallyMaintainScrollPositionWhenFocused && visualViewport) {
 			const onViewportChange = () => {
@@ -135,7 +139,7 @@ export const Input = React.forwardRef<HTMLInputElement, TLUiInputProps>(function
 				visualViewport.removeEventListener('scroll', onViewportChange)
 			}
 		}
-	}, [isFocused, shouldManuallyMaintainScrollPositionWhenFocused])
+	}, [editor, isFocused, shouldManuallyMaintainScrollPositionWhenFocused])
 
 	return (
 		<div draggable={false} className="tlui-input__wrapper">

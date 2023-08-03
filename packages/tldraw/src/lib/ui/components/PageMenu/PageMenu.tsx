@@ -108,7 +108,7 @@ export const PageMenu = function PageMenu() {
 				}
 			}
 		})
-	}, [ITEM_HEIGHT, currentPage, isOpen])
+	}, [ITEM_HEIGHT, currentPage.id, isOpen])
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
@@ -336,8 +336,6 @@ export const PageMenu = function PageMenu() {
 										</Button>
 									) : (
 										<div
-											id={`page-menu-item-${page.id}`}
-											data-testid={`page-menu-item-${page.id}`}
 											className="tlui-page_menu__item__sortable__title"
 											style={{ height: ITEM_HEIGHT }}
 										>
