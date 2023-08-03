@@ -2876,13 +2876,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 			renderingBoundsExpanded,
 			erasingShapeIdsSet,
 			editingShapeId,
-			selectedShapeIdsSet,
+			selectedShapeIds,
 		}: {
 			renderingBounds?: Box2d
 			renderingBoundsExpanded?: Box2d
 			erasingShapeIdsSet?: Set<TLShapeId>
 			editingShapeId?: TLShapeId | null
-			selectedShapeIdsSet?: Set<TLShapeId>
+			selectedShapeIds?: TLShapeId[]
 		} = {}
 	) {
 		// Here we get the shape as well as any of its children, as well as their
@@ -2939,17 +2939,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const util = this.getShapeUtil(shape)
 
-			// Whether the shape should actually be culled / unmounted.
-			// - The shape must be allowed to unmount.
-			// - Editing shapes should never be culled.
-			// - Selected shapes should never be culled.
-			// - Use the "expanded" rendering viewport to include shapes that are just off-screen.
 			const isCulled =
-				util.canUnmount(shape) &&
-				editingShapeId !== id &&
-				!selectedShapeIdsSet?.has(id) &&
-				maskedPageBounds !== undefined &&
-				!renderingBoundsExpanded?.includes(maskedPageBounds)
+				// shapes completely clipped by parent are always culled
+				maskedPageBounds === undefined
+					? true
+					: // some shapes can't be unmounted / culled
+					  util.canUnmount(shape) &&
+					  // editing shapes can't be culled
+					  editingShapeId !== id &&
+					  // selected shapes can't be culled
+					  !selectedShapeIds?.includes(id) &&
+					  // shapes outside of the viewport are culled
+					  !!(renderingBoundsExpanded && !renderingBoundsExpanded.includes(maskedPageBounds))
 
 			renderingShapes.push({
 				id,
@@ -3003,6 +3004,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			renderingBoundsExpanded: this.renderingBoundsExpanded,
 			erasingShapeIdsSet: this.erasingShapeIdsSet,
 			editingShapeId: this.editingShapeId,
+			selectedShapeIds: this.selectedShapeIds,
 		})
 
 		// Its IMPORTANT that the result be sorted by id AND include the index
