@@ -92,8 +92,6 @@ export const Shape = track(function Shape({
 		backgroundContainerRef.current?.style.setProperty('z-index', backgroundIndex + '')
 	}, [opacity, index, backgroundIndex, setProperty])
 
-	// const shape = editor.getShape(id)
-
 	const annotateError = React.useCallback(
 		(error: any) => {
 			editor.annotateError(error, { origin: 'react.shape', willCrashApp: false })
@@ -120,7 +118,7 @@ export const Shape = track(function Shape({
 				</div>
 			)}
 			<div ref={containerRef} className="tl-shape" data-shape-type={shape.type} draggable={false}>
-				{isCulled && util.canUnmount(shape) ? (
+				{isCulled ? (
 					<CulledShape shape={shape} />
 				) : (
 					<OptionalErrorBoundary fallback={ShapeErrorFallback as any} onError={annotateError}>

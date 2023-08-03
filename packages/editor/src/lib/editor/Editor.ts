@@ -2869,18 +2869,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	private computeUnorderedRenderingShapes(
+	private getUnorderedRenderingShapes(
 		ids: TLParentId[],
 		{
 			renderingBounds,
 			renderingBoundsExpanded,
 			erasingShapeIdsSet,
 			editingShapeId,
+			selectedShapeIdsSet,
 		}: {
 			renderingBounds?: Box2d
 			renderingBoundsExpanded?: Box2d
 			erasingShapeIdsSet?: Set<TLShapeId>
 			editingShapeId?: TLShapeId | null
+			selectedShapeIdsSet?: Set<TLShapeId>
 		} = {}
 	) {
 		// Here we get the shape as well as any of its children, as well as their
@@ -2935,14 +2937,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? renderingBounds?.includes(maskedPageBounds) ?? true
 				: false
 
-			// Whether the shape should actually be culled / unmounted.
-			// - Use the "expanded" rendering viewport to include shapes that are just off-screen.
-			// - Editing shapes should never be culled.
-			const isCulled = maskedPageBounds
-				? (editingShapeId !== id && !renderingBoundsExpanded?.includes(maskedPageBounds)) ?? true
-				: true
-
 			const util = this.getShapeUtil(shape)
+
+			// Whether the shape should actually be culled / unmounted.
+			// - The shape must be allowed to unmount.
+			// - Editing shapes should never be culled.
+			// - Selected shapes should never be culled.
+			// - Use the "expanded" rendering viewport to include shapes that are just off-screen.
+			const isCulled =
+				util.canUnmount(shape) &&
+				editingShapeId !== id &&
+				!selectedShapeIdsSet?.has(id) &&
+				maskedPageBounds !== undefined &&
+				!renderingBoundsExpanded?.includes(maskedPageBounds)
 
 			renderingShapes.push({
 				id,
@@ -2991,7 +2998,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get renderingShapes() {
-		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId], {
+		const renderingShapes = this.getUnorderedRenderingShapes([this.currentPageId], {
 			renderingBounds: this.renderingBounds,
 			renderingBoundsExpanded: this.renderingBoundsExpanded,
 			erasingShapeIdsSet: this.erasingShapeIdsSet,
@@ -7917,7 +7924,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
-		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
+		const renderingShapes = this.getUnorderedRenderingShapes([this.currentPageId]).filter(
 			({ id }) => shapeIdsToInclude.has(id)
 		)
 
