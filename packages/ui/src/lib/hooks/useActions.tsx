@@ -264,17 +264,19 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						newPos.add(new Vec2d(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
 						newPos.rot(shape.rotation)
 
-						createList.push({
+						const partial: TLShapePartial<TLBookmarkShape> = {
 							id: createShapeId(),
 							type: 'bookmark',
 							rotation: shape.rotation,
 							x: newPos.x,
 							y: newPos.y,
+							opacity: 1,
 							props: {
 								url: shape.props.url,
-								opacity: '1',
 							},
-						})
+						}
+
+						createList.push(partial)
 						deleteList.push(shape.id)
 					}
 
