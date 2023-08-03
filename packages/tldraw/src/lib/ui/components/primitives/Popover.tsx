@@ -49,6 +49,7 @@ export const PopoverContent: FC<{
 				align={align}
 				alignOffset={alignOffset}
 				dir="ltr"
+				onPointerDown={(e) => e.stopPropagation()}
 			>
 				{children}
 				{/* <StyledArrow /> */}
