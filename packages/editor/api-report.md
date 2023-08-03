@@ -869,6 +869,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     renamePage(id: TLPageId, name: string, squashing?: boolean): this;
     get renderingBounds(): Box2d;
     get renderingBoundsExpanded(): Box2d;
+    renderingBoundsMargin: number;
     get renderingShapes(): {
         id: TLShapeId;
         shape: TLShape;

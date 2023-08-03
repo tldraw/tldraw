@@ -3052,9 +3052,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { viewportPageBounds } = this
 		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
 		this._renderingBounds.set(viewportPageBounds.clone())
-		this._renderingBoundsExpanded.set(viewportPageBounds.clone().expandBy(100 / this.zoomLevel))
+		this._renderingBoundsExpanded.set(
+			viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.zoomLevel)
+		)
 		return this
 	}
+
+	/**
+	 * The distance to expand the viewport when measuring culling. A larger distance will
+	 * mean that shapes near to the viewport (but still outside of it) will not be culled.
+	 *
+	 * @public
+	 */
+	renderingBoundsMargin = 100
 
 	/* --------------------- Pages ---------------------- */
 
