@@ -1,950 +1,231 @@
-import { TLShapeId, createShapeId } from '@tldraw/editor'
+import { TLShapeId, assert, assertExists } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
+import { TL } from './test-jsx'
 
 let editor: TestEditor
 
-function expectShapesInOrder(editor: TestEditor, ...ids: TLShapeId[]) {
-	expect(editor.currentPageShapesSorted.map((shape) => shape.id)).toMatchObject(ids)
-}
+/**
+ * When we're comparing shape indexes, we don't actually care about the specific
+ * indexes involved. We're only interested in the ordering of those indexes.
+ * This function rewrites indexes to be a range of consecutive numbers starting
+ * at 0, where in reality the way we allocate indexes might produce gaps.
+ */
+function normalizeIndexes(
+	renderingShapes: { id: TLShapeId; index: number; backgroundIndex: number }[]
+): [id: TLShapeId, index: number, backgroundIndex: number][] {
+	const allIndexes = renderingShapes
+		.flatMap(({ index, backgroundIndex }) => [index, backgroundIndex])
+		.sort((a, b) => a - b)
 
-function getSiblingBelow(editor: TestEditor, id: TLShapeId) {
-	const shape = editor.getShape(id)!
-	const siblings = editor.getSortedChildIdsForParent(shape.parentId)
-	const index = siblings.indexOf(id)
-	return siblings[index - 1]
-}
+	const positionsByIndex = new Map<number, number>()
+	for (let position = 0; position < allIndexes.length; position++) {
+		const index = allIndexes[position]
+		assert(!positionsByIndex.has(index), `Duplicate index ${index}`)
+		positionsByIndex.set(index, position)
+	}
 
-function getSiblingAbove(editor: TestEditor, id: TLShapeId) {
-	const shape = editor.getShape(id)!
-	const siblings = editor.getSortedChildIdsForParent(shape.parentId)
-	const index = siblings.indexOf(id)
-	return siblings[index + 1]
-}
-
-const ids = {
-	A: createShapeId('A'),
-	B: createShapeId('B'),
-	C: createShapeId('C'),
-	D: createShapeId('D'),
-	E: createShapeId('E'),
-	F: createShapeId('F'),
-	G: createShapeId('G'),
+	return renderingShapes.map(({ id, index, backgroundIndex }) => [
+		id,
+		assertExists(positionsByIndex.get(index)),
+		assertExists(positionsByIndex.get(backgroundIndex)),
+	])
 }
 
 beforeEach(() => {
-	editor?.dispose()
 	editor = new TestEditor()
-	editor.createShapes([
-		{
-			id: ids['A'],
-			type: 'geo',
-		},
-		{
-			id: ids['B'],
-			type: 'geo',
-		},
-		{
-			id: ids['C'],
-			type: 'geo',
-		},
-		{
-			id: ids['D'],
-			type: 'geo',
-		},
-		{
-			id: ids['E'],
-			type: 'geo',
-		},
-		{
-			id: ids['F'],
-			type: 'geo',
-		},
-		{
-			id: ids['G'],
-			type: 'geo',
-		},
+	editor.setScreenBounds({ x: 0, y: 0, w: 1800, h: 900 })
+	editor.renderingBoundsMargin = 100
+})
+
+function createShapes() {
+	return editor.createShapesFromJsx([
+		<TL.geo ref="A" x={100} y={100} w={100} h={100} />,
+		<TL.frame ref="B" x={200} y={200} w={300} h={300}>
+			<TL.geo ref="C" x={200} y={200} w={50} h={50} />
+			{/* this is outside of the frames clipping bounds, so it should never be rendered */}
+			<TL.geo ref="D" x={1000} y={1000} w={50} h={50} />
+		</TL.frame>,
+	])
+}
+
+it('updates the rendering viewport when the camera stops moving', () => {
+	const ids = createShapes()
+
+	editor.updateRenderingBounds = jest.fn(editor.updateRenderingBounds)
+	editor.pan({ x: -201, y: -201 })
+	jest.advanceTimersByTime(500)
+
+	expect(editor.updateRenderingBounds).toHaveBeenCalledTimes(1)
+	expect(editor.renderingBounds).toMatchObject({ x: 201, y: 201, w: 1800, h: 900 })
+	expect(editor.getShapePageBounds(ids.A)).toMatchObject({ x: 100, y: 100, w: 100, h: 100 })
+})
+
+it('lists shapes in viewport', () => {
+	const ids = createShapes()
+	editor.selectNone()
+	expect(
+		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
+	).toStrictEqual([
+		[ids.A, false, true], // A is within the expanded rendering bounds, so should not be culled; and it's in the regular viewport too, so it's on screen.
+		[ids.B, false, true],
+		[ids.C, false, true],
+		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
+	])
+
+	// Move the camera 201 pixels to the right and 201 pixels down
+	editor.pan({ x: -201, y: -201 })
+	jest.advanceTimersByTime(500)
+
+	expect(
+		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
+	).toStrictEqual([
+		[ids.A, false, false], // A should not be culled, even though it's no longer in the viewport (because it's still in the EXPANDED viewport)
+		[ids.B, false, true],
+		[ids.C, false, true],
+		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
+	])
+
+	editor.pan({ x: -100, y: -100 })
+	jest.advanceTimersByTime(500)
+
+	expect(
+		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
+	).toStrictEqual([
+		[ids.A, true, false], // A should be culled now that it's outside of the expanded viewport too
+		[ids.B, false, true],
+		[ids.C, false, true],
+		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
+	])
+
+	editor.pan({ x: -900, y: -900 })
+	jest.advanceTimersByTime(500)
+	expect(
+		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
+	).toStrictEqual([
+		[ids.A, true, false],
+		[ids.B, true, false],
+		[ids.C, true, false],
+		[ids.D, true, false],
 	])
 })
 
-describe('When running zindex tests', () => {
-	it('Correctly initializes indices', () => {
-		expect(editor.currentPageShapesSorted.map((shape) => shape.index)).toMatchObject([
-			'a1',
-			'a2',
-			'a3',
-			'a4',
-			'a5',
-			'a6',
-			'a7',
-		])
-	})
-
-	it('Correctly identifies shape orders', () => {
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-})
-
-describe('editor.getSiblingAbove', () => {
-	it('Gets the correct shape above', () => {
-		expect(getSiblingAbove(editor, ids['B'])).toBe(ids['C'])
-		expect(getSiblingAbove(editor, ids['C'])).toBe(ids['D'])
-		expect(getSiblingAbove(editor, ids['G'])).toBeUndefined()
-	})
-})
-
-describe('editor.getSiblingAbove', () => {
-	it('Gets the correct shape above', () => {
-		expect(getSiblingBelow(editor, ids['A'])).toBeUndefined()
-		expect(getSiblingBelow(editor, ids['B'])).toBe(ids['A'])
-		expect(getSiblingBelow(editor, ids['C'])).toBe(ids['B'])
-	})
-})
-
-describe('When sending to back', () => {
-	it('Moves one shape to back', () => {
-		editor.sendToBack([ids['D']])
-		expectShapesInOrder(
-			editor,
-			ids['D'],
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendToBack([ids['D']]) // noop
-		expectShapesInOrder(
-			editor,
-			ids['D'],
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves no shapes when selecting shapes at the back', () => {
-		editor.sendToBack([ids['A'], ids['B'], ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendToBack([ids['A'], ids['B'], ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves two adjacent shapes to back', () => {
-		editor.sendToBack([ids['D'], ids['E']])
-		expectShapesInOrder(
-			editor,
-			ids['D'],
-			ids['E'],
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendToBack([ids['D'], ids['E']])
-		expectShapesInOrder(
-			editor,
-			ids['D'],
-			ids['E'],
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves non-adjacent shapes to back', () => {
-		editor.sendToBack([ids['E'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['E'],
-			ids['G'],
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['F']
-		)
-		editor.sendToBack([ids['E'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['E'],
-			ids['G'],
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['F']
-		)
-	})
-
-	it('Moves non-adjacent shapes to back when one is at the back', () => {
-		editor.sendToBack([ids['A'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['G'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F']
-		)
-		editor.sendToBack([ids['A'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['G'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F']
-		)
-	})
-})
-
-describe('When sending to front', () => {
-	it('Moves one shape to front', () => {
-		editor.bringToFront([ids['A']])
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G'],
-			ids['A']
-		)
-		editor.bringToFront([ids['A']]) // noop
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G'],
-			ids['A']
-		)
-	})
-
-	it('Moves no shapes when selecting shapes at the front', () => {
-		editor.bringToFront([ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.bringToFront([ids['G']]) // noop
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves two adjacent shapes to front', () => {
-		editor.bringToFront([ids['D'], ids['E']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['F'],
-			ids['G'],
-			ids['D'],
-			ids['E']
-		)
-		editor.bringToFront([ids['D'], ids['E']]) // noop
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['F'],
-			ids['G'],
-			ids['D'],
-			ids['E']
-		)
-	})
-
-	it('Moves non-adjacent shapes to front', () => {
-		editor.bringToFront([ids['A'], ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G'],
-			ids['A'],
-			ids['C']
-		)
-		editor.bringToFront([ids['A'], ids['C']]) // noop
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G'],
-			ids['A'],
-			ids['C']
-		)
-	})
-
-	it('Moves non-adjacent shapes to front when one is at the front', () => {
-		editor.bringToFront([ids['E'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['F'],
-			ids['E'],
-			ids['G']
-		)
-		editor.bringToFront([ids['E'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['F'],
-			ids['E'],
-			ids['G']
-		)
-	})
-})
-
-describe('When sending backward', () => {
-	it('Moves one shape backward', () => {
-		editor.sendBackward([ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['C'],
-			ids['B'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendBackward([ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['C'],
-			ids['A'],
-			ids['B'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves shapes to the first position', () => {
-		editor.sendBackward([ids['B']])
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['A'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendBackward([ids['A']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendBackward([ids['B']])
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['A'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves two shapes to the first position', () => {
-		editor.sendBackward([ids['B'], ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['C'],
-			ids['A'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendBackward([ids['C'], ids['A']])
-		expectShapesInOrder(
-			editor,
-			ids['C'],
-			ids['A'],
-			ids['B'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendBackward([ids['A'], ids['B']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves no shapes when sending shapes at the back', () => {
-		editor.sendBackward([ids['A'], ids['B'], ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendBackward([ids['A'], ids['B'], ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves two adjacent shapes backward', () => {
-		editor.sendBackward([ids['D'], ids['E']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['D'],
-			ids['E'],
-			ids['C'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves two adjacent shapes backward when one is at the back', () => {
-		editor.sendBackward([ids['A'], ids['E']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['E'],
-			ids['D'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendBackward([ids['A'], ids['E']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['E'],
-			ids['C'],
-			ids['D'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves non-adjacent shapes backward', () => {
-		editor.sendBackward([ids['E'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['E'],
-			ids['D'],
-			ids['G'],
-			ids['F']
-		)
-		editor.sendBackward([ids['E'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['E'],
-			ids['C'],
-			ids['G'],
-			ids['D'],
-			ids['F']
-		)
-	})
-
-	it('Moves non-adjacent shapes backward when one is at the back', () => {
-		editor.sendBackward([ids['A'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['G'],
-			ids['F']
-		)
-		editor.sendBackward([ids['A'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['G'],
-			ids['E'],
-			ids['F']
-		)
-	})
-
-	it('Moves non-adjacent shapes to backward when both are at the back', () => {
-		editor.sendBackward([ids['A'], ids['B']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.sendBackward([ids['A'], ids['B']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-})
-
-describe('When moving forward', () => {
-	it('Moves one shape forward', () => {
-		editor.bringForward([ids['A']])
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['A'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.bringForward([ids['A']])
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['C'],
-			ids['A'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves no shapes when sending shapes at the front', () => {
-		editor.bringForward([ids['E'], ids['F'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.bringForward([ids['E'], ids['F'], ids['G']]) // noop
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves two adjacent shapes forward', () => {
-		editor.bringForward([ids['C'], ids['D']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['E'],
-			ids['C'],
-			ids['D'],
-			ids['F'],
-			ids['G']
-		)
-		editor.bringForward([ids['C'], ids['D']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['E'],
-			ids['F'],
-			ids['C'],
-			ids['D'],
-			ids['G']
-		)
-	})
-
-	it('Moves non-adjacent shapes forward', () => {
-		editor.bringForward([ids['A'], ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['A'],
-			ids['D'],
-			ids['C'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.bringForward([ids['A'], ids['C']])
-		expectShapesInOrder(
-			editor,
-			ids['B'],
-			ids['D'],
-			ids['A'],
-			ids['E'],
-			ids['C'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves non-adjacent shapes to forward when one is at the front', () => {
-		editor.bringForward([ids['C'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['D'],
-			ids['C'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.bringForward([ids['C'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['D'],
-			ids['E'],
-			ids['C'],
-			ids['F'],
-			ids['G']
-		)
-	})
-
-	it('Moves adjacent shapes to forward when both are at the front', () => {
-		editor.bringForward([ids['F'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		editor.bringForward([ids['F'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-})
-
-// Edges
-
-describe('Edge cases...', () => {
-	it('When bringing forward, does not increment order if shapes at at the top', () => {
-		editor.bringForward([ids['F'], ids['G']])
-	})
-	it('When bringing forward, does not increment order with non-adjacent shapes if shapes at at the top', () => {
-		editor.bringForward([ids['E'], ids['G']])
-	})
-
-	it('When bringing to front, does not change order of shapes already at top', () => {
-		editor.bringToFront([ids['E'], ids['G']])
-	})
-
-	it('When sending to back, does not change order of shapes already at bottom', () => {
-		editor.sendToBack([ids['A'], ids['C']])
-	})
-
-	it('When moving back to front...', () => {
-		editor.sendBackward([ids['F'], ids['G']])
-
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['F'],
-			ids['G'],
-			ids['E']
-		)
-
-		editor.sendBackward([ids['F'], ids['G']])
-
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['F'],
-			ids['G'],
-			ids['D'],
-			ids['E']
-		)
-
-		editor.sendBackward([ids['F'], ids['G']])
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['F'],
-			ids['G'],
-			ids['C'],
-			ids['D'],
-			ids['E']
-		)
-
-		editor.sendBackward([ids['F'], ids['G']])
-
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['F'],
-			ids['G'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E']
-		)
-
-		editor.sendBackward([ids['F'], ids['G']])
-
-		expectShapesInOrder(
-			editor,
-			ids['F'],
-			ids['G'],
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E']
-		)
-
-		editor
-			.bringForward([ids['F'], ids['G']])
-			.bringForward([ids['F'], ids['G']])
-			.bringForward([ids['F'], ids['G']])
-			.bringForward([ids['F'], ids['G']])
-			.bringForward([ids['F'], ids['G']])
-
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-})
-
-describe('When undoing and redoing...', () => {
-	it('Undoes and redoes', () => {
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-
-		editor.mark()
-		editor.sendBackward([ids['F'], ids['G']])
-
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['F'],
-			ids['G'],
-			ids['E']
-		)
-
-		editor.undo()
-
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['B'],
-			ids['C'],
-			ids['D'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-		// .redo()
-		// .expectShapesInOrder(ids['A'], ids['B'], ids['C'], ids['D'], ids['F'], ids['G'], ids['E'])
-	})
-})
-
-describe('When shapes are parented...', () => {
-	it('Sorted correctly by pageIndex', () => {
-		editor.reparentShapes([ids['C']], ids['A']).reparentShapes([ids['B']], ids['D'])
-
-		expectShapesInOrder(
-			editor,
-			ids['A'],
-			ids['C'],
-			ids['D'],
-			ids['B'],
-			ids['E'],
-			ids['F'],
-			ids['G']
-		)
-	})
-})
-
-test('When only two shapes exist', () => {
-	editor = new TestEditor()
-	editor.createShapes([
-		{
-			id: ids['A'],
-			type: 'geo',
-		},
-		{
-			id: ids['B'],
-			type: 'geo',
-		},
+it('lists shapes in viewport sorted by id with correct indexes & background indexes', () => {
+	const ids = createShapes()
+	// Expect the results to be sorted correctly by id
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+		[ids.A, 2, 0],
+		[ids.B, 3, 1],
+		[ids.C, 6, 4], // the background of C is above B
+		[ids.D, 7, 5],
+		// A is at the back, then B, and then B's children
 	])
 
-	expectShapesInOrder(editor, ids['A'], ids['B'])
+	// Send B to the back
+	editor.sendToBack([ids.B])
 
-	editor.sendToBack([ids['B']])
+	// The items should still be sorted by id
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+		[ids.A, 7, 1],
+		[ids.B, 2, 0],
+		[ids.C, 5, 3],
+		[ids.D, 6, 4],
+		// B is now at the back, then its children, and A is below the group
+	])
+})
 
-	expectShapesInOrder(editor, ids['B'], ids['A'])
+it('handles frames in frames', () => {
+	const ids = editor.createShapesFromJsx([
+		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
+		<TL.frame ref="B" x={100} y={0} w={100} h={100}>
+			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
+			<TL.frame ref="D" x={150} y={0} w={100} h={100}>
+				<TL.geo ref="E" x={150} y={0} w={10} h={10} />
+			</TL.frame>
+			<TL.geo ref="F" x={100} y={0} w={10} h={10} />
+		</TL.frame>,
+		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
+	])
 
-	editor.bringToFront([ids['B']])
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+		[ids.A, 3, 0],
+		[ids.B, 4, 1],
+		[ids.C, 8, 5], // frame B creates a background, so C's background layer is above B's foreground
+		[ids.D, 9, 6],
+		[ids.E, 11, 10], // frame D creates a background too
+		[ids.F, 12, 7], // F is above the nested frame, but it's background is still below frame D
+		[ids.G, 13, 2], // G is on top of everything, but its BG is behind both frames
+	])
+})
 
-	expectShapesInOrder(editor, ids['A'], ids['B'])
+it('handles groups in frames', () => {
+	const ids = editor.createShapesFromJsx([
+		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
+		<TL.frame ref="B" x={100} y={0} w={100} h={100}>
+			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
+			<TL.group ref="D" x={150} y={0}>
+				<TL.geo ref="E" x={150} y={0} w={10} h={10} />
+			</TL.group>
+			<TL.geo ref="F" x={100} y={0} w={10} h={10} />
+		</TL.frame>,
+		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
+	])
 
-	editor.sendBackward([ids['B']])
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+		[ids.A, 3, 0],
+		[ids.B, 4, 1],
+		[ids.C, 9, 5], // frame B creates a background, so C's background layer is above B's foreground
+		[ids.D, 10, 6],
+		[ids.E, 11, 7], // group D doesn't create a background, so E's background remains in order
+		[ids.F, 12, 8],
+		[ids.G, 13, 2], // G is on top of everything, but its BG is behind the frame
+	])
+})
 
-	expectShapesInOrder(editor, ids['B'], ids['A'])
+it('handles frames in groups', () => {
+	const ids = editor.createShapesFromJsx([
+		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
+		<TL.group ref="B" x={100} y={0}>
+			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
+			<TL.frame ref="D" x={150} y={0} w={100} h={100}>
+				<TL.geo ref="E" x={150} y={0} w={10} h={10} />
+			</TL.frame>
+			<TL.geo ref="F" x={100} y={0} w={10} h={10} />
+		</TL.group>,
+		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
+	])
 
-	editor.bringForward([ids['B']])
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+		[ids.A, 6, 0],
+		[ids.B, 7, 1],
+		[ids.C, 8, 2], // groups don't create backgrounds, so things within the group stay in order
+		[ids.D, 9, 3],
+		[ids.E, 11, 10], // frame G creates a background, so the BG of E is skipped up above D
+		[ids.F, 12, 4], // but F after the frame returns to the normal background ordering
+		[ids.G, 13, 5], //
+	])
+})
 
-	expectShapesInOrder(editor, ids['A'], ids['B'])
+it('handles groups in groups', () => {
+	const ids = editor.createShapesFromJsx([
+		<TL.geo ref="A" x={0} y={0} w={10} h={10} />,
+		<TL.group ref="B" x={100} y={0}>
+			<TL.geo ref="C" x={100} y={0} w={10} h={10} />
+			<TL.group ref="D" x={150} y={0}>
+				<TL.geo ref="E" x={150} y={0} w={10} h={10} />
+			</TL.group>
+			<TL.geo ref="F" x={100} y={0} w={10} h={10} />
+		</TL.group>,
+		<TL.geo ref="G" x={100} y={0} w={10} h={10} />,
+	])
+
+	expect(normalizeIndexes(editor.renderingShapes)).toStrictEqual([
+		// as groups don't create backgrounds, everything is consecutive
+		[ids.A, 7, 0],
+		[ids.B, 8, 1],
+		[ids.C, 9, 2],
+		[ids.D, 10, 3],
+		[ids.E, 11, 4],
+		[ids.F, 12, 5],
+		[ids.G, 13, 6],
+	])
 })

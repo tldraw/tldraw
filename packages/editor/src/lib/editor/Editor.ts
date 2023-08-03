@@ -2869,18 +2869,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	}
 
-	private computeUnorderedRenderingShapes(
+	private getUnorderedRenderingShapes(
 		ids: TLParentId[],
 		{
 			renderingBounds,
 			renderingBoundsExpanded,
 			erasingShapeIdsSet,
 			editingShapeId,
+			selectedShapeIds,
 		}: {
 			renderingBounds?: Box2d
 			renderingBoundsExpanded?: Box2d
 			erasingShapeIdsSet?: Set<TLShapeId>
 			editingShapeId?: TLShapeId | null
+			selectedShapeIds?: TLShapeId[]
 		} = {}
 	) {
 		// Here we get the shape as well as any of its children, as well as their
@@ -2935,14 +2937,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? renderingBounds?.includes(maskedPageBounds) ?? true
 				: false
 
-			// Whether the shape should actually be culled / unmounted.
-			// - Use the "expanded" rendering viewport to include shapes that are just off-screen.
-			// - Editing shapes should never be culled.
-			const isCulled = maskedPageBounds
-				? (editingShapeId !== id && !renderingBoundsExpanded?.includes(maskedPageBounds)) ?? true
-				: true
-
 			const util = this.getShapeUtil(shape)
+
+			const isCulled =
+				// shapes completely clipped by parent are always culled
+				maskedPageBounds === undefined
+					? true
+					: // some shapes can't be unmounted / culled
+					  util.canUnmount(shape) &&
+					  // editing shapes can't be culled
+					  editingShapeId !== id &&
+					  // selected shapes can't be culled
+					  !selectedShapeIds?.includes(id) &&
+					  // shapes outside of the viewport are culled
+					  !!(renderingBoundsExpanded && !renderingBoundsExpanded.includes(maskedPageBounds))
 
 			renderingShapes.push({
 				id,
@@ -2991,11 +2999,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get renderingShapes() {
-		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId], {
+		const renderingShapes = this.getUnorderedRenderingShapes([this.currentPageId], {
 			renderingBounds: this.renderingBounds,
 			renderingBoundsExpanded: this.renderingBoundsExpanded,
 			erasingShapeIdsSet: this.erasingShapeIdsSet,
 			editingShapeId: this.editingShapeId,
+			selectedShapeIds: this.selectedShapeIds,
 		})
 
 		// Its IMPORTANT that the result be sorted by id AND include the index
@@ -3052,9 +3061,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { viewportPageBounds } = this
 		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
 		this._renderingBounds.set(viewportPageBounds.clone())
-		this._renderingBoundsExpanded.set(viewportPageBounds.clone().expandBy(100 / this.zoomLevel))
+		this._renderingBoundsExpanded.set(
+			viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.zoomLevel)
+		)
 		return this
 	}
+
+	/**
+	 * The distance to expand the viewport when measuring culling. A larger distance will
+	 * mean that shapes near to the viewport (but still outside of it) will not be culled.
+	 *
+	 * @public
+	 */
+	renderingBoundsMargin = 100
 
 	/* --------------------- Pages ---------------------- */
 
@@ -7907,7 +7926,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
-		const renderingShapes = this.computeUnorderedRenderingShapes([this.currentPageId]).filter(
+		const renderingShapes = this.getUnorderedRenderingShapes([this.currentPageId]).filter(
 			({ id }) => shapeIdsToInclude.has(id)
 		)
 
