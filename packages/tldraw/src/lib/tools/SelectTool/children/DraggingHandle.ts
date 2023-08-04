@@ -61,7 +61,7 @@ export class DraggingHandle extends StateNode {
 
 		this.editor.updateInstanceState(
 			{ cursor: { type: isCreating ? 'cross' : 'grabbing', rotation: 0 } },
-			true
+			{ ephemeral: true }
 		)
 
 		// <!-- Only relevant to arrows
@@ -169,7 +169,10 @@ export class DraggingHandle extends StateNode {
 		this.parent.currentToolIdMask = undefined
 		this.editor.setHintingIds([])
 		this.editor.snaps.clear()
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	private complete() {
@@ -299,7 +302,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (changes) {
-			editor.updateShapes([next], true)
+			editor.updateShapes([next], { squashing: true })
 		}
 	}
 }

@@ -39,22 +39,22 @@ function nudgeAndGet(ids: TLShapeId[], key: string, shiftKey: boolean) {
 	switch (key) {
 		case 'ArrowLeft': {
 			editor.mark('nudge')
-			editor.nudgeShapes(editor.selectedShapeIds, { x: -step, y: 0 }, shiftKey)
+			editor.nudgeShapes(editor.selectedShapeIds, { x: -step, y: 0 })
 			break
 		}
 		case 'ArrowRight': {
 			editor.mark('nudge')
-			editor.nudgeShapes(editor.selectedShapeIds, { x: step, y: 0 }, shiftKey)
+			editor.nudgeShapes(editor.selectedShapeIds, { x: step, y: 0 })
 			break
 		}
 		case 'ArrowUp': {
 			editor.mark('nudge')
-			editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: -step }, shiftKey)
+			editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: -step })
 			break
 		}
 		case 'ArrowDown': {
 			editor.mark('nudge')
-			editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: step }, shiftKey)
+			editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: step })
 			break
 		}
 	}

@@ -110,7 +110,7 @@ export class Pointing extends StateNode {
 			if (startTerminal?.type === 'binding') {
 				this.editor.setHintingIds([startTerminal.boundShapeId])
 			}
-			this.editor.updateShapes([change], true)
+			this.editor.updateShapes([change], { squashing: true })
 		}
 
 		// Cache the current shape after those changes
@@ -140,7 +140,7 @@ export class Pointing extends StateNode {
 				if (endTerminal?.type === 'binding') {
 					this.editor.setHintingIds([endTerminal.boundShapeId])
 				}
-				this.editor.updateShapes([change], true)
+				this.editor.updateShapes([change], { squashing: true })
 			}
 		}
 
@@ -154,7 +154,7 @@ export class Pointing extends StateNode {
 			})
 
 			if (change) {
-				this.editor.updateShapes([change], true)
+				this.editor.updateShapes([change], { squashing: true })
 			}
 		}
 

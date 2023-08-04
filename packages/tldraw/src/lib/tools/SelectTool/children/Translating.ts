@@ -65,7 +65,10 @@ export class Translating extends StateNode {
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clear()
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 		this.dragAndDropManager.clear()
 	}
 
@@ -172,7 +175,7 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.info = info
 
-		this.editor.updateInstanceState({ cursor: { type: 'move', rotation: 0 } }, true)
+		this.editor.setCursor({ type: 'move', rotation: 0 })
 		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
 
 		// Don't clone on create; otherwise clone on altKey
@@ -407,6 +410,6 @@ export function moveShapesToPoint({
 				}
 			})
 		),
-		true
+		{ squashing: true }
 	)
 }

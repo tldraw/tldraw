@@ -40,6 +40,7 @@ import { TLAssetPartial } from '@tldraw/tlschema';
 import { TLBaseShape } from '@tldraw/tlschema';
 import { TLBookmarkAsset } from '@tldraw/tlschema';
 import { TLCamera } from '@tldraw/tlschema';
+import { TLCursor } from '@tldraw/tlschema';
 import { TLCursorType } from '@tldraw/tlschema';
 import { TLDefaultHorizontalAlignStyle } from '@tldraw/tlschema';
 import { TLDocument } from '@tldraw/tlschema';
@@ -828,9 +829,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     moveShapesToPage(shapes: TLShape[], pageId: TLPageId): this;
     // (undocumented)
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
-    nudgeShapes(shapes: TLShape[], offset: VecLike, ephemeral?: boolean): this;
+    nudgeShapes(shapes: TLShape[], offset: VecLike, historyOptions?: CommandHistoryOptions): this;
     // (undocumented)
-    nudgeShapes(ids: TLShapeId[], offset: VecLike, ephemeral?: boolean): this;
+    nudgeShapes(ids: TLShapeId[], offset: VecLike, historyOptions?: CommandHistoryOptions): this;
     get onlySelectedShape(): null | TLShape;
     get openMenus(): string[];
     packShapes(shapes: TLShape[], gap: number): this;
@@ -917,18 +918,19 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendToBack(ids: TLShapeId[]): this;
     setCamera(point: VecLike, animation?: TLAnimationOptions): this;
     setCroppingShapeId(id: null | TLShapeId): this;
-    setCurrentPage(page: TLPage, opts?: TLViewportOptions): this;
+    setCurrentPage(page: TLPage, opts?: TLViewportOptions, historyOptions?: CommandHistoryOptions): this;
     // (undocumented)
-    setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions): this;
+    setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions, historyOptions?: CommandHistoryOptions): this;
     setCurrentTool(id: string, info?: {}): this;
+    setCursor: (cursor: Partial<TLCursor>) => this;
     setEditingShapeId(id: null | TLShapeId): this;
     setErasingShapeIds(ids: TLShapeId[]): this;
     setFocusedGroupId(next: null | TLShapeId): this;
     setHintingIds(ids: TLShapeId[]): this;
     setHoveredShapeId(id: null | TLShapeId): this;
-    setOpacity(opacity: number, ephemeral?: boolean, squashing?: boolean): this;
-    setSelectedShapeIds(ids: TLShapeId[], squashing?: boolean): this;
-    setStyle<T>(style: StyleProp<T>, value: T, ephemeral?: boolean, squashing?: boolean): this;
+    setOpacity(opacity: number, historyOptions?: CommandHistoryOptions): this;
+    setSelectedShapeIds(ids: TLShapeId[], historyOptions?: CommandHistoryOptions): this;
+    setStyle<T>(style: StyleProp<T>, value: T, historyOptions?: CommandHistoryOptions): this;
     shapeUtils: {
         readonly [K in string]?: ShapeUtil<TLUnknownShape>;
     };
@@ -965,14 +967,18 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;
     updateAssets(assets: TLAssetPartial[]): this;
-    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, ephemeral?: boolean): this;
+    updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: CommandHistoryOptions): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, ephemeral?: boolean, squashing?: boolean): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: Partial<{
+        squashing: boolean;
+        ephemeral: boolean;
+        preservesRedoStack: boolean;
+    }>): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal
     updateRenderingBounds(): this;
-    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, squashing?: boolean): this;
-    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], squashing?: boolean): this;
+    updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, historyOptions?: CommandHistoryOptions): this;
+    updateShapes<T extends TLUnknownShape>(partials: (null | TLShapePartial<T> | undefined)[], historyOptions?: CommandHistoryOptions): this;
     updateViewportScreenBounds(center?: boolean): this;
     readonly user: UserPreferencesManager;
     get viewportPageBounds(): Box2d;

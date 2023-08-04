@@ -842,7 +842,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						{
 							exportBackground: !editor.instanceState.exportBackground,
 						},
-						true
+						{ ephemeral: true }
 					)
 				},
 				checkbox: true,
@@ -902,7 +902,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 						{
 							isDebugMode: !editor.instanceState.isDebugMode,
 						},
-						true
+						{ ephemeral: true }
 					)
 				},
 				checkbox: true,

@@ -41,7 +41,7 @@ export class Rotating extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState({ cursor: { type: 'none', rotation: 0 } }, true)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.parent.currentToolIdMask = undefined
 
 		this.snapshot = {} as TLRotationSnapshot

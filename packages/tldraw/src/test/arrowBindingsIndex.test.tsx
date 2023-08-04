@@ -248,7 +248,7 @@ describe('arrowBindingsIndex', () => {
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(3)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(3)
 
-			editor.nudgeShapes([ids.box2], { x: 0, y: -1 }, true)
+			editor.nudgeShapes([ids.box2], { x: 0, y: -1 })
 
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(3)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(3)
