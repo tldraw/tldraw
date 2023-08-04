@@ -27,7 +27,7 @@
 		"infinite"
 	],
 	"scripts": {
-		"dev": "concurrently \"vite\" \"HOST=localhost PORT=1234 npx y-websocket\" --kill-others",
+		"dev": "vite",
 		"build": "vite build",
 		"lint": "yarn run -T tsx ../../scripts/lint.ts",
 		"e2e": "playwright test -c ./e2e/playwright.config.ts",
@@ -43,12 +43,9 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-router-dom": "^6.9.0",
-		"vite": "^4.3.4",
-		"y-websocket": "^1.5.0",
-		"yjs": "^13.6.2"
+		"vite": "^4.3.4"
 	},
 	"devDependencies": {
-		"concurrently": "^8.1.0",
 		"dotenv": "^16.0.3"
 	}
 }
