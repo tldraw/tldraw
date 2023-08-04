@@ -210,7 +210,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('toggle-auto-size', { source })
-					editor.mark()
+					editor.mark('toggling auto size')
 					editor.updateShapes(
 						editor.selectedShapes
 							.filter(

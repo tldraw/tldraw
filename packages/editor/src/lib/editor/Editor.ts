@@ -778,8 +778,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	undo() {
-		return this.history.undo()
+	undo(): this {
+		this.history.undo()
+		return this
 	}
 
 	/**
@@ -787,7 +788,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get canUndo() {
+	@computed get canUndo(): boolean {
 		return this.history.numUndos > 0
 	}
 
@@ -801,7 +802,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	redo() {
+	redo(): this {
 		this.history.redo()
 		return this
 	}
@@ -811,7 +812,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get canRedo() {
+	@computed get canRedo(): boolean {
 		return this.history.numRedos > 0
 	}
 
@@ -826,13 +827,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param markId - The mark's id, usually the reason for adding the mark.
-	 * @param onUndo - Whether to stop at the mark when undoing.
-	 * @param onRedo - Whether to stop at the mark when redoing.
+	 * @param onUndo - (optional) Whether to stop at the mark when undoing.
+	 * @param onRedo - (optional) Whether to stop at the mark when redoing.
 	 *
 	 * @public
 	 */
-	mark(markId?: string, onUndo?: boolean, onRedo?: boolean) {
-		return this.history.mark(markId, onUndo, onRedo)
+	mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this {
+		this.history.mark(markId, onUndo, onRedo)
+		return this
 	}
 
 	/**

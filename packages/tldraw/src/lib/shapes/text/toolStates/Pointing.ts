@@ -19,7 +19,8 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
-			this.markId = this.editor.mark(`creating:${id}`)
+			this.markId = `creating:${id}`
+			this.editor.mark(this.markId)
 
 			this.editor.createShapes<TLTextShape>([
 				{

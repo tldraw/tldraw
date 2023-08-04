@@ -20,13 +20,13 @@ describe('deletePage', () => {
 	})
 	it('is undoable and redoable', () => {
 		const page2Id = PageRecordType.createId('page2')
-		editor.mark()
+		editor.mark('before creating page')
 		editor.createPage('New Page 2', page2Id)
 
 		const pages = editor.pages
 		expect(pages.length).toBe(2)
 
-		editor.mark()
+		editor.mark('before deleting page')
 		editor.deletePage(pages[0].id)
 		expect(editor.pages.length).toBe(1)
 
@@ -39,7 +39,7 @@ describe('deletePage', () => {
 	})
 	it('does not allow deleting all pages', () => {
 		const page2Id = PageRecordType.createId('page2')
-		editor.mark()
+		editor.mark('before creating page')
 		editor.createPage('New Page 2', page2Id)
 
 		const pages = editor.pages
@@ -53,7 +53,7 @@ describe('deletePage', () => {
 	})
 	it('switches the page if you are deleting the current page', () => {
 		const page2Id = PageRecordType.createId('page2')
-		editor.mark()
+		editor.mark('before creating page')
 		editor.createPage('New Page 2', page2Id)
 
 		const currentPageId = editor.currentPageId
@@ -65,7 +65,7 @@ describe('deletePage', () => {
 	it('switches the page if another user or tab deletes the current page', () => {
 		const currentPageId = editor.currentPageId
 		const page2Id = PageRecordType.createId('page2')
-		editor.mark()
+		editor.mark('before creating')
 		editor.createPage('New Page 2', page2Id)
 
 		editor.store.mergeRemoteChanges(() => {

@@ -828,7 +828,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isShapeOrAncestorLocked(shape?: TLShape): boolean;
     // (undocumented)
     isShapeOrAncestorLocked(id?: TLShapeId): boolean;
-    mark(markId?: string, onUndo?: boolean, onRedo?: boolean): string;
+    mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this;
     moveShapesToPage(shapes: TLShape[], pageId: TLPageId): this;
     // (undocumented)
     moveShapesToPage(ids: TLShapeId[], pageId: TLPageId): this;
@@ -964,7 +964,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     toggleLock(shapes: TLShape[]): this;
     // (undocumented)
     toggleLock(ids: TLShapeId[]): this;
-    undo(): HistoryManager<this>;
+    undo(): this;
     ungroupShapes(ids: TLShapeId[]): this;
     // (undocumented)
     ungroupShapes(ids: TLShape[]): this;
