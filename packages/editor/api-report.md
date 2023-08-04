@@ -918,9 +918,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     sendToBack(ids: TLShapeId[]): this;
     setCamera(point: VecLike, animation?: TLAnimationOptions): this;
     setCroppingShapeId(id: null | TLShapeId): this;
-    setCurrentPage(page: TLPage, opts?: TLViewportOptions, historyOptions?: CommandHistoryOptions): this;
+    setCurrentPage(page: TLPage, historyOptions?: CommandHistoryOptions): this;
     // (undocumented)
-    setCurrentPage(pageId: TLPageId, opts?: TLViewportOptions, historyOptions?: CommandHistoryOptions): this;
+    setCurrentPage(pageId: TLPageId, historyOptions?: CommandHistoryOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     setCursor: (cursor: Partial<TLCursor>) => this;
     setEditingShapeId(id: null | TLShapeId): this;
@@ -969,11 +969,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateAssets(assets: TLAssetPartial[]): this;
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: CommandHistoryOptions): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
-    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: Partial<{
-        squashing: boolean;
-        ephemeral: boolean;
-        preservesRedoStack: boolean;
-    }>): this;
+    updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: CommandHistoryOptions): this;
     updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
     // @internal
     updateRenderingBounds(): this;

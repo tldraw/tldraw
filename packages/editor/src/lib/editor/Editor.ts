@@ -1164,14 +1164,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Update the instance's state.
 	 *
 	 * @param partial - A partial object to update the instance state with.
-	 * @param ephemeral - Whether the change is ephemeral. Ephemeral changes don't get added to the undo/redo stack. Defaults to false.
-	 * @param squashing - Whether the change will be squashed into the existing history entry rather than creating a new one. Defaults to false.
+	 * @param historyOptions - (optional) The history options for the change.
 	 *
 	 * @public
 	 */
 	updateInstanceState(
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
-		historyOptions = {} as CommandHistoryOptions
+		historyOptions?: CommandHistoryOptions
 	): this {
 		this._updateInstanceState(partial, { ephemeral: true, squashing: true, ...historyOptions })
 
@@ -1346,7 +1345,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
-	 * @param ephemeral - Whether the command is ephemeral.
+	 * @param historyOptions - (optional) The history options for the change.
 	 *
 	 * @public
 	 */
@@ -1827,7 +1826,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setHintingIds(ids: TLShapeId[]): this {
 		// always ephemeral
-		this.store.update(this.currentPageState.id, (s) => ({ ...s, hintingShapeIds: dedupe(ids) }))
+		this.updateCurrentPageState({ hintingShapeIds: dedupe(ids) }, { ephemeral: true })
 		return this
 	}
 
@@ -2763,7 +2762,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const chaseProportion = isOnSamePage ? FOLLOW_CHASE_PROPORTION : 1
 			if (!isOnSamePage) {
 				this.stopFollowingUser()
-				this.setCurrentPage(leaderPresence.currentPageId, { stopFollowing: false })
+				this.setCurrentPage(leaderPresence.currentPageId)
 				this.startFollowingUser(userId)
 				return
 			}
@@ -3198,45 +3197,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param page - The page (or page id) to set as the current page.
-	 * @param options - Options for setting the current page.
+	 * @param historyOptions - (optional) The history options for the change.
 	 *
 	 * @public
 	 */
-	setCurrentPage(
-		page: TLPage,
-		opts?: TLViewportOptions,
-		historyOptions?: CommandHistoryOptions
-	): this
-	setCurrentPage(
-		pageId: TLPageId,
-		opts?: TLViewportOptions,
-		historyOptions?: CommandHistoryOptions
-	): this
-	setCurrentPage(
-		arg: TLPageId | TLPage,
-		opts?: TLViewportOptions,
-		historyOptions?: CommandHistoryOptions
-	): this {
+	setCurrentPage(page: TLPage, historyOptions?: CommandHistoryOptions): this
+	setCurrentPage(pageId: TLPageId, historyOptions?: CommandHistoryOptions): this
+	setCurrentPage(arg: TLPageId | TLPage, historyOptions?: CommandHistoryOptions): this {
 		const pageId = typeof arg === 'string' ? arg : arg.id
-		this._setCurrentPageId(pageId, { stopFollowing: true, ...opts }, historyOptions)
+		this._setCurrentPageId(pageId, historyOptions)
 		return this
 	}
 	/** @internal */
 	private _setCurrentPageId = this.history.createCommand(
 		'setCurrentPage',
-		(
-			pageId: TLPageId,
-			{ stopFollowing = true }: TLViewportOptions = {},
-			historyOptions?: CommandHistoryOptions
-		) => {
+		(pageId: TLPageId, historyOptions?: CommandHistoryOptions) => {
 			if (!this.store.has(pageId)) {
 				console.error("Tried to set the current page id to a page that doesn't exist.")
 				return
 			}
 
-			if (stopFollowing && this.instanceState.followingUserId) {
-				this.stopFollowingUser()
-			}
+			this.stopFollowingUser()
 
 			return {
 				data: { toId: pageId, fromId: this.currentPageId },
@@ -4972,13 +4953,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 }, true, false)
-	 * editor.nudgeShapes(editor.selectedShapes, { x: 8, y: 8 }, true, false)
+	 * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })
+	 * editor.nudgeShapes(editor.selectedShapes, { x: 8, y: 8 }, { squashing: true })
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape ids) to move.
 	 * @param direction - The direction in which to move the shapes.
-	 * @param ephemeral - (optional) Whether this change should be left out of the history stack.
+	 * @param historyOptions - (optional) The history options for the change.
 	 */
 	nudgeShapes(shapes: TLShape[], offset: VecLike, historyOptions?: CommandHistoryOptions): this
 	nudgeShapes(ids: TLShapeId[], offset: VecLike, historyOptions?: CommandHistoryOptions): this
@@ -6223,7 +6204,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						y: initialShape.y + delta.y,
 					},
 				],
-				{ ephemeral: true }
+				{ squashing: true }
 			)
 		}
 
@@ -6269,7 +6250,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (Math.sign(scale.x) * Math.sign(scale.y) < 0) {
 			let { rotation } = Matrix2d.Decompose(options.initialPageTransform)
 			rotation -= 2 * rotation
-			this.updateShapes([{ id, type, rotation }], { ephemeral: true })
+			this.updateShapes([{ id, type, rotation }], { squashing: true })
 		}
 
 		// Next we need to translate the shape so that it's center point ends up in the right place.
@@ -6299,7 +6280,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const postScaleShapePagePoint = Vec2d.Add(shapePageTransformOrigin, pageDelta)
 		const { x, y } = this.getPointInParentSpace(id, postScaleShapePagePoint)
 
-		this.updateShapes([{ id, type, x, y }], { ephemeral: true })
+		this.updateShapes([{ id, type, x, y }], { squashing: true })
 
 		return this
 	}
@@ -6658,7 +6639,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					(p) => p && animatingShapes.get(p.id) === animationId
 				)
 				if (partialsToUpdate.length) {
-					this.updateShapes(partialsToUpdate, { ephemeral: false })
+					this.updateShapes(partialsToUpdate, { squashing: false })
 					// update shapes also removes the shape from animating shapes
 				}
 
@@ -6688,7 +6669,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 
-				this._updateShapes(tPartials, { ephemeral: true })
+				this._updateShapes(tPartials, { squashing: true })
 			} catch (e) {
 				// noop
 			}
@@ -6838,7 +6819,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partial - The shape partial to update.
-	 * @param squashing - (optional) Whether the change is ephemeral.
+	 * @param historyOptions - (optional) The history options for the change.
 	 *
 	 * @public
 	 */
@@ -6859,7 +6840,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partials - The shape partials to update.
-	 * @param squashing - Whether the change is ephemeral.
+	 * @param historyOptions - (optional) The history options for the change.
 	 *
 	 * @public
 	 */
@@ -7288,13 +7269,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setProp(DefaultColorStyle, 'red')
-	 * editor.setProp(DefaultColorStyle, 'red', true)
+	 * editor.setStyle(DefaultColorStyle, 'red')
+	 * editor.setStyle(DefaultColorStyle, 'red', { ephemeral: true })
 	 * ```
 	 *
 	 * @param style - The style to set.
 	 * @param value - The value to set.
-	 * @param historyOptions - The history options for the change.
+	 * @param historyOptions - (optional) The history options for the change.
 	 *
 	 * @public
 	 */
