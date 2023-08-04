@@ -10,7 +10,7 @@ const CURSOR_CHAT_MESSAGE = 'Hey, I think this is just great.'
 
 // Note:
 // Almost all of the information below is calculated automatically by helpers in the editor.
-// For a more realistic implementation, see the yjs example in this examples folder. If anything,
+// For a more realistic implementation, see https://github.com/tldraw/tldraw-yjs-example. If anything,
 // this example should be used to understand the data model and test designs, not as a reference
 // for how to implement user presence.
 
