@@ -46,8 +46,6 @@ export class HistoryManager<
 		return this._redos.value.length
 	}
 
-	skipHistory = false
-
 	createCommand = <Name extends string, Constructor extends CommandFn<any>>(
 		name: Name,
 		constructor: Constructor,

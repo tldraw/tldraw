@@ -33,7 +33,7 @@ export function createTLStore({ initialData, defaultName = '', ...rest }: TLStor
 		'schema' in rest
 			? rest.schema
 			: createTLSchema({
-					shapes: currentPageShapesToShapeMap(checkShapesAndAddCore(rest.shapeUtils)),
+					shapes: shapeUtilsToShapesMap(checkShapesAndAddCore(rest.shapeUtils)),
 			  })
 	return new Store({
 		schema,
@@ -44,7 +44,7 @@ export function createTLStore({ initialData, defaultName = '', ...rest }: TLStor
 	})
 }
 
-function currentPageShapesToShapeMap(shapeUtils: TLShapeUtilConstructor<TLUnknownShape>[]) {
+function shapeUtilsToShapesMap(shapeUtils: TLShapeUtilConstructor<TLUnknownShape>[]) {
 	return Object.fromEntries(
 		shapeUtils.map((s): [string, SchemaShapeInfo] => [
 			s.type,
