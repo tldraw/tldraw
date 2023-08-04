@@ -1216,14 +1216,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _isChangingStyleTimeout = -1 as any
 
-	focus = () => {
-		this.getContainer().focus()
-	}
-
-	blur = () => {
-		this.getContainer().blur()
-	}
-
 	// Menus
 
 	/**

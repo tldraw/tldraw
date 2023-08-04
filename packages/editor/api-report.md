@@ -551,8 +551,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     bail(): this;
     bailToMark(id: string): this;
     batch(fn: () => void): this;
-    // (undocumented)
-    blur: () => void;
     bringForward(shapes: TLShape[]): this;
     // (undocumented)
     bringForward(ids: TLShapeId[]): this;
@@ -660,8 +658,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     flipShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
     flipShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical'): this;
-    // (undocumented)
-    focus: () => void;
     get focusedGroupId(): TLPageId | TLShapeId;
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
     // (undocumented)
