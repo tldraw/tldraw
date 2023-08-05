@@ -22,8 +22,6 @@ export default function APIExample() {
 		// Create a shape id
 		const id = createShapeId('hello')
 
-		editor.focus()
-
 		// Create a shape
 		editor.createShapes<TLGeoShape>([
 			{
@@ -72,7 +70,7 @@ export default function APIExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="api-example" onMount={handleMount} autoFocus={false}>
+			<Tldraw persistenceKey="api-example" onMount={handleMount}>
 				<InsideOfEditorContext />
 			</Tldraw>
 		</div>

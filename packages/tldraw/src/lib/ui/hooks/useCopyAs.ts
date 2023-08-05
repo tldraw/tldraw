@@ -93,7 +93,7 @@ export function useCopyAs() {
 				}
 
 				case 'json': {
-					const data = editor.getContent(ids)
+					const data = editor.getContentFromCurrentPage(ids)
 
 					if (window.navigator.clipboard) {
 						const jsonStr = JSON.stringify(data)

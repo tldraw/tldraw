@@ -157,7 +157,7 @@ describe('Misc', () => {
 			y: 150,
 		})
 
-		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: 10 }, true)
+		editor.nudgeShapes(editor.selectedShapeIds, { x: 0, y: 10 })
 
 		editor.expectShapeToMatch({
 			id: id,

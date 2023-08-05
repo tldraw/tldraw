@@ -77,13 +77,11 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 						<_ContextMenu.Item
 							key="new-page"
 							onSelect={() => {
-								editor.mark('move_shapes_to_page')
 								const newPageId = PageRecordType.createId()
 								const ids = editor.selectedShapeIds
-								const oldPageId = editor.currentPageId
 								editor.batch(() => {
-									editor.createPage('Page 1', newPageId)
-									editor.setCurrentPage(oldPageId)
+									editor.mark('move_shapes_to_page')
+									editor.createPage({ name: 'Page', id: newPageId })
 									editor.moveShapesToPage(ids, newPageId)
 								})
 							}}

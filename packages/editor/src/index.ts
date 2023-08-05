@@ -136,7 +136,12 @@ export {
 	SVG_PADDING,
 	ZOOMS,
 } from './lib/constants'
-export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export {
+	Editor,
+	type TLAnimationOptions,
+	type TLEditorOptions,
+	type TLResizeShapeOptions,
+} from './lib/editor/Editor'
 export {
 	SnapManager,
 	type GapsSnapLine,

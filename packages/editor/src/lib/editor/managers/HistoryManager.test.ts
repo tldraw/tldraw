@@ -1,4 +1,4 @@
-import { HistoryManager } from './HistoryManager'
+import { CommandHistoryOptions, HistoryManager } from './HistoryManager'
 import { stack } from './Stack'
 
 function createCounterHistoryManager() {
@@ -284,5 +284,155 @@ describe(HistoryManager, () => {
 		expect(editor.getCount()).toBe(4)
 		editor.history.bailToMark('2')
 		expect(editor.getCount()).toBe(2)
+	})
+})
+
+describe('history options', () => {
+	let manager: HistoryManager<any>
+	let state: { a: number; b: number }
+
+	let setA: (n: number, historyOptions?: CommandHistoryOptions) => any
+	let setB: (n: number, historyOptions?: CommandHistoryOptions) => any
+
+	beforeEach(() => {
+		manager = new HistoryManager({ emit: () => void null }, () => {
+			return
+		})
+
+		state = {
+			a: 0,
+			b: 0,
+		}
+
+		setA = manager.createCommand(
+			'setA',
+			(n: number, historyOptions?: CommandHistoryOptions) => ({
+				data: { next: n, prev: state.a },
+				...historyOptions,
+			}),
+			{
+				do: ({ next }) => {
+					state = { ...state, a: next }
+				},
+				undo: ({ prev }) => {
+					state = { ...state, a: prev }
+				},
+				squash: ({ prev }, { next }) => ({ prev, next }),
+			}
+		)
+
+		setB = manager.createCommand(
+			'setB',
+			(n: number, historyOptions?: CommandHistoryOptions) => ({
+				data: { next: n, prev: state.b },
+				...historyOptions,
+			}),
+			{
+				do: ({ next }) => {
+					state = { ...state, b: next }
+				},
+				undo: ({ prev }) => {
+					state = { ...state, b: prev }
+				},
+				squash: ({ prev }, { next }) => ({ prev, next }),
+			}
+		)
+	})
+
+	it('sets, undoes, redoes', () => {
+		manager.mark()
+		setA(1)
+		manager.mark()
+		setB(1)
+		manager.mark()
+		setB(2)
+
+		expect(state).toMatchObject({ a: 1, b: 2 })
+
+		manager.undo()
+
+		expect(state).toMatchObject({ a: 1, b: 1 })
+
+		manager.redo()
+
+		expect(state).toMatchObject({ a: 1, b: 2 })
+	})
+
+	it('sets, undoes, redoes', () => {
+		manager.mark()
+		setA(1)
+		manager.mark()
+		setB(1)
+		manager.mark()
+		setB(2)
+		setB(3)
+		setB(4)
+
+		expect(state).toMatchObject({ a: 1, b: 4 })
+
+		manager.undo()
+
+		expect(state).toMatchObject({ a: 1, b: 1 })
+
+		manager.redo()
+
+		expect(state).toMatchObject({ a: 1, b: 4 })
+	})
+
+	it('sets ephemeral, undoes, redos', () => {
+		manager.mark()
+		setA(1)
+		manager.mark()
+		setB(1) // B 0->1
+		manager.mark()
+		setB(2, { ephemeral: true }) // B 0->2, but ephemeral
+
+		expect(state).toMatchObject({ a: 1, b: 2 })
+
+		manager.undo() // undoes B 2->0
+
+		expect(state).toMatchObject({ a: 1, b: 0 })
+
+		manager.redo() // redoes B 0->1, but not B 1-> 2
+
+		expect(state).toMatchObject({ a: 1, b: 1 }) // no change, b 1->2 was ephemeral
+	})
+
+	it('sets squashing, undoes, redos', () => {
+		manager.mark()
+		setA(1)
+		manager.mark()
+		setB(1)
+		setB(2, { squashing: true }) // squashes with the previous command
+		setB(3, { squashing: true }) // squashes with the previous command
+
+		expect(state).toMatchObject({ a: 1, b: 3 })
+
+		manager.undo()
+
+		expect(state).toMatchObject({ a: 1, b: 0 })
+
+		manager.redo()
+
+		expect(state).toMatchObject({ a: 1, b: 3 })
+	})
+
+	it('sets squashing and ephemeral, undoes, redos', () => {
+		manager.mark()
+		setA(1)
+		manager.mark()
+		setB(1)
+		setB(2, { squashing: true }) // squashes with the previous command
+		setB(3, { squashing: true, ephemeral: true }) // squashes with the previous command
+
+		expect(state).toMatchObject({ a: 1, b: 3 })
+
+		manager.undo()
+
+		expect(state).toMatchObject({ a: 1, b: 0 })
+
+		manager.redo()
+
+		expect(state).toMatchObject({ a: 1, b: 2 }) // B2->3 was ephemeral
 	})
 })

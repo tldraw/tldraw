@@ -52,7 +52,8 @@ export class DraggingHandle extends StateNode {
 		this.info = info
 		this.parent.currentToolIdMask = info.onInteractionEnd
 		this.shapeId = shape.id
-		this.markId = isCreating ? `creating:${shape.id}` : this.editor.mark('dragging handle')
+		this.markId = isCreating ? `creating:${shape.id}` : 'dragging handle'
+		if (!isCreating) this.editor.mark(this.markId)
 		this.initialHandle = deepCopy(handle)
 		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
 		this.initialPageRotation = this.initialPageTransform.rotation()
@@ -60,7 +61,7 @@ export class DraggingHandle extends StateNode {
 
 		this.editor.updateInstanceState(
 			{ cursor: { type: isCreating ? 'cross' : 'grabbing', rotation: 0 } },
-			true
+			{ ephemeral: true }
 		)
 
 		// <!-- Only relevant to arrows
@@ -168,7 +169,10 @@ export class DraggingHandle extends StateNode {
 		this.parent.currentToolIdMask = undefined
 		this.editor.setHintingIds([])
 		this.editor.snaps.clear()
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	private complete() {
@@ -298,7 +302,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (changes) {
-			editor.updateShapes([next], true)
+			editor.updateShapes([next], { squashing: true })
 		}
 	}
 }

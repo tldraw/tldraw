@@ -38,7 +38,7 @@ export class Idle extends StateNode {
 	}
 
 	override onEnter = () => {
-		this.editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, true)
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {

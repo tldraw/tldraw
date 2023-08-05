@@ -38,7 +38,7 @@ export const FrameLabelInput = forwardRef<
 						props: { name: value },
 					},
 				],
-				true
+				{ squashing: true }
 			)
 		},
 		[id, editor]
@@ -61,7 +61,7 @@ export const FrameLabelInput = forwardRef<
 						props: { name: value },
 					},
 				],
-				true
+				{ squashing: true }
 			)
 		},
 		[id, editor]

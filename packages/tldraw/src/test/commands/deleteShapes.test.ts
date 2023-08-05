@@ -49,7 +49,7 @@ beforeEach(() => {
 describe('Editor.deleteShapes', () => {
 	it('Deletes a shape', () => {
 		editor.select(ids.box3, ids.box4)
-		editor.mark()
+		editor.mark('before deleting')
 		editor.deleteShapes(editor.selectedShapeIds) // delete the selected shapes
 		expect(editor.getShape(ids.box3)).toBeUndefined()
 		expect(editor.getShape(ids.box4)).toBeUndefined()
@@ -74,7 +74,7 @@ describe('Editor.deleteShapes', () => {
 	it('Deletes descendants', () => {
 		editor.reparentShapes([ids.box4], ids.box3)
 		editor.select(ids.box3)
-		editor.mark()
+		editor.mark('before deleting')
 		editor.deleteShapes(editor.selectedShapeIds) // should be a noop, nothing to delete
 		expect(editor.getShape(ids.box3)).toBeUndefined()
 		expect(editor.getShape(ids.box4)).toBeUndefined()
@@ -90,7 +90,7 @@ describe('Editor.deleteShapes', () => {
 describe('When deleting arrows', () => {
 	it('Restores any bindings on undo', () => {
 		editor.select(ids.arrow1)
-		editor.mark()
+		editor.mark('before deleting')
 		// @ts-expect-error
 		expect(editor._arrowBindingsIndex.value[ids.box1]).not.toBeUndefined()
 		// @ts-expect-error

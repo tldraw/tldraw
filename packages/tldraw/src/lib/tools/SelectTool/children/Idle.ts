@@ -23,7 +23,10 @@ export class Idle extends StateNode {
 
 	override onEnter = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {

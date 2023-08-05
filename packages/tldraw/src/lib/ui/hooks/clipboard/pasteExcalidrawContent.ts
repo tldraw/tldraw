@@ -323,7 +323,7 @@ export async function pasteExcalidrawContent(editor: Editor, clipboard: any, poi
 
 	editor.mark('paste')
 
-	editor.putContent(tldrawContent, {
+	editor.putContentOntoCurrentPage(tldrawContent, {
 		point: p,
 		select: false,
 		preserveIds: true,

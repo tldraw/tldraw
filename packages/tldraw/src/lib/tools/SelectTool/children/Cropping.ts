@@ -37,7 +37,8 @@ export class Cropping extends StateNode {
 		}
 	) => {
 		this.info = info
-		this.markId = this.editor.mark('cropping')
+		this.markId = 'cropping'
+		this.editor.mark(this.markId)
 		this.snapshot = this.createSnapshot()
 		this.updateShapes()
 	}
@@ -199,7 +200,7 @@ export class Cropping extends StateNode {
 			},
 		}
 
-		this.editor.updateShapes([partial], true)
+		this.editor.updateShapes([partial], { squashing: true })
 		this.updateCursor()
 	}
 

@@ -29,7 +29,7 @@ beforeEach(() => {
 	])
 
 	const page1 = editor.currentPageId
-	editor.createPage('page 2', ids.page2)
+	editor.createPage({ name: 'page 2', id: ids.page2 })
 	editor.setCurrentPage(page1)
 })
 
@@ -429,12 +429,12 @@ describe('isFocused', () => {
 		expect(focusMock).not.toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.focus()
+		editor.getContainer().focus()
 
 		expect(focusMock).toHaveBeenCalled()
 		expect(blurMock).not.toHaveBeenCalled()
 
-		editor.blur()
+		editor.getContainer().blur()
 
 		expect(blurMock).toHaveBeenCalled()
 	})
@@ -471,7 +471,7 @@ describe('getShapeUtil', () => {
 			{ id: ids.box1, type: 'blorg', x: 100, y: 100, props: { w: 100, h: 100 } },
 		])
 		const page1 = editor.currentPageId
-		editor.createPage('page 2', ids.page2)
+		editor.createPage({ name: 'page 2', id: ids.page2 })
 		editor.setCurrentPage(page1)
 	})
 

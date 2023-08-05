@@ -79,7 +79,7 @@ export function useExportAs() {
 				}
 
 				case 'json': {
-					const data = editor.getContent(ids)
+					const data = editor.getContentFromCurrentPage(ids)
 					const dataURL = URL.createObjectURL(
 						new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' })
 					)

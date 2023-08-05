@@ -136,7 +136,7 @@ export class TestEditor extends Editor {
 
 	copy = (ids = this.selectedShapeIds) => {
 		if (ids.length > 0) {
-			const content = this.getContent(ids)
+			const content = this.getContentFromCurrentPage(ids)
 			if (content) {
 				this.clipboard = content
 			}
@@ -146,7 +146,7 @@ export class TestEditor extends Editor {
 
 	cut = (ids = this.selectedShapeIds) => {
 		if (ids.length > 0) {
-			const content = this.getContent(ids)
+			const content = this.getContentFromCurrentPage(ids)
 			if (content) {
 				this.clipboard = content
 			}
@@ -160,7 +160,7 @@ export class TestEditor extends Editor {
 			const p = this.inputs.shiftKey ? this.inputs.currentPagePoint : point
 
 			this.mark('pasting')
-			this.putContent(this.clipboard, {
+			this.putContentOntoCurrentPage(this.clipboard, {
 				point: p,
 				select: true,
 			})
