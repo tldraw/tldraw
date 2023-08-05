@@ -47,13 +47,13 @@ describe('viewport.screenToPage', () => {
 	it('converts correctly when panned and zoomed', () => {
 		editor.setCamera({ x: 100, y: 100, z: 0.5 })
 
-		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: -200, y: -200 })
-		expect(editor.pageToScreen({ x: -200, y: -200 })).toMatchObject({ x: 0, y: 0 })
+		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: -100, y: -100 })
+		expect(editor.pageToScreen({ x: 100, y: 100 })).toMatchObject({ x: 150, y: 150 })
 
-		expect(editor.screenToPage({ x: 100, y: 100 })).toMatchObject({ x: 0, y: 0 })
+		expect(editor.screenToPage({ x: 100, y: 100 })).toMatchObject({ x: 100, y: 100 })
 		expect(editor.pageToScreen({ x: 0, y: 0 })).toMatchObject({ x: 100, y: 100 })
 
-		expect(editor.screenToPage({ x: -100, y: -100 })).toMatchObject({ x: -400, y: -400 })
+		expect(editor.screenToPage({ x: -100, y: -100 })).toMatchObject({ x: -300, y: -300 })
 		expect(editor.pageToScreen({ x: -400, y: -400 })).toMatchObject({ x: -100, y: -100 })
 	})
 
@@ -148,14 +148,14 @@ describe('viewport.screenToPage', () => {
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 0, y: 0 } })
 		editor.setCamera({ x: 100, y: 100, z: 0.5 })
 		expect(editor.pageToScreen({ x: 0, y: 0 })).toMatchObject({ x: 100, y: 100 })
-		expect(editor.screenToPage({ x: 100, y: 100 })).toMatchObject({ x: 0, y: 0 })
+		expect(editor.screenToPage({ x: 100, y: 100 })).toMatchObject({ x: 100, y: 100 })
 
 		expect(editor.pageToScreen({ x: 100, y: 100 })).toMatchObject({ x: 150, y: 150 })
-		expect(editor.screenToPage({ x: 150, y: 150 })).toMatchObject({ x: 100, y: 100 })
+		expect(editor.screenToPage({ x: 150, y: 150 })).toMatchObject({ x: 200, y: 200 })
 
 		// zero point, where page and screen are the same
 		expect(editor.pageToScreen({ x: 200, y: 200 })).toMatchObject({ x: 200, y: 200 })
-		expect(editor.screenToPage({ x: 200, y: 200 })).toMatchObject({ x: 200, y: 200 })
+		expect(editor.screenToPage({ x: 200, y: 200 })).toMatchObject({ x: 300, y: 300 })
 	})
 
 	it('converts correctly when offset', () => {
@@ -193,9 +193,9 @@ describe('viewport.screenToPage', () => {
 		expect(editor.pageToScreen({ x: 100, y: 100 })).toMatchObject({ x: 150, y: 150 })
 		expect(editor.pageToScreen({ x: 200, y: 200 })).toMatchObject({ x: 200, y: 200 })
 
-		expect(editor.screenToPage({ x: 100, y: 100 })).toMatchObject({ x: 0, y: 0 })
-		expect(editor.screenToPage({ x: 150, y: 150 })).toMatchObject({ x: 100, y: 100 })
-		expect(editor.screenToPage({ x: 200, y: 200 })).toMatchObject({ x: 200, y: 200 })
+		expect(editor.screenToPage({ x: 100, y: 100 })).toMatchObject({ x: 100, y: 100 })
+		expect(editor.screenToPage({ x: 150, y: 150 })).toMatchObject({ x: 200, y: 200 })
+		expect(editor.screenToPage({ x: 200, y: 200 })).toMatchObject({ x: 300, y: 300 })
 	})
 
 	it('converts correctly when panned and zoomed and offset', () => {
@@ -206,9 +206,9 @@ describe('viewport.screenToPage', () => {
 		expect(editor.pageToScreen({ x: 100, y: 100 })).toMatchObject({ x: 250, y: 250 })
 		expect(editor.pageToScreen({ x: 200, y: 200 })).toMatchObject({ x: 300, y: 300 })
 
-		expect(editor.screenToPage({ x: 200, y: 200 })).toMatchObject({ x: 0, y: 0 })
-		expect(editor.screenToPage({ x: 250, y: 250 })).toMatchObject({ x: 100, y: 100 })
-		expect(editor.screenToPage({ x: 300, y: 300 })).toMatchObject({ x: 200, y: 200 })
+		expect(editor.screenToPage({ x: 200, y: 200 })).toMatchObject({ x: 100, y: 100 })
+		expect(editor.screenToPage({ x: 250, y: 250 })).toMatchObject({ x: 200, y: 200 })
+		expect(editor.screenToPage({ x: 300, y: 300 })).toMatchObject({ x: 300, y: 300 })
 	})
 })
 
