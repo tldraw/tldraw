@@ -243,7 +243,7 @@ export const PageMenu = function PageMenu() {
 		editor.batch(() => {
 			editor.mark('creating page')
 			const newPageId = PageRecordType.createId()
-			editor.createPage(msg('page-menu.new-page-initial-name'), newPageId)
+			editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
 			editor.setCurrentPage(newPageId)
 			setIsEditing(true)
 		})

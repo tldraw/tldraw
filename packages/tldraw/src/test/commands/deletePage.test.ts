@@ -10,7 +10,7 @@ beforeEach(() => {
 describe('deletePage', () => {
 	it('deletes the page', () => {
 		const page2Id = PageRecordType.createId('page2')
-		editor.createPage('New Page 2', page2Id)
+		editor.createPage({ name: 'New Page 2', id: page2Id })
 
 		const pages = editor.pages
 		expect(pages.length).toBe(2)
@@ -21,7 +21,7 @@ describe('deletePage', () => {
 	it('is undoable and redoable', () => {
 		const page2Id = PageRecordType.createId('page2')
 		editor.mark('before creating page')
-		editor.createPage('New Page 2', page2Id)
+		editor.createPage({ name: 'New Page 2', id: page2Id })
 
 		const pages = editor.pages
 		expect(pages.length).toBe(2)
@@ -40,7 +40,7 @@ describe('deletePage', () => {
 	it('does not allow deleting all pages', () => {
 		const page2Id = PageRecordType.createId('page2')
 		editor.mark('before creating page')
-		editor.createPage('New Page 2', page2Id)
+		editor.createPage({ name: 'New Page 2', id: page2Id })
 
 		const pages = editor.pages
 		editor.deletePage(pages[1].id)
@@ -54,7 +54,7 @@ describe('deletePage', () => {
 	it('switches the page if you are deleting the current page', () => {
 		const page2Id = PageRecordType.createId('page2')
 		editor.mark('before creating page')
-		editor.createPage('New Page 2', page2Id)
+		editor.createPage({ name: 'New Page 2', id: page2Id })
 
 		const currentPageId = editor.currentPageId
 		editor.deletePage(currentPageId)
@@ -66,7 +66,7 @@ describe('deletePage', () => {
 		const currentPageId = editor.currentPageId
 		const page2Id = PageRecordType.createId('page2')
 		editor.mark('before creating')
-		editor.createPage('New Page 2', page2Id)
+		editor.createPage({ name: 'New Page 2', id: page2Id })
 
 		editor.store.mergeRemoteChanges(() => {
 			editor.store.remove([currentPageId])

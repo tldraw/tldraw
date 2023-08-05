@@ -3326,48 +3326,44 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
-	 * editor.createPage('New Page')
-	 * editor.createPage('New Page', 'page1')
-	 * editor.createPage('New Page', 'page1', 'a2')
+	 * editor.createPage(myPage)
+	 * editor.createPage({ name: 'Page 2' })
 	 * ```
 	 *
-	 * @param id - The new page's id.
 	 * @param title - The new page's title.
-	 * @param belowPageIndex - (optional) The index to create below.
+	 * @param id - (optional) The new page's id.
+	 * @param index - (optional) The index at which to create the new page.
 	 *
 	 * @public
 	 */
-	createPage(
-		title: string,
-		id: TLPageId = PageRecordType.createId(),
-		belowPageIndex?: string
-	): this {
-		this._createPage(title, id, belowPageIndex)
+	createPage(page: Partial<TLPage>): this {
+		this._createPage(page)
 		return this
 	}
 	/** @internal */
 	private _createPage = this.history.createCommand(
 		'createPage',
-		(title: string, id: TLPageId = PageRecordType.createId(), belowPageIndex?: string) => {
+		(page: Partial<TLPage>) => {
 			if (this.instanceState.isReadonly) return null
 			if (this.pages.length >= MAX_PAGES) return null
-			const pageInfo = this.pages
-			const topIndex = belowPageIndex ?? pageInfo[pageInfo.length - 1]?.index ?? 'a1'
-			const bottomIndex = pageInfo[pageInfo.findIndex((p) => p.index === topIndex) + 1]?.index
+			const { pages } = this
 
-			title = getIncrementedName(
-				title,
-				pageInfo.map((p) => p.name)
+			const name = getIncrementedName(
+				page.name ?? 'Page',
+				pages.map((p) => p.name)
 			)
 
+			let index = page.index
+
+			if (!index || pages.some((p) => p.index === index)) {
+				index = getIndexAbove(pages[pages.length - 1].index)
+			}
+
 			const newPage = PageRecordType.create({
-				id,
-				name: title,
-				index:
-					bottomIndex && topIndex !== bottomIndex
-						? getIndexBetween(topIndex, bottomIndex)
-						: getIndexAbove(topIndex),
 				meta: {},
+				...page,
+				name,
+				index,
 			})
 
 			const newCamera = CameraRecordType.create({
@@ -3481,8 +3477,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(page.id))
 
 		this.batch(() => {
+			const { pages } = this
+			const index = getIndexBetween(page.index, pages[pages.indexOf(page) + 1]?.index)
+
 			// create the page (also creates the pagestate and camera for the new page)
-			this.createPage(page.name + ' Copy', createId, page.index)
+			this.createPage({ name: page.name + ' Copy', id: createId, index })
 			// set the new page as the current page
 			this.setCurrentPage(createId)
 			// update the new page's camera to the previous page's camera

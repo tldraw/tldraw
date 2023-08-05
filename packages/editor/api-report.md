@@ -588,7 +588,7 @@ export class Editor extends EventEmitter<TLEventMap> {
             inputs?: Record<string, unknown>;
         };
     };
-    createPage(title: string, id?: TLPageId, belowPageIndex?: string): this;
+    createPage(page: Partial<TLPage>): this;
     createShape<T extends TLUnknownShape>(partial: OptionalKeys<TLShapePartial<T>, 'id'>): this;
     createShapes<T extends TLUnknownShape>(partials: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     get croppingShapeId(): null | TLShapeId;

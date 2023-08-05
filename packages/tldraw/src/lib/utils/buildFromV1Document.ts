@@ -113,7 +113,7 @@ export function buildFromV1Document(editor: Editor, document: LegacyTldrawDocume
 				} else {
 					const pageId = PageRecordType.createId()
 					v1PageIdsToV2PageIds.set(v1Page.id, pageId)
-					editor.createPage(v1Page.name ?? 'Page', pageId)
+					editor.createPage({ name: v1Page.name ?? 'Page', id: pageId })
 				}
 			})
 
