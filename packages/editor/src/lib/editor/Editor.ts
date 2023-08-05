@@ -125,17 +125,21 @@ import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event
 import { OptionalKeys, RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
-// todo: remove this
-/** @public */
-export type TLViewportOptions = Partial<{
-	/** Whether to animate the viewport change or not. Defaults to true. */
-	stopFollowing: boolean
-}>
-
 /** @public */
 export type TLAnimationOptions = Partial<{
 	duration: number
 	easing: (t: number) => number
+}>
+
+/** @public */
+export type TLResizeShapeOptions = Partial<{
+	initialBounds: Box2d
+	scaleOrigin: VecLike
+	scaleAxisRotation: number
+	initialShape: TLShape
+	initialPageTransform: MatLike
+	dragHandle: TLResizeHandle
+	mode: TLResizeMode
 }>
 
 /** @public */
@@ -154,15 +158,17 @@ export interface TLEditorOptions {
 	 */
 	tools: readonly TLStateNodeConstructor[]
 	/**
-	 * A user defined externally to replace the default user.
-	 */
-	user?: TLUser
-	/**
 	 * Should return a containing html element which has all the styles applied to the editor. If not
 	 * given, the body element will be used.
 	 */
 	getContainer: () => HTMLElement
-
+	/**
+	 * (optional) A user defined externally to replace the default user.
+	 */
+	user?: TLUser
+	/**
+	 * (optional) The editor's initial active tool (or other state node id).
+	 */
 	initialState?: string
 }
 
@@ -6061,19 +6067,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	resizeShape(
-		id: TLShapeId,
-		scale: VecLike,
-		options: {
-			initialBounds?: Box2d
-			scaleOrigin?: VecLike
-			scaleAxisRotation?: number
-			initialShape?: TLShape
-			initialPageTransform?: MatLike
-			dragHandle?: TLResizeHandle
-			mode?: TLResizeMode
-		} = {}
-	) {
+	resizeShape(shape: TLShape, scale: VecLike, options?: TLResizeShapeOptions): this
+	resizeShape(id: TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this
+	resizeShape(arg: TLShapeId | TLShape, scale: VecLike, options: TLResizeShapeOptions = {}): this {
+		const id = typeof arg === 'string' ? arg : arg.id
 		if (this.instanceState.isReadonly) return this
 
 		if (!Number.isFinite(scale.x)) scale = new Vec2d(1, scale.y)
@@ -6214,6 +6211,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
+	private _scalePagePoint(
+		point: VecLike,
+		scaleOrigin: VecLike,
+		scale: VecLike,
+		scaleAxisRotation: number
+	) {
+		const relativePoint = Vec2d.RotWith(point, scaleOrigin, -scaleAxisRotation).sub(scaleOrigin)
+
+		// calculate the new point position relative to the scale origin
+		const newRelativePagePoint = Vec2d.MulV(relativePoint, scale)
+
+		// and rotate it back to page coords to get the new page point of the resized shape
+		const destination = Vec2d.Add(newRelativePagePoint, scaleOrigin).rotWith(
+			scaleOrigin,
+			scaleAxisRotation
+		)
+
+		return destination
+	}
+
+	/** @internal */
 	private _resizeUnalignedShape(
 		id: TLShapeId,
 		scale: VecLike,
@@ -6287,27 +6305,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	/** @internal */
-	private _scalePagePoint(
-		point: VecLike,
-		scaleOrigin: VecLike,
-		scale: VecLike,
-		scaleAxisRotation: number
-	) {
-		const relativePoint = Vec2d.RotWith(point, scaleOrigin, -scaleAxisRotation).sub(scaleOrigin)
-
-		// calculate the new point position relative to the scale origin
-		const newRelativePagePoint = Vec2d.MulV(relativePoint, scale)
-
-		// and rotate it back to page coords to get the new page point of the resized shape
-		const destination = Vec2d.Add(newRelativePagePoint, scaleOrigin).rotWith(
-			scaleOrigin,
-			scaleAxisRotation
-		)
-
-		return destination
-	}
-
 	/**
 	 * Get the initial meta value for a shape.
 	 *
@@ -6333,16 +6330,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
+	 * editor.createShape(myShape)
 	 * editor.createShape({ id: 'box1', type: 'text', props: { text: "ok" } })
 	 * ```
 	 *
-	 * @param partials - The shape partials to create.
-	 * @param select - Whether to select the created shapes. Defaults to false.
+	 * @param shape - The shape (or shape partial) to create.
 	 *
 	 * @public
 	 */
-	createShape<T extends TLUnknownShape>(partial: OptionalKeys<TLShapePartial<T>, 'id'>): this {
-		this._createShapes([partial])
+	createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this {
+		this._createShapes([shape])
 		return this
 	}
 
@@ -6351,19 +6348,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @example
 	 * ```ts
+	 * editor.createShapes([myShape])
 	 * editor.createShapes([{ id: 'box1', type: 'text', props: { text: "ok" } }])
 	 * ```
 	 *
-	 * @param partials - The shape partials to create.
+	 * @param shapes - The shapes (or shape partials) to create.
 	 * @param select - Whether to select the created shapes. Defaults to false.
 	 *
 	 * @public
 	 */
-	createShapes<T extends TLUnknownShape>(partials: OptionalKeys<TLShapePartial<T>, 'id'>[]) {
-		if (!Array.isArray(partials)) {
+	createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]) {
+		if (!Array.isArray(shapes)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}
-		this._createShapes(partials)
+		this._createShapes(shapes)
 		return this
 	}
 
@@ -6561,7 +6559,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	animateShape(partial: TLShapePartial | null | undefined, animationOptions?: TLAnimationOptions) {
+	animateShape(
+		partial: TLShapePartial | null | undefined,
+		animationOptions?: TLAnimationOptions
+	): this {
 		return this.animateShapes([partial], animationOptions)
 	}
 
@@ -6582,7 +6583,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	animateShapes(
 		partials: (TLShapePartial | null | undefined)[],
 		animationOptions = {} as TLAnimationOptions
-	) {
+	): this {
 		const { duration = 500, easing = EASINGS.linear } = animationOptions
 
 		const animationId = uniqueId()
@@ -6670,27 +6671,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Group some shapes together.
+	 * Create a group containing the provided shapes.
 	 *
-	 * @param ids - Ids of the shapes to group. Defaults to the selected shapes.
-	 * @param groupId - Id of the group to create. Defaults to a new shape id.
+	 * @param shapes - The shapes (or shape ids) to group. Defaults to the selected shapes.
+	 * @param groupId - (optional) The id of the group to create.
 	 *
 	 * @public
 	 */
-	groupShapes(ids: TLShapeId[], groupId?: TLShapeId): this
 	groupShapes(shapes: TLShape[], groupId?: TLShapeId): this
-	groupShapes(_ids: TLShapeId[] | TLShape[], groupId = createShapeId()): this {
-		if (!Array.isArray(_ids)) {
+	groupShapes(ids: TLShapeId[], groupId?: TLShapeId): this
+	groupShapes(arg: TLShapeId[] | TLShape[], groupId = createShapeId()): this {
+		if (!Array.isArray(arg)) {
 			throw Error('Editor.groupShapes: must provide an array of shapes or shape ids')
 		}
 		if (this.instanceState.isReadonly) return this
 
-		if (_ids.length <= 1) return this
-
 		const ids =
-			typeof _ids[0] === 'string'
-				? (_ids as TLShapeId[])
-				: (_ids.map((s) => (s as TLShape).id) as TLShapeId[])
+			typeof arg[0] === 'string'
+				? (arg as TLShapeId[])
+				: (arg.map((s) => (s as TLShape).id) as TLShapeId[])
+
+		if (ids.length <= 1) return this
 
 		const shapes = compact(this._getUnlockedShapeIds(ids).map((id) => this.getShape(id)))
 		const sortedShapeIds = shapes.sort(sortByIndex).map((s) => s.id)

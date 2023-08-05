@@ -586,8 +586,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         };
     };
     createPage(page: Partial<TLPage>): this;
-    createShape<T extends TLUnknownShape>(partial: OptionalKeys<TLShapePartial<T>, 'id'>): this;
-    createShapes<T extends TLUnknownShape>(partials: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
+    createShape<T extends TLUnknownShape>(shape: OptionalKeys<TLShapePartial<T>, 'id'>): this;
+    createShapes<T extends TLUnknownShape>(shapes: OptionalKeys<TLShapePartial<T>, 'id'>[]): this;
     get croppingShapeId(): null | TLShapeId;
     get currentPage(): TLPage;
     get currentPageBounds(): Box2d | undefined;
@@ -767,9 +767,9 @@ export class Editor extends EventEmitter<TLEventMap> {
         darkMode?: boolean | undefined;
         preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
     }>): Promise<SVGSVGElement | undefined>;
-    groupShapes(ids: TLShapeId[], groupId?: TLShapeId): this;
-    // (undocumented)
     groupShapes(shapes: TLShape[], groupId?: TLShapeId): this;
+    // (undocumented)
+    groupShapes(ids: TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | undefined, ancestorId: TLShapeId): boolean;
     // (undocumented)
     hasAncestor(shapeId: TLShapeId | undefined, ancestorId: TLShapeId): boolean;
@@ -880,15 +880,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     reparentShapes(ids: TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
     resetZoom(point?: Vec2d, animation?: TLAnimationOptions): this;
-    resizeShape(id: TLShapeId, scale: VecLike, options?: {
-        initialBounds?: Box2d;
-        scaleOrigin?: VecLike;
-        scaleAxisRotation?: number;
-        initialShape?: TLShape;
-        initialPageTransform?: MatLike;
-        dragHandle?: TLResizeHandle;
-        mode?: TLResizeMode;
-    }): this;
+    resizeShape(shape: TLShape, scale: VecLike, options?: TLResizeShapeOptions): this;
+    // (undocumented)
+    resizeShape(id: TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     readonly root: RootState;
     rotateShapesBy(shapes: TLShape[], delta: number): this;
     // (undocumented)
@@ -2140,7 +2134,6 @@ export type TLEditorComponents = {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
-    // (undocumented)
     initialState?: string;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
@@ -2468,6 +2461,17 @@ export type TLResizeInfo<T extends TLShape> = {
 
 // @public
 export type TLResizeMode = 'resize_bounds' | 'scale_shape';
+
+// @public (undocumented)
+export type TLResizeShapeOptions = Partial<{
+    initialBounds: Box2d;
+    scaleOrigin: VecLike;
+    scaleAxisRotation: number;
+    initialShape: TLShape;
+    initialPageTransform: MatLike;
+    dragHandle: TLResizeHandle;
+    mode: TLResizeMode;
+}>;
 
 // @public
 export type TLRotationSnapshot = {
