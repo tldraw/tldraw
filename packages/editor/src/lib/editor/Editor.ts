@@ -135,7 +135,7 @@ export type TLViewportOptions = Partial<{
 /** @public */
 export type TLAnimationOptions = Partial<{
 	duration: number
-	easing: typeof EASINGS.easeInOutCubic
+	easing: (t: number) => number
 }>
 
 /** @public */
@@ -6561,16 +6561,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	animateShape(
-		partial: TLShapePartial | null | undefined,
-		options?: Partial<{
-			/** The animation's duration in milliseconds. */
-			duration: number
-			/** The animation's easing function. */
-			ease: (t: number) => number
-		}>
-	) {
-		return this.animateShapes([partial], options)
+	animateShape(partial: TLShapePartial | null | undefined, animationOptions?: TLAnimationOptions) {
+		return this.animateShapes([partial], animationOptions)
 	}
 
 	/**
@@ -6589,14 +6581,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	animateShapes(
 		partials: (TLShapePartial | null | undefined)[],
-		options: {
-			/** The animation's duration in milliseconds. */
-			duration?: number
-			/** The animation's easing function. */
-			ease?: (t: number) => number
-		} = {}
+		animationOptions = {} as TLAnimationOptions
 	) {
-		const { duration = 500, ease = EASINGS.linear } = options
+		const { duration = 500, easing = EASINGS.linear } = animationOptions
 
 		const animationId = uniqueId()
 
@@ -6649,7 +6636,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				return
 			}
 
-			t = ease(1 - remaining / duration)
+			t = easing(1 - remaining / duration)
 
 			const { animatingShapes } = this
 

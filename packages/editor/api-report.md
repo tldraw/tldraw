@@ -531,14 +531,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     alignShapes(shapes: TLShape[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     // (undocumented)
     alignShapes(ids: TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
-    animateShape(partial: null | TLShapePartial | undefined, options?: Partial<{
+    animateShape(partial: null | TLShapePartial | undefined, animationOptions?: TLAnimationOptions): this;
+    animateShapes(partials: (null | TLShapePartial | undefined)[], animationOptions?: Partial<{
         duration: number;
-        ease: (t: number) => number;
+        easing: (t: number) => number;
     }>): this;
-    animateShapes(partials: (null | TLShapePartial | undefined)[], options?: {
-        duration?: number;
-        ease?: (t: number) => number;
-    }): this;
     animateToShape(shapeId: TLShapeId, opts?: TLAnimationOptions): this;
     animateToUser(userId: string): this;
     // @internal (undocumented)
@@ -1987,7 +1984,7 @@ export const TAU: number;
 // @public (undocumented)
 export type TLAnimationOptions = Partial<{
     duration: number;
-    easing: typeof EASINGS.easeInOutCubic;
+    easing: (t: number) => number;
 }>;
 
 // @public (undocumented)
