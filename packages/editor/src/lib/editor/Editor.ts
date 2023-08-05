@@ -2693,8 +2693,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz = 1 } = this.camera
 		return {
-			x: (point.x - screenBounds.x) / cz - cx,
-			y: (point.y - screenBounds.y) / cz - cy,
+			x: (point.x - screenBounds.x - cx) / cz,
+			y: (point.y - screenBounds.y - cy) / cz,
 			z: point.z ?? 0.5,
 		}
 	}
