@@ -2716,8 +2716,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { x: cx, y: cy, z: cz = 1 } = this.camera
 
 		return {
-			x: point.x * cz + cx + screenBounds.x,
-			y: point.y * cz + cy + screenBounds.y,
+			x: (point.x + cx) * cz + screenBounds.x,
+			y: (point.y + cy) * cz + screenBounds.y,
 			z: point.z ?? 0.5,
 		}
 	}
