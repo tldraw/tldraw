@@ -112,7 +112,7 @@ import { TextManager } from './managers/TextManager'
 import { TickManager } from './managers/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager'
 import { ShapeUtil, TLResizeMode, TLShapeUtilConstructor } from './shapes/ShapeUtil'
-import { ArrowInfo } from './shapes/shared/arrow/arrow-types'
+import { TLArrowInfo } from './shapes/shared/arrow/arrow-types'
 import { getCurvedArrowInfo } from './shapes/shared/arrow/curved-arrow'
 import { getArrowTerminalsInArrowSpace, getIsArrowStraight } from './shapes/shared/arrow/shared'
 import { getStraightArrowInfo } from './shapes/shared/arrow/straight-arrow'
@@ -913,21 +913,30 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	@computed
 	private get arrowInfoCache() {
-		return this.store.createComputedCache<ArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
+		return this.store.createComputedCache<TLArrowInfo, TLArrowShape>('arrow infoCache', (shape) => {
 			return getIsArrowStraight(shape)
 				? getStraightArrowInfo(this, shape)
 				: getCurvedArrowInfo(this, shape)
 		})
 	}
 
-	getArrowInfo(shape: TLArrowShape) {
-		return this.arrowInfoCache.get(shape.id)
+	/**
+	 * Get cached info about an arrow.
+	 *
+	 * @example
+	 * ```ts
+	 * const arrowInfo = editor.getArrowInfo(myArrow)
+	 * ```
+	 *
+	 * @param shape - The shape (or shape id) of the arrow to get the info for.
+	 *
+	 * @public
+	 */
+	getArrowInfo(shape: TLArrowShape): TLArrowInfo | undefined
+	getArrowInfo(id: TLShapeId): TLArrowInfo | undefined
+	getArrowInfo(arg: TLArrowShape | TLShapeId): TLArrowInfo | undefined {
+		return this.arrowInfoCache.get(typeof arg === 'string' ? arg : arg.id)
 	}
-
-	// private _shapeWillUpdate = (prev: TLShape, next: TLShape) => {
-	// 	const update = this.getShapeUtil(next).onUpdate?.(prev, next)
-	// 	return update ?? next
-	// }
 
 	/* --------------------- Errors --------------------- */
 
@@ -1341,7 +1350,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' })
-	 * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' }, true)
+	 * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' }, { ephemeral: true })
 	 * ```
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
@@ -1355,7 +1364,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		>,
 		historyOptions?: CommandHistoryOptions
 	): this {
-		this._setInstancePageState(partial, { ephemeral: false, ...historyOptions })
+		this._setInstancePageState(partial, historyOptions)
 		return this
 	}
 
@@ -1367,7 +1376,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			historyOptions?: CommandHistoryOptions
 		) => {
 			const prev = this.store.get(partial.id ?? this.currentPageState.id)!
-			return { data: { prev, partial }, ephemeral: false, ...historyOptions }
+			return { data: { prev, partial }, ...historyOptions }
 		},
 		{
 			do: ({ prev, partial }) => {
@@ -1599,7 +1608,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The rotation of the selection bounding box in page space.
+	 * The rotation of the selection bounding box in the current page space.
 	 *
 	 * @readonly
 	 * @public
@@ -1622,7 +1631,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The bounds of the selection bounding box in page space.
+	 * The bounds of the selection bounding box in the current page space.
 	 *
 	 * @readonly
 	 * @public
@@ -1996,7 +2005,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Center the camera on a point (in page space).
+	 * Center the camera on a point (in the current page space).
 	 *
 	 * @example
 	 * ```ts
@@ -2004,7 +2013,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.centerOnPoint({ x: 100, y: 100 }, { duration: 200 })
 	 * ```
 	 *
-	 * @param point - The point in page space to center on.
+	 * @param point - The point in the current page space to center on.
 	 * @param animation - (optional) The options for an animation.
 	 *
 	 * @public
@@ -2253,7 +2262,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Zoom the camera to fit a bounding box (in page space).
+	 * Zoom the camera to fit a bounding box (in the current page space).
 	 *
 	 * @example
 	 * ```ts
@@ -2309,7 +2318,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.pan({ x: 100, y: 100 }, { duration: 1000 })
 	 * ```
 	 *
-	 * @param offset - The offset in page space.
+	 * @param offset - The offset in the current page space.
 	 * @param animation - (optional) The animation options.
 	 */
 	pan(offset: VecLike, animation?: TLAnimationOptions): this {
@@ -2643,7 +2652,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The current viewport in page space.
+	 * The current viewport in the current page space.
 	 *
 	 * @public
 	 */
@@ -2654,7 +2663,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The center of the viewport in page space.
+	 * The center of the viewport in the current page space.
 	 *
 	 * @public
 	 */
@@ -2663,7 +2672,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Convert a point in screen space to a point in page space.
+	 * Convert a point in screen space to a point in the current page space.
 	 *
 	 * @example
 	 * ```ts
@@ -2685,7 +2694,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Convert a point in page space to a point in current screen space.
+	 * Convert a point in the current page space to a point in current screen space.
 	 *
 	 * @example
 	 * ```ts
@@ -3048,7 +3057,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * The current rendering bounds in page space, used for checking which shapes are "on screen".
+	 * The current rendering bounds in the current page space, used for checking which shapes are "on screen".
 	 *
 	 * @public
 	 */
@@ -3060,7 +3069,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private readonly _renderingBounds = atom('rendering viewport', new Box2d())
 
 	/**
-	 * The current rendering bounds in page space, expanded slightly. Used for determining which shapes
+	 * The current rendering bounds in the current page space, expanded slightly. Used for determining which shapes
 	 * to render and which to "cull".
 	 *
 	 * @public
@@ -3145,6 +3154,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.getPage(myPage.id)
 	 * editor.getPage(myPage)
 	 * ```
+	 *
+	 * @param page - The page (or page id) to get.
 	 *
 	 * @public
 	 */
@@ -3270,28 +3281,29 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.updatePage({ id: 'page2', name: 'Page 2' })
-	 * editor.updatePage({ id: 'page2', name: 'Page 2' }, true)
+	 * editor.updatePage({ id: 'page2', name: 'Page 2' }, { squashing: true })
 	 * ```
 	 *
 	 * @param partial - The partial of the shape to update.
+	 * @param historyOptions - (optional) The history options for the change.
 	 *
 	 * @public
 	 */
-	updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing = false): this {
-		this._updatePage(partial, squashing)
+	updatePage(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: CommandHistoryOptions): this {
+		this._updatePage(partial, historyOptions)
 		return this
 	}
 	/** @internal */
 	private _updatePage = this.history.createCommand(
 		'updatePage',
-		(partial: RequiredKeys<TLPage, 'id'>, squashing = false) => {
+		(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: CommandHistoryOptions) => {
 			if (this.instanceState.isReadonly) return null
 
 			const prev = this.getPage(partial.id)
 
 			if (!prev) return null
 
-			return { data: { prev, partial }, squashing }
+			return { data: { prev, partial }, ...historyOptions }
 		},
 		{
 			do: ({ partial }) => {
@@ -3369,7 +3381,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			return {
 				data: {
-					prevSelectedPageId: this.currentPageId,
 					newPage,
 					newTabPageState,
 					newCamera,
@@ -3378,23 +3389,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ newPage, newTabPageState, newCamera }) => {
-				this.store.put([
-					newPage,
-					newCamera,
-					newTabPageState,
-					{ ...this.instanceState, currentPageId: newPage.id },
-				])
-				this.updateRenderingBounds()
+				this.store.put([newPage, newCamera, newTabPageState])
 			},
-			undo: ({ newPage, prevSelectedPageId, newTabPageState, newCamera }) => {
+			undo: ({ newPage, newTabPageState, newCamera }) => {
 				if (this.pages.length === 1) return
 				this.store.remove([newTabPageState.id, newPage.id, newCamera.id])
-
-				if (this.store.has(prevSelectedPageId) && this.currentPageId !== prevSelectedPageId) {
-					this.store.put([{ ...this.instanceState, currentPageId: prevSelectedPageId }])
-				}
-
-				this.updateRenderingBounds()
 			},
 		}
 	)
@@ -3478,17 +3477,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const page = this.getPage(id) // get the most recent version of the page anyway
 		if (!page) return this
 
-		const camera = { ...this.camera }
-		const content = this.getContent(this.getSortedChildIdsForParent(page.id))
+		const prevCamera = { ...this.camera }
+		const content = this.getContentFromCurrentPage(this.getSortedChildIdsForParent(page.id))
 
 		this.batch(() => {
+			// create the page (also creates the pagestate and camera for the new page)
 			this.createPage(page.name + ' Copy', createId, page.index)
+			// set the new page as the current page
 			this.setCurrentPage(createId)
-			this.setCamera(camera)
+			// update the new page's camera to the previous page's camera
+			this.setCamera(prevCamera)
 
-			// will change page automatically
 			if (content) {
-				return this.putContent(content)
+				// If we had content on the previous page, put it on the new page
+				return this.putContentOntoCurrentPage(content)
 			}
 		})
 
@@ -3508,12 +3510,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	renamePage(page: TLPage, name: string, squashing?: boolean): this
-	renamePage(id: TLPageId, name: string, squashing?: boolean): this
-	renamePage(arg: TLPageId | TLPage, name: string, squashing = false) {
+	renamePage(page: TLPage, name: string, historyOptions?: CommandHistoryOptions): this
+	renamePage(id: TLPageId, name: string, historyOptions?: CommandHistoryOptions): this
+	renamePage(arg: TLPageId | TLPage, name: string, historyOptions?: CommandHistoryOptions) {
 		const id = typeof arg === 'string' ? arg : arg.id
 		if (this.instanceState.isReadonly) return this
-		this.updatePage({ id, name }, squashing)
+		this.updatePage({ id, name }, historyOptions)
 		return this
 	}
 
@@ -3822,7 +3824,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the transform of a shape in page space.
+	 * Get the transform of a shape in the current page space.
 	 *
 	 * @example
 	 * ```ts
@@ -3857,7 +3859,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the bounds of a shape in page space.
+	 * Get the bounds of a shape in the current page space.
 	 *
 	 * @example
 	 * ```ts
@@ -3933,7 +3935,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const pageMask = frameAncestors
 				.map<Vec2d[] | undefined>((s) =>
-					// Apply the frame transform to the frame outline to get the frame outline in page space
+					// Apply the frame transform to the frame outline to get the frame outline in the current page space
 					this._shapePageTransformCache.get(s.id)!.applyToPoints(this.getShapeGeometry(s).vertices)
 				)
 				.reduce((acc, b) => {
@@ -3950,7 +3952,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the mask (in page space) for a shape.
+	 * Get the mask (in the current page space) for a shape.
 	 *
 	 * @example
 	 * ```ts
@@ -3970,7 +3972,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Get the bounds of a shape in page space, incorporating any masks. For example, if the
+	 * Get the bounds of a shape in the current page space, incorporating any masks. For example, if the
 	 * shape were the child of a frame and was half way out of the frame, the bounds would be the half
 	 * of the shape that was in the frame.
 	 *
@@ -4330,7 +4332,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Test whether a point (in page space) will will a shape. This method takes into account masks,
+	 * Test whether a point (in the current page space) will will a shape. This method takes into account masks,
 	 * such as when a shape is the child of a frame and is partially clipped by the frame.
 	 *
 	 * @example
@@ -4339,7 +4341,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shape - The shape to test against.
-	 * @param point - The page point to test (in page space).
+	 * @param point - The page point to test (in the current page space).
 	 * @param hitInside - Whether to count as a hit if the point is inside of a closed shape.
 	 *
 	 * @public
@@ -4377,7 +4379,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Convert a point in page space to a point in the local space of a shape. For example, if a
+	 * Convert a point in the current page space to a point in the local space of a shape. For example, if a
 	 * shape's page point were `{ x: 100, y: 100 }`, a page point at `{ x: 110, y: 110 }` would be at
 	 * `{ x: 10, y: 10 }` in the shape's local space.
 	 *
@@ -4399,7 +4401,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Convert a delta in page space to a point in the local space of a shape's parent.
+	 * Convert a delta in the current page space to a point in the local space of a shape's parent.
 	 *
 	 * @example
 	 * ```ts
@@ -5004,7 +5006,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.updateShapes(changes, {
-			ephemeral: false,
 			squashing: true,
 			...historyOptions,
 		})
@@ -5231,7 +5232,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!this.store.has(pageId)) return this
 
 		// Basically copy the shapes
-		const content = this.getContent(ids)
+		const content = this.getContentFromCurrentPage(ids)
 
 		// Just to be sure
 		if (!content) return this
@@ -5257,7 +5258,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// layers so that the content will be put onto the page.
 			this.setFocusedGroupId(null)
 			this.selectNone()
-			this.putContent(content, { select: true, preserveIds: true, preservePosition: true })
+			this.putContentOntoCurrentPage(content, {
+				select: true,
+				preserveIds: true,
+				preservePosition: true,
+			})
 
 			// Force the new page's camera to be at the same zoom level as the
 			// "from" page's camera, then center the "to" page's camera on the
@@ -6254,7 +6259,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// Next we need to translate the shape so that it's center point ends up in the right place.
-		// To do that we first need to calculate the center point of the shape in page space before the scale was applied.
+		// To do that we first need to calculate the center point of the shape in the current page space before the scale was applied.
 		const preScaleShapePageCenter = Matrix2d.applyToPoint(
 			options.initialPageTransform,
 			options.initialBounds.center
@@ -7209,7 +7214,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @example
 	 * ```ts
 	 * editor.setOpacity(0.5)
-	 * editor.setOpacity(0.5, true)
+	 * editor.setOpacity(0.5, { squashing: true })
 	 * ```
 	 *
 	 * @param opacity - The opacity to set. Must be a number between 0 and 1 inclusive.
@@ -7451,9 +7456,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getContent(ids: TLShapeId[]): TLContent | undefined
-	getContent(shapes: TLShape[]): TLContent | undefined
-	getContent(arg: TLShapeId[] | TLShape[]): TLContent | undefined {
+	getContentFromCurrentPage(ids: TLShapeId[]): TLContent | undefined
+	getContentFromCurrentPage(shapes: TLShape[]): TLContent | undefined
+	getContentFromCurrentPage(arg: TLShapeId[] | TLShape[]): TLContent | undefined {
+		// todo: make this work with any page, not just the current page
 		const ids =
 			typeof arg[0] === 'string' ? (arg as TLShapeId[]) : (arg as TLShape[]).map((s) => s.id)
 
@@ -7598,7 +7604,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	putContent(
+	putContentOntoCurrentPage(
 		content: TLContent,
 		options: {
 			point?: VecLike
@@ -7608,6 +7614,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} = {}
 	): this {
 		if (this.instanceState.isReadonly) return this
+
+		// todo: make this able to support putting content onto any page, not just the current page
 
 		if (!content.schema) {
 			throw Error('Could not put content:\ncontent is missing a schema.')
@@ -7693,7 +7701,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			pasteParentId = this.getShape(pasteParentId)!.parentId
 		}
 
-		let index = this.getHighestIndexForParent(pasteParentId)
+		let index = this.getHighestIndexForParent(pasteParentId) // todo: requires that the putting page is the current page
 
 		const rootShapes: TLShape[] = []
 
@@ -8145,15 +8153,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	inputs = {
-		/** The most recent pointer down's position in page space. */
+		/** The most recent pointer down's position in the current page space. */
 		originPagePoint: new Vec2d(),
 		/** The most recent pointer down's position in screen space. */
 		originScreenPoint: new Vec2d(),
-		/** The previous pointer position in page space. */
+		/** The previous pointer position in the current page space. */
 		previousPagePoint: new Vec2d(),
 		/** The previous pointer position in screen space. */
 		previousScreenPoint: new Vec2d(),
-		/** The most recent pointer position in page space. */
+		/** The most recent pointer position in the current page space. */
 		currentPagePoint: new Vec2d(),
 		/** The most recent pointer position in screen space. */
 		currentScreenPoint: new Vec2d(),

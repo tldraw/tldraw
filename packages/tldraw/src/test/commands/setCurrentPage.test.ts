@@ -13,7 +13,11 @@ describe('setCurrentPage', () => {
 		const page2Id = PageRecordType.createId('page2')
 
 		editor.createPage('New Page 2', page2Id)
+		expect(editor.currentPageId).toBe(page1Id)
+
+		editor.setCurrentPage(page2Id)
 		expect(editor.currentPageId).toEqual(page2Id)
+
 		expect(editor.currentPage).toEqual(editor.pages[1])
 
 		editor.setCurrentPage(page1Id)
@@ -22,6 +26,8 @@ describe('setCurrentPage', () => {
 
 		const page3Id = PageRecordType.createId('page3')
 		editor.createPage('New Page 3', page3Id)
+		expect(editor.currentPageId).toBe(page1Id)
+		editor.setCurrentPage(page3Id)
 
 		expect(editor.currentPageId).toEqual(page3Id)
 		expect(editor.currentPage).toEqual(editor.pages[2])
@@ -68,8 +74,8 @@ describe('setCurrentPage', () => {
 	})
 
 	it('logs an error when trying to navigate to a page that does not exist', () => {
-		const page2Id = PageRecordType.createId('page2')
-		editor.createPage('New Page 2', page2Id)
+		const initialPageId = editor.currentPageId
+		expect(editor.currentPageId).toBe(initialPageId)
 		console.error = jest.fn()
 
 		expect(() => {
@@ -77,6 +83,6 @@ describe('setCurrentPage', () => {
 		}).not.toThrow()
 
 		expect(console.error).toHaveBeenCalled()
-		expect(editor.currentPageId).toEqual(page2Id)
+		expect(editor.currentPageId).toBe(initialPageId)
 	})
 })

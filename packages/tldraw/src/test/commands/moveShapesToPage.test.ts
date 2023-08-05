@@ -14,14 +14,18 @@ const ids = {
 
 beforeEach(() => {
 	editor = new TestEditor()
+	const page0Id = editor.currentPageId
 	editor.createPage(ids.page1, ids.page1)
+	expect(editor.currentPageId).toBe(page0Id)
+	editor.setCurrentPage(ids.page1)
+	expect(editor.currentPageId).toBe(ids.page1)
 	editor.createShapes([
 		{ id: ids.ellipse1, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } },
 		{ id: ids.box1, type: 'geo', x: 0, y: 0 },
 		{ id: ids.box2, parentId: ids.box1, type: 'geo', x: 150, y: 150 },
 	])
 	editor.createPage(ids.page2, ids.page2)
-	editor.setCurrentPage(ids.page1)
+	expect(editor.currentPageId).toBe(ids.page1)
 
 	expect(editor.getShape(ids.box1)!.parentId).toEqual(ids.page1)
 	expect(editor.getShape(ids.box2)!.parentId).toEqual(ids.box1)
@@ -104,6 +108,7 @@ describe('Editor.moveShapesToPage', () => {
 		const page2Id = PageRecordType.createId('newPage2')
 
 		editor.createPage('New Page 2', page2Id)
+		editor.setCurrentPage(page2Id)
 		expect(editor.currentPageId).toBe(page2Id)
 		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } }])
 		editor.expectShapeToMatch({
@@ -114,6 +119,8 @@ describe('Editor.moveShapesToPage', () => {
 
 		const page3Id = PageRecordType.createId('newPage3')
 		editor.createPage('New Page 3', page3Id)
+
+		editor.setCurrentPage(page3Id)
 		expect(editor.currentPageId).toBe(page3Id)
 		editor.createShapes([{ id: ids.box2, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } }])
 		editor.expectShapeToMatch({

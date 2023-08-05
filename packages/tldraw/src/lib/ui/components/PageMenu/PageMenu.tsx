@@ -240,10 +240,13 @@ export const PageMenu = function PageMenu() {
 	const handleCreatePageClick = useCallback(() => {
 		if (isReadonlyMode) return
 
-		editor.mark('creating page')
-		const newPageId = PageRecordType.createId()
-		editor.createPage(msg('page-menu.new-page-initial-name'), newPageId)
-		setIsEditing(true)
+		editor.batch(() => {
+			editor.mark('creating page')
+			const newPageId = PageRecordType.createId()
+			editor.createPage(msg('page-menu.new-page-initial-name'), newPageId)
+			editor.setCurrentPage(newPageId)
+			setIsEditing(true)
+		})
 	}, [editor, msg, isReadonlyMode])
 
 	return (
@@ -383,8 +386,10 @@ export const PageMenu = function PageMenu() {
 															editor.renamePage(page.id, name)
 														}
 													} else {
-														setIsEditing(true)
-														editor.setCurrentPage(page.id)
+														editor.batch(() => {
+															setIsEditing(true)
+															editor.setCurrentPage(page.id)
+														})
 													}
 												}}
 											/>

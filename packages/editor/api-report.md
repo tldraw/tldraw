@@ -663,8 +663,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
     // (undocumented)
     getAncestorPageId(shapeId?: TLShapeId): TLPageId | undefined;
+    getArrowInfo(shape: TLArrowShape): TLArrowInfo | undefined;
     // (undocumented)
-    getArrowInfo(shape: TLArrowShape): ArrowInfo | undefined;
+    getArrowInfo(id: TLShapeId): TLArrowInfo | undefined;
     getArrowsBoundTo(shapeId: TLShapeId): {
         arrowId: TLShapeId;
         handleId: "end" | "start";
@@ -674,9 +675,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getAsset(id: TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent_2): Promise<TLAsset | undefined>;
     getContainer: () => HTMLElement;
-    getContent(ids: TLShapeId[]): TLContent | undefined;
+    getContentFromCurrentPage(ids: TLShapeId[]): TLContent | undefined;
     // (undocumented)
-    getContent(shapes: TLShape[]): TLContent | undefined;
+    getContentFromCurrentPage(shapes: TLShape[]): TLContent | undefined;
     getCurrentPageShapeIds(pageId: TLPageId): Set<TLShapeId>;
     // (undocumented)
     getCurrentPageShapeIds(page: TLPage): Set<TLShapeId>;
@@ -847,7 +848,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     pan(offset: VecLike, animation?: TLAnimationOptions): this;
     panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
     popFocusLayer(): this;
-    putContent(content: TLContent, options?: {
+    putContentOntoCurrentPage(content: TLContent, options?: {
         point?: VecLike;
         select?: boolean;
         preservePosition?: boolean;
@@ -861,9 +862,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     registerExternalContentHandler<T extends TLExternalContent_2['type']>(type: T, handler: ((info: T extends TLExternalContent_2['type'] ? TLExternalContent_2 & {
         type: T;
     } : TLExternalContent_2) => void) | null): this;
-    renamePage(page: TLPage, name: string, squashing?: boolean): this;
+    renamePage(page: TLPage, name: string, historyOptions?: CommandHistoryOptions): this;
     // (undocumented)
-    renamePage(id: TLPageId, name: string, squashing?: boolean): this;
+    renamePage(id: TLPageId, name: string, historyOptions?: CommandHistoryOptions): this;
     get renderingBounds(): Box2d;
     get renderingBoundsExpanded(): Box2d;
     renderingBoundsMargin: number;
@@ -970,7 +971,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     updateCurrentPageState(partial: Partial<Omit<TLInstancePageState, 'editingShapeId' | 'focusedGroupId' | 'pageId' | 'selectedShapeIds'>>, historyOptions?: CommandHistoryOptions): this;
     updateDocumentSettings(settings: Partial<TLDocument>): this;
     updateInstanceState(partial: Partial<Omit<TLInstance, 'currentPageId'>>, historyOptions?: CommandHistoryOptions): this;
-    updatePage(partial: RequiredKeys<TLPage, 'id'>, squashing?: boolean): this;
+    updatePage(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: CommandHistoryOptions): this;
     // @internal
     updateRenderingBounds(): this;
     updateShape<T extends TLUnknownShape>(partial: null | TLShapePartial<T> | undefined, historyOptions?: CommandHistoryOptions): this;
@@ -1126,7 +1127,7 @@ export abstract class Geometry2d {
 export function getArcLength(C: VecLike, r: number, A: VecLike, B: VecLike): number;
 
 // @public (undocumented)
-export function getArrowheadPathForType(info: ArrowInfo, side: 'end' | 'start', strokeWidth: number): string | undefined;
+export function getArrowheadPathForType(info: TLArrowInfo, side: 'end' | 'start', strokeWidth: number): string | undefined;
 
 // @public (undocumented)
 export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShape): {
@@ -1138,7 +1139,7 @@ export function getArrowTerminalsInArrowSpace(editor: Editor, shape: TLArrowShap
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
 
 // @public
-export function getCurvedArrowHandlePath(info: ArrowInfo & {
+export function getCurvedArrowHandlePath(info: TLArrowInfo & {
     isStraight: false;
 }): string;
 
@@ -1196,12 +1197,12 @@ export function getRotationSnapshot({ editor }: {
 }): null | TLRotationSnapshot;
 
 // @public
-export function getSolidCurvedArrowPath(info: ArrowInfo & {
+export function getSolidCurvedArrowPath(info: TLArrowInfo & {
     isStraight: false;
 }): string;
 
 // @public (undocumented)
-export function getSolidStraightArrowPath(info: ArrowInfo & {
+export function getSolidStraightArrowPath(info: TLArrowInfo & {
     isStraight: true;
 }): string;
 
@@ -1209,7 +1210,7 @@ export function getSolidStraightArrowPath(info: ArrowInfo & {
 export const getStarBounds: (sides: number, w: number, h: number) => Box2d;
 
 // @public (undocumented)
-export function getStraightArrowHandlePath(info: ArrowInfo & {
+export function getStraightArrowHandlePath(info: TLArrowInfo & {
     isStraight: true;
 }): string;
 

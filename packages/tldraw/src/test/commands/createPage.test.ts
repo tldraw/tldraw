@@ -10,13 +10,21 @@ beforeEach(() => {
 it('Creates a page', () => {
 	const oldPageId = editor.currentPageId
 	const n = editor.pages.length
+	editor.mark('creating new page')
 	editor.createPage('Page 1')
 	expect(editor.pages.length).toBe(n + 1)
 	const newPageId = editor.pages[n].id
+	// does not move to the new page right away
+	expect(editor.currentPageId).toBe(oldPageId)
+
+	// needs to be done manually
+	editor.setCurrentPage(newPageId)
 	expect(editor.currentPageId).toBe(newPageId)
+
 	editor.undo()
 	expect(editor.pages.length).toBe(n)
 	expect(editor.currentPageId).toBe(oldPageId)
+
 	editor.redo()
 	expect(editor.pages.length).toBe(n + 1)
 	expect(editor.currentPageId).toBe(newPageId)
