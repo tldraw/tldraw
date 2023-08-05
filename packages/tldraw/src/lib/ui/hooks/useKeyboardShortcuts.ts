@@ -39,20 +39,13 @@ export function useKeyboardShortcuts() {
 		const areShortcutsDisabled = () =>
 			editor.isMenuOpen || editor.editingShapeId !== null || editor.crashingError
 
-		const areShortcutsDisabledPermittingMenus = () =>
-			editor.editingShapeId !== null || editor.crashingError
-
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
 			if (isReadonly && !action.readonlyOk) continue
 			if (SKIP_KBDS.includes(action.id)) continue
 
 			hot(getHotkeysStringFromKbd(action.kbd), (event) => {
-				if (action.id === 'undo' || action.id === 'redo') {
-					if (areShortcutsDisabledPermittingMenus()) return
-				} else {
-					if (areShortcutsDisabled()) return
-				}
+				if (areShortcutsDisabled()) return
 				preventDefault(event)
 				action.onSelect('kbd')
 			})
