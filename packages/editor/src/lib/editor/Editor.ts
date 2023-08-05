@@ -3330,9 +3330,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.createPage({ name: 'Page 2' })
 	 * ```
 	 *
-	 * @param title - The new page's title.
-	 * @param id - (optional) The new page's id.
-	 * @param index - (optional) The index at which to create the new page.
+	 * @param page - The page (or page partial) to create.
 	 *
 	 * @public
 	 */
