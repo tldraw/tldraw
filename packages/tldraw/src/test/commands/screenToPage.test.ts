@@ -7,7 +7,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 })
 
-function check(screen: VecLike, page: VecLike) {
+function checkScreenPage(screen: VecLike, page: VecLike) {
 	const pageResult = editor.screenToPage(screen)
 	expect(pageResult).toMatchObject(page)
 	const screenResult = editor.pageToScreen(pageResult)
@@ -16,42 +16,42 @@ function check(screen: VecLike, page: VecLike) {
 
 describe('viewport.screenToPage', () => {
 	it('converts correctly', () => {
-		check({ x: 0, y: 0 }, { x: 0, y: 0 })
-		check({ x: 100, y: 100 }, { x: 100, y: 100 })
-		check({ x: -100, y: -100 }, { x: -100, y: -100 })
+		checkScreenPage({ x: 0, y: 0 }, { x: 0, y: 0 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 100, y: 100 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -100, y: -100 })
 	})
 
 	it('converts correctly when zoomed', () => {
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
 
-		check({ x: 0, y: 0 }, { x: 0, y: 0 })
-		check({ x: 100, y: 100 }, { x: 200, y: 200 })
-		check({ x: -100, y: -100 }, { x: -200, y: -200 })
+		checkScreenPage({ x: 0, y: 0 }, { x: 0, y: 0 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 200, y: 200 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -200, y: -200 })
 	})
 
 	it('converts correctly when panned', () => {
 		editor.setCamera({ x: 100, y: 100 })
 
-		check({ x: 0, y: 0 }, { x: -100, y: -100 })
-		check({ x: 100, y: 100 }, { x: 0, y: 0 })
-		check({ x: -100, y: -100 }, { x: -200, y: -200 })
+		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 0, y: 0 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -200, y: -200 })
 	})
 
 	it('converts correctly when panned and zoomed', () => {
 		editor.setCamera({ x: 100, y: 100, z: 0.5 })
 
-		check({ x: 0, y: 0 }, { x: -100, y: -100 })
-		check({ x: 100, y: 100 }, { x: 100, y: 100 })
-		check({ x: -100, y: -100 }, { x: -300, y: -300 })
-		check({ x: -150, y: -150 }, { x: -400, y: -400 })
+		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 100, y: 100 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -300, y: -300 })
+		checkScreenPage({ x: -150, y: -150 }, { x: -400, y: -400 })
 	})
 
 	it('converts correctly when offset', () => {
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 100, y: 100 } })
 
-		check({ x: 0, y: 0 }, { x: -100, y: -100 })
-		check({ x: -100, y: -100 }, { x: -200, y: -200 })
-		check({ x: 100, y: 100 }, { x: 0, y: 0 })
+		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -200, y: -200 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 0, y: 0 })
 	})
 
 	it('converts correctly when zoomed out', () => {
@@ -59,18 +59,18 @@ describe('viewport.screenToPage', () => {
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 0, y: 0 } })
 
-		check({ x: 0, y: 0 }, { x: 0, y: 0 })
-		check({ x: -100, y: -100 }, { x: -200, y: -200 })
-		check({ x: 100, y: 100 }, { x: 200, y: 200 })
+		checkScreenPage({ x: 0, y: 0 }, { x: 0, y: 0 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -200, y: -200 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 200, y: 200 })
 	})
 
 	it('converts correctly when zoomed in', () => {
 		editor.setCamera({ x: 0, y: 0, z: 2 })
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 0, y: 0 } })
 
-		check({ x: 0, y: 0 }, { x: 0, y: 0 })
-		check({ x: -100, y: -100 }, { x: -50, y: -50 })
-		check({ x: 100, y: 100 }, { x: 50, y: 50 })
+		checkScreenPage({ x: 0, y: 0 }, { x: 0, y: 0 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -50, y: -50 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 50, y: 50 })
 	})
 
 	it('converts correctly when zoomed', () => {
@@ -78,63 +78,63 @@ describe('viewport.screenToPage', () => {
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 0, y: 0 } })
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
 
-		check({ x: 0, y: 0 }, { x: 0, y: 0 })
-		check({ x: -100, y: -100 }, { x: -200, y: -200 })
-		check({ x: 100, y: 100 }, { x: 200, y: 200 })
+		checkScreenPage({ x: 0, y: 0 }, { x: 0, y: 0 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -200, y: -200 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 200, y: 200 })
 	})
 
 	it('converts correctly when offset and zoomed', () => {
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 100, y: 100 } })
 
-		check({ x: 0, y: 0 }, { x: -200, y: -200 })
-		check({ x: -100, y: -100 }, { x: -400, y: -400 })
-		check({ x: 100, y: 100 }, { x: 0, y: 0 })
+		checkScreenPage({ x: 0, y: 0 }, { x: -200, y: -200 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -400, y: -400 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 0, y: 0 })
 	})
 
 	it('converts correctly when zoomed and panned', () => {
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 0, y: 0 } })
 		editor.setCamera({ x: 100, y: 100, z: 0.5 })
 
-		check({ x: 0, y: 0 }, { x: -100, y: -100 })
-		check({ x: -100, y: -100 }, { x: -300, y: -300 })
-		check({ x: 100, y: 100 }, { x: 100, y: 100 })
+		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
+		checkScreenPage({ x: -100, y: -100 }, { x: -300, y: -300 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 100, y: 100 })
 	})
 
 	it('converts correctly when offset', () => {
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 100, y: 100 } })
 		editor.setCamera({ x: 0, y: 0, z: 0.5 })
 
-		check({ x: 0, y: 0 }, { x: -200, y: -200 })
-		check({ x: 100, y: 100 }, { x: 0, y: 0 })
-		check({ x: 200, y: 200 }, { x: 200, y: 200 })
+		checkScreenPage({ x: 0, y: 0 }, { x: -200, y: -200 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 0, y: 0 })
+		checkScreenPage({ x: 200, y: 200 }, { x: 200, y: 200 })
 	})
 
 	it('converts correctly when panned', () => {
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 0, y: 0 } })
 		editor.setCamera({ x: 100, y: 100, z: 1 })
 
-		check({ x: 0, y: 0 }, { x: -100, y: -100 })
-		check({ x: 100, y: 100 }, { x: 0, y: 0 })
-		check({ x: 200, y: 200 }, { x: 100, y: 100 })
+		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 0, y: 0 })
+		checkScreenPage({ x: 200, y: 200 }, { x: 100, y: 100 })
 	})
 
 	it('converts correctly when panned and zoomed', () => {
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 0, y: 0 } })
 		editor.setCamera({ x: 100, y: 100, z: 0.5 })
 
-		check({ x: 0, y: 0 }, { x: -100, y: -100 })
-		check({ x: 100, y: 100 }, { x: 100, y: 100 })
-		check({ x: 200, y: 200 }, { x: 300, y: 300 })
+		checkScreenPage({ x: 0, y: 0 }, { x: -100, y: -100 })
+		checkScreenPage({ x: 100, y: 100 }, { x: 100, y: 100 })
+		checkScreenPage({ x: 200, y: 200 }, { x: 300, y: 300 })
 	})
 
 	it('converts correctly when panned and zoomed and offset', () => {
 		editor.updateInstanceState({ screenBounds: { ...editor.viewportScreenBounds, x: 100, y: 100 } })
 		editor.setCamera({ x: 100, y: 100, z: 0.5 })
 
-		check({ x: 0, y: 0 }, { x: -300, y: -300 })
-		check({ x: 100, y: 100 }, { x: -100, y: -100 })
-		check({ x: 200, y: 200 }, { x: 100, y: 100 })
+		checkScreenPage({ x: 0, y: 0 }, { x: -300, y: -300 })
+		checkScreenPage({ x: 100, y: 100 }, { x: -100, y: -100 })
+		checkScreenPage({ x: 200, y: 200 }, { x: 100, y: 100 })
 	})
 })
 
