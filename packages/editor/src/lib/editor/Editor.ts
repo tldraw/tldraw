@@ -1978,7 +1978,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return new Set<TLShapeId>(this.erasingShapeIds)
 	}
 
-	// Cropping shape
+	// Cropping
 
 	/**
 	 * The current cropping shape's id.
