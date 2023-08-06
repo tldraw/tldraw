@@ -168,6 +168,7 @@ export class SideEffectManager<
 		const handlers = this._beforeCreateHandlers[typeName] as TLBeforeCreateHandler<any>[]
 		if (!handlers) this._beforeCreateHandlers[typeName] = []
 		this._beforeCreateHandlers[typeName]!.push(handler)
+		return () => remove(this._beforeCreateHandlers[typeName]!, handler)
 	}
 
 	registerAfterCreateHandler<T extends TLRecord['typeName']>(
@@ -177,6 +178,7 @@ export class SideEffectManager<
 		const handlers = this._afterCreateHandlers[typeName] as TLAfterCreateHandler<any>[]
 		if (!handlers) this._afterCreateHandlers[typeName] = []
 		this._afterCreateHandlers[typeName]!.push(handler)
+		return () => remove(this._afterCreateHandlers[typeName]!, handler)
 	}
 
 	registerBeforeChangeHandler<T extends TLRecord['typeName']>(
@@ -186,6 +188,7 @@ export class SideEffectManager<
 		const handlers = this._beforeChangeHandlers[typeName] as TLBeforeChangeHandler<any>[]
 		if (!handlers) this._beforeChangeHandlers[typeName] = []
 		this._beforeChangeHandlers[typeName]!.push(handler)
+		return () => remove(this._beforeChangeHandlers[typeName]!, handler)
 	}
 
 	registerAfterChangeHandler<T extends TLRecord['typeName']>(
@@ -195,6 +198,7 @@ export class SideEffectManager<
 		const handlers = this._afterChangeHandlers[typeName] as TLAfterChangeHandler<any>[]
 		if (!handlers) this._afterChangeHandlers[typeName] = []
 		this._afterChangeHandlers[typeName]!.push(handler as TLAfterChangeHandler<any>)
+		return () => remove(this._afterChangeHandlers[typeName]!, handler)
 	}
 
 	registerBeforeDeleteHandler<T extends TLRecord['typeName']>(
@@ -204,6 +208,7 @@ export class SideEffectManager<
 		const handlers = this._beforeDeleteHandlers[typeName] as TLBeforeDeleteHandler<any>[]
 		if (!handlers) this._beforeDeleteHandlers[typeName] = []
 		this._beforeDeleteHandlers[typeName]!.push(handler as TLBeforeDeleteHandler<any>)
+		return () => remove(this._beforeDeleteHandlers[typeName]!, handler)
 	}
 
 	registerAfterDeleteHandler<T extends TLRecord['typeName']>(
@@ -213,6 +218,7 @@ export class SideEffectManager<
 		const handlers = this._afterDeleteHandlers[typeName] as TLAfterDeleteHandler<any>[]
 		if (!handlers) this._afterDeleteHandlers[typeName] = []
 		this._afterDeleteHandlers[typeName]!.push(handler as TLAfterDeleteHandler<any>)
+		return () => remove(this._afterDeleteHandlers[typeName]!, handler)
 	}
 
 	/**
@@ -241,5 +247,13 @@ export class SideEffectManager<
 	 */
 	registerBatchCompleteHandler(handler: TLBatchCompleteHandler) {
 		this._batchCompleteHandlers.push(handler)
+		return () => remove(this._batchCompleteHandlers, handler)
+	}
+}
+
+function remove(array: any[], item: any) {
+	const index = array.indexOf(item)
+	if (index >= 0) {
+		array.splice(index, 1)
 	}
 }

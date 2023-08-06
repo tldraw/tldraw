@@ -614,7 +614,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     deselect(...ids: TLShapeId[]): this;
     // (undocumented)
     deselect(...shapes: TLShape[]): this;
-    dispatch(info: TLEventInfo): this;
+    dispatch: (info: TLEventInfo) => this;
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical'): this;
@@ -631,7 +631,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get editingShapeId(): null | TLShapeId;
     readonly environment: EnvironmentManager;
     get erasingShapeIds(): TLShapeId[];
-    get erasingShapeIdsSet(): Set<TLShapeId>;
     get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -877,7 +876,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         backgroundIndex: number;
         opacity: number;
         isCulled: boolean;
-        isInViewport: boolean;
         maskedPageBounds: Box2d | undefined;
     }[];
     reparentShapes(shapes: TLShape[], parentId: TLParentId, insertIndex?: string): this;

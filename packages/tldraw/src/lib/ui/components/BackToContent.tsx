@@ -15,13 +15,15 @@ export function BackToContent() {
 		let showBackToContentPrev = false
 
 		const interval = setInterval(() => {
-			const { renderingShapes } = editor
+			const { renderingShapes, renderingBounds } = editor
 
 			// renderingShapes will also include shapes that have the canUnmount flag
 			// set to true. These shapes will be on the canvas but may not be in the
 			// viewport... so we also need to narrow down the list to only shapes that
 			// are ALSO in the viewport.
-			const visibleShapes = renderingShapes.filter((s) => s.isInViewport)
+			const visibleShapes = renderingShapes.filter(
+				(s) => s.maskedPageBounds && renderingBounds.includes(s.maskedPageBounds)
+			)
 			const showBackToContentNow = visibleShapes.length === 0 && editor.currentPageShapes.length > 0
 
 			if (showBackToContentPrev !== showBackToContentNow) {

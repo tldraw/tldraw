@@ -1962,20 +1962,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 			typeof arg[0] === 'string'
 				? (arg as TLShapeId[])
 				: (arg as TLShape[]).map((shape) => shape.id)
-		const erasingShapeIds = this.erasingShapeIdsSet
-		if (ids.length === erasingShapeIds.size && ids.every((id) => erasingShapeIds.has(id)))
-			return this
-		this._setInstancePageState({ erasingShapeIds: ids }, { ephemeral: true })
-		return this
-	}
+		ids.sort() // sort the incoming ids
+		const { erasingShapeIds } = this
+		if (ids.length === erasingShapeIds.length) {
+			// if the new ids are the same length as the current ids, they might be the same.
+			// presuming the current ids are also sorted, check each item to see if it's the same;
+			// if we find any unequal, then we know the new ids are different.
+			for (let i = 0; i < ids.length; i++) {
+				if (ids[i] !== erasingShapeIds[i]) {
+					this._setInstancePageState({ erasingShapeIds: ids }, { ephemeral: true })
+					break
+				}
+			}
+		} else {
+			// if the ids are a different length, then we know they're different.
+			this._setInstancePageState({ erasingShapeIds: ids }, { ephemeral: true })
+		}
 
-	/**
-	 * A derived set containing the current erasing ids.
-	 *
-	 * @public
-	 */
-	@computed get erasingShapeIdsSet() {
-		return new Set<TLShapeId>(this.erasingShapeIds)
+		return this
 	}
 
 	// Cropping
@@ -2010,9 +2014,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (id !== this.croppingShapeId) {
 			if (!id) {
 				this.updateCurrentPageState({ croppingShapeId: null })
-				if (this.isInAny('select.crop', 'select.pointing_crop_handle', 'select.cropping')) {
-					this.setCurrentTool('select.idle')
-				}
 			} else {
 				const shape = this.getShape(id)!
 				const util = this.getShapeUtil(shape)
@@ -3024,20 +3025,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private getUnorderedRenderingShapes(
-		ids: TLParentId[],
-		{
-			renderingBounds,
-			renderingBoundsExpanded,
-			erasingShapeIdsSet,
-			editingShapeId,
-			selectedShapeIds,
-		}: {
-			renderingBounds?: Box2d
-			renderingBoundsExpanded?: Box2d
-			erasingShapeIdsSet?: Set<TLShapeId>
-			editingShapeId?: TLShapeId | null
-			selectedShapeIds?: TLShapeId[]
-		} = {}
+		// The rendering state. We use this method both for rendering, which
+		// is based on other state, and for computing order for SVG export,
+		// which should work even when things are for example off-screen.
+		useEditorState: boolean
 	) {
 		// Here we get the shape as well as any of its children, as well as their
 		// opacities. If the shape is being erased, and none of its ancestors are
@@ -3057,54 +3048,57 @@ export class Editor extends EventEmitter<TLEventMap> {
 			backgroundIndex: number
 			opacity: number
 			isCulled: boolean
-			isInViewport: boolean
 			maskedPageBounds: Box2d | undefined
 		}[] = []
 
 		let nextIndex = MAX_SHAPES_PER_PAGE
 		let nextBackgroundIndex = 0
 
-		const addShapeById = (id: TLParentId, parentOpacity: number, isAncestorErasing: boolean) => {
-			if (PageRecordType.isId(id)) {
-				for (const childId of this.getSortedChildIdsForParent(id)) {
-					addShapeById(childId, parentOpacity, isAncestorErasing)
-				}
-				return
-			}
+		// We only really need these if we're using editor state, but that's ok
+		const editingShapeId = this.editingShapeId
+		const selectedShapeIds = this.selectedShapeIds
+		const erasingShapeIds = this.erasingShapeIds
+		const renderingBoundsExpanded = this.renderingBoundsExpanded
 
-			const shape = this.getShape(id)
+		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
+		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
+
+		let shape: TLShape | undefined
+		let opacity: number
+		let isShapeErasing: boolean
+		let isCulled: boolean
+		let util: ShapeUtil
+		let maskedPageBounds: Box2d | undefined
+
+		const addShapeById = (id: TLShapeId, parentOpacity: number, isAncestorErasing: boolean) => {
+			shape = this.getShape(id)
 			if (!shape) return
 
-			let opacity = shape.opacity * parentOpacity
-			let isShapeErasing = false
+			opacity = shape.opacity * parentOpacity
+			isShapeErasing = false
+			isCulled = false
+			util = this.getShapeUtil(shape)
+			maskedPageBounds = this.getShapeMaskedPageBounds(id)
 
-			if (!isAncestorErasing && erasingShapeIdsSet?.has(id)) {
-				isShapeErasing = true
-				opacity *= 0.32
+			if (useEditorState) {
+				if (!isAncestorErasing && erasingShapeIds.includes(id)) {
+					isShapeErasing = true
+					opacity *= 0.32
+				}
+
+				isCulled =
+					isCullingOffScreenShapes &&
+					// only cull shapes that allow unmounting, i.e. not stateful components
+					util.canUnmount(shape) &&
+					// never cull editingg shapes
+					editingShapeId !== id &&
+					// if the shape is fully outside of its parent's clipping bounds...
+					(maskedPageBounds === undefined ||
+						// ...or if the shape is outside of the expanded viewport bounds...
+						(!renderingBoundsExpanded.includes(maskedPageBounds) &&
+							// ...and if it's not selected... then cull it
+							!selectedShapeIds.includes(id)))
 			}
-
-			// If a child is outside of its parent's clipping bounds, then bounds will be undefined.
-			const maskedPageBounds = this.getShapeMaskedPageBounds(id)
-
-			// Whether the shape is on screen. Use the "strict" viewport here.
-			const isInViewport = maskedPageBounds
-				? renderingBounds?.includes(maskedPageBounds) ?? true
-				: false
-
-			const util = this.getShapeUtil(shape)
-
-			const isCulled =
-				// shapes completely clipped by parent are always culled
-				maskedPageBounds === undefined
-					? true
-					: // some shapes can't be unmounted / culled
-					  util.canUnmount(shape) &&
-					  // editing shapes can't be culled
-					  editingShapeId !== id &&
-					  // selected shapes can't be culled
-					  !selectedShapeIds?.includes(id) &&
-					  // shapes outside of the viewport are culled
-					  !!(renderingBoundsExpanded && !renderingBoundsExpanded.includes(maskedPageBounds))
 
 			renderingShapes.push({
 				id,
@@ -3114,7 +3108,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				backgroundIndex: nextBackgroundIndex,
 				opacity,
 				isCulled,
-				isInViewport,
 				maskedPageBounds,
 			})
 
@@ -3140,8 +3133,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		for (const id of ids) {
-			addShapeById(id, 1, false)
+		for (const childId of this.getSortedChildIdsForParent(this.currentPageId)) {
+			addShapeById(childId, 1, false)
 		}
 
 		return renderingShapes
@@ -3153,13 +3146,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get renderingShapes() {
-		const renderingShapes = this.getUnorderedRenderingShapes([this.currentPageId], {
-			renderingBounds: this.renderingBounds,
-			renderingBoundsExpanded: this.renderingBoundsExpanded,
-			erasingShapeIdsSet: this.erasingShapeIdsSet,
-			editingShapeId: this.editingShapeId,
-			selectedShapeIds: this.selectedShapeIds,
-		})
+		const renderingShapes = this.getUnorderedRenderingShapes(true)
 
 		// Its IMPORTANT that the result be sorted by id AND include the index
 		// that the shape should be displayed at. Steve, this is the past you
@@ -3215,9 +3202,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { viewportPageBounds } = this
 		if (viewportPageBounds.equals(this._renderingBounds.__unsafe__getWithoutCapture())) return this
 		this._renderingBounds.set(viewportPageBounds.clone())
-		this._renderingBoundsExpanded.set(
-			viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.zoomLevel)
-		)
+
+		if (Number.isFinite(this.renderingBoundsMargin)) {
+			this._renderingBoundsExpanded.set(
+				viewportPageBounds.clone().expandBy(this.renderingBoundsMargin / this.zoomLevel)
+			)
+		} else {
+			this._renderingBoundsExpanded.set(viewportPageBounds)
+		}
 		return this
 	}
 
@@ -8055,8 +8047,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// ---Figure out which shapes we need to include
 		const shapeIdsToInclude = this.getShapeAndDescendantIds(ids)
-		const renderingShapes = this.getUnorderedRenderingShapes([this.currentPageId]).filter(
-			({ id }) => shapeIdsToInclude.has(id)
+		const renderingShapes = this.getUnorderedRenderingShapes(false).filter(({ id }) =>
+			shapeIdsToInclude.has(id)
 		)
 
 		// --- Common bounding box of all shapes
@@ -8485,7 +8477,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	dispatch(info: TLEventInfo): this {
+	dispatch = (info: TLEventInfo): this => {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.crashingError) return this
