@@ -8366,7 +8366,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	dispatch(info: TLEventInfo): this {
+	dispatch = (info: TLEventInfo): this => {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.crashingError) return this

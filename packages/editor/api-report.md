@@ -614,7 +614,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     deselect(...ids: TLShapeId[]): this;
     // (undocumented)
     deselect(...shapes: TLShape[]): this;
-    dispatch(info: TLEventInfo): this;
+    dispatch: (info: TLEventInfo) => this;
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical'): this;

@@ -42,8 +42,9 @@ export class Idle extends StateNode {
 		if (this.editor.isMenuOpen) return
 
 		if (info.ctrlKey) {
-			this.editor.setCroppingShapeId(null)
-			this.editor.setCurrentTool('select.brushing', info)
+			this.cancel()
+			// feed the event back into the statechart
+			this.editor.root.handleEvent(info)
 			return
 		}
 
@@ -60,7 +61,8 @@ export class Idle extends StateNode {
 				}
 
 				this.cancel()
-				this.editor.dispatch(info)
+				// feed the event back into the statechart
+				this.editor.root.handleEvent(info)
 				break
 			}
 			case 'shape': {
@@ -74,7 +76,8 @@ export class Idle extends StateNode {
 						this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					} else {
 						this.cancel()
-						this.editor.dispatch(info)
+						// feed the event back into the statechart
+						this.editor.root.handleEvent(info)
 					}
 				}
 				break
