@@ -1831,7 +1831,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	// Hovered Id
+	// Hovered
 
 	/**
 	 * The current hovered shape id.
@@ -1920,6 +1920,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.updateCurrentPageState({ hintingShapeIds: dedupe(ids) }, { ephemeral: true })
 		return this
 	}
+
+	// Erasing
 
 	/**
 	 * The editor's current erasing ids.
