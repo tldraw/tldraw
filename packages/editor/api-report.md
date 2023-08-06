@@ -632,6 +632,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly environment: EnvironmentManager;
     get erasingShapeIds(): TLShapeId[];
     get erasingShapeIdsSet(): Set<TLShapeId>;
+    get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAssetContent_2['type']]: {
@@ -846,7 +847,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     pan(offset: VecLike, animation?: TLAnimationOptions): this;
     panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
-    popFocusLayer(): this;
+    popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, options?: {
         point?: VecLike;
         select?: boolean;

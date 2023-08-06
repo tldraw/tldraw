@@ -94,7 +94,7 @@ export class PointingShape extends StateNode {
 					this.editor.mark('clearing shape ids')
 					this.editor.setSelectedShapeIds([])
 				} else {
-					this.editor.popFocusLayer()
+					this.editor.popFocusedGroupId()
 				}
 				this.parent.transition('idle', info)
 				return

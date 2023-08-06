@@ -349,7 +349,7 @@ export class Idle extends StateNode {
 			this.editor.focusedGroupId !== this.editor.currentPageId &&
 			this.editor.selectedShapeIds.length > 0
 		) {
-			this.editor.popFocusLayer()
+			this.editor.popFocusedGroupId()
 		} else {
 			this.editor.mark('clearing selection')
 			this.editor.selectNone()

@@ -1736,7 +1736,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	popFocusLayer(): this {
+	popFocusedGroupId(): this {
 		const current = this.currentPageState.focusedGroupId
 		const focusedShape = current && this.getShape(current)
 
@@ -1873,7 +1873,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the editor's current hinting shape ids.
+	 * Set the editor's current hinting shapes.
 	 *
 	 * @example
 	 * ```ts
@@ -1904,6 +1904,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed get erasingShapeIds() {
 		return this.currentPageState.erasingShapeIds
+	}
+
+	/**
+	 * The editor's current hinting shapes.
+	 *
+	 * @public
+	 */
+	@computed get erasingShapes() {
+		const { erasingShapeIds } = this
+		return compact(erasingShapeIds.map((id) => this.getShape(id)))
 	}
 
 	/**

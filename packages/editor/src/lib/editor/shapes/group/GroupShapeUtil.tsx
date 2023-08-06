@@ -101,13 +101,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		const children = this.editor.getSortedChildIdsForParent(group.id)
 		if (children.length === 0) {
 			if (this.editor.currentPageState.focusedGroupId === group.id) {
-				this.editor.popFocusLayer()
+				this.editor.popFocusedGroupId()
 			}
 			this.editor.deleteShapes([group.id])
 			return
 		} else if (children.length === 1) {
 			if (this.editor.currentPageState.focusedGroupId === group.id) {
-				this.editor.popFocusLayer()
+				this.editor.popFocusedGroupId()
 			}
 			this.editor.reparentShapes(children, group.parentId)
 			this.editor.deleteShapes([group.id])
