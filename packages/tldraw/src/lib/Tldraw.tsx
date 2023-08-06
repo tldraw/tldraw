@@ -18,6 +18,7 @@ import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
 import { useRegisterExternalContentHandlers } from './useRegisterExternalContentHandlers'
+import { useSideEffects } from './useSideEffects'
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './utils/assetUrls'
 import { usePreloadAssets } from './utils/usePreloadAssets'
 
@@ -84,6 +85,7 @@ export function Tldraw(
 
 function Hacks() {
 	useRegisterExternalContentHandlers()
+	useSideEffects()
 
 	return null
 }

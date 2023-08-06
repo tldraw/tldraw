@@ -63,49 +63,41 @@ it('updates the rendering viewport when the camera stops moving', () => {
 it('lists shapes in viewport', () => {
 	const ids = createShapes()
 	editor.selectNone()
-	expect(
-		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
-	).toStrictEqual([
-		[ids.A, false, true], // A is within the expanded rendering bounds, so should not be culled; and it's in the regular viewport too, so it's on screen.
-		[ids.B, false, true],
-		[ids.C, false, true],
-		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
+	expect(editor.renderingShapes.map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
+		[ids.A, false], // A is within the expanded rendering bounds, so should not be culled; and it's in the regular viewport too, so it's on screen.
+		[ids.B, false],
+		[ids.C, false],
+		[ids.D, true], // D is clipped and so should always be culled / outside of viewport
 	])
 
 	// Move the camera 201 pixels to the right and 201 pixels down
 	editor.pan({ x: -201, y: -201 })
 	jest.advanceTimersByTime(500)
 
-	expect(
-		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
-	).toStrictEqual([
-		[ids.A, false, false], // A should not be culled, even though it's no longer in the viewport (because it's still in the EXPANDED viewport)
-		[ids.B, false, true],
-		[ids.C, false, true],
-		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
+	expect(editor.renderingShapes.map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
+		[ids.A, false], // A should not be culled, even though it's no longer in the viewport (because it's still in the EXPANDED viewport)
+		[ids.B, false],
+		[ids.C, false],
+		[ids.D, true], // D is clipped and so should always be culled / outside of viewport
 	])
 
 	editor.pan({ x: -100, y: -100 })
 	jest.advanceTimersByTime(500)
 
-	expect(
-		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
-	).toStrictEqual([
-		[ids.A, true, false], // A should be culled now that it's outside of the expanded viewport too
-		[ids.B, false, true],
-		[ids.C, false, true],
-		[ids.D, true, false], // D is clipped and so should always be culled / outside of viewport
+	expect(editor.renderingShapes.map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
+		[ids.A, true], // A should be culled now that it's outside of the expanded viewport too
+		[ids.B, false],
+		[ids.C, false],
+		[ids.D, true], // D is clipped and so should always be culled, even if it's in the viewport
 	])
 
 	editor.pan({ x: -900, y: -900 })
 	jest.advanceTimersByTime(500)
-	expect(
-		editor.renderingShapes.map(({ id, isCulled, isInViewport }) => [id, isCulled, isInViewport])
-	).toStrictEqual([
-		[ids.A, true, false],
-		[ids.B, true, false],
-		[ids.C, true, false],
-		[ids.D, true, false],
+	expect(editor.renderingShapes.map(({ id, isCulled }) => [id, isCulled])).toStrictEqual([
+		[ids.A, true],
+		[ids.B, true],
+		[ids.C, true],
+		[ids.D, true],
 	])
 })
 
