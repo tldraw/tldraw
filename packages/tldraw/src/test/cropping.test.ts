@@ -30,6 +30,26 @@ const imageProps = {
 beforeEach(() => {
 	editor = new TestEditor()
 
+	// this side effect is normally added via a hook
+	editor.sideEffects.registerAfterChangeHandler('instance_page_state', (prev, next) => {
+		if (prev.croppingShapeId !== next.croppingShapeId) {
+			const isInCroppingState = editor.isInAny(
+				'select.crop',
+				'select.pointing_crop_handle',
+				'select.cropping'
+			)
+			if (!prev.croppingShapeId && next.croppingShapeId) {
+				if (!isInCroppingState) {
+					editor.setCurrentTool('select.crop.idle')
+				}
+			} else if (prev.croppingShapeId && !next.croppingShapeId) {
+				if (isInCroppingState) {
+					editor.setCurrentTool('select.idle')
+				}
+			}
+		}
+	})
+
 	editor.createShapes([
 		{
 			id: ids.imageA,
@@ -94,11 +114,13 @@ describe('When in the select.idle state', () => {
 		expect(editor.selectedShapeIds).toMatchObject([ids.boxA])
 		expect(editor.croppingShapeId).toBe(null)
 
-		editor.redo().redo()
+		editor
+			.redo() // select again
+			.redo() // crop again
 
-		editor.expectPathToBe('root.select.idle')
+		editor.expectPathToBe('root.select.crop.idle')
 		expect(editor.selectedShapeIds).toMatchObject([ids.imageB])
-		expect(editor.croppingShapeId).toBe(ids.imageB) // todo: fix this! we shouldn't set this on redo
+		expect(editor.croppingShapeId).toBe(ids.imageB)
 	})
 
 	it('when ONLY ONE image is selected double clicking a selection handle should transition to select.crop', () => {
@@ -228,18 +250,20 @@ describe('When in the crop.idle state', () => {
 			.expectPathToBe('root.select.idle')
 	})
 
-	it('pointing the canvas should return to select.idle', () => {
+	it('pointing the canvas should point canvas', () => {
 		editor
 			.expectPathToBe('root.select.idle')
-			.click(550, 550, { target: 'canvas' })
-			.expectPathToBe('root.select.idle')
+			.pointerMove(-100, -100)
+			.pointerDown()
+			.expectPathToBe('root.select.pointing_canvas')
 	})
 
-	it('pointing some other shape should return to select.idle', () => {
+	it('pointing some other shape should start pointing the shape', () => {
 		editor
 			.expectPathToBe('root.select.idle')
-			.click(550, 550, { target: 'shape', shape: editor.getShape(ids.boxA) })
-			.expectPathToBe('root.select.idle')
+			.pointerMove(550, 500)
+			.pointerDown()
+			.expectPathToBe('root.select.pointing_shape')
 	})
 
 	it('pointing a selection handle should enter the select.pointing_crop_handle state', () => {

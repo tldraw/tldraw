@@ -630,7 +630,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get editingShapeId(): null | TLShapeId;
     readonly environment: EnvironmentManager;
     get erasingShapeIds(): TLShapeId[];
-    get erasingShapeIdsSet(): Set<TLShapeId>;
     // @internal (undocumented)
     externalAssetContentHandlers: {
         [K in TLExternalAssetContent_2['type']]: {
@@ -873,7 +872,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         backgroundIndex: number;
         opacity: number;
         isCulled: boolean;
-        isInViewport: boolean;
         maskedPageBounds: Box2d | undefined;
     }[];
     reparentShapes(shapes: TLShape[], parentId: TLParentId, insertIndex?: string): this;

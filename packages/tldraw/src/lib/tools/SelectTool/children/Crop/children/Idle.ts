@@ -1,4 +1,5 @@
 import { StateNode, TLEventHandlers, TLExitEventHandler, TLGroupShape, Vec2d } from '@tldraw/editor'
+import { getHitShapeOnCanvasPointerDown } from '../../../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { ShapeWithCrop, getTranslateCroppedImageChange } from './crop_helpers'
 
 export class Idle extends StateNode {
@@ -17,9 +18,8 @@ export class Idle extends StateNode {
 		// (which clears the cropping id) but still remain in this state.
 		this.editor.on('change-history', this.cleanupCroppingState)
 
-		this.editor.mark('crop')
-
 		if (onlySelectedShape) {
+			this.editor.mark('crop')
 			this.editor.setCroppingShapeId(onlySelectedShape.id)
 		}
 	}
@@ -49,12 +49,8 @@ export class Idle extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
-				const { hoveredShape } = this.editor
-				const hitShape =
-					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
-						? hoveredShape
-						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
-				if (hitShape) {
+				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
+				if (hitShape && !this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
 					this.onPointerDown({
 						...info,
 						shape: hitShape,
@@ -64,6 +60,7 @@ export class Idle extends StateNode {
 				}
 
 				this.cancel()
+				this.editor.dispatch(info)
 				break
 			}
 			case 'shape': {
@@ -77,6 +74,7 @@ export class Idle extends StateNode {
 						this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					} else {
 						this.cancel()
+						this.editor.dispatch(info)
 					}
 				}
 				break
