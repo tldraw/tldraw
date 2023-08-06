@@ -658,6 +658,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     flipShapes(shapes: TLShape[], operation: 'horizontal' | 'vertical'): this;
     // (undocumented)
     flipShapes(ids: TLShapeId[], operation: 'horizontal' | 'vertical'): this;
+    get focusedGroup(): TLShape | undefined;
     get focusedGroupId(): TLPageId | TLShapeId;
     getAncestorPageId(shape?: TLShape): TLPageId | undefined;
     // (undocumented)
@@ -926,7 +927,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     setErasingShapes(shapes: TLShape[]): this;
     // (undocumented)
     setErasingShapes(ids: TLShapeId[]): this;
-    setFocusedGroupId(next: null | TLShapeId): this;
+    setFocusedGroup(shape: null | TLGroupShape): this;
+    // (undocumented)
+    setFocusedGroup(id: null | TLShapeId): this;
     setHintingShapes(shapes: TLShape[]): this;
     // (undocumented)
     setHintingShapes(ids: TLShapeId[]): this;
