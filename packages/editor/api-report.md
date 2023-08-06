@@ -627,6 +627,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(shapes: TLShape[], offset?: VecLike): this;
     // (undocumented)
     duplicateShapes(ids: TLShapeId[], offset?: VecLike): this;
+    get editingShape(): TLShape | undefined;
     get editingShapeId(): null | TLShapeId;
     readonly environment: EnvironmentManager;
     get erasingShapeIds(): TLShapeId[];
@@ -774,8 +775,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     hasAncestor(shapeId: TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     get hintingShapeIds(): TLShapeId[];
+    get hintingShapes(): NonNullable<TLShape | undefined>[];
     readonly history: HistoryManager<this>;
-    get hoveredShape(): TLUnknownShape | undefined;
+    get hoveredShape(): TLShape | undefined;
     get hoveredShapeId(): null | TLShapeId;
     inputs: {
         originPagePoint: Vec2d;
@@ -909,17 +911,27 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     sendToBack(ids: TLShapeId[]): this;
     setCamera(point: VecLike, animation?: TLAnimationOptions): this;
-    setCroppingShapeId(id: null | TLShapeId): this;
+    setCroppingShape(shape: null | TLShape): this;
+    // (undocumented)
+    setCroppingShape(id: null | TLShapeId): this;
     setCurrentPage(page: TLPage, historyOptions?: TLCommandHistoryOptions): this;
     // (undocumented)
     setCurrentPage(pageId: TLPageId, historyOptions?: TLCommandHistoryOptions): this;
     setCurrentTool(id: string, info?: {}): this;
     setCursor: (cursor: Partial<TLCursor>) => this;
-    setEditingShapeId(id: null | TLShapeId): this;
-    setErasingShapeIds(ids: TLShapeId[]): this;
+    setEditingShape(shape: null | TLShape): this;
+    // (undocumented)
+    setEditingShape(id: null | TLShapeId): this;
+    setErasingShapes(shapes: TLShape[]): this;
+    // (undocumented)
+    setErasingShapes(ids: TLShapeId[]): this;
     setFocusedGroupId(next: null | TLShapeId): this;
-    setHintingIds(ids: TLShapeId[]): this;
-    setHoveredShapeId(id: null | TLShapeId): this;
+    setHintingShapes(shapes: TLShape[]): this;
+    // (undocumented)
+    setHintingShapes(ids: TLShapeId[]): this;
+    setHoveredShape(shape: null | TLShape): this;
+    // (undocumented)
+    setHoveredShape(id: null | TLShapeId): this;
     setOpacity(opacity: number, historyOptions?: TLCommandHistoryOptions): this;
     setSelectedShapeIds(ids: TLShapeId[], historyOptions?: TLCommandHistoryOptions): this;
     setStyle<T>(style: StyleProp<T>, value: T, historyOptions?: TLCommandHistoryOptions): this;

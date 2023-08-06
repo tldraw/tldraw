@@ -72,11 +72,11 @@ export class DragAndDropManager {
 				.onDragShapesOver?.(nextDroppingShape, movingShapes)
 
 			if (res && res.shouldHint) {
-				this.editor.setHintingIds([nextDroppingShape.id])
+				this.editor.setHintingShapes([nextDroppingShape.id])
 			}
 		} else {
 			// If we're dropping onto the page, then clear hinting ids
-			this.editor.setHintingIds([])
+			this.editor.setHintingShapes([])
 		}
 
 		cb?.()
@@ -103,7 +103,7 @@ export class DragAndDropManager {
 		}
 
 		this.droppingNodeTimer = null
-		this.editor.setHintingIds([])
+		this.editor.setHintingShapes([])
 	}
 
 	dispose = () => {

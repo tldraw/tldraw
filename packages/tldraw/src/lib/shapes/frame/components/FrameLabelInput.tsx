@@ -15,7 +15,7 @@ export const FrameLabelInput = forwardRef<
 				// and sending us back into edit mode
 				e.stopPropagation()
 				e.currentTarget.blur()
-				editor.setEditingShapeId(null)
+				editor.setEditingShape(null)
 			}
 		},
 		[editor]

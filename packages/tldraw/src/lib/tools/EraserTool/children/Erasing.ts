@@ -129,17 +129,17 @@ export class Erasing extends StateNode {
 		// Remove the hit shapes, except if they're in the list of excluded shapes
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
-		this.editor.setErasingShapeIds([...erasing].filter((id) => !excludedShapeIds.has(id)))
+		this.editor.setErasingShapes([...erasing].filter((id) => !excludedShapeIds.has(id)))
 	}
 
 	complete() {
 		this.editor.deleteShapes(this.editor.currentPageState.erasingShapeIds)
-		this.editor.setErasingShapeIds([])
+		this.editor.setErasingShapes([])
 		this.parent.transition('idle', {})
 	}
 
 	cancel() {
-		this.editor.setErasingShapeIds([])
+		this.editor.setErasingShapes([])
 		this.editor.bailToMark(this.markId)
 		this.parent.transition('idle', this.info)
 	}
