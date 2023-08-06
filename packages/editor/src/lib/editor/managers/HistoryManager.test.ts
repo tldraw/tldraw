@@ -1,4 +1,5 @@
-import { CommandHistoryOptions, HistoryManager } from './HistoryManager'
+import { TLCommandHistoryOptions } from '../types/history-types'
+import { HistoryManager } from './HistoryManager'
 import { stack } from './Stack'
 
 function createCounterHistoryManager() {
@@ -291,8 +292,8 @@ describe('history options', () => {
 	let manager: HistoryManager<any>
 	let state: { a: number; b: number }
 
-	let setA: (n: number, historyOptions?: CommandHistoryOptions) => any
-	let setB: (n: number, historyOptions?: CommandHistoryOptions) => any
+	let setA: (n: number, historyOptions?: TLCommandHistoryOptions) => any
+	let setB: (n: number, historyOptions?: TLCommandHistoryOptions) => any
 
 	beforeEach(() => {
 		manager = new HistoryManager({ emit: () => void null }, () => {
@@ -306,7 +307,7 @@ describe('history options', () => {
 
 		setA = manager.createCommand(
 			'setA',
-			(n: number, historyOptions?: CommandHistoryOptions) => ({
+			(n: number, historyOptions?: TLCommandHistoryOptions) => ({
 				data: { next: n, prev: state.a },
 				...historyOptions,
 			}),
@@ -323,7 +324,7 @@ describe('history options', () => {
 
 		setB = manager.createCommand(
 			'setB',
-			(n: number, historyOptions?: CommandHistoryOptions) => ({
+			(n: number, historyOptions?: TLCommandHistoryOptions) => ({
 				data: { next: n, prev: state.b },
 				...historyOptions,
 			}),

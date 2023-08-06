@@ -1,29 +1,13 @@
 import { atom, transact } from '@tldraw/state'
 import { devFreeze } from '@tldraw/store'
 import { uniqueId } from '../../utils/uniqueId'
-import { TLCommandHandler, TLHistoryEntry } from '../types/history-types'
+import { TLCommandHandler, TLCommandHistoryOptions, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
-
-/** @public */
-export type CommandHistoryOptions = Partial<{
-	/**
-	 * When true, this command will be squashed with the previous command in the undo / redo stack.
-	 */
-	squashing: boolean
-	/**
-	 * When true, this command will not add anything to the undo / redo stack. Its change will never be undone or redone.
-	 */
-	ephemeral: boolean
-	/**
-	 * When true, adding this this command will not clear out the redo stack.
-	 */
-	preservesRedoStack: boolean
-}>
 
 type CommandFn<Data> = (...args: any[]) =>
 	| ({
 			data: Data
-	  } & CommandHistoryOptions)
+	  } & TLCommandHistoryOptions)
 	| null
 	| undefined
 	| void
