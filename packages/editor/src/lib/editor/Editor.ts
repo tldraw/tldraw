@@ -105,7 +105,7 @@ import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
-import { CommandHistoryOptions, HistoryManager } from './managers/HistoryManager'
+import { HistoryManager } from './managers/HistoryManager'
 import { SideEffectManager } from './managers/SideEffectManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -122,6 +122,7 @@ import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
+import { TLCommandHistoryOptions } from './types/history-types'
 import { OptionalKeys, RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
@@ -1185,7 +1186,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateInstanceState(
 		partial: Partial<Omit<TLInstance, 'currentPageId'>>,
-		historyOptions?: CommandHistoryOptions
+		historyOptions?: TLCommandHistoryOptions
 	): this {
 		this._updateInstanceState(partial, { ephemeral: true, squashing: true, ...historyOptions })
 
@@ -1207,7 +1208,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		'updateInstanceState',
 		(
 			partial: Partial<Omit<TLInstance, 'currentPageId'>>,
-			historyOptions?: CommandHistoryOptions
+			historyOptions?: TLCommandHistoryOptions
 		) => {
 			const prev = this.instanceState
 			const next = { ...prev, ...partial }
@@ -1368,7 +1369,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		partial: Partial<
 			Omit<TLInstancePageState, 'selectedShapeIds' | 'editingShapeId' | 'pageId' | 'focusedGroupId'>
 		>,
-		historyOptions?: CommandHistoryOptions
+		historyOptions?: TLCommandHistoryOptions
 	): this {
 		this._setInstancePageState(partial, historyOptions)
 		return this
@@ -1379,7 +1380,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		'setInstancePageState',
 		(
 			partial: Partial<Omit<TLInstancePageState, 'selectedShapeIds'>>,
-			historyOptions?: CommandHistoryOptions
+			historyOptions?: TLCommandHistoryOptions
 		) => {
 			const prev = this.store.get(partial.id ?? this.currentPageState.id)!
 			return { data: { prev, partial }, ...historyOptions }
@@ -1417,7 +1418,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setSelectedShapeIds(ids: TLShapeId[], historyOptions?: CommandHistoryOptions): this {
+	setSelectedShapeIds(ids: TLShapeId[], historyOptions?: TLCommandHistoryOptions): this {
 		this._setSelectedShapeIds(ids, historyOptions)
 		return this
 	}
@@ -1425,7 +1426,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _setSelectedShapeIds = this.history.createCommand(
 		'setSelectedShapeIds',
-		(ids: TLShapeId[], historyOptions?: CommandHistoryOptions) => {
+		(ids: TLShapeId[], historyOptions?: TLCommandHistoryOptions) => {
 			const { selectedShapeIds: prevSelectedShapeIds } = this.currentPageState
 			const prevSet = new Set(prevSelectedShapeIds)
 
@@ -2693,8 +2694,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { screenBounds } = this.store.unsafeGetWithoutCapture(TLINSTANCE_ID)!
 		const { x: cx, y: cy, z: cz = 1 } = this.camera
 		return {
-			x: (point.x - screenBounds.x - cx) / cz,
-			y: (point.y - screenBounds.y - cy) / cz,
+			x: (point.x - screenBounds.x) / cz - cx,
+			y: (point.y - screenBounds.y) / cz - cy,
 			z: point.z ?? 0.5,
 		}
 	}
@@ -2716,8 +2717,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { x: cx, y: cy, z: cz = 1 } = this.camera
 
 		return {
-			x: point.x * cz + cx + screenBounds.x,
-			y: point.y * cz + cy + screenBounds.y,
+			x: (point.x + cx) * cz + screenBounds.x,
+			y: (point.y + cy) * cz + screenBounds.y,
 			z: point.z ?? 0.5,
 		}
 	}
@@ -3218,9 +3219,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setCurrentPage(page: TLPage, historyOptions?: CommandHistoryOptions): this
-	setCurrentPage(pageId: TLPageId, historyOptions?: CommandHistoryOptions): this
-	setCurrentPage(arg: TLPageId | TLPage, historyOptions?: CommandHistoryOptions): this {
+	setCurrentPage(page: TLPage, historyOptions?: TLCommandHistoryOptions): this
+	setCurrentPage(pageId: TLPageId, historyOptions?: TLCommandHistoryOptions): this
+	setCurrentPage(arg: TLPageId | TLPage, historyOptions?: TLCommandHistoryOptions): this {
 		const pageId = typeof arg === 'string' ? arg : arg.id
 		this._setCurrentPageId(pageId, historyOptions)
 		return this
@@ -3228,7 +3229,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _setCurrentPageId = this.history.createCommand(
 		'setCurrentPage',
-		(pageId: TLPageId, historyOptions?: CommandHistoryOptions) => {
+		(pageId: TLPageId, historyOptions?: TLCommandHistoryOptions) => {
 			if (!this.store.has(pageId)) {
 				console.error("Tried to set the current page id to a page that doesn't exist.")
 				return
@@ -3295,14 +3296,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	updatePage(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: CommandHistoryOptions): this {
+	updatePage(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: TLCommandHistoryOptions): this {
 		this._updatePage(partial, historyOptions)
 		return this
 	}
 	/** @internal */
 	private _updatePage = this.history.createCommand(
 		'updatePage',
-		(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: CommandHistoryOptions) => {
+		(partial: RequiredKeys<TLPage, 'id'>, historyOptions?: TLCommandHistoryOptions) => {
 			if (this.instanceState.isReadonly) return null
 
 			const prev = this.getPage(partial.id)
@@ -3513,9 +3514,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	renamePage(page: TLPage, name: string, historyOptions?: CommandHistoryOptions): this
-	renamePage(id: TLPageId, name: string, historyOptions?: CommandHistoryOptions): this
-	renamePage(arg: TLPageId | TLPage, name: string, historyOptions?: CommandHistoryOptions) {
+	renamePage(page: TLPage, name: string, historyOptions?: TLCommandHistoryOptions): this
+	renamePage(id: TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this
+	renamePage(arg: TLPageId | TLPage, name: string, historyOptions?: TLCommandHistoryOptions) {
 		const id = typeof arg === 'string' ? arg : arg.id
 		if (this.instanceState.isReadonly) return this
 		this.updatePage({ id, name }, historyOptions)
@@ -4966,12 +4967,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param direction - The direction in which to move the shapes.
 	 * @param historyOptions - (optional) The history options for the change.
 	 */
-	nudgeShapes(shapes: TLShape[], offset: VecLike, historyOptions?: CommandHistoryOptions): this
-	nudgeShapes(ids: TLShapeId[], offset: VecLike, historyOptions?: CommandHistoryOptions): this
+	nudgeShapes(shapes: TLShape[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this
+	nudgeShapes(ids: TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this
 	nudgeShapes(
 		arg: TLShapeId[] | TLShape[],
 		offset: VecLike,
-		historyOptions?: CommandHistoryOptions
+		historyOptions?: TLCommandHistoryOptions
 	): this {
 		const ids =
 			typeof arg[0] === 'string' ? (arg as TLShapeId[]) : (arg as TLShape[]).map((s) => s.id)
@@ -6815,7 +6816,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateShape<T extends TLUnknownShape>(
 		partial: TLShapePartial<T> | null | undefined,
-		historyOptions?: CommandHistoryOptions
+		historyOptions?: TLCommandHistoryOptions
 	) {
 		this.updateShapes([partial], historyOptions)
 		return this
@@ -6836,7 +6837,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	updateShapes<T extends TLUnknownShape>(
 		partials: (TLShapePartial<T> | null | undefined)[],
-		historyOptions?: CommandHistoryOptions
+		historyOptions?: TLCommandHistoryOptions
 	) {
 		let compactedPartials = compact(partials)
 		if (this.animatingShapes.size > 0) {
@@ -6859,7 +6860,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/** @internal */
 	private _updateShapes = this.history.createCommand(
 		'updateShapes',
-		(_partials: (TLShapePartial | null | undefined)[], historyOptions?: CommandHistoryOptions) => {
+		(
+			_partials: (TLShapePartial | null | undefined)[],
+			historyOptions?: TLCommandHistoryOptions
+		) => {
 			if (this.instanceState.isReadonly) return null
 
 			const partials = compact(_partials)
@@ -7205,7 +7209,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param opacity - The opacity to set. Must be a number between 0 and 1 inclusive.
 	 * @param historyOptions - The history options for the change.
 	 */
-	setOpacity(opacity: number, historyOptions?: CommandHistoryOptions): this {
+	setOpacity(opacity: number, historyOptions?: TLCommandHistoryOptions): this {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {
@@ -7269,7 +7273,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setStyle<T>(style: StyleProp<T>, value: T, historyOptions?: CommandHistoryOptions): this {
+	setStyle<T>(style: StyleProp<T>, value: T, historyOptions?: TLCommandHistoryOptions): this {
 		this.history.batch(() => {
 			if (this.isIn('select')) {
 				const {

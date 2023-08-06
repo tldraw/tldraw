@@ -84,7 +84,7 @@ describe('When center is false', () => {
 		editor.setCamera({ x: -100, y: -100, z: 1 })
 		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 100, y: 100 })
 		editor.setCamera({ x: -100, y: -100, z: 2 })
-		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 50, y: 50 })
+		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 100, y: 100 })
 
 		editor.setScreenBounds({ x: 100, y: 100, w: 500, h: 600 }, false)
 		expect(editor.viewportScreenBounds).toMatchObject({
@@ -93,7 +93,7 @@ describe('When center is false', () => {
 			w: 500,
 			h: 600,
 		})
-		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 0, y: 0 })
+		expect(editor.screenToPage({ x: 0, y: 0 })).toMatchObject({ x: 50, y: 50 })
 	})
 })
 
