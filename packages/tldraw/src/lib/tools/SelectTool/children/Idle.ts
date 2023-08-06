@@ -349,7 +349,7 @@ export class Idle extends StateNode {
 			this.editor.focusedGroupId !== this.editor.currentPageId &&
 			this.editor.selectedShapeIds.length > 0
 		) {
-			this.editor.popFocusLayer()
+			this.editor.popFocusedGroupId()
 		} else {
 			this.editor.mark('clearing selection')
 			this.editor.selectNone()
@@ -441,7 +441,7 @@ export class Idle extends StateNode {
 	private startEditingShape(shape: TLShape, info: TLClickEventInfo | TLKeyboardEventInfo) {
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return
 		this.editor.mark('editing shape')
-		this.editor.setEditingShapeId(shape.id)
+		this.editor.setEditingShape(shape.id)
 		this.parent.transition('editing_shape', info)
 	}
 
@@ -470,7 +470,7 @@ export class Idle extends StateNode {
 		const shape = this.editor.getShape(id)
 		if (!shape) return
 
-		this.editor.setEditingShapeId(id)
+		this.editor.setEditingShape(id)
 		this.editor.select(id)
 		this.parent.transition('editing_shape', info)
 	}

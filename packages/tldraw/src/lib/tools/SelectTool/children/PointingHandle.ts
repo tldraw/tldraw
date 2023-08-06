@@ -11,7 +11,7 @@ export class PointingHandle extends StateNode {
 		const initialTerminal = (info.shape as TLArrowShape).props[info.handle.id as 'start' | 'end']
 
 		if (initialTerminal?.type === 'binding') {
-			this.editor.setHintingIds([initialTerminal.boundShapeId])
+			this.editor.setHintingShapes([initialTerminal.boundShapeId])
 		}
 
 		this.editor.updateInstanceState(
@@ -21,7 +21,7 @@ export class PointingHandle extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.setHintingIds([])
+		this.editor.setHintingShapes([])
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }

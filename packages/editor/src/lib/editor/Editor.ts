@@ -1677,26 +1677,54 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return boxFromRotatedVertices
 	}
 
-	// Focus Layer Id
+	// Focus Group
 
 	/**
-	 * The shape id of the current focus layer. Null when the focus layer id is the current page.
+	 * The current focused group id.
 	 *
 	 * @public
 	 */
-	get focusedGroupId(): TLShapeId | TLPageId {
+	@computed get focusedGroupId(): TLShapeId | TLPageId {
 		return this.currentPageState.focusedGroupId ?? this.currentPageId
 	}
 
 	/**
-	 * Set the current focus layer id.
-	 *
-	 * @param next - The shape id (or page id) to set as the focus layer id.
+	 * The current focused group.
 	 *
 	 * @public
 	 */
-	setFocusedGroupId(next: TLShapeId | null): this {
-		this._setFocusedGroupId(next)
+	@computed get focusedGroup(): TLShape | undefined {
+		const { focusedGroupId } = this
+		return focusedGroupId ? this.getShape(focusedGroupId) : undefined
+	}
+
+	/**
+	 * Set the current focused group shape.
+	 *
+	 * @param shape - The group shape id (or group shape's id) to set as the focused group shape.
+	 *
+	 * @public
+	 */
+	setFocusedGroup(shape: TLGroupShape | null): this
+	setFocusedGroup(id: TLShapeId | null): this
+	setFocusedGroup(arg: TLShapeId | TLGroupShape | null): this {
+		const id = typeof arg === 'string' ? arg : arg?.id ?? null
+
+		if (id !== null) {
+			const shape = typeof arg === 'string' ? this.getShape(arg) : arg
+			if (!shape) {
+				throw Error(`Editor.setFocusedGroup: Shape with id ${id} does not exist`)
+			}
+
+			if (!this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+				throw Error(
+					`Editor.setFocusedGroup: Cannot set focused group to shape of type ${shape.type}`
+				)
+			}
+		}
+
+		if (id === this.focusedGroupId) return this
+		this._setFocusedGroupId(id)
 		return this
 	}
 
@@ -1704,11 +1732,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _setFocusedGroupId = this.history.createCommand(
 		'setFocusedGroupId',
 		(next: TLShapeId | null) => {
-			// When we first click an empty canvas we don't want this to show up in the undo stack
-			if (!next && !this.canUndo) {
-				return
-			}
 			const prev = this.currentPageState.focusedGroupId
+			if (prev === next) return
 			return {
 				data: {
 					prev,
@@ -1732,25 +1757,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	)
 
 	/**
-	 * Exit the current focus layer, moving up to the next group if there is one.
+	 * Exit the current focused group, moving up to the next parent group if there is one.
 	 *
 	 * @public
 	 */
-	popFocusLayer(): this {
-		const current = this.currentPageState.focusedGroupId
-		const focusedShape = current && this.getShape(current)
+	popFocusedGroupId(): this {
+		const { focusedGroup } = this
 
-		if (focusedShape) {
+		if (focusedGroup) {
 			// If we have a focused layer, look for an ancestor of the focused shape that is a group
-			const match = this.findShapeAncestor(focusedShape, (shape) =>
+			const match = this.findShapeAncestor(focusedGroup, (shape) =>
 				this.isShapeOfType<TLGroupShape>(shape, 'group')
 			)
 			// If we have an ancestor that can become a focused layer, set it as the focused layer
-			this.setFocusedGroupId(match?.id ?? null)
-			this.select(focusedShape.id)
+			this.setFocusedGroup(match?.id ?? null)
+			this.select(focusedGroup.id)
 		} else {
-			// If there's no focused shape, then clear the focus layer and clear selection
-			this.setFocusedGroupId(null)
+			// If there's no parent focused group, then clear the focus layer and clear selection
+			this.setFocusedGroup(null)
 			this.selectNone()
 		}
 
@@ -1762,18 +1786,37 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	get editingShapeId() {
+	@computed get editingShapeId() {
 		return this.currentPageState.editingShapeId
 	}
 
 	/**
-	 * Set the current editing shape id.
-	 *
-	 * @param id - The shape id to set as editing.
+	 * The current editing shape.
 	 *
 	 * @public
 	 */
-	setEditingShapeId(id: TLShapeId | null): this {
+	@computed get editingShape(): TLShape | undefined {
+		const { editingShapeId } = this
+		return editingShapeId ? this.getShape(editingShapeId) : undefined
+	}
+
+	/**
+	 * Set the current editing shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setEditingShape(myShape)
+	 * editor.setEditingShape(myShape.id)
+	 * ```
+	 *
+	 * @param shapes - The shape (or shape id) to set as editing.
+	 *
+	 * @public
+	 */
+	setEditingShape(shape: TLShape | null): this
+	setEditingShape(id: TLShapeId | null): this
+	setEditingShape(arg: TLShapeId | TLShape | null): this {
+		const id = typeof arg === 'string' ? arg : arg?.id ?? null
 		if (!id) {
 			this._setInstancePageState({ editingShapeId: null })
 		} else {
@@ -1788,7 +1831,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
-	// Hovered Id
+	// Hovered
 
 	/**
 	 * The current hovered shape id.
@@ -1801,28 +1844,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the editor's current hovered shape id.
-	 *
-	 * @param id - The shape id to set as hovered.
+	 * The current hovered shape.
 	 *
 	 * @public
 	 */
-	setHoveredShapeId(id: TLShapeId | null): this {
-		if (id === this.currentPageState.hoveredShapeId) return this
+	@computed get hoveredShape(): TLShape | undefined {
+		const { hoveredShapeId } = this
+		return hoveredShapeId ? this.getShape(hoveredShapeId) : undefined
+	}
+
+	/**
+	 * Set the editor's current hovered shape.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setHoveredShape(myShape)
+	 * editor.setHoveredShape(myShape.id)
+	 * ```
+	 *
+	 * @param shapes - The shape (or shape id) to set as hovered.
+	 *
+	 * @public
+	 */
+	setHoveredShape(shape: TLShape | null): this
+	setHoveredShape(id: TLShapeId | null): this
+	setHoveredShape(arg: TLShapeId | TLShape | null): this {
+		const id = typeof arg === 'string' ? arg : arg?.id ?? null
+		if (id === this.hoveredShapeId) return this
 		this.updateCurrentPageState({ hoveredShapeId: id }, { ephemeral: true })
 		return this
 	}
 
-	/**
-	 * The editor's current hovered shape.
-	 *
-	 * @public
-	 */
-	@computed get hoveredShape() {
-		return this.hoveredShapeId ? this.getShape(this.hoveredShapeId) : undefined
-	}
-
-	// Hinting ids
+	// Hinting
 
 	/**
 	 * The editor's current hinting shape ids.
@@ -1834,17 +1887,41 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the editor's current hinting shape ids.
-	 *
-	 * @param ids - The shape ids to set as hinting.
+	 * The editor's current hinting shapes.
 	 *
 	 * @public
 	 */
-	setHintingIds(ids: TLShapeId[]): this {
+	@computed get hintingShapes() {
+		const { hintingShapeIds } = this
+		return compact(hintingShapeIds.map((id) => this.getShape(id)))
+	}
+
+	/**
+	 * Set the editor's current hinting shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setHintingShapes([myShape])
+	 * editor.setHintingShapes([myShape.id])
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to set as hinting.
+	 *
+	 * @public
+	 */
+	setHintingShapes(shapes: TLShape[]): this
+	setHintingShapes(ids: TLShapeId[]): this
+	setHintingShapes(arg: TLShapeId[] | TLShape[]): this {
+		const ids =
+			typeof arg[0] === 'string'
+				? (arg as TLShapeId[])
+				: (arg as TLShape[]).map((shape) => shape.id)
 		// always ephemeral
 		this.updateCurrentPageState({ hintingShapeIds: dedupe(ids) }, { ephemeral: true })
 		return this
 	}
+
+	// Erasing
 
 	/**
 	 * The editor's current erasing ids.
@@ -1856,13 +1933,35 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the editor's current erasing shape ids.
-	 *
-	 * @param ids - The shape ids to set as erasing.
+	 * The editor's current hinting shapes.
 	 *
 	 * @public
 	 */
-	setErasingShapeIds(ids: TLShapeId[]): this {
+	@computed get erasingShapes() {
+		const { erasingShapeIds } = this
+		return compact(erasingShapeIds.map((id) => this.getShape(id)))
+	}
+
+	/**
+	 * Set the editor's current erasing shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setErasingShapes([myShape])
+	 * editor.setErasingShapes([myShape.id])
+	 * ```
+	 *
+	 * @param shapes - The shapes (or shape ids) to set as hinting.
+	 *
+	 * @public
+	 */
+	setErasingShapes(shapes: TLShape[]): this
+	setErasingShapes(ids: TLShapeId[]): this
+	setErasingShapes(arg: TLShapeId[] | TLShape[]): this {
+		const ids =
+			typeof arg[0] === 'string'
+				? (arg as TLShapeId[])
+				: (arg as TLShape[]).map((shape) => shape.id)
 		ids.sort() // sort the incoming ids
 		const { erasingShapeIds } = this
 		if (ids.length === erasingShapeIds.length) {
@@ -1883,6 +1982,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	// Cropping
+
 	/**
 	 * The current cropping shape's id.
 	 *
@@ -1893,13 +1994,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the current cropping shape id.
+	 * Set the current cropping shape.
 	 *
-	 * @param id - The shape id to set as cropping.
+	 * @example
+	 * ```ts
+	 * editor.setCroppingShape(myShape)
+	 * editor.setCroppingShape(myShape.id)
+	 * ```
+	 *
+	 *
+	 * @param shape - The shape (or shape id) to set as cropping.
 	 *
 	 * @public
 	 */
-	setCroppingShapeId(id: TLShapeId | null): this {
+	setCroppingShape(shape: TLShape | null): this
+	setCroppingShape(id: TLShapeId | null): this
+	setCroppingShape(arg: TLShapeId | TLShape | null): this {
+		const id = typeof arg === 'string' ? arg : arg?.id ?? null
 		if (id !== this.croppingShapeId) {
 			if (!id) {
 				this.updateCurrentPageState({ croppingShapeId: null })
@@ -5252,7 +5363,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Put the shape content onto the new page; parents and indices will
 			// be taken care of by the putContent method; make sure to pop any focus
 			// layers so that the content will be put onto the page.
-			this.setFocusedGroupId(null)
+			this.setFocusedGroup(null)
 			this.selectNone()
 			this.putContentOntoCurrentPage(content, {
 				select: true,
