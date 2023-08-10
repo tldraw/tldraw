@@ -36,3 +36,21 @@ The `onUiEvent` callback is called with the name of the event as a string and an
 Note that `onUiEvent` is only called when interacting with the user interface. It is not called when running commands manually against the app, e.g. [`editor.alignShapes()`](/gen/editor/Editor#alignShapes) will not call `onUiEvent`.
 
 See the [tldraw repository](https://github.com/tldraw/tldraw/tree/main/apps/examples) for an example of how to customize tldraw's user interface.
+
+## Components
+This is valid for versions under 2.0.0.
+
+```tsx
+function Example() {
+  const component = { Cursor: UserCursor };
+```
+
+You need to import 'CursorComponent' library in '@tldraw/core'
+
+```tsx
+import { CursorComponent } from '@tldraw/core';
+const UserCursor: CursorComponent<{ name: 'Anonymous' }> = ({
+  color,
+  metadata,
+})
+```
