@@ -40,6 +40,7 @@ export function Tldraw(
 		components: useMemo(
 			() => ({
 				Scribble: TldrawScribble,
+				CollaboratorScribble: TldrawScribble,
 				SelectionForeground: TldrawSelectionForeground,
 				SelectionBackground: TldrawSelectionBackground,
 				Handles: TldrawHandles,
