@@ -6,10 +6,13 @@ import { assetMigrations, assetVersions } from './records/TLAsset'
 import { cameraMigrations, cameraVersions } from './records/TLCamera'
 import { documentMigrations, documentVersions } from './records/TLDocument'
 import { instanceMigrations, instanceVersions } from './records/TLInstance'
+import {
+	instancePageStateMigrations,
+	instancePageStateVersions,
+} from './records/TLInstancePageState'
+import { instancePresenceMigrations, instancePresenceVersions } from './records/TLInstancePresence'
 import { pageMigrations, pageVersions } from './records/TLPage'
-import { instancePageStateMigrations, instancePageStateVersions } from './records/TLPageState'
 import { pointerMigrations, pointerVersions } from './records/TLPointer'
-import { instancePresenceMigrations, instancePresenceVersions } from './records/TLPresence'
 import { TLShape, rootShapeMigrations, rootShapeVersions } from './records/TLShape'
 import { arrowShapeMigrations } from './shapes/TLArrowShape'
 import { bookmarkShapeMigrations } from './shapes/TLBookmarkShape'

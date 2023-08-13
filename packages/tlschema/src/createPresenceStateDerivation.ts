@@ -2,9 +2,9 @@ import { Signal, computed } from '@tldraw/state'
 import { TLStore } from './TLStore'
 import { CameraRecordType } from './records/TLCamera'
 import { TLINSTANCE_ID } from './records/TLInstance'
-import { InstancePageStateRecordType } from './records/TLPageState'
+import { InstancePageStateRecordType } from './records/TLInstancePageState'
+import { InstancePresenceRecordType, TLInstancePresence } from './records/TLInstancePresence'
 import { TLPOINTER_ID } from './records/TLPointer'
-import { InstancePresenceRecordType, TLInstancePresence } from './records/TLPresence'
 
 /** @public */
 export const createPresenceStateDerivation =

@@ -2,10 +2,10 @@ import { TLAsset } from './TLAsset'
 import { TLCamera } from './TLCamera'
 import { TLDocument } from './TLDocument'
 import { TLInstance } from './TLInstance'
+import { TLInstancePageState } from './TLInstancePageState'
+import { TLInstancePresence } from './TLInstancePresence'
 import { TLPage } from './TLPage'
-import { TLInstancePageState } from './TLPageState'
 import { TLPointer } from './TLPointer'
-import { TLInstancePresence } from './TLPresence'
 import { TLShape } from './TLShape'
 
 /** @public */

@@ -41,15 +41,18 @@ export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCa
 export { DocumentRecordType, TLDOCUMENT_ID, type TLDocument } from './records/TLDocument'
 export { TLINSTANCE_ID, type TLInstance, type TLInstanceId } from './records/TLInstance'
 export {
+	InstancePageStateRecordType,
+	type TLInstancePageState,
+} from './records/TLInstancePageState'
+export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLInstancePresence'
+export {
 	PageRecordType,
 	isPageId,
 	pageIdValidator,
 	type TLPage,
 	type TLPageId,
 } from './records/TLPage'
-export { InstancePageStateRecordType, type TLInstancePageState } from './records/TLPageState'
 export { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
-export { InstancePresenceRecordType, type TLInstancePresence } from './records/TLPresence'
 export { type TLRecord } from './records/TLRecord'
 export {
 	createShapeId,

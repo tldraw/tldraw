@@ -8,6 +8,7 @@
 **/.tsbuild*
 **/.next/*
 *.mdx
+!docs/**/*.mdx
 **/_archive/*
 apps/docs/api-content.json
 apps/docs/content.json
