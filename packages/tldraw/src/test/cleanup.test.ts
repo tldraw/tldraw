@@ -77,8 +77,6 @@ describe('restoring bound arrows multiplayer', () => {
 
 		editor.setCurrentTool('arrow').pointerMove(0, 50).pointerDown().pointerMove(150, 50).pointerUp()
 
-		// console.log(JSON.stringify(editor.history._undos.value.toArray(), null, 2))
-
 		expect(arrow().props.start.type).toBe('point')
 		expect(arrow().props.end.type).toBe('binding')
 

@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLGeoShape, TLGroupShape, TLTextShape } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLGroupShape, TLTextShape } from '@tldraw/editor'
 import { updateHoveredId } from '../../../tools/selection-logic/updateHoveredId'
 
 export class Idle extends StateNode {
@@ -22,7 +22,7 @@ export class Idle extends StateNode {
 		if (hitShape) {
 			if (this.editor.isShapeOfType<TLTextShape>(hitShape, 'text')) {
 				requestAnimationFrame(() => {
-					this.editor.setSelectedShapeIds([hitShape.id])
+					this.editor.setSelectedShapes([hitShape.id])
 					this.editor.setEditingShape(hitShape.id)
 					this.editor.setCurrentTool('select.editing_shape', {
 						...info,
@@ -43,14 +43,18 @@ export class Idle extends StateNode {
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		if (info.key === 'Enter') {
-			const shape = this.editor.selectedShapes[0]
-			if (shape && this.editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
+			const { onlySelectedShape } = this.editor
+			// If the only selected shape is editable, start editing it
+			if (
+				onlySelectedShape &&
+				this.editor.getShapeUtil(onlySelectedShape).canEdit(onlySelectedShape)
+			) {
 				this.editor.setCurrentTool('select')
-				this.editor.setEditingShape(shape.id)
+				this.editor.setEditingShape(onlySelectedShape.id)
 				this.editor.root.current.value!.transition('editing_shape', {
 					...info,
 					target: 'shape',
-					shape,
+					shape: onlySelectedShape,
 				})
 			}
 		}

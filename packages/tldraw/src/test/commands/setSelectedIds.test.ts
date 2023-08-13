@@ -16,7 +16,7 @@ beforeEach(() => {
 
 it('Sets selected shapes', () => {
 	expect(editor.selectedShapeIds).toMatchObject([])
-	editor.setSelectedShapeIds([ids.box1, ids.box2])
+	editor.setSelectedShapes([ids.box1, ids.box2])
 	expect(editor.selectedShapeIds).toMatchObject([ids.box1, ids.box2])
 	editor.undo()
 	expect(editor.selectedShapeIds).toMatchObject([])
@@ -25,12 +25,12 @@ it('Sets selected shapes', () => {
 })
 
 it('Prevents parent and child from both being selected', () => {
-	editor.setSelectedShapeIds([ids.box2, ids.ellipse1]) // ellipse1 is child of box2
+	editor.setSelectedShapes([ids.box2, ids.ellipse1]) // ellipse1 is child of box2
 	expect(editor.selectedShapeIds).toMatchObject([ids.box2])
 })
 
 it('Deleting the parent also deletes descendants', () => {
-	editor.setSelectedShapeIds([ids.box2])
+	editor.setSelectedShapes([ids.box2])
 
 	expect(editor.selectedShapeIds).toMatchObject([ids.box2])
 	expect(editor.getShape(ids.box2)).not.toBeUndefined()

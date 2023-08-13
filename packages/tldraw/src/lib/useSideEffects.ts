@@ -22,6 +22,18 @@ export function useSideEffects() {
 					}
 				}
 			}
+
+			if (prev.editingShapeId !== next.editingShapeId) {
+				if (!prev.editingShapeId && next.editingShapeId) {
+					if (!editor.isIn('select.editing_shape')) {
+						editor.setCurrentTool('select.editing_shape')
+					}
+				} else if (prev.editingShapeId && !next.editingShapeId) {
+					if (editor.isIn('select.editing_shape')) {
+						editor.setCurrentTool('select.idle')
+					}
+				}
+			}
 		})
 	}, [editor])
 }

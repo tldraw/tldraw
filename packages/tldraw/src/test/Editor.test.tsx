@@ -110,13 +110,13 @@ describe('shapes that are moved to another page', () => {
 
 	describe("should be excluded from the previous page's selectedShapeIds", () => {
 		test('[boxes]', () => {
-			editor.setSelectedShapeIds([ids.box1, ids.box2, ids.box3])
+			editor.setSelectedShapes([ids.box1, ids.box2, ids.box3])
 			expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
 			expect(editor.selectedShapeIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.setSelectedShapeIds([ids.frame1])
+			editor.setSelectedShapes([ids.frame1])
 			expect(editor.selectedShapeIds).toEqual([ids.frame1])
 			moveShapesToPage2()
 			expect(editor.selectedShapeIds).toEqual([ids.frame1])
@@ -156,7 +156,7 @@ describe('Editor.sharedOpacity', () => {
 
 	it('should return opacity for a single selected shape', () => {
 		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
-		editor.setSelectedShapeIds([A])
+		editor.setSelectedShapes([A])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
@@ -165,7 +165,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
 			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
 		])
-		editor.setSelectedShapeIds([A, B])
+		editor.setSelectedShapes([A, B])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
@@ -174,7 +174,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
 			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
 		])
-		editor.setSelectedShapeIds([A, B])
+		editor.setSelectedShapes([A, B])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'mixed' })
 	})
 
@@ -184,7 +184,7 @@ describe('Editor.sharedOpacity', () => {
 				<TL.geo ref="A" opacity={0.3} x={0} y={0} />
 			</TL.group>,
 		])
-		editor.setSelectedShapeIds([ids.group])
+		editor.setSelectedShapes([ids.group])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 })
@@ -196,7 +196,7 @@ describe('Editor.setOpacity', () => {
 			<TL.geo ref="B" opacity={0.4} x={0} y={0} />,
 		])
 
-		editor.setSelectedShapeIds([ids.A, ids.B])
+		editor.setSelectedShapes([ids.A, ids.B])
 		editor.setOpacity(0.5)
 
 		expect(editor.getShape(ids.A)!.opacity).toBe(0.5)
@@ -215,7 +215,7 @@ describe('Editor.setOpacity', () => {
 			</TL.group>,
 		])
 
-		editor.setSelectedShapeIds([ids.groupA])
+		editor.setSelectedShapes([ids.groupA])
 		editor.setOpacity(0.5)
 
 		// a wasn't selected...

@@ -72,7 +72,7 @@ export class Brushing extends StateNode {
 	}
 
 	override onCancel?: TLCancelEvent | undefined = (info) => {
-		this.editor.setSelectedShapeIds(this.initialSelectedShapeIds, { squashing: true })
+		this.editor.setSelectedShapes(this.initialSelectedShapeIds, { squashing: true })
 		this.parent.transition('idle', info)
 	}
 
@@ -168,7 +168,7 @@ export class Brushing extends StateNode {
 		}
 
 		this.editor.updateInstanceState({ brush: { ...this.brush.toJson() } })
-		this.editor.setSelectedShapeIds(Array.from(results), { squashing: true })
+		this.editor.setSelectedShapes(Array.from(results), { squashing: true })
 	}
 
 	override onInterrupt: TLInterruptEvent = () => {

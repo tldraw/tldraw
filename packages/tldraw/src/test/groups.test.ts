@@ -833,11 +833,11 @@ describe('focus layers', () => {
 		expect(editor.focusedGroupId).toBe(editor.currentPageId)
 		editor.select(ids.boxA)
 		expect(editor.focusedGroupId).toBe(groupAId)
-		editor.setSelectedShapeIds([...editor.selectedShapeIds, ids.boxC])
+		editor.setSelectedShapes([...editor.selectedShapeIds, ids.boxC])
 		expect(editor.focusedGroupId).toBe(groupCId)
 		editor.deselect(ids.boxA)
 		expect(editor.focusedGroupId).toBe(groupBId)
-		editor.setSelectedShapeIds([...editor.selectedShapeIds, ids.boxB])
+		editor.setSelectedShapes([...editor.selectedShapeIds, ids.boxB])
 		expect(editor.focusedGroupId).toBe(groupCId)
 	})
 	it('should not adjust the focus layer when clearing the selection', () => {
@@ -952,15 +952,16 @@ describe('the select tool', () => {
 		expect(editor.selectedShapeIds).toHaveLength(0)
 	})
 
-	it('if a shape inside a focused group is selected and you click an empty space inside the group it should deselect the shape', () => {
-		editor.select(ids.boxA)
-		expect(editor.focusedGroupId).toBe(groupAId)
-		expect(editor.selectedShapeIds).toEqual([ids.boxA])
-		editor.pointerDown(20, 5)
-		editor.pointerUp(20, 5)
-		expect(editor.focusedGroupId).toBe(groupAId)
-		expect(editor.selectedShapeIds).toEqual([])
-	})
+	// ! Removed with hollow shape clicking feature
+	// it('if a shape inside a focused group is selected and you click an empty space inside the group it should deselect the shape', () => {
+	// 	editor.select(ids.boxA)
+	// 	expect(editor.focusedGroupId).toBe(groupAId)
+	// 	expect(editor.selectedShapeIds).toEqual([ids.boxA])
+	// 	editor.pointerDown(20, 5)
+	// 	editor.pointerUp(20, 5)
+	// 	expect(editor.focusedGroupId).toBe(groupAId)
+	// 	expect(editor.selectedShapeIds).toEqual([])
+	// })
 
 	// ! Removed
 	// it('if you click inside the empty space of a focused group while there are no selected shapes, it should pop the focus layer and select the group', () => {

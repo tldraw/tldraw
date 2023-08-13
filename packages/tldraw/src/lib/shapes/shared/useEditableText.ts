@@ -27,32 +27,22 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		id,
 	])
 
-	const isInEditingShapePath = useValue(
-		'isInEditingShapePath',
-		() => {
-			return editor.isIn('select.editing_shape')
-		},
-		[editor]
-	)
-
 	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
 
 	const isEditableFromHover = useValue(
 		'is editable hovering',
 		() => {
-			const { hoveredShapeId, editingShapeId } = editor
+			const { hoveredShapeId, editingShape } = editor
 			if (type === 'text' && editor.isIn('text') && hoveredShapeId === id) {
 				return true
 			}
 
-			if (isInEditingShapePath) {
-				if (!editingShapeId) return false
-				const editingShape = editor.getShape(editingShapeId)
-				if (!editingShape) return false
-
+			if (editingShape) {
 				return (
-					(hoveredShapeId === id || editingShapeId !== id) &&
+					// We must be hovering over this shape and not editing it
+					hoveredShapeId === id &&
+					editingShape.id !== id &&
 					// the editing shape must be the same type as this shape
 					editingShape.type === type &&
 					// and this shape must be capable of being editing in its current form
@@ -62,7 +52,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 			return false
 		},
-		[type, id, isInEditingShapePath]
+		[type, id]
 	)
 
 	// When the label receives focus, set the value to the most
@@ -98,7 +88,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		requestAnimationFrame(() => {
 			const elm = rInput.current
 			// Did we move to a different shape?
-			if (elm && editor.isIn('select.editing_shape')) {
+			if (elm && editor.editingShapeId) {
 				// important! these ^v are two different things
 				// is that shape OUR shape?
 				if (editor.editingShapeId === id) {
@@ -213,28 +203,21 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 				transact(() => {
 					editor.setEditingShape(id)
 					editor.setHoveredShape(id)
-					editor.setSelectedShapeIds([id])
+					editor.setSelectedShapes([id])
+				})
+			} else {
+				editor.dispatch({
+					...getPointerInfo(e),
+					type: 'pointer',
+					name: 'pointer_down',
+					target: 'shape',
+					shape: editor.getShape(id)!,
 				})
 			}
 
 			stopEventPropagation(e)
 		},
 		[editor, isEditableFromHover, id]
-	)
-
-	const handleContentPointerDown = useCallback(
-		(e: React.PointerEvent) => {
-			editor.dispatch({
-				...getPointerInfo(e),
-				type: 'pointer',
-				name: 'pointer_down',
-				target: 'shape',
-				shape: editor.getShape(id)!,
-			})
-
-			stopEventPropagation(e)
-		},
-		[editor, id]
 	)
 
 	useEffect(() => {
@@ -255,7 +238,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 		handleKeyDown,
 		handleChange,
 		handleInputPointerDown,
-		handleContentPointerDown,
 		handleDoubleClick,
 		isEmpty,
 	}

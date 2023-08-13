@@ -44,7 +44,7 @@ describe('distributeShapes command', () => {
 
 	describe('when less than three shapes are selected', () => {
 		it('does nothing', () => {
-			editor.setSelectedShapeIds([ids.boxA, ids.boxB])
+			editor.setSelectedShapes([ids.boxA, ids.boxB])
 			const fn = jest.fn()
 			editor.on('change-history', fn)
 			editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
@@ -131,7 +131,7 @@ describe('distributeShapes command', () => {
 				y: 100,
 			},
 		])
-		editor.setSelectedShapeIds([ids.boxB, ids.boxC, ids.boxD])
+		editor.setSelectedShapes([ids.boxB, ids.boxC, ids.boxD])
 
 		editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 		jest.advanceTimersByTime(1000)
@@ -173,7 +173,7 @@ describe('distributeShapes command', () => {
 				y: 200,
 			},
 		])
-		editor.setSelectedShapeIds([ids.boxB, ids.boxC, ids.boxD])
+		editor.setSelectedShapes([ids.boxB, ids.boxC, ids.boxD])
 
 		editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 		jest.advanceTimersByTime(1000)
@@ -218,7 +218,7 @@ describe('distributeShapes command', () => {
 			},
 		])
 
-		editor.setSelectedShapeIds([ids.boxB, ids.boxC, ids.boxD])
+		editor.setSelectedShapes([ids.boxB, ids.boxC, ids.boxD])
 
 		editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 		jest.advanceTimersByTime(1000)

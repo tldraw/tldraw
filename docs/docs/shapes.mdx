@@ -43,8 +43,8 @@ Every shape contains some **base information**. These include the shape's type, 
 ```js
 const shape = editor.getShape('some-shape-id')
 if (shape) {
-  console.log(shape.type)    // The shape's type
-  console.log(shape.opacity) // The shape's opacity
+  shape.type    // The shape's type
+  shape.opacity // The shape's opacity
 }
 ```
 
@@ -53,8 +53,8 @@ Every shape also contains some **shape-specific information**. We call these `pr
 ```js
 const textShape = editor.getShape('some-text-shape-id')
 if (textShape) {
-  console.log(textShape.props.text) // The shape's text
-  console.log(textShape.props.font) // The shape's font
+  textShape.props.text // The shape's text
+  textShape.props.font // The shape's font
 }
 ```
 
@@ -66,7 +66,7 @@ While tldraw's shapes themselves are simple JSON objects, we use [`ShapeUtil`](/
 const util = this.getShapeUtil(myShape)
 if (util) {
   const bounds = util.getBounds(myShape)
-  console.log(bounds) // The shape's bounding box
+  bounds) // The shape's bounding box
 }
 ```
 

@@ -6,7 +6,6 @@
 
 /// <reference types="react" />
 
-import { Arc2d } from '@tldraw/editor';
 import { ArrayOfValidator } from '@tldraw/editor';
 import { BaseBoxShapeTool } from '@tldraw/editor';
 import { BaseBoxShapeUtil } from '@tldraw/editor';
@@ -14,7 +13,6 @@ import { Box2d } from '@tldraw/editor';
 import { Circle2d } from '@tldraw/editor';
 import { CubicSpline2d } from '@tldraw/editor';
 import { DictValidator } from '@tldraw/editor';
-import { Edge2d } from '@tldraw/editor';
 import { Editor } from '@tldraw/editor';
 import { EMBED_DEFINITIONS } from '@tldraw/editor';
 import { EmbedDefinition } from '@tldraw/editor';
@@ -121,7 +119,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     getDefaultProps(): TLArrowShape['props'];
     // (undocumented)
-    getGeometry(shape: TLArrowShape): Arc2d | Edge2d | Group2d;
+    getGeometry(shape: TLArrowShape): Group2d;
     // (undocumented)
     getHandles(shape: TLArrowShape): TLHandle[];
     // (undocumented)

@@ -1,7 +1,10 @@
 import {
+	Group2d,
 	HIT_TEST_MARGIN,
 	StateNode,
+	TLArrowShape,
 	TLEventHandlers,
+	TLGeoShape,
 	TLPointerEventInfo,
 	TLShape,
 } from '@tldraw/editor'
@@ -48,17 +51,15 @@ export class PointingShape extends StateNode {
 			this.editor.cancelDoubleClick()
 			if (!selectedShapeIds.includes(outermostSelectingShape.id)) {
 				this.editor.mark('shift selecting shape')
-				this.editor.setSelectedShapeIds([...selectedShapeIds, outermostSelectingShape.id])
+				this.editor.setSelectedShapes([...selectedShapeIds, outermostSelectingShape.id])
 			}
 		} else {
 			this.editor.mark('selecting shape')
-			this.editor.setSelectedShapeIds([outermostSelectingShape.id])
+			this.editor.setSelectedShapes([outermostSelectingShape.id])
 		}
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
-		// const { shape } = info
-
 		const {
 			zoomLevel,
 			focusedGroupId,
@@ -92,7 +93,7 @@ export class PointingShape extends StateNode {
 			if (selectingShape.id === focusedGroupId) {
 				if (selectedShapeIds.length > 0) {
 					this.editor.mark('clearing shape ids')
-					this.editor.setSelectedShapeIds([])
+					this.editor.setSelectedShapes([])
 				} else {
 					this.editor.popFocusedGroupId()
 				}
@@ -119,8 +120,41 @@ export class PointingShape extends StateNode {
 					this.editor.mark('deselecting on pointer up')
 					this.editor.deselect(selectingShape)
 				} else {
-					this.editor.mark('selecting on pointer up')
-					this.editor.select(selectingShape)
+					if (selectedShapeIds.includes(selectingShape.id)) {
+						// todo
+						// if the shape is editable and we're inside of an editable part of that shape, e.g. the label of a geo shape,
+						// then we would want to begin editing the shape. At the moment we're relying on the shape label's onPointerUp
+						// handler to do this logic, and prevent the regular pointer up event, so we won't be here in that case.
+
+						// ! tldraw hack
+						// if the shape is a geo shape, and we're inside of the label, then we want to begin editing the label
+						if (
+							this.editor.isShapeOfType<TLGeoShape>(selectingShape, 'geo') ||
+							this.editor.isShapeOfType<TLArrowShape>(selectingShape, 'arrow')
+						) {
+							const geometry = this.editor.getShapeGeometry(selectingShape)
+							const labelGeometry = (geometry as Group2d).children[1]
+							if (labelGeometry) {
+								const pointInShapeSpace = this.editor.getPointInShapeSpace(
+									selectingShape,
+									currentPagePoint
+								)
+
+								if (labelGeometry.hitTestPoint(pointInShapeSpace)) {
+									this.editor.batch(() => {
+										this.editor.mark('editing on pointer up')
+										this.editor.select(selectingShape.id)
+										this.editor.setCurrentTool('select.editing_shape')
+										this.editor.setEditingShape(selectingShape.id)
+									})
+									return
+								}
+							}
+						}
+					} else {
+						this.editor.mark('selecting on pointer up')
+						this.editor.select(selectingShape)
+					}
 				}
 			} else if (shiftKey) {
 				// Different shape, so we are drilling down into a group with shift key held.
@@ -128,14 +162,14 @@ export class PointingShape extends StateNode {
 				const ancestors = this.editor.getShapeAncestors(outermostSelectableShape)
 
 				this.editor.mark('shift deselecting on pointer up')
-				this.editor.setSelectedShapeIds([
+				this.editor.setSelectedShapes([
 					...this.editor.selectedShapeIds.filter((id) => !ancestors.find((a) => a.id === id)),
 					outermostSelectableShape.id,
 				])
 			} else {
 				this.editor.mark('selecting on pointer up')
 				// different shape and we are drilling down, but no shift held so just select it straight up
-				this.editor.setSelectedShapeIds([outermostSelectableShape.id])
+				this.editor.setSelectedShapes([outermostSelectableShape.id])
 			}
 		}
 

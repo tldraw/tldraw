@@ -318,28 +318,35 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
-		// const labelSize = getLabelSize(this.editor, shape)
-		// const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
-		// const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
-
+		const labelSize = getLabelSize(this.editor, shape)
+		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
+		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
 
 		return new Group2d({
 			children: [
 				body,
-				// new Rectangle2d({
-				// 	x: w / 2 - labelWidth / 2,
-				// 	y: h / 2 - labelHeight / 2,
-				// 	width: labelWidth,
-				// 	height: labelHeight,
-				// 	isFilled: true,
-				// 	isSnappable: false,
-				// 	margin: 12,
-				// }),
+				new Rectangle2d({
+					x:
+						shape.props.align === 'start'
+							? 0
+							: shape.props.align === 'end'
+							? w - labelWidth
+							: (w - labelWidth) / 2,
+					y:
+						shape.props.verticalAlign === 'start'
+							? 0
+							: shape.props.verticalAlign === 'end'
+							? h - labelHeight
+							: (h - labelHeight) / 2,
+					width: labelWidth,
+					height: labelHeight,
+					isFilled: true,
+					isSnappable: false,
+				}),
 				...edges,
 			],
-			operation: 'union',
 			isSnappable: false,
 		})
 	}

@@ -412,10 +412,23 @@ describe('reparenting issue', () => {
 		editor.expectPathToBe('root.select.pointing_handle')
 
 		editor.pointerMove(320, 320) // over box 2
-		editor.expectShapeToMatch({ id: arrowId, index: 'a3V' }) // between box 2 (a3) and 3 (a4)
+		editor.expectPathToBe('root.select.dragging_handle')
+		editor.expectShapeToMatch({
+			id: arrowId,
+			index: 'a3V',
+			props: { end: { boundShapeId: ids.box2 } },
+		}) // between box 2 (a3) and 3 (a4)
 
-		editor.pointerMove(350, 350) // over box 3
-		editor.expectShapeToMatch({ id: arrowId, index: 'a5' }) // above box 3 (a4)
+		expect(editor.getShapeAtPoint({ x: 350, y: 350 }, { hitInside: true })).toMatchObject({
+			id: ids.box3,
+		})
+
+		editor.pointerMove(350, 350) // over box 3 and box 2, but box 3 is smaller
+		editor.expectShapeToMatch({
+			id: arrowId,
+			index: 'a5',
+			props: { end: { boundShapeId: ids.box3 } },
+		}) // above box 3 (a4)
 
 		editor.pointerMove(150, 150) // over box 1
 		editor.expectShapeToMatch({ id: arrowId, index: 'a2V' }) // between box 1 (a2) and box 3 (a3)

@@ -72,7 +72,7 @@ export class Idle extends StateNode {
 				} else {
 					if (this.editor.getShapeUtil(info.shape)?.canCrop(info.shape)) {
 						this.editor.setCroppingShape(info.shape.id)
-						this.editor.setSelectedShapeIds([info.shape.id])
+						this.editor.setSelectedShapes([info.shape.id])
 						this.editor.setCurrentTool('select.crop.pointing_crop', info)
 					} else {
 						this.cancel()

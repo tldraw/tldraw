@@ -27,16 +27,19 @@ export class Erasing extends StateNode {
 		const { originPagePoint } = this.editor.inputs
 		this.excludedShapeIds = new Set(
 			this.editor.currentPageShapes
-				.filter(
-					(shape) =>
+				.filter((shape) => {
+					if (
 						this.editor.isShapeOrAncestorLocked(shape) ||
-						((this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
-							this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) &&
-							this.editor.isPointInShape(shape, originPagePoint, {
-								hitInside: true,
-								margin: 0,
-							}))
-				)
+						this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
+						this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')
+					) {
+						const pointInShapeShape = this.editor.getPointInShapeSpace(shape, originPagePoint)
+						const geometry = this.editor.getShapeGeometry(shape)
+						return geometry.bounds.containsPoint(pointInShapeShape)
+					}
+
+					return false
+				})
 				.map((shape) => shape.id)
 		)
 

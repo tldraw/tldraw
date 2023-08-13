@@ -5,8 +5,9 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 	const { shiftKey, altKey, currentPagePoint } = editor.inputs
 
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
-		hitInside: true,
+		hitInside: false,
 		margin: HIT_TEST_MARGIN / editor.zoomLevel,
+		hitLabels: true,
 	})
 
 	// Note at the start: if we select a shape that is inside of a group,
@@ -31,7 +32,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 			} else {
 				// Add it to selected shapes
 				editor.mark('shift selecting shape')
-				editor.setSelectedShapeIds([...selectedShapeIds, outermostSelectableShape.id])
+				editor.setSelectedShapes([...selectedShapeIds, outermostSelectableShape.id])
 			}
 		} else {
 			let shapeToSelect: TLShape | undefined = undefined
