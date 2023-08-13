@@ -55,8 +55,11 @@ describe('Hovering shapes', () => {
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerMove(4, 50)
 		expect(editor.hoveredShapeId).toBe(ids.box1)
-		editor.pointerMove(50, 50)
+		editor.pointerMove(75, 75)
 		expect(editor.hoveredShapeId).toBe(null)
+		// hovers the label of a geo shape
+		editor.pointerMove(50, 50)
+		expect(editor.hoveredShapeId).toBe(ids.box1)
 	})
 
 	it('hovers the margins or inside of hollow shapes', () => {
@@ -149,13 +152,28 @@ describe('when shape is hollow', () => {
 		box1 = editor.getShape<TLGeoShape>(ids.box1)!
 	})
 
-	it('misses on pointer down over shape, hits on pointer up', () => {
-		editor.pointerMove(50, 50)
+	it('misses on pointer down over shape, misses on pointer up', () => {
+		editor.pointerMove(75, 75)
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerDown()
 		expect(editor.selectedShapeIds).toEqual([])
 		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([box1.id])
+		expect(editor.selectedShapeIds).toEqual([])
+	})
+
+	it('hits on the label', () => {
+		editor.pointerMove(-100, -100)
+		expect(editor.hoveredShapeId).toBe(null)
+		expect(editor.selectedShapeIds).toEqual([])
+		editor.pointerMove(50, 50)
+		expect(editor.hoveredShapeId).toBe(ids.box1)
+		expect(editor.selectedShapeIds).toEqual([])
+		editor.pointerDown()
+		expect(editor.hoveredShapeId).toBe(ids.box1)
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
+		editor.pointerUp()
+		expect(editor.hoveredShapeId).toBe(ids.box1)
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 
 	it('hits on pointer down over shape margin (inside)', () => {
@@ -186,11 +204,11 @@ describe('when shape is hollow', () => {
 	})
 
 	it('brushes on point inside and drag', () => {
-		editor.pointerMove(50, 50)
+		editor.pointerMove(75, 75)
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerDown()
 		expect(editor.selectedShapeIds).toEqual([])
-		editor.pointerMove(55, 55)
+		editor.pointerMove(80, 80)
 		editor.expectToBeIn('select.brushing')
 		editor.pointerUp()
 		expect(editor.selectedShapeIds).toEqual([])
@@ -375,13 +393,13 @@ describe('when shape is inside of a frame', () => {
 		expect(editor.selectedShapeIds).toEqual([])
 	})
 
-	it('misses on pointer down over shape, hits on pointer up', () => {
+	it('misses on pointer down over shape, misses on pointer up', () => {
 		editor.pointerMove(50, 50)
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerDown() // inside of box1
 		expect(editor.selectedShapeIds).toEqual([])
 		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([box1.id])
+		expect(editor.selectedShapeIds).toEqual([])
 	})
 
 	it('misses when shape is masked by frame on pointer down over shape, misses on pointer up', () => {
@@ -497,28 +515,30 @@ describe('when a frame has multiple children', () => {
 		box2 = editor.getShape<TLGeoShape>(ids.box2)!
 	})
 
-	it('selects the smaller of two overlapping hollow shapes on pointer up when both are the child of a frame', () => {
-		// make box2 smaller
-		editor.updateShape({ ...box2, props: { w: 99, h: 99 } })
+	// This is no longer the case; it will be true for arrows though
 
-		editor.pointerMove(64, 64)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([])
-		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([ids.box2])
+	// it('selects the smaller of two overlapping hollow shapes on pointer up when both are the child of a frame', () => {
+	// 	// make box2 smaller
+	// 	editor.updateShape({ ...box2, props: { w: 99, h: 99 } })
 
-		// make box2 bigger...
-		editor.selectNone()
-		editor.updateShape({ ...box2, props: { w: 101, h: 101 } })
+	// 	editor.pointerMove(64, 64)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.pointerDown()
+	// 	expect(editor.selectedShapeIds).toEqual([])
+	// 	editor.pointerUp()
+	// 	expect(editor.selectedShapeIds).toEqual([ids.box2])
 
-		editor.pointerMove(64, 64)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([])
-		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([ids.box1])
-	})
+	// 	// make box2 bigger...
+	// 	editor.selectNone()
+	// 	editor.updateShape({ ...box2, props: { w: 101, h: 101 } })
+
+	// 	editor.pointerMove(64, 64)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.pointerDown()
+	// 	expect(editor.selectedShapeIds).toEqual([])
+	// 	editor.pointerUp()
+	// 	expect(editor.selectedShapeIds).toEqual([ids.box1])
+	// })
 
 	it('brush does not select a shape when brushing its masked parts', () => {
 		editor.pointerMove(110, 0)
@@ -601,27 +621,20 @@ describe('when a frame has multiple children', () => {
 })
 
 describe('when shape is selected', () => {
-	let box1: TLGeoShape
-	beforeEach(() => {
+	it('hits on pointer down over shape, misses on pointer up', () => {
 		editor.createShapes([{ id: ids.box1, type: 'geo', props: { fill: 'none' } }])
-		box1 = editor.getShape<TLGeoShape>(ids.box1)!
 		editor.select(ids.box1)
-	})
-
-	it('misses on pointer down over shape, hits on pointer up', () => {
-		editor.pointerMove(50, 50)
+		editor.pointerMove(75, 75)
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([box1.id])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([box1.id])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 })
 
 describe('When shapes are overlapping', () => {
-	let box1: TLGeoShape
 	let box2: TLGeoShape
-	let box3: TLGeoShape
 	let box4: TLGeoShape
 	let box5: TLGeoShape
 	beforeEach(() => {
@@ -680,9 +693,7 @@ describe('When shapes are overlapping', () => {
 			},
 		])
 
-		box1 = editor.getShape<TLGeoShape>(ids.box1)!
 		box2 = editor.getShape<TLGeoShape>(ids.box2)!
-		box3 = editor.getShape<TLGeoShape>(ids.box3)!
 		box4 = editor.getShape<TLGeoShape>(ids.box4)!
 		box5 = editor.getShape<TLGeoShape>(ids.box5)!
 
@@ -734,31 +745,31 @@ describe('When shapes are overlapping', () => {
 		expect(editor.selectedShapeIds).toEqual([box5.id])
 	})
 
-	it('selects the smallest overlapping hollow shape', () => {
-		editor.pointerMove(125, 150)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([])
-		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([box3.id])
-		editor.selectNone()
-		expect(editor.hoveredShapeId).toBe(null)
+	// it('selects the smallest overlapping hollow shape', () => {
+	// 	editor.pointerMove(125, 175)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.pointerDown()
+	// 	expect(editor.selectedShapeIds).toEqual([])
+	// 	editor.pointerUp()
+	// 	expect(editor.selectedShapeIds).toEqual([box3.id])
+	// 	editor.selectNone()
+	// 	expect(editor.hoveredShapeId).toBe(null)
 
-		editor.pointerMove(64, 64)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([])
-		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([box2.id])
-		editor.selectNone()
+	// 	editor.pointerMove(64, 64)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.pointerDown()
+	// 	expect(editor.selectedShapeIds).toEqual([])
+	// 	editor.pointerUp()
+	// 	expect(editor.selectedShapeIds).toEqual([box2.id])
+	// 	editor.selectNone()
 
-		editor.pointerMove(35, 35)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([])
-		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([box1.id])
-	})
+	// 	editor.pointerMove(35, 35)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.pointerDown()
+	// 	expect(editor.selectedShapeIds).toEqual([])
+	// 	editor.pointerUp()
+	// 	expect(editor.selectedShapeIds).toEqual([box1.id])
+	// })
 })
 
 describe('Selects inside of groups', () => {
@@ -837,19 +848,19 @@ describe('Selects inside of groups', () => {
 		expect(editor.selectedShapeIds).toEqual([ids.box2])
 	})
 
-	it('selects child when pointing inside of a hollow child shape', () => {
-		editor.pointerMove(50, 50)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([])
-		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([ids.group1])
-		editor.pointerDown()
-		editor.expectToBeIn('select.pointing_selection')
-		expect(editor.selectedShapeIds).toEqual([ids.group1])
-		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([ids.box1])
-	})
+	// it('selects child when pointing inside of a hollow child shape', () => {
+	// 	editor.pointerMove(75, 75)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.pointerDown()
+	// 	expect(editor.selectedShapeIds).toEqual([])
+	// 	editor.pointerUp()
+	// 	expect(editor.selectedShapeIds).toEqual([ids.group1])
+	// 	editor.pointerDown()
+	// 	editor.expectToBeIn('select.pointing_selection')
+	// 	expect(editor.selectedShapeIds).toEqual([ids.group1])
+	// 	editor.pointerUp()
+	// 	expect(editor.selectedShapeIds).toEqual([ids.box1])
+	// })
 
 	it('selects a solid shape in a group when double clicking it', () => {
 		editor.pointerMove(250, 50)
@@ -867,13 +878,13 @@ describe('Selects inside of groups', () => {
 		expect(editor.focusedGroupId).toBe(ids.group1)
 	})
 
-	it('selects a hollow shape in a group when double clicking it', () => {
-		editor.pointerMove(50, 50)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.doubleClick()
-		expect(editor.selectedShapeIds).toEqual([ids.box1])
-		expect(editor.focusedGroupId).toBe(ids.group1)
-	})
+	// it('selects a hollow shape in a group when double clicking it', () => {
+	// 	editor.pointerMove(50, 50)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.doubleClick()
+	// 	expect(editor.selectedShapeIds).toEqual([ids.box1])
+	// 	expect(editor.focusedGroupId).toBe(ids.group1)
+	// })
 
 	it('selects a hollow shape in a group when double clicking its edge', () => {
 		editor.pointerMove(102, 50)
@@ -883,14 +894,14 @@ describe('Selects inside of groups', () => {
 		expect(editor.focusedGroupId).toBe(ids.group1)
 	})
 
-	it('double clicks a hollow shape when the focus layer is the shapes parent', () => {
-		editor.pointerMove(50, 50)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.doubleClick()
-		editor.doubleClick()
-		expect(editor.editingShapeId).toBe(ids.box1)
-		editor.expectToBeIn('select.editing_shape')
-	})
+	// it('double clicks a hollow shape when the focus layer is the shapes parent', () => {
+	// 	editor.pointerMove(50, 50)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.doubleClick()
+	// 	editor.doubleClick()
+	// 	expect(editor.editingShapeId).toBe(ids.box1)
+	// 	editor.expectToBeIn('select.editing_shape')
+	// })
 
 	it('double clicks a solid shape to edit it when the focus layer is the shapes parent', () => {
 		editor.pointerMove(250, 50)
@@ -901,40 +912,40 @@ describe('Selects inside of groups', () => {
 		editor.expectToBeIn('select.editing_shape')
 	})
 
-	it('double clicks a sibling shape to edit it when the focus layer is the shapes parent', () => {
-		editor.pointerMove(50, 50)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.doubleClick()
+	// it('double clicks a sibling shape to edit it when the focus layer is the shapes parent', () => {
+	// 	editor.pointerMove(50, 50)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.doubleClick()
 
-		editor.pointerMove(250, 50)
-		expect(editor.hoveredShapeId).toBe(ids.box2)
-		editor.doubleClick()
-		expect(editor.editingShapeId).toBe(ids.box2)
-		editor.expectToBeIn('select.editing_shape')
-	})
+	// 	editor.pointerMove(250, 50)
+	// 	expect(editor.hoveredShapeId).toBe(ids.box2)
+	// 	editor.doubleClick()
+	// 	expect(editor.editingShapeId).toBe(ids.box2)
+	// 	editor.expectToBeIn('select.editing_shape')
+	// })
 
-	it('selects a different sibling shape when editing a layer', () => {
-		editor.pointerMove(50, 50)
-		expect(editor.hoveredShapeId).toBe(null)
-		editor.doubleClick()
-		editor.doubleClick()
-		expect(editor.editingShapeId).toBe(ids.box1)
-		editor.expectToBeIn('select.editing_shape')
+	// it('selects a different sibling shape when editing a layer', () => {
+	// 	editor.pointerMove(50, 50)
+	// 	expect(editor.hoveredShapeId).toBe(null)
+	// 	editor.doubleClick()
+	// 	editor.doubleClick()
+	// 	expect(editor.editingShapeId).toBe(ids.box1)
+	// 	editor.expectToBeIn('select.editing_shape')
 
-		editor.pointerMove(250, 50)
-		expect(editor.hoveredShapeId).toBe(ids.box2)
-		editor.pointerDown()
-		editor.expectToBeIn('select.pointing_shape')
-		expect(editor.editingShapeId).toBe(null)
-		expect(editor.selectedShapeIds).toEqual([ids.box2])
-	})
+	// 	editor.pointerMove(250, 50)
+	// 	expect(editor.hoveredShapeId).toBe(ids.box2)
+	// 	editor.pointerDown()
+	// 	editor.expectToBeIn('select.pointing_shape')
+	// 	expect(editor.editingShapeId).toBe(null)
+	// 	expect(editor.selectedShapeIds).toEqual([ids.box2])
+	// })
 })
 
 describe('when selecting behind selection', () => {
 	beforeEach(() => {
 		editor
 			.createShapes([
-				{ id: ids.box1, type: 'geo', x: 100, y: 0 },
+				{ id: ids.box1, type: 'geo', x: 100, y: 0, props: { fill: 'solid' } },
 				{ id: ids.box2, type: 'geo', x: 0, y: 0 },
 				{ id: ids.box3, type: 'geo', x: 200, y: 0 },
 			])
@@ -942,8 +953,8 @@ describe('when selecting behind selection', () => {
 	})
 
 	it('does not select on pointer down, only on pointer up', () => {
-		editor.pointerMove(150, 50)
-		expect(editor.hoveredShapeId).toBe(null)
+		editor.pointerMove(175, 75)
+		expect(editor.hoveredShapeId).toBe(ids.box1)
 		editor.pointerDown() // inside of box 1
 		expect(editor.selectedShapeIds).toEqual([ids.box2, ids.box3])
 		editor.pointerUp()
@@ -951,8 +962,8 @@ describe('when selecting behind selection', () => {
 	})
 
 	it('can drag the selection', () => {
-		editor.pointerMove(150, 50)
-		expect(editor.hoveredShapeId).toBe(null)
+		editor.pointerMove(175, 75)
+		expect(editor.hoveredShapeId).toBe(ids.box1)
 		editor.pointerDown() // inside of box 1
 		expect(editor.selectedShapeIds).toEqual([ids.box2, ids.box3])
 		editor.pointerMove(250, 50)
@@ -1032,36 +1043,48 @@ describe('when shift+selecting', () => {
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 
-	it('adds hollow shape to selection on pointer up', () => {
+	it('does not add hollow shape to selection on pointer up when in empty space', () => {
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.keyDown('Shift')
-		editor.pointerMove(250, 50) // above box 2
+		editor.pointerMove(275, 75) // above box 2
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerDown()
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerUp()
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
+	})
+
+	it('does not add hollow shape to selection on pointer up when over the edge/label', () => {
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
+		editor.keyDown('Shift')
+		editor.pointerMove(250, 50) // above box 2's label
+		expect(editor.hoveredShapeId).toBe(ids.box2)
+		editor.pointerDown()
+		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2])
+		editor.pointerUp()
 		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2])
 	})
 
-	it('adds and removes hollow shape from selection on pointer up (without causing an edit by double clicks)', () => {
+	it('does not add and remove hollow shape from selection on pointer up (without causing an edit by double clicks)', () => {
 		editor.keyDown('Shift')
-		editor.pointerMove(250, 50) // above box 2
+		editor.pointerMove(275, 75) // above box 2, empty space
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerDown()
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerUp()
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 
-	it('adds and removes hollow shape from selection on double clicks (without causing an edit by double clicks)', () => {
+	it('does not add and remove hollow shape from selection on double clicks (without causing an edit by double clicks)', () => {
 		editor.keyDown('Shift')
-		editor.pointerMove(250, 50) // above box 2
+		editor.pointerMove(275, 75) // above box 2, empty space
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.doubleClick()
-		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.doubleClick()
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
@@ -1090,14 +1113,14 @@ describe('when shift+selecting a group', () => {
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 
-	it('adds to selection on shift + on pointer up when clicking in hollow shape', () => {
+	it('does not add to selection on shift + on pointer up when clicking in hollow shape', () => {
 		editor.keyDown('Shift')
-		editor.pointerMove(250, 50)
+		editor.pointerMove(275, 75)
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerDown() // inside of box 2, inside of group 1
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.group1])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 
 	it('adds to selection on pointer down when clicking in margin', () => {
@@ -1120,30 +1143,33 @@ describe('when shift+selecting a group', () => {
 		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.group1])
 	})
 
-	it('brushes on down + move', () => {
+	it('does not select when shift+clicking into hollow shape inside of a group', () => {
+		editor.pointerMove(275, 75)
 		editor.keyDown('Shift')
-		editor.pointerMove(250, 50)
 		expect(editor.hoveredShapeId).toBe(null)
-		editor.pointerDown() // inside of box 2, inside of group 1
+		editor.pointerDown() // inside of box 2, empty space, inside of group 1
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.group1])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 
-	it('deselects on pointer up', () => {
+	it('does not deselect on pointer up when clicking into empty space in hollow shape', () => {
 		editor.keyDown('Shift')
-		editor.pointerMove(250, 50)
+		editor.pointerMove(275, 75)
 		expect(editor.hoveredShapeId).toBe(null)
-		editor.pointerDown() // inside of box 2, inside of group 1
+		editor.pointerDown() // inside of box 2, empty space, inside of group 1
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerUp()
-		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.group1])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.group1])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerUp()
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 })
+
+// some of these tests are adapted from the "select hollow shape on pointer up" logic, which was removed.
+// the tests may seem arbitrary but their mostly negating the logic that was introduced in that feature.
 
 describe('When children / descendants of a group are selected', () => {
 	beforeEach(() => {

@@ -82,7 +82,7 @@ beforeEach(() => {
 
 describe('Locking', () => {
 	it('Can lock shapes', () => {
-		editor.setSelectedShapeIds([ids.unlockedShapeA])
+		editor.setSelectedShapes([ids.unlockedShapeA])
 		editor.toggleLock(editor.selectedShapeIds)
 		expect(editor.getShape(ids.unlockedShapeA)!.isLocked).toBe(true)
 		// Locking deselects the shape
@@ -164,7 +164,7 @@ describe('Locked shapes', () => {
 
 describe('Unlocking', () => {
 	it('Can unlock shapes', () => {
-		editor.setSelectedShapeIds([ids.lockedShapeA, ids.lockedShapeB])
+		editor.setSelectedShapes([ids.lockedShapeA, ids.lockedShapeB])
 		let lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map(
 			(id) => editor.getShape(id)!.isLocked
 		)

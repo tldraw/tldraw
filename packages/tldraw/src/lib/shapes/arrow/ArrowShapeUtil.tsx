@@ -101,67 +101,66 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					largeArcFlag: info.bodyArc.largeArcFlag,
 			  })
 
-		if (!shape.props.text.trim()) {
-			return bodyGeom
+		let labelGeom: Rectangle2d | undefined
+
+		if (shape.props.text.trim()) {
+			const bodyBounds = bodyGeom.bounds
+
+			const { w, h } = this.editor.textMeasure.measureText(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+				width: 'fit-content',
+			})
+
+			let width = w
+			let height = h
+
+			if (bodyBounds.width > bodyBounds.height) {
+				width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
+
+				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
+					shape.props.text,
+					{
+						...TEXT_PROPS,
+						fontFamily: FONT_FAMILIES[shape.props.font],
+						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+						width: width + 'px',
+					}
+				)
+
+				width = squishedWidth
+				height = squishedHeight
+			}
+
+			if (width > 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]) {
+				width = 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]
+
+				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
+					shape.props.text,
+					{
+						...TEXT_PROPS,
+						fontFamily: FONT_FAMILIES[shape.props.font],
+						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+						width: width + 'px',
+					}
+				)
+
+				width = squishedWidth
+				height = squishedHeight
+			}
+
+			labelGeom = new Rectangle2d({
+				x: info.middle.x - width / 2 - 4.25,
+				y: info.middle.y - height / 2 - 4.25,
+				width: width + 8.5,
+				height: height + 8.5,
+				isFilled: true,
+			})
 		}
-
-		const bodyBounds = bodyGeom.bounds
-
-		const { w, h } = this.editor.textMeasure.measureText(shape.props.text, {
-			...TEXT_PROPS,
-			fontFamily: FONT_FAMILIES[shape.props.font],
-			fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-			width: 'fit-content',
-		})
-
-		let width = w
-		let height = h
-
-		if (bodyBounds.width > bodyBounds.height) {
-			width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
-
-			const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-					width: width + 'px',
-				}
-			)
-
-			width = squishedWidth
-			height = squishedHeight
-		}
-
-		if (width > 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]) {
-			width = 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]
-
-			const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
-				shape.props.text,
-				{
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[shape.props.font],
-					fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-					width: width + 'px',
-				}
-			)
-
-			width = squishedWidth
-			height = squishedHeight
-		}
-
-		const labelGeom = new Rectangle2d({
-			x: info.middle.x - width / 2 - 4.25,
-			y: info.middle.y - height / 2 - 4.25,
-			width: width + 8.5,
-			height: height + 8.5,
-			isFilled: true,
-		})
 
 		return new Group2d({
-			children: [bodyGeom, labelGeom],
-			operation: 'union',
+			children: labelGeom ? [bodyGeom, labelGeom] : [bodyGeom],
 			isSnappable: false,
 		})
 	}

@@ -45,7 +45,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 					points,
 				})
 			}),
-			operation: 'union',
 		})
 	}
 

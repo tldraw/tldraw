@@ -435,7 +435,7 @@ describe('When in readonly mode', () => {
 		expect(editor.selectedShapeIds.length).toBe(0)
 		expect(editor.instanceState.isReadonly).toBe(true)
 
-		editor.setSelectedShapeIds([ids.embed1])
+		editor.setSelectedShapes([ids.embed1])
 		expect(editor.selectedShapeIds.length).toBe(1)
 
 		editor.keyUp('Enter')

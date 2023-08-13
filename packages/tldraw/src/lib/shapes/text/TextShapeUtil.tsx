@@ -83,7 +83,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			handleKeyDown,
 			handleBlur,
 			handleInputPointerDown,
-			handleContentPointerDown,
 		} = useEditableText(id, type, text)
 
 		return (
@@ -105,11 +104,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 						color: theme[color].solid,
 					}}
 				>
-					<div
-						className="tl-text tl-text-content"
-						dir="ltr"
-						onPointerDown={handleContentPointerDown}
-					>
+					<div className="tl-text tl-text-content" dir="ltr">
 						{text}
 					</div>
 					{isEditing || isEditableFromHover ? (

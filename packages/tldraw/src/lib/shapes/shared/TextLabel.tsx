@@ -49,7 +49,6 @@ export const TextLabel = React.memo(function TextLabel<
 		handleKeyDown,
 		handleBlur,
 		handleInputPointerDown,
-		handleContentPointerDown,
 		handleDoubleClick,
 	} = useEditableText(id, type, text)
 
@@ -84,7 +83,7 @@ export const TextLabel = React.memo(function TextLabel<
 					color: theme[labelColor].solid,
 				}}
 			>
-				<div className="tl-text tl-text-content" dir="ltr" onPointerDown={handleContentPointerDown}>
+				<div className="tl-text tl-text-content" dir="ltr">
 					{finalText}
 				</div>
 				{isInteractive && (

@@ -25,7 +25,6 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 		handleChange,
 		isEmpty,
 		handleInputPointerDown,
-		handleContentPointerDown,
 	} = useEditableText(id, 'arrow', text)
 
 	if (!isEditing && isEmpty) {
@@ -48,7 +47,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 			}}
 		>
 			<div className="tl-arrow-label__inner">
-				<p style={{ width: width ? width : '9px' }} onPointerDown={handleContentPointerDown}>
+				<p style={{ width: width ? width : '9px' }}>
 					{text ? TextHelpers.normalizeTextForDom(text) : ' '}
 				</p>
 				{isEditing && (

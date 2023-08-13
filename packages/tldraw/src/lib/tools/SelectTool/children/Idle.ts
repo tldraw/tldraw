@@ -159,13 +159,21 @@ export class Idle extends StateNode {
 		switch (info.target) {
 			case 'canvas': {
 				const { hoveredShape } = this.editor
+
+				// todo
+				// double clicking on the middle of a hollow geo shape without a label, or
+				// over the label of a hollwo shape that has a label, should start editing
+				// that shape's label. We can't support "double click anywhere inside"
+				// of the shape yet because that also creates text shapes, and can product
+				// unexpected results when working "inside of" a hollow shape.
+
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
 						: this.editor.getSelectedShapeAtPoint(this.editor.inputs.currentPagePoint) ??
 						  this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 								margin: HIT_TEST_MARGIN / this.editor.zoomLevel,
-								hitInside: true,
+								hitInside: false,
 						  })
 
 				const { focusedGroupId } = this.editor
@@ -337,7 +345,7 @@ export class Idle extends StateNode {
 
 				if (!selectedShapeIds.includes(targetShape.id)) {
 					this.editor.mark('selecting shape')
-					this.editor.setSelectedShapeIds([targetShape.id])
+					this.editor.setSelectedShapes([targetShape.id])
 				}
 				break
 			}
@@ -405,7 +413,7 @@ export class Idle extends StateNode {
 					if (
 						selectedShapes.every((shape) => this.editor.isShapeOfType<TLGroupShape>(shape, 'group'))
 					) {
-						this.editor.setSelectedShapeIds(
+						this.editor.setSelectedShapes(
 							selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
 						)
 						return

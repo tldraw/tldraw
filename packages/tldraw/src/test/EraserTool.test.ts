@@ -370,7 +370,8 @@ describe('When clicking and dragging', () => {
 
 	it('Only erases masked shapes when pointer is inside the mask', () => {
 		editor.setCurrentTool('eraser')
-		editor.pointerDown(425, 0) // Above the masked part of box3
+		editor.pointerMove(425, 0)
+		editor.pointerDown() // Above the masked part of box3
 		expect(editor.erasingShapeIds).toEqual([])
 		editor.pointerMove(425, 500) // Through the masked part of box3
 		jest.advanceTimersByTime(16)
@@ -379,7 +380,8 @@ describe('When clicking and dragging', () => {
 		editor.pointerUp()
 		expect(editor.getShape(ids.box3)).toBeDefined()
 
-		editor.pointerDown(375, 0) // Above the not-masked part of box3
+		editor.pointerMove(375, 0)
+		editor.pointerDown() // Above the not-masked part of box3
 		editor.pointerMove(375, 500) // Through the masked part of box3
 		expect(editor.instanceState.scribble).not.toBe(null)
 		expect(editor.erasingShapeIds).toEqual([ids.box3])

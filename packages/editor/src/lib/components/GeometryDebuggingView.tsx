@@ -33,6 +33,9 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 		>
 			{renderingShapes.map((result) => {
 				const shape = editor.getShape(result.id)!
+
+				if (shape.type === 'group') return null
+
 				const geometry = editor.getShapeGeometry(shape)
 				const pageTransform = editor.getShapePageTransform(shape)!
 
@@ -46,10 +49,10 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 					<g key={result.id + '_outline'} transform={pageTransform.toCssString()}>
 						{showStroke && (
 							<path
-								stroke="dodgerblue"
+								stroke="red"
 								strokeWidth={2}
 								fill="none"
-								opacity={0.25}
+								opacity={0.5}
 								d={geometry.toSimpleSvgPath()}
 							/>
 						)}
@@ -61,6 +64,8 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 									cy={v.y}
 									r={2}
 									fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 0])}, 100%, 50%)`}
+									stroke="black"
+									strokeWidth="1"
 								/>
 							))}
 						{distanceToPoint > 0 && showClosestPointOnOutline && (

@@ -10,6 +10,7 @@ export function getHitShapeOnCanvasPointerDown(editor: Editor): TLShape | undefi
 		// hovered shape at point
 		editor.getShapeAtPoint(currentPagePoint, {
 			hitInside: false,
+			hitLabels: false,
 			margin: HIT_TEST_MARGIN / zoomLevel,
 		}) ??
 		// selected shape at point

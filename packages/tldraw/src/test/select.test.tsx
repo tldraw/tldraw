@@ -87,9 +87,10 @@ describe('When pointing a shape behind the current selection', () => {
 			<TL.geo ref="C" x={100} y={100} w={50} h={50} />,
 		])
 		editor.select(ids.A, ids.C)
-		// don't select it yet! It's behind the current selection
+
+		// don't select B yet! It's behind the current selection
 		editor.pointerDown(75, 75, { target: 'canvas' }, { shiftKey: true })
-		editor.expectToBeIn('select.pointing_selection')
+		editor.expectToBeIn('select.pointing_shape')
 		expect(editor.selectedShapeIds).toMatchObject([ids.A, ids.C])
 
 		editor.pointerUp(75, 75, { target: 'canvas' }, { shiftKey: true })

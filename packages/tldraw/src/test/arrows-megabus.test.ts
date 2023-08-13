@@ -526,3 +526,7 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		})
 	})
 })
+
+it.todo(
+	'after creating an arrow while tool lock is enabled, pressing enter will begin editing that shape'
+)

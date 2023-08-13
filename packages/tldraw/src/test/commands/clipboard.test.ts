@@ -458,7 +458,7 @@ describe('When copying and pasting', () => {
 			])
 			// Copy a shape from within the group
 			.selectNone()
-			.setSelectedShapeIds([ids.box1])
+			.setSelectedShapes([ids.box1])
 			.copy()
 
 		await assertClipboardOfCorrectShape(mockClipboard.current)

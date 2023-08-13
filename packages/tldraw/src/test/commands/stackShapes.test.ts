@@ -50,7 +50,7 @@ describe('distributeShapes command', () => {
 
 	describe('when less than three shapes are selected', () => {
 		it('does nothing', () => {
-			editor.setSelectedShapeIds([ids.boxA, ids.boxB])
+			editor.setSelectedShapes([ids.boxA, ids.boxB])
 			const fn = jest.fn()
 			editor.on('change-history', fn)
 			editor.stackShapes(editor.selectedShapeIds, 'horizontal', 0)
@@ -61,7 +61,7 @@ describe('distributeShapes command', () => {
 
 	describe('when stacking horizontally', () => {
 		it('stacks the shapes based on a given value', () => {
-			editor.setSelectedShapeIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
 			editor.stackShapes(editor.selectedShapeIds, 'horizontal', 10)
 			jest.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
@@ -88,7 +88,7 @@ describe('distributeShapes command', () => {
 		})
 
 		it('stacks the shapes based on the most common gap', () => {
-			editor.setSelectedShapeIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
 			editor.stackShapes(editor.selectedShapeIds, 'horizontal', 0)
 			jest.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
@@ -116,7 +116,7 @@ describe('distributeShapes command', () => {
 
 		it('stacks the shapes based on the average', () => {
 			editor.updateShapes([{ id: ids.boxD, type: 'geo', x: 540, y: 700 }])
-			editor.setSelectedShapeIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
 			editor.stackShapes(editor.selectedShapeIds, 'horizontal', 0)
 			jest.advanceTimersByTime(1000)
 			editor.expectShapeToMatch({
@@ -144,7 +144,7 @@ describe('distributeShapes command', () => {
 
 	describe('when stacking vertically', () => {
 		it('stacks the shapes based on a given value', () => {
-			editor.setSelectedShapeIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
 			editor.stackShapes(editor.selectedShapeIds, 'vertical', 10)
 			jest.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
@@ -171,7 +171,7 @@ describe('distributeShapes command', () => {
 		})
 
 		it('stacks the shapes based on the most common gap', () => {
-			editor.setSelectedShapeIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
 			editor.stackShapes(editor.selectedShapeIds, 'vertical', 0)
 			jest.advanceTimersByTime(1000)
 			// 200 distance gap between c and d
@@ -199,7 +199,7 @@ describe('distributeShapes command', () => {
 
 		it('stacks the shapes based on the average', () => {
 			editor.updateShapes([{ id: ids.boxD, type: 'geo', x: 700, y: 540 }])
-			editor.setSelectedShapeIds([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
+			editor.setSelectedShapes([ids.boxA, ids.boxB, ids.boxC, ids.boxD])
 			editor.stackShapes(editor.selectedShapeIds, 'vertical', 0)
 			jest.advanceTimersByTime(1000)
 			editor.expectShapeToMatch({

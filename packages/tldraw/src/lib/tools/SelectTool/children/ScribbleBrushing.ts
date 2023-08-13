@@ -162,7 +162,7 @@ export class ScribbleBrushing extends StateNode {
 			}
 		}
 
-		this.editor.setSelectedShapeIds(
+		this.editor.setSelectedShapes(
 			[
 				...new Set<TLShapeId>(
 					shiftKey
@@ -179,7 +179,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	private cancel() {
-		this.editor.setSelectedShapeIds([...this.initialSelectedShapeIds], { squashing: true })
+		this.editor.setSelectedShapes([...this.initialSelectedShapeIds], { squashing: true })
 		this.parent.transition('idle', {})
 	}
 }
