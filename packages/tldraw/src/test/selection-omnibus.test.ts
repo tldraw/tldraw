@@ -57,12 +57,12 @@ describe('Hovering shapes', () => {
 		expect(editor.hoveredShapeId).toBe(ids.box1)
 		editor.pointerMove(75, 75)
 		expect(editor.hoveredShapeId).toBe(null)
-		// hovers the label of a geo shape
+		// does not hover the label of a geo shape
 		editor.pointerMove(50, 50)
-		expect(editor.hoveredShapeId).toBe(ids.box1)
+		expect(editor.hoveredShapeId).toBe(null)
 	})
 
-	it('hovers the margins or inside of hollow shapes', () => {
+	it('hovers the margins or inside of filled shapes', () => {
 		editor.updateShape({ id: ids.box1, type: 'geo', props: { fill: 'solid' } })
 		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerMove(-4, 50)
@@ -166,13 +166,16 @@ describe('when shape is hollow', () => {
 		expect(editor.hoveredShapeId).toBe(null)
 		expect(editor.selectedShapeIds).toEqual([])
 		editor.pointerMove(50, 50)
-		expect(editor.hoveredShapeId).toBe(ids.box1)
+		// no hover over label...
+		expect(editor.hoveredShapeId).toBe(null)
 		expect(editor.selectedShapeIds).toEqual([])
 		editor.pointerDown()
-		expect(editor.hoveredShapeId).toBe(ids.box1)
-		expect(editor.selectedShapeIds).toEqual([ids.box1])
+		// will select on pointer up
+		expect(editor.hoveredShapeId).toBe(null)
+		expect(editor.selectedShapeIds).toEqual([])
+		// selects on pointer up
 		editor.pointerUp()
-		expect(editor.hoveredShapeId).toBe(ids.box1)
+		expect(editor.hoveredShapeId).toBe(null)
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 
@@ -1054,13 +1057,13 @@ describe('when shift+selecting', () => {
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
 
-	it('does not add hollow shape to selection on pointer up when over the edge/label', () => {
+	it('does not add hollow shape to selection on pointer up when over the edge/label, but select on pointer up', () => {
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.keyDown('Shift')
 		editor.pointerMove(250, 50) // above box 2's label
-		expect(editor.hoveredShapeId).toBe(ids.box2)
+		expect(editor.hoveredShapeId).toBe(null)
 		editor.pointerDown()
-		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2])
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		editor.pointerUp()
 		expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2])
 	})
@@ -1331,15 +1334,17 @@ describe('When double clicking an editable shape', () => {
 		editor.expectToBeIn('select.editing_shape')
 	})
 
-	it('starts editing a child of a group on double click', () => {
+	it('starts editing a child of a group on triple (not double!) click', () => {
 		editor.createShape({ id: ids.box2, type: 'geo', x: 300, y: 0 })
 		editor.groupShapes([ids.box1, ids.box2], ids.group1)
 		editor.selectNone()
-		editor.pointerMove(50, 50).doubleClick()
+		editor.pointerMove(50, 50).click() // clicks on the shape label
+		expect(editor.selectedShapeIds).toEqual([ids.group1])
+		expect(editor.editingShapeId).toBe(null)
+		editor.pointerMove(50, 50).click() // clicks on the shape label
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		expect(editor.editingShapeId).toBe(null)
-		editor.expectToBeIn('select.idle')
-		editor.pointerMove(50, 50).doubleClick()
+		editor.pointerMove(50, 50).click() // clicks on the shape label
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 		expect(editor.editingShapeId).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')
