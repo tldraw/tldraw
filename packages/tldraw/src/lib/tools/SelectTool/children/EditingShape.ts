@@ -1,9 +1,16 @@
-import { StateNode, TLArrowShape, TLEventHandlers, TLGeoShape } from '@tldraw/editor'
+import { Group2d, StateNode, TLArrowShape, TLEventHandlers, TLGeoShape } from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
 export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
+
+	override onEnter = () => {
+		const { editingShape } = this.editor
+		if (!editingShape) throw Error('Entered editing state without an editing shape')
+		updateHoveredId(this.editor)
+		this.editor.select(editingShape)
+	}
 
 	override onExit = () => {
 		const { editingShapeId } = this.editor.currentPageState
@@ -29,40 +36,10 @@ export class EditingShape extends StateNode {
 		}
 	}
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		// This is pretty tricky.
-
-		// Most of the time, we wouldn't want pointer events inside of an editing
-		// shape to de-select the shape or change the editing state. We would just
-		// ignore those pointer events.
-
-		// The exception to this is shapes that have only parts of themselves that are
-		// editable, such as the label on a geo shape. In this case, we would want clicks
-		// that are outside of the label but inside of the shape to end the editing session
-		// and select the shape instead.
-
-		// What we'll do here (for now at least) is have the text label / input element
-		// have a pointer event handler (in useEditableText) that dispatches its own
-		// "shape" type event, which lets us know to ignore the event. If we instead get
-		// a "canvas" type event, then we'll check to see if the hovered shape is a geo
-		// shape and if so, we'll end the editing session and select the shape.
-
 		switch (info.target) {
-			case 'shape': {
-				if (info.shape.id === this.editor.editingShapeId) {
-					return
-				}
-				break
-			}
 			case 'canvas': {
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-
-				if (
-					hitShape &&
-					!(
-						this.editor.isShapeOfType<TLGeoShape>(hitShape, 'geo') ||
-						this.editor.isShapeOfType<TLArrowShape>(hitShape, 'arrow')
-					)
-				) {
+				if (hitShape) {
 					this.onPointerDown({
 						...info,
 						shape: hitShape,
@@ -70,11 +47,63 @@ export class EditingShape extends StateNode {
 					})
 					return
 				}
+				break
+			}
+			case 'shape': {
+				const { shape } = info
+				const { editingShape } = this.editor
+
+				if (!editingShape) {
+					throw Error('Expected an editing shape!')
+				}
+
+				if (shape.type === editingShape.type) {
+					// clicked a shape of the same type as the editing shape
+					if (
+						this.editor.isShapeOfType<TLGeoShape>(shape, 'geo') ||
+						this.editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+					) {
+						// for shapes with labels, check to see if the click was inside of the shape's label
+						const geometry = this.editor.getShapeUtil(shape).getGeometry(shape) as Group2d
+						const labelGeometry = geometry.children[1]
+						if (labelGeometry) {
+							const pointInShapeSpace = this.editor.getPointInShapeSpace(
+								shape,
+								this.editor.inputs.currentPagePoint
+							)
+							if (labelGeometry.bounds.containsPoint(pointInShapeSpace)) {
+								// it's a hit to the label!
+								if (shape.id === editingShape.id) {
+									// If we clicked on the editing geo / arrow shape's label, do nothing
+									return
+								} else {
+									this.editor.setEditingShape(shape)
+									this.editor.select(shape)
+									return
+								}
+							}
+						}
+					} else {
+						if (shape.id === editingShape.id) {
+							// If we clicked on the editing shape (which isn't a shape with a label), do nothing
+						} else {
+							// But if we clicked on a different shape of the same type, edit it instead
+							this.editor.setEditingShape(shape)
+							this.editor.select(shape)
+						}
+						return
+					}
+				} else {
+					// clicked a different kind of shape
+				}
+				break
 			}
 		}
 
+		// still here? Cancel editing and transition back to select idle
 		this.parent.transition('idle', info)
-		this.parent.current.value?.onPointerDown?.(info)
+		// then feed the pointer down event back into the state chart as if it happened in that state
+		this.editor.root.handleEvent(info)
 	}
 
 	override onComplete: TLEventHandlers['onComplete'] = (info) => {

@@ -1806,22 +1806,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.setEditingShape(myShape.id)
 	 * ```
 	 *
-	 * @param shapes - The shape (or shape id) to set as editing.
+	 * @param shape - The shape (or shape id) to set as editing.
 	 *
 	 * @public
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		if (!id) {
-			this._setInstancePageState({ editingShapeId: null })
-		} else {
-			if (id !== this.editingShapeId) {
-				const shape = this.getShape(id)!
-				const util = this.getShapeUtil(shape)
-				if (shape && util.canEdit(shape)) {
-					this._setInstancePageState({ editingShapeId: id, hoveredShapeId: null })
+		if (id !== this.editingShapeId) {
+			if (id) {
+				const shape = this.getShape(id)
+				if (shape && this.getShapeUtil(shape).canEdit(shape)) {
+					this._setInstancePageState({ editingShapeId: id })
+					return this
 				}
 			}
+
+			// Either we just set the editing id to null, or the shape was missing or not editable
+			this._setInstancePageState({ editingShapeId: null })
 		}
 		return this
 	}

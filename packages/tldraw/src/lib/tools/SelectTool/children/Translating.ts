@@ -55,7 +55,23 @@ export class Translating extends StateNode {
 
 		this.markId = isCreating ? `creating:${this.editor.onlySelectedShape!.id}` : 'translating'
 		this.editor.mark(this.markId)
-		this.handleEnter(info)
+		this.isCloning = false
+		this.info = info
+
+		this.editor.setCursor({ type: 'move', rotation: 0 })
+		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
+
+		// Don't clone on create; otherwise clone on altKey
+		if (!this.isCreating) {
+			if (this.editor.inputs.altKey) {
+				this.startCloning()
+				return
+			}
+		}
+
+		this.snapshot = this.selectionSnapshot
+		this.handleStart()
+		this.updateShapes()
 		this.editor.on('tick', this.updateParent)
 	}
 
@@ -153,8 +169,7 @@ export class Translating extends StateNode {
 				const onlySelected = this.editor.onlySelectedShape
 				if (onlySelected) {
 					this.editor.setEditingShape(onlySelected.id)
-					this.editor.setCurrentTool('select')
-					this.editor.root.current.value!.transition('editing_shape', {})
+					this.editor.setCurrentTool('select.editing_shape')
 				}
 			} else {
 				this.parent.transition('idle', {})
@@ -169,26 +184,6 @@ export class Translating extends StateNode {
 		} else {
 			this.parent.transition('idle', this.info)
 		}
-	}
-
-	protected handleEnter(info: TLPointerEventInfo & { target: 'shape' }) {
-		this.isCloning = false
-		this.info = info
-
-		this.editor.setCursor({ type: 'move', rotation: 0 })
-		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
-
-		// Don't clone on create; otherwise clone on altKey
-		if (!this.isCreating) {
-			if (this.editor.inputs.altKey) {
-				this.startCloning()
-				return
-			}
-		}
-
-		this.snapshot = this.selectionSnapshot
-		this.handleStart()
-		this.updateShapes()
 	}
 
 	protected handleStart() {
@@ -207,6 +202,7 @@ export class Translating extends StateNode {
 		if (changes.length > 0) {
 			this.editor.updateShapes(changes)
 		}
+		this.editor.setHoveredShape(null)
 	}
 
 	protected handleEnd() {

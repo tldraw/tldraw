@@ -394,7 +394,8 @@ describe('When editing shapes', () => {
 		const shapeId = editor.selectedShapeIds[0]
 
 		// Click another text shape
-		editor.click(50, 50, { target: 'shape', shape: editor.getShape(ids.text1) })
+		editor.pointerMove(50, 50)
+		editor.click()
 		expect(editor.selectedShapeIds.length).toBe(1)
 		expect(editor.currentPageShapes.length).toBe(5)
 		expect(editor.getShape(shapeId)).toBe(undefined)

@@ -144,8 +144,8 @@ export class PointingShape extends StateNode {
 									this.editor.batch(() => {
 										this.editor.mark('editing on pointer up')
 										this.editor.select(selectingShape.id)
-										this.editor.setCurrentTool('select.editing_shape')
 										this.editor.setEditingShape(selectingShape.id)
+										this.editor.setCurrentTool('select.editing_shape')
 									})
 									return
 								}

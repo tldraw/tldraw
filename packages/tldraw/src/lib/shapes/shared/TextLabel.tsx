@@ -43,7 +43,7 @@ export const TextLabel = React.memo(function TextLabel<
 		rInput,
 		isEmpty,
 		isEditing,
-		isEditableFromHover,
+		isEditingSameShapeType,
 		handleFocus,
 		handleChange,
 		handleKeyDown,
@@ -52,7 +52,7 @@ export const TextLabel = React.memo(function TextLabel<
 		handleDoubleClick,
 	} = useEditableText(id, type, text)
 
-	const isInteractive = isEditing || isEditableFromHover
+	const isInteractive = isEditing || isEditingSameShapeType
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.trim().length > 0
 	const legacyAlign = isLegacyAlign(align)

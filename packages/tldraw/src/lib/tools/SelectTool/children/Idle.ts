@@ -23,6 +23,7 @@ export class Idle extends StateNode {
 
 	override onEnter = () => {
 		this.parent.currentToolIdMask = undefined
+		updateHoveredId(this.editor)
 		this.editor.updateInstanceState(
 			{ cursor: { type: 'default', rotation: 0 } },
 			{ ephemeral: true }
