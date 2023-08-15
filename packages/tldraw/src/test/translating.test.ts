@@ -171,6 +171,7 @@ describe('When cloning...', () => {
 			},
 		])
 	})
+
 	it('clones a single shape and restores when stopping cloning', () => {
 		expect(editor.currentPageShapeIds.size).toBe(3)
 		expect(editor.currentPageShapeIds.size).toBe(3)
@@ -1782,4 +1783,42 @@ describe('When dragging shapes', () => {
 				y: 0,
 			})
 	})
+})
+
+it('clones a single shape simply', () => {
+	editor
+		// create a note shape
+		.setCurrentTool('note')
+		.pointerMove(50, 50)
+		.click()
+
+	expect(editor.onlySelectedShape).toBe(editor.currentPageShapes[0])
+	expect(editor.hoveredShape).toBe(editor.currentPageShapes[0])
+
+	// click on the canvas to deselect
+	editor.pointerMove(200, 50).click()
+
+	expect(editor.onlySelectedShape).toBe(null)
+	expect(editor.hoveredShape).toBe(undefined)
+
+	// move back over the the shape
+	editor.pointerMove(50, 50)
+
+	expect(editor.onlySelectedShape).toBe(null)
+	expect(editor.hoveredShape).toBe(editor.currentPageShapes[0])
+
+	// start dragging the shape
+	editor
+		.pointerDown()
+		.pointerMove(50, 500)
+		// start cloning
+		.keyDown('Alt')
+		// stop dragging
+		.pointerUp()
+
+	expect(editor.currentPageShapes).toHaveLength(2)
+	const [, sticky2] = editor.currentPageShapes
+	expect(editor.onlySelectedShape).toBe(sticky2)
+	expect(editor.editingShape).toBe(undefined)
+	expect(editor.hoveredShape).toBe(sticky2)
 })

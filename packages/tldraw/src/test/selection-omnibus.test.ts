@@ -1326,8 +1326,13 @@ describe('When double clicking an editable shape', () => {
 	})
 
 	it('starts editing arrow on double click', () => {
-		editor.pointerMove(250, 50).doubleClick()
+		editor.pointerMove(250, 50)
+
+		editor.doubleClick()
 		expect(editor.selectedShapeIds).toEqual([ids.box2])
+		expect(editor.editingShapeId).toBe(ids.box2)
+		editor.expectToBeIn('select.editing_shape')
+
 		editor.doubleClick()
 		expect(editor.selectedShapeIds).toEqual([ids.box2])
 		expect(editor.editingShapeId).toBe(ids.box2)
