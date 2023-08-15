@@ -1817,7 +1817,7 @@ it('clones a single shape simply', () => {
 		.pointerUp()
 
 	expect(editor.currentPageShapes).toHaveLength(2)
-	const [sticky1, sticky2] = editor.currentPageShapes
+	const [, sticky2] = editor.currentPageShapes
 	expect(editor.onlySelectedShape).toBe(sticky2)
 	expect(editor.editingShape).toBe(undefined)
 	expect(editor.hoveredShape).toBe(sticky2)
