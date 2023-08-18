@@ -27,6 +27,7 @@ goodbye .tsbuild
 goodbye .tsbuild-pub
 goodbye .tsbuild-dev
 goodbye .tsbuild-api
+goodbye .next
 
 rm -rf {packages,bublic/packages}/*/api
 rm -rf {packages,apps,bublic/packages,bublic/apps}/*/*.tgz
