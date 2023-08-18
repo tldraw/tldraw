@@ -98,7 +98,7 @@ export class Erasing extends StateNode {
 
 	update() {
 		const {
-			zoomLevel,
+			stableZoomLevel,
 			currentPageShapes: currentPageShapes,
 			erasingShapeIds,
 			inputs: { currentPagePoint, previousPagePoint },
@@ -124,7 +124,7 @@ export class Erasing extends StateNode {
 			const A = this.editor.getPointInShapeSpace(shape, previousPagePoint)
 			const B = this.editor.getPointInShapeSpace(shape, currentPagePoint)
 
-			if (geometry.hitTestLineSegment(A, B, HIT_TEST_MARGIN / zoomLevel)) {
+			if (geometry.hitTestLineSegment(A, B, HIT_TEST_MARGIN / stableZoomLevel)) {
 				erasing.add(this.editor.getOutermostSelectableShape(shape).id)
 			}
 		}

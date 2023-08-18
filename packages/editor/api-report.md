@@ -831,6 +831,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         speedThreshold?: number | undefined;
     }): this;
     readonly snaps: SnapManager;
+    get stableZoomLevel(): number;
     stackShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical', gap: number): this;
     startFollowingUser(userId: string): this;
     stopCameraAnimation(): this;

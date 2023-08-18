@@ -14,7 +14,7 @@ export class Pointing extends StateNode {
 		const {
 			inputs: { currentPagePoint },
 			currentPageShapesSorted: sortedShapesOnCurrentPage,
-			zoomLevel,
+			stableZoomLevel,
 		} = this.editor
 
 		const erasing = new Set<TLShapeId>()
@@ -30,7 +30,7 @@ export class Pointing extends StateNode {
 			if (
 				this.editor.isPointInShape(shape, currentPagePoint, {
 					hitInside: false,
-					margin: HIT_TEST_MARGIN / zoomLevel,
+					margin: HIT_TEST_MARGIN / stableZoomLevel,
 				})
 			) {
 				const hitShape = this.editor.getOutermostSelectableShape(shape)

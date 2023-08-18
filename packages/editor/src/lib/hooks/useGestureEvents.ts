@@ -2,6 +2,7 @@ import type { AnyHandlerEventTypes, EventTypes, GestureKey, Handler } from '@use
 import { createUseGesture, pinchAction, wheelAction } from '@use-gesture/react'
 import throttle from 'lodash.throttle'
 import * as React from 'react'
+import { MAX_ZOOM, MIN_ZOOM } from '../constants'
 import { TLWheelEventInfo } from '../editor/types/event-types'
 import { Vec2d } from '../primitives/Vec2d'
 import { preventDefault } from '../utils/dom'
@@ -242,8 +243,24 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		pinch: {
 			from: () => [editor.zoomLevel, 0], // Return the camera z to use when pinch starts
 			scaleBounds: () => {
-				return { from: editor.zoomLevel, max: 8, min: 0.05 }
+				return { from: editor.zoomLevel, max: MAX_ZOOM, min: MIN_ZOOM }
 			},
+			pinchOnWheel: false,
+			preventDefault: true,
 		},
 	})
+
+	React.useEffect(() => {
+		const elm = ref.current
+		if (!elm) return
+		const handler = (e: Event) => e.preventDefault()
+		elm.addEventListener('gesturestart', handler)
+		elm.addEventListener('gesturechange', handler)
+		elm.addEventListener('gestureend', handler)
+		return () => {
+			elm.removeEventListener('gesturestart', handler)
+			elm.addEventListener('gesturechange', handler)
+			elm.removeEventListener('gestureend', handler)
+		}
+	}, [ref])
 }

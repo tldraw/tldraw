@@ -152,9 +152,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						)}
 					</div>
 				</HTMLContainer>
-				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
-				)}
+				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</>
 		)
 	}

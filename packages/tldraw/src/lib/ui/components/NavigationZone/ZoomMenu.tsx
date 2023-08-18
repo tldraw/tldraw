@@ -1,22 +1,23 @@
-import { ANIMATION_MEDIUM_MS, track, useEditor } from '@tldraw/editor'
-import * as React from 'react'
+import { ANIMATION_MEDIUM_MS, useEditor, useValue } from '@tldraw/editor'
+import { memo, useCallback } from 'react'
 import { useActions } from '../../hooks/useActions'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import * as M from '../primitives/DropdownMenu'
 
-export const ZoomMenu = track(function ZoomMenu() {
+export const ZoomMenu = memo(() => {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 
-	const zoom = editor.zoomLevel
-	const hasShapes = editor.currentPageShapeIds.size > 0
-	const hasSelected = editor.selectedShapeIds.length > 0
-	const isZoomedTo100 = editor.zoomLevel === 1
+	const zoomLevel = useValue('zoom level', () => editor.zoomLevel, [editor])
+	const hasShapes = useValue('hasShapes', () => editor.currentPageShapeIds.size > 0, [editor])
+	const hasSelected = useValue('hasSelected', () => editor.selectedShapeIds.length > 0, [editor])
 
-	const handleDoubleClick = React.useCallback(() => {
+	const isZoomedTo100 = zoomLevel === 1
+
+	const handleDoubleClick = useCallback(() => {
 		editor.resetZoom(editor.viewportScreenCenter, { duration: ANIMATION_MEDIUM_MS })
 	}, [editor])
 
@@ -31,7 +32,7 @@ export const ZoomMenu = track(function ZoomMenu() {
 					icon={breakpoint < 4 ? 'zoom-in' : undefined}
 				>
 					{breakpoint < 4 ? null : (
-						<span style={{ flexGrow: 0, textAlign: 'center' }}>{Math.floor(zoom * 100)}%</span>
+						<span style={{ flexGrow: 0, textAlign: 'center' }}>{Math.floor(zoomLevel * 100)}%</span>
 					)}
 				</Button>
 			</M.Trigger>

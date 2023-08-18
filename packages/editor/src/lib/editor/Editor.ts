@@ -2039,6 +2039,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.camera.z
 	}
 
+	private _stableZoomLevel = atom('stable zoom level', 1)
+
+	/**
+	 * The stable camera zoom level.
+	 *
+	 * @public
+	 */
+	@computed get stableZoomLevel() {
+		return this._stableZoomLevel.value
+	}
+
 	/** @internal */
 	private _setCamera(point: VecLike): this {
 		const currentCamera = this.camera
@@ -3198,6 +3209,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		} else {
 			this._renderingBoundsExpanded.set(viewportPageBounds)
 		}
+
+		// update stable zoom level, too
+		this._stableZoomLevel.set(this.camera.z)
 		return this
 	}
 
