@@ -1210,7 +1210,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			partial: Partial<Omit<TLInstance, 'currentPageId'>>,
 			historyOptions?: TLCommandHistoryOptions
 		) => {
-			const prev = this.instanceState
+			const prev = this.store.get(this.instanceState.id)!
 			const next = { ...prev, ...partial }
 
 			return {
@@ -7246,74 +7246,79 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Set the current opacity. This will effect any selected shapes, or the
-	 * next-created shape.
+	 * Set the opacity for the next shapes. This will effect subsequently created shapes.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setOpacity(0.5)
-	 * editor.setOpacity(0.5, { squashing: true })
+	 * editor.setOpacityForNextShapes(0.5)
+	 * editor.setOpacityForNextShapes(0.5, { squashing: true })
 	 * ```
 	 *
 	 * @param opacity - The opacity to set. Must be a number between 0 and 1 inclusive.
 	 * @param historyOptions - The history options for the change.
 	 */
-	setOpacity(opacity: number, historyOptions?: TLCommandHistoryOptions): this {
-		this.history.batch(() => {
-			if (this.isIn('select')) {
-				const {
-					currentPageState: { selectedShapeIds },
-				} = this
+	setOpacityForNextShapes(opacity: number, historyOptions?: TLCommandHistoryOptions): this {
+		this.updateInstanceState({ opacityForNextShape: opacity }, historyOptions)
+		return this
+	}
 
-				const shapesToUpdate: TLShape[] = []
+	/**
+	 * Set the current opacity. This will effect any selected shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setOpacityForSelectedShapes(0.5)
+	 * editor.setOpacityForSelectedShapes(0.5, { squashing: true })
+	 * ```
+	 *
+	 * @param opacity - The opacity to set. Must be a number between 0 and 1 inclusive.
+	 * @param historyOptions - The history options for the change.
+	 */
+	setOpacityForSelectedShapes(opacity: number, historyOptions?: TLCommandHistoryOptions): this {
+		const { selectedShapes } = this
 
-				// We can have many deep levels of grouped shape
-				// Making a recursive function to look through all the levels
-				const addShapeById = (id: TLShape['id']) => {
-					const shape = this.getShape(id)
-					if (!shape) return
-					if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
-						const childIds = this.getSortedChildIdsForParent(id)
-						for (const childId of childIds) {
-							addShapeById(childId)
-						}
-					} else {
-						shapesToUpdate.push(shape)
+		if (selectedShapes.length > 0) {
+			const shapesToUpdate: TLShape[] = []
+
+			// We can have many deep levels of grouped shape
+			// Making a recursive function to look through all the levels
+			const addShapeById = (shape: TLShape) => {
+				if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+					const childIds = this.getSortedChildIdsForParent(shape)
+					for (const childId of childIds) {
+						addShapeById(this.getShape(childId)!)
 					}
-				}
-
-				if (selectedShapeIds.length > 0) {
-					for (const id of selectedShapeIds) {
-						addShapeById(id)
-					}
-
-					this.updateShapes(
-						shapesToUpdate.map((shape) => {
-							return {
-								id: shape.id,
-								type: shape.type,
-								opacity,
-							}
-						}),
-						historyOptions
-					)
+				} else {
+					shapesToUpdate.push(shape)
 				}
 			}
 
-			this.updateInstanceState({ opacityForNextShape: opacity }, historyOptions)
-		})
+			for (const id of selectedShapes) {
+				addShapeById(id)
+			}
+
+			this.updateShapes(
+				shapesToUpdate.map((shape) => {
+					return {
+						id: shape.id,
+						type: shape.type,
+						opacity,
+					}
+				}),
+				historyOptions
+			)
+		}
 
 		return this
 	}
 
 	/**
-	 * Set the value of a {@link @tldraw/tlschema#StyleProp}. This change will be applied to any
-	 * selected shapes, and any subsequently created shapes.
+	 * Set the value of a {@link @tldraw/tlschema#StyleProp} for the selected shapes.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.setStyle(DefaultColorStyle, 'red')
-	 * editor.setStyle(DefaultColorStyle, 'red', { ephemeral: true })
+	 * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
+	 * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { ephemeral: true })
 	 * ```
 	 *
 	 * @param style - The style to set.
@@ -7322,61 +7327,87 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	setStyle<T>(style: StyleProp<T>, value: T, historyOptions?: TLCommandHistoryOptions): this {
-		this.history.batch(() => {
-			if (this.isIn('select')) {
-				const {
-					currentPageState: { selectedShapeIds },
-				} = this
+	setStyleForNextShapes<T>(
+		style: StyleProp<T>,
+		value: T,
+		historyOptions?: TLCommandHistoryOptions
+	): this {
+		const {
+			instanceState: { stylesForNextShape },
+		} = this
 
-				if (selectedShapeIds.length > 0) {
-					const updates: {
-						util: ShapeUtil
-						originalShape: TLShape
-						updatePartial: TLShapePartial
-					}[] = []
+		this.updateInstanceState(
+			{ stylesForNextShape: { ...stylesForNextShape, [style.id]: value } },
+			historyOptions
+		)
 
-					// We can have many deep levels of grouped shape
-					// Making a recursive function to look through all the levels
-					const addShapeById = (id: TLShape['id']) => {
-						const shape = this.getShape(id)
-						if (!shape) return
-						if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
-							const childIds = this.getSortedChildIdsForParent(id)
-							for (const childId of childIds) {
-								addShapeById(childId)
-							}
-						} else {
-							const util = this.getShapeUtil(shape)
-							const stylePropKey = this.styleProps[shape.type].get(style)
-							if (stylePropKey) {
-								const shapePartial: TLShapePartial = {
-									id: shape.id,
-									type: shape.type,
-									props: { [stylePropKey]: value },
-								}
-								updates.push({
-									util,
-									originalShape: shape,
-									updatePartial: shapePartial,
-								})
-							}
+		return this
+	}
+
+	/**
+	 * Set the value of a {@link @tldraw/tlschema#StyleProp}. This change will be applied to the currently selected shapes.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
+	 * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { ephemeral: true })
+	 * ```
+	 *
+	 * @param style - The style to set.
+	 * @param value - The value to set.
+	 * @param historyOptions - (optional) The history options for the change.
+	 *
+	 * @public
+	 */
+	setStyleForSelectedShapes<T>(
+		style: StyleProp<T>,
+		value: T,
+		historyOptions?: TLCommandHistoryOptions
+	): this {
+		const { selectedShapes } = this
+
+		if (selectedShapes.length > 0) {
+			const updates: {
+				util: ShapeUtil
+				originalShape: TLShape
+				updatePartial: TLShapePartial
+			}[] = []
+
+			// We can have many deep levels of grouped shape
+			// Making a recursive function to look through all the levels
+			const addShapeById = (shape: TLShape) => {
+				if (this.isShapeOfType<TLGroupShape>(shape, 'group')) {
+					const childIds = this.getSortedChildIdsForParent(shape.id)
+					for (const childId of childIds) {
+						addShapeById(this.getShape(childId)!)
+					}
+				} else {
+					const util = this.getShapeUtil(shape)
+					const stylePropKey = this.styleProps[shape.type].get(style)
+					if (stylePropKey) {
+						const shapePartial: TLShapePartial = {
+							id: shape.id,
+							type: shape.type,
+							props: { [stylePropKey]: value },
 						}
+						updates.push({
+							util,
+							originalShape: shape,
+							updatePartial: shapePartial,
+						})
 					}
-
-					for (const id of selectedShapeIds) {
-						addShapeById(id)
-					}
-
-					this.updateShapes(
-						updates.map(({ updatePartial }) => updatePartial),
-						historyOptions
-					)
 				}
 			}
 
-			this.updateInstanceState({ stylesForNextShape: { [style.id]: value } }, historyOptions)
-		})
+			for (const shape of selectedShapes) {
+				addShapeById(shape)
+			}
+
+			this.updateShapes(
+				updates.map(({ updatePartial }) => updatePartial),
+				historyOptions
+			)
+		}
 
 		return this
 	}

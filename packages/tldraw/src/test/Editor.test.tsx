@@ -150,7 +150,8 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 describe('Editor.sharedOpacity', () => {
 	it('should return the current opacity', () => {
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 1 })
-		editor.setOpacity(0.5)
+		editor.setOpacityForSelectedShapes(0.5)
+		editor.setOpacityForNextShapes(0.5)
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.5 })
 	})
 
@@ -197,7 +198,8 @@ describe('Editor.setOpacity', () => {
 		])
 
 		editor.setSelectedShapes([ids.A, ids.B])
-		editor.setOpacity(0.5)
+		editor.setOpacityForSelectedShapes(0.5)
+		editor.setOpacityForNextShapes(0.5)
 
 		expect(editor.getShape(ids.A)!.opacity).toBe(0.5)
 		expect(editor.getShape(ids.B)!.opacity).toBe(0.5)
@@ -216,7 +218,8 @@ describe('Editor.setOpacity', () => {
 		])
 
 		editor.setSelectedShapes([ids.groupA])
-		editor.setOpacity(0.5)
+		editor.setOpacityForSelectedShapes(0.5)
+		editor.setOpacityForNextShapes(0.5)
 
 		// a wasn't selected...
 		expect(editor.getShape(ids.boxA)!.opacity).toBe(1)
@@ -232,9 +235,11 @@ describe('Editor.setOpacity', () => {
 	})
 
 	it('stores opacity on opacityForNextShape', () => {
-		editor.setOpacity(0.5)
+		editor.setOpacityForSelectedShapes(0.5)
+		editor.setOpacityForNextShapes(0.5)
 		expect(editor.instanceState.opacityForNextShape).toBe(0.5)
-		editor.setOpacity(0.6)
+		editor.setOpacityForSelectedShapes(0.6)
+		editor.setOpacityForNextShapes(0.6)
 		expect(editor.instanceState.opacityForNextShape).toBe(0.6)
 	})
 })

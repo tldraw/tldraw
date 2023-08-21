@@ -152,7 +152,8 @@ describe('Editor.setStyle', () => {
 		])
 
 		editor.setSelectedShapes([ids.A, ids.B])
-		editor.setStyle(DefaultColorStyle, 'red')
+		editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
+		editor.setStyleForNextShapes(DefaultColorStyle, 'red')
 
 		expect(editor.getShape<TLGeoShape>(ids.A)!.props.color).toBe('red')
 		expect(editor.getShape<TLGeoShape>(ids.B)!.props.color).toBe('red')
@@ -171,7 +172,8 @@ describe('Editor.setStyle', () => {
 		])
 
 		editor.setSelectedShapes([ids.groupA])
-		editor.setStyle(DefaultColorStyle, 'red')
+		editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
+		editor.setStyleForNextShapes(DefaultColorStyle, 'red')
 
 		// a wasn't selected...
 		expect(editor.getShape<TLGeoShape>(ids.boxA)!.props.color).toBe('black')
@@ -187,9 +189,11 @@ describe('Editor.setStyle', () => {
 	})
 
 	it('stores styles on stylesForNextShape', () => {
-		editor.setStyle(DefaultColorStyle, 'red')
+		editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
+		editor.setStyleForNextShapes(DefaultColorStyle, 'red')
 		expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('red')
-		editor.setStyle(DefaultColorStyle, 'green')
+		editor.setStyleForSelectedShapes(DefaultColorStyle, 'green')
+		editor.setStyleForNextShapes(DefaultColorStyle, 'green')
 		expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('green')
 	})
 })

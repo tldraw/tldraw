@@ -94,9 +94,14 @@ function useStyleChangeCallback() {
 	const editor = useEditor()
 
 	return React.useMemo(() => {
-		return function <T>(style: StyleProp<T>, value: T, squashing: boolean) {
-			editor.setStyle(style, value, { squashing })
-			editor.updateInstanceState({ isChangingStyle: true })
+		return function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
+			editor.batch(() => {
+				if (editor.isIn('select')) {
+					editor.setStyleForSelectedShapes(style, value, { squashing })
+				}
+				editor.setStyleForNextShapes(style, value, { squashing })
+				editor.updateInstanceState({ isChangingStyle: true })
+			})
 		}
 	}, [editor])
 }
@@ -118,8 +123,13 @@ function CommonStylePickerSet({
 	const handleOpacityValueChange = React.useCallback(
 		(value: number, ephemeral: boolean) => {
 			const item = tldrawSupportedOpacities[value]
-			editor.setOpacity(item, { ephemeral })
-			editor.updateInstanceState({ isChangingStyle: true })
+			editor.batch(() => {
+				if (editor.isIn('select')) {
+					editor.setOpacityForSelectedShapes(item, { ephemeral })
+				}
+				editor.setOpacityForNextShapes(item, { ephemeral })
+				editor.updateInstanceState({ isChangingStyle: true })
+			})
 		},
 		[editor]
 	)
