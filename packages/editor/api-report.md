@@ -333,11 +333,7 @@ export function createSessionStateSnapshotSignal(store: TLStore): Signal<null | 
 export function createTLStore({ initialData, defaultName, ...rest }: TLStoreOptions): TLStore;
 
 // @public (undocumented)
-export function createTLUser(opts?: {
-    derivePresenceState?: ((store: TLStore) => Signal<null | TLInstancePresence>) | undefined;
-    userPreferences?: Signal<TLUserPreferences, unknown> | undefined;
-    setUserPreferences?: ((userPreferences: TLUserPreferences) => void) | undefined;
-}): TLUser;
+export function createTLUser(opts?: Partial<TLUser>): TLUser;
 
 // @public (undocumented)
 export class CubicBezier2d extends Polyline2d {
@@ -1993,6 +1989,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
+    user?: Partial<TLUser>;
 }
 
 // @public
@@ -2516,6 +2513,16 @@ export type TLSvgDefsComponent = React.ComponentType;
 
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;
+
+// @public (undocumented)
+export interface TLUser {
+    // (undocumented)
+    readonly derivePresenceState: (store: TLStore) => Signal<null | TLInstancePresence>;
+    // (undocumented)
+    readonly setUserPreferences: (userPreferences: TLUserPreferences) => void;
+    // (undocumented)
+    readonly userPreferences: Signal<TLUserPreferences>;
+}
 
 // @public
 export interface TLUserPreferences {

@@ -98,6 +98,11 @@ export interface TldrawEditorBaseProps {
 	 * A classname to pass to the editor's container.
 	 */
 	className?: string
+
+	/**
+	 * The user configuration for managing preferences and presence.
+	 */
+	user?: Partial<TLUser>
 }
 
 /**
@@ -129,7 +134,6 @@ export const TldrawEditor = memo(function TldrawEditor({
 	...rest
 }: TldrawEditorProps) {
 	const [container, rContainer] = React.useState<HTMLDivElement | null>(null)
-	const user = useMemo(() => createTLUser(), [])
 
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
@@ -141,6 +145,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 		...rest,
 		shapeUtils: rest.shapeUtils ?? EMPTY_SHAPE_UTILS_ARRAY,
 		tools: rest.tools ?? EMPTY_TOOLS_ARRAY,
+		user: useMemo(() => createTLUser(rest.user), [rest.user]),
 	}
 
 	return (
@@ -160,14 +165,14 @@ export const TldrawEditor = memo(function TldrawEditor({
 							{store ? (
 								store instanceof Store ? (
 									// Store is ready to go, whether externally synced or not
-									<TldrawEditorWithReadyStore {...withDefaults} store={store} user={user} />
+									<TldrawEditorWithReadyStore {...withDefaults} store={store} />
 								) : (
 									// Store is a synced store, so handle syncing stages internally
-									<TldrawEditorWithLoadingStore {...withDefaults} store={store} user={user} />
+									<TldrawEditorWithLoadingStore {...withDefaults} store={store} />
 								)
 							) : (
 								// We have no store (it's undefined) so create one and possibly sync it
-								<TldrawEditorWithOwnStore {...withDefaults} store={store} user={user} />
+								<TldrawEditorWithOwnStore {...withDefaults} store={store} />
 							)}
 						</EditorComponentsProvider>
 					</ContainerProvider>

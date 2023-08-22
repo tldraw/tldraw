@@ -116,7 +116,7 @@ export {
 	type TLStoreEventInfo,
 	type TLStoreOptions,
 } from './lib/config/createTLStore'
-export { createTLUser } from './lib/config/createTLUser'
+export { createTLUser, type TLUser } from './lib/config/createTLUser'
 export { coreShapes, type TLAnyShapeUtilConstructor } from './lib/config/defaultShapes'
 export {
 	ANIMATION_MEDIUM_MS,

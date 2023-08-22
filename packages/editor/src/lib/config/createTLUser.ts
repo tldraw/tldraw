@@ -10,14 +10,7 @@ export interface TLUser {
 }
 
 /** @public */
-export function createTLUser(
-	opts = {} as {
-		/** @internal */
-		derivePresenceState?: (store: TLStore) => Signal<TLInstancePresence | null>
-		userPreferences?: Signal<TLUserPreferences>
-		setUserPreferences?: (userPreferences: TLUserPreferences) => void
-	}
-): TLUser {
+export function createTLUser(opts = {} as Partial<TLUser>): TLUser {
 	return {
 		derivePresenceState: opts.derivePresenceState ?? (() => computed('presence', () => null)),
 		userPreferences:
