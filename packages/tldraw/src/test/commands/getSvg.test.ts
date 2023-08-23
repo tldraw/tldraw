@@ -11,7 +11,8 @@ const ids = {
 
 beforeEach(() => {
 	editor = new TestEditor()
-	editor.setStyle(DefaultDashStyle, 'solid')
+	editor.setStyleForNextShapes(DefaultDashStyle, 'solid')
+	editor.setStyleForSelectedShapes(DefaultDashStyle, 'solid')
 	editor.createShapes([
 		{
 			id: ids.boxA,

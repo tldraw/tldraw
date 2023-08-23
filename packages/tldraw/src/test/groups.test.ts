@@ -1919,7 +1919,8 @@ describe('Group opacity', () => {
 	it("should set the group's opacity to max even if the selected style panel opacity is lower", () => {
 		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 20, 0)])
 		editor.select(ids.boxA, ids.boxB)
-		editor.setOpacity(0.5)
+		editor.setOpacityForSelectedShapes(0.5)
+		editor.setOpacityForNextShapes(0.5)
 		editor.groupShapes(editor.selectedShapeIds)
 		const group = editor.getShape(onlySelectedId())!
 		assert(editor.isShapeOfType<TLGroupShape>(group, 'group'))

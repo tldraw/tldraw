@@ -92,14 +92,15 @@ it('Creates shapes with the current style', () => {
 	editor.createShapes([{ id: ids.box1, type: 'geo' }])
 	expect(editor.getShape<TLGeoShape>(ids.box1)!.props.color).toEqual('black')
 
-	editor.setStyle(DefaultColorStyle, 'red')
+	editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
+	editor.setStyleForNextShapes(DefaultColorStyle, 'red')
 	expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('red')
 	editor.createShapes([{ id: ids.box2, type: 'geo' }])
 	expect(editor.getShape<TLGeoShape>(ids.box2)!.props.color).toEqual('red')
 })
 
 it('Creates shapes with the current opacity', () => {
-	editor.setOpacity(0.5)
+	editor.setOpacityForNextShapes(0.5)
 	editor.createShapes([{ id: ids.box3, type: 'geo' }])
 	expect(editor.getShape<TLGeoShape>(ids.box3)!.opacity).toEqual(0.5)
 })

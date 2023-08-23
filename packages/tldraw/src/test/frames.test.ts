@@ -494,7 +494,8 @@ describe('frame shapes', () => {
 			.pointerDown(125, 125)
 			.pointerMove(175, 175)
 			.pointerUp(175, 175)
-			.setStyle(DefaultFillStyle, 'solid')
+			.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
+			.setStyleForNextShapes(DefaultFillStyle, 'solid')
 		const boxId = editor.onlySelectedShape!.id
 
 		editor.setCurrentTool('arrow')
@@ -607,7 +608,8 @@ describe('frame shapes', () => {
 			.pointerDown(150, 150)
 			.pointerMove(400, 400)
 			.pointerUp(400, 400)
-			.setStyle(DefaultFillStyle, 'solid')
+			.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
+			.setStyleForNextShapes(DefaultFillStyle, 'solid')
 		const innerBoxId = editor.onlySelectedShape!.id
 
 		// Make an arrow that binds to the inner box's bottom right corner
@@ -660,7 +662,8 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 		.pointerDown(110, 110)
 		.pointerMove(120, 120)
 		.pointerUp(120, 120)
-		.setStyle(DefaultFillStyle, 'solid')
+		.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
+		.setStyleForNextShapes(DefaultFillStyle, 'solid')
 	const boxAId = editor.onlySelectedShape!.id
 
 	editor.setCurrentTool('geo')
@@ -668,7 +671,8 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 		.pointerDown(180, 110)
 		.pointerMove(190, 120)
 		.pointerUp(190, 120)
-		.setStyle(DefaultFillStyle, 'solid')
+		.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
+		.setStyleForNextShapes(DefaultFillStyle, 'solid')
 	const boxBId = editor.onlySelectedShape!.id
 
 	editor.setCurrentTool('geo')
@@ -676,7 +680,8 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 		.pointerDown(160, 160)
 		.pointerMove(170, 170)
 		.pointerUp(170, 170)
-		.setStyle(DefaultFillStyle, 'solid')
+		.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
+		.setStyleForNextShapes(DefaultFillStyle, 'solid')
 	const boxCId = editor.onlySelectedShape!.id
 
 	editor.setCurrentTool('select')

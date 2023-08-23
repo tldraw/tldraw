@@ -13,7 +13,14 @@ export const FilterStyleUi = track(function FilterStyleUi() {
 			filter:{' '}
 			<select
 				value={filterStyle.type === 'mixed' ? 'mixed' : filterStyle.value}
-				onChange={(e) => editor.setStyle(MyFilterStyle, e.target.value)}
+				onChange={(e) => {
+					editor.batch(() => {
+						if (editor.isIn('select')) {
+							editor.setStyleForSelectedShapes(MyFilterStyle, e.target.value)
+						}
+						editor.setStyleForNextShapes(MyFilterStyle, e.target.value)
+					})
+				}}
 			>
 				<option value="mixed" disabled>
 					Mixed
