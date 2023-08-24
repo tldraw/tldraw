@@ -554,16 +554,14 @@ input,
 	background-size: cover;
 	width: 100%;
 	height: 100%;
+	pointer-events: all;
 }
 
 .tl-image-container,
-.tl-video-container,
 .tl-embed-container {
 	width: 100%;
 	height: 100%;
 	pointer-events: all;
-	/* background-color: var(--color-background); */
-
 	display: flex;
 	justify-content: center;
 	align-items: center;
