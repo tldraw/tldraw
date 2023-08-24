@@ -129,11 +129,8 @@ function findAdjacentGaps(
 	shapeId: TLShapeId,
 	gapLength: number,
 	direction: 'forward' | 'backward',
-	intersection: [number, number],
-	depth: number
+	intersection: [number, number]
 ): Gap[] {
-	if (depth > 100) return []
-
 	// TODO: take advantage of the fact that gaps is sorted by starting position?
 	const matches = gaps.filter(
 		(gap) =>
@@ -165,8 +162,7 @@ function findAdjacentGaps(
 					match.breadthIntersection[1],
 					intersection[0],
 					intersection[1]
-				)!,
-				depth + 1
+				)!
 			)
 
 			matches.push(...foundGaps)
@@ -1135,8 +1131,7 @@ export class SnapManager {
 									startNode.id,
 									newGapsLength,
 									'backward',
-									gapBreadthIntersection,
-									0
+									gapBreadthIntersection
 								),
 								{
 									startEdge,
@@ -1151,8 +1146,7 @@ export class SnapManager {
 									endNode.id,
 									newGapsLength,
 									'forward',
-									gapBreadthIntersection,
-									0
+									gapBreadthIntersection
 								),
 							],
 						})
@@ -1185,8 +1179,7 @@ export class SnapManager {
 												endNode.id,
 												length,
 												'forward',
-												gapBreadthIntersection,
-												0
+												gapBreadthIntersection
 											),
 									  ]
 									: [
@@ -1195,8 +1188,7 @@ export class SnapManager {
 												startNode.id,
 												length,
 												'backward',
-												gapBreadthIntersection,
-												0
+												gapBreadthIntersection
 											),
 											{ startEdge, endEdge },
 											{
@@ -1242,8 +1234,7 @@ export class SnapManager {
 									startNode.id,
 									newGapsLength,
 									'backward',
-									gapBreadthIntersection,
-									0
+									gapBreadthIntersection
 								),
 								{
 									startEdge,
@@ -1258,8 +1249,7 @@ export class SnapManager {
 									snap.gap.endNode.id,
 									newGapsLength,
 									'forward',
-									gapBreadthIntersection,
-									0
+									gapBreadthIntersection
 								),
 							],
 						})
@@ -1293,8 +1283,7 @@ export class SnapManager {
 													endNode.id,
 													length,
 													'forward',
-													gapBreadthIntersection,
-													0
+													gapBreadthIntersection
 												),
 										  ]
 										: [
@@ -1303,8 +1292,7 @@ export class SnapManager {
 													startNode.id,
 													length,
 													'backward',
-													gapBreadthIntersection,
-													0
+													gapBreadthIntersection
 												),
 												{ startEdge, endEdge },
 												{
