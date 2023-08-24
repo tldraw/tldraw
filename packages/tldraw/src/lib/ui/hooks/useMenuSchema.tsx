@@ -173,7 +173,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 						menuItem(actions['duplicate'], { disabled: !oneSelected }),
 						allowGroup && menuItem(actions['group']),
 						allowUngroup && menuItem(actions['ungroup']),
-						menuItem(actions['unlock-all'], { disabled: !canRedo })
+						menuItem(actions['unlock-all'])
 					),
 					menuGroup('delete-group', menuItem(actions['delete'], { disabled: !oneSelected })),
 					menuGroup(
