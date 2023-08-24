@@ -15,7 +15,7 @@ import { computed } from '@tldraw/state';
 import { ComputedCache } from '@tldraw/store';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
-import EventEmitter from 'eventemitter3';
+import { EventEmitter } from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
 import { HTMLProps } from 'react';
 import { JsonObject } from '@tldraw/utils';
