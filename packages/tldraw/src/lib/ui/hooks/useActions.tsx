@@ -860,6 +860,23 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				checkbox: true,
 			},
 			{
+				id: 'unlock-all',
+				label: 'action.unlock-all',
+				readonlyOk: false,
+				onSelect(source) {
+					trackEvent('unlock-all', { source })
+					const updates = [] as TLShapePartial[]
+					for (const shape of editor.currentPageShapes) {
+						if (shape.isLocked) {
+							updates.push({ id: shape.id, type: shape.type, isLocked: false })
+						}
+					}
+					if (updates.length > 0) {
+						editor.updateShapes(updates)
+					}
+				},
+			},
+			{
 				id: 'toggle-focus-mode',
 				label: 'action.toggle-focus-mode',
 				menuLabel: 'action.toggle-focus-mode.menu',
