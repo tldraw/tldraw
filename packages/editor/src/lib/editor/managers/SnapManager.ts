@@ -151,27 +151,27 @@ function findAdjacentGaps(
 
 	const nextNodes = new Set<TLShapeId>()
 
-	for (const match of matches) {
+	matches.forEach((match) => {
 		const node = direction === 'forward' ? match.endNode.id : match.startNode.id
 		if (!nextNodes.has(node)) {
 			nextNodes.add(node)
-			matches.push(
-				...findAdjacentGaps(
-					gaps,
-					node,
-					gapLength,
-					direction,
-					rangeIntersection(
-						match.breadthIntersection[0],
-						match.breadthIntersection[1],
-						intersection[0],
-						intersection[1]
-					)!,
-					depth + 1
-				)
+			const foundGaps = findAdjacentGaps(
+				gaps,
+				node,
+				gapLength,
+				direction,
+				rangeIntersection(
+					match.breadthIntersection[0],
+					match.breadthIntersection[1],
+					intersection[0],
+					intersection[1]
+				)!,
+				depth + 1
 			)
+
+			matches.push(...foundGaps)
 		}
-	}
+	})
 
 	return matches
 }
