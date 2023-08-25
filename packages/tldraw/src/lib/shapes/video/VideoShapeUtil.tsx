@@ -161,6 +161,12 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 		if (isLoaded && !isEditing && time !== video.currentTime) {
 			video.currentTime = time
 		}
+
+		if (isEditing) {
+			if (document.activeElement !== video) {
+				video.focus()
+			}
+		}
 	}, [isEditing, isLoaded, time])
 
 	React.useEffect(() => {
