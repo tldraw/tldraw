@@ -1,11 +1,20 @@
-import { CubicBezier2d, CubicSpline2d, Edge2d, Polyline2d, Vec2d } from '@tldraw/editor'
+import {
+	CubicBezier2d,
+	CubicSpline2d,
+	Edge2d,
+	Polyline2d,
+	Vec2d,
+	toDomPrecision,
+} from '@tldraw/editor'
 
 export function getSvgPathForEdge(edge: Edge2d, first: boolean) {
 	const { start, end } = edge
 	if (first) {
-		return `M${start.x},${start.y} L${end.x},${end.y} `
+		return `M${toDomPrecision(start.x)},${toDomPrecision(start.y)} L${toDomPrecision(
+			end.x
+		)},${toDomPrecision(end.y)} `
 	}
-	return `${end.x},${end.y} `
+	return `${toDomPrecision(end.x)},${toDomPrecision(end.y)} `
 }
 
 export function getSvgPathForBezierCurve(curve: CubicBezier2d, first: boolean) {
@@ -13,9 +22,11 @@ export function getSvgPathForBezierCurve(curve: CubicBezier2d, first: boolean) {
 
 	if (Vec2d.Equals(a, d)) return ''
 
-	return `${first ? `M${a.x.toFixed(2)},${a.y.toFixed(2)}` : ``}C${b.x.toFixed(2)},${b.y.toFixed(
-		2
-	)} ${c.x.toFixed(2)},${c.y.toFixed(2)} ${d.x.toFixed(2)},${d.y.toFixed(2)}`
+	return `${first ? `M${toDomPrecision(a.x)},${toDomPrecision(a.y)}` : ``}C${toDomPrecision(
+		b.x
+	)},${toDomPrecision(b.y)} ${toDomPrecision(c.x)},${toDomPrecision(c.y)} ${toDomPrecision(
+		d.x
+	)},${toDomPrecision(d.y)}`
 }
 
 export function getSvgPathForCubicSpline(spline: CubicSpline2d, isClosed: boolean) {
