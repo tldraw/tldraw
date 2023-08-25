@@ -13,15 +13,13 @@ export function getSvgPathForBezierCurve(curve: CubicBezier2d, first: boolean) {
 
 	if (Vec2d.Equals(a, d)) return ''
 
-	return `${first ? `M${a.x.toFixed(2)},${a.y.toFixed(2)}C` : ``}${b.x.toFixed(2)},${b.y.toFixed(
+	return `${first ? `M${a.x.toFixed(2)},${a.y.toFixed(2)}` : ``}C${b.x.toFixed(2)},${b.y.toFixed(
 		2
 	)} ${c.x.toFixed(2)},${c.y.toFixed(2)} ${d.x.toFixed(2)},${d.y.toFixed(2)}`
 }
 
 export function getSvgPathForCubicSpline(spline: CubicSpline2d, isClosed: boolean) {
-	let d = ''
-
-	spline.segments.reduce((d, segment, i) => {
+	let d = spline.segments.reduce((d, segment, i) => {
 		return d + getSvgPathForBezierCurve(segment, i === 0)
 	}, '')
 

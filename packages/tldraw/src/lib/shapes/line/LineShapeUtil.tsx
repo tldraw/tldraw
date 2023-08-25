@@ -193,8 +193,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				const outline = spline.points
 				const pathData = 'M' + outline[0] + 'L' + outline.slice(1)
 
-				const fn = spline instanceof CubicSpline2d ? getSvgPathForBezierCurve : getSvgPathForEdge
-
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={pathData} fill={'none'} color={color} theme={theme} />
@@ -215,7 +213,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 										key={i}
 										strokeDasharray={strokeDasharray}
 										strokeDashoffset={strokeDashoffset}
-										d={fn(segment as any, i === 0)}
+										d={getSvgPathForEdge(segment as any, true)}
 										fill="none"
 									/>
 								)
@@ -262,8 +260,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			}
 
 			if (dash === 'dashed' || dash === 'dotted') {
-				const fn = spline instanceof CubicSpline2d ? getSvgPathForBezierCurve : getSvgPathForEdge
-
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
@@ -284,7 +280,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 										key={i}
 										strokeDasharray={strokeDasharray}
 										strokeDashoffset={strokeDashoffset}
-										d={fn(segment as any, i === 0)}
+										d={getSvgPathForBezierCurve(segment as any, true)}
 										fill="none"
 									/>
 								)
