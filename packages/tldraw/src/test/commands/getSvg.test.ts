@@ -11,7 +11,8 @@ const ids = {
 
 beforeEach(() => {
 	editor = new TestEditor()
-	editor.setStyle(DefaultDashStyle, 'solid')
+	editor.setStyleForNextShapes(DefaultDashStyle, 'solid')
+	editor.setStyleForSelectedShapes(DefaultDashStyle, 'solid')
 	editor.createShapes([
 		{
 			id: ids.boxA,
@@ -50,7 +51,7 @@ beforeEach(() => {
 })
 
 it('gets an SVG', async () => {
-	const svg = await editor.getSvg(editor.selectedIds)
+	const svg = await editor.getSvg(editor.selectedShapeIds)
 
 	expect(svg).toBeTruthy()
 })
@@ -62,8 +63,8 @@ it('Does not get an SVG when no ids are provided', async () => {
 })
 
 it('Gets the bounding box at the correct size', async () => {
-	const svg = await editor.getSvg(editor.selectedIds)
-	const bbox = editor.selectionBounds!
+	const svg = await editor.getSvg(editor.selectedShapeIds)
+	const bbox = editor.selectionRotatedPageBounds!
 	const expanded = bbox.expandBy(SVG_PADDING) // adds 32px padding
 
 	expect(svg!.getAttribute('width')).toMatch(expanded.width + '')
@@ -71,8 +72,8 @@ it('Gets the bounding box at the correct size', async () => {
 })
 
 it('Gets the bounding box at the correct size', async () => {
-	const svg = (await editor.getSvg(editor.selectedIds))!
-	const bbox = editor.selectionBounds!
+	const svg = (await editor.getSvg(editor.selectedShapeIds))!
+	const bbox = editor.selectionRotatedPageBounds!
 	const expanded = bbox.expandBy(SVG_PADDING) // adds 32px padding
 
 	expect(svg!.getAttribute('width')).toMatch(expanded.width + '')
@@ -80,7 +81,7 @@ it('Gets the bounding box at the correct size', async () => {
 })
 
 it('Matches a snapshot', async () => {
-	const svg = (await editor.getSvg(editor.selectedIds))!
+	const svg = (await editor.getSvg(editor.selectedShapeIds))!
 
 	const elm = document.createElement('wrapper')
 	elm.appendChild(svg)
@@ -89,21 +90,21 @@ it('Matches a snapshot', async () => {
 })
 
 it('Accepts a scale option', async () => {
-	const svg1 = (await editor.getSvg(editor.selectedIds, { scale: 1 }))!
+	const svg1 = (await editor.getSvg(editor.selectedShapeIds, { scale: 1 }))!
 
 	expect(svg1.getAttribute('width')).toBe('564')
 
-	const svg2 = (await editor.getSvg(editor.selectedIds, { scale: 2 }))!
+	const svg2 = (await editor.getSvg(editor.selectedShapeIds, { scale: 2 }))!
 
 	expect(svg2.getAttribute('width')).toBe('1128')
 })
 
 it('Accepts a background option', async () => {
-	const svg1 = (await editor.getSvg(editor.selectedIds, { background: true }))!
+	const svg1 = (await editor.getSvg(editor.selectedShapeIds, { background: true }))!
 
 	expect(svg1.style.backgroundColor).not.toBe('transparent')
 
-	const svg2 = (await editor.getSvg(editor.selectedIds, { background: false }))!
+	const svg2 = (await editor.getSvg(editor.selectedShapeIds, { background: false }))!
 
 	expect(svg2.style.backgroundColor).toBe('transparent')
 })

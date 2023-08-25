@@ -1,51 +1,33 @@
-import { StateNode, TLEventHandlers, TLGeoShape, TLTextShape } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLGroupShape, TLTextShape } from '@tldraw/editor'
+import { updateHoveredId } from '../../../tools/selection-logic/updateHoveredId'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
 
-	override onPointerEnter: TLEventHandlers['onPointerEnter'] = (info) => {
+	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		switch (info.target) {
+			case 'shape':
 			case 'canvas': {
-				// noop
-				break
-			}
-			case 'shape': {
-				const { selectedIds, focusLayerId } = this.editor
-				const hoveringShape = this.editor.getOutermostSelectableShape(
-					info.shape,
-					(parent) => !selectedIds.includes(parent.id)
-				)
-				if (hoveringShape.id !== focusLayerId) {
-					if (this.editor.isShapeOfType<TLTextShape>(hoveringShape, 'text')) {
-						this.editor.hoveredId = hoveringShape.id
-					}
-				}
-				break
-			}
-		}
-	}
-
-	override onPointerLeave: TLEventHandlers['onPointerLeave'] = (info) => {
-		switch (info.target) {
-			case 'shape': {
-				this.editor.hoveredId = null
-				break
+				updateHoveredId(this.editor)
 			}
 		}
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		const { hoveredId } = this.editor
-		if (hoveredId) {
-			const shape = this.editor.getShapeById(hoveredId)!
-			if (this.editor.isShapeOfType<TLTextShape>(shape, 'text')) {
+		const { hoveredShape } = this.editor
+		const hitShape =
+			hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+				? hoveredShape
+				: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+		if (hitShape) {
+			if (this.editor.isShapeOfType<TLTextShape>(hitShape, 'text')) {
 				requestAnimationFrame(() => {
-					this.editor.setSelectedIds([shape.id])
-					this.editor.setEditingId(shape.id)
+					this.editor.setSelectedShapes([hitShape.id])
+					this.editor.setEditingShape(hitShape.id)
 					this.editor.setCurrentTool('select.editing_shape', {
 						...info,
 						target: 'shape',
-						shape,
+						shape: hitShape,
 					})
 				})
 				return
@@ -56,19 +38,23 @@ export class Idle extends StateNode {
 	}
 
 	override onEnter = () => {
-		this.editor.updateInstanceState({ cursor: { type: 'cross', rotation: 0 } }, true)
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
 		if (info.key === 'Enter') {
-			const shape = this.editor.selectedShapes[0]
-			if (shape && this.editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
+			const { onlySelectedShape } = this.editor
+			// If the only selected shape is editable, start editing it
+			if (
+				onlySelectedShape &&
+				this.editor.getShapeUtil(onlySelectedShape).canEdit(onlySelectedShape)
+			) {
 				this.editor.setCurrentTool('select')
-				this.editor.setEditingId(shape.id)
+				this.editor.setEditingShape(onlySelectedShape.id)
 				this.editor.root.current.value!.transition('editing_shape', {
 					...info,
 					target: 'shape',
-					shape,
+					shape: onlySelectedShape,
 				})
 			}
 		}

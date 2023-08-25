@@ -1,7 +1,7 @@
 import { Vec2d, VecLike } from '../../../../primitives/Vec2d'
 import { intersectCircleCircle } from '../../../../primitives/intersect'
 import { PI, TAU } from '../../../../primitives/utils'
-import { ArrowInfo } from './arrow-types'
+import { TLArrowInfo } from './arrow-types'
 
 type TLArrowPointsInfo = {
 	point: VecLike
@@ -9,7 +9,7 @@ type TLArrowPointsInfo = {
 }
 
 function getArrowPoints(
-	info: ArrowInfo,
+	info: TLArrowInfo,
 	side: 'start' | 'end',
 	strokeWidth: number
 ): TLArrowPointsInfo {
@@ -110,7 +110,7 @@ export function getPipeHead() {
 
 /** @public */
 export function getArrowheadPathForType(
-	info: ArrowInfo,
+	info: TLArrowInfo,
 	side: 'start' | 'end',
 	strokeWidth: number
 ): string | undefined {

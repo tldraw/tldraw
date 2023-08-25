@@ -20,7 +20,7 @@ beforeEach(() => {
 			},
 		},
 	])
-	shape = editor.getShapeById<TLGeoShape>(id)!
+	shape = editor.getShape<TLGeoShape>(id)!
 })
 
 describe('Resize box', () => {

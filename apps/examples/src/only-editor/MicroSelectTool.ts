@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, createShapeId } from '@tldraw/tldraw'
+import { StateNode, TLEventHandlers, TLGroupShape, createShapeId } from '@tldraw/tldraw'
 
 /*
 This is a very small example of a state node that implements a "select" tool.
@@ -19,6 +19,21 @@ export class MicroSelectTool extends StateNode {
 
 		switch (info.target) {
 			case 'canvas': {
+				const { hoveredShape } = this.editor
+				const hitShape =
+					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
+						? hoveredShape
+						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+
+				if (hitShape) {
+					this.onPointerDown({
+						...info,
+						shape: hitShape,
+						target: 'shape',
+					})
+					return
+				}
+
 				editor.selectNone()
 				break
 			}

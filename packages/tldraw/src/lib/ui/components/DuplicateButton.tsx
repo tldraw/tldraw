@@ -10,7 +10,7 @@ export const DuplicateButton = track(function DuplicateButton() {
 	const msg = useTranslation()
 	const action = actions['duplicate']
 
-	const noSelected = editor.selectedIds.length <= 0
+	const noSelected = editor.selectedShapeIds.length <= 0
 
 	return (
 		<Button

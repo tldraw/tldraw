@@ -354,7 +354,6 @@ const NUM_OPS_PER_TEST = 1000
 
 function runTest(seed: number) {
 	const test = new Test(seed)
-	// console.log(test.systemState)
 	for (let i = 0; i < NUM_OPS_PER_TEST; i++) {
 		test.tick()
 		const { expected, actual } = test.getResultComparisons()

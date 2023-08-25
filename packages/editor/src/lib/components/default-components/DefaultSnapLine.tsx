@@ -160,6 +160,7 @@ export type TLSnapLineComponent = React.ComponentType<{
 	zoom: number
 }>
 
+/** @public */
 export const DefaultSnapLine: TLSnapLineComponent = ({ className, line, zoom }) => {
 	return (
 		<svg className={classNames('tl-overlays__item', className)}>

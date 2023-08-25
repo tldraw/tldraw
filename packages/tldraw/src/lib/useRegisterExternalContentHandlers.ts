@@ -166,8 +166,10 @@ export function useRegisterExternalContentHandlers() {
 
 			const { width, height } = embed
 
+			const id = createShapeId()
+
 			const shapePartial: TLShapePartial<TLEmbedShape> = {
-				id: createShapeId(),
+				id,
 				type: 'embed',
 				x: position.x - (width || 450) / 2,
 				y: position.y - (height || 450) / 2,
@@ -178,7 +180,7 @@ export function useRegisterExternalContentHandlers() {
 				},
 			}
 
-			editor.createShapes([shapePartial], true)
+			editor.createShapes([shapePartial]).select(id)
 		})
 
 		// files
@@ -317,7 +319,7 @@ export function useRegisterExternalContentHandlers() {
 			const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 
 			// Use an existing asset if we have one, or else else create a new one
-			let asset = editor.getAssetById(assetId) as TLAsset
+			let asset = editor.getAsset(assetId) as TLAsset
 			let shouldAlsoCreateAsset = false
 			if (!asset) {
 				shouldAlsoCreateAsset = true
@@ -399,20 +401,20 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 
 	editor.batch(() => {
 		// Create any assets
-		const assetsToCreate = assets.filter((asset) => !editor.getAssetById(asset.id))
+		const assetsToCreate = assets.filter((asset) => !editor.getAsset(asset.id))
 		if (assetsToCreate.length) {
 			editor.createAssets(assetsToCreate)
 		}
 
 		// Create the shapes
-		editor.createShapes(paritals, true)
+		editor.createShapes(paritals).select(...paritals.map((p) => p.id))
 
 		// Re-position shapes so that the center of the group is at the provided point
 		const { viewportPageBounds } = editor
-		let { selectedPageBounds } = editor
+		let { selectionPageBounds } = editor
 
-		if (selectedPageBounds) {
-			const offset = selectedPageBounds!.center.sub(position)
+		if (selectionPageBounds) {
+			const offset = selectionPageBounds!.center.sub(position)
 
 			editor.updateShapes(
 				paritals.map((partial) => {
@@ -427,8 +429,8 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 		}
 
 		// Zoom out to fit the shapes, if necessary
-		selectedPageBounds = editor.selectedPageBounds
-		if (selectedPageBounds && !viewportPageBounds.contains(selectedPageBounds)) {
+		selectionPageBounds = editor.selectionPageBounds
+		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 			editor.zoomToSelection()
 		}
 	})

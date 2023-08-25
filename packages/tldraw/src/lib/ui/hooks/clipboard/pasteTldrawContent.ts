@@ -12,7 +12,7 @@ export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?:
 	const p = point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : undefined)
 
 	editor.mark('paste')
-	editor.putContent(clipboard, {
+	editor.putContentOntoCurrentPage(clipboard, {
 		point: p,
 		select: true,
 	})

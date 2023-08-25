@@ -17,7 +17,7 @@ export class DragAndDropManager {
 		if (this.droppingNodeTimer === null) {
 			const { currentPagePoint } = this.editor.inputs
 			this.currDroppingShapeId =
-				this.editor.getDroppingShape(currentPagePoint, movingShapes)?.id ?? null
+				this.editor.getDroppingOverShape(currentPagePoint, movingShapes)?.id ?? null
 			this.setDragTimer(movingShapes, LAG_DURATION * 10, cb)
 		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
 			clearInterval(this.droppingNodeTimer)
@@ -37,10 +37,10 @@ export class DragAndDropManager {
 	private handleDrag(movingShapes: TLShape[], cb?: () => void) {
 		const { currentPagePoint } = this.editor.inputs
 
-		movingShapes = compact(movingShapes.map((shape) => this.editor.getShapeById(shape.id)))
+		movingShapes = compact(movingShapes.map((shape) => this.editor.getShape(shape.id)))
 
 		const currDroppingShapeId =
-			this.editor.getDroppingShape(currentPagePoint, movingShapes)?.id ?? null
+			this.editor.getDroppingOverShape(currentPagePoint, movingShapes)?.id ?? null
 
 		if (currDroppingShapeId !== this.currDroppingShapeId) {
 			this.prevDroppingShapeId = this.currDroppingShapeId
@@ -54,8 +54,8 @@ export class DragAndDropManager {
 			return
 		}
 
-		const prevDroppingShape = prevDroppingShapeId && this.editor.getShapeById(prevDroppingShapeId)
-		const nextDroppingShape = currDroppingShapeId && this.editor.getShapeById(currDroppingShapeId)
+		const prevDroppingShape = prevDroppingShapeId && this.editor.getShape(prevDroppingShapeId)
+		const nextDroppingShape = currDroppingShapeId && this.editor.getShape(currDroppingShapeId)
 
 		// Even if we don't have a next dropping shape id (i.e. if we're dropping
 		// onto the page) set the prev to the current, to avoid repeat calls to
@@ -72,11 +72,11 @@ export class DragAndDropManager {
 				.onDragShapesOver?.(nextDroppingShape, movingShapes)
 
 			if (res && res.shouldHint) {
-				this.editor.hintingIds = [nextDroppingShape.id]
+				this.editor.setHintingShapes([nextDroppingShape.id])
 			}
 		} else {
 			// If we're dropping onto the page, then clear hinting ids
-			this.editor.hintingIds = []
+			this.editor.setHintingShapes([])
 		}
 
 		cb?.()
@@ -88,7 +88,7 @@ export class DragAndDropManager {
 		this.handleDrag(shapes)
 
 		if (currDroppingShapeId) {
-			const shape = this.editor.getShapeById(currDroppingShapeId)
+			const shape = this.editor.getShape(currDroppingShapeId)
 			if (!shape) return
 			this.editor.getShapeUtil(shape).onDropShapesOver?.(shape, shapes)
 		}
@@ -103,7 +103,7 @@ export class DragAndDropManager {
 		}
 
 		this.droppingNodeTimer = null
-		this.editor.hintingIds = []
+		this.editor.setHintingShapes([])
 	}
 
 	dispose = () => {

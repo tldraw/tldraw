@@ -21,7 +21,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_down',
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
@@ -36,7 +36,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_move',
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
@@ -52,29 +52,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_up',
-					...getPointerInfo(e, editor.getContainer()),
-				})
-			}
-
-			function onPointerEnter(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
-
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_enter',
-					...getPointerInfo(e, editor.getContainer()),
-				})
-			}
-
-			function onPointerLeave(e: React.PointerEvent) {
-				if ((e as any).isKilled) return
-
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_leave',
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
@@ -106,12 +84,10 @@ export function useCanvasEvents() {
 
 				const files = Array.from(e.dataTransfer.files)
 
-				const rect = editor.getContainer().getBoundingClientRect()
-
 				await editor.putExternalContent({
 					type: 'files',
 					files,
-					point: editor.screenToPage(e.clientX - rect.x, e.clientY - rect.y),
+					point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
 					ignoreParent: false,
 				})
 			}
@@ -120,8 +96,6 @@ export function useCanvasEvents() {
 				onPointerDown,
 				onPointerMove,
 				onPointerUp,
-				onPointerEnter,
-				onPointerLeave,
 				onDragOver,
 				onDrop,
 				onTouchStart,

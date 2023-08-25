@@ -28,7 +28,8 @@ export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }
 
 	const { ShapeIndicatorErrorFallback } = useEditorComponents()
 
-	if (!shape.shape) return null
+	if (!shape.shape || shape.shape.isLocked) return null
+
 	return (
 		<OptionalErrorBoundary
 			fallback={ShapeIndicatorErrorFallback}
@@ -59,7 +60,7 @@ const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opac
 	const transform = useValue(
 		'transform',
 		() => {
-			const pageTransform = editor.getPageTransformById(id)
+			const pageTransform = editor.getShapePageTransform(id)
 			if (!pageTransform) return ''
 			return pageTransform.toCssString()
 		},

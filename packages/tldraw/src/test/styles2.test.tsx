@@ -23,7 +23,7 @@ function asPlainObject(styles: ReadonlySharedStyleMap | null) {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.createShapes(createDefaultShapes())
-	editor.reparentShapesById([defaultShapesIds.ellipse1], editor.currentPageId)
+	editor.reparentShapes([defaultShapesIds.ellipse1], editor.currentPageId)
 })
 
 describe('Editor.styles', () => {
@@ -151,11 +151,12 @@ describe('Editor.setStyle', () => {
 			<TL.geo ref="B" x={0} y={0} color="green" />,
 		])
 
-		editor.setSelectedIds([ids.A, ids.B])
-		editor.setStyle(DefaultColorStyle, 'red')
+		editor.setSelectedShapes([ids.A, ids.B])
+		editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
+		editor.setStyleForNextShapes(DefaultColorStyle, 'red')
 
-		expect(editor.getShapeById<TLGeoShape>(ids.A)!.props.color).toBe('red')
-		expect(editor.getShapeById<TLGeoShape>(ids.B)!.props.color).toBe('red')
+		expect(editor.getShape<TLGeoShape>(ids.A)!.props.color).toBe('red')
+		expect(editor.getShape<TLGeoShape>(ids.B)!.props.color).toBe('red')
 	})
 
 	it('should traverse into groups and set styles in their children', () => {
@@ -170,26 +171,29 @@ describe('Editor.setStyle', () => {
 			</TL.group>,
 		])
 
-		editor.setSelectedIds([ids.groupA])
-		editor.setStyle(DefaultColorStyle, 'red')
+		editor.setSelectedShapes([ids.groupA])
+		editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
+		editor.setStyleForNextShapes(DefaultColorStyle, 'red')
 
 		// a wasn't selected...
-		expect(editor.getShapeById<TLGeoShape>(ids.boxA)!.props.color).toBe('black')
+		expect(editor.getShape<TLGeoShape>(ids.boxA)!.props.color).toBe('black')
 
 		// b, c, & d were within a selected group...
-		expect(editor.getShapeById<TLGeoShape>(ids.boxB)!.props.color).toBe('red')
-		expect(editor.getShapeById<TLGeoShape>(ids.boxC)!.props.color).toBe('red')
-		expect(editor.getShapeById<TLGeoShape>(ids.boxD)!.props.color).toBe('red')
+		expect(editor.getShape<TLGeoShape>(ids.boxB)!.props.color).toBe('red')
+		expect(editor.getShape<TLGeoShape>(ids.boxC)!.props.color).toBe('red')
+		expect(editor.getShape<TLGeoShape>(ids.boxD)!.props.color).toBe('red')
 
 		// groups get skipped
-		expect(editor.getShapeById<TLGroupShape>(ids.groupA)!.props).not.toHaveProperty('color')
-		expect(editor.getShapeById<TLGroupShape>(ids.groupB)!.props).not.toHaveProperty('color')
+		expect(editor.getShape<TLGroupShape>(ids.groupA)!.props).not.toHaveProperty('color')
+		expect(editor.getShape<TLGroupShape>(ids.groupB)!.props).not.toHaveProperty('color')
 	})
 
 	it('stores styles on stylesForNextShape', () => {
-		editor.setStyle(DefaultColorStyle, 'red')
+		editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
+		editor.setStyleForNextShapes(DefaultColorStyle, 'red')
 		expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('red')
-		editor.setStyle(DefaultColorStyle, 'green')
+		editor.setStyleForSelectedShapes(DefaultColorStyle, 'green')
+		editor.setStyleForNextShapes(DefaultColorStyle, 'green')
 		expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('green')
 	})
 })

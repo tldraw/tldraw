@@ -1,5 +1,6 @@
-import { Editor, compact, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLBookmarkShape, TLEmbedShape, compact, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
+import { getEmbedInfo } from '../../utils/embeds'
 import {
 	TLUiMenuSchema,
 	menuCustom,
@@ -62,7 +63,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 
 	const emptyPage = useValue('emptyPage', () => editor.currentPageShapeIds.size === 0, [editor])
 
-	const selectedCount = useValue('selectedCount', () => editor.selectedIds.length, [editor])
+	const selectedCount = useValue('selectedCount', () => editor.selectedShapeIds.length, [editor])
 	const noneSelected = selectedCount === 0
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -76,6 +77,35 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const canUndo = useCanUndo()
 	const canRedo = useCanRedo()
 	const isZoomedTo100 = useValue('isZoomedTo100', () => editor.zoomLevel === 1, [editor])
+
+	const oneEmbedSelected = useValue(
+		'oneEmbedSelected',
+		() => {
+			const { onlySelectedShape } = editor
+			if (!onlySelectedShape) return false
+			return !!(
+				editor.isShapeOfType<TLEmbedShape>(onlySelectedShape, 'embed') &&
+				onlySelectedShape.props.url &&
+				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+			)
+		},
+		[]
+	)
+
+	const oneEmbeddableBookmarkSelected = useValue(
+		'oneEmbeddableBookmarkSelected',
+		() => {
+			const { onlySelectedShape } = editor
+			if (!onlySelectedShape) return false
+			return !!(
+				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&
+				onlySelectedShape.props.url &&
+				getEmbedInfo(onlySelectedShape.props.url) &&
+				!editor.isShapeOrAncestorLocked(onlySelectedShape)
+			)
+		},
+		[]
+	)
 
 	const menuSchema = useMemo<TLUiMenuSchema>(() => {
 		const menuSchema = compact([
@@ -142,9 +172,16 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 						showEditLink && menuItem(actions['edit-link']),
 						menuItem(actions['duplicate'], { disabled: !oneSelected }),
 						allowGroup && menuItem(actions['group']),
-						allowUngroup && menuItem(actions['ungroup'])
+						allowUngroup && menuItem(actions['ungroup']),
+						menuItem(actions['unlock-all'], { disabled: emptyPage })
 					),
-					menuGroup('delete-group', menuItem(actions['delete'], { disabled: !oneSelected }))
+					menuGroup('delete-group', menuItem(actions['delete'], { disabled: !oneSelected })),
+					menuGroup(
+						'embeds',
+						oneEmbedSelected && menuItem(actions['open-embed-link']),
+						oneEmbedSelected && menuItem(actions['convert-to-bookmark']),
+						oneEmbeddableBookmarkSelected && menuItem(actions['convert-to-embed'])
+					)
 				),
 				menuSubmenu(
 					'view',
@@ -217,6 +254,8 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 		exportBackground,
 		isDebugMode,
 		isZoomedTo100,
+		oneEmbeddableBookmarkSelected,
+		oneEmbedSelected,
 	])
 
 	return (

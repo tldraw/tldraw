@@ -16,6 +16,7 @@ export type TLCollaboratorHintComponent = ComponentType<{
 	color: string
 }>
 
+/** @public */
 export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
 	className,
 	zoom,

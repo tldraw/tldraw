@@ -24,7 +24,7 @@ keywords:
 
 The [`Editor`](/gen/editor/Editor) class is the main way of controlling tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
 
-By design, the [`Editor`](/gen/editor/Editor)'s surface area is very large. Almost everything is available through it. Need to create some shapes? Use [`editor.createShapes()`](/gen/editor/Editor#createShapes). Need to delete them? Use [`editor.deleteShapes()`](/gen/editor/Editor#deleteShapes). Need a sorted array of every shape on the current page? Use [`editor.sortedShapesArray`](/gen/editor/Editor#sortedShapesArray).
+By design, the [`Editor`](/gen/editor/Editor)'s surface area is very large. Almost everything is available through it. Need to create some shapes? Use [`editor.createShapes()`](/gen/editor/Editor#createShapes). Need to delete them? Use [`editor.deleteShapes(editor.selectedShapeIds)`](/gen/editor/Editor#deleteShapes). Need a sorted array of every shape on the current page? Use [`editor.sortedShapesOnCurrentPage`](/gen/editor/Editor#sortedShapesOnCurrentPage).
 
 This page gives a broad idea of how the [`Editor`](/gen/editor/Editor) class is organized and some of the architectural concepts involved. The full reference is available in the [Editor API](/gen/editor/Editor).
 
@@ -34,30 +34,30 @@ The editor holds the raw state of the document in its [`store`](/gen/editor/Edit
 
 For example, the store contains a `page` record for each page in the current document, as well as an `instancePageState` record for each page that stores information about the editor's state for that page, and a single `instanceState` for each editor instance which stores the id of the user's current page.
 
-The editor also exposes many _computed_ values which are derived from other records in the store. For example, [`editor.selectedIds`](/gen/editor/Editor#selectedIds) is a computed property that will return the editor's current selected shape ids for its current page.
+The editor also exposes many _computed_ values which are derived from other records in the store. For example, [`editor.selectedShapeIds`](/gen/editor/Editor#selectedShapeIds) is a computed property that will return the editor's current selected shape ids for its current page.
 
 You can use these properties directly or you can use them in signals.
 
 ```tsx
 import { track, useEditor } from "@tldraw/tldraw"
 
-export const SelectedIdsCount = track(() => {
+export const SelectedShapeIdsCount = track(() => {
   const editor = useEditor()
   
   return (
-    <div>{editor.selectedIds.length}</div>
+    <div>{editor.selectedShapeIds.length}</div>
   )
 })
 ```
 
 ### Changing the state
 
-The [`Editor`](/gen/editor/Editor) class has many methods for updating its state. For example, you can change the current page's selection using [`editor.setSelectedIds`](/gen/editor/Editor#setSelectedIds). You can also use other convenience methods, such as [`editor.select`](/gen/editor/Editor#), [`editor.deselect`](/gen/editor/Editor#deselect), [`editor.selectAll`](/gen/editor/Editor#selectAll), or [`editor.selectNone`](/gen/editor/Editor#selectNone).
+The [`Editor`](/gen/editor/Editor) class has many methods for updating its state. For example, you can change the current page's selection using [`editor.setSelectedShapes`](/gen/editor/Editor#setSelectedShapes). You can also use other convenience methods, such as [`editor.select`](/gen/editor/Editor#), [`editor.deselect`](/gen/editor/Editor#deselect), [`editor.selectAll`](/gen/editor/Editor#selectAll), or [`editor.selectNone`](/gen/editor/Editor#selectNone).
 
 ```ts
 editor.selectNone()
 editor.select(myShapeId, myOtherShapeId)
-editor.selectedIds // [myShapeId, myOtherShapeId]
+editor.selectedShapeIds // [myShapeId, myOtherShapeId]
 ```
 
 Each change to the state happens within a transaction. You can batch changes into a single transaction using the [`editor.batch`](/gen/editor/Editor#batch) method. It's a good idea to batch wherever possible, as this reduces the overhead for persisting or distributing those changes.
@@ -90,7 +90,7 @@ When you call [`editor.undo()`](/gen/editor/Editor#undo), the editor will undo e
 // A
 editor.mark("duplicate everything")
 editor.selectAll()
-editor.duplicateShapes(editor.selectedIds)
+editor.duplicateShapes(editor.selectedShapeIds)
 // B
 
 editor.undo() // will return to A
@@ -103,7 +103,7 @@ You can call [`editor.bail()`](/gen/editor/Editor#bail) to undo and delete all c
 // A
 editor.mark("duplicate everything")
 editor.selectAll()
-editor.duplicateShapes(editor.selectedIds)
+editor.duplicateShapes(editor.selectedShapeIds)
 // B
 
 editor.bail() // will return to A
@@ -118,7 +118,7 @@ editor.mark("first")
 editor.selectAll()
 // B
 editor.mark("second")
-editor.duplicateShapes(editor.selectedIds)
+editor.duplicateShapes(editor.selectedShapeIds)
 // C
 
 editor.bailToMark("first") // will to A
@@ -236,7 +236,7 @@ editor.deleteShapes([shape.id])
 ### Get a shape by its id
 
 ```ts
-editor.getShapeById(myShapeId)
+editor.getShape(myShapeId)
 ```
 
 ### Move the camera

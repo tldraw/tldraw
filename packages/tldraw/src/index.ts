@@ -2,13 +2,29 @@
 
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
-
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw } from './lib/Tldraw'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { defaultTools } from './lib/defaultTools'
+export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
+export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
+export { DrawShapeUtil } from './lib/shapes/draw/DrawShapeUtil'
+export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
+export { FrameShapeUtil } from './lib/shapes/frame/FrameShapeUtil'
+export { GeoShapeUtil } from './lib/shapes/geo/GeoShapeUtil'
+export { HighlightShapeUtil } from './lib/shapes/highlight/HighlightShapeUtil'
+export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
+export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
+export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
+export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
+export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
+export { EraserTool } from './lib/tools/EraserTool/EraserTool'
+export { HandTool } from './lib/tools/HandTool/HandTool'
+export { LaserTool } from './lib/tools/LaserTool/LaserTool'
+export { SelectTool } from './lib/tools/SelectTool/SelectTool'
+export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export {
@@ -60,7 +76,9 @@ export {
 	type TLUiDialogsContextType,
 } from './lib/ui/hooks/useDialogsProvider'
 export {
-	useEvents,
+	UiEventsProvider,
+	useUiEvents,
+	type EventsProviderProps,
 	type TLUiEventContextType,
 	type TLUiEventHandler,
 	type TLUiEventSource,
@@ -110,6 +128,7 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
+export { setDefaultEditorAssetUrls } from './lib/utils/assetUrls'
 export { ACCEPTED_IMG_TYPE, getFileMetaData, isImage } from './lib/utils/assets'
 export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
 export { getEmbedInfo } from './lib/utils/embeds'

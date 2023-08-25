@@ -9,6 +9,7 @@ import {
 	useEditor,
 	useSelectionEvents,
 	useTransform,
+	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useRef } from 'react'
@@ -21,7 +22,7 @@ const IS_FIREFOX =
 	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
 export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
-	function SelectionFg() {
+	function TldrawSelectionForeground({ bounds, rotation }) {
 		const editor = useEditor()
 		const rSvg = useRef<SVGSVGElement>(null)
 
@@ -38,7 +39,6 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		const isDefaultCursor = !editor.isMenuOpen && editor.instanceState.cursor.type === 'default'
 		const isCoarsePointer = editor.instanceState.isCoarsePointer
 
-		let bounds = editor.selectionBounds
 		const shapes = editor.selectedShapes
 		const onlyShape = editor.onlySelectedShape
 		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
@@ -57,7 +57,6 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		bounds = bounds.clone().expandBy(expandOutlineBy)
 
 		const zoom = editor.zoomLevel
-		const rotation = editor.selectionRotation
 		const isChangingStyle = editor.instanceState.isChangingStyle
 
 		const width = Math.max(1, bounds.width)
@@ -94,21 +93,17 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					'select.crop.idle',
 					'select.crop.pointing_crop',
 					'select.pointing_resize_handle',
-					'select.pointing_crop_handle',
-					'select.editing_shape'
+					'select.pointing_crop_handle'
 				)) ||
 			(showSelectionBounds &&
 				editor.isIn('select.resizing') &&
 				onlyShape &&
 				editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
 
-		if (
-			onlyShape &&
-			editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed') &&
-			shouldDisplayBox &&
-			IS_FIREFOX
-		) {
-			shouldDisplayBox = false
+		if (onlyShape && shouldDisplayBox) {
+			if (IS_FIREFOX && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
+				shouldDisplayBox = false
+			}
 		}
 
 		const showCropHandles =
@@ -506,6 +501,10 @@ export const MobileRotateHandle = function RotateHandle({
 }) {
 	const events = useSelectionEvents('mobile_rotate')
 
+	const editor = useEditor()
+	const zoom = useValue('zoom level', () => editor.zoomLevel, [editor])
+	const bgRadius = Math.max(14 * (1 / zoom), 20 / Math.max(1, zoom))
+
 	return (
 		<g>
 			<circle
@@ -514,6 +513,7 @@ export const MobileRotateHandle = function RotateHandle({
 				className={classNames('tl-transparent', 'tl-mobile-rotate__bg', { 'tl-hidden': isHidden })}
 				cx={cx}
 				cy={cy}
+				r={bgRadius}
 				{...events}
 			/>
 			<circle

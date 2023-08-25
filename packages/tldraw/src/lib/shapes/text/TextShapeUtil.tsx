@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-	Box2d,
 	DefaultFontFamilies,
 	Editor,
 	HTMLContainer,
+	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
 	TLOnEditEndHandler,
@@ -17,6 +17,7 @@ import {
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
+	useValue,
 } from '@tldraw/editor'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
@@ -49,26 +50,19 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
 	}
 
-	getBounds(shape: TLTextShape) {
+	getGeometry(shape: TLTextShape) {
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
-		return new Box2d(0, 0, width * scale, height * scale)
+		return new Rectangle2d({
+			width: width * scale,
+			height: height * scale,
+			isFilled: true,
+		})
 	}
 
 	override canEdit = () => true
 
 	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
-
-	override getOutline(shape: TLTextShape) {
-		const bounds = this.editor.getBounds(shape)
-
-		return [
-			new Vec2d(0, 0),
-			new Vec2d(bounds.width, 0),
-			new Vec2d(bounds.width, bounds.height),
-			new Vec2d(0, bounds.height),
-		]
-	}
 
 	component(shape: TLTextShape) {
 		const {
@@ -84,12 +78,15 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			rInput,
 			isEmpty,
 			isEditing,
-			isEditableFromHover,
+			isEditingSameShapeType,
 			handleFocus,
 			handleChange,
 			handleKeyDown,
 			handleBlur,
+			handleInputPointerDown,
 		} = useEditableText(id, type, text)
+
+		const zoomLevel = useValue('zoomLevel', () => this.editor.zoomLevel, [this.editor])
 
 		return (
 			<HTMLContainer id={shape.id}>
@@ -98,9 +95,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					data-font={shape.props.font}
 					data-align={shape.props.align}
 					data-hastext={!isEmpty}
-					data-isediting={isEditing || isEditableFromHover}
+					data-isediting={isEditing}
 					data-textwrap={true}
 					style={{
+						outline: isEditing
+							? `${1.5 / zoomLevel / shape.props.scale}px solid var(--color-selected)`
+							: '',
 						fontSize: FONT_SIZES[shape.props.size],
 						lineHeight: FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + 'px',
 						transform: `scale(${shape.props.scale})`,
@@ -113,7 +113,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					<div className="tl-text tl-text-content" dir="ltr">
 						{text}
 					</div>
-					{isEditing || isEditableFromHover ? (
+					{isEditing || isEditingSameShapeType ? (
 						<textarea
 							ref={rInput}
 							className="tl-text tl-text-input"
@@ -136,6 +136,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 							onBlur={handleBlur}
 							onTouchEnd={stopEventPropagation}
 							onContextMenu={stopEventPropagation}
+							onPointerDown={handleInputPointerDown}
 						/>
 					) : null}
 				</div>
@@ -144,7 +145,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	indicator(shape: TLTextShape) {
-		const bounds = this.getBounds(shape)
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
@@ -152,7 +153,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
-		const bounds = this.getBounds(shape)
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const text = shape.props.text
 
 		const width = bounds.width / (shape.props.scale ?? 1)

@@ -7,12 +7,22 @@ import {
 
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent = ({ shapeId }) => {
 	const editor = useEditor()
-	const hideHoveredShapeIndicator = useValue(
-		'hide hovered',
-		() => editor.isInAny('select.idle', 'select.editing_shape'),
+	const showHoveredShapeIndicator = useValue(
+		'show hovered',
+		() => {
+			// When the editor is editing a shape and hovering that shape,
+			// don't show its indicator; but DO show other hover indicators
+			if (editor.isIn('select.editing_shape')) {
+				return editor.hoveredShapeId !== editor.editingShapeId
+			}
+
+			// Otherise, only show the hovered indicator when the editor
+			// is in the idle state
+			return editor.isInAny('select.idle')
+		},
 		[editor]
 	)
-	if (hideHoveredShapeIndicator) return null
+	if (!showHoveredShapeIndicator) return null
 	return <ShapeIndicator className="tl-user-indicator__hovered" id={shapeId} />
 }
 

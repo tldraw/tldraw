@@ -82,9 +82,9 @@ export function getRoundedPolygonPoints(
 
 /** @public */
 export function getDrawLinePathData(id: string, outline: VecLike[], strokeWidth: number) {
-	let innerPathData = `M${precise(outline[0])}L`
-	let outerPathData1 = `M${precise(outline[0])}L`
-	let outerPathData2 = `M${precise(outline[0])}L`
+	let innerPathData = `M ${precise(outline[0])}L`
+	let outerPathData1 = `M ${precise(outline[0])}L`
+	let outerPathData2 = `M ${precise(outline[0])}L`
 
 	const offset = strokeWidth / 3
 	const roundness = strokeWidth * 2
@@ -117,9 +117,9 @@ export function getDrawLinePathData(id: string, outline: VecLike[], strokeWidth:
 		const sq1 = Vec2d.Add(s1, sVector.neg())
 
 		if (i === n - 1) {
-			innerPathData += `${precise(q0)} L ${precise(p1)}`
-			outerPathData1 += `${precise(q0)} L ${precise(p1)}`
-			outerPathData2 += `${precise(sq0)} L ${precise(s1)}`
+			innerPathData += `${precise(q0)}L ${precise(p1)}`
+			outerPathData1 += `${precise(q0)}L ${precise(p1)}`
+			outerPathData2 += `${precise(sq0)}L ${precise(s1)}`
 		} else {
 			innerPathData += `${precise(q0)}L ${precise(q1)}Q ${precise(p1)}`
 			outerPathData1 += `${precise(q0)}L ${precise(q1)}Q ${precise(p1)}`

@@ -23,6 +23,7 @@ export class DraggingHandle extends StateNode {
 	shapeId = '' as TLShapeId
 	initialHandle = {} as TLHandle
 	initialAdjacentHandle = null as TLHandle | null
+	initialPagePoint = {} as Vec2d
 
 	markId = ''
 	initialPageTransform: any
@@ -51,18 +52,20 @@ export class DraggingHandle extends StateNode {
 		this.info = info
 		this.parent.currentToolIdMask = info.onInteractionEnd
 		this.shapeId = shape.id
-		this.markId = isCreating ? 'creating' : this.editor.mark('dragging handle')
+		this.markId = isCreating ? `creating:${shape.id}` : 'dragging handle'
+		if (!isCreating) this.editor.mark(this.markId)
 		this.initialHandle = deepCopy(handle)
-		this.initialPageTransform = this.editor.getPageTransform(shape)!
-		this.initialPageRotation = this.editor.getPageRotation(shape)!
+		this.initialPageTransform = this.editor.getShapePageTransform(shape)!
+		this.initialPageRotation = this.initialPageTransform.rotation()
+		this.initialPagePoint = this.editor.inputs.originPagePoint.clone()
 
 		this.editor.updateInstanceState(
 			{ cursor: { type: isCreating ? 'cross' : 'grabbing', rotation: 0 } },
-			true
+			{ ephemeral: true }
 		)
 
 		// <!-- Only relevant to arrows
-		const handles = this.editor.getHandles(shape)!.sort(sortByIndex)
+		const handles = this.editor.getShapeHandles(shape)!.sort(sortByIndex)
 		const index = handles.findIndex((h) => h.id === info.handle.id)
 
 		// Find the adjacent handle
@@ -93,7 +96,7 @@ export class DraggingHandle extends StateNode {
 		this.isPrecise = false
 
 		if (initialTerminal?.type === 'binding') {
-			this.editor.hintingIds = [initialTerminal.boundShapeId]
+			this.editor.setHintingShapes([initialTerminal.boundShapeId])
 
 			this.isPrecise = !Vec2d.Equals(initialTerminal.normalizedAnchor, { x: 0.5, y: 0.5 })
 			if (this.isPrecise) {
@@ -101,10 +104,14 @@ export class DraggingHandle extends StateNode {
 			} else {
 				this.resetExactTimeout()
 			}
+		} else {
+			this.editor.setHintingShapes([])
 		}
 		// -->
 
 		this.update()
+
+		this.editor.select(this.shapeId)
 	}
 
 	// Only relevant to arrows
@@ -160,9 +167,12 @@ export class DraggingHandle extends StateNode {
 
 	override onExit = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.hintingIds = []
+		this.editor.setHintingShapes([])
 		this.editor.snaps.clear()
-		this.editor.updateInstanceState({ cursor: { type: 'default', rotation: 0 } }, true)
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	private complete() {
@@ -195,23 +205,23 @@ export class DraggingHandle extends StateNode {
 	}
 
 	private update() {
-		const { editor, shapeId } = this
+		const { editor, shapeId, initialPagePoint } = this
 		const { initialHandle, initialPageRotation, initialAdjacentHandle } = this
 		const {
 			user: { isSnapMode },
-			hintingIds,
+			hintingShapeIds,
 			snaps,
-			inputs: { currentPagePoint, originPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
+			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
 		} = editor
 
-		const shape = editor.getShapeById(shapeId)
+		const shape = editor.getShape(shapeId)
 		if (!shape) return
 
 		const util = editor.getShapeUtil(shape)
 
 		let point = currentPagePoint
 			.clone()
-			.sub(originPagePoint)
+			.sub(initialPagePoint)
 			.rot(-initialPageRotation)
 			.add(initialHandle)
 
@@ -227,7 +237,7 @@ export class DraggingHandle extends StateNode {
 
 		if (isSnapMode ? !ctrlKey : ctrlKey) {
 			// We're snapping
-			const pageTransform = editor.getPageTransformById(shape.id)
+			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 
 			// Get all the outline segments from the shape
@@ -239,7 +249,7 @@ export class DraggingHandle extends StateNode {
 			// find the index of the handle that shares the same index property
 			// as the initial dragging handle; this catches a quirk of create handles
 			const handleIndex = editor
-				.getHandles(shape)!
+				.getShapeHandles(shape)!
 				.filter(({ type }) => type === 'vertex')
 				.sort(sortByIndex)
 				.findIndex(({ index }) => initialHandle.index === index)
@@ -252,7 +262,8 @@ export class DraggingHandle extends StateNode {
 			})
 
 			if (snapDelta) {
-				point.add(editor.getDeltaInShapeSpace(shape, snapDelta))
+				snapDelta.rot(-editor.getShapeParentTransform(shape)!.rotation())
+				point.add(snapDelta)
 			}
 		}
 
@@ -272,16 +283,16 @@ export class DraggingHandle extends StateNode {
 			const bindingAfter = (next.props as any)[initialHandle.id] as TLArrowShapeTerminal | undefined
 
 			if (bindingAfter?.type === 'binding') {
-				if (hintingIds[0] !== bindingAfter.boundShapeId) {
-					editor.hintingIds = [bindingAfter.boundShapeId]
+				if (hintingShapeIds[0] !== bindingAfter.boundShapeId) {
+					editor.setHintingShapes([bindingAfter.boundShapeId])
 					this.pointingId = bindingAfter.boundShapeId
 					this.isPrecise = pointerVelocity.len() < 0.5 || altKey
 					this.isPreciseId = this.isPrecise ? bindingAfter.boundShapeId : null
 					this.resetExactTimeout()
 				}
 			} else {
-				if (hintingIds.length > 0) {
-					editor.hintingIds = []
+				if (hintingShapeIds.length > 0) {
+					editor.setHintingShapes([])
 					this.pointingId = null
 					this.isPrecise = false
 					this.isPreciseId = null
@@ -291,7 +302,7 @@ export class DraggingHandle extends StateNode {
 		}
 
 		if (changes) {
-			editor.updateShapes([next], true)
+			editor.updateShapes([next], { squashing: true })
 		}
 	}
 }

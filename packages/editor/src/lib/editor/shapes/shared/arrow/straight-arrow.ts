@@ -7,7 +7,7 @@ import {
 	intersectLineSegmentPolyline,
 } from '../../../../primitives/intersect'
 import { Editor } from '../../../Editor'
-import { ArrowInfo } from './arrow-types'
+import { TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
@@ -17,7 +17,7 @@ import {
 	getBoundShapeInfoForTerminal,
 } from './shared'
 
-export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): ArrowInfo {
+export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArrowInfo {
 	const { start, end, arrowheadStart, arrowheadEnd } = shape.props
 
 	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
@@ -32,7 +32,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 	const startShapeInfo = getBoundShapeInfoForTerminal(editor, start)
 	const endShapeInfo = getBoundShapeInfoForTerminal(editor, end)
 
-	const arrowPageTransform = editor.getPageTransform(shape)!
+	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
 	// Update the position of the arrowhead's end point
 	updateArrowheadPointWithBoundShape(
@@ -204,12 +204,12 @@ function updateArrowheadPointWithBoundShape(
 }
 
 /** @public */
-export function getStraightArrowHandlePath(info: ArrowInfo & { isStraight: true }) {
+export function getStraightArrowHandlePath(info: TLArrowInfo & { isStraight: true }) {
 	return getArrowPath(info.start.handle, info.end.handle)
 }
 
 /** @public */
-export function getSolidStraightArrowPath(info: ArrowInfo & { isStraight: true }) {
+export function getSolidStraightArrowPath(info: TLArrowInfo & { isStraight: true }) {
 	return getArrowPath(info.start.point, info.end.point)
 }
 

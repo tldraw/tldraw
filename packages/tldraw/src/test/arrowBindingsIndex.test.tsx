@@ -15,11 +15,22 @@ describe('arrowBindingsIndex', () => {
 			<TL.geo ref="box2" x={200} y={0} w={100} h={100} fill="solid" />,
 		])
 
+		editor.selectNone()
 		editor.setCurrentTool('arrow')
-		editor.pointerDown(50, 50).pointerMove(250, 50).pointerUp(250, 50)
+		editor.pointerDown(50, 50)
+		expect(editor.onlySelectedShape).toBe(null)
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([])
+
+		editor.pointerMove(50, 55)
+		expect(editor.onlySelectedShape).not.toBe(null)
 		const arrow = editor.onlySelectedShape!
 		expect(arrow.type).toBe('arrow')
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([
+			{ arrowId: arrow.id, handleId: 'start' },
+			{ arrowId: arrow.id, handleId: 'end' },
+		])
 
+		editor.pointerMove(250, 50)
 		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([{ arrowId: arrow.id, handleId: 'start' }])
 		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([{ arrowId: arrow.id, handleId: 'end' }])
 	})
@@ -31,30 +42,72 @@ describe('arrowBindingsIndex', () => {
 		])
 
 		editor.setCurrentTool('arrow')
-		// span both boxes
-		editor.pointerDown(50, 50).pointerMove(250, 50).pointerUp(250, 50)
+		// start at box 1 and end on box 2
+		editor.pointerDown(50, 50)
+
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([])
+
+		editor.pointerMove(250, 50)
 		const arrow1 = editor.onlySelectedShape!
 		expect(arrow1.type).toBe('arrow')
 
-		// start at box 1 and leave
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([{ arrowId: arrow1.id, handleId: 'start' }])
+		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([{ arrowId: arrow1.id, handleId: 'end' }])
+
+		editor.pointerUp(250, 50)
+
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([{ arrowId: arrow1.id, handleId: 'start' }])
+		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([{ arrowId: arrow1.id, handleId: 'end' }])
+
+		// start at box 1 and end on the page
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(50, 50).pointerMove(50, -50).pointerUp(50, -50)
 		const arrow2 = editor.onlySelectedShape!
 		expect(arrow2.type).toBe('arrow')
 
-		// start outside box 1 and enter
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([
+			{ arrowId: arrow1.id, handleId: 'start' },
+			{ arrowId: arrow2.id, handleId: 'start' },
+		])
+
+		// start outside box 1 and end in box 1
 		editor.setCurrentTool('arrow')
-		editor.pointerDown(50, -50).pointerMove(50, 50).pointerUp(50, 50)
+		editor.pointerDown(0, -50).pointerMove(50, 50).pointerUp(50, 50)
 		const arrow3 = editor.onlySelectedShape!
 		expect(arrow3.type).toBe('arrow')
 
-		// start at box 2 and leave
+		expect(editor.getArrowsBoundTo(ids.box1)).toEqual([
+			{ arrowId: arrow1.id, handleId: 'start' },
+			{ arrowId: arrow2.id, handleId: 'start' },
+			{ arrowId: arrow3.id, handleId: 'end' },
+		])
+
+		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([{ arrowId: arrow1.id, handleId: 'end' }])
+
+		// start at box 2 and end on the page
+		editor.selectNone()
 		editor.setCurrentTool('arrow')
-		editor.pointerDown(250, 50).pointerMove(250, -50).pointerUp(250, -50)
+		editor.pointerDown(250, 50)
+		editor.expectToBeIn('arrow.pointing')
+		editor.pointerMove(250, -50)
+		editor.expectToBeIn('select.dragging_handle')
 		const arrow4 = editor.onlySelectedShape!
+
+		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([
+			{ arrowId: arrow1.id, handleId: 'end' },
+			{ arrowId: arrow4.id, handleId: 'start' },
+		])
+
+		editor.pointerUp(250, -50)
+		editor.expectToBeIn('select.idle')
 		expect(arrow4.type).toBe('arrow')
 
-		// start outside box 2 and enter
+		expect(editor.getArrowsBoundTo(ids.box2)).toEqual([
+			{ arrowId: arrow1.id, handleId: 'end' },
+			{ arrowId: arrow4.id, handleId: 'start' },
+		])
+
+		// start outside box 2 and enter in box 2
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(250, -50).pointerMove(250, 50).pointerUp(250, 50)
 		const arrow5 = editor.onlySelectedShape!
@@ -181,7 +234,7 @@ describe('arrowBindingsIndex', () => {
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(3)
 
 			editor.selectAll()
-			editor.duplicateShapes()
+			editor.duplicateShapes(editor.selectedShapeIds)
 
 			const [box1Clone, box2Clone] = editor.selectedShapes
 				.filter((shape) => editor.isShapeOfType<TLGeoShape>(shape, 'geo'))
@@ -195,7 +248,7 @@ describe('arrowBindingsIndex', () => {
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(3)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(3)
 
-			editor.nudgeShapes([ids.box2], { x: 0, y: -1 }, true)
+			editor.nudgeShapes([ids.box2], { x: 0, y: -1 })
 
 			expect(editor.getArrowsBoundTo(ids.box2)).toHaveLength(3)
 			expect(editor.getArrowsBoundTo(ids.box1)).toHaveLength(3)

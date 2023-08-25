@@ -274,7 +274,7 @@ function TldrawEditorWithReadyStore({
 
 	React.useLayoutEffect(() => {
 		if (editor && autoFocus) {
-			editor.focus()
+			editor.getContainer().focus()
 		}
 	}, [editor, autoFocus])
 

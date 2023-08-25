@@ -176,7 +176,7 @@ export class Drawing extends StateNode {
 		this.lastRecordedPoint = originPagePoint.clone()
 
 		if (this.initialShape) {
-			const shape = this.editor.getShapeById<DrawableShape>(this.initialShape.id)
+			const shape = this.editor.getShape<DrawableShape>(this.initialShape.id)
 
 			if (shape && this.segmentMode === 'straight') {
 				// Connect dots
@@ -210,7 +210,7 @@ export class Drawing extends StateNode {
 
 				// Convert prevPoint to page space
 				const prevPointPageSpace = Matrix2d.applyToPoint(
-					this.editor.getPageTransformById(shape.id)!,
+					this.editor.getShapePageTransform(shape.id)!,
 					prevPoint
 				)
 				this.pagePointWhereCurrentSegmentChanged = prevPointPageSpace
@@ -269,7 +269,7 @@ export class Drawing extends StateNode {
 			},
 		])
 		this.currentLineLength = 0
-		this.initialShape = this.editor.getShapeById<DrawableShape>(id)
+		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
 	private updateShapes() {
@@ -283,7 +283,7 @@ export class Drawing extends StateNode {
 			props: { size },
 		} = initialShape
 
-		const shape = this.editor.getShapeById<DrawableShape>(id)!
+		const shape = this.editor.getShape<DrawableShape>(id)!
 
 		if (!shape) return
 
@@ -336,7 +336,7 @@ export class Drawing extends StateNode {
 							points: [{ ...prevLastPoint }, newLastPoint],
 						}
 
-						const transform = this.editor.getPageTransform(shape)!
+						const transform = this.editor.getShapePageTransform(shape)!
 
 						this.pagePointWhereCurrentSegmentChanged = Matrix2d.applyToPoint(
 							transform,
@@ -364,7 +364,9 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial], true)
+					this.editor.updateShapes<TLDrawShape | TLHighlightShape>([shapePartial], {
+						squashing: true,
+					})
 				}
 				break
 			}
@@ -424,7 +426,7 @@ export class Drawing extends StateNode {
 						)
 					}
 
-					this.editor.updateShapes([shapePartial], true)
+					this.editor.updateShapes([shapePartial], { squashing: true })
 				}
 
 				break
@@ -500,7 +502,7 @@ export class Drawing extends StateNode {
 				}
 
 				if (didSnap && snapSegment) {
-					const transform = this.editor.getPageTransform(shape)!
+					const transform = this.editor.getShapePageTransform(shape)!
 					const first = snapSegment.points[0]
 					const lastPoint = last(snapSegment.points)
 					if (!lastPoint) throw Error('Expected a last point!')
@@ -566,7 +568,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes([shapePartial], true)
+				this.editor.updateShapes([shapePartial], { squashing: true })
 
 				break
 			}
@@ -611,7 +613,7 @@ export class Drawing extends StateNode {
 					)
 				}
 
-				this.editor.updateShapes([shapePartial], true)
+				this.editor.updateShapes([shapePartial], { squashing: true })
 
 				// Set a maximum length for the lines array; after 200 points, complete the line.
 				if (newPoints.length > 500) {
@@ -639,7 +641,7 @@ export class Drawing extends StateNode {
 						},
 					])
 
-					this.initialShape = structuredClone(this.editor.getShapeById<DrawableShape>(newShapeId)!)
+					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
 					this.mergeNextPoint = false
 					this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 					this.currentLineLength = 0

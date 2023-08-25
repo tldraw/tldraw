@@ -15,7 +15,7 @@ export const FrameLabelInput = forwardRef<
 				// and sending us back into edit mode
 				e.stopPropagation()
 				e.currentTarget.blur()
-				editor.setEditingId(null)
+				editor.setEditingShape(null)
 			}
 		},
 		[editor]
@@ -23,7 +23,7 @@ export const FrameLabelInput = forwardRef<
 
 	const handleBlur = useCallback(
 		(e: React.FocusEvent<HTMLInputElement>) => {
-			const shape = editor.getShapeById<TLFrameShape>(id)
+			const shape = editor.getShape<TLFrameShape>(id)
 			if (!shape) return
 
 			const name = shape.props.name
@@ -38,7 +38,7 @@ export const FrameLabelInput = forwardRef<
 						props: { name: value },
 					},
 				],
-				true
+				{ squashing: true }
 			)
 		},
 		[id, editor]
@@ -46,7 +46,7 @@ export const FrameLabelInput = forwardRef<
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const shape = editor.getShapeById<TLFrameShape>(id)
+			const shape = editor.getShape<TLFrameShape>(id)
 			if (!shape) return
 
 			const name = shape.props.name
@@ -61,7 +61,7 @@ export const FrameLabelInput = forwardRef<
 						props: { name: value },
 					},
 				],
-				true
+				{ squashing: true }
 			)
 		},
 		[id, editor]

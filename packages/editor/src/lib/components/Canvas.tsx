@@ -119,6 +119,7 @@ export const Canvas = track(function Canvas({
 					<ShapesToDisplay />
 				</div>
 				<div className="tl-overlays">
+					{/* <GeometryDebuggingView /> */}
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />
@@ -202,20 +203,26 @@ function HandlesWrapper() {
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const isCoarse = useValue('coarse pointer', () => editor.instanceState.isCoarsePointer, [editor])
 	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
 	const isChangingStyle = useValue('isChangingStyle', () => editor.instanceState.isChangingStyle, [
 		editor,
 	])
 	const isReadonly = useValue('isChangingStyle', () => editor.instanceState.isReadonly, [editor])
+	const handles = useValue(
+		'handles',
+		() => (editor.onlySelectedShape ? editor.getShapeHandles(editor.onlySelectedShape) : undefined),
+		[editor]
+	)
+	const transform = useValue(
+		'transform',
+		() =>
+			editor.onlySelectedShape ? editor.getShapePageTransform(editor.onlySelectedShape) : undefined,
+		[editor]
+	)
 
 	if (!Handles || !onlySelectedShape || isChangingStyle || isReadonly) return null
-
-	const handles = editor.getHandles(onlySelectedShape)
-
 	if (!handles) return null
-
-	const transform = editor.getPageTransform(onlySelectedShape)
-
 	if (!transform) return null
 
 	// Don't display a temporary handle if the distance between it and its neighbors is too small.
@@ -241,14 +248,32 @@ function HandlesWrapper() {
 		<Handles>
 			<g transform={Matrix2d.toCssString(transform)}>
 				{handlesToDisplay.map((handle) => {
-					return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
+					return (
+						<HandleWrapper
+							key={handle.id}
+							shapeId={onlySelectedShape.id}
+							handle={handle}
+							zoom={zoomLevel}
+							isCoarse={isCoarse}
+						/>
+					)
 				})}
 			</g>
 		</Handles>
 	)
 }
 
-function HandleWrapper({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHandle }) {
+function HandleWrapper({
+	shapeId,
+	handle,
+	zoom,
+	isCoarse,
+}: {
+	shapeId: TLShapeId
+	handle: TLHandle
+	zoom: number
+	isCoarse: boolean
+}) {
 	const events = useHandleEvents(shapeId, handle.id)
 	const { Handle } = useEditorComponents()
 
@@ -256,7 +281,7 @@ function HandleWrapper({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHand
 
 	return (
 		<g aria-label="handle" transform={`translate(${handle.x}, ${handle.y})`} {...events}>
-			<Handle shapeId={shapeId} handle={handle} />
+			<Handle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
 		</g>
 	)
 }
@@ -291,7 +316,11 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 
 function SelectedIdIndicators() {
 	const editor = useEditor()
-	const selectedIds = useValue('selectedIds', () => editor.currentPageState.selectedIds, [editor])
+	const selectedShapeIds = useValue(
+		'selectedShapeIds',
+		() => editor.currentPageState.selectedShapeIds,
+		[editor]
+	)
 	const shouldDisplay = useValue(
 		'should display selected ids',
 		() => {
@@ -314,7 +343,7 @@ function SelectedIdIndicators() {
 
 	return (
 		<>
-			{selectedIds.map((id) => (
+			{selectedShapeIds.map((id) => (
 				<ShapeIndicator key={id + '_indicator'} className="tl-user-indicator__selected" id={id} />
 			))}
 		</>
@@ -324,16 +353,19 @@ function SelectedIdIndicators() {
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const editor = useEditor()
 	const { HoveredShapeIndicator } = useEditorComponents()
-	const hoveredId = useValue('hovered id', () => editor.currentPageState.hoveredId, [editor])
-	if (!hoveredId || !HoveredShapeIndicator) return null
+	const hoveredShapeId = useValue('hovered id', () => editor.currentPageState.hoveredShapeId, [
+		editor,
+	])
 
-	return <HoveredShapeIndicator shapeId={hoveredId} />
+	if (!hoveredShapeId || !HoveredShapeIndicator) return null
+
+	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }
 
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	const editor = useEditor()
 
-	const ids = dedupe(editor.hintingIds)
+	const ids = dedupe(editor.hintingShapeIds)
 
 	if (!ids.length) return null
 
@@ -388,7 +420,7 @@ function ArrowheadCross() {
 
 const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 	const editor = useEditor()
-	const shape = editor.getShapeById(id)
+	const shape = editor.getShape(id)
 
 	const [html, setHtml] = React.useState('')
 
@@ -401,7 +433,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 		const unsubscribe = react('shape to svg', async () => {
 			const renderId = Math.random()
 			latest = renderId
-			const bb = editor.getPageBoundsById(id)
+			const bb = editor.getShapePageBounds(id)
 			const el = await editor.getSvg([id], { padding: 0 })
 			if (el && bb && latest === renderId) {
 				el.style.setProperty('overflow', 'visible')
@@ -446,13 +478,23 @@ const UiLogger = track(() => {
 })
 
 export function SelectionForegroundWrapper() {
+	const editor = useEditor()
+	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
+		editor,
+	])
 	const { SelectionForeground } = useEditorComponents()
-	if (!SelectionForeground) return null
-	return <SelectionForeground />
+	if (!selectionBounds || !SelectionForeground) return null
+	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
 }
 
 export function SelectionBackgroundWrapper() {
+	const editor = useEditor()
+	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
+	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
+		editor,
+	])
 	const { SelectionBackground } = useEditorComponents()
-	if (!SelectionBackground) return null
-	return <SelectionBackground />
+	if (!selectionBounds || !SelectionBackground) return null
+	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />
 }

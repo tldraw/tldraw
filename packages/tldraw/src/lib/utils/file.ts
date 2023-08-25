@@ -291,9 +291,9 @@ export async function parseAndLoadDocument(
 		editor.updateViewportScreenBounds()
 		editor.updateRenderingBounds()
 
-		const bounds = editor.allShapesCommonBounds
+		const bounds = editor.currentPageBounds
 		if (bounds) {
-			editor.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
+			editor.zoomToBounds(bounds, 1)
 		}
 	})
 

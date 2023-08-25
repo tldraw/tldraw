@@ -7,6 +7,7 @@ export type TLHoveredShapeIndicatorComponent = ComponentType<{
 	shapeId: TLShapeId
 }>
 
+/** @public */
 export const DefaultHoveredShapeIndicator: TLHoveredShapeIndicatorComponent = ({ shapeId }) => {
 	return <ShapeIndicator className="tl-user-indicator__hovered" id={shapeId} />
 }

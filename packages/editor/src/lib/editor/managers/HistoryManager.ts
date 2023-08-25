@@ -1,16 +1,13 @@
 import { atom, transact } from '@tldraw/state'
 import { devFreeze } from '@tldraw/store'
 import { uniqueId } from '../../utils/uniqueId'
-import { TLCommandHandler, TLHistoryEntry } from '../types/history-types'
+import { TLCommandHandler, TLCommandHistoryOptions, TLHistoryEntry } from '../types/history-types'
 import { Stack, stack } from './Stack'
 
 type CommandFn<Data> = (...args: any[]) =>
-	| {
+	| ({
 			data: Data
-			squashing?: boolean
-			ephemeral?: boolean
-			preservesRedoStack?: boolean
-	  }
+	  } & TLCommandHistoryOptions)
 	| null
 	| undefined
 	| void
@@ -29,9 +26,10 @@ export class HistoryManager<
 
 	constructor(
 		private readonly ctx: CTX,
-		private readonly onBatchComplete: () => void,
 		private readonly annotateError: (error: unknown) => void
 	) {}
+
+	onBatchComplete: () => void = () => void null
 
 	private _commands: Record<string, TLCommandHandler<any>> = {}
 

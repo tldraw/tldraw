@@ -26,15 +26,6 @@ export const DashStylePolygon = React.memo(function DashStylePolygon({
 	return (
 		<>
 			<ShapeFill theme={theme} d={innerPath} fill={fill} color={color} />
-			{lines &&
-				lines.map((l, i) => (
-					<path
-						key={`line_bg_${i}`}
-						className={'tl-hitarea-stroke'}
-						fill="none"
-						d={`M${l[0].x},${l[0].y}L${l[1].x},${l[1].y}`}
-					/>
-				))}
 			<g strokeWidth={strokeWidth} stroke={theme[color].solid} fill="none" pointerEvents="all">
 				{Array.from(Array(outline.length)).map((_, i) => {
 					const A = outline[i]

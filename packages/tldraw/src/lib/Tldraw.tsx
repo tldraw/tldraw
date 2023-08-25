@@ -10,6 +10,7 @@ import { useMemo } from 'react'
 import { TldrawHandles } from './canvas/TldrawHandles'
 import { TldrawHoveredShapeIndicator } from './canvas/TldrawHoveredShapeIndicator'
 import { TldrawScribble } from './canvas/TldrawScribble'
+import { TldrawSelectionBackground } from './canvas/TldrawSelectionBackground'
 import { TldrawSelectionForeground } from './canvas/TldrawSelectionForeground'
 import { defaultShapeTools } from './defaultShapeTools'
 import { defaultShapeUtils } from './defaultShapeUtils'
@@ -17,6 +18,7 @@ import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
 import { useRegisterExternalContentHandlers } from './useRegisterExternalContentHandlers'
+import { useSideEffects } from './useSideEffects'
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './utils/assetUrls'
 import { usePreloadAssets } from './utils/usePreloadAssets'
 
@@ -38,7 +40,9 @@ export function Tldraw(
 		components: useMemo(
 			() => ({
 				Scribble: TldrawScribble,
+				CollaboratorScribble: TldrawScribble,
 				SelectionForeground: TldrawSelectionForeground,
+				SelectionBackground: TldrawSelectionBackground,
 				Handles: TldrawHandles,
 				HoveredShapeIndicator: TldrawHoveredShapeIndicator,
 				...rest.components,
@@ -82,6 +86,7 @@ export function Tldraw(
 
 function Hacks() {
 	useRegisterExternalContentHandlers()
+	useSideEffects()
 
 	return null
 }

@@ -219,7 +219,10 @@ describe('<TldrawEditor />', () => {
 
 		expect(editor).toBeTruthy()
 		await act(async () => {
-			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
+			editor.updateInstanceState(
+				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
+				{ ephemeral: true, squashing: true }
+			)
 		})
 
 		const id = createShapeId()
@@ -235,7 +238,7 @@ describe('<TldrawEditor />', () => {
 		})
 
 		// Does the shape exist?
-		expect(editor.getShapeById(id)).toMatchObject({
+		expect(editor.getShape(id)).toMatchObject({
 			id,
 			type: 'geo',
 			x: 0,
@@ -252,7 +255,7 @@ describe('<TldrawEditor />', () => {
 		// Select the shape
 		await act(async () => editor.select(id))
 
-		expect(editor.selectedIds.length).toBe(1)
+		expect(editor.selectedShapeIds.length).toBe(1)
 
 		// Is the shape's component rendering?
 		expect(document.querySelectorAll('.tl-shape-indicator')).toHaveLength(1)
@@ -289,8 +292,6 @@ describe('Custom shapes', () => {
 		}
 
 		component(shape: CardShape) {
-			const bounds = this.getBounds(shape)
-
 			return (
 				<HTMLContainer
 					id={shape.id}
@@ -303,7 +304,7 @@ describe('Custom shapes', () => {
 						pointerEvents: 'all',
 					}}
 				>
-					{bounds.w.toFixed()}x{bounds.h.toFixed()}
+					{shape.props.w.toFixed()}x{shape.props.h.toFixed()}
 				</HTMLContainer>
 			)
 		}
@@ -342,7 +343,10 @@ describe('Custom shapes', () => {
 
 		expect(editor).toBeTruthy()
 		await act(async () => {
-			editor.updateInstanceState({ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } }, true, true)
+			editor.updateInstanceState(
+				{ screenBounds: { x: 0, y: 0, w: 1080, h: 720 } },
+				{ ephemeral: true, squashing: true }
+			)
 		})
 
 		expect(editor.shapeUtils.card).toBeTruthy()
@@ -361,7 +365,7 @@ describe('Custom shapes', () => {
 		})
 
 		// Does the shape exist?
-		expect(editor.getShapeById(id)).toMatchObject({
+		expect(editor.getShape(id)).toMatchObject({
 			id,
 			type: 'card',
 			x: 0,

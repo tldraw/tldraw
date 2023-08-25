@@ -16,8 +16,16 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	TLArrowShape['props'],
 	'text' | 'size' | 'font'
 >) {
-	const { rInput, isEditing, handleFocus, handleBlur, handleKeyDown, handleChange, isEmpty } =
-		useEditableText(id, 'arrow', text)
+	const {
+		rInput,
+		isEditing,
+		handleFocus,
+		handleBlur,
+		handleKeyDown,
+		handleChange,
+		isEmpty,
+		handleInputPointerDown,
+	} = useEditableText(id, 'arrow', text)
 
 	if (!isEditing && isEmpty) {
 		return null
@@ -65,6 +73,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
 						onContextMenu={stopEventPropagation}
+						onPointerDown={handleInputPointerDown}
 					/>
 				)}
 			</div>

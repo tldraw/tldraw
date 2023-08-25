@@ -13,7 +13,7 @@ import {
 	shortAngleDist,
 } from '../../../../primitives/utils'
 import type { Editor } from '../../../Editor'
-import { ArcInfo, ArrowInfo } from './arrow-types'
+import { TLArcInfo, TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	MIN_ARROW_LENGTH,
@@ -24,7 +24,11 @@ import {
 } from './shared'
 import { getStraightArrowInfo } from './straight-arrow'
 
-export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBend = 0): ArrowInfo {
+export function getCurvedArrowInfo(
+	editor: Editor,
+	shape: TLArrowShape,
+	extraBend = 0
+): TLArrowInfo {
 	const { arrowheadEnd, arrowheadStart } = shape.props
 	const bend = shape.props.bend + extraBend
 
@@ -58,7 +62,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		return getStraightArrowInfo(editor, shape)
 	}
 
-	const arrowPageTransform = editor.getPageTransform(shape)!
+	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		// Points in page space
@@ -80,7 +84,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		let intersections = fn(
 			centerInStartShapeLocalSpace,
 			handleArc.radius,
-			editor.getOutline(startShapeInfo.shape)
+			editor.getShapeGeometry(startShapeInfo.shape).vertices
 		)
 
 		if (intersections) {
@@ -160,7 +164,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
 		let intersections = fn(
 			centerInEndShapeLocalSpace,
 			handleArc.radius,
-			editor.getOutline(endShapeInfo.shape)
+			editor.getShapeGeometry(endShapeInfo.shape).outerVertices
 		)
 
 		if (intersections) {
@@ -291,7 +295,7 @@ export function getCurvedArrowInfo(editor: Editor, shape: TLArrowShape, extraBen
  * @param info - The arrow info.
  * @public
  */
-export function getCurvedArrowHandlePath(info: ArrowInfo & { isStraight: false }) {
+export function getCurvedArrowHandlePath(info: TLArrowInfo & { isStraight: false }) {
 	const {
 		start,
 		end,
@@ -306,7 +310,7 @@ export function getCurvedArrowHandlePath(info: ArrowInfo & { isStraight: false }
  * @param info - The arrow info.
  * @public
  */
-export function getSolidCurvedArrowPath(info: ArrowInfo & { isStraight: false }) {
+export function getSolidCurvedArrowPath(info: TLArrowInfo & { isStraight: false }) {
 	const {
 		start,
 		end,
@@ -373,7 +377,7 @@ export function getArcBoundingBox(center: VecLike, radius: number, start: VecLik
  * @param b - The end of the arc
  * @param c - A point on the arc
  */
-export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): ArcInfo {
+export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 	// find a circle from the three points
 	const u = -2 * (a.x * (b.y - c.y) - a.y * (b.x - c.x) + b.x * c.y - c.x * b.y)
 

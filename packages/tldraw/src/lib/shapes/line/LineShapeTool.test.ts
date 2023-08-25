@@ -15,9 +15,9 @@ it('enters the line state', () => {
 
 describe('When in the idle state', () => {
 	it('enters the pointing state and creates a shape on pointer down', () => {
-		const shapesBefore = editor.shapesArray.length
+		const shapesBefore = editor.currentPageShapes.length
 		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' })
-		const shapesAfter = editor.shapesArray.length
+		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		editor.expectPathToBe('root.line.pointing')
 	})
@@ -31,20 +31,20 @@ describe('When in the idle state', () => {
 
 describe('When in the pointing state', () => {
 	it('createes on pointer up', () => {
-		const shapesBefore = editor.shapesArray.length
+		const shapesBefore = editor.currentPageShapes.length
 		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerUp(0, 0)
-		const shapesAfter = editor.shapesArray.length
+		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 		editor.expectPathToBe('root.line.idle')
 	})
 
 	it('bails on cancel', () => {
-		const shapesBefore = editor.shapesArray.length
+		const shapesBefore = editor.currentPageShapes.length
 		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).cancel()
-		const shapesAfter = editor.shapesArray.length
+		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 		editor.expectPathToBe('root.line.idle')
 	})
 
@@ -58,7 +58,7 @@ describe('When in the pointing state', () => {
 describe('When dragging the line', () => {
 	it('updates the line on pointer move', () => {
 		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
-		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		const line = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		editor.expectShapeToMatch(line, {
 			id: line.id,
 			type: 'line',
@@ -75,40 +75,40 @@ describe('When dragging the line', () => {
 	})
 
 	it('returns to select.idle, keeping shape, on pointer up', () => {
-		const shapesBefore = editor.shapesArray.length
+		const shapesBefore = editor.currentPageShapes.length
 		editor
 			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)
-		const shapesAfter = editor.shapesArray.length
+		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 		editor.expectPathToBe('root.select.idle')
 	})
 
 	it('returns to line.idle, keeping shape, on pointer up if tool lock is enabled', () => {
 		editor.updateInstanceState({ isToolLocked: true })
-		const shapesBefore = editor.shapesArray.length
+		const shapesBefore = editor.currentPageShapes.length
 		editor
 			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.pointerUp(10, 10)
-		const shapesAfter = editor.shapesArray.length
+		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingIds.length).toBe(0)
+		expect(editor.hintingShapeIds.length).toBe(0)
 		editor.expectPathToBe('root.line.idle')
 	})
 
 	it('bails on cancel', () => {
-		const shapesBefore = editor.shapesArray.length
+		const shapesBefore = editor.currentPageShapes.length
 		editor
 			.setCurrentTool('line')
 			.pointerDown(0, 0, { target: 'canvas' })
 			.pointerMove(10, 10)
 			.cancel()
-		const shapesAfter = editor.shapesArray.length
+		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
 		editor.expectPathToBe('root.line.idle')
 	})
@@ -126,7 +126,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerDown(20, 10, { target: 'canvas' })
 			.pointerUp(20, 10)
 
-		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		const line = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
@@ -143,7 +143,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerMove(30, 10)
 			.pointerUp(30, 10)
 
-		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		const line = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
@@ -161,7 +161,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerMove(30, 10)
 			.pointerUp(30, 10)
 
-		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		const line = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
@@ -181,7 +181,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerMove(30, 10)
 			.pointerUp(30, 10)
 
-		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		const line = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)
@@ -203,7 +203,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 			.pointerMove(40, 10)
 			.pointerUp(40, 10)
 
-		const line = editor.shapesArray[editor.shapesArray.length - 1]
+		const line = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
 		expect(handles.length).toBe(3)

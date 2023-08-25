@@ -9,7 +9,7 @@ import { Vec2d } from '../primitives/Vec2d'
 export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationSnapshot | null {
 	const {
 		selectionRotation,
-		selectionPageCenter,
+		selectionRotatedPageBounds: selectionBounds,
 		inputs: { originPagePoint },
 		selectedShapes,
 	} = editor
@@ -19,9 +19,13 @@ export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationS
 	// will produce the wrong results
 
 	// Return null if there are no selected shapes
-	if (!selectionPageCenter) {
+	if (!selectionBounds) {
 		return null
 	}
+
+	const selectionPageCenter = selectionBounds.center
+		.clone()
+		.rotWith(selectionBounds.point, selectionRotation)
 
 	return {
 		selectionPageCenter: selectionPageCenter,
@@ -29,7 +33,7 @@ export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationS
 		initialSelectionRotation: selectionRotation,
 		shapeSnapshots: selectedShapes.map((shape) => ({
 			shape: structuredClone(shape),
-			initialPagePoint: editor.getPagePointById(shape.id)!,
+			initialPagePoint: editor.getShapePageTransform(shape.id)!.point(),
 		})),
 	}
 }
@@ -74,7 +78,7 @@ export function applyRotationToSnapshotShapes({
 			// around the pivot point (the average center of all rotating shapes.)
 
 			const parentTransform = isShapeId(shape.parentId)
-				? editor.getPageTransformById(shape.parentId)!
+				? editor.getShapePageTransform(shape.parentId)!
 				: Matrix2d.Identity()
 
 			const newPagePoint = Vec2d.RotWith(initialPagePoint, selectionPageCenter, delta)
@@ -102,7 +106,7 @@ export function applyRotationToSnapshotShapes({
 	const changes: TLShapePartial[] = []
 
 	shapeSnapshots.forEach(({ shape }) => {
-		const current = editor.getShapeById(shape.id)
+		const current = editor.getShape(shape.id)
 		if (!current) return
 		const util = editor.getShapeUtil(shape)
 

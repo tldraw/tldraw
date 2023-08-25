@@ -29,7 +29,8 @@ export class Rotating extends StateNode {
 		this.info = info
 		this.parent.currentToolIdMask = info.onInteractionEnd
 
-		this.markId = this.editor.mark('rotate start')
+		this.markId = 'rotate start'
+		this.editor.mark(this.markId)
 
 		const snapshot = getRotationSnapshot({ editor: this.editor })
 		if (!snapshot) return this.parent.transition('idle', this.info)
@@ -40,7 +41,7 @@ export class Rotating extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.updateInstanceState({ cursor: { type: 'none', rotation: 0 } }, true)
+		this.editor.setCursor({ type: 'default', rotation: 0 })
 		this.parent.currentToolIdMask = undefined
 
 		this.snapshot = {} as TLRotationSnapshot
@@ -139,13 +140,19 @@ export class Rotating extends StateNode {
 
 	_getRotationFromPointerPosition({ snapToNearestDegree }: { snapToNearestDegree: boolean }) {
 		const {
-			selectionPageCenter,
+			selectionRotatedPageBounds: selectionBounds,
+			selectionRotation,
 			inputs: { shiftKey, currentPagePoint },
 		} = this.editor
 		const { initialCursorAngle, initialSelectionRotation } = this.snapshot
 
+		if (!selectionBounds) return initialSelectionRotation
+
+		const selectionPageCenter = selectionBounds.center
+			.clone()
+			.rotWith(selectionBounds.point, selectionRotation)
+
 		// The delta is the difference between the current angle and the initial angle
-		if (!selectionPageCenter) return initialSelectionRotation
 		const preSnapRotationDelta = selectionPageCenter.angle(currentPagePoint) - initialCursorAngle
 		let newSelectionRotation = initialSelectionRotation + preSnapRotationDelta
 

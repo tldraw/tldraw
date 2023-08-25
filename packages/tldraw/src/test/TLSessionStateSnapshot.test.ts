@@ -30,8 +30,8 @@ describe('createSessionStateSnapshotSignal', () => {
 						y: 0,
 						z: 1,
 					},
-					focusLayerId: null,
-					selectedIds: [],
+					focusedGroupId: null,
+					selectedShapeIds: [],
 				},
 			],
 			version: 0,
@@ -57,7 +57,7 @@ describe('createSessionStateSnapshotSignal', () => {
 		expect(isGridMode).toBe(true)
 		expect(numPages).toBe(1)
 
-		editor.createPage('new page')
+		editor.createPage({ name: 'new page' })
 
 		expect(isGridMode).toBe(true)
 		expect(editor.pages.length).toBe(2)
@@ -118,8 +118,8 @@ describe(extractSessionStateFromLegacySnapshot, () => {
 				typeName: 'instance_page_state',
 				instanceId: 'instance:whatever',
 				pageId: 'page:whatever',
-				selectedIds: ['shape:whatever'],
-				focusLayerId: null,
+				selectedShapeIds: ['shape:whatever'],
+				focusedGroupId: null,
 			},
 		}
 
@@ -138,9 +138,9 @@ describe(extractSessionStateFromLegacySnapshot, () => {
 		        "y": 0,
 		        "z": 1,
 		      },
-		      "focusLayerId": null,
+		      "focusedGroupId": null,
 		      "pageId": "page:whatever",
-		      "selectedIds": Array [
+		      "selectedShapeIds": Array [
 		        "shape:whatever",
 		      ],
 		    },

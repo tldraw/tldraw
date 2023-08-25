@@ -15,7 +15,7 @@ export const TrashButton = track(function TrashButton() {
 
 	if (isReadonly) return null
 
-	const noSelected = editor.selectedIds.length <= 0
+	const noSelected = editor.selectedShapeIds.length <= 0
 
 	return (
 		<Button

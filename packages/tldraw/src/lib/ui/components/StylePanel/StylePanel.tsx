@@ -37,9 +37,9 @@ function getRelevantStyles(
 	editor: Editor
 ): { styles: ReadonlySharedStyleMap; opacity: SharedStyle<number> } | null {
 	const styles = new SharedStyleMap(editor.sharedStyles)
-	const hasShape = editor.selectedIds.length > 0 || !!editor.root.current.value?.shapeType
+	const hasShape = editor.selectedShapeIds.length > 0 || !!editor.root.current.value?.shapeType
 
-	if (styles.size === 0 && editor.isIn('select') && editor.selectedIds.length === 0) {
+	if (styles.size === 0 && editor.isIn('select') && editor.selectedShapeIds.length === 0) {
 		for (const style of selectToolStyles) {
 			styles.applyValue(style, editor.getStyleForNextShape(style))
 		}
@@ -94,9 +94,14 @@ function useStyleChangeCallback() {
 	const editor = useEditor()
 
 	return React.useMemo(() => {
-		return function <T>(style: StyleProp<T>, value: T, squashing: boolean) {
-			editor.setStyle(style, value, squashing)
-			editor.updateInstanceState({ isChangingStyle: true })
+		return function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
+			editor.batch(() => {
+				if (editor.isIn('select')) {
+					editor.setStyleForSelectedShapes(style, value, { squashing })
+				}
+				editor.setStyleForNextShapes(style, value, { squashing })
+				editor.updateInstanceState({ isChangingStyle: true })
+			})
 		}
 	}, [editor])
 }
@@ -118,8 +123,13 @@ function CommonStylePickerSet({
 	const handleOpacityValueChange = React.useCallback(
 		(value: number, ephemeral: boolean) => {
 			const item = tldrawSupportedOpacities[value]
-			editor.setOpacity(item, ephemeral)
-			editor.updateInstanceState({ isChangingStyle: true })
+			editor.batch(() => {
+				if (editor.isIn('select')) {
+					editor.setOpacityForSelectedShapes(item, { ephemeral })
+				}
+				editor.setOpacityForNextShapes(item, { ephemeral })
+				editor.updateInstanceState({ isChangingStyle: true })
+			})
 		},
 		[editor]
 	)

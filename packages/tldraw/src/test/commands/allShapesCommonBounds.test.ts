@@ -10,7 +10,7 @@ beforeEach(() => {
 
 it('gets common bounds', () => {
 	// Put the ellipse back on the page to avoid a weird bounding box width
-	editor.reparentShapesById([defaultShapesIds.ellipse1], editor.currentPageId)
+	editor.reparentShapes([defaultShapesIds.ellipse1], editor.currentPageId)
 
 	editor.updateShapes([
 		{
@@ -39,7 +39,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(editor.allShapesCommonBounds).toCloselyMatchObject({
+	expect(editor.currentPageBounds).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 600,
@@ -62,7 +62,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(editor.allShapesCommonBounds).toCloselyMatchObject({
+	expect(editor.currentPageBounds).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 700,
@@ -71,7 +71,7 @@ it('gets common bounds', () => {
 
 	// Reparent a box into the frame. We want it to be clipped by the frame;
 	// so that we can check whether the common bounds has changed. (It should be the same)
-	editor.reparentShapesById([defaultShapesIds.box2], frame1Id)
+	editor.reparentShapes([defaultShapesIds.box2], frame1Id)
 	editor.updateShapes([
 		{
 			id: defaultShapesIds.box2,
@@ -82,7 +82,7 @@ it('gets common bounds', () => {
 		},
 	])
 
-	expect(editor.allShapesCommonBounds).toCloselyMatchObject({
+	expect(editor.currentPageBounds).toCloselyMatchObject({
 		x: 0,
 		y: 0,
 		h: 700,

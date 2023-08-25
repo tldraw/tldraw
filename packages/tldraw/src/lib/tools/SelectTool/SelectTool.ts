@@ -17,6 +17,7 @@ import { Rotating } from './children/Rotating'
 import { ScribbleBrushing } from './children/ScribbleBrushing'
 import { Translating } from './children/Translating'
 
+/** @public */
 export class SelectTool extends StateNode {
 	static override id = 'select'
 	static override initial = 'idle'
@@ -41,8 +42,8 @@ export class SelectTool extends StateNode {
 	]
 
 	override onExit = () => {
-		if (this.editor.currentPageState.editingId) {
-			this.editor.setEditingId(null)
+		if (this.editor.currentPageState.editingShapeId) {
+			this.editor.setEditingShape(null)
 		}
 	}
 }
