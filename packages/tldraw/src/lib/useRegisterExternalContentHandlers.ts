@@ -17,28 +17,38 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
-import {
-	ACCEPTED_IMG_TYPE,
-	ACCEPTED_VID_TYPE,
-	containBoxSize,
-	getFileMetaData,
-	getResizedImageDataUrl,
-	isImage,
-} from './utils/assets'
+import { containBoxSize, getFileMetaData, getResizedImageDataUrl, isImage } from './utils/assets'
 import { getEmbedInfo } from './utils/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text'
 
-/** @internal */
-export const MAX_ASSET_WIDTH = 1000
-/** @internal */
-export const MAX_ASSET_HEIGHT = 1000
+/** @public */
+export type TLExternalContentProps = {
+	// The maximum dimension (width or height) of an image. Images larger than this will be rescaled to fit. Defaults to infinity.
+	maxImageDimension: number
+	// The maximum size (in bytes) of an asset. Assets larger than this will be rejected. Defaults to 10mb (10 * 1024 * 1024).
+	maxAssetSize: number
+	// The mime types of images that are allowed to be handled. Defaults to ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].
+	acceptedImageMimeTypes: string[]
+	// The mime types of videos that are allowed to be handled. Defaults to ['video/mp4', 'video/webm', 'video/quicktime'].
+	acceptedVideoMimeTypes: string[]
+}
 
-export function useRegisterExternalContentHandlers() {
+export function useRegisterExternalContentHandlers({
+	maxImageDimension,
+	maxAssetSize,
+	acceptedImageMimeTypes,
+	acceptedVideoMimeTypes,
+}: TLExternalContentProps) {
 	const editor = useEditor()
+
 	useEffect(() => {
 		// files -> asset
 		editor.registerExternalAssetHandler('file', async ({ file }) => {
 			return await new Promise((resolve, reject) => {
+				if (file.size > maxAssetSize) {
+					reject()
+				}
+
 				const reader = new FileReader()
 				reader.onerror = () => reject(reader.error)
 				reader.onload = async () => {
@@ -55,7 +65,9 @@ export function useRegisterExternalContentHandlers() {
 					}
 
 					const originalSize = await sizeFn(dataUrl)
-					const size = containBoxSize(originalSize, { w: MAX_ASSET_WIDTH, h: MAX_ASSET_HEIGHT })
+					const size = isFinite(maxImageDimension)
+						? containBoxSize(originalSize, { w: maxImageDimension, h: maxImageDimension })
+						: originalSize
 
 					if (size !== originalSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
 						// If we created a new size and the type is an image, rescale the image
@@ -195,13 +207,19 @@ export function useRegisterExternalContentHandlers() {
 
 			await Promise.all(
 				files.map(async (file, i) => {
+					if (file.size > maxAssetSize) {
+						return null
+					}
+
 					// Use mime type instead of file ext, this is because
 					// window.navigator.clipboard does not preserve file names
 					// of copied files.
-					if (!file.type) throw new Error('No mime type')
+					if (!file.type) {
+						throw new Error('No mime type')
+					}
 
 					// We can only accept certain extensions (either images or a videos)
-					if (!ACCEPTED_IMG_TYPE.concat(ACCEPTED_VID_TYPE).includes(file.type)) {
+					if (!acceptedImageMimeTypes.concat(acceptedVideoMimeTypes).includes(file.type)) {
 						console.warn(`${file.name} not loaded - Extension not allowed.`)
 						return null
 					}
@@ -209,7 +227,9 @@ export function useRegisterExternalContentHandlers() {
 					try {
 						const asset = await editor.getAssetForExternalContent({ type: 'file', file })
 
-						if (!asset) throw Error('Could not create an asset')
+						if (!asset) {
+							throw Error('Could not create an asset')
+						}
 
 						assets[i] = asset
 					} catch (error) {
@@ -336,7 +356,7 @@ export function useRegisterExternalContentHandlers() {
 				createShapesForAssets(editor, [asset], position)
 			})
 		})
-	}, [editor])
+	}, [editor, maxAssetSize, maxImageDimension, acceptedImageMimeTypes, acceptedVideoMimeTypes])
 }
 
 export async function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike) {

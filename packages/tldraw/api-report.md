@@ -1088,7 +1088,7 @@ function Title({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
-export function Tldraw(props: TldrawEditorProps & TldrawUiProps & {
+export function Tldraw(props: TldrawEditorProps & TldrawUiProps & Partial<TLExternalContentProps> & {
     assetUrls?: RecursivePartial<TLEditorAssetUrls>;
 }): JSX.Element;
 
