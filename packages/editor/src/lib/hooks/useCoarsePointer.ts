@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useEditor } from './useEditor'
 
+/** @internal */
 export function useCoarsePointer() {
 	const editor = useEditor()
 	useEffect(() => {

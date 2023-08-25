@@ -185,6 +185,7 @@ function HandlesWrapper() {
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const isCoarse = useValue('coarse pointer', () => editor.instanceState.isCoarsePointer, [editor])
 	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
 	const isChangingStyle = useValue('isChangingStyle', () => editor.instanceState.isChangingStyle, [
 		editor,
@@ -229,14 +230,32 @@ function HandlesWrapper() {
 		<Handles>
 			<g transform={Matrix2d.toCssString(transform)}>
 				{handlesToDisplay.map((handle) => {
-					return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
+					return (
+						<HandleWrapper
+							key={handle.id}
+							shapeId={onlySelectedShape.id}
+							handle={handle}
+							zoom={zoomLevel}
+							isCoarse={isCoarse}
+						/>
+					)
 				})}
 			</g>
 		</Handles>
 	)
 }
 
-function HandleWrapper({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHandle }) {
+function HandleWrapper({
+	shapeId,
+	handle,
+	zoom,
+	isCoarse,
+}: {
+	shapeId: TLShapeId
+	handle: TLHandle
+	zoom: number
+	isCoarse: boolean
+}) {
 	const events = useHandleEvents(shapeId, handle.id)
 	const { Handle } = useEditorComponents()
 
@@ -244,7 +263,7 @@ function HandleWrapper({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHand
 
 	return (
 		<g aria-label="handle" transform={`translate(${handle.x}, ${handle.y})`} {...events}>
-			<Handle shapeId={shapeId} handle={handle} />
+			<Handle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
 		</g>
 	)
 }
