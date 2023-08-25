@@ -213,7 +213,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 										key={i}
 										strokeDasharray={strokeDasharray}
 										strokeDashoffset={strokeDashoffset}
-										d={getSvgPathForEdge(segment as any, true)}
+										d={getSvgPathForEdge(segment as any, i === 0)}
 										fill="none"
 									/>
 								)
@@ -280,7 +280,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 										key={i}
 										strokeDasharray={strokeDasharray}
 										strokeDashoffset={strokeDashoffset}
-										d={getSvgPathForBezierCurve(segment as any, true)}
+										d={getSvgPathForBezierCurve(segment as any, i === 0)}
 										fill="none"
 									/>
 								)
