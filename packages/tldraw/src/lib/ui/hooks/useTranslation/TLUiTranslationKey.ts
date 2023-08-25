@@ -26,6 +26,7 @@ export type TLUiTranslationKey =
 	| 'action.copy'
 	| 'action.cut'
 	| 'action.delete'
+	| 'action.unlock-all'
 	| 'action.distribute-horizontal'
 	| 'action.distribute-vertical'
 	| 'action.distribute-horizontal.short'
