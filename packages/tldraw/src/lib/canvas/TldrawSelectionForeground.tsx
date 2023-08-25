@@ -9,6 +9,7 @@ import {
 	useEditor,
 	useSelectionEvents,
 	useTransform,
+	useValue,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useRef } from 'react'
@@ -500,6 +501,10 @@ export const MobileRotateHandle = function RotateHandle({
 }) {
 	const events = useSelectionEvents('mobile_rotate')
 
+	const editor = useEditor()
+	const zoom = useValue('zoom level', () => editor.zoomLevel, [editor])
+	const bgRadius = Math.max(14 * (1 / zoom), 20 / Math.max(1, zoom))
+
 	return (
 		<g>
 			<circle
@@ -508,6 +513,7 @@ export const MobileRotateHandle = function RotateHandle({
 				className={classNames('tl-transparent', 'tl-mobile-rotate__bg', { 'tl-hidden': isHidden })}
 				cx={cx}
 				cy={cy}
+				r={bgRadius}
 				{...events}
 			/>
 			<circle

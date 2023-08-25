@@ -2173,6 +2173,8 @@ export type TLGridComponent = ComponentType<{
 export type TLHandleComponent = ComponentType<{
     shapeId: TLShapeId;
     handle: TLHandle;
+    zoom: number;
+    isCoarse: boolean;
     className?: string;
 }>;
 
