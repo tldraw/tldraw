@@ -100,6 +100,7 @@ export function Tldraw(
 	)
 }
 
+// We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor.
 function InsideOfEditorContext({
 	maxImageDimension = Infinity,
 	maxAssetSize = 10 * 1024 * 1024,
