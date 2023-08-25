@@ -729,10 +729,6 @@ input,
 	text-shadow: var(--tl-text-outline);
 }
 
-.tl-text-shape__wrapper[data-isediting='true'] {
-	outline: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
-}
-
 .tl-text-shape__wrapper[data-align='start'] {
 	text-align: left;
 }
