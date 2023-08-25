@@ -48,8 +48,6 @@ export class CubicBezier2d extends Polyline2d {
 	}
 
 	midPoint() {
-		const { a, b, c, d } = this
-		const t = 0.5
 		return getAtT(this, 0.5)
 	}
 
