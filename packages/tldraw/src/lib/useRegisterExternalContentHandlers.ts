@@ -17,7 +17,7 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
-import { containBoxSize, getFileMetaData, getResizedImageDataUrl, isImage } from './utils/assets'
+import { containBoxSize, getIsGifAnimated, getResizedImageDataUrl } from './utils/assets'
 import { getEmbedInfo } from './utils/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text'
 
@@ -45,7 +45,20 @@ export function useRegisterExternalContentHandlers({
 		// files -> asset
 		editor.registerExternalAssetHandler('file', async ({ file }) => {
 			return await new Promise((resolve, reject) => {
+				if (
+					!acceptedImageMimeTypes.includes(file.type) &&
+					!acceptedVideoMimeTypes.includes(file.type)
+				) {
+					console.warn(`File type not allowed: ${file.type}`)
+					reject()
+				}
+
 				if (file.size > maxAssetSize) {
+					console.warn(
+						`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
+							maxAssetSize / 1024
+						).toFixed()}kb`
+					)
 					reject()
 				}
 
@@ -54,31 +67,43 @@ export function useRegisterExternalContentHandlers({
 				reader.onload = async () => {
 					let dataUrl = reader.result as string
 
-					const isImageType = isImage(file.type)
-					const sizeFn = isImageType
-						? MediaHelpers.getImageSizeFromSrc
-						: MediaHelpers.getVideoSizeFromSrc
-
 					// Hack to make .mov videos work via dataURL.
 					if (file.type === 'video/quicktime' && dataUrl.includes('video/quicktime')) {
 						dataUrl = dataUrl.replace('video/quicktime', 'video/mp4')
 					}
 
-					const originalSize = await sizeFn(dataUrl)
-					const size = isFinite(maxImageDimension)
-						? containBoxSize(originalSize, { w: maxImageDimension, h: maxImageDimension })
-						: originalSize
+					const isImageType = acceptedImageMimeTypes.includes(file.type)
 
-					if (size !== originalSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
-						// If we created a new size and the type is an image, rescale the image
-						dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h)
+					let size: {
+						w: number
+						h: number
+					}
+					let isAnimated: boolean
+
+					if (isImageType) {
+						size = await MediaHelpers.getImageSizeFromSrc(dataUrl)
+						if (file.type === 'image/gif') {
+							isAnimated = await getIsGifAnimated(file)
+						} else {
+							isAnimated = false
+						}
+					} else {
+						isAnimated = true
+						size = await MediaHelpers.getVideoSizeFromSrc(dataUrl)
+					}
+
+					if (isFinite(maxImageDimension)) {
+						const resizedSize = containBoxSize(size, { w: maxImageDimension, h: maxImageDimension })
+						if (size !== resizedSize && (file.type === 'image/jpeg' || file.type === 'image/png')) {
+							// If we created a new size and the type is an image, rescale the image
+							dataUrl = await getResizedImageDataUrl(dataUrl, size.w, size.h)
+						}
+						size = resizedSize
 					}
 
 					const assetId: TLAssetId = AssetRecordType.createId(getHashForString(dataUrl))
 
-					const metadata = await getFileMetaData(file)
-
-					const asset: Extract<TLAsset, { type: 'image' | 'video' }> = {
+					const asset = AssetRecordType.create({
 						id: assetId,
 						type: isImageType ? 'image' : 'video',
 						typeName: 'asset',
@@ -88,10 +113,9 @@ export function useRegisterExternalContentHandlers({
 							w: size.w,
 							h: size.h,
 							mimeType: file.type,
-							isAnimated: metadata.isAnimated,
+							isAnimated,
 						},
-						meta: {},
-					}
+					})
 
 					resolve(asset)
 				}
@@ -208,6 +232,11 @@ export function useRegisterExternalContentHandlers({
 			await Promise.all(
 				files.map(async (file, i) => {
 					if (file.size > maxAssetSize) {
+						console.warn(
+							`File size too big: ${(file.size / 1024).toFixed()}kb > ${(
+								maxAssetSize / 1024
+							).toFixed()}kb`
+						)
 						return null
 					}
 

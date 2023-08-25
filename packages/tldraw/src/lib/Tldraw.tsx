@@ -102,8 +102,8 @@ export function Tldraw(
 
 // We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor.
 function InsideOfEditorContext({
-	maxImageDimension = Infinity,
-	maxAssetSize = 10 * 1024 * 1024,
+	maxImageDimension = 1000,
+	maxAssetSize = 10 * 1024 * 1024, // 10mb
 	acceptedImageMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'],
 	acceptedVideoMimeTypes = ['video/mp4', 'video/quicktime'],
 }: Partial<TLExternalContentProps>) {

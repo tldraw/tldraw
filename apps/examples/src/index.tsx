@@ -14,6 +14,7 @@ import { ListLink } from './components/ListLink'
 
 import BasicExample from './BasicExample'
 import APIExample from './examples/APIExample'
+import AssetPropsExample from './examples/AssetOptionsExample'
 import CanvasEventsExample from './examples/CanvasEventsExample'
 import CustomComponentsExample from './examples/CustomComponentsExample'
 import CustomConfigExample from './examples/CustomConfigExample/CustomConfigExample'
@@ -148,6 +149,11 @@ export const allExamples: Example[] = [
 		title: 'Only editor',
 		path: '/only-editor',
 		element: <OnlyEditorExample />,
+	},
+	{
+		title: 'Asset props',
+		path: '/asset-props',
+		element: <AssetPropsExample />,
 	},
 	// not listed
 	{

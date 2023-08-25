@@ -102,9 +102,6 @@ import { Vec2dModel } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 
 // @public (undocumented)
-export const ACCEPTED_IMG_TYPE: string[];
-
-// @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -264,6 +261,12 @@ function Content({ side, align, sideOffset, alignOffset, children, }: {
 export const ContextMenu: ({ children }: {
     children: any;
 }) => JSX.Element;
+
+// @public (undocumented)
+export const DEFAULT_ACCEPTED_IMG_TYPE: string[];
+
+// @public (undocumented)
+export const DEFAULT_ACCEPTED_VID_TYPE: string[];
 
 // @public (undocumented)
 export const defaultShapeTools: (typeof ArrowShapeTool | typeof DrawShapeTool | typeof FrameShapeTool | typeof GeoShapeTool | typeof LineShapeTool | typeof NoteShapeTool | typeof TextShapeTool)[];
@@ -608,11 +611,6 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public (undocumented)
-export function getFileMetaData(file: File): Promise<{
-    isAnimated: boolean;
-}>;
-
-// @public (undocumented)
 function Group({ children, size, }: {
     children: any;
     size?: 'medium' | 'small' | 'tiny' | 'wide';
@@ -727,9 +725,6 @@ function Indicator(): JSX.Element;
 
 // @public (undocumented)
 export const Input: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
-
-// @public (undocumented)
-export const isImage: (ext: string) => boolean;
 
 // @public (undocumented)
 function Item({ noClose, ...props }: DropdownMenuItemProps): JSX.Element;
