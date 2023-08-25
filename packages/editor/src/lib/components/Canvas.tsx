@@ -1,6 +1,7 @@
 import { react, track, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
+import classNames from 'classnames'
 import React from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
@@ -19,7 +20,7 @@ import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
 
 /** @public */
-export const Canvas = track(function Canvas() {
+export const Canvas = track(function Canvas({ className }: { className?: string }) {
 	const editor = useEditor()
 
 	const { Background, SvgDefs } = useEditorComponents()
@@ -81,7 +82,13 @@ export const Canvas = track(function Canvas() {
 		rCanvas.current?.focus()
 	}, [])
 	return (
-		<div ref={rCanvas} draggable={false} className="tl-canvas" data-testid="canvas" {...events}>
+		<div
+			ref={rCanvas}
+			draggable={false}
+			className={classNames('tl-canvas', className)}
+			data-testid="canvas"
+			{...events}
+		>
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />
