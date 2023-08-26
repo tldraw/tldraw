@@ -129,7 +129,13 @@ export {
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
 export { setDefaultEditorAssetUrls } from './lib/utils/assetUrls'
-export { DEFAULT_ACCEPTED_IMG_TYPE, DEFAULT_ACCEPTED_VID_TYPE } from './lib/utils/assets'
+export {
+	DEFAULT_ACCEPTED_IMG_TYPE,
+	DEFAULT_ACCEPTED_VID_TYPE,
+	containBoxSize,
+	getResizedImageDataUrl,
+	isGifAnimated,
+} from './lib/utils/assets'
 export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
 export { getEmbedInfo } from './lib/utils/embeds'
 export {

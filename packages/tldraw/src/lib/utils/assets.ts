@@ -35,18 +35,6 @@ export function containBoxSize(
 	}
 }
 
-/** @public */
-export async function getIsGifAnimated(file: File): Promise<boolean> {
-	return await new Promise((resolve, reject) => {
-		const reader = new FileReader()
-		reader.onerror = () => reject(reader.error)
-		reader.onload = () => {
-			resolve(reader.result ? isAnimated(reader.result as ArrayBuffer) : false)
-		}
-		reader.readAsArrayBuffer(file)
-	})
-}
-
 /**
  * Get the size of an image from its source.
  *
@@ -89,3 +77,15 @@ export async function getResizedImageDataUrl(
 export const DEFAULT_ACCEPTED_IMG_TYPE = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
 /** @public */
 export const DEFAULT_ACCEPTED_VID_TYPE = ['video/mp4', 'video/quicktime']
+
+/** @public */
+export async function isGifAnimated(file: File): Promise<boolean> {
+	return await new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onerror = () => reject(reader.error)
+		reader.onload = () => {
+			resolve(reader.result ? isAnimated(reader.result as ArrayBuffer) : false)
+		}
+		reader.readAsArrayBuffer(file)
+	})
+}
