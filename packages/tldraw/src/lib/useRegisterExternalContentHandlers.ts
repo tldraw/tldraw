@@ -17,7 +17,7 @@ import {
 } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from './shapes/shared/default-shape-constants'
-import { containBoxSize, getIsGifAnimated, getResizedImageDataUrl } from './utils/assets'
+import { containBoxSize, getResizedImageDataUrl, isGifAnimated } from './utils/assets'
 import { getEmbedInfo } from './utils/embeds'
 import { cleanupText, isRightToLeftLanguage, truncateStringWithEllipsis } from './utils/text'
 
@@ -82,11 +82,7 @@ export function useRegisterExternalContentHandlers({
 
 					if (isImageType) {
 						size = await MediaHelpers.getImageSizeFromSrc(dataUrl)
-						if (file.type === 'image/gif') {
-							isAnimated = await getIsGifAnimated(file)
-						} else {
-							isAnimated = false
-						}
+						isAnimated = file.type === 'image/gif' && (await isGifAnimated(file))
 					} else {
 						isAnimated = true
 						size = await MediaHelpers.getVideoSizeFromSrc(dataUrl)

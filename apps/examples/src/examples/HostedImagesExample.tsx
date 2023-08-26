@@ -6,9 +6,9 @@ import {
 	TLAssetId,
 	Tldraw,
 	getHashForString,
+	isGifAnimated,
 	uniqueId,
 } from '@tldraw/tldraw'
-import { getIsGifAnimated } from '@tldraw/tldraw/src/lib/utils/assets'
 import '@tldraw/tldraw/tldraw.css'
 import { useCallback } from 'react'
 
@@ -40,11 +40,7 @@ export default function AssetPropsExample() {
 			if (['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'].includes(file.type)) {
 				shapeType = 'image'
 				size = await MediaHelpers.getImageSizeFromSrc(url)
-				if (file.type === 'image/gif') {
-					isAnimated = await getIsGifAnimated(file)
-				} else {
-					isAnimated = false
-				}
+				isAnimated = file.type === 'image/gif' && (await isGifAnimated(file))
 			} else {
 				shapeType = 'video'
 				isAnimated = true

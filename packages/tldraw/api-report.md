@@ -248,6 +248,9 @@ function CloseButton(): JSX.Element;
 // @public (undocumented)
 export function compactMenuItems<T>(arr: T[]): Exclude<T, false | null | undefined>[];
 
+// @public
+export function containBoxSize(originalSize: BoxWidthHeight, containBoxSize: BoxWidthHeight): BoxWidthHeight;
+
 // @public (undocumented)
 function Content({ side, align, sideOffset, alignOffset, children, }: {
     children: any;
@@ -610,6 +613,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 // @public
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
+// @public
+export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number): Promise<string>;
+
 // @public (undocumented)
 function Group({ children, size, }: {
     children: any;
@@ -725,6 +731,9 @@ function Indicator(): JSX.Element;
 
 // @public (undocumented)
 export const Input: React_3.ForwardRefExoticComponent<TLUiInputProps & React_3.RefAttributes<HTMLInputElement>>;
+
+// @public (undocumented)
+export function isGifAnimated(file: File): Promise<boolean>;
 
 // @public (undocumented)
 function Item({ noClose, ...props }: DropdownMenuItemProps): JSX.Element;
