@@ -23,9 +23,9 @@ import { STROKE_SIZES } from '../shared/default-shape-constants'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { getDrawLinePathData } from '../shared/polygon-helpers'
 import { getLineDrawPath, getLineIndicatorPath } from './components/getLinePath'
-import { getLineSvg } from './components/getLineSvg'
 import {
 	getSvgPathForBezierCurve,
+	getSvgPathForCubicSpline,
 	getSvgPathForEdge,
 	getSvgPathForLineGeometry,
 } from './components/svg'
@@ -193,8 +193,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				const outline = spline.points
 				const pathData = 'M' + outline[0] + 'L' + outline.slice(1)
 
-				const fn = spline instanceof CubicSpline2d ? getSvgPathForBezierCurve : getSvgPathForEdge
-
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={pathData} fill={'none'} color={color} theme={theme} />
@@ -215,7 +213,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 										key={i}
 										strokeDasharray={strokeDasharray}
 										strokeDashoffset={strokeDashoffset}
-										d={fn(segment as any, i === 0)}
+										d={getSvgPathForEdge(segment as any, true)}
 										fill="none"
 									/>
 								)
@@ -262,8 +260,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 			}
 
 			if (dash === 'dashed' || dash === 'dotted') {
-				const fn = spline instanceof CubicSpline2d ? getSvgPathForBezierCurve : getSvgPathForEdge
-
 				return (
 					<SVGContainer id={shape.id}>
 						<ShapeFill d={splinePath} fill={'none'} color={color} theme={theme} />
@@ -284,7 +280,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 										key={i}
 										strokeDasharray={strokeDasharray}
 										strokeDashoffset={strokeDashoffset}
-										d={fn(segment as any, i === 0)}
+										d={getSvgPathForBezierCurve(segment as any, true)}
 										fill="none"
 									/>
 								)
@@ -336,7 +332,75 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		const color = theme[shape.props.color].solid
 		const spline = getGeometryForLineShape(shape)
-		return getLineSvg(shape, spline, color, STROKE_SIZES[shape.props.size])
+		const strokeWidth = STROKE_SIZES[shape.props.size]
+
+		switch (shape.props.dash) {
+			case 'draw': {
+				let pathData: string
+				if (spline instanceof CubicSpline2d) {
+					pathData = getLineDrawPath(shape, spline, strokeWidth)
+				} else {
+					const [_, outerPathData] = getDrawLinePathData(shape.id, spline.points, strokeWidth)
+					pathData = outerPathData
+				}
+
+				const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+				p.setAttribute('stroke-width', strokeWidth + 'px')
+				p.setAttribute('stroke', color)
+				p.setAttribute('fill', 'none')
+				p.setAttribute('d', pathData)
+
+				return p
+			}
+			case 'solid': {
+				let pathData: string
+
+				if (spline instanceof CubicSpline2d) {
+					pathData = getSvgPathForCubicSpline(spline, false)
+				} else {
+					const outline = spline.points
+					pathData = 'M' + outline[0] + 'L' + outline.slice(1)
+				}
+
+				const p = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+				p.setAttribute('stroke-width', strokeWidth + 'px')
+				p.setAttribute('stroke', color)
+				p.setAttribute('fill', 'none')
+				p.setAttribute('d', pathData)
+
+				return p
+			}
+			default: {
+				const { segments } = spline
+
+				const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
+				g.setAttribute('stroke', color)
+				g.setAttribute('stroke-width', strokeWidth.toString())
+
+				const fn = spline instanceof CubicSpline2d ? getSvgPathForBezierCurve : getSvgPathForEdge
+
+				segments.forEach((segment, i) => {
+					const path = document.createElementNS('http://www.w3.org/2000/svg', 'path')
+					const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+						segment.length,
+						strokeWidth,
+						{
+							style: shape.props.dash,
+							start: i > 0 ? 'outset' : 'none',
+							end: i < segments.length - 1 ? 'outset' : 'none',
+						}
+					)
+
+					path.setAttribute('stroke-dasharray', strokeDasharray.toString())
+					path.setAttribute('stroke-dashoffset', strokeDashoffset.toString())
+					path.setAttribute('d', fn(segment as any, true))
+					path.setAttribute('fill', 'none')
+					g.appendChild(path)
+				})
+
+				return g
+			}
+		}
 	}
 }
 

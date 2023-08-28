@@ -6,11 +6,16 @@ import { ComponentType } from 'react'
 export type TLHandleComponent = ComponentType<{
 	shapeId: TLShapeId
 	handle: TLHandle
+	zoom: number
+	isCoarse: boolean
 	className?: string
 }>
 
 /** @public */
-export const DefaultHandle: TLHandleComponent = ({ handle, className }) => {
+export const DefaultHandle: TLHandleComponent = ({ handle, isCoarse, className, zoom }) => {
+	const bgRadius = (isCoarse ? 20 : 12) / zoom
+	const fgRadius = (handle.type === 'create' && isCoarse ? 3 : 4) / zoom
+
 	return (
 		<g
 			className={classNames(
@@ -22,8 +27,8 @@ export const DefaultHandle: TLHandleComponent = ({ handle, className }) => {
 				className
 			)}
 		>
-			<circle className="tl-handle__bg" />
-			<circle className="tl-handle__fg" />
+			<circle className="tl-handle__bg" r={bgRadius} />
+			<circle className="tl-handle__fg" r={fgRadius} />
 		</g>
 	)
 }

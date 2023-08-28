@@ -15,7 +15,7 @@ import { computed } from '@tldraw/state';
 import { ComputedCache } from '@tldraw/store';
 import { EmbedDefinition } from '@tldraw/tlschema';
 import { EMPTY_ARRAY } from '@tldraw/state';
-import EventEmitter from 'eventemitter3';
+import { EventEmitter } from 'eventemitter3';
 import { HistoryEntry } from '@tldraw/store';
 import { HTMLProps } from 'react';
 import { JsonObject } from '@tldraw/utils';
@@ -277,7 +277,9 @@ export const CAMERA_SLIDE_FRICTION = 0.09;
 export function canonicalizeRotation(a: number): number;
 
 // @public (undocumented)
-export const Canvas: React_2.MemoExoticComponent<() => JSX.Element>;
+export const Canvas: React_2.MemoExoticComponent<({ className }: {
+    className?: string | undefined;
+}) => JSX.Element>;
 
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
@@ -2173,6 +2175,8 @@ export type TLGridComponent = ComponentType<{
 export type TLHandleComponent = ComponentType<{
     shapeId: TLShapeId;
     handle: TLHandle;
+    zoom: number;
+    isCoarse: boolean;
     className?: string;
 }>;
 

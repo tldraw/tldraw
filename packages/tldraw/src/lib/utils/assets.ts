@@ -35,26 +35,6 @@ export function containBoxSize(
 	}
 }
 
-/** @public */
-export async function getFileMetaData(file: File): Promise<{ isAnimated: boolean }> {
-	if (file.type === 'image/gif') {
-		return await new Promise((resolve, reject) => {
-			const reader = new FileReader()
-			reader.onerror = () => reject(reader.error)
-			reader.onload = () => {
-				resolve({
-					isAnimated: reader.result ? isAnimated(reader.result as ArrayBuffer) : false,
-				})
-			}
-			reader.readAsArrayBuffer(file)
-		})
-	}
-
-	return {
-		isAnimated: isImage(file.type) ? false : true,
-	}
-}
-
 /**
  * Get the size of an image from its source.
  *
@@ -94,9 +74,18 @@ export async function getResizedImageDataUrl(
 }
 
 /** @public */
-export const ACCEPTED_IMG_TYPE = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
+export const DEFAULT_ACCEPTED_IMG_TYPE = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
 /** @public */
-export const ACCEPTED_VID_TYPE = ['video/mp4', 'video/quicktime']
+export const DEFAULT_ACCEPTED_VID_TYPE = ['video/mp4', 'video/quicktime']
 
 /** @public */
-export const isImage = (ext: string) => ACCEPTED_IMG_TYPE.includes(ext)
+export async function isGifAnimated(file: File): Promise<boolean> {
+	return await new Promise((resolve, reject) => {
+		const reader = new FileReader()
+		reader.onerror = () => reject(reader.error)
+		reader.onload = () => {
+			resolve(reader.result ? isAnimated(reader.result as ArrayBuffer) : false)
+		}
+		reader.readAsArrayBuffer(file)
+	})
+}

@@ -1,6 +1,7 @@
 import { react, track, useQuickReactor, useValue } from '@tldraw/state'
 import { TLHandle, TLShapeId } from '@tldraw/tlschema'
 import { dedupe, modulate, objectMapValues } from '@tldraw/utils'
+import classNames from 'classnames'
 import React from 'react'
 import { useCanvasEvents } from '../hooks/useCanvasEvents'
 import { useCoarsePointer } from '../hooks/useCoarsePointer'
@@ -19,7 +20,7 @@ import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
 
 /** @public */
-export const Canvas = track(function Canvas() {
+export const Canvas = track(function Canvas({ className }: { className?: string }) {
 	const editor = useEditor()
 
 	const { Background, SvgDefs } = useEditorComponents()
@@ -81,7 +82,13 @@ export const Canvas = track(function Canvas() {
 		rCanvas.current?.focus()
 	}, [])
 	return (
-		<div ref={rCanvas} draggable={false} className="tl-canvas" data-testid="canvas" {...events}>
+		<div
+			ref={rCanvas}
+			draggable={false}
+			className={classNames('tl-canvas', className)}
+			data-testid="canvas"
+			{...events}
+		>
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />
@@ -185,6 +192,7 @@ function HandlesWrapper() {
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
+	const isCoarse = useValue('coarse pointer', () => editor.instanceState.isCoarsePointer, [editor])
 	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
 	const isChangingStyle = useValue('isChangingStyle', () => editor.instanceState.isChangingStyle, [
 		editor,
@@ -229,14 +237,32 @@ function HandlesWrapper() {
 		<Handles>
 			<g transform={Matrix2d.toCssString(transform)}>
 				{handlesToDisplay.map((handle) => {
-					return <HandleWrapper key={handle.id} shapeId={onlySelectedShape.id} handle={handle} />
+					return (
+						<HandleWrapper
+							key={handle.id}
+							shapeId={onlySelectedShape.id}
+							handle={handle}
+							zoom={zoomLevel}
+							isCoarse={isCoarse}
+						/>
+					)
 				})}
 			</g>
 		</Handles>
 	)
 }
 
-function HandleWrapper({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHandle }) {
+function HandleWrapper({
+	shapeId,
+	handle,
+	zoom,
+	isCoarse,
+}: {
+	shapeId: TLShapeId
+	handle: TLHandle
+	zoom: number
+	isCoarse: boolean
+}) {
 	const events = useHandleEvents(shapeId, handle.id)
 	const { Handle } = useEditorComponents()
 
@@ -244,7 +270,7 @@ function HandleWrapper({ shapeId, handle }: { shapeId: TLShapeId; handle: TLHand
 
 	return (
 		<g aria-label="handle" transform={`translate(${handle.x}, ${handle.y})`} {...events}>
-			<Handle shapeId={shapeId} handle={handle} />
+			<Handle shapeId={shapeId} handle={handle} zoom={zoom} isCoarse={isCoarse} />
 		</g>
 	)
 }

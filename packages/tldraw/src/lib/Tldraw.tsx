@@ -17,7 +17,10 @@ import { defaultShapeUtils } from './defaultShapeUtils'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
-import { useRegisterExternalContentHandlers } from './useRegisterExternalContentHandlers'
+import {
+	TLExternalContentProps,
+	useRegisterExternalContentHandlers,
+} from './useRegisterExternalContentHandlers'
 import { useSideEffects } from './useSideEffects'
 import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './utils/assetUrls'
 import { usePreloadAssets } from './utils/usePreloadAssets'
@@ -25,14 +28,22 @@ import { usePreloadAssets } from './utils/usePreloadAssets'
 /** @public */
 export function Tldraw(
 	props: TldrawEditorProps &
-		TldrawUiProps & {
+		TldrawUiProps &
+		Partial<TLExternalContentProps> & {
 			/**
 			 * Urls for the editor to find fonts and other assets.
 			 */
 			assetUrls?: RecursivePartial<TLEditorAssetUrls>
 		}
 ) {
-	const { children, ...rest } = props
+	const {
+		children,
+		maxImageDimension,
+		maxAssetSize,
+		acceptedImageMimeTypes,
+		acceptedVideoMimeTypes,
+		...rest
+	} = props
 
 	const withDefaults: TldrawEditorProps = {
 		initialState: 'select',
@@ -78,14 +89,30 @@ export function Tldraw(
 					<Canvas />
 				</ContextMenu>
 				{children}
-				<Hacks />
+				<InsideOfEditorContext
+					maxImageDimension={maxImageDimension}
+					maxAssetSize={maxAssetSize}
+					acceptedImageMimeTypes={acceptedImageMimeTypes}
+					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
+				/>
 			</TldrawUi>
 		</TldrawEditor>
 	)
 }
 
-function Hacks() {
-	useRegisterExternalContentHandlers()
+// We put these hooks into a component here so that they can run inside of the context provided by TldrawEditor.
+function InsideOfEditorContext({
+	maxImageDimension = 1000,
+	maxAssetSize = 10 * 1024 * 1024, // 10mb
+	acceptedImageMimeTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml'],
+	acceptedVideoMimeTypes = ['video/mp4', 'video/quicktime'],
+}: Partial<TLExternalContentProps>) {
+	useRegisterExternalContentHandlers({
+		maxImageDimension,
+		maxAssetSize,
+		acceptedImageMimeTypes,
+		acceptedVideoMimeTypes,
+	})
 	useSideEffects()
 
 	return null

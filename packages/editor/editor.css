@@ -478,7 +478,6 @@ input,
 
 .tl-mobile-rotate__bg {
 	pointer-events: all;
-	r: calc(max(calc(14px * var(--tl-scale)), 20px / max(1, var(--tl-zoom))));
 	cursor: var(--tl-cursor-grab);
 }
 
@@ -505,14 +504,12 @@ input,
 	stroke: transparent;
 	pointer-events: all;
 	cursor: var(--tl-cursor-grabbing);
-	r: calc(12px / var(--tl-zoom));
 }
 
 .tl-handle__fg {
 	fill: var(--color-background);
 	stroke: var(--color-selection-stroke);
 	stroke-width: calc(1.5px * var(--tl-scale));
-	r: calc(4px * var(--tl-scale));
 	pointer-events: none;
 }
 
@@ -539,10 +536,6 @@ input,
 
 	.tl-handle__create {
 		opacity: 1;
-	}
-
-	.tl-handle__create > .tl-handle__fg {
-		r: calc(3px * var(--tl-scale));
 	}
 }
 
@@ -575,7 +568,6 @@ input,
 	top: calc(var(--scale) * 8px);
 	right: calc(var(--scale) * 8px);
 	font-size: 10px;
-	scale: var(--scale);
 	transform-origin: top right;
 	background-color: var(--color-background);
 	padding: 2px 4px;
@@ -735,10 +727,6 @@ input,
 	white-space: pre-wrap;
 	overflow-wrap: break-word;
 	text-shadow: var(--tl-text-outline);
-}
-
-.tl-text-shape__wrapper[data-isediting='true'] {
-	outline: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
 }
 
 .tl-text-shape__wrapper[data-align='start'] {
@@ -1097,7 +1085,7 @@ input,
 }
 
 .tl-text-label[data-isediting='true'] {
-	background-color: none;
+	background-color: transparent;
 	min-height: auto;
 }
 
@@ -1506,7 +1494,7 @@ it from receiving any pointer events or affecting the cursor. */
 	position: absolute;
 	inset: 0px;
 	z-index: 600;
-	pointer-events: auto;
+	pointer-events: all;
 }
 
 .tl-error-boundary__content {
@@ -1619,10 +1607,6 @@ it from receiving any pointer events or affecting the cursor. */
 	/* If mobile always show handle-hint as there is no hover state */
 	.tl-canvas__mobile .tl-handle__hint {
 		opacity: 1;
-	}
-
-	.tl-canvas__mobile .tl-handle__bg {
-		r: calc(20px / var(--tl-zoom));
 	}
 }
 

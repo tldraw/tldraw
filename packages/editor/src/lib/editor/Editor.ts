@@ -52,7 +52,7 @@ import {
 	sortById,
 	structuredClone,
 } from '@tldraw/utils'
-import EventEmitter from 'eventemitter3'
+import { EventEmitter } from 'eventemitter3'
 import { TLUser, createTLUser } from '../config/createTLUser'
 import { checkShapesAndAddCore } from '../config/defaultShapes'
 import {
@@ -4232,7 +4232,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { selectedShapeIds } = this
 		return this.currentPageShapesSorted
 			.filter((shape) => shape.type !== 'group' && selectedShapeIds.includes(shape.id))
-			.findLast((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
+			.reverse() // findlast
+			.find((shape) => this.isPointInShape(shape, point, { hitInside: true, margin: 0 }))
 	}
 
 	/**

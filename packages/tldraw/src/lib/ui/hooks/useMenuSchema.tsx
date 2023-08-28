@@ -172,7 +172,8 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 						showEditLink && menuItem(actions['edit-link']),
 						menuItem(actions['duplicate'], { disabled: !oneSelected }),
 						allowGroup && menuItem(actions['group']),
-						allowUngroup && menuItem(actions['ungroup'])
+						allowUngroup && menuItem(actions['ungroup']),
+						menuItem(actions['unlock-all'], { disabled: emptyPage })
 					),
 					menuGroup('delete-group', menuItem(actions['delete'], { disabled: !oneSelected })),
 					menuGroup(

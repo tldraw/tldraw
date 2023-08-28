@@ -83,6 +83,7 @@ export interface TLUiEventMap {
 	'stop-following': null
 	'open-cursor-chat': null
 	'zoom-tool': null
+	'unlock-all': null
 }
 
 type Join<T, K> = K extends null
