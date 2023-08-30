@@ -98,6 +98,11 @@ export interface TldrawEditorBaseProps {
 	 * A classname to pass to the editor's container.
 	 */
 	className?: string
+
+	/**
+	 * The user interacting with the editor.
+	 */
+	user?: TLUser
 }
 
 /**
@@ -126,10 +131,11 @@ export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
 	className,
+	user: _user,
 	...rest
 }: TldrawEditorProps) {
 	const [container, rContainer] = React.useState<HTMLDivElement | null>(null)
-	const user = useMemo(() => createTLUser(), [])
+	const user = useMemo(() => _user ?? createTLUser(), [_user])
 
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
