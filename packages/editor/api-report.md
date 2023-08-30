@@ -1997,6 +1997,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     tools?: readonly TLStateNodeConstructor[];
+    user?: TLUser;
 }
 
 // @public
