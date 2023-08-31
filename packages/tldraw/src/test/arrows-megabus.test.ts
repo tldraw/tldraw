@@ -467,6 +467,41 @@ describe('When starting an arrow inside of multiple shapes', () => {
 		})
 	})
 
+	it('does not start in locked shape', () => {
+		editor.toggleLock([ids.box2])
+		editor.sendToBack([ids.box2])
+		// box1 is bigger and is above box2
+
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(25, 25)
+		expect(editor.currentPageShapes.length).toBe(2)
+		expect(arrow()).toBe(null)
+		editor.pointerMove(30, 30)
+		expect(editor.currentPageShapes.length).toBe(3)
+		expect(arrow()).toMatchObject({
+			x: 25,
+			y: 25,
+			props: {
+				start: {
+					type: 'binding',
+					boundShapeId: ids.box1, // not box 2!
+					normalizedAnchor: {
+						x: 0.5,
+						y: 0.5,
+					},
+				},
+				end: {
+					type: 'binding',
+					boundShapeId: ids.box1, // not box 2
+					normalizedAnchor: {
+						x: 0.3,
+						y: 0.3,
+					},
+				},
+			},
+		})
+	})
+
 	it('starts a filled shape if it is above the hollow shape', () => {
 		// box2 - small, hollow
 		// box1 - big, filled
