@@ -242,8 +242,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			hitInside: true,
 			hitFrameInside: true,
 			margin: 0,
-			filter: (targetShpe) => {
-				return !targetShpe.isLocked && this.editor.getShapeUtil(targetShpe).canBind(targetShpe)
+			filter: (targetShape) => {
+				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
 			},
 		})
 
