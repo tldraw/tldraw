@@ -169,6 +169,14 @@ describe('When binding an arrow to a shape', () => {
 		expect(arrow().props.end.type).toBe('point')
 	})
 
+	it('does not bind when the shape is locked', () => {
+		editor.toggleLock(editor.currentPageShapes)
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(0, 50)
+		editor.pointerMove(100, 50)
+		expect(arrow().props.end.type).toBe('point')
+	})
+
 	it('should use timer on keyup when using control key to skip binding', () => {
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(0, 50)
@@ -215,6 +223,20 @@ describe('When shapes are overlapping', () => {
 		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
 		editor.pointerMove(275, 50) // box4 is higher
 		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box4 })
+	})
+
+	it('does not bind when shapes are locked', () => {
+		editor.toggleLock([ids.box1, ids.box2, ids.box4])
+		editor.setCurrentTool('arrow')
+		editor.pointerDown(0, 50)
+		editor.pointerMove(125, 50) // over box1 only
+		expect(arrow().props.end).toMatchObject({ type: 'point' }) // box 1 is locked!
+		editor.pointerMove(175, 50) // box2 is higher
+		expect(arrow().props.end).toMatchObject({ type: 'point' }) // box 2 is locked! box1 is locked!
+		editor.pointerMove(225, 50) // box3 is higher
+		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
+		editor.pointerMove(275, 50) // box4 is higher
+		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 }) // box 4 is locked!
 	})
 
 	it('binds to the highest shape or to the first filled shape', () => {
