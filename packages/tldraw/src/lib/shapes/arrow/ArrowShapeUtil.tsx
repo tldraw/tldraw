@@ -239,10 +239,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
 
 		const target = this.editor.getShapeAtPoint(point, {
-			filter: (shape) => this.editor.getShapeUtil(shape).canBind(shape),
 			hitInside: true,
 			hitFrameInside: true,
 			margin: 0,
+			filter: (targetShape) => {
+				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+			},
 		})
 
 		if (!target) {
