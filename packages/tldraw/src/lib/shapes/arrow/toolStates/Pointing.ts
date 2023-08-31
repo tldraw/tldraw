@@ -11,7 +11,9 @@ export class Pointing extends StateNode {
 		this.didTimeout = false
 
 		const target = this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
-			filter: (shape) => this.editor.getShapeUtil(shape).canBind(shape),
+			filter: (targetShape) => {
+				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+			},
 			margin: 0,
 			hitInside: true,
 		})
