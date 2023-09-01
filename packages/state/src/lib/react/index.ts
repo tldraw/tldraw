@@ -1,3 +1,5 @@
+'use client'
+
 export { track } from './track'
 export { useAtom } from './useAtom'
 export { useComputed } from './useComputed'
