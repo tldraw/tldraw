@@ -14,6 +14,7 @@ import {
 	TLCursorType,
 	TLDOCUMENT_ID,
 	TLDocument,
+	TLEmbedShape,
 	TLFrameShape,
 	TLGeoShape,
 	TLGroupShape,
@@ -30,6 +31,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	TLStore,
+	TLTextShape,
 	TLUnknownShape,
 	TLVideoAsset,
 	createShapeId,
@@ -85,7 +87,14 @@ import { EASINGS } from '../primitives/easings'
 import { Geometry2d } from '../primitives/geometry/Geometry2d'
 import { Group2d } from '../primitives/geometry/Group2d'
 import { intersectPolygonPolygon } from '../primitives/intersect'
-import { PI2, approximately, areAnglesCompatible, clamp, pointInPolygon } from '../primitives/utils'
+import {
+	PI2,
+	approximately,
+	areAnglesCompatible,
+	clamp,
+	pointInPolygon,
+	toDomPrecision,
+} from '../primitives/utils'
 import { ReadonlySharedStyleMap, SharedStyle, SharedStyleMap } from '../utils/SharedStylesMap'
 import { WeakMapCache } from '../utils/WeakMapCache'
 import { dataUrlToFile } from '../utils/assets'
@@ -8653,6 +8662,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 					break
 				}
 				case 'pointer': {
+					console.log(
+						this.processPointerEvent(info)?.target,
+						this.processPointerEvent(info)?.handle
+					)
+
 					// If we're pinching, return
 					if (inputs.isPinching) return
 
@@ -8914,6 +8928,314 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		return this
 	}
+
+	processPointerEvent(event: TLPointerEventInfo) {
+		const { currentPagePoint } = this.inputs
+		const { selectionRotation, selectionRotatedPageBounds } = this
+		const { isCoarsePointer } = this.instanceState
+
+		if (!selectionRotatedPageBounds) return event
+
+		const { zoomLevel, onlySelectedShape, selectedShapes } = this
+		const width = Math.max(1, selectionRotatedPageBounds.width)
+		const height = Math.max(1, selectionRotatedPageBounds.height)
+
+		const size = 8 / zoomLevel
+		const isTinyX = width < size * 2
+		const isTinyY = height < size * 2
+
+		const isSmallX = width < size * 4
+		const isSmallY = height < size * 4
+		const isSmallCropX = width < size * 5
+		const isSmallCropY = height < size * 5
+
+		const mobileHandleMultiplier = isCoarsePointer ? 1.75 : 1
+		const targetSize = (6 / zoomLevel) * mobileHandleMultiplier
+
+		const showSelectionBounds =
+			(onlySelectedShape
+				? !this.getShapeUtil(onlySelectedShape).hideSelectionBoundsFg(onlySelectedShape)
+				: true) && !onlySelectedShape
+
+		let shouldDisplayBox =
+			(showSelectionBounds &&
+				this.isInAny(
+					'select.idle',
+					'select.brushing',
+					'select.scribble_brushing',
+					'select.pointing_canvas',
+					'select.pointing_selection',
+					'select.pointing_shape',
+					'select.crop.idle',
+					'select.crop.pointing_crop',
+					'select.pointing_resize_handle',
+					'select.pointing_crop_handle'
+				)) ||
+			(showSelectionBounds &&
+				this.isIn('select.resizing') &&
+				onlySelectedShape &&
+				this.isShapeOfType<TLTextShape>(onlySelectedShape, 'text'))
+
+		if (onlySelectedShape && shouldDisplayBox) {
+			if (
+				this.environment.isFirefox &&
+				this.isShapeOfType<TLEmbedShape>(onlySelectedShape, 'embed')
+			) {
+				shouldDisplayBox = false
+			}
+		}
+
+		const { isChangingStyle, isReadonly } = this.instanceState
+
+		const showCropHandles =
+			this.isInAny(
+				'select.pointing_crop_handle',
+				'select.crop.idle',
+				'select.crop.pointing_crop'
+			) &&
+			!isChangingStyle &&
+			!isReadonly
+
+		const shouldDisplayControls =
+			this.isInAny(
+				'select.idle',
+				'select.pointing_selection',
+				'select.pointing_shape',
+				'select.crop.idle'
+			) &&
+			!isChangingStyle &&
+			!isReadonly
+
+		const isLockedShape = onlySelectedShape && this.isShapeOrAncestorLocked(onlySelectedShape)
+
+		const showCornerRotateHandles =
+			!isCoarsePointer &&
+			!(isTinyX || isTinyY) &&
+			(shouldDisplayControls || showCropHandles) &&
+			(onlySelectedShape
+				? !this.getShapeUtil(onlySelectedShape).hideRotateHandle(onlySelectedShape)
+				: true) &&
+			!isLockedShape
+
+		const showMobileRotateHandle =
+			isCoarsePointer &&
+			(!isSmallX || !isSmallY) &&
+			(shouldDisplayControls || showCropHandles) &&
+			(onlySelectedShape
+				? !this.getShapeUtil(onlySelectedShape).hideRotateHandle(onlySelectedShape)
+				: true) &&
+			!isLockedShape
+
+		const showResizeHandles =
+			shouldDisplayControls &&
+			(onlySelectedShape
+				? this.getShapeUtil(onlySelectedShape).canResize(onlySelectedShape) &&
+				  !this.getShapeUtil(onlySelectedShape).hideResizeHandles(onlySelectedShape)
+				: true) &&
+			!showCropHandles &&
+			!isLockedShape
+
+		const hideAlternateCornerHandles = isTinyX || isTinyY
+		const showOnlyOneHandle = isTinyX && isTinyY
+		const hideAlternateCropHandles = isSmallCropX || isSmallCropY
+
+		const showHandles = showResizeHandles || showCropHandles
+		const hideRotateCornerHandles = !showCornerRotateHandles
+		const hideMobileRotateHandle = !shouldDisplayControls || !showMobileRotateHandle
+
+		let hideEdgeTargetsDueToCoarsePointer = isCoarsePointer
+
+		if (
+			hideEdgeTargetsDueToCoarsePointer &&
+			selectedShapes.every((shape) => this.getShapeUtil(shape).isAspectRatioLocked(shape))
+		) {
+			hideEdgeTargetsDueToCoarsePointer = false
+		}
+
+		// If we're showing crop handles, then show the edges too.
+		// If we're showing resize handles, then show the edges only
+		// if we're not hiding them for some other reason
+		let hideEdgeTargets = true
+
+		if (showCropHandles) {
+			hideEdgeTargets = hideAlternateCropHandles
+		} else if (showResizeHandles) {
+			hideEdgeTargets =
+				hideAlternateCornerHandles || showOnlyOneHandle || hideEdgeTargetsDueToCoarsePointer
+		}
+
+		const point = Matrix2d.Identity()
+			.rotate(-selectionRotation)
+			.translate(-selectionRotatedPageBounds.minX, -selectionRotatedPageBounds.minY)
+			.applyToPoint(currentPagePoint)
+
+		const ht = size
+		const hs = ht * 2
+
+		const checkSelectionBody = true
+
+		const targetSizeX = (isSmallX ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
+		const targetSizeY = (isSmallY ? targetSize / 2 : targetSize) * (mobileHandleMultiplier * 0.75)
+
+		if (showHandles && shouldDisplayControls) {
+			if (
+				pointInBox(
+					point,
+					-(isSmallX ? targetSizeX * 2 : targetSizeX * 1.5),
+					-(isSmallY ? targetSizeY * 2 : targetSizeY * 1.5),
+					targetSizeX * 3,
+					targetSizeY * 3
+				)
+			) {
+				// top left corner
+				return {
+					...event,
+					target: 'selection',
+					handle: 'top_left',
+				}
+			} else if (
+				!hideAlternateCornerHandles &&
+				pointInBox(
+					point,
+					width - (isSmallX ? 0 : targetSizeX * 1.5),
+					-(isSmallY ? targetSizeY * 2 : targetSizeY * 1.5),
+					targetSizeX * 3,
+					targetSizeY * 3
+				)
+			) {
+				// top right corner
+				return {
+					...event,
+					target: 'selection',
+					handle: 'top_right',
+				}
+			} else if (
+				!(showOnlyOneHandle && !showCropHandles) &&
+				pointInBox(
+					point,
+					width - (isSmallX ? targetSizeX : targetSizeX * 1.5),
+					height - (isSmallY ? targetSizeY : targetSizeY * 1.5),
+					targetSizeX * 3,
+					targetSizeY * 3
+				)
+			) {
+				// bottom right corner
+				return {
+					...event,
+					target: 'selection',
+					handle: 'bottom_right',
+				}
+			} else if (
+				!hideAlternateCornerHandles &&
+				pointInBox(
+					point,
+					-(isSmallX ? targetSizeX * 3 : targetSizeX * 1.5),
+					height - (isSmallY ? 0 : targetSizeY * 1.5),
+					targetSizeX * 3,
+					targetSizeY * 3
+				)
+			) {
+				// bottom left corner
+				return {
+					...event,
+					target: 'selection',
+					handle: 'bottom_left',
+				}
+			}
+		}
+
+		if (!hideEdgeTargets) {
+			if (pointInBox(point, ht, -ht, width - hs, hs)) {
+				// top
+				return {
+					...event,
+					target: 'selection',
+					handle: 'top',
+				}
+			} else if (pointInBox(point, width - ht, -ht, hs, height - hs)) {
+				// right
+				return {
+					...event,
+					target: 'selection',
+					handle: 'right',
+				}
+			} else if (pointInBox(point, ht, height - ht, width - hs, hs)) {
+				// bottom
+				return {
+					...event,
+					target: 'selection',
+					handle: 'bottom',
+				}
+			} else if (pointInBox(point, -ht, ht, hs, height - hs)) {
+				// left
+				return {
+					...event,
+					target: 'selection',
+					handle: 'left',
+				}
+			}
+		}
+
+		if (checkSelectionBody) {
+			if (pointInBox(point, 0, 0, width, height)) {
+				// body
+				return {
+					...event,
+					target: 'selection',
+				}
+			}
+		}
+
+		if (!hideRotateCornerHandles) {
+			if (pointInBox(point, -hs, -hs, hs * 2, hs * 2)) {
+				// top left rotate corner
+				return {
+					...event,
+					target: 'selection',
+					handle: 'top_left_rotate',
+				}
+			} else if (pointInBox(point, width, -hs, hs * 2, hs * 2)) {
+				// top right rotate corner
+				return {
+					...event,
+					target: 'selection',
+					handle: 'top_right_rotate',
+				}
+			} else if (pointInBox(point, width, height, hs * 2, hs * 2)) {
+				// bottom right rotate corner
+				return {
+					...event,
+					target: 'selection',
+					handle: 'bottom_right_rotate',
+				}
+			} else if (pointInBox(point, -hs, height, hs * 2, hs * 2)) {
+				// bottom left rotate corner
+				return {
+					...event,
+					target: 'selection',
+					handle: 'bottom_left_rotate',
+				}
+			}
+		}
+
+		if (!hideMobileRotateHandle) {
+			if (
+				point.dist({
+					x: isSmallX ? -targetSize * 1.5 : width / 2,
+					y: isSmallX ? height / 2 : -targetSize * 1.5,
+				}) <= size
+			) {
+				// mobile rotate handle
+				return {
+					...event,
+					target: 'selection',
+					handle: 'mobile_rotate',
+				}
+			}
+		}
+
+		return event
+	}
 }
 
 function alertMaxShapes(editor: Editor, pageId = editor.currentPageId) {
@@ -8953,3 +9275,11 @@ export type TLExternalContent =
 
 /** @public */
 export type TLExternalAssetContent = { type: 'file'; file: File } | { type: 'url'; url: string }
+
+function pointInBox(point: VecLike, x: number, y: number, w: number, h: number) {
+	x = toDomPrecision(x)
+	y = toDomPrecision(y)
+	w = toDomPrecision(w)
+	h = toDomPrecision(h)
+	return !(point.x < x || point.x > x + w || point.y < y || point.y > y + h)
+}

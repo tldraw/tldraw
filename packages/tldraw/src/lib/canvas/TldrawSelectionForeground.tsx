@@ -239,7 +239,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					corner="bottom_right_rotate"
 					cursor={isDefaultCursor ? getCursor('senw-rotate', rotation) : undefined}
 					isHidden={hideRotateCornerHandles}
-				/>{' '}
+				/>
 				<MobileRotateHandle
 					data-testid="selection.rotate.mobile"
 					cx={isSmallX ? -targetSize * 1.5 : width / 2}
