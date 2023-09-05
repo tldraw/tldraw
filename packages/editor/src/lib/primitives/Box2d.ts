@@ -248,7 +248,7 @@ export class Box2d {
 		}
 	}
 
-	maxFix() {
+	zeroFix() {
 		this.w = Math.max(1, this.w)
 		this.h = Math.max(1, this.h)
 		return this

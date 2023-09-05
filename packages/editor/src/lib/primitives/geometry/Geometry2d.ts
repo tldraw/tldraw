@@ -94,7 +94,7 @@ export abstract class Geometry2d {
 
 	get bounds(): Box2d {
 		if (!this._bounds) {
-			this._bounds = this.getBounds().maxFix()
+			this._bounds = this.getBounds().zeroFix()
 		}
 		return this._bounds
 	}

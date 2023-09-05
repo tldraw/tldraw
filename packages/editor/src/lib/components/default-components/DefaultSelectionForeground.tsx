@@ -32,7 +32,7 @@ export const DefaultSelectionForeground: TLSelectionForegroundComponent = ({
 		y: -expandOutlineBy,
 	})
 
-	bounds = bounds.clone().expandBy(expandOutlineBy).maxFix()
+	bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
 	return (
 		<svg

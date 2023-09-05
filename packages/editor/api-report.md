@@ -211,8 +211,6 @@ export class Box2d {
     // (undocumented)
     includes(B: Box2d): boolean;
     // (undocumented)
-    maxFix(): this;
-    // (undocumented)
     get maxX(): number;
     // (undocumented)
     get maxY(): number;
@@ -270,6 +268,8 @@ export class Box2d {
     x: number;
     // (undocumented)
     y: number;
+    // (undocumented)
+    zeroFix(): this;
 }
 
 // @internal (undocumented)
