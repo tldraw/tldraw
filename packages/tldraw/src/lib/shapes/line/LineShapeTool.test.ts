@@ -209,3 +209,20 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 		expect(handles.length).toBe(3)
 	})
 })
+
+describe('tool lock bug', () => {
+	it('works as expected when tool lock is on but shift is off', () => {
+		expect(editor.currentPageShapes.length).toBe(0)
+		editor
+			.updateInstanceState({ isToolLocked: true })
+			.setCurrentTool('line')
+			.pointerDown(0, 0)
+			.pointerMove(10, 10)
+			.pointerUp(10, 10)
+			.pointerDown(100, 100)
+			.pointerMove(110, 110)
+			.pointerUp(100, 100)
+			.pointerUp(120, 110)
+		expect(editor.currentPageShapes.length).toBe(2)
+	})
+})
