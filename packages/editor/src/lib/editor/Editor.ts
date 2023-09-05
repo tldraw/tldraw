@@ -3039,8 +3039,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			maskedPageBounds: Box2d | undefined
 		}[] = []
 
-		let nextIndex = MAX_SHAPES_PER_PAGE
-		let nextBackgroundIndex = 0
+		let nextIndex = MAX_SHAPES_PER_PAGE * 2
+		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
 
 		// We only really need these if we're using editor state, but that's ok
 		const editingShapeId = this.editingShapeId

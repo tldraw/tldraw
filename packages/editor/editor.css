@@ -221,14 +221,13 @@ input,
 	contain: strict;
 }
 
-.tl-shapes {
-	position: relative;
-	z-index: 1;
-}
-
-.tl-overlays {
-	position: relative;
-	z-index: 2;
+.tl-fixed-layer {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	contain: strict;
 }
 
 .tl-overlays__item {

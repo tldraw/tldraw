@@ -27,6 +27,7 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 
 	const rCanvas = React.useRef<HTMLDivElement>(null)
 	const rHtmlLayer = React.useRef<HTMLDivElement>(null)
+	const rHtmlLayer2 = React.useRef<HTMLDivElement>(null)
 
 	useScreenBounds()
 	useDocumentEvents()
@@ -40,6 +41,8 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 		() => {
 			const htmlElm = rHtmlLayer.current
 			if (!htmlElm) return
+			const htmlElm2 = rHtmlLayer2.current
+			if (!htmlElm2) return
 
 			const { x, y, z } = editor.camera
 
@@ -50,6 +53,12 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
 			htmlElm.style.setProperty(
+				'transform',
+				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(x + offset)}px,${toDomPrecision(
+					y + offset
+				)}px)`
+			)
+			htmlElm2.style.setProperty(
 				'transform',
 				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(x + offset)}px,${toDomPrecision(
 					y + offset
@@ -92,22 +101,22 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 			{Background && <Background />}
 			<GridWrapper />
 			<UiLogger />
+			<svg className="tl-svg-context">
+				<defs>
+					{shapeSvgDefs}
+					{Cursor && <Cursor />}
+					<CollaboratorHint />
+					<ArrowheadDot />
+					<ArrowheadCross />
+					{SvgDefs && <SvgDefs />}
+				</defs>
+			</svg>
 			<div ref={rHtmlLayer} className="tl-html-layer" draggable={false}>
-				<svg className="tl-svg-context">
-					<defs>
-						{shapeSvgDefs}
-						{Cursor && <Cursor />}
-						<CollaboratorHint />
-						<ArrowheadDot />
-						<ArrowheadCross />
-						{SvgDefs && <SvgDefs />}
-					</defs>
-				</svg>
 				<SelectionBackgroundWrapper />
-				<div className="tl-shapes">
-					<ShapesToDisplay />
-				</div>
-				<div className="tl-overlays">
+				<ShapesToDisplay />
+			</div>
+			<div className="tl-fixed-layer">
+				<div ref={rHtmlLayer2} className="tl-html-layer">
 					{/* <GeometryDebuggingView /> */}
 					<HandlesWrapper />
 					<BrushWrapper />
