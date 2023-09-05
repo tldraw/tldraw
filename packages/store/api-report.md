@@ -257,6 +257,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // @internal (undocumented)
     markAsPossiblyCorrupted(): void;
     mergeRemoteChanges: (fn: () => void) => void;
+    migrateSnapshot(snapshot: StoreSnapshot<R>): StoreSnapshot<R>;
     onAfterChange?: (prev: R, next: R, source: 'remote' | 'user') => void;
     onAfterCreate?: (record: R, source: 'remote' | 'user') => void;
     onAfterDelete?: (prev: R, source: 'remote' | 'user') => void;
