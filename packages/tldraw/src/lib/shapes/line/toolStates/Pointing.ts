@@ -29,60 +29,58 @@ export class Pointing extends StateNode {
 
 		const shape = info.shapeId && this.editor.getShape<TLLineShape>(info.shapeId)
 
-		if (shape) {
+		if (shape && inputs.shiftKey) {
 			this.markId = `creating:${shape.id}`
 			this.editor.mark(this.markId)
 			this.shape = shape
 
-			if (inputs.shiftKey) {
-				const handles = this.editor.getShapeHandles(this.shape)
-				if (!handles) return
+			const handles = this.editor.getShapeHandles(this.shape)
+			if (!handles) return
 
-				const vertexHandles = handles.filter((h) => h.type === 'vertex').sort(sortByIndex)
-				const endHandle = vertexHandles[vertexHandles.length - 1]
+			const vertexHandles = handles.filter((h) => h.type === 'vertex').sort(sortByIndex)
+			const endHandle = vertexHandles[vertexHandles.length - 1]
 
-				const shapePagePoint = Matrix2d.applyToPoint(
-					this.editor.getShapeParentTransform(this.shape)!,
-					new Vec2d(this.shape.x, this.shape.y)
-				)
+			const shapePagePoint = Matrix2d.applyToPoint(
+				this.editor.getShapeParentTransform(this.shape)!,
+				new Vec2d(this.shape.x, this.shape.y)
+			)
 
-				let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
+			let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
 
-				if (vertexHandles.length === 2 && vertexHandles[1].x === 1 && vertexHandles[1].y === 1) {
-					nextEndHandleIndex = vertexHandles[1].index
-					nextEndHandleId = vertexHandles[1].id
-					nextEndHandle = {
-						...vertexHandles[1],
-						x: currentPagePoint.x - shapePagePoint.x,
-						y: currentPagePoint.y - shapePagePoint.y,
-					}
-				} else {
-					nextEndHandleIndex = getIndexAbove(endHandle.index)
-					nextEndHandleId = 'handle:' + nextEndHandleIndex
-					nextEndHandle = {
-						x: currentPagePoint.x - shapePagePoint.x,
-						y: currentPagePoint.y - shapePagePoint.y,
-						index: nextEndHandleIndex,
-						canBind: false,
-						type: 'vertex',
-						id: nextEndHandleId,
-					}
+			if (vertexHandles.length === 2 && vertexHandles[1].x === 1 && vertexHandles[1].y === 1) {
+				nextEndHandleIndex = vertexHandles[1].index
+				nextEndHandleId = vertexHandles[1].id
+				nextEndHandle = {
+					...vertexHandles[1],
+					x: currentPagePoint.x - shapePagePoint.x,
+					y: currentPagePoint.y - shapePagePoint.y,
 				}
-
-				const nextHandles = structuredClone(this.shape.props.handles)
-
-				nextHandles[nextEndHandle.id] = nextEndHandle
-
-				this.editor.updateShapes([
-					{
-						id: this.shape.id,
-						type: this.shape.type,
-						props: {
-							handles: nextHandles,
-						},
-					},
-				])
+			} else {
+				nextEndHandleIndex = getIndexAbove(endHandle.index)
+				nextEndHandleId = 'handle:' + nextEndHandleIndex
+				nextEndHandle = {
+					x: currentPagePoint.x - shapePagePoint.x,
+					y: currentPagePoint.y - shapePagePoint.y,
+					index: nextEndHandleIndex,
+					canBind: false,
+					type: 'vertex',
+					id: nextEndHandleId,
+				}
 			}
+
+			const nextHandles = structuredClone(this.shape.props.handles)
+
+			nextHandles[nextEndHandle.id] = nextEndHandle
+
+			this.editor.updateShapes([
+				{
+					id: this.shape.id,
+					type: this.shape.type,
+					props: {
+						handles: nextHandles,
+					},
+				},
+			])
 		} else {
 			const id = createShapeId()
 
