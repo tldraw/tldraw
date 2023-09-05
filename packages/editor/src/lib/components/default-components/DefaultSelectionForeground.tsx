@@ -32,10 +32,7 @@ export const DefaultSelectionForeground: TLSelectionForegroundComponent = ({
 		y: -expandOutlineBy,
 	})
 
-	bounds = bounds.clone().expandBy(expandOutlineBy)
-
-	const width = Math.max(1, bounds.width)
-	const height = Math.max(1, bounds.height)
+	bounds = bounds.clone().expandBy(expandOutlineBy).maxFix()
 
 	return (
 		<svg
@@ -45,8 +42,8 @@ export const DefaultSelectionForeground: TLSelectionForegroundComponent = ({
 		>
 			<rect
 				className={classNames('tl-selection__fg__outline')}
-				width={toDomPrecision(width)}
-				height={toDomPrecision(height)}
+				width={toDomPrecision(bounds.width)}
+				height={toDomPrecision(bounds.height)}
 			/>
 		</svg>
 	)

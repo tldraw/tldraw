@@ -248,6 +248,12 @@ export class Box2d {
 		}
 	}
 
+	maxFix() {
+		this.w = Math.max(1, this.w)
+		this.h = Math.max(1, this.h)
+		return this
+	}
+
 	toJson(): Box2dModel {
 		return { x: this.minX, y: this.minY, w: this.w, h: this.h }
 	}
