@@ -273,38 +273,40 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.convert-to-bookmark',
 				readonlyOk: false,
 				onSelect(source) {
-					trackEvent('convert-to-bookmark', { source })
-					const shapes = editor.selectedShapes
+					editor.batch(() => {
+						trackEvent('convert-to-bookmark', { source })
+						const shapes = editor.selectedShapes
 
-					const createList: TLShapePartial[] = []
-					const deleteList: TLShapeId[] = []
-					for (const shape of shapes) {
-						if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
-							continue
+						const createList: TLShapePartial[] = []
+						const deleteList: TLShapeId[] = []
+						for (const shape of shapes) {
+							if (!shape || !editor.isShapeOfType<TLEmbedShape>(shape, 'embed') || !shape.props.url)
+								continue
 
-						const newPos = new Vec2d(shape.x, shape.y)
-						newPos.rot(-shape.rotation)
-						newPos.add(new Vec2d(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
-						newPos.rot(shape.rotation)
-						const partial: TLShapePartial<TLBookmarkShape> = {
-							id: createShapeId(),
-							type: 'bookmark',
-							rotation: shape.rotation,
-							x: newPos.x,
-							y: newPos.y,
-							opacity: 1,
-							props: {
-								url: shape.props.url,
-							},
+							const newPos = new Vec2d(shape.x, shape.y)
+							newPos.rot(-shape.rotation)
+							newPos.add(new Vec2d(shape.props.w / 2 - 300 / 2, shape.props.h / 2 - 320 / 2)) // see bookmark shape util
+							newPos.rot(shape.rotation)
+							const partial: TLShapePartial<TLBookmarkShape> = {
+								id: createShapeId(),
+								type: 'bookmark',
+								rotation: shape.rotation,
+								x: newPos.x,
+								y: newPos.y,
+								opacity: 1,
+								props: {
+									url: shape.props.url,
+								},
+							}
+
+							createList.push(partial)
+							deleteList.push(shape.id)
 						}
 
-						createList.push(partial)
-						deleteList.push(shape.id)
-					}
-
-					editor.mark('convert shapes to bookmark')
-					editor.deleteShapes(deleteList)
-					editor.createShapes(createList)
+						editor.mark('convert shapes to bookmark')
+						editor.deleteShapes(deleteList)
+						editor.createShapes(createList)
+					})
 				},
 			},
 			{
@@ -313,48 +315,51 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				onSelect(source) {
 					trackEvent('convert-to-embed', { source })
-					const ids = editor.selectedShapeIds
-					const shapes = compact(ids.map((id) => editor.getShape(id)))
 
-					const createList: TLShapePartial[] = []
-					const deleteList: TLShapeId[] = []
-					for (const shape of shapes) {
-						if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
+					editor.batch(() => {
+						const ids = editor.selectedShapeIds
+						const shapes = compact(ids.map((id) => editor.getShape(id)))
 
-						const { url } = shape.props
+						const createList: TLShapePartial[] = []
+						const deleteList: TLShapeId[] = []
+						for (const shape of shapes) {
+							if (!editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark')) continue
 
-						const embedInfo = getEmbedInfo(shape.props.url)
+							const { url } = shape.props
 
-						if (!embedInfo) continue
-						if (!embedInfo.definition) continue
+							const embedInfo = getEmbedInfo(shape.props.url)
 
-						const { width, height } = embedInfo.definition
+							if (!embedInfo) continue
+							if (!embedInfo.definition) continue
 
-						const newPos = new Vec2d(shape.x, shape.y)
-						newPos.rot(-shape.rotation)
-						newPos.add(new Vec2d(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
-						newPos.rot(shape.rotation)
+							const { width, height } = embedInfo.definition
 
-						const shapeToCreate: TLShapePartial<TLEmbedShape> = {
-							id: createShapeId(),
-							type: 'embed',
-							x: newPos.x,
-							y: newPos.y,
-							rotation: shape.rotation,
-							props: {
-								url: url,
-								w: width,
-								h: height,
-							},
+							const newPos = new Vec2d(shape.x, shape.y)
+							newPos.rot(-shape.rotation)
+							newPos.add(new Vec2d(shape.props.w / 2 - width / 2, shape.props.h / 2 - height / 2))
+							newPos.rot(shape.rotation)
+
+							const shapeToCreate: TLShapePartial<TLEmbedShape> = {
+								id: createShapeId(),
+								type: 'embed',
+								x: newPos.x,
+								y: newPos.y,
+								rotation: shape.rotation,
+								props: {
+									url: url,
+									w: width,
+									h: height,
+								},
+							}
+
+							createList.push(shapeToCreate)
+							deleteList.push(shape.id)
 						}
 
-						createList.push(shapeToCreate)
-						deleteList.push(shape.id)
-					}
-
-					editor.mark('convert shapes to embed')
-					editor.deleteShapes(deleteList)
-					editor.createShapes(createList)
+						editor.mark('convert shapes to embed')
+						editor.deleteShapes(deleteList)
+						editor.createShapes(createList)
+					})
 				},
 			},
 			{
@@ -682,14 +687,16 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$a',
 				readonlyOk: true,
 				onSelect(source) {
-					trackEvent('select-all-shapes', { source })
-					if (editor.currentToolId !== 'select') {
-						editor.cancel()
-						editor.setCurrentTool('select')
-					}
+					editor.batch(() => {
+						trackEvent('select-all-shapes', { source })
+						if (editor.currentToolId !== 'select') {
+							editor.cancel()
+							editor.setCurrentTool('select')
+						}
 
-					editor.mark('select all kbd')
-					editor.selectAll()
+						editor.mark('select all kbd')
+						editor.selectAll()
+					})
 				},
 			},
 			{
@@ -915,12 +922,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('toggle-debug-mode', { source })
-					editor.updateInstanceState(
-						{
-							isDebugMode: !editor.instanceState.isDebugMode,
-						},
-						{ ephemeral: true }
-					)
+					editor.updateInstanceState({
+						isDebugMode: !editor.instanceState.isDebugMode,
+					})
 				},
 				checkbox: true,
 			},
