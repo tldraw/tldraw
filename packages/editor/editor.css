@@ -230,6 +230,16 @@ input,
 	contain: strict;
 }
 
+.tl-shapes {
+	position: relative;
+	z-index: 2;
+}
+
+.tl-overlays {
+	position: relative;
+	z-index: 3;
+}
+
 .tl-overlays__item {
 	position: absolute;
 	top: 0px;

@@ -111,11 +111,11 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 					{SvgDefs && <SvgDefs />}
 				</defs>
 			</svg>
-			<div ref={rHtmlLayer} className="tl-html-layer" draggable={false}>
+			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 				<SelectionBackgroundWrapper />
 				<ShapesToDisplay />
 			</div>
-			<div className="tl-fixed-layer">
+			<div className="tl-fixed-layer tl-overlays">
 				<div ref={rHtmlLayer2} className="tl-html-layer">
 					{/* <GeometryDebuggingView /> */}
 					<HandlesWrapper />
