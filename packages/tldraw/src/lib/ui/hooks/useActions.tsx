@@ -941,7 +941,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('exit-pen-mode', { source })
-					editor.instanceState.isPenMode = false
+					editor.updateInstanceState({ isPenMode: false })
 				},
 			},
 			{
