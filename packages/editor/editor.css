@@ -235,8 +235,8 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	height: 10px;
-	width: 10px;
+	height: 100vh;
+	width: 100vw;
 	overflow: visible;
 	pointer-events: none;
 	transform-origin: top left;
@@ -246,8 +246,8 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	height: 10px;
-	width: 10px;
+	height: 100vh;
+	width: 100vw;
 	pointer-events: none;
 }
 
