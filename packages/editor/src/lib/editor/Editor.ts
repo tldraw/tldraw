@@ -601,6 +601,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if ((!isFocused && hasFocus) || (isFocused && !hasFocus)) {
 				this.updateInstanceState({ isFocused: hasFocus })
 				this.updateViewportScreenBounds()
+				if (!hasFocus) {
+					// When losing focus, run complete() to ensure that any interacts end
+					this.complete()
+				}
 			}
 		}, 32)
 
