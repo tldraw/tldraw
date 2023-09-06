@@ -28,6 +28,7 @@ import {
 	useEditorComponents,
 } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
+import { useFocusEvents } from './hooks/useFocusEvents'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
@@ -345,6 +346,7 @@ function Layout({ children }: { children: any }) {
 	useDarkMode()
 	useSafariFocusOutFix()
 	useForceUpdate()
+	useFocusEvents()
 
 	return children ?? <Canvas />
 }
