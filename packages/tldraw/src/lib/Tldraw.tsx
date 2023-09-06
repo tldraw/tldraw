@@ -93,7 +93,6 @@ export function Tldraw(
 				<ContextMenu>
 					<Canvas />
 				</ContextMenu>
-				{children}
 				<InsideOfEditorContext
 					maxImageDimension={maxImageDimension}
 					maxAssetSize={maxAssetSize}
@@ -101,6 +100,7 @@ export function Tldraw(
 					acceptedVideoMimeTypes={acceptedVideoMimeTypes}
 					onMount={onMount}
 				/>
+				{children}
 			</TldrawUi>
 		</TldrawEditor>
 	)
