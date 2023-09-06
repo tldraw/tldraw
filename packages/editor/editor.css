@@ -301,7 +301,6 @@ input,
 	width: 1px;
 	height: 1px;
 	contain: layout style size;
-	z-index: 3;
 }
 
 /* ---------------------- Brush --------------------- */
