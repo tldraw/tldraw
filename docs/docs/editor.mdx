@@ -24,7 +24,7 @@ keywords:
 
 The [`Editor`](/gen/editor/Editor) class is the main way of controlling tldraw's editor. You can use it to manage the editor's internal state, make changes to the document, or respond to changes that have occurred.
 
-By design, the [`Editor`](/gen/editor/Editor)'s surface area is very large. Almost everything is available through it. Need to create some shapes? Use [`editor.createShapes()`](/gen/editor/Editor#createShapes). Need to delete them? Use [`editor.deleteShapes(editor.selectedShapeIds)`](/gen/editor/Editor#deleteShapes). Need a sorted array of every shape on the current page? Use [`editor.sortedShapesOnCurrentPage`](/gen/editor/Editor#sortedShapesOnCurrentPage).
+By design, the [`Editor`](/gen/editor/Editor)'s surface area is very large. Almost everything is available through it. Need to create some shapes? Use [`editor.createShapes()`](/gen/editor/Editor#createShapes). Need to delete them? Use [`editor.deleteShapes(editor.selectedShapeIds)`](/gen/editor/Editor#deleteShapes). Need a sorted array of every shape on the current page? Use [`editor.currentPageShapesSorted`](/gen/editor/Editor#currentPageShapesSorted).
 
 This page gives a broad idea of how the [`Editor`](/gen/editor/Editor) class is organized and some of the architectural concepts involved. The full reference is available in the [Editor API](/gen/editor/Editor).
 
