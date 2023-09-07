@@ -453,12 +453,14 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 			const offset = selectionPageBounds!.center.sub(position)
 
 			editor.updateShapes(
-				paritals.map((partial) => {
+				editor.selectedShapes.map((shape) => {
+					const localRotation = editor.getShapePageTransform(shape).decompose().rotation
+					const localDelta = Vec2d.Rot(offset, localRotation)
 					return {
-						id: partial.id,
-						type: partial.type,
-						x: partial.x! - offset.x,
-						y: partial.y! - offset.y,
+						id: shape.id,
+						type: shape.type,
+						x: shape.x! - localDelta.x,
+						y: shape.y! - localDelta.y,
 					}
 				})
 			)
