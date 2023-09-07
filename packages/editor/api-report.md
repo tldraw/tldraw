@@ -2489,9 +2489,9 @@ export type TLStoreOptions = {
     initialData?: SerializedStore<TLRecord>;
     defaultName?: string;
 } & ({
-    schema: StoreSchema<TLRecord, TLStoreProps>;
+    schema?: StoreSchema<TLRecord, TLStoreProps>;
 } | {
-    shapeUtils: readonly TLAnyShapeUtilConstructor[];
+    shapeUtils?: readonly TLAnyShapeUtilConstructor[];
 });
 
 // @public (undocumented)
