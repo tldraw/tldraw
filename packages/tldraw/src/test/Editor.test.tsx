@@ -1,4 +1,10 @@
-import { BaseBoxShapeUtil, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
+import {
+	AssetRecordType,
+	BaseBoxShapeUtil,
+	PageRecordType,
+	TLShape,
+	createShapeId,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -502,5 +508,75 @@ describe('getShapeUtil', () => {
 		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
 			`"No shape util found for type \\"missing\\""`
 		)
+	})
+})
+
+describe('snapshots', () => {
+	it('creates and loads a snapshot', () => {
+		const ids = {
+			imageA: createShapeId('imageA'),
+			boxA: createShapeId('boxA'),
+			imageAssetA: AssetRecordType.createId('imageAssetA'),
+		}
+
+		editor.createAssets([
+			{
+				type: 'image',
+				id: ids.imageAssetA,
+				typeName: 'asset',
+				props: {
+					w: 1200,
+					h: 800,
+					name: '',
+					isAnimated: false,
+					mimeType: 'png',
+					src: '',
+				},
+				meta: {},
+			},
+		])
+
+		editor.createShapes([
+			{ type: 'geo', x: 0, y: 0 },
+			{ type: 'geo', x: 100, y: 0 },
+			{
+				id: ids.imageA,
+				type: 'image',
+				props: {
+					playing: false,
+					url: '',
+					w: 1200,
+					h: 800,
+					assetId: ids.imageAssetA,
+				},
+				x: 0,
+				y: 1200,
+			},
+		])
+
+		const page2Id = PageRecordType.createId('page2')
+
+		editor.createPage({
+			id: page2Id,
+		})
+
+		editor.setCurrentPage(page2Id)
+
+		editor.createShapes([
+			{ type: 'geo', x: 0, y: 0 },
+			{ type: 'geo', x: 100, y: 0 },
+		])
+
+		editor.selectAll()
+
+		// now serialize
+
+		const snapshot = editor.store.getSnapshot()
+
+		const newEditor = new TestEditor()
+
+		newEditor.store.loadSnapshot(snapshot)
+
+		expect(editor.store.serialize()).toEqual(newEditor.store.serialize())
 	})
 })
