@@ -27,6 +27,7 @@ import MultipleExample from './examples/MultipleExample'
 import PersistenceExample from './examples/PersistenceExample'
 import ScrollExample from './examples/ScrollExample'
 import ShapeMetaExample from './examples/ShapeMetaExample'
+import SnapshotExample from './examples/SnapshotExample/SnapshotExample'
 import StoreEventsExample from './examples/StoreEventsExample'
 import UiEventsExample from './examples/UiEventsExample'
 import UserPresenceExample from './examples/UserPresenceExample'
@@ -134,6 +135,11 @@ export const allExamples: Example[] = [
 		title: 'Persistence',
 		path: '/persistence',
 		element: <PersistenceExample />,
+	},
+	{
+		title: 'Snapshots',
+		path: '/snapshots',
+		element: <SnapshotExample />,
 	},
 	{
 		title: 'Custom styles',

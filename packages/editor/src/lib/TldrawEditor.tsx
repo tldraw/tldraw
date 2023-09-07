@@ -1,4 +1,4 @@
-import { SerializedStore, Store } from '@tldraw/store'
+import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
@@ -46,6 +46,7 @@ export type TldrawEditorProps = TldrawEditorBaseProps &
 		  }
 		| {
 				store?: undefined
+				snapshot?: StoreSnapshot<TLRecord>
 				initialData?: SerializedStore<TLRecord>
 				persistenceKey?: string
 				sessionId?: string
@@ -186,7 +187,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 function TldrawEditorWithOwnStore(
 	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapeUtils' | 'tools'>
 ) {
-	const { defaultName, initialData, shapeUtils, persistenceKey, sessionId, user } = props
+	const { defaultName, snapshot, initialData, shapeUtils, persistenceKey, sessionId, user } = props
 
 	const syncedStore = useLocalStore({
 		shapeUtils,
@@ -194,6 +195,7 @@ function TldrawEditorWithOwnStore(
 		persistenceKey,
 		sessionId,
 		defaultName,
+		snapshot,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
