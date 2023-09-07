@@ -14,6 +14,7 @@ import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
+import { StoreSnapshot } from '@tldraw/store';
 import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
@@ -1203,7 +1204,7 @@ export type TLStoreProps = {
 export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
-export type TLStoreSnapshot = SerializedStore<TLRecord>;
+export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
 
 // @public (undocumented)
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
