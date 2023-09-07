@@ -1,5 +1,6 @@
 import {
 	Arc2d,
+	Box2d,
 	DefaultFontFamilies,
 	Edge2d,
 	Group2d,
@@ -260,7 +261,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// we've got a target! the handle is being dragged over a shape, bind to it
 
 		const targetGeometry = this.editor.getShapeGeometry(target)
-		const targetBounds = targetGeometry.bounds
+		const targetBounds = Box2d.ZeroFix(targetGeometry.bounds)
 		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
 		let precise = isPrecise
@@ -492,7 +493,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			) && !this.editor.instanceState.isReadonly
 
 		const info = this.editor.getArrowInfo(shape)
-		const bounds = this.editor.getShapeGeometry(shape).bounds
+		const bounds = Box2d.ZeroFix(this.editor.getShapeGeometry(shape).bounds)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const changeIndex = React.useMemo<number>(() => {

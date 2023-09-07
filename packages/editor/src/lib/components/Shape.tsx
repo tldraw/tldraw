@@ -79,8 +79,8 @@ export const Shape = track(function Shape({
 			if (!shape) return null
 
 			const bounds = editor.getShapeGeometry(shape).bounds
-			setProperty('width', bounds.width + 'px')
-			setProperty('height', bounds.height + 'px')
+			setProperty('width', Math.max(1, bounds.width) + 'px')
+			setProperty('height', Math.max(1, bounds.height) + 'px')
 		},
 		[editor]
 	)
@@ -160,8 +160,8 @@ const CulledShape = React.memo(
 				className="tl-shape__culled"
 				style={{
 					transform: `translate(${bounds.minX}px, ${bounds.minY}px)`,
-					width: bounds.width,
-					height: bounds.height,
+					width: Math.max(1, bounds.width),
+					height: Math.max(1, bounds.height),
 				}}
 			/>
 		)

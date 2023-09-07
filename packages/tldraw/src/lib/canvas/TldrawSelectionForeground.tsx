@@ -1,4 +1,5 @@
 import {
+	Box2d,
 	RotateCorner,
 	TLEmbedShape,
 	TLSelectionForegroundComponent,
@@ -22,7 +23,7 @@ const IS_FIREFOX =
 	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
 export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
-	function TldrawSelectionForeground({ bounds, rotation }) {
+	function TldrawSelectionForeground({ bounds, rotation }: { bounds: Box2d; rotation: number }) {
 		const editor = useEditor()
 		const rSvg = useRef<SVGSVGElement>(null)
 
@@ -54,7 +55,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		})
 
 		if (!bounds) return null
-		bounds = bounds.clone().expandBy(expandOutlineBy).maxFix(1)
+		bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
 		const zoom = editor.zoomLevel
 		const isChangingStyle = editor.instanceState.isChangingStyle
