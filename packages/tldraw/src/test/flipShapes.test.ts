@@ -415,7 +415,7 @@ describe('flipping rotated shapes', () => {
 		return { start, end }
 	}
 
-	test.only('flipping horizontally', () => {
+	test('flipping horizontally', () => {
 		editor.flipShapes(editor.selectedShapeIds, 'horizontal')
 		// now arrow A should be pointing from top to left
 		let { start, end } = getStartAndEndPoints(ids.arrowA)
