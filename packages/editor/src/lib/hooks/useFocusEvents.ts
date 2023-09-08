@@ -1,14 +1,14 @@
 import { debounce } from '@tldraw/utils'
-import { useEffect } from 'react'
+import { useLayoutEffect } from 'react'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 
 /** @internal */
-export function useFocusEvents() {
+export function useFocusEvents(autoFocus: boolean) {
 	const editor = useEditor()
 	const container = useContainer()
 
-	useEffect(() => {
+	useLayoutEffect(() => {
 		if (!container) return
 
 		// We need to debounce this because when focus changes, the body
@@ -47,4 +47,10 @@ export function useFocusEvents() {
 			container.removeEventListener('blur', updateFocus)
 		}
 	}, [container, editor])
+
+	useLayoutEffect(() => {
+		if (autoFocus) {
+			editor.getContainer().focus()
+		}
+	}, [editor, autoFocus])
 }
