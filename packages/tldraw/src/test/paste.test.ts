@@ -1,4 +1,4 @@
-import { TLFrameShape, TLGeoShape, createShapeId } from '@tldraw/editor'
+import { TLFrameShape, TLGeoShape, approximately, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -432,5 +432,59 @@ describe('When pasting into frames...', () => {
 
 		// it should be on the canvas, NOT a child of frame2
 		expect(newShape.parentId).not.toBe(ids.frame2)
+	})
+
+	it('keeps things in the right place', () => {
+		// clear the page
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		// create a small box and copy it
+		editor.createShapes([
+			{
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: {
+					geo: 'rectangle',
+					w: 10,
+					h: 10,
+				},
+			},
+		])
+		editor.selectAll().copy()
+		// now delete it
+		editor.deleteShapes(editor.selectedShapeIds)
+
+		// create a big frame away from the origin, the size of the viewport
+		editor
+			.createShapes([
+				{
+					id: ids.frame1,
+					type: 'frame',
+					x: editor.viewportScreenBounds.w,
+					y: editor.viewportScreenBounds.h,
+					props: {
+						w: editor.viewportScreenBounds.w,
+						h: editor.viewportScreenBounds.h,
+					},
+				},
+			])
+			.selectAll()
+		// rotate the frame for hard mode
+		editor.rotateSelection(45)
+		// center on the center of the frame
+		editor.setCamera({ x: -editor.viewportScreenBounds.w, y: -editor.viewportScreenBounds.h, z: 1 })
+		// paste the box
+		editor.paste()
+		const boxId = editor.onlySelectedShape!.id
+		// it should be a child of the frame
+		expect(editor.onlySelectedShape?.parentId).toBe(ids.frame1)
+		// it should have pageBounds of 10x10 because it is not rotated relative to the viewport
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ w: 10, h: 10 })
+		// it should be in the middle of the frame
+		const framePageCenter = editor.getPageCenter(editor.getShape(ids.frame1)!)!
+		const boxPageCenter = editor.getPageCenter(editor.getShape(boxId)!)!
+
+		expect(approximately(framePageCenter.x, boxPageCenter.x)).toBe(true)
+		expect(approximately(framePageCenter.y, boxPageCenter.y)).toBe(true)
 	})
 })
