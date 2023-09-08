@@ -14,7 +14,7 @@ export function useDocumentEvents() {
 	useEffect(() => {
 		if (typeof matchMedia === undefined) return
 		// https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio#monitoring_screen_resolution_or_zoom_level_changes
-		let remove: Function | null = null
+		let remove: (() => void) | null = null
 		const updatePixelRatio = () => {
 			if (remove != null) {
 				remove()
