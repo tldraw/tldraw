@@ -20,6 +20,7 @@ import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
+import { useDPRMultiple } from './hooks/useDPRMultiple'
 import { useDarkMode } from './hooks/useDarkMode'
 import { EditorContext } from './hooks/useEditor'
 import {
@@ -33,7 +34,6 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
-import { useDPRMultiple } from './hooks/useDPRMultiple'
 
 /**
  * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.

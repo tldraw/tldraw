@@ -5,15 +5,15 @@ import { useEditor } from './useEditor'
 
 // Euclidean algorithm to find the GCD
 function gcd(a: number, b: number): number {
-  return (b === 0) ? a : gcd(b, a % b)
+	return b === 0 ? a : gcd(b, a % b)
 }
 
 function nearestMultiple(float: number) {
-  const decimal = float.toString().split('.')[1]
-  if (!decimal) return 1
-  const denominator = Math.pow(10, decimal.length)
-  const numerator = parseInt(decimal, 10)
-  return denominator / gcd(numerator, denominator)
+	const decimal = float.toString().split('.')[1]
+	if (!decimal) return 1
+	const denominator = Math.pow(10, decimal.length)
+	const numerator = parseInt(decimal, 10)
+	return denominator / gcd(numerator, denominator)
 }
 
 export function useDPRMultiple() {
@@ -21,7 +21,8 @@ export function useDPRMultiple() {
 	const container = useContainer()
 
 	React.useEffect(() => {
-		const setDPRMultiple = (s: number) => container.style.setProperty('--tl-dpr-multiple', s.toString())
+		const setDPRMultiple = (s: number) =>
+			container.style.setProperty('--tl-dpr-multiple', s.toString())
 
 		const scheduler = new EffectScheduler('useDPRMultiple', () => {
 			const dpr = editor.instanceState.devicePixelRatio
