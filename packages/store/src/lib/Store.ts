@@ -565,11 +565,36 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * ```
 	 *
 	 * @param scope - The scope of records to serialize. Defaults to 'document'.
+	 *
 	 * @public
 	 */
 	getSnapshot(scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> {
 		return {
 			store: this.serialize(scope),
+			schema: this.schema.serialize(),
+		}
+	}
+
+	/**
+	 * Migrate a serialized snapshot of the store and its schema.
+	 *
+	 * ```ts
+	 * const snapshot = store.getSnapshot()
+	 * store.migrateSnapshot(snapshot)
+	 * ```
+	 *
+	 * @param snapshot - The snapshot to load.
+	 * @public
+	 */
+	migrateSnapshot(snapshot: StoreSnapshot<R>): StoreSnapshot<R> {
+		const migrationResult = this.schema.migrateStoreSnapshot(snapshot)
+
+		if (migrationResult.type === 'error') {
+			throw new Error(`Failed to migrate snapshot: ${migrationResult.reason}`)
+		}
+
+		return {
+			store: migrationResult.value,
 			schema: this.schema.serialize(),
 		}
 	}
@@ -583,7 +608,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * ```
 	 *
 	 * @param snapshot - The snapshot to load.
-	 *
 	 * @public
 	 */
 	loadSnapshot(snapshot: StoreSnapshot<R>): void {

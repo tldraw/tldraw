@@ -15,8 +15,8 @@ export type TLStoreOptions = {
 	initialData?: SerializedStore<TLRecord>
 	defaultName?: string
 } & (
-	| { shapeUtils: readonly TLAnyShapeUtilConstructor[] }
-	| { schema: StoreSchema<TLRecord, TLStoreProps> }
+	| { shapeUtils?: readonly TLAnyShapeUtilConstructor[] }
+	| { schema?: StoreSchema<TLRecord, TLStoreProps> }
 )
 
 /** @public */
@@ -30,11 +30,16 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>
  * @public */
 export function createTLStore({ initialData, defaultName = '', ...rest }: TLStoreOptions): TLStore {
 	const schema =
-		'schema' in rest
-			? rest.schema
-			: createTLSchema({
-					shapes: currentPageShapesToShapeMap(checkShapesAndAddCore(rest.shapeUtils)),
+		'schema' in rest && rest.schema
+			? // we have a schema
+			  rest.schema
+			: // we need a schema
+			  createTLSchema({
+					shapes: currentPageShapesToShapeMap(
+						checkShapesAndAddCore('shapeUtils' in rest && rest.shapeUtils ? rest.shapeUtils : [])
+					),
 			  })
+
 	return new Store({
 		schema,
 		initialData,
