@@ -52,18 +52,11 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 			const offset =
 				z >= 1 ? modulate(z, [1, 8], [0.125, 0.5], true) : modulate(z, [0.1, 1], [-2, 0.125], true)
 
-			htmlElm.style.setProperty(
-				'transform',
-				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(x + offset)}px,${toDomPrecision(
-					y + offset
-				)}px)`
-			)
-			htmlElm2.style.setProperty(
-				'transform',
-				`scale(${toDomPrecision(z)}) translate(${toDomPrecision(x + offset)}px,${toDomPrecision(
-					y + offset
-				)}px)`
-			)
+			const transform = `scale(${toDomPrecision(z)}) translate(${toDomPrecision(
+				x + offset
+			)}px,${toDomPrecision(y + offset)}px)`
+			htmlElm.style.setProperty('transform', transform)
+			htmlElm2.style.setProperty('transform', transform)
 		},
 		[editor]
 	)
@@ -111,11 +104,11 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 					{SvgDefs && <SvgDefs />}
 				</defs>
 			</svg>
-			<div ref={rHtmlLayer} className="tl-html-layer" draggable={false}>
+			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 				<SelectionBackgroundWrapper />
 				<ShapesToDisplay />
 			</div>
-			<div className="tl-fixed-layer">
+			<div className="tl-fixed-layer tl-overlays">
 				<div ref={rHtmlLayer2} className="tl-html-layer">
 					{/* <GeometryDebuggingView /> */}
 					<HandlesWrapper />

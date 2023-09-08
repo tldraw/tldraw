@@ -12,17 +12,24 @@ export function useDocumentEvents() {
 	const isAppFocused = useValue('isFocused', () => editor.instanceState.isFocused, [editor])
 
 	useEffect(() => {
-		if (typeof matchMedia !== undefined) return
-
-		function updateDevicePixelRatio() {
+		if (typeof matchMedia === undefined) return
+		// https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio#monitoring_screen_resolution_or_zoom_level_changes
+		let remove: (() => void) | null = null
+		const updatePixelRatio = () => {
+			if (remove != null) {
+				remove()
+			}
+			const mqString = `(resolution: ${window.devicePixelRatio}dppx)`
+			const media = matchMedia(mqString)
+			media.addEventListener('change', updatePixelRatio)
+			remove = () => {
+				media.removeEventListener('change', updatePixelRatio)
+			}
 			editor.updateInstanceState({ devicePixelRatio: window.devicePixelRatio })
 		}
-
-		const MM = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
-
-		MM.addEventListener('change', updateDevicePixelRatio)
+		updatePixelRatio()
 		return () => {
-			MM.removeEventListener('change', updateDevicePixelRatio)
+			remove?.()
 		}
 	}, [editor])
 

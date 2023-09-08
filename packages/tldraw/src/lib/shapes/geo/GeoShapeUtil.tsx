@@ -1109,9 +1109,18 @@ function getXBoxLines(w: number, h: number, sw: number, dash: TLDefaultDashStyle
 		]
 	}
 
+	const clampX = (x: number) => Math.max(0, Math.min(w, x))
+	const clampY = (y: number) => Math.max(0, Math.min(h, y))
+
 	return [
-		[new Vec2d(sw * inset, sw * inset), new Vec2d(w - sw * inset, h - sw * inset)],
-		[new Vec2d(sw * inset, h - sw * inset), new Vec2d(w - sw * inset, sw * inset)],
+		[
+			new Vec2d(clampX(sw * inset), clampY(sw * inset)),
+			new Vec2d(clampX(w - sw * inset), clampY(h - sw * inset)),
+		],
+		[
+			new Vec2d(clampX(sw * inset), clampY(h - sw * inset)),
+			new Vec2d(clampX(w - sw * inset), clampY(sw * inset)),
+		],
 	]
 }
 
@@ -1119,8 +1128,18 @@ function getCheckBoxLines(w: number, h: number) {
 	const size = Math.min(w, h) * 0.82
 	const ox = (w - size) / 2
 	const oy = (h - size) / 2
+
+	const clampX = (x: number) => Math.max(0, Math.min(w, x))
+	const clampY = (y: number) => Math.max(0, Math.min(h, y))
+
 	return [
-		[new Vec2d(ox + size * 0.25, oy + size * 0.52), new Vec2d(ox + size * 0.45, oy + size * 0.82)],
-		[new Vec2d(ox + size * 0.45, oy + size * 0.82), new Vec2d(ox + size * 0.82, oy + size * 0.22)],
+		[
+			new Vec2d(clampX(ox + size * 0.25), clampY(oy + size * 0.52)),
+			new Vec2d(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
+		],
+		[
+			new Vec2d(clampX(ox + size * 0.45), clampY(oy + size * 0.82)),
+			new Vec2d(clampX(ox + size * 0.82), clampY(oy + size * 0.22)),
+		],
 	]
 }

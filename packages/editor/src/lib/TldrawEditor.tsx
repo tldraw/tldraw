@@ -1,4 +1,4 @@
-import { SerializedStore, Store } from '@tldraw/store'
+import { SerializedStore, Store, StoreSnapshot } from '@tldraw/store'
 import { TLRecord, TLStore } from '@tldraw/tlschema'
 import { Required, annotateError } from '@tldraw/utils'
 import React, {
@@ -20,6 +20,7 @@ import { Editor } from './editor/Editor'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
 import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
+import { useDPRMultiple } from './hooks/useDPRMultiple'
 import { useDarkMode } from './hooks/useDarkMode'
 import { EditorContext, useEditor } from './hooks/useEditor'
 import {
@@ -47,6 +48,7 @@ export type TldrawEditorProps = TldrawEditorBaseProps &
 		  }
 		| {
 				store?: undefined
+				snapshot?: StoreSnapshot<TLRecord>
 				initialData?: SerializedStore<TLRecord>
 				persistenceKey?: string
 				sessionId?: string
@@ -187,7 +189,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 function TldrawEditorWithOwnStore(
 	props: Required<TldrawEditorProps & { store: undefined; user: TLUser }, 'shapeUtils' | 'tools'>
 ) {
-	const { defaultName, initialData, shapeUtils, persistenceKey, sessionId, user } = props
+	const { defaultName, snapshot, initialData, shapeUtils, persistenceKey, sessionId, user } = props
 
 	const syncedStore = useLocalStore({
 		shapeUtils,
@@ -195,6 +197,7 @@ function TldrawEditorWithOwnStore(
 		persistenceKey,
 		sessionId,
 		defaultName,
+		snapshot,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
@@ -341,6 +344,7 @@ function Layout({
 	useForceUpdate()
 	useFocusEvents(autoFocus)
 	useOnMount(onMount)
+	useDPRMultiple()
 
 	return children ?? <Canvas />
 }

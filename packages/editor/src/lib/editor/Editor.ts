@@ -7907,7 +7907,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (!isPageId(pasteParentId)) {
 					// Put the shapes in the middle of the (on screen) parent
 					const shape = this.getShape(pasteParentId)!
-					point = this.getShapeGeometry(shape).bounds.center
+					point = Matrix2d.applyToPoint(
+						this.getShapePageTransform(shape),
+						this.getShapeGeometry(shape).bounds.center
+					)
 				} else {
 					const { viewportPageBounds } = this
 					if (preservePosition || viewportPageBounds.includes(Box2d.From(bounds))) {
@@ -7938,14 +7941,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			}
 
-			this.updateShapes(
-				rootShapes.map((s) => {
-					const delta = {
-						x: (s.x ?? 0) - (bounds.x + bounds.w / 2),
-						y: (s.y ?? 0) - (bounds.y + bounds.h / 2),
-					}
+			const pageCenter = Box2d.Common(
+				compact(rootShapes.map(({ id }) => this.getShapePageBounds(id)))
+			).center
 
-					return { id: s.id, type: s.type, x: point!.x + delta.x, y: point!.y + delta.y }
+			const offset = Vec2d.Sub(point, pageCenter)
+
+			this.updateShapes(
+				rootShapes.map(({ id }) => {
+					const s = this.getShape(id)!
+					const localRotation = this.getShapeParentTransform(id).decompose().rotation
+					const localDelta = Vec2d.Rot(offset, -localRotation)
+
+					return { id: s.id, type: s.type, x: s.x + localDelta.x, y: s.y + localDelta.y }
 				})
 			)
 		})

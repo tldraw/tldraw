@@ -40,6 +40,7 @@ import { SelectionHandle } from '@tldraw/editor';
 import { SerializedSchema } from '@tldraw/editor';
 import { ShapeUtil } from '@tldraw/editor';
 import { StateNode } from '@tldraw/editor';
+import { StoreSnapshot } from '@tldraw/editor';
 import { SvgExportContext } from '@tldraw/editor';
 import { TLAnyShapeUtilConstructor } from '@tldraw/editor';
 import { TLArrowShape } from '@tldraw/editor';
@@ -50,7 +51,7 @@ import { TLCancelEvent } from '@tldraw/editor';
 import { TLClickEvent } from '@tldraw/editor';
 import { TLClickEventInfo } from '@tldraw/editor';
 import { TLDefaultSizeStyle } from '@tldraw/editor';
-import { TldrawEditorProps } from '@tldraw/editor';
+import { TldrawEditorBaseProps } from '@tldraw/editor';
 import { TLDrawShape } from '@tldraw/editor';
 import { TLDrawShapeSegment } from '@tldraw/editor';
 import { TLEmbedShape } from '@tldraw/editor';
@@ -80,6 +81,7 @@ import { TLParentId } from '@tldraw/editor';
 import { TLPointerEvent } from '@tldraw/editor';
 import { TLPointerEventInfo } from '@tldraw/editor';
 import { TLPointerEventName } from '@tldraw/editor';
+import { TLRecord } from '@tldraw/editor';
 import { TLRotationSnapshot } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
 import { TLScribble } from '@tldraw/editor';
@@ -90,6 +92,7 @@ import { TLShapePartial } from '@tldraw/editor';
 import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
+import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTickEvent } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
@@ -1092,7 +1095,15 @@ function Title({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
-export function Tldraw(props: TldrawEditorProps & TldrawUiProps & Partial<TLExternalContentProps> & {
+export function Tldraw(props: TldrawEditorBaseProps & ({
+    store: TLStore | TLStoreWithStatus;
+} | {
+    store?: undefined;
+    persistenceKey?: string;
+    sessionId?: string;
+    defaultName?: string;
+    snapshot?: StoreSnapshot<TLRecord>;
+}) & TldrawUiProps & Partial<TLExternalContentProps> & {
     assetUrls?: RecursivePartial<TLEditorAssetUrls>;
 }): JSX.Element;
 
