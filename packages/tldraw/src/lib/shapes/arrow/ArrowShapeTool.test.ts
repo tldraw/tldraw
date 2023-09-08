@@ -499,3 +499,29 @@ describe('reparenting issue', () => {
 		expect(editor.getShape(arrow2Id)!.index).toBe('a1G')
 	})
 })
+
+describe('line bug', () => {
+	it('works as expected when binding to a straight line', () => {
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+
+		expect(editor.currentPageShapes.length).toBe(0)
+
+		editor
+			.setCurrentTool('line')
+			.keyDown('Shift')
+			.pointerMove(0, 0)
+			.pointerDown()
+			.pointerMove(0, 100)
+			.pointerUp()
+			.keyUp('Shift')
+			.setCurrentTool('arrow')
+			.keyDown('Shift')
+			.pointerMove(50, 50)
+			.pointerDown()
+			.pointerMove(0, 50)
+			.pointerUp()
+			.keyUp('Shift')
+
+		expect(editor.currentPageShapes.length).toBe(2)
+	})
+})

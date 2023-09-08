@@ -542,6 +542,16 @@ export class Box2d {
 	static Equals(a: Box2d | Box2dModel, b: Box2d | Box2dModel) {
 		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
 	}
+
+	zeroFix() {
+		this.w = Math.max(1, this.w)
+		this.h = Math.max(1, this.h)
+		return this
+	}
+
+	static ZeroFix(other: Box2d | Box2dModel) {
+		return new Box2d(other.x, other.y, Math.max(1, other.w), Math.max(1, other.h))
+	}
 }
 
 /** @public */

@@ -1,4 +1,5 @@
 import {
+	Box2d,
 	RotateCorner,
 	TLEmbedShape,
 	TLSelectionForegroundComponent,
@@ -22,7 +23,7 @@ const IS_FIREFOX =
 	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
 
 export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
-	function TldrawSelectionForeground({ bounds, rotation }) {
+	function TldrawSelectionForeground({ bounds, rotation }: { bounds: Box2d; rotation: number }) {
 		const editor = useEditor()
 		const rSvg = useRef<SVGSVGElement>(null)
 
@@ -54,13 +55,13 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		})
 
 		if (!bounds) return null
-		bounds = bounds.clone().expandBy(expandOutlineBy)
+		bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
 		const zoom = editor.zoomLevel
 		const isChangingStyle = editor.instanceState.isChangingStyle
 
-		const width = Math.max(1, bounds.width)
-		const height = Math.max(1, bounds.height)
+		const width = bounds.width
+		const height = bounds.height
 
 		const size = 8 / zoom
 		const isTinyX = width < size * 2
@@ -239,7 +240,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					corner="bottom_right_rotate"
 					cursor={isDefaultCursor ? getCursor('senw-rotate', rotation) : undefined}
 					isHidden={hideRotateCornerHandles}
-				/>{' '}
+				/>
 				<MobileRotateHandle
 					data-testid="selection.rotate.mobile"
 					cx={isSmallX ? -targetSize * 1.5 : width / 2}
@@ -257,7 +258,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					pointerEvents="all"
 					x={0}
 					y={toDomPrecision(0 - (isSmallY ? targetSizeY * 2 : targetSizeY))}
-					width={toDomPrecision(Math.max(1, width))}
+					width={toDomPrecision(width)}
 					height={toDomPrecision(Math.max(1, targetSizeY * 2))}
 					style={isDefaultCursor ? { cursor: getCursor('ns-resize', rotation) } : undefined}
 					{...topEvents}
@@ -271,7 +272,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					pointerEvents="all"
 					x={toDomPrecision(width - (isSmallX ? 0 : targetSizeX))}
 					y={0}
-					height={toDomPrecision(Math.max(1, height))}
+					height={toDomPrecision(height)}
 					width={toDomPrecision(Math.max(1, targetSizeX * 2))}
 					style={isDefaultCursor ? { cursor: getCursor('ew-resize', rotation) } : undefined}
 					{...rightEvents}
@@ -285,7 +286,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					pointerEvents="all"
 					x={0}
 					y={toDomPrecision(height - (isSmallY ? 0 : targetSizeY))}
-					width={toDomPrecision(Math.max(1, width))}
+					width={toDomPrecision(width)}
 					height={toDomPrecision(Math.max(1, targetSizeY * 2))}
 					style={isDefaultCursor ? { cursor: getCursor('ns-resize', rotation) } : undefined}
 					{...bottomEvents}
@@ -299,7 +300,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					pointerEvents="all"
 					x={toDomPrecision(0 - (isSmallX ? targetSizeX * 2 : targetSizeX))}
 					y={0}
-					height={toDomPrecision(Math.max(1, height))}
+					height={toDomPrecision(height)}
 					width={toDomPrecision(Math.max(1, targetSizeX * 2))}
 					style={isDefaultCursor ? { cursor: getCursor('ew-resize', rotation) } : undefined}
 					{...leftEvents}

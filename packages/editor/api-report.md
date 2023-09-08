@@ -268,6 +268,10 @@ export class Box2d {
     x: number;
     // (undocumented)
     y: number;
+    // (undocumented)
+    static ZeroFix(other: Box2d | Box2dModel): Box2d;
+    // (undocumented)
+    zeroFix(): this;
 }
 
 // @internal (undocumented)
