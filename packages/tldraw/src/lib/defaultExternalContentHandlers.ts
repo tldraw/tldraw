@@ -379,12 +379,12 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 	if (!assets.length) return
 
 	const currentPoint = Vec2d.From(position)
-	const paritals: TLShapePartial[] = []
+	const partials: TLShapePartial[] = []
 
 	for (const asset of assets) {
 		switch (asset.type) {
 			case 'bookmark': {
-				paritals.push({
+				partials.push({
 					id: createShapeId(),
 					type: 'bookmark',
 					x: currentPoint.x - 150,
@@ -400,7 +400,7 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 				break
 			}
 			case 'image': {
-				paritals.push({
+				partials.push({
 					id: createShapeId(),
 					type: 'image',
 					x: currentPoint.x - asset.props.w / 2,
@@ -417,7 +417,7 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 				break
 			}
 			case 'video': {
-				paritals.push({
+				partials.push({
 					id: createShapeId(),
 					type: 'video',
 					x: currentPoint.x - asset.props.w / 2,
@@ -443,7 +443,7 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 		}
 
 		// Create the shapes
-		editor.createShapes(paritals).select(...paritals.map((p) => p.id))
+		editor.createShapes(partials).select(...partials.map((p) => p.id))
 
 		// Re-position shapes so that the center of the group is at the provided point
 		const { viewportPageBounds } = editor
@@ -454,8 +454,8 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 
 			editor.updateShapes(
 				editor.selectedShapes.map((shape) => {
-					const localRotation = editor.getShapePageTransform(shape).decompose().rotation
-					const localDelta = Vec2d.Rot(offset, localRotation)
+					const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
+					const localDelta = Vec2d.Rot(offset, -localRotation)
 					return {
 						id: shape.id,
 						type: shape.type,
