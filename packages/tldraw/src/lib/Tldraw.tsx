@@ -4,8 +4,13 @@ import {
 	ErrorScreen,
 	LoadingScreen,
 	RecursivePartial,
+	StoreSnapshot,
 	TLOnMountHandler,
+	TLRecord,
+	TLStore,
+	TLStoreWithStatus,
 	TldrawEditor,
+	TldrawEditorBaseProps,
 	TldrawEditorProps,
 	assert,
 	useEditor,
@@ -31,7 +36,22 @@ import { usePreloadAssets } from './utils/usePreloadAssets'
 
 /** @public */
 export function Tldraw(
-	props: TldrawEditorProps &
+	props: TldrawEditorBaseProps &
+		(
+			| {
+					store: TLStore | TLStoreWithStatus
+			  }
+			| {
+					store?: undefined
+					persistenceKey?: string
+					sessionId?: string
+					defaultName?: string
+					/**
+					 * A snapshot to load for the store's initial data / schema.
+					 */
+					snapshot?: StoreSnapshot<TLRecord>
+			  }
+		) &
 		TldrawUiProps &
 		Partial<TLExternalContentProps> & {
 			/**

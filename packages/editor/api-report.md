@@ -31,6 +31,7 @@ import { SerializedStore } from '@tldraw/store';
 import { ShapeProps } from '@tldraw/tlschema';
 import { Signal } from '@tldraw/state';
 import { StoreSchema } from '@tldraw/store';
+import { StoreSnapshot } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { TLArrowShape } from '@tldraw/tlschema';
 import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema';
@@ -2009,6 +2010,7 @@ export type TldrawEditorProps = TldrawEditorBaseProps & ({
     store: TLStore | TLStoreWithStatus;
 } | {
     store?: undefined;
+    snapshot?: StoreSnapshot<TLRecord>;
     initialData?: SerializedStore<TLRecord>;
     persistenceKey?: string;
     sessionId?: string;
@@ -2607,6 +2609,7 @@ export function useIsEditing(shapeId: TLShapeId): boolean;
 export function useLocalStore({ persistenceKey, sessionId, ...rest }: {
     persistenceKey?: string;
     sessionId?: string;
+    snapshot?: StoreSnapshot<TLRecord>;
 } & TLStoreOptions): TLStoreWithStatus;
 
 // @internal (undocumented)
@@ -2630,7 +2633,9 @@ export function useSelectionEvents(handle: TLSelectionHandle): {
 };
 
 // @public (undocumented)
-export function useTLStore(opts: TLStoreOptions): TLStore;
+export function useTLStore(opts: TLStoreOptions & {
+    snapshot?: StoreSnapshot<TLRecord>;
+}): TLStore;
 
 // @public (undocumented)
 export function useTransform(ref: React.RefObject<HTMLElement | SVGElement>, x?: number, y?: number, scale?: number, rotate?: number, additionalOffset?: VecLike): void;
