@@ -1,4 +1,4 @@
-import { EffectScheduler } from '@tldraw/state'
+import { react } from '@tldraw/state'
 import * as React from 'react'
 import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
@@ -21,19 +21,9 @@ export function useDPRMultiple() {
 	const container = useContainer()
 
 	React.useEffect(() => {
-		const setDPRMultiple = (s: number) =>
-			container.style.setProperty('--tl-dpr-multiple', s.toString())
-
-		const scheduler = new EffectScheduler('useDPRMultiple', () => {
+		return react('useDPRMultiple', () => {
 			const dpr = editor.instanceState.devicePixelRatio
-			setDPRMultiple(nearestMultiple(dpr))
+			container.style.setProperty('--tl-dpr-multiple', nearestMultiple(dpr).toString())
 		})
-
-		scheduler.attach()
-		scheduler.execute()
-
-		return () => {
-			scheduler.detach()
-		}
 	}, [editor, container])
 }
