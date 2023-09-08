@@ -33,6 +33,7 @@ import { useLocalStore } from './hooks/useLocalStore'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
+import { useDPRMultiple } from './hooks/useDPRMultiple'
 
 /**
  * Props for the {@link @tldraw/tldraw#Tldraw} and {@link TldrawEditor} components.
@@ -345,6 +346,7 @@ function Layout({ children }: { children: any }) {
 	useDarkMode()
 	useSafariFocusOutFix()
 	useForceUpdate()
+	useDPRMultiple()
 
 	return children ?? <Canvas />
 }
