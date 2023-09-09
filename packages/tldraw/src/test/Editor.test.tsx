@@ -4,6 +4,7 @@ import {
 	PageRecordType,
 	TLShape,
 	createShapeId,
+	debounce,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
@@ -356,6 +357,33 @@ describe('currentToolId', () => {
 })
 
 describe('isFocused', () => {
+	beforeEach(() => {
+		// lame but duplicated here since this was moved into a hook
+		const container = editor.getContainer()
+
+		const updateFocus = debounce(() => {
+			const { activeElement } = document
+			const { isFocused: wasFocused } = editor.instanceState
+			const isFocused =
+				document.hasFocus() && (container === activeElement || container.contains(activeElement))
+
+			if (wasFocused !== isFocused) {
+				editor.updateInstanceState({ isFocused })
+				editor.updateViewportScreenBounds()
+
+				if (!isFocused) {
+					// When losing focus, run complete() to ensure that any interacts end
+					editor.complete()
+				}
+			}
+		}, 32)
+
+		container.addEventListener('focusin', updateFocus)
+		container.addEventListener('focus', updateFocus)
+		container.addEventListener('focusout', updateFocus)
+		container.addEventListener('blur', updateFocus)
+	})
+
 	it('is false by default', () => {
 		expect(editor.instanceState.isFocused).toBe(false)
 	})

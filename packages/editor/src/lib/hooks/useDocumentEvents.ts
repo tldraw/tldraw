@@ -214,14 +214,6 @@ export function useDocumentEvents() {
 			}
 		}
 
-		function handleBlur() {
-			editor.complete()
-		}
-
-		function handleFocus() {
-			editor.updateViewportScreenBounds()
-		}
-
 		container.addEventListener('touchstart', handleTouchStart, { passive: false })
 
 		container.addEventListener('wheel', handleWheel, { passive: false })
@@ -232,9 +224,6 @@ export function useDocumentEvents() {
 
 		container.addEventListener('keydown', handleKeyDown)
 		container.addEventListener('keyup', handleKeyUp)
-
-		window.addEventListener('blur', handleBlur)
-		window.addEventListener('focus', handleFocus)
 
 		return () => {
 			container.removeEventListener('touchstart', handleTouchStart)
@@ -247,9 +236,6 @@ export function useDocumentEvents() {
 
 			container.removeEventListener('keydown', handleKeyDown)
 			container.removeEventListener('keyup', handleKeyUp)
-
-			window.removeEventListener('blur', handleBlur)
-			window.removeEventListener('focus', handleFocus)
 		}
 	}, [editor, container, isAppFocused])
 }

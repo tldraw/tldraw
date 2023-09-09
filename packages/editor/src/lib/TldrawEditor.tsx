@@ -22,13 +22,14 @@ import { ContainerProvider, useContainer } from './hooks/useContainer'
 import { useCursor } from './hooks/useCursor'
 import { useDPRMultiple } from './hooks/useDPRMultiple'
 import { useDarkMode } from './hooks/useDarkMode'
-import { EditorContext } from './hooks/useEditor'
+import { EditorContext, useEditor } from './hooks/useEditor'
 import {
 	EditorComponentsProvider,
 	TLEditorComponents,
 	useEditorComponents,
 } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
+import { useFocusEvents } from './hooks/useFocusEvents'
 import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
@@ -281,23 +282,6 @@ function TldrawEditorWithReadyStore({
 		}
 	}, [container, shapeUtils, tools, store, user, initialState])
 
-	React.useLayoutEffect(() => {
-		if (editor && autoFocus) {
-			editor.getContainer().focus()
-		}
-	}, [editor, autoFocus])
-
-	const onMountEvent = useEvent((editor: Editor) => {
-		const teardown = onMount?.(editor)
-		editor.emit('mount')
-		window.tldrawReady = true
-		return teardown
-	})
-
-	React.useLayoutEffect(() => {
-		if (editor) return onMountEvent?.(editor)
-	}, [editor, onMountEvent])
-
 	const crashingError = useSyncExternalStore(
 		useCallback(
 			(onStoreChange) => {
@@ -335,19 +319,31 @@ function TldrawEditorWithReadyStore({
 				<Crash crashingError={crashingError} />
 			) : (
 				<EditorContext.Provider value={editor}>
-					<Layout>{children}</Layout>
+					<Layout autoFocus={autoFocus} onMount={onMount}>
+						{children}
+					</Layout>
 				</EditorContext.Provider>
 			)}
 		</OptionalErrorBoundary>
 	)
 }
 
-function Layout({ children }: { children: any }) {
+function Layout({
+	children,
+	onMount,
+	autoFocus = false,
+}: {
+	children: any
+	onMount?: TLOnMountHandler
+	autoFocus?: boolean
+}) {
 	useZoomCss()
 	useCursor()
 	useDarkMode()
 	useSafariFocusOutFix()
 	useForceUpdate()
+	useFocusEvents(autoFocus)
+	useOnMount(onMount)
 	useDPRMultiple()
 
 	return children ?? <Canvas />
@@ -372,4 +368,19 @@ export function LoadingScreen({ children }: { children: any }) {
 /** @public */
 export function ErrorScreen({ children }: { children: any }) {
 	return <div className="tl-loading">{children}</div>
+}
+
+function useOnMount(onMount?: TLOnMountHandler) {
+	const editor = useEditor()
+
+	const onMountEvent = useEvent((editor: Editor) => {
+		const teardown = onMount?.(editor)
+		editor.emit('mount')
+		window.tldrawReady = true
+		return teardown
+	})
+
+	React.useLayoutEffect(() => {
+		if (editor) return onMountEvent?.(editor)
+	}, [editor, onMountEvent])
 }

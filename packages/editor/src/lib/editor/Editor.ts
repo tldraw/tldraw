@@ -44,7 +44,6 @@ import {
 	annotateError,
 	assert,
 	compact,
-	debounce,
 	dedupe,
 	deepCopy,
 	getOwnProperty,
@@ -584,37 +583,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.emit('change', changes)
 			})
 		)
-
-		const container = this.getContainer()
-
-		// We need to debounce this because when focus changes, the body
-		// becomes focused for a brief moment. Debouncing means that we
-		// check only when focus stops changing: when it settles, what
-		// has it settled on? If it's settled on the container or something
-		// inside of the container, then focus or preserve the current focus;
-		// if not, then turn off focus. Turning off focus is a trigger to
-		// also turn off keyboard shortcuts and other things.
-		const updateFocus = debounce(() => {
-			const { activeElement } = document
-			const { isFocused } = this.instanceState
-			const hasFocus = container === activeElement || container.contains(activeElement)
-			if ((!isFocused && hasFocus) || (isFocused && !hasFocus)) {
-				this.updateInstanceState({ isFocused: hasFocus })
-				this.updateViewportScreenBounds()
-			}
-		}, 32)
-
-		container.addEventListener('focusin', updateFocus)
-		container.addEventListener('focus', updateFocus)
-		container.addEventListener('focusout', updateFocus)
-		container.addEventListener('blur', updateFocus)
-
-		this.disposables.add(() => {
-			container.removeEventListener('focusin', updateFocus)
-			container.removeEventListener('focus', updateFocus)
-			container.removeEventListener('focusout', updateFocus)
-			container.removeEventListener('blur', updateFocus)
-		})
 
 		this.store.ensureStoreIsUsable()
 
