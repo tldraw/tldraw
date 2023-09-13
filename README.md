@@ -5,7 +5,7 @@
 	</picture>
 </div>
 
-# tldraw
+# tldraw 🎨🖌️
 
 Welcome to the public monorepo for [tldraw](https://tldraw.com).
 
@@ -61,7 +61,7 @@ Our development server contains several examples that demonstrates different way
 
 To learn more about using tldraw, [visit our docs](https://tldraw.dev).
 
-## About this repository
+## About this repository 📖
 
 ### Top-level layout
 
@@ -89,24 +89,24 @@ This repository's contents is divided across four primary sections:
 - `utils`: low-level data utilities shared by other libraries
 - `validate`: a validation library used for run-time validation
 
-## Community
+## Community 🫂
 
 Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new).
 
-## Distributions
+## Distributions 🖥️
 
 You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
 
 At the moment the tldraw package is in alpha. We also ship a canary version which is always up to date with the main branch of this repo.
 
-## License
+## License 📜
 
 The source code for various apps and packages in this repository (as well as our 2.0+ distributions and releases) are currently licensed under Apache-2.0. These licenses are subject to change in our upcoming 2.0 release. If you are planning to use tldraw in a commercial product, please reach out at [hello@tldraw.com](mailto://hello@tldraw.com).
 
-## Contribution
+## Contribution 🤝
 
 Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
-## Contact
+## Contact 📪
 
 Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [hello@tldraw.com](mailto://hello@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.
