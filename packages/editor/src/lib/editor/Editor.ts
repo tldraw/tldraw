@@ -2698,12 +2698,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._tickCameraState()
 		this.updateRenderingBounds()
 
-		const { editingShapeId } = this
-
-		if (editingShapeId) {
-			this.panZoomIntoView([editingShapeId])
-		}
-
 		return this
 	}
 
