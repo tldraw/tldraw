@@ -245,14 +245,14 @@ describe('When shapes are overlapping', () => {
 			{ id: ids.box3, type: 'geo', props: { fill: 'solid' } },
 		])
 		editor.setCurrentTool('arrow')
-		editor.pointerDown(0, 50)
+		editor.pointerDown(0, 50) // over nothing
 		editor.pointerMove(125, 50) // over box1 only
 		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box1 })
-		editor.pointerMove(175, 50) // box2 is higher
+		editor.pointerMove(175, 50) // box2 is higher but box1 is filled?
 		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box1 })
 		editor.pointerMove(225, 50) // box3 is higher
 		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
-		editor.pointerMove(275, 50) // box4 is higher
+		editor.pointerMove(275, 50) // box4 is higher but box 3 is filled
 		expect(arrow().props.end).toMatchObject({ boundShapeId: ids.box3 })
 	})
 
