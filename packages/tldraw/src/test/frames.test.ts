@@ -713,4 +713,35 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	expect(editor.getShape(arrowId)?.index.localeCompare(editor.getShape(groupId)!.index)).toBe(1)
 })
 
-// describe('When dragging a shape out of a frame', () => {})
+it.only('When dragging a shape out of a frame', () => {
+	const ids = {
+		frame1: createShapeId('frame'),
+		box1: createShapeId('geo1'),
+		box2: createShapeId('geo2'),
+		group1: createShapeId('group1'),
+	}
+
+	editor.createShapes([
+		{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 500, h: 500 } },
+		{ id: ids.box1, type: 'geo', parentId: ids.frame1, x: 100, y: 100 },
+		{ id: ids.box2, type: 'geo', parentId: ids.frame1, x: 300, y: 300 },
+	])
+
+	editor.select(ids.box1, ids.box2)
+
+	expect(editor.selectedShapeIds).toHaveLength(2)
+
+	editor.groupShapes(editor.selectedShapeIds, ids.group1)
+
+	expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
+
+	editor.pointerMove(100, 100).click().click()
+
+	expect(editor.onlySelectedShape?.id).toBe(ids.box1)
+
+	editor.pointerMove(150, 150).pointerDown().pointerMove(140, 140)
+
+	jest.advanceTimersByTime(300)
+
+	expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
+})
