@@ -48,7 +48,10 @@ export class Drawing extends StateNode {
 
 	canDraw = false
 
+	markId = null as null | string
+
 	override onEnter = (info: TLPointerEventInfo) => {
+		this.markId = null
 		this.info = info
 		this.canDraw = !this.editor.isMenuOpen
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
@@ -163,7 +166,8 @@ export class Drawing extends StateNode {
 			inputs: { originPagePoint, isPen },
 		} = this.editor
 
-		this.editor.mark('draw create start')
+		this.markId = 'draw start ' + uniqueId()
+		this.editor.mark(this.markId)
 
 		this.isPen = isPen
 
@@ -683,7 +687,9 @@ export class Drawing extends StateNode {
 			return
 		}
 
-		this.editor.bail()
+		if (this.markId) {
+			this.editor.bailToMark(this.markId)
+		}
 		this.cancel()
 	}
 
