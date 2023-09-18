@@ -5,6 +5,7 @@ import { pointInPolygon } from '../utils'
 export interface Geometry2dOptions {
 	isFilled: boolean
 	isClosed: boolean
+	isLabel?: boolean
 	isSnappable?: boolean
 }
 
@@ -12,12 +13,14 @@ export interface Geometry2dOptions {
 export abstract class Geometry2d {
 	isFilled = false
 	isClosed = true
+	isLabel = false
 	isSnappable = true
 
 	constructor(opts: Geometry2dOptions) {
 		this.isFilled = opts.isFilled
 		this.isClosed = opts.isClosed
 		this.isSnappable = opts.isSnappable ?? false
+		this.isLabel = opts.isLabel ?? false
 	}
 
 	abstract getVertices(): Vec2d[]

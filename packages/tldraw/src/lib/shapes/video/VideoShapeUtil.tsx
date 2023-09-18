@@ -184,6 +184,7 @@ const TLVideoUtilComponent = track(function TLVideoUtilComponent(props: {
 					{asset?.props.src ? (
 						<video
 							ref={rVideo}
+							style={isEditing ? { pointerEvents: 'all' } : undefined}
 							className={`tl-video tl-video-shape-${shape.id.split(':')[1]}`}
 							width="100%"
 							height="100%"

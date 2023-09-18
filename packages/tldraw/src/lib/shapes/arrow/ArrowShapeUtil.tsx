@@ -157,6 +157,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				width: width + 8.5,
 				height: height + 8.5,
 				isFilled: true,
+				isLabel: true,
 			})
 		}
 
