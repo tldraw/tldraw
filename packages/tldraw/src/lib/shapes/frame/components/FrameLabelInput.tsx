@@ -10,7 +10,7 @@ export const FrameLabelInput = forwardRef<
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
-			if (e.key === 'Enter') {
+			if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
 				// need to prevent the enter keydown making it's way up to the Idle state
 				// and sending us back into edit mode
 				e.stopPropagation()
