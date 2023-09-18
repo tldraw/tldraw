@@ -77,6 +77,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 *
 	 * @public
 	 */
+	canBeSnappedTo: TLShapeUtilFlag<Shape> = () => true
+
+	/**
+	 * Whether the shape can snap to other shapes or alignments.
+	 *
+	 * @public
+	 */
 	canSnap: TLShapeUtilFlag<Shape> = () => true
 
 	/**

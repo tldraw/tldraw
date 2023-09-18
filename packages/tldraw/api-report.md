@@ -107,6 +107,8 @@ import { VecLike } from '@tldraw/editor';
 // @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
+    canBeSnappedTo: () => boolean;
+    // (undocumented)
     canBind: () => boolean;
     // (undocumented)
     canEdit: () => boolean;

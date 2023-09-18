@@ -63,6 +63,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	override canEdit = () => true
 	override canBind = () => false
 	override canSnap = () => false
+	override canBeSnappedTo = () => false
 	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideRotateHandle: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true

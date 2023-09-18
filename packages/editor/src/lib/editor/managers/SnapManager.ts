@@ -261,7 +261,7 @@ export class SnapManager {
 				if (!childShape) continue
 				const util = editor.getShapeUtil(childShape)
 				// Skip any shapes that don't allow snapping
-				if (!util.canSnap(childShape)) continue
+				if (!util.canBeSnappedTo(childShape)) continue
 				// Only consider shapes if they're inside of the viewport page bounds
 				const pageBounds = editor.getShapePageBounds(childId)
 				if (!(pageBounds && renderingBounds.includes(pageBounds))) continue
