@@ -311,6 +311,7 @@
 	"style-panel.position": "位置",
 	"page-menu.go-to-page": "转到页面",
 	"action.insert-embed": "创建嵌入",
+	"people-menu.following": "正在跟随",
 	"people-menu.leading": "跟随",
 	"geo-style.check-box": "复选框",
 	"tool.check-box": "复选框",
@@ -334,11 +335,14 @@
 	"action.toggle-lock": "锁定/解锁",
 	"share-menu.default-project-name": "共享项目",
 	"home-project-dialog.title": "主项目",
+	"home-project-dialog.description": "这是您的主项目，它只为您而设！",
 	"rename-project-dialog.title": "项目重命名",
 	"rename-project-dialog.cancel": "取消",
 	"rename-project-dialog.rename": "重命名",
 	"home-project-dialog.ok": "好的",
 	"action.open-cursor-chat": "Cursor Chat",
 	"shortcuts-dialog.collaboration": "协作",
-	"cursor-chat.type-to-chat": "输入以开始聊天..."
+	"cursor-chat.type-to-chat": "输入以开始聊天...",
+	"geo-style.cloud": "云",
+	"tool.cloud": "云"
 }

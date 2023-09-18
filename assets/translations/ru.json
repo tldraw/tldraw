@@ -337,5 +337,8 @@
 	"rename-project-dialog.cancel": "Отмена",
 	"rename-project-dialog.rename": "Переименовать",
 	"home-project-dialog.ok": "Хорошо",
-	"cursor-chat.type-to-chat": "Кликните, чтобы начать общаться..."
+	"cursor-chat.type-to-chat": "Кликните, чтобы начать общаться...",
+	"geo-style.cloud": "Облако",
+	"tool.cloud": "Облако",
+	"action.unlock-all": "Разблокировать всё"
 }
