@@ -57,9 +57,37 @@ describe('Hovering shapes', () => {
 		expect(editor.hoveredShapeId).toBe(ids.box1)
 		editor.pointerMove(75, 75)
 		expect(editor.hoveredShapeId).toBe(null)
-		// does not hover the label of a geo shape
+		// does not hover the label of a geo shape when the label is empty
 		editor.pointerMove(50, 50)
 		expect(editor.hoveredShapeId).toBe(null)
+
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { text: 'hello' } })
+
+		// oh there's text now? hover it
+		editor.pointerMove(50, 50)
+		expect(editor.hoveredShapeId).toBe(ids.box1)
+	})
+
+	it('selects a shape with a full label on pointer down', () => {
+		editor.updateShape({ id: ids.box1, type: 'geo', props: { text: 'hello' } })
+
+		editor.pointerMove(50, 50)
+		editor.pointerDown()
+		expect(editor.isIn('select.pointing_shape')).toBe(true)
+		expect(editor.selectedShapes.length).toBe(1)
+		editor.pointerUp()
+		expect(editor.selectedShapes.length).toBe(1)
+		expect(editor.isIn('select.idle')).toBe(true)
+	})
+
+	it('selects a shape with an empty label on pointer up', () => {
+		editor.pointerMove(50, 50)
+		editor.pointerDown()
+		expect(editor.isIn('select.pointing_canvas')).toBe(true)
+		expect(editor.selectedShapes.length).toBe(0)
+		editor.pointerUp()
+		expect(editor.isIn('select.idle')).toBe(true)
+		expect(editor.selectedShapes.length).toBe(1)
 	})
 
 	it('hovers the margins or inside of filled shapes', () => {
