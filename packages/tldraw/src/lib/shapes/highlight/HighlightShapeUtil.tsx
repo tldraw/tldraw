@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-	Circle2d,
 	Polyline2d,
 	SVGContainer,
 	ShapeUtil,
@@ -47,15 +46,15 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	getGeometry(shape: TLHighlightShape) {
-		if (getIsDot(shape)) {
-			const strokeWidth = getStrokeWidth(shape)
-			return new Circle2d({
-				x: -strokeWidth / 2,
-				y: -strokeWidth / 2,
-				radius: strokeWidth / 2,
-				isFilled: true,
-			})
-		}
+		// if (getIsDot(shape)) {
+		// 	const strokeWidth = getStrokeWidth(shape)
+		// 	return new Circle2d({
+		// 		x: -strokeWidth / 2,
+		// 		y: -strokeWidth / 2,
+		// 		radius: strokeWidth / 2,
+		// 		isFilled: true,
+		// 	})
+		// }
 
 		return new Polyline2d({
 			points: getPointsFromSegments(shape.props.segments),

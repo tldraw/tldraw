@@ -658,7 +658,7 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     getDefaultProps(): TLHighlightShape['props'];
     // (undocumented)
-    getGeometry(shape: TLHighlightShape): Circle2d | Polyline2d;
+    getGeometry(shape: TLHighlightShape): Polyline2d;
     // (undocumented)
     hideResizeHandles: (shape: TLHighlightShape) => boolean;
     // (undocumented)
