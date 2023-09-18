@@ -79,8 +79,14 @@ export const Shape = track(function Shape({
 			if (!shape) return null
 
 			const bounds = editor.getShapeGeometry(shape).bounds
-			setProperty('width', Math.max(1, bounds.width) + 'px')
-			setProperty('height', Math.max(1, bounds.height) + 'px')
+			setProperty(
+				'width',
+				`calc(${Math.max(1, Math.ceil(bounds.width)) + 'px'} * var(--tl-dpr-multiple))`
+			)
+			setProperty(
+				'height',
+				`calc(${Math.max(1, Math.ceil(bounds.height)) + 'px'} * var(--tl-dpr-multiple))`
+			)
 		},
 		[editor]
 	)
