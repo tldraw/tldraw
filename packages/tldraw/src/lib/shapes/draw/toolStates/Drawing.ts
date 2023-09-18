@@ -683,7 +683,9 @@ export class Drawing extends StateNode {
 			return
 		}
 
-		this.editor.bail()
+		if (this.canDraw) {
+			this.editor.bail()
+		}
 		this.cancel()
 	}
 
