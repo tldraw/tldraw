@@ -204,7 +204,6 @@ export class Translating extends StateNode {
 		}
 
 		this.editor.setHoveredShape(null)
-		this.updateShapes()
 	}
 
 	protected handleEnd() {
