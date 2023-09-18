@@ -4245,22 +4245,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		for (let i = shapesToCheck.length - 1; i >= 0; i--) {
 			const shape = shapesToCheck[i]
-			let geometry = this.getShapeGeometry(shape)
+			const geometry = this.getShapeGeometry(shape)
+			const isGroup = geometry instanceof Group2d
 
 			const pointInShapeSpace = this.getPointInShapeSpace(shape, point)
 
+			// Check labels first
 			if (
 				this.isShapeOfType<TLArrowShape>(shape, 'arrow') ||
 				(this.isShapeOfType<TLGeoShape>(shape, 'geo') && shape.props.fill === 'none')
 			) {
-				if (hitLabels || shape.props.text.trim()) {
+				if (shape.props.text.trim()) {
 					// let's check whether the shape has a label and check that
-					const labelGeometry = (geometry as Group2d).children[1]
-					if (labelGeometry && labelGeometry.isPointInBounds(pointInShapeSpace)) {
-						return shape
+					for (const childGeometry of (geometry as Group2d).children) {
+						if (childGeometry.isLabel && childGeometry.isPointInBounds(pointInShapeSpace)) {
+							return shape
+						}
 					}
 				}
-			} else if (this.isShapeOfType(shape, 'frame')) {
+			}
+
+			if (this.isShapeOfType(shape, 'frame')) {
 				// On the rare case that we've hit a frame, test again hitInside to be forced true;
 				// this prevents clicks from passing through the body of a frame to shapes behhind it.
 
@@ -4286,14 +4291,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 				continue
 			}
 
-			if (geometry instanceof Group2d) {
-				// this is kind of a mess at the moment;
-				// we want to check all of the shapes in the group,
-				// using the group's own properties to decide how that
-				geometry = geometry.children[0]
-			}
+			let distance: number
 
-			const distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+			if (isGroup) {
+				let minDistance = Infinity
+				for (const childGeometry of geometry.children) {
+					if (childGeometry.isLabel && !hitLabels) continue
+
+					// hit test the all of the child geometries that aren't labels
+					const tDistance = childGeometry.distanceToPoint(pointInShapeSpace, hitInside)
+					if (tDistance < minDistance) {
+						minDistance = tDistance
+					}
+				}
+
+				distance = minDistance
+			} else {
+				distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+			}
 
 			if (geometry.isClosed) {
 				// For closed shapes, the distance will be positive if outside of
@@ -4301,7 +4316,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// is greater than the margin, then it's a miss. Otherwise...
 
 				if (distance <= margin) {
-					if (geometry.isFilled) {
+					if (geometry.isFilled || (isGroup && geometry.children[0].isFilled)) {
 						// If the shape is filled, then it's a hit. Remember, we're
 						// starting from the TOP-MOST shape in z-index order, so any
 						// other hits would be occluded by the shape.

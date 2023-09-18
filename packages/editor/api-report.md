@@ -989,6 +989,8 @@ export abstract class Geometry2d {
     // (undocumented)
     isFilled: boolean;
     // (undocumented)
+    isLabel: boolean;
+    // (undocumented)
     isPointInBounds(point: Vec2d, margin?: number): boolean;
     // (undocumented)
     isSnappable: boolean;
@@ -1136,8 +1138,6 @@ export class Group2d extends Geometry2d {
     hitTestPoint(point: Vec2d, margin: number, hitInside: boolean): boolean;
     // (undocumented)
     nearestPoint(point: Vec2d): Vec2d;
-    // (undocumented)
-    get outerVertices(): Vec2d[];
     // (undocumented)
     toSimpleSvgPath(): string;
 }
