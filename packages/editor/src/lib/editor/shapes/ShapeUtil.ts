@@ -87,6 +87,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canSnap: TLShapeUtilFlag<Shape> = () => true
 
 	/**
+	 * Whether the shape's handles can snap to other shapes or alignments.
+	 *
+	 * @public
+	 */
+	canSnapHandles: TLShapeUtilFlag<Shape> = () => true
+
+	/**
 	 * Whether the shape can be scrolled while editing.
 	 *
 	 * @public

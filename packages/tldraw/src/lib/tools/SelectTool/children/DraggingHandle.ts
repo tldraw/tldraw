@@ -235,7 +235,7 @@ export class DraggingHandle extends StateNode {
 		// Clear any existing snaps
 		editor.snaps.clear()
 
-		if ((isSnapMode ? !ctrlKey : ctrlKey) && util.canSnap?.(shape)) {
+		if ((isSnapMode ? !ctrlKey : ctrlKey) && util.canSnapHandles?.(shape)) {
 			// We're snapping
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')

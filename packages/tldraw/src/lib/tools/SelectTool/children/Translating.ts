@@ -247,7 +247,12 @@ export class Translating extends StateNode {
 		const { snapshot } = this
 		this.dragAndDropManager.updateDroppingNode(snapshot.movingShapes, this.updateParentTransforms)
 
+		const { ctrlKey } = this.editor.inputs
+
+		const shouldSnap = snapshot.canSnap && (this.editor.user.isSnapMode ? !ctrlKey : ctrlKey)
+
 		moveShapesToPoint({
+			shouldSnap,
 			editor: this.editor,
 			shapeSnapshots: snapshot.shapeSnapshots,
 			averagePagePoint: snapshot.averagePagePoint,
@@ -283,11 +288,17 @@ function getTranslatingSnapshot(editor: Editor) {
 	const movingShapes: TLShape[] = []
 	const pagePoints: Vec2d[] = []
 
+	let canSnap = false
+
 	const shapeSnapshots = compact(
 		editor.selectedShapeIds.map((id): null | MovingShapeSnapshot => {
 			const shape = editor.getShape(id)
 			if (!shape) return null
 			movingShapes.push(shape)
+
+			if (!canSnap && editor.getShapeUtil(shape).canSnap(shape)) {
+				canSnap = true
+			}
 
 			const pagePoint = editor.getShapePageTransform(id)!.point()
 			if (!pagePoint) return null
@@ -306,6 +317,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	)
 
 	return {
+		canSnap, // If at least one shape can snap, we should snap
 		averagePagePoint: Vec2d.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
@@ -333,12 +345,14 @@ export interface MovingShapeSnapshot {
 
 export function moveShapesToPoint({
 	editor,
+	shouldSnap,
 	shapeSnapshots: snapshots,
 	averagePagePoint,
 	initialSelectionPageBounds,
 	initialSelectionSnapPoints,
 }: {
 	editor: Editor
+	shouldSnap: boolean
 	shapeSnapshots: MovingShapeSnapshot[]
 	averagePagePoint: Vec2d
 	initialSelectionPageBounds: Box2d
@@ -366,10 +380,6 @@ export function moveShapesToPoint({
 
 	// Provisional snapping
 	editor.snaps.clear()
-
-	const shouldSnap =
-		(editor.user.isSnapMode ? !inputs.ctrlKey : inputs.ctrlKey) &&
-		editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
 
 	if (shouldSnap) {
 		const { nudge } = editor.snaps.snapTranslate({

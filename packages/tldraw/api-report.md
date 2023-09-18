@@ -115,6 +115,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canSnap: () => boolean;
     // (undocumented)
+    canSnapHandles: () => boolean;
+    // (undocumented)
     component(shape: TLArrowShape): JSX.Element | null;
     // (undocumented)
     getCanvasSvgDefs(): TLShapeUtilCanvasSvgDef[];
