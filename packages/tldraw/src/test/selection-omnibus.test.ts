@@ -1539,3 +1539,15 @@ it.todo('maybe? does not select a hollow closed shape if the negative distance i
 it.todo(
 	'maybe? does not edit a hollow geo shape when double clicking inside of it unless it already has a label OR the double click is in the middle of the shape'
 )
+
+it('selects one of the selected shapes on pointer up', () => {
+	editor.createShapes([
+		{ id: ids.box1, type: 'geo' },
+		{ id: ids.box2, type: 'geo', x: 300 },
+	])
+	editor.selectAll()
+	editor.pointerMove(96, 50)
+	editor.pointerDown()
+	editor.pointerUp()
+	expect(editor.selectedShapeIds).toEqual([ids.box1])
+})
