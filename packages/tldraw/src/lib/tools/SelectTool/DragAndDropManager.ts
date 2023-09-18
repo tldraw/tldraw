@@ -8,7 +8,6 @@ export class DragAndDropManager {
 		editor.disposables.add(this.dispose)
 	}
 
-	first = true
 	prevDroppingShapeId: TLShapeId | null = null
 	currDroppingShapeId: TLShapeId | null = null
 
@@ -19,9 +18,7 @@ export class DragAndDropManager {
 			const { currentPagePoint } = this.editor.inputs
 			this.currDroppingShapeId =
 				this.editor.getDroppingOverShape(currentPagePoint, movingShapes)?.id ?? null
-			if (this.first) {
-				this.prevDroppingShapeId = this.currDroppingShapeId
-			}
+
 			this.setDragTimer(movingShapes, LAG_DURATION * 10, cb)
 		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
 			clearInterval(this.droppingNodeTimer)

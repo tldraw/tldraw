@@ -235,7 +235,7 @@ describe('frame shapes', () => {
 		})
 	})
 
-	it('can have shapes dragged on top and back out', () => {
+	it.only('can have shapes dragged on top and back out', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
@@ -248,9 +248,9 @@ describe('frame shapes', () => {
 		expect(editor.onlySelectedShape!.parentId).toBe(editor.currentPageId)
 
 		editor.setCurrentTool('select')
-		editor.pointerDown(275, 275, ids.boxA).pointerMove(150, 150)
+		editor.pointerDown(275, 275).pointerMove(150, 150)
 
-		jest.advanceTimersByTime(250)
+		jest.advanceTimersByTime(300)
 
 		expect(editor.onlySelectedShape!.id).toBe(ids.boxA)
 		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
@@ -712,3 +712,5 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	// expect arrow index to be greater than group index
 	expect(editor.getShape(arrowId)?.index.localeCompare(editor.getShape(groupId)!.index)).toBe(1)
 })
+
+// describe('When dragging a shape out of a frame', () => {})

@@ -206,15 +206,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		// If frame is in a group, keep the shape
 		// moved out in that group
 		if (isInGroup) {
-			this.editor.reparentShapes(
-				shapes.map((shape) => shape.id),
-				parent.id
-			)
+			this.editor.reparentShapes(shapes, parent.id)
 		} else {
-			this.editor.reparentShapes(
-				shapes.map((shape) => shape.id),
-				this.editor.currentPageId
-			)
+			this.editor.reparentShapes(shapes, this.editor.currentPageId)
 		}
 	}
 
