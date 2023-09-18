@@ -8,6 +8,7 @@ export class DragAndDropManager {
 		editor.disposables.add(this.dispose)
 	}
 
+	first = true
 	prevDroppingShapeId: TLShapeId | null = null
 	currDroppingShapeId: TLShapeId | null = null
 
@@ -16,8 +17,11 @@ export class DragAndDropManager {
 	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
 		if (this.droppingNodeTimer === null) {
 			const { currentPagePoint } = this.editor.inputs
-			this.prevDroppingShapeId =
+			this.currDroppingShapeId =
 				this.editor.getDroppingOverShape(currentPagePoint, movingShapes)?.id ?? null
+			if (this.first) {
+				this.prevDroppingShapeId = this.currDroppingShapeId
+			}
 			this.setDragTimer(movingShapes, LAG_DURATION * 10, cb)
 		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
 			clearInterval(this.droppingNodeTimer)
@@ -41,6 +45,11 @@ export class DragAndDropManager {
 
 		const currDroppingShapeId =
 			this.editor.getDroppingOverShape(currentPagePoint, movingShapes)?.id ?? null
+
+		if (currDroppingShapeId !== this.currDroppingShapeId) {
+			this.prevDroppingShapeId = this.currDroppingShapeId
+			this.currDroppingShapeId = currDroppingShapeId
+		}
 
 		const { prevDroppingShapeId } = this
 
