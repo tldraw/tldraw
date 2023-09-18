@@ -129,8 +129,9 @@ export class PointingShape extends StateNode {
 						// ! tldraw hack
 						// if the shape is a geo shape, and we're inside of the label, then we want to begin editing the label
 						if (
-							this.editor.isShapeOfType<TLGeoShape>(selectingShape, 'geo') ||
-							this.editor.isShapeOfType<TLArrowShape>(selectingShape, 'arrow')
+							selectedShapeIds.length === 1 &&
+							(this.editor.isShapeOfType<TLGeoShape>(selectingShape, 'geo') ||
+								this.editor.isShapeOfType<TLArrowShape>(selectingShape, 'arrow'))
 						) {
 							const geometry = this.editor.getShapeGeometry(selectingShape)
 							const labelGeometry = (geometry as Group2d).children[1]
@@ -151,6 +152,10 @@ export class PointingShape extends StateNode {
 								}
 							}
 						}
+
+						// We just want to select the single shape from the selection
+						this.editor.mark('selecting on pointer up')
+						this.editor.select(selectingShape.id)
 					} else {
 						this.editor.mark('selecting on pointer up')
 						this.editor.select(selectingShape)

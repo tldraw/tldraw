@@ -961,6 +961,8 @@ export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
 export interface TLHandle {
     // (undocumented)
     canBind?: boolean;
+    // (undocumented)
+    canSnap?: boolean;
     id: string;
     // (undocumented)
     index: string;

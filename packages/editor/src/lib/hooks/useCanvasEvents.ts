@@ -13,6 +13,17 @@ export function useCanvasEvents() {
 
 			function onPointerDown(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
+
+				if (e.button === 2) {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'canvas',
+						name: 'right_click',
+						...getPointerInfo(e),
+					})
+					return
+				}
+
 				if (e.button !== 0 && e.button !== 1 && e.button !== 5) return
 
 				setPointerCapture(e.currentTarget, e)

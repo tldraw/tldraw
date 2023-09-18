@@ -321,6 +321,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		const labelSize = getLabelSize(this.editor, shape)
 		const labelWidth = Math.min(w, Math.max(labelSize.w, Math.min(32, Math.max(1, w - 8))))
 		const labelHeight = Math.min(h, Math.max(labelSize.h, Math.min(32, Math.max(1, w - 8))))
+
 		const lines = getLines(shape.props, strokeWidth)
 		const edges = lines ? lines.map((line) => new Polyline2d({ points: line })) : []
 
@@ -344,6 +345,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					height: labelHeight,
 					isFilled: true,
 					isSnappable: false,
+					isLabel: true,
 				}),
 				...edges,
 			],

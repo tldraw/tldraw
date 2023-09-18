@@ -20,7 +20,7 @@ export class Group2d extends Geometry2d {
 	}
 
 	override getVertices(): Vec2d[] {
-		return this.children.flatMap((child) => child.vertices)
+		return this.children.filter((c) => !c.isLabel).flatMap((c) => c.vertices)
 	}
 
 	override nearestPoint(point: Vec2d): Vec2d {
@@ -50,22 +50,17 @@ export class Group2d extends Geometry2d {
 	}
 
 	override hitTestPoint(point: Vec2d, margin: number, hitInside: boolean): boolean {
-		return this.children[0].hitTestPoint(point, margin, hitInside)
+		return !!this.children
+			.filter((c) => !c.isLabel)
+			.find((c) => c.hitTestPoint(point, margin, hitInside))
 	}
 
 	override hitTestLineSegment(A: Vec2d, B: Vec2d, zoom: number): boolean {
-		const { children } = this
-		// todo: this is a temporary solution, assuming that the first child defines the group size
-		return children[0].hitTestLineSegment(A, B, zoom)
-	}
-
-	get outerVertices() {
-		// todo: this is a temporary solution for arrow hit testing to prevent arrows from snapping to the label of a shape
-		return this.children[0].vertices
+		return !!this.children.filter((c) => !c.isLabel).find((c) => c.hitTestLineSegment(A, B, zoom))
 	}
 
 	getArea() {
-		// todo: this is a temporary solution, assuming that the first child defines the group size
+		// todo: this is a temporary solution, assuming that the first child defines the group size; we would want to flatten the group and then find the area of the hull polygon
 		return this.children[0].area
 	}
 
