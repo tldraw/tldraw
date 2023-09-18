@@ -33,30 +33,28 @@ export type TLLineShapeProps = ShapePropsType<typeof lineShapeProps>
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
 /** @internal */
-export const LineShapeMigrations = {
+export const lineShapeVersions = {
 	AddSnapHandles: 1,
-}
+} as const
 
 /** @internal */
 export const lineShapeMigrations = defineMigrations({
-	currentVersion: LineShapeMigrations.AddSnapHandles,
+	currentVersion: lineShapeVersions.AddSnapHandles,
 	migrators: {
-		[LineShapeMigrations.AddSnapHandles]: {
-			up(record: any) {
+		[lineShapeVersions.AddSnapHandles]: {
+			up: (record: any) => {
 				const handles = deepCopy(record.props.handles as Record<string, any>)
 				for (const id in handles) {
 					handles[id].canSnap = true
 				}
-				record.props.handles = handles
-				return record
+				return { ...record, props: { ...record.props, handles } }
 			},
-			down(record: any) {
+			down: (record: any) => {
 				const handles = deepCopy(record.props.handles as Record<string, any>)
 				for (const id in handles) {
 					delete handles[id].canSnap
 				}
-				record.props.handles = handles
-				return record
+				return { ...record, props: { ...record.props, handles } }
 			},
 		},
 	},

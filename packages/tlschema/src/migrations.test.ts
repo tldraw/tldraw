@@ -17,7 +17,7 @@ import { drawShapeMigrations } from './shapes/TLDrawShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
 import { GeoShapeVersions, geoShapeMigrations } from './shapes/TLGeoShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
-import { LineShapeMigrations, lineShapeMigrations } from './shapes/TLLineShape'
+import { lineShapeMigrations, lineShapeVersions } from './shapes/TLLineShape'
 import { noteShapeMigrations } from './shapes/TLNoteShape'
 import { textShapeMigrations } from './shapes/TLTextShape'
 import { videoShapeMigrations } from './shapes/TLVideoShape'
@@ -1432,7 +1432,7 @@ describe('Renames selectedShapeIds in presence', () => {
 })
 
 describe('Adding canSnap to line handles', () => {
-	const { up, down } = lineShapeMigrations.migrators[LineShapeMigrations.AddSnapHandles]
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.AddSnapHandles]
 
 	test(`up works as expected`, () => {
 		expect(
@@ -1485,8 +1485,52 @@ describe('Adding canSnap to line handles', () => {
 	})
 
 	test(`down works as expected`, () => {
-		expect(down({ props: { color: 'red', labelColor: 'blue' } })).toEqual({
-			props: { color: 'red' },
+		expect(
+			down({
+				props: {
+					handles: {
+						start: {
+							id: 'start',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a1',
+							x: 0,
+							y: 0,
+						},
+						end: {
+							id: 'end',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a2',
+							x: 100.66015625,
+							y: -22.07421875,
+						},
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					start: {
+						id: 'start',
+						type: 'vertex',
+						canBind: false,
+						index: 'a1',
+						x: 0,
+						y: 0,
+					},
+					end: {
+						id: 'end',
+						type: 'vertex',
+						canBind: false,
+						index: 'a2',
+						x: 100.66015625,
+						y: -22.07421875,
+					},
+				},
+			},
 		})
 	})
 })
