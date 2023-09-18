@@ -1,4 +1,4 @@
-import { Editor, TLShape, TLShapeId, compact } from '@tldraw/editor'
+import { Editor, TLShape, TLShapeId, Vec2d, compact } from '@tldraw/editor'
 
 const LAG_DURATION = 100
 
@@ -9,16 +9,20 @@ export class DragAndDropManager {
 	}
 
 	prevDroppingShapeId: TLShapeId | null = null
-	currDroppingShapeId: TLShapeId | null = null
 
 	droppingNodeTimer: ReturnType<typeof setTimeout> | null = null
 
-	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
-		if (this.droppingNodeTimer === null) {
-			const { currentPagePoint } = this.editor.inputs
-			this.currDroppingShapeId =
-				this.editor.getDroppingOverShape(currentPagePoint, movingShapes)?.id ?? null
+	first = true
 
+	updateDroppingNode(movingShapes: TLShape[], cb: () => void) {
+		if (this.first) {
+			this.prevDroppingShapeId =
+				this.editor.getDroppingOverShape(this.editor.inputs.originPagePoint, movingShapes)?.id ??
+				null
+			this.first = false
+		}
+
+		if (this.droppingNodeTimer === null) {
 			this.setDragTimer(movingShapes, LAG_DURATION * 10, cb)
 		} else if (this.editor.inputs.pointerVelocity.len() > 0.5) {
 			clearInterval(this.droppingNodeTimer)
@@ -29,39 +33,31 @@ export class DragAndDropManager {
 	private setDragTimer(movingShapes: TLShape[], duration: number, cb: () => void) {
 		this.droppingNodeTimer = setTimeout(() => {
 			this.editor.batch(() => {
-				this.handleDrag(movingShapes, cb)
+				this.handleDrag(this.editor.inputs.currentPagePoint, movingShapes, cb)
 			})
 			this.droppingNodeTimer = null
 		}, duration)
 	}
 
-	private handleDrag(movingShapes: TLShape[], cb?: () => void) {
-		const { currentPagePoint } = this.editor.inputs
-
+	private handleDrag(point: Vec2d, movingShapes: TLShape[], cb?: () => void) {
 		movingShapes = compact(movingShapes.map((shape) => this.editor.getShape(shape.id)))
 
-		const currDroppingShapeId =
-			this.editor.getDroppingOverShape(currentPagePoint, movingShapes)?.id ?? null
+		const nextDroppingShapeId = this.editor.getDroppingOverShape(point, movingShapes)?.id ?? null
 
-		if (currDroppingShapeId !== this.currDroppingShapeId) {
-			this.prevDroppingShapeId = this.currDroppingShapeId
-			this.currDroppingShapeId = currDroppingShapeId
-		}
-
-		const { prevDroppingShapeId } = this
-
-		if (currDroppingShapeId === prevDroppingShapeId) {
-			// we already called onDragShapesOver on this node, no need to do it again
+		// is the next dropping shape id different than the last one?
+		if (nextDroppingShapeId === this.prevDroppingShapeId) {
 			return
 		}
 
+		// the old previous one
+		const { prevDroppingShapeId } = this
+
 		const prevDroppingShape = prevDroppingShapeId && this.editor.getShape(prevDroppingShapeId)
-		const nextDroppingShape = currDroppingShapeId && this.editor.getShape(currDroppingShapeId)
+		const nextDroppingShape = nextDroppingShapeId && this.editor.getShape(nextDroppingShapeId)
 
 		// Even if we don't have a next dropping shape id (i.e. if we're dropping
 		// onto the page) set the prev to the current, to avoid repeat calls to
 		// the previous parent's onDragShapesOut
-		this.prevDroppingShapeId = this.currDroppingShapeId
 
 		if (prevDroppingShape) {
 			this.editor.getShapeUtil(prevDroppingShape).onDragShapesOut?.(prevDroppingShape, movingShapes)
@@ -81,15 +77,18 @@ export class DragAndDropManager {
 		}
 
 		cb?.()
+
+		// next -> curr
+		this.prevDroppingShapeId = nextDroppingShapeId
 	}
 
 	dropShapes(shapes: TLShape[]) {
-		const { currDroppingShapeId } = this
+		const { prevDroppingShapeId } = this
 
-		this.handleDrag(shapes)
+		this.handleDrag(this.editor.inputs.currentPagePoint, shapes)
 
-		if (currDroppingShapeId) {
-			const shape = this.editor.getShape(currDroppingShapeId)
+		if (prevDroppingShapeId) {
+			const shape = this.editor.getShape(prevDroppingShapeId)
 			if (!shape) return
 			this.editor.getShapeUtil(shape).onDropShapesOver?.(shape, shapes)
 		}
@@ -97,7 +96,6 @@ export class DragAndDropManager {
 
 	clear() {
 		this.prevDroppingShapeId = null
-		this.currDroppingShapeId = null
 
 		if (this.droppingNodeTimer !== null) {
 			clearInterval(this.droppingNodeTimer)
@@ -105,6 +103,7 @@ export class DragAndDropManager {
 
 		this.droppingNodeTimer = null
 		this.editor.setHintingShapes([])
+		this.first = true
 	}
 
 	dispose = () => {
