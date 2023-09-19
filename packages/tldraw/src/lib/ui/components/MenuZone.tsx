@@ -15,15 +15,13 @@ export const MenuZone = track(function MenuZone() {
 	const breakpoint = useBreakpoint()
 	const isReadonly = useReadonly()
 
-	const showQuickActions = !isReadonly && !editor.isInAny('hand', 'zoom', 'eraser')
-
 	return (
 		<div className="tlui-menu-zone">
 			<div className="tlui-menu-zone__controls">
 				<Menu />
 				<div className="tlui-menu-zone__divider" />
 				<PageMenu />
-				{breakpoint >= 6 && showQuickActions && (
+				{breakpoint >= 6 && !isReadonly && !editor.isInAny('hand', 'zoom') && (
 					<>
 						<div className="tlui-menu-zone__divider" />
 						<UndoButton />

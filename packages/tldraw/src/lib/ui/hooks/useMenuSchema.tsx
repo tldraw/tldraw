@@ -1,8 +1,9 @@
-import { Editor, TLBookmarkShape, TLEmbedShape, compact, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLBookmarkShape, TLEmbedShape, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { getEmbedInfo } from '../../utils/embeds'
 import {
 	TLUiMenuSchema,
+	compactMenuItems,
 	menuCustom,
 	menuGroup,
 	menuItem,
@@ -108,7 +109,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	)
 
 	const menuSchema = useMemo<TLUiMenuSchema>(() => {
-		const menuSchema = compact([
+		const menuSchema = compactMenuItems([
 			menuGroup(
 				'menu',
 				menuSubmenu(

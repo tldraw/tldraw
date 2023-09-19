@@ -41,15 +41,20 @@ export async function setupPage(page: PlaywrightTestArgs['page']) {
 }
 
 export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
+	// delete everything
+	await page.keyboard.press('Control+a')
+	await page.keyboard.press('Backspace')
+
+	// create shapes
 	await page.keyboard.press('r')
 	await page.mouse.click(200, 200)
 	await page.keyboard.press('r')
 	await page.mouse.click(200, 250)
 	await page.keyboard.press('r')
 	await page.mouse.click(250, 300)
-	await page.evaluate(() => {
-		editor.selectNone()
-	})
+
+	// deselect everything
+	await page.evaluate(() => editor.selectNone())
 }
 
 export async function cleanupPage(page: PlaywrightTestArgs['page']) {
