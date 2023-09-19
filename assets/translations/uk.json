@@ -63,7 +63,7 @@
 	"action.stretch-vertical": "Розтягнути по вертикалі",
 	"action.stretch-horizontal.short": "Розтягнути по горизонталі",
 	"action.stretch-vertical.short": "Розтягнути по вертикалі",
-	"action.toggle-auto-size": "Перемикнути автоматичний розмір",
+	"action.toggle-auto-size": "Перемкнути автоматичний розмір",
 	"action.toggle-dark-mode.menu": "Темний режим",
 	"action.toggle-dark-mode": "Перемкнути темний режим",
 	"action.toggle-debug-mode.menu": "Режим налагодження",
@@ -336,5 +336,8 @@
 	"rename-project-dialog.title": "Перейменувати проєкт",
 	"rename-project-dialog.cancel": "Скасувати",
 	"rename-project-dialog.rename": "Перейменувати",
-	"home-project-dialog.ok": "Гаразд"
+	"home-project-dialog.ok": "Гаразд",
+	"geo-style.cloud": "Хмара",
+	"tool.cloud": "Хмара",
+	"action.unlock-all": "Розблокувати все"
 }
