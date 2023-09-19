@@ -33,7 +33,13 @@ export function Trigger({
 	'data-testid'?: string
 }) {
 	return (
-		<DropdownMenu.Trigger dir="ltr" data-testid={testId} asChild>
+		<DropdownMenu.Trigger
+			dir="ltr"
+			data-testid={testId}
+			asChild
+			// Firefox fix: Stop the dropdown immediately closing after touch
+			onTouchEnd={(e) => preventDefault(e)}
+		>
 			{children}
 		</DropdownMenu.Trigger>
 	)
