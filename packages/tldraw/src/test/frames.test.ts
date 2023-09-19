@@ -749,7 +749,7 @@ describe('When dragging a shape out of a frame', () => {
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
 	})
 
-	it('When dragging a shape out of a frame', () => {
+	it('reparents the shape to the page if it leaves the frame', () => {
 		editor.select(ids.box1, ids.box2)
 
 		expect(editor.selectedShapeIds).toHaveLength(2)
