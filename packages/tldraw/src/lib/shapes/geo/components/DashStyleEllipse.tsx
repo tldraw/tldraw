@@ -28,8 +28,8 @@ export const DashStyleEllipse = React.memo(function DashStyleEllipse({
 	const theme = useDefaultColorTheme()
 	const cx = w / 2
 	const cy = h / 2
-	const rx = Math.max(0, cx - sw / 2)
-	const ry = Math.max(0, cy - sw / 2)
+	const rx = Math.max(0, cx)
+	const ry = Math.max(0, cy)
 
 	const perimeter = perimeterOfEllipse(rx, ry)
 
