@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Arc2d,
 	Box2d,
@@ -694,6 +693,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const isEditing = useIsEditing(shape.id)
 
 		if (isEditing && labelGeometry) {
