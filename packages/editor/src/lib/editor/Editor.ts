@@ -3951,7 +3951,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed private get _shapeMaskCache(): ComputedCache<Vec2d[], TLShape> {
-		return this.store.createComputedCache<Vec2d[], TLShape>('pageMaskCache', (shape) => {
+		return this.store.createComputedCache('pageMaskCache', (shape) => {
 			if (isPageId(shape.parentId)) {
 				return undefined
 			}
@@ -3973,7 +3973,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (intersection) {
 						return intersection.map(Vec2d.Cast)
 					}
-					return undefined
+					return []
 				})
 
 			return pageMask
