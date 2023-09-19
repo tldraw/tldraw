@@ -713,7 +713,7 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	expect(editor.getShape(arrowId)?.index.localeCompare(editor.getShape(groupId)!.index)).toBe(1)
 })
 
-describe('When dragging a shape out of a frame', () => {
+describe('When dragging a shape inside a group inside a frame', () => {
 	const ids = {
 		frame1: createShapeId('frame'),
 		box1: createShapeId('geo1'),
