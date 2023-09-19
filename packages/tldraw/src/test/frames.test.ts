@@ -248,9 +248,9 @@ describe('frame shapes', () => {
 		expect(editor.onlySelectedShape!.parentId).toBe(editor.currentPageId)
 
 		editor.setCurrentTool('select')
-		editor.pointerDown(275, 275, ids.boxA).pointerMove(150, 150)
+		editor.pointerDown(275, 275).pointerMove(150, 150)
 
-		jest.advanceTimersByTime(250)
+		jest.advanceTimersByTime(300)
 
 		expect(editor.onlySelectedShape!.id).toBe(ids.boxA)
 		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
@@ -711,4 +711,67 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	expect(editor.getShape(arrowId)!.parentId).toBe(editor.currentPageId)
 	// expect arrow index to be greater than group index
 	expect(editor.getShape(arrowId)?.index.localeCompare(editor.getShape(groupId)!.index)).toBe(1)
+})
+
+describe('When dragging a shape inside a group inside a frame', () => {
+	const ids = {
+		frame1: createShapeId('frame'),
+		box1: createShapeId('geo1'),
+		box2: createShapeId('geo2'),
+		group1: createShapeId('group1'),
+	}
+
+	beforeEach(() => {
+		editor.createShapes([
+			{ id: ids.frame1, type: 'frame', x: 0, y: 0, props: { w: 500, h: 500 } },
+			{ id: ids.box1, type: 'geo', parentId: ids.frame1, x: 100, y: 100 },
+			{ id: ids.box2, type: 'geo', parentId: ids.frame1, x: 300, y: 300 },
+		])
+	})
+
+	it('When dragging a shape out of a frame', () => {
+		editor.select(ids.box1, ids.box2)
+
+		expect(editor.selectedShapeIds).toHaveLength(2)
+
+		editor.groupShapes(editor.selectedShapeIds, ids.group1)
+
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
+
+		editor.pointerMove(100, 100).click().click()
+
+		expect(editor.onlySelectedShape?.id).toBe(ids.box1)
+
+		editor.pointerMove(150, 150).pointerDown().pointerMove(140, 140)
+
+		jest.advanceTimersByTime(300)
+
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
+	})
+
+	it('reparents the shape to the page if it leaves the frame', () => {
+		editor.select(ids.box1, ids.box2)
+
+		expect(editor.selectedShapeIds).toHaveLength(2)
+
+		editor.groupShapes(editor.selectedShapeIds, ids.group1)
+
+		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
+
+		editor.pointerMove(100, 100).click().click()
+
+		expect(editor.onlySelectedShape?.id).toBe(ids.box1)
+		expect(editor.focusedGroupId).toBe(ids.group1)
+
+		editor
+			.pointerMove(150, 150)
+			.pointerDown()
+			.pointerMove(-200, -200)
+			.pointerMove(-200, -200)
+			.pointerUp()
+
+		jest.advanceTimersByTime(300)
+
+		expect(editor.getShape(ids.box1)!.parentId).toBe(editor.currentPageId)
+	})
 })

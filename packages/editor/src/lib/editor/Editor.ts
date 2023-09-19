@@ -4900,6 +4900,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Only allow dropping into the masked page bounds of the shape, e.g. when a frame is
 			// partially clipped by its own parent frame
 			const maskedPageBounds = this.getShapeMaskedPageBounds(shape.id)
+
 			if (
 				maskedPageBounds &&
 				maskedPageBounds.containsPoint(point) &&
