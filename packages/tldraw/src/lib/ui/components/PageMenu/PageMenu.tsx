@@ -8,6 +8,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useActions } from '../../hooks/useActions'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useReadonly } from '../../hooks/useReadonly'
@@ -23,6 +24,8 @@ export const PageMenu = function PageMenu() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
+	const actions = useActions()
+	const action = actions['back-to-content']
 
 	const handleOpenChange = useCallback(() => setIsEditing(false), [])
 
@@ -363,7 +366,10 @@ export const PageMenu = function PageMenu() {
 								>
 									<Button
 										className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
-										onClick={() => editor.setCurrentPage(page.id)}
+										onClick={() => {
+											editor.setCurrentPage(page.id)
+											action.onSelect('helper-buttons')
+										}}
 										onDoubleClick={toggleEditing}
 										isChecked={page.id === currentPage.id}
 										title={msg('page-menu.go-to-page')}
