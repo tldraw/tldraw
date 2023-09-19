@@ -1,8 +1,9 @@
-import { Editor, TLBookmarkShape, TLEmbedShape, compact, useEditor, useValue } from '@tldraw/editor'
+import { Editor, TLBookmarkShape, TLEmbedShape, useEditor, useValue } from '@tldraw/editor'
 import React, { useMemo } from 'react'
 import { getEmbedInfo } from '../../utils/embeds'
 import {
 	TLUiMenuSchema,
+	compactMenuItems,
 	menuCustom,
 	menuGroup,
 	menuItem,
@@ -48,6 +49,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const breakpoint = useBreakpoint()
 	const isMobile = breakpoint < 5
 
+	const isSelectTool = useValue('isSelectTool', () => editor.currentToolId === 'select', [editor])
 	const isDarkMode = useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
 	const animationSpeed = useValue('animationSpeed', () => editor.user.animationSpeed, [editor])
 	const isGridMode = useValue('isGridMode', () => editor.instanceState.isGridMode, [editor])
@@ -108,7 +110,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	)
 
 	const menuSchema = useMemo<TLUiMenuSchema>(() => {
-		const menuSchema = compact([
+		const menuSchema = compactMenuItems([
 			menuGroup(
 				'menu',
 				menuSubmenu(
@@ -124,64 +126,71 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 						menuItem(actions['undo'], { disabled: !canUndo }),
 						menuItem(actions['redo'], { disabled: !canRedo })
 					),
-					menuGroup(
-						'clipboard-actions',
-						menuItem(actions['cut'], { disabled: noneSelected }),
-						menuItem(actions['copy'], { disabled: noneSelected }),
-						menuItem(actions['paste'], { disabled: !showMenuPaste })
-					),
-					menuGroup(
-						'conversions',
-						menuSubmenu(
-							'copy-as',
-							'menu.copy-as',
-							menuGroup(
-								'copy-as-group',
-								menuItem(actions['copy-as-svg'], { disabled: emptyPage }),
-								menuItem(actions['copy-as-png'], { disabled: emptyPage || !hasClipboardWrite }),
-								menuItem(actions['copy-as-json'], { disabled: emptyPage })
+					isSelectTool
+						? menuGroup(
+								'clipboard-actions',
+								menuItem(actions['cut'], { disabled: noneSelected }),
+								menuItem(actions['copy'], { disabled: noneSelected }),
+								menuItem(actions['paste'], { disabled: !showMenuPaste })
+						  )
+						: null,
+					isSelectTool &&
+						menuGroup(
+							'conversions',
+							menuSubmenu(
+								'copy-as',
+								'menu.copy-as',
+								menuGroup(
+									'copy-as-group',
+									menuItem(actions['copy-as-svg'], { disabled: emptyPage }),
+									menuItem(actions['copy-as-png'], { disabled: emptyPage || !hasClipboardWrite }),
+									menuItem(actions['copy-as-json'], { disabled: emptyPage })
+								),
+								menuGroup(
+									'export-bg',
+									menuItem(actions['toggle-transparent'], { checked: !exportBackground })
+								)
 							),
-							menuGroup(
-								'export-bg',
-								menuItem(actions['toggle-transparent'], { checked: !exportBackground })
+							menuSubmenu(
+								'export-as',
+								'menu.export-as',
+								menuGroup(
+									'export-as-group',
+									menuItem(actions['export-as-svg'], { disabled: emptyPage }),
+									menuItem(actions['export-as-png'], { disabled: emptyPage }),
+									menuItem(actions['export-as-json'], { disabled: emptyPage })
+								),
+								menuGroup(
+									'export-bg',
+									menuItem(actions['toggle-transparent'], { checked: !exportBackground })
+								)
 							)
 						),
-						menuSubmenu(
-							'export-as',
-							'menu.export-as',
-							menuGroup(
-								'export-as-group',
-								menuItem(actions['export-as-svg'], { disabled: emptyPage }),
-								menuItem(actions['export-as-png'], { disabled: emptyPage }),
-								menuItem(actions['export-as-json'], { disabled: emptyPage })
-							),
-							menuGroup(
-								'export-bg',
-								menuItem(actions['toggle-transparent'], { checked: !exportBackground })
-							)
+					isSelectTool &&
+						menuGroup(
+							'set-selection-group',
+							menuItem(actions['select-all'], { disabled: emptyPage }),
+							menuItem(actions['select-none'], { disabled: !oneSelected })
+						),
+					isSelectTool &&
+						menuGroup(
+							'selection',
+							showAutoSizeToggle && menuItem(actions['toggle-auto-size']),
+							showEditLink && menuItem(actions['edit-link']),
+							menuItem(actions['duplicate'], { disabled: !oneSelected }),
+							allowGroup && menuItem(actions['group']),
+							allowUngroup && menuItem(actions['ungroup']),
+							menuItem(actions['unlock-all'], { disabled: emptyPage })
+						),
+					isSelectTool &&
+						menuGroup('delete-group', menuItem(actions['delete'], { disabled: !oneSelected })),
+					isSelectTool &&
+						menuGroup(
+							'embeds',
+							oneEmbedSelected && menuItem(actions['open-embed-link']),
+							oneEmbedSelected && menuItem(actions['convert-to-bookmark']),
+							oneEmbeddableBookmarkSelected && menuItem(actions['convert-to-embed'])
 						)
-					),
-					menuGroup(
-						'set-selection-group',
-						menuItem(actions['select-all'], { disabled: emptyPage }),
-						menuItem(actions['select-none'], { disabled: !oneSelected })
-					),
-					menuGroup(
-						'selection',
-						showAutoSizeToggle && menuItem(actions['toggle-auto-size']),
-						showEditLink && menuItem(actions['edit-link']),
-						menuItem(actions['duplicate'], { disabled: !oneSelected }),
-						allowGroup && menuItem(actions['group']),
-						allowUngroup && menuItem(actions['ungroup']),
-						menuItem(actions['unlock-all'], { disabled: emptyPage })
-					),
-					menuGroup('delete-group', menuItem(actions['delete'], { disabled: !oneSelected })),
-					menuGroup(
-						'embeds',
-						oneEmbedSelected && menuItem(actions['open-embed-link']),
-						oneEmbedSelected && menuItem(actions['convert-to-bookmark']),
-						oneEmbeddableBookmarkSelected && menuItem(actions['convert-to-embed'])
-					)
 				),
 				menuSubmenu(
 					'view',
@@ -196,7 +205,8 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 					)
 				)
 			),
-			menuGroup('extras', menuItem(actions['insert-embed']), menuItem(actions['insert-media'])),
+			isSelectTool &&
+				menuGroup('extras', menuItem(actions['insert-embed']), menuItem(actions['insert-media'])),
 			menuGroup(
 				'preferences',
 				menuSubmenu(
@@ -232,6 +242,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 		editor,
 		overrides,
 		actions,
+		isSelectTool,
 		oneSelected,
 		twoSelected,
 		threeSelected,
