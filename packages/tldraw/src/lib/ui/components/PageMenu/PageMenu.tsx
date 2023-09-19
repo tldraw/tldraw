@@ -34,6 +34,7 @@ export const PageMenu = function PageMenu() {
 
 	const pages = useValue('pages', () => editor.pages, [editor])
 	const currentPage = useValue('currentPage', () => editor.currentPage, [editor])
+	const currentPageId = useValue('currentPageId', () => editor.currentPageId, [editor])
 
 	// When in readonly mode, we don't allow a user to edit the pages
 	const isReadonlyMode = useReadonly()
@@ -86,7 +87,7 @@ export const PageMenu = function PageMenu() {
 		if (!isOpen) return
 		requestAnimationFrame(() => {
 			const elm = document.querySelector(
-				`[data-testid="page-menu-item-${currentPage.id}"]`
+				`[data-testid="page-menu-item-${currentPageId}"]`
 			) as HTMLDivElement
 
 			if (elm) {
@@ -108,7 +109,7 @@ export const PageMenu = function PageMenu() {
 				}
 			}
 		})
-	}, [ITEM_HEIGHT, currentPage.id, isOpen])
+	}, [ITEM_HEIGHT, currentPageId, isOpen])
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
