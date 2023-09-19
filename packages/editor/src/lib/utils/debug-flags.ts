@@ -52,6 +52,7 @@ export const debugFlags = {
 		defaults: { all: false },
 	}),
 	forceSrgb: createDebugValue('forceSrgbColors', { defaults: { all: false } }),
+	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 }
 
 declare global {
