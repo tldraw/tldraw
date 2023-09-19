@@ -87,7 +87,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			if (!editor.isIn('select')) {
 				editor.complete()
 				editor.setCurrentTool('select')
-				return true
+				return false // still let the action happen
+				return true // prevent the action from happening
 			}
 
 			return false
