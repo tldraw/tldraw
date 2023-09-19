@@ -1040,11 +1040,6 @@ input,
 	z-index: 10;
 }
 
-.tl-text-label[data-isediting='true'] {
-	border: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
-	outline: none;
-}
-
 .tl-text-label[data-isediting='true'] .tl-text-content {
 	opacity: 0;
 }
@@ -1168,7 +1163,6 @@ input,
 
 .tl-arrow-label[data-isediting='true'] > .tl-arrow-label__inner {
 	background-color: var(--color-background);
-	border: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
 }
 
 .tl-arrow-label__inner {
@@ -1355,7 +1349,6 @@ input,
 
 .tl-frame-label__editing {
 	color: transparent;
-	outline: 1.5px solid var(--color-selection-stroke);
 	white-space: pre;
 	width: auto;
 	overflow: visible;
