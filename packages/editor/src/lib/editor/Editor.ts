@@ -7454,6 +7454,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		embed: null,
 		'svg-text': null,
 		url: null,
+		html: null,
 	}
 
 	/**
@@ -8912,6 +8913,11 @@ export type TLExternalContent =
 			type: 'text'
 			point?: VecLike
 			text: string
+	  }
+	| {
+			type: 'html'
+			point?: VecLike
+			html: string
 	  }
 	| {
 			type: 'files'

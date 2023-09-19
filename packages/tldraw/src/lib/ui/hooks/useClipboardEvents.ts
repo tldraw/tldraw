@@ -90,18 +90,6 @@ async function blobAsString(blob: Blob) {
 }
 
 /**
- * Strip HTML tags from a string.
- * @param html - The HTML to strip.
- * @internal
- */
-function stripHtml(html: string) {
-	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
-	const doc = document.implementation.createHTMLDocument('')
-	doc.documentElement.innerHTML = html.trim()
-	return doc.body.textContent || doc.body.innerText || ''
-}
-
-/**
  * Whether a ClipboardItem is a file.
  * @param item - The ClipboardItem to check.
  * @internal
@@ -140,6 +128,22 @@ const handleText = (editor: Editor, data: string, point?: VecLike) => {
 			point,
 		})
 	}
+}
+
+/**
+ * Handle html pasted into the editor.
+ * @param editor - The editor instance.
+ * @param data - The text to paste.
+ * @param point - (optional) The point at which to paste the text.
+ * @internal
+ */
+const handleHtml = (editor: Editor, data: string, point?: VecLike) => {
+	editor.mark('paste')
+	editor.putExternalContent({
+		type: 'html',
+		html: data,
+		point,
+	})
 }
 
 /**
@@ -483,7 +487,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
-				handleText(editor, stripHtml(result.data), point)
+				handleHtml(editor, result.data, point)
 				return
 			}
 		}
