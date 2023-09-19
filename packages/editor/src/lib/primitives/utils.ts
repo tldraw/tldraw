@@ -270,12 +270,27 @@ export function getPointOnCircle(cx: number, cy: number, r: number, a: number) {
 export function getPolygonVertices(width: number, height: number, sides: number) {
 	const cx = width / 2
 	const cy = height / 2
-	const pointsOnPerimeter = []
+	const pointsOnPerimeter: Vec2d[] = []
+	let minX = Infinity
+	let minY = Infinity
 	for (let i = 0; i < sides; i++) {
 		const step = PI2 / sides
 		const t = -TAU + i * step
-		pointsOnPerimeter.push(new Vec2d(cx + cx * Math.cos(t), cy + cy * Math.sin(t)))
+		const x = cx + cx * Math.cos(t)
+		const y = cy + cy * Math.sin(t)
+		if (x < minX) minX = x
+		if (y < minY) minY = y
+		pointsOnPerimeter.push(new Vec2d(x, y))
 	}
+
+	if (minX !== 0 || minY !== 0) {
+		for (let i = 0; i < pointsOnPerimeter.length; i++) {
+			const pt = pointsOnPerimeter[i]
+			pt.x -= minX
+			pt.y -= minY
+		}
+	}
+
 	return pointsOnPerimeter
 }
 

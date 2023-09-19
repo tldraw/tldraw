@@ -1036,12 +1036,13 @@ input,
 	text-shadow: var(--tl-text-outline);
 	line-height: inherit;
 	position: absolute;
-	inset: calc(var(--tl-scale) * 1.5px);
+	inset: 0px;
 	z-index: 10;
 }
 
 .tl-text-label[data-isediting='true'] {
-	outline: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
+	border: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
+	outline: none;
 }
 
 .tl-text-label[data-isediting='true'] .tl-text-content {
