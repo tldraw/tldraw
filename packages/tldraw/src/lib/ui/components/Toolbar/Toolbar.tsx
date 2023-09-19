@@ -110,7 +110,7 @@ export const Toolbar = memo(function Toolbar() {
 		<div className="tlui-toolbar">
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
-					{!isReadonly && breakpoint < 6 && !editor.isIn('hand') && (
+					{!isReadonly && breakpoint < 6 && !editor.isInAny('hand', 'zoom') && (
 						<div
 							className={classNames('tlui-toolbar__extras', {
 								'tlui-toolbar__extras__hidden': !showExtraActions,

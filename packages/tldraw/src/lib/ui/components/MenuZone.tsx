@@ -15,15 +15,13 @@ export const MenuZone = track(function MenuZone() {
 	const breakpoint = useBreakpoint()
 	const isReadonly = useReadonly()
 
-	// todo: Someday, de-select the selected shapes when leaving the select tool and re-select them when re-entering that tool
-
 	return (
 		<div className="tlui-menu-zone">
 			<div className="tlui-menu-zone__controls">
 				<Menu />
 				<div className="tlui-menu-zone__divider" />
 				<PageMenu />
-				{breakpoint >= 6 && !isReadonly && !editor.isIn('hand') && (
+				{breakpoint >= 6 && !isReadonly && !editor.isInAny('hand', 'zoom') && (
 					<>
 						<div className="tlui-menu-zone__divider" />
 						<UndoButton />
