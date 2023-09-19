@@ -2147,7 +2147,6 @@ export type TLExternalAssetContent = {
 
 // @public (undocumented)
 export type TLExternalContent = {
-    source?: TLExternalContentSource;
     sources?: TLExternalContentSource[];
     point?: VecLike;
 } & ({

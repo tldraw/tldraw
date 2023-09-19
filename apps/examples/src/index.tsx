@@ -163,8 +163,8 @@ export const allExamples: Example[] = [
 		element: <AssetPropsExample />,
 	},
 	{
-		title: 'Pasted HTML',
-		path: '/pasted-html',
+		title: 'External content sources',
+		path: '/external-content-sources',
 		element: <ExternalContentSourcesExample />,
 	},
 	// not listed

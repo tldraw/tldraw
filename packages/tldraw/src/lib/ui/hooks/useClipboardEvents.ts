@@ -121,7 +121,6 @@ const handleText = (
 	editor: Editor,
 	data: string,
 	point?: VecLike,
-	source?: TLExternalContentSource,
 	sources?: TLExternalContentSource[]
 ) => {
 	const validUrlList = getValidHttpURLList(data)
@@ -137,7 +136,6 @@ const handleText = (
 			type: 'svg-text',
 			text: data,
 			point,
-			source,
 			sources,
 		})
 	} else {
@@ -146,7 +144,6 @@ const handleText = (
 			type: 'text',
 			text: data,
 			point,
-			source,
 			sources,
 		})
 	}
@@ -463,13 +460,13 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			if (isHtmlSingleLink) {
 				const href = bodyNode.firstElementChild.getAttribute('href')!
-				handleText(editor, href, point, result, results)
+				handleText(editor, href, point, results)
 				return
 			}
 
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
-				handleText(editor, stripHtml(result.data), point, result, results)
+				handleText(editor, stripHtml(result.data), point, results)
 				return
 			}
 		}
@@ -478,7 +475,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste a link
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'url') {
-			pasteUrl(editor, result.data, point, result, results)
+			pasteUrl(editor, result.data, point, results)
 			return
 		}
 	}
@@ -487,7 +484,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'text' && result.data.trim()) {
 			// The clipboard may include multiple text items, but we only want to paste the first one
-			handleText(editor, result.data, point, result, results)
+			handleText(editor, result.data, point, results)
 			return
 		}
 	}

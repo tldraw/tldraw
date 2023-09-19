@@ -12,7 +12,6 @@ export async function pasteFiles(
 	editor: Editor,
 	urls: string[],
 	point?: VecLike,
-	source?: TLExternalContentSource,
 	sources?: TLExternalContentSource[]
 ) {
 	const blobs = await Promise.all(urls.map(async (url) => await (await fetch(url)).blob()))
@@ -25,7 +24,6 @@ export async function pasteFiles(
 		files,
 		point,
 		ignoreParent: false,
-		source,
 		sources,
 	})
 

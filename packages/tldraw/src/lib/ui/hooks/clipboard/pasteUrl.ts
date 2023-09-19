@@ -14,7 +14,6 @@ export async function pasteUrl(
 	editor: Editor,
 	url: string,
 	point?: VecLike,
-	source?: TLExternalContentSource,
 	sources?: TLExternalContentSource[]
 ) {
 	// Lets see if its an image and we have CORs
@@ -37,7 +36,6 @@ export async function pasteUrl(
 		type: 'url',
 		point,
 		url,
-		source,
 		sources,
 	})
 }
