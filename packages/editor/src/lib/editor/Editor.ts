@@ -3724,9 +3724,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	@computed
 	private get _shapeGeometryCache(): ComputedCache<Geometry2d, TLShape> {
-		return this.store.createComputedCache('bounds', (shape) => {
-			return this.getShapeUtil(shape).getGeometry(shape)
-		})
+		return this.store.createComputedCache(
+			'bounds',
+			(shape) => this.getShapeUtil(shape).getGeometry(shape),
+			(a, b) => a.props === b.props
+		)
 	}
 
 	/**

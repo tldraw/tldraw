@@ -230,7 +230,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     applyDiff(diff: RecordsDiff<R>, runCallbacks?: boolean): void;
     clear: () => void;
-    createComputedCache: <T, V extends R = R>(name: string, derive: (record: V) => T | undefined) => ComputedCache<T, V>;
+    createComputedCache: <T, V extends R = R>(name: string, derive: (record: V) => T | undefined, isEqual?: ((a: V, b: V) => boolean) | undefined) => ComputedCache<T, V>;
     createSelectedComputedCache: <T, J, V extends R = R>(name: string, selector: (record: V) => T | undefined, derive: (input: T) => J | undefined) => ComputedCache<J, V>;
     // @internal (undocumented)
     ensureStoreIsUsable(): void;

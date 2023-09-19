@@ -766,7 +766,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	createComputedCache = <T, V extends R = R>(
 		name: string,
-		derive: (record: V) => T | undefined
+		derive: (record: V) => T | undefined,
+		isEqual?: (a: V, b: V) => boolean
 	): ComputedCache<T, V> => {
 		const cache = new Cache<Atom<any>, Computed<T | undefined>>()
 		return {
@@ -775,9 +776,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				if (!atom) {
 					return undefined
 				}
-				return cache.get(atom, () =>
-					computed<T | undefined>(name + ':' + id, () => derive(atom.value as V))
-				).value
+				return cache.get(atom, () => {
+					const recordSignal = isEqual
+						? computed(atom.name + ':equals', () => atom.value, { isEqual })
+						: atom
+					return computed<T | undefined>(name + ':' + id, () => {
+						return derive(recordSignal.value as V)
+					})
+				}).value
 			},
 		}
 	}
