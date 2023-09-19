@@ -83,6 +83,10 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 	// should this be a useMemo? looks like it doesn't actually deref any reactive values
 	const actions = React.useMemo<TLUiActionsContextType>(() => {
+		function canActOnSelectedShapes() {
+			return !(editor.isIn('select') && editor.selectedShapeIds.length > 0)
+		}
+
 		const actions = makeActions([
 			{
 				id: 'edit-link',
@@ -90,6 +94,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'link',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
 					trackEvent('edit-link', { source })
 					editor.mark('edit-link')
 					addDialog({ component: EditLinkDialog })
@@ -209,6 +214,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.toggle-auto-size',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
 					trackEvent('toggle-auto-size', { source })
 					editor.mark('toggling auto size')
 					editor.updateShapes(
@@ -273,6 +279,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.convert-to-bookmark',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
 					editor.batch(() => {
 						trackEvent('convert-to-bookmark', { source })
 						const shapes = editor.selectedShapes
@@ -314,6 +321,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.convert-to-embed',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
 					trackEvent('convert-to-embed', { source })
 
 					editor.batch(() => {
@@ -369,7 +377,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'duplicate',
 				readonlyOk: false,
 				onSelect(source) {
-					if (editor.currentToolId !== 'select') return
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('duplicate-shapes', { source })
 					const ids = editor.selectedShapeIds
 					const commonBounds = Box2d.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
@@ -393,6 +402,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'ungroup',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('ungroup-shapes', { source })
 					editor.mark('ungroup')
 					editor.ungroupShapes(editor.selectedShapeIds)
@@ -405,6 +416,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'group',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('group-shapes', { source })
 					const { onlySelectedShape } = editor
 					if (onlySelectedShape && editor.isShapeOfType<TLGroupShape>(onlySelectedShape, 'group')) {
@@ -423,6 +436,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-left',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('align-shapes', { operation: 'left', source })
 					editor.mark('align left')
 					editor.alignShapes(editor.selectedShapeIds, 'left')
@@ -436,6 +451,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-center-horizontal',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('align-shapes', { operation: 'center-horizontal', source })
 					editor.mark('align center horizontal')
 					editor.alignShapes(editor.selectedShapeIds, 'center-horizontal')
@@ -448,6 +465,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-right',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('align-shapes', { operation: 'right', source })
 					editor.mark('align right')
 					editor.alignShapes(editor.selectedShapeIds, 'right')
@@ -461,6 +480,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'align-center-vertical',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('align-shapes', { operation: 'center-vertical', source })
 					editor.mark('align center vertical')
 					editor.alignShapes(editor.selectedShapeIds, 'center-vertical')
@@ -473,6 +494,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?W',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('align-shapes', { operation: 'top', source })
 					editor.mark('align top')
 					editor.alignShapes(editor.selectedShapeIds, 'top')
@@ -485,6 +508,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?S',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('align-shapes', { operation: 'bottom', source })
 					editor.mark('align bottom')
 					editor.alignShapes(editor.selectedShapeIds, 'bottom')
@@ -498,6 +523,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?!h',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('distribute-shapes', { operation: 'horizontal', source })
 					editor.mark('distribute horizontal')
 					editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
@@ -511,6 +538,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?!V',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('distribute-shapes', { operation: 'vertical', source })
 					editor.mark('distribute vertical')
 					editor.distributeShapes(editor.selectedShapeIds, 'vertical')
@@ -523,6 +552,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'stretch-horizontal',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('stretch-shapes', { operation: 'horizontal', source })
 					editor.mark('stretch horizontal')
 					editor.stretchShapes(editor.selectedShapeIds, 'horizontal')
@@ -535,6 +566,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'stretch-vertical',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('stretch-shapes', { operation: 'vertical', source })
 					editor.mark('stretch vertical')
 					editor.stretchShapes(editor.selectedShapeIds, 'vertical')
@@ -547,6 +580,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '!h',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('flip-shapes', { operation: 'horizontal', source })
 					editor.mark('flip horizontal')
 					editor.flipShapes(editor.selectedShapeIds, 'horizontal')
@@ -559,6 +594,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '!v',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('flip-shapes', { operation: 'vertical', source })
 					editor.mark('flip vertical')
 					editor.flipShapes(editor.selectedShapeIds, 'vertical')
@@ -570,6 +607,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'pack',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('pack-shapes', { source })
 					editor.mark('pack')
 					editor.packShapes(editor.selectedShapeIds, 16)
@@ -582,6 +621,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'stack-vertical',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('stack-shapes', { operation: 'vertical', source })
 					editor.mark('stack-vertical')
 					editor.stackShapes(editor.selectedShapeIds, 'vertical', 16)
@@ -594,6 +635,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'stack-horizontal',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('stack-shapes', { operation: 'horizontal', source })
 					editor.mark('stack-horizontal')
 					editor.stackShapes(editor.selectedShapeIds, 'horizontal', 16)
@@ -606,6 +649,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'bring-to-front',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('reorder-shapes', { operation: 'toFront', source })
 					editor.mark('bring to front')
 					editor.bringToFront(editor.selectedShapeIds)
@@ -618,6 +663,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?]',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('reorder-shapes', { operation: 'forward', source })
 					editor.mark('bring forward')
 					editor.bringForward(editor.selectedShapeIds)
@@ -630,6 +677,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '?[',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('reorder-shapes', { operation: 'backward', source })
 					editor.mark('send backward')
 					editor.sendBackward(editor.selectedShapeIds)
@@ -642,6 +691,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '[',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('reorder-shapes', { operation: 'toBack', source })
 					editor.mark('send to back')
 					editor.sendToBack(editor.selectedShapeIds)
@@ -653,6 +704,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$x',
 				readonlyOk: false,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					editor.mark('cut')
 					cut(source)
 				},
@@ -663,6 +716,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '$c',
 				readonlyOk: true,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					copy(source)
 				},
 			},
@@ -688,6 +743,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					editor.batch(() => {
+						if (!editor.isIn('select')) return
+
 						trackEvent('select-all-shapes', { source })
 						if (editor.currentToolId !== 'select') {
 							editor.cancel()
@@ -704,6 +761,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				label: 'action.select-none',
 				readonlyOk: true,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
+
 					trackEvent('select-none-shapes', { source })
 					editor.mark('select none')
 					editor.selectNone()
@@ -716,7 +775,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'trash',
 				readonlyOk: false,
 				onSelect(source) {
-					if (editor.currentToolId !== 'select') return
+					if (!canActOnSelectedShapes()) return
 					trackEvent('delete-shapes', { source })
 					editor.mark('delete')
 					editor.deleteShapes(editor.selectedShapeIds)
@@ -728,7 +787,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-cw',
 				readonlyOk: false,
 				onSelect(source) {
-					if (editor.selectedShapeIds.length === 0) return
+					if (!canActOnSelectedShapes()) return
 					trackEvent('rotate-cw', { source })
 					editor.mark('rotate-cw')
 					const offset = editor.selectionRotation % (TAU / 2)
@@ -742,7 +801,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				icon: 'rotate-ccw',
 				readonlyOk: false,
 				onSelect(source) {
-					if (editor.selectedShapeIds.length === 0) return
+					if (!canActOnSelectedShapes()) return
 					trackEvent('rotate-ccw', { source })
 					editor.mark('rotate-ccw')
 					const offset = editor.selectionRotation % (TAU / 2)
@@ -797,6 +856,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: '!2',
 				readonlyOk: true,
 				onSelect(source) {
+					if (!canActOnSelectedShapes()) return
 					trackEvent('zoom-to-selection', { source })
 					editor.zoomToSelection({ duration: ANIMATION_MEDIUM_MS })
 				},
