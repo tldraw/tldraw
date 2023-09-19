@@ -240,11 +240,6 @@ export class DraggingHandle extends StateNode {
 			const pageTransform = editor.getShapePageTransform(shape.id)
 			if (!pageTransform) throw Error('Expected a page transform')
 
-			// Get all the outline segments from the shape
-			const additionalSegments = util
-				.getOutlineSegments(shape)
-				.map((segment) => Matrix2d.applyToPoints(pageTransform, segment))
-
 			// We want to skip the segments that include the handle, so
 			// find the index of the handle that shares the same index property
 			// as the initial dragging handle; this catches a quirk of create handles
@@ -254,7 +249,11 @@ export class DraggingHandle extends StateNode {
 				.sort(sortByIndex)
 				.findIndex(({ index }) => initialHandle.index === index)
 
-			additionalSegments.splice(handleIndex - 1, 2)
+			// Get all the outline segments from the shape
+			const additionalSegments = util
+				.getOutlineSegments(shape)
+				.map((segment) => Matrix2d.applyToPoints(pageTransform, segment))
+				.filter((_segment, i) => i !== handleIndex - 1 && i !== handleIndex)
 
 			const snapDelta = snaps.getSnappingHandleDelta({
 				additionalSegments,
