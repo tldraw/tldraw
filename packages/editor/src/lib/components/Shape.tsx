@@ -5,6 +5,7 @@ import { ShapeUtil } from '../editor/shapes/ShapeUtil'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Matrix2d } from '../primitives/Matrix2d'
+import { toDomPrecision } from '../primitives/utils'
 import { OptionalErrorBoundary } from './ErrorBoundary'
 
 /*
@@ -165,9 +166,11 @@ const CulledShape = React.memo(
 			<div
 				className="tl-shape__culled"
 				style={{
-					transform: `translate(${bounds.minX}px, ${bounds.minY}px)`,
-					width: Math.max(1, bounds.width),
-					height: Math.max(1, bounds.height),
+					transform: `translate(${toDomPrecision(bounds.minX)}px, ${toDomPrecision(
+						bounds.minY
+					)}px)`,
+					width: Math.max(1, toDomPrecision(bounds.width)),
+					height: Math.max(1, toDomPrecision(bounds.height)),
 				}}
 			/>
 		)

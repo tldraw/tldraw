@@ -518,6 +518,14 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			}
 		}
 
+		let minX = Infinity
+		let minY = Infinity
+
+		for (const vert of (this.editor.getShapeGeometry(shape) as Group2d).children[0].vertices) {
+			if (vert.x < minX) minX = vert.x
+			if (vert.y < minY) minY = vert.y
+		}
+
 		return (
 			<>
 				<SVGContainer id={id}>{getShape()}</SVGContainer>
@@ -532,6 +540,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					text={text}
 					labelColor={labelColor}
 					wrap
+					offsetX={minX}
+					offsetY={minY}
 				/>
 				{shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />

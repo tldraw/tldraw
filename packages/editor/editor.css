@@ -1029,15 +1029,14 @@ input,
 /* ---------------- Geo shape ---------------- */
 
 .tl-text-label {
-	width: 100%;
-	height: 100%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	color: var(--color-text);
 	text-shadow: var(--tl-text-outline);
 	line-height: inherit;
-	position: relative;
+	position: absolute;
+	inset: calc(var(--tl-scale) * 1.5px);
 	z-index: 10;
 }
 

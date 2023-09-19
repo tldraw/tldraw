@@ -27,6 +27,8 @@ export const TextLabel = React.memo(function TextLabel<
 	align,
 	verticalAlign,
 	wrap,
+	offsetX,
+	offsetY,
 }: {
 	id: T['id']
 	type: T['type']
@@ -38,6 +40,8 @@ export const TextLabel = React.memo(function TextLabel<
 	wrap?: boolean
 	text: string
 	labelColor: TLDefaultColorStyle
+	offsetX?: number
+	offsetY?: number
 }) {
 	const {
 		rInput,
@@ -69,6 +73,8 @@ export const TextLabel = React.memo(function TextLabel<
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
 			style={{
+				left: offsetX,
+				top: offsetY,
 				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
 				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
 			}}
