@@ -82,6 +82,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			(onlyShape ? !editor.getShapeUtil(onlyShape).hideSelectionBoundsFg(onlyShape) : true) &&
 			!isChangingStyle
 
+		// todo: consider having this be opt-out on the current state; if any has an opt-out, then don't show it
 		let shouldDisplayBox =
 			(showSelectionBounds &&
 				editor.isInAny(
