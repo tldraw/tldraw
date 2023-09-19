@@ -2,8 +2,8 @@ import {
 	Editor,
 	TLArrowShape,
 	TLBookmarkShape,
-	TLContent,
 	TLEmbedShape,
+	TLExternalContentSource,
 	TLGeoShape,
 	TLTextShape,
 	VecLike,
@@ -19,6 +19,18 @@ import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
 import { TLUiEventSource, useUiEvents } from './useEventsProvider'
+
+/**
+ * Strip HTML tags from a string.
+ * @param html - The HTML to strip.
+ * @internal
+ */
+function stripHtml(html: string) {
+	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
+	const doc = document.implementation.createHTMLDocument('')
+	doc.documentElement.innerHTML = html.trim()
+	return doc.body.textContent || doc.body.innerText || ''
+}
 
 /** @public */
 export const isValidHttpURL = (url: string) => {
@@ -105,7 +117,13 @@ const isFile = (item: ClipboardItem) => {
  * @param point - (optional) The point at which to paste the text.
  * @internal
  */
-const handleText = (editor: Editor, data: string, point?: VecLike) => {
+const handleText = (
+	editor: Editor,
+	data: string,
+	point?: VecLike,
+	source?: TLExternalContentSource,
+	sources?: TLExternalContentSource[]
+) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
 		for (const url of validUrlList) {
@@ -119,6 +137,8 @@ const handleText = (editor: Editor, data: string, point?: VecLike) => {
 			type: 'svg-text',
 			text: data,
 			point,
+			source,
+			sources,
 		})
 	} else {
 		editor.mark('paste')
@@ -126,24 +146,10 @@ const handleText = (editor: Editor, data: string, point?: VecLike) => {
 			type: 'text',
 			text: data,
 			point,
+			source,
+			sources,
 		})
 	}
-}
-
-/**
- * Handle html pasted into the editor.
- * @param editor - The editor instance.
- * @param data - The text to paste.
- * @param point - (optional) The point at which to paste the text.
- * @internal
- */
-const handleHtml = (editor: Editor, data: string, point?: VecLike) => {
-	editor.mark('paste')
-	editor.putExternalContent({
-		type: 'html',
-		html: data,
-		point,
-	})
 }
 
 /**
@@ -174,30 +180,6 @@ type ClipboardThing =
 	| {
 			type: string
 			source: Promise<string>
-	  }
-
-/**
- * The result of processing a `ClipboardThing`.
- * @internal
- */
-type ClipboardResult =
-	| {
-			type: 'tldraw'
-			data: TLContent
-	  }
-	| {
-			type: 'excalidraw'
-			data: any
-	  }
-	| {
-			type: 'text'
-			data: string
-			subtype: 'json' | 'html' | 'text' | 'url'
-	  }
-	| {
-			type: 'error'
-			data: string | null
-			reason: string
 	  }
 
 /**
@@ -343,7 +325,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// we can't await them in a loop. So we'll map them to promises and await them all at once,
 	// then make decisions based on what we find.
 
-	const results = await Promise.all<ClipboardResult>(
+	const results = await Promise.all<TLExternalContentSource>(
 		things
 			.filter((t) => t.type !== 'file')
 			.map(
@@ -481,13 +463,13 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			if (isHtmlSingleLink) {
 				const href = bodyNode.firstElementChild.getAttribute('href')!
-				handleText(editor, href, point)
+				handleText(editor, href, point, result, results)
 				return
 			}
 
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
-				handleHtml(editor, result.data, point)
+				handleText(editor, stripHtml(result.data), point, result, results)
 				return
 			}
 		}
@@ -496,7 +478,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste a link
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'url') {
-			pasteUrl(editor, result.data, point)
+			pasteUrl(editor, result.data, point, result, results)
 			return
 		}
 	}
@@ -505,7 +487,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'text' && result.data.trim()) {
 			// The clipboard may include multiple text items, but we only want to paste the first one
-			handleText(editor, result.data, point)
+			handleText(editor, result.data, point, result, results)
 			return
 		}
 	}

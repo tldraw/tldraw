@@ -230,6 +230,7 @@ export {
 export {
 	type TLExternalAssetContent,
 	type TLExternalContent,
+	type TLExternalContentSource,
 } from './lib/editor/types/external-content'
 export {
 	type TLCommand,

@@ -261,14 +261,6 @@ export function registerDefaultExternalContentHandlers(
 		createShapesForAssets(editor, compact(assets), pagePoint)
 	})
 
-	editor.registerExternalContentHandler('html', async ({ point, html }) => {
-		// by default, take the html, convert it to text, and send it back to the editor
-		const doc = document.implementation.createHTMLDocument('')
-		doc.documentElement.innerHTML = html.trim()
-		const text = doc.body.textContent || doc.body.innerText || ''
-		editor.putExternalContent({ type: 'text', point, text })
-	})
-
 	// text
 	editor.registerExternalContentHandler('text', async ({ point, text }) => {
 		const p =

@@ -2,7 +2,6 @@ import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	CameraRecordType,
-	EmbedDefinition,
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
@@ -122,6 +121,7 @@ import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
+import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLCommandHistoryOptions } from './types/history-types'
 import { OptionalKeys, RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
@@ -7454,7 +7454,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		embed: null,
 		'svg-text': null,
 		url: null,
-		html: null,
 	}
 
 	/**
@@ -8906,41 +8905,3 @@ function alertMaxShapes(editor: Editor, pageId = editor.currentPageId) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
 }
-
-/** @public */
-export type TLExternalContent =
-	| {
-			type: 'text'
-			point?: VecLike
-			text: string
-	  }
-	| {
-			type: 'html'
-			point?: VecLike
-			html: string
-	  }
-	| {
-			type: 'files'
-			files: File[]
-			point?: VecLike
-			ignoreParent: boolean
-	  }
-	| {
-			type: 'url'
-			url: string
-			point?: VecLike
-	  }
-	| {
-			type: 'svg-text'
-			text: string
-			point?: VecLike
-	  }
-	| {
-			type: 'embed'
-			url: string
-			point?: VecLike
-			embed: EmbedDefinition
-	  }
-
-/** @public */
-export type TLExternalAssetContent = { type: 'file'; file: File } | { type: 'url'; url: string }
