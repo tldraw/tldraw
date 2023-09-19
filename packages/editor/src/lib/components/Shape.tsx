@@ -2,6 +2,7 @@ import { track, useQuickReactor, useStateTracking } from '@tldraw/state'
 import { TLShape, TLShapeId } from '@tldraw/tlschema'
 import * as React from 'react'
 import { ShapeUtil } from '../editor/shapes/ShapeUtil'
+import { nearestMultiple } from '../hooks/useDPRMultiple'
 import { useEditor } from '../hooks/useEditor'
 import { useEditorComponents } from '../hooks/useEditorComponents'
 import { Matrix2d } from '../primitives/Matrix2d'
@@ -80,14 +81,18 @@ export const Shape = track(function Shape({
 			if (!shape) return null
 
 			const bounds = editor.getShapeGeometry(shape).bounds
-			setProperty(
-				'width',
-				`calc(${Math.max(1, Math.ceil(bounds.width)) + 'px'} * var(--tl-dpr-multiple))`
-			)
-			setProperty(
-				'height',
-				`calc(${Math.max(1, Math.ceil(bounds.height)) + 'px'} * var(--tl-dpr-multiple))`
-			)
+			const dpr = editor.instanceState.devicePixelRatio
+			// dprMultiple is the smallest number we can multiply dpr by to get an integer
+			// it's usually 1, 2, or 4 (for e.g. dpr of 2, 2.5 and 2.25 respectively)
+			const dprMultiple = nearestMultiple(dpr)
+			// We round the shape width and height up to the nearest multiple of dprMultiple to avoid the browser
+			// making miscalculations when applying the transform.
+			const widthRemainder = bounds.w % dprMultiple
+			const width = widthRemainder === 0 ? bounds.w : bounds.w + (dprMultiple - widthRemainder)
+			const heightRemainder = bounds.h % dprMultiple
+			const height = heightRemainder === 0 ? bounds.h : bounds.h + (dprMultiple - heightRemainder)
+			setProperty('width', Math.max(width, dprMultiple) + 'px')
+			setProperty('height', Math.max(height, dprMultiple) + 'px')
 		},
 		[editor]
 	)
