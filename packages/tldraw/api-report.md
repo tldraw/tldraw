@@ -786,6 +786,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     hideRotateHandle: () => boolean;
     // (undocumented)
+    hideSelectionBoundsBg: () => boolean;
+    // (undocumented)
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
     indicator(shape: TLLineShape): JSX.Element;

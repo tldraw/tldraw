@@ -41,6 +41,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 	override hideResizeHandles = () => true
 	override hideRotateHandle = () => true
 	override hideSelectionBoundsFg = () => true
+	override hideSelectionBoundsBg = () => true
 
 	override getDefaultProps(): TLLineShape['props'] {
 		return {
