@@ -65,8 +65,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					canBind: false,
 					canSnap: true,
 					index: 'a2',
-					x: 0,
-					y: 0,
+					x: 0.01,
+					y: 0.01,
 				},
 			},
 		}
