@@ -62,7 +62,7 @@ export default function PersistenceExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw store={store} autoFocus />
+			<Tldraw store={store} />
 		</div>
 	)
 }

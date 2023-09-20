@@ -11,7 +11,6 @@ export default function CustomStylesExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				autoFocus
 				persistenceKey="custom-styles-example"
 				shapeUtils={customShapeUtils}
 				tools={customTools}

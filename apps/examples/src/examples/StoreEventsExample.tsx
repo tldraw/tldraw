@@ -58,7 +58,7 @@ export default function StoreEventsExample() {
 	return (
 		<div style={{ display: 'flex' }}>
 			<div style={{ width: '60vw', height: '100vh' }}>
-				<Tldraw autoFocus onMount={setAppToState} />
+				<Tldraw onMount={setAppToState} />
 			</div>
 			<div>
 				<div

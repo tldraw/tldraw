@@ -250,9 +250,9 @@ function TldrawEditorWithReadyStore({
 	store,
 	tools,
 	shapeUtils,
-	autoFocus,
 	user,
 	initialState,
+	autoFocus = true,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -331,11 +331,11 @@ function TldrawEditorWithReadyStore({
 function Layout({
 	children,
 	onMount,
-	autoFocus = false,
+	autoFocus,
 }: {
 	children: any
+	autoFocus: boolean
 	onMount?: TLOnMountHandler
-	autoFocus?: boolean
 }) {
 	useZoomCss()
 	useCursor()
@@ -345,6 +345,9 @@ function Layout({
 	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 	useDPRMultiple()
+
+	const editor = useEditor()
+	editor.updateViewportScreenBounds()
 
 	return children ?? <Canvas />
 }

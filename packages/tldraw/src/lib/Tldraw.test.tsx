@@ -20,7 +20,7 @@ afterEach(() => {
 describe('<Tldraw />', () => {
 	it('Renders without crashing', async () => {
 		await act(async () => (
-			<Tldraw autoFocus>
+			<Tldraw>
 				<div data-testid="canvas-1" />
 			</Tldraw>
 		))
