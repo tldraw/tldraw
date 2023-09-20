@@ -247,7 +247,6 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		// Cubic style spline
 		if (shape.props.spline === 'cubic') {
 			const splinePath = getSvgPathForLineGeometry(spline)
-
 			if (dash === 'solid') {
 				return (
 					<SVGContainer id={shape.id}>
@@ -256,7 +255,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 							strokeWidth={strokeWidth}
 							stroke={theme[color].solid}
 							fill="none"
-							d={splinePath}
+							d={'M0,0 ' + splinePath}
 						/>
 					</SVGContainer>
 				)
