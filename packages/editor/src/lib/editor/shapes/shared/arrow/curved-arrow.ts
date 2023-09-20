@@ -287,52 +287,6 @@ export function getCurvedArrowInfo(
 		b.setTo(tempB)
 	}
 
-	// if (
-	// 	Math.sign(length) !== Math.sign(handleArc.length) ||
-	// 	Math.abs(length) < MIN_ARROW_LENGTH / 2
-	// ) {
-	// 	if ()
-	// 	offsetA = getPointOnCircle(
-	// 		handleArc.center.x,
-	// 		handleArc.center.y,
-	// 		handleArc.radius,
-	// 		lerpAngles(
-	// 			Vec2d.Angle(handleArc.center, a),
-	// 			Vec2d.Angle(handleArc.center, middle),
-	// 			-offset / Math.abs(getArcLength(handleArc.center, handleArc.radius, a, middle))
-	// 		)
-	// 	)
-	// }
-
-	// if (
-	// 	startShapeInfo &&
-	// 	endShapeInfo &&
-	// 	startShapeInfo.shape !== endShapeInfo.shape &&
-	// 	!startShapeInfo.isExact &&
-	// 	!endShapeInfo.isExact
-	// ) {
-	// 	// If we missed an intersection, then try
-	// 	const startAngle = Vec2d.Angle(handleArc.center, a)
-	// 	const endAngle = Vec2d.Angle(handleArc.center, b)
-
-	// 	const offset = handleArc.sweepFlag ? MIN_ARROW_LENGTH : -MIN_ARROW_LENGTH
-	// 	const arcLength = getArcLength(handleArc.center, handleArc.radius, b, a)
-	// 	const {
-	// 		center: { x, y },
-	// 		radius,
-	// 	} = handleArc
-
-	// 	if (startShapeInfo && !startShapeInfo.didIntersect) {
-	// 		console.log('whale')
-	// 		a.setTo(getPointOnCircle(x, y, radius, lerpAngles(startAngle, endAngle, offset / arcLength)))
-	// 	}
-
-	// 	if (endShapeInfo && !endShapeInfo.didIntersect) {
-	// 		console.log('walrus')
-	// 		b.setTo(getPointOnCircle(x, y, radius, lerpAngles(startAngle, endAngle, -offset / arcLength)))
-	// 	}
-	// }
-
 	let midAngle = lerpAngles(Vec2d.Angle(handleArc.center, a), Vec2d.Angle(handleArc.center, b), 0.5)
 	let midPoint = getPointOnCircle(
 		handleArc.center.x,
