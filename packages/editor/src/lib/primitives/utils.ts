@@ -110,6 +110,22 @@ export function canonicalizeRotation(a: number) {
 }
 
 /**
+ * Get the clockwise angle distance between two angles.
+ *
+ * @param a0 - The first angle.
+ * @param a1 - The second angle.
+ * @public
+ */
+export function clockwiseAngleDist(a0: number, a1: number): number {
+	a0 = canonicalizeRotation(a0)
+	a1 = canonicalizeRotation(a1)
+	if (a0 > a1) {
+		a1 += PI2
+	}
+	return a1 - a0
+}
+
+/**
  * Get the short angle distance between two angles.
  *
  * @param a0 - The first angle.

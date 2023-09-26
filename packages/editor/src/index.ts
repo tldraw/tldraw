@@ -296,6 +296,7 @@ export {
 	canonicalizeRotation,
 	clamp,
 	clampRadians,
+	clockwiseAngleDist,
 	degreesToRadians,
 	getArcLength,
 	getPointOnCircle,
