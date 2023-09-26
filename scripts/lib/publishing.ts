@@ -153,5 +153,7 @@ export async function publish() {
 				await new Promise((resolve) => setTimeout(resolve, 3000))
 			}
 		}
+		nicelog('sleeping for 10 seconds to let npm think apparently')
+		await new Promise((resolve) => setTimeout(resolve, 10000))
 	}
 }
