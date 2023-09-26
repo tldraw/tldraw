@@ -1202,7 +1202,7 @@ export function isAngleBetween(a: number, b: number, c: number): boolean;
 export const isSafeFloat: (n: number) => boolean;
 
 // @public
-export function lerpAngles(a0: number, a1: number, t: number): number;
+export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag?: number): number;
 
 // @public (undocumented)
 export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike): boolean;

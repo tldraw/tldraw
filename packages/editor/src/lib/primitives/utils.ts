@@ -110,7 +110,7 @@ export function canonicalizeRotation(a: number) {
 }
 
 /**
- * Get the short angle distance between two angles.
+ * Get the short angle distance (in radians) between two angles.
  *
  * @param a0 - The first angle.
  * @param a1 - The second angle.
@@ -140,8 +140,8 @@ export function longAngleDist(a0: number, a1: number): number {
  * @param t - The interpolation value.
  * @public
  */
-export function lerpAngles(a0: number, a1: number, t: number): number {
-	return a0 + shortAngleDist(a0, a1) * t
+export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag = 0): number {
+	return a0 + (largeArcFlag ? longAngleDist(a0, a1) : shortAngleDist(a0, a1)) * t
 }
 
 /**

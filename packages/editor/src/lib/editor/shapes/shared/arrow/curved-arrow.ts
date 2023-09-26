@@ -3,15 +3,7 @@ import { Box2d } from '../../../../primitives/Box2d'
 import { Matrix2d } from '../../../../primitives/Matrix2d'
 import { Vec2d, VecLike } from '../../../../primitives/Vec2d'
 import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../primitives/intersect'
-import {
-	PI,
-	PI2,
-	getArcLength,
-	getPointOnCircle,
-	isSafeFloat,
-	lerpAngles,
-	shortAngleDist,
-} from '../../../../primitives/utils'
+import { PI, PI2, isSafeFloat, lerpAngles, shortAngleDist } from '../../../../primitives/utils'
 import type { Editor } from '../../../Editor'
 import { TLArcInfo, TLArrowInfo } from './arrow-types'
 import {
@@ -197,111 +189,84 @@ export function getCurvedArrowInfo(
 		}
 	}
 
-	if (aIntersectionPoint || bIntersectionPoint) {
-		const tempA = aIntersectionPoint
-			? getPointOnCircle(
-					handleArc.center.x,
-					handleArc.center.y,
-					handleArc.radius,
-					lerpAngles(
-						Vec2d.Angle(handleArc.center, aIntersectionPoint),
-						Vec2d.Angle(handleArc.center, b),
-						aOffsetAmount /
-							Math.abs(getArcLength(handleArc.center, handleArc.radius, aIntersectionPoint, b))
-					)
-			  )
-			: a
+	const tempA = a.clone()
+	const tempB = b.clone()
+	const tempC = c.clone()
 
-		const tempB = bIntersectionPoint
-			? getPointOnCircle(
-					handleArc.center.x,
-					handleArc.center.y,
-					handleArc.radius,
-					lerpAngles(
-						Vec2d.Angle(handleArc.center, bIntersectionPoint),
-						Vec2d.Angle(handleArc.center, tempA),
-						bOffsetAmount /
-							Math.abs(getArcLength(handleArc.center, handleArc.radius, bIntersectionPoint, tempA))
-					)
-			  )
-			: b
+	if (aIntersectionPoint) {
+		// Offset the start point by the offset amount
+		const intersectionArc = getArcInfo(a, b, aIntersectionPoint)
+		const offsetSize = (aOffsetAmount / intersectionArc.length) * intersectionArc.size
 
-		if (startShapeInfo && !aIntersectionPoint) {
-			tempA.setTo(
-				getPointOnCircle(
-					handleArc.center.x,
-					handleArc.center.y,
-					handleArc.radius,
-					lerpAngles(
-						Vec2d.Angle(handleArc.center, tempB),
-						Vec2d.Angle(handleArc.center, a),
-						MIN_ARROW_LENGTH /
-							2 /
-							Math.abs(getArcLength(handleArc.center, handleArc.radius, tempB, a))
-					)
-				)
-			)
-		}
-
-		if (endShapeInfo && !bIntersectionPoint) {
-			tempB.setTo(
-				getPointOnCircle(
-					handleArc.center.x,
-					handleArc.center.y,
-					handleArc.radius,
-					lerpAngles(
-						Vec2d.Angle(handleArc.center, tempA),
-						Vec2d.Angle(handleArc.center, b),
-						MIN_ARROW_LENGTH /
-							2 /
-							Math.abs(getArcLength(handleArc.center, handleArc.radius, tempA, b))
-					)
-				)
-			)
-		}
-
-		let tempLength = getArcLength(handleArc.center, handleArc.radius, tempA, tempB)
-
-		if (
-			Math.abs(tempLength) > Math.abs(handleArc.length) ||
-			Math.abs(tempLength) < MIN_ARROW_LENGTH / 2 ||
-			Math.sign(tempLength) !== Math.sign(handleArc.length)
-		) {
-			tempB.setTo(
-				getPointOnCircle(
-					handleArc.center.x,
-					handleArc.center.y,
-					handleArc.radius,
-					lerpAngles(
-						Vec2d.Angle(handleArc.center, tempA),
-						Vec2d.Angle(handleArc.center, b),
-						MIN_ARROW_LENGTH /
-							2 /
-							Math.abs(getArcLength(handleArc.center, handleArc.radius, tempA, b))
-					)
-				)
-			)
-		}
-
-		a.setTo(tempA)
-		b.setTo(tempB)
+		const flip = Math.abs(offsetSize) > Math.abs(intersectionArc.size) ? -1 : 1
+		const offsetDirection = intersectionArc.length < 0 ? -1 : 1
+		const offsetPoint = Vec2d.RotWith(
+			aIntersectionPoint,
+			handleArc.center,
+			offsetSize * offsetDirection * flip
+		)
+		tempA.setTo(offsetPoint)
 	}
 
-	let midAngle = lerpAngles(Vec2d.Angle(handleArc.center, a), Vec2d.Angle(handleArc.center, b), 0.5)
-	let midPoint = getPointOnCircle(
-		handleArc.center.x,
-		handleArc.center.y,
-		handleArc.radius,
-		midAngle
-	)
+	if (bIntersectionPoint) {
+		// Offset the end point by the offset amount
+		const intersectionArc = getArcInfo(a, b, bIntersectionPoint)
+		const offsetSize = (bOffsetAmount / intersectionArc.length) * intersectionArc.size
+		const offsetDirection = intersectionArc.length < 0 ? 1 : -1
 
-	if (+Vec2d.Clockwise(a, midPoint, b) !== handleArc.sweepFlag) {
-		midAngle += PI
-		midPoint = getPointOnCircle(handleArc.center.x, handleArc.center.y, handleArc.radius, midAngle)
+		const offsetPoint = Vec2d.RotWith(
+			bIntersectionPoint,
+			handleArc.center,
+			offsetSize * offsetDirection
+		)
+
+		tempB.setTo(offsetPoint)
 	}
 
-	c.setTo(midPoint)
+	const veryShort =
+		(endShapeInfo && !bIntersectionPoint) ||
+		(startShapeInfo && !aIntersectionPoint) ||
+		Math.abs(
+			trueShortAngle(Vec2d.Angle(handleArc.center, tempA), Vec2d.Angle(handleArc.center, tempB)) *
+				handleArc.radius
+		) <=
+			MIN_ARROW_LENGTH / 2 ||
+		Vec2d.Dpr(Vec2d.Tan(tempA, b), Vec2d.Tan(tempA, tempB)) < 0.5
 
+	if (veryShort) {
+		const offsetSize = (MIN_ARROW_LENGTH / 2 / (handleArc.radius * PI2)) * PI2
+		const offsetDirection = handleArc.sweepFlag ? 1 : -1
+		const offsetPoint = Vec2d.RotWith(tempA, handleArc.center, offsetSize * offsetDirection)
+		tempB.setTo(offsetPoint)
+	}
+
+	// Finally, place the middle handle between the new start and end points
+
+	const angleA = Vec2d.Angle(handleArc.center, tempA)
+	const angleB = Vec2d.Angle(handleArc.center, tempB)
+
+	// Find the distance in radians between the two angles
+	let delta = trueAngleDelta(angleA, angleB)
+	if (!veryShort && Math.abs(delta) > PI) {
+		delta = PI2 - delta
+		if (Vec2d.Clockwise(tempA, tempC, tempB) === Vec2d.Clockwise(a, c, b)) {
+			delta *= -1
+		}
+	}
+
+	// Place the middle handle between the start and end handles
+	tempC.setTo(Vec2d.RotWith(tempA, handleArc.center, delta / 2))
+
+	// If the arc is still wrong, flip the middle handle to the other side
+	if (Vec2d.Clockwise(tempA, tempC, tempB) !== Vec2d.Clockwise(a, c, b)) {
+		tempC.setTo(Vec2d.RotWith(tempC, handleArc.center, PI))
+	}
+
+	a.setTo(tempA)
+	b.setTo(tempB)
+	c.setTo(tempC)
+
+	// We can finally calculate the body arc
 	const bodyArc = getArcInfo(a, b, c)
 
 	return {
@@ -457,4 +422,16 @@ export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 		largeArcFlag,
 		sweepFlag,
 	}
+}
+
+function trueAngleDelta(angleA: number, angleB: number) {
+	return (angleA < angleB ? angleB - angleA : angleA - angleB) * (angleA < angleB ? 1 : -1) //shortAngleDist(angleA, angleB)
+}
+
+function trueShortAngle(angleA: number, angleB: number) {
+	const delta = trueAngleDelta(angleA, angleB)
+	if (Math.abs(delta) > PI) {
+		return PI2 - delta
+	}
+	return delta
 }
