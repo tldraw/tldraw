@@ -532,6 +532,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 					text={text}
 					labelColor={labelColor}
 					wrap
+					bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
 				/>
 				{shape.props.url && (
 					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
@@ -813,10 +814,12 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 	override onResize: TLOnResizeHandler<TLGeoShape> = (
 		shape,
-		{ initialBounds, handle, newPoint, scaleX, scaleY }
+		{ handle, newPoint, scaleX, scaleY, initialShape }
 	) => {
-		let w = initialBounds.width * scaleX
-		let h = initialBounds.height * scaleY
+		// use the w/h from props here instead of the initialBounds here,
+		// since cloud shapes calculated bounds can differ from the props w/h.
+		let w = initialShape.props.w * scaleX
+		let h = (initialShape.props.h + initialShape.props.growY) * scaleY
 		let overShrinkX = 0
 		let overShrinkY = 0
 
