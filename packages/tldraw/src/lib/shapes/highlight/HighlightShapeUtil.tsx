@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
 	Circle2d,
-	Polyline2d,
+	Polygon2d,
 	SVGContainer,
 	ShapeUtil,
 	TLDefaultColorTheme,
@@ -18,7 +18,9 @@ import {
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { FONT_SIZES } from '../shared/default-shape-constants'
+import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
+import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useForceSolid } from '../shared/useForceSolid'
@@ -47,8 +49,8 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 	}
 
 	getGeometry(shape: TLHighlightShape) {
+		const strokeWidth = getStrokeWidth(shape)
 		if (getIsDot(shape)) {
-			const strokeWidth = getStrokeWidth(shape)
 			return new Circle2d({
 				x: -strokeWidth / 2,
 				y: -strokeWidth / 2,
@@ -57,8 +59,13 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 			})
 		}
 
-		return new Polyline2d({
-			points: getPointsFromSegments(shape.props.segments),
+		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, true)
+		const opts = getHighlightFreehandSettings({ strokeWidth: sw, showAsComplete: true })
+		setStrokePointRadii(strokePoints, opts)
+
+		return new Polygon2d({
+			points: getStrokeOutlinePoints(strokePoints, opts),
+			isFilled: true,
 		})
 	}
 
@@ -96,7 +103,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const options = getHighlightFreehandSettings({
 			strokeWidth,
 			showAsComplete,
-			isPen: shape.props.isPen,
 		})
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
@@ -108,10 +114,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		}
 
 		return <path d={strokePath} />
-	}
-
-	override expandSelectionOutlinePx(shape: TLHighlightShape): number {
-		return getStrokeWidth(shape) / 2
 	}
 
 	override toSvg(shape: TLHighlightShape) {
@@ -164,7 +166,11 @@ function getIndicatorDot(point: VecLike, sw: number) {
 	},0`
 }
 
-function getHighlightSvgPath(shape: TLHighlightShape, strokeWidth: number, forceSolid: boolean) {
+function getHighlightStrokePoints(
+	shape: TLHighlightShape,
+	strokeWidth: number,
+	forceSolid: boolean
+) {
 	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
@@ -176,13 +182,19 @@ function getHighlightSvgPath(shape: TLHighlightShape, strokeWidth: number, force
 	const options = getHighlightFreehandSettings({
 		strokeWidth: sw,
 		showAsComplete,
-		isPen: shape.props.isPen,
 	})
 	const strokePoints = getStrokePoints(allPointsFromSegments, options)
+
+	return { strokePoints, sw }
+}
+
+function getHighlightSvgPath(shape: TLHighlightShape, strokeWidth: number, forceSolid: boolean) {
+	const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
+
 	const solidStrokePath =
 		strokePoints.length > 1
 			? getSvgPathFromStrokePoints(strokePoints, false)
-			: getShapeDot(allPointsFromSegments[0])
+			: getShapeDot(shape.props.segments[0].points[0])
 
 	return { solidStrokePath, sw }
 }

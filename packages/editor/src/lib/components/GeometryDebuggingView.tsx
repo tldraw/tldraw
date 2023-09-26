@@ -1,18 +1,33 @@
 import { track } from '@tldraw/state'
 import { modulate } from '@tldraw/utils'
+import { useEffect, useState } from 'react'
 import { HIT_TEST_MARGIN } from '../constants'
 import { useEditor } from '../hooks/useEditor'
+
+function useTick(isEnabled = true) {
+	const [_, setTick] = useState(0)
+	const editor = useEditor()
+	useEffect(() => {
+		if (!isEnabled) return
+		const update = () => setTick((tick) => tick + 1)
+		editor.on('tick', update)
+		return () => {
+			editor.off('tick', update)
+		}
+	}, [editor, isEnabled])
+}
 
 export const GeometryDebuggingView = track(function GeometryDebuggingView({
 	showStroke = true,
 	showVertices = true,
-	showClosestPointOnOutline = false,
+	showClosestPointOnOutline = true,
 }: {
 	showStroke?: boolean
 	showVertices?: boolean
 	showClosestPointOnOutline?: boolean
 }) {
 	const editor = useEditor()
+	useTick(showClosestPointOnOutline)
 
 	const {
 		zoomLevel,

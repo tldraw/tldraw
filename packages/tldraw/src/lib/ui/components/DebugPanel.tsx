@@ -183,6 +183,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 			<DropdownMenu.Group>
 				<DebugFlagToggle flag={debugFlags.debugSvg} />
 				<DebugFlagToggle flag={debugFlags.forceSrgb} />
+				<DebugFlagToggle flag={debugFlags.debugGeometry} />
 				<DebugFlagToggle
 					flag={debugFlags.debugCursors}
 					onChange={(enabled) => {

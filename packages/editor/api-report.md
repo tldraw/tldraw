@@ -412,6 +412,7 @@ export const debugFlags: {
     resetConnectionEveryPing: DebugFlag<boolean>;
     debugCursors: DebugFlag<boolean>;
     forceSrgb: DebugFlag<boolean>;
+    debugGeometry: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
