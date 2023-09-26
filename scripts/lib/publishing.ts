@@ -159,6 +159,7 @@ export async function publish() {
 						// --tolerate-republish seems to not work for canary versions??? so let's just ignore this error
 						return
 					}
+					throw e
 				}
 			},
 			{
