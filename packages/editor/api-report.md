@@ -328,6 +328,9 @@ export function clamp(n: number, min: number, max: number): number;
 // @public
 export function clampRadians(r: number): number;
 
+// @public
+export function clockwiseAngleDist(a0: number, a1: number): number;
+
 export { computed }
 
 // @public (undocumented)
@@ -412,6 +415,7 @@ export const debugFlags: {
     resetConnectionEveryPing: DebugFlag<boolean>;
     debugCursors: DebugFlag<boolean>;
     forceSrgb: DebugFlag<boolean>;
+    debugGeometry: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
@@ -623,16 +627,16 @@ export class Editor extends EventEmitter<TLEventMap> {
     get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
     externalAssetContentHandlers: {
-        [K in TLExternalAssetContent_2['type']]: {
-            [Key in K]: ((info: TLExternalAssetContent_2 & {
+        [K in TLExternalAssetContent['type']]: {
+            [Key in K]: ((info: TLExternalAssetContent & {
                 type: Key;
             }) => Promise<TLAsset | undefined>) | null;
         }[K];
     };
     // @internal (undocumented)
     externalContentHandlers: {
-        [K in TLExternalContent_2['type']]: {
-            [Key in K]: ((info: TLExternalContent_2 & {
+        [K in TLExternalContent['type']]: {
+            [Key in K]: ((info: TLExternalContent & {
                 type: Key;
             }) => void) | null;
         }[K];
@@ -649,7 +653,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         handleId: "end" | "start";
     }[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
-    getAssetForExternalContent(info: TLExternalAssetContent_2): Promise<TLAsset | undefined>;
+    getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLShape | undefined;
@@ -770,14 +774,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         preserveIds?: boolean;
     }): this;
-    putExternalContent(info: TLExternalContent_2): Promise<void>;
+    putExternalContent(info: TLExternalContent): Promise<void>;
     redo(): this;
-    registerExternalAssetHandler<T extends TLExternalAssetContent_2['type']>(type: T, handler: ((info: TLExternalAssetContent_2 & {
+    registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(type: T, handler: ((info: TLExternalAssetContent & {
         type: T;
     }) => Promise<TLAsset>) | null): this;
-    registerExternalContentHandler<T extends TLExternalContent_2['type']>(type: T, handler: ((info: T extends TLExternalContent_2['type'] ? TLExternalContent_2 & {
+    registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
         type: T;
-    } : TLExternalContent_2) => void) | null): this;
+    } : TLExternalContent) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
     get renderingBounds(): Box2d;
     get renderingBoundsExpanded(): Box2d;
@@ -2147,27 +2151,42 @@ export type TLExternalAssetContent = {
 
 // @public (undocumented)
 export type TLExternalContent = {
+    sources?: TLExternalContentSource[];
+    point?: VecLike;
+} & ({
     type: 'embed';
     url: string;
-    point?: VecLike;
     embed: EmbedDefinition;
 } | {
     type: 'files';
     files: File[];
-    point?: VecLike;
     ignoreParent: boolean;
 } | {
     type: 'svg-text';
     text: string;
-    point?: VecLike;
 } | {
     type: 'text';
-    point?: VecLike;
     text: string;
 } | {
     type: 'url';
     url: string;
-    point?: VecLike;
+});
+
+// @public (undocumented)
+export type TLExternalContentSource = {
+    type: 'error';
+    data: null | string;
+    reason: string;
+} | {
+    type: 'excalidraw';
+    data: any;
+} | {
+    type: 'text';
+    data: string;
+    subtype: 'html' | 'json' | 'text' | 'url';
+} | {
+    type: 'tldraw';
+    data: TLContent;
 };
 
 // @public (undocumented)

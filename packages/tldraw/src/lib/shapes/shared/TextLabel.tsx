@@ -1,4 +1,5 @@
 import {
+	Box2d,
 	TLDefaultColorStyle,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
@@ -27,6 +28,7 @@ export const TextLabel = React.memo(function TextLabel<
 	align,
 	verticalAlign,
 	wrap,
+	bounds,
 }: {
 	id: T['id']
 	type: T['type']
@@ -38,6 +40,7 @@ export const TextLabel = React.memo(function TextLabel<
 	wrap?: boolean
 	text: string
 	labelColor: TLDefaultColorStyle
+	bounds?: Box2d
 }) {
 	const {
 		rInput,
@@ -71,6 +74,15 @@ export const TextLabel = React.memo(function TextLabel<
 			style={{
 				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
 				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				...(bounds
+					? {
+							top: bounds.minY,
+							left: bounds.minX,
+							width: bounds.width,
+							height: bounds.height,
+							position: 'absolute',
+					  }
+					: {}),
 			}}
 		>
 			{isEmpty && !isInteractive ? null : (

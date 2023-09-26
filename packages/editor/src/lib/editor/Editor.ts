@@ -2,7 +2,6 @@ import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
 	CameraRecordType,
-	EmbedDefinition,
 	InstancePageStateRecordType,
 	PageRecordType,
 	StyleProp,
@@ -122,6 +121,7 @@ import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
+import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLCommandHistoryOptions } from './types/history-types'
 import { OptionalKeys, RequiredKeys } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
@@ -3953,7 +3953,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed private get _shapeMaskCache(): ComputedCache<Vec2d[], TLShape> {
-		return this.store.createComputedCache<Vec2d[], TLShape>('pageMaskCache', (shape) => {
+		return this.store.createComputedCache('pageMaskCache', (shape) => {
 			if (isPageId(shape.parentId)) {
 				return undefined
 			}
@@ -3975,7 +3975,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (intersection) {
 						return intersection.map(Vec2d.Cast)
 					}
-					return undefined
+					return []
 				})
 
 			return pageMask
@@ -8908,36 +8908,3 @@ function alertMaxShapes(editor: Editor, pageId = editor.currentPageId) {
 	const name = editor.getPage(pageId)!.name
 	editor.emit('max-shapes', { name, pageId, count: MAX_SHAPES_PER_PAGE })
 }
-
-/** @public */
-export type TLExternalContent =
-	| {
-			type: 'text'
-			point?: VecLike
-			text: string
-	  }
-	| {
-			type: 'files'
-			files: File[]
-			point?: VecLike
-			ignoreParent: boolean
-	  }
-	| {
-			type: 'url'
-			url: string
-			point?: VecLike
-	  }
-	| {
-			type: 'svg-text'
-			text: string
-			point?: VecLike
-	  }
-	| {
-			type: 'embed'
-			url: string
-			point?: VecLike
-			embed: EmbedDefinition
-	  }
-
-/** @public */
-export type TLExternalAssetContent = { type: 'file'; file: File } | { type: 'url'; url: string }

@@ -47,19 +47,17 @@ const solidSettings = (strokeWidth: number): StrokeOptions => {
 export function getHighlightFreehandSettings({
 	strokeWidth,
 	showAsComplete,
-	isPen,
 }: {
 	strokeWidth: number
 	showAsComplete: boolean
-	isPen: boolean
 }): StrokeOptions {
 	return {
 		size: 1 + strokeWidth,
-		thinning: 0.1,
+		thinning: 0,
 		streamline: 0.5,
 		smoothing: 0.5,
-		simulatePressure: !isPen,
-		easing: isPen ? PEN_EASING : EASINGS.easeOutSine,
+		simulatePressure: false,
+		easing: EASINGS.easeOutSine,
 		last: showAsComplete,
 	}
 }
