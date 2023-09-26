@@ -188,8 +188,6 @@ function SnapLinesWrapper() {
 	)
 }
 
-const MIN_HANDLE_DISTANCE = 48
-
 function HandlesWrapper() {
 	const editor = useEditor()
 	const { Handles } = useEditorComponents()
