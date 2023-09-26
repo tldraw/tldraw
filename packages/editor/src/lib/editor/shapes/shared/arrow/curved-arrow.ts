@@ -425,7 +425,7 @@ export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 }
 
 function trueAngleDelta(angleA: number, angleB: number) {
-	return (angleA < angleB ? angleB - angleA : angleA - angleB) * (angleA < angleB ? 1 : -1) //shortAngleDist(angleA, angleB)
+	return (angleA < angleB ? angleB - angleA : angleA - angleB) * (angleA < angleB ? 1 : -1)
 }
 
 function trueShortAngle(angleA: number, angleB: number) {

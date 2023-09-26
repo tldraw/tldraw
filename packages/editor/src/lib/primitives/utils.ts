@@ -117,8 +117,8 @@ export function canonicalizeRotation(a: number) {
  * @public
  */
 export function shortAngleDist(a0: number, a1: number): number {
-	const da = (a1 - a0) % PI2
-	return ((2 * da) % PI2) - da
+	const delta = angleDelta(a0, a1)
+	return delta < PI ? delta : PI2 - delta
 }
 
 /**
@@ -129,7 +129,8 @@ export function shortAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function longAngleDist(a0: number, a1: number): number {
-	return PI2 - shortAngleDist(a0, a1)
+	const delta = angleDelta(a0, a1)
+	return delta > PI ? delta : PI2 - delta
 }
 
 /**
@@ -152,7 +153,7 @@ export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag = 0):
  * @public
  */
 export function angleDelta(a0: number, a1: number): number {
-	return shortAngleDist(a0, a1)
+	return (a0 < a1 ? a1 - a0 : a0 - a1) * (a0 < a1 ? 1 : -1)
 }
 
 /**

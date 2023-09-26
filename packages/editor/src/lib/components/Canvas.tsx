@@ -218,22 +218,7 @@ function HandlesWrapper() {
 
 	// Don't display a temporary handle if the distance between it and its neighbors is too small.
 
-	const handlesToDisplay = handles
-		.slice()
-		// .filter((handle) => {
-		// 	// Always show vertex handles
-		// 	if (handle.type === 'vertex') return true
-		// 	// And filter out any other handles that are too close to vertex handles
-		// 	for (let i = 0; i < handles.length; i++) {
-		// 		const otherHandle = handles[i]
-		// 		if (otherHandle.type !== 'vertex') continue
-		// 		if (Vec2d.Dist(handle, otherHandle) < MIN_HANDLE_DISTANCE / zoomLevel) {
-		// 			return false
-		// 		}
-		// 	}
-		// 	return true
-		// })
-		.sort((a) => (a.type === 'vertex' ? 1 : -1))
+	const handlesToDisplay = handles.slice().sort((a) => (a.type === 'vertex' ? 1 : -1))
 
 	return (
 		<Handles>
