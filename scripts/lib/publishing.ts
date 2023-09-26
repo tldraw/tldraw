@@ -1,8 +1,9 @@
 import { execSync } from 'child_process'
 import { fetch } from 'cross-fetch'
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { compare, parse } from 'semver'
+import { exec } from './exec'
 import { BUBLIC_ROOT } from './file'
 import { nicelog } from './nicelog'
 
@@ -128,13 +129,40 @@ export async function publish() {
 
 		await retry(
 			async () => {
-				execSync(`yarn npm publish --tag ${prereleaseTag} --tolerate-republish --access public`, {
-					stdio: 'inherit',
-					cwd: packageDetails.dir,
-				})
+				let output = ''
+				try {
+					exec(
+						`yarn`,
+						[
+							'npm',
+							'publish',
+							'--tag',
+							String(prereleaseTag),
+							'--tolerate-republish',
+							'--access',
+							'public',
+						],
+						{
+							pwd: packageDetails.dir,
+							processStdoutLine: (line) => {
+								output += line + '\n'
+								nicelog(line)
+							},
+							processStderrLine: (line) => {
+								output += line + '\n'
+								nicelog(line)
+							},
+						}
+					)
+				} catch (e) {
+					if (output.includes('You cannot publish over the previously published versions')) {
+						// --tolerate-republish seems to not work for canary versions??? so let's just ignore this error
+						return
+					}
+				}
 			},
 			{
-				delay: 10000,
+				delay: 10_000,
 				numAttempts: 5,
 			}
 		)
