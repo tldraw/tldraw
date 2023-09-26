@@ -131,7 +131,7 @@ export async function publish() {
 			async () => {
 				let output = ''
 				try {
-					exec(
+					await exec(
 						`yarn`,
 						[
 							'npm',
