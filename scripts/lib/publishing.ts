@@ -1,8 +1,9 @@
 import { execSync } from 'child_process'
 import { fetch } from 'cross-fetch'
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { compare, parse } from 'semver'
+import { exec } from './exec'
 import { BUBLIC_ROOT } from './file'
 import { nicelog } from './nicelog'
 
@@ -126,14 +127,50 @@ export async function publish() {
 			`Publishing ${packageDetails.name} with version ${packageDetails.version} under tag @${prereleaseTag}`
 		)
 
-		execSync(`yarn npm publish --tag ${prereleaseTag} --tolerate-republish --access public`, {
-			stdio: 'inherit',
-			cwd: packageDetails.dir,
-		})
-		let waitAttempts = 10
+		await retry(
+			async () => {
+				let output = ''
+				try {
+					exec(
+						`yarn`,
+						[
+							'npm',
+							'publish',
+							'--tag',
+							String(prereleaseTag),
+							'--tolerate-republish',
+							'--access',
+							'public',
+						],
+						{
+							pwd: packageDetails.dir,
+							processStdoutLine: (line) => {
+								output += line + '\n'
+								nicelog(line)
+							},
+							processStderrLine: (line) => {
+								output += line + '\n'
+								nicelog(line)
+							},
+						}
+					)
+				} catch (e) {
+					if (output.includes('You cannot publish over the previously published versions')) {
+						// --tolerate-republish seems to not work for canary versions??? so let's just ignore this error
+						return
+					}
+					throw e
+				}
+			},
+			{
+				delay: 10_000,
+				numAttempts: 5,
+			}
+		)
 
-		loop: while (waitAttempts > 0) {
-			try {
+		await retry(
+			async ({ attempt, total }) => {
+				nicelog('Waiting for package to be published... attempt', attempt, 'of', total)
 				// fetch the new package directly from the npm registry
 				const newVersion = packageDetails.version
 				const unscopedName = packageDetails.name.replace('@tldraw/', '')
@@ -146,12 +183,36 @@ export async function publish() {
 				if (res.status >= 400) {
 					throw new Error(`Package not found: ${res.status}`)
 				}
-				break loop
-			} catch (e) {
-				nicelog('Waiting for package to be published... attemptsRemaining', waitAttempts)
-				waitAttempts--
-				await new Promise((resolve) => setTimeout(resolve, 3000))
+			},
+			{
+				delay: 3000,
+				numAttempts: 10,
 			}
-		}
+		)
 	}
+}
+
+function retry(
+	fn: (args: { attempt: number; remaining: number; total: number }) => Promise<void>,
+	opts: {
+		numAttempts: number
+		delay: number
+	}
+): Promise<void> {
+	return new Promise((resolve, reject) => {
+		let attempts = 0
+		function attempt() {
+			fn({ attempt: attempts, remaining: opts.numAttempts - attempts, total: opts.numAttempts })
+				.then(resolve)
+				.catch((err) => {
+					attempts++
+					if (attempts >= opts.numAttempts) {
+						reject(err)
+					} else {
+						setTimeout(attempt, opts.delay)
+					}
+				})
+		}
+		attempt()
+	})
 }
