@@ -28,10 +28,10 @@ function getArrowPoints(
 		const ints = intersectCircleCircle(PT, length, info.handleArc.center, info.handleArc.radius)
 		P0 =
 			side === 'end'
-				? info.handleArc.sweepFlag
+				? info.bodyArc.sweepFlag
 					? ints[0]
 					: ints[1]
-				: info.handleArc.sweepFlag
+				: info.bodyArc.sweepFlag
 				? ints[1]
 				: ints[0]
 	}
