@@ -816,6 +816,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		shape,
 		{ handle, newPoint, scaleX, scaleY, initialShape }
 	) => {
+		// use the w/h from props here instead of the initialBounds here,
+		// since cloud shapes calculated bounds can differ from the props w/h.
 		let w = initialShape.props.w * scaleX
 		let h = (initialShape.props.h + initialShape.props.growY) * scaleY
 		let overShrinkX = 0
