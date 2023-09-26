@@ -160,11 +160,19 @@ export function getCurvedArrowInfo(
 					handleArc.sweepFlag
 			)
 
-			intersections.sort(
-				(p0, p1) =>
-					Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p0))) -
-					Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p1)))
-			)
+			if (handleArc.sweepFlag) {
+				intersections.sort(
+					(p0, p1) =>
+						Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p1))) -
+						Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p0)))
+				)
+			} else {
+				intersections.sort(
+					(p0, p1) =>
+						Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p0))) -
+						Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p1)))
+				)
+			}
 
 			point = intersections[0] ?? (isClosed ? undefined : endInEndShapeLocalSpace)
 		} else {
@@ -223,15 +231,15 @@ export function getCurvedArrowInfo(
 		tempB.setTo(offsetPoint)
 	}
 
-	const veryShort =
-		(endShapeInfo && !bIntersectionPoint) ||
-		(startShapeInfo && !aIntersectionPoint) ||
-		Math.abs(
-			trueShortAngle(Vec2d.Angle(handleArc.center, tempA), Vec2d.Angle(handleArc.center, tempB)) *
-				handleArc.radius
-		) <=
-			MIN_ARROW_LENGTH / 2 ||
-		Vec2d.Dpr(Vec2d.Tan(tempA, b), Vec2d.Tan(tempA, tempB)) < 0.5
+	const veryShort = (endShapeInfo && !bIntersectionPoint) || (startShapeInfo && !aIntersectionPoint)
+	// ||
+	// Math.abs(
+	// 	trueShortAngle(Vec2d.Angle(handleArc.center, tempA), Vec2d.Angle(handleArc.center, tempB)) *
+	// 		handleArc.radius
+	// ) <=
+	// 	MIN_ARROW_LENGTH / 2
+	// 	||
+	// Vec2d.Dpr(Vec2d.Tan(tempA, b), Vec2d.Tan(tempA, tempB)) < 0.5
 
 	if (veryShort) {
 		const offsetSize = (MIN_ARROW_LENGTH / 2 / (handleArc.radius * PI2)) * PI2
