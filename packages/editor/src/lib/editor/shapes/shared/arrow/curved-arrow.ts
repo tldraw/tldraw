@@ -96,11 +96,19 @@ export function getCurvedArrowInfo(
 			const angleToStart = Vec2d.Angle(handleArc.center, terminalsInArrowSpace.start)
 			const comparisonAngle = lerpAngles(angleToMiddle, angleToStart, 0.5)
 
-			intersections.sort(
-				(p0, p1) =>
-					Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p0))) -
-					Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p1)))
-			)
+			if (handleArc.sweepFlag) {
+				intersections.sort(
+					(p0, p1) =>
+						Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p0))) -
+						Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p1)))
+				)
+			} else {
+				intersections.sort(
+					(p0, p1) =>
+						Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p1))) -
+						Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p0)))
+				)
+			}
 
 			point = intersections[0] ?? (isClosed ? undefined : startInStartShapeLocalSpace)
 		} else {
