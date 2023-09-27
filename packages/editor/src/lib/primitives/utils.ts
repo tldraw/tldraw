@@ -163,7 +163,10 @@ export function longAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag = 0): number {
-	return a0 + (largeArcFlag ? longAngleDist(a0, a1) : shortAngleDist(a0, a1)) * t
+	if (a0 === a1) return a0
+	const sign = angleDifferenceSign(a0, a1)
+	const delta = largeArcFlag ? longAngleDist(a0, a1) : shortAngleDist(a0, a1)
+	return a0 + delta * (t * sign)
 }
 
 /**
@@ -174,8 +177,6 @@ export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag = 0):
  * @public
  */
 export function angleDelta(a0: number, a1: number): number {
-	// const da = (a1 - a0) % PI2
-	// return ((2 * da) % PI2) - da
 	return a1 - a0
 }
 
