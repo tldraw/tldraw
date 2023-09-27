@@ -31,5 +31,5 @@ export function useScreenBounds() {
 			window.removeEventListener('resize', updateBounds)
 			window.removeEventListener('scroll', updateBounds)
 		}
-	})
+	}, [editor])
 }
