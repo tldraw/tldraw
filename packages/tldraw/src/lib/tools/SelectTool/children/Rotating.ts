@@ -5,10 +5,10 @@ import {
 	TLEventHandlers,
 	TLPointerEventInfo,
 	TLRotationSnapshot,
-	angleDelta,
 	applyRotationToSnapshotShapes,
 	degreesToRadians,
 	getRotationSnapshot,
+	shortAngleDist,
 	snapAngle,
 } from '@tldraw/editor'
 import { CursorTypeMap } from './PointingResizeHandle'
@@ -163,8 +163,8 @@ export class Rotating extends StateNode {
 
 			if (this.editor.instanceState.isCoarsePointer) {
 				const snappedToRightAngle = snapAngle(newSelectionRotation, 4)
-				const angleToRightAngle = angleDelta(newSelectionRotation, snappedToRightAngle)
-				if (Math.abs(angleToRightAngle) < degreesToRadians(5)) {
+				const angleToRightAngle = shortAngleDist(newSelectionRotation, snappedToRightAngle)
+				if (angleToRightAngle < degreesToRadians(5)) {
 					newSelectionRotation = snappedToRightAngle
 				}
 			}

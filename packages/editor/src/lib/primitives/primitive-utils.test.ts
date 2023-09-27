@@ -1,4 +1,4 @@
-import { PI, PI2, isAngleBetween } from './utils'
+import { PI, PI2, angleDelta, angleDifferenceSign, isAngleBetween, shortAngleDist } from './utils'
 
 describe('isAngleBetween', () => {
 	it('works', () => {
@@ -35,5 +35,88 @@ describe('isAngleBetween', () => {
 		expect(isAngleBetween(PI * 100, PI * 102, PI * 101)).toBe(true)
 		expect(isAngleBetween(PI * 100, PI * 102, PI * 102)).toBe(true)
 		expect(isAngleBetween(PI * 100, PI * 102, PI * 102.1)).toBe(false)
+	})
+})
+
+describe('angle delta', () => {
+	// angle delta is really simple, just b - a
+	it('works', () => {
+		expect(angleDelta(0, 0)).toBe(0)
+		expect(angleDelta(0, 1)).toBe(1)
+		expect(angleDelta(1, 0)).toBe(-1)
+		expect(angleDelta(PI, 0)).toBe(-PI)
+		expect(angleDelta(-PI, 0)).toBe(PI)
+		expect(angleDelta(0, -PI)).toBe(-PI)
+		expect(angleDelta(0, PI)).toBe(PI)
+		expect(angleDelta(0, PI * 1.5)).toBe(PI * 1.5)
+	})
+})
+
+describe('short angle distance', () => {
+	// this is probably what we expect—the absolute distance between two angles
+	it('works', () => {
+		expect(shortAngleDist(0, 0)).toBe(0)
+		expect(shortAngleDist(0, 1)).toBe(1)
+		expect(shortAngleDist(1, 0)).toBe(1)
+		expect(shortAngleDist(PI, 0)).toBe(PI)
+		expect(shortAngleDist(-PI, 0)).toBe(PI)
+		expect(shortAngleDist(0, -PI)).toBe(PI)
+		expect(shortAngleDist(0, PI)).toBe(PI)
+		expect(shortAngleDist(0, PI * 1.5)).toBe(PI * 0.5)
+	})
+})
+
+describe('angle difference sign', () => {
+	// this is probably what we expect—the absolute distance between two angles
+	it('works', () => {
+		expect(angleDifferenceSign(0, 0)).toBe(-1)
+		expect(angleDifferenceSign(0, PI * 0.25)).toBe(1)
+		expect(angleDifferenceSign(0, PI * 0.5)).toBe(1)
+		expect(angleDifferenceSign(0, PI * 0.75)).toBe(1)
+		expect(angleDifferenceSign(0, PI)).toBe(-1)
+		expect(angleDifferenceSign(0, PI * 1.25)).toBe(-1)
+		expect(angleDifferenceSign(0, PI * 1.5)).toBe(-1)
+		expect(angleDifferenceSign(0, PI * 1.75)).toBe(-1)
+		expect(angleDifferenceSign(0, PI * 2)).toBe(-1)
+
+		expect(angleDifferenceSign(PI * 2, 0)).toBe(-1)
+		expect(angleDifferenceSign(PI * 2, PI * 0.25)).toBe(1)
+		expect(angleDifferenceSign(PI * 2, PI * 0.5)).toBe(1)
+		expect(angleDifferenceSign(PI * 2, PI * 0.75)).toBe(1)
+		expect(angleDifferenceSign(PI * 2, PI)).toBe(-1)
+		expect(angleDifferenceSign(PI * 2, PI * 1.25)).toBe(-1)
+		expect(angleDifferenceSign(PI * 2, PI * 1.5)).toBe(-1)
+		expect(angleDifferenceSign(PI * 2, PI * 1.75)).toBe(-1)
+		expect(angleDifferenceSign(PI * 2, PI * 2)).toBe(-1)
+
+		expect(angleDifferenceSign(PI, 0)).toBe(-1)
+		expect(angleDifferenceSign(PI, PI * 0.25)).toBe(-1)
+		expect(angleDifferenceSign(PI, PI * 0.5)).toBe(-1)
+		expect(angleDifferenceSign(PI, PI * 0.75)).toBe(-1)
+		expect(angleDifferenceSign(PI, PI)).toBe(-1)
+		expect(angleDifferenceSign(PI, PI * 1.25)).toBe(1)
+		expect(angleDifferenceSign(PI, PI * 1.5)).toBe(1)
+		expect(angleDifferenceSign(PI, PI * 1.75)).toBe(1)
+		expect(angleDifferenceSign(PI, PI * 2)).toBe(-1)
+
+		expect(angleDifferenceSign(-PI, 0)).toBe(-1)
+		expect(angleDifferenceSign(-PI, PI * 0.25)).toBe(-1)
+		expect(angleDifferenceSign(-PI, PI * 0.5)).toBe(-1)
+		expect(angleDifferenceSign(-PI, PI * 0.75)).toBe(-1)
+		expect(angleDifferenceSign(-PI, PI)).toBe(-1)
+		expect(angleDifferenceSign(-PI, PI * 1.25)).toBe(1)
+		expect(angleDifferenceSign(-PI, PI * 1.5)).toBe(1)
+		expect(angleDifferenceSign(-PI, PI * 1.75)).toBe(1)
+		expect(angleDifferenceSign(-PI, PI * 2)).toBe(-1)
+
+		expect(angleDifferenceSign(PI * 3, 0)).toBe(-1)
+		expect(angleDifferenceSign(PI * 3, PI * 0.25)).toBe(-1)
+		expect(angleDifferenceSign(PI * 3, PI * 0.5)).toBe(-1)
+		expect(angleDifferenceSign(PI * 3, PI * 0.75)).toBe(-1)
+		expect(angleDifferenceSign(PI * 3, PI)).toBe(-1)
+		expect(angleDifferenceSign(PI * 3, PI * 1.25)).toBe(1)
+		expect(angleDifferenceSign(PI * 3, PI * 1.5)).toBe(1)
+		expect(angleDifferenceSign(PI * 3, PI * 1.75)).toBe(1)
+		expect(angleDifferenceSign(PI * 3, PI * 2)).toBe(-1)
 	})
 })

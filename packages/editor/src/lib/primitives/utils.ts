@@ -133,13 +133,10 @@ export function clockwiseAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function shortAngleDist(a0: number, a1: number): number {
-	// a0 = canonicalizeRotation(a0)
-	// a1 = canonicalizeRotation(a1)
-	// const da = (a1 - a0) % PI2
-	// const A = ((2 * da) % PI2) - da
-
-	const delta = angleDelta(a0, a1)
-	return delta < PI ? delta : PI2 - delta
+	let c = Math.abs(a1 - a0) % PI2
+	c = c > PI ? PI2 - c : c
+	if (c === 0) return 0
+	return c
 }
 
 /**
@@ -150,8 +147,10 @@ export function shortAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function longAngleDist(a0: number, a1: number): number {
-	const delta = angleDelta(a0, a1)
-	return delta > PI ? delta : PI2 - delta
+	let c = Math.abs(a1 - a0) % PI2
+	c = c > PI ? c : PI2 - c
+	if (c === 0) return 0
+	return c
 }
 
 /**
@@ -175,9 +174,9 @@ export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag = 0):
  * @public
  */
 export function angleDelta(a0: number, a1: number): number {
-	a0 = canonicalizeRotation(a0)
-	a1 = canonicalizeRotation(a1)
-	return (a0 < a1 ? a1 - a0 : a0 - a1) * differenceAnglesSign(a0, a1)
+	// const da = (a1 - a0) % PI2
+	// return ((2 * da) % PI2) - da
+	return a1 - a0
 }
 
 /**
@@ -222,15 +221,25 @@ export function snapAngle(r: number, segments: number): number {
  *
  * @param a - Angle a (radians)
  * @param b - Angle b (radians)
- * @returns True iff the angles are approximately at right-angles or parallel to each other
+ * @returns True if the angles are approximately at right-angles or parallel to each other
  * @public
  */
 export function areAnglesCompatible(a: number, b: number) {
 	return a === b || approximately((a % (Math.PI / 2)) - (b % (Math.PI / 2)), 0)
 }
 
-function differenceAnglesSign(a: number, b: number) {
-	return ((((b - a + PI) % PI2) + PI2) % PI2) - PI > 0 ? 1 : -1
+/**
+ * Whether the shortest angle between a and b runs clockwise or counterclockwise.
+ *
+ * @param a - Angle a (radians)
+ * @param b - Angle b (radians)
+ * @returns 1 if short angle runs clockwise, -1 if counter-clockwise or equal
+ * @public
+ */
+export function angleDifferenceSign(a: number, b: number) {
+	const d = b - a
+	const c = ((((d + PI) % PI2) + PI2) % PI2) - PI
+	return c > 0 ? 1 : -1
 }
 
 /**
@@ -242,7 +251,7 @@ function differenceAnglesSign(a: number, b: number) {
  * @public
  */
 export function isAngleBetween(a: number, b: number, c: number): boolean {
-	return differenceAnglesSign(c, a) !== differenceAnglesSign(c, b)
+	return angleDifferenceSign(c, a) !== angleDifferenceSign(c, b)
 }
 
 /**
