@@ -8,9 +8,7 @@ export function useScreenBounds() {
 	useLayoutEffect(() => {
 		const updateBounds = throttle(
 			() => {
-				if (editor.instanceState.isFocused) {
-					editor.updateViewportScreenBounds()
-				}
+				editor.updateViewportScreenBounds()
 			},
 			200,
 			{

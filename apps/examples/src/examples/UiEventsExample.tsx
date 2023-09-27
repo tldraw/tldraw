@@ -12,7 +12,7 @@ export default function UiEventsExample() {
 	return (
 		<div style={{ display: 'flex' }}>
 			<div style={{ width: '60vw', height: '100vh' }}>
-				<Tldraw autoFocus onUiEvent={handleUiEvent} />
+				<Tldraw onUiEvent={handleUiEvent} />
 			</div>
 			<div>
 				<div

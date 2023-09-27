@@ -56,7 +56,6 @@ describe('<TldrawEditor />', () => {
 				}}
 				initialState="select"
 				tools={defaultTools}
-				autoFocus
 			>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
@@ -75,7 +74,6 @@ describe('<TldrawEditor />', () => {
 				onMount={(e) => {
 					editor = e
 				}}
-				autoFocus
 			>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
@@ -96,7 +94,6 @@ describe('<TldrawEditor />', () => {
 				onMount={(editor) => {
 					expect(editor.store).toBe(store)
 				}}
-				autoFocus
 			>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
@@ -111,7 +108,6 @@ describe('<TldrawEditor />', () => {
 		// 		<TldrawEditor
 		// 			shapeUtils={[GroupShapeUtil]}
 		// 			store={createTLStore({ shapeUtils: [] })}
-		// 			autoFocus
 		// 			components={{
 		// 				ErrorFallback: ({ error }) => {
 		// 					throw error
@@ -129,7 +125,6 @@ describe('<TldrawEditor />', () => {
 		// 		render(
 		// 			<TldrawEditor
 		// 				store={createTLStore({ shapeUtils: [GroupShapeUtil] })}
-		// 				autoFocus
 		// 				components={{
 		// 					ErrorFallback: ({ error }) => {
 		// 						throw error
@@ -154,7 +149,6 @@ describe('<TldrawEditor />', () => {
 				tools={defaultTools}
 				store={initialStore}
 				onMount={onMount}
-				autoFocus
 			>
 				<div data-testid="canvas-1" />
 			</TldrawEditor>
@@ -170,7 +164,6 @@ describe('<TldrawEditor />', () => {
 				initialState="select"
 				store={initialStore}
 				onMount={onMount}
-				autoFocus
 			>
 				<div data-testid="canvas-2" />
 			</TldrawEditor>
@@ -181,13 +174,7 @@ describe('<TldrawEditor />', () => {
 		// re-render with a new store:
 		const newStore = createTLStore({ shapeUtils: [] })
 		rendered.rerender(
-			<TldrawEditor
-				tools={defaultTools}
-				initialState="select"
-				store={newStore}
-				onMount={onMount}
-				autoFocus
-			>
+			<TldrawEditor tools={defaultTools} initialState="select" store={newStore} onMount={onMount}>
 				<div data-testid="canvas-3" />
 			</TldrawEditor>
 		)
@@ -329,7 +316,6 @@ describe('Custom shapes', () => {
 			<TldrawEditor
 				shapeUtils={shapeUtils}
 				tools={[...defaultTools, ...tools]}
-				autoFocus
 				initialState="select"
 				onMount={(editorApp) => {
 					editor = editorApp

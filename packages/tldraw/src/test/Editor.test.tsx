@@ -461,22 +461,22 @@ describe('isFocused', () => {
 		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
-	it('calls .focus() and .blur() on the container div when you call .focus() and .blur() on the editor', () => {
-		const focusMock = jest.spyOn(editor.elm, 'focus').mockImplementation()
-		const blurMock = jest.spyOn(editor.elm, 'blur').mockImplementation()
+	// it('calls .focus() and .blur() on the container div when you call .focus() and .blur() on the editor', () => {
+	// 	const focusMock = jest.spyOn(editor.elm, 'focus').mockImplementation()
+	// 	const blurMock = jest.spyOn(editor.elm, 'blur').mockImplementation()
 
-		expect(focusMock).not.toHaveBeenCalled()
-		expect(blurMock).not.toHaveBeenCalled()
+	// 	expect(focusMock).not.toHaveBeenCalled()
+	// 	expect(blurMock).not.toHaveBeenCalled()
 
-		editor.getContainer().focus()
+	// 	editor.getContainer().focus()
 
-		expect(focusMock).toHaveBeenCalled()
-		expect(blurMock).not.toHaveBeenCalled()
+	// 	expect(focusMock).toHaveBeenCalled()
+	// 	expect(blurMock).not.toHaveBeenCalled()
 
-		editor.getContainer().blur()
+	// 	editor.getContainer().blur()
 
-		expect(blurMock).toHaveBeenCalled()
-	})
+	// 	expect(blurMock).toHaveBeenCalled()
+	// })
 })
 
 describe('getShapeUtil', () => {

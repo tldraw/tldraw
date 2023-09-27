@@ -12,7 +12,6 @@ export default function OnlyEditorExample() {
 	return (
 		<div className="tldraw__editor">
 			<TldrawEditor
-				autoFocus
 				tools={myTools}
 				shapeUtils={myShapeUtils}
 				initialState="select"

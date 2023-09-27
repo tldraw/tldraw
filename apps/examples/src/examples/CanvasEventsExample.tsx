@@ -13,7 +13,6 @@ export default function CanvasEventsExample() {
 		<div style={{ display: 'flex' }}>
 			<div style={{ width: '50vw', height: '100vh' }}>
 				<Tldraw
-					autoFocus
 					onMount={(editor) => {
 						editor.on('event', (event) => handleEvent(event))
 					}}

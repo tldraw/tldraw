@@ -331,7 +331,7 @@ function TldrawEditorWithReadyStore({
 function Layout({
 	children,
 	onMount,
-	autoFocus = false,
+	autoFocus = true,
 }: {
 	children: any
 	onMount?: TLOnMountHandler
@@ -345,6 +345,8 @@ function Layout({
 	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 	useDPRMultiple()
+	const editor = useEditor()
+	editor.updateViewportScreenBounds()
 
 	return children ?? <Canvas />
 }
