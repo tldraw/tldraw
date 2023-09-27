@@ -130,7 +130,7 @@ export function getCurvedArrowInfo(
 						('size' in startShapeInfo.shape.props
 							? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 							: 0)) *
-					(handleArc.sweepFlag ? -1 : 1)
+					(handleArc.sweepFlag ? 1 : -1)
 
 				tempA.setTo(
 					getPointOnCircle(
