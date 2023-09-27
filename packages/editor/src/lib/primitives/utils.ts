@@ -106,7 +106,7 @@ export function canonicalizeRotation(a: number) {
 		// prevent negative zero
 		a = 0
 	}
-	return a
+	return (PI2 + a) % PI2
 }
 
 /**
@@ -133,8 +133,8 @@ export function clockwiseAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function shortAngleDist(a0: number, a1: number): number {
-	const da = (a1 - a0) % PI2
-	return ((2 * da) % PI2) - da
+	const delta = angleDelta(a0, a1)
+	return delta < PI ? delta : PI2 - delta
 }
 
 /**
@@ -145,7 +145,8 @@ export function shortAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function longAngleDist(a0: number, a1: number): number {
-	return PI2 - shortAngleDist(a0, a1)
+	const delta = angleDelta(a0, a1)
+	return delta > PI ? delta : PI2 - delta
 }
 
 /**
@@ -154,10 +155,11 @@ export function longAngleDist(a0: number, a1: number): number {
  * @param a0 - The first angle.
  * @param a1 - The second angle.
  * @param t - The interpolation value.
+ * @param largeArcFlag - Whether to use the long arc (1) or the short arc (0).
  * @public
  */
-export function lerpAngles(a0: number, a1: number, t: number): number {
-	return a0 + shortAngleDist(a0, a1) * t
+export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag = 0): number {
+	return a0 + (largeArcFlag ? longAngleDist(a0, a1) : shortAngleDist(a0, a1)) * t
 }
 
 /**
@@ -168,7 +170,9 @@ export function lerpAngles(a0: number, a1: number, t: number): number {
  * @public
  */
 export function angleDelta(a0: number, a1: number): number {
-	return shortAngleDist(a0, a1)
+	a0 = canonicalizeRotation(a0)
+	a1 = canonicalizeRotation(a1)
+	return (a0 < a1 ? a1 - a0 : a0 - a1) * (a0 < a1 ? 1 : -1)
 }
 
 /**
@@ -180,7 +184,7 @@ export function angleDelta(a0: number, a1: number): number {
  * @public
  */
 export function getSweep(C: VecLike, A: VecLike, B: VecLike): number {
-	return angleDelta(Vec2d.Angle(C, A), Vec2d.Angle(C, B))
+	return shortAngleDist(Vec2d.Angle(C, A), Vec2d.Angle(C, B))
 }
 
 /**
@@ -229,11 +233,27 @@ export function areAnglesCompatible(a: number, b: number) {
  * @public
  */
 export function isAngleBetween(a: number, b: number, c: number): boolean {
-	if (c === a || c === b) return true
+	// Normalize the angles to ensure they're in the same domain
+	a = canonicalizeRotation(a)
+	b = canonicalizeRotation(b)
+	c = canonicalizeRotation(c)
 
-	const AB = (b - a + TAU) % TAU
-	const AC = (c - a + TAU) % TAU
-	return AB <= PI !== AC > AB
+	// Compute vectors corresponding to angles a and b
+	const ax = Math.cos(a)
+	const ay = Math.sin(a)
+	const bx = Math.cos(b)
+	const by = Math.sin(b)
+
+	// Compute the vector corresponding to angle c
+	const cx = Math.cos(c)
+	const cy = Math.sin(c)
+
+	// Calculate dot products
+	const dotAc = ax * cx + ay * cy
+	const dotBc = bx * cx + by * cy
+
+	// If angle c is between a and b, both dot products should be >= 0
+	return dotAc >= 0 && dotBc >= 0
 }
 
 /**
