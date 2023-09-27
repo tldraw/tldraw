@@ -133,6 +133,11 @@ export function clockwiseAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function shortAngleDist(a0: number, a1: number): number {
+	// a0 = canonicalizeRotation(a0)
+	// a1 = canonicalizeRotation(a1)
+	// const da = (a1 - a0) % PI2
+	// const A = ((2 * da) % PI2) - da
+
 	const delta = angleDelta(a0, a1)
 	return delta < PI ? delta : PI2 - delta
 }
@@ -172,7 +177,7 @@ export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag = 0):
 export function angleDelta(a0: number, a1: number): number {
 	a0 = canonicalizeRotation(a0)
 	a1 = canonicalizeRotation(a1)
-	return (a0 < a1 ? a1 - a0 : a0 - a1) * (a0 < a1 ? 1 : -1)
+	return (a0 < a1 ? a1 - a0 : a0 - a1) * differenceAnglesSign(a0, a1)
 }
 
 /**
