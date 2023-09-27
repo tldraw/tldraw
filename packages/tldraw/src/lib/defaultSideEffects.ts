@@ -7,9 +7,11 @@ export function registerDefaultSideEffects(editor: Editor) {
 				if (next.isFocused) {
 					editor.complete() // stop any interaction
 					editor.getContainer().focus()
+					editor.updateViewportScreenBounds()
 				} else {
 					editor.complete() // stop any interaction
 					editor.getContainer().blur() // blur the container
+					editor.updateViewportScreenBounds()
 				}
 			}
 		}),
