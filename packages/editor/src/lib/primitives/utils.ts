@@ -106,7 +106,7 @@ export function canonicalizeRotation(a: number) {
 		// prevent negative zero
 		a = 0
 	}
-	return (PI2 + a) % PI2
+	return a
 }
 
 /**
@@ -224,6 +224,10 @@ export function areAnglesCompatible(a: number, b: number) {
 	return a === b || approximately((a % (Math.PI / 2)) - (b % (Math.PI / 2)), 0)
 }
 
+function differenceAnglesSign(a: number, b: number) {
+	return ((((b - a + PI) % PI2) + PI2) % PI2) - PI > 0 ? 1 : -1
+}
+
 /**
  * Is angle c between angles a and b?
  *
@@ -233,27 +237,7 @@ export function areAnglesCompatible(a: number, b: number) {
  * @public
  */
 export function isAngleBetween(a: number, b: number, c: number): boolean {
-	// Normalize the angles to ensure they're in the same domain
-	a = canonicalizeRotation(a)
-	b = canonicalizeRotation(b)
-	c = canonicalizeRotation(c)
-
-	// Compute vectors corresponding to angles a and b
-	const ax = Math.cos(a)
-	const ay = Math.sin(a)
-	const bx = Math.cos(b)
-	const by = Math.sin(b)
-
-	// Compute the vector corresponding to angle c
-	const cx = Math.cos(c)
-	const cy = Math.sin(c)
-
-	// Calculate dot products
-	const dotAc = ax * cx + ay * cy
-	const dotBc = bx * cx + by * cy
-
-	// If angle c is between a and b, both dot products should be >= 0
-	return dotAc >= 0 && dotBc >= 0
+	return differenceAnglesSign(c, a) !== differenceAnglesSign(c, b)
 }
 
 /**
