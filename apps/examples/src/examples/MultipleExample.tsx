@@ -1,8 +1,26 @@
-import { Tldraw, useEditor } from '@tldraw/tldraw'
+import { Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { useEffect } from 'react'
+import { createContext, useCallback, useContext, useState } from 'react'
+
+const focusedEditorContext = createContext(
+	{} as {
+		focusedEditor: string
+		setFocusedEditor: (id: string) => void
+	}
+)
 
 export default function MultipleExample() {
+	const [focusedEditor, focusedEditorSetter] = useState('first')
+
+	const setFocusedEditor = useCallback(
+		(id: string) => {
+			if (focusedEditor !== id) {
+				focusedEditorSetter(id)
+			}
+		},
+		[focusedEditor]
+	)
+
 	return (
 		<div
 			style={{
@@ -10,63 +28,51 @@ export default function MultipleExample() {
 				padding: 32,
 			}}
 		>
-			<FirstEditor />
-			<textarea defaultValue="type in me" style={{ margin: 10 }}></textarea>
-			<SecondEditor />
-			<ABunchOfText />
+			<focusedEditorContext.Provider value={{ focusedEditor, setFocusedEditor }}>
+				<h1>Focusing: "{focusedEditor}"</h1>
+				<FirstEditor />
+				<textarea defaultValue="type in me" style={{ margin: 10 }}></textarea>
+				<SecondEditor />
+				<ABunchOfText />
+			</focusedEditorContext.Provider>
 		</div>
 	)
 }
 
 function FirstEditor() {
+	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
+
 	return (
 		<div>
 			<h2>First Example</h2>
 			<p>This is the second example.</p>
-			<div style={{ width: '100%', height: '600px', padding: 32 }} tabIndex={-1}>
-				<Tldraw persistenceKey="steve" className="A">
-					<SneakyFocusHelper />
-				</Tldraw>
+			<div
+				tabIndex={-1}
+				onFocus={() => setFocusedEditor('first')}
+				style={{ width: '100%', height: '600px', padding: 32 }}
+			>
+				<Tldraw persistenceKey="steve" className="A" autoFocus={focusedEditor === 'first'} />
 			</div>
 		</div>
 	)
 }
 
 function SecondEditor() {
-	// note that this one opts OUT of autofocus
+	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
+
 	return (
 		<div>
 			<h2>Second Example</h2>
 			<p>This is the second example.</p>
-			<div style={{ width: '100%', height: '600px' }} tabIndex={-1}>
-				<Tldraw persistenceKey="david" className="B" autoFocus={false}>
-					<SneakyFocusHelper />
-				</Tldraw>
+			<div
+				tabIndex={-1}
+				onFocus={() => setFocusedEditor('second')}
+				style={{ width: '100%', height: '600px' }}
+			>
+				<Tldraw persistenceKey="david" className="B" autoFocus={focusedEditor === 'second'} />
 			</div>
 		</div>
 	)
-}
-
-function SneakyFocusHelper() {
-	const editor = useEditor()
-
-	useEffect(() => {
-		const elm = editor.getContainer()
-
-		elm.addEventListener('focus', () => {
-			if (!editor.instanceState.isFocused) {
-				editor.updateInstanceState({ isFocused: true })
-			}
-		})
-
-		elm.addEventListener('blur', () => {
-			if (editor.instanceState.isFocused) {
-				editor.updateInstanceState({ isFocused: false })
-			}
-		})
-	}, [editor])
-
-	return null
 }
 
 function ABunchOfText() {

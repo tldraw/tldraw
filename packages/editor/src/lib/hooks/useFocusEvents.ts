@@ -4,13 +4,11 @@ import { useEditor } from './useEditor'
 /** @internal */
 export function useFocusEvents(autoFocus: boolean) {
 	const editor = useEditor()
-
 	useLayoutEffect(() => {
 		if (autoFocus) {
-			editor.getContainer().focus()
-			if (!editor.instanceState.isFocused) {
-				editor.updateInstanceState({ isFocused: true })
-			}
+			editor.updateInstanceState({ isFocused: true })
+		} else {
+			editor.updateInstanceState({ isFocused: false })
 		}
 	}, [editor, autoFocus])
 }
