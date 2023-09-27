@@ -7,6 +7,9 @@ export function useFocusEvents(autoFocus: boolean) {
 	useLayoutEffect(() => {
 		if (autoFocus) {
 			editor.getContainer().focus()
+			editor.updateInstanceState({ isFocused: true })
+		} else {
+			editor.updateInstanceState({ isFocused: false })
 		}
 	}, [editor, autoFocus])
 }
