@@ -108,6 +108,7 @@ export {
 	USER_COLORS,
 	getFreshUserPreferences,
 	getUserPreferences,
+	isDarkModeByDefault,
 	setUserPreferences,
 	type TLUserPreferences,
 } from './lib/config/TLUserPreferences'

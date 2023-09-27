@@ -99,11 +99,18 @@ export function getFreshUserPreferences(): TLUserPreferences {
 		locale: typeof window !== 'undefined' ? getDefaultTranslationLocale() : 'en',
 		name: 'New User',
 		color: getRandomColor(),
-		// TODO: detect dark mode
-		isDarkMode: false,
+		isDarkMode: isDarkModeByDefault(),
 		animationSpeed: 1,
 		isSnapMode: false,
 	}
+}
+
+/** @internal */
+export function isDarkModeByDefault() {
+	if (typeof window === 'undefined') {
+		return false
+	}
+	return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false
 }
 
 function migrateUserPreferences(userData: unknown) {
