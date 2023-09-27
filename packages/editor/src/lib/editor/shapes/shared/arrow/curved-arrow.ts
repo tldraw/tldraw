@@ -62,12 +62,16 @@ export function getCurvedArrowInfo(
 		return getStraightArrowInfo(editor, shape)
 	}
 
+	const tempA = a.clone()
+	const tempB = b.clone()
+	const tempC = c.clone()
+
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		// Points in page space
-		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, a)
-		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, b)
+		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
+		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
 
 		// Points in local space of the start shape
@@ -88,15 +92,18 @@ export function getCurvedArrowInfo(
 		)
 
 		if (intersections) {
+			// Filter out any intersections that aren't in the arc
 			intersections = intersections.filter(
 				(pt) =>
 					+Vec2d.Clockwise(startInStartShapeLocalSpace, pt, endInStartShapeLocalSpace) ===
 					handleArc.sweepFlag
 			)
 
-			const angleToMiddle = Vec2d.Angle(handleArc.center, middle)
-			const angleToStart = Vec2d.Angle(handleArc.center, terminalsInArrowSpace.start)
-			const comparisonAngle = lerpAngles(angleToMiddle, angleToStart, 0.5)
+			const comparisonAngle = lerpAngles(
+				Vec2d.Angle(handleArc.center, tempA),
+				Vec2d.Angle(handleArc.center, tempC),
+				0.5
+			)
 
 			intersections.sort(
 				(p0, p1) =>
@@ -110,7 +117,7 @@ export function getCurvedArrowInfo(
 		}
 
 		if (point) {
-			a.setTo(
+			tempA.setTo(
 				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(startShapeInfo.transform, point))
 			)
 
@@ -118,21 +125,22 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadStart !== 'none') {
 				const offset =
-					BOUND_ARROW_OFFSET +
-					STROKE_SIZES[shape.props.size] / 2 +
-					('size' in startShapeInfo.shape.props
-						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
-						: 0)
+					(BOUND_ARROW_OFFSET +
+						STROKE_SIZES[shape.props.size] / 2 +
+						('size' in startShapeInfo.shape.props
+							? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
+							: 0)) *
+					(handleArc.sweepFlag ? -1 : 1)
 
-				a.setTo(
+				tempA.setTo(
 					getPointOnCircle(
 						handleArc.center.x,
 						handleArc.center.y,
 						handleArc.radius,
 						lerpAngles(
-							Vec2d.Angle(handleArc.center, a),
-							Vec2d.Angle(handleArc.center, middle),
-							offset / Math.abs(getArcLength(handleArc.center, handleArc.radius, a, middle))
+							Vec2d.Angle(handleArc.center, tempA),
+							Vec2d.Angle(handleArc.center, tempC),
+							offset / getArcLength(handleArc.center, handleArc.radius, tempA, tempC)
 						)
 					)
 				)
@@ -142,8 +150,8 @@ export function getCurvedArrowInfo(
 
 	if (endShapeInfo && !endShapeInfo.isExact) {
 		// get points in shape's coordinates?
-		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, a)
-		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, b)
+		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
+		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
 
 		const inverseTransform = Matrix2d.Inverse(endShapeInfo.transform)
@@ -187,43 +195,35 @@ export function getCurvedArrowInfo(
 
 		if (point) {
 			// Set b to target local point -> page point -> shape local point
-			b.setTo(
+			tempB.setTo(
 				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(endShapeInfo.transform, point))
 			)
 
 			endShapeInfo.didIntersect = true
 
 			if (arrowheadEnd !== 'none') {
-				let offset =
-					BOUND_ARROW_OFFSET +
-					STROKE_SIZES[shape.props.size] / 2 +
-					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
+				const offset =
+					(BOUND_ARROW_OFFSET +
+						STROKE_SIZES[shape.props.size] / 2 +
+						('size' in endShapeInfo.shape.props
+							? STROKE_SIZES[endShapeInfo.shape.props.size] / 2
+							: 0)) *
+					(handleArc.sweepFlag ? -1 : 1)
 
-				if (Vec2d.Dist(a, b) < MIN_ARROW_LENGTH) {
-					offset *= -2
-				}
-
-				b.setTo(
+				tempB.setTo(
 					getPointOnCircle(
 						handleArc.center.x,
 						handleArc.center.y,
 						handleArc.radius,
 						lerpAngles(
-							Vec2d.Angle(handleArc.center, b),
-							Vec2d.Angle(handleArc.center, middle),
-							offset / Math.abs(getArcLength(handleArc.center, handleArc.radius, b, middle))
+							Vec2d.Angle(handleArc.center, tempB),
+							Vec2d.Angle(handleArc.center, tempC),
+							offset / getArcLength(handleArc.center, handleArc.radius, tempB, tempC)
 						)
 					)
 				)
 			}
 		}
-	}
-
-	const length = Math.abs(getArcLength(handleArc.center, handleArc.radius, a, b))
-
-	if (length < MIN_ARROW_LENGTH / 2) {
-		a.setTo(terminalsInArrowSpace.start)
-		b.setTo(terminalsInArrowSpace.end)
 	}
 
 	if (
@@ -234,26 +234,57 @@ export function getCurvedArrowInfo(
 		!endShapeInfo.isExact
 	) {
 		// If we missed an intersection, then try
-		const startAngle = Vec2d.Angle(handleArc.center, a)
-		const endAngle = Vec2d.Angle(handleArc.center, b)
-
-		const offset = handleArc.sweepFlag ? MIN_ARROW_LENGTH : -MIN_ARROW_LENGTH
-		const arcLength = getArcLength(handleArc.center, handleArc.radius, b, a)
-		const {
-			center: { x, y },
-			radius,
-		} = handleArc
+		const startAngle = Vec2d.Angle(handleArc.center, tempA)
+		const endAngle = Vec2d.Angle(handleArc.center, tempB)
+		const length = Math.abs(getArcLength(handleArc.center, handleArc.radius, tempA, tempB))
 
 		if (startShapeInfo && !startShapeInfo.didIntersect) {
-			a.setTo(getPointOnCircle(x, y, radius, lerpAngles(startAngle, endAngle, offset / arcLength)))
+			tempA.setTo(
+				getPointOnCircle(
+					handleArc.center.x,
+					handleArc.center.y,
+					handleArc.radius,
+					lerpAngles(startAngle, endAngle, MIN_ARROW_LENGTH / length)
+				)
+			)
 		}
 
 		if (endShapeInfo && !endShapeInfo.didIntersect) {
-			b.setTo(getPointOnCircle(x, y, radius, lerpAngles(startAngle, endAngle, -offset / arcLength)))
+			tempB.setTo(
+				getPointOnCircle(
+					handleArc.center.x,
+					handleArc.center.y,
+					handleArc.radius,
+					lerpAngles(endAngle, startAngle, MIN_ARROW_LENGTH / length)
+				)
+			)
 		}
 	}
 
-	let midAngle = lerpAngles(Vec2d.Angle(handleArc.center, a), Vec2d.Angle(handleArc.center, b), 0.5)
+	const length = getArcLength(handleArc.center, handleArc.radius, tempA, tempB)
+
+	if (Math.abs(length) < MIN_ARROW_LENGTH) {
+		// If the length is too short, then place the start handle offset behind the end handle.
+		tempB.setTo(
+			getPointOnCircle(
+				handleArc.center.x,
+				handleArc.center.y,
+				handleArc.radius,
+				lerpAngles(
+					Vec2d.Angle(handleArc.center, tempA),
+					Vec2d.Angle(handleArc.center, tempB),
+					MIN_ARROW_LENGTH / length
+				)
+			)
+		)
+	}
+
+	let midAngle = lerpAngles(
+		Vec2d.Angle(handleArc.center, tempA),
+		Vec2d.Angle(handleArc.center, tempB),
+		0.5
+	)
+
 	let midPoint = getPointOnCircle(
 		handleArc.center.x,
 		handleArc.center.y,
@@ -261,13 +292,36 @@ export function getCurvedArrowInfo(
 		midAngle
 	)
 
-	if (+Vec2d.Clockwise(a, midPoint, b) !== handleArc.sweepFlag) {
+	if (+Vec2d.Clockwise(tempA, midPoint, tempB) !== handleArc.sweepFlag) {
 		midAngle += PI
 		midPoint = getPointOnCircle(handleArc.center.x, handleArc.center.y, handleArc.radius, midAngle)
 	}
 
-	c.setTo(midPoint)
+	tempC.setTo(midPoint)
 
+	// Uh oh, a flip has occurred!
+	if (Math.abs(getArcInfo(tempA, tempB, midPoint).length) > Math.abs(handleArc.length)) {
+		tempB.setTo(
+			getPointOnCircle(
+				handleArc.center.x,
+				handleArc.center.y,
+				handleArc.radius,
+				lerpAngles(Vec2d.Angle(handleArc.center, tempA), Vec2d.Angle(handleArc.center, b), 0.5)
+			)
+		)
+		tempC.setTo(
+			getPointOnCircle(
+				handleArc.center.x,
+				handleArc.center.y,
+				handleArc.radius,
+				lerpAngles(Vec2d.Angle(handleArc.center, tempA), Vec2d.Angle(handleArc.center, tempB), 0.5)
+			)
+		)
+	}
+
+	a.setTo(tempA)
+	b.setTo(tempB)
+	c.setTo(tempC)
 	const bodyArc = getArcInfo(a, b, c)
 
 	return {
