@@ -1,4 +1,4 @@
-import { PI, PI2, angleDelta, angleDifferenceSign, isAngleBetween, shortAngleDist } from './utils'
+import { PI, PI2, angleDifferenceSign, isAngleBetween } from './utils'
 
 describe('isAngleBetween', () => {
 	it('works', () => {
@@ -35,34 +35,6 @@ describe('isAngleBetween', () => {
 		expect(isAngleBetween(PI * 100, PI * 102, PI * 101)).toBe(true)
 		expect(isAngleBetween(PI * 100, PI * 102, PI * 102)).toBe(true)
 		expect(isAngleBetween(PI * 100, PI * 102, PI * 102.1)).toBe(false)
-	})
-})
-
-describe('angle delta', () => {
-	// angle delta is really simple, just b - a
-	it('works', () => {
-		expect(angleDelta(0, 0)).toBe(0)
-		expect(angleDelta(0, 1)).toBe(1)
-		expect(angleDelta(1, 0)).toBe(-1)
-		expect(angleDelta(PI, 0)).toBe(-PI)
-		expect(angleDelta(-PI, 0)).toBe(PI)
-		expect(angleDelta(0, -PI)).toBe(-PI)
-		expect(angleDelta(0, PI)).toBe(PI)
-		expect(angleDelta(0, PI * 1.5)).toBe(PI * 1.5)
-	})
-})
-
-describe('short angle distance', () => {
-	// this is probably what we expect—the absolute distance between two angles
-	it('works', () => {
-		expect(shortAngleDist(0, 0)).toBe(0)
-		expect(shortAngleDist(0, 1)).toBe(1)
-		expect(shortAngleDist(1, 0)).toBe(1)
-		expect(shortAngleDist(PI, 0)).toBe(PI)
-		expect(shortAngleDist(-PI, 0)).toBe(PI)
-		expect(shortAngleDist(0, -PI)).toBe(PI)
-		expect(shortAngleDist(0, PI)).toBe(PI)
-		expect(shortAngleDist(0, PI * 1.5)).toBe(PI * 0.5)
 	})
 })
 

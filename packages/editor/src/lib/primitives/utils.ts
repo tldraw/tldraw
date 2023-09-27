@@ -133,10 +133,8 @@ export function clockwiseAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function shortAngleDist(a0: number, a1: number): number {
-	let c = Math.abs(a1 - a0) % PI2
-	c = c > PI ? PI2 - c : c
-	if (c === 0) return 0
-	return c
+	const da = (a1 - a0) % PI2
+	return ((2 * da) % PI2) - da
 }
 
 /**
@@ -147,10 +145,7 @@ export function shortAngleDist(a0: number, a1: number): number {
  * @public
  */
 export function longAngleDist(a0: number, a1: number): number {
-	let c = Math.abs(a1 - a0) % PI2
-	c = c > PI ? c : PI2 - c
-	if (c === 0) return 0
-	return c
+	return PI2 - shortAngleDist(a0, a1)
 }
 
 /**
@@ -164,9 +159,9 @@ export function longAngleDist(a0: number, a1: number): number {
  */
 export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag = 0): number {
 	if (a0 === a1) return a0
-	const sign = angleDifferenceSign(a0, a1)
+	// const sign = angleDifferenceSign(a0, a1)
 	const delta = largeArcFlag ? longAngleDist(a0, a1) : shortAngleDist(a0, a1)
-	return a0 + delta * (t * sign)
+	return a0 + delta * t
 }
 
 /**
@@ -177,7 +172,7 @@ export function lerpAngles(a0: number, a1: number, t: number, largeArcFlag = 0):
  * @public
  */
 export function angleDelta(a0: number, a1: number): number {
-	return a1 - a0
+	return shortAngleDist(a0, a1)
 }
 
 /**
@@ -189,7 +184,7 @@ export function angleDelta(a0: number, a1: number): number {
  * @public
  */
 export function getSweep(C: VecLike, A: VecLike, B: VecLike): number {
-	return shortAngleDist(Vec2d.Angle(C, A), Vec2d.Angle(C, B))
+	return angleDelta(Vec2d.Angle(C, A), Vec2d.Angle(C, B))
 }
 
 /**
@@ -222,7 +217,7 @@ export function snapAngle(r: number, segments: number): number {
  *
  * @param a - Angle a (radians)
  * @param b - Angle b (radians)
- * @returns True if the angles are approximately at right-angles or parallel to each other
+ * @returns True iff the angles are approximately at right-angles or parallel to each other
  * @public
  */
 export function areAnglesCompatible(a: number, b: number) {
@@ -741,4 +736,32 @@ export function toFixed(v: number) {
  */
 export const isSafeFloat = (n: number) => {
 	return Math.abs(n) < Number.MAX_SAFE_INTEGER
+}
+
+/**
+ * Returns the t value of the point on the arc.
+ *
+ * @param mAB The measure of the arc from A to B, negative if counter-clockwise
+ * @param A The angle from center to arc's start point (A) on the circle
+ * @param B The angle from center to arc's end point (B) on the circle
+ * @param P The angle from center to the point on the circle (P) to find the t value for
+ *
+ * @returns The t value of the point on the arc, with 0 being the start and 1 being the end
+ *
+ * @public
+ */
+export function getPointInArcT(mAB: number, A: number, B: number, P: number): number {
+	let mAP: number
+	if (Math.abs(mAB) > PI) {
+		mAP = shortAngleDist(A, P)
+		const mPB = shortAngleDist(P, B)
+		if (Math.abs(mAP) < Math.abs(mPB)) {
+			return mAP / mAB
+		} else {
+			return (mAB - mPB) / mAB
+		}
+	} else {
+		mAP = shortAngleDist(A, P)
+		return mAP / mAB
+	}
 }

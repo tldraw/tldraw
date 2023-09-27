@@ -6,8 +6,9 @@ import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../pri
 import {
 	PI,
 	PI2,
-	angleDifferenceSign,
+	angleDelta,
 	getArcLength,
+	getPointInArcT,
 	getPointOnCircle,
 	isSafeFloat,
 	lerpAngles,
@@ -69,12 +70,14 @@ export function getCurvedArrowInfo(
 		// Points in page space
 		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, a)
 		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, b)
+		const middleInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, c)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
 
 		// Points in local space of the start shape
 		const inverseTransform = Matrix2d.Inverse(startShapeInfo.transform)
 		const startInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
 		const endInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
+		const middleInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, middleInPageSpace)
 		const centerInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
 
 		const { isClosed } = startShapeInfo
@@ -89,27 +92,37 @@ export function getCurvedArrowInfo(
 		)
 
 		if (intersections) {
-			intersections = intersections.filter(
-				(pt) =>
-					+Vec2d.Clockwise(startInStartShapeLocalSpace, pt, endInStartShapeLocalSpace) ===
-					handleArc.sweepFlag
-			)
+			// const angleToMiddle = Vec2d.Angle(handleArc.center, middle)
+			// const angleToStart = Vec2d.Angle(handleArc.center, terminalsInArrowSpace.start)
+			// const angleToEnd = Vec2d.Angle(handleArc.center, terminalsInArrowSpace.end)
+			// const comparisonAngle = lerpAngles(angleToMiddle, angleToStart, 0.5)
 
-			const angleToMiddle = Vec2d.Angle(handleArc.center, middle)
-			const angleToStart = Vec2d.Angle(handleArc.center, terminalsInArrowSpace.start)
-			const comparisonAngle = lerpAngles(
-				angleToMiddle,
-				angleToStart,
-				0.5,
-				Math.abs(angleToStart - angleToMiddle) > PI ? 1 : 0
-			)
-			const sign = angleDifferenceSign(angleToStart, angleToMiddle)
+			const CA = centerInStartShapeLocalSpace.angle(startInStartShapeLocalSpace)
+			const CB = centerInStartShapeLocalSpace.angle(endInStartShapeLocalSpace)
+			const CC = centerInStartShapeLocalSpace.angle(middleInStartShapeLocalSpace)
 
-			intersections.sort(
-				(p0, p1) =>
-					shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p0)) * sign -
-					shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p1)) * sign
-			)
+			let arcDelta = Math.abs(angleDelta(CA, CB))
+			if (handleArc.largeArcFlag) arcDelta = PI2 - arcDelta
+
+			intersections = intersections.filter((pt) => {
+				const CP = centerInStartShapeLocalSpace.angle(pt)
+				const t = getPointInArcT(arcDelta, CA, CB, CP)
+				console.log('t', t)
+				return handleArc.sweepFlag ? t > 0 && t < 1 : t < 0 && t > -1
+			})
+
+			intersections.sort((p0, p1) => {
+				const CP0 = centerInStartShapeLocalSpace.angle(p0)
+				const t0 = getPointInArcT(arcDelta, CA, CB, CP0)
+				const CP1 = centerInStartShapeLocalSpace.angle(p1)
+				const t1 = getPointInArcT(arcDelta, CA, CB, CP1)
+
+				if (handleArc.sweepFlag) {
+					return t1 - t0
+				} else {
+					return t0 - t1
+				}
+			})
 
 			point = intersections[0] ?? (isClosed ? undefined : startInStartShapeLocalSpace)
 		} else {
@@ -164,13 +177,7 @@ export function getCurvedArrowInfo(
 
 		const angleToMiddle = Vec2d.Angle(handleArc.center, middle)
 		const angleToEnd = Vec2d.Angle(handleArc.center, terminalsInArrowSpace.end)
-		const comparisonAngle = lerpAngles(
-			angleToMiddle,
-			angleToEnd,
-			0.5,
-			Math.abs(angleToEnd - angleToMiddle) > PI ? 1 : 0
-		)
-		const sign = angleDifferenceSign(angleToMiddle, angleToEnd)
+		const comparisonAngle = lerpAngles(angleToMiddle, angleToEnd, 0.5)
 
 		let point: VecLike | undefined
 
@@ -189,8 +196,8 @@ export function getCurvedArrowInfo(
 
 			intersections.sort(
 				(p0, p1) =>
-					shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p0)) * sign -
-					shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p1)) * sign
+					Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p0))) -
+					Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p1)))
 			)
 
 			point = intersections[0] ?? (isClosed ? undefined : endInEndShapeLocalSpace)
