@@ -131,12 +131,6 @@ export const defaultUserPreferences = Object.freeze({
 export function getFreshUserPreferences(): TLUserPreferences {
 	return {
 		id: uniqueId(),
-		locale: null,
-		name: null,
-		color: null,
-		isDarkMode: null,
-		animationSpeed: null,
-		isSnapMode: null,
 	}
 }
 
