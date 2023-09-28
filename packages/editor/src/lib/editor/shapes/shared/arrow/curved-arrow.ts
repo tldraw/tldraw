@@ -69,6 +69,9 @@ export function getCurvedArrowInfo(
 
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
+	let offsetA = 0
+	let offsetB = 0
+
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
 		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
@@ -122,33 +125,13 @@ export function getCurvedArrowInfo(
 			startShapeInfo.didIntersect = true
 
 			if (arrowheadStart !== 'none') {
-				let offset =
+				offsetA =
 					(BOUND_ARROW_OFFSET +
 						STROKE_SIZES[shape.props.size] / 2 +
 						('size' in startShapeInfo.shape.props
 							? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 							: 0)) *
 					(handleArc.sweepFlag ? 1 : -1)
-
-				const startAngle = Vec2d.Angle(handleArc.center, tempA)
-				const midAngle = Vec2d.Angle(handleArc.center, tempC)
-				const length = getArcLength(handleArc.center, handleArc.radius, tempA, tempC)
-
-				if (
-					(handleArc.sweepFlag && offset > length / 2) ||
-					(!handleArc.sweepFlag && offset < length / 2)
-				) {
-					offset *= -2
-				}
-
-				tempA.setTo(
-					getPointOnCircle(
-						handleArc.center.x,
-						handleArc.center.y,
-						handleArc.radius,
-						lerpAngles(startAngle, midAngle, offset / length)
-					)
-				)
 			}
 		}
 	}
@@ -205,36 +188,84 @@ export function getCurvedArrowInfo(
 			endShapeInfo.didIntersect = true
 
 			if (arrowheadEnd !== 'none') {
-				let offset =
+				offsetB =
 					(BOUND_ARROW_OFFSET +
 						STROKE_SIZES[shape.props.size] / 2 +
 						('size' in endShapeInfo.shape.props
 							? STROKE_SIZES[endShapeInfo.shape.props.size] / 2
 							: 0)) *
 					(handleArc.sweepFlag ? -1 : 1)
-
-				const dist = Vec2d.Dist(tempB, tempA)
-
-				if (dist < MIN_ARROW_LENGTH) {
-					offset *= -2
-				}
-
-				const endAngle = Vec2d.Angle(handleArc.center, tempB)
-				const midAngle = Vec2d.Angle(handleArc.center, tempC)
-				const length = getArcLength(handleArc.center, handleArc.radius, tempB, tempC)
-
-				tempB.setTo(
-					getPointOnCircle(
-						handleArc.center.x,
-						handleArc.center.y,
-						handleArc.radius,
-						lerpAngles(endAngle, midAngle, offset / length)
-					)
-				)
 			}
 		}
 	}
 
+	// Apply arrowhead offsets
+
+	const startAngle = Vec2d.Angle(handleArc.center, tempA)
+	const endAngle = Vec2d.Angle(handleArc.center, tempB)
+	const midAngle = Vec2d.Angle(handleArc.center, tempC)
+	const lAC = getArcLength(handleArc.center, handleArc.radius, tempA, tempC)
+	const lBC = getArcLength(handleArc.center, handleArc.radius, tempB, tempC)
+
+	// Try the offsets first, then check whether the distance between the points is too small;
+	// if it is, flip the offsets and expand them. We need to do this using temporary points
+	// so that we can apply them both in a balanced way.
+	const tA = tempA.clone()
+	const tB = tempB.clone()
+
+	if (offsetA !== 0) {
+		tA.setTo(
+			getPointOnCircle(
+				handleArc.center.x,
+				handleArc.center.y,
+				handleArc.radius,
+				lerpAngles(startAngle, midAngle, offsetA / lAC)
+			)
+		)
+	}
+
+	if (offsetB !== 0) {
+		tB.setTo(
+			getPointOnCircle(
+				handleArc.center.x,
+				handleArc.center.y,
+				handleArc.radius,
+				lerpAngles(endAngle, midAngle, offsetB / lBC)
+			)
+		)
+	}
+
+	const dist = Vec2d.Dist(tA, tB)
+
+	if (dist < MIN_ARROW_LENGTH) {
+		if (offsetA !== 0 && offsetB !== 0) {
+			offsetA *= -1.5
+			offsetB *= -1.5
+		} else if (offsetA !== 0) {
+			offsetA *= -2
+		} else if (offsetB !== 0) {
+			offsetB *= -2
+		}
+	}
+
+	tempA.setTo(
+		getPointOnCircle(
+			handleArc.center.x,
+			handleArc.center.y,
+			handleArc.radius,
+			lerpAngles(startAngle, midAngle, offsetA / lAC)
+		)
+	)
+	tempB.setTo(
+		getPointOnCircle(
+			handleArc.center.x,
+			handleArc.center.y,
+			handleArc.radius,
+			lerpAngles(endAngle, midAngle, offsetB / lBC)
+		)
+	)
+
+	// Did we miss intersections? This happens when we have overlapping shapes.
 	if (
 		startShapeInfo &&
 		endShapeInfo &&
@@ -242,7 +273,6 @@ export function getCurvedArrowInfo(
 		!startShapeInfo.isExact &&
 		!endShapeInfo.isExact
 	) {
-		// If we missed an intersection, then try
 		const startAngle = Vec2d.Angle(handleArc.center, tempA)
 		const endAngle = Vec2d.Angle(handleArc.center, tempB)
 		const length = getArcLength(handleArc.center, handleArc.radius, tempA, tempB)
