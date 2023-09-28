@@ -11,6 +11,7 @@ import {
 	isSafeFloat,
 	lerpAngles,
 	shortAngleDist,
+	toPrecision,
 } from '../../../../primitives/utils'
 import type { Editor } from '../../../Editor'
 import { TLArcInfo, TLArrowInfo } from './arrow-types'
@@ -261,9 +262,15 @@ export function getCurvedArrowInfo(
 		}
 	}
 
-	const length = getArcLength(handleArc.center, handleArc.radius, tempA, tempB)
+	let dist = shortAngleDist(
+		Vec2d.Angle(handleArc.center, tempA),
+		Vec2d.Angle(handleArc.center, tempB)
+	)
+	if (handleArc.largeArcFlag) dist = PI2 - dist
+	const length = dist * handleArc.radius
+	const tinyLittleArrow = Math.abs(length) < MIN_ARROW_LENGTH
 
-	if (Math.abs(length) < MIN_ARROW_LENGTH) {
+	if (tinyLittleArrow) {
 		// If the length is too short, then place the start handle offset behind the end handle.
 		tempB.setTo(
 			getPointOnCircle(
@@ -300,7 +307,11 @@ export function getCurvedArrowInfo(
 	tempC.setTo(midPoint)
 
 	// Uh oh, a flip has occurred!
-	if (Math.abs(getArcInfo(tempA, tempB, midPoint).length) > Math.abs(handleArc.length)) {
+	if (
+		!tinyLittleArrow &&
+		Math.abs(toPrecision(getArcInfo(tempA, tempB, midPoint).length)) >
+			Math.abs(toPrecision(handleArc.length))
+	) {
 		tempB.setTo(
 			getPointOnCircle(
 				handleArc.center.x,
