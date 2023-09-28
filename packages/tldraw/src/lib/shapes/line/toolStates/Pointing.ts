@@ -14,6 +14,8 @@ import {
 	structuredClone,
 } from '@tldraw/editor'
 
+const MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES = 2
+
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
@@ -27,9 +29,11 @@ export class Pointing extends StateNode {
 
 		this.markId = undefined
 
+		// Previously created line shape that we might be extending
 		const shape = info.shapeId && this.editor.getShape<TLLineShape>(info.shapeId)
 
 		if (shape && inputs.shiftKey) {
+			// Extending a previous shape
 			this.markId = `creating:${shape.id}`
 			this.editor.mark(this.markId)
 			this.shape = shape
@@ -39,6 +43,7 @@ export class Pointing extends StateNode {
 
 			const vertexHandles = handles.filter((h) => h.type === 'vertex').sort(sortByIndex)
 			const endHandle = vertexHandles[vertexHandles.length - 1]
+			const prevEndHandle = vertexHandles[vertexHandles.length - 2]
 
 			const shapePagePoint = Matrix2d.applyToPoint(
 				this.editor.getShapeParentTransform(this.shape)!,
@@ -47,15 +52,17 @@ export class Pointing extends StateNode {
 
 			let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
 
-			if (vertexHandles.length === 2 && vertexHandles[1].x === 1 && vertexHandles[1].y === 1) {
-				nextEndHandleIndex = vertexHandles[1].index
-				nextEndHandleId = vertexHandles[1].id
+			if (Vec2d.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES) {
+				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
+				nextEndHandleIndex = prevEndHandle.index
+				nextEndHandleId = prevEndHandle.id
 				nextEndHandle = {
-					...vertexHandles[1],
+					...prevEndHandle,
 					x: currentPagePoint.x - shapePagePoint.x,
 					y: currentPagePoint.y - shapePagePoint.y,
 				}
 			} else {
+				// Otherwise, we'll create a new end handle
 				nextEndHandleIndex = getIndexAbove(endHandle.index)
 				nextEndHandleId = 'handle:' + nextEndHandleIndex
 				nextEndHandle = {
@@ -114,7 +121,11 @@ export class Pointing extends StateNode {
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
 				isCreating: true,
-				handle: last(handles)!,
+				handle: {
+					...last(handles)!,
+					x: 0,
+					y: 0,
+				},
 				onInteractionEnd: 'line',
 			})
 		}

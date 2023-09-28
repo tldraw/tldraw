@@ -102,11 +102,7 @@ export function getDrawLinePathData(id: string, outline: VecLike[], strokeWidth:
 		s1 = Vec2d.AddXY(outline[i + 1], random() * offset, random() * offset)
 
 		const delta = Vec2d.Sub(p1, p0)
-		let distance = Vec2d.Len(delta)
-		//dodge a divide by zero error if the points are the same
-		if (distance === 0) {
-			distance = 0.01
-		}
+		const distance = Vec2d.Len(delta)
 		const vector = Vec2d.Div(delta, distance).mul(Math.min(distance / 4, roundness))
 
 		const q0 = Vec2d.Add(p0, vector)
