@@ -54,10 +54,11 @@ export class Pointing extends StateNode {
 
 			if (Vec2d.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES) {
 				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
-				nextEndHandleIndex = prevEndHandle.index
-				nextEndHandleId = prevEndHandle.id
+
+				nextEndHandleIndex = endHandle.index
+				nextEndHandleId = endHandle.id
 				nextEndHandle = {
-					...prevEndHandle,
+					...endHandle,
 					x: currentPagePoint.x - shapePagePoint.x,
 					y: currentPagePoint.y - shapePagePoint.y,
 				}
@@ -113,6 +114,7 @@ export class Pointing extends StateNode {
 
 		if (this.editor.inputs.isDragging) {
 			const handles = this.editor.getShapeHandles(this.shape)
+			console
 			if (!handles) {
 				if (this.markId) this.editor.bailToMark(this.markId)
 				throw Error('No handles found')
@@ -121,11 +123,7 @@ export class Pointing extends StateNode {
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
 				isCreating: true,
-				handle: {
-					...last(handles)!,
-					x: 0,
-					y: 0,
-				},
+				handle: last(handles),
 				onInteractionEnd: 'line',
 			})
 		}
