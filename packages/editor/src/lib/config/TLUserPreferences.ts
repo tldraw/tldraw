@@ -117,13 +117,21 @@ export function userPrefersDarkUI() {
 	return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false
 }
 
+/** @internal */
+export function userPrefersReducedMotion() {
+	if (typeof window === 'undefined') {
+		return false
+	}
+	return window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches ?? false
+}
+
 /** @public */
 export const defaultUserPreferences = Object.freeze({
 	name: 'New User',
-	locale: typeof window !== 'undefined' ? getDefaultTranslationLocale() : 'en',
+	locale: getDefaultTranslationLocale(),
 	color: getRandomColor(),
 	isDarkMode: false,
-	animationSpeed: 1,
+	animationSpeed: userPrefersReducedMotion() ? 0 : 1,
 	isSnapMode: false,
 }) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
 
