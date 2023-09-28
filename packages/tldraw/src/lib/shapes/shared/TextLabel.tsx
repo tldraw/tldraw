@@ -46,7 +46,6 @@ export const TextLabel = React.memo(function TextLabel<
 		rInput,
 		isEmpty,
 		isEditing,
-		isEditingSameShapeType,
 		handleFocus,
 		handleChange,
 		handleKeyDown,
@@ -55,13 +54,12 @@ export const TextLabel = React.memo(function TextLabel<
 		handleDoubleClick,
 	} = useEditableText(id, type, text)
 
-	const isInteractive = isEditing || isEditingSameShapeType
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.trim().length > 0
 	const legacyAlign = isLegacyAlign(align)
 	const theme = useDefaultColorTheme()
 
-	if (!isInteractive && !hasText) return null
+	if (!isEditing && !hasText) return null
 
 	return (
 		<div
@@ -98,7 +96,7 @@ export const TextLabel = React.memo(function TextLabel<
 				<div className="tl-text tl-text-content" dir="ltr">
 					{finalText}
 				</div>
-				{isInteractive && (
+				{isEditing && (
 					<textarea
 						ref={rInput}
 						className="tl-text tl-text-input"

@@ -1,4 +1,11 @@
-import { Group2d, StateNode, TLArrowShape, TLEventHandlers, TLGeoShape } from '@tldraw/editor'
+import {
+	Group2d,
+	StateNode,
+	TLArrowShape,
+	TLEventHandlers,
+	TLGeoShape,
+	TLTextShape,
+} from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
@@ -77,8 +84,7 @@ export class EditingShape extends StateNode {
 									// If we clicked on the editing geo / arrow shape's label, do nothing
 									return
 								} else {
-									this.editor.setEditingShape(shape)
-									this.editor.select(shape)
+									this.parent.transition('pointing_shape', info)
 									return
 								}
 							}
@@ -86,6 +92,9 @@ export class EditingShape extends StateNode {
 					} else {
 						if (shape.id === editingShape.id) {
 							// If we clicked on the editing shape (which isn't a shape with a label), do nothing
+						} else if (this.editor.isShapeOfType<TLTextShape>(shape, 'text')) {
+							this.parent.transition('pointing_shape', info)
+							return
 						} else {
 							// But if we clicked on a different shape of the same type, edit it instead
 							this.editor.setEditingShape(shape)

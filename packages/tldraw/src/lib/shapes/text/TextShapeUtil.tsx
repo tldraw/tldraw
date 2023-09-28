@@ -78,7 +78,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			rInput,
 			isEmpty,
 			isEditing,
-			isEditingSameShapeType,
 			handleFocus,
 			handleChange,
 			handleKeyDown,
@@ -114,7 +113,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					<div className="tl-text tl-text-content" dir="ltr">
 						{text}
 					</div>
-					{isEditing || isEditingSameShapeType ? (
+					{isEditing ? (
 						<textarea
 							ref={rInput}
 							className="tl-text tl-text-input"
