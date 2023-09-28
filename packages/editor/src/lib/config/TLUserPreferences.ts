@@ -13,12 +13,12 @@ const USER_DATA_KEY = 'TLDRAW_USER_DATA_v3'
  */
 export interface TLUserPreferences {
 	id: string
-	name: string
-	locale: string
-	color: string
-	isDarkMode: boolean
-	animationSpeed: number
-	isSnapMode: boolean
+	name?: string | null
+	locale?: string | null
+	color?: string | null
+	isDarkMode?: boolean | null
+	animationSpeed?: number | null
+	isSnapMode?: boolean | null
 }
 
 interface UserDataSnapshot {
@@ -34,21 +34,22 @@ interface UserChangeBroadcastMessage {
 
 const userTypeValidator: T.Validator<TLUserPreferences> = T.object<TLUserPreferences>({
 	id: T.string,
-	name: T.string,
-	locale: T.string,
-	color: T.string,
-	isDarkMode: T.boolean,
-	animationSpeed: T.number,
-	isSnapMode: T.boolean,
+	name: T.string.nullable().optional(),
+	locale: T.string.nullable().optional(),
+	color: T.string.nullable().optional(),
+	isDarkMode: T.boolean.nullable().optional(),
+	animationSpeed: T.number.nullable().optional(),
+	isSnapMode: T.boolean.nullable().optional(),
 })
 
 const Versions = {
 	AddAnimationSpeed: 1,
 	AddIsSnapMode: 2,
+	MakeFieldsNullable: 3,
 } as const
 
 const userMigrations = defineMigrations({
-	currentVersion: Versions.AddIsSnapMode,
+	currentVersion: Versions.MakeFieldsNullable,
 	migrators: {
 		[Versions.AddAnimationSpeed]: {
 			up: (user) => {
@@ -67,6 +68,22 @@ const userMigrations = defineMigrations({
 			},
 			down: ({ isSnapMode: _, ...user }: TLUserPreferences) => {
 				return user
+			},
+		},
+		[Versions.MakeFieldsNullable]: {
+			up: (user: TLUserPreferences) => {
+				return user
+			},
+			down: (user: TLUserPreferences) => {
+				return {
+					id: user.id,
+					name: user.name ?? defaultUserPreferences.name,
+					locale: user.locale ?? defaultUserPreferences.locale,
+					color: user.color ?? defaultUserPreferences.color,
+					isDarkMode: user.isDarkMode ?? defaultUserPreferences.isDarkMode,
+					animationSpeed: user.animationSpeed ?? defaultUserPreferences.animationSpeed,
+					isSnapMode: user.isSnapMode ?? defaultUserPreferences.isSnapMode,
+				}
 			},
 		},
 	},
@@ -92,17 +109,34 @@ function getRandomColor() {
 	return USER_COLORS[Math.floor(Math.random() * USER_COLORS.length)]
 }
 
+/** @internal */
+export function userPrefersDarkUI() {
+	if (typeof window === 'undefined') {
+		return false
+	}
+	return window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? false
+}
+
+/** @public */
+export const defaultUserPreferences = Object.freeze({
+	name: 'New User',
+	locale: typeof window !== 'undefined' ? getDefaultTranslationLocale() : 'en',
+	color: getRandomColor(),
+	isDarkMode: false,
+	animationSpeed: 1,
+	isSnapMode: false,
+}) satisfies Readonly<Omit<TLUserPreferences, 'id'>>
+
 /** @public */
 export function getFreshUserPreferences(): TLUserPreferences {
 	return {
 		id: uniqueId(),
-		locale: typeof window !== 'undefined' ? getDefaultTranslationLocale() : 'en',
-		name: 'New User',
-		color: getRandomColor(),
-		// TODO: detect dark mode
-		isDarkMode: false,
-		animationSpeed: 1,
-		isSnapMode: false,
+		locale: null,
+		name: null,
+		color: null,
+		isDarkMode: null,
+		animationSpeed: null,
+		isSnapMode: null,
 	}
 }
 
