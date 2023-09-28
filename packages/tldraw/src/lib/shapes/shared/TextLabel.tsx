@@ -85,48 +85,46 @@ export const TextLabel = React.memo(function TextLabel<
 					: {}),
 			}}
 		>
-			{isEmpty && !isInteractive ? null : (
-				<div
-					className="tl-text-label__inner"
-					style={{
-						fontSize: LABEL_FONT_SIZES[size],
-						lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
-						minHeight: TEXT_PROPS.lineHeight + 32,
-						minWidth: 0,
-						color: theme[labelColor].solid,
-					}}
-				>
-					<div className="tl-text tl-text-content" dir="ltr">
-						{finalText}
-					</div>
-					{isInteractive && (
-						<textarea
-							ref={rInput}
-							className="tl-text tl-text-input"
-							name="text"
-							tabIndex={-1}
-							autoComplete="false"
-							autoCapitalize="false"
-							autoCorrect="false"
-							autoSave="false"
-							autoFocus={isEditing}
-							placeholder=""
-							spellCheck="true"
-							wrap="off"
-							dir="auto"
-							datatype="wysiwyg"
-							defaultValue={text}
-							onFocus={handleFocus}
-							onChange={handleChange}
-							onKeyDown={handleKeyDown}
-							onBlur={handleBlur}
-							onContextMenu={stopEventPropagation}
-							onPointerDown={handleInputPointerDown}
-							onDoubleClick={handleDoubleClick}
-						/>
-					)}
+			<div
+				className="tl-text-label__inner"
+				style={{
+					fontSize: LABEL_FONT_SIZES[size],
+					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
+					minHeight: TEXT_PROPS.lineHeight + 32,
+					minWidth: 0,
+					color: theme[labelColor].solid,
+				}}
+			>
+				<div className="tl-text tl-text-content" dir="ltr">
+					{finalText}
 				</div>
-			)}
+				{isInteractive && (
+					<textarea
+						ref={rInput}
+						className="tl-text tl-text-input"
+						name="text"
+						tabIndex={-1}
+						autoComplete="false"
+						autoCapitalize="false"
+						autoCorrect="false"
+						autoSave="false"
+						autoFocus={isEditing}
+						placeholder=""
+						spellCheck="true"
+						wrap="off"
+						dir="auto"
+						datatype="wysiwyg"
+						defaultValue={text}
+						onFocus={handleFocus}
+						onChange={handleChange}
+						onKeyDown={handleKeyDown}
+						onBlur={handleBlur}
+						onContextMenu={stopEventPropagation}
+						onPointerDown={handleInputPointerDown}
+						onDoubleClick={handleDoubleClick}
+					/>
+				)}
+			</div>
 		</div>
 	)
 })

@@ -84,6 +84,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			handleKeyDown,
 			handleBlur,
 			handleInputPointerDown,
+			handleDoubleClick,
 		} = useEditableText(id, type, text)
 
 		const zoomLevel = useValue('zoomLevel', () => this.editor.zoomLevel, [this.editor])
@@ -137,6 +138,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 							onTouchEnd={stopEventPropagation}
 							onContextMenu={stopEventPropagation}
 							onPointerDown={handleInputPointerDown}
+							onDoubleClick={handleDoubleClick}
 						/>
 					) : null}
 				</div>
