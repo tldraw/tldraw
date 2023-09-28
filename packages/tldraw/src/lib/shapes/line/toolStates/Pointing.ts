@@ -119,11 +119,11 @@ export class Pointing extends StateNode {
 				if (this.markId) this.editor.bailToMark(this.markId)
 				throw Error('No handles found')
 			}
-
+			const lastHandle = last(handles)!
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
 				isCreating: true,
-				handle: last(handles),
+				handle: { ...lastHandle, x: lastHandle.x - 0.1, y: lastHandle.y - 0.1 },
 				onInteractionEnd: 'line',
 			})
 		}
