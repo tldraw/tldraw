@@ -6,6 +6,7 @@ import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../pri
 import {
 	PI,
 	PI2,
+	angleDelta,
 	getArcLength,
 	getPointOnCircle,
 	isSafeFloat,
@@ -212,16 +213,15 @@ export function getCurvedArrowInfo(
 							: 0)) *
 					(handleArc.sweepFlag ? -1 : 1)
 
+				const dist = Vec2d.Dist(tempB, tempA)
+
+				if (dist < MIN_ARROW_LENGTH) {
+					offset *= -2
+				}
+
 				const endAngle = Vec2d.Angle(handleArc.center, tempB)
 				const midAngle = Vec2d.Angle(handleArc.center, tempC)
 				const length = getArcLength(handleArc.center, handleArc.radius, tempB, tempC)
-
-				if (
-					(handleArc.sweepFlag && offset < length / 2) ||
-					(!handleArc.sweepFlag && offset > length / 2)
-				) {
-					offset *= -2
-				}
 
 				tempB.setTo(
 					getPointOnCircle(
@@ -249,19 +249,16 @@ export function getCurvedArrowInfo(
 
 		if (startShapeInfo && !startShapeInfo.didIntersect) {
 			tempA.setTo(a)
-			tempC.setTo(c)
 		}
 
 		if (endShapeInfo && !endShapeInfo.didIntersect) {
-			tempB.setTo(
-				getPointOnCircle(
-					handleArc.center.x,
-					handleArc.center.y,
-					handleArc.radius,
-					lerpAngles(startAngle, endAngle, MIN_ARROW_LENGTH / length)
-				)
-			)
-			tempC.setTo(c)
+			const size = angleDelta(startAngle, endAngle)
+			let mid = lerpAngles(startAngle, endAngle, Math.abs(MIN_ARROW_LENGTH / length))
+			if (+(size > 0) !== handleArc.sweepFlag) {
+				mid = PI2 - mid
+			}
+
+			tempB.setTo(getPointOnCircle(handleArc.center.x, handleArc.center.y, handleArc.radius, mid))
 		}
 	}
 
@@ -281,11 +278,6 @@ export function getCurvedArrowInfo(
 
 	// ...so we check whether the handle is on the other side of the arc as the drag handle, and flip
 	// the position of the middle point if so.
-	if (Vec2d.Dpr(Vec2d.Tan(handleArc.center, c), Vec2d.Tan(handleArc.center, tempC)) < -0.5) {
-		tempC.rotWith(handleArc.center, PI)
-	}
-
-	// Really we want an "is angle between" here
 	if (+Vec2d.Clockwise(tempA, tempC, tempB) !== handleArc.sweepFlag) {
 		tempC.rotWith(handleArc.center, PI)
 	}
