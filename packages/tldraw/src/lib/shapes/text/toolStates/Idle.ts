@@ -14,7 +14,7 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		// TODO: Fix this for iOS Safari and add it back in?
+		// TODO: Fix this for touch devices and add it back in?
 		// It doesn't work if you do it to two text shapes in a row.
 
 		// const { hoveredShape } = this.editor
