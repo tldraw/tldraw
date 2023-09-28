@@ -229,11 +229,27 @@ export function areAnglesCompatible(a: number, b: number) {
  * @public
  */
 export function isAngleBetween(a: number, b: number, c: number): boolean {
-	if (c === a || c === b) return true
+	// Normalize the angles to ensure they're in the same domain
+	a = canonicalizeRotation(a)
+	b = canonicalizeRotation(b)
+	c = canonicalizeRotation(c)
 
-	const AB = (b - a + TAU) % TAU
-	const AC = (c - a + TAU) % TAU
-	return AB <= PI !== AC > AB
+	// Compute vectors corresponding to angles a and b
+	const ax = Math.cos(a)
+	const ay = Math.sin(a)
+	const bx = Math.cos(b)
+	const by = Math.sin(b)
+
+	// Compute the vector corresponding to angle c
+	const cx = Math.cos(c)
+	const cy = Math.sin(c)
+
+	// Calculate dot products
+	const dotAc = ax * cx + ay * cy
+	const dotBc = bx * cx + by * cy
+
+	// If angle c is between a and b, both dot products should be >= 0
+	return dotAc >= 0 && dotBc >= 0
 }
 
 /**
