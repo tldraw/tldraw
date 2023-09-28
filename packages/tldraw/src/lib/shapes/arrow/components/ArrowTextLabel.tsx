@@ -19,15 +19,21 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 	const {
 		rInput,
 		isEditing,
+		isEditingSameShapeType,
 		handleFocus,
 		handleBlur,
 		handleKeyDown,
 		handleChange,
 		isEmpty,
 		handleInputPointerDown,
+		handleDoubleClick,
 	} = useEditableText(id, 'arrow', text)
 
-	if (!isEditing && isEmpty) {
+	const isInteractive = isEditing || isEditingSameShapeType
+	const finalText = TextHelpers.normalizeTextForDom(text)
+	const hasText = finalText.trim().length > 0
+
+	if (!isInteractive && !hasText) {
 		return null
 	}
 
@@ -50,7 +56,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 				<p style={{ width: width ? width : '9px' }}>
 					{text ? TextHelpers.normalizeTextForDom(text) : ' '}
 				</p>
-				{isEditing && (
+				{isInteractive && (
 					// Consider replacing with content-editable
 					<textarea
 						ref={rInput}
@@ -61,7 +67,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 						autoCapitalize="false"
 						autoCorrect="false"
 						autoSave="false"
-						autoFocus
+						autoFocus={isEditing}
 						placeholder=""
 						spellCheck="true"
 						wrap="off"
@@ -74,6 +80,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 						onBlur={handleBlur}
 						onContextMenu={stopEventPropagation}
 						onPointerDown={handleInputPointerDown}
+						onDoubleClick={handleDoubleClick}
 					/>
 				)}
 			</div>
