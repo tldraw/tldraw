@@ -6,6 +6,7 @@ import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../pri
 import {
 	PI,
 	PI2,
+	angleDelta,
 	getArcLength,
 	getPointOnCircle,
 	isSafeFloat,
@@ -262,13 +263,12 @@ export function getCurvedArrowInfo(
 		}
 	}
 
-	let dist = shortAngleDist(
+	let size = shortAngleDist(
 		Vec2d.Angle(handleArc.center, tempA),
 		Vec2d.Angle(handleArc.center, tempB)
 	)
-	if (handleArc.largeArcFlag) dist = PI2 - dist
-	const length = dist * handleArc.radius
-	const tinyLittleArrow = Math.abs(length) < MIN_ARROW_LENGTH
+	if (handleArc.largeArcFlag) size = PI2 - size
+	const tinyLittleArrow = Math.abs(size * handleArc.radius) < MIN_ARROW_LENGTH
 
 	if (tinyLittleArrow) {
 		// If the length is too short, then place the start handle offset behind the end handle.
@@ -309,8 +309,11 @@ export function getCurvedArrowInfo(
 	// Uh oh, a flip has occurred!
 	if (
 		!tinyLittleArrow &&
-		Math.abs(toPrecision(getArcInfo(tempA, tempB, midPoint).length)) >
-			Math.abs(toPrecision(handleArc.length))
+		Math.abs(
+			toPrecision(
+				angleDelta(Vec2d.Angle(handleArc.center, tempA), Vec2d.Angle(handleArc.center, tempB))
+			)
+		) > Math.abs(toPrecision(handleArc.size))
 	) {
 		tempB.setTo(
 			getPointOnCircle(
