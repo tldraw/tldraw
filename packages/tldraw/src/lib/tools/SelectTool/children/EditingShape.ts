@@ -1,4 +1,11 @@
-import { Group2d, StateNode, TLArrowShape, TLEventHandlers, TLGeoShape } from '@tldraw/editor'
+import {
+	Group2d,
+	StateNode,
+	TLArrowShape,
+	TLEventHandlers,
+	TLFrameShape,
+	TLGeoShape,
+} from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
@@ -85,6 +92,10 @@ export class EditingShape extends StateNode {
 						}
 					} else {
 						if (shape.id === editingShape.id) {
+							// If we clicked on a frame, while editing its heading, cancel editing
+							if (this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+								this.editor.setEditingShape(null)
+							}
 							// If we clicked on the editing shape (which isn't a shape with a label), do nothing
 						} else {
 							// But if we clicked on a different shape of the same type, edit it instead
