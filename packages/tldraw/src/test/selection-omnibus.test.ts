@@ -1630,4 +1630,26 @@ describe('right clicking', () => {
 		editor.pointerUp()
 		expect(editor.selectedShapeIds).toEqual([ids.box1])
 	})
+
+	it('keeps selection when right-clicking a selection background', () => {
+		editor
+			.selectAll()
+			.deleteShapes(editor.selectedShapeIds)
+			.setCurrentTool('arrow')
+			.pointerMove(500, 500)
+			.pointerDown()
+			.pointerMove(600, 600)
+			.pointerUp()
+			.selectAll()
+			.setCurrentTool('select')
+
+		expect(editor.selectedShapeIds.length).toBe(1)
+
+		// Not inside of the shape but inside of the selection bounds
+		editor.pointerMove(510, 590)
+		expect(editor.hoveredShapeId).toBe(null)
+		editor.pointerDown(30, 30, { target: 'canvas', button: 2 })
+		editor.pointerUp()
+		expect(editor.selectedShapeIds).toEqual([])
+	})
 })
