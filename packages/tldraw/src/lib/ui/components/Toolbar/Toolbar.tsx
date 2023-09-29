@@ -110,19 +110,21 @@ export const Toolbar = memo(function Toolbar() {
 		<div className="tlui-toolbar">
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
-					{!isReadonly && breakpoint < 6 && !editor.isInAny('hand', 'zoom') && (
+					{!isReadonly && (
 						<div
 							className={classNames('tlui-toolbar__extras', {
 								'tlui-toolbar__extras__hidden': !showExtraActions,
 							})}
 						>
-							<div className="tlui-toolbar__extras__controls">
-								<UndoButton />
-								<RedoButton />
-								<TrashButton />
-								<DuplicateButton />
-								<ActionsMenu />
-							</div>
+							{breakpoint < 6 && !editor.isInAny('hand', 'zoom') && (
+								<div className="tlui-toolbar__extras__controls">
+									<UndoButton />
+									<RedoButton />
+									<TrashButton />
+									<DuplicateButton />
+									<ActionsMenu />
+								</div>
+							)}
 							<ToggleToolLockedButton activeToolId={activeToolId} />
 						</div>
 					)}

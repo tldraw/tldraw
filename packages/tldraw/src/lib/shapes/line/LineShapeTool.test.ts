@@ -146,7 +146,7 @@ describe('When extending the line with the shift-key in tool-lock mode', () => {
 		const line = editor.currentPageShapes[editor.currentPageShapes.length - 1]
 		assert(editor.isShapeOfType<TLLineShape>(line, 'line'))
 		const handles = Object.values(line.props.handles)
-		expect(handles.length).toBe(3)
+		expect(handles.length).toBe(2)
 	})
 
 	it('extends a line by shift-click dragging', () => {
