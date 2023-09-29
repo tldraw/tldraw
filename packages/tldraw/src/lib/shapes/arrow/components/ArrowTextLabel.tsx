@@ -65,7 +65,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 						autoCapitalize="false"
 						autoCorrect="false"
 						autoSave="false"
-						autoFocus={isEditing}
+						autoFocus
 						placeholder=""
 						spellCheck="true"
 						wrap="off"

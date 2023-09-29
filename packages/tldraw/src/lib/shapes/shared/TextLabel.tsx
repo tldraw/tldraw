@@ -56,10 +56,13 @@ export const TextLabel = React.memo(function TextLabel<
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.trim().length > 0
+
 	const legacyAlign = isLegacyAlign(align)
 	const theme = useDefaultColorTheme()
 
-	if (!isEditing && !hasText) return null
+	if (!isEditing && !hasText) {
+		return null
+	}
 
 	return (
 		<div
@@ -106,7 +109,7 @@ export const TextLabel = React.memo(function TextLabel<
 						autoCapitalize="false"
 						autoCorrect="false"
 						autoSave="false"
-						autoFocus={isEditing}
+						autoFocus
 						placeholder=""
 						spellCheck="true"
 						wrap="off"
