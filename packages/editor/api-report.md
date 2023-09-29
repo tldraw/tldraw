@@ -328,6 +328,9 @@ export function clamp(n: number, min: number, max: number): number;
 // @public
 export function clampRadians(r: number): number;
 
+// @public
+export function clockwiseAngleDist(a0: number, a1: number): number;
+
 export { computed }
 
 // @public (undocumented)
@@ -412,6 +415,7 @@ export const debugFlags: {
     resetConnectionEveryPing: DebugFlag<boolean>;
     debugCursors: DebugFlag<boolean>;
     forceSrgb: DebugFlag<boolean>;
+    debugGeometry: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)

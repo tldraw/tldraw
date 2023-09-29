@@ -3,9 +3,10 @@ import {
 	TLDefaultSizeStyle,
 	Vec2d,
 	Vec2dModel,
+	clockwiseAngleDist,
 	getPointOnCircle,
 	rng,
-	shortAngleDist,
+	toDomPrecision,
 } from '@tldraw/editor'
 
 function getPillCircumference(width: number, height: number) {
@@ -200,8 +201,8 @@ export function getCloudArcs(
 		const radius = Vec2d.Dist(center, leftWigglePoint)
 
 		arcs.push({
-			leftPoint: leftWigglePoint,
-			rightPoint: rightWigglePoint,
+			leftPoint: leftWigglePoint.clone(),
+			rightPoint: rightWigglePoint.clone(),
 			arcPoint,
 			center,
 			radius,
@@ -265,11 +266,13 @@ export function cloudSvgPath(
 	size: TLDefaultSizeStyle
 ) {
 	const arcs = getCloudArcs(width, height, seed, size)
-	let path = `M${arcs[0].leftPoint.x},${arcs[0].leftPoint.y}`
+	let path = `M${toDomPrecision(arcs[0].leftPoint.x)},${toDomPrecision(arcs[0].leftPoint.y)}`
 
 	// now draw arcs for each circle, starting where it intersects the previous circle, and ending where it intersects the next circle
 	for (const { rightPoint, radius } of arcs) {
-		path += ` A${radius},${radius} 0 0,1 ${rightPoint.x},${rightPoint.y}`
+		path += ` A${toDomPrecision(radius)},${toDomPrecision(radius)} 0 0,1 ${toDomPrecision(
+			rightPoint.x
+		)},${toDomPrecision(rightPoint.y)}`
 	}
 
 	path += ' Z'
@@ -289,18 +292,22 @@ export function inkyCloudSvgPath(
 	}
 	const mutPoint = (p: Vec2d) => new Vec2d(mut(p.x), mut(p.y))
 	const arcs = getCloudArcs(width, height, seed, size)
-	let pathA = `M${arcs[0].leftPoint.x},${arcs[0].leftPoint.y}`
+	let pathA = `M${toDomPrecision(arcs[0].leftPoint.x)},${toDomPrecision(arcs[0].leftPoint.y)}`
 	let leftMutPoint = mutPoint(arcs[0].leftPoint)
-	let pathB = `M${leftMutPoint.x},${leftMutPoint.y}`
+	let pathB = `M${toDomPrecision(leftMutPoint.x)},${toDomPrecision(leftMutPoint.y)}`
 
 	for (const { rightPoint, radius, arcPoint } of arcs) {
-		pathA += ` A${radius},${radius} 0 0,1 ${rightPoint.x},${rightPoint.y}`
+		pathA += ` A${toDomPrecision(radius)},${toDomPrecision(radius)} 0 0,1 ${toDomPrecision(
+			rightPoint.x
+		)},${toDomPrecision(rightPoint.y)}`
 		const rightMutPoint = mutPoint(rightPoint)
 		const mutArcPoint = mutPoint(arcPoint)
 		const mutCenter = getCenterOfCircleGivenThreePoints(leftMutPoint, rightMutPoint, mutArcPoint)
 		const mutRadius = Math.abs(Vec2d.Dist(mutCenter, leftMutPoint))
 
-		pathB += ` A${mutRadius},${mutRadius} 0 0,1 ${rightMutPoint.x},${rightMutPoint.y}`
+		pathB += ` A${toDomPrecision(mutRadius)},${toDomPrecision(mutRadius)} 0 0,1 ${toDomPrecision(
+			rightMutPoint.x
+		)},${toDomPrecision(rightMutPoint.y)}`
 		leftMutPoint = rightMutPoint
 	}
 
@@ -319,7 +326,7 @@ export function pointsOnArc(
 	const startAngle = Vec2d.Angle(center, startPoint)
 	const endAngle = Vec2d.Angle(center, endPoint)
 
-	const l = shortAngleDist(startAngle, endAngle)
+	const l = clockwiseAngleDist(startAngle, endAngle)
 
 	for (let i = 0; i < numPoints; i++) {
 		const t = i / (numPoints - 1)

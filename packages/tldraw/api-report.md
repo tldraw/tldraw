@@ -27,6 +27,7 @@ import { MigrationFailureReason } from '@tldraw/editor';
 import { Migrations } from '@tldraw/editor';
 import { NamedExoticComponent } from 'react';
 import { ObjectValidator } from '@tldraw/editor';
+import { Polygon2d } from '@tldraw/editor';
 import { Polyline2d } from '@tldraw/editor';
 import { default as React_2 } from 'react';
 import * as React_3 from 'react';
@@ -654,11 +655,9 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     component(shape: TLHighlightShape): JSX.Element;
     // (undocumented)
-    expandSelectionOutlinePx(shape: TLHighlightShape): number;
-    // (undocumented)
     getDefaultProps(): TLHighlightShape['props'];
     // (undocumented)
-    getGeometry(shape: TLHighlightShape): Circle2d | Polyline2d;
+    getGeometry(shape: TLHighlightShape): Circle2d | Polygon2d;
     // (undocumented)
     hideResizeHandles: (shape: TLHighlightShape) => boolean;
     // (undocumented)

@@ -15,6 +15,7 @@ import { useScreenBounds } from '../hooks/useScreenBounds'
 import { Matrix2d } from '../primitives/Matrix2d'
 import { toDomPrecision } from '../primitives/utils'
 import { debugFlags } from '../utils/debug-flags'
+import { GeometryDebuggingView } from './GeometryDebuggingView'
 import { LiveCollaborators } from './LiveCollaborators'
 import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
@@ -110,7 +111,7 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 			</div>
 			<div className="tl-fixed-layer tl-overlays">
 				<div ref={rHtmlLayer2} className="tl-html-layer">
-					{/* <GeometryDebuggingView /> */}
+					{debugFlags.debugGeometry.value && <GeometryDebuggingView />}
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />
@@ -321,6 +322,7 @@ function SelectedIdIndicators() {
 					'select.idle',
 					'select.brushing',
 					'select.scribble_brushing',
+					'select.editing_shape',
 					'select.pointing_shape',
 					'select.pointing_selection',
 					'select.pointing_handle'

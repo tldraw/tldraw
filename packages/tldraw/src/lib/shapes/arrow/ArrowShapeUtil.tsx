@@ -34,6 +34,7 @@ import {
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
 	toDomPrecision,
+	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
@@ -691,6 +692,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			!!labelGeometry
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
+
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const isEditing = useIsEditing(shape.id)
+
+		if (isEditing && labelGeometry) {
+			return (
+				<rect
+					x={toDomPrecision(labelGeometry.x)}
+					y={toDomPrecision(labelGeometry.y)}
+					width={labelGeometry.w}
+					height={labelGeometry.h}
+					rx={3.5}
+					ry={3.5}
+				/>
+			)
+		}
 
 		return (
 			<g>
