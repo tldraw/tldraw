@@ -98,9 +98,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					data-isediting={isEditing}
 					data-textwrap={true}
 					style={{
-						outline: isEditing
-							? `${1.5 / zoomLevel / shape.props.scale}px solid var(--color-selected)`
-							: '',
 						fontSize: FONT_SIZES[shape.props.size],
 						lineHeight: FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + 'px',
 						transform: `scale(${shape.props.scale})`,
