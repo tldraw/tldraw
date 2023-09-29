@@ -332,25 +332,25 @@ export class Idle extends StateNode {
 					return
 				}
 
-				const {
-					onlySelectedShape,
-					selectedShapeIds,
-					inputs: { currentPagePoint },
-				} = this.editor
+				// const {
+				// 	onlySelectedShape,
+				// 	selectedShapeIds,
+				// 	inputs: { currentPagePoint },
+				// } = this.editor
 
-				if (
-					selectedShapeIds.length > 1 ||
-					(onlySelectedShape &&
-						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
-				) {
-					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
-						this.onRightClick({
-							...info,
-							target: 'selection',
-						})
-						return
-					}
-				}
+				// if (
+				// 	selectedShapeIds.length > 1 ||
+				// 	(onlySelectedShape &&
+				// 		!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
+				// ) {
+				// 	if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
+				// 		this.onRightClick({
+				// 			...info,
+				// 			target: 'selection',
+				// 		})
+				// 		return
+				// 	}
+				// }
 
 				this.editor.selectNone()
 				break
