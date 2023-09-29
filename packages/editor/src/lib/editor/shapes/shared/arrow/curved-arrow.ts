@@ -235,9 +235,7 @@ export function getCurvedArrowInfo(
 		)
 	}
 
-	const dist = Vec2d.Dist(tA, tB)
-
-	if (dist < MIN_ARROW_LENGTH) {
+	if (Vec2d.Dist(tA, tB) < MIN_ARROW_LENGTH) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			offsetA *= -1.5
 			offsetB *= -1.5
