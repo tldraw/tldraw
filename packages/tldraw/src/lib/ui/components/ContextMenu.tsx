@@ -2,6 +2,7 @@ import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { Editor, preventDefault, useContainer, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { useCallback, useState } from 'react'
+import { getHitShapeOnCanvasPointerDown } from '../../tools/selection-logic/getHitShapeOnCanvasPointerDown'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
@@ -35,27 +36,9 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 			} else {
 				// Weird route: selecting locked shapes on long press
 				if (editor.instanceState.isCoarsePointer) {
-					const {
-						selectedShapes,
-						inputs: { currentPagePoint },
-					} = editor
-
-					// get all of the shapes under the current pointer
-					const shapesAtPoint = editor.getShapesAtPoint(currentPagePoint)
-
-					if (
-						// if there are no selected shapes
-						!editor.selectedShapes.length ||
-						// OR if none of the shapes at the point include the selected shape
-						!shapesAtPoint.some((s) => selectedShapes.includes(s))
-					) {
-						// then are there any locked shapes under the current pointer?
-						const lockedShapes = shapesAtPoint.filter((s) => editor.isShapeOrAncestorLocked(s))
-
-						if (lockedShapes.length) {
-							// nice, let's select them
-							editor.select(...lockedShapes.map((s) => s.id))
-						}
+					const hitShape = getHitShapeOnCanvasPointerDown(editor)
+					if (hitShape && editor.isShapeOrAncestorLocked(hitShape)) {
+						editor.select(hitShape.id)
 					}
 				}
 			}
