@@ -1082,6 +1082,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: false,
 				kbd: '!l',
 				onSelect(source) {
+					editor.mark('locking')
 					trackEvent('toggle-lock', { source })
 					editor.toggleLock(editor.selectedShapeIds)
 				},
