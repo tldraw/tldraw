@@ -74,7 +74,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	isActive = false
 
-	transition(id: string, info: any) {
+	transition = (id: string, info: any) => {
 		const path = id.split('.')
 
 		let currState = this as StateNode
@@ -101,7 +101,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		return this
 	}
 
-	handleEvent(info: Exclude<TLEventInfo, TLPinchEventInfo>) {
+	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
 		const x = this.current.value
 		this[cbName]?.(info as any)
@@ -110,7 +110,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		}
 	}
 
-	enter(info: any, from: string) {
+	enter = (info: any, from: string) => {
 		this.isActive = true
 		this.onEnter?.(info, from)
 		if (this.children && this.initial && this.isActive) {
@@ -120,7 +120,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		}
 	}
 
-	exit(info: any, from: string) {
+	exit = (info: any, from: string) => {
 		this.isActive = false
 		this.onExit?.(info, from)
 		if (!this.isActive) {

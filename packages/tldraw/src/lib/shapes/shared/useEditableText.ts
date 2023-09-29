@@ -25,15 +25,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 	const isEditing = useValue('isEditing', () => editor.editingShapeId === id, [editor, id])
 
-	const isEditingSameShapeType = useValue(
-		'is editing same shape type',
-		() => {
-			const { editingShape } = editor
-			return editingShape && editingShape.type === type
-		},
-		[type, id]
-	)
-
 	// If the shape is editing but the input element not focused, focus the element
 	useEffect(() => {
 		const elm = rInput.current
@@ -191,17 +182,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 	const handleInputPointerDown = useCallback(
 		(e: React.PointerEvent) => {
-			const { editingShape } = editor
-
-			if (editingShape) {
-				// If there's an editing shape and it's the same type as this shape,
-				// then we can "deep edit" into this shape. Note that this won't work
-				// as expected with the note shape—in that case clicking outside of the
-				// input will not set skipSelectOnFocus to true, and so the input will
-				// blur, re-select, and then re-select-all on a second tap.
-				rSkipSelectOnFocus.current = type === editingShape.type
-			}
-
 			editor.dispatch({
 				...getPointerInfo(e),
 				type: 'pointer',
@@ -212,7 +192,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 			stopEventPropagation(e) // we need to prevent blurring the input
 		},
-		[editor, id, type]
+		[editor, id]
 	)
 
 	const handleDoubleClick = stopEventPropagation
@@ -220,7 +200,6 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	return {
 		rInput,
 		isEditing,
-		isEditingSameShapeType,
 		handleFocus,
 		handleBlur,
 		handleKeyDown,

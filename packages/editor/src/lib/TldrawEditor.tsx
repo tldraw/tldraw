@@ -106,6 +106,11 @@ export interface TldrawEditorBaseProps {
 	 * The user interacting with the editor.
 	 */
 	user?: TLUser
+
+	/**
+	 * Whether to infer dark mode from the user's OS. Defaults to false.
+	 */
+	inferDarkMode?: boolean
 }
 
 /**
@@ -253,6 +258,7 @@ function TldrawEditorWithReadyStore({
 	autoFocus,
 	user,
 	initialState,
+	inferDarkMode,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -272,6 +278,7 @@ function TldrawEditorWithReadyStore({
 			getContainer: () => container,
 			user,
 			initialState,
+			inferDarkMode,
 		})
 		;(window as any).app = editor
 		;(window as any).editor = editor
@@ -280,7 +287,7 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapeUtils, tools, store, user, initialState])
+	}, [container, shapeUtils, tools, store, user, initialState, inferDarkMode])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(

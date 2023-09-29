@@ -25,9 +25,13 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 		handleChange,
 		isEmpty,
 		handleInputPointerDown,
+		handleDoubleClick,
 	} = useEditableText(id, 'arrow', text)
 
-	if (!isEditing && isEmpty) {
+	const finalText = TextHelpers.normalizeTextForDom(text)
+	const hasText = finalText.trim().length > 0
+
+	if (!isEditing && !hasText) {
 		return null
 	}
 
@@ -74,6 +78,7 @@ export const ArrowTextLabel = React.memo(function ArrowTextLabel({
 						onBlur={handleBlur}
 						onContextMenu={stopEventPropagation}
 						onPointerDown={handleInputPointerDown}
+						onDoubleClick={handleDoubleClick}
 					/>
 				)}
 			</div>

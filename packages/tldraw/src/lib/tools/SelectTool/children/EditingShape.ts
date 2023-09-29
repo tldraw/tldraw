@@ -84,8 +84,7 @@ export class EditingShape extends StateNode {
 									// If we clicked on the editing geo / arrow shape's label, do nothing
 									return
 								} else {
-									this.editor.setEditingShape(shape)
-									this.editor.select(shape)
+									this.parent.transition('pointing_shape', info)
 									return
 								}
 							}
@@ -98,9 +97,9 @@ export class EditingShape extends StateNode {
 							}
 							// If we clicked on the editing shape (which isn't a shape with a label), do nothing
 						} else {
-							// But if we clicked on a different shape of the same type, edit it instead
-							this.editor.setEditingShape(shape)
-							this.editor.select(shape)
+							// But if we clicked on a different shape of the same type, transition to pointing_shape instead
+							this.parent.transition('pointing_shape', info)
+							return
 						}
 						return
 					}
