@@ -52,23 +52,27 @@ export class Pointing extends StateNode {
 
 			let nextEndHandleIndex: string, nextEndHandleId: string, nextEndHandle: TLHandle
 
-			if (Vec2d.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES) {
-				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
+			const nextPoint = Vec2d.Sub(currentPagePoint, shapePagePoint)
 
+			if (
+				Vec2d.Dist(endHandle, prevEndHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES ||
+				Vec2d.Dist(nextPoint, endHandle) < MINIMUM_DISTANCE_BETWEEN_SHIFT_CLICKED_HANDLES
+			) {
+				// If the end handle is too close to the previous end handle, we'll just extend the previous end handle
 				nextEndHandleIndex = endHandle.index
 				nextEndHandleId = endHandle.id
 				nextEndHandle = {
 					...endHandle,
-					x: currentPagePoint.x - shapePagePoint.x,
-					y: currentPagePoint.y - shapePagePoint.y,
+					x: currentPagePoint.x - shapePagePoint.x + 0.1,
+					y: currentPagePoint.y - shapePagePoint.y + 0.1,
 				}
 			} else {
 				// Otherwise, we'll create a new end handle
 				nextEndHandleIndex = getIndexAbove(endHandle.index)
 				nextEndHandleId = 'handle:' + nextEndHandleIndex
 				nextEndHandle = {
-					x: currentPagePoint.x - shapePagePoint.x,
-					y: currentPagePoint.y - shapePagePoint.y,
+					x: currentPagePoint.x - shapePagePoint.x + 0.1,
+					y: currentPagePoint.y - shapePagePoint.y + 0.1,
 					index: nextEndHandleIndex,
 					canBind: false,
 					type: 'vertex',
@@ -123,6 +127,7 @@ export class Pointing extends StateNode {
 			this.editor.setCurrentTool('select.dragging_handle', {
 				shape: this.shape,
 				isCreating: true,
+				// remove the offset that we added to the handle when we created it
 				handle: { ...lastHandle, x: lastHandle.x - 0.1, y: lastHandle.y - 0.1 },
 				onInteractionEnd: 'line',
 			})
