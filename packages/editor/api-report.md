@@ -476,6 +476,16 @@ export const DefaultSpinner: TLSpinnerComponent;
 // @public (undocumented)
 export const DefaultSvgDefs: () => null;
 
+// @public (undocumented)
+export const defaultUserPreferences: Readonly<{
+    name: "New User";
+    locale: "ar" | "ca" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
+    isDarkMode: false;
+    animationSpeed: 0 | 1;
+    isSnapMode: false;
+}>;
+
 // @public
 export function degreesToRadians(d: number): number;
 
@@ -537,7 +547,7 @@ export class Edge2d extends Geometry2d {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, animationOptions?: TLAnimationOptions): this;
@@ -2002,6 +2012,7 @@ export interface TldrawEditorBaseProps {
     children?: any;
     className?: string;
     components?: Partial<TLEditorComponents>;
+    inferDarkMode?: boolean;
     initialState?: string;
     onMount?: TLOnMountHandler;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
@@ -2033,6 +2044,7 @@ export type TLEditorComponents = {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
+    inferDarkMode?: boolean;
     initialState?: string;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
@@ -2552,19 +2564,19 @@ export type TLTickEvent = (elapsed: number) => void;
 // @public
 export interface TLUserPreferences {
     // (undocumented)
-    animationSpeed: number;
+    animationSpeed?: null | number;
     // (undocumented)
-    color: string;
+    color?: null | string;
     // (undocumented)
     id: string;
     // (undocumented)
-    isDarkMode: boolean;
+    isDarkMode?: boolean | null;
     // (undocumented)
-    isSnapMode: boolean;
+    isSnapMode?: boolean | null;
     // (undocumented)
-    locale: string;
+    locale?: null | string;
     // (undocumented)
-    name: string;
+    name?: null | string;
 }
 
 // @public (undocumented)

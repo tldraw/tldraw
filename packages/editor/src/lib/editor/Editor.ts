@@ -171,18 +171,30 @@ export interface TLEditorOptions {
 	 * (optional) The editor's initial active tool (or other state node id).
 	 */
 	initialState?: string
+	/**
+	 * (optional) Whether to infer dark mode from the user's system preferences. Defaults to false.
+	 */
+	inferDarkMode?: boolean
 }
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions) {
+	constructor({
+		store,
+		user,
+		shapeUtils,
+		tools,
+		getContainer,
+		initialState,
+		inferDarkMode,
+	}: TLEditorOptions) {
 		super()
 
 		this.store = store
 
 		this.snaps = new SnapManager(this)
 
-		this.user = new UserPreferencesManager(user ?? createTLUser())
+		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
 		this.getContainer = getContainer ?? (() => document.body)
 
