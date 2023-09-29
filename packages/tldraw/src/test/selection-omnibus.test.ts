@@ -1611,3 +1611,23 @@ it('selects one of the selected shapes on pointer up', () => {
 	editor.pointerUp()
 	expect(editor.selectedShapeIds).toEqual([ids.box1])
 })
+
+describe('right clicking', () => {
+	it('selects on right click', () => {
+		editor.createShapes([{ id: ids.box1, type: 'geo' }])
+		expect(editor.selectedShapeIds).toEqual([])
+		editor.pointerMove(4, 4)
+		editor.pointerDown(4, 4, { target: 'canvas', button: 2 })
+		editor.pointerUp()
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
+	})
+
+	it('keeps selection when right-clicking a selection background', () => {
+		editor.createShapes([{ id: ids.box1, type: 'geo' }])
+		editor.selectAll()
+		editor.pointerMove(30, 30)
+		editor.pointerDown(30, 30, { target: 'canvas', button: 2 })
+		editor.pointerUp()
+		expect(editor.selectedShapeIds).toEqual([ids.box1])
+	})
+})
