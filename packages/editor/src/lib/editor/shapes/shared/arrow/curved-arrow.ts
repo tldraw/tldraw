@@ -235,9 +235,7 @@ export function getCurvedArrowInfo(
 		)
 	}
 
-	const dist = Vec2d.Dist(tA, tB)
-
-	if (dist < MIN_ARROW_LENGTH) {
+	if (Vec2d.Dist(tA, tB) < MIN_ARROW_LENGTH) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			offsetA *= -1.5
 			offsetB *= -1.5
@@ -266,29 +264,31 @@ export function getCurvedArrowInfo(
 	)
 
 	// Did we miss intersections? This happens when we have overlapping shapes.
-	if (
-		startShapeInfo &&
-		endShapeInfo &&
-		startShapeInfo.shape !== endShapeInfo.shape &&
-		!startShapeInfo.isExact &&
-		!endShapeInfo.isExact
-	) {
+	if (startShapeInfo && endShapeInfo && !startShapeInfo.isExact && !endShapeInfo.isExact) {
 		const startAngle = Vec2d.Angle(handleArc.center, tempA)
 		const endAngle = Vec2d.Angle(handleArc.center, tempB)
 		const length = getArcLength(handleArc.center, handleArc.radius, tempA, tempB)
 
-		if (startShapeInfo && !startShapeInfo.didIntersect) {
-			tempA.setTo(a)
-		}
-
-		if (endShapeInfo && !endShapeInfo.didIntersect) {
-			const size = angleDelta(startAngle, endAngle)
-			let mid = lerpAngles(startAngle, endAngle, Math.abs(MIN_ARROW_LENGTH / length))
-			if (+(size > 0) !== handleArc.sweepFlag) {
-				mid = PI2 - mid
+		if (startShapeInfo.shape === endShapeInfo.shape) {
+			if (Math.abs(length) < 100) {
+				tempA.setTo(a)
+				tempB.setTo(b)
+				tempC.setTo(c)
+			}
+		} else {
+			if (startShapeInfo && !startShapeInfo.didIntersect) {
+				tempA.setTo(a)
 			}
 
-			tempB.setTo(getPointOnCircle(handleArc.center.x, handleArc.center.y, handleArc.radius, mid))
+			if (endShapeInfo && !endShapeInfo.didIntersect) {
+				const size = angleDelta(startAngle, endAngle)
+				let mid = lerpAngles(startAngle, endAngle, Math.abs(MIN_ARROW_LENGTH / length))
+				if (+(size > 0) !== handleArc.sweepFlag) {
+					mid = PI2 - mid
+				}
+
+				tempB.setTo(getPointOnCircle(handleArc.center.x, handleArc.center.y, handleArc.radius, mid))
+			}
 		}
 	}
 
