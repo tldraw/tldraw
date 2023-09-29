@@ -63,20 +63,20 @@ export class Pointing extends StateNode {
 				nextEndHandleId = endHandle.id
 				nextEndHandle = {
 					...endHandle,
-					x: currentPagePoint.x - shapePagePoint.x + 0.1,
-					y: currentPagePoint.y - shapePagePoint.y + 0.1,
+					x: nextPoint.x + 0.1,
+					y: nextPoint.y + 0.1,
 				}
 			} else {
 				// Otherwise, we'll create a new end handle
 				nextEndHandleIndex = getIndexAbove(endHandle.index)
 				nextEndHandleId = 'handle:' + nextEndHandleIndex
 				nextEndHandle = {
-					x: currentPagePoint.x - shapePagePoint.x + 0.1,
-					y: currentPagePoint.y - shapePagePoint.y + 0.1,
-					index: nextEndHandleIndex,
-					canBind: false,
-					type: 'vertex',
 					id: nextEndHandleId,
+					type: 'vertex',
+					index: nextEndHandleIndex,
+					x: nextPoint.x + 0.1,
+					y: nextPoint.y + 0.1,
+					canBind: false,
 				}
 			}
 
