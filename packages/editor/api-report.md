@@ -1790,11 +1790,11 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     editor: Editor;
     // (undocumented)
-    enter(info: any, from: string): void;
+    enter: (info: any, from: string) => void;
     // (undocumented)
-    exit(info: any, from: string): void;
+    exit: (info: any, from: string) => void;
     // (undocumented)
-    handleEvent(info: Exclude<TLEventInfo, TLPinchEventInfo>): void;
+    handleEvent: (info: Exclude<TLEventInfo, TLPinchEventInfo>) => void;
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1846,7 +1846,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     shapeType?: string;
     // (undocumented)
-    transition(id: string, info: any): this;
+    transition: (id: string, info: any) => this;
     // (undocumented)
     type: TLStateNodeType;
 }
