@@ -17,7 +17,6 @@ import {
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
-	useValue,
 } from '@tldraw/editor'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
@@ -85,8 +84,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			handleInputPointerDown,
 			handleDoubleClick,
 		} = useEditableText(id, type, text)
-
-		const zoomLevel = useValue('zoomLevel', () => this.editor.zoomLevel, [this.editor])
 
 		return (
 			<HTMLContainer id={shape.id}>
