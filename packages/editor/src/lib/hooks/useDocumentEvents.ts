@@ -103,6 +103,17 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Escape': {
+					// In certain browsers, pressing escape while in full screen mode
+					// will exit full screen mode. We want to allow that, but not when
+					// escape is being handled by the editor. When a user has an editing
+					// shape, escape stops editing. When a user is using a tool, escape
+					// returns to the select tool. When the user has selected shapes,
+					// escape de-selects them. Only when the user's selection is empty
+					// should we allow escape to do its normal thing.
+					if (editor.editingShape || editor.selectedShapeIds.length > 0) {
+						e.preventDefault()
+					}
+
 					if (!editor.inputs.keys.has('Escape')) {
 						editor.inputs.keys.add('Escape')
 
@@ -125,7 +136,7 @@ export function useDocumentEvents() {
 
 			const info: TLKeyboardEventInfo = {
 				type: 'keyboard',
-				name: editor.inputs.keys.has(e.code) ? 'key_repeat' : 'key_down',
+				name: e.repeat ? 'key_repeat' : 'key_down',
 				key: e.key,
 				code: e.code,
 				shiftKey: e.shiftKey,
