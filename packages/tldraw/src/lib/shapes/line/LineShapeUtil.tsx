@@ -65,8 +65,8 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 					canBind: false,
 					canSnap: true,
 					index: 'a2',
-					x: 0,
-					y: 0,
+					x: 0.1,
+					y: 0.1,
 				},
 			},
 		}
@@ -243,11 +243,9 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 				)
 			}
 		}
-
 		// Cubic style spline
 		if (shape.props.spline === 'cubic') {
 			const splinePath = getSvgPathForLineGeometry(spline)
-
 			if (dash === 'solid') {
 				return (
 					<SVGContainer id={shape.id}>

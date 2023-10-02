@@ -78,12 +78,12 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			rInput,
 			isEmpty,
 			isEditing,
-			isEditingSameShapeType,
 			handleFocus,
 			handleChange,
 			handleKeyDown,
 			handleBlur,
 			handleInputPointerDown,
+			handleDoubleClick,
 		} = useEditableText(id, type, text)
 
 		const zoomLevel = useValue('zoomLevel', () => this.editor.zoomLevel, [this.editor])
@@ -113,7 +113,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					<div className="tl-text tl-text-content" dir="ltr">
 						{text}
 					</div>
-					{isEditing || isEditingSameShapeType ? (
+					{isEditing ? (
 						<textarea
 							ref={rInput}
 							className="tl-text tl-text-input"
@@ -137,6 +137,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 							onTouchEnd={stopEventPropagation}
 							onContextMenu={stopEventPropagation}
 							onPointerDown={handleInputPointerDown}
+							onDoubleClick={handleDoubleClick}
 						/>
 					) : null}
 				</div>

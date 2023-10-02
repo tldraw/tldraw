@@ -22,6 +22,7 @@ import CustomStylesExample from './examples/CustomStylesExample/CustomStylesExam
 import CustomUiExample from './examples/CustomUiExample/CustomUiExample'
 import ErrorBoundaryExample from './examples/ErrorBoundaryExample/ErrorBoundaryExample'
 import ExplodedExample from './examples/ExplodedExample'
+import ExternalContentSourcesExample from './examples/ExternalContentSourcesExample'
 import HideUiExample from './examples/HideUiExample'
 import MultipleExample from './examples/MultipleExample'
 import PersistenceExample from './examples/PersistenceExample'
@@ -160,6 +161,11 @@ export const allExamples: Example[] = [
 		title: 'Asset props',
 		path: '/asset-props',
 		element: <AssetPropsExample />,
+	},
+	{
+		title: 'External content sources',
+		path: '/external-content-sources',
+		element: <ExternalContentSourcesExample />,
 	},
 	// not listed
 	{

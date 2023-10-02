@@ -6,6 +6,7 @@ import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../pri
 import {
 	PI,
 	PI2,
+	angleDelta,
 	getArcLength,
 	getPointOnCircle,
 	isSafeFloat,
@@ -62,15 +63,19 @@ export function getCurvedArrowInfo(
 		return getStraightArrowInfo(editor, shape)
 	}
 
+	const tempA = a.clone()
+	const tempB = b.clone()
+	const tempC = c.clone()
+
 	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
-	if (startShapeInfo && !startShapeInfo.isExact) {
-		// Points in page space
-		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, a)
-		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, b)
-		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
+	let offsetA = 0
+	let offsetB = 0
 
-		// Points in local space of the start shape
+	if (startShapeInfo && !startShapeInfo.isExact) {
+		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
+		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
+		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
 		const inverseTransform = Matrix2d.Inverse(startShapeInfo.transform)
 		const startInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
 		const endInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
@@ -88,15 +93,18 @@ export function getCurvedArrowInfo(
 		)
 
 		if (intersections) {
+			// Filter out any intersections that aren't in the arc
 			intersections = intersections.filter(
 				(pt) =>
 					+Vec2d.Clockwise(startInStartShapeLocalSpace, pt, endInStartShapeLocalSpace) ===
 					handleArc.sweepFlag
 			)
 
-			const angleToMiddle = Vec2d.Angle(handleArc.center, middle)
-			const angleToStart = Vec2d.Angle(handleArc.center, terminalsInArrowSpace.start)
-			const comparisonAngle = lerpAngles(angleToMiddle, angleToStart, 0.5)
+			const comparisonAngle = lerpAngles(
+				Vec2d.Angle(handleArc.center, tempA),
+				Vec2d.Angle(handleArc.center, tempC),
+				0.5
+			)
 
 			intersections.sort(
 				(p0, p1) =>
@@ -110,44 +118,30 @@ export function getCurvedArrowInfo(
 		}
 
 		if (point) {
-			a.setTo(
+			tempA.setTo(
 				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(startShapeInfo.transform, point))
 			)
 
 			startShapeInfo.didIntersect = true
 
 			if (arrowheadStart !== 'none') {
-				const offset =
-					BOUND_ARROW_OFFSET +
-					STROKE_SIZES[shape.props.size] / 2 +
-					('size' in startShapeInfo.shape.props
-						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
-						: 0)
-
-				a.setTo(
-					getPointOnCircle(
-						handleArc.center.x,
-						handleArc.center.y,
-						handleArc.radius,
-						lerpAngles(
-							Vec2d.Angle(handleArc.center, a),
-							Vec2d.Angle(handleArc.center, middle),
-							offset / Math.abs(getArcLength(handleArc.center, handleArc.radius, a, middle))
-						)
-					)
-				)
+				offsetA =
+					(BOUND_ARROW_OFFSET +
+						STROKE_SIZES[shape.props.size] / 2 +
+						('size' in startShapeInfo.shape.props
+							? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
+							: 0)) *
+					(handleArc.sweepFlag ? 1 : -1)
 			}
 		}
 	}
 
 	if (endShapeInfo && !endShapeInfo.isExact) {
 		// get points in shape's coordinates?
-		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, a)
-		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, b)
+		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
+		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
-
 		const inverseTransform = Matrix2d.Inverse(endShapeInfo.transform)
-
 		const startInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
 		const endInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 		const centerInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
@@ -187,87 +181,151 @@ export function getCurvedArrowInfo(
 
 		if (point) {
 			// Set b to target local point -> page point -> shape local point
-			b.setTo(
+			tempB.setTo(
 				editor.getPointInShapeSpace(shape, Matrix2d.applyToPoint(endShapeInfo.transform, point))
 			)
 
 			endShapeInfo.didIntersect = true
 
 			if (arrowheadEnd !== 'none') {
-				let offset =
-					BOUND_ARROW_OFFSET +
-					STROKE_SIZES[shape.props.size] / 2 +
-					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
-
-				if (Vec2d.Dist(a, b) < MIN_ARROW_LENGTH) {
-					offset *= -2
-				}
-
-				b.setTo(
-					getPointOnCircle(
-						handleArc.center.x,
-						handleArc.center.y,
-						handleArc.radius,
-						lerpAngles(
-							Vec2d.Angle(handleArc.center, b),
-							Vec2d.Angle(handleArc.center, middle),
-							offset / Math.abs(getArcLength(handleArc.center, handleArc.radius, b, middle))
-						)
-					)
-				)
+				offsetB =
+					(BOUND_ARROW_OFFSET +
+						STROKE_SIZES[shape.props.size] / 2 +
+						('size' in endShapeInfo.shape.props
+							? STROKE_SIZES[endShapeInfo.shape.props.size] / 2
+							: 0)) *
+					(handleArc.sweepFlag ? -1 : 1)
 			}
 		}
 	}
 
-	const length = Math.abs(getArcLength(handleArc.center, handleArc.radius, a, b))
+	// Apply arrowhead offsets
 
-	if (length < MIN_ARROW_LENGTH / 2) {
-		a.setTo(terminalsInArrowSpace.start)
-		b.setTo(terminalsInArrowSpace.end)
+	const startAngle = Vec2d.Angle(handleArc.center, tempA)
+	const endAngle = Vec2d.Angle(handleArc.center, tempB)
+	const midAngle = Vec2d.Angle(handleArc.center, tempC)
+	const lAC = getArcLength(handleArc.center, handleArc.radius, tempA, tempC)
+	const lBC = getArcLength(handleArc.center, handleArc.radius, tempB, tempC)
+
+	// Try the offsets first, then check whether the distance between the points is too small;
+	// if it is, flip the offsets and expand them. We need to do this using temporary points
+	// so that we can apply them both in a balanced way.
+	const tA = tempA.clone()
+	const tB = tempB.clone()
+
+	if (offsetA !== 0) {
+		tA.setTo(
+			getPointOnCircle(
+				handleArc.center.x,
+				handleArc.center.y,
+				handleArc.radius,
+				lerpAngles(startAngle, midAngle, offsetA / lAC)
+			)
+		)
 	}
 
-	if (
-		startShapeInfo &&
-		endShapeInfo &&
-		startShapeInfo.shape !== endShapeInfo.shape &&
-		!startShapeInfo.isExact &&
-		!endShapeInfo.isExact
-	) {
-		// If we missed an intersection, then try
-		const startAngle = Vec2d.Angle(handleArc.center, a)
-		const endAngle = Vec2d.Angle(handleArc.center, b)
+	if (offsetB !== 0) {
+		tB.setTo(
+			getPointOnCircle(
+				handleArc.center.x,
+				handleArc.center.y,
+				handleArc.radius,
+				lerpAngles(endAngle, midAngle, offsetB / lBC)
+			)
+		)
+	}
 
-		const offset = handleArc.sweepFlag ? MIN_ARROW_LENGTH : -MIN_ARROW_LENGTH
-		const arcLength = getArcLength(handleArc.center, handleArc.radius, b, a)
-		const {
-			center: { x, y },
-			radius,
-		} = handleArc
-
-		if (startShapeInfo && !startShapeInfo.didIntersect) {
-			a.setTo(getPointOnCircle(x, y, radius, lerpAngles(startAngle, endAngle, offset / arcLength)))
-		}
-
-		if (endShapeInfo && !endShapeInfo.didIntersect) {
-			b.setTo(getPointOnCircle(x, y, radius, lerpAngles(startAngle, endAngle, -offset / arcLength)))
+	if (Vec2d.Dist(tA, tB) < MIN_ARROW_LENGTH) {
+		if (offsetA !== 0 && offsetB !== 0) {
+			offsetA *= -1.5
+			offsetB *= -1.5
+		} else if (offsetA !== 0) {
+			offsetA *= -2
+		} else if (offsetB !== 0) {
+			offsetB *= -2
 		}
 	}
 
-	let midAngle = lerpAngles(Vec2d.Angle(handleArc.center, a), Vec2d.Angle(handleArc.center, b), 0.5)
-	let midPoint = getPointOnCircle(
-		handleArc.center.x,
-		handleArc.center.y,
-		handleArc.radius,
-		midAngle
+	tempA.setTo(
+		getPointOnCircle(
+			handleArc.center.x,
+			handleArc.center.y,
+			handleArc.radius,
+			lerpAngles(startAngle, midAngle, offsetA / lAC)
+		)
+	)
+	tempB.setTo(
+		getPointOnCircle(
+			handleArc.center.x,
+			handleArc.center.y,
+			handleArc.radius,
+			lerpAngles(endAngle, midAngle, offsetB / lBC)
+		)
 	)
 
-	if (+Vec2d.Clockwise(a, midPoint, b) !== handleArc.sweepFlag) {
-		midAngle += PI
-		midPoint = getPointOnCircle(handleArc.center.x, handleArc.center.y, handleArc.radius, midAngle)
+	// Did we miss intersections? This happens when we have overlapping shapes.
+	if (startShapeInfo && endShapeInfo && !startShapeInfo.isExact && !endShapeInfo.isExact) {
+		const startAngle = Vec2d.Angle(handleArc.center, tempA)
+		const endAngle = Vec2d.Angle(handleArc.center, tempB)
+		const length = getArcLength(handleArc.center, handleArc.radius, tempA, tempB)
+
+		if (startShapeInfo.shape === endShapeInfo.shape) {
+			if (Math.abs(length) < 100) {
+				tempA.setTo(a)
+				tempB.setTo(b)
+				tempC.setTo(c)
+			}
+		} else {
+			if (startShapeInfo && !startShapeInfo.didIntersect) {
+				tempA.setTo(a)
+			}
+
+			if (endShapeInfo && !endShapeInfo.didIntersect) {
+				const size = angleDelta(startAngle, endAngle)
+				let mid = lerpAngles(startAngle, endAngle, Math.abs(MIN_ARROW_LENGTH / length))
+				if (+(size > 0) !== handleArc.sweepFlag) {
+					mid = PI2 - mid
+				}
+
+				tempB.setTo(getPointOnCircle(handleArc.center.x, handleArc.center.y, handleArc.radius, mid))
+			}
+		}
 	}
 
-	c.setTo(midPoint)
+	tempC.setTo(
+		getPointOnCircle(
+			handleArc.center.x,
+			handleArc.center.y,
+			handleArc.radius,
+			lerpAngles(Vec2d.Angle(handleArc.center, tempA), Vec2d.Angle(handleArc.center, tempB), 0.5)
+		)
+	)
 
+	// Put the middle point in the middle of the short angle distance between the two points
+	// this MIGHT BE WRONG if the "middle" should be the long angle distance, but we don't know
+	// that yet; or at least, I haven't figured out how to know that yet based on just the
+	// intersection points.
+
+	// ...so we check whether the handle is on the other side of the arc as the drag handle, and flip
+	// the position of the middle point if so.
+	if (+Vec2d.Clockwise(tempA, tempC, tempB) !== handleArc.sweepFlag) {
+		tempC.rotWith(handleArc.center, PI)
+	}
+
+	if (+Vec2d.Clockwise(tempA, tempC, tempB) !== handleArc.sweepFlag) {
+		const t = tempB.clone()
+		tempB.setTo(tempA)
+		tempA.setTo(t)
+	}
+
+	if (tempA.equals(tempB)) {
+		tempA.setTo(tempC.clone().addXY(1, 1))
+		tempB.setTo(tempC.clone().subXY(1, 1))
+	}
+
+	a.setTo(tempA)
+	b.setTo(tempB)
+	c.setTo(tempC)
 	const bodyArc = getArcInfo(a, b, c)
 
 	return {

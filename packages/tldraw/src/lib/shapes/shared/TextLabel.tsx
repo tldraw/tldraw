@@ -1,4 +1,5 @@
 import {
+	Box2d,
 	TLDefaultColorStyle,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
@@ -27,6 +28,7 @@ export const TextLabel = React.memo(function TextLabel<
 	align,
 	verticalAlign,
 	wrap,
+	bounds,
 }: {
 	id: T['id']
 	type: T['type']
@@ -38,12 +40,12 @@ export const TextLabel = React.memo(function TextLabel<
 	wrap?: boolean
 	text: string
 	labelColor: TLDefaultColorStyle
+	bounds?: Box2d
 }) {
 	const {
 		rInput,
 		isEmpty,
 		isEditing,
-		isEditingSameShapeType,
 		handleFocus,
 		handleChange,
 		handleKeyDown,
@@ -52,13 +54,15 @@ export const TextLabel = React.memo(function TextLabel<
 		handleDoubleClick,
 	} = useEditableText(id, type, text)
 
-	const isInteractive = isEditing || isEditingSameShapeType
 	const finalText = TextHelpers.normalizeTextForDom(text)
 	const hasText = finalText.trim().length > 0
+
 	const legacyAlign = isLegacyAlign(align)
 	const theme = useDefaultColorTheme()
 
-	if (!isInteractive && !hasText) return null
+	if (!isEditing && !hasText) {
+		return null
+	}
 
 	return (
 		<div
@@ -71,50 +75,57 @@ export const TextLabel = React.memo(function TextLabel<
 			style={{
 				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
 				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				...(bounds
+					? {
+							top: bounds.minY,
+							left: bounds.minX,
+							width: bounds.width,
+							height: bounds.height,
+							position: 'absolute',
+					  }
+					: {}),
 			}}
 		>
-			{isEmpty && !isInteractive ? null : (
-				<div
-					className="tl-text-label__inner"
-					style={{
-						fontSize: LABEL_FONT_SIZES[size],
-						lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
-						minHeight: TEXT_PROPS.lineHeight + 32,
-						minWidth: 0,
-						color: theme[labelColor].solid,
-					}}
-				>
-					<div className="tl-text tl-text-content" dir="ltr">
-						{finalText}
-					</div>
-					{isInteractive && (
-						<textarea
-							ref={rInput}
-							className="tl-text tl-text-input"
-							name="text"
-							tabIndex={-1}
-							autoComplete="false"
-							autoCapitalize="false"
-							autoCorrect="false"
-							autoSave="false"
-							autoFocus={isEditing}
-							placeholder=""
-							spellCheck="true"
-							wrap="off"
-							dir="auto"
-							datatype="wysiwyg"
-							defaultValue={text}
-							onFocus={handleFocus}
-							onChange={handleChange}
-							onKeyDown={handleKeyDown}
-							onBlur={handleBlur}
-							onContextMenu={stopEventPropagation}
-							onPointerDown={handleInputPointerDown}
-							onDoubleClick={handleDoubleClick}
-						/>
-					)}
+			<div
+				className="tl-text-label__inner"
+				style={{
+					fontSize: LABEL_FONT_SIZES[size],
+					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
+					minHeight: TEXT_PROPS.lineHeight + 32,
+					minWidth: 0,
+					color: theme[labelColor].solid,
+				}}
+			>
+				<div className="tl-text tl-text-content" dir="ltr">
+					{finalText}
 				</div>
-			)}
+				{isEditing && (
+					<textarea
+						ref={rInput}
+						className="tl-text tl-text-input"
+						name="text"
+						tabIndex={-1}
+						autoComplete="false"
+						autoCapitalize="false"
+						autoCorrect="false"
+						autoSave="false"
+						autoFocus
+						placeholder=""
+						spellCheck="true"
+						wrap="off"
+						dir="auto"
+						datatype="wysiwyg"
+						defaultValue={text}
+						onFocus={handleFocus}
+						onChange={handleChange}
+						onKeyDown={handleKeyDown}
+						onBlur={handleBlur}
+						onContextMenu={stopEventPropagation}
+						onPointerDown={handleInputPointerDown}
+						onDoubleClick={handleDoubleClick}
+					/>
+				)}
+			</div>
 		</div>
 	)
 })

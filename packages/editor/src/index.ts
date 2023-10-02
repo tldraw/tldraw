@@ -106,6 +106,7 @@ export {
 } from './lib/config/TLSessionStateSnapshot'
 export {
 	USER_COLORS,
+	defaultUserPreferences,
 	getFreshUserPreferences,
 	getUserPreferences,
 	setUserPreferences,
@@ -230,6 +231,7 @@ export {
 export {
 	type TLExternalAssetContent,
 	type TLExternalContent,
+	type TLExternalContentSource,
 } from './lib/editor/types/external-content'
 export {
 	type TLCommand,
@@ -296,6 +298,7 @@ export {
 	canonicalizeRotation,
 	clamp,
 	clampRadians,
+	clockwiseAngleDist,
 	degreesToRadians,
 	getArcLength,
 	getPointOnCircle,

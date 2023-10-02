@@ -591,3 +591,57 @@ describe('snapshots', () => {
 		expect(editor.store.serialize()).toEqual(newEditor.store.serialize())
 	})
 })
+
+describe('when the user prefers dark UI', () => {
+	beforeEach(() => {
+		window.matchMedia = jest.fn().mockImplementation((query) => {
+			return {
+				matches: query === '(prefers-color-scheme: dark)',
+				media: query,
+				onchange: null,
+				addEventListener: jest.fn(),
+				removeEventListener: jest.fn(),
+				dispatchEvent: jest.fn(),
+			}
+		})
+	})
+	it('isDarkMode should be false by default', () => {
+		editor = new TestEditor({})
+		expect(editor.user.isDarkMode).toBe(false)
+	})
+	it('isDarkMode should be false when inferDarkMode is false', () => {
+		editor = new TestEditor({ inferDarkMode: false })
+		expect(editor.user.isDarkMode).toBe(false)
+	})
+	it('should be true if the editor was instantiated with inferDarkMode', () => {
+		editor = new TestEditor({ inferDarkMode: true })
+		expect(editor.user.isDarkMode).toBe(true)
+	})
+})
+
+describe('when the user prefers light UI', () => {
+	beforeEach(() => {
+		window.matchMedia = jest.fn().mockImplementation((query) => {
+			return {
+				matches: false,
+				media: query,
+				onchange: null,
+				addEventListener: jest.fn(),
+				removeEventListener: jest.fn(),
+				dispatchEvent: jest.fn(),
+			}
+		})
+	})
+	it('isDarkMode should be false by default', () => {
+		editor = new TestEditor({})
+		expect(editor.user.isDarkMode).toBe(false)
+	})
+	it('isDarkMode should be false when inferDarkMode is false', () => {
+		editor = new TestEditor({ inferDarkMode: false })
+		expect(editor.user.isDarkMode).toBe(false)
+	})
+	it('should be false if the editor was instantiated with inferDarkMode', () => {
+		editor = new TestEditor({ inferDarkMode: true })
+		expect(editor.user.isDarkMode).toBe(false)
+	})
+})

@@ -328,6 +328,9 @@ export function clamp(n: number, min: number, max: number): number;
 // @public
 export function clampRadians(r: number): number;
 
+// @public
+export function clockwiseAngleDist(a0: number, a1: number): number;
+
 export { computed }
 
 // @public (undocumented)
@@ -412,6 +415,7 @@ export const debugFlags: {
     resetConnectionEveryPing: DebugFlag<boolean>;
     debugCursors: DebugFlag<boolean>;
     forceSrgb: DebugFlag<boolean>;
+    debugGeometry: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
@@ -471,6 +475,16 @@ export const DefaultSpinner: TLSpinnerComponent;
 
 // @public (undocumented)
 export const DefaultSvgDefs: () => null;
+
+// @public (undocumented)
+export const defaultUserPreferences: Readonly<{
+    name: "New User";
+    locale: "ar" | "ca" | "da" | "de" | "en" | "es" | "fa" | "fi" | "fr" | "gl" | "he" | "hi-in" | "hu" | "it" | "ja" | "ko-kr" | "ku" | "my" | "ne" | "no" | "pl" | "pt-br" | "pt-pt" | "ro" | "ru" | "sv" | "te" | "th" | "tr" | "uk" | "vi" | "zh-cn" | "zh-tw";
+    color: "#02B1CC" | "#11B3A3" | "#39B178" | "#55B467" | "#7B66DC" | "#9D5BD2" | "#BD54C6" | "#E34BA9" | "#EC5E41" | "#F04F88" | "#F2555A" | "#FF802B";
+    isDarkMode: false;
+    animationSpeed: 0 | 1;
+    isSnapMode: false;
+}>;
 
 // @public
 export function degreesToRadians(d: number): number;
@@ -533,7 +547,7 @@ export class Edge2d extends Geometry2d {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, tools, getContainer, initialState, inferDarkMode, }: TLEditorOptions);
     addOpenMenu(id: string): this;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, animationOptions?: TLAnimationOptions): this;
@@ -623,16 +637,16 @@ export class Editor extends EventEmitter<TLEventMap> {
     get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
     externalAssetContentHandlers: {
-        [K in TLExternalAssetContent_2['type']]: {
-            [Key in K]: ((info: TLExternalAssetContent_2 & {
+        [K in TLExternalAssetContent['type']]: {
+            [Key in K]: ((info: TLExternalAssetContent & {
                 type: Key;
             }) => Promise<TLAsset | undefined>) | null;
         }[K];
     };
     // @internal (undocumented)
     externalContentHandlers: {
-        [K in TLExternalContent_2['type']]: {
-            [Key in K]: ((info: TLExternalContent_2 & {
+        [K in TLExternalContent['type']]: {
+            [Key in K]: ((info: TLExternalContent & {
                 type: Key;
             }) => void) | null;
         }[K];
@@ -649,7 +663,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         handleId: "end" | "start";
     }[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
-    getAssetForExternalContent(info: TLExternalAssetContent_2): Promise<TLAsset | undefined>;
+    getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLShape | undefined;
@@ -770,14 +784,14 @@ export class Editor extends EventEmitter<TLEventMap> {
         preservePosition?: boolean;
         preserveIds?: boolean;
     }): this;
-    putExternalContent(info: TLExternalContent_2): Promise<void>;
+    putExternalContent(info: TLExternalContent): Promise<void>;
     redo(): this;
-    registerExternalAssetHandler<T extends TLExternalAssetContent_2['type']>(type: T, handler: ((info: TLExternalAssetContent_2 & {
+    registerExternalAssetHandler<T extends TLExternalAssetContent['type']>(type: T, handler: ((info: TLExternalAssetContent & {
         type: T;
     }) => Promise<TLAsset>) | null): this;
-    registerExternalContentHandler<T extends TLExternalContent_2['type']>(type: T, handler: ((info: T extends TLExternalContent_2['type'] ? TLExternalContent_2 & {
+    registerExternalContentHandler<T extends TLExternalContent['type']>(type: T, handler: ((info: T extends TLExternalContent['type'] ? TLExternalContent & {
         type: T;
-    } : TLExternalContent_2) => void) | null): this;
+    } : TLExternalContent) => void) | null): this;
     renamePage(page: TLPage | TLPageId, name: string, historyOptions?: TLCommandHistoryOptions): this;
     get renderingBounds(): Box2d;
     get renderingBoundsExpanded(): Box2d;
@@ -1776,11 +1790,11 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     editor: Editor;
     // (undocumented)
-    enter(info: any, from: string): void;
+    enter: (info: any, from: string) => void;
     // (undocumented)
-    exit(info: any, from: string): void;
+    exit: (info: any, from: string) => void;
     // (undocumented)
-    handleEvent(info: Exclude<TLEventInfo, TLPinchEventInfo>): void;
+    handleEvent: (info: Exclude<TLEventInfo, TLPinchEventInfo>) => void;
     // (undocumented)
     static id: string;
     // (undocumented)
@@ -1832,7 +1846,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     shapeType?: string;
     // (undocumented)
-    transition(id: string, info: any): this;
+    transition: (id: string, info: any) => this;
     // (undocumented)
     type: TLStateNodeType;
 }
@@ -1998,6 +2012,7 @@ export interface TldrawEditorBaseProps {
     children?: any;
     className?: string;
     components?: Partial<TLEditorComponents>;
+    inferDarkMode?: boolean;
     initialState?: string;
     onMount?: TLOnMountHandler;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
@@ -2029,6 +2044,7 @@ export type TLEditorComponents = {
 // @public (undocumented)
 export interface TLEditorOptions {
     getContainer: () => HTMLElement;
+    inferDarkMode?: boolean;
     initialState?: string;
     shapeUtils: readonly TLShapeUtilConstructor<TLUnknownShape>[];
     store: TLStore;
@@ -2147,27 +2163,42 @@ export type TLExternalAssetContent = {
 
 // @public (undocumented)
 export type TLExternalContent = {
+    sources?: TLExternalContentSource[];
+    point?: VecLike;
+} & ({
     type: 'embed';
     url: string;
-    point?: VecLike;
     embed: EmbedDefinition;
 } | {
     type: 'files';
     files: File[];
-    point?: VecLike;
     ignoreParent: boolean;
 } | {
     type: 'svg-text';
     text: string;
-    point?: VecLike;
 } | {
     type: 'text';
-    point?: VecLike;
     text: string;
 } | {
     type: 'url';
     url: string;
-    point?: VecLike;
+});
+
+// @public (undocumented)
+export type TLExternalContentSource = {
+    type: 'error';
+    data: null | string;
+    reason: string;
+} | {
+    type: 'excalidraw';
+    data: any;
+} | {
+    type: 'text';
+    data: string;
+    subtype: 'html' | 'json' | 'text' | 'url';
+} | {
+    type: 'tldraw';
+    data: TLContent;
 };
 
 // @public (undocumented)
@@ -2533,19 +2564,19 @@ export type TLTickEvent = (elapsed: number) => void;
 // @public
 export interface TLUserPreferences {
     // (undocumented)
-    animationSpeed: number;
+    animationSpeed?: null | number;
     // (undocumented)
-    color: string;
+    color?: null | string;
     // (undocumented)
     id: string;
     // (undocumented)
-    isDarkMode: boolean;
+    isDarkMode?: boolean | null;
     // (undocumented)
-    isSnapMode: boolean;
+    isSnapMode?: boolean | null;
     // (undocumented)
-    locale: string;
+    locale?: null | string;
     // (undocumented)
-    name: string;
+    name?: null | string;
 }
 
 // @public (undocumented)

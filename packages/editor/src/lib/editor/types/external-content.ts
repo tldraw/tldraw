@@ -1,35 +1,56 @@
 import { EmbedDefinition } from '@tldraw/tlschema'
 import { VecLike } from '../../primitives/Vec2d'
+import { TLContent } from './clipboard-types'
 
 /** @public */
-export type TLExternalContent =
+export type TLExternalContentSource =
+	| {
+			type: 'tldraw'
+			data: TLContent
+	  }
+	| {
+			type: 'excalidraw'
+			data: any
+	  }
 	| {
 			type: 'text'
-			point?: VecLike
+			data: string
+			subtype: 'json' | 'html' | 'text' | 'url'
+	  }
+	| {
+			type: 'error'
+			data: string | null
+			reason: string
+	  }
+
+/** @public */
+export type TLExternalContent = {
+	sources?: TLExternalContentSource[]
+	point?: VecLike
+} & (
+	| {
+			type: 'text'
 			text: string
 	  }
 	| {
 			type: 'files'
 			files: File[]
-			point?: VecLike
 			ignoreParent: boolean
 	  }
 	| {
 			type: 'url'
 			url: string
-			point?: VecLike
 	  }
 	| {
 			type: 'svg-text'
 			text: string
-			point?: VecLike
 	  }
 	| {
 			type: 'embed'
 			url: string
-			point?: VecLike
 			embed: EmbedDefinition
 	  }
+)
 
 /** @public */
 export type TLExternalAssetContent = { type: 'file'; file: File } | { type: 'url'; url: string }
