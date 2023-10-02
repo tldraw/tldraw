@@ -67,7 +67,7 @@ export default function AssetPropsExample() {
 
 	return (
 		<div className="tldraw__editor">
-			<Tldraw autoFocus onMount={handleMount} />
+			<Tldraw onMount={handleMount} />
 		</div>
 	)
 }

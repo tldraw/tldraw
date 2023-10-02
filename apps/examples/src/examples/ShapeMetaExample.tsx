@@ -6,7 +6,6 @@ export default function ShapeMetaExample() {
 		<div className="tldraw__editor">
 			<Tldraw
 				persistenceKey="shape_meta_example"
-				autoFocus
 				onMount={(editor) => {
 					editor.getInitialMetaForShape = (shape) => {
 						return { label: `My ${shape.type} shape` }

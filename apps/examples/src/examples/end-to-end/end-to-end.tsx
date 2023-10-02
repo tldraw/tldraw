@@ -7,7 +7,6 @@ export default function EndToEnd() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				autoFocus
 				onMount={(editor) => {
 					editor.on('event', (info) => {
 						;(window as any).__tldraw_editor_events.push(info)
