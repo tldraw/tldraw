@@ -63,7 +63,12 @@ export class TextManager {
 			fontFamily: string
 			fontSize: number
 			lineHeight: number
-			width: string
+			/**
+			 * When width is a number, the text will be wrapped to that width. When
+			 * width is null, the text will be measured without wrapping, but explicit
+			 * line breaks and space are preserved.
+			 */
+			width: null | number
 			minWidth?: string
 			maxWidth: string
 			padding: string
@@ -77,13 +82,18 @@ export class TextManager {
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
 		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		elm.style.setProperty('width', opts.width)
+		if (opts.width === null) {
+			elm.style.setProperty('white-space', 'pre')
+			elm.style.setProperty('width', 'fit-content')
+		} else {
+			elm.style.setProperty('width', opts.width + 'px')
+			elm.style.setProperty('white-space', 'pre-wrap')
+		}
 		elm.style.setProperty('min-width', opts.minWidth ?? null)
 		elm.style.setProperty('max-width', opts.maxWidth)
 		elm.style.setProperty('padding', opts.padding)
 
 		elm.textContent = normalizeTextForDom(textToMeasure)
-
 		const rect = elm.getBoundingClientRect()
 
 		return {

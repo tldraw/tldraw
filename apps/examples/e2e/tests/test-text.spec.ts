@@ -7,7 +7,7 @@ export function sleep(ms: number) {
 }
 
 const measureTextOptions = {
-	width: 'fit-content',
+	width: null,
 	fontFamily: 'var(--tl-font-draw)',
 	fontSize: 24,
 	lineHeight: 1.35,
