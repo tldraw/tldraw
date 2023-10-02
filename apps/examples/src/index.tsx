@@ -26,6 +26,7 @@ import ExternalContentSourcesExample from './examples/ExternalContentSourcesExam
 import HideUiExample from './examples/HideUiExample'
 import MultipleExample from './examples/MultipleExample'
 import PersistenceExample from './examples/PersistenceExample'
+import ReadOnlyExample from './examples/ReadOnlyExample'
 import ScrollExample from './examples/ScrollExample'
 import ShapeMetaExample from './examples/ShapeMetaExample'
 import SnapshotExample from './examples/SnapshotExample/SnapshotExample'
@@ -71,6 +72,11 @@ export const allExamples: Example[] = [
 		title: 'Multiple editors',
 		path: '/multiple',
 		element: <MultipleExample />,
+	},
+	{
+		title: 'Readonly Example',
+		path: '/readonly',
+		element: <ReadOnlyExample />,
 	},
 	{
 		title: 'Scroll example',

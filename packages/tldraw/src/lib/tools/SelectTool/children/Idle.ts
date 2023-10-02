@@ -223,7 +223,9 @@ export class Idle extends StateNode {
 			case 'selection': {
 				if (this.editor.instanceState.isReadonly) break
 
+				const { isReadonly } = this.editor.instanceState
 				const { onlySelectedShape } = this.editor
+
 				if (onlySelectedShape) {
 					const util = this.editor.getShapeUtil(onlySelectedShape)
 
@@ -244,6 +246,7 @@ export class Idle extends StateNode {
 
 					// For corners OR edges
 					if (
+						!isReadonly &&
 						util.canCrop(onlySelectedShape) &&
 						!this.editor.isShapeOrAncestorLocked(onlySelectedShape)
 					) {
@@ -421,11 +424,14 @@ export class Idle extends StateNode {
 				case 'Enter': {
 					const { onlySelectedShape } = this.editor
 					if (onlySelectedShape && this.shouldStartEditingShape()) {
-						this.startEditingShape(onlySelectedShape, {
-							...info,
-							target: 'shape',
-							shape: onlySelectedShape,
-						})
+						const util = this.editor.getShapeUtil(onlySelectedShape)
+						if (util.canEditInReadOnly(onlySelectedShape)) {
+							this.startEditingShape(onlySelectedShape, {
+								...info,
+								target: 'shape',
+								shape: onlySelectedShape,
+							})
+						}
 						return
 					}
 					break
@@ -470,6 +476,10 @@ export class Idle extends StateNode {
 	private shouldStartEditingShape(shape: TLShape | null = this.editor.onlySelectedShape): boolean {
 		if (!shape) return false
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return false
+		const util = this.editor.getShapeUtil(shape)
+		if (this.editor.instanceState.isReadonly) {
+			return util.canEditInReadOnly(shape)
+		}
 		return this.editor.getShapeUtil(shape).canEdit(shape)
 	}
 
@@ -504,6 +514,13 @@ export class Idle extends StateNode {
 
 		const shape = this.editor.getShape(id)
 		if (!shape) return
+
+		const util = this.editor.getShapeUtil(shape)
+		if (this.editor.instanceState.isReadonly) {
+			if (!util.canEditInReadOnly(shape)) {
+				return
+			}
+		}
 
 		this.editor.setEditingShape(id)
 		this.editor.select(id)
