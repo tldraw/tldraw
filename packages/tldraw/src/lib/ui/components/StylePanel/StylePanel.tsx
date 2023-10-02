@@ -8,18 +8,16 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
-	Editor,
 	GeoShapeGeoStyle,
 	LineShapeSplineStyle,
 	ReadonlySharedStyleMap,
 	SharedStyle,
-	SharedStyleMap,
 	StyleProp,
 	minBy,
 	useEditor,
-	useValue,
 } from '@tldraw/editor'
 import React, { useCallback } from 'react'
+import { useRelevantStyles } from '../../hooks/useRevelantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'
@@ -32,28 +30,11 @@ interface StylePanelProps {
 	isMobile?: boolean
 }
 
-const selectToolStyles = [DefaultColorStyle, DefaultDashStyle, DefaultFillStyle, DefaultSizeStyle]
-function getRelevantStyles(
-	editor: Editor
-): { styles: ReadonlySharedStyleMap; opacity: SharedStyle<number> } | null {
-	const styles = new SharedStyleMap(editor.sharedStyles)
-	const hasShape = editor.selectedShapeIds.length > 0 || !!editor.root.current.value?.shapeType
-
-	if (styles.size === 0 && editor.isIn('select') && editor.selectedShapeIds.length === 0) {
-		for (const style of selectToolStyles) {
-			styles.applyValue(style, editor.getStyleForNextShape(style))
-		}
-	}
-
-	if (styles.size === 0 && !hasShape) return null
-	return { styles, opacity: editor.sharedOpacity }
-}
-
 /** @internal */
 export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	const editor = useEditor()
 
-	const relevantStyles = useValue('getRelevantStyles', () => getRelevantStyles(editor), [editor])
+	const relevantStyles = useRelevantStyles()
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
