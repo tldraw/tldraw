@@ -1,12 +1,45 @@
 import type { AnyHandlerEventTypes, EventTypes, GestureKey, Handler } from '@use-gesture/core/types'
 import { createUseGesture, pinchAction, wheelAction } from '@use-gesture/react'
-import throttle from 'lodash.throttle'
 import * as React from 'react'
 import { TLWheelEventInfo } from '../editor/types/event-types'
 import { Vec2d } from '../primitives/Vec2d'
 import { preventDefault } from '../utils/dom'
 import { normalizeWheel } from '../utils/normalizeWheel'
 import { useEditor } from './useEditor'
+
+/*
+
+# How does pinching work?
+
+The pinching handler is fired under two circumstances: 
+- when a user is on a MacBook trackpad and is ZOOMING with a two-finger pinch
+- when a user is on a touch device and is ZOOMING with a two-finger pinch
+- when a user is on a touch device and is PANNING with two fingers
+
+Zooming is much more expensive than panning (because it causes shapes to render), 
+so we want to be sure that we don't zoom while two-finger panning. 
+
+In order to do this, we keep track of a "pinchState", which is either:
+- "zooming"
+- "panning"
+- "not sure"
+
+If a user is on a trackpad, the pinchState will be set to "zooming". 
+
+If the user is on a touch screen, then we start in the "not sure" state and switch back and forth
+between "zooming", "panning", and "not sure" based on what the user is doing with their fingers.
+
+In the "not sure" state, we examine whether the user has moved the center of the gesture far enough
+to suggest that they're panning; or else that they've moved their fingers further apart or closer
+together enough to suggest that they're zooming. 
+
+In the "panning" state, we check whether the user's fingers have moved far enough apart to suggest
+that they're zooming. If they have, we switch to the "zooming" state.
+
+In the "zooming" state, we just stay zooming—it's not YET possible to switch back to panning.
+
+todo: compare velocities of change in order to determine whether the user has switched back to panning
+*/
 
 type check<T extends AnyHandlerEventTypes, Key extends GestureKey> = undefined extends T[Key]
 	? EventTypes[Key]
@@ -45,14 +78,14 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 	const editor = useEditor()
 
 	const events = React.useMemo(() => {
-		let pinchState = null as null | 'zooming' | 'panning'
+		let pinchState = 'not sure' as 'not sure' | 'zooming' | 'panning'
 
 		const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
 			if (!editor.instanceState.isFocused) {
 				return
 			}
 
-			pinchState = null
+			pinchState = 'not sure'
 
 			if (isWheelEndEvent(Date.now())) {
 				// ignore wheelEnd events
@@ -94,27 +127,27 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			editor.dispatch(info)
 		}
 
-		let initTouchDistance = 1
-		let initZoom = 1
-		let currentZoom = 1
-		let currentTouchDistance = 0
-		const initOrigin = new Vec2d()
-		const prevOrigin = new Vec2d()
+		let initDistanceBetweenFingers = 1 // the distance between the two fingers when the pinch starts
+		let initZoom = 1 // the browser's zoom level when the pinch starts
+		let currZoom = 1 // the current zoom level according to the pinch gesture recognizer
+		let currDistanceBetweenFingers = 0
+		const initPointBetweenFingers = new Vec2d()
+		const prevPointBetweenFingers = new Vec2d()
 
 		const onPinchStart: PinchHandler = (gesture) => {
 			const elm = ref.current
-			pinchState = null
+			pinchState = 'not sure'
 
 			const { event, origin, da } = gesture
 
 			if (event instanceof WheelEvent) return
 			if (!(event.target === elm || elm?.contains(event.target as Node))) return
 
-			prevOrigin.x = origin[0]
-			prevOrigin.y = origin[1]
-			initOrigin.x = origin[0]
-			initOrigin.y = origin[1]
-			initTouchDistance = da[0]
+			prevPointBetweenFingers.x = origin[0]
+			prevPointBetweenFingers.y = origin[1]
+			initPointBetweenFingers.x = origin[0]
+			initPointBetweenFingers.y = origin[1]
+			initDistanceBetweenFingers = da[0]
 			initZoom = editor.zoomLevel
 
 			editor.dispatch({
@@ -128,20 +161,44 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			})
 		}
 
-		const updatePinchState = throttle((type: 'gesture' | 'touch') => {
-			if (pinchState === null) {
-				const touchDistance = Math.abs(currentTouchDistance - initTouchDistance)
-				const originDistance = Vec2d.Dist(initOrigin, prevOrigin)
+		// let timeout: any
+		const updatePinchState = (isSafariTrackpadPinch: boolean) => {
+			if (isSafariTrackpadPinch) {
+				pinchState = 'zooming'
+			}
 
-				if (type === 'gesture' && touchDistance) {
-					pinchState = 'zooming'
-				} else if (type === 'touch' && touchDistance > 16) {
-					pinchState = 'zooming'
-				} else if (originDistance > 16) {
-					pinchState = 'panning'
+			if (pinchState === 'zooming') {
+				return
+			}
+
+			// Initial: [touch]-------origin-------[touch]
+			// Current: [touch]-----------origin----------[touch]
+			//                          |----|     |------------|
+			//             originDistance ^           ^ touchDistance
+
+			// How far have the two touch points moved towards or away from eachother?
+			const touchDistance = Math.abs(currDistanceBetweenFingers - initDistanceBetweenFingers)
+			// How far has the point between the touches moved?
+			const originDistance = Vec2d.Dist(initPointBetweenFingers, prevPointBetweenFingers)
+
+			switch (pinchState) {
+				case 'not sure': {
+					if (touchDistance > 24) {
+						pinchState = 'zooming'
+					} else if (originDistance > 16) {
+						pinchState = 'panning'
+					}
+					break
+				}
+				case 'panning': {
+					// Slightly more touch distance needed to go from panning to zooming
+					if (touchDistance > 64) {
+						pinchState = 'zooming'
+					}
+					break
 				}
 			}
-		}, 32)
+		}
 
 		const onPinch: PinchHandler = (gesture) => {
 			const elm = ref.current
@@ -150,38 +207,36 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 			if (event instanceof WheelEvent) return
 			if (!(event.target === elm || elm?.contains(event.target as Node))) return
 
-			// Determine if the event is a gesture or a touch event.
-			// This affects how we calculate the touch distance.
-			// Because: When trackpad zooming on safari, a different unit is used.
-			// By the way, Safari doesn't have TouchEvent...
-			// ... so we have to manually check if the event is a TouchEvent.
-			const isGesture = 'touches' in event ? false : true
+			// In (desktop) Safari, a two finger trackpad pinch will be a "gesturechange" event
+			// and will have 0 touches; on iOS, a two-finger pinch will be a "pointermove" event
+			// with two touches.
+			const isSafariTrackpadPinch =
+				gesture.type === 'gesturechange' || gesture.type === 'gestureend'
 
 			// The distance between the two touch points
-			currentTouchDistance = da[0]
+			currDistanceBetweenFingers = da[0]
 
 			// Only update the zoom if the pointers are far enough apart;
 			// a very small touchDistance means that the user has probably
 			// pinched out and their fingers are touching; this produces
 			// very unstable zooming behavior.
-			if (isGesture || currentTouchDistance > 64) {
-				currentZoom = offset[0]
-			}
 
-			const dx = origin[0] - prevOrigin.x
-			const dy = origin[1] - prevOrigin.y
+			const dx = origin[0] - prevPointBetweenFingers.x
+			const dy = origin[1] - prevPointBetweenFingers.y
 
-			prevOrigin.x = origin[0]
-			prevOrigin.y = origin[1]
+			prevPointBetweenFingers.x = origin[0]
+			prevPointBetweenFingers.y = origin[1]
 
-			updatePinchState(isGesture ? 'gesture' : 'touch')
+			updatePinchState(isSafariTrackpadPinch)
 
 			switch (pinchState) {
 				case 'zooming': {
+					currZoom = offset[0]
+
 					editor.dispatch({
 						type: 'pinch',
 						name: 'pinch',
-						point: { x: origin[0], y: origin[1], z: currentZoom },
+						point: { x: origin[0], y: origin[1], z: currZoom },
 						delta: { x: dx, y: dy },
 						shiftKey: event.shiftKey,
 						altKey: event.altKey,
@@ -213,7 +268,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 
 			const scale = offset[0]
 
-			pinchState = null
+			pinchState = 'not sure'
 
 			requestAnimationFrame(() => {
 				editor.dispatch({
