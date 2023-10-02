@@ -119,7 +119,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isChatting: false,
 			highlightedUserIds: [],
 			canMoveCamera: true,
-			isFocused: false,
+			isFocused: true,
 			devicePixelRatio: typeof window === 'undefined' ? 1 : window.devicePixelRatio,
 			isCoarsePointer: false,
 			openMenus: [] as string[],
