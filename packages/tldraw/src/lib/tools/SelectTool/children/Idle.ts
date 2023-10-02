@@ -325,6 +325,8 @@ export class Idle extends StateNode {
 						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 								margin: HIT_TEST_MARGIN / this.editor.zoomLevel,
 								hitInside: false,
+								hitLabels: true,
+								hitFrameInside: false,
 						  })
 
 				if (hitShape) {
