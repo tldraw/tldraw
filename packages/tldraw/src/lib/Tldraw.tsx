@@ -139,7 +139,7 @@ function InsideOfEditorContext({
 	const onMountEvent = useEvent((editor: Editor) => {
 		const unsubs: (void | (() => void) | undefined)[] = []
 
-		unsubs.push(registerDefaultSideEffects(editor))
+		unsubs.push(...registerDefaultSideEffects(editor))
 
 		// for content handling, first we register the default handlers...
 		registerDefaultExternalContentHandlers(editor, {

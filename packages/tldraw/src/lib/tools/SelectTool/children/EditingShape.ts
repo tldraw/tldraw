@@ -1,4 +1,11 @@
-import { Group2d, StateNode, TLArrowShape, TLEventHandlers, TLGeoShape } from '@tldraw/editor'
+import {
+	Group2d,
+	StateNode,
+	TLArrowShape,
+	TLEventHandlers,
+	TLFrameShape,
+	TLGeoShape,
+} from '@tldraw/editor'
 import { getHitShapeOnCanvasPointerDown } from '../../selection-logic/getHitShapeOnCanvasPointerDown'
 import { updateHoveredId } from '../../selection-logic/updateHoveredId'
 
@@ -24,6 +31,10 @@ export class EditingShape extends StateNode {
 
 		// Check for changes on editing end
 		util.onEditEnd?.(shape)
+
+		setTimeout(() => {
+			this.editor.updateViewportScreenBounds()
+		}, 500)
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
@@ -77,19 +88,22 @@ export class EditingShape extends StateNode {
 									// If we clicked on the editing geo / arrow shape's label, do nothing
 									return
 								} else {
-									this.editor.setEditingShape(shape)
-									this.editor.select(shape)
+									this.parent.transition('pointing_shape', info)
 									return
 								}
 							}
 						}
 					} else {
 						if (shape.id === editingShape.id) {
+							// If we clicked on a frame, while editing its heading, cancel editing
+							if (this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+								this.editor.setEditingShape(null)
+							}
 							// If we clicked on the editing shape (which isn't a shape with a label), do nothing
 						} else {
-							// But if we clicked on a different shape of the same type, edit it instead
-							this.editor.setEditingShape(shape)
-							this.editor.select(shape)
+							// But if we clicked on a different shape of the same type, transition to pointing_shape instead
+							this.parent.transition('pointing_shape', info)
+							return
 						}
 						return
 					}

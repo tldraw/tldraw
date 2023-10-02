@@ -17,7 +17,6 @@ import {
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
-	useValue,
 } from '@tldraw/editor'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
@@ -78,15 +77,13 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			rInput,
 			isEmpty,
 			isEditing,
-			isEditingSameShapeType,
 			handleFocus,
 			handleChange,
 			handleKeyDown,
 			handleBlur,
 			handleInputPointerDown,
+			handleDoubleClick,
 		} = useEditableText(id, type, text)
-
-		const zoomLevel = useValue('zoomLevel', () => this.editor.zoomLevel, [this.editor])
 
 		return (
 			<HTMLContainer id={shape.id}>
@@ -98,9 +95,6 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					data-isediting={isEditing}
 					data-textwrap={true}
 					style={{
-						outline: isEditing
-							? `${1.5 / zoomLevel / shape.props.scale}px solid var(--color-selected)`
-							: '',
 						fontSize: FONT_SIZES[shape.props.size],
 						lineHeight: FONT_SIZES[shape.props.size] * TEXT_PROPS.lineHeight + 'px',
 						transform: `scale(${shape.props.scale})`,
@@ -113,7 +107,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					<div className="tl-text tl-text-content" dir="ltr">
 						{text}
 					</div>
-					{isEditing || isEditingSameShapeType ? (
+					{isEditing ? (
 						<textarea
 							ref={rInput}
 							className="tl-text tl-text-input"
@@ -137,6 +131,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 							onTouchEnd={stopEventPropagation}
 							onContextMenu={stopEventPropagation}
 							onPointerDown={handleInputPointerDown}
+							onDoubleClick={handleDoubleClick}
 						/>
 					) : null}
 				</div>
@@ -378,9 +373,9 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	const fontSize = FONT_SIZES[size]
 
 	const cw = autoSize
-		? 'fit-content'
+		? null
 		: // `measureText` floors the number so we need to do the same here to avoid issues.
-		  Math.floor(Math.max(minWidth, w)) + 'px'
+		  Math.floor(Math.max(minWidth, w))
 
 	const result = editor.textMeasure.measureText(text, {
 		...TEXT_PROPS,

@@ -1,46 +1,60 @@
 import { computed } from '@tldraw/state'
-import { TLUserPreferences } from '../../config/TLUserPreferences'
+import {
+	TLUserPreferences,
+	defaultUserPreferences,
+	userPrefersDarkUI,
+} from '../../config/TLUserPreferences'
 import { TLUser } from '../../config/createTLUser'
 
 export class UserPreferencesManager {
-	constructor(private readonly user: TLUser) {}
+	constructor(private readonly user: TLUser, private readonly inferDarkMode: boolean) {}
 
 	updateUserPreferences = (userPreferences: Partial<TLUserPreferences>) => {
 		this.user.setUserPreferences({
-			...this.userPreferences,
+			...this.user.userPreferences.value,
 			...userPreferences,
 		})
 	}
-
 	@computed get userPreferences() {
-		return this.user.userPreferences.value
+		return {
+			id: this.id,
+			name: this.name,
+			locale: this.locale,
+			color: this.color,
+			isDarkMode: this.isDarkMode,
+			animationSpeed: this.animationSpeed,
+			isSnapMode: this.isSnapMode,
+		}
 	}
 
 	@computed get isDarkMode() {
-		return this.userPreferences.isDarkMode
+		return (
+			this.user.userPreferences.value.isDarkMode ??
+			(this.inferDarkMode ? userPrefersDarkUI() : false)
+		)
 	}
 
 	@computed get animationSpeed() {
-		return this.userPreferences.animationSpeed
+		return this.user.userPreferences.value.animationSpeed ?? defaultUserPreferences.animationSpeed
 	}
 
 	@computed get id() {
-		return this.userPreferences.id
+		return this.user.userPreferences.value.id
 	}
 
 	@computed get name() {
-		return this.userPreferences.name
+		return this.user.userPreferences.value.name ?? defaultUserPreferences.name
 	}
 
 	@computed get locale() {
-		return this.userPreferences.locale
+		return this.user.userPreferences.value.locale ?? defaultUserPreferences.locale
 	}
 
 	@computed get color() {
-		return this.userPreferences.color
+		return this.user.userPreferences.value.color ?? defaultUserPreferences.color
 	}
 
 	@computed get isSnapMode() {
-		return this.userPreferences.isSnapMode
+		return this.user.userPreferences.value.isSnapMode ?? defaultUserPreferences.isSnapMode
 	}
 }

@@ -26,7 +26,6 @@ export default function SnapshotExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				autoFocus
 				onMount={(editor) => {
 					editor.store.loadSnapshot(jsonSnapshot)
 				}}

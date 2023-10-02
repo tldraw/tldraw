@@ -289,7 +289,7 @@ export function registerDefaultExternalContentHandlers(
 			...TEXT_PROPS,
 			fontFamily: FONT_FAMILIES[defaultProps.font],
 			fontSize: FONT_SIZES[defaultProps.size],
-			width: 'fit-content',
+			width: null,
 		})
 
 		const minWidth = Math.min(
@@ -302,7 +302,7 @@ export function registerDefaultExternalContentHandlers(
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[defaultProps.font],
 				fontSize: FONT_SIZES[defaultProps.size],
-				width: minWidth + 'px',
+				width: minWidth,
 			})
 			w = shrunkSize.w
 			h = shrunkSize.h

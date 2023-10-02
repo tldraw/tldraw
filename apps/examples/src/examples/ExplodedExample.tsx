@@ -15,7 +15,6 @@ export default function ExplodedExample() {
 				initialState="select"
 				shapeUtils={defaultShapeUtils}
 				tools={defaultTools}
-				autoFocus
 				persistenceKey="exploded-example"
 			>
 				<TldrawUi>

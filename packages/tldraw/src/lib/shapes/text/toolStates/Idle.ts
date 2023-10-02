@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLGroupShape, TLTextShape } from '@tldraw/editor'
+import { StateNode, TLEventHandlers } from '@tldraw/editor'
 import { updateHoveredId } from '../../../tools/selection-logic/updateHoveredId'
 
 export class Idle extends StateNode {
@@ -14,26 +14,6 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		const { hoveredShape } = this.editor
-		const hitShape =
-			hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
-				? hoveredShape
-				: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
-		if (hitShape) {
-			if (this.editor.isShapeOfType<TLTextShape>(hitShape, 'text')) {
-				requestAnimationFrame(() => {
-					this.editor.setSelectedShapes([hitShape.id])
-					this.editor.setEditingShape(hitShape.id)
-					this.editor.setCurrentTool('select.editing_shape', {
-						...info,
-						target: 'shape',
-						shape: hitShape,
-					})
-				})
-				return
-			}
-		}
-
 		this.parent.transition('pointing', info)
 	}
 

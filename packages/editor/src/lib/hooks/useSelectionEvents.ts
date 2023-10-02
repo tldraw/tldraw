@@ -12,6 +12,18 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 		function selectionEvents() {
 			const onPointerDown: React.PointerEventHandler = (e) => {
 				if ((e as any).isKilled) return
+
+				if (e.button === 2) {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'selection',
+						handle,
+						name: 'right_click',
+						...getPointerInfo(e),
+					})
+					return
+				}
+
 				if (e.button !== 0) return
 
 				// Because the events are probably set on SVG elements,

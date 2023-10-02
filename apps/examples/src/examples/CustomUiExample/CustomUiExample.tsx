@@ -6,7 +6,7 @@ import './custom-ui.css'
 export default function CustomUiExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw hideUi autoFocus>
+			<Tldraw hideUi>
 				<Canvas />
 				<CustomUi />
 			</Tldraw>

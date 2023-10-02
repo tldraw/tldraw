@@ -38,12 +38,13 @@ test.describe('Focus', () => {
 
 		await EditorB.click()
 		expect(await EditorA.evaluate((node) => document.activeElement === node)).toBe(false)
-		expect(await EditorB.evaluate((node) => document.activeElement === node)).toBe(false)
-		expect(await EditorA.evaluate((node) => node.contains(document.activeElement))).toBe(true)
+		expect(await EditorB.evaluate((node) => document.activeElement === node)).toBe(true)
+		expect(await EditorA.evaluate((node) => node.contains(document.activeElement))).toBe(false)
 
 		// Escape does not break focus
 		await page.keyboard.press('Escape')
-		expect(await EditorA.evaluate((node) => node.contains(document.activeElement))).toBe(true)
+		expect(await EditorA.evaluate((node) => document.activeElement === node)).toBe(false)
+		expect(await EditorB.evaluate((node) => node.contains(document.activeElement))).toBe(true)
 	})
 
 	test('kbds when focused', async ({ page }) => {

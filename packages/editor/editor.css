@@ -102,7 +102,7 @@
 	--color-culled: rgb(235, 238, 240);
 	--color-muted-0: rgba(0, 0, 0, 0.02);
 	--color-muted-1: rgba(0, 0, 0, 0.1);
-	--color-muted-2: rgba(0, 0, 0, 0.035);
+	--color-muted-2: rgba(0, 0, 0, 0.042);
 	--color-hint: rgba(0, 0, 0, 0.055);
 	--color-overlay: rgba(0, 0, 0, 0.2);
 	--color-divider: #e8e8e8;
@@ -840,6 +840,7 @@ input,
 	min-width: 1px;
 	min-height: 1px;
 	overflow: visible;
+	outline: none;
 }
 
 .tl-text-content {

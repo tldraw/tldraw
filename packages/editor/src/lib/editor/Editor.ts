@@ -171,18 +171,30 @@ export interface TLEditorOptions {
 	 * (optional) The editor's initial active tool (or other state node id).
 	 */
 	initialState?: string
+	/**
+	 * (optional) Whether to infer dark mode from the user's system preferences. Defaults to false.
+	 */
+	inferDarkMode?: boolean
 }
 
 /** @public */
 export class Editor extends EventEmitter<TLEventMap> {
-	constructor({ store, user, shapeUtils, tools, getContainer, initialState }: TLEditorOptions) {
+	constructor({
+		store,
+		user,
+		shapeUtils,
+		tools,
+		getContainer,
+		initialState,
+		inferDarkMode,
+	}: TLEditorOptions) {
 		super()
 
 		this.store = store
 
 		this.snaps = new SnapManager(this)
 
-		this.user = new UserPreferencesManager(user ?? createTLUser())
+		this.user = new UserPreferencesManager(user ?? createTLUser(), inferDarkMode ?? false)
 
 		this.getContainer = getContainer ?? (() => document.body)
 
@@ -8555,34 +8567,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 							const { _selectedShapeIdsAtPointerDown } = this
 							this.setSelectedShapes(this._selectedShapeIdsAtPointerDown, { squashing: true })
 							this._selectedShapeIdsAtPointerDown = []
-
-							const {
-								camera: { x: cx, y: cy, z: cz },
-							} = this
-
-							let zoom: number | undefined
-
-							if (cz > 0.9 && cz < 1.05) {
-								zoom = 1
-							} else if (cz > 0.49 && cz < 0.505) {
-								zoom = 0.5
-							}
-
-							if (cz > this._pinchStart - 0.1 && cz < this._pinchStart + 0.05) {
-								zoom = this._pinchStart
-							}
-
-							if (zoom !== undefined) {
-								const { x, y } = this.viewportScreenCenter
-								this.setCamera(
-									{
-										x: cx + (x / zoom - x) - (x / cz - x),
-										y: cy + (y / zoom - y) - (y / cz - y),
-										z: zoom,
-									},
-									{ duration: 100 }
-								)
-							}
 
 							if (this._didPinch) {
 								this._didPinch = false

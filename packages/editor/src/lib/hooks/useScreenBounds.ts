@@ -18,9 +18,10 @@ export function useScreenBounds() {
 			}
 		)
 
+		editor.updateViewportScreenBounds()
+
 		// Rather than running getClientRects on every frame, we'll
 		// run it once a second or when the window resizes / scrolls.
-		updateBounds()
 		const interval = setInterval(updateBounds, 1000)
 		window.addEventListener('resize', updateBounds)
 		window.addEventListener('scroll', updateBounds)
@@ -30,5 +31,5 @@ export function useScreenBounds() {
 			window.removeEventListener('resize', updateBounds)
 			window.removeEventListener('scroll', updateBounds)
 		}
-	})
+	}, [editor])
 }

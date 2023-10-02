@@ -5,7 +5,6 @@ export default function AssetPropsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				autoFocus
 				// only allow jpegs
 				acceptedImageMimeTypes={['image/jpeg']}
 				// don't allow any images

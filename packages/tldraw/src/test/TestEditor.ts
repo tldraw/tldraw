@@ -81,7 +81,7 @@ export class TestEditor extends Editor {
 				fontFamily: string
 				fontSize: number
 				lineHeight: number
-				width: string
+				width: null | number
 				maxWidth: string
 			}
 		): Box2dModel => {
@@ -95,18 +95,17 @@ export class TestEditor extends Editor {
 			return {
 				x: 0,
 				y: 0,
-				w: opts.width.includes('px') ? Math.max(w, +opts.width.replace('px', '')) : w,
+				w: opts.width === null ? w : Math.max(w, opts.width),
 				h:
-					(opts.width.includes('px')
-						? Math.ceil(w % +opts.width.replace('px', '')) + breaks.length
-						: breaks.length) * opts.fontSize,
+					(opts.width === null ? breaks.length : Math.ceil(w % opts.width) + breaks.length) *
+					opts.fontSize,
 			}
 		}
 
 		this.textMeasure.measureTextSpans = (textToMeasure, opts) => {
 			const box = this.textMeasure.measureText(textToMeasure, {
 				...opts,
-				width: `${opts.width}px`,
+				width: opts.width,
 				padding: `${opts.padding}px`,
 				maxWidth: 'auto',
 			})

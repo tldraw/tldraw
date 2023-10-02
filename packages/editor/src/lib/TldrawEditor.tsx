@@ -106,6 +106,11 @@ export interface TldrawEditorBaseProps {
 	 * The user interacting with the editor.
 	 */
 	user?: TLUser
+
+	/**
+	 * Whether to infer dark mode from the user's OS. Defaults to false.
+	 */
+	inferDarkMode?: boolean
 }
 
 /**
@@ -250,9 +255,10 @@ function TldrawEditorWithReadyStore({
 	store,
 	tools,
 	shapeUtils,
-	autoFocus,
 	user,
 	initialState,
+	autoFocus = true,
+	inferDarkMode,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -272,6 +278,7 @@ function TldrawEditorWithReadyStore({
 			getContainer: () => container,
 			user,
 			initialState,
+			inferDarkMode,
 		})
 		;(window as any).app = editor
 		;(window as any).editor = editor
@@ -280,7 +287,7 @@ function TldrawEditorWithReadyStore({
 		return () => {
 			editor.dispose()
 		}
-	}, [container, shapeUtils, tools, store, user, initialState])
+	}, [container, shapeUtils, tools, store, user, initialState, inferDarkMode])
 
 	const crashingError = useSyncExternalStore(
 		useCallback(
@@ -331,11 +338,11 @@ function TldrawEditorWithReadyStore({
 function Layout({
 	children,
 	onMount,
-	autoFocus = false,
+	autoFocus,
 }: {
 	children: any
+	autoFocus: boolean
 	onMount?: TLOnMountHandler
-	autoFocus?: boolean
 }) {
 	useZoomCss()
 	useCursor()
@@ -345,6 +352,9 @@ function Layout({
 	useFocusEvents(autoFocus)
 	useOnMount(onMount)
 	useDPRMultiple()
+
+	const editor = useEditor()
+	editor.updateViewportScreenBounds()
 
 	return children ?? <Canvas />
 }

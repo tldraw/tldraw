@@ -69,13 +69,17 @@ export class Drawing extends StateNode {
 			// The user made a palm gesture before starting a pen gesture;
 			// ideally we'd start the new shape here but we could also just bail
 			// as the next interaction will work correctly
-			this.cancel()
-		}
-
-		// If we came in from a menu but have no started dragging...
-		if (!this.canDraw && inputs.isDragging) {
-			this.startShape()
-			this.canDraw = true // bad name
+			if (this.markId) {
+				this.editor.bailToMark(this.markId)
+				this.startShape()
+				return
+			}
+		} else {
+			// If we came in from a menu but have no started dragging...
+			if (!this.canDraw && inputs.isDragging) {
+				this.startShape()
+				this.canDraw = true // bad name
+			}
 		}
 
 		if (this.canDraw) {

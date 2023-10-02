@@ -322,7 +322,13 @@ export class Idle extends StateNode {
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
-						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+								margin: HIT_TEST_MARGIN / this.editor.zoomLevel,
+								hitInside: false,
+								hitLabels: true,
+								hitFrameInside: false,
+						  })
+
 				if (hitShape) {
 					this.onRightClick({
 						...info,
@@ -330,6 +336,26 @@ export class Idle extends StateNode {
 						target: 'shape',
 					})
 					return
+				}
+
+				const {
+					onlySelectedShape,
+					selectedShapeIds,
+					inputs: { currentPagePoint },
+				} = this.editor
+
+				if (
+					selectedShapeIds.length > 1 ||
+					(onlySelectedShape &&
+						!this.editor.getShapeUtil(onlySelectedShape).hideSelectionBoundsBg(onlySelectedShape))
+				) {
+					if (isPointInRotatedSelectionBounds(this.editor, currentPagePoint)) {
+						this.onRightClick({
+							...info,
+							target: 'selection',
+						})
+						return
+					}
 				}
 
 				this.editor.selectNone()

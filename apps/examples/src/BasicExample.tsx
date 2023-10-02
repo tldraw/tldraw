@@ -4,7 +4,7 @@ import '@tldraw/tldraw/tldraw.css'
 export default function BasicExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="tldraw_example" autoFocus />
+			<Tldraw persistenceKey="tldraw_example" />
 		</div>
 	)
 }
