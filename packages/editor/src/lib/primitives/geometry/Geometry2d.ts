@@ -85,10 +85,6 @@ export abstract class Geometry2d {
 		return this._vertices
 	}
 
-	get outerVertices() {
-		return this.vertices
-	}
-
 	getBounds() {
 		return Box2d.FromPoints(this.vertices)
 	}
