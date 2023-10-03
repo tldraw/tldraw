@@ -83,12 +83,16 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 			const _vpPageBounds = editor.viewportPageBounds
 
-			minimap.originPagePoint.setTo(clampedPoint)
-			minimap.originPageCenter.setTo(_vpPageBounds.center)
-
 			minimap.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
 
-			if (!minimap.isInViewport) {
+			if (minimap.isInViewport) {
+				minimap.originPagePoint.setTo(clampedPoint)
+				minimap.originPageCenter.setTo(_vpPageBounds.center)
+			} else {
+				const delta = Vec2d.Sub(_vpPageBounds.center, _vpPageBounds.point)
+				const pagePoint = Vec2d.Add(point, delta)
+				minimap.originPagePoint.setTo(pagePoint)
+				minimap.originPageCenter.setTo(point)
 				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
 			}
 		},
@@ -97,13 +101,12 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 	const onPointerMove = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
-			if (rPointing.current) {
-				const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, e.shiftKey, true)
+			const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, e.shiftKey, true)
 
+			if (rPointing.current) {
 				if (minimap.isInViewport) {
-					const delta = point.clone().sub(minimap.originPagePoint).add(minimap.originPageCenter)
-					const center = Vec2d.Add(minimap.originPageCenter, delta)
-					editor.centerOnPoint(center)
+					const delta = minimap.originPagePoint.clone().sub(minimap.originPageCenter)
+					editor.centerOnPoint(Vec2d.Sub(point, delta))
 					return
 				}
 
@@ -179,7 +182,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				currentPageBounds: commonBoundsOfAllShapesOnCurrentPage,
 			} = editor
 
-			const _dpr = devicePixelRatio.value
+			const _dpr = devicePixelRatio.value // dereference
 
 			minimap.contentPageBounds = commonBoundsOfAllShapesOnCurrentPage
 				? Box2d.Expand(commonBoundsOfAllShapesOnCurrentPage, viewportPageBounds)
