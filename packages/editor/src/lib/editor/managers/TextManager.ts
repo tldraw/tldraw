@@ -72,7 +72,6 @@ export class TextManager {
 			 */
 			maxWidth: null | number
 			minWidth?: string
-			// maxWidth: string
 			padding: string
 		}
 	): Box2dModel => {
