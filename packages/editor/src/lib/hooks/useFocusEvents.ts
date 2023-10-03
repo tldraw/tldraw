@@ -1,12 +1,12 @@
 import { useLayoutEffect } from 'react'
+import { useContainer } from './useContainer'
 import { useEditor } from './useEditor'
 
 /** @internal */
 export function useFocusEvents(autoFocus: boolean) {
 	const editor = useEditor()
+	const container = useContainer()
 	useLayoutEffect(() => {
-		const container = editor.getContainer()
-
 		function handleFocus() {
 			if (!editor.instanceState.isFocused) {
 				editor.updateInstanceState({ isFocused: true })
@@ -27,5 +27,5 @@ export function useFocusEvents(autoFocus: boolean) {
 			container.removeEventListener('focus', handleFocus)
 			container.removeEventListener('pointerdown', handleFocus)
 		}
-	}, [editor, autoFocus])
+	}, [editor, container, autoFocus])
 }
