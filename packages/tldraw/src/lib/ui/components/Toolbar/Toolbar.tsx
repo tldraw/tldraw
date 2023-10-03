@@ -31,13 +31,11 @@ export const Toolbar = memo(function Toolbar() {
 
 	const activeToolId = useValue('current tool id', () => editor.currentToolId, [editor])
 
-	const isHandTool = activeToolId === 'hand'
 	const geoState = useValue('geo', () => editor.sharedStyles.getAsKnownValue(GeoShapeGeoStyle), [
 		editor,
 	])
 
 	const showEditingTools = !isReadonly
-	const showExtraActions = !(isReadonly || isHandTool)
 
 	const getTitle = (item: TLUiToolItem) =>
 		item.label ? `${msg(item.label)} ${item.kbd ? kbdStr(item.kbd) : ''}` : ''
@@ -110,13 +108,9 @@ export const Toolbar = memo(function Toolbar() {
 		<div className="tlui-toolbar">
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
-					{!isReadonly && breakpoint < 6 && !editor.isInAny('hand', 'zoom') && (
-						<div
-							className={classNames('tlui-toolbar__extras', {
-								'tlui-toolbar__extras__hidden': !showExtraActions,
-							})}
-						>
-							{breakpoint < 6 && !editor.isInAny('hand', 'zoom') && (
+					{!isReadonly && (
+						<div className="tlui-toolbar__extras">
+							{breakpoint < 6 && !(activeToolId === 'hand' || activeToolId === 'zoom') && (
 								<div className="tlui-toolbar__extras__controls">
 									<UndoButton />
 									<RedoButton />
