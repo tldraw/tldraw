@@ -30,7 +30,7 @@ The code is hot-reloaded, so the developer experience is quite nice.
 
 ## Publishing
 
-Update the `CHANGELOG.md` with the new version number and the changes.
+Update the version in the `apps/vscode/extension/package.json`. Update the `apps/vscode/extension/CHANGELOG.md` with the new version number and the changes.
 
 To publish:
 
