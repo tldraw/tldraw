@@ -78,7 +78,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			labelColor: 'black',
 			bend: 0,
 			start: { type: 'point', x: 0, y: 0 },
-			end: { type: 'point', x: 0, y: 0 },
+			end: { type: 'point', x: 0.1, y: 0.1 },
 			arrowheadStart: 'none',
 			arrowheadEnd: 'arrow',
 			text: '',

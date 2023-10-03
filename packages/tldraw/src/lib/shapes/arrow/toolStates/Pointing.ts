@@ -18,7 +18,9 @@ export class Pointing extends StateNode {
 			hitInside: true,
 		})
 
-		if (target) {
+		if (!target) {
+			this.createArrowShape()
+		} else {
 			this.editor.setHintingShapes([target.id])
 		}
 
