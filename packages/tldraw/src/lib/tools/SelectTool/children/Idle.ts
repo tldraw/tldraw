@@ -214,8 +214,6 @@ export class Idle extends StateNode {
 				}
 
 				if (!this.editor.inputs.shiftKey) {
-					// Create text shape and transition to editing_shape
-					if (this.editor.instanceState.isReadonly) break
 					this.handleDoubleClickOnCanvas(info)
 				}
 				break
@@ -223,11 +221,14 @@ export class Idle extends StateNode {
 			case 'selection': {
 				if (this.editor.instanceState.isReadonly) break
 
-				const { isReadonly } = this.editor.instanceState
 				const { onlySelectedShape } = this.editor
 
 				if (onlySelectedShape) {
 					const util = this.editor.getShapeUtil(onlySelectedShape)
+
+					if (!this.canInteractWithShapeInReadOnly(onlySelectedShape)) {
+						return
+					}
 
 					// Test edges for an onDoubleClickEdge handler
 					if (
@@ -246,7 +247,6 @@ export class Idle extends StateNode {
 
 					// For corners OR edges
 					if (
-						!isReadonly &&
 						util.canCrop(onlySelectedShape) &&
 						!this.editor.isShapeOrAncestorLocked(onlySelectedShape)
 					) {
@@ -419,56 +419,36 @@ export class Idle extends StateNode {
 	}
 
 	override onKeyUp = (info: TLKeyboardEventInfo) => {
-		if (this.editor.instanceState.isReadonly) {
-			switch (info.code) {
-				case 'Enter': {
-					const { onlySelectedShape } = this.editor
-					if (onlySelectedShape && this.shouldStartEditingShape()) {
-						const util = this.editor.getShapeUtil(onlySelectedShape)
-						if (util.canEditInReadOnly(onlySelectedShape)) {
-							this.startEditingShape(onlySelectedShape, {
-								...info,
-								target: 'shape',
-								shape: onlySelectedShape,
-							})
-						}
-						return
-					}
-					break
+		switch (info.code) {
+			case 'Enter': {
+				const { selectedShapes } = this.editor
+
+				// On enter, if every selected shape is a group, then select all of the children of the groups
+				if (
+					selectedShapes.every((shape) => this.editor.isShapeOfType<TLGroupShape>(shape, 'group'))
+				) {
+					this.editor.setSelectedShapes(
+						selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
+					)
+					return
 				}
-			}
-		} else {
-			switch (info.code) {
-				case 'Enter': {
-					const { selectedShapes } = this.editor
 
-					// On enter, if every selected shape is a group, then select all of the children of the groups
-					if (
-						selectedShapes.every((shape) => this.editor.isShapeOfType<TLGroupShape>(shape, 'group'))
-					) {
-						this.editor.setSelectedShapes(
-							selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
-						)
-						return
-					}
-
-					// If the only selected shape is editable, then begin editing it
-					const { onlySelectedShape } = this.editor
-					if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
-						this.startEditingShape(onlySelectedShape, {
-							...info,
-							target: 'shape',
-							shape: onlySelectedShape,
-						})
-						return
-					}
-
-					// If the only selected shape is croppable, then begin cropping it
-					if (getShouldEnterCropMode(this.editor)) {
-						this.parent.transition('crop', info)
-					}
-					break
+				// If the only selected shape is editable, then begin editing it
+				const { onlySelectedShape } = this.editor
+				if (onlySelectedShape && this.shouldStartEditingShape(onlySelectedShape)) {
+					this.startEditingShape(onlySelectedShape, {
+						...info,
+						target: 'shape',
+						shape: onlySelectedShape,
+					})
+					return
 				}
+
+				// If the only selected shape is croppable, then begin cropping it
+				if (getShouldEnterCropMode(this.editor)) {
+					this.parent.transition('crop', info)
+				}
+				break
 			}
 		}
 	}
@@ -476,10 +456,7 @@ export class Idle extends StateNode {
 	private shouldStartEditingShape(shape: TLShape | null = this.editor.onlySelectedShape): boolean {
 		if (!shape) return false
 		if (this.editor.isShapeOrAncestorLocked(shape) && shape.type !== 'embed') return false
-		const util = this.editor.getShapeUtil(shape)
-		if (this.editor.instanceState.isReadonly) {
-			return util.canEditInReadOnly(shape)
-		}
+		if (!this.canInteractWithShapeInReadOnly(shape)) return false
 		return this.editor.getShapeUtil(shape).canEdit(shape)
 	}
 
@@ -493,6 +470,9 @@ export class Idle extends StateNode {
 	isDarwin = window.navigator.userAgent.toLowerCase().indexOf('mac') > -1
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
+		// Create text shape and transition to editing_shape
+		if (this.editor.instanceState.isReadonly) return
+
 		this.editor.mark('creating text shape')
 
 		const id = createShapeId()
@@ -561,6 +541,13 @@ export class Idle extends StateNode {
 			: MINOR_NUDGE_FACTOR
 
 		this.editor.nudgeShapes(this.editor.selectedShapeIds, delta.mul(step))
+	}
+
+	private canInteractWithShapeInReadOnly(shape: TLShape) {
+		if (!this.editor.instanceState.isReadonly) return true
+		const util = this.editor.getShapeUtil(shape)
+		if (util.canEditInReadOnly(shape)) return true
+		return false
 	}
 }
 
