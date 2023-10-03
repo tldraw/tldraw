@@ -128,7 +128,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			<HTMLContainer className="tl-embed-container" id={shape.id}>
 				{embedInfo?.definition ? (
 					<iframe
-						className={`tl-embed tl-embed-${shape.id}`}
+						className="tl-embed"
 						sandbox={sandbox}
 						src={embedInfo.embedUrl}
 						width={toDomPrecision(w)}
