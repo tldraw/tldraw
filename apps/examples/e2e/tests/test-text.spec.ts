@@ -7,14 +7,13 @@ export function sleep(ms: number) {
 }
 
 const measureTextOptions = {
-	width: null,
+	maxWidth: null,
 	fontFamily: 'var(--tl-font-draw)',
 	fontSize: 24,
 	lineHeight: 1.35,
 	fontWeight: 'normal',
 	fontStyle: 'normal',
 	padding: '0px',
-	maxWidth: 'auto',
 }
 
 const measureTextSpansOptions = {

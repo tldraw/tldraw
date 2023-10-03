@@ -40,7 +40,9 @@ const spaceCharacterRegex = /\s/
 export class TextManager {
 	constructor(public editor: Editor) {}
 
-	getTextElement() {
+	private textElement: HTMLDivElement | null = null
+
+	private getTextElement() {
 		const oldElm = document.querySelector('.tl-text-measure')
 		oldElm?.remove()
 
@@ -64,13 +66,13 @@ export class TextManager {
 			fontSize: number
 			lineHeight: number
 			/**
-			 * When width is a number, the text will be wrapped to that width. When
-			 * width is null, the text will be measured without wrapping, but explicit
-			 * line breaks and space are preserved.
+			 * When maxWidth is a number, the text will be wrapped to that maxWidth. When maxWidth
+			 * is null, the text will be measured without wrapping, but explicit line breaks and
+			 * space are preserved.
 			 */
-			width: null | number
+			maxWidth: null | number
 			minWidth?: string
-			maxWidth: string
+			// maxWidth: string
 			padding: string
 		}
 	): Box2dModel => {
@@ -82,15 +84,8 @@ export class TextManager {
 		elm.style.setProperty('font-weight', opts.fontWeight)
 		elm.style.setProperty('font-size', opts.fontSize + 'px')
 		elm.style.setProperty('line-height', opts.lineHeight * opts.fontSize + 'px')
-		if (opts.width === null) {
-			elm.style.setProperty('white-space', 'pre')
-			elm.style.setProperty('width', 'fit-content')
-		} else {
-			elm.style.setProperty('width', opts.width + 'px')
-			elm.style.setProperty('white-space', 'pre-wrap')
-		}
+		elm.style.setProperty('max-width', opts.maxWidth === null ? null : opts.maxWidth + 'px')
 		elm.style.setProperty('min-width', opts.minWidth ?? null)
-		elm.style.setProperty('max-width', opts.maxWidth)
 		elm.style.setProperty('padding', opts.padding)
 
 		elm.textContent = normalizeTextForDom(textToMeasure)
