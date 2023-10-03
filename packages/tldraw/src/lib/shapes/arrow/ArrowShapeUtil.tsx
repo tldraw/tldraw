@@ -676,6 +676,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const isEditing = useIsEditing(shape.id)
+
 		if (!info) return null
 		if (Vec2d.Equals(start, end)) return null
 
@@ -692,9 +695,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			!!labelGeometry
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
-
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const isEditing = useIsEditing(shape.id)
 
 		if (isEditing && labelGeometry) {
 			return (
