@@ -114,7 +114,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-				width: null,
+				maxWidth: null,
 			})
 
 			let width = w
@@ -129,7 +129,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						...TEXT_PROPS,
 						fontFamily: FONT_FAMILIES[shape.props.font],
 						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-						width: width,
+						maxWidth: width,
 					}
 				)
 
@@ -146,7 +146,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						...TEXT_PROPS,
 						fontFamily: FONT_FAMILIES[shape.props.font],
 						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-						width: width,
+						maxWidth: width,
 					}
 				)
 

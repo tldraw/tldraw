@@ -369,7 +369,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	const { font, text, autoSize, size, w } = props
 
-	const minWidth = 16
+	const minWidth = autoSize ? 16 : Math.max(16, w)
 	const fontSize = FONT_SIZES[size]
 
 	const cw = autoSize
@@ -381,7 +381,7 @@ function getTextSize(editor: Editor, props: TLTextShape['props']) {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
-		width: cw,
+		maxWidth: cw,
 	})
 
 	// // If we're autosizing the measureText will essentially `Math.floor`
