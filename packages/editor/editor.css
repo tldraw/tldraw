@@ -811,7 +811,7 @@ input,
 	top: -9999px;
 	right: -9999px;
 	opacity: 0;
-	width: fit-content;
+	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
 	line-break: normal;

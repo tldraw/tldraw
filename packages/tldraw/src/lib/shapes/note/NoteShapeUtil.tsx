@@ -194,7 +194,7 @@ function getGrowY(editor: Editor, shape: TLNoteShape, prevGrowY = 0) {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[shape.props.font],
 		fontSize: LABEL_FONT_SIZES[shape.props.size],
-		width: NOTE_SIZE - PADDING * 2,
+		maxWidth: NOTE_SIZE - PADDING * 2,
 	})
 
 	const nextHeight = nextTextSize.h + PADDING * 2
