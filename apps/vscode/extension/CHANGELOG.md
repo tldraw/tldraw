@@ -1,3 +1,6 @@
+## 2.0.12
+- Bug fixes and performance improvements.
+
 ## 2.0.11
 - Added cloud shape.
 
