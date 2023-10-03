@@ -106,7 +106,8 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	const tA = a.clone().add(u.clone().mul(offsetA * (didFlip ? -1 : 1)))
 	const tB = b.clone().sub(u.clone().mul(offsetB * (didFlip ? -1 : 1)))
-	if (Vec2d.Dist(tA, tB) < MIN_ARROW_LENGTH) {
+	const distAB = Vec2d.Dist(tA, tB)
+	if (distAB < MIN_ARROW_LENGTH) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			offsetA *= -1.5
 			offsetB *= -1.5
@@ -114,6 +115,11 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 			offsetA *= -2
 		} else if (offsetB !== 0) {
 			offsetB *= -2
+		} else {
+			if (distAB < 10) {
+				if (startShapeInfo) offsetA = -(10 - distAB)
+				else if (endShapeInfo) offsetB = -(10 - distAB)
+			}
 		}
 	}
 
