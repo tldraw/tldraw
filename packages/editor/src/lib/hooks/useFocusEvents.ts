@@ -14,6 +14,7 @@ export function useFocusEvents(autoFocus: boolean) {
 		}
 
 		container.addEventListener('focus', handleFocus)
+		container.addEventListener('pointerdown', handleFocus)
 
 		if (autoFocus && !editor.instanceState.isFocused) {
 			editor.updateInstanceState({ isFocused: true })
@@ -24,6 +25,7 @@ export function useFocusEvents(autoFocus: boolean) {
 
 		return () => {
 			container.removeEventListener('focus', handleFocus)
+			container.removeEventListener('pointerdown', handleFocus)
 		}
 	}, [editor, autoFocus])
 }
