@@ -18,7 +18,7 @@ export function useFocusEvents(autoFocus: boolean) {
 
 		if (autoFocus && !editor.instanceState.isFocused) {
 			editor.updateInstanceState({ isFocused: true })
-			editor.getContainer().focus()
+			container.focus()
 		} else if (editor.instanceState.isFocused) {
 			editor.updateInstanceState({ isFocused: false })
 		}
