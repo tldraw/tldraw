@@ -142,8 +142,6 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 
 	const length = Vec2d.Dist(a, b)
 
-	console.log(length)
-
 	return {
 		isStraight: true,
 		start: {
