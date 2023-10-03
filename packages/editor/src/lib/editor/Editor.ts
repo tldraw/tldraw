@@ -3026,17 +3026,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
 
 		let shape: TLShape | undefined
-		let opacity: number
 		let isShapeErasing: boolean
 		let isCulled: boolean
 		let util: ShapeUtil
 		let maskedPageBounds: Box2d | undefined
 
-		const addShapeById = (id: TLShapeId, parentOpacity: number, isAncestorErasing: boolean) => {
+		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
 			shape = this.getShape(id)
 			if (!shape) return
 
-			opacity = shape.opacity * parentOpacity
+			opacity *= shape.opacity
 			isShapeErasing = false
 			isCulled = false
 			util = this.getShapeUtil(shape)
