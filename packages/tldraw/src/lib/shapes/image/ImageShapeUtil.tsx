@@ -123,7 +123,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				{asset?.props.src && showCropPreview && (
 					<div style={containerStyle}>
 						<div
-							className={`tl-image tl-image-${shape.id}-crop`}
+							className="tl-image"
 							style={{
 								opacity: 0.1,
 								backgroundImage: `url(${
@@ -138,7 +138,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 					<div className="tl-image-container" style={containerStyle}>
 						{asset?.props.src ? (
 							<div
-								className={`tl-image tl-image-${shape.id}`}
+								className="tl-image"
 								style={{
 									backgroundImage: `url(${
 										!shape.props.playing || reduceMotion ? staticFrameSrc : asset.props.src
@@ -181,7 +181,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		image.setAttributeNS('http://www.w3.org/1999/xlink', 'href', src)
 		const containerStyle = getContainerStyle(shape)
 		const crop = shape.props.crop
-		if (containerStyle && crop) {
+		if (containerStyle.transform && crop) {
 			const { transform, width, height } = containerStyle
 			const points = [
 				new Vec2d(crop.topLeft.x * width, crop.topLeft.y * height),
@@ -275,7 +275,12 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 function getContainerStyle(shape: TLImageShape) {
 	const crop = shape.props.crop
 	const topLeft = crop?.topLeft
-	if (!topLeft) return
+	if (!topLeft) {
+		return {
+			width: shape.props.w,
+			height: shape.props.h,
+		}
+	}
 
 	const w = (1 / (crop.bottomRight.x - crop.topLeft.x)) * shape.props.w
 	const h = (1 / (crop.bottomRight.y - crop.topLeft.y)) * shape.props.h
