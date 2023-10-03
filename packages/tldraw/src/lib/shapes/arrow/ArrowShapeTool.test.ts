@@ -349,7 +349,7 @@ describe('When pointing an end shape', () => {
 			y: 0,
 			props: {
 				start: { type: 'point', x: 0, y: 0 },
-				end: { type: 'point', x: 0, y: 0 },
+				end: { type: 'point', x: 2, y: 0 },
 			},
 		})
 

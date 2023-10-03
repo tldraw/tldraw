@@ -55,6 +55,8 @@ import { ArrowTextLabel } from './components/ArrowTextLabel'
 
 let globalRenderIndex = 0
 
+export const ARROW_END_OFFSET = 0.1
+
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override type = 'arrow' as const
@@ -78,7 +80,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			labelColor: 'black',
 			bend: 0,
 			start: { type: 'point', x: 0, y: 0 },
-			end: { type: 'point', x: 0.1, y: 0.1 },
+			end: { type: 'point', x: 2, y: 0 },
 			arrowheadStart: 'none',
 			arrowheadEnd: 'arrow',
 			text: '',
