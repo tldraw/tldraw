@@ -86,11 +86,7 @@ export function getCurvedArrowInfo(
 
 		let point: VecLike | undefined
 
-		let intersections = fn(
-			centerInStartShapeLocalSpace,
-			handleArc.radius,
-			editor.getShapeGeometry(startShapeInfo.shape).vertices
-		)
+		let intersections = fn(centerInStartShapeLocalSpace, handleArc.radius, startShapeInfo.outline)
 
 		if (intersections) {
 			// Filter out any intersections that aren't in the arc
@@ -155,11 +151,7 @@ export function getCurvedArrowInfo(
 
 		let point: VecLike | undefined
 
-		let intersections = fn(
-			centerInEndShapeLocalSpace,
-			handleArc.radius,
-			editor.getShapeGeometry(endShapeInfo.shape).vertices
-		)
+		let intersections = fn(centerInEndShapeLocalSpace, handleArc.radius, endShapeInfo.outline)
 
 		if (intersections) {
 			intersections = intersections.filter(
