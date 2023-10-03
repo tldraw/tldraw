@@ -7,6 +7,7 @@ import {
 	getPointerInfo,
 	intersectPolygonPolygon,
 	normalizeWheel,
+	releasePointerCapture,
 	setPointerCapture,
 	useComputed,
 	useEditor,
@@ -70,7 +71,8 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 	const onPointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
-			setPointerCapture(e.currentTarget, e)
+			const elm = e.currentTarget
+			setPointerCapture(elm, e)
 			if (!editor.currentPageShapeIds.size) return
 
 			rPointing.current = true
@@ -95,6 +97,16 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				minimap.originPageCenter.setTo(point)
 				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
 			}
+
+			function release(e: PointerEvent) {
+				if (elm) {
+					releasePointerCapture(elm, e)
+				}
+				rPointing.current = false
+				document.body.removeEventListener('pointerup', release)
+			}
+
+			document.body.addEventListener('pointerup', release)
 		},
 		[editor, minimap]
 	)
@@ -130,10 +142,6 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 		},
 		[editor, minimap]
 	)
-
-	const onPointerUp = React.useCallback((_e: React.PointerEvent<HTMLCanvasElement>) => {
-		rPointing.current = false
-	}, [])
 
 	const onWheel = React.useCallback(
 		(e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -229,7 +237,6 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				onDoubleClick={onDoubleClick}
 				onPointerMove={onPointerMove}
 				onPointerDown={onPointerDown}
-				onPointerUp={onPointerUp}
 				onWheel={onWheel}
 			/>
 		</div>
