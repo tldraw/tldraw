@@ -1352,6 +1352,7 @@ input,
 	position: relative;
 	font-size: inherit;
 	white-space: pre;
+	border: 1px solid transparent;
 }
 
 .tl-frame-label__editing {
@@ -1361,6 +1362,7 @@ input,
 	overflow: visible;
 	background-color: var(--color-panel);
 	border-radius: var(--radius-1);
+	border-color: var(--color-selected);
 }
 
 .tl-frame-name-input {

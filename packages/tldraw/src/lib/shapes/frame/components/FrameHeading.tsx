@@ -97,7 +97,7 @@ export const FrameHeading = function FrameHeading({
 				maxWidth: `calc(var(--tl-zoom) * ${
 					labelSide === 'top' || labelSide === 'bottom' ? Math.ceil(width) : Math.ceil(height)
 				}px + var(--space-5))`,
-				bottom: Math.ceil(height),
+				bottom: '100%',
 				transform: `${labelTranslate} scale(var(--tl-scale)) translateX(calc(-1 * var(--space-3))`,
 			}}
 			onPointerDown={handlePointerDown}
