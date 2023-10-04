@@ -8,7 +8,6 @@ import {
 	PI2,
 	clockwiseAngleDist,
 	counterClockwiseAngleDist,
-	getPointOnCircle,
 	isSafeFloat,
 } from '../../../../primitives/utils'
 import type { Editor } from '../../../Editor'
@@ -91,21 +90,22 @@ export function getCurvedArrowInfo(
 		let intersections = fn(centerInStartShapeLocalSpace, handleArc.radius, startShapeInfo.outline)
 
 		if (intersections) {
-			// Filter out any intersections that aren't in the arc
+			const angleToStart = centerInStartShapeLocalSpace.angle(startInStartShapeLocalSpace)
 
+			// Filter out any intersections that aren't in the arc
 			intersections = intersections.filter(
-				(pt) => distFn(handle_aCA, centerInStartShapeLocalSpace.angle(pt)) <= handle_dAB
+				(pt) => distFn(angleToStart, centerInStartShapeLocalSpace.angle(pt)) <= handle_dAB
 			)
 
-			const targetDist = handle_dAB * 0.25
+			const targetDist = handle_dAB * 0.328
 			intersections.sort(
 				isClosed
 					? (p0, p1) =>
-							Math.abs(distFn(handle_aCA, centerInStartShapeLocalSpace.angle(p0)) - targetDist) -
-							Math.abs(distFn(handle_aCA, centerInStartShapeLocalSpace.angle(p1)) - targetDist)
+							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) - targetDist) -
+							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1)) - targetDist)
 					: (p0, p1) =>
-							distFn(handle_aCA, centerInStartShapeLocalSpace.angle(p0)) -
-							distFn(handle_aCA, centerInStartShapeLocalSpace.angle(p1))
+							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) -
+							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1))
 			)
 
 			point = intersections[0] ?? (isClosed ? undefined : startInStartShapeLocalSpace)
@@ -134,9 +134,11 @@ export function getCurvedArrowInfo(
 
 	if (endShapeInfo && !endShapeInfo.isExact) {
 		// get points in shape's coordinates?
+		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
 		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
 		const inverseTransform = Matrix2d.Inverse(endShapeInfo.transform)
+		const startInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
 		const endInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 		const centerInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
 
@@ -148,27 +150,27 @@ export function getCurvedArrowInfo(
 		let intersections = fn(centerInEndShapeLocalSpace, handleArc.radius, endShapeInfo.outline)
 
 		if (intersections) {
-			const maxDistAdjustedForRadius =
-				handle_dAB * (1 + MIN_ARROW_LENGTH / (2 * handle_dAB * handleArc.radius))
+			const angleToStart = centerInEndShapeLocalSpace.angle(startInEndShapeLocalSpace)
 
 			// or simplified...
 
 			intersections = intersections.filter(
-				isClosed
-					? (pt) =>
-							distFn(handle_aCA, centerInEndShapeLocalSpace.angle(pt)) <= maxDistAdjustedForRadius
-					: (pt) => distFn(handle_aCA, centerInEndShapeLocalSpace.angle(pt)) <= handle_dAB
+				(pt) => distFn(angleToStart, centerInEndShapeLocalSpace.angle(pt)) <= handle_dAB
 			)
 
-			const targetDist = handle_dAB * 0.75
+			const targetDist = handle_dAB * 0.618
 			intersections.sort(
 				isClosed
 					? (p0, p1) =>
-							Math.abs(distFn(handle_aCA, centerInEndShapeLocalSpace.angle(p0)) - targetDist) -
-							Math.abs(distFn(handle_aCA, centerInEndShapeLocalSpace.angle(p1)) - targetDist)
+							Math.abs(distFn(angleToStart, centerInEndShapeLocalSpace.angle(p0)) - targetDist) <
+							Math.abs(distFn(angleToStart, centerInEndShapeLocalSpace.angle(p1)) - targetDist)
+								? -1
+								: 1
 					: (p0, p1) =>
-							distFn(handle_aCA, centerInEndShapeLocalSpace.angle(p1)) -
-							distFn(handle_aCA, centerInEndShapeLocalSpace.angle(p0))
+							distFn(angleToStart, centerInEndShapeLocalSpace.angle(p0)) <
+							distFn(angleToStart, centerInEndShapeLocalSpace.angle(p1))
+								? -1
+								: 1
 			)
 
 			if (intersections[0]) {
@@ -283,40 +285,15 @@ export function getCurvedArrowInfo(
 		}
 	}
 
-	aCA = Vec2d.Angle(handleArc.center, tempA) // angle center -> a
-	aCB = Vec2d.Angle(handleArc.center, tempB) // angle center -> b
-	dAB = distFn(aCA, aCB) // angle distance between a and b
-	lAB = dAB * handleArc.radius // length of arc between a and b
-
-	tempC.setTo(
-		getPointOnCircle(
-			handleArc.center.x,
-			handleArc.center.y,
-			handleArc.radius,
-			aCA + dAB * 0.5 * (isClockwise ? 1 : -1)
-		)
+	placeCenterHandle(
+		handleArc.center,
+		handleArc.radius,
+		tempA,
+		tempB,
+		tempC,
+		handle_dAB,
+		isClockwise
 	)
-
-	if (dAB > handle_dAB) {
-		tempC.rotWith(handleArc.center, PI)
-
-		// if (+Vec2d.Clockwise(tempA, tempC, tempB) !== handleArc.sweepFlag) {
-		// 	// Put the middle point in the middle of the short angle distance between the two points
-		// 	// this MIGHT BE WRONG if the "middle" should be the long angle distance, but we don't know
-		// 	// that yet; or at least, I haven't figured out how to know that yet based on just the
-		// 	// intersection points.
-
-		// 	// ...so we check whether the handle is on the other side of the arc as the drag handle, and flip
-		// 	// the position of the middle point if so.
-		// 	tempC.rotWith(handleArc.center, PI)
-		// }
-	}
-
-	// if (+Vec2d.Clockwise(tempA, tempC, tempB) !== handleArc.sweepFlag) {
-	// 	const t = tempB.clone()
-	// 	tempB.setTo(tempA)
-	// 	tempA.setTo(t)
-	// }
 
 	if (tempA.equals(tempB)) {
 		tempA.setTo(tempC.clone().addXY(1, 1))
@@ -480,5 +457,31 @@ export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 		length,
 		largeArcFlag,
 		sweepFlag,
+	}
+}
+
+function placeCenterHandle(
+	center: VecLike,
+	radius: number,
+	tempA: Vec2d,
+	tempB: Vec2d,
+	tempC: Vec2d,
+	originalArcLength: number,
+	isClockwise: boolean
+) {
+	const aCA = Vec2d.Angle(center, tempA) // angle center -> a
+	const aCB = Vec2d.Angle(center, tempB) // angle center -> b
+	let dAB = clockwiseAngleDist(aCA, aCB) // angle distance between a and b
+	if (!isClockwise) dAB = PI2 - dAB
+
+	const n = 0.5 * (isClockwise ? 1 : -1)
+	const u = Vec2d.FromAngle(aCA + dAB * n)
+	tempC.setTo(center).add(u.mul(radius))
+
+	if (dAB > originalArcLength) {
+		tempC.rotWith(center, PI)
+		const t = tempB.clone()
+		tempB.setTo(tempA)
+		tempA.setTo(t)
 	}
 }
