@@ -45,7 +45,7 @@ function FirstEditor() {
 	return (
 		<div>
 			<h2>First Example</h2>
-			<p>This is the second example.</p>
+			<p>This is the first example.</p>
 			<div
 				tabIndex={-1}
 				onFocus={() => setFocusedEditor('first')}
