@@ -126,6 +126,17 @@ export function clockwiseAngleDist(a0: number, a1: number): number {
 }
 
 /**
+ * Get the counter-clockwise angle distance between two angles.
+ *
+ * @param a0 - The first angle.
+ * @param a1 - The second angle.
+ * @public
+ */
+export function counterClockwiseAngleDist(a0: number, a1: number): number {
+	return PI2 - clockwiseAngleDist(a0, a1)
+}
+
+/**
  * Get the short angle distance between two angles.
  *
  * @param a0 - The first angle.
