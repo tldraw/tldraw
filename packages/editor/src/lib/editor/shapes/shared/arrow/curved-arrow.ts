@@ -78,9 +78,13 @@ export function getCurvedArrowInfo(
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
+		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
+
 		const inverseTransform = Matrix2d.Inverse(startShapeInfo.transform)
+
 		const startInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
 		const centerInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
+		const endInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 
 		const { isClosed } = startShapeInfo
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
@@ -91,21 +95,28 @@ export function getCurvedArrowInfo(
 
 		if (intersections) {
 			const angleToStart = centerInStartShapeLocalSpace.angle(startInStartShapeLocalSpace)
+			const angleToEnd = centerInStartShapeLocalSpace.angle(endInStartShapeLocalSpace)
+			const dAB = distFn(angleToStart, angleToEnd)
 
 			// Filter out any intersections that aren't in the arc
 			intersections = intersections.filter(
-				(pt) => distFn(angleToStart, centerInStartShapeLocalSpace.angle(pt)) <= handle_dAB
+				(pt) => distFn(angleToStart, centerInStartShapeLocalSpace.angle(pt)) <= dAB
 			)
 
-			const targetDist = handle_dAB * 0.328
+			const targetDist = dAB * 0.25
+
 			intersections.sort(
 				isClosed
 					? (p0, p1) =>
-							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) - targetDist) -
+							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) - targetDist) <
 							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1)) - targetDist)
+								? -1
+								: 1
 					: (p0, p1) =>
-							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) -
+							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) <
 							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1))
+								? -1
+								: 1
 			)
 
 			point = intersections[0] ?? (isClosed ? undefined : startInStartShapeLocalSpace)
@@ -122,12 +133,11 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadStart !== 'none') {
 				offsetA =
-					(BOUND_ARROW_OFFSET +
-						STROKE_SIZES[shape.props.size] / 2 +
-						('size' in startShapeInfo.shape.props
-							? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
-							: 0)) *
-					(handleArc.sweepFlag ? 1 : -1)
+					BOUND_ARROW_OFFSET +
+					STROKE_SIZES[shape.props.size] / 2 +
+					('size' in startShapeInfo.shape.props
+						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
+						: 0)
 			}
 		}
 	}
@@ -137,10 +147,12 @@ export function getCurvedArrowInfo(
 		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
 		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
+
 		const inverseTransform = Matrix2d.Inverse(endShapeInfo.transform)
+
 		const startInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
-		const endInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 		const centerInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
+		const endInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 
 		const isClosed = endShapeInfo.isClosed
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
@@ -151,14 +163,16 @@ export function getCurvedArrowInfo(
 
 		if (intersections) {
 			const angleToStart = centerInEndShapeLocalSpace.angle(startInEndShapeLocalSpace)
+			const angleToEnd = centerInEndShapeLocalSpace.angle(endInEndShapeLocalSpace)
+			const dAB = distFn(angleToStart, angleToEnd)
+			const targetDist = dAB * 0.75
 
 			// or simplified...
 
 			intersections = intersections.filter(
-				(pt) => distFn(angleToStart, centerInEndShapeLocalSpace.angle(pt)) <= handle_dAB
+				(pt) => distFn(angleToStart, centerInEndShapeLocalSpace.angle(pt)) <= dAB
 			)
 
-			const targetDist = handle_dAB * 0.618
 			intersections.sort(
 				isClosed
 					? (p0, p1) =>
@@ -192,12 +206,9 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadEnd !== 'none') {
 				offsetB =
-					(BOUND_ARROW_OFFSET +
-						STROKE_SIZES[shape.props.size] / 2 +
-						('size' in endShapeInfo.shape.props
-							? STROKE_SIZES[endShapeInfo.shape.props.size] / 2
-							: 0)) *
-					(handleArc.sweepFlag ? -1 : 1)
+					BOUND_ARROW_OFFSET +
+					STROKE_SIZES[shape.props.size] / 2 +
+					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
 			}
 		}
 	}
@@ -216,13 +227,13 @@ export function getCurvedArrowInfo(
 	const tB = tempB.clone()
 
 	if (offsetA !== 0) {
-		const n = offsetA / lAB
+		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
 		const u = Vec2d.FromAngle(aCA + dAB * n)
 		tA.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
 	if (offsetB !== 0) {
-		const n = offsetB / lAB
+		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
 		const u = Vec2d.FromAngle(aCB + dAB * n)
 		tB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
@@ -245,13 +256,13 @@ export function getCurvedArrowInfo(
 	}
 
 	if (offsetA !== 0) {
-		const n = offsetA / lAB
+		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
 		const u = Vec2d.FromAngle(aCA + dAB * n)
 		tempA.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
 	if (offsetB !== 0) {
-		const n = offsetB / lAB
+		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
 		const u = Vec2d.FromAngle(aCB + dAB * n)
 		tempB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
