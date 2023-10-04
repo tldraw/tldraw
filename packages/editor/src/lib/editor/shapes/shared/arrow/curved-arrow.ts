@@ -53,6 +53,9 @@ export function getCurvedArrowInfo(
 	const c = middle.clone()
 
 	const handleArc = getArcInfo(a, b, c)
+	const angleToStart = Vec2d.Angle(handleArc.center, a)
+	const angleToMiddle = Vec2d.Angle(handleArc.center, c)
+	const angleToEnd = Vec2d.Angle(handleArc.center, b)
 
 	if (
 		handleArc.length === 0 ||
@@ -96,16 +99,16 @@ export function getCurvedArrowInfo(
 					handleArc.sweepFlag
 			)
 
-			const comparisonAngle = lerpAngles(
-				Vec2d.Angle(handleArc.center, tempA),
-				Vec2d.Angle(handleArc.center, tempC),
-				0.5
-			)
+			const comparisonAngle = lerpAngles(angleToMiddle, angleToStart, 0.5)
 
 			intersections.sort(
-				(p0, p1) =>
-					Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p0))) -
-					Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p1)))
+				isClosed
+					? (p0, p1) =>
+							Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p0))) -
+							Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p1)))
+					: (p0, p1) =>
+							Math.abs(shortAngleDist(angleToEnd, centerInStartShapeLocalSpace.angle(p0))) -
+							Math.abs(shortAngleDist(angleToEnd, centerInStartShapeLocalSpace.angle(p1)))
 			)
 
 			point = intersections[0] ?? (isClosed ? undefined : startInStartShapeLocalSpace)
@@ -145,8 +148,6 @@ export function getCurvedArrowInfo(
 		const isClosed = endShapeInfo.isClosed
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
 
-		const angleToMiddle = Vec2d.Angle(handleArc.center, middle)
-		const angleToEnd = Vec2d.Angle(handleArc.center, terminalsInArrowSpace.end)
 		const comparisonAngle = lerpAngles(angleToMiddle, angleToEnd, 0.5)
 
 		let point: VecLike | undefined
@@ -161,9 +162,13 @@ export function getCurvedArrowInfo(
 			)
 
 			intersections.sort(
-				(p0, p1) =>
-					Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p0))) -
-					Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p1)))
+				isClosed
+					? (p0, p1) =>
+							Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p0))) -
+							Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p1)))
+					: (p0, p1) =>
+							Math.abs(shortAngleDist(angleToStart, centerInEndShapeLocalSpace.angle(p0))) -
+							Math.abs(shortAngleDist(angleToStart, centerInEndShapeLocalSpace.angle(p1)))
 			)
 
 			point = intersections[0] ?? (isClosed ? undefined : endInEndShapeLocalSpace)
