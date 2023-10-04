@@ -12,8 +12,8 @@ export function useFocusEvents(autoFocus: boolean) {
 			// unless it's already focused
 			if (!editor.instanceState.isFocused) {
 				editor.updateInstanceState({ isFocused: true })
-				container.focus()
 			}
+			container.focus()
 		} else {
 			// When autoFocus is false, update the editor state to be not focused
 			// unless it's already not focused
