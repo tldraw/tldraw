@@ -7,25 +7,19 @@ export function useFocusEvents(autoFocus: boolean) {
 	const editor = useEditor()
 	const container = useContainer()
 	useLayoutEffect(() => {
-		function handleFocus() {
+		if (autoFocus) {
+			// When autoFocus is true, update the editor state to be focused
+			// unless it's already focused
 			if (!editor.instanceState.isFocused) {
 				editor.updateInstanceState({ isFocused: true })
+				container.focus()
 			}
-		}
-
-		container.addEventListener('focus', handleFocus)
-		container.addEventListener('pointerdown', handleFocus)
-
-		if (autoFocus && !editor.instanceState.isFocused) {
-			editor.updateInstanceState({ isFocused: true })
-			container.focus()
-		} else if (editor.instanceState.isFocused) {
-			editor.updateInstanceState({ isFocused: false })
-		}
-
-		return () => {
-			container.removeEventListener('focus', handleFocus)
-			container.removeEventListener('pointerdown', handleFocus)
+		} else {
+			// When autoFocus is false, update the editor state to be not focused
+			// unless it's already not focused
+			if (editor.instanceState.isFocused) {
+				editor.updateInstanceState({ isFocused: false })
+			}
 		}
 	}, [editor, container, autoFocus])
 }
