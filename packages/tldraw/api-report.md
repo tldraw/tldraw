@@ -963,6 +963,9 @@ export function setDefaultEditorAssetUrls(assetUrls: TLEditorAssetUrls): void;
 // @internal (undocumented)
 export function setDefaultUiAssetUrls(urls: TLUiAssetUrls): void;
 
+// @internal (undocumented)
+export function Spinner(props: React_2.SVGProps<SVGSVGElement>): JSX.Element;
+
 // @public (undocumented)
 function Sub({ id, children }: {
     id: string;
@@ -1130,7 +1133,6 @@ export interface TldrawUiBaseProps {
     hideUi?: boolean;
     renderDebugMenuItems?: () => React_2.ReactNode;
     shareZone?: ReactNode;
-    topZone?: ReactNode;
 }
 
 // @public (undocumented)

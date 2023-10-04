@@ -4,7 +4,7 @@ import '@tldraw/tldraw/tldraw.css'
 export default function Example() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw shareZone={<CustomShareZone />} topZone={<CustomTopZone />} />
+			<Tldraw shareZone={<CustomShareZone />} />
 		</div>
 	)
 }
@@ -20,20 +20,6 @@ function CustomShareZone() {
 			}}
 		>
 			<p>Share Zone</p>
-		</div>
-	)
-}
-
-function CustomTopZone() {
-	return (
-		<div
-			style={{
-				width: '100%',
-				backgroundColor: 'dodgerblue',
-				textAlign: 'center',
-			}}
-		>
-			<p>Top Zone</p>
 		</div>
 	)
 }
