@@ -1,4 +1,4 @@
-import { useEditor } from '@tldraw/editor'
+import { stopEventPropagation, useEditor } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -94,14 +94,14 @@ export const Input = React.forwardRef<HTMLInputElement, TLUiInputProps>(function
 			switch (e.key) {
 				case 'Enter': {
 					e.currentTarget.blur()
-					e.stopPropagation()
+					stopEventPropagation(e)
 					onComplete?.(e.currentTarget.value)
 					break
 				}
 				case 'Escape': {
 					e.currentTarget.value = rInitialValue.current
 					e.currentTarget.blur()
-					e.stopPropagation()
+					stopEventPropagation(e)
 					onCancel?.(e.currentTarget.value)
 					break
 				}

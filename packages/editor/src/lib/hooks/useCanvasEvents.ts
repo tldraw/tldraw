@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react'
-import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
+import {
+	preventDefault,
+	releasePointerCapture,
+	setPointerCapture,
+	stopEventPropagation,
+} from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
@@ -12,6 +17,8 @@ export function useCanvasEvents() {
 			let lastX: number, lastY: number
 
 			function onPointerDown(e: React.PointerEvent) {
+				stopEventPropagation(e)
+
 				if ((e as any).isKilled) return
 
 				if (e.button === 2) {
@@ -103,6 +110,10 @@ export function useCanvasEvents() {
 				})
 			}
 
+			function onClick(e: React.MouseEvent) {
+				stopEventPropagation(e)
+			}
+
 			return {
 				onPointerDown,
 				onPointerMove,
@@ -111,6 +122,7 @@ export function useCanvasEvents() {
 				onDrop,
 				onTouchStart,
 				onTouchEnd,
+				onClick,
 			}
 		},
 		[editor]

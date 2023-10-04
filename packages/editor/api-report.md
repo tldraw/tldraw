@@ -2296,7 +2296,7 @@ export type TLOnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
 }) => TLShapePartial<T> | void;
 
 // @public
-export type TLOnMountHandler = (editor: Editor) => (() => void) | undefined | void;
+export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
 
 // @public (undocumented)
 export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
