@@ -123,7 +123,7 @@ export interface TldrawEditorBaseProps {
  *
  * @public
  */
-export type TLOnMountHandler = (editor: Editor) => (() => void) | undefined | void
+export type TLOnMountHandler = (editor: Editor) => (() => void | undefined) | undefined | void
 
 declare global {
 	interface Window {
@@ -162,7 +162,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 			ref={rContainer}
 			draggable={false}
 			className={classNames('tl-container tl-theme__light', className)}
-			tabIndex={0}
+			tabIndex={-1}
 		>
 			<OptionalErrorBoundary
 				fallback={ErrorFallback}

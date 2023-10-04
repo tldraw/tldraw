@@ -131,7 +131,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 
 	return (
 		<ToastProvider>
-			<main
+			<div
 				className={classNames('tlui-layout', {
 					'tlui-layout__mobile': breakpoint < 5,
 				})}
@@ -180,7 +180,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 				<Dialogs />
 				<ToastViewport />
 				<FollowingIndicator />
-			</main>
+			</div>
 		</ToastProvider>
 	)
 })

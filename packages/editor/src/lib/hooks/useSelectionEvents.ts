@@ -1,6 +1,11 @@
 import { useMemo } from 'react'
 import { TLSelectionHandle } from '../editor/types/selection-types'
-import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
+import {
+	loopToHtmlElement,
+	releasePointerCapture,
+	setPointerCapture,
+	stopEventPropagation,
+} from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
@@ -48,7 +53,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					handle,
 					...getPointerInfo(e),
 				})
-				e.stopPropagation()
+				stopEventPropagation(e)
 			}
 
 			// Track the last screen point
