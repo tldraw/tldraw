@@ -52,6 +52,11 @@ export interface TldrawUiBaseProps {
 	shareZone?: ReactNode
 
 	/**
+	 * A component to use for the top zone (will be deprecated)
+	 */
+	topZone?: ReactNode
+
+	/**
 	 * Additional items to add to the debug menu (will be deprecated)
 	 */
 	renderDebugMenuItems?: () => React.ReactNode
@@ -62,6 +67,7 @@ export interface TldrawUiBaseProps {
  */
 export const TldrawUi = React.memo(function TldrawUi({
 	shareZone,
+	topZone,
 	renderDebugMenuItems,
 	children,
 	hideUi,
@@ -72,6 +78,7 @@ export const TldrawUi = React.memo(function TldrawUi({
 			<TldrawUiInner
 				hideUi={hideUi}
 				shareZone={shareZone}
+				topZone={topZone}
 				renderDebugMenuItems={renderDebugMenuItems}
 			>
 				{children}
@@ -83,6 +90,7 @@ export const TldrawUi = React.memo(function TldrawUi({
 type TldrawUiContentProps = {
 	hideUi?: boolean
 	shareZone?: ReactNode
+	topZone?: ReactNode
 	renderDebugMenuItems?: () => React.ReactNode
 }
 
@@ -105,6 +113,7 @@ const TldrawUiInner = React.memo(function TldrawUiInner({
 
 const TldrawUiContent = React.memo(function TldrawUI({
 	shareZone,
+	topZone,
 	renderDebugMenuItems,
 }: TldrawUiContentProps) {
 	const editor = useEditor()
@@ -147,6 +156,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 									<StopFollowing />
 								</div>
 							</div>
+							<div className="tlui-layout__top__center">{topZone}</div>
 							<div className="tlui-layout__top__right">
 								{shareZone}
 								{breakpoint >= 5 && !isReadonlyMode && (
