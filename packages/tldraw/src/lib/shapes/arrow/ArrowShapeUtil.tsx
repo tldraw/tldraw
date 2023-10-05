@@ -55,6 +55,8 @@ import { ArrowTextLabel } from './components/ArrowTextLabel'
 
 let globalRenderIndex = 0
 
+export const ARROW_END_OFFSET = 0.1
+
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override type = 'arrow' as const
@@ -78,7 +80,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			labelColor: 'black',
 			bend: 0,
 			start: { type: 'point', x: 0, y: 0 },
-			end: { type: 'point', x: 0, y: 0 },
+			end: { type: 'point', x: 2, y: 0 },
 			arrowheadStart: 'none',
 			arrowheadEnd: 'arrow',
 			text: '',
@@ -112,7 +114,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				...TEXT_PROPS,
 				fontFamily: FONT_FAMILIES[shape.props.font],
 				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-				width: null,
+				maxWidth: null,
 			})
 
 			let width = w
@@ -127,7 +129,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						...TEXT_PROPS,
 						fontFamily: FONT_FAMILIES[shape.props.font],
 						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-						width: width,
+						maxWidth: width,
 					}
 				)
 
@@ -144,7 +146,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 						...TEXT_PROPS,
 						fontFamily: FONT_FAMILIES[shape.props.font],
 						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
-						width: width,
+						maxWidth: width,
 					}
 				)
 
@@ -676,6 +678,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
 
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const isEditing = useIsEditing(shape.id)
+
 		if (!info) return null
 		if (Vec2d.Equals(start, end)) return null
 
@@ -692,9 +697,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			!!labelGeometry
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
-
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const isEditing = useIsEditing(shape.id)
 
 		if (isEditing && labelGeometry) {
 			return (

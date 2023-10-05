@@ -7,7 +7,6 @@ export const TEXT_PROPS = {
 	fontVariant: 'normal',
 	fontStyle: 'normal',
 	padding: '0px',
-	maxWidth: 'auto',
 }
 
 /** @public */

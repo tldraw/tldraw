@@ -87,7 +87,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
     >
       <g>
         <path
-          d="M0, 0L100, 0,100, 100,0, 100Z"
+          d="M0, 0L100, 0,100, 428,0, 428Z"
           fill="none"
           stroke="#1d1d1d"
           stroke-width="3.5"
@@ -108,7 +108,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
             <tspan
               alignment-baseline="mathematical"
               x="16px"
-              y="-181px"
+              y="-17px"
             >
               Hello world
             </tspan>
@@ -127,7 +127,7 @@ exports[`Matches a snapshot: Basic SVG 1`] = `
             <tspan
               alignment-baseline="mathematical"
               x="16px"
-              y="-181px"
+              y="-17px"
             >
               Hello world
             </tspan>

@@ -5,7 +5,6 @@ export function registerDefaultSideEffects(editor: Editor) {
 		editor.sideEffects.registerAfterChangeHandler('instance', (prev, next) => {
 			if (prev.isFocused !== next.isFocused) {
 				if (next.isFocused) {
-					editor.complete() // stop any interaction
 					editor.getContainer().focus()
 					editor.updateViewportScreenBounds()
 				} else {

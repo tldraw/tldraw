@@ -1,6 +1,7 @@
 import { TLArrowShape, TLArrowShapeTerminal, TLShape } from '@tldraw/tlschema'
 import { Matrix2d } from '../../../../primitives/Matrix2d'
 import { Vec2d } from '../../../../primitives/Vec2d'
+import { Group2d } from '../../../../primitives/geometry/Group2d'
 import { Editor } from '../../../Editor'
 
 export function getIsArrowStraight(shape: TLArrowShape) {
@@ -28,13 +29,19 @@ export function getBoundShapeInfoForTerminal(
 	const transform = editor.getShapePageTransform(shape)!
 	const geometry = editor.getShapeGeometry(shape)
 
+	// This is hacky: we're only looking at the first child in the group. Really the arrow should
+	// consider all items in the group which are marked as snappable as separate polygons with which
+	// to intersect, in the case of a group that has multiple children which do not overlap; or else
+	// flatten the geometry into a set of polygons and intersect with that.
+	const outline = geometry instanceof Group2d ? geometry.children[0].vertices : geometry.vertices
+
 	return {
 		shape,
 		transform,
 		isClosed: geometry.isClosed,
 		isExact: terminal.isExact,
 		didIntersect: false,
-		outline: geometry.outerVertices,
+		outline,
 	}
 }
 

@@ -346,11 +346,14 @@ function SelectedIdIndicators() {
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const editor = useEditor()
 	const { HoveredShapeIndicator } = useEditorComponents()
+	const isCoarsePointer = useValue('coarse pointer', () => editor.instanceState.isCoarsePointer, [
+		editor,
+	])
 	const hoveredShapeId = useValue('hovered id', () => editor.currentPageState.hoveredShapeId, [
 		editor,
 	])
 
-	if (!hoveredShapeId || !HoveredShapeIndicator) return null
+	if (isCoarsePointer || !hoveredShapeId || !HoveredShapeIndicator) return null
 
 	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }

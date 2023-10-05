@@ -6,12 +6,9 @@ import { intersectCirclePolygon, intersectCirclePolyline } from '../../../../pri
 import {
 	PI,
 	PI2,
-	angleDelta,
-	getArcLength,
-	getPointOnCircle,
+	clockwiseAngleDist,
+	counterClockwiseAngleDist,
 	isSafeFloat,
-	lerpAngles,
-	shortAngleDist,
 } from '../../../../primitives/utils'
 import type { Editor } from '../../../Editor'
 import { TLArcInfo, TLArrowInfo } from './arrow-types'
@@ -52,7 +49,13 @@ export function getCurvedArrowInfo(
 	const b = terminalsInArrowSpace.end.clone()
 	const c = middle.clone()
 
+	const isClockwise = shape.props.bend < 0
+	const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
+
 	const handleArc = getArcInfo(a, b, c)
+	const handle_aCA = Vec2d.Angle(handleArc.center, a)
+	const handle_aCB = Vec2d.Angle(handleArc.center, b)
+	const handle_dAB = distFn(handle_aCA, handle_aCB)
 
 	if (
 		handleArc.length === 0 ||
@@ -74,42 +77,46 @@ export function getCurvedArrowInfo(
 
 	if (startShapeInfo && !startShapeInfo.isExact) {
 		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
-		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
+		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
+
 		const inverseTransform = Matrix2d.Inverse(startShapeInfo.transform)
+
 		const startInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
-		const endInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 		const centerInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
+		const endInStartShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 
 		const { isClosed } = startShapeInfo
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
 
 		let point: VecLike | undefined
 
-		let intersections = fn(
-			centerInStartShapeLocalSpace,
-			handleArc.radius,
-			editor.getShapeGeometry(startShapeInfo.shape).vertices
-		)
+		let intersections = fn(centerInStartShapeLocalSpace, handleArc.radius, startShapeInfo.outline)
 
 		if (intersections) {
+			const angleToStart = centerInStartShapeLocalSpace.angle(startInStartShapeLocalSpace)
+			const angleToEnd = centerInStartShapeLocalSpace.angle(endInStartShapeLocalSpace)
+			const dAB = distFn(angleToStart, angleToEnd)
+
 			// Filter out any intersections that aren't in the arc
 			intersections = intersections.filter(
-				(pt) =>
-					+Vec2d.Clockwise(startInStartShapeLocalSpace, pt, endInStartShapeLocalSpace) ===
-					handleArc.sweepFlag
+				(pt) => distFn(angleToStart, centerInStartShapeLocalSpace.angle(pt)) <= dAB
 			)
 
-			const comparisonAngle = lerpAngles(
-				Vec2d.Angle(handleArc.center, tempA),
-				Vec2d.Angle(handleArc.center, tempC),
-				0.5
-			)
+			const targetDist = dAB * 0.25
 
 			intersections.sort(
-				(p0, p1) =>
-					Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p0))) -
-					Math.abs(shortAngleDist(comparisonAngle, centerInStartShapeLocalSpace.angle(p1)))
+				isClosed
+					? (p0, p1) =>
+							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) - targetDist) <
+							Math.abs(distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1)) - targetDist)
+								? -1
+								: 1
+					: (p0, p1) =>
+							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p0)) <
+							distFn(angleToStart, centerInStartShapeLocalSpace.angle(p1))
+								? -1
+								: 1
 			)
 
 			point = intersections[0] ?? (isClosed ? undefined : startInStartShapeLocalSpace)
@@ -126,12 +133,11 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadStart !== 'none') {
 				offsetA =
-					(BOUND_ARROW_OFFSET +
-						STROKE_SIZES[shape.props.size] / 2 +
-						('size' in startShapeInfo.shape.props
-							? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
-							: 0)) *
-					(handleArc.sweepFlag ? 1 : -1)
+					BOUND_ARROW_OFFSET +
+					STROKE_SIZES[shape.props.size] / 2 +
+					('size' in startShapeInfo.shape.props
+						? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
+						: 0)
 			}
 		}
 	}
@@ -141,40 +147,51 @@ export function getCurvedArrowInfo(
 		const startInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempA)
 		const endInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, tempB)
 		const centerInPageSpace = Matrix2d.applyToPoint(arrowPageTransform, handleArc.center)
+
 		const inverseTransform = Matrix2d.Inverse(endShapeInfo.transform)
+
 		const startInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, startInPageSpace)
-		const endInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 		const centerInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, centerInPageSpace)
+		const endInEndShapeLocalSpace = Matrix2d.applyToPoint(inverseTransform, endInPageSpace)
 
 		const isClosed = endShapeInfo.isClosed
 		const fn = isClosed ? intersectCirclePolygon : intersectCirclePolyline
 
-		const angleToMiddle = Vec2d.Angle(handleArc.center, middle)
-		const angleToEnd = Vec2d.Angle(handleArc.center, terminalsInArrowSpace.end)
-		const comparisonAngle = lerpAngles(angleToMiddle, angleToEnd, 0.5)
-
 		let point: VecLike | undefined
 
-		let intersections = fn(
-			centerInEndShapeLocalSpace,
-			handleArc.radius,
-			editor.getShapeGeometry(endShapeInfo.shape).vertices
-		)
+		let intersections = fn(centerInEndShapeLocalSpace, handleArc.radius, endShapeInfo.outline)
 
 		if (intersections) {
+			const angleToStart = centerInEndShapeLocalSpace.angle(startInEndShapeLocalSpace)
+			const angleToEnd = centerInEndShapeLocalSpace.angle(endInEndShapeLocalSpace)
+			const dAB = distFn(angleToStart, angleToEnd)
+			const targetDist = dAB * 0.75
+
+			// or simplified...
+
 			intersections = intersections.filter(
-				(pt) =>
-					+Vec2d.Clockwise(startInEndShapeLocalSpace, pt, endInEndShapeLocalSpace) ===
-					handleArc.sweepFlag
+				(pt) => distFn(angleToStart, centerInEndShapeLocalSpace.angle(pt)) <= dAB
 			)
 
 			intersections.sort(
-				(p0, p1) =>
-					Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p0))) -
-					Math.abs(shortAngleDist(comparisonAngle, centerInEndShapeLocalSpace.angle(p1)))
+				isClosed
+					? (p0, p1) =>
+							Math.abs(distFn(angleToStart, centerInEndShapeLocalSpace.angle(p0)) - targetDist) <
+							Math.abs(distFn(angleToStart, centerInEndShapeLocalSpace.angle(p1)) - targetDist)
+								? -1
+								: 1
+					: (p0, p1) =>
+							distFn(angleToStart, centerInEndShapeLocalSpace.angle(p0)) <
+							distFn(angleToStart, centerInEndShapeLocalSpace.angle(p1))
+								? -1
+								: 1
 			)
 
-			point = intersections[0] ?? (isClosed ? undefined : endInEndShapeLocalSpace)
+			if (intersections[0]) {
+				point = intersections[0]
+			} else {
+				point = isClosed ? undefined : endInEndShapeLocalSpace
+			}
 		} else {
 			point = isClosed ? undefined : endInEndShapeLocalSpace
 		}
@@ -189,23 +206,19 @@ export function getCurvedArrowInfo(
 
 			if (arrowheadEnd !== 'none') {
 				offsetB =
-					(BOUND_ARROW_OFFSET +
-						STROKE_SIZES[shape.props.size] / 2 +
-						('size' in endShapeInfo.shape.props
-							? STROKE_SIZES[endShapeInfo.shape.props.size] / 2
-							: 0)) *
-					(handleArc.sweepFlag ? -1 : 1)
+					BOUND_ARROW_OFFSET +
+					STROKE_SIZES[shape.props.size] / 2 +
+					('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
 			}
 		}
 	}
 
 	// Apply arrowhead offsets
 
-	const startAngle = Vec2d.Angle(handleArc.center, tempA)
-	const endAngle = Vec2d.Angle(handleArc.center, tempB)
-	const midAngle = Vec2d.Angle(handleArc.center, tempC)
-	const lAC = getArcLength(handleArc.center, handleArc.radius, tempA, tempC)
-	const lBC = getArcLength(handleArc.center, handleArc.radius, tempB, tempC)
+	let aCA = Vec2d.Angle(handleArc.center, tempA) // angle center -> a
+	let aCB = Vec2d.Angle(handleArc.center, tempB) // angle center -> b
+	let dAB = distFn(aCA, aCB) // angle distance between a and b
+	let lAB = dAB * handleArc.radius // length of arc between a and b
 
 	// Try the offsets first, then check whether the distance between the points is too small;
 	// if it is, flip the offsets and expand them. We need to do this using temporary points
@@ -214,28 +227,19 @@ export function getCurvedArrowInfo(
 	const tB = tempB.clone()
 
 	if (offsetA !== 0) {
-		tA.setTo(
-			getPointOnCircle(
-				handleArc.center.x,
-				handleArc.center.y,
-				handleArc.radius,
-				lerpAngles(startAngle, midAngle, offsetA / lAC)
-			)
-		)
+		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
+		const u = Vec2d.FromAngle(aCA + dAB * n)
+		tA.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
 	if (offsetB !== 0) {
-		tB.setTo(
-			getPointOnCircle(
-				handleArc.center.x,
-				handleArc.center.y,
-				handleArc.radius,
-				lerpAngles(endAngle, midAngle, offsetB / lBC)
-			)
-		)
+		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
+		const u = Vec2d.FromAngle(aCB + dAB * n)
+		tB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 	}
 
-	if (Vec2d.Dist(tA, tB) < MIN_ARROW_LENGTH) {
+	const distAB = Vec2d.Dist(tA, tB)
+	if (distAB < MIN_ARROW_LENGTH) {
 		if (offsetA !== 0 && offsetB !== 0) {
 			offsetA *= -1.5
 			offsetB *= -1.5
@@ -243,34 +247,35 @@ export function getCurvedArrowInfo(
 			offsetA *= -2
 		} else if (offsetB !== 0) {
 			offsetB *= -2
+		} else {
+			if (distAB < 10) {
+				if (startShapeInfo) offsetA = -(10 - distAB)
+				else if (endShapeInfo) offsetB = -(10 - distAB)
+			}
 		}
 	}
 
-	tempA.setTo(
-		getPointOnCircle(
-			handleArc.center.x,
-			handleArc.center.y,
-			handleArc.radius,
-			lerpAngles(startAngle, midAngle, offsetA / lAC)
-		)
-	)
-	tempB.setTo(
-		getPointOnCircle(
-			handleArc.center.x,
-			handleArc.center.y,
-			handleArc.radius,
-			lerpAngles(endAngle, midAngle, offsetB / lBC)
-		)
-	)
+	if (offsetA !== 0) {
+		const n = (offsetA / lAB) * (isClockwise ? 1 : -1)
+		const u = Vec2d.FromAngle(aCA + dAB * n)
+		tempA.setTo(handleArc.center).add(u.mul(handleArc.radius))
+	}
+
+	if (offsetB !== 0) {
+		const n = (offsetB / lAB) * (isClockwise ? -1 : 1)
+		const u = Vec2d.FromAngle(aCB + dAB * n)
+		tempB.setTo(handleArc.center).add(u.mul(handleArc.radius))
+	}
 
 	// Did we miss intersections? This happens when we have overlapping shapes.
 	if (startShapeInfo && endShapeInfo && !startShapeInfo.isExact && !endShapeInfo.isExact) {
-		const startAngle = Vec2d.Angle(handleArc.center, tempA)
-		const endAngle = Vec2d.Angle(handleArc.center, tempB)
-		const length = getArcLength(handleArc.center, handleArc.radius, tempA, tempB)
+		aCA = Vec2d.Angle(handleArc.center, tempA) // angle center -> a
+		aCB = Vec2d.Angle(handleArc.center, tempB) // angle center -> b
+		dAB = distFn(aCA, aCB) // angle distance between a and b
+		lAB = dAB * handleArc.radius // length of arc between a and b
 
 		if (startShapeInfo.shape === endShapeInfo.shape) {
-			if (Math.abs(length) < 100) {
+			if (lAB < 100) {
 				tempA.setTo(a)
 				tempB.setTo(b)
 				tempC.setTo(c)
@@ -280,43 +285,26 @@ export function getCurvedArrowInfo(
 				tempA.setTo(a)
 			}
 
-			if (endShapeInfo && !endShapeInfo.didIntersect) {
-				const size = angleDelta(startAngle, endAngle)
-				let mid = lerpAngles(startAngle, endAngle, Math.abs(MIN_ARROW_LENGTH / length))
-				if (+(size > 0) !== handleArc.sweepFlag) {
-					mid = PI2 - mid
-				}
-
-				tempB.setTo(getPointOnCircle(handleArc.center.x, handleArc.center.y, handleArc.radius, mid))
+			if (
+				(endShapeInfo && !endShapeInfo.didIntersect) ||
+				distFn(handle_aCA, aCA) > distFn(handle_aCA, aCB)
+			) {
+				const n = Math.min(0.9, MIN_ARROW_LENGTH / lAB) * (isClockwise ? 1 : -1)
+				const u = Vec2d.FromAngle(aCA + dAB * n)
+				tempB.setTo(handleArc.center).add(u.mul(handleArc.radius))
 			}
 		}
 	}
 
-	tempC.setTo(
-		getPointOnCircle(
-			handleArc.center.x,
-			handleArc.center.y,
-			handleArc.radius,
-			lerpAngles(Vec2d.Angle(handleArc.center, tempA), Vec2d.Angle(handleArc.center, tempB), 0.5)
-		)
+	placeCenterHandle(
+		handleArc.center,
+		handleArc.radius,
+		tempA,
+		tempB,
+		tempC,
+		handle_dAB,
+		isClockwise
 	)
-
-	// Put the middle point in the middle of the short angle distance between the two points
-	// this MIGHT BE WRONG if the "middle" should be the long angle distance, but we don't know
-	// that yet; or at least, I haven't figured out how to know that yet based on just the
-	// intersection points.
-
-	// ...so we check whether the handle is on the other side of the arc as the drag handle, and flip
-	// the position of the middle point if so.
-	if (+Vec2d.Clockwise(tempA, tempC, tempB) !== handleArc.sweepFlag) {
-		tempC.rotWith(handleArc.center, PI)
-	}
-
-	if (+Vec2d.Clockwise(tempA, tempC, tempB) !== handleArc.sweepFlag) {
-		const t = tempB.clone()
-		tempB.setTo(tempA)
-		tempA.setTo(t)
-	}
 
 	if (tempA.equals(tempB)) {
 		tempA.setTo(tempC.clone().addXY(1, 1))
@@ -480,5 +468,31 @@ export function getArcInfo(a: VecLike, b: VecLike, c: VecLike): TLArcInfo {
 		length,
 		largeArcFlag,
 		sweepFlag,
+	}
+}
+
+function placeCenterHandle(
+	center: VecLike,
+	radius: number,
+	tempA: Vec2d,
+	tempB: Vec2d,
+	tempC: Vec2d,
+	originalArcLength: number,
+	isClockwise: boolean
+) {
+	const aCA = Vec2d.Angle(center, tempA) // angle center -> a
+	const aCB = Vec2d.Angle(center, tempB) // angle center -> b
+	let dAB = clockwiseAngleDist(aCA, aCB) // angle distance between a and b
+	if (!isClockwise) dAB = PI2 - dAB
+
+	const n = 0.5 * (isClockwise ? 1 : -1)
+	const u = Vec2d.FromAngle(aCA + dAB * n)
+	tempC.setTo(center).add(u.mul(radius))
+
+	if (dAB > originalArcLength) {
+		tempC.rotWith(center, PI)
+		const t = tempB.clone()
+		tempB.setTo(tempA)
+		tempA.setTo(t)
 	}
 }

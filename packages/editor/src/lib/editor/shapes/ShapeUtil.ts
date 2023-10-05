@@ -116,6 +116,13 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	canResize: TLShapeUtilFlag<Shape> = () => true
 
 	/**
+	 * Whether the shape can be edited in read-only mode.
+	 *
+	 * @public
+	 */
+	canEditInReadOnly: TLShapeUtilFlag<Shape> = () => false
+
+	/**
 	 * Whether the shape can be cropped.
 	 *
 	 * @public

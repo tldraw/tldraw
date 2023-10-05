@@ -34,7 +34,14 @@ const ids = {
 	lineA: createShapeId('lineA'),
 }
 
-const box = (id: TLShapeId, x: number, y: number, w = 10, h = 10): TLShapePartial => ({
+const box = (
+	id: TLShapeId,
+	x: number,
+	y: number,
+	w = 10,
+	h = 10,
+	fill = 'solid'
+): TLShapePartial => ({
 	type: 'geo',
 	id,
 	x,
@@ -43,7 +50,7 @@ const box = (id: TLShapeId, x: number, y: number, w = 10, h = 10): TLShapePartia
 	props: {
 		w,
 		h,
-		fill: 'solid',
+		fill,
 	},
 })
 const arrow = (id: TLShapeId, start: VecLike, end: VecLike): TLShapePartial => ({
@@ -850,6 +857,37 @@ describe('focus layers', () => {
 		expect(editor.focusedGroupId).toBe(groupCId)
 		editor.selectNone()
 		expect(editor.focusedGroupId).toBe(groupCId)
+	})
+})
+
+describe('right clicking in detail', () => {
+	const groupId = createShapeId('groupA')
+	beforeEach(() => {
+		// A - fill: none
+		// B - fill: solid
+		// C - fill: none
+		// ┌──────────────────┐
+		// │ 0 			 20   │
+		// │ ┌───┐		┌───┐ │
+		// │ │ A │		│ B │ │
+		// │ └───┘		└───┘ │
+		// └──────────────────┘
+		// ┌───┐
+		// | C |
+		// └───┘
+		editor.createShapes([
+			box(ids.boxA, 0, 0, 10, 10, 'none'),
+			box(ids.boxB, 20, 0, 10, 10, 'solid'),
+			box(ids.boxC, 0, 50, 10, 10, 'none'),
+		])
+		editor.groupShapes([ids.boxA, ids.boxB], groupId)
+		editor.selectNone()
+	})
+
+	// TODO: fix this
+	it('should select the group by right-clicking the margin of a hollow shape', () => {
+		editor.pointerMove(4, 4).pointerDown(4, 4, { target: 'canvas', button: 2 }).pointerUp()
+		expect(onlySelectedId()).toBe(groupId)
 	})
 })
 

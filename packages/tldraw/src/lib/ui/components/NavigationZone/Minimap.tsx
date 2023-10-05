@@ -7,6 +7,7 @@ import {
 	getPointerInfo,
 	intersectPolygonPolygon,
 	normalizeWheel,
+	releasePointerCapture,
 	setPointerCapture,
 	useComputed,
 	useEditor,
@@ -70,7 +71,8 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 	const onPointerDown = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
-			setPointerCapture(e.currentTarget, e)
+			const elm = e.currentTarget
+			setPointerCapture(elm, e)
 			if (!editor.currentPageShapeIds.size) return
 
 			rPointing.current = true
@@ -83,27 +85,40 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 
 			const _vpPageBounds = editor.viewportPageBounds
 
-			minimap.originPagePoint.setTo(clampedPoint)
-			minimap.originPageCenter.setTo(_vpPageBounds.center)
-
 			minimap.isInViewport = _vpPageBounds.containsPoint(clampedPoint)
 
-			if (!minimap.isInViewport) {
+			if (minimap.isInViewport) {
+				minimap.originPagePoint.setTo(clampedPoint)
+				minimap.originPageCenter.setTo(_vpPageBounds.center)
+			} else {
+				const delta = Vec2d.Sub(_vpPageBounds.center, _vpPageBounds.point)
+				const pagePoint = Vec2d.Add(point, delta)
+				minimap.originPagePoint.setTo(pagePoint)
+				minimap.originPageCenter.setTo(point)
 				editor.centerOnPoint(point, { duration: ANIMATION_MEDIUM_MS })
 			}
+
+			function release(e: PointerEvent) {
+				if (elm) {
+					releasePointerCapture(elm, e)
+				}
+				rPointing.current = false
+				document.body.removeEventListener('pointerup', release)
+			}
+
+			document.body.addEventListener('pointerup', release)
 		},
 		[editor, minimap]
 	)
 
 	const onPointerMove = React.useCallback(
 		(e: React.PointerEvent<HTMLCanvasElement>) => {
-			if (rPointing.current) {
-				const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, e.shiftKey, true)
+			const point = minimap.minimapScreenPointToPagePoint(e.clientX, e.clientY, e.shiftKey, true)
 
+			if (rPointing.current) {
 				if (minimap.isInViewport) {
-					const delta = point.clone().sub(minimap.originPagePoint).add(minimap.originPageCenter)
-					const center = Vec2d.Add(minimap.originPageCenter, delta)
-					editor.centerOnPoint(center)
+					const delta = minimap.originPagePoint.clone().sub(minimap.originPageCenter)
+					editor.centerOnPoint(Vec2d.Sub(point, delta))
 					return
 				}
 
@@ -127,10 +142,6 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 		},
 		[editor, minimap]
 	)
-
-	const onPointerUp = React.useCallback((_e: React.PointerEvent<HTMLCanvasElement>) => {
-		rPointing.current = false
-	}, [])
 
 	const onWheel = React.useCallback(
 		(e: React.WheelEvent<HTMLCanvasElement>) => {
@@ -179,7 +190,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				currentPageBounds: commonBoundsOfAllShapesOnCurrentPage,
 			} = editor
 
-			const _dpr = devicePixelRatio.value
+			const _dpr = devicePixelRatio.value // dereference
 
 			minimap.contentPageBounds = commonBoundsOfAllShapesOnCurrentPage
 				? Box2d.Expand(commonBoundsOfAllShapesOnCurrentPage, viewportPageBounds)
@@ -226,7 +237,6 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				onDoubleClick={onDoubleClick}
 				onPointerMove={onPointerMove}
 				onPointerDown={onPointerDown}
-				onPointerUp={onPointerUp}
 				onWheel={onWheel}
 			/>
 		</div>

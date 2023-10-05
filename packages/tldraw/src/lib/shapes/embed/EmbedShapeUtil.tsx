@@ -40,6 +40,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	override canResize = (shape: TLEmbedShape) => {
 		return !!getEmbedInfo(shape.props.url)?.definition?.doesResize
 	}
+	override canEditInReadOnly = () => true
 
 	override getDefaultProps(): TLEmbedShape['props'] {
 		return {
@@ -127,7 +128,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			<HTMLContainer className="tl-embed-container" id={shape.id}>
 				{embedInfo?.definition ? (
 					<iframe
-						className={`tl-embed tl-embed-${shape.id}`}
+						className="tl-embed"
 						sandbox={sandbox}
 						src={embedInfo.embedUrl}
 						width={toDomPrecision(w)}

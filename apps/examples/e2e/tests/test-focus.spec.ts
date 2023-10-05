@@ -1,6 +1,9 @@
 import test, { expect } from '@playwright/test'
+import { Editor } from '@tldraw/tldraw'
 
-declare const __tldraw_editor_events: any[]
+declare const EDITOR_A: Editor
+declare const EDITOR_B: Editor
+declare const EDITOR_C: Editor
 
 // We're just testing the events, not the actual results.
 
@@ -9,42 +12,98 @@ test.describe('Focus', () => {
 		await page.goto('http://localhost:5420/multiple')
 		await page.waitForSelector('.tl-canvas')
 
-		// Component A has autofocus
-		// Component B does not
-
 		const EditorA = (await page.$(`.A`))!
 		const EditorB = (await page.$(`.B`))!
+		const EditorC = (await page.$(`.C`))!
 		expect(EditorA).toBeTruthy()
 		expect(EditorB).toBeTruthy()
+		expect(EditorC).toBeTruthy()
+
+		async function isOnlyFocused(id: 'A' | 'B' | 'C' | null) {
+			let activeElement: string | null = null
+			const isA = await EditorA.evaluate(
+				(node) => document.activeElement === node || node.contains(document.activeElement)
+			)
+			const isB = await EditorB.evaluate(
+				(node) => document.activeElement === node || node.contains(document.activeElement)
+			)
+
+			const isC = await EditorC.evaluate(
+				(node) => document.activeElement === node || node.contains(document.activeElement)
+			)
+
+			activeElement = isA ? 'A' : isB ? 'B' : isC ? 'C' : null
+
+			expect(
+				activeElement,
+				`Active element should have been ${id}, but was ${activeElement ?? 'null'} instead`
+			).toBe(id)
+
+			await page.evaluate(
+				({ id }) => {
+					if (
+						!(
+							EDITOR_A.instanceState.isFocused === (id === 'A') &&
+							EDITOR_B.instanceState.isFocused === (id === 'B') &&
+							EDITOR_C.instanceState.isFocused === (id === 'C')
+						)
+					) {
+						throw Error('isFocused is not correct')
+					}
+				},
+				{ id }
+			)
+		}
+
+		// Component A has autofocus
+		// Component B does not
+		// Component C does not
+		// Component B and C share persistence id
 
 		await (await page.$('body'))?.click()
 
-		expect(await EditorA.evaluate((node) => document.activeElement === node)).toBe(true)
-		expect(await EditorB.evaluate((node) => document.activeElement === node)).toBe(false)
-
-		await (await page.$('body'))?.click()
-
-		expect(await EditorA.evaluate((node) => document.activeElement === node)).toBe(false)
-		expect(await EditorB.evaluate((node) => document.activeElement === node)).toBe(false)
+		await isOnlyFocused('A')
 
 		await EditorA.click()
-		expect(await EditorA.evaluate((node) => document.activeElement === node)).toBe(true)
-		expect(await EditorB.evaluate((node) => document.activeElement === node)).toBe(false)
+
+		await isOnlyFocused('A')
 
 		await EditorA.click()
-		expect(await EditorA.evaluate((node) => document.activeElement === node)).toBe(false)
-		expect(await EditorB.evaluate((node) => document.activeElement === node)).toBe(false)
-		expect(await EditorA.evaluate((node) => node.contains(document.activeElement))).toBe(true)
+
+		await isOnlyFocused('A')
 
 		await EditorB.click()
-		expect(await EditorA.evaluate((node) => document.activeElement === node)).toBe(false)
-		expect(await EditorB.evaluate((node) => document.activeElement === node)).toBe(true)
-		expect(await EditorA.evaluate((node) => node.contains(document.activeElement))).toBe(false)
+
+		await isOnlyFocused('B')
 
 		// Escape does not break focus
 		await page.keyboard.press('Escape')
-		expect(await EditorA.evaluate((node) => document.activeElement === node)).toBe(false)
-		expect(await EditorB.evaluate((node) => node.contains(document.activeElement))).toBe(true)
+
+		await isOnlyFocused('B')
+	})
+
+	test('kbds when not focused', async ({ page }) => {
+		await page.goto('http://localhost:5420/multiple')
+		await page.waitForSelector('.tl-canvas')
+
+		// Should not have any shapes on the page
+		expect(await page.evaluate(() => EDITOR_A.currentPageShapes.length)).toBe(0)
+
+		const EditorA = (await page.$(`.A`))!
+		await page.keyboard.press('r')
+		await EditorA.click({ position: { x: 100, y: 100 } })
+
+		// Should not have created a shape
+		expect(await page.evaluate(() => EDITOR_A.currentPageShapes.length)).toBe(1)
+
+		const TextArea = page.getByTestId(`textarea`)
+		await TextArea.focus()
+		await page.keyboard.type('hello world')
+		await page.keyboard.press('Control+A')
+		await page.keyboard.press('Delete')
+
+		// Should not have deleted the page
+		expect(await page.evaluate(() => EDITOR_A.currentPageShapes.length)).toBe(1)
 	})
 
 	test('kbds when focused', async ({ page }) => {
@@ -53,13 +112,12 @@ test.describe('Focus', () => {
 
 		const EditorA = (await page.$(`.A`))!
 		const EditorB = (await page.$(`.B`))!
+		const EditorC = (await page.$(`.C`))!
 		expect(EditorA).toBeTruthy()
 		expect(EditorB).toBeTruthy()
+		expect(EditorC).toBeTruthy()
 
 		await (await page.$('body'))?.click()
-
-		expect(await EditorA.evaluate((node) => document.activeElement === node)).toBe(true)
-		expect(await EditorB.evaluate((node) => document.activeElement === node)).toBe(false)
 
 		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')).toBe(
 			null

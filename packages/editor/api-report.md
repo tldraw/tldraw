@@ -1013,8 +1013,6 @@ export abstract class Geometry2d {
     // (undocumented)
     nearestPointOnLineSegment(A: Vec2d, B: Vec2d): Vec2d;
     // (undocumented)
-    get outerVertices(): Vec2d[];
-    // (undocumented)
     get snapPoints(): Vec2d[];
     // (undocumented)
     _snapPoints: undefined | Vec2d[];
@@ -1605,6 +1603,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
     canCrop: TLShapeUtilFlag<Shape>;
     canDropShapes(shape: Shape, shapes: TLShape[]): boolean;
     canEdit: TLShapeUtilFlag<Shape>;
+    canEditInReadOnly: TLShapeUtilFlag<Shape>;
     canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canResize: TLShapeUtilFlag<Shape>;
     canScroll: TLShapeUtilFlag<Shape>;
@@ -2297,7 +2296,7 @@ export type TLOnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
 }) => TLShapePartial<T> | void;
 
 // @public
-export type TLOnMountHandler = (editor: Editor) => (() => void) | undefined | void;
+export type TLOnMountHandler = (editor: Editor) => (() => undefined | void) | undefined | void;
 
 // @public (undocumented)
 export type TLOnResizeEndHandler<T extends TLShape> = TLEventChangeHandler<T>;

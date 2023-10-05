@@ -127,12 +127,17 @@ export class Pointing extends StateNode {
 		const handles = this.editor.getShapeHandles(shape)
 		if (!handles) throw Error(`expected handles for arrow`)
 
+		const shapeWithOutEndOffset = {
+			...shape,
+			props: { ...shape.props, end: { ...shape.props.end, x: 0, y: 0 } },
+		}
+
 		// end update
 		{
 			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
 			const endHandle = handles.find((h) => h.id === 'end')!
-			const change = util.onHandleChange?.(shape, {
+			const change = util.onHandleChange?.(shapeWithOutEndOffset, {
 				handle: { ...endHandle, x: point.x, y: point.y },
 				isPrecise: false, // sure about that?
 			})
@@ -150,7 +155,7 @@ export class Pointing extends StateNode {
 		{
 			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 			const startHandle = handles.find((h) => h.id === 'start')!
-			const change = util.onHandleChange?.(shape, {
+			const change = util.onHandleChange?.(shapeWithOutEndOffset, {
 				handle: { ...startHandle, x: 0, y: 0 },
 				isPrecise: this.didTimeout, // sure about that?
 			})

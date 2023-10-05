@@ -289,6 +289,7 @@ input,
 	touch-action: none;
 	pointer-events: none;
 	z-index: 2;
+	contain: strict;
 }
 
 .tl-grid-dot {
@@ -310,6 +311,7 @@ input,
 
 .tl-brush {
 	stroke-width: calc(var(--tl-scale) * 1px);
+	contain: size layout;
 }
 
 .tl-brush__default {
@@ -323,6 +325,7 @@ input,
 	stroke-linejoin: round;
 	stroke-linecap: round;
 	pointer-events: none;
+	contain: size layout;
 }
 
 /* ---------------------- Shape --------------------- */
@@ -332,6 +335,7 @@ input,
 	pointer-events: none;
 	overflow: visible;
 	transform-origin: top left;
+	contain: size layout;
 }
 
 .tl-shape__culled {
@@ -436,6 +440,7 @@ input,
 	transform-origin: top left;
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
+	contain: size;
 }
 
 /* ------------------ SelectionBox ------------------ */
@@ -811,7 +816,7 @@ input,
 	top: -9999px;
 	right: -9999px;
 	opacity: 0;
-	width: fit-content;
+	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
 	line-break: normal;
@@ -821,6 +826,7 @@ input,
 	resize: none;
 	border: none;
 	user-select: none;
+	contain: style paint;
 	-webkit-user-select: none;
 }
 
@@ -1346,6 +1352,7 @@ input,
 	position: relative;
 	font-size: inherit;
 	white-space: pre;
+	border: 1px solid transparent;
 }
 
 .tl-frame-label__editing {
@@ -1355,6 +1362,7 @@ input,
 	overflow: visible;
 	background-color: var(--color-panel);
 	border-radius: var(--radius-1);
+	border-color: var(--color-selected);
 }
 
 .tl-frame-name-input {
