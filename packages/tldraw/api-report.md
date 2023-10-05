@@ -1135,6 +1135,7 @@ export interface TldrawUiBaseProps {
     hideUi?: boolean;
     renderDebugMenuItems?: () => React_2.ReactNode;
     shareZone?: ReactNode;
+    // @internal
     topZone?: ReactNode;
 }
 
