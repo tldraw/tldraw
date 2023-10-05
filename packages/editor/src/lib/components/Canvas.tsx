@@ -349,11 +349,16 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const isCoarsePointer = useValue('coarse pointer', () => editor.instanceState.isCoarsePointer, [
 		editor,
 	])
+	const isHoveringEditor = useValue(
+		'hovering editor',
+		() => editor.instanceState.isHoveringEditor,
+		[editor]
+	)
 	const hoveredShapeId = useValue('hovered id', () => editor.currentPageState.hoveredShapeId, [
 		editor,
 	])
 
-	if (isCoarsePointer || !hoveredShapeId || !HoveredShapeIndicator) return null
+	if (isCoarsePointer || !isHoveringEditor || !hoveredShapeId || !HoveredShapeIndicator) return null
 
 	return <HoveredShapeIndicator shapeId={hoveredShapeId} />
 }

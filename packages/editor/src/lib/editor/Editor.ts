@@ -8258,6 +8258,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		isPanning: false,
 		/** Velocity of mouse pointer, in pixels per millisecond */
 		pointerVelocity: new Vec2d(),
+		/** Whether the pointer is currently over the editor canvas */
+		isPointerOverCanvas: false,
 	}
 
 	/**
