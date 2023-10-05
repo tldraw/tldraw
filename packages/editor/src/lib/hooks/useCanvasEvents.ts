@@ -78,14 +78,14 @@ export function useCanvasEvents() {
 				if ((e as any).isKilled) return
 				if (editor.instanceState.isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
-				editor.updateInstanceState({ isHoveringEditor: canHover ? true : null })
+				editor.updateInstanceState({ isHoveringCanvas: canHover ? true : null })
 			}
 
 			function onPointerLeave(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
 				if (editor.instanceState.isPenMode && e.pointerType !== 'pen') return
 				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
-				editor.updateInstanceState({ isHoveringEditor: canHover ? false : null })
+				editor.updateInstanceState({ isHoveringCanvas: canHover ? false : null })
 			}
 
 			function onTouchStart(e: React.TouchEvent) {

@@ -744,7 +744,6 @@ export class Editor extends EventEmitter<TLEventMap> {
         isEditing: boolean;
         isPanning: boolean;
         pointerVelocity: Vec2d;
-        isPointerOverCanvas: boolean;
     };
     get instanceState(): TLInstance;
     interrupt(): this;

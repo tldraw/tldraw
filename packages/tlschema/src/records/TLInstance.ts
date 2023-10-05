@@ -44,7 +44,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	 * Will be null if the pointer doesn't support hovering (e.g. touch), but true or false
 	 * otherwise
 	 */
-	isHoveringEditor: boolean | null
+	isHoveringCanvas: boolean | null
 	openMenus: string[]
 	isChangingStyle: boolean
 	isReadonly: boolean
@@ -90,7 +90,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isFocused: T.boolean,
 			devicePixelRatio: T.number,
 			isCoarsePointer: T.boolean,
-			isHoveringEditor: T.boolean.nullable(),
+			isHoveringCanvas: T.boolean.nullable(),
 			openMenus: T.arrayOf(T.string),
 			isChangingStyle: T.boolean,
 			isReadonly: T.boolean,
@@ -128,7 +128,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isFocused: false,
 			devicePixelRatio: typeof window === 'undefined' ? 1 : window.devicePixelRatio,
 			isCoarsePointer: false,
-			isHoveringEditor: null,
+			isHoveringCanvas: null,
 			openMenus: [] as string[],
 			isChangingStyle: false,
 			isReadonly: false,
@@ -159,12 +159,12 @@ export const instanceVersions = {
 	RemoveCursorColor: 18,
 	AddLonelyProperties: 19,
 	ReadOnlyReadonly: 20,
-	AddHoveringEditor: 21,
+	AddHoveringCanvas: 21,
 } as const
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.AddHoveringEditor,
+	currentVersion: instanceVersions.AddHoveringCanvas,
 	migrators: {
 		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -461,14 +461,14 @@ export const instanceMigrations = defineMigrations({
 				}
 			},
 		},
-		[instanceVersions.AddHoveringEditor]: {
+		[instanceVersions.AddHoveringCanvas]: {
 			up: (record) => {
 				return {
 					...record,
-					isHoveringEditor: null,
+					isHoveringCanvas: null,
 				}
 			},
-			down: ({ isHoveringEditor: _, ...record }) => {
+			down: ({ isHoveringCanvas: _, ...record }) => {
 				return {
 					...record,
 				}
