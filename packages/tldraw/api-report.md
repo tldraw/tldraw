@@ -94,6 +94,7 @@ import { TLShapeUtilCanvasSvgDef } from '@tldraw/editor';
 import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
+import { TLTextInjectionSite } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
 import { TLTickEvent } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
@@ -493,6 +494,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
     getDefaultProps(): TLGeoShape['props'];
     // (undocumented)
     getGeometry(shape: TLGeoShape): Geometry2d;
+    // (undocumented)
+    getTextInjectionSites(shape: TLGeoShape): TLTextInjectionSite[];
     // (undocumented)
     indicator(shape: TLGeoShape): JSX.Element;
     // (undocumented)

@@ -1636,3 +1636,38 @@ it from receiving any pointer events or affecting the cursor. */
 	font-size: 12px;
 	font-family: monospace;
 }
+
+.tl-text-injection-site {
+	position: absolute;
+	transform: translate(-50%, -50%);
+	border-radius: 2px;
+	width: 40px;
+	height: 40px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: transparent;
+	transition: width 0.1s ease, height 0.1s ease, border-width 0.1s ease,
+		background-color 0.1s ease;
+	border-width: 2px;
+}
+
+.tl-text-injection-site__hover {
+	border-color: var(--color-selected);
+	cursor: pointer;
+}
+
+.tl-text-injection-site__out {
+	width: 10px;
+	height: 10px;
+	border-width: 0px;
+	background-color: #eee;
+}
+
+.tl-text-injection-site > * {
+	transition: opacity 0.1s ease;
+}
+
+.tl-text-injection-site__out > * {
+	opacity: 0;
+}

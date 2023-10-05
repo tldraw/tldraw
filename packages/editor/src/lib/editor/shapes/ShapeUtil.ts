@@ -7,6 +7,7 @@ import { Geometry2d } from '../../primitives/geometry/Geometry2d'
 import type { Editor } from '../Editor'
 import { SvgExportContext } from '../types/SvgExportContext'
 import { TLResizeHandle } from '../types/selection-types'
+import { TLTextInjectionSite } from '../types/misc-types'
 
 /** @public */
 export interface TLShapeUtilConstructor<
@@ -198,6 +199,20 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	 * @public
 	 */
 	getHandles?(shape: Shape): TLHandle[]
+
+	/**
+	 * Get an array of handle models for the shape. This is an optional method.
+	 *
+	 * @example
+	 *
+	 * ```ts
+	 * util.getHandles?.(myShape)
+	 * ```
+	 *
+	 * @param shape - The shape.
+	 * @public
+	 */
+	getTextInjectionSites?(shape: Shape): TLTextInjectionSite[]
 
 	/**
 	 * Get an array of outline segments for the shape. For most shapes,

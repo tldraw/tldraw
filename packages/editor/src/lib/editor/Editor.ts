@@ -123,7 +123,7 @@ import { TLEventMap } from './types/emit-types'
 import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLCommandHistoryOptions } from './types/history-types'
-import { OptionalKeys, RequiredKeys } from './types/misc-types'
+import { OptionalKeys, RequiredKeys, TLTextInjectionSite } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
@@ -4661,6 +4661,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		return shapeIsInPage
+	}
+
+	readonly _textInjectionSites = atom<null | {
+		shape: TLShape
+		sites: (TLTextInjectionSite & { hovered: boolean })[]
+	}>('textInjectionSites', null)
+	setTextInjectionSites(shape: TLShape, sites: (TLTextInjectionSite & { hovered: boolean })[]) {
+		this._textInjectionSites.set({ shape, sites })
+	}
+	clearTextInjectionSites() {
+		this._textInjectionSites.set(null)
 	}
 
 	/**

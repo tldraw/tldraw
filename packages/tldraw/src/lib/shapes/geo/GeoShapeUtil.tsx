@@ -25,6 +25,7 @@ import {
 	getPolygonVertices,
 } from '@tldraw/editor'
 
+import { TLTextInjectionSite } from '@tldraw/editor'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
 import { TextLabel } from '../shared/TextLabel'
 import {
@@ -1039,6 +1040,80 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		return
+	}
+
+	override getTextInjectionSites(shape: TLGeoShape): TLTextInjectionSite[] {
+		const inset = 28
+		if (shape.props.w < 20 || shape.props.h < 20) return []
+		if (shape.props.text.trim() !== '') return []
+		if (shape.props.geo === 'rectangle')
+			return [
+				{
+					align: 'top',
+					justify: 'left',
+					x: inset,
+					y: inset,
+				},
+				{
+					align: 'top',
+					justify: 'center',
+					x: shape.props.w / 2,
+					y: inset,
+				},
+				{
+					align: 'top',
+					justify: 'right',
+					x: shape.props.w - inset,
+					y: inset,
+				},
+				{
+					align: 'center',
+					justify: 'left',
+					x: inset,
+					y: shape.props.h / 2,
+				},
+				{
+					align: 'center',
+					justify: 'center',
+					x: shape.props.w / 2,
+					y: shape.props.h / 2,
+				},
+				{
+					align: 'center',
+					justify: 'right',
+					x: shape.props.w - inset,
+					y: shape.props.h / 2,
+				},
+				{
+					align: 'bottom',
+					justify: 'left',
+					x: inset,
+					y: shape.props.h - inset,
+				},
+				{
+					align: 'bottom',
+					justify: 'center',
+					x: shape.props.w / 2,
+					y: shape.props.h - inset,
+				},
+				{
+					align: 'bottom',
+					justify: 'right',
+					x: shape.props.w - inset,
+					y: shape.props.h - inset,
+				},
+			]
+		if (shape.props.geo === 'cloud') {
+			return [
+				{
+					align: 'center',
+					justify: 'center',
+					x: shape.props.w / 2,
+					y: shape.props.h / 2,
+				},
+			]
+		}
+		return []
 	}
 }
 

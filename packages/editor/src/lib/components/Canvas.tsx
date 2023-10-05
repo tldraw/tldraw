@@ -19,6 +19,7 @@ import { GeometryDebuggingView } from './GeometryDebuggingView'
 import { LiveCollaborators } from './LiveCollaborators'
 import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
+import { TextInjectionSites } from './TextInjectionSites'
 
 /** @public */
 export const Canvas = track(function Canvas({ className }: { className?: string }) {
@@ -122,6 +123,7 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 					<SnapLinesWrapper />
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
+					<TextInjectionSites />
 				</div>
 			</div>
 		</div>
