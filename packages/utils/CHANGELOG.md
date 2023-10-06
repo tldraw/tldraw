@@ -1,3 +1,30 @@
+# v2.0.0-alpha.15 (Fri Oct 06 2023)
+
+### Release Notes
+
+#### tldraw zero - package shuffle ([#1710](https://github.com/tldraw/tldraw/pull/1710))
+
+- [@tldraw/editor] lots, wip
+- [@tldraw/ui] gone, merged to tldraw/tldraw
+- [@tldraw/polyfills] gone, merged to tldraw/editor
+- [@tldraw/primitives] gone, merged to tldraw/editor / tldraw/tldraw
+- [@tldraw/indices] gone, merged to tldraw/editor
+- [@tldraw/file-format] gone, merged to tldraw/tldraw
+
+---
+
+#### 💥 Breaking Change
+
+- move some utils into tldraw/utils [#1750](https://github.com/tldraw/tldraw/pull/1750) ([@steveruizok](https://github.com/steveruizok))
+- tldraw zero - package shuffle [#1710](https://github.com/tldraw/tldraw/pull/1710) ([@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.14 (Tue Jul 04 2023)
 
 ### Release Notes
