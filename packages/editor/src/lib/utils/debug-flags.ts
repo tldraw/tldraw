@@ -108,16 +108,17 @@ function createDebugValue<T>(
 		shouldStoreForSession,
 	})
 }
-function createFeatureFlag(
-	name: string,
-	defaults: Defaults<boolean> = { all: true, production: false }
-) {
-	return createDebugValueBase({
-		name,
-		defaults,
-		shouldStoreForSession: true,
-	})
-}
+
+// function createFeatureFlag(
+// 	name: string,
+// 	defaults: Defaults<boolean> = { all: true, production: false }
+// ) {
+// 	return createDebugValueBase({
+// 		name,
+// 		defaults,
+// 		shouldStoreForSession: true,
+// 	})
+// }
 
 function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)
