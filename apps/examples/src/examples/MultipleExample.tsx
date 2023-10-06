@@ -97,7 +97,7 @@ function EditorB() {
 
 function EditorC() {
 	const { focusedEditor, setFocusedEditor } = useContext(focusedEditorContext)
-	const isFocused = focusedEditor === 'third'
+	const isFocused = focusedEditor === 'C'
 
 	return (
 		<div>
