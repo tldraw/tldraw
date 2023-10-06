@@ -1,4 +1,4 @@
-import { Editor, GeoShapeGeoStyle, featureFlags, useEditor, useValue } from '@tldraw/editor'
+import { Editor, GeoShapeGeoStyle, useEditor } from '@tldraw/editor'
 import * as React from 'react'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'
@@ -44,8 +44,6 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 
 	const { addDialog } = useDialogs()
 	const insertMedia = useInsertMedia()
-
-	const highlighterEnabled = useValue(featureFlags.highlighterTool)
 
 	const tools = React.useMemo<TLUiToolsContextType>(() => {
 		const toolsArray: TLUiToolItem[] = [
@@ -207,20 +205,18 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 		]
 
-		if (highlighterEnabled) {
-			toolsArray.push({
-				id: 'highlight',
-				label: 'tool.highlight',
-				readonlyOk: true,
-				icon: 'tool-highlight',
-				// TODO: pick a better shortcut
-				kbd: '!d',
-				onSelect(source) {
-					editor.setCurrentTool('highlight')
-					trackEvent('select-tool', { source, id: 'highlight' })
-				},
-			})
-		}
+		toolsArray.push({
+			id: 'highlight',
+			label: 'tool.highlight',
+			readonlyOk: true,
+			icon: 'tool-highlight',
+			// TODO: pick a better shortcut
+			kbd: '!d',
+			onSelect(source) {
+				editor.setCurrentTool('highlight')
+				trackEvent('select-tool', { source, id: 'highlight' })
+			},
+		})
 
 		const tools = Object.fromEntries(toolsArray.map((t) => [t.id, t]))
 
@@ -229,7 +225,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 		}
 
 		return tools
-	}, [highlighterEnabled, overrides, editor, trackEvent, insertMedia, addDialog])
+	}, [overrides, editor, trackEvent, insertMedia, addDialog])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
 }

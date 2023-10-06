@@ -81,11 +81,11 @@ export function Canvas({ className }: { className?: string }) {
 		[editor]
 	)
 
-	const debugGeometry = useValue('debugging geometry', () => debugFlags.debugGeometry.value, [
+	const hideShapes = useValue('debug_shapes', () => debugFlags.hideShapes.value, [debugFlags])
+	const debugSvg = useValue('debug_svg', () => debugFlags.debugSvg.value, [debugFlags])
+	const debugGeometry = useValue('debug_geometry', () => debugFlags.debugGeometry.value, [
 		debugFlags,
 	])
-
-	const debugSvg = useValue('debugging svg', () => debugFlags.debugSvg.value, [debugFlags])
 
 	return (
 		<div
@@ -110,7 +110,7 @@ export function Canvas({ className }: { className?: string }) {
 			</svg>
 			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 				<SelectionBackgroundWrapper />
-				{debugGeometry ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
+				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 			</div>
 			<div className="tl-fixed-layer tl-overlays">
 				<div ref={rHtmlLayer2} className="tl-html-layer">

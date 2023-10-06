@@ -416,6 +416,7 @@ export const debugFlags: {
     debugCursors: DebugFlag<boolean>;
     forceSrgb: DebugFlag<boolean>;
     debugGeometry: DebugFlag<boolean>;
+    hideShapes: DebugFlag<boolean>;
 };
 
 // @internal (undocumented)
@@ -955,10 +956,7 @@ export const EVENT_NAME_MAP: Record<Exclude<TLEventName, TLPinchEventName>, keyo
 export function extractSessionStateFromLegacySnapshot(store: Record<string, UnknownRecord>): null | TLSessionStateSnapshot;
 
 // @internal (undocumented)
-export const featureFlags: {
-    peopleMenu: DebugFlag<boolean>;
-    highlighterTool: DebugFlag<boolean>;
-};
+export const featureFlags: Record<string, DebugFlag<boolean>>;
 
 // @public (undocumented)
 export type GapsSnapLine = {

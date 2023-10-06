@@ -63,13 +63,18 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 				const { vertices } = geometry
 
 				return (
-					<g key={result.id + '_outline'} transform={pageTransform.toCssString()}>
+					<g
+						key={result.id + '_outline'}
+						transform={pageTransform.toCssString()}
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					>
 						{showStroke && (
 							<path
-								stroke="rgb(18, 161, 13)"
-								strokeWidth={2}
+								stroke="red"
+								strokeWidth="2"
 								fill="none"
-								opacity={0.75}
+								opacity="1"
 								d={geometry.toSimpleSvgPath()}
 							/>
 						)}
@@ -79,8 +84,8 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 									key={`v${i}`}
 									cx={v.x}
 									cy={v.y}
-									r={2}
-									fill={`hsl(${modulate(i, [0, vertices.length - 1], [20, 70])}, 100%, 50%)`}
+									r="2"
+									fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 200])}, 100%, 50%)`}
 									stroke="black"
 									strokeWidth="1"
 								/>
@@ -92,8 +97,8 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 								x2={pointInShapeSpace.x}
 								y2={pointInShapeSpace.y}
 								opacity={1 - dist / 150}
-								stroke={hitInside ? 'rgb(193, 156, 0)' : 'rgb(197, 15, 31)'}
-								strokeWidth={2}
+								stroke={hitInside ? 'goldenrod' : 'dodgerblue'}
+								strokeWidth="2"
 							/>
 						)}
 					</g>
