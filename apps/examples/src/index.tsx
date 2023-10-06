@@ -55,127 +55,127 @@ type Example = {
 export const allExamples: Example[] = [
 	{
 		title: 'Basic (development)',
-		path: '/develop',
+		path: 'develop',
 		element: <BasicExample />,
 	},
 	{
 		title: 'Collaboration (with Yjs)',
-		path: '/yjs',
+		path: 'yjs',
 		element: <YjsExample />,
 	},
 	{
 		title: 'Editor API',
-		path: '/api',
+		path: 'api',
 		element: <APIExample />,
 	},
 	{
 		title: 'Multiple editors',
-		path: '/multiple',
+		path: 'multiple',
 		element: <MultipleExample />,
 	},
 	{
 		title: 'Readonly Example',
-		path: '/readonly',
+		path: 'readonly',
 		element: <ReadOnlyExample />,
 	},
 	{
 		title: 'Scroll example',
-		path: '/scroll',
+		path: 'scroll',
 		element: <ScrollExample />,
 	},
 	{
 		title: 'Custom shapes / tools',
-		path: '/custom-config',
+		path: 'custom-config',
 		element: <CustomConfigExample />,
 	},
 	{
 		title: 'Sublibraries',
-		path: '/exploded',
+		path: 'exploded',
 		element: <ExplodedExample />,
 	},
 	{
 		title: 'Error boundary',
-		path: '/error-boundary',
+		path: 'error-boundary',
 		element: <ErrorBoundaryExample />,
 	},
 	{
 		title: 'Custom UI',
-		path: '/custom-ui',
+		path: 'custom-ui',
 		element: <CustomUiExample />,
 	},
 	{
 		title: 'Hide UI',
-		path: '/hide-ui',
+		path: 'hide-ui',
 		element: <HideUiExample />,
 	},
 	{
 		title: 'UI components',
-		path: '/custom-components',
+		path: 'custom-components',
 		element: <CustomComponentsExample />,
 	},
 	{
 		title: 'UI events',
-		path: '/ui-events',
+		path: 'ui-events',
 		element: <UiEventsExample />,
 	},
 	{
 		title: 'Canvas events',
-		path: '/canvas-events',
+		path: 'canvas-events',
 		element: <CanvasEventsExample />,
 	},
 	{
 		title: 'Store events',
-		path: '/store-events',
+		path: 'store-events',
 		element: <StoreEventsExample />,
 	},
 	{
 		title: 'User presence',
-		path: '/user-presence',
+		path: 'user-presence',
 		element: <UserPresenceExample />,
 	},
 	{
 		title: 'UI zones',
-		path: '/zones',
+		path: 'zones',
 		element: <ZonesExample />,
 	},
 	{
 		title: 'Persistence',
-		path: '/persistence',
+		path: 'persistence',
 		element: <PersistenceExample />,
 	},
 	{
 		title: 'Snapshots',
-		path: '/snapshots',
+		path: 'snapshots',
 		element: <SnapshotExample />,
 	},
 	{
 		title: 'Custom styles',
-		path: '/custom-styles',
+		path: 'custom-styles',
 		element: <CustomStylesExample />,
 	},
 	{
 		title: 'Shape meta property',
-		path: '/shape-meta',
+		path: 'shape-meta',
 		element: <ShapeMetaExample />,
 	},
 	{
 		title: 'Only editor',
-		path: '/only-editor',
+		path: 'only-editor',
 		element: <OnlyEditorExample />,
 	},
 	{
 		title: 'Asset props',
-		path: '/asset-props',
+		path: 'asset-props',
 		element: <AssetPropsExample />,
 	},
 	{
 		title: 'External content sources',
-		path: '/external-content-sources',
+		path: 'external-content-sources',
 		element: <ExternalContentSourcesExample />,
 	},
 	// not listed
 	{
-		path: '/end-to-end',
+		path: 'end-to-end',
 		element: <EndToEnd />,
 	},
 ]
@@ -201,12 +201,13 @@ function App() {
 }
 
 const router = createBrowserRouter([
-	...allExamples,
 	{
 		path: '/',
 		element: <App />,
 	},
+	...allExamples,
 ])
+
 const rootElement = document.getElementById('root')
 const root = createRoot(rootElement!)
 
