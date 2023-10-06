@@ -274,7 +274,6 @@ input,
 .tl-background {
 	position: absolute;
 	inset: 0px;
-	background-color: var(--color-background);
 }
 
 /* --------------------- Grid Layer --------------------- */
