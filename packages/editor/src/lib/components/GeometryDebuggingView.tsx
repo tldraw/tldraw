@@ -1,7 +1,6 @@
 import { track } from '@tldraw/state'
 import { modulate } from '@tldraw/utils'
 import { useEffect, useState } from 'react'
-import { HIT_TEST_MARGIN } from '../constants'
 import { useEditor } from '../hooks/useEditor'
 
 function useTick(isEnabled = true) {
@@ -27,6 +26,7 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 	showClosestPointOnOutline?: boolean
 }) {
 	const editor = useEditor()
+
 	useTick(showClosestPointOnOutline)
 
 	const {
@@ -56,18 +56,25 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 
 				const pointInShapeSpace = editor.getPointInShapeSpace(shape, currentPagePoint)
 				const nearestPointOnShape = geometry.nearestPoint(pointInShapeSpace)
-				const distanceToPoint = geometry.distanceToPoint(pointInShapeSpace)
+				const distanceToPoint = geometry.distanceToPoint(pointInShapeSpace, true)
+				const dist = Math.abs(distanceToPoint) * zoomLevel
+				const hitInside = distanceToPoint < 0
 
 				const { vertices } = geometry
 
 				return (
-					<g key={result.id + '_outline'} transform={pageTransform.toCssString()}>
+					<g
+						key={result.id + '_outline'}
+						transform={pageTransform.toCssString()}
+						strokeLinecap="round"
+						strokeLinejoin="round"
+					>
 						{showStroke && (
 							<path
 								stroke="red"
-								strokeWidth={2}
+								strokeWidth="2"
 								fill="none"
-								opacity={0.5}
+								opacity="1"
 								d={geometry.toSimpleSvgPath()}
 							/>
 						)}
@@ -77,20 +84,21 @@ export const GeometryDebuggingView = track(function GeometryDebuggingView({
 									key={`v${i}`}
 									cx={v.x}
 									cy={v.y}
-									r={2}
-									fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 0])}, 100%, 50%)`}
+									r="2"
+									fill={`hsl(${modulate(i, [0, vertices.length - 1], [120, 200])}, 100%, 50%)`}
 									stroke="black"
 									strokeWidth="1"
 								/>
 							))}
-						{distanceToPoint > 0 && showClosestPointOnOutline && (
+						{showClosestPointOnOutline && dist < 150 && (
 							<line
 								x1={nearestPointOnShape.x}
 								y1={nearestPointOnShape.y}
 								x2={pointInShapeSpace.x}
 								y2={pointInShapeSpace.y}
-								strokeWidth={2}
-								stroke={distanceToPoint < HIT_TEST_MARGIN / zoomLevel ? 'red' : 'pink'}
+								opacity={1 - dist / 150}
+								stroke={hitInside ? 'goldenrod' : 'dodgerblue'}
+								strokeWidth="2"
 							/>
 						)}
 					</g>

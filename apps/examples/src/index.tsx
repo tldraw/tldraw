@@ -84,7 +84,7 @@ export const allExamples: Example[] = [
 		element: <ScrollExample />,
 	},
 	{
-		title: 'Custom config',
+		title: 'Custom shapes / tools',
 		path: '/custom-config',
 		element: <CustomConfigExample />,
 	},

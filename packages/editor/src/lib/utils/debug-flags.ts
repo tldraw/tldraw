@@ -7,12 +7,10 @@ import { Atom, atom, react } from '@tldraw/state'
 // development. Use `createFeatureFlag` to create a boolean flag which will be
 // `true` by default in development and staging, and `false` in production.
 /** @internal */
-export const featureFlags = {
+export const featureFlags: Record<string, DebugFlag<boolean>> = {
 	// todo: remove this. it's not used, but we only have one feature flag and i
 	// wanted an example :(
-	peopleMenu: createFeatureFlag('peopleMenu'),
-	highlighterTool: createFeatureFlag('highlighterTool', { all: true }),
-} satisfies Record<string, DebugFlag<boolean>>
+}
 
 /** @internal */
 export const debugFlags = {
@@ -44,7 +42,7 @@ export const debugFlags = {
 	throwToBlob: createDebugValue('throwToBlob', {
 		defaults: { all: false },
 	}),
-	logMessages: createDebugValue('uiLog', { defaults: { all: [] } }),
+	logMessages: createDebugValue('uiLog', { defaults: { all: [] as any[] } }),
 	resetConnectionEveryPing: createDebugValue('resetConnectionEveryPing', {
 		defaults: { all: false },
 	}),
@@ -53,6 +51,7 @@ export const debugFlags = {
 	}),
 	forceSrgb: createDebugValue('forceSrgbColors', { defaults: { all: false } }),
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
+	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
 }
 
 declare global {
@@ -109,16 +108,17 @@ function createDebugValue<T>(
 		shouldStoreForSession,
 	})
 }
-function createFeatureFlag(
-	name: string,
-	defaults: Defaults<boolean> = { all: true, production: false }
-) {
-	return createDebugValueBase({
-		name,
-		defaults,
-		shouldStoreForSession: true,
-	})
-}
+
+// function createFeatureFlag(
+// 	name: string,
+// 	defaults: Defaults<boolean> = { all: true, production: false }
+// ) {
+// 	return createDebugValueBase({
+// 		name,
+// 		defaults,
+// 		shouldStoreForSession: true,
+// 	})
+// }
 
 function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	const defaultValue = getDefaultValue(def)
