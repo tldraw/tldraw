@@ -44,7 +44,7 @@ export const debugFlags = {
 	throwToBlob: createDebugValue('throwToBlob', {
 		defaults: { all: false },
 	}),
-	logMessages: createDebugValue('uiLog', { defaults: { all: [] } }),
+	logMessages: createDebugValue('uiLog', { defaults: { all: [] as any[] } }),
 	resetConnectionEveryPing: createDebugValue('resetConnectionEveryPing', {
 		defaults: { all: false },
 	}),
