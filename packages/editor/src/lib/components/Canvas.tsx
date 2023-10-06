@@ -21,7 +21,7 @@ import { Shape } from './Shape'
 import { ShapeIndicator } from './ShapeIndicator'
 
 /** @public */
-export const Canvas = track(function Canvas({ className }: { className?: string }) {
+export function Canvas({ className }: { className?: string }) {
 	const editor = useEditor()
 
 	const { Background, SvgDefs } = useEditorComponents()
@@ -81,9 +81,12 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 		[editor]
 	)
 
-	React.useEffect(() => {
-		rCanvas.current?.focus()
-	}, [])
+	const debugGeometry = useValue('debugging geometry', () => debugFlags.debugGeometry.value, [
+		debugFlags,
+	])
+
+	const debugSvg = useValue('debugging svg', () => debugFlags.debugSvg.value, [debugFlags])
+
 	return (
 		<div
 			ref={rCanvas}
@@ -107,11 +110,11 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 			</svg>
 			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
 				<SelectionBackgroundWrapper />
-				<ShapesToDisplay />
+				{debugGeometry ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 			</div>
 			<div className="tl-fixed-layer tl-overlays">
 				<div ref={rHtmlLayer2} className="tl-html-layer">
-					{debugFlags.debugGeometry.value && <GeometryDebuggingView />}
+					{debugGeometry ? <GeometryDebuggingView /> : null}
 					<HandlesWrapper />
 					<BrushWrapper />
 					<ScribbleWrapper />
@@ -126,7 +129,7 @@ export const Canvas = track(function Canvas({ className }: { className?: string 
 			</div>
 		</div>
 	)
-})
+}
 
 function GridWrapper() {
 	const editor = useEditor()
@@ -278,24 +281,27 @@ function HandleWrapper({
 	)
 }
 
-const ShapesToDisplay = track(function ShapesToDisplay() {
+function ShapesWithSVGs() {
 	const editor = useEditor()
 
-	const { renderingShapes } = editor
+	const renderingShapes = useValue('rendering shapes', () => editor.renderingShapes, [editor])
 
-	const debugSvg = debugFlags.debugSvg.value
-	if (debugSvg) {
-		return (
-			<>
-				{renderingShapes.map((result) => (
-					<React.Fragment key={result.id + '_fragment'}>
-						<Shape {...result} />
-						<DebugSvgCopy id={result.id} />
-					</React.Fragment>
-				))}
-			</>
-		)
-	}
+	return (
+		<>
+			{renderingShapes.map((result) => (
+				<React.Fragment key={result.id + '_fragment'}>
+					<Shape {...result} />
+					<DebugSvgCopy id={result.id} />
+				</React.Fragment>
+			))}
+		</>
+	)
+}
+
+function ShapesToDisplay() {
+	const editor = useEditor()
+
+	const renderingShapes = useValue('rendering shapes', () => editor.renderingShapes, [editor])
 
 	return (
 		<>
@@ -304,7 +310,7 @@ const ShapesToDisplay = track(function ShapesToDisplay() {
 			))}
 		</>
 	)
-})
+}
 
 function SelectedIdIndicators() {
 	const editor = useEditor()
@@ -455,12 +461,14 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 	)
 })
 
-const UiLogger = track(() => {
-	const logMessages = debugFlags.logMessages.value
+function UiLogger() {
+	const uiLog = useValue('debugging ui log', () => debugFlags.logMessages.value, [debugFlags])
+
+	if (!uiLog.length) return null
 
 	return (
 		<div className="debug__ui-logger">
-			{logMessages.map((message, messageIndex) => {
+			{uiLog.map((message, messageIndex) => {
 				const text = typeof message === 'string' ? message : JSON.stringify(message)
 
 				return (
@@ -471,7 +479,7 @@ const UiLogger = track(() => {
 			})}
 		</div>
 	)
-})
+}
 
 export function SelectionForegroundWrapper() {
 	const editor = useEditor()
