@@ -7,18 +7,20 @@
 
 # @tldraw/tldraw
 
-This is the alpha version of [tldraw](https://beta.tldraw.com). It is very much a work in progress.
+This is the pre-release version of [tldraw](https://github.com/tldraw/tldraw).
+
+See the pre-release docs at [canary.tldraw.dev](https://canary.tldraw.com).
 
 ## Installation
 
-Install the `@tldraw/tldraw` package using `@alpha` for the latest alpha release.
+Install the `@tldraw/tldraw` package using `@canary` for the latest canary release. (Or `@alpha` for the latest alpha release.)
 
 ```bash
-yarn add @tldraw/tldraw@alpha
+yarn add @tldraw/tldraw@canary
 # or
-npm install @tldraw/tldraw@alpha
+npm install @tldraw/tldraw@canary
 # or
-pnpm i @tldraw/tldraw@alpha
+pnpm i @tldraw/tldraw@canary
 ```
 
 Then start the local development server.
@@ -37,15 +39,14 @@ An extremely minimal usage (without our UI) might look like this:
 
 ```tsx
 import { Tldraw } from '@tldraw/tldraw'
-import '@tldraw/tldraw/styles-editor.css'
-import '@tldraw/tldraw/styles-ui.css'
+import '@tldraw/tldraw/tldraw.css'
 
 export default function () {
 	return <Tldraw />
 }
 ```
 
-See the [examples repo](https://github.com/tldraw/tldraw-examples) for more examples.
+See the [examples folder](https://github.com/tldraw/tldraw/tree/main/apps/examples) for more examples.
 
 ## License
 
