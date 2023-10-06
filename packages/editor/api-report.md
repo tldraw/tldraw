@@ -282,9 +282,9 @@ export const CAMERA_SLIDE_FRICTION = 0.09;
 export function canonicalizeRotation(a: number): number;
 
 // @public (undocumented)
-export const Canvas: React_2.MemoExoticComponent<({ className }: {
-    className?: string | undefined;
-}) => JSX.Element>;
+export function Canvas({ className }: {
+    className?: string;
+}): JSX.Element;
 
 // @public (undocumented)
 export class Circle2d extends Geometry2d {
@@ -411,7 +411,7 @@ export const debugFlags: {
     elementRemovalLogging: DebugFlag<boolean>;
     debugSvg: DebugFlag<boolean>;
     throwToBlob: DebugFlag<boolean>;
-    logMessages: DebugFlag<never[]>;
+    logMessages: DebugFlag<any[]>;
     resetConnectionEveryPing: DebugFlag<boolean>;
     debugCursors: DebugFlag<boolean>;
     forceSrgb: DebugFlag<boolean>;
