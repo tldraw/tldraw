@@ -31,8 +31,10 @@ function Toast({ toast }: { toast: TLUiToast }) {
 			)}
 			<div className="tlui-toast__main">
 				<div className="tlui-toast__content">
-					<T.Title className="tlui-toast__title">{toast.title}</T.Title>
-					<T.Description className="tlui-toast__description">{toast.description}</T.Description>
+					{toast.title && <T.Title className="tlui-toast__title">{toast.title}</T.Title>}
+					{toast.description && (
+						<T.Description className="tlui-toast__description">{toast.description}</T.Description>
+					)}
 				</div>
 				{toast.actions && (
 					<div className="tlui-toast__actions">
