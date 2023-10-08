@@ -174,6 +174,176 @@
       "members": [
         {
           "kind": "Class",
+          "canonicalReference": "@tldraw/tldraw!ArrowShapeTool:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class ArrowShapeTool extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StateNode",
+              "canonicalReference": "@tldraw/editor!StateNode:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/arrow/ArrowShapeTool.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "ArrowShapeTool",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!ArrowShapeTool.children:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static children: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => (typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Idle",
+                  "canonicalReference": "@tldraw/tldraw!~Idle:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pointing",
+                  "canonicalReference": "@tldraw/tldraw!~Pointing:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!ArrowShapeTool.id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!ArrowShapeTool.initial:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static initial: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "initial",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!ArrowShapeTool#shapeType:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shapeType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "shapeType",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
           "canonicalReference": "@tldraw/tldraw!ArrowShapeUtil:class",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -2138,7 +2308,7 @@
             {
               "kind": "Reference",
               "text": "ArrowShapeTool",
-              "canonicalReference": "@tldraw/tldraw!~ArrowShapeTool:class"
+              "canonicalReference": "@tldraw/tldraw!ArrowShapeTool:class"
             },
             {
               "kind": "Content",
@@ -2147,7 +2317,7 @@
             {
               "kind": "Reference",
               "text": "DrawShapeTool",
-              "canonicalReference": "@tldraw/tldraw!~DrawShapeTool:class"
+              "canonicalReference": "@tldraw/tldraw!DrawShapeTool:class"
             },
             {
               "kind": "Content",
@@ -2156,7 +2326,7 @@
             {
               "kind": "Reference",
               "text": "FrameShapeTool",
-              "canonicalReference": "@tldraw/tldraw!~FrameShapeTool:class"
+              "canonicalReference": "@tldraw/tldraw!FrameShapeTool:class"
             },
             {
               "kind": "Content",
@@ -2165,7 +2335,7 @@
             {
               "kind": "Reference",
               "text": "GeoShapeTool",
-              "canonicalReference": "@tldraw/tldraw!~GeoShapeTool:class"
+              "canonicalReference": "@tldraw/tldraw!GeoShapeTool:class"
             },
             {
               "kind": "Content",
@@ -2174,7 +2344,7 @@
             {
               "kind": "Reference",
               "text": "LineShapeTool",
-              "canonicalReference": "@tldraw/tldraw!~LineShapeTool:class"
+              "canonicalReference": "@tldraw/tldraw!LineShapeTool:class"
             },
             {
               "kind": "Content",
@@ -2183,7 +2353,7 @@
             {
               "kind": "Reference",
               "text": "NoteShapeTool",
-              "canonicalReference": "@tldraw/tldraw!~NoteShapeTool:class"
+              "canonicalReference": "@tldraw/tldraw!NoteShapeTool:class"
             },
             {
               "kind": "Content",
@@ -2192,7 +2362,7 @@
             {
               "kind": "Reference",
               "text": "TextShapeTool",
-              "canonicalReference": "@tldraw/tldraw!~TextShapeTool:class"
+              "canonicalReference": "@tldraw/tldraw!TextShapeTool:class"
             },
             {
               "kind": "Content",
@@ -2537,6 +2707,206 @@
               "name": "Title"
             }
           ]
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/tldraw!DrawShapeTool:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class DrawShapeTool extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StateNode",
+              "canonicalReference": "@tldraw/editor!StateNode:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/draw/DrawShapeTool.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "DrawShapeTool",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!DrawShapeTool.children:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static children: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => (typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Drawing",
+                  "canonicalReference": "@tldraw/tldraw!~Drawing:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Idle",
+                  "canonicalReference": "@tldraw/tldraw!~Idle_2:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!DrawShapeTool.id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!DrawShapeTool.initial:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static initial: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "initial",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!DrawShapeTool#onExit:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onExit: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onExit",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!DrawShapeTool#shapeType:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shapeType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "shapeType",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "implementsTokenRanges": []
         },
         {
           "kind": "Class",
@@ -4872,6 +5242,128 @@
         },
         {
           "kind": "Class",
+          "canonicalReference": "@tldraw/tldraw!FrameShapeTool:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class FrameShapeTool extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "BaseBoxShapeTool",
+              "canonicalReference": "@tldraw/editor!BaseBoxShapeTool:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/frame/FrameShapeTool.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "FrameShapeTool",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!FrameShapeTool.id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!FrameShapeTool.initial:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static initial: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "initial",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!FrameShapeTool#shapeType:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shapeType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "shapeType",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
           "canonicalReference": "@tldraw/tldraw!FrameShapeUtil:class",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -5615,6 +6107,176 @@
           "extendsTokenRange": {
             "startIndex": 1,
             "endIndex": 5
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/tldraw!GeoShapeTool:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class GeoShapeTool extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StateNode",
+              "canonicalReference": "@tldraw/editor!StateNode:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/geo/GeoShapeTool.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "GeoShapeTool",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!GeoShapeTool.children:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static children: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => (typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Idle",
+                  "canonicalReference": "@tldraw/tldraw!~Idle_3:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pointing",
+                  "canonicalReference": "@tldraw/tldraw!~Pointing_2:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!GeoShapeTool.id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!GeoShapeTool.initial:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static initial: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "initial",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!GeoShapeTool#shapeType:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shapeType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "shapeType",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
           },
           "implementsTokenRanges": []
         },
@@ -6880,6 +7542,206 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "onTripleClick",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/tldraw!HighlightShapeTool:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class HighlightShapeTool extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StateNode",
+              "canonicalReference": "@tldraw/editor!StateNode:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/highlight/HighlightShapeTool.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "HighlightShapeTool",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!HighlightShapeTool.children:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static children: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => (typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Drawing",
+                  "canonicalReference": "@tldraw/tldraw!~Drawing:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Idle",
+                  "canonicalReference": "@tldraw/tldraw!~Idle_2:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!HighlightShapeTool.id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!HighlightShapeTool.initial:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static initial: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "initial",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!HighlightShapeTool#onExit:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "onExit: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "onExit",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!HighlightShapeTool#shapeType:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shapeType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "shapeType",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -8481,6 +9343,176 @@
         },
         {
           "kind": "Class",
+          "canonicalReference": "@tldraw/tldraw!LineShapeTool:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class LineShapeTool extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StateNode",
+              "canonicalReference": "@tldraw/editor!StateNode:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/line/LineShapeTool.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "LineShapeTool",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!LineShapeTool.children:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static children: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => (typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Idle",
+                  "canonicalReference": "@tldraw/tldraw!~Idle_4:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pointing",
+                  "canonicalReference": "@tldraw/tldraw!~Pointing_3:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!LineShapeTool.id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!LineShapeTool.initial:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static initial: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "initial",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!LineShapeTool#shapeType:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shapeType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "shapeType",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
           "canonicalReference": "@tldraw/tldraw!LineShapeUtil:class",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -9547,6 +10579,176 @@
             }
           ],
           "name": "menuSubmenu"
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/tldraw!NoteShapeTool:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class NoteShapeTool extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StateNode",
+              "canonicalReference": "@tldraw/editor!StateNode:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/note/NoteShapeTool.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "NoteShapeTool",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!NoteShapeTool.children:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static children: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => (typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Idle",
+                  "canonicalReference": "@tldraw/tldraw!~Idle_5:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pointing",
+                  "canonicalReference": "@tldraw/tldraw!~Pointing_4:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!NoteShapeTool.id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!NoteShapeTool.initial:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static initial: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "initial",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!NoteShapeTool#shapeType:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shapeType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "shapeType",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "implementsTokenRanges": []
         },
         {
           "kind": "Class",
@@ -10875,6 +12077,176 @@
             }
           ],
           "name": "setDefaultEditorAssetUrls"
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/tldraw!TextShapeTool:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class TextShapeTool extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "StateNode",
+              "canonicalReference": "@tldraw/editor!StateNode:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/tldraw/src/lib/shapes/text/TextShapeTool.ts",
+          "releaseTag": "Public",
+          "isAbstract": false,
+          "name": "TextShapeTool",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!TextShapeTool.children:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static children: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => (typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Idle",
+                  "canonicalReference": "@tldraw/tldraw!~Idle_6:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Pointing",
+                  "canonicalReference": "@tldraw/tldraw!~Pointing_5:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ")[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!TextShapeTool.id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!TextShapeTool.initial:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static initial: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "initial",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": true,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/tldraw!TextShapeTool#shapeType:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shapeType: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "shapeType",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "implementsTokenRanges": []
         },
         {
           "kind": "Class",
@@ -13206,7 +14578,7 @@
               "text": "export interface TLUiContextMenuProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ContextMenu.d.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
           "releaseTag": "Public",
           "name": "TLUiContextMenuProps",
           "preserveMemberOrder": false,
@@ -13229,7 +14601,6 @@
                   "text": ";"
                 }
               ],
-              "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
