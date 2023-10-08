@@ -70,7 +70,10 @@ apps/examples/www/translations
 !.yarn/sdks
 !.yarn/versions
 
-packages/*/api
+packages/*/api/temp
+packages/*/api/internal.d.ts
+packages/*/api/public.d.ts
+
 apps/examples/www/index.css
 apps/examples/www/index.js
 .tsbuild
