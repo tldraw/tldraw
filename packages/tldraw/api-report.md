@@ -106,6 +106,18 @@ import { Vec2dModel } from '@tldraw/editor';
 import { VecLike } from '@tldraw/editor';
 
 // @public (undocumented)
+export class ArrowShapeTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Idle | typeof Pointing)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    shapeType: string;
+}
+
+// @public (undocumented)
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -296,6 +308,20 @@ declare namespace Dialog {
 export { Dialog }
 
 // @public (undocumented)
+export class DrawShapeTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Drawing | typeof Idle_2)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    onExit: () => void;
+    // (undocumented)
+    shapeType: string;
+}
+
+// @public (undocumented)
 export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
     // (undocumented)
     component(shape: TLDrawShape): JSX.Element;
@@ -440,6 +466,16 @@ function Footer({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
+export class FrameShapeTool extends BaseBoxShapeTool {
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    shapeType: string;
+}
+
+// @public (undocumented)
 export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     // (undocumented)
     canBind: () => boolean;
@@ -479,6 +515,18 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
     toSvg(shape: TLFrameShape): Promise<SVGElement> | SVGElement;
     // (undocumented)
     static type: "frame";
+}
+
+// @public (undocumented)
+export class GeoShapeTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Idle_3 | typeof Pointing_2)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    shapeType: string;
 }
 
 // @public (undocumented)
@@ -651,6 +699,20 @@ function Header({ className, children }: {
 }): JSX.Element;
 
 // @public (undocumented)
+export class HighlightShapeTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Drawing | typeof Idle_2)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    onExit: () => void;
+    // (undocumented)
+    shapeType: string;
+}
+
+// @public (undocumented)
 export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
     // (undocumented)
     backgroundComponent(shape: TLHighlightShape): JSX.Element;
@@ -771,6 +833,18 @@ export interface LegacyTldrawDocument {
 }
 
 // @public (undocumented)
+export class LineShapeTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Idle_4 | typeof Pointing_3)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    shapeType: string;
+}
+
+// @public (undocumented)
 export class LineShapeUtil extends ShapeUtil<TLLineShape> {
     // (undocumented)
     component(shape: TLLineShape): JSX.Element | undefined;
@@ -834,6 +908,18 @@ export function menuItem(actionItem: TLUiActionItem | TLUiToolItem, opts?: Parti
 
 // @public (undocumented)
 export function menuSubmenu(id: string, label: TLUiTranslationKey, ...children: (false | null | TLUiMenuChild)[]): null | TLUiSubMenu;
+
+// @public (undocumented)
+export class NoteShapeTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Idle_5 | typeof Pointing_4)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    shapeType: string;
+}
 
 // @public (undocumented)
 export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
@@ -984,6 +1070,18 @@ function SubTrigger({ label, 'data-testid': testId, 'data-direction': dataDirect
     'data-testid'?: string;
     'data-direction'?: 'left' | 'right';
 }): JSX.Element;
+
+// @public (undocumented)
+export class TextShapeTool extends StateNode {
+    // (undocumented)
+    static children: () => (typeof Idle_6 | typeof Pointing_5)[];
+    // (undocumented)
+    static id: string;
+    // (undocumented)
+    static initial: string;
+    // (undocumented)
+    shapeType: string;
+}
 
 // @public (undocumented)
 export class TextShapeUtil extends ShapeUtil<TLTextShape> {
