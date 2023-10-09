@@ -31,7 +31,9 @@ class IdleState extends StateNode {
 				const hitShape =
 					hoveredShape && !this.editor.isShapeOfType<TLGroupShape>(hoveredShape, 'group')
 						? hoveredShape
-						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint)
+						: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
+								renderingOnly: true,
+						  })
 				if (hitShape) {
 					this.onPointerDown({
 						...info,

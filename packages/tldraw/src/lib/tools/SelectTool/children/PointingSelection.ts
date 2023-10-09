@@ -38,6 +38,7 @@ export class PointingSelection extends StateNode {
 				: this.editor.getShapeAtPoint(this.editor.inputs.currentPagePoint, {
 						hitInside: true,
 						margin: 0,
+						renderingOnly: true,
 				  })
 
 		if (hitShape) {

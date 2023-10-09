@@ -4222,6 +4222,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getShapeAtPoint(
 		point: VecLike,
 		opts = {} as {
+			renderingOnly?: boolean
 			margin?: number
 			hitInside?: boolean
 			hitLabels?: boolean
@@ -4229,11 +4230,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			filter?: (shape: TLShape) => boolean
 		}
 	): TLShape | undefined {
-		const {
-			viewportPageBounds,
-			zoomLevel,
-			currentPageShapesSorted: sortedShapesOnCurrentPage,
-		} = this
+		const { viewportPageBounds, zoomLevel } = this
 		const {
 			filter,
 			margin = 0,
@@ -4248,7 +4245,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let inMarginClosestToEdgeDistance = Infinity
 		let inMarginClosestToEdgeHit: TLShape | null = null
 
-		const shapesToCheck = sortedShapesOnCurrentPage.filter((shape) => {
+		const shapesToCheck = (
+			opts.renderingOnly ? this.currentPageRenderingShapesSorted : this.currentPageShapesSorted
+		).filter((shape) => {
 			if (this.isShapeOfType(shape, 'group')) return false
 			const pageMask = this.getShapeMask(shape)
 			if (pageMask && !pointInPolygon(point, pageMask)) return false
@@ -4320,7 +4319,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				distance = minDistance
 			} else {
-				distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+				distance = geometry.bounds.containsPoint(pointInShapeSpace, margin)
+					? geometry.distanceToPoint(pointInShapeSpace, hitInside)
+					: Infinity
 			}
 
 			if (geometry.isClosed) {
@@ -4535,6 +4536,26 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		return results
+	}
+
+	/**
+	 * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting
+	 * for nested shapes): e.g. A, B, BA, BB, C.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.currentPageShapesSorted
+	 * ```
+	 *
+	 * @readonly
+	 *
+	 * @public
+	 */
+	@computed get currentPageRenderingShapesSorted(): TLShape[] {
+		return this.renderingShapes
+			.filter(({ isCulled }) => !isCulled)
+			.sort((a, b) => a.index - b.index)
+			.map(({ shape }) => shape)
 	}
 
 	/**
@@ -6446,7 +6467,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Make sure that each partial will become the child of either the
 				// page or another shape that exists (or that will exist) in this page.
 
-				const { currentPageShapesSorted: sortedShapesOnCurrentPage } = this
+				const { currentPageShapesSorted } = this
 				partials = partials.map((partial) => {
 					// If the partial does not provide the parentId OR if the provided
 					// parentId is NOT in the store AND NOT among the other shapes being
@@ -6460,7 +6481,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						partial = { ...partial }
 
 						const parentId =
-							sortedShapesOnCurrentPage.findLast(
+							currentPageShapesSorted.findLast(
 								(parent) =>
 									// parent.type === 'frame'
 									this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&

@@ -16,6 +16,7 @@ export class Pointing extends StateNode {
 			},
 			margin: 0,
 			hitInside: true,
+			renderingOnly: true,
 		})
 
 		if (!target) {

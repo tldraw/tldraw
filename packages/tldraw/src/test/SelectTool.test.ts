@@ -413,7 +413,7 @@ describe('When in readonly mode', () => {
 				x: 100,
 				y: 100,
 				opacity: 1,
-				props: { w: 100, h: 100, url: '' },
+				props: { w: 100, h: 100, url: 'https://tldraw.com' },
 			},
 		])
 		editor.updateInstanceState({ isReadonly: true })

@@ -45,6 +45,7 @@ export class Circle2d extends Geometry2d {
 
 	nearestPoint(point: Vec2d): Vec2d {
 		const { _center, radius } = this
+		if (_center.equals(point)) return Vec2d.AddXY(_center, radius, 0)
 		return _center.clone().add(point.clone().sub(_center).uni().mul(radius))
 	}
 
