@@ -4319,7 +4319,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				distance = minDistance
 			} else {
-				distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+				distance = geometry.bounds.containsPoint(pointInShapeSpace, margin)
+					? geometry.distanceToPoint(pointInShapeSpace, hitInside)
+					: Infinity
 			}
 
 			if (geometry.isClosed) {
@@ -4550,7 +4552,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get currentPageRenderingShapesSorted(): TLShape[] {
-		return this.renderingShapes.sort((a, b) => a.index - b.index).map(({ shape }) => shape)
+		return this.renderingShapes
+			.filter(({ isCulled }) => !isCulled)
+			.sort((a, b) => a.index - b.index)
+			.map(({ shape }) => shape)
 	}
 
 	/**

@@ -142,7 +142,10 @@ export class PointingShape extends StateNode {
 									currentPagePoint
 								)
 
-								if (labelGeometry.hitTestPoint(pointInShapeSpace)) {
+								if (
+									labelGeometry.bounds.containsPoint(pointInShapeSpace, 0) &&
+									labelGeometry.hitTestPoint(pointInShapeSpace)
+								) {
 									this.editor.batch(() => {
 										this.editor.mark('editing on pointer up')
 										this.editor.select(selectingShape.id)
