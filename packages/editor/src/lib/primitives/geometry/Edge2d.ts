@@ -41,7 +41,7 @@ export class Edge2d extends Geometry2d {
 
 	override nearestPoint(point: Vec2d): Vec2d {
 		const { start, end, u, ul: l } = this
-		if (l === 0) return start.clone() // no length in the unit vector
+		if (l === 0) return start // no length in the unit vector
 		const k = Vec2d.Sub(point, start).dpr(u) / l
 		const cx = start.x + u.x * k
 		if (cx < Math.min(start.x, end.x)) return start.x < end.x ? start : end
