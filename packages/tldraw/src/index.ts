@@ -41,6 +41,7 @@ export {
 } from './lib/ui/TldrawUiContextProvider'
 export { setDefaultUiAssetUrls } from './lib/ui/assetUrls'
 export { ContextMenu, type TLUiContextMenuProps } from './lib/ui/components/ContextMenu'
+export { Spinner } from './lib/ui/components/Spinner'
 export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
 export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
 export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'

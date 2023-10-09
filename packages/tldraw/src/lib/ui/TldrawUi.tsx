@@ -53,6 +53,7 @@ export interface TldrawUiBaseProps {
 
 	/**
 	 * A component to use for the top zone (will be deprecated)
+	 * @internal
 	 */
 	topZone?: ReactNode
 
