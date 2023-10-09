@@ -13548,34 +13548,6 @@
                 "startIndex": 1,
                 "endIndex": 2
               }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tldraw!TldrawUiBaseProps#topZone:member",
-              "docComment": "/**\n * A component to use for the top zone (will be deprecated)\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "topZone?: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "ReactNode",
-                  "canonicalReference": "@types/react!React.ReactNode:type"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": true,
-              "releaseTag": "Public",
-              "name": "topZone",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
             }
           ],
           "extendsTokenRanges": []
