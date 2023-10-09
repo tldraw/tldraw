@@ -154,6 +154,7 @@ export const instancePageStateMigrations = defineMigrations({
 					...rest
 				} = record
 				return {
+					...rest,
 					selectedShapeIds: selectedIds,
 					hintingShapeIds: hintingIds,
 					erasingShapeIds: erasingIds,
@@ -161,7 +162,6 @@ export const instancePageStateMigrations = defineMigrations({
 					editingShapeId: editingId,
 					croppingShapeId: croppingId,
 					focusedGroupId: focusLayerId,
-					...rest,
 				}
 			},
 			down: (record) => {
@@ -176,6 +176,7 @@ export const instancePageStateMigrations = defineMigrations({
 					...rest
 				} = record
 				return {
+					...rest,
 					selectedIds: selectedShapeIds,
 					hintingIds: hintingShapeIds,
 					erasingIds: erasingShapeIds,
@@ -183,7 +184,6 @@ export const instancePageStateMigrations = defineMigrations({
 					editingId: editingShapeId,
 					croppingId: croppingShapeId,
 					focusLayerId: focusedGroupId,
-					...rest,
 				}
 			},
 		},
