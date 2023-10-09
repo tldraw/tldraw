@@ -1535,6 +1535,18 @@ describe('Adding canSnap to line handles', () => {
 	})
 })
 
+describe('add isHoveringCanvas to TLInstance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddHoveringCanvas]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ isHoveringCanvas: null })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ isHoveringCanvas: null })).toEqual({})
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

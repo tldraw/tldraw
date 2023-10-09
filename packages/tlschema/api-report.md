@@ -1033,6 +1033,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     isFocusMode: boolean;
     // (undocumented)
     isGridMode: boolean;
+    isHoveringCanvas: boolean | null;
     // (undocumented)
     isPenMode: boolean;
     // (undocumented)
