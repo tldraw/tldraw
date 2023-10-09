@@ -6,6 +6,7 @@ export function updateHoveredId(editor: Editor) {
 		hitInside: false,
 		hitLabels: false,
 		margin: HIT_TEST_MARGIN / editor.zoomLevel,
+		renderingOnly: true,
 	})
 
 	if (!hitShape) return editor.setHoveredShape(null)

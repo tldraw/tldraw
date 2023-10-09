@@ -1,5 +1,6 @@
 import React from 'react'
 
+/** @internal */
 export function Spinner(props: React.SVGProps<SVGSVGElement>) {
 	return (
 		<svg width={16} height={16} viewBox="0 0 16 16" {...props}>

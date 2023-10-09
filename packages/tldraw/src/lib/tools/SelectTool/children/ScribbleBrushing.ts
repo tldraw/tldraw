@@ -125,18 +125,21 @@ export class ScribbleBrushing extends StateNode {
 			shape = shapes[i]
 			geometry = this.editor.getShapeGeometry(shape)
 
+			// If the shape is a group or is already selected or locked, don't select it
 			if (
 				this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
 				newlySelectedShapeIds.has(shape.id) ||
-				(this.editor.isShapeOfType<TLFrameShape>(shape, 'frame') &&
-					geometry.hitTestPoint(
-						this.editor.getPointInShapeSpace(shape, originPagePoint),
-						0,
-						false
-					)) ||
 				this.editor.isShapeOrAncestorLocked(shape)
 			) {
 				continue
+			}
+
+			// If the scribble started inside of the frame, don't select it
+			if (this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')) {
+				const point = this.editor.getPointInShapeSpace(shape, originPagePoint)
+				if (geometry.bounds.containsPoint(point)) {
+					continue
+				}
 			}
 
 			A = this.editor.getPointInShapeSpace(shape, previousPagePoint)

@@ -74,6 +74,20 @@ export function useCanvasEvents() {
 				})
 			}
 
+			function onPointerEnter(e: React.PointerEvent) {
+				if ((e as any).isKilled) return
+				if (editor.instanceState.isPenMode && e.pointerType !== 'pen') return
+				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
+				editor.updateInstanceState({ isHoveringCanvas: canHover ? true : null })
+			}
+
+			function onPointerLeave(e: React.PointerEvent) {
+				if ((e as any).isKilled) return
+				if (editor.instanceState.isPenMode && e.pointerType !== 'pen') return
+				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
+				editor.updateInstanceState({ isHoveringCanvas: canHover ? false : null })
+			}
+
 			function onTouchStart(e: React.TouchEvent) {
 				;(e as any).isKilled = true
 				// todo: investigate whether this effects keyboard shortcuts
@@ -118,6 +132,8 @@ export function useCanvasEvents() {
 				onPointerDown,
 				onPointerMove,
 				onPointerUp,
+				onPointerEnter,
+				onPointerLeave,
 				onDragOver,
 				onDrop,
 				onTouchStart,

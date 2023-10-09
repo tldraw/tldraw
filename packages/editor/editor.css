@@ -273,6 +273,7 @@ input,
 
 .tl-background {
 	position: absolute;
+	background-color: var(--color-background);
 	inset: 0px;
 }
 
