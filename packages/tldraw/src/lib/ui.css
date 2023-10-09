@@ -522,7 +522,7 @@
 	background-color: var(--color-panel);
 	height: fit-content;
 	max-height: 100%;
-	margin: var(--space-3) var(--space-2);
+	margin: var(--space-2) var(--space-2);
 	overflow: hidden;
 	touch-action: auto;
 	overscroll-behavior: none;
