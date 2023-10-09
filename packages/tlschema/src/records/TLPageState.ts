@@ -52,11 +52,12 @@ export const instancePageStateVersions = {
 	RemoveInstanceIdAndCameraId: 2,
 	AddMeta: 3,
 	RenameProperties: 4,
+	RenamePropertiesAgain: 5,
 } as const
 
 /** @public */
 export const instancePageStateMigrations = defineMigrations({
-	currentVersion: instancePageStateVersions.RenameProperties,
+	currentVersion: instancePageStateVersions.RenamePropertiesAgain,
 	migrators: {
 		[instancePageStateVersions.AddCroppingId]: {
 			up(instance) {
@@ -93,6 +94,8 @@ export const instancePageStateMigrations = defineMigrations({
 			},
 		},
 		[instancePageStateVersions.RenameProperties]: {
+			// this migration is cursed: it was written wrong and doesn't do anything.
+			// rather than replace it, I've added another migration below that fixes it.
 			up: (record) => {
 				const {
 					selectedShapeIds,
@@ -134,6 +137,52 @@ export const instancePageStateMigrations = defineMigrations({
 					editingShapeId: editingShapeId,
 					croppingShapeId: croppingShapeId,
 					focusedGroupId: focusedGroupId,
+					...rest,
+				}
+			},
+		},
+		[instancePageStateVersions.RenamePropertiesAgain]: {
+			up: (record) => {
+				const {
+					selectedIds,
+					hintingIds,
+					erasingIds,
+					hoveredId,
+					editingId,
+					croppingId,
+					focusLayerId,
+					...rest
+				} = record
+				return {
+					selectedShapeIds: selectedIds,
+					hintingShapeIds: hintingIds,
+					erasingShapeIds: erasingIds,
+					hoveredShapeId: hoveredId,
+					editingShapeId: editingId,
+					croppingShapeId: croppingId,
+					focusedGroupId: focusLayerId,
+					...rest,
+				}
+			},
+			down: (record) => {
+				const {
+					selectedShapeIds,
+					hintingShapeIds,
+					erasingShapeIds,
+					hoveredShapeId,
+					editingShapeId,
+					croppingShapeId,
+					focusedGroupId,
+					...rest
+				} = record
+				return {
+					selectedIds: selectedShapeIds,
+					hintingIds: hintingShapeIds,
+					erasingIds: erasingShapeIds,
+					hoveredId: hoveredShapeId,
+					editingId: editingShapeId,
+					croppingId: croppingShapeId,
+					focusLayerId: focusedGroupId,
 					...rest,
 				}
 			},
