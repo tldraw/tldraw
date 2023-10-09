@@ -6890,6 +6890,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLInstance#isHoveringCanvas:member",
+              "docComment": "/**\n * Will be null if the pointer doesn't support hovering (e.g. touch), but true or false otherwise\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "isHoveringCanvas: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "isHoveringCanvas",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tlschema!TLInstance#isPenMode:member",
               "docComment": "",
               "excerptTokens": [
