@@ -6157,6 +6157,36 @@
           "preserveMemberOrder": false,
           "members": [
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Edge2d#_length:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_length?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "_length",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Constructor",
               "canonicalReference": "@tldraw/editor!Edge2d:constructor(1)",
               "docComment": "/**\n * Constructs a new instance of the `Edge2d` class\n */\n",
@@ -6393,7 +6423,7 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "length: "
+                  "text": "get length(): "
                 },
                 {
                   "kind": "Content",
@@ -6404,7 +6434,7 @@
                   "text": ";"
                 }
               ],
-              "isReadonly": false,
+              "isReadonly": true,
               "isOptional": false,
               "releaseTag": "Public",
               "name": "length",
@@ -6552,6 +6582,36 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "u",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Edge2d#ul:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "ul: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "ul",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -8032,6 +8092,41 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#currentPageRenderingShapesSorted:member",
+              "docComment": "/**\n * An array containing all of the rendering shapes in the current page, sorted in z-index order (accounting for nested shapes): e.g. A, B, BA, BB, C.\n *\n * @example\n * ```ts\n * editor.currentPageShapesSorted\n * ```\n *\n * @readonly @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get currentPageRenderingShapesSorted(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "currentPageRenderingShapesSorted",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
               },
               "isStatic": false,
               "isProtected": false,
@@ -10851,7 +10946,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n        margin?: number | undefined;\n        hitInside?: boolean | undefined;\n        hitLabels?: boolean | undefined;\n        hitFrameInside?: boolean | undefined;\n        filter?: ((shape: "
+                  "text": "{\n        renderingOnly?: boolean | undefined;\n        margin?: number | undefined;\n        hitInside?: boolean | undefined;\n        hitLabels?: boolean | undefined;\n        hitFrameInside?: boolean | undefined;\n        filter?: ((shape: "
                 },
                 {
                   "kind": "Reference",

@@ -71,6 +71,7 @@ export class PointingShape extends StateNode {
 			this.editor.getShapeAtPoint(currentPagePoint, {
 				margin: HIT_TEST_MARGIN / zoomLevel,
 				hitInside: true,
+				renderingOnly: true,
 			}) ?? this.hitShape
 
 		const selectingShape = hitShape

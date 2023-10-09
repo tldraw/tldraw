@@ -12,6 +12,7 @@ export function getHitShapeOnCanvasPointerDown(editor: Editor): TLShape | undefi
 			hitInside: false,
 			hitLabels: false,
 			margin: HIT_TEST_MARGIN / zoomLevel,
+			renderingOnly: true,
 		}) ??
 		// selected shape at point
 		editor.getSelectedShapeAtPoint(currentPagePoint)
