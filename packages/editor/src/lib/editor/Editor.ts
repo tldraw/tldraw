@@ -4319,9 +4319,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				distance = minDistance
 			} else {
-				distance = geometry.bounds.containsPoint(pointInShapeSpace, margin)
-					? geometry.distanceToPoint(pointInShapeSpace, hitInside)
-					: Infinity
+				if (
+					geometry.bounds.w > 1 &&
+					geometry.bounds.h > 1 &&
+					!geometry.bounds.containsPoint(pointInShapeSpace, margin)
+				) {
+					distance = Infinity
+				} else {
+					distance = geometry.distanceToPoint(pointInShapeSpace, hitInside)
+				}
 			}
 
 			if (geometry.isClosed) {
@@ -4363,6 +4369,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 			} else {
+				console.log('hello')
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
 				if (distance < HIT_TEST_MARGIN / zoomLevel) {
