@@ -8,7 +8,7 @@ export class Edge2d extends Geometry2d {
 	end: Vec2d
 	d: Vec2d
 	u: Vec2d
-	length: number
+	ul: number
 
 	constructor(config: { start: Vec2d; end: Vec2d; isSnappable?: boolean }) {
 		super({ ...config, isClosed: false, isFilled: false })
@@ -17,9 +17,18 @@ export class Edge2d extends Geometry2d {
 		this.start = start
 		this.end = end
 
-		this.d = start.clone().sub(end)
-		this.u = this.d.clone().uni()
-		this.length = this.d.len()
+		this.d = start.clone().sub(end) // the delta from start to end
+		this.u = this.d.clone().uni() // the unit vector of the edge
+		this.ul = this.u.len() // the length of the unit vector
+	}
+
+	_length?: number
+
+	get length() {
+		if (!this._length) {
+			return this.d.len()
+		}
+		return this._length
 	}
 
 	midPoint(): Vec2d {
@@ -31,14 +40,16 @@ export class Edge2d extends Geometry2d {
 	}
 
 	override nearestPoint(point: Vec2d): Vec2d {
-		const { start, end, u } = this
-		if (start.equals(end)) return start.clone()
-		const C = start.clone().add(u.clone().mul(point.clone().sub(start).pry(u)))
-		if (C.x < Math.min(start.x, end.x)) return start.x < end.x ? start : end
-		if (C.x > Math.max(start.x, end.x)) return start.x > end.x ? start : end
-		if (C.y < Math.min(start.y, end.y)) return start.y < end.y ? start : end
-		if (C.y > Math.max(start.y, end.y)) return start.y > end.y ? start : end
-		return C
+		const { start, end, u, ul: l } = this
+		if (l === 0) return start // no length in the unit vector
+		const k = Vec2d.Sub(point, start).dpr(u) / l
+		const cx = start.x + u.x * k
+		if (cx < Math.min(start.x, end.x)) return start.x < end.x ? start : end
+		if (cx > Math.max(start.x, end.x)) return start.x > end.x ? start : end
+		const cy = start.y + u.y * k
+		if (cy < Math.min(start.y, end.y)) return start.y < end.y ? start : end
+		if (cy > Math.max(start.y, end.y)) return start.y > end.y ? start : end
+		return new Vec2d(cx, cy)
 	}
 
 	override hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean {

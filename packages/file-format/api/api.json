@@ -1,0 +1,597 @@
+{
+  "metadata": {
+    "toolPackage": "@microsoft/api-extractor",
+    "toolVersion": "7.35.4",
+    "schemaVersion": 1011,
+    "oldestForwardsCompatibleVersion": 1001,
+    "tsdocConfig": {
+      "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
+      "noStandardTags": true,
+      "tagDefinitions": [
+        {
+          "tagName": "@alpha",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@beta",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@defaultValue",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@decorator",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@deprecated",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@eventProperty",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@example",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@experimental",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@inheritDoc",
+          "syntaxKind": "inline"
+        },
+        {
+          "tagName": "@internal",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@label",
+          "syntaxKind": "inline"
+        },
+        {
+          "tagName": "@link",
+          "syntaxKind": "inline",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@override",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@packageDocumentation",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@param",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@privateRemarks",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@public",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@readonly",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@remarks",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@returns",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@sealed",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@see",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@throws",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@typeParam",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@virtual",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@betaDocumentation",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@internalRemarks",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@preapproved",
+          "syntaxKind": "modifier"
+        }
+      ],
+      "supportForTags": {
+        "@alpha": true,
+        "@beta": true,
+        "@defaultValue": true,
+        "@decorator": true,
+        "@deprecated": true,
+        "@eventProperty": true,
+        "@example": true,
+        "@experimental": true,
+        "@inheritDoc": true,
+        "@internal": true,
+        "@label": true,
+        "@link": true,
+        "@override": true,
+        "@packageDocumentation": true,
+        "@param": true,
+        "@privateRemarks": true,
+        "@public": true,
+        "@readonly": true,
+        "@remarks": true,
+        "@returns": true,
+        "@sealed": true,
+        "@see": true,
+        "@throws": true,
+        "@typeParam": true,
+        "@virtual": true,
+        "@betaDocumentation": true,
+        "@internalRemarks": true,
+        "@preapproved": true
+      },
+      "reportUnsupportedHtmlElements": false
+    }
+  },
+  "kind": "Package",
+  "canonicalReference": "@tldraw/file-format!",
+  "docComment": "",
+  "name": "@tldraw/file-format",
+  "preserveMemberOrder": false,
+  "members": [
+    {
+      "kind": "EntryPoint",
+      "canonicalReference": "@tldraw/file-format!",
+      "name": "",
+      "preserveMemberOrder": false,
+      "members": [
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/file-format!isV1File:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function isV1File(data: "
+            },
+            {
+              "kind": "Content",
+              "text": "any"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "boolean"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/file-format/src/lib/file.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "data",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "isV1File"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/file-format!parseTldrawJsonFile:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function parseTldrawJsonFile({ json, schema, }: "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    schema: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLSchema",
+              "canonicalReference": "@tldraw/tlschema!TLSchema:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    json: string;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Result",
+              "canonicalReference": "@tldraw/utils!Result:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TLStore",
+              "canonicalReference": "@tldraw/tlschema!TLStore:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", "
+            },
+            {
+              "kind": "Reference",
+              "text": "TldrawFileParseError",
+              "canonicalReference": "@tldraw/file-format!TldrawFileParseError:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/file-format/src/lib/file.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 11
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ json, schema, }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "parseTldrawJsonFile"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/file-format!serializeTldrawJson:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function serializeTldrawJson(store: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLStore",
+              "canonicalReference": "@tldraw/tlschema!TLStore:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/file-format/src/lib/file.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "store",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "serializeTldrawJson"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@tldraw/file-format!serializeTldrawJsonBlob:function(1)",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function serializeTldrawJsonBlob(store: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TLStore",
+              "canonicalReference": "@tldraw/tlschema!TLStore:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Promise",
+              "canonicalReference": "!Promise:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Blob",
+              "canonicalReference": "!Blob:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/file-format/src/lib/file.ts",
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 7
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "store",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "serializeTldrawJsonBlob"
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/file-format!TLDRAW_FILE_EXTENSION:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TLDRAW_FILE_EXTENSION: "
+            },
+            {
+              "kind": "Content",
+              "text": "\".tldr\""
+            }
+          ],
+          "fileUrlPath": "packages/file-format/src/lib/file.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TLDRAW_FILE_EXTENSION",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "@tldraw/file-format!TLDRAW_FILE_MIMETYPE:var",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TLDRAW_FILE_MIMETYPE: "
+            },
+            {
+              "kind": "Content",
+              "text": "\"application/vnd.tldraw+json\""
+            }
+          ],
+          "fileUrlPath": "packages/file-format/src/lib/file.ts",
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TLDRAW_FILE_MIMETYPE",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "@tldraw/file-format!TldrawFile:interface",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export interface TldrawFile "
+            }
+          ],
+          "fileUrlPath": "packages/file-format/src/lib/file.ts",
+          "releaseTag": "Public",
+          "name": "TldrawFile",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/file-format!TldrawFile#records:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "records: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnknownRecord",
+                  "canonicalReference": "@tldraw/store!UnknownRecord:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "records",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/file-format!TldrawFile#schema:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "schema: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedSchema",
+                  "canonicalReference": "@tldraw/store!SerializedSchema:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "schema",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/file-format!TldrawFile#tldrawFileFormatVersion:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "tldrawFileFormatVersion: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "tldrawFileFormatVersion",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/file-format!TldrawFileParseError:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TldrawFileParseError = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    type: 'fileFormatVersionTooNew';\n    version: number;\n} | {\n    type: 'invalidRecords';\n    cause: unknown;\n} | {\n    type: 'migrationFailed';\n    reason: "
+            },
+            {
+              "kind": "Reference",
+              "text": "MigrationFailureReason",
+              "canonicalReference": "@tldraw/store!MigrationFailureReason:enum"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n} | {\n    type: 'notATldrawFile';\n    cause: unknown;\n} | {\n    type: 'v1File';\n    data: any;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/file-format/src/lib/file.ts",
+          "releaseTag": "Public",
+          "name": "TldrawFileParseError",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        }
+      ]
+    }
+  ]
+}
