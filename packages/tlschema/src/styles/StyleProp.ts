@@ -16,7 +16,7 @@ import { T } from '@tldraw/validate'
  * and {@link StyleProp.defineEnum}) or using tldraw's default ones, like {@link DefaultColorStyle}.
  * When you define a shape, pass a `props` object describing all of your shape's properties, using
  * `StyleProp`s for the ones you want to be styles. See the
- * {@link https://github.com/tldraw/tldraw/tree/main/apps/examples/src/16-custom-styles | custom styles example}
+ * {@link https://github.com/tldraw/tldraw/tree/main/apps/examples | custom styles example}
  * for more.
  *
  * @public
