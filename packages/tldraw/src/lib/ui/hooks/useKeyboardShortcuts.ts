@@ -82,7 +82,11 @@ function getHotkeysStringFromKbd(kbd: string) {
 				if (chars[0] === '!') {
 					str = `shift+${chars[1]}`
 				} else if (chars[0] === '?') {
-					str = `alt+${chars[1]}`
+					if (chars.length === 3 && chars[1] === '!') {
+						str = `alt+shift+${chars[2]}`
+					} else {
+						str = `alt+${chars[1]}`
+					}
 				} else if (chars[0] === '$') {
 					if (chars[1] === '!') {
 						str = `cmd+shift+${chars[2]},ctrl+shift+${chars[2]}`
