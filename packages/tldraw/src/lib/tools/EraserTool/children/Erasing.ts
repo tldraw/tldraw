@@ -110,7 +110,11 @@ export class Erasing extends StateNode {
 
 		const erasing = new Set<TLShapeId>(erasingShapeIds)
 
-		for (const shape of currentPageShapes) {
+		const currentPageShapesFiltered = currentPageShapes.filter((shape) => {
+			return excludedShapeIds.has(shape.id)
+		})
+
+		for (const shape of currentPageShapesFiltered) {
 			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) continue
 
 			// Avoid testing masked shapes, unless the pointer is inside the mask
