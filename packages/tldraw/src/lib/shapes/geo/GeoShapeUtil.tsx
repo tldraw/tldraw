@@ -930,8 +930,8 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 	}
 
 	override onBeforeUpdate = (prev: TLGeoShape, next: TLGeoShape) => {
-		const prevText = prev.props.text.trimEnd()
-		const nextText = next.props.text.trimEnd()
+		const prevText = prev.props.text
+		const nextText = next.props.text
 
 		if (
 			prevText === nextText &&
@@ -1043,7 +1043,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 }
 
 function getLabelSize(editor: Editor, shape: TLGeoShape) {
-	const text = shape.props.text.trimEnd()
+	const text = shape.props.text
 
 	if (!text) {
 		return { w: 0, h: 0 }

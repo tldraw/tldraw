@@ -40,8 +40,6 @@ const spaceCharacterRegex = /\s/
 export class TextManager {
 	constructor(public editor: Editor) {}
 
-	private textElement: HTMLDivElement | null = null
-
 	private getTextElement() {
 		const oldElm = document.querySelector('.tl-text-measure')
 		oldElm?.remove()
@@ -87,6 +85,7 @@ export class TextManager {
 		elm.style.setProperty('min-width', opts.minWidth ?? null)
 		elm.style.setProperty('padding', opts.padding)
 
+		console.log('text:', JSON.stringify(normalizeTextForDom(textToMeasure)))
 		elm.textContent = normalizeTextForDom(textToMeasure)
 		const rect = elm.getBoundingClientRect()
 
@@ -218,6 +217,8 @@ export class TextManager {
 			element.style.setProperty('word-break', 'break-all')
 		}
 
+		textToMeasure = normalizeTextForDom(textToMeasure)
+
 		// Render the text into the measurement element:
 		element.textContent = textToMeasure
 
@@ -255,7 +256,7 @@ export class TextManager {
 			return truncatedSpans
 		}
 
-		element.remove()
+		// element.remove()
 
 		return spans
 	}
