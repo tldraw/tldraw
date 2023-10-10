@@ -4320,8 +4320,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				distance = minDistance
 			} else {
 				if (
-					geometry.bounds.w > 1 &&
-					geometry.bounds.h > 1 &&
+					geometry.bounds.w > margin &&
+					geometry.bounds.h > margin &&
 					!geometry.bounds.containsPoint(pointInShapeSpace, margin)
 				) {
 					distance = Infinity
