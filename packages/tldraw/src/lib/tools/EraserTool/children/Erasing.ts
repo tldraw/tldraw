@@ -28,8 +28,10 @@ export class Erasing extends StateNode {
 		this.excludedShapeIds = new Set(
 			this.editor.currentPageShapes
 				.filter((shape) => {
+					//If the shape is locked, we shouldn't erase it
+					if (this.editor.isShapeOrAncestorLocked(shape)) return true
+					//If the shape is a group or frame, check we're inside it when we start erasing
 					if (
-						this.editor.isShapeOrAncestorLocked(shape) ||
 						this.editor.isShapeOfType<TLGroupShape>(shape, 'group') ||
 						this.editor.isShapeOfType<TLFrameShape>(shape, 'frame')
 					) {
