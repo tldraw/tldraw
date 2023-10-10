@@ -7,7 +7,30 @@ import { setupPage } from '../shared-e2e'
 declare const editor: Editor
 
 test.describe('Export snapshots', () => {
-	const snapshots = {} as Record<string, TLShapePartial[]>
+	const snapshots = {
+		'Exports geo text with leading line breaks': [
+			{
+				id: 'shape:testShape' as TLShapeId,
+				type: 'geo',
+				props: {
+					w: 100,
+					h: 30,
+					text: '\n\n\n\n\n\ntext',
+				},
+			},
+		],
+		'Exports geo text with trailing line breaks': [
+			{
+				id: 'shape:testShape' as TLShapeId,
+				type: 'geo',
+				props: {
+					w: 100,
+					h: 30,
+					text: 'text\n\n\n\n\n\n',
+				},
+			},
+		],
+	} as Record<string, TLShapePartial[]>
 
 	for (const fill of ['none', 'semi', 'solid', 'pattern']) {
 		snapshots[`geo fill=${fill}`] = [

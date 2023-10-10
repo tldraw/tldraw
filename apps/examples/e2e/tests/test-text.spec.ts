@@ -218,4 +218,28 @@ test.describe('text measurement', () => {
 
 		expect(formatLines(spans)).toEqual([])
 	})
+
+	test('should handle trailing newlines', async () => {
+		const spans = await page.evaluate<
+			{ text: string; box: Box2dModel }[],
+			typeof measureTextSpansOptions
+		>(
+			async (options) => editor.textMeasure.measureTextSpans('hi\n\n\n', options),
+			measureTextSpansOptions
+		)
+
+		expect(formatLines(spans)).toEqual([['hi', '\n'], [' \n'], [' \n'], [' ']])
+	})
+
+	test('should handle only newlines', async () => {
+		const spans = await page.evaluate<
+			{ text: string; box: Box2dModel }[],
+			typeof measureTextSpansOptions
+		>(
+			async (options) => editor.textMeasure.measureTextSpans('\n\n\n', options),
+			measureTextSpansOptions
+		)
+
+		expect(formatLines(spans)).toEqual([[' \n'], [' \n'], [' \n'], [' ']])
+	})
 })
