@@ -4375,7 +4375,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					}
 				}
 			} else {
-				console.log('hello')
 				// For open shapes (e.g. lines or draw shapes) always use the margin.
 				// If the distance is less than the margin, return the shape as the hit.
 				if (distance < HIT_TEST_MARGIN / zoomLevel) {

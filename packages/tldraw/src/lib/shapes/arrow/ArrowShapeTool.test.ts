@@ -1,4 +1,4 @@
-import { Vec2d, createShapeId } from '@tldraw/editor'
+import { TLArrowShape, Vec2d, createShapeId } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 
 let editor: TestEditor
@@ -523,5 +523,29 @@ describe('line bug', () => {
 			.keyUp('Shift')
 
 		expect(editor.currentPageShapes.length).toBe(2)
+		const arrow = editor.currentPageShapes[1] as TLArrowShape
+		expect(arrow.props.end.type).toBe('binding')
+	})
+
+	it('works as expected when binding to a straight horizontal line', () => {
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+
+		expect(editor.currentPageShapes.length).toBe(0)
+
+		editor
+			.setCurrentTool('line')
+			.pointerMove(0, 0)
+			.pointerDown()
+			.pointerMove(0, 100)
+			.pointerUp()
+			.setCurrentTool('arrow')
+			.pointerMove(50, 50)
+			.pointerDown()
+			.pointerMove(0, 50)
+			.pointerUp()
+
+		expect(editor.currentPageShapes.length).toBe(2)
+		const arrow = editor.currentPageShapes[1] as TLArrowShape
+		expect(arrow.props.end.type).toBe('binding')
 	})
 })
