@@ -196,6 +196,8 @@ export class TextManager {
 		textToMeasure: string,
 		opts: TLMeasureTextSpanOpts
 	): { text: string; box: Box2dModel }[] {
+		if (textToMeasure === '') return []
+
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
 
