@@ -152,7 +152,9 @@ function CommonStylePickerSet({
 					<Slider
 						data-testid="style.opacity"
 						value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
-						label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity}`}
+						label={
+							opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`
+						}
 						onValueChange={handleOpacityValueChange}
 						steps={tldrawSupportedOpacities.length - 1}
 						title={msg('style-panel.opacity')}
