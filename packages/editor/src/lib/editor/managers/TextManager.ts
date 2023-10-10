@@ -85,7 +85,6 @@ export class TextManager {
 		elm.style.setProperty('min-width', opts.minWidth ?? null)
 		elm.style.setProperty('padding', opts.padding)
 
-		console.log('text:', JSON.stringify(normalizeTextForDom(textToMeasure)))
 		elm.textContent = normalizeTextForDom(textToMeasure)
 		const rect = elm.getBoundingClientRect()
 
@@ -256,7 +255,7 @@ export class TextManager {
 			return truncatedSpans
 		}
 
-		// element.remove()
+		element.remove()
 
 		return spans
 	}
