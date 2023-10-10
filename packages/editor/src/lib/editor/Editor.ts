@@ -3025,25 +3025,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes
 		const isCullingOffScreenShapes = Number.isFinite(this.renderingBoundsMargin)
 
-		let shape: TLShape | undefined
-		let isShapeErasing: boolean
-		let isCulled: boolean
-		let util: ShapeUtil
-		let maskedPageBounds: Box2d | undefined
-
 		const addShapeById = (id: TLShapeId, opacity: number, isAncestorErasing: boolean) => {
-			shape = this.getShape(id)
+			const shape = this.getShape(id)
 			if (!shape) return
 
 			opacity *= shape.opacity
-			isShapeErasing = false
-			isCulled = false
-			util = this.getShapeUtil(shape)
-			maskedPageBounds = this.getShapeMaskedPageBounds(id)
+			let isCulled = false
+			let isShapeErasing = false
+			const util = this.getShapeUtil(shape)
+			const maskedPageBounds = this.getShapeMaskedPageBounds(id)
 
 			if (useEditorState) {
-				if (!isAncestorErasing && erasingShapeIds.includes(id)) {
-					isShapeErasing = true
+				isShapeErasing = !isAncestorErasing && erasingShapeIds.includes(id)
+				if (isShapeErasing) {
 					opacity *= 0.32
 				}
 
