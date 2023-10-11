@@ -40,6 +40,7 @@ jobs:
       - name: Get installed Playwright version
         id: playwright-version
         run: |
+          cd apps/examples
           yarn info @playwright/test --json > playwright.json
           echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
 
