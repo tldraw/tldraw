@@ -12,6 +12,10 @@ export type TLCommandHistoryOptions = Partial<{
 	 * When true, adding this this command will not clear out the redo stack.
 	 */
 	preservesRedoStack: boolean
+	/**
+	 * when true, we can keep the locked shape
+	 */
+	ungrouping?: boolean
 }>
 
 /** @public */

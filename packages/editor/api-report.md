@@ -807,7 +807,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         isCulled: boolean;
         maskedPageBounds: Box2d | undefined;
     }[];
-    reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: string): this;
+    reparentShapes(shapes: TLShape[] | TLShapeId[], parentId: TLParentId, insertIndex?: string, ungrouping?: boolean): this;
     resetZoom(point?: Vec2d, animation?: TLAnimationOptions): this;
     resizeShape(shape: TLShape | TLShapeId, scale: VecLike, options?: TLResizeShapeOptions): this;
     readonly root: RootState;

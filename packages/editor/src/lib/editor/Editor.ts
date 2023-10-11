@@ -4709,7 +4709,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	reparentShapes(shapes: TLShapeId[] | TLShape[], parentId: TLParentId, insertIndex?: string) {
+	reparentShapes(
+		shapes: TLShapeId[] | TLShape[],
+		parentId: TLParentId,
+		insertIndex?: string,
+		ungrouping?: boolean
+	) {
 		const ids =
 			typeof shapes[0] === 'string' ? (shapes as TLShapeId[]) : shapes.map((s) => (s as TLShape).id)
 		const changes: TLShapePartial[] = []
@@ -4784,8 +4789,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				index: indices[i],
 			})
 		}
-
-		this.updateShapes(changes)
+		this.updateShapes(changes, { ungrouping })
 		return this
 	}
 
@@ -6832,7 +6836,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					idsToSelect.add(childIds[j])
 				}
 
-				this.reparentShapes(childIds, group.parentId, group.index)
+				this.reparentShapes(childIds, group.parentId, group.index, true)
 			}
 
 			this.deleteShapes(groups.map((group) => group.id))
@@ -6890,7 +6894,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!shape) return false
 
 			// Only allow changes to unlocked shapes or changes to the isLocked property (otherwise we cannot unlock a shape)
-			if (this.isShapeOrAncestorLocked(shape) && !Object.hasOwn(p, 'isLocked')) return false
+			if (
+				!historyOptions?.ungrouping &&
+				this.isShapeOrAncestorLocked(shape) &&
+				!Object.hasOwn(p, 'isLocked')
+			)
+				return false
 			return true
 		})
 
