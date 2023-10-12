@@ -535,7 +535,9 @@ export class Edge2d extends Geometry2d {
     // (undocumented)
     hitTestLineSegment(A: Vec2d, B: Vec2d, _zoom: number): boolean;
     // (undocumented)
-    length: number;
+    get length(): number;
+    // (undocumented)
+    _length?: number;
     // (undocumented)
     midPoint(): Vec2d;
     // (undocumented)
@@ -544,6 +546,8 @@ export class Edge2d extends Geometry2d {
     start: Vec2d;
     // (undocumented)
     u: Vec2d;
+    // (undocumented)
+    ul: number;
 }
 
 // @public (undocumented)
@@ -608,6 +612,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPage(): TLPage;
     get currentPageBounds(): Box2d | undefined;
     get currentPageId(): TLPageId;
+    get currentPageRenderingShapesSorted(): TLShape[];
     get currentPageShapeIds(): Set<TLShapeId>;
     get currentPageShapes(): TLShape[];
     get currentPageShapesSorted(): TLShape[];
@@ -680,6 +685,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
     getShapeAtPoint(point: VecLike, opts?: {
+        renderingOnly?: boolean | undefined;
         margin?: number | undefined;
         hitInside?: boolean | undefined;
         hitLabels?: boolean | undefined;

@@ -55,7 +55,7 @@ export const TextLabel = React.memo(function TextLabel<
 	} = useEditableText(id, type, text)
 
 	const finalText = TextHelpers.normalizeTextForDom(text)
-	const hasText = finalText.trim().length > 0
+	const hasText = finalText.length > 0
 
 	const legacyAlign = isLegacyAlign(align)
 	const theme = useDefaultColorTheme()

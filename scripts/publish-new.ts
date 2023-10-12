@@ -82,7 +82,7 @@ async function main() {
 	await publish()
 
 	nicelog('Notifying huppy of release...')
-	const huppyResponse = await fetch('http://localhost:3000/api/on-release', {
+	const huppyResponse = await fetch('https://tldraw-repo-sync.fly.dev/api/on-release', {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',

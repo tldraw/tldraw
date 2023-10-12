@@ -330,6 +330,7 @@ export class Idle extends StateNode {
 								hitInside: false,
 								hitLabels: true,
 								hitFrameInside: false,
+								renderingOnly: true,
 						  })
 
 				if (hitShape) {

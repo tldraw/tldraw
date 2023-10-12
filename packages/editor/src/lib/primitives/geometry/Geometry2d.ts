@@ -28,12 +28,13 @@ export abstract class Geometry2d {
 	abstract nearestPoint(point: Vec2d): Vec2d
 
 	hitTestPoint(point: Vec2d, margin = 0, hitInside = false) {
-		if (!this.bounds.containsPoint(point, margin)) return false
+		// We've removed the broad phase here; that should be done outside of the call
 		return this.distanceToPoint(point, hitInside) <= margin
 	}
 
 	distanceToPoint(point: Vec2d, hitInside = false) {
 		const dist = point.dist(this.nearestPoint(point))
+
 		if (this.isClosed && (this.isFilled || hitInside) && pointInPolygon(point, this.vertices)) {
 			return -dist
 		}

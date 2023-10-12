@@ -111,9 +111,6 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 // @public
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
-// @internal (undocumented)
-export function CLIENT_FIXUP_SCRIPT(persistedStore: SerializedStore<TLRecord>): SerializedStore<TLRecord>;
-
 // @public
 export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
     id: TLAssetId;
@@ -452,12 +449,6 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     // (undocumented)
     readonly values: readonly T[];
 }
-
-// @internal (undocumented)
-export function fixupRecord(oldRecord: TLRecord): {
-    record: any;
-    issues: string[];
-};
 
 // @internal (undocumented)
 export const frameShapeMigrations: Migrations;
@@ -1033,6 +1024,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     isFocusMode: boolean;
     // (undocumented)
     isGridMode: boolean;
+    isHoveringCanvas: boolean | null;
     // (undocumented)
     isPenMode: boolean;
     // (undocumented)

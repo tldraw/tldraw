@@ -585,6 +585,66 @@ describe('Renaming properties in instancePageState', () => {
 	})
 })
 
+describe('Renaming properties again in instancePageState', () => {
+	const { up, down } =
+		instancePageStateMigrations.migrators[instancePageStateVersions.RenamePropertiesAgain]
+	test('up works as expected', () => {
+		expect(
+			up({
+				selectedIds: [],
+				hintingIds: [],
+				erasingIds: [],
+				hoveredId: null,
+				editingId: null,
+				croppingId: null,
+				focusLayerId: null,
+				meta: {
+					name: 'hallo',
+				},
+			})
+		).toEqual({
+			selectedShapeIds: [],
+			hintingShapeIds: [],
+			erasingShapeIds: [],
+			hoveredShapeId: null,
+			editingShapeId: null,
+			croppingShapeId: null,
+			focusedGroupId: null,
+			meta: {
+				name: 'hallo',
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				selectedShapeIds: [],
+				hintingShapeIds: [],
+				erasingShapeIds: [],
+				hoveredShapeId: null,
+				editingShapeId: null,
+				croppingShapeId: null,
+				focusedGroupId: null,
+				meta: {
+					name: 'hallo',
+				},
+			})
+		).toEqual({
+			selectedIds: [],
+			hintingIds: [],
+			erasingIds: [],
+			hoveredId: null,
+			editingId: null,
+			croppingId: null,
+			focusLayerId: null,
+			meta: {
+				name: 'hallo',
+			},
+		})
+	})
+})
+
 describe('Adding followingUserId prop to instance', () => {
 	const { up, down } = instanceMigrations.migrators[6]
 	test('up works as expected', () => {
@@ -1532,6 +1592,18 @@ describe('Adding canSnap to line handles', () => {
 				},
 			},
 		})
+	})
+})
+
+describe('add isHoveringCanvas to TLInstance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddHoveringCanvas]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ isHoveringCanvas: null })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ isHoveringCanvas: null })).toEqual({})
 	})
 })
 

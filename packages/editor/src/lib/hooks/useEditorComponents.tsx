@@ -1,6 +1,9 @@
 import { createContext, useContext, useMemo } from 'react'
 import { ShapeIndicator, TLShapeIndicatorComponent } from '../components/ShapeIndicator'
-import { TLBackgroundComponent } from '../components/default-components/DefaultBackground'
+import {
+	DefaultBackground,
+	TLBackgroundComponent,
+} from '../components/default-components/DefaultBackground'
 import { DefaultBrush, TLBrushComponent } from '../components/default-components/DefaultBrush'
 import {
 	DefaultCollaboratorHint,
@@ -88,7 +91,7 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 		<EditorComponentsContext.Provider
 			value={useMemo(
 				() => ({
-					Background: null,
+					Background: DefaultBackground,
 					SvgDefs: DefaultSvgDefs,
 					Brush: DefaultBrush,
 					ZoomBrush: DefaultBrush,

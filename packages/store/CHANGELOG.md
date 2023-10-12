@@ -1,3 +1,15 @@
+# v2.0.0-alpha.16 (Wed Oct 11 2023)
+
+#### 🏠 Internal
+
+- Publish api.json [#2034](https://github.com/tldraw/tldraw/pull/2034) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.15 (Fri Oct 06 2023)
 
 ### Release Notes

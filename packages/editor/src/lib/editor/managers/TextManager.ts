@@ -40,8 +40,6 @@ const spaceCharacterRegex = /\s/
 export class TextManager {
 	constructor(public editor: Editor) {}
 
-	private textElement: HTMLDivElement | null = null
-
 	private getTextElement() {
 		const oldElm = document.querySelector('.tl-text-measure')
 		oldElm?.remove()
@@ -198,6 +196,8 @@ export class TextManager {
 		textToMeasure: string,
 		opts: TLMeasureTextSpanOpts
 	): { text: string; box: Box2dModel }[] {
+		if (textToMeasure === '') return []
+
 		const shouldTruncateToFirstLine =
 			opts.overflow === 'truncate-ellipsis' || opts.overflow === 'truncate-clip'
 
@@ -217,6 +217,8 @@ export class TextManager {
 			element.style.setProperty('overflow-wrap', 'anywhere')
 			element.style.setProperty('word-break', 'break-all')
 		}
+
+		textToMeasure = normalizeTextForDom(textToMeasure)
 
 		// Render the text into the measurement element:
 		element.textContent = textToMeasure
