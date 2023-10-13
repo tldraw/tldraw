@@ -1171,8 +1171,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     hideSelectionBoundsFg: () => boolean;
     // (undocumented)
-    i: number;
-    // (undocumented)
     indicator(shape: TLGroupShape): JSX.Element;
     // (undocumented)
     static migrations: Migrations;

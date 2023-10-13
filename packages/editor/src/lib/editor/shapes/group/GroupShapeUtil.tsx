@@ -49,8 +49,6 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 		})
 	}
 
-	i = 0
-
 	component(shape: TLGroupShape) {
 		const isErasing = this.editor.erasingShapeIds.includes(shape.id)
 
