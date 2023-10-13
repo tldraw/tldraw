@@ -3,6 +3,7 @@ import {
 	ContextMenu,
 	TldrawEditor,
 	TldrawUi,
+	defaultShapeTools,
 	defaultShapeUtils,
 	defaultTools,
 } from '@tldraw/tldraw'
@@ -14,7 +15,7 @@ export default function ExplodedExample() {
 			<TldrawEditor
 				initialState="select"
 				shapeUtils={defaultShapeUtils}
-				tools={defaultTools}
+				tools={[...defaultTools, ...defaultShapeTools]}
 				persistenceKey="exploded-example"
 			>
 				<TldrawUi>
