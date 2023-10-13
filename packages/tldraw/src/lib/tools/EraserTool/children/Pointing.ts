@@ -23,7 +23,10 @@ export class Pointing extends StateNode {
 
 		for (let n = sortedShapesOnCurrentPage.length, i = n - 1; i >= 0; i--) {
 			const shape = sortedShapesOnCurrentPage[i]
-			if (this.editor.isShapeOfType<TLGroupShape>(shape, 'group')) {
+			if (
+				this.editor.isShapeOrAncestorLocked(shape) ||
+				this.editor.isShapeOfType<TLGroupShape>(shape, 'group')
+			) {
 				continue
 			}
 
