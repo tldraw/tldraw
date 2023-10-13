@@ -80,7 +80,9 @@ export const onValidationFailure: StoreSchemaOptions<
 }
 
 function getDefaultPages() {
-	return [PageRecordType.create({ name: 'Page 1', index: 'a1', meta: {} })]
+	return [
+		PageRecordType.create({ id: 'page:page' as TLPageId, name: 'Page 1', index: 'a1', meta: {} }),
+	]
 }
 
 /** @internal */
