@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/rules-of-hooks */
 import { TLGroupShape, groupShapeMigrations, groupShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
