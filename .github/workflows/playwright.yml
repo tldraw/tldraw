@@ -70,7 +70,7 @@ jobs:
       - uses: shallwefootball/s3-upload-action@master
         # only upload if we have AWS credentials:
         env:
-          HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEYY && '1' || '' }}
+          HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEY && '1' || '' }}
         if: always() && env.HAS_AWS_KEY == '1'
         name: Upload S3
         id: s3
