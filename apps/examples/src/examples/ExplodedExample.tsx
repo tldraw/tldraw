@@ -3,9 +3,9 @@ import {
 	ContextMenu,
 	TldrawEditor,
 	TldrawUi,
-	defaultShapeUtils,
 	defaultShapeTools,
-	defaultTools
+	defaultShapeUtils,
+	defaultTools,
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
