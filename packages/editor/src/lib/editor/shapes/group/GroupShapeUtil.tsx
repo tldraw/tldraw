@@ -49,15 +49,9 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	}
 
 	component(shape: TLGroupShape) {
-		// Not a class component, but eslint can't tell that :(
-		const {
-			erasingShapeIds,
-			currentPageState: { hintingShapeIds, focusedGroupId },
-			zoomLevel,
-		} = this.editor
+		const isErasing = this.editor.erasingShapeIds.includes(shape.id)
 
-		const isErasing = erasingShapeIds.includes(shape.id)
-
+		const { hintingShapeIds } = this.editor.currentPageState
 		const isHintingOtherGroup =
 			hintingShapeIds.length > 0 &&
 			hintingShapeIds.some(
@@ -66,12 +60,13 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 					this.editor.isShapeOfType<TLGroupShape>(this.editor.getShape(id)!, 'group')
 			)
 
+		const isFocused = this.editor.currentPageState.focusedGroupId !== shape.id
+
 		if (
-			// always show the outline while we're erasing the group
-			!isErasing &&
+			!isErasing && // always show the outline while we're erasing the group
 			// show the outline while the group is focused unless something outside of the group is being hinted
 			// this happens dropping shapes from a group onto some outside group
-			(shape.id !== focusedGroupId || isHintingOtherGroup)
+			(isFocused || isHintingOtherGroup)
 		) {
 			return null
 		}
@@ -80,20 +75,15 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 
 		return (
 			<SVGContainer id={shape.id}>
-				<DashedOutlineBox className="tl-group" bounds={bounds} zoomLevel={zoomLevel} />
+				<DashedOutlineBox className="tl-group" bounds={bounds} />
 			</SVGContainer>
 		)
 	}
 
 	indicator(shape: TLGroupShape) {
 		// Not a class component, but eslint can't tell that :(
-		const {
-			camera: { z: zoomLevel },
-		} = this.editor
-
 		const bounds = this.editor.getShapeGeometry(shape).bounds
-
-		return <DashedOutlineBox className="" bounds={bounds} zoomLevel={zoomLevel} />
+		return <DashedOutlineBox className="" bounds={bounds} />
 	}
 
 	override onChildrenChange: TLOnChildrenChangeHandler<TLGroupShape> = (group) => {
