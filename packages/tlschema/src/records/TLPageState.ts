@@ -18,13 +18,13 @@ import { TLShapeId } from './TLShape'
 export interface TLInstancePageState
 	extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
 	pageId: RecordId<TLPage>
-	selectedIds: TLShapeId[]
-	hintingIds: TLShapeId[]
-	erasingIds: TLShapeId[]
-	hoveredId: TLShapeId | null
-	editingId: TLShapeId | null
-	croppingId: TLShapeId | null
-	focusLayerId: TLShapeId | null
+	selectedShapeIds: TLShapeId[]
+	hintingShapeIds: TLShapeId[]
+	erasingShapeIds: TLShapeId[]
+	hoveredShapeId: TLShapeId | null
+	editingShapeId: TLShapeId | null
+	croppingShapeId: TLShapeId | null
+	focusedGroupId: TLShapeId | null
 	meta: JsonObject
 }
 
@@ -35,13 +35,13 @@ export const instancePageStateValidator: T.Validator<TLInstancePageState> = T.mo
 		typeName: T.literal('instance_page_state'),
 		id: idValidator<TLInstancePageStateId>('instance_page_state'),
 		pageId: pageIdValidator,
-		selectedIds: T.arrayOf(shapeIdValidator),
-		hintingIds: T.arrayOf(shapeIdValidator),
-		erasingIds: T.arrayOf(shapeIdValidator),
-		hoveredId: shapeIdValidator.nullable(),
-		editingId: shapeIdValidator.nullable(),
-		croppingId: shapeIdValidator.nullable(),
-		focusLayerId: shapeIdValidator.nullable(),
+		selectedShapeIds: T.arrayOf(shapeIdValidator),
+		hintingShapeIds: T.arrayOf(shapeIdValidator),
+		erasingShapeIds: T.arrayOf(shapeIdValidator),
+		hoveredShapeId: shapeIdValidator.nullable(),
+		editingShapeId: shapeIdValidator.nullable(),
+		croppingShapeId: shapeIdValidator.nullable(),
+		focusedGroupId: shapeIdValidator.nullable(),
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
 )
@@ -51,17 +51,19 @@ export const instancePageStateVersions = {
 	AddCroppingId: 1,
 	RemoveInstanceIdAndCameraId: 2,
 	AddMeta: 3,
+	RenameProperties: 4,
+	RenamePropertiesAgain: 5,
 } as const
 
 /** @public */
 export const instancePageStateMigrations = defineMigrations({
-	currentVersion: instancePageStateVersions.AddMeta,
+	currentVersion: instancePageStateVersions.RenamePropertiesAgain,
 	migrators: {
 		[instancePageStateVersions.AddCroppingId]: {
 			up(instance) {
-				return { ...instance, croppingId: null }
+				return { ...instance, croppingShapeId: null }
 			},
-			down({ croppingId: _croppingId, ...instance }) {
+			down({ croppingShapeId: _croppingShapeId, ...instance }) {
 				return instance
 			},
 		},
@@ -91,6 +93,100 @@ export const instancePageStateMigrations = defineMigrations({
 				}
 			},
 		},
+		[instancePageStateVersions.RenameProperties]: {
+			// this migration is cursed: it was written wrong and doesn't do anything.
+			// rather than replace it, I've added another migration below that fixes it.
+			up: (record) => {
+				const {
+					selectedShapeIds,
+					hintingShapeIds,
+					erasingShapeIds,
+					hoveredShapeId,
+					editingShapeId,
+					croppingShapeId,
+					focusedGroupId,
+					...rest
+				} = record
+				return {
+					selectedShapeIds: selectedShapeIds,
+					hintingShapeIds: hintingShapeIds,
+					erasingShapeIds: erasingShapeIds,
+					hoveredShapeId: hoveredShapeId,
+					editingShapeId: editingShapeId,
+					croppingShapeId: croppingShapeId,
+					focusedGroupId: focusedGroupId,
+					...rest,
+				}
+			},
+			down: (record) => {
+				const {
+					selectedShapeIds,
+					hintingShapeIds,
+					erasingShapeIds,
+					hoveredShapeId,
+					editingShapeId,
+					croppingShapeId,
+					focusedGroupId,
+					...rest
+				} = record
+				return {
+					selectedShapeIds: selectedShapeIds,
+					hintingShapeIds: hintingShapeIds,
+					erasingShapeIds: erasingShapeIds,
+					hoveredShapeId: hoveredShapeId,
+					editingShapeId: editingShapeId,
+					croppingShapeId: croppingShapeId,
+					focusedGroupId: focusedGroupId,
+					...rest,
+				}
+			},
+		},
+		[instancePageStateVersions.RenamePropertiesAgain]: {
+			up: (record) => {
+				const {
+					selectedIds,
+					hintingIds,
+					erasingIds,
+					hoveredId,
+					editingId,
+					croppingId,
+					focusLayerId,
+					...rest
+				} = record
+				return {
+					...rest,
+					selectedShapeIds: selectedIds,
+					hintingShapeIds: hintingIds,
+					erasingShapeIds: erasingIds,
+					hoveredShapeId: hoveredId,
+					editingShapeId: editingId,
+					croppingShapeId: croppingId,
+					focusedGroupId: focusLayerId,
+				}
+			},
+			down: (record) => {
+				const {
+					selectedShapeIds,
+					hintingShapeIds,
+					erasingShapeIds,
+					hoveredShapeId,
+					editingShapeId,
+					croppingShapeId,
+					focusedGroupId,
+					...rest
+				} = record
+				return {
+					...rest,
+					selectedIds: selectedShapeIds,
+					hintingIds: hintingShapeIds,
+					erasingIds: erasingShapeIds,
+					hoveredId: hoveredShapeId,
+					editingId: editingShapeId,
+					croppingId: croppingShapeId,
+					focusLayerId: focusedGroupId,
+				}
+			},
+		},
 	},
 })
 
@@ -104,13 +200,13 @@ export const InstancePageStateRecordType = createRecordType<TLInstancePageState>
 	}
 ).withDefaultProperties(
 	(): Omit<TLInstancePageState, 'id' | 'typeName' | 'pageId'> => ({
-		editingId: null,
-		croppingId: null,
-		selectedIds: [],
-		hoveredId: null,
-		erasingIds: [],
-		hintingIds: [],
-		focusLayerId: null,
+		editingShapeId: null,
+		croppingShapeId: null,
+		selectedShapeIds: [],
+		hoveredShapeId: null,
+		erasingShapeIds: [],
+		hintingShapeIds: [],
+		focusedGroupId: null,
 		meta: {},
 	})
 )

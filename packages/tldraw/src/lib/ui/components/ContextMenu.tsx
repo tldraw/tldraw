@@ -30,11 +30,11 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 				const { onlySelectedShape } = editor
 
 				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
-					editor.setSelectedIds([])
+					editor.setSelectedShapes([])
 				}
 			} else {
 				// Weird route: selecting locked shapes on long press
-				if (editor.isCoarsePointer) {
+				if (editor.instanceState.isCoarsePointer) {
 					const {
 						selectedShapes,
 						inputs: { currentPagePoint },

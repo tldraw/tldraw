@@ -17,8 +17,6 @@ export type TLPointerEventName =
 	| 'pointer_down'
 	| 'pointer_move'
 	| 'pointer_up'
-	| 'pointer_enter'
-	| 'pointer_leave'
 	| 'right_click'
 	| 'middle_click'
 
@@ -144,8 +142,6 @@ export type TLExitEventHandler = (info: any, to: string) => void
 
 /** @public */
 export interface TLEventHandlers {
-	onPointerEnter: TLPointerEvent
-	onPointerLeave: TLPointerEvent
 	onPointerDown: TLPointerEvent
 	onPointerMove: TLPointerEvent
 	onRightClick: TLPointerEvent
@@ -169,8 +165,6 @@ export const EVENT_NAME_MAP: Record<
 	keyof TLEventHandlers
 > = {
 	wheel: 'onWheel',
-	pointer_enter: 'onPointerEnter',
-	pointer_leave: 'onPointerLeave',
 	pointer_down: 'onPointerDown',
 	pointer_move: 'onPointerMove',
 	pointer_up: 'onPointerUp',

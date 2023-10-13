@@ -10,11 +10,11 @@ export function sleep(ms: number) {
 // }
 
 // export async function expectToHaveNShapes(page: Page, numberOfShapes: number) {
-// 	expect(await page.evaluate(() => editor.shapesArray.length)).toBe(numberOfShapes)
+// 	expect(await page.evaluate(() => editor.currentPageShapes.length)).toBe(numberOfShapes)
 // }
 
 // export async function expectToHaveNSelectedShapes(page: Page, numberOfSelectedShapes: number) {
-// 	expect(await page.evaluate(() => editor.selectedIds.length)).toBe(numberOfSelectedShapes)
+// 	expect(await page.evaluate(() => editor.selectedShapeIds.length)).toBe(numberOfSelectedShapes)
 // }
 
 declare const editor: Editor
@@ -36,20 +36,25 @@ export async function setupPage(page: PlaywrightTestArgs['page']) {
 	await page.goto('http://localhost:5420/end-to-end')
 	await page.waitForSelector('.tl-canvas')
 	await page.evaluate(() => {
-		editor.animationSpeed = 0
+		editor.user.updateUserPreferences({ animationSpeed: 0 })
 	})
 }
 
 export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
+	// delete everything
+	await page.keyboard.press('Control+a')
+	await page.keyboard.press('Backspace')
+
+	// create shapes
 	await page.keyboard.press('r')
 	await page.mouse.click(200, 200)
 	await page.keyboard.press('r')
 	await page.mouse.click(200, 250)
 	await page.keyboard.press('r')
 	await page.mouse.click(250, 300)
-	await page.evaluate(() => {
-		editor.selectNone()
-	})
+
+	// deselect everything
+	await page.evaluate(() => editor.selectNone())
 }
 
 export async function cleanupPage(page: PlaywrightTestArgs['page']) {

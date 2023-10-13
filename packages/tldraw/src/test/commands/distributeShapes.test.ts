@@ -19,7 +19,7 @@ beforeEach(() => {
 describe('distributeShapes command', () => {
 	beforeEach(() => {
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedShapeIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,
@@ -44,10 +44,10 @@ describe('distributeShapes command', () => {
 
 	describe('when less than three shapes are selected', () => {
 		it('does nothing', () => {
-			editor.setSelectedIds([ids.boxA, ids.boxB])
+			editor.setSelectedShapes([ids.boxA, ids.boxB])
 			const fn = jest.fn()
 			editor.on('change-history', fn)
-			editor.distributeShapes('horizontal')
+			editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 			jest.advanceTimersByTime(1000)
 			expect(fn).not.toHaveBeenCalled()
 		})
@@ -56,7 +56,7 @@ describe('distributeShapes command', () => {
 	describe('When distributing...', () => {
 		it('distributeShapes horizontally', () => {
 			editor.selectAll()
-			editor.distributeShapes('horizontal')
+			editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 			jest.advanceTimersByTime(1000)
 			editor.expectShapeToMatch(
 				{ id: ids.boxA, x: 0 },
@@ -68,7 +68,7 @@ describe('distributeShapes command', () => {
 		it('distributeShapes horizontally when shapes are clustered', () => {
 			editor.updateShapes([{ id: ids.boxC, type: 'geo', x: 25 }])
 			editor.selectAll()
-			editor.distributeShapes('horizontal')
+			editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 			jest.advanceTimersByTime(1000)
 			editor.expectShapeToMatch(
 				{ id: ids.boxA, x: 0 },
@@ -79,7 +79,7 @@ describe('distributeShapes command', () => {
 
 		it('distributeShapes vertically', () => {
 			editor.selectAll()
-			editor.distributeShapes('vertical')
+			editor.distributeShapes(editor.selectedShapeIds, 'vertical')
 			jest.advanceTimersByTime(1000)
 			editor.expectShapeToMatch(
 				{ id: ids.boxA, y: 0 },
@@ -91,7 +91,7 @@ describe('distributeShapes command', () => {
 		it('distributeShapes vertically when shapes are clustered', () => {
 			editor.updateShapes([{ id: ids.boxC, type: 'geo', y: 25 }])
 			editor.selectAll()
-			editor.distributeShapes('vertical')
+			editor.distributeShapes(editor.selectedShapeIds, 'vertical')
 			jest.advanceTimersByTime(1000)
 			editor.expectShapeToMatch(
 				{ id: ids.boxA, y: 0 },
@@ -103,7 +103,7 @@ describe('distributeShapes command', () => {
 
 	it('distributeShapes shapes that are the child of another shape.', () => {
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedShapeIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,
@@ -131,9 +131,9 @@ describe('distributeShapes command', () => {
 				y: 100,
 			},
 		])
-		editor.setSelectedIds([ids.boxB, ids.boxC, ids.boxD])
+		editor.setSelectedShapes([ids.boxB, ids.boxC, ids.boxD])
 
-		editor.distributeShapes('horizontal')
+		editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
@@ -145,7 +145,7 @@ describe('distributeShapes command', () => {
 
 	it('distributeShapes shapes that are the child of another shape when clustered.', () => {
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedShapeIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,
@@ -173,9 +173,9 @@ describe('distributeShapes command', () => {
 				y: 200,
 			},
 		])
-		editor.setSelectedIds([ids.boxB, ids.boxC, ids.boxD])
+		editor.setSelectedShapes([ids.boxB, ids.boxC, ids.boxD])
 
-		editor.distributeShapes('horizontal')
+		editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(
@@ -188,7 +188,7 @@ describe('distributeShapes command', () => {
 	it('distributeShapes shapes that are the child of another shape when a parent is rotated.', () => {
 		editor = new TestEditor()
 		editor.selectAll()
-		editor.deleteShapes()
+		editor.deleteShapes(editor.selectedShapeIds)
 		editor.createShapes([
 			{
 				id: ids.boxA,
@@ -218,9 +218,9 @@ describe('distributeShapes command', () => {
 			},
 		])
 
-		editor.setSelectedIds([ids.boxB, ids.boxC, ids.boxD])
+		editor.setSelectedShapes([ids.boxB, ids.boxC, ids.boxD])
 
-		editor.distributeShapes('horizontal')
+		editor.distributeShapes(editor.selectedShapeIds, 'horizontal')
 		jest.advanceTimersByTime(1000)
 
 		editor.expectShapeToMatch(

@@ -1,3 +1,29 @@
+# v2.0.0-alpha.15 (Fri Oct 06 2023)
+
+### Release Notes
+
+#### [feature] Add val town embed ([#1777](https://github.com/tldraw/tldraw/pull/1777))
+
+- (feature) val town
+
+#### Add cloud shape ([#1708](https://github.com/tldraw/tldraw/pull/1708))
+
+- Adds a cloud shape.
+
+---
+
+#### 🚀 Enhancement
+
+- [feature] Add val town embed [#1777](https://github.com/tldraw/tldraw/pull/1777) ([@steveruizok](https://github.com/steveruizok))
+- Add cloud shape [#1708](https://github.com/tldraw/tldraw/pull/1708) ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.13 (Wed Jun 28 2023)
 
 ### Release Notes

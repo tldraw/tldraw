@@ -9,20 +9,27 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => editor.isFocused, [editor])
+	const isAppFocused = useValue('isFocused', () => editor.instanceState.isFocused, [editor])
 
 	useEffect(() => {
-		if (typeof matchMedia !== undefined) return
-
-		function updateDevicePixelRatio() {
-			editor.devicePixelRatio = window.devicePixelRatio
+		if (typeof matchMedia === undefined) return
+		// https://developer.mozilla.org/en-US/docs/Web/API/Window/devicePixelRatio#monitoring_screen_resolution_or_zoom_level_changes
+		let remove: (() => void) | null = null
+		const updatePixelRatio = () => {
+			if (remove != null) {
+				remove()
+			}
+			const mqString = `(resolution: ${window.devicePixelRatio}dppx)`
+			const media = matchMedia(mqString)
+			media.addEventListener('change', updatePixelRatio)
+			remove = () => {
+				media.removeEventListener('change', updatePixelRatio)
+			}
+			editor.updateInstanceState({ devicePixelRatio: window.devicePixelRatio })
 		}
-
-		const MM = matchMedia(`(resolution: ${window.devicePixelRatio}dppx)`)
-
-		MM.addEventListener('change', updateDevicePixelRatio)
+		updatePixelRatio()
 		return () => {
-			MM.removeEventListener('change', updateDevicePixelRatio)
+			remove?.()
 		}
 	}, [editor])
 
@@ -32,6 +39,7 @@ export function useDocumentEvents() {
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (
 				e.altKey &&
+				// todo: When should we allow the alt key to be used? Perhaps states should declare which keys matter to them?
 				(editor.isIn('zoom') || !editor.root.path.value.endsWith('.idle')) &&
 				!isFocusingInput()
 			) {
@@ -45,21 +53,14 @@ export function useDocumentEvents() {
 			;(e as any).isKilled = true
 
 			switch (e.key) {
-				case '=': {
-					if (e.metaKey || e.ctrlKey) {
-						preventDefault(e)
-						return
-					}
-					break
-				}
-				case '-': {
-					if (e.metaKey || e.ctrlKey) {
-						preventDefault(e)
-						return
-					}
-					break
-				}
+				case '=':
+				case '-':
 				case '0': {
+					// These keys are used for zooming. Technically we only use
+					// the + - and 0 keys, however it's common for them to be
+					// paired with modifier keys (command / control) so we need
+					// to prevent the browser's regular actions (i.e. zooming
+					// the page). A user can zoom by unfocusing the editor.
 					if (e.metaKey || e.ctrlKey) {
 						preventDefault(e)
 						return
@@ -73,13 +74,13 @@ export function useDocumentEvents() {
 					break
 				}
 				case ',': {
+					// todo: extract to extension
+					// This seems very fragile; the comma key here is used to send pointer events,
+					// but that means it also needs to know about pen mode, hovered ids, etc.
 					if (!isFocusingInput()) {
 						preventDefault(e)
 						if (!editor.inputs.keys.has('Comma')) {
 							const { x, y, z } = editor.inputs.currentScreenPoint
-							const {
-								pageState: { hoveredId },
-							} = editor
 							editor.inputs.keys.add('Comma')
 
 							const info: TLPointerEventInfo = {
@@ -91,15 +92,8 @@ export function useDocumentEvents() {
 								ctrlKey: e.metaKey || e.ctrlKey,
 								pointerId: 0,
 								button: 0,
-								isPen: editor.isPenMode,
-								...(hoveredId
-									? {
-											target: 'shape',
-											shape: editor.getShapeById(hoveredId)!,
-									  }
-									: {
-											target: 'canvas',
-									  }),
+								isPen: editor.instanceState.isPenMode,
+								target: 'canvas',
 							}
 
 							editor.dispatch(info)
@@ -109,6 +103,17 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Escape': {
+					// In certain browsers, pressing escape while in full screen mode
+					// will exit full screen mode. We want to allow that, but not when
+					// escape is being handled by the editor. When a user has an editing
+					// shape, escape stops editing. When a user is using a tool, escape
+					// returns to the select tool. When the user has selected shapes,
+					// escape de-selects them. Only when the user's selection is empty
+					// should we allow escape to do its normal thing.
+					if (editor.editingShape || editor.selectedShapeIds.length > 0) {
+						e.preventDefault()
+					}
+
 					if (!editor.inputs.keys.has('Escape')) {
 						editor.inputs.keys.add('Escape')
 
@@ -131,7 +136,7 @@ export function useDocumentEvents() {
 
 			const info: TLKeyboardEventInfo = {
 				type: 'keyboard',
-				name: editor.inputs.keys.has(e.code) ? 'key_repeat' : 'key_down',
+				name: e.repeat ? 'key_repeat' : 'key_down',
 				key: e.key,
 				code: e.code,
 				shiftKey: e.shiftKey,
@@ -155,9 +160,6 @@ export function useDocumentEvents() {
 				if (document.activeElement?.ELEMENT_NODE) preventDefault(e)
 				if (editor.inputs.keys.has(e.code)) {
 					const { x, y, z } = editor.inputs.currentScreenPoint
-					const {
-						pageState: { hoveredId },
-					} = editor
 
 					editor.inputs.keys.delete(e.code)
 
@@ -170,15 +172,8 @@ export function useDocumentEvents() {
 						ctrlKey: e.metaKey || e.ctrlKey,
 						pointerId: 0,
 						button: 0,
-						isPen: editor.isPenMode,
-						...(hoveredId
-							? {
-									target: 'shape',
-									shape: editor.getShapeById(hoveredId)!,
-							  }
-							: {
-									target: 'canvas',
-							  }),
+						isPen: editor.instanceState.isPenMode,
+						target: 'canvas',
 					}
 					editor.dispatch(info)
 					return
@@ -230,14 +225,6 @@ export function useDocumentEvents() {
 			}
 		}
 
-		function handleBlur() {
-			editor.complete()
-		}
-
-		function handleFocus() {
-			editor.updateViewportScreenBounds()
-		}
-
 		container.addEventListener('touchstart', handleTouchStart, { passive: false })
 
 		container.addEventListener('wheel', handleWheel, { passive: false })
@@ -248,9 +235,6 @@ export function useDocumentEvents() {
 
 		container.addEventListener('keydown', handleKeyDown)
 		container.addEventListener('keyup', handleKeyUp)
-
-		window.addEventListener('blur', handleBlur)
-		window.addEventListener('focus', handleFocus)
 
 		return () => {
 			container.removeEventListener('touchstart', handleTouchStart)
@@ -263,9 +247,6 @@ export function useDocumentEvents() {
 
 			container.removeEventListener('keydown', handleKeyDown)
 			container.removeEventListener('keyup', handleKeyUp)
-
-			window.removeEventListener('blur', handleBlur)
-			window.removeEventListener('focus', handleFocus)
 		}
 	}, [editor, container, isAppFocused])
 }

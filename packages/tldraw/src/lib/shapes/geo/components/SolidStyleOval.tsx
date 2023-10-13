@@ -20,7 +20,7 @@ export const SolidStyleOval = React.memo(function SolidStyleOval({
 	const d = getOvalIndicatorPath(w, h)
 	return (
 		<>
-			<ShapeFill d={d} color={color} fill={fill} />
+			<ShapeFill d={d} color={color} fill={fill} theme={theme} />
 			<path d={d} stroke={theme[color].solid} strokeWidth={sw} fill="none" />
 		</>
 	)

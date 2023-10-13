@@ -26,6 +26,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.copy': 'Copy',
 	'action.cut': 'Cut',
 	'action.delete': 'Delete',
+	'action.unlock-all': 'Unlock all',
 	'action.distribute-horizontal': 'Distribute horizontally',
 	'action.distribute-vertical': 'Distribute vertically',
 	'action.distribute-horizontal.short': 'Distribute H',

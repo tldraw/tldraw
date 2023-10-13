@@ -36,7 +36,7 @@ function createNShapes(editor: Editor, n: number) {
 	}
 
 	editor.batch(() => {
-		editor.createShapes(shapesToCreate).setSelectedIds(shapesToCreate.map((s) => s.id))
+		editor.createShapes(shapesToCreate).setSelectedShapes(shapesToCreate.map((s) => s.id))
 	})
 }
 
@@ -181,37 +181,10 @@ const DebugMenuContent = track(function DebugMenuContent({
 				</DropdownMenu.Item>
 			</DropdownMenu.Group>
 			<DropdownMenu.Group>
-				<Toggle
-					label="Read-only"
-					value={editor.isReadOnly}
-					onChange={(r) => (editor.isReadOnly = r)}
-				/>
 				<DebugFlagToggle flag={debugFlags.debugSvg} />
 				<DebugFlagToggle flag={debugFlags.forceSrgb} />
-				<DebugFlagToggle
-					flag={debugFlags.debugCursors}
-					onChange={(enabled) => {
-						if (enabled) {
-							const MAX_COLUMNS = 5
-							const partials = CURSOR_NAMES.map((name, i) => {
-								return {
-									id: createShapeId(),
-									type: 'geo',
-									x: (i % MAX_COLUMNS) * 175,
-									y: Math.floor(i / MAX_COLUMNS) * 175,
-									props: {
-										text: name,
-										w: 150,
-										h: 150,
-										fill: 'semi',
-									},
-								}
-							})
-
-							editor.createShapes(partials)
-						}
-					}}
-				/>
+				<DebugFlagToggle flag={debugFlags.debugGeometry} />
+				<DebugFlagToggle flag={debugFlags.hideShapes} />
 			</DropdownMenu.Group>
 			<DropdownMenu.Group>
 				{Object.values(featureFlags).map((flag) => {
@@ -259,27 +232,6 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 		/>
 	)
 })
-
-const CURSOR_NAMES = [
-	'none',
-	'default',
-	'pointer',
-	'cross',
-	'move',
-	'grab',
-	'grabbing',
-	'text',
-	'ew-resize',
-	'ns-resize',
-	'nesw-resize',
-	'nwse-resize',
-	'nwse-rotate',
-	'nesw-rotate',
-	'senw-rotate',
-	'swne-rotate',
-	'zoom-in',
-	'zoom-out',
-]
 
 function ExampleDialog({
 	title = 'title',

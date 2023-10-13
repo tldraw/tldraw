@@ -1,3 +1,10 @@
+## 2.0.13
+- Bug fixes and performance improvements. More info:
+https://github.com/tldraw/tldraw/releases/tag/v2.0.0-alpha.16 
+
+## 2.0.12
+- Bug fixes and performance improvements.
+
 ## 2.0.11
 - Added cloud shape.
 

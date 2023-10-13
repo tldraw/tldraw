@@ -226,6 +226,7 @@ export type AssetUrls = {
 		scratch: string
 		spotify: string
 		tldraw: string
+		val_town: string
 		vimeo: string
 		youtube: string
 	}

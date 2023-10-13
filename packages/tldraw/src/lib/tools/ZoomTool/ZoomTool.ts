@@ -3,6 +3,7 @@ import { Idle } from './children/Idle'
 import { Pointing } from './children/Pointing'
 import { ZoomBrushing } from './children/ZoomBrushing'
 
+/** @public */
 export class ZoomTool extends StateNode {
 	static override id = 'zoom'
 	static override initial = 'idle'
@@ -18,8 +19,10 @@ export class ZoomTool extends StateNode {
 
 	override onExit = () => {
 		this.currentToolIdMask = undefined
-		this.editor.zoomBrush = null
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState(
+			{ zoomBrush: null, cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 		this.currentToolIdMask = undefined
 	}
 
@@ -50,9 +53,15 @@ export class ZoomTool extends StateNode {
 
 	private updateCursor() {
 		if (this.editor.inputs.altKey) {
-			this.editor.cursor = { type: 'zoom-out', rotation: 0 }
+			this.editor.updateInstanceState(
+				{ cursor: { type: 'zoom-out', rotation: 0 } },
+				{ ephemeral: true }
+			)
 		} else {
-			this.editor.cursor = { type: 'zoom-in', rotation: 0 }
+			this.editor.updateInstanceState(
+				{ cursor: { type: 'zoom-in', rotation: 0 } },
+				{ ephemeral: true }
+			)
 		}
 	}
 }

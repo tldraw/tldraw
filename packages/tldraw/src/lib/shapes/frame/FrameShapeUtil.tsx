@@ -1,5 +1,7 @@
 import {
 	BaseBoxShapeUtil,
+	Geometry2d,
+	Rectangle2d,
 	SVGContainer,
 	SelectionEdge,
 	TLFrameShape,
@@ -39,15 +41,22 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		return { w: 160 * 2, h: 90 * 2, name: '' }
 	}
 
+	override getGeometry(shape: TLFrameShape): Geometry2d {
+		return new Rectangle2d({
+			width: shape.props.w,
+			height: shape.props.h,
+			isFilled: false,
+		})
+	}
+
 	override component(shape: TLFrameShape) {
-		const bounds = this.editor.getBounds(shape)
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
 
 		return (
 			<>
 				<SVGContainer>
-					<rect className="tl-hitarea-stroke" width={bounds.width} height={bounds.height} />
 					<rect
 						className="tl-frame__body"
 						width={bounds.width}
@@ -67,7 +76,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override toSvg(shape: TLFrameShape): SVGElement | Promise<SVGElement> {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		const g = document.createElementNS('http://www.w3.org/2000/svg', 'g')
 
 		const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
@@ -81,7 +90,9 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 		g.appendChild(rect)
 
 		// Text label
-		const pageRotation = canonicalizeRotation(this.editor.getPageRotationById(shape.id))
+		const pageRotation = canonicalizeRotation(
+			this.editor.getShapePageTransform(shape.id)!.rotation()
+		)
 		// rotate right 45 deg
 		const offsetRotation = pageRotation + Math.PI / 4
 		const scaledRotation = (offsetRotation * (2 / Math.PI) + 4) % 4
@@ -154,7 +165,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	indicator(shape: TLFrameShape) {
-		const bounds = this.editor.getBounds(shape)
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 
 		return (
 			<rect
@@ -179,7 +190,7 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 
 	override onDragShapesOver = (frame: TLFrameShape, shapes: TLShape[]): { shouldHint: boolean } => {
 		if (!shapes.every((child) => child.parentId === frame.id)) {
-			this.editor.reparentShapesById(
+			this.editor.reparentShapes(
 				shapes.map((shape) => shape.id),
 				frame.id
 			)
@@ -189,39 +200,34 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override onDragShapesOut = (_shape: TLFrameShape, shapes: TLShape[]): void => {
-		const parent = this.editor.getShapeById(_shape.parentId)
+		const parent = this.editor.getShape(_shape.parentId)
 		const isInGroup = parent && this.editor.isShapeOfType<TLGroupShape>(parent, 'group')
 
 		// If frame is in a group, keep the shape
 		// moved out in that group
+
 		if (isInGroup) {
-			this.editor.reparentShapesById(
-				shapes.map((shape) => shape.id),
-				parent.id
-			)
+			this.editor.reparentShapes(shapes, parent.id)
 		} else {
-			this.editor.reparentShapesById(
-				shapes.map((shape) => shape.id),
-				this.editor.currentPageId
-			)
+			this.editor.reparentShapes(shapes, this.editor.currentPageId)
 		}
 	}
 
 	override onResizeEnd: TLOnResizeEndHandler<TLFrameShape> = (shape) => {
-		const bounds = this.editor.getPageBounds(shape)!
-		const children = this.editor.getSortedChildIds(shape.id)
+		const bounds = this.editor.getShapePageBounds(shape)!
+		const children = this.editor.getSortedChildIdsForParent(shape.id)
 
 		const shapesToReparent: TLShapeId[] = []
 
 		for (const childId of children) {
-			const childBounds = this.editor.getPageBoundsById(childId)!
+			const childBounds = this.editor.getShapePageBounds(childId)!
 			if (!bounds.includes(childBounds)) {
 				shapesToReparent.push(childId)
 			}
 		}
 
 		if (shapesToReparent.length > 0) {
-			this.editor.reparentShapesById(shapesToReparent, this.editor.currentPageId)
+			this.editor.reparentShapes(shapesToReparent, this.editor.currentPageId)
 		}
 	}
 }

@@ -92,7 +92,11 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 		}
 	}, [value, editor, onValueChange, style])
 
-	const theme = useValue('theme', () => getDefaultColorTheme(editor), [editor])
+	const theme = useValue(
+		'theme',
+		() => getDefaultColorTheme({ isDarkMode: editor.user.isDarkMode }),
+		[editor]
+	)
 
 	return (
 		<div

@@ -16,6 +16,11 @@ import {
 } from '../components/default-components/DefaultErrorFallback'
 import { DefaultGrid, TLGridComponent } from '../components/default-components/DefaultGrid'
 import { DefaultHandle, TLHandleComponent } from '../components/default-components/DefaultHandle'
+import { DefaultHandles, TLHandlesComponent } from '../components/default-components/DefaultHandles'
+import {
+	DefaultHoveredShapeIndicator,
+	TLHoveredShapeIndicatorComponent,
+} from '../components/default-components/DefaultHoveredShapeIndicator'
 import {
 	DefaultScribble,
 	TLScribbleComponent,
@@ -57,10 +62,12 @@ interface BaseEditorComponents {
 	Scribble: TLScribbleComponent
 	CollaboratorScribble: TLScribbleComponent
 	SnapLine: TLSnapLineComponent
+	Handles: TLHandlesComponent
 	Handle: TLHandleComponent
 	Spinner: TLSpinnerComponent
 	SelectionForeground: TLSelectionForegroundComponent
 	SelectionBackground: TLSelectionBackgroundComponent
+	HoveredShapeIndicator: TLHoveredShapeIndicatorComponent
 }
 
 /** @public */
@@ -96,6 +103,7 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 					Grid: DefaultGrid,
 					Scribble: DefaultScribble,
 					SnapLine: DefaultSnapLine,
+					Handles: DefaultHandles,
 					Handle: DefaultHandle,
 					CollaboratorScribble: DefaultScribble,
 					ErrorFallback: DefaultErrorFallback,
@@ -104,6 +112,7 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 					Spinner: DefaultSpinner,
 					SelectionBackground: DefaultSelectionBackground,
 					SelectionForeground: DefaultSelectionForeground,
+					HoveredShapeIndicator: DefaultHoveredShapeIndicator,
 					...overrides,
 				}),
 				[overrides]

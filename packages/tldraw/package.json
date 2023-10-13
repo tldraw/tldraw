@@ -1,7 +1,7 @@
 {
 	"name": "@tldraw/tldraw",
 	"description": "A tiny little drawing editor.",
-	"version": "2.0.0-alpha.14",
+	"version": "2.0.0-alpha.16",
 	"packageManager": "yarn@3.5.0",
 	"author": {
 		"name": "tldraw GB Ltd.",
@@ -31,7 +31,7 @@
 	"scripts": {
 		"test": "lazy inherit",
 		"test-coverage": "lazy inherit",
-		"dev": "chokidar '../{editor,ui}/*.css' -c 'node ./scripts/copy-css-files.mjs' --initial",
+		"dev": "chokidar '../{editor/src/lib/editor,tldraw/src/lib/ui}.css' -c 'node ./scripts/copy-css-files.mjs' --initial",
 		"prebuild": "node ./scripts/copy-css-files.mjs",
 		"build": "yarn run -T tsx ../../scripts/build-package.ts",
 		"build-api": "yarn run -T tsx ../../scripts/build-api.ts",

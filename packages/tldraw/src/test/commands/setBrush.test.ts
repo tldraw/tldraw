@@ -7,11 +7,11 @@ beforeEach(() => {
 })
 
 it('Sets the brush', () => {
-	expect(editor.brush).toEqual(null)
+	expect(editor.instanceState.brush).toEqual(null)
 
-	editor.brush = { x: 0, y: 0, w: 100, h: 100 }
+	editor.updateInstanceState({ brush: { x: 0, y: 0, w: 100, h: 100 } })
 
-	expect(editor.brush).toMatchObject({
+	expect(editor.instanceState.brush).toMatchObject({
 		x: 0,
 		y: 0,
 		w: 100,
@@ -20,7 +20,7 @@ it('Sets the brush', () => {
 
 	editor.undo()
 
-	expect(editor.brush).toEqual({
+	expect(editor.instanceState.brush).toEqual({
 		x: 0,
 		y: 0,
 		w: 100,
@@ -29,7 +29,7 @@ it('Sets the brush', () => {
 
 	editor.redo()
 
-	expect(editor.brush).toEqual({
+	expect(editor.instanceState.brush).toEqual({
 		x: 0,
 		y: 0,
 		w: 100,

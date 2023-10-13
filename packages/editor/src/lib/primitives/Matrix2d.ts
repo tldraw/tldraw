@@ -113,6 +113,14 @@ export class Matrix2d {
 		return Matrix2d.applyToPoints(this, points)
 	}
 
+	rotation() {
+		return Matrix2d.Rotation(this)
+	}
+
+	point() {
+		return Matrix2d.Point(this)
+	}
+
 	decomposed() {
 		return Matrix2d.Decompose(this)
 	}
@@ -219,6 +227,26 @@ export class Matrix2d {
 		return matrix
 	}
 
+	static Point(m: MatLike) {
+		return new Vec2d(m.e, m.f)
+	}
+
+	static Rotation(m: MatLike): number {
+		let rotation
+
+		if (m.a !== 0 || m.c !== 0) {
+			const hypotAc = Math.hypot(m.a, m.c)
+			rotation = Math.acos(m.a / hypotAc) * (m.c > 0 ? -1 : 1)
+		} else if (m.b !== 0 || m.d !== 0) {
+			const hypotBd = Math.hypot(m.b, m.d)
+			rotation = TAU + Math.acos(m.b / hypotBd) * (m.d > 0 ? -1 : 1)
+		} else {
+			rotation = 0
+		}
+
+		return clampRadians(rotation)
+	}
+
 	static Decompose(m: MatLike): MatrixInfo {
 		let scaleX, scaleY, rotation
 
@@ -288,6 +316,10 @@ export class Matrix2d {
 
 	static From(m: MatLike) {
 		return new Matrix2d(m.a, m.b, m.c, m.d, m.e, m.f)
+	}
+
+	static Cast(m: MatLike) {
+		return m instanceof Matrix2d ? m : Matrix2d.From(m)
 	}
 }
 

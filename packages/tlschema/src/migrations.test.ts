@@ -17,6 +17,7 @@ import { drawShapeMigrations } from './shapes/TLDrawShape'
 import { embedShapeMigrations } from './shapes/TLEmbedShape'
 import { GeoShapeVersions, geoShapeMigrations } from './shapes/TLGeoShape'
 import { imageShapeMigrations } from './shapes/TLImageShape'
+import { lineShapeMigrations, lineShapeVersions } from './shapes/TLLineShape'
 import { noteShapeMigrations } from './shapes/TLNoteShape'
 import { textShapeMigrations } from './shapes/TLTextShape'
 import { videoShapeMigrations } from './shapes/TLVideoShape'
@@ -511,16 +512,136 @@ describe('Adding labelColor prop to propsForNextShape', () => {
 	})
 })
 
-describe('Adding croppingId to instancePageState', () => {
+describe('Adding croppingShapeId to instancePageState', () => {
 	const { up, down } = instancePageStateMigrations.migrators[1]
 	test('up works as expected', () => {
 		expect(up({})).toEqual({
-			croppingId: null,
+			croppingShapeId: null,
 		})
 	})
 
 	test('down works as expected', () => {
-		expect(down({ croppingId: null })).toEqual({})
+		expect(down({ croppingShapeId: null })).toEqual({})
+	})
+})
+
+describe('Renaming properties in instancePageState', () => {
+	const { up, down } =
+		instancePageStateMigrations.migrators[instancePageStateVersions.RenameProperties]
+	test('up works as expected', () => {
+		expect(
+			up({
+				selectedShapeIds: [],
+				hintingShapeIds: [],
+				erasingShapeIds: [],
+				hoveredShapeId: null,
+				editingShapeId: null,
+				croppingShapeId: null,
+				focusedGroupId: null,
+				meta: {
+					name: 'hallo',
+				},
+			})
+		).toEqual({
+			selectedShapeIds: [],
+			hintingShapeIds: [],
+			erasingShapeIds: [],
+			hoveredShapeId: null,
+			editingShapeId: null,
+			croppingShapeId: null,
+			focusedGroupId: null,
+			meta: {
+				name: 'hallo',
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				selectedShapeIds: [],
+				hintingShapeIds: [],
+				erasingShapeIds: [],
+				hoveredShapeId: null,
+				editingShapeId: null,
+				croppingShapeId: null,
+				focusedGroupId: null,
+				meta: {
+					name: 'hallo',
+				},
+			})
+		).toEqual({
+			selectedShapeIds: [],
+			hintingShapeIds: [],
+			erasingShapeIds: [],
+			hoveredShapeId: null,
+			editingShapeId: null,
+			croppingShapeId: null,
+			focusedGroupId: null,
+			meta: {
+				name: 'hallo',
+			},
+		})
+	})
+})
+
+describe('Renaming properties again in instancePageState', () => {
+	const { up, down } =
+		instancePageStateMigrations.migrators[instancePageStateVersions.RenamePropertiesAgain]
+	test('up works as expected', () => {
+		expect(
+			up({
+				selectedIds: [],
+				hintingIds: [],
+				erasingIds: [],
+				hoveredId: null,
+				editingId: null,
+				croppingId: null,
+				focusLayerId: null,
+				meta: {
+					name: 'hallo',
+				},
+			})
+		).toEqual({
+			selectedShapeIds: [],
+			hintingShapeIds: [],
+			erasingShapeIds: [],
+			hoveredShapeId: null,
+			editingShapeId: null,
+			croppingShapeId: null,
+			focusedGroupId: null,
+			meta: {
+				name: 'hallo',
+			},
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				selectedShapeIds: [],
+				hintingShapeIds: [],
+				erasingShapeIds: [],
+				hoveredShapeId: null,
+				editingShapeId: null,
+				croppingShapeId: null,
+				focusedGroupId: null,
+				meta: {
+					name: 'hallo',
+				},
+			})
+		).toEqual({
+			selectedIds: [],
+			hintingIds: [],
+			erasingIds: [],
+			hoveredId: null,
+			editingId: null,
+			croppingId: null,
+			focusLayerId: null,
+			meta: {
+				name: 'hallo',
+			},
+		})
 	})
 })
 
@@ -970,13 +1091,13 @@ describe('making instance state independent', () => {
 			typeName: 'instance_page_state',
 			instanceId: 'instance:123',
 			cameraId: 'camera:123',
-			selectedIds: [],
+			selectedShapeIds: [],
 		}
 
 		const next = {
 			id: 'instance_page_state:123',
 			typeName: 'instance_page_state',
-			selectedIds: [],
+			selectedShapeIds: [],
 		}
 
 		expect(up(prev)).toEqual(next)
@@ -986,7 +1107,7 @@ describe('making instance state independent', () => {
 		  "cameraId": "camera:void",
 		  "id": "instance_page_state:123",
 		  "instanceId": "instance:instance",
-		  "selectedIds": Array [],
+		  "selectedShapeIds": Array [],
 		  "typeName": "instance_page_state",
 		}
 	`)
@@ -1000,13 +1121,13 @@ describe('making instance state independent', () => {
 			id: 'instance_presence:123',
 			typeName: 'instance_presence',
 			instanceId: 'instance:123',
-			selectedIds: [],
+			selectedShapeIds: [],
 		}
 
 		const next = {
 			id: 'instance_presence:123',
 			typeName: 'instance_presence',
-			selectedIds: [],
+			selectedShapeIds: [],
 		}
 
 		expect(up(prev)).toEqual(next)
@@ -1016,7 +1137,7 @@ describe('making instance state independent', () => {
 		Object {
 		  "id": "instance_presence:123",
 		  "instanceId": "instance:instance",
-		  "selectedIds": Array [],
+		  "selectedShapeIds": Array [],
 		  "typeName": "instance_presence",
 		}
 	`)
@@ -1308,6 +1429,181 @@ describe('removes cursor color', () => {
 				color: 'black',
 			},
 		})
+	})
+})
+
+describe('adds lonely properties', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddLonelyProperties]
+
+	test('up works as expected', () => {
+		expect(up({})).toStrictEqual({
+			canMoveCamera: true,
+			isFocused: false,
+			devicePixelRatio: 1,
+			isCoarsePointer: false,
+			openMenus: [],
+			isChangingStyle: false,
+			isReadOnly: false,
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(
+			down({
+				canMoveCamera: true,
+				isFocused: false,
+				devicePixelRatio: 1,
+				isCoarsePointer: false,
+				openMenus: [],
+				isChangingStyle: false,
+				isReadOnly: false,
+			})
+		).toStrictEqual({})
+	})
+})
+
+describe('rename isReadOnly to isReadonly', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.ReadOnlyReadonly]
+
+	test('up works as expected', () => {
+		expect(up({ isReadOnly: false })).toStrictEqual({
+			isReadonly: false,
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(down({ isReadonly: false })).toStrictEqual({
+			isReadOnly: false,
+		})
+	})
+})
+
+describe('Renames selectedShapeIds in presence', () => {
+	const { up, down } =
+		instancePresenceMigrations.migrators[instancePresenceVersions.RenameSelectedShapeIds]
+
+	test('up adds the chatMessage property', () => {
+		expect(up({ selectedShapeIds: [] })).toEqual({ selectedShapeIds: [] })
+	})
+
+	test('down removes the chatMessage property', () => {
+		expect(down({ selectedShapeIds: [] })).toEqual({ selectedShapeIds: [] })
+	})
+})
+
+describe('Adding canSnap to line handles', () => {
+	const { up, down } = lineShapeMigrations.migrators[lineShapeVersions.AddSnapHandles]
+
+	test(`up works as expected`, () => {
+		expect(
+			up({
+				props: {
+					handles: {
+						start: {
+							id: 'start',
+							type: 'vertex',
+							canBind: false,
+							index: 'a1',
+							x: 0,
+							y: 0,
+						},
+						end: {
+							id: 'end',
+							type: 'vertex',
+							canBind: false,
+							index: 'a2',
+							x: 100.66015625,
+							y: -22.07421875,
+						},
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					start: {
+						id: 'start',
+						type: 'vertex',
+						canBind: false,
+						canSnap: true,
+						index: 'a1',
+						x: 0,
+						y: 0,
+					},
+					end: {
+						id: 'end',
+						type: 'vertex',
+						canBind: false,
+						canSnap: true,
+						index: 'a2',
+						x: 100.66015625,
+						y: -22.07421875,
+					},
+				},
+			},
+		})
+	})
+
+	test(`down works as expected`, () => {
+		expect(
+			down({
+				props: {
+					handles: {
+						start: {
+							id: 'start',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a1',
+							x: 0,
+							y: 0,
+						},
+						end: {
+							id: 'end',
+							type: 'vertex',
+							canBind: false,
+							canSnap: true,
+							index: 'a2',
+							x: 100.66015625,
+							y: -22.07421875,
+						},
+					},
+				},
+			})
+		).toEqual({
+			props: {
+				handles: {
+					start: {
+						id: 'start',
+						type: 'vertex',
+						canBind: false,
+						index: 'a1',
+						x: 0,
+						y: 0,
+					},
+					end: {
+						id: 'end',
+						type: 'vertex',
+						canBind: false,
+						index: 'a2',
+						x: 100.66015625,
+						y: -22.07421875,
+					},
+				},
+			},
+		})
+	})
+})
+
+describe('add isHoveringCanvas to TLInstance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddHoveringCanvas]
+
+	test('up works as expected', () => {
+		expect(up({})).toEqual({ isHoveringCanvas: null })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ isHoveringCanvas: null })).toEqual({})
 	})
 })
 

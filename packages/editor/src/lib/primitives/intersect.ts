@@ -239,7 +239,10 @@ export function linesIntersect(A: VecLike, B: VecLike, C: VecLike, D: VecLike) {
  * @param polygonB - An array of points representing the second polygon.
  * @public
  */
-export function intersectPolygonPolygon(polygonA: VecLike[], polygonB: VecLike[]) {
+export function intersectPolygonPolygon(
+	polygonA: VecLike[],
+	polygonB: VecLike[]
+): VecLike[] | null {
 	// Create an empty polygon as P
 	const result: VecLike[] = []
 	let a: VecLike, b: VecLike, c: VecLike, d: VecLike

@@ -2,14 +2,15 @@ import {
 	Editor,
 	TLArrowShape,
 	TLBookmarkShape,
-	TLContent,
 	TLEmbedShape,
+	TLExternalContentSource,
 	TLGeoShape,
 	TLTextShape,
 	VecLike,
 	isNonNull,
 	uniq,
 	useEditor,
+	useValue,
 } from '@tldraw/editor'
 import { compressToBase64, decompressFromBase64 } from 'lz-string'
 import { useCallback, useEffect } from 'react'
@@ -17,8 +18,19 @@ import { pasteExcalidrawContent } from './clipboard/pasteExcalidrawContent'
 import { pasteFiles } from './clipboard/pasteFiles'
 import { pasteTldrawContent } from './clipboard/pasteTldrawContent'
 import { pasteUrl } from './clipboard/pasteUrl'
-import { useEditorIsFocused } from './useEditorIsFocused'
-import { TLUiEventSource, useEvents } from './useEventsProvider'
+import { TLUiEventSource, useUiEvents } from './useEventsProvider'
+
+/**
+ * Strip HTML tags from a string.
+ * @param html - The HTML to strip.
+ * @internal
+ */
+function stripHtml(html: string) {
+	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
+	const doc = document.implementation.createHTMLDocument('')
+	doc.documentElement.innerHTML = html.trim()
+	return doc.body.textContent || doc.body.innerText || ''
+}
 
 /** @public */
 export const isValidHttpURL = (url: string) => {
@@ -90,18 +102,6 @@ async function blobAsString(blob: Blob) {
 }
 
 /**
- * Strip HTML tags from a string.
- * @param html - The HTML to strip.
- * @internal
- */
-function stripHtml(html: string) {
-	// See <https://github.com/developit/preact-markup/blob/4788b8d61b4e24f83688710746ee36e7464f7bbc/src/parse-markup.js#L60-L69>
-	const doc = document.implementation.createHTMLDocument('')
-	doc.documentElement.innerHTML = html.trim()
-	return doc.body.textContent || doc.body.innerText || ''
-}
-
-/**
  * Whether a ClipboardItem is a file.
  * @param item - The ClipboardItem to check.
  * @internal
@@ -117,7 +117,12 @@ const isFile = (item: ClipboardItem) => {
  * @param point - (optional) The point at which to paste the text.
  * @internal
  */
-const handleText = (editor: Editor, data: string, point?: VecLike) => {
+const handleText = (
+	editor: Editor,
+	data: string,
+	point?: VecLike,
+	sources?: TLExternalContentSource[]
+) => {
 	const validUrlList = getValidHttpURLList(data)
 	if (validUrlList) {
 		for (const url of validUrlList) {
@@ -131,6 +136,7 @@ const handleText = (editor: Editor, data: string, point?: VecLike) => {
 			type: 'svg-text',
 			text: data,
 			point,
+			sources,
 		})
 	} else {
 		editor.mark('paste')
@@ -138,6 +144,7 @@ const handleText = (editor: Editor, data: string, point?: VecLike) => {
 			type: 'text',
 			text: data,
 			point,
+			sources,
 		})
 	}
 }
@@ -173,30 +180,6 @@ type ClipboardThing =
 	  }
 
 /**
- * The result of processing a `ClipboardThing`.
- * @internal
- */
-type ClipboardResult =
-	| {
-			type: 'tldraw'
-			data: TLContent
-	  }
-	| {
-			type: 'excalidraw'
-			data: any
-	  }
-	| {
-			type: 'text'
-			data: string
-			subtype: 'json' | 'html' | 'text' | 'url'
-	  }
-	| {
-			type: 'error'
-			data: string | null
-			reason: string
-	  }
-
-/**
  * Handle a paste using event clipboard data. This is the "original"
  * paste method that uses the clipboard data from the paste event.
  * https://developer.mozilla.org/en-US/docs/Web/API/ClipboardEvent/clipboardData
@@ -212,7 +195,7 @@ const handlePasteFromEventClipboardData = async (
 	point?: VecLike
 ) => {
 	// Do not paste while in any editing state
-	if (editor.editingId !== null) return
+	if (editor.editingShapeId !== null) return
 
 	if (!clipboardData) {
 		throw Error('No clipboard data')
@@ -339,7 +322,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// we can't await them in a loop. So we'll map them to promises and await them all at once,
 	// then make decisions based on what we find.
 
-	const results = await Promise.all<ClipboardResult>(
+	const results = await Promise.all<TLExternalContentSource>(
 		things
 			.filter((t) => t.type !== 'file')
 			.map(
@@ -477,13 +460,13 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 
 			if (isHtmlSingleLink) {
 				const href = bodyNode.firstElementChild.getAttribute('href')!
-				handleText(editor, href, point)
+				handleText(editor, href, point, results)
 				return
 			}
 
 			// If the html is NOT a link, and we have NO OTHER texty content, then paste the html as text
 			if (!results.some((r) => r.type === 'text' && r.subtype !== 'html') && result.data.trim()) {
-				handleText(editor, stripHtml(result.data), point)
+				handleText(editor, stripHtml(result.data), point, results)
 				return
 			}
 		}
@@ -492,7 +475,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	// Try to paste a link
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'url') {
-			pasteUrl(editor, result.data, point)
+			pasteUrl(editor, result.data, point, results)
 			return
 		}
 	}
@@ -501,7 +484,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
 	for (const result of results) {
 		if (result.type === 'text' && result.subtype === 'text' && result.data.trim()) {
 			// The clipboard may include multiple text items, but we only want to paste the first one
-			handleText(editor, result.data, point)
+			handleText(editor, result.data, point, results)
 			return
 		}
 	}
@@ -514,7 +497,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
  * @public
  */
 const handleNativeOrMenuCopy = (editor: Editor) => {
-	const content = editor.getContent()
+	const content = editor.getContentFromCurrentPage(editor.selectedShapeIds)
 	if (!content) {
 		if (navigator && navigator.clipboard) {
 			navigator.clipboard.writeText('')
@@ -583,11 +566,11 @@ const handleNativeOrMenuCopy = (editor: Editor) => {
 /** @public */
 export function useMenuClipboardEvents() {
 	const editor = useEditor()
-	const trackEvent = useEvents()
+	const trackEvent = useUiEvents()
 
 	const copy = useCallback(
 		function onCopy(source: TLUiEventSource) {
-			if (editor.selectedIds.length === 0) return
+			if (editor.selectedShapeIds.length === 0) return
 
 			handleNativeOrMenuCopy(editor)
 			trackEvent('copy', { source })
@@ -597,10 +580,10 @@ export function useMenuClipboardEvents() {
 
 	const cut = useCallback(
 		function onCut(source: TLUiEventSource) {
-			if (editor.selectedIds.length === 0) return
+			if (editor.selectedShapeIds.length === 0) return
 
 			handleNativeOrMenuCopy(editor)
-			editor.deleteShapes()
+			editor.deleteShapes(editor.selectedShapeIds)
 			trackEvent('cut', { source })
 		},
 		[editor, trackEvent]
@@ -615,7 +598,7 @@ export function useMenuClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.editingId !== null || disallowClipboardEvents(editor)) return
+			if (editor.editingShapeId !== null || disallowClipboardEvents(editor)) return
 
 			if (Array.isArray(data) && data[0] instanceof ClipboardItem) {
 				handlePasteFromClipboardApi(editor, data, point)
@@ -640,16 +623,16 @@ export function useMenuClipboardEvents() {
 /** @public */
 export function useNativeClipboardEvents() {
 	const editor = useEditor()
-	const trackEvent = useEvents()
+	const trackEvent = useUiEvents()
 
-	const appIsFocused = useEditorIsFocused()
+	const appIsFocused = useValue('editor.isFocused', () => editor.instanceState.isFocused, [editor])
 
 	useEffect(() => {
 		if (!appIsFocused) return
 		const copy = () => {
 			if (
-				editor.selectedIds.length === 0 ||
-				editor.editingId !== null ||
+				editor.selectedShapeIds.length === 0 ||
+				editor.editingShapeId !== null ||
 				disallowClipboardEvents(editor)
 			)
 				return
@@ -659,13 +642,13 @@ export function useNativeClipboardEvents() {
 
 		function cut() {
 			if (
-				editor.selectedIds.length === 0 ||
-				editor.editingId !== null ||
+				editor.selectedShapeIds.length === 0 ||
+				editor.editingShapeId !== null ||
 				disallowClipboardEvents(editor)
 			)
 				return
 			handleNativeOrMenuCopy(editor)
-			editor.deleteShapes()
+			editor.deleteShapes(editor.selectedShapeIds)
 			trackEvent('cut', { source: 'kbd' })
 		}
 
@@ -688,7 +671,7 @@ export function useNativeClipboardEvents() {
 			// If we're editing a shape, or we are focusing an editable input, then
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
-			if (editor.editingId !== null || disallowClipboardEvents(editor)) return
+			if (editor.editingShapeId !== null || disallowClipboardEvents(editor)) return
 
 			// First try to use the clipboard data on the event
 			if (event.clipboardData && !editor.inputs.shiftKey) {

@@ -1,0 +1,4454 @@
+{
+  "metadata": {
+    "toolPackage": "@microsoft/api-extractor",
+    "toolVersion": "7.35.4",
+    "schemaVersion": 1011,
+    "oldestForwardsCompatibleVersion": 1001,
+    "tsdocConfig": {
+      "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
+      "noStandardTags": true,
+      "tagDefinitions": [
+        {
+          "tagName": "@alpha",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@beta",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@defaultValue",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@decorator",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@deprecated",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@eventProperty",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@example",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@experimental",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@inheritDoc",
+          "syntaxKind": "inline"
+        },
+        {
+          "tagName": "@internal",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@label",
+          "syntaxKind": "inline"
+        },
+        {
+          "tagName": "@link",
+          "syntaxKind": "inline",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@override",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@packageDocumentation",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@param",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@privateRemarks",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@public",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@readonly",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@remarks",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@returns",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@sealed",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@see",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@throws",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@typeParam",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@virtual",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@betaDocumentation",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@internalRemarks",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@preapproved",
+          "syntaxKind": "modifier"
+        }
+      ],
+      "supportForTags": {
+        "@alpha": true,
+        "@beta": true,
+        "@defaultValue": true,
+        "@decorator": true,
+        "@deprecated": true,
+        "@eventProperty": true,
+        "@example": true,
+        "@experimental": true,
+        "@inheritDoc": true,
+        "@internal": true,
+        "@label": true,
+        "@link": true,
+        "@override": true,
+        "@packageDocumentation": true,
+        "@param": true,
+        "@privateRemarks": true,
+        "@public": true,
+        "@readonly": true,
+        "@remarks": true,
+        "@returns": true,
+        "@sealed": true,
+        "@see": true,
+        "@throws": true,
+        "@typeParam": true,
+        "@virtual": true,
+        "@betaDocumentation": true,
+        "@internalRemarks": true,
+        "@preapproved": true
+      },
+      "reportUnsupportedHtmlElements": false
+    }
+  },
+  "kind": "Package",
+  "canonicalReference": "@tldraw/validate!",
+  "docComment": "",
+  "name": "@tldraw/validate",
+  "preserveMemberOrder": false,
+  "members": [
+    {
+      "kind": "EntryPoint",
+      "canonicalReference": "@tldraw/validate!",
+      "name": "",
+      "preserveMemberOrder": false,
+      "members": [
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/validate!ArrayOfValidator:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class ArrayOfValidator<T> extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<T[]>"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/validate/src/lib/validation.ts",
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "isAbstract": false,
+          "name": "ArrayOfValidator",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `ArrayOfValidator` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(itemValidator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "itemValidator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator#itemValidator:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly itemValidator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "itemValidator",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator#lengthGreaterThan1:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "lengthGreaterThan1(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T[]>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "lengthGreaterThan1"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!ArrayOfValidator#nonEmpty:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "nonEmpty(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T[]>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "nonEmpty"
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/validate!DictValidator:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class DictValidator<Key extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", Value> extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<Key, Value>>"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/validate/src/lib/validation.ts",
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "Key",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            },
+            {
+              "typeParameterName": "Value",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "isAbstract": false,
+          "name": "DictValidator",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@tldraw/validate!DictValidator:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `DictValidator` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(keyValidator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Key>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", valueValidator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Value>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "keyValidator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "valueValidator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 4,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/validate!DictValidator#keyValidator:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly keyValidator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Key>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "keyValidator",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/validate!DictValidator#valueValidator:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly valueValidator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Value>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "valueValidator",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 3,
+            "endIndex": 7
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/validate!ObjectValidator:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class ObjectValidator<Shape extends "
+            },
+            {
+              "kind": "Content",
+              "text": "object"
+            },
+            {
+              "kind": "Content",
+              "text": "> extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<Shape>"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/validate/src/lib/validation.ts",
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "Shape",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "isAbstract": false,
+          "name": "ObjectValidator",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@tldraw/validate!ObjectValidator:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `ObjectValidator` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(config: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        readonly [K in keyof Shape]: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape[K]>;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", shouldAllowUnknownProperties?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "config",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "shouldAllowUnknownProperties",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": true
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!ObjectValidator#allowUnknownProperties:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "allowUnknownProperties(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ObjectValidator",
+                  "canonicalReference": "@tldraw/validate!ObjectValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "allowUnknownProperties"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/validate!ObjectValidator#config:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly config: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        readonly [K in keyof Shape]: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape[K]>;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "config",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!ObjectValidator#extend:member(1)",
+              "docComment": "/**\n * Extend an object validator by adding additional properties.\n *\n * @example\n * ```ts\n * const animalValidator = T.object({\n * \tname: T.string,\n * })\n * const catValidator = animalValidator.extend({\n * \tmeowVolume: T.number,\n * })\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "extend<Extension extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(extension: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        readonly [K in keyof Extension]: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Extension[K]>;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ObjectValidator",
+                  "canonicalReference": "@tldraw/validate!ObjectValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape & Extension>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "Extension",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 10
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "extension",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 4,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "extend"
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 3,
+            "endIndex": 5
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Namespace",
+          "canonicalReference": "@tldraw/validate!T:namespace",
+          "docComment": "",
+          "excerptTokens": [],
+          "fileUrlPath": "packages/validate/src/index.ts",
+          "releaseTag": "None",
+          "name": "T",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.any:var",
+              "docComment": "/**\n * Validation that accepts any value. Generally this should be avoided, but you can use it as an escape hatch if you want to work without validations for e.g. a prototype.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "any: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<any>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "any",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.array:var",
+              "docComment": "/**\n * Validates that a value is an array. To check the contents of the array, use T.arrayOf.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "array: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<unknown[]>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "array",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.arrayOf:function(1)",
+              "docComment": "/**\n * Validates that a value is an array whose contents matches the passed-in validator.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function arrayOf<T>(itemValidator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ArrayOfValidator",
+                  "canonicalReference": "@tldraw/validate!ArrayOfValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "itemValidator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "arrayOf"
+            },
+            {
+              "kind": "Class",
+              "canonicalReference": "@tldraw/validate!T.ArrayOfValidator:class",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare class ArrayOfValidator<T> extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T[]>"
+                },
+                {
+                  "kind": "Content",
+                  "text": " "
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "releaseTag": "Public",
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isAbstract": false,
+              "name": "ArrayOfValidator",
+              "preserveMemberOrder": false,
+              "members": [
+                {
+                  "kind": "Constructor",
+                  "canonicalReference": "@tldraw/validate!T.ArrayOfValidator:constructor(1)",
+                  "docComment": "/**\n * Constructs a new instance of the `ArrayOfValidator` class\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "constructor(itemValidator: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validatable",
+                      "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<T>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ");"
+                    }
+                  ],
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "itemValidator",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 3
+                      },
+                      "isOptional": false
+                    }
+                  ]
+                },
+                {
+                  "kind": "Property",
+                  "canonicalReference": "@tldraw/validate!T.ArrayOfValidator#itemValidator:member",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "readonly itemValidator: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validatable",
+                      "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<T>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isReadonly": true,
+                  "isOptional": false,
+                  "releaseTag": "Public",
+                  "name": "itemValidator",
+                  "propertyTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isStatic": false,
+                  "isProtected": false,
+                  "isAbstract": false
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.ArrayOfValidator#lengthGreaterThan1:member(1)",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "lengthGreaterThan1(): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validator",
+                      "canonicalReference": "@tldraw/validate!Validator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<T[]>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "lengthGreaterThan1"
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.ArrayOfValidator#nonEmpty:member(1)",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "nonEmpty(): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validator",
+                      "canonicalReference": "@tldraw/validate!Validator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<T[]>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "nonEmpty"
+                }
+              ],
+              "extendsTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "implementsTokenRanges": []
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.bigint:var",
+              "docComment": "/**\n * Validates that a value is a bigint.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "bigint: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<bigint>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "bigint",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.boolean:var",
+              "docComment": "/**\n * Validates that a value is boolean.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "boolean: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<boolean>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "boolean",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.dict:function(1)",
+              "docComment": "/**\n * Validation that an option is a dict with particular keys and values.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function dict<Key extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", Value>(keyValidator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Key>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", valueValidator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Value>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "DictValidator",
+                  "canonicalReference": "@tldraw/validate!DictValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Key, Value>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 11
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "keyValidator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "valueValidator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 8
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "Key",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                },
+                {
+                  "typeParameterName": "Value",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "dict"
+            },
+            {
+              "kind": "Class",
+              "canonicalReference": "@tldraw/validate!T.DictValidator:class",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare class DictValidator<Key extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", Value> extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Key, Value>>"
+                },
+                {
+                  "kind": "Content",
+                  "text": " "
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "releaseTag": "Public",
+              "typeParameters": [
+                {
+                  "typeParameterName": "Key",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                },
+                {
+                  "typeParameterName": "Value",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isAbstract": false,
+              "name": "DictValidator",
+              "preserveMemberOrder": false,
+              "members": [
+                {
+                  "kind": "Constructor",
+                  "canonicalReference": "@tldraw/validate!T.DictValidator:constructor(1)",
+                  "docComment": "/**\n * Constructs a new instance of the `DictValidator` class\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "constructor(keyValidator: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validatable",
+                      "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Key>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ", valueValidator: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validatable",
+                      "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Value>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ");"
+                    }
+                  ],
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "keyValidator",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 3
+                      },
+                      "isOptional": false
+                    },
+                    {
+                      "parameterName": "valueValidator",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 4,
+                        "endIndex": 6
+                      },
+                      "isOptional": false
+                    }
+                  ]
+                },
+                {
+                  "kind": "Property",
+                  "canonicalReference": "@tldraw/validate!T.DictValidator#keyValidator:member",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "readonly keyValidator: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validatable",
+                      "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Key>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isReadonly": true,
+                  "isOptional": false,
+                  "releaseTag": "Public",
+                  "name": "keyValidator",
+                  "propertyTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isStatic": false,
+                  "isProtected": false,
+                  "isAbstract": false
+                },
+                {
+                  "kind": "Property",
+                  "canonicalReference": "@tldraw/validate!T.DictValidator#valueValidator:member",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "readonly valueValidator: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validatable",
+                      "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Value>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isReadonly": true,
+                  "isOptional": false,
+                  "releaseTag": "Public",
+                  "name": "valueValidator",
+                  "propertyTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isStatic": false,
+                  "isProtected": false,
+                  "isAbstract": false
+                }
+              ],
+              "extendsTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "implementsTokenRanges": []
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.integer:var",
+              "docComment": "/**\n * Fails if number is not an integer\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "integer: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "integer",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.jsonDict:function(1)",
+              "docComment": "/**\n * Validate an object has a particular shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function jsonDict(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "DictValidator",
+                  "canonicalReference": "@tldraw/validate!DictValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonValue",
+                  "canonicalReference": "@tldraw/utils!JsonValue:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "jsonDict"
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.jsonValue:var",
+              "docComment": "/**\n * Validate that a value is valid JSON.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "jsonValue: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonValue",
+                  "canonicalReference": "@tldraw/utils!JsonValue:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "jsonValue",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              }
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.literal:function(1)",
+              "docComment": "/**\n * Validates that a value matches another that was passed in.\n *\n * @example\n * ```ts\n * const trueValidator = T.literal(true)\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function literal<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean | number | string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(expectedValue: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "expectedValue",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "literal"
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.literalEnum:function(1)",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function literalEnum<const Values extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "readonly unknown[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(...values: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Values"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Values[number]>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "values",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "Values",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "literalEnum"
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.model:function(1)",
+              "docComment": "/**\n * A named object with an ID. Errors will be reported as being part of the object with the given name.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function model<T extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n    readonly id: string;\n}"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(name: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", validator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 8,
+                "endIndex": 10
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "name",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "validator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "model"
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.nonZeroInteger:var",
+              "docComment": "/**\n * Fails if value \\<= 0 and is not an integer\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "nonZeroInteger: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "nonZeroInteger",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.nonZeroNumber:var",
+              "docComment": "/**\n * Fails if value \\<= 0\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "nonZeroNumber: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "nonZeroNumber",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.nullable:function(1)",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function nullable<T>(validator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<null | T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "validator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "nullable"
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.number:var",
+              "docComment": "/**\n * Validates that a value is a finite non-NaN number.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "number: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "number",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.object:function(1)",
+              "docComment": "/**\n * Validate an object has a particular shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function object<Shape extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "object"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(config: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n    readonly [K in keyof Shape]: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape[K]>;\n}"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ObjectValidator",
+                  "canonicalReference": "@tldraw/validate!ObjectValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 9
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "config",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "Shape",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "object"
+            },
+            {
+              "kind": "Class",
+              "canonicalReference": "@tldraw/validate!T.ObjectValidator:class",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare class ObjectValidator<Shape extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "object"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Shape>"
+                },
+                {
+                  "kind": "Content",
+                  "text": " "
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "releaseTag": "Public",
+              "typeParameters": [
+                {
+                  "typeParameterName": "Shape",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isAbstract": false,
+              "name": "ObjectValidator",
+              "preserveMemberOrder": false,
+              "members": [
+                {
+                  "kind": "Constructor",
+                  "canonicalReference": "@tldraw/validate!T.ObjectValidator:constructor(1)",
+                  "docComment": "/**\n * Constructs a new instance of the `ObjectValidator` class\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "constructor(config: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "{\n        readonly [K in keyof Shape]: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validatable",
+                      "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Shape[K]>;\n    }"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ", shouldAllowUnknownProperties?: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "boolean"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ");"
+                    }
+                  ],
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "config",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 4
+                      },
+                      "isOptional": false
+                    },
+                    {
+                      "parameterName": "shouldAllowUnknownProperties",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 5,
+                        "endIndex": 6
+                      },
+                      "isOptional": true
+                    }
+                  ]
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.ObjectValidator#allowUnknownProperties:member(1)",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "allowUnknownProperties(): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "ObjectValidator",
+                      "canonicalReference": "@tldraw/validate!ObjectValidator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Shape>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "allowUnknownProperties"
+                },
+                {
+                  "kind": "Property",
+                  "canonicalReference": "@tldraw/validate!T.ObjectValidator#config:member",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "readonly config: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "{\n        readonly [K in keyof Shape]: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validatable",
+                      "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Shape[K]>;\n    }"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isReadonly": true,
+                  "isOptional": false,
+                  "releaseTag": "Public",
+                  "name": "config",
+                  "propertyTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 4
+                  },
+                  "isStatic": false,
+                  "isProtected": false,
+                  "isAbstract": false
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.ObjectValidator#extend:member(1)",
+                  "docComment": "/**\n * Extend an object validator by adding additional properties.\n *\n * @example\n * ```ts\n * const animalValidator = T.object({\n * \tname: T.string,\n * })\n * const catValidator = animalValidator.extend({\n * \tmeowVolume: T.number,\n * })\n * ```\n *\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "extend<Extension extends "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Record",
+                      "canonicalReference": "!Record:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<string, unknown>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ">(extension: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "{\n        readonly [K in keyof Extension]: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validatable",
+                      "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Extension[K]>;\n    }"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "ObjectValidator",
+                      "canonicalReference": "@tldraw/validate!ObjectValidator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Shape & Extension>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "typeParameters": [
+                    {
+                      "typeParameterName": "Extension",
+                      "constraintTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 3
+                      },
+                      "defaultTypeTokenRange": {
+                        "startIndex": 0,
+                        "endIndex": 0
+                      }
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 8,
+                    "endIndex": 10
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "extension",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 4,
+                        "endIndex": 7
+                      },
+                      "isOptional": false
+                    }
+                  ],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "extend"
+                }
+              ],
+              "extendsTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "implementsTokenRanges": []
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.optional:function(1)",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function optional<T>(validator: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T | undefined>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "validator",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "optional"
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.positiveInteger:var",
+              "docComment": "/**\n * Fails if value \\< 0 and is not an integer\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "positiveInteger: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "positiveInteger",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.positiveNumber:var",
+              "docComment": "/**\n * Fails if value \\< 0\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "positiveNumber: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<number>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "positiveNumber",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.setEnum:function(1)",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function setEnum<T>(values: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ReadonlySet",
+                  "canonicalReference": "!ReadonlySet:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "values",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "setEnum"
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.string:var",
+              "docComment": "/**\n * Validates that a value is a string.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "string: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "string",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "TypeAlias",
+              "canonicalReference": "@tldraw/validate!T.TypeOf:type",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export type TypeOf<V extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "V extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<infer T> ? T : never"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "releaseTag": "Public",
+              "name": "TypeOf",
+              "typeParameters": [
+                {
+                  "typeParameterName": "V",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "typeTokenRange": {
+                "startIndex": 4,
+                "endIndex": 7
+              }
+            },
+            {
+              "kind": "Function",
+              "canonicalReference": "@tldraw/validate!T.union:function(1)",
+              "docComment": "/**\n * Validate a union of several object types. Each object must have a property matching `key` which should be a unique string.\n *\n * @example\n * ```ts\n * const catValidator = T.object({ kind: T.value('cat'), meow: T.boolean })\n * const dogValidator = T.object({ kind: T.value('dog'), bark: T.boolean })\n * const animalValidator = T.union('kind', { cat: catValidator, dog: dogValidator })\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare function union<Key extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", Config extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnionValidatorConfig",
+                  "canonicalReference": "@tldraw/validate!~UnionValidatorConfig:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Key, Config>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">(key: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Key"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", config: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Config"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnionValidator",
+                  "canonicalReference": "@tldraw/validate!UnionValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Key, Config>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "returnTypeTokenRange": {
+                "startIndex": 10,
+                "endIndex": 12
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "key",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 7
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "config",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 8,
+                    "endIndex": 9
+                  },
+                  "isOptional": false
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "Key",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                },
+                {
+                  "typeParameterName": "Config",
+                  "constraintTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "name": "union"
+            },
+            {
+              "kind": "Class",
+              "canonicalReference": "@tldraw/validate!T.UnionValidator:class",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare class UnionValidator<Key extends "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", Config extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnionValidatorConfig",
+                  "canonicalReference": "@tldraw/validate!~UnionValidatorConfig:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Key, Config>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", UnknownValue = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "never"
+                },
+                {
+                  "kind": "Content",
+                  "text": "> extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TypeOf",
+                  "canonicalReference": "@tldraw/validate!T.TypeOf:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Config[keyof Config]> | UnknownValue>"
+                },
+                {
+                  "kind": "Content",
+                  "text": " "
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "releaseTag": "Public",
+              "typeParameters": [
+                {
+                  "typeParameterName": "Key",
+                  "constraintTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                },
+                {
+                  "typeParameterName": "Config",
+                  "constraintTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                },
+                {
+                  "typeParameterName": "UnknownValue",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 6,
+                    "endIndex": 7
+                  }
+                }
+              ],
+              "isAbstract": false,
+              "name": "UnionValidator",
+              "preserveMemberOrder": false,
+              "members": [
+                {
+                  "kind": "Constructor",
+                  "canonicalReference": "@tldraw/validate!T.UnionValidator:constructor(1)",
+                  "docComment": "/**\n * Constructs a new instance of the `UnionValidator` class\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "constructor(key: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "Key"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ", config: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "Config"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ", unknownValueValidation: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "(value: object, variant: string) => UnknownValue"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ");"
+                    }
+                  ],
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "key",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 2
+                      },
+                      "isOptional": false
+                    },
+                    {
+                      "parameterName": "config",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 3,
+                        "endIndex": 4
+                      },
+                      "isOptional": false
+                    },
+                    {
+                      "parameterName": "unknownValueValidation",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 5,
+                        "endIndex": 6
+                      },
+                      "isOptional": false
+                    }
+                  ]
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.UnionValidator#validateUnknownVariants:member(1)",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "validateUnknownVariants<Unknown>(unknownValueValidation: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "(value: object, variant: string) => Unknown"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "UnionValidator",
+                      "canonicalReference": "@tldraw/validate!UnionValidator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<Key, Config, Unknown>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "typeParameters": [
+                    {
+                      "typeParameterName": "Unknown",
+                      "constraintTokenRange": {
+                        "startIndex": 0,
+                        "endIndex": 0
+                      },
+                      "defaultTypeTokenRange": {
+                        "startIndex": 0,
+                        "endIndex": 0
+                      }
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "unknownValueValidation",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 2
+                      },
+                      "isOptional": false
+                    }
+                  ],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "validateUnknownVariants"
+                }
+              ],
+              "extendsTokenRange": {
+                "startIndex": 8,
+                "endIndex": 12
+              },
+              "implementsTokenRanges": []
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.unknown:var",
+              "docComment": "/**\n * Validation that accepts any value. Useful as a starting point for building your own custom validations.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "unknown: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<unknown>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "unknown",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "Variable",
+              "canonicalReference": "@tldraw/validate!T.unknownObject:var",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "unknownObject: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, unknown>>"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "isReadonly": true,
+              "releaseTag": "Public",
+              "name": "unknownObject",
+              "variableTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              }
+            },
+            {
+              "kind": "TypeAlias",
+              "canonicalReference": "@tldraw/validate!T.Validatable:type",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export type Validatable<T> = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n    validate: (value: unknown) => T;\n}"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "releaseTag": "Public",
+              "name": "Validatable",
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "typeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "Class",
+              "canonicalReference": "@tldraw/validate!T.ValidationError:class",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare class ValidationError extends "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Error",
+                  "canonicalReference": "!Error:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " "
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "releaseTag": "Public",
+              "isAbstract": false,
+              "name": "ValidationError",
+              "preserveMemberOrder": false,
+              "members": [
+                {
+                  "kind": "Constructor",
+                  "canonicalReference": "@tldraw/validate!T.ValidationError:constructor(1)",
+                  "docComment": "/**\n * Constructs a new instance of the `ValidationError` class\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "constructor(rawMessage: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "string"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ", path?: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "ReadonlyArray",
+                      "canonicalReference": "!ReadonlyArray:interface"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<number | string>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ");"
+                    }
+                  ],
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "rawMessage",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 2
+                      },
+                      "isOptional": false
+                    },
+                    {
+                      "parameterName": "path",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 3,
+                        "endIndex": 5
+                      },
+                      "isOptional": true
+                    }
+                  ]
+                },
+                {
+                  "kind": "Property",
+                  "canonicalReference": "@tldraw/validate!T.ValidationError#name:member",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "name: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "string"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isReadonly": false,
+                  "isOptional": false,
+                  "releaseTag": "Public",
+                  "name": "name",
+                  "propertyTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isStatic": false,
+                  "isProtected": false,
+                  "isAbstract": false
+                },
+                {
+                  "kind": "Property",
+                  "canonicalReference": "@tldraw/validate!T.ValidationError#path:member",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "readonly path: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "ReadonlyArray",
+                      "canonicalReference": "!ReadonlyArray:interface"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<number | string>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isReadonly": true,
+                  "isOptional": false,
+                  "releaseTag": "Public",
+                  "name": "path",
+                  "propertyTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isStatic": false,
+                  "isProtected": false,
+                  "isAbstract": false
+                },
+                {
+                  "kind": "Property",
+                  "canonicalReference": "@tldraw/validate!T.ValidationError#rawMessage:member",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "readonly rawMessage: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "string"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isReadonly": true,
+                  "isOptional": false,
+                  "releaseTag": "Public",
+                  "name": "rawMessage",
+                  "propertyTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isStatic": false,
+                  "isProtected": false,
+                  "isAbstract": false
+                }
+              ],
+              "extendsTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "implementsTokenRanges": []
+            },
+            {
+              "kind": "Class",
+              "canonicalReference": "@tldraw/validate!T.Validator:class",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export declare class Validator<T> implements "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validatable",
+                  "canonicalReference": "@tldraw/validate!T.Validatable:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": " "
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "releaseTag": "Public",
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isAbstract": false,
+              "name": "Validator",
+              "preserveMemberOrder": false,
+              "members": [
+                {
+                  "kind": "Constructor",
+                  "canonicalReference": "@tldraw/validate!T.Validator:constructor(1)",
+                  "docComment": "/**\n * Constructs a new instance of the `Validator` class\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "constructor(validationFn: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "ValidatorFn",
+                      "canonicalReference": "@tldraw/validate!T.ValidatorFn:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<T>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ");"
+                    }
+                  ],
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "validationFn",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 3
+                      },
+                      "isOptional": false
+                    }
+                  ]
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.Validator#check:member(1)",
+                  "docComment": "/**\n * Refine this validation with an additional check that doesn't change the resulting value.\n *\n * @example\n * ```ts\n * const numberLessThan10Validator = T.number.check((value) => {\n * \tif (value >= 10) {\n * \t\tthrow new ValidationError(`Expected number less than 10, got ${value}`)\n * \t}\n * })\n * ```\n *\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "check(name: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "string"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ", checkFn: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "(value: T) => void"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validator",
+                      "canonicalReference": "@tldraw/validate!Validator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<T>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 7
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "name",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 2
+                      },
+                      "isOptional": false
+                    },
+                    {
+                      "parameterName": "checkFn",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 3,
+                        "endIndex": 4
+                      },
+                      "isOptional": false
+                    }
+                  ],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "check"
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.Validator#check:member(2)",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "check(checkFn: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "(value: T) => void"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validator",
+                      "canonicalReference": "@tldraw/validate!Validator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<T>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 2,
+                  "parameters": [
+                    {
+                      "parameterName": "checkFn",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 2
+                      },
+                      "isOptional": false
+                    }
+                  ],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "check"
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.Validator#nullable:member(1)",
+                  "docComment": "/**\n * Returns a new validator that also accepts null or undefined. The resulting value will always be null.\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "nullable(): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validator",
+                      "canonicalReference": "@tldraw/validate!Validator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<null | T>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "nullable"
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.Validator#optional:member(1)",
+                  "docComment": "/**\n * Returns a new validator that also accepts null or undefined. The resulting value will always be null.\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "optional(): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validator",
+                      "canonicalReference": "@tldraw/validate!Validator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<T | undefined>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "optional"
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.Validator#refine:member(1)",
+                  "docComment": "/**\n * Refine this validation to a new type. The passed-in validation function should throw an error if the value can't be converted to the new type, or return the new type otherwise.\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "refine<U>(otherValidationFn: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "(value: T) => U"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "): "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "Validator",
+                      "canonicalReference": "@tldraw/validate!Validator:class"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<U>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "typeParameters": [
+                    {
+                      "typeParameterName": "U",
+                      "constraintTokenRange": {
+                        "startIndex": 0,
+                        "endIndex": 0
+                      },
+                      "defaultTypeTokenRange": {
+                        "startIndex": 0,
+                        "endIndex": 0
+                      }
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 5
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "otherValidationFn",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 2
+                      },
+                      "isOptional": false
+                    }
+                  ],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "refine"
+                },
+                {
+                  "kind": "Method",
+                  "canonicalReference": "@tldraw/validate!T.Validator#validate:member(1)",
+                  "docComment": "/**\n * Asserts that the passed value is of the correct type and returns it. The returned value is guaranteed to be referentially equal to the passed value.\n */\n",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "validate(value: "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "unknown"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "): "
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "T"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isStatic": false,
+                  "returnTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "releaseTag": "Public",
+                  "isProtected": false,
+                  "overloadIndex": 1,
+                  "parameters": [
+                    {
+                      "parameterName": "value",
+                      "parameterTypeTokenRange": {
+                        "startIndex": 1,
+                        "endIndex": 2
+                      },
+                      "isOptional": false
+                    }
+                  ],
+                  "isOptional": false,
+                  "isAbstract": false,
+                  "name": "validate"
+                },
+                {
+                  "kind": "Property",
+                  "canonicalReference": "@tldraw/validate!T.Validator#validationFn:member",
+                  "docComment": "",
+                  "excerptTokens": [
+                    {
+                      "kind": "Content",
+                      "text": "readonly validationFn: "
+                    },
+                    {
+                      "kind": "Reference",
+                      "text": "ValidatorFn",
+                      "canonicalReference": "@tldraw/validate!T.ValidatorFn:type"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": "<T>"
+                    },
+                    {
+                      "kind": "Content",
+                      "text": ";"
+                    }
+                  ],
+                  "isReadonly": true,
+                  "isOptional": false,
+                  "releaseTag": "Public",
+                  "name": "validationFn",
+                  "propertyTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isStatic": false,
+                  "isProtected": false,
+                  "isAbstract": false
+                }
+              ],
+              "implementsTokenRanges": [
+                {
+                  "startIndex": 1,
+                  "endIndex": 3
+                }
+              ]
+            },
+            {
+              "kind": "TypeAlias",
+              "canonicalReference": "@tldraw/validate!T.ValidatorFn:type",
+              "docComment": "/**\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "export type ValidatorFn<T> = "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(value: unknown) => T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "fileUrlPath": "packages/validate/src/lib/validation.ts",
+              "releaseTag": "Public",
+              "name": "ValidatorFn",
+              "typeParameters": [
+                {
+                  "typeParameterName": "T",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "typeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ]
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/validate!UnionValidator:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class UnionValidator<Key extends "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", Config extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "UnionValidatorConfig",
+              "canonicalReference": "@tldraw/validate!~UnionValidatorConfig:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<Key, Config>"
+            },
+            {
+              "kind": "Content",
+              "text": ", UnknownValue = "
+            },
+            {
+              "kind": "Content",
+              "text": "never"
+            },
+            {
+              "kind": "Content",
+              "text": "> extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "Validator",
+              "canonicalReference": "@tldraw/validate!Validator:class"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "TypeOf",
+              "canonicalReference": "@tldraw/validate!T.TypeOf:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<Config[keyof Config]> | UnknownValue>"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/validate/src/lib/validation.ts",
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "Key",
+              "constraintTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            },
+            {
+              "typeParameterName": "Config",
+              "constraintTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            },
+            {
+              "typeParameterName": "UnknownValue",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              }
+            }
+          ],
+          "isAbstract": false,
+          "name": "UnionValidator",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@tldraw/validate!UnionValidator:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `UnionValidator` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(key: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Key"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", config: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Config"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", unknownValueValidation: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(value: object, variant: string) => UnknownValue"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "key",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "config",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "unknownValueValidation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!UnionValidator#validateUnknownVariants:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "validateUnknownVariants<Unknown>(unknownValueValidation: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(value: object, variant: string) => Unknown"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UnionValidator",
+                  "canonicalReference": "@tldraw/validate!UnionValidator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<Key, Config, Unknown>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "Unknown",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "unknownValueValidation",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "validateUnknownVariants"
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 8,
+            "endIndex": 12
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@tldraw/validate!Validator:class",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class Validator<T> implements "
+            },
+            {
+              "kind": "Reference",
+              "text": "Validatable",
+              "canonicalReference": "@tldraw/validate!T.Validatable:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<T>"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "fileUrlPath": "packages/validate/src/lib/validation.ts",
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "T",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "isAbstract": false,
+          "name": "Validator",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@tldraw/validate!Validator:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `Validator` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(validationFn: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValidatorFn",
+                  "canonicalReference": "@tldraw/validate!T.ValidatorFn:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "validationFn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 3
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!Validator#check:member(1)",
+              "docComment": "/**\n * Refine this validation with an additional check that doesn't change the resulting value.\n *\n * @example\n * ```ts\n * const numberLessThan10Validator = T.number.check((value) => {\n * \tif (value >= 10) {\n * \t\tthrow new ValidationError(`Expected number less than 10, got ${value}`)\n * \t}\n * })\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "check(name: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", checkFn: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(value: T) => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "name",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "checkFn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "check"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!Validator#check:member(2)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "check(checkFn: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(value: T) => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 2,
+              "parameters": [
+                {
+                  "parameterName": "checkFn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "check"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!Validator#nullable:member(1)",
+              "docComment": "/**\n * Returns a new validator that also accepts null or undefined. The resulting value will always be null.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "nullable(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<null | T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "nullable"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!Validator#optional:member(1)",
+              "docComment": "/**\n * Returns a new validator that also accepts null or undefined. The resulting value will always be null.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "optional(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T | undefined>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "optional"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!Validator#refine:member(1)",
+              "docComment": "/**\n * Refine this validation to a new type. The passed-in validation function should throw an error if the value can't be converted to the new type, or return the new type otherwise.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "refine<U>(otherValidationFn: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "(value: T) => U"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Validator",
+                  "canonicalReference": "@tldraw/validate!Validator:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<U>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "typeParameters": [
+                {
+                  "typeParameterName": "U",
+                  "constraintTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  },
+                  "defaultTypeTokenRange": {
+                    "startIndex": 0,
+                    "endIndex": 0
+                  }
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "otherValidationFn",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "refine"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/validate!Validator#validate:member(1)",
+              "docComment": "/**\n * Asserts that the passed value is of the correct type and returns it. The returned value is guaranteed to be referentially equal to the passed value.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "validate(value: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "unknown"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "T"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "value",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "validate"
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/validate!Validator#validationFn:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly validationFn: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValidatorFn",
+                  "canonicalReference": "@tldraw/validate!T.ValidatorFn:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<T>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "validationFn",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            }
+          ],
+          "implementsTokenRanges": [
+            {
+              "startIndex": 1,
+              "endIndex": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-import { Editor, compact, featureFlags, useEditor, useValue } from '@tldraw/editor'
+import { Editor, compact, useEditor } from '@tldraw/editor'
 import React from 'react'
 import { TLUiToolItem, TLUiToolsContextType, useTools } from './useTools'
 
@@ -41,7 +41,6 @@ export function ToolbarSchemaProvider({ overrides, children }: TLUiToolbarSchema
 	const editor = useEditor()
 
 	const tools = useTools()
-	const highlighterEnabled = useValue(featureFlags.highlighterTool)
 
 	const toolbarSchema = React.useMemo<TLUiToolbarSchemaContextType>(() => {
 		const schema: TLUiToolbarSchemaContextType = compact([
@@ -72,7 +71,7 @@ export function ToolbarSchemaProvider({ overrides, children }: TLUiToolbarSchema
 			toolbarItem(tools['arrow-right']),
 			toolbarItem(tools.frame),
 			toolbarItem(tools.line),
-			highlighterEnabled ? toolbarItem(tools.highlight) : null,
+			toolbarItem(tools.highlight),
 			toolbarItem(tools.laser),
 		])
 
@@ -81,7 +80,7 @@ export function ToolbarSchemaProvider({ overrides, children }: TLUiToolbarSchema
 		}
 
 		return schema
-	}, [editor, highlighterEnabled, overrides, tools])
+	}, [editor, overrides, tools])
 
 	return (
 		<ToolbarSchemaContext.Provider value={toolbarSchema}>{children}</ToolbarSchemaContext.Provider>

@@ -13,7 +13,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes()
+		.deleteShapes(editor.selectedShapeIds)
 		.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 })
 
@@ -40,7 +40,7 @@ describe('TLSelectTool.Zooming', () => {
 	it('Correctly zooms in when clicking', () => {
 		editor.keyDown('z')
 		expect(editor.zoomLevel).toBe(1)
-		expect(editor.viewportPageBounds).toMatchObject({ x: 0, y: 0, w: 1080, h: 720 })
+		expect(editor.viewportPageBounds).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
 		editor.click()
 		editor.expectToBeIn('zoom.idle')
@@ -52,7 +52,7 @@ describe('TLSelectTool.Zooming', () => {
 		editor.keyDown('z')
 		editor.keyDown('Alt')
 		expect(editor.zoomLevel).toBe(1)
-		expect(editor.viewportPageBounds).toMatchObject({ x: 0, y: 0, w: 1080, h: 720 })
+		expect(editor.viewportPageBounds).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
 		editor.click()
 		jest.advanceTimersByTime(300)
@@ -109,7 +109,7 @@ describe('TLSelectTool.Zooming', () => {
 
 	it('When the dragged area is small it zooms in instead of zooming to the area', () => {
 		const originalCenter = { x: 540, y: 360 }
-		const originalPageBounds = { x: 0, y: 0, w: 1080, h: 720 }
+		const originalPageBounds = { x: -0, y: -0, w: 1080, h: 720 }
 		const change = 6
 		expect(editor.zoomLevel).toBe(1)
 		expect(editor.viewportPageBounds).toMatchObject(originalPageBounds)
@@ -143,13 +143,13 @@ describe('TLSelectTool.Zooming', () => {
 		const newBoundsY = 200
 		editor.expectToBeIn('select.idle')
 		expect(editor.zoomLevel).toBe(1)
-		expect(editor.viewportPageBounds).toMatchObject({ x: 0, y: 0, w: 1080, h: 720 })
+		expect(editor.viewportPageBounds).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
 		editor.keyDown('z')
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(newBoundsX, newBoundsY)
 		editor.pointerMove(newBoundsX + newBoundsWidth, newBoundsY + newBoundsHeight)
-		expect(editor.zoomBrush).toMatchObject({
+		expect(editor.instanceState.zoomBrush).toMatchObject({
 			x: newBoundsX,
 			y: newBoundsY,
 			w: newBoundsWidth,
@@ -179,14 +179,14 @@ describe('TLSelectTool.Zooming', () => {
 		editor.expectToBeIn('select.idle')
 		const originalZoomLevel = 1
 		expect(editor.zoomLevel).toBe(originalZoomLevel)
-		expect(editor.viewportPageBounds).toMatchObject({ x: 0, y: 0, w: 1080, h: 720 })
+		expect(editor.viewportPageBounds).toMatchObject({ x: -0, y: -0, w: 1080, h: 720 })
 		expect(editor.viewportPageCenter).toMatchObject({ x: 540, y: 360 })
 		editor.keyDown('z')
 		editor.expectToBeIn('zoom.idle')
 		editor.keyDown('Alt')
 		editor.pointerDown(newBoundsX, newBoundsY)
 		editor.pointerMove(newBoundsX + newBoundsWidth, newBoundsY + newBoundsHeight)
-		expect(editor.zoomBrush).toMatchObject({
+		expect(editor.instanceState.zoomBrush).toMatchObject({
 			x: newBoundsX,
 			y: newBoundsY,
 			w: newBoundsWidth,

@@ -3,9 +3,10 @@ import {
 	TLDefaultSizeStyle,
 	Vec2d,
 	Vec2dModel,
+	clockwiseAngleDist,
 	getPointOnCircle,
 	rng,
-	shortAngleDist,
+	toDomPrecision,
 } from '@tldraw/editor'
 
 function getPillCircumference(width: number, height: number) {
@@ -132,7 +133,11 @@ export function getCloudArcs(
 ) {
 	const getRandom = rng(seed)
 	const pillCircumference = getPillCircumference(width, height)
-	const numBumps = Math.max(Math.ceil(pillCircumference / switchSize(size, 50, 70, 100, 130)), 6)
+	const numBumps = Math.max(
+		Math.ceil(pillCircumference / switchSize(size, 50, 70, 100, 130)),
+		6,
+		Math.ceil(pillCircumference / Math.min(width, height))
+	)
 	const targetBumpProtrusion = (pillCircumference / numBumps) * 0.2
 
 	// if the aspect ratio is high, innerWidth should be smaller
@@ -147,7 +152,8 @@ export function getCloudArcs(
 		return p.addXY(paddingX, paddingY)
 	})
 
-	const maxWiggle = targetBumpProtrusion * 0.3
+	const maxWiggleX = width < 20 ? 0 : targetBumpProtrusion * 0.3
+	const maxWiggleY = height < 20 ? 0 : targetBumpProtrusion * 0.3
 
 	// wiggle the points from either end so that the bumps 'pop'
 	// in at the bottom-right and the top-left looks relatively stable
@@ -155,13 +161,13 @@ export function getCloudArcs(
 	for (let i = 0; i < Math.floor(numBumps / 2); i++) {
 		wiggledPoints[i] = Vec2d.AddXY(
 			wiggledPoints[i],
-			getRandom() * maxWiggle,
-			getRandom() * maxWiggle
+			getRandom() * maxWiggleX,
+			getRandom() * maxWiggleY
 		)
 		wiggledPoints[numBumps - i - 1] = Vec2d.AddXY(
 			wiggledPoints[numBumps - i - 1],
-			getRandom() * maxWiggle,
-			getRandom() * maxWiggle
+			getRandom() * maxWiggleX,
+			getRandom() * maxWiggleY
 		)
 	}
 
@@ -197,7 +203,10 @@ export function getCloudArcs(
 		}
 
 		const center = getCenterOfCircleGivenThreePoints(leftWigglePoint, rightWigglePoint, arcPoint)
-		const radius = Vec2d.Dist(center, leftWigglePoint)
+		const radius = Vec2d.Dist(
+			center ? center : Vec2d.Average([leftWigglePoint, rightWigglePoint]),
+			leftWigglePoint
+		)
 
 		arcs.push({
 			leftPoint: leftWigglePoint,
@@ -215,7 +224,7 @@ type Arc = {
 	leftPoint: Vec2d
 	rightPoint: Vec2d
 	arcPoint: Vec2d
-	center: Vec2d
+	center: Vec2d | null
 	radius: number
 }
 
@@ -235,7 +244,7 @@ function getCenterOfCircleGivenThreePoints(a: Vec2d, b: Vec2d, c: Vec2d) {
 
 	// handle situations where the points are colinear (this happens when the cloud is very small)
 	if (!Number.isFinite(x) || !Number.isFinite(y)) {
-		return Vec2d.Average([a, b, c])
+		return null
 	}
 
 	return new Vec2d(x, y)
@@ -264,12 +273,30 @@ export function cloudSvgPath(
 	seed: string,
 	size: TLDefaultSizeStyle
 ) {
+	// const points = cloudOutline(width, height, seed, size)
+	// {
+	// 	let path = `M${toDomPrecision(points[0].x)},${toDomPrecision(points[0].y)}`
+	// 	for (const point of points.slice(1)) {
+	// 		path += ` L${toDomPrecision(point.x)},${toDomPrecision(point.y)}`
+	// 	}
+	// 	return path
+	// }
+
 	const arcs = getCloudArcs(width, height, seed, size)
-	let path = `M${arcs[0].leftPoint.x},${arcs[0].leftPoint.y}`
+	let path = `M${toDomPrecision(arcs[0].leftPoint.x)},${toDomPrecision(arcs[0].leftPoint.y)}`
 
 	// now draw arcs for each circle, starting where it intersects the previous circle, and ending where it intersects the next circle
-	for (const { rightPoint, radius } of arcs) {
-		path += ` A${radius},${radius} 0 0,1 ${rightPoint.x},${rightPoint.y}`
+	for (const { leftPoint, rightPoint, radius, center } of arcs) {
+		if (center === null) {
+			// draw a line to rightPoint instead
+			path += ` L${toDomPrecision(rightPoint.x)},${toDomPrecision(rightPoint.y)}`
+			continue
+		}
+		// use the large arc if the center of the circle is to the left of the line between the two points
+		const arc = isLeft(leftPoint, rightPoint, center) ? '0' : '1'
+		path += ` A${toDomPrecision(radius)},${toDomPrecision(radius)} 0 ${arc},1 ${toDomPrecision(
+			rightPoint.x
+		)},${toDomPrecision(rightPoint.y)}`
 	}
 
 	path += ' Z'
@@ -283,24 +310,49 @@ export function inkyCloudSvgPath(
 	size: TLDefaultSizeStyle
 ) {
 	const getRandom = rng(seed)
+	const mutMultiplier = size === 's' ? 0.5 : size === 'm' ? 0.7 : size === 'l' ? 0.9 : 1.6
 	const mut = (n: number) => {
-		const multiplier = size === 's' ? 0.5 : size === 'm' ? 0.7 : size === 'l' ? 0.9 : 1.6
-		return n + getRandom() * multiplier * 2
+		return n + getRandom() * mutMultiplier * 2
 	}
-	const mutPoint = (p: Vec2d) => new Vec2d(mut(p.x), mut(p.y))
 	const arcs = getCloudArcs(width, height, seed, size)
-	let pathA = `M${arcs[0].leftPoint.x},${arcs[0].leftPoint.y}`
-	let leftMutPoint = mutPoint(arcs[0].leftPoint)
-	let pathB = `M${leftMutPoint.x},${leftMutPoint.y}`
+	const avgArcLength =
+		arcs.reduce((sum, arc) => sum + Vec2d.Dist(arc.leftPoint, arc.rightPoint), 0) / arcs.length
+	const shouldMutatePoints = avgArcLength > mutMultiplier * 15
 
-	for (const { rightPoint, radius, arcPoint } of arcs) {
-		pathA += ` A${radius},${radius} 0 0,1 ${rightPoint.x},${rightPoint.y}`
+	const mutPoint = shouldMutatePoints
+		? (p: Vec2d) => new Vec2d(mut(p.x), mut(p.y))
+		: (p: Vec2d) => p
+	let pathA = `M${toDomPrecision(arcs[0].leftPoint.x)},${toDomPrecision(arcs[0].leftPoint.y)}`
+	let leftMutPoint = mutPoint(arcs[0].leftPoint)
+	let pathB = `M${toDomPrecision(leftMutPoint.x)},${toDomPrecision(leftMutPoint.y)}`
+
+	for (const { leftPoint, center, rightPoint, radius, arcPoint } of arcs) {
+		if (center === null) {
+			// draw a line to rightPoint instead
+			pathA += ` L${toDomPrecision(rightPoint.x)},${toDomPrecision(rightPoint.y)}`
+			const rightMutPoint = mutPoint(rightPoint)
+			pathB += ` L${toDomPrecision(rightMutPoint.x)},${toDomPrecision(rightMutPoint.y)}`
+			leftMutPoint = rightMutPoint
+			continue
+		}
+		const arc = isLeft(leftPoint, rightPoint, center) ? '0' : '1'
+		pathA += ` A${toDomPrecision(radius)},${toDomPrecision(radius)} 0 ${arc},1 ${toDomPrecision(
+			rightPoint.x
+		)},${toDomPrecision(rightPoint.y)}`
 		const rightMutPoint = mutPoint(rightPoint)
 		const mutArcPoint = mutPoint(arcPoint)
 		const mutCenter = getCenterOfCircleGivenThreePoints(leftMutPoint, rightMutPoint, mutArcPoint)
+		if (!mutCenter) {
+			// draw a line to rightMutPoint instead
+			pathB += ` L${toDomPrecision(rightMutPoint.x)},${toDomPrecision(rightMutPoint.y)}`
+			leftMutPoint = rightMutPoint
+			continue
+		}
 		const mutRadius = Math.abs(Vec2d.Dist(mutCenter, leftMutPoint))
 
-		pathB += ` A${mutRadius},${mutRadius} 0 0,1 ${rightMutPoint.x},${rightMutPoint.y}`
+		pathB += ` A${toDomPrecision(mutRadius)},${toDomPrecision(
+			mutRadius
+		)} 0 ${arc},1 ${toDomPrecision(rightMutPoint.x)},${toDomPrecision(rightMutPoint.y)}`
 		leftMutPoint = rightMutPoint
 	}
 
@@ -310,16 +362,19 @@ export function inkyCloudSvgPath(
 export function pointsOnArc(
 	startPoint: Vec2dModel,
 	endPoint: Vec2dModel,
-	center: Vec2dModel,
+	center: Vec2dModel | null,
 	radius: number,
 	numPoints: number
 ): Vec2d[] {
+	if (center === null) {
+		return [Vec2d.From(startPoint), Vec2d.From(endPoint)]
+	}
 	const results: Vec2d[] = []
 
 	const startAngle = Vec2d.Angle(center, startPoint)
 	const endAngle = Vec2d.Angle(center, endPoint)
 
-	const l = shortAngleDist(startAngle, endAngle)
+	const l = clockwiseAngleDist(startAngle, endAngle)
 
 	for (let i = 0; i < numPoints; i++) {
 		const t = i / (numPoints - 1)
@@ -329,4 +384,8 @@ export function pointsOnArc(
 	}
 
 	return results
+}
+
+function isLeft(a: Vec2d, b: Vec2d, c: Vec2d) {
+	return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x) > 0
 }

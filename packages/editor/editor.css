@@ -26,6 +26,8 @@
 	--layer-canvas: 200;
 	/* Misc */
 	--tl-zoom: 1;
+	--tl-dpr-multiple: 100;
+	--tl-dpr-multiple-px: calc(var(--tl-dpr-multiple) * 1px);
 
 	/* Cursor SVGs */
 	--tl-cursor-none: none;
@@ -95,12 +97,12 @@
 	--color-background: rgb(249, 250, 251);
 	--color-brush-fill: rgba(144, 144, 144, 0.102);
 	--color-brush-stroke: rgba(144, 144, 144, 0.251);
-	--color-grid: rgba(144, 144, 144, 0.902);
+	--color-grid: rgb(109, 109, 109);
 	--color-low: rgb(237, 240, 242);
 	--color-culled: rgb(235, 238, 240);
 	--color-muted-0: rgba(0, 0, 0, 0.02);
 	--color-muted-1: rgba(0, 0, 0, 0.1);
-	--color-muted-2: rgba(0, 0, 0, 0.035);
+	--color-muted-2: rgba(0, 0, 0, 0.042);
 	--color-hint: rgba(0, 0, 0, 0.055);
 	--color-overlay: rgba(0, 0, 0, 0.2);
 	--color-divider: #e8e8e8;
@@ -135,7 +137,7 @@
 	--color-background: #212529;
 	--color-brush-fill: rgba(180, 180, 180, 0.05);
 	--color-brush-stroke: rgba(180, 180, 180, 0.25);
-	--color-grid: #909090e6;
+	--color-grid: #909090;
 	--color-low: #2c3136;
 	--color-culled: rgb(47, 52, 57);
 	--color-muted-0: rgba(255, 255, 255, 0.02);
@@ -191,6 +193,10 @@
 	-webkit-touch-callout: initial;
 }
 
+.tl-container:focus-within {
+	outline: 1px solid var(--color-low);
+}
+
 input,
 *[contenteditable],
 *[contenteditable] * {
@@ -207,7 +213,6 @@ input,
 	left: 0px;
 	width: 100%;
 	height: 100%;
-	background-color: var(--color-background);
 	color: var(--color-text);
 	z-index: var(--layer-canvas);
 	cursor: var(--tl-cursor);
@@ -217,20 +222,32 @@ input,
 	contain: strict;
 }
 
+.tl-fixed-layer {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	contain: strict;
+	pointer-events: none;
+}
+
 .tl-shapes {
 	position: relative;
-	z-index: 1;
+	z-index: 2;
 }
 
 .tl-overlays {
 	position: relative;
-	z-index: 2;
+	z-index: 3;
 }
 
 .tl-overlays__item {
 	position: absolute;
 	top: 0px;
 	left: 0px;
+	height: var(--tl-dpr-multiple-px);
+	width: var(--tl-dpr-multiple-px);
 	overflow: visible;
 	pointer-events: none;
 	transform-origin: top left;
@@ -240,8 +257,8 @@ input,
 	position: absolute;
 	top: 0px;
 	left: 0px;
-	height: 1px;
-	width: 1px;
+	height: var(--tl-dpr-multiple-px);
+	width: var(--tl-dpr-multiple-px);
 	pointer-events: none;
 }
 
@@ -256,8 +273,8 @@ input,
 
 .tl-background {
 	position: absolute;
-	inset: 0px;
 	background-color: var(--color-background);
+	inset: 0px;
 }
 
 /* --------------------- Grid Layer --------------------- */
@@ -271,6 +288,7 @@ input,
 	touch-action: none;
 	pointer-events: none;
 	z-index: 2;
+	contain: strict;
 }
 
 .tl-grid-dot {
@@ -286,13 +304,13 @@ input,
 	width: 1px;
 	height: 1px;
 	contain: layout style size;
-	z-index: 3;
 }
 
 /* ---------------------- Brush --------------------- */
 
 .tl-brush {
 	stroke-width: calc(var(--tl-scale) * 1px);
+	contain: size layout;
 }
 
 .tl-brush__default {
@@ -306,6 +324,7 @@ input,
 	stroke-linejoin: round;
 	stroke-linecap: round;
 	pointer-events: none;
+	contain: size layout;
 }
 
 /* ---------------------- Shape --------------------- */
@@ -315,31 +334,12 @@ input,
 	pointer-events: none;
 	overflow: visible;
 	transform-origin: top left;
+	contain: size layout;
 }
 
 .tl-shape__culled {
 	position: relative;
 	background-color: var(--color-culled);
-}
-
-.tl-hitarea-stroke {
-	fill: none;
-	stroke: transparent;
-	pointer-events: stroke;
-	stroke-width: min(100px, calc(24px * var(--tl-scale)));
-}
-
-.tl-hitarea-fill {
-	fill: var(--color-background);
-	stroke: transparent;
-	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--tl-scale)));
-}
-
-.tl-hitarea-fill-solid {
-	stroke: transparent;
-	pointer-events: all;
-	stroke-width: min(100px, calc(24px * var(--tl-scale)));
 }
 
 /* ---------------- Shape Containers ---------------- */
@@ -439,6 +439,7 @@ input,
 	transform-origin: top left;
 	fill: none;
 	stroke-width: calc(1.5px * var(--tl-scale));
+	contain: size;
 }
 
 /* ------------------ SelectionBox ------------------ */
@@ -492,7 +493,6 @@ input,
 
 .tl-mobile-rotate__bg {
 	pointer-events: all;
-	r: calc(max(calc(14px * var(--tl-scale)), 20px / max(1, var(--tl-zoom))));
 	cursor: var(--tl-cursor-grab);
 }
 
@@ -519,15 +519,20 @@ input,
 	stroke: transparent;
 	pointer-events: all;
 	cursor: var(--tl-cursor-grabbing);
-	r: calc(12px / var(--tl-zoom));
 }
 
 .tl-handle__fg {
 	fill: var(--color-background);
 	stroke: var(--color-selection-stroke);
 	stroke-width: calc(1.5px * var(--tl-scale));
-	r: calc(4px * var(--tl-scale));
 	pointer-events: none;
+}
+
+.tl-handle__create {
+	opacity: 0;
+}
+.tl-handle__create:hover {
+	opacity: 1;
 }
 
 .tl-handle__bg:active {
@@ -539,25 +544,13 @@ input,
 	fill: var(--color-selection-fill);
 }
 
-.tl-handle__hint {
-	opacity: 0;
-}
-
-.tl-handle__hint:hover {
-	opacity: 1;
-}
-
 @media (pointer: coarse) {
 	.tl-handle__bg:active {
 		fill: var(--color-selection-fill);
 	}
 
-	.tl-handle__hint {
+	.tl-handle__create {
 		opacity: 1;
-	}
-
-	.tl-handle__hint > .tl-handle__fg {
-		r: calc(3px * var(--tl-scale));
 	}
 }
 
@@ -590,7 +583,6 @@ input,
 	top: calc(var(--scale) * 8px);
 	right: calc(var(--scale) * 8px);
 	font-size: 10px;
-	scale: var(--scale);
 	transform-origin: top right;
 	background-color: var(--color-background);
 	padding: 2px 4px;
@@ -823,7 +815,7 @@ input,
 	top: -9999px;
 	right: -9999px;
 	opacity: 0;
-	width: fit-content;
+	width: max-content;
 	box-sizing: border-box;
 	pointer-events: none;
 	line-break: normal;
@@ -833,6 +825,7 @@ input,
 	resize: none;
 	border: none;
 	user-select: none;
+	contain: style paint;
 	-webkit-user-select: none;
 }
 
@@ -852,6 +845,7 @@ input,
 	min-width: 1px;
 	min-height: 1px;
 	overflow: visible;
+	outline: none;
 }
 
 .tl-text-content {
@@ -956,7 +950,7 @@ input,
 	font-size: 16px;
 	font-weight: bold;
 	padding-bottom: var(--space-2);
-	margin: 4px 0px;
+	margin: 8px 0px;
 }
 
 .tl-bookmark__description {
@@ -1041,15 +1035,15 @@ input,
 /* ---------------- Geo shape ---------------- */
 
 .tl-text-label {
-	width: 100%;
-	height: 100%;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	color: var(--color-text);
 	text-shadow: var(--tl-text-outline);
-	overflow: hidden;
 	line-height: inherit;
+	position: absolute;
+	inset: 0px;
+	z-index: 10;
 }
 
 .tl-text-label[data-isediting='true'] .tl-text-content {
@@ -1059,6 +1053,10 @@ input,
 .tl-text-label[data-hastext='false'][data-isediting='false'] > .tl-text-label__inner {
 	width: 40px;
 	height: 40px;
+}
+
+.tl-text-label[data-hastext='true'][data-isediting='false'] .tl-text-content {
+	pointer-events: all;
 }
 
 .tl-text-label__inner {
@@ -1099,7 +1097,7 @@ input,
 }
 
 .tl-text-label[data-isediting='true'] {
-	background-color: none;
+	background-color: transparent;
 	min-height: auto;
 }
 
@@ -1171,7 +1169,6 @@ input,
 
 .tl-arrow-label[data-isediting='true'] > .tl-arrow-label__inner {
 	background-color: var(--color-background);
-	border: calc(var(--tl-scale) * 1.5px) solid var(--color-selected);
 }
 
 .tl-arrow-label__inner {
@@ -1354,16 +1351,17 @@ input,
 	position: relative;
 	font-size: inherit;
 	white-space: pre;
+	border: 1px solid transparent;
 }
 
 .tl-frame-label__editing {
 	color: transparent;
-	outline: 1.5px solid var(--color-selection-stroke);
 	white-space: pre;
 	width: auto;
 	overflow: visible;
 	background-color: var(--color-panel);
 	border-radius: var(--radius-1);
+	border-color: var(--color-selected);
 }
 
 .tl-frame-name-input {
@@ -1447,15 +1445,17 @@ input,
 	border-style: solid;
 	border-radius: calc(var(--radius-1) * var(--tl-scale));
 	display: flex;
+	flex-direction: column;
 	align-items: center;
 	justify-content: center;
+	text-align: left;
 	position: relative;
 	pointer-events: all;
 	overflow: hidden;
 	padding: var(--space-2);
 }
 
-.tl-shape-error-boundary::after {
+.tl-shape-error-boundary::before {
 	transform: scale(var(--tl-scale));
 	content: 'Error';
 	font-size: 12px;
@@ -1506,7 +1506,7 @@ it from receiving any pointer events or affecting the cursor. */
 	position: absolute;
 	inset: 0px;
 	z-index: 600;
-	pointer-events: auto;
+	pointer-events: all;
 }
 
 .tl-error-boundary__content {
@@ -1619,10 +1619,6 @@ it from receiving any pointer events or affecting the cursor. */
 	/* If mobile always show handle-hint as there is no hover state */
 	.tl-canvas__mobile .tl-handle__hint {
 		opacity: 1;
-	}
-
-	.tl-canvas__mobile .tl-handle__bg {
-		r: calc(20px / var(--tl-zoom));
 	}
 }
 

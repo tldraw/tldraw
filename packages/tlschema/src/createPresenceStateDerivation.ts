@@ -25,7 +25,7 @@ export const createPresenceStateDerivation =
 
 			return InstancePresenceRecordType.create({
 				id: instanceId ?? InstancePresenceRecordType.createId(store.id),
-				selectedIds: pageState.selectedIds,
+				selectedShapeIds: pageState.selectedShapeIds,
 				brush: instance.brush,
 				scribble: instance.scribble,
 				userId: user.id,

@@ -298,12 +298,28 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/**
+	 * A callback fired after each record's change.
+	 *
+	 * @param prev - The previous value, if any.
+	 * @param next - The next value.
+	 */
+	onBeforeCreate?: (next: R, source: 'remote' | 'user') => R
+
+	/**
 	 * A callback fired after a record is created. Use this to perform related updates to other
 	 * records in the store.
 	 *
 	 * @param record - The record to be created
 	 */
-	onAfterCreate?: (record: R) => void
+	onAfterCreate?: (record: R, source: 'remote' | 'user') => void
+
+	/**
+	 * A callback before after each record's change.
+	 *
+	 * @param prev - The previous value, if any.
+	 * @param next - The next value.
+	 */
+	onBeforeChange?: (prev: R, next: R, source: 'remote' | 'user') => R
 
 	/**
 	 * A callback fired after each record's change.
@@ -311,21 +327,21 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @param prev - The previous value, if any.
 	 * @param next - The next value.
 	 */
-	onAfterChange?: (prev: R, next: R) => void
+	onAfterChange?: (prev: R, next: R, source: 'remote' | 'user') => void
 
 	/**
 	 * A callback fired before a record is deleted.
 	 *
 	 * @param prev - The record that will be deleted.
 	 */
-	onBeforeDelete?: (prev: R) => void
+	onBeforeDelete?: (prev: R, source: 'remote' | 'user') => false | void
 
 	/**
 	 * A callback fired after a record is deleted.
 	 *
 	 * @param prev - The record that will be deleted.
 	 */
-	onAfterDelete?: (prev: R) => void
+	onAfterDelete?: (prev: R, source: 'remote' | 'user') => void
 
 	// used to avoid running callbacks when rolling back changes in sync client
 	private _runCallbacks = true
@@ -353,12 +369,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// changes (e.g. additions, deletions, or updates that produce a new value).
 			let didChange = false
 
+			const beforeCreate = this.onBeforeCreate && this._runCallbacks ? this.onBeforeCreate : null
+			const beforeUpdate = this.onBeforeChange && this._runCallbacks ? this.onBeforeChange : null
+			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
+
 			for (let i = 0, n = records.length; i < n; i++) {
 				record = records[i]
 
 				const recordAtom = (map ?? currentMap)[record.id as IdOf<R>]
 
 				if (recordAtom) {
+					if (beforeUpdate) record = beforeUpdate(recordAtom.value, record, source)
+
 					// If we already have an atom for this record, update its value.
 
 					const initialValue = recordAtom.__unsafe__getWithoutCapture()
@@ -382,6 +404,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						updates[record.id] = [initialValue, finalValue]
 					}
 				} else {
+					if (beforeCreate) record = beforeCreate(record, source)
+
 					didChange = true
 
 					// If we don't have an atom, create one.
@@ -418,20 +442,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				removed: {} as Record<IdOf<R>, R>,
 			})
 
-			const { onAfterCreate, onAfterChange } = this
+			if (this._runCallbacks) {
+				const { onAfterCreate, onAfterChange } = this
 
-			if (onAfterCreate && this._runCallbacks) {
-				// Run the onAfterChange callback for addition.
-				Object.values(additions).forEach((record) => {
-					onAfterCreate(record)
-				})
-			}
+				if (onAfterCreate) {
+					// Run the onAfterChange callback for addition.
+					Object.values(additions).forEach((record) => {
+						onAfterCreate(record, source)
+					})
+				}
 
-			if (onAfterChange && this._runCallbacks) {
-				// Run the onAfterChange callback for update.
-				Object.values(updates).forEach(([from, to]) => {
-					onAfterChange(from, to)
-				})
+				if (onAfterChange) {
+					// Run the onAfterChange callback for update.
+					Object.values(updates).forEach(([from, to]) => {
+						onAfterChange(from, to, source)
+					})
+				}
 			}
 		})
 	}
@@ -444,12 +470,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	remove = (ids: IdOf<R>[]): void => {
 		transact(() => {
+			const cancelled = [] as IdOf<R>[]
+			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
+
 			if (this.onBeforeDelete && this._runCallbacks) {
 				for (const id of ids) {
 					const atom = this.atoms.__unsafe__getWithoutCapture()[id]
 					if (!atom) continue
 
-					this.onBeforeDelete(atom.value)
+					if (this.onBeforeDelete(atom.value, source) === false) {
+						cancelled.push(id)
+					}
 				}
 			}
 
@@ -460,6 +491,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				let result: typeof atoms | undefined = undefined
 
 				for (const id of ids) {
+					if (cancelled.includes(id)) continue
 					if (!(id in atoms)) continue
 					if (!result) result = { ...atoms }
 					if (!removed) removed = {} as Record<IdOf<R>, R>
@@ -476,8 +508,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 			// If we have an onAfterChange, run it for each removed record.
 			if (this.onAfterDelete && this._runCallbacks) {
+				let record: R
 				for (let i = 0, n = ids.length; i < n; i++) {
-					this.onAfterDelete(removed[ids[i]])
+					record = removed[ids[i]]
+					if (record) {
+						this.onAfterDelete(record, source)
+					}
 				}
 			}
 		})
@@ -529,11 +565,36 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * ```
 	 *
 	 * @param scope - The scope of records to serialize. Defaults to 'document'.
+	 *
 	 * @public
 	 */
 	getSnapshot(scope: RecordScope | 'all' = 'document'): StoreSnapshot<R> {
 		return {
 			store: this.serialize(scope),
+			schema: this.schema.serialize(),
+		}
+	}
+
+	/**
+	 * Migrate a serialized snapshot of the store and its schema.
+	 *
+	 * ```ts
+	 * const snapshot = store.getSnapshot()
+	 * store.migrateSnapshot(snapshot)
+	 * ```
+	 *
+	 * @param snapshot - The snapshot to load.
+	 * @public
+	 */
+	migrateSnapshot(snapshot: StoreSnapshot<R>): StoreSnapshot<R> {
+		const migrationResult = this.schema.migrateStoreSnapshot(snapshot)
+
+		if (migrationResult.type === 'error') {
+			throw new Error(`Failed to migrate snapshot: ${migrationResult.reason}`)
+		}
+
+		return {
+			store: migrationResult.value,
 			schema: this.schema.serialize(),
 		}
 	}
@@ -547,7 +608,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * ```
 	 *
 	 * @param snapshot - The snapshot to load.
-	 *
 	 * @public
 	 */
 	loadSnapshot(snapshot: StoreSnapshot<R>): void {
@@ -596,6 +656,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			console.error(`Record ${id} not found. This is probably an error`)
 			return
 		}
+
 		this.put([updater(atom.__unsafe__getWithoutCapture() as any as RecFromId<K>) as any])
 	}
 
@@ -705,7 +766,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	createComputedCache = <T, V extends R = R>(
 		name: string,
-		derive: (record: V) => T | undefined
+		derive: (record: V) => T | undefined,
+		isEqual?: (a: V, b: V) => boolean
 	): ComputedCache<T, V> => {
 		const cache = new Cache<Atom<any>, Computed<T | undefined>>()
 		return {
@@ -714,9 +776,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				if (!atom) {
 					return undefined
 				}
-				return cache.get(atom, () =>
-					computed<T | undefined>(name + ':' + id, () => derive(atom.value as V))
-				).value
+				return cache.get(atom, () => {
+					const recordSignal = isEqual
+						? computed(atom.name + ':equals', () => atom.value, { isEqual })
+						: atom
+					return computed<T | undefined>(name + ':' + id, () => {
+						return derive(recordSignal.value as V)
+					})
+				}).value
 			},
 		}
 	}
@@ -750,6 +817,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				).value
 			},
 		}
+	}
+
+	getRecordType = <T extends R>(record: R): T => {
+		const type = this.schema.types[record.typeName as R['typeName']]
+		if (!type) {
+			throw new Error(`Record type ${record.typeName} not found`)
+		}
+		return type as unknown as T
 	}
 
 	private _integrityChecker?: () => void | undefined

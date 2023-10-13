@@ -37,7 +37,8 @@ export class Cropping extends StateNode {
 		}
 	) => {
 		this.info = info
-		this.markId = this.editor.mark('cropping')
+		this.markId = 'cropping'
+		this.editor.mark(this.markId)
 		this.snapshot = this.createSnapshot()
 		this.updateShapes()
 	}
@@ -63,10 +64,12 @@ export class Cropping extends StateNode {
 		if (!selectedShape) return
 
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.cursor = {
-			type: cursorType,
-			rotation: selectedShape.rotation,
-		}
+		this.editor.updateInstanceState({
+			cursor: {
+				type: cursorType,
+				rotation: selectedShape.rotation,
+			},
+		})
 	}
 
 	private getDefaultCrop = (): TLImageShapeCrop => ({
@@ -197,7 +200,7 @@ export class Cropping extends StateNode {
 			},
 		}
 
-		this.editor.updateShapes([partial], true)
+		this.editor.updateShapes([partial], { squashing: true })
 		this.updateCursor()
 	}
 
@@ -205,7 +208,7 @@ export class Cropping extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.croppingId = null
+			this.editor.setCroppingShape(null)
 			this.parent.transition('idle', {})
 		}
 	}
@@ -215,7 +218,7 @@ export class Cropping extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.croppingId = null
+			this.editor.setCroppingShape(null)
 			this.parent.transition('idle', {})
 		}
 	}
@@ -228,7 +231,7 @@ export class Cropping extends StateNode {
 
 		const shape = this.editor.onlySelectedShape as TLImageShape
 
-		const selectionBounds = this.editor.selectionBounds!
+		const selectionBounds = this.editor.selectionRotatedPageBounds!
 
 		const dragHandlePoint = Vec2d.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),

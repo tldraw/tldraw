@@ -25,19 +25,17 @@ export const Toolbar = memo(function Toolbar() {
 
 	const rMostRecentlyActiveDropdownItem = React.useRef<TLUiToolbarItem | undefined>(undefined)
 
-	const isReadOnly = useReadonly()
+	const isReadonly = useReadonly()
 	const toolbarItems = useToolbarSchema()
 	const laserTool = toolbarItems.find((item) => item.toolItem.id === 'laser')
 
 	const activeToolId = useValue('current tool id', () => editor.currentToolId, [editor])
 
-	const isHandTool = activeToolId === 'hand'
 	const geoState = useValue('geo', () => editor.sharedStyles.getAsKnownValue(GeoShapeGeoStyle), [
 		editor,
 	])
 
-	const showEditingTools = !isReadOnly
-	const showExtraActions = !(isReadOnly || isHandTool)
+	const showEditingTools = !isReadonly
 
 	const getTitle = (item: TLUiToolItem) =>
 		item.label ? `${msg(item.label)} ${item.kbd ? kbdStr(item.kbd) : ''}` : ''
@@ -110,13 +108,9 @@ export const Toolbar = memo(function Toolbar() {
 		<div className="tlui-toolbar">
 			<div className="tlui-toolbar__inner">
 				<div className="tlui-toolbar__left">
-					{!isReadOnly && (
-						<div
-							className={classNames('tlui-toolbar__extras', {
-								'tlui-toolbar__extras__hidden': !showExtraActions,
-							})}
-						>
-							{breakpoint < 6 && (
+					{!isReadonly && (
+						<div className="tlui-toolbar__extras">
+							{breakpoint < 6 && !(activeToolId === 'hand' || activeToolId === 'zoom') && (
 								<div className="tlui-toolbar__extras__controls">
 									<UndoButton />
 									<RedoButton />
@@ -144,7 +138,7 @@ export const Toolbar = memo(function Toolbar() {
 								/>
 							)
 						})}
-						{isReadOnly && laserTool && (
+						{isReadonly && laserTool && (
 							<ToolbarButton
 								key={laserTool.toolItem.id}
 								item={laserTool.toolItem}
@@ -208,7 +202,7 @@ export const Toolbar = memo(function Toolbar() {
 						)}
 					</div>
 				</div>
-				{breakpoint < 5 && !isReadOnly && (
+				{breakpoint < 5 && !isReadonly && (
 					<div className="tlui-toolbar__tools">
 						<MobileStylePanel />
 					</div>

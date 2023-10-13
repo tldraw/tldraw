@@ -1,6 +1,6 @@
 import { Editor, uniqueId, useEditor } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
-import { useEvents } from './useEventsProvider'
+import { useUiEvents } from './useEventsProvider'
 
 /** @public */
 export interface TLUiDialogProps {
@@ -35,7 +35,7 @@ export type DialogsProviderProps = {
 /** @internal */
 export function DialogsProvider({ children }: DialogsProviderProps) {
 	const editor = useEditor()
-	const trackEvent = useEvents()
+	const trackEvent = useUiEvents()
 
 	const [dialogs, setDialogs] = useState<TLUiDialog[]>([])
 

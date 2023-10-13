@@ -16,17 +16,17 @@ describe('Migrations', () => {
 		const withoutSchema = structuredClone(clipboardContent)
 		// @ts-expect-error
 		delete withoutSchema.schema
-		expect(() => editor.putContent(withoutSchema)).toThrowError()
+		expect(() => editor.putContentOntoCurrentPage(withoutSchema)).toThrowError()
 	})
 
 	it('Does not throw error if content has a schema', () => {
-		expect(() => editor.putContent(clipboardContent)).not.toThrowError()
+		expect(() => editor.putContentOntoCurrentPage(clipboardContent)).not.toThrowError()
 	})
 
 	it('Throws error if any shape is invalid due to wrong type', () => {
 		const withInvalidShapeType = structuredClone(clipboardContent)
 		withInvalidShapeType.shapes[0].type = 'invalid'
-		expect(() => editor.putContent(withInvalidShapeType)).toThrowError()
+		expect(() => editor.putContentOntoCurrentPage(withInvalidShapeType)).toThrowError()
 	})
 
 	// we temporarily disabled validations
@@ -34,6 +34,6 @@ describe('Migrations', () => {
 		const withInvalidShapeModel = structuredClone(clipboardContent)
 		// @ts-expect-error
 		withInvalidShapeModel.shapes[0].x = 'invalid'
-		expect(() => editor.putContent(withInvalidShapeModel)).toThrowError()
+		expect(() => editor.putContentOntoCurrentPage(withInvalidShapeModel)).toThrowError()
 	})
 })

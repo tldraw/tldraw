@@ -4,19 +4,19 @@ import { TestEditor } from '../TestEditor'
 let editor: TestEditor
 
 function expectShapesInOrder(editor: TestEditor, ...ids: TLShapeId[]) {
-	expect(editor.sortedShapesArray.map((shape) => shape.id)).toMatchObject(ids)
+	expect(editor.currentPageShapesSorted.map((shape) => shape.id)).toMatchObject(ids)
 }
 
 function getSiblingBelow(editor: TestEditor, id: TLShapeId) {
-	const shape = editor.getShapeById(id)!
-	const siblings = editor.getSortedChildIds(shape.parentId)
+	const shape = editor.getShape(id)!
+	const siblings = editor.getSortedChildIdsForParent(shape.parentId)
 	const index = siblings.indexOf(id)
 	return siblings[index - 1]
 }
 
 function getSiblingAbove(editor: TestEditor, id: TLShapeId) {
-	const shape = editor.getShapeById(id)!
-	const siblings = editor.getSortedChildIds(shape.parentId)
+	const shape = editor.getShape(id)!
+	const siblings = editor.getSortedChildIdsForParent(shape.parentId)
 	const index = siblings.indexOf(id)
 	return siblings[index + 1]
 }
@@ -68,7 +68,7 @@ beforeEach(() => {
 
 describe('When running zindex tests', () => {
 	it('Correctly initializes indices', () => {
-		expect(editor.sortedShapesArray.map((shape) => shape.index)).toMatchObject([
+		expect(editor.currentPageShapesSorted.map((shape) => shape.index)).toMatchObject([
 			'a1',
 			'a2',
 			'a3',
@@ -869,7 +869,7 @@ describe('When undoing and redoing...', () => {
 			ids['G']
 		)
 
-		editor.mark()
+		editor.mark('before sending to back')
 		editor.sendBackward([ids['F'], ids['G']])
 
 		expectShapesInOrder(
@@ -902,7 +902,7 @@ describe('When undoing and redoing...', () => {
 
 describe('When shapes are parented...', () => {
 	it('Sorted correctly by pageIndex', () => {
-		editor.reparentShapesById([ids['C']], ids['A']).reparentShapesById([ids['B']], ids['D'])
+		editor.reparentShapes([ids['C']], ids['A']).reparentShapes([ids['B']], ids['D'])
 
 		expectShapesInOrder(
 			editor,
@@ -915,4 +915,36 @@ describe('When shapes are parented...', () => {
 			ids['G']
 		)
 	})
+})
+
+test('When only two shapes exist', () => {
+	editor = new TestEditor()
+	editor.createShapes([
+		{
+			id: ids['A'],
+			type: 'geo',
+		},
+		{
+			id: ids['B'],
+			type: 'geo',
+		},
+	])
+
+	expectShapesInOrder(editor, ids['A'], ids['B'])
+
+	editor.sendToBack([ids['B']])
+
+	expectShapesInOrder(editor, ids['B'], ids['A'])
+
+	editor.bringToFront([ids['B']])
+
+	expectShapesInOrder(editor, ids['A'], ids['B'])
+
+	editor.sendBackward([ids['B']])
+
+	expectShapesInOrder(editor, ids['B'], ids['A'])
+
+	editor.bringForward([ids['B']])
+
+	expectShapesInOrder(editor, ids['A'], ids['B'])
 })

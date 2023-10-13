@@ -1,6 +1,11 @@
 import { useMemo } from 'react'
 import { TLSelectionHandle } from '../editor/types/selection-types'
-import { loopToHtmlElement, releasePointerCapture, setPointerCapture } from '../utils/dom'
+import {
+	loopToHtmlElement,
+	releasePointerCapture,
+	setPointerCapture,
+	stopEventPropagation,
+} from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
@@ -12,6 +17,18 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 		function selectionEvents() {
 			const onPointerDown: React.PointerEventHandler = (e) => {
 				if ((e as any).isKilled) return
+
+				if (e.button === 2) {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'selection',
+						handle,
+						name: 'right_click',
+						...getPointerInfo(e),
+					})
+					return
+				}
+
 				if (e.button !== 0) return
 
 				// Because the events are probably set on SVG elements,
@@ -34,9 +51,9 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
-				e.stopPropagation()
+				stopEventPropagation(e)
 			}
 
 			// Track the last screen point
@@ -54,7 +71,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
@@ -67,7 +84,7 @@ export function useSelectionEvents(handle: TLSelectionHandle) {
 					type: 'pointer',
 					target: 'selection',
 					handle,
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 

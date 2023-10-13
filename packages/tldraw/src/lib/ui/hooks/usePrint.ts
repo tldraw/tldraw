@@ -156,10 +156,10 @@ export function usePrint() {
 			}
 
 			function triggerPrint() {
-				if (editor.isChromeForIos) {
+				if (editor.environment.isChromeForIos) {
 					beforePrintHandler()
 					window.print()
-				} else if (editor.isSafari) {
+				} else if (editor.environment.isSafari) {
 					beforePrintHandler()
 					document.execCommand('print', false)
 				} else {
@@ -167,7 +167,7 @@ export function usePrint() {
 				}
 			}
 
-			const { pages, currentPageId, selectedIds } = editor
+			const { pages, currentPageId, selectedShapeIds } = editor
 
 			const preserveAspectRatio = 'xMidYMid meet'
 
@@ -178,9 +178,9 @@ export function usePrint() {
 				preserveAspectRatio,
 			}
 
-			if (editor.selectedIds.length > 0) {
+			if (editor.selectedShapeIds.length > 0) {
 				// Print the selected ids from the current page
-				const svg = await editor.getSvg(selectedIds, svgOpts)
+				const svg = await editor.getSvg(selectedShapeIds, svgOpts)
 
 				if (svg) {
 					const page = pages.find((p) => p.id === currentPageId)
@@ -192,7 +192,7 @@ export function usePrint() {
 					// Print all pages
 					for (let i = 0; i < pages.length; i++) {
 						const page = pages[i]
-						const svg = await editor.getSvg(editor.getSortedChildIds(page.id), svgOpts)
+						const svg = await editor.getSvg(editor.getSortedChildIdsForParent(page.id), svgOpts)
 						if (svg) {
 							addPageToPrint(`tldraw — ${page.name}`, `${i}/${pages.length}`, svg)
 						}
@@ -200,7 +200,7 @@ export function usePrint() {
 					triggerPrint()
 				} else {
 					const page = editor.currentPage
-					const svg = await editor.getSvg(editor.getSortedChildIds(page.id), svgOpts)
+					const svg = await editor.getSvg(editor.getSortedChildIdsForParent(page.id), svgOpts)
 					if (svg) {
 						addPageToPrint(`tldraw — ${page.name}`, null, svg)
 						triggerPrint()

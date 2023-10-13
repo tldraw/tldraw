@@ -1,4 +1,4 @@
-import { StateNode, TLEventHandlers, TLGeoShape } from '@tldraw/editor'
+import { StateNode, TLEventHandlers } from '@tldraw/editor'
 
 export class Idle extends StateNode {
 	static override id = 'idle'
@@ -8,20 +8,25 @@ export class Idle extends StateNode {
 	}
 
 	override onEnter = () => {
-		this.editor.cursor = { type: 'cross', rotation: 0 }
+		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
 
 	override onKeyUp: TLEventHandlers['onKeyUp'] = (info) => {
 		if (info.key === 'Enter') {
-			const shape = this.editor.onlySelectedShape
-			if (shape && this.editor.isShapeOfType<TLGeoShape>(shape, 'geo')) {
-				// todo: ensure that this only works with the most recently created shape, not just any geo shape that happens to be selected at the time
-				this.editor.mark('editing shape')
-				this.editor.editingId = shape.id
-				this.editor.setCurrentTool('select.editing_shape', {
+			if (this.editor.instanceState.isReadonly) return null
+
+			const { onlySelectedShape } = this.editor
+			// If the only selected shape is editable, start editing it
+			if (
+				onlySelectedShape &&
+				this.editor.getShapeUtil(onlySelectedShape).canEdit(onlySelectedShape)
+			) {
+				this.editor.setCurrentTool('select')
+				this.editor.setEditingShape(onlySelectedShape.id)
+				this.editor.root.current.value!.transition('editing_shape', {
 					...info,
 					target: 'shape',
-					shape,
+					shape: onlySelectedShape,
 				})
 			}
 		}

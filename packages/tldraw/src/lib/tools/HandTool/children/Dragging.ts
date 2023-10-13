@@ -29,7 +29,7 @@ export class Dragging extends StateNode {
 		const delta = Vec2d.Sub(currentScreenPoint, previousScreenPoint)
 
 		if (Math.abs(delta.x) > 0 || Math.abs(delta.y) > 0) {
-			this.editor.pan(delta.x, delta.y)
+			this.editor.pan(delta)
 		}
 	}
 

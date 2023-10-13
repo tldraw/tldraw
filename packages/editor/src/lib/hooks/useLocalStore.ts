@@ -1,3 +1,5 @@
+import { StoreSnapshot } from '@tldraw/store'
+import { TLRecord } from '@tldraw/tlschema'
 import { useEffect, useState } from 'react'
 import { TLStoreOptions } from '../config/createTLStore'
 import { TLStoreWithStatus } from '../utils/sync/StoreWithStatus'
@@ -10,7 +12,11 @@ export function useLocalStore({
 	persistenceKey,
 	sessionId,
 	...rest
-}: { persistenceKey?: string; sessionId?: string } & TLStoreOptions): TLStoreWithStatus {
+}: {
+	persistenceKey?: string
+	sessionId?: string
+	snapshot?: StoreSnapshot<TLRecord>
+} & TLStoreOptions): TLStoreWithStatus {
 	const [state, setState] = useState<{ id: string; storeWithStatus: TLStoreWithStatus } | null>(
 		null
 	)

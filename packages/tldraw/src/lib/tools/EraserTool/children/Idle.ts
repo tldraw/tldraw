@@ -6,4 +6,8 @@ export class Idle extends StateNode {
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
 		this.parent.transition('pointing', info)
 	}
+
+	override onCancel = () => {
+		this.editor.setCurrentTool('select')
+	}
 }

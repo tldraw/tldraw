@@ -1,4 +1,3 @@
-import { png } from '@tldraw/editor'
 import { isAnimated } from './is-gif-animated'
 
 type BoxWidthHeight = {
@@ -33,26 +32,6 @@ export function containBoxSize(
 			w: originalSize.w / overByYScale,
 			h: originalSize.h / overByYScale,
 		}
-	}
-}
-
-/** @public */
-export async function getFileMetaData(file: File): Promise<{ isAnimated: boolean }> {
-	if (file.type === 'image/gif') {
-		return await new Promise((resolve, reject) => {
-			const reader = new FileReader()
-			reader.onerror = () => reject(reader.error)
-			reader.onload = () => {
-				resolve({
-					isAnimated: reader.result ? isAnimated(reader.result as ArrayBuffer) : false,
-				})
-			}
-			reader.readAsArrayBuffer(file)
-		})
-	}
-
-	return {
-		isAnimated: isImage(file.type) ? false : true,
 	}
 }
 
@@ -94,81 +73,19 @@ export async function getResizedImageDataUrl(
 	})
 }
 
-/**
- * @param dataURL - The file as a string.
- * @internal
- *
- * from https://stackoverflow.com/a/53817185
- */
-async function base64ToFile(dataURL: string) {
-	return fetch(dataURL).then(function (result) {
-		return result.arrayBuffer()
-	})
-}
+/** @public */
+export const DEFAULT_ACCEPTED_IMG_TYPE = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
+/** @public */
+export const DEFAULT_ACCEPTED_VID_TYPE = ['video/mp4', 'video/quicktime']
 
 /** @public */
-export const ACCEPTED_IMG_TYPE = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml']
-/** @public */
-export const ACCEPTED_VID_TYPE = ['video/mp4', 'video/quicktime']
-
-/** @public */
-export const isImage = (ext: string) => ACCEPTED_IMG_TYPE.includes(ext)
-
-/**
- * Get the size of a video from its source.
- *
- * @param src - The source of the video.
- * @public
- */
-export async function getVideoSizeFromSrc(src: string): Promise<{ w: number; h: number }> {
+export async function isGifAnimated(file: File): Promise<boolean> {
 	return await new Promise((resolve, reject) => {
-		const video = document.createElement('video')
-		video.onloadeddata = () => resolve({ w: video.videoWidth, h: video.videoHeight })
-		video.onerror = (e) => {
-			console.error(e)
-			reject(new Error('Could not get video size'))
+		const reader = new FileReader()
+		reader.onerror = () => reject(reader.error)
+		reader.onload = () => {
+			resolve(reader.result ? isAnimated(reader.result as ArrayBuffer) : false)
 		}
-		video.crossOrigin = 'anonymous'
-		video.src = src
-	})
-}
-
-/**
- * Get the size of an image from its source.
- *
- * @param dataURL - The file as a string.
- * @public
- */
-export async function getImageSizeFromSrc(dataURL: string): Promise<{ w: number; h: number }> {
-	return await new Promise((resolve, reject) => {
-		const img = new Image()
-		img.onload = async () => {
-			try {
-				const blob = await base64ToFile(dataURL)
-				const view = new DataView(blob)
-				if (png.isPng(view, 0)) {
-					const physChunk = png.findChunk(view, 'pHYs')
-					if (physChunk) {
-						const physData = png.parsePhys(view, physChunk.dataOffset)
-						if (physData.unit === 0 && physData.ppux === physData.ppuy) {
-							const pixelRatio = Math.round(physData.ppux / 2834.5)
-							resolve({ w: img.width / pixelRatio, h: img.height / pixelRatio })
-							return
-						}
-					}
-				}
-
-				resolve({ w: img.width, h: img.height })
-			} catch (err) {
-				console.error(err)
-				resolve({ w: img.width, h: img.height })
-			}
-		}
-		img.onerror = (err) => {
-			console.error(err)
-			reject(new Error('Could not get image size'))
-		}
-		img.crossOrigin = 'anonymous'
-		img.src = dataURL
+		reader.readAsArrayBuffer(file)
 	})
 }

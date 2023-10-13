@@ -3,15 +3,7 @@ import { linksUiOverrides } from './utils/links'
 import '@tldraw/tldraw/tldraw.css'
 // eslint-disable-next-line import/no-internal-modules
 import { getAssetUrlsByImport } from '@tldraw/assets/imports'
-import {
-	Editor,
-	ErrorBoundary,
-	TLUiMenuSchema,
-	Tldraw,
-	defaultShapeTools,
-	defaultShapeUtils,
-	setRuntimeOverrides,
-} from '@tldraw/tldraw'
+import { Editor, ErrorBoundary, TLUiMenuSchema, Tldraw, setRuntimeOverrides } from '@tldraw/tldraw'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { VscodeMessage } from '../../messages'
 import '../public/index.css'
@@ -130,8 +122,6 @@ function TldrawInner({ uri, assetSrc, isDarkMode, fileContents }: TLDrawInnerPro
 
 	return (
 		<Tldraw
-			shapeUtils={defaultShapeUtils}
-			tools={defaultShapeTools}
 			assetUrls={assetUrls}
 			persistenceKey={uri}
 			onMount={handleMount}

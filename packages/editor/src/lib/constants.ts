@@ -29,14 +29,6 @@ export const FOLLOW_CHASE_ZOOM_SNAP = 0.005
 export const FOLLOW_CHASE_ZOOM_UNSNAP = 0.05
 
 /** @internal */
-export const MAJOR_NUDGE_FACTOR = 10
-/** @internal */
-export const MINOR_NUDGE_FACTOR = 1
-
-/** @internal */
-export const GRID_INCREMENT = 5
-
-/** @internal */
 export const DOUBLE_CLICK_DURATION = 450
 /** @internal */
 export const MULTI_CLICK_DURATION = 200
@@ -69,9 +61,9 @@ export const CAMERA_SLIDE_FRICTION = 0.09
 
 /** @public */
 export const GRID_STEPS = [
-	{ min: -1, mid: 0.15, step: 100 },
-	{ min: 0.05, mid: 0.375, step: 25 },
-	{ min: 0.15, mid: 1, step: 5 },
+	{ min: -1, mid: 0.15, step: 64 },
+	{ min: 0.05, mid: 0.375, step: 16 },
+	{ min: 0.15, mid: 1, step: 4 },
 	{ min: 0.7, mid: 2.5, step: 1 },
 ]
 
@@ -97,3 +89,6 @@ export const CAMERA_MOVING_TIMEOUT = 64
 
 /** @internal */
 export const CAMERA_MAX_RENDERING_INTERVAL = 620
+
+/** @public */
+export const HIT_TEST_MARGIN = 8

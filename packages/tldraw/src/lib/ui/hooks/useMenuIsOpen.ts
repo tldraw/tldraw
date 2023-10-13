@@ -1,12 +1,12 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
-import { useEvents } from './useEventsProvider'
+import { useUiEvents } from './useEventsProvider'
 
 /** @public */
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 	const editor = useEditor()
 	const rIsOpen = useRef(false)
-	const trackEvent = useEvents()
+	const trackEvent = useUiEvents()
 
 	const onOpenChange = useCallback(
 		(isOpen: boolean) => {

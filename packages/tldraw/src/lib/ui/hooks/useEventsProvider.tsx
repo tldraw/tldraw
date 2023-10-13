@@ -83,6 +83,7 @@ export interface TLUiEventMap {
 	'stop-following': null
 	'open-cursor-chat': null
 	'zoom-tool': null
+	'unlock-all': null
 }
 
 type Join<T, K> = K extends null
@@ -104,14 +105,14 @@ export type TLUiEventContextType = TLUiEventHandler<keyof TLUiEventMap>
 /** @internal */
 export const EventsContext = React.createContext<TLUiEventContextType>({} as TLUiEventContextType)
 
-/** @internal */
+/** @public */
 export type EventsProviderProps = {
 	onEvent?: TLUiEventHandler
 	children: any
 }
 
-/** @internal */
-export function EventsProvider({ onEvent, children }: EventsProviderProps) {
+/** @public */
+export function UiEventsProvider({ onEvent, children }: EventsProviderProps) {
 	return (
 		<EventsContext.Provider value={onEvent ?? defaultEventHandler}>
 			{children}
@@ -120,6 +121,7 @@ export function EventsProvider({ onEvent, children }: EventsProviderProps) {
 }
 
 /** @public */
-export function useEvents() {
-	return React.useContext(EventsContext)
+export function useUiEvents() {
+	const eventHandler = React.useContext(EventsContext)
+	return eventHandler ?? defaultEventHandler
 }

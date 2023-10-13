@@ -16,7 +16,7 @@ function noop() {}
 /** @public */
 export type TLErrorFallbackComponent = ComponentType<{ error: unknown; editor?: Editor }>
 
-/** @internal */
+/** @public */
 export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }) => {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const [shouldShowError, setShouldShowError] = useState(process.env.NODE_ENV === 'development')
@@ -31,7 +31,7 @@ export const DefaultErrorFallback: TLErrorFallbackComponent = ({ error, editor }
 		() => {
 			try {
 				if (editor) {
-					return editor.isDarkMode
+					return editor.user.isDarkMode
 				}
 			} catch {
 				// we're in a funky error state so this might not work for spooky
