@@ -7,7 +7,7 @@ Object {
   "isLocked": false,
   "meta": Object {},
   "opacity": 1,
-  "parentId": "page:id51",
+  "parentId": "page:page",
   "props": Object {
     "color": "black",
     "dash": "draw",
