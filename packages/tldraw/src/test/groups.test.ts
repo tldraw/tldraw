@@ -28,10 +28,9 @@ const ids = {
 	boxD: createShapeId('boxD'),
 	boxE: createShapeId('boxE'),
 	boxF: createShapeId('boxF'),
-
 	boxX: createShapeId('boxX'),
-
 	lineA: createShapeId('lineA'),
+	groupA: createShapeId('groupA'),
 }
 
 const box = (
@@ -1963,5 +1962,40 @@ describe('Group opacity', () => {
 		const group = editor.getShape(onlySelectedId())!
 		assert(editor.isShapeOfType<TLGroupShape>(group, 'group'))
 		expect(group.opacity).toBe(1)
+	})
+})
+
+describe('Grouping / ungrouping locked shapes', () => {
+	it('keeps locked shapes locked when grouped', () => {
+		editor.createShapes([box(ids.boxA, 0, 0), box(ids.boxB, 200, 0)])
+		editor.groupShapes([ids.boxA, ids.boxB], ids.groupA)
+		editor.select(ids.boxA)
+
+		// Lock boxA
+		editor.updateShape({ id: ids.boxA, type: 'geo', isLocked: true })
+
+		// Select the group; when we ungroup, the children should be selected
+		editor.select(ids.groupA)
+
+		// Move the group shape; this should also move locked children
+		editor.nudgeShapes([ids.groupA], { x: 100, y: 0 })
+
+		// When we ungroup, the locked children should...
+		editor.ungroupShapes([ids.groupA])
+
+		// Still exist
+		expect(editor.getShape(ids.boxA)).toBeTruthy()
+		expect(editor.getShape(ids.boxB)).toBeTruthy()
+
+		// Both be selected
+		expect(editor.selectedShapeIds).toMatchObject([ids.boxA, ids.boxB])
+
+		// And be in the correct position
+		expect(editor.getShape(ids.boxA)!.x).toBe(100)
+		expect(editor.getShape(ids.boxB)!.x).toBe(300)
+
+		// And have the correct locked state
+		expect(editor.getShape(ids.boxA)!.isLocked).toBe(true)
+		expect(editor.getShape(ids.boxB)!.isLocked).toBe(false)
 	})
 })
