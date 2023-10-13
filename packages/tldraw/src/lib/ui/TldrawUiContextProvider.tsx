@@ -38,9 +38,14 @@ export interface TldrawUiContextProviderProps {
 	onUiEvent?: TLUiEventHandler
 
 	/**
-	 * Force mobile mode layout.
+	 * The minimum breakpoint acceptable. Accepts a break point between 0 and 7.
 	 */
-	forceMobileModeLayout?: boolean
+	minBreakpoint?: number
+
+	/**
+	 * The maximum breakpoint acceptable. Accepts a break point between 0 and 7.
+	 */
+	maxBreakpoint?: number
 
 	/**
 	 * The component's children.
@@ -53,7 +58,8 @@ export function TldrawUiContextProvider({
 	overrides,
 	assetUrls,
 	onUiEvent,
-	forceMobileModeLayout = false,
+	minBreakpoint,
+	maxBreakpoint,
 	children,
 }: TldrawUiContextProviderProps) {
 	return (
@@ -62,7 +68,7 @@ export function TldrawUiContextProvider({
 				<UiEventsProvider onEvent={onUiEvent}>
 					<ToastsProvider>
 						<DialogsProvider>
-							<BreakPointProvider forceMobileModeLayout={forceMobileModeLayout}>
+							<BreakPointProvider minBreakpoint={minBreakpoint} maxBreakpoint={maxBreakpoint}>
 								<InternalProviders overrides={overrides}>{children}</InternalProviders>
 							</BreakPointProvider>
 						</DialogsProvider>
