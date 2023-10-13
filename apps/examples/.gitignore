@@ -1,2 +1,2 @@
 .vercel
-./e2e/tests/*-snapshots/*darwin.png
+e2e/tests/*-snapshots/*darwin.png
