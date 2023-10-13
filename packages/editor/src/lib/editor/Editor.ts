@@ -4787,16 +4787,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const invertedParentTransform = parentTransform.clone().invert()
 
-		let id: TLShapeId
-		for (let i = 0; i < ids.length; i++) {
-			id = ids[i]
-			const shape = this.getShape(id)
-			if (!shape) continue
+		const shapesToReparent = compact(ids.map((id) => this.getShape(id)))
+
+		// The user is allowed to re-parent locked shapes. Unintutive? Yeah! But there are plenty of
+		// times when a locked shape's parent is deleted... and we need to put that shape somewhere!
+		const lockedShapes = shapesToReparent.filter((shape) => shape.isLocked)
+
+		if (lockedShapes.length) {
+			// If we have locked shapes, unlock them before we update them
+			this.updateShapes(lockedShapes.map(({ id, type }) => ({ id, type, isLocked: false })))
+		}
+
+		for (let i = 0; i < shapesToReparent.length; i++) {
+			const shape = shapesToReparent[i]
+
 			const pageTransform = this.getShapePageTransform(shape)!
 			if (!pageTransform) continue
-			const pagePoint = pageTransform.point()
 
-			if (!shape || !pagePoint) continue
+			const pagePoint = pageTransform.point()
+			if (!pagePoint) continue
 
 			const newPoint = invertedParentTransform.applyToPoint(pagePoint)
 			const newRotation = pageTransform.rotation() - parentPageRotation
@@ -4809,10 +4818,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				y: newPoint.y,
 				rotation: newRotation,
 				index: indices[i],
+				isLocked: shape.isLocked, // this will re-lock locked shapes
 			})
 		}
 
 		this.updateShapes(changes)
+
 		return this
 	}
 
