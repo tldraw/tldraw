@@ -245,8 +245,9 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 }
 
 // @public (undocumented)
-export function BreakPointProvider({ forceMobileModeLayout, children, }: {
-    forceMobileModeLayout: boolean;
+export function BreakPointProvider({ minBreakpoint, maxBreakpoint, children, }: {
+    minBreakpoint?: number;
+    maxBreakpoint?: number;
     children: any;
 }): JSX.Element;
 
@@ -1239,13 +1240,14 @@ export interface TldrawUiBaseProps {
 }
 
 // @public (undocumented)
-export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, forceMobileModeLayout, children, }: TldrawUiContextProviderProps): JSX.Element;
+export function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, minBreakpoint, maxBreakpoint, children, }: TldrawUiContextProviderProps): JSX.Element;
 
 // @public
 export interface TldrawUiContextProviderProps {
     assetUrls?: RecursivePartial<TLUiAssetUrls>;
     children?: any;
-    forceMobileModeLayout?: boolean;
+    maxBreakpoint?: number;
+    minBreakpoint?: number;
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];
 }

@@ -791,14 +791,14 @@
 	touch-action: auto;
 }
 
-@media (min-width: 475px) {
+@container (min-width: 475px) {
 	.tlui-shortcuts-dialog__body {
 		columns: 2;
 		column-gap: var(--space-9);
 	}
 }
 
-@media (min-width: 960px) {
+@container (min-width: 960px) {
 	.tlui-shortcuts-dialog__body {
 		columns: 3;
 		column-gap: var(--space-9);
@@ -1317,7 +1317,7 @@
 
 /* --------------------- Mobile --------------------- */
 
-@media (max-width: 640px) {
+@container (max-width: 640px) {
 	.tlui-menu__group .tlui-button {
 		height: 40px;
 	}
