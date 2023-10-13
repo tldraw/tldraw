@@ -9,6 +9,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 		margin: HIT_TEST_MARGIN / editor.zoomLevel,
 		hitLabels: true,
 		renderingOnly: true,
+		filter: (shape) => !shape.isLocked,
 	})
 
 	// Note at the start: if we select a shape that is inside of a group,
