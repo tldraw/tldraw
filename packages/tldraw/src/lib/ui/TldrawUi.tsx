@@ -136,7 +136,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 				className={classNames('tlui-layout', {
 					'tlui-layout__mobile': breakpoint < 5,
 				})}
-				data-bp={breakpoint}
+				data-breakpoint={breakpoint}
 			>
 				{isFocusMode ? (
 					<div className="tlui-layout__top">
