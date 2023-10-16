@@ -60,6 +60,6 @@
 		"@tldraw/store": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
-		"nanoid": "^3.3.6"
+		"nanoid": "4.0.2"
 	}
 }
