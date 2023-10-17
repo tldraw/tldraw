@@ -17,8 +17,6 @@ export function useCanvasEvents() {
 			let lastX: number, lastY: number
 
 			function onPointerDown(e: React.PointerEvent) {
-				stopEventPropagation(e)
-
 				if ((e as any).isKilled) return
 
 				if (e.button === 2) {

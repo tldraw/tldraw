@@ -34,6 +34,7 @@ import { useForceUpdate } from './hooks/useForceUpdate'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useSafariFocusOutFix } from './hooks/useSafariFocusOutFix'
 import { useZoomCss } from './hooks/useZoomCss'
+import { stopEventPropagation } from './utils/dom'
 import { TLStoreWithStatus } from './utils/sync/StoreWithStatus'
 
 /**
@@ -162,6 +163,7 @@ export const TldrawEditor = memo(function TldrawEditor({
 			ref={rContainer}
 			draggable={false}
 			className={classNames('tl-container tl-theme__light', className)}
+			onPointerDown={stopEventPropagation}
 			tabIndex={-1}
 		>
 			<OptionalErrorBoundary
