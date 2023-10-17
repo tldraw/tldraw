@@ -134,7 +134,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 						/>
 					</div>
 				)}
-				<HTMLContainer id={shape.id} style={{ overflow: 'hidden' }}>
+				<HTMLContainer
+					id={shape.id}
+					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+				>
 					<div className="tl-image-container" style={containerStyle}>
 						{asset?.props.src ? (
 							<div
