@@ -1,5 +1,8 @@
 /// <reference types="react" />
 
+import * as Dialog from './lib/ui/components/primitives/Dialog'
+import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
+
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw } from './lib/Tldraw'
@@ -156,5 +159,3 @@ export {
 } from './lib/utils/file'
 export { truncateStringWithEllipsis } from './lib/utils/text'
 export { Dialog, DropdownMenu }
-import * as Dialog from './lib/ui/components/primitives/Dialog'
-import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
