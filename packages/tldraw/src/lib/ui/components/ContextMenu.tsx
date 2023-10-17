@@ -63,6 +63,8 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 		[editor]
 	)
 
+	const container = useContainer()
+
 	const [_, handleOpenChange] = useMenuIsOpen('context menu', cb)
 
 	// If every item in the menu is readonly, then we don't want to show the menu
@@ -87,7 +89,9 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 			>
 				{children}
 			</_ContextMenu.Trigger>
-			<ContextMenuContent />
+			<_ContextMenu.Portal container={container}>
+				<ContextMenuContent />
+			</_ContextMenu.Portal>
 		</_ContextMenu.Root>
 	)
 }

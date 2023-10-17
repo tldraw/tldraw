@@ -576,6 +576,7 @@
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
+	color: var(--color-text-1);
 }
 
 .tlui-style-panel__section *[data-state='open']::after {

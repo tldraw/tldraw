@@ -110,9 +110,13 @@ export function useDocumentEvents() {
 					// returns to the select tool. When the user has selected shapes,
 					// escape de-selects them. Only when the user's selection is empty
 					// should we allow escape to do its normal thing.
+
 					if (editor.editingShape || editor.selectedShapeIds.length > 0) {
 						e.preventDefault()
 					}
+
+					// Don't do anything if we open menus open
+					if (editor.openMenus.length > 0) return
 
 					if (!editor.inputs.keys.has('Escape')) {
 						editor.inputs.keys.add('Escape')

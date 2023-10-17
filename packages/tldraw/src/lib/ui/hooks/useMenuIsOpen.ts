@@ -16,11 +16,8 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 					editor.complete()
 					editor.addOpenMenu(id)
 				} else {
-					editor.deleteOpenMenu(id)
-					editor.openMenus.forEach((menuId) => {
-						if (menuId.startsWith(id)) {
-							editor.deleteOpenMenu(menuId)
-						}
+					editor.updateInstanceState({
+						openMenus: editor.openMenus.filter((m) => !m.startsWith(id)),
 					})
 				}
 

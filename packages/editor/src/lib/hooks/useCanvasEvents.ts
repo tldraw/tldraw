@@ -17,8 +17,6 @@ export function useCanvasEvents() {
 			let lastX: number, lastY: number
 
 			function onPointerDown(e: React.PointerEvent) {
-				stopEventPropagation(e)
-
 				if ((e as any).isKilled) return
 
 				if (e.button === 2) {
@@ -41,6 +39,11 @@ export function useCanvasEvents() {
 					name: 'pointer_down',
 					...getPointerInfo(e),
 				})
+
+				if (editor.openMenus.length > 0) {
+					document.body.click()
+					editor.getContainer().focus()
+				}
 			}
 
 			function onPointerMove(e: React.PointerEvent) {
