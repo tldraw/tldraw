@@ -1661,7 +1661,7 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useExportAs(): (ids?: TLShapeId[], format?: TLExportType) => Promise<void>;
+export function useExportAs(): (editor: Editor, format?: TLExportType, defaultName?: string) => Promise<void>;
 
 // @public (undocumented)
 export function useHelpMenuSchema(): TLUiMenuSchema;

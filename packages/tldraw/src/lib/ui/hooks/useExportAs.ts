@@ -1,4 +1,4 @@
-import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
+import { Editor, TLFrameShape } from '@tldraw/editor'
 import { useCallback } from 'react'
 import {
 	TLExportType,
@@ -11,15 +11,12 @@ import { useTranslation } from './useTranslation/useTranslation'
 
 /** @public */
 export function useExportAs() {
-	const editor = useEditor()
 	const { addToast } = useToasts()
 	const msg = useTranslation()
 
 	return useCallback(
-		async function exportAs(
-			ids: TLShapeId[] = editor.selectedShapeIds,
-			format: TLExportType = 'png'
-		) {
+		async function exportAs(editor: Editor, format: TLExportType = 'png', defaultName?: string) {
+			let ids = editor.selectedShapeIds
 			if (ids.length === 0) {
 				ids = [...editor.currentPageShapeIds]
 			}
@@ -35,7 +32,7 @@ export function useExportAs() {
 
 			if (!svg) throw new Error('Could not construct SVG.')
 
-			let name = 'shapes'
+			let name = defaultName ?? 'shapes'
 
 			if (ids.length === 1) {
 				const first = editor.getShape(ids[0])!
@@ -94,6 +91,6 @@ export function useExportAs() {
 					throw new Error(`Export type ${format} not supported.`)
 			}
 		},
-		[editor, addToast, msg]
+		[addToast, msg]
 	)
 }
