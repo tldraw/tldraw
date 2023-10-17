@@ -35,7 +35,7 @@ export function useExportAs() {
 
 			if (!svg) throw new Error('Could not construct SVG.')
 
-			let name = 'shapes'
+			let name = 'shapes ' + getTimestamp()
 
 			if (ids.length === 1) {
 				const first = editor.getShape(ids[0])!
@@ -49,7 +49,7 @@ export function useExportAs() {
 			switch (format) {
 				case 'svg': {
 					const dataURL = await getSvgAsDataUrl(svg)
-					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.svg`)
+					downloadDataURLAsFile(dataURL, `${name}.svg`)
 					return
 				}
 				case 'webp':
@@ -72,7 +72,7 @@ export function useExportAs() {
 
 					const dataURL = URL.createObjectURL(image)
 
-					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.${format}`)
+					downloadDataURLAsFile(dataURL, `${name}.${format}`)
 
 					URL.revokeObjectURL(dataURL)
 					return
@@ -96,4 +96,14 @@ export function useExportAs() {
 		},
 		[editor, addToast, msg]
 	)
+}
+
+function getTimestamp() {
+	const now = new Date()
+
+	const hours = String(now.getHours()).padStart(2, '0')
+	const minutes = String(now.getMinutes()).padStart(2, '0')
+	const seconds = String(now.getSeconds()).padStart(2, '0')
+
+	return `${hours}-${minutes}-${seconds}`
 }
