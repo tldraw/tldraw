@@ -37,7 +37,7 @@ export const HelpMenu = React.memo(function HelpMenu() {
 					dir="ltr"
 					title={msg('help-menu.title')}
 				>
-					<Icon icon="question-mark" />
+					<Icon icon="question-mark" small />
 				</Trigger>
 				<Portal container={container} dir="ltr">
 					<Content
