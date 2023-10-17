@@ -1,3 +1,15 @@
+# v2.0.0-alpha.17 (Tue Oct 17 2023)
+
+#### 🔩 Dependency Updates
+
+- bump nanoid [#2078](https://github.com/tldraw/tldraw/pull/2078) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
 # v2.0.0-alpha.16 (Wed Oct 11 2023)
 
 #### 🏠 Internal

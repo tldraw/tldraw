@@ -1,3 +1,20 @@
+# v2.0.0-alpha.17 (Tue Oct 17 2023)
+
+#### 🚀 Enhancement
+
+- Same first page id for all editors [#2071](https://github.com/tldraw/tldraw/pull/2071) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- bump nanoid [#2078](https://github.com/tldraw/tldraw/pull/2078) ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.16 (Wed Oct 11 2023)
 
 #### 🚀 Enhancement
