@@ -1,3 +1,4 @@
+import { getBrowserCanvasMaxSize } from '../shapes/shared/getBrowserCanvasMaxSize'
 import { isAnimated } from './is-gif-animated'
 
 type BoxWidthHeight = {
@@ -50,16 +51,37 @@ export async function getResizedImageDataUrl(
 ): Promise<string> {
 	return await new Promise((resolve) => {
 		const img = new Image()
-		img.onload = () => {
+		img.onload = async () => {
 			// Initialize the canvas and it's size
 			const canvas = document.createElement('canvas')
 			const ctx = canvas.getContext('2d')
 
 			if (!ctx) return
 
-			// Set width and height
-			canvas.width = width * 2
-			canvas.height = height * 2
+			const canvasSizes = await getBrowserCanvasMaxSize()
+
+			let desiredWidth = width * 2
+			let desiredHeight = height * 2
+			const aspectRatio = img.width / img.height
+
+			if (desiredWidth > canvasSizes.maxWidth) {
+				desiredWidth = canvasSizes.maxWidth
+				desiredHeight = desiredWidth / aspectRatio
+			}
+
+			if (desiredHeight > canvasSizes.maxHeight) {
+				desiredHeight = canvasSizes.maxHeight
+				desiredWidth = desiredHeight * aspectRatio
+			}
+
+			if (desiredWidth * desiredHeight > canvasSizes.maxArea) {
+				const ratio = Math.sqrt(canvasSizes.maxArea / (desiredWidth * desiredHeight))
+				desiredWidth *= ratio
+				desiredHeight *= ratio
+			}
+
+			canvas.width = desiredWidth
+			canvas.height = desiredHeight
 
 			// Draw image and export to a data-uri
 			ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
