@@ -1,5 +1,5 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { SharedStyle, StyleProp } from '@tldraw/editor'
+import { SharedStyle, StyleProp, preventDefault } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -61,7 +61,11 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 				{msg(label)}
 			</div>
 			<DropdownMenu.Root id={`style panel ${uiTypeA} A`}>
-				<Trigger asChild>
+				<Trigger
+					asChild
+					// Firefox fix: Stop the dropdown immediately closing after touch
+					onTouchEnd={(e) => preventDefault(e)}
+				>
 					<Button
 						data-testid={`style.${uiTypeA}`}
 						title={
@@ -104,7 +108,11 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 				</DropdownMenu.Content>
 			</DropdownMenu.Root>
 			<DropdownMenu.Root id={`style panel ${uiTypeB}`}>
-				<Trigger asChild>
+				<Trigger
+					asChild
+					// Firefox fix: Stop the dropdown immediately closing after touch
+					onTouchEnd={(e) => preventDefault(e)}
+				>
 					<Button
 						data-testid={`style.${uiTypeB}`}
 						title={
