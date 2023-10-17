@@ -39,6 +39,13 @@ export function MobileStylePanel() {
 		[editor]
 	)
 
+	const handleClick = useCallback(() => {
+		if (editor.openMenus.length > 0) {
+			document.body.click()
+			editor.getContainer().focus()
+		}
+	}, [editor])
+
 	return (
 		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
 			<PopoverTrigger disabled={disableStylePanel}>
@@ -49,6 +56,7 @@ export function MobileStylePanel() {
 						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
 					}}
 					title={msg('style-panel.title')}
+					onPointerUp={handleClick}
 				>
 					<Icon icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'} />
 				</Button>
