@@ -6,7 +6,6 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
-import { useOpenMenuCloser } from '../hooks/useOpenMenuCloser'
 import { useRelevantStyles } from '../hooks/useRevelantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { StylePanel } from './StylePanel/StylePanel'
@@ -40,8 +39,6 @@ export function MobileStylePanel() {
 		[editor]
 	)
 
-	const extraEventsToToggleMenu = useOpenMenuCloser()
-
 	return (
 		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
 			<PopoverTrigger disabled={disableStylePanel}>
@@ -52,7 +49,6 @@ export function MobileStylePanel() {
 						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
 					}}
 					title={msg('style-panel.title')}
-					{...extraEventsToToggleMenu}
 				>
 					<Icon icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'} />
 				</Button>
