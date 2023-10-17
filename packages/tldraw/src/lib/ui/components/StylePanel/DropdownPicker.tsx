@@ -1,5 +1,5 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
-import { SharedStyle, StyleProp } from '@tldraw/editor'
+import { SharedStyle, StyleProp, preventDefault } from '@tldraw/editor'
 import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
@@ -37,7 +37,11 @@ export const DropdownPicker = React.memo(function DropdownPicker<T extends strin
 
 	return (
 		<DropdownMenu.Root id={`style panel ${id}`}>
-			<Trigger asChild>
+			<Trigger
+				asChild
+				// Firefox fix: Stop the dropdown immediately closing after touch
+				onTouchEnd={(e) => preventDefault(e)}
+			>
 				<Button
 					data-testid={`style.${uiType}`}
 					title={
