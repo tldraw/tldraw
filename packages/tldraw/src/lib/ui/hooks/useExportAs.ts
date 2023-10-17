@@ -35,7 +35,7 @@ export function useExportAs() {
 
 			if (!svg) throw new Error('Could not construct SVG.')
 
-			let name = 'shapes ' + getTimestamp()
+			let name = 'shapes' + getTimestamp()
 
 			if (ids.length === 1) {
 				const first = editor.getShape(ids[0])!
@@ -101,9 +101,12 @@ export function useExportAs() {
 function getTimestamp() {
 	const now = new Date()
 
+	const year = String(now.getFullYear()).slice(2)
+	const month = String(now.getMonth() + 1).padStart(2, '0')
+	const day = String(now.getDate()).padStart(2, '0')
 	const hours = String(now.getHours()).padStart(2, '0')
 	const minutes = String(now.getMinutes()).padStart(2, '0')
 	const seconds = String(now.getSeconds()).padStart(2, '0')
 
-	return `${hours}-${minutes}-${seconds}`
+	return ` at ${year}-${month}-${day} ${hours}.${minutes}.${seconds}`
 }
