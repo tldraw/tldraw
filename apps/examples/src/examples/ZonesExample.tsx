@@ -1,10 +1,10 @@
-import { Tldraw } from '@tldraw/tldraw'
+import { OfflineIndicator, Tldraw } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 
 export default function Example() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw shareZone={<CustomShareZone />} />
+			<Tldraw topZone={<OfflineIndicator />} shareZone={<CustomShareZone />} />
 		</div>
 	)
 }

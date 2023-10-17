@@ -1745,3 +1745,24 @@
 	z-index: 9999999;
 	pointer-events: none;
 }
+
+/* ---------------- Offline Indicator --------------- */
+
+.tlui-offline-indicator {
+	display: flex;
+	flex-direction: row;
+	gap: var(--space-3);
+	color: var(--color-text);
+	background-color: var(--color-low);
+	border: 3px solid var(--color-background);
+	padding: 0px var(--space-5);
+	height: 42px;
+	align-items: center;
+	justify-content: center;
+	border-radius: 99px;
+	opacity: 0;
+	animation: fade-in;
+	animation-duration: 0.12s;
+	animation-delay: 2s;
+	animation-fill-mode: forwards;
+}
