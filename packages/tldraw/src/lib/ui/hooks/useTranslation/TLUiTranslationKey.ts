@@ -248,6 +248,8 @@ export type TLUiTranslationKey =
 	| 'share-menu.copy-readonly-link-note'
 	| 'share-menu.project-too-large'
 	| 'share-menu.upload-failed'
+	| 'status.offline'
+	| 'status.online'
 	| 'people-menu.title'
 	| 'people-menu.change-name'
 	| 'people-menu.change-color'

@@ -149,6 +149,8 @@ export function getAssetUrls(opts) {
 			'spline-line': formatAssetUrl('./icons/icon/spline-line.svg', opts),
 			'stack-horizontal': formatAssetUrl('./icons/icon/stack-horizontal.svg', opts),
 			'stack-vertical': formatAssetUrl('./icons/icon/stack-vertical.svg', opts),
+			'status-offline': formatAssetUrl('./icons/icon/status-offline.svg', opts),
+			'status-online': formatAssetUrl('./icons/icon/status-online.svg', opts),
 			'stretch-horizontal': formatAssetUrl('./icons/icon/stretch-horizontal.svg', opts),
 			'stretch-vertical': formatAssetUrl('./icons/icon/stretch-vertical.svg', opts),
 			'text-align-center': formatAssetUrl('./icons/icon/text-align-center.svg', opts),

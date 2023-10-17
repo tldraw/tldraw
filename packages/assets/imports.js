@@ -154,6 +154,8 @@ import iconsSplineCubic from './icons/icon/spline-cubic.svg'
 import iconsSplineLine from './icons/icon/spline-line.svg'
 import iconsStackHorizontal from './icons/icon/stack-horizontal.svg'
 import iconsStackVertical from './icons/icon/stack-vertical.svg'
+import iconsStatusOffline from './icons/icon/status-offline.svg'
+import iconsStatusOnline from './icons/icon/status-online.svg'
 import iconsStretchHorizontal from './icons/icon/stretch-horizontal.svg'
 import iconsStretchVertical from './icons/icon/stretch-vertical.svg'
 import iconsTextAlignCenter from './icons/icon/text-align-center.svg'
@@ -365,6 +367,8 @@ export function getAssetUrlsByImport(opts) {
 			'spline-line': formatAssetUrl(iconsSplineLine, opts),
 			'stack-horizontal': formatAssetUrl(iconsStackHorizontal, opts),
 			'stack-vertical': formatAssetUrl(iconsStackVertical, opts),
+			'status-offline': formatAssetUrl(iconsStatusOffline, opts),
+			'status-online': formatAssetUrl(iconsStatusOnline, opts),
 			'stretch-horizontal': formatAssetUrl(iconsStretchHorizontal, opts),
 			'stretch-vertical': formatAssetUrl(iconsStretchVertical, opts),
 			'text-align-center': formatAssetUrl(iconsTextAlignCenter, opts),
