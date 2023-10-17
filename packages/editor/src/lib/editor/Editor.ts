@@ -4938,14 +4938,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getDroppingOverShape(point: VecLike, droppingShapes: TLShape[] = []) {
 		// starting from the top...
-		return this.currentPageShapesSorted.findLast((shape) => {
+		const { currentPageShapesSorted } = this
+		for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
+			const shape = currentPageShapesSorted[i]
+
 			if (
 				// only allow shapes that can receive children
 				!this.getShapeUtil(shape).canDropShapes(shape, droppingShapes) ||
 				// don't allow dropping a shape on itself or one of it's children
 				droppingShapes.find((s) => s.id === shape.id || this.hasAncestor(shape, s.id))
 			) {
-				return false
+				continue
 			}
 
 			// Only allow dropping into the masked page bounds of the shape, e.g. when a frame is
@@ -4957,9 +4960,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				maskedPageBounds.containsPoint(point) &&
 				this.getShapeGeometry(shape).hitTestPoint(this.getPointInShapeSpace(shape, point), 0, true)
 			) {
-				return true
+				return shape
 			}
-		})
+		}
 	}
 
 	/**
@@ -6484,7 +6487,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Make sure that each partial will become the child of either the
 				// page or another shape that exists (or that will exist) in this page.
 
+				// find last parent id
 				const { currentPageShapesSorted } = this
+
 				partials = partials.map((partial) => {
 					// If the partial does not provide the parentId OR if the provided
 					// parentId is NOT in the store AND NOT among the other shapes being
@@ -6495,44 +6500,55 @@ export class Editor extends EventEmitter<TLEventMap> {
 						!partial.parentId ||
 						!(this.store.has(partial.parentId) || partials.some((p) => p.id === partial.parentId))
 					) {
-						partial = { ...partial }
+						let parentId: TLParentId = this.focusedGroupId
 
-						const parentId =
-							currentPageShapesSorted.findLast(
-								(parent) =>
-									// parent.type === 'frame'
-									this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
-									this.isPointInShape(
-										parent,
-										// If no parent is provided, then we can treat the
-										// shape's provided x/y as being in the page's space.
-										{ x: partial.x ?? 0, y: partial.y ?? 0 },
-										{
-											margin: 0,
-											hitInside: true,
-										}
-									)
-							)?.id ?? this.focusedGroupId
-
-						partial.parentId = parentId
-
-						// If the parent is a shape (rather than a page) then insert the
-						// shapes into the shape's children. Adjust the point and page rotation to be
-						// preserved relative to the parent.
-						if (isShapeId(parentId)) {
-							const point = this.getPointInShapeSpace(this.getShape(parentId)!, {
-								x: partial.x ?? 0,
-								y: partial.y ?? 0,
-							})
-							partial.x = point.x
-							partial.y = point.y
-							partial.rotation =
-								-this.getShapePageTransform(parentId)!.rotation() + (partial.rotation ?? 0)
+						for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
+							const parent = currentPageShapesSorted[i]
+							if (
+								// parent.type === 'frame'
+								this.getShapeUtil(parent).canReceiveNewChildrenOfType(parent, partial.type) &&
+								this.isPointInShape(
+									parent,
+									// If no parent is provided, then we can treat the
+									// shape's provided x/y as being in the page's space.
+									{ x: partial.x ?? 0, y: partial.y ?? 0 },
+									{
+										margin: 0,
+										hitInside: true,
+									}
+								)
+							) {
+								parentId = parent.id
+								break
+							}
 						}
 
+						const prevParentId = partial.parentId
+
 						// a shape cannot be it's own parent. This was a rare issue with frames/groups in the syncFuzz tests.
-						if (partial.parentId === partial.id) {
-							partial.parentId = focusedGroupId
+						if (parentId === partial.id) {
+							parentId = focusedGroupId
+						}
+
+						// If the parentid has changed...
+						if (parentId !== prevParentId) {
+							partial = { ...partial }
+
+							partial.parentId = parentId
+
+							// If the parent is a shape (rather than a page) then insert the
+							// shapes into the shape's children. Adjust the point and page rotation to be
+							// preserved relative to the parent.
+							if (isShapeId(parentId)) {
+								const point = this.getPointInShapeSpace(this.getShape(parentId)!, {
+									x: partial.x ?? 0,
+									y: partial.y ?? 0,
+								})
+								partial.x = point.x
+								partial.y = point.y
+								partial.rotation =
+									-this.getShapePageTransform(parentId)!.rotation() + (partial.rotation ?? 0)
+							}
 						}
 					}
 

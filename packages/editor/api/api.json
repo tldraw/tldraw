@@ -10102,8 +10102,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "TLShape",
-                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                  "text": "TLUnknownShape",
+                  "canonicalReference": "@tldraw/tlschema!TLUnknownShape:type"
                 },
                 {
                   "kind": "Content",
