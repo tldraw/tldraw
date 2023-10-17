@@ -56,7 +56,7 @@ export async function fetchTranslation(
 
 	const missing: string[] = []
 
-	for (const key in EN_TRANSLATION) {
+	for (const key in EN_TRANSLATION.messages) {
 		if (!messages[key as TLUiTranslationKey]) {
 			missing.push(key)
 		}
