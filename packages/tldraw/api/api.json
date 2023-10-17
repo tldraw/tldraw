@@ -17942,16 +17942,16 @@
             },
             {
               "kind": "Content",
-              "text": "(ids?: "
+              "text": "(editor: "
             },
             {
               "kind": "Reference",
-              "text": "TLShapeId",
-              "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+              "text": "Editor",
+              "canonicalReference": "@tldraw/editor!Editor:class"
             },
             {
               "kind": "Content",
-              "text": "[], format?: "
+              "text": ", format?: "
             },
             {
               "kind": "Reference",
@@ -17960,7 +17960,7 @@
             },
             {
               "kind": "Content",
-              "text": ") => "
+              "text": ", defaultName?: string) => "
             },
             {
               "kind": "Reference",
