@@ -226,7 +226,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 					<M.Item
 						key={id}
 						className="tlui-button-grid__button"
-						data-testid={`tools.${id}`}
+						data-testid={`tools.more.${id}`}
 						data-tool={id}
 						data-geo={meta?.geo ?? ''}
 						aria-label={label}

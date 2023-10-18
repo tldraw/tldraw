@@ -38,6 +38,7 @@ export async function setupPage(page: PlaywrightTestArgs['page']) {
 	await page.evaluate(() => {
 		editor.user.updateUserPreferences({ animationSpeed: 0 })
 	})
+	await page.mouse.move(50, 50)
 }
 
 export async function setupPageWithShapes(page: PlaywrightTestArgs['page']) {
