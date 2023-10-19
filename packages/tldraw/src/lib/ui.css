@@ -72,7 +72,7 @@
 	align-items: flex-start;
 	width: min-content;
 	gap: var(--space-3);
-	margin: var(--space-3) var(--space-2);
+	margin: var(--space-3);
 	white-space: nowrap;
 	pointer-events: none;
 	z-index: var(--layer-panels);
@@ -1765,4 +1765,7 @@
 	animation-duration: 0.12s;
 	animation-delay: 2s;
 	animation-fill-mode: forwards;
+}
+
+.tlui-button-2 {
 }
