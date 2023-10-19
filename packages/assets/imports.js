@@ -25,7 +25,7 @@ import embedIconsYoutube from './embed-icons/youtube.png'
 import fontsMonospace from './fonts/IBMPlexMono-Medium.woff2'
 import fontsSansSerif from './fonts/IBMPlexSans-Medium.woff2'
 import fontsSerif from './fonts/IBMPlexSerif-Medium.woff2'
-import fontsDraw from './fonts/Shantell_Sans-Normal-SemiBold.woff2'
+import fontsDraw from './fonts/Shantell_Sans-Informal_SemiBold.woff2'
 import iconsAlignBottomCenter from './icons/icon/align-bottom-center.svg'
 import iconsAlignBottomLeft from './icons/icon/align-bottom-left.svg'
 import iconsAlignBottomRight from './icons/icon/align-bottom-right.svg'
@@ -237,6 +237,7 @@ export function getAssetUrlsByImport(opts) {
 			sansSerif: formatAssetUrl(fontsSansSerif, opts),
 			serif: formatAssetUrl(fontsSerif, opts),
 			draw: formatAssetUrl(fontsDraw, opts),
+			_draw: formatAssetUrl(fontsDraw, opts),
 		},
 		icons: {
 			'align-bottom-center': formatAssetUrl(iconsAlignBottomCenter, opts),

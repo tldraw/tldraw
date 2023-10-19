@@ -9,6 +9,7 @@ export type AssetUrls = {
 		sansSerif: string
 		serif: string
 		draw: string
+		_draw: string
 	}
 	icons: {
 		'align-bottom-center': string

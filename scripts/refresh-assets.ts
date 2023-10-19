@@ -18,7 +18,8 @@ const FONT_MAPPING: Record<string, string> = {
 	'IBMPlexMono-Medium': 'monospace',
 	'IBMPlexSerif-Medium': 'serif',
 	'IBMPlexSans-Medium': 'sansSerif',
-	'Shantell_Sans-Normal-SemiBold': 'draw',
+	'Shantell_Sans-Normal-SemiBold': '_draw',
+	'Shantell_Sans-Informal_SemiBold': 'draw',
 }
 
 const ASSETS_FOLDER_PATH = join(BUBLIC_ROOT, 'assets')

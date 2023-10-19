@@ -15,7 +15,8 @@ export function getAssetUrls(opts) {
 			monospace: formatAssetUrl('./fonts/IBMPlexMono-Medium.woff2', opts),
 			sansSerif: formatAssetUrl('./fonts/IBMPlexSans-Medium.woff2', opts),
 			serif: formatAssetUrl('./fonts/IBMPlexSerif-Medium.woff2', opts),
-			draw: formatAssetUrl('./fonts/Shantell_Sans-Normal-SemiBold.woff2', opts),
+			draw: formatAssetUrl('./fonts/Shantell_Sans-Informal_SemiBold.woff2', opts),
+			_draw: formatAssetUrl('./fonts/Shantell_Sans-Normal-SemiBold.woff2', opts),
 		},
 		icons: {
 			'align-bottom-center': formatAssetUrl('./icons/icon/align-bottom-center.svg', opts),
