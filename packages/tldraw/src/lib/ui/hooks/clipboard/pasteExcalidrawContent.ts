@@ -28,7 +28,7 @@ import {
  *
  * @param editor - The editor instance.
  * @param clipboard - The clipboard model.
- * @param point - (optional) The point at which to paste the text.
+ * @param point - The point at which to paste the text.
  * @internal
  */
 export async function pasteExcalidrawContent(editor: Editor, clipboard: any, point?: VecLike) {

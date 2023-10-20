@@ -114,7 +114,7 @@ const isFile = (item: ClipboardItem) => {
  * Handle text pasted into the editor.
  * @param editor - The editor instance.
  * @param data - The text to paste.
- * @param point - (optional) The point at which to paste the text.
+ * @param point - The point at which to paste the text.
  * @internal
  */
 const handleText = (
@@ -186,7 +186,7 @@ type ClipboardThing =
  *
  * @param editor - The editor
  * @param clipboardData - The clipboard data
- * @param point - (optional) The point to paste at
+ * @param point - The point to paste at
  * @internal
  */
 const handlePasteFromEventClipboardData = async (
@@ -242,7 +242,7 @@ const handlePasteFromEventClipboardData = async (
  *
  * @param editor - The editor
  * @param clipboardItems - The clipboard items to handle
- * @param point - (optional) The point to paste at
+ * @param point - The point to paste at
  * @internal
  */
 const handlePasteFromClipboardApi = async (

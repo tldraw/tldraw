@@ -2,8 +2,8 @@ import { generateNKeysBetween } from './dgreensp'
 
 /**
  * Get a number of indices between two indices.
- * @param below - (optional) The index below.
- * @param above - (optional) The index above.
+ * @param below - The index below.
+ * @param above - The index above.
  * @param n - The number of indices to get.
  * @public
  */
@@ -62,7 +62,7 @@ export function getIndexBelow(above: string) {
 /**
  * Get n number of indices, starting at an index.
  * @param n - The number of indices to get.
- * @param start - (optional) The index to start at.
+ * @param start -  The index to start at.
  * @public
  */
 export function getIndices(n: number, start = 'a1') {
