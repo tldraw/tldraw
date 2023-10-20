@@ -26,23 +26,25 @@ export const NavigationZone = memo(function NavigationZone() {
 
 	return (
 		<div className="tlui-navigation-zone">
-			<div className="tlui-navigation-zone__controls">
+			<div className="tlui-buttons__horizontal">
 				{breakpoint < 6 ? (
 					<ZoomMenu />
 				) : collapsed ? (
 					<>
 						<ZoomMenu />
 						<Button
+							type="icon"
+							icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'}
+							data-testid="minimap.toggle"
 							title={msg('navigation-zone.toggle-minimap')}
 							className="tlui-navigation-zone__toggle"
-							data-testid="minimap.toggle"
 							onClick={toggleMinimap}
-							icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'}
 						/>
 					</>
 				) : (
 					<>
 						<Button
+							type="icon"
 							icon="minus"
 							data-testid="minimap.zoom-out"
 							title={`${msg(actions['zoom-out'].label!)} ${kbdStr(actions['zoom-out'].kbd!)}`}
@@ -50,16 +52,19 @@ export const NavigationZone = memo(function NavigationZone() {
 						/>
 						<ZoomMenu />
 						<Button
+							type="icon"
 							icon="plus"
 							data-testid="minimap.zoom-in"
 							title={`${msg(actions['zoom-in'].label!)} ${kbdStr(actions['zoom-in'].kbd!)}`}
 							onClick={() => actions['zoom-in'].onSelect('navigation-zone')}
 						/>
 						<Button
+							type="icon"
+							icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'}
+							data-testid="minimap.toggle"
 							title={msg('navigation-zone.toggle-minimap')}
 							className="tlui-navigation-zone__toggle"
 							onClick={toggleMinimap}
-							icon={collapsed ? 'chevrons-ne' : 'chevrons-sw'}
 						/>
 					</>
 				)}

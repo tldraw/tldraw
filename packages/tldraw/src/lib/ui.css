@@ -109,7 +109,7 @@
 }
 
 .tlui-slider__container {
-	width: 164px;
+	width: 100%;
 	padding: 0px var(--space-4);
 }
 
@@ -397,7 +397,7 @@
 	max-height: 75vh;
 	margin: 0px;
 	border: none;
-	border-radius: var(--radius-4);
+	border-radius: var(--radius-3);
 	background-color: var(--color-panel);
 	box-shadow: var(--shadow-3);
 	z-index: var(--layer-menus);
@@ -451,7 +451,7 @@
 	inset: 0px -4px -4px 0px;
 	border-right: 4px solid var(--color-background);
 	border-bottom: 4px solid var(--color-background);
-	border-bottom-right-radius: var(--radius-5);
+	border-bottom-right-radius: var(--radius-4);
 	background-color: var(--color-low);
 }
 
@@ -504,7 +504,7 @@
 
 .tlui-style-panel__wrapper {
 	box-shadow: var(--shadow-2);
-	border-radius: var(--radius-4);
+	border-radius: var(--radius-3);
 	pointer-events: all;
 	background-color: var(--color-panel);
 	height: fit-content;
@@ -1367,7 +1367,7 @@
 	border-radius: 0;
 	border-top: 4px solid var(--color-background);
 	border-right: 4px solid var(--color-background);
-	border-top-right-radius: var(--radius-5);
+	border-top-right-radius: var(--radius-4);
 	background-color: var(--color-low);
 }
 
@@ -1421,11 +1421,6 @@
 	position: relative;
 	width: 100%;
 	height: 100%;
-}
-
-.tlui-zoom-menu__button__pct {
-	width: 60px;
-	text-align: center;
 }
 
 /* ----------------------- ... ---------------------- */
@@ -1767,5 +1762,180 @@
 	animation-fill-mode: forwards;
 }
 
+/* -------------------------------------------------- */
+/*                     UI Refresh                     */
+/* -------------------------------------------------- */
+
+/* Button */
+
 .tlui-button-2 {
+	position: relative;
+	height: 44px;
+	min-width: 44px;
+	padding: 0px 12px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-color: transparent;
+	border: transparent;
+	color: currentColor;
+	cursor: pointer;
+	pointer-events: all;
+	font-weight: 500;
+	text-rendering: optimizeLegibility;
+	font-size: 12px;
+	gap: 0px;
+	color: var(--color-text-1);
+	text-shadow: 1px 1px var(--color-panel);
+}
+
+.tlui-button-2__label {
+	flex-grow: 2;
+	text-align: left;
+}
+
+.tlui-button-2:focus-visible:not(:hover) {
+	outline: 1px solid var(--color-selected);
+	outline-offset: 0px;
+	border-radius: 2px;
+}
+
+.tlui-button-2::after {
+	display: block;
+	content: '';
+	position: absolute;
+	inset: 2px;
+	background-color: transparent;
+	border-radius: 6px;
+	z-index: 1;
+}
+
+.tlui-button-2[aria-expanded='true']::after {
+	background-color: var(--color-muted-0);
+	opacity: 1;
+}
+
+@media (hover: hover) {
+	.tlui-button-2::after {
+		background-color: var(--color-muted-2);
+		opacity: 0;
+	}
+
+	.tlui-button-2:hover::after {
+		opacity: 1;
+	}
+}
+/* Low button  */
+
+.tlui-button-2__low {
+	border-radius: 8px;
+	background-color: var(--color-low);
+	border: 1px solid var(--color-low-border);
+}
+
+@media (hover: hover) {
+	.tlui-button-2__low::after {
+		background-color: var(--color-muted-2);
+	}
+}
+
+/* Panel button */
+
+.tlui-button-2__panel {
+	position: relative;
+}
+
+/* Tool button  */
+
+.tlui-button-2__tool {
+	position: relative;
+}
+
+@media (hover: hover) {
+	.tlui-button-2__tool::after {
+		inset: 4px;
+		border-radius: 8px;
+	}
+}
+
+/* Icon button */
+
+.tlui-button-2__icon {
+	height: 40px;
+	width: 40px;
+	min-height: 40px;
+	min-width: 40px;
+	padding: 0px;
+}
+
+@media (hover: hover) {
+	.tlui-button-2__icon::after {
+		inset: 4px;
+		border-radius: 6px;
+	}
+}
+
+/* Menu button */
+
+.tlui-button-2__menu {
+	height: 40px;
+	min-height: 40px;
+	min-width: 128px;
+	width: auto;
+	gap: 8px;
+}
+
+@media (hover: hover) {
+	.tlui-button-2__menu::after {
+		inset: 4px;
+		border-radius: 6px;
+	}
+}
+
+/* Button Row */
+
+.tlui-buttons__horizontal {
+	display: flex;
+	flex-direction: row;
+}
+.tlui-buttons__horizontal > .tlui-button-2 {
+	margin-left: -2px;
+	margin-right: -2px;
+}
+.tlui-buttons__horizontal > .tlui-button-2:nth-of-type(1) {
+	margin-left: 0px;
+}
+.tlui-buttons__horizontal > .tlui-button-2:nth-last-of-type(1) {
+	margin-right: 0px;
+}
+
+/* Button Grid */
+
+.tlui-buttons__grid {
+	display: grid;
+	grid-template-columns: repeat(4, auto);
+	grid-auto-flow: row;
+}
+.tlui-buttons__grid > .tlui-button-2 {
+	margin: -2px;
+}
+.tlui-buttons__grid > .tlui-button-2:nth-of-type(4n) {
+	margin-right: 0px;
+}
+.tlui-buttons__grid > .tlui-button-2:nth-of-type(4n - 3) {
+	margin-left: 0px;
+}
+.tlui-buttons__grid > .tlui-button-2:nth-of-type(-n + 4) {
+	margin-top: 0px;
+}
+.tlui-buttons__grid > .tlui-button-2:nth-last-of-type(-n + 4) {
+	margin-bottom: 0px;
+}
+
+/* Zoom button */
+
+.tlui-zoom-menu__button__pct {
+	width: 60px;
+	min-width: 60px;
+	text-align: center;
 }

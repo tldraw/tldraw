@@ -17,6 +17,7 @@ export const Menu = React.memo(function Menu() {
 		<M.Root id="main menu">
 			<M.Trigger>
 				<Button
+					type="icon"
 					className="tlui-menu__trigger"
 					data-testid="main.menu"
 					title={msg('menu.title')}
@@ -109,6 +110,7 @@ function MenuContent() {
 				// Item is a button
 				return (
 					<M.Item
+						type="menu"
 						key={id}
 						data-testid={`menu-item.${item.id}`}
 						kbd={kbd}

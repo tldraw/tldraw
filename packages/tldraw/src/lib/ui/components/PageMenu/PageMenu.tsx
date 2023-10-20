@@ -1,3 +1,4 @@
+import { Root as PopoverRoot } from '@radix-ui/react-popover'
 import {
 	MAX_PAGES,
 	PageRecordType,
@@ -14,7 +15,7 @@ import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { Icon } from '../primitives/Icon'
-import { Popover, PopoverContent, PopoverTrigger } from '../primitives/Popover'
+import { PopoverContent, PopoverTrigger } from '../primitives/Popover'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 import { onMovePage } from './edit-pages-shared'
@@ -251,157 +252,165 @@ export const PageMenu = function PageMenu() {
 	}, [editor, msg, isReadonlyMode])
 
 	return (
-		<Popover id="page menu" onOpenChange={onOpenChange} open={isOpen}>
-			<PopoverTrigger>
-				<Button
-					className="tlui-page-menu__trigger tlui-menu__trigger"
-					data-testid="main.page-menu"
-					icon="chevron-down"
-					title={currentPage.name}
-				>
-					<div className="tlui-page-menu__name">{currentPage.name}</div>
-				</Button>
-			</PopoverTrigger>
-			<PopoverContent side="bottom" align="start" sideOffset={6}>
-				<div className="tlui-page-menu__wrapper">
-					<div className="tlui-page-menu__header">
-						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
-						{!isReadonlyMode && (
-							<>
-								<Button
-									data-testid="page-menu.edit"
-									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
-									icon={isEditing ? 'check' : 'edit'}
-									onClick={toggleEditing}
-								/>
-								<Button
-									data-testid="page-menu.create"
-									icon="plus"
-									title={msg(
-										maxPageCountReached
-											? 'page-menu.max-page-count-reached'
-											: 'page-menu.create-new-page'
-									)}
-									disabled={maxPageCountReached}
-									onClick={handleCreatePageClick}
-								/>
-							</>
-						)}
-					</div>
-					<div
-						className="tlui-page-menu__list tlui-menu__group"
-						style={{ height: ITEM_HEIGHT * pages.length + 4 }}
-						ref={rSortableContainer}
+		<PopoverRoot onOpenChange={onOpenChange} open={isOpen}>
+			<div className="tlui-popover">
+				<PopoverTrigger>
+					<Button
+						className="tlui-page-menu__trigger tlui-menu__trigger"
+						data-testid="main.page-menu"
+						icon="chevron-down"
+						type="menu"
+						title={currentPage.name}
 					>
-						{pages.map((page, index) => {
-							const position = sortablePositionItems[page.id] ?? {
-								position: index * 40,
-								offsetY: 0,
-							}
-
-							return isEditing ? (
-								<div
-									key={page.id + '_editing'}
-									data-testid={`page-menu-item-${page.id}`}
-									className="tlui-page_menu__item__sortable"
-									style={{
-										zIndex: page.id === currentPage.id ? 888 : index,
-										transform: `translate(0px, ${position.y + position.offsetY}px)`,
-									}}
-								>
+						<div className="tlui-page-menu__name">{currentPage.name}</div>
+					</Button>
+				</PopoverTrigger>
+				<PopoverContent side="bottom" align="start" sideOffset={6}>
+					<div className="tlui-page-menu__wrapper">
+						<div className="tlui-page-menu__header">
+							<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
+							{!isReadonlyMode && (
+								<>
 									<Button
-										tabIndex={-1}
-										className="tlui-page_menu__item__sortable__handle"
-										icon="drag-handle-dots"
-										onPointerDown={handlePointerDown}
-										onPointerUp={handlePointerUp}
-										onPointerMove={handlePointerMove}
-										onKeyDown={handleKeyDown}
-										data-id={page.id}
-										data-index={index}
+										type="icon"
+										data-testid="page-menu.edit"
+										title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
+										icon={isEditing ? 'check' : 'edit'}
+										onClick={toggleEditing}
 									/>
-									{breakpoint < 5 && isCoarsePointer ? (
-										// sigh, this is a workaround for iOS Safari
-										// because the device and the radix popover seem
-										// to be fighting over scroll position. Nothing
-										// else seems to work!
-										<Button
-											className="tlui-page-menu__item__button"
-											onClick={() => {
-												const name = window.prompt('Rename page', page.name)
-												if (name && name !== page.name) {
-													editor.renamePage(page.id, name)
-												}
-											}}
-											onDoubleClick={toggleEditing}
-											isChecked={page.id === currentPage.id}
-										>
-											<span>{page.name}</span>
-										</Button>
-									) : (
-										<div
-											className="tlui-page_menu__item__sortable__title"
-											style={{ height: ITEM_HEIGHT }}
-										>
-											<PageItemInput
-												id={page.id}
-												name={page.name}
-												isCurrentPage={page.id === currentPage.id}
-											/>
-										</div>
-									)}
-									{!isReadonlyMode && (
-										<div className="tlui-page_menu__item__submenu" data-isediting={isEditing}>
-											<PageItemSubmenu index={index} item={page} listSize={pages.length} />
-										</div>
-									)}
-								</div>
-							) : (
-								<div
-									key={page.id}
-									data-testid={`page-menu-item-${page.id}`}
-									className="tlui-page-menu__item"
-								>
 									<Button
-										className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
-										onClick={() => editor.setCurrentPage(page.id)}
-										onDoubleClick={toggleEditing}
-										isChecked={page.id === currentPage.id}
-										title={msg('page-menu.go-to-page')}
+										type="icon"
+										data-testid="page-menu.create"
+										icon="plus"
+										title={msg(
+											maxPageCountReached
+												? 'page-menu.max-page-count-reached'
+												: 'page-menu.create-new-page'
+										)}
+										disabled={maxPageCountReached}
+										onClick={handleCreatePageClick}
+									/>
+								</>
+							)}
+						</div>
+						<div
+							className="tlui-page-menu__list tlui-menu__group"
+							style={{ height: ITEM_HEIGHT * pages.length + 4 }}
+							ref={rSortableContainer}
+						>
+							{pages.map((page, index) => {
+								const position = sortablePositionItems[page.id] ?? {
+									position: index * 40,
+									offsetY: 0,
+								}
+
+								return isEditing ? (
+									<div
+										key={page.id + '_editing'}
+										data-testid={`page-menu-item-${page.id}`}
+										className="tlui-page_menu__item__sortable"
+										style={{
+											zIndex: page.id === currentPage.id ? 888 : index,
+											transform: `translate(0px, ${position.y + position.offsetY}px)`,
+										}}
 									>
-										<div className="tlui-page-menu__item__button__check">
-											{page.id === currentPage.id && <Icon icon="check" />}
-										</div>
-										<span>{page.name}</span>
-									</Button>
-									{!isReadonlyMode && (
-										<div className="tlui-page_menu__item__submenu">
-											<PageItemSubmenu
-												index={index}
-												item={page}
-												listSize={pages.length}
-												onRename={() => {
-													if (editor.environment.isIos) {
-														const name = window.prompt('Rename page', page.name)
-														if (name && name !== page.name) {
-															editor.renamePage(page.id, name)
-														}
-													} else {
-														editor.batch(() => {
-															setIsEditing(true)
-															editor.setCurrentPage(page.id)
-														})
+										<Button
+											type="icon"
+											tabIndex={-1}
+											className="tlui-page_menu__item__sortable__handle"
+											icon="drag-handle-dots"
+											onPointerDown={handlePointerDown}
+											onPointerUp={handlePointerUp}
+											onPointerMove={handlePointerMove}
+											onKeyDown={handleKeyDown}
+											data-id={page.id}
+											data-index={index}
+										/>
+										{breakpoint < 5 && isCoarsePointer ? (
+											// sigh, this is a workaround for iOS Safari
+											// because the device and the radix popover seem
+											// to be fighting over scroll position. Nothing
+											// else seems to work!
+											<Button
+												type="icon"
+												className="tlui-page-menu__item__button"
+												onClick={() => {
+													const name = window.prompt('Rename page', page.name)
+													if (name && name !== page.name) {
+														editor.renamePage(page.id, name)
 													}
 												}}
-											/>
-										</div>
-									)}
-								</div>
-							)
-						})}
+												onDoubleClick={toggleEditing}
+												isChecked={page.id === currentPage.id}
+											>
+												<span>{page.name}</span>
+											</Button>
+										) : (
+											<div
+												className="tlui-page_menu__item__sortable__title"
+												style={{ height: ITEM_HEIGHT }}
+											>
+												<PageItemInput
+													id={page.id}
+													name={page.name}
+													isCurrentPage={page.id === currentPage.id}
+												/>
+											</div>
+										)}
+										{!isReadonlyMode && (
+											<div className="tlui-page_menu__item__submenu" data-isediting={isEditing}>
+												<PageItemSubmenu index={index} item={page} listSize={pages.length} />
+											</div>
+										)}
+									</div>
+								) : (
+									<div
+										key={page.id}
+										data-testid={`page-menu-item-${page.id}`}
+										className="tlui-page-menu__item"
+									>
+										<Button
+											type="icon"
+											className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
+											onClick={() => editor.setCurrentPage(page.id)}
+											onDoubleClick={toggleEditing}
+											isChecked={page.id === currentPage.id}
+											title={msg('page-menu.go-to-page')}
+										>
+											<div className="tlui-page-menu__item__button__check">
+												{page.id === currentPage.id && <Icon icon="check" />}
+											</div>
+											<span>{page.name}</span>
+										</Button>
+										{!isReadonlyMode && (
+											<div className="tlui-page_menu__item__submenu">
+												<PageItemSubmenu
+													index={index}
+													item={page}
+													listSize={pages.length}
+													onRename={() => {
+														if (editor.environment.isIos) {
+															const name = window.prompt('Rename page', page.name)
+															if (name && name !== page.name) {
+																editor.renamePage(page.id, name)
+															}
+														} else {
+															editor.batch(() => {
+																setIsEditing(true)
+																editor.setCurrentPage(page.id)
+															})
+														}
+													}}
+												/>
+											</div>
+										)}
+									</div>
+								)
+							})}
+						</div>
 					</div>
-				</div>
-			</PopoverContent>
-		</Popover>
+				</PopoverContent>
+			</div>
+		</PopoverRoot>
 	)
 }

@@ -24,6 +24,7 @@ export const ZoomMenu = track(function ZoomMenu() {
 		<M.Root id="zoom">
 			<M.Trigger>
 				<Button
+					type="icon"
 					title={`${msg('navigation-zone.zoom')}`}
 					data-testid="minimap.zoom-menu"
 					className={breakpoint < 5 ? 'tlui-zoom-menu__button' : 'tlui-zoom-menu__button__pct'}

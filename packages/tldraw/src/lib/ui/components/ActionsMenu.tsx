@@ -25,9 +25,9 @@ export const ActionsMenu = memo(function ActionsMenu() {
 				return (
 					<Button
 						key={id}
-						className="tlui-button-grid__button"
 						data-testid={`menu-item.${item.id}`}
 						icon={icon}
+						type="icon"
 						title={
 							label
 								? kbd
@@ -46,13 +46,14 @@ export const ActionsMenu = memo(function ActionsMenu() {
 	}
 
 	return (
-		<Popover id="actions menu">
+		<Popover id="actions-menu">
 			<PopoverTrigger>
 				<Button
 					className="tlui-menu__trigger"
 					data-testid="main.action-menu"
 					icon="dots-vertical"
 					title={msg('actions-menu.title')}
+					type="icon" // needs to be here because the trigger also passes down type="button"
 					smallIcon
 				/>
 			</PopoverTrigger>
@@ -63,7 +64,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 					dir="ltr"
 					sideOffset={6}
 				>
-					<div className="tlui-actions-menu tlui-button-grid__four">
+					<div className="tlui-actions-menu tlui-buttons__grid">
 						{menuSchema.map(getActionMenuItem)}
 					</div>
 				</PopoverPrimitive.Content>

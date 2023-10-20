@@ -188,6 +188,7 @@ export const Toolbar = memo(function Toolbar() {
 												<Button
 													className="tlui-toolbar__tools__button tlui-toolbar__overflow"
 													icon="chevron-up"
+													type="tool"
 													data-testid="tools.more"
 													title={msg('tool-panel.more')}
 												/>
@@ -225,6 +226,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 				return (
 					<M.Item
 						key={id}
+						type="icon"
 						className="tlui-button-grid__button"
 						data-testid={`tools.more.${id}`}
 						data-tool={id}
@@ -258,6 +260,7 @@ function ToolbarButton({
 			aria-label={item.label}
 			title={title}
 			icon={item.icon}
+			type="tool"
 			data-state={isSelected ? 'selected' : undefined}
 			onClick={() => item.onSelect('toolbar')}
 			onTouchStart={(e) => {

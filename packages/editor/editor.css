@@ -98,8 +98,10 @@
 	--color-brush-fill: rgba(144, 144, 144, 0.102);
 	--color-brush-stroke: rgba(144, 144, 144, 0.251);
 	--color-grid: rgb(109, 109, 109);
-	--color-low: rgb(237, 240, 242);
+	--color-low: hsl(204, 16%, 94%);
+	--color-low-border: hsl(204, 16%, 92%);
 	--color-culled: rgb(235, 238, 240);
+	--color-muted-none: rgba(0, 0, 0, 0);
 	--color-muted-0: rgba(0, 0, 0, 0.02);
 	--color-muted-1: rgba(0, 0, 0, 0.1);
 	--color-muted-2: rgba(0, 0, 0, 0.042);
@@ -139,7 +141,9 @@
 	--color-brush-stroke: rgba(180, 180, 180, 0.25);
 	--color-grid: #909090;
 	--color-low: #2c3136;
+	--color-low-border: hsl(210, 10%, 21%);
 	--color-culled: rgb(47, 52, 57);
+	--color-muted-none: rgba(255, 255, 255, 0);
 	--color-muted-0: rgba(255, 255, 255, 0.02);
 	--color-muted-1: rgba(255, 255, 255, 0.1);
 	--color-muted-2: rgba(255, 255, 255, 0.05);
