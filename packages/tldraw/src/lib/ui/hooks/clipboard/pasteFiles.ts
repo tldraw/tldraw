@@ -5,7 +5,7 @@ import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
  *
  * @param editor - The editor instance.
  * @param urls - The file urls.
- * @param point - (optional) The point at which to paste the file.
+ * @param point - The point at which to paste the file.
  * @internal
  */
 export async function pasteFiles(
