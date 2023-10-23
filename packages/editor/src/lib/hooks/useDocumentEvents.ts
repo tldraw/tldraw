@@ -23,7 +23,11 @@ export function useDocumentEvents() {
 			const media = matchMedia(mqString)
 			// Safari only started supporting `addEventListener('change',...) in version 14
 			// https://developer.mozilla.org/en-US/docs/Web/API/MediaQueryList/change_event
-			const safariCb = (_ev: any) => updatePixelRatio
+			const safariCb = (ev: any) => {
+				if (ev.type === 'change') {
+					updatePixelRatio()
+				}
+			}
 			if (media.addEventListener) {
 				media.addEventListener('change', updatePixelRatio)
 			} else if (media.addListener) {
