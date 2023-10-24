@@ -5,7 +5,7 @@ import { Editor, TLContent, VecLike } from '@tldraw/editor'
  *
  * @param editor - The editor instance.
  * @param clipboard - The clipboard model.
- * @param point - (optional) The point at which to paste the text.
+ * @param point - The point at which to paste the text.
  * @internal
  */
 export function pasteTldrawContent(editor: Editor, clipboard: TLContent, point?: VecLike) {

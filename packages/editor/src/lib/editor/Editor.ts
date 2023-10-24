@@ -164,15 +164,15 @@ export interface TLEditorOptions {
 	 */
 	getContainer: () => HTMLElement
 	/**
-	 * (optional) A user defined externally to replace the default user.
+	 * A user defined externally to replace the default user.
 	 */
 	user?: TLUser
 	/**
-	 * (optional) The editor's initial active tool (or other state node id).
+	 * The editor's initial active tool (or other state node id).
 	 */
 	initialState?: string
 	/**
-	 * (optional) Whether to infer dark mode from the user's system preferences. Defaults to false.
+	 * Whether to infer dark mode from the user's system preferences. Defaults to false.
 	 */
 	inferDarkMode?: boolean
 }
@@ -817,8 +817,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param markId - The mark's id, usually the reason for adding the mark.
-	 * @param onUndo - (optional) Whether to stop at the mark when undoing.
-	 * @param onRedo - (optional) Whether to stop at the mark when redoing.
+	 * @param onUndo - Whether to stop at the mark when undoing.
+	 * @param onRedo - Whether to stop at the mark when redoing.
 	 *
 	 * @public
 	 */
@@ -1160,7 +1160,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Update the instance's state.
 	 *
 	 * @param partial - A partial object to update the instance state with.
-	 * @param historyOptions - (optional) The history options for the change.
+	 * @param historyOptions - The history options for the change.
 	 *
 	 * @public
 	 */
@@ -1341,7 +1341,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partial - The partial of the page state object containing the changes.
-	 * @param historyOptions - (optional) The history options for the change.
+	 * @param historyOptions - The history options for the change.
 	 *
 	 * @public
 	 */
@@ -2064,7 +2064,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param point - The new camera position.
-	 * @param animation - (optional) Options for an animation.
+	 * @param animation - Options for an animation.
 	 *
 	 * @public
 	 */
@@ -2101,7 +2101,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param point - The point in the current page space to center on.
-	 * @param animation - (optional) The options for an animation.
+	 * @param animation - The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2126,7 +2126,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomToContent({ duration: 200 })
 	 * ```
 	 *
-	 * @param opts - (optional) The options for an animation.
+	 * @param opts - The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2149,7 +2149,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomToFit({ duration: 200 })
 	 * ```
 	 *
-	 * @param animation - (optional) The options for an animation.
+	 * @param animation - The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2174,8 +2174,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.resetZoom(editor.viewportScreenCenter, { duration: 200 })
 	 * ```
 	 *
-	 * @param point - (optional) The screen point to zoom out on. Defaults to the viewport screen center.
-	 * @param animation - (optional) The options for an animation.
+	 * @param point - The screen point to zoom out on. Defaults to the viewport screen center.
+	 * @param animation - The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2202,7 +2202,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })
 	 * ```
 	 *
-	 * @param animation - (optional) The options for an animation.
+	 * @param animation - The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2240,7 +2240,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })
 	 * ```
 	 *
-	 * @param animation - (optional) The options for an animation.
+	 * @param animation - The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2281,7 +2281,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.zoomToSelection()
 	 * ```
 	 *
-	 * @param animation - (optional) The options for an animation.
+	 * @param animation - The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2360,7 +2360,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param bounds - The bounding box.
 	 * @param targetZoom - The desired zoom level. Defaults to 0.1.
-	 * @param animation - (optional) The options for an animation.
+	 * @param animation - The options for an animation.
 	 *
 	 * @public
 	 */
@@ -2406,7 +2406,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param offset - The offset in the current page space.
-	 * @param animation - (optional) The animation options.
+	 * @param animation - The animation options.
 	 */
 	pan(offset: VecLike, animation?: TLAnimationOptions): this {
 		if (!this.instanceState.canMoveCamera) return this
@@ -2659,7 +2659,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * editor.updateViewportScreenBounds(true)
 	 * ```
 	 *
-	 * @param center - (optional) Whether to preserve the viewport page center as the viewport changes.
+	 * @param center - Whether to preserve the viewport page center as the viewport changes.
 	 *
 	 * @public
 	 */
@@ -3269,7 +3269,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param page - The page (or page id) to set as the current page.
-	 * @param historyOptions - (optional) The history options for the change.
+	 * @param historyOptions - The history options for the change.
 	 *
 	 * @public
 	 */
@@ -3344,7 +3344,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partial - The partial of the shape to update.
-	 * @param historyOptions - (optional) The history options for the change.
+	 * @param historyOptions - The history options for the change.
 	 *
 	 * @public
 	 */
@@ -4732,7 +4732,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param shapes - The shapes (or shape ids) of the shapes to reparent.
 	 * @param parentId - The id of the new parent shape.
-	 * @param insertIndex - (optional) The index to insert the children.
+	 * @param insertIndex - The index to insert the children.
 	 *
 	 * @public
 	 */
@@ -5046,7 +5046,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param shapes - The shapes (or shape ids) to move.
 	 * @param direction - The direction in which to move the shapes.
-	 * @param historyOptions - (optional) The history options for the change.
+	 * @param historyOptions - The history options for the change.
 	 */
 	nudgeShapes(
 		shapes: TLShapeId[] | TLShape[],
@@ -5108,7 +5108,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param shapes - The shapes (or shape ids) to duplicate.
-	 * @param offset - (optional) The offset (in pixels) to apply to the duplicated shapes.
+	 * @param offset - The offset (in pixels) to apply to the duplicated shapes.
 	 *
 	 * @public
 	 */
@@ -6653,7 +6653,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partial - The shape partial to update.
-	 * @param options - (optional) The animation's options.
+	 * @param options - The animation's options.
 	 *
 	 * @public
 	 */
@@ -6674,7 +6674,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partials - The shape partials to update.
-	 * @param options - (optional) The animation's options.
+	 * @param options - The animation's options.
 	 *
 	 * @public
 	 */
@@ -6772,7 +6772,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Create a group containing the provided shapes.
 	 *
 	 * @param shapes - The shapes (or shape ids) to group. Defaults to the selected shapes.
-	 * @param groupId - (optional) The id of the group to create.
+	 * @param groupId - The id of the group to create.
 	 *
 	 * @public
 	 */
@@ -6905,7 +6905,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partial - The shape partial to update.
-	 * @param historyOptions - (optional) The history options for the change.
+	 * @param historyOptions - The history options for the change.
 	 *
 	 * @public
 	 */
@@ -6926,7 +6926,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * ```
 	 *
 	 * @param partials - The shape partials to update.
-	 * @param historyOptions - (optional) The history options for the change.
+	 * @param historyOptions - The history options for the change.
 	 *
 	 * @public
 	 */
@@ -7369,7 +7369,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param style - The style to set.
 	 * @param value - The value to set.
-	 * @param historyOptions - (optional) The history options for the change.
+	 * @param historyOptions - The history options for the change.
 	 *
 	 * @public
 	 */
@@ -7401,7 +7401,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @param style - The style to set.
 	 * @param value - The value to set.
-	 * @param historyOptions - (optional) The history options for the change.
+	 * @param historyOptions - The history options for the change.
 	 *
 	 * @public
 	 */
