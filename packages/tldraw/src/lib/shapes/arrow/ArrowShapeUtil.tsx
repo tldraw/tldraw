@@ -201,6 +201,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override onHandleChange: TLOnHandleChangeHandler<TLArrowShape> = (
+		initial,
 		shape,
 		{ handle, isPrecise }
 	) => {

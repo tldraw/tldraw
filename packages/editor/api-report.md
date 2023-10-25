@@ -2294,7 +2294,7 @@ export type TLOnDragHandler<T extends TLShape, R = void> = (shape: T, shapes: TL
 export type TLOnEditEndHandler<T extends TLShape> = (shape: T) => void;
 
 // @public (undocumented)
-export type TLOnHandleChangeHandler<T extends TLShape> = (shape: T, info: {
+export type TLOnHandleChangeHandler<T extends TLShape> = (initial: T | undefined, shape: T, info: {
     handle: TLHandle;
     isPrecise: boolean;
 }) => TLShapePartial<T> | void;

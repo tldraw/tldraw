@@ -214,9 +214,9 @@ export class DraggingHandle extends StateNode {
 			inputs: { currentPagePoint, shiftKey, ctrlKey, altKey, pointerVelocity },
 		} = editor
 
+		const initial = this.info.shape
 		const shape = editor.getShape(shapeId)
 		if (!shape) return
-
 		const util = editor.getShapeUtil(shape)
 
 		let point = currentPagePoint
@@ -266,7 +266,7 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		const changes = util.onHandleChange?.(shape, {
+		const changes = util.onHandleChange?.(initial, shape, {
 			handle: {
 				...initialHandle,
 				x: point.x,
