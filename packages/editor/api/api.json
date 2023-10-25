@@ -31203,7 +31203,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!ShapeUtil#onHandleChange:member",
-              "docComment": "/**\n * A callback called when a shape's handle changes.\n *\n * @param shape - The shape.\n *\n * @param info - An object containing the handle and whether the handle is 'precise' or not.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
+              "docComment": "/**\n * A callback called when a shape's handle changes.\n *\n * @param initial - The shape at the start of the interaction.\n *\n * @param current - The current shape.\n *\n * @param info - An object containing the handle and whether the handle is 'precise' or not.\n *\n * @returns A change to apply to the shape, or void.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -38557,7 +38557,7 @@
             },
             {
               "kind": "Content",
-              "text": "(shape: T, info: {\n    handle: "
+              "text": "(initial: T | undefined, shape: T, info: {\n    handle: "
             },
             {
               "kind": "Reference",
