@@ -73,7 +73,7 @@ export class WebViewMessageHandler {
 			}
 			case 'vscode:bookmark/request': {
 				const url = e.data.url
-				fetch('https://www.tldraw.com/api/bookmark', {
+				fetch('https://bookmark-extractor.tldraw.com/api/bookmark', {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
