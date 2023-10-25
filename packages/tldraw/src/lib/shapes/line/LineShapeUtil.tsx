@@ -129,7 +129,7 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 		}
 	}
 
-	override onHandleChange: TLOnHandleChangeHandler<TLLineShape> = (initial, shape, { handle }) => {
+	override onHandleChange: TLOnHandleChangeHandler<TLLineShape> = (shape, { handle }) => {
 		const next = deepCopy(shape)
 
 		switch (handle.id) {

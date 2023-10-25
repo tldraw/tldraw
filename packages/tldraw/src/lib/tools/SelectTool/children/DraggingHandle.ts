@@ -266,13 +266,14 @@ export class DraggingHandle extends StateNode {
 			}
 		}
 
-		const changes = util.onHandleChange?.(initial, shape, {
+		const changes = util.onHandleChange?.(shape, {
 			handle: {
 				...initialHandle,
 				x: point.x,
 				y: point.y,
 			},
 			isPrecise: this.isPrecise || altKey,
+			initial: initial,
 		})
 
 		const next: TLShapePartial<any> = { ...shape, ...changes }

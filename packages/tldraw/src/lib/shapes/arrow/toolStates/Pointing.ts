@@ -104,9 +104,10 @@ export class Pointing extends StateNode {
 		const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 		const initial = this.shape
 		const startHandle = handles.find((h) => h.id === 'start')!
-		const change = util.onHandleChange?.(initial, shape, {
+		const change = util.onHandleChange?.(shape, {
 			handle: { ...startHandle, x: 0, y: 0 },
 			isPrecise: true,
+			initial: initial,
 		})
 
 		if (change) {
@@ -140,9 +141,10 @@ export class Pointing extends StateNode {
 			const initial = this.shape
 			const point = this.editor.getPointInShapeSpace(shape, this.editor.inputs.currentPagePoint)
 			const endHandle = handles.find((h) => h.id === 'end')!
-			const change = util.onHandleChange?.(initial, shapeWithOutEndOffset, {
+			const change = util.onHandleChange?.(shapeWithOutEndOffset, {
 				handle: { ...endHandle, x: point.x, y: point.y },
 				isPrecise: false, // sure about that?
+				initial: initial,
 			})
 
 			if (change) {
@@ -159,9 +161,10 @@ export class Pointing extends StateNode {
 			const util = this.editor.getShapeUtil<TLArrowShape>('arrow')
 			const initial = this.shape
 			const startHandle = handles.find((h) => h.id === 'start')!
-			const change = util.onHandleChange?.(initial, shapeWithOutEndOffset, {
+			const change = util.onHandleChange?.(shapeWithOutEndOffset, {
 				handle: { ...startHandle, x: 0, y: 0 },
 				isPrecise: this.didTimeout, // sure about that?
+				initial: initial,
 			})
 
 			if (change) {
