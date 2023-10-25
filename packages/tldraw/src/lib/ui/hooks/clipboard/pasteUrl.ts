@@ -18,7 +18,7 @@ export async function pasteUrl(
 ) {
 	// Lets see if its an image and we have CORs
 	try {
-		const resp = await fetch(url)
+		const resp = await fetch(url, { method: 'OPTIONS' })
 		if (resp.headers.get('content-type')?.match(/^image\//)) {
 			editor.mark('paste')
 			pasteFiles(editor, [url])
