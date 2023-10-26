@@ -83,7 +83,6 @@ export class Pointing extends StateNode {
 					props: {
 						text: '',
 						autoSize: true,
-						align: 'start',
 					},
 				},
 			])
