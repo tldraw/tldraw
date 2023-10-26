@@ -15,6 +15,7 @@ import { ListLink } from './components/ListLink'
 import BasicExample from './BasicExample'
 import APIExample from './examples/APIExample'
 import AssetPropsExample from './examples/AssetOptionsExample'
+import AuthExample from './examples/AuthExample/AuthExample'
 import CanvasEventsExample from './examples/CanvasEventsExample'
 import CustomComponentsExample from './examples/CustomComponentsExample'
 import CustomConfigExample from './examples/CustomConfigExample/CustomConfigExample'
@@ -172,6 +173,11 @@ export const allExamples: Example[] = [
 		title: 'External content sources',
 		path: 'external-content-sources',
 		element: <ExternalContentSourcesExample />,
+	},
+	{
+		title: 'Auth',
+		path: 'auth',
+		element: <AuthExample />,
 	},
 	// not listed
 	{
