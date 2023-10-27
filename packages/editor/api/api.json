@@ -6827,7 +6827,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#animateShape:member(1)",
-              "docComment": "/**\n * Animate a shape.\n *\n * @param partial - The shape partial to update.\n *\n * @param options - (optional) The animation's options.\n *\n * @example\n * ```ts\n * editor.animateShape({ id: 'box1', type: 'box', x: 100, y: 100 })\n * editor.animateShape({ id: 'box1', type: 'box', x: 100, y: 100 }, { duration: 100, ease: t => t*t })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Animate a shape.\n *\n * @param partial - The shape partial to update.\n *\n * @param options - The animation's options.\n *\n * @example\n * ```ts\n * editor.animateShape({ id: 'box1', type: 'box', x: 100, y: 100 })\n * editor.animateShape({ id: 'box1', type: 'box', x: 100, y: 100 }, { duration: 100, ease: t => t*t })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -6901,7 +6901,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#animateShapes:member(1)",
-              "docComment": "/**\n * Animate shapes.\n *\n * @param partials - The shape partials to update.\n *\n * @param options - (optional) The animation's options.\n *\n * @example\n * ```ts\n * editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }])\n * editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }], { duration: 100, ease: t => t*t })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Animate shapes.\n *\n * @param partials - The shape partials to update.\n *\n * @param options - The animation's options.\n *\n * @example\n * ```ts\n * editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }])\n * editor.animateShapes([{ id: 'box1', type: 'box', x: 100, y: 100 }], { duration: 100, ease: t => t*t })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7588,7 +7588,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#centerOnPoint:member(1)",
-              "docComment": "/**\n * Center the camera on a point (in the current page space).\n *\n * @param point - The point in the current page space to center on.\n *\n * @param animation - (optional) The options for an animation.\n *\n * @example\n * ```ts\n * editor.centerOnPoint({ x: 100, y: 100 })\n * editor.centerOnPoint({ x: 100, y: 100 }, { duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Center the camera on a point (in the current page space).\n *\n * @param point - The point in the current page space to center on.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.centerOnPoint({ x: 100, y: 100 })\n * editor.centerOnPoint({ x: 100, y: 100 }, { duration: 200 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9068,7 +9068,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#duplicateShapes:member(1)",
-              "docComment": "/**\n * Duplicate shapes.\n *\n * @param shapes - The shapes (or shape ids) to duplicate.\n *\n * @param offset - (optional) The offset (in pixels) to apply to the duplicated shapes.\n *\n * @example\n * ```ts\n * editor.duplicateShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.duplicateShapes(editor.selectedShapes, { x: 8, y: 8 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Duplicate shapes.\n *\n * @param shapes - The shapes (or shape ids) to duplicate.\n *\n * @param offset - The offset (in pixels) to apply to the duplicated shapes.\n *\n * @example\n * ```ts\n * editor.duplicateShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.duplicateShapes(editor.selectedShapes, { x: 8, y: 8 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -12360,7 +12360,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#groupShapes:member(1)",
-              "docComment": "/**\n * Create a group containing the provided shapes.\n *\n * @param shapes - The shapes (or shape ids) to group. Defaults to the selected shapes.\n *\n * @param groupId - (optional) The id of the group to create.\n *\n * @public\n */\n",
+              "docComment": "/**\n * Create a group containing the provided shapes.\n *\n * @param shapes - The shapes (or shape ids) to group. Defaults to the selected shapes.\n *\n * @param groupId - The id of the group to create.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13511,7 +13511,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#mark:member(1)",
-              "docComment": "/**\n * Create a new \"mark\", or stopping point, in the undo redo history. Creating a mark will clear any redos.\n *\n * @param markId - The mark's id, usually the reason for adding the mark.\n *\n * @param onUndo - (optional) Whether to stop at the mark when undoing.\n *\n * @param onRedo - (optional) Whether to stop at the mark when redoing.\n *\n * @example\n * ```ts\n * editor.mark()\n * editor.mark('flip shapes')\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Create a new \"mark\", or stopping point, in the undo redo history. Creating a mark will clear any redos.\n *\n * @param markId - The mark's id, usually the reason for adding the mark.\n *\n * @param onUndo - Whether to stop at the mark when undoing.\n *\n * @param onRedo - Whether to stop at the mark when redoing.\n *\n * @example\n * ```ts\n * editor.mark()\n * editor.mark('flip shapes')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13670,7 +13670,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#nudgeShapes:member(1)",
-              "docComment": "/**\n * Move shapes by a delta.\n *\n * @param shapes - The shapes (or shape ids) to move.\n *\n * @param direction - The direction in which to move the shapes.\n *\n * @param historyOptions - (optional) The history options for the change.\n *\n * @example\n * ```ts\n * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.nudgeShapes(editor.selectedShapes, { x: 8, y: 8 }, { squashing: true })\n * ```\n *\n */\n",
+              "docComment": "/**\n * Move shapes by a delta.\n *\n * @param shapes - The shapes (or shape ids) to move.\n *\n * @param direction - The direction in which to move the shapes.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.nudgeShapes(['box1', 'box2'], { x: 8, y: 8 })\n * editor.nudgeShapes(editor.selectedShapes, { x: 8, y: 8 }, { squashing: true })\n * ```\n *\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14028,7 +14028,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#pan:member(1)",
-              "docComment": "/**\n * Pan the camera.\n *\n * @param offset - The offset in the current page space.\n *\n * @param animation - (optional) The animation options.\n *\n * @example\n * ```ts\n * editor.pan({ x: 100, y: 100 })\n * editor.pan({ x: 100, y: 100 }, { duration: 1000 })\n * ```\n *\n */\n",
+              "docComment": "/**\n * Pan the camera.\n *\n * @param offset - The offset in the current page space.\n *\n * @param animation - The animation options.\n *\n * @example\n * ```ts\n * editor.pan({ x: 100, y: 100 })\n * editor.pan({ x: 100, y: 100 }, { duration: 1000 })\n * ```\n *\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14846,7 +14846,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#reparentShapes:member(1)",
-              "docComment": "/**\n * Reparent shapes to a new parent. This operation preserves the shape's current page positions / rotations.\n *\n * @param shapes - The shapes (or shape ids) of the shapes to reparent.\n *\n * @param parentId - The id of the new parent shape.\n *\n * @param insertIndex - (optional) The index to insert the children.\n *\n * @example\n * ```ts\n * editor.reparentShapes([box1, box2], 'frame1')\n * editor.reparentShapes([box1.id, box2.id], 'frame1')\n * editor.reparentShapes([box1.id, box2.id], 'frame1', 4)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Reparent shapes to a new parent. This operation preserves the shape's current page positions / rotations.\n *\n * @param shapes - The shapes (or shape ids) of the shapes to reparent.\n *\n * @param parentId - The id of the new parent shape.\n *\n * @param insertIndex - The index to insert the children.\n *\n * @example\n * ```ts\n * editor.reparentShapes([box1, box2], 'frame1')\n * editor.reparentShapes([box1.id, box2.id], 'frame1')\n * editor.reparentShapes([box1.id, box2.id], 'frame1', 4)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14941,7 +14941,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#resetZoom:member(1)",
-              "docComment": "/**\n * Set the zoom back to 100%.\n *\n * @param point - (optional) The screen point to zoom out on. Defaults to the viewport screen center.\n *\n * @param animation - (optional) The options for an animation.\n *\n * @example\n * ```ts\n * editor.resetZoom()\n * editor.resetZoom(editor.viewportScreenCenter)\n * editor.resetZoom(editor.viewportScreenCenter, { duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Set the zoom back to 100%.\n *\n * @param point - The screen point to zoom out on. Defaults to the viewport screen center.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.resetZoom()\n * editor.resetZoom(editor.viewportScreenCenter)\n * editor.resetZoom(editor.viewportScreenCenter, { duration: 200 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15675,7 +15675,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#setCamera:member(1)",
-              "docComment": "/**\n * Set the current camera.\n *\n * @param point - The new camera position.\n *\n * @param animation - (optional) Options for an animation.\n *\n * @example\n * ```ts\n * editor.setCamera({ x: 0, y: 0})\n * editor.setCamera({ x: 0, y: 0, z: 1.5})\n * editor.setCamera({ x: 0, y: 0, z: 1.5}, { duration: 1000, easing: (t) => t * t })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Set the current camera.\n *\n * @param point - The new camera position.\n *\n * @param animation - Options for an animation.\n *\n * @example\n * ```ts\n * editor.setCamera({ x: 0, y: 0})\n * editor.setCamera({ x: 0, y: 0, z: 1.5})\n * editor.setCamera({ x: 0, y: 0, z: 1.5}, { duration: 1000, easing: (t) => t * t })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15803,7 +15803,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#setCurrentPage:member(1)",
-              "docComment": "/**\n * Set the current page.\n *\n * @param page - The page (or page id) to set as the current page.\n *\n * @param historyOptions - (optional) The history options for the change.\n *\n * @example\n * ```ts\n * editor.setCurrentPage('page1')\n * editor.setCurrentPage(myPage1)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Set the current page.\n *\n * @param page - The page (or page id) to set as the current page.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.setCurrentPage('page1')\n * editor.setCurrentPage(myPage1)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -16509,7 +16509,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#setStyleForNextShapes:member(1)",
-              "docComment": "/**\n * Set the value of a {@link @tldraw/tlschema#StyleProp} for the selected shapes.\n *\n * @param style - The style to set.\n *\n * @param value - The value to set.\n *\n * @param historyOptions - (optional) The history options for the change.\n *\n * @example\n * ```ts\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { ephemeral: true })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Set the value of a {@link @tldraw/tlschema#StyleProp} for the selected shapes.\n *\n * @param style - The style to set.\n *\n * @param value - The value to set.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { ephemeral: true })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -16608,7 +16608,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#setStyleForSelectedShapes:member(1)",
-              "docComment": "/**\n * Set the value of a {@link @tldraw/tlschema#StyleProp}. This change will be applied to the currently selected shapes.\n *\n * @param style - The style to set.\n *\n * @param value - The value to set.\n *\n * @param historyOptions - (optional) The history options for the change.\n *\n * @example\n * ```ts\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { ephemeral: true })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Set the value of a {@link @tldraw/tlschema#StyleProp}. This change will be applied to the currently selected shapes.\n *\n * @param style - The style to set.\n *\n * @param value - The value to set.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')\n * editor.setStyleForSelectedShapes(DefaultColorStyle, 'red', { ephemeral: true })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -17588,7 +17588,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#updateCurrentPageState:member(1)",
-              "docComment": "/**\n * Update this instance's page state.\n *\n * @param partial - The partial of the page state object containing the changes.\n *\n * @param historyOptions - (optional) The history options for the change.\n *\n * @example\n * ```ts\n * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' })\n * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' }, { ephemeral: true })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Update this instance's page state.\n *\n * @param partial - The partial of the page state object containing the changes.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' })\n * editor.updateInstancePageState({ id: 'page1', editingShapeId: 'shape:123' }, { ephemeral: true })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -17738,7 +17738,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#updateInstanceState:member(1)",
-              "docComment": "/**\n * Update the instance's state.\n *\n * @param partial - A partial object to update the instance state with.\n *\n * @param historyOptions - (optional) The history options for the change.\n *\n * @public\n */\n",
+              "docComment": "/**\n * Update the instance's state.\n *\n * @param partial - A partial object to update the instance state with.\n *\n * @param historyOptions - The history options for the change.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -17826,7 +17826,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#updatePage:member(1)",
-              "docComment": "/**\n * Update a page.\n *\n * @param partial - The partial of the shape to update.\n *\n * @param historyOptions - (optional) The history options for the change.\n *\n * @example\n * ```ts\n * editor.updatePage({ id: 'page2', name: 'Page 2' })\n * editor.updatePage({ id: 'page2', name: 'Page 2' }, { squashing: true })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Update a page.\n *\n * @param partial - The partial of the shape to update.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.updatePage({ id: 'page2', name: 'Page 2' })\n * editor.updatePage({ id: 'page2', name: 'Page 2' }, { squashing: true })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -17905,7 +17905,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#updateShape:member(1)",
-              "docComment": "/**\n * Update a shape using a partial of the shape.\n *\n * @param partial - The shape partial to update.\n *\n * @param historyOptions - (optional) The history options for the change.\n *\n * @example\n * ```ts\n * editor.updateShape({ id: 'box1', type: 'geo', props: { w: 100, h: 100 } })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Update a shape using a partial of the shape.\n *\n * @param partial - The shape partial to update.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.updateShape({ id: 'box1', type: 'geo', props: { w: 100, h: 100 } })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18001,7 +18001,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#updateShapes:member(1)",
-              "docComment": "/**\n * Update shapes using partials of each shape.\n *\n * @param partials - The shape partials to update.\n *\n * @param historyOptions - (optional) The history options for the change.\n *\n * @example\n * ```ts\n * editor.updateShapes([{ id: 'box1', type: 'geo', props: { w: 100, h: 100 } }])\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Update shapes using partials of each shape.\n *\n * @param partials - The shape partials to update.\n *\n * @param historyOptions - The history options for the change.\n *\n * @example\n * ```ts\n * editor.updateShapes([{ id: 'box1', type: 'geo', props: { w: 100, h: 100 } }])\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18097,7 +18097,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#updateViewportScreenBounds:member(1)",
-              "docComment": "/**\n * Update the viewport. The viewport will measure the size and screen position of its container element. This should be done whenever the container's position on the screen changes.\n *\n * @param center - (optional) Whether to preserve the viewport page center as the viewport changes.\n *\n * @example\n * ```ts\n * editor.updateViewportScreenBounds()\n * editor.updateViewportScreenBounds(true)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Update the viewport. The viewport will measure the size and screen position of its container element. This should be done whenever the container's position on the screen changes.\n *\n * @param center - Whether to preserve the viewport page center as the viewport changes.\n *\n * @example\n * ```ts\n * editor.updateViewportScreenBounds()\n * editor.updateViewportScreenBounds(true)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18392,7 +18392,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomIn:member(1)",
-              "docComment": "/**\n * Zoom the camera in.\n *\n * @param animation - (optional) The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomIn()\n * editor.zoomIn(editor.viewportScreenCenter, { duration: 120 })\n * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Zoom the camera in.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomIn()\n * editor.zoomIn(editor.viewportScreenCenter, { duration: 120 })\n * editor.zoomIn(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18488,7 +18488,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomOut:member(1)",
-              "docComment": "/**\n * Zoom the camera out.\n *\n * @param animation - (optional) The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomOut()\n * editor.zoomOut(editor.viewportScreenCenter, { duration: 120 })\n * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Zoom the camera out.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomOut()\n * editor.zoomOut(editor.viewportScreenCenter, { duration: 120 })\n * editor.zoomOut(editor.inputs.currentScreenPoint, { duration: 120 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18554,7 +18554,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToBounds:member(1)",
-              "docComment": "/**\n * Zoom the camera to fit a bounding box (in the current page space).\n *\n * @param bounds - The bounding box.\n *\n * @param targetZoom - The desired zoom level. Defaults to 0.1.\n *\n * @param animation - (optional) The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds, 1)\n * editor.zoomToBounds(myBounds, 1, { duration: 100 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Zoom the camera to fit a bounding box (in the current page space).\n *\n * @param bounds - The bounding box.\n *\n * @param targetZoom - The desired zoom level. Defaults to 0.1.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToBounds(myBounds)\n * editor.zoomToBounds(myBounds, 1)\n * editor.zoomToBounds(myBounds, 1, { duration: 100 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18636,7 +18636,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToContent:member(1)",
-              "docComment": "/**\n * Move the camera to the nearest content.\n *\n * @param opts - (optional) The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToContent()\n * editor.zoomToContent({ duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Move the camera to the nearest content.\n *\n * @param opts - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToContent()\n * editor.zoomToContent({ duration: 200 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18667,7 +18667,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToFit:member(1)",
-              "docComment": "/**\n * Zoom the camera to fit the current page's content in the viewport.\n *\n * @param animation - (optional) The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToFit()\n * editor.zoomToFit({ duration: 200 })\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Zoom the camera to fit the current page's content in the viewport.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToFit()\n * editor.zoomToFit({ duration: 200 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18716,7 +18716,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#zoomToSelection:member(1)",
-              "docComment": "/**\n * Zoom the camera to fit the current selection in the viewport.\n *\n * @param animation - (optional) The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToSelection()\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Zoom the camera to fit the current selection in the viewport.\n *\n * @param animation - The options for an animation.\n *\n * @example\n * ```ts\n * editor.zoomToSelection()\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -21388,7 +21388,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/editor!getIndices:function(1)",
-          "docComment": "/**\n * Get n number of indices, starting at an index.\n *\n * @param n - The number of indices to get.\n *\n * @param start - (optional) The index to start at.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Get n number of indices, starting at an index.\n *\n * @param n - The number of indices to get.\n *\n * @param start - The index to start at.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -21571,7 +21571,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/editor!getIndicesBetween:function(1)",
-          "docComment": "/**\n * Get a number of indices between two indices.\n *\n * @param below - (optional) The index below.\n *\n * @param above - (optional) The index above.\n *\n * @param n - The number of indices to get.\n *\n * @public\n */\n",
+          "docComment": "/**\n * Get a number of indices between two indices.\n *\n * @param below - The index below.\n *\n * @param above - The index above.\n *\n * @param n - The number of indices to get.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -36204,7 +36204,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEditorOptions#inferDarkMode:member",
-              "docComment": "/**\n * (optional) Whether to infer dark mode from the user's system preferences. Defaults to false.\n */\n",
+              "docComment": "/**\n * Whether to infer dark mode from the user's system preferences. Defaults to false.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -36231,7 +36231,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEditorOptions#initialState:member",
-              "docComment": "/**\n * (optional) The editor's initial active tool (or other state node id).\n */\n",
+              "docComment": "/**\n * The editor's initial active tool (or other state node id).\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -36367,7 +36367,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "@tldraw/editor!TLEditorOptions#user:member",
-              "docComment": "/**\n * (optional) A user defined externally to replace the default user.\n */\n",
+              "docComment": "/**\n * A user defined externally to replace the default user.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
