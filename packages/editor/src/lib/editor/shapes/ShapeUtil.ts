@@ -443,7 +443,7 @@ export abstract class ShapeUtil<Shape extends TLUnknownShape = TLUnknownShape> {
 	/**
 	 * A callback called when a shape's handle changes.
 	 *
-	 * @param shape - The shape.
+	 * @param shape - The current shape.
 	 * @param info - An object containing the handle and whether the handle is 'precise' or not.
 	 * @returns A change to apply to the shape, or void.
 	 * @public
@@ -592,6 +592,7 @@ export type TLOnHandleChangeHandler<T extends TLShape> = (
 	info: {
 		handle: TLHandle
 		isPrecise: boolean
+		initial?: T | undefined
 	}
 ) => TLShapePartial<T> | void
 

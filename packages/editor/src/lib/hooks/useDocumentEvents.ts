@@ -21,9 +21,24 @@ export function useDocumentEvents() {
 			}
 			const mqString = `(resolution: ${window.devicePixelRatio}dppx)`
 			const media = matchMedia(mqString)
-			media.addEventListener('change', updatePixelRatio)
+			// Safari only started supporting `addEventListener('change',...) in version 14
+			// https://developer.mozilla.org/en-US/docs/Web/API/MediaQueryList/change_event
+			const safariCb = (ev: any) => {
+				if (ev.type === 'change') {
+					updatePixelRatio()
+				}
+			}
+			if (media.addEventListener) {
+				media.addEventListener('change', updatePixelRatio)
+			} else if (media.addListener) {
+				media.addListener(safariCb)
+			}
 			remove = () => {
-				media.removeEventListener('change', updatePixelRatio)
+				if (media.removeEventListener) {
+					media.removeEventListener('change', updatePixelRatio)
+				} else if (media.removeListener) {
+					media.removeListener(safariCb)
+				}
 			}
 			editor.updateInstanceState({ devicePixelRatio: window.devicePixelRatio })
 		}
