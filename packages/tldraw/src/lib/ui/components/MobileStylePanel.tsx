@@ -43,7 +43,7 @@ export function MobileStylePanel() {
 		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
 			<PopoverTrigger disabled={disableStylePanel}>
 				<Button
-					className="tlui-toolbar__tools__button tlui-toolbar__styles__button"
+					type="tool"
 					data-testid="mobile.styles"
 					style={{
 						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,

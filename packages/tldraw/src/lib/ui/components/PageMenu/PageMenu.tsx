@@ -28,7 +28,7 @@ export const PageMenu = function PageMenu() {
 
 	const [isOpen, onOpenChange] = useMenuIsOpen('page-menu', handleOpenChange)
 
-	const ITEM_HEIGHT = breakpoint < 5 ? 36 : 40
+	const ITEM_HEIGHT = 36
 
 	const rSortableContainer = useRef<HTMLDivElement>(null)
 
@@ -251,12 +251,13 @@ export const PageMenu = function PageMenu() {
 	}, [editor, msg, isReadonlyMode])
 
 	return (
-		<Popover id="page menu" onOpenChange={onOpenChange} open={isOpen}>
+		<Popover id="pages" onOpenChange={onOpenChange} open={isOpen}>
 			<PopoverTrigger>
 				<Button
 					className="tlui-page-menu__trigger tlui-menu__trigger"
 					data-testid="main.page-menu"
 					icon="chevron-down"
+					type="menu"
 					title={currentPage.name}
 				>
 					<div className="tlui-page-menu__name">{currentPage.name}</div>
@@ -267,14 +268,16 @@ export const PageMenu = function PageMenu() {
 					<div className="tlui-page-menu__header">
 						<div className="tlui-page-menu__header__title">{msg('page-menu.title')}</div>
 						{!isReadonlyMode && (
-							<>
+							<div className="tlui-buttons__horizontal">
 								<Button
+									type="icon"
 									data-testid="page-menu.edit"
 									title={msg(isEditing ? 'page-menu.edit-done' : 'page-menu.edit-start')}
 									icon={isEditing ? 'check' : 'edit'}
 									onClick={toggleEditing}
 								/>
 								<Button
+									type="icon"
 									data-testid="page-menu.create"
 									icon="plus"
 									title={msg(
@@ -285,7 +288,7 @@ export const PageMenu = function PageMenu() {
 									disabled={maxPageCountReached}
 									onClick={handleCreatePageClick}
 								/>
-							</>
+							</div>
 						)}
 					</div>
 					<div
@@ -310,6 +313,7 @@ export const PageMenu = function PageMenu() {
 									}}
 								>
 									<Button
+										type="icon"
 										tabIndex={-1}
 										className="tlui-page_menu__item__sortable__handle"
 										icon="drag-handle-dots"
@@ -326,6 +330,7 @@ export const PageMenu = function PageMenu() {
 										// to be fighting over scroll position. Nothing
 										// else seems to work!
 										<Button
+											type="icon"
 											className="tlui-page-menu__item__button"
 											onClick={() => {
 												const name = window.prompt('Rename page', page.name)
@@ -363,6 +368,7 @@ export const PageMenu = function PageMenu() {
 									className="tlui-page-menu__item"
 								>
 									<Button
+										type="icon"
 										className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
 										onClick={() => editor.setCurrentPage(page.id)}
 										onDoubleClick={toggleEditing}

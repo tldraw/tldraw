@@ -76,8 +76,14 @@ test.describe('Shape Tools', () => {
 				if (!(await page.getByTestId(`tools.more`).isVisible())) {
 					throw Error(`Tool more is not visible`)
 				}
-
 				await page.getByTestId('tools.more').click()
+
+				if (!(await page.getByTestId(`tools.more.${tool}`).isVisible())) {
+					throw Error(`Tool in more panel is not visible`)
+				}
+				await page.getByTestId(`tools.more.${tool}`).click()
+
+				await page.getByTestId(`tools.more`).click()
 			}
 
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
@@ -106,6 +112,8 @@ test.describe('Shape Tools', () => {
 			// Find and click the button
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
 				await page.getByTestId('tools.more').click()
+				await page.getByTestId(`tools.more.${tool}`).click()
+				await page.getByTestId('tools.more').click()
 			}
 			await page.getByTestId(`tools.${tool}`).click()
 
@@ -124,7 +132,7 @@ test.describe('Shape Tools', () => {
 			expect(await getAllShapeTypes(page)).toEqual([shape])
 
 			// Reset for next time
-			await page.mouse.click(0, 0) // to ensure we're not focused
+			await page.mouse.click(50, 50) // to ensure we're not focused
 			await page.keyboard.press('v') // go to the select tool
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Backspace')
@@ -142,7 +150,10 @@ test.describe('Shape Tools', () => {
 			// Find and click the button
 			if (!(await page.getByTestId(`tools.${tool}`).isVisible())) {
 				await page.getByTestId('tools.more').click()
+				await page.getByTestId(`tools.more.${tool}`).click()
+				await page.getByTestId('tools.more').click()
 			}
+
 			await page.getByTestId(`tools.${tool}`).click()
 
 			// Button should be selected
@@ -163,7 +174,7 @@ test.describe('Shape Tools', () => {
 			expect(await getAllShapeTypes(page)).toEqual([shape])
 
 			// Reset for next time
-			await page.mouse.click(0, 0) // to ensure we're not focused
+			await page.mouse.click(50, 50) // to ensure we're not focused
 			await page.keyboard.press('v')
 			await page.keyboard.press('Control+a')
 			await page.keyboard.press('Backspace')

@@ -14,7 +14,7 @@ import {
 import * as React from 'react'
 import { useDialogs } from '../hooks/useDialogsProvider'
 import { useToasts } from '../hooks/useToastsProvider'
-import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
 import * as Dialog from './primitives/Dialog'
 import * as DropdownMenu from './primitives/DropdownMenu'
@@ -53,7 +53,7 @@ export const DebugPanel = React.memo(function DebugPanel({
 			<ShapeCount />
 			<DropdownMenu.Root id="debug">
 				<DropdownMenu.Trigger>
-					<Button icon="dots-horizontal" title={msg('debug-panel.more')} />
+					<Button type="icon" icon="dots-horizontal" title={msg('debug-panel.more')} />
 				</DropdownMenu.Trigger>
 				<DropdownMenu.Content side="top" align="end" alignOffset={0}>
 					<DebugMenuContent renderDebugMenuItems={renderDebugMenuItems} />
@@ -83,29 +83,60 @@ const DebugMenuContent = track(function DebugMenuContent({
 	const editor = useEditor()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
-
 	const [error, setError] = React.useState<boolean>(false)
 
 	return (
 		<>
 			<DropdownMenu.Group>
 				<DropdownMenu.Item
+					type="menu"
 					onClick={() => {
 						addToast({
 							id: uniqueId(),
 							title: 'Something happened',
 							description: 'Hey, attend to this thing over here. It might be important!',
+							keepOpen: true,
 							// icon?: string
 							// title?: string
 							// description?: string
 							// actions?: TLUiToastAction[]
 						})
+						addToast({
+							id: uniqueId(),
+							title: 'Something happened',
+							description: 'Hey, attend to this thing over here. It might be important!',
+							keepOpen: true,
+							icon: 'twitter',
+							actions: [
+								{
+									label: 'Primary',
+									type: 'primary',
+									onClick: () => {
+										void null
+									},
+								},
+								{
+									label: 'Normal',
+									type: 'normal',
+									onClick: () => {
+										void null
+									},
+								},
+								{
+									label: 'Danger',
+									type: 'danger',
+									onClick: () => {
+										void null
+									},
+								},
+							],
+						})
 					}}
-				>
-					<span>Show toast</span>
-				</DropdownMenu.Item>
+					label={untranslated('Show toast')}
+				/>
 
 				<DropdownMenu.Item
+					type="menu"
 					onClick={() => {
 						addDialog({
 							component: ({ onClose }) => (
@@ -124,13 +155,15 @@ const DebugMenuContent = track(function DebugMenuContent({
 							},
 						})
 					}}
-				>
-					<span>Show dialog</span>
-				</DropdownMenu.Item>
-				<DropdownMenu.Item onClick={() => createNShapes(editor, 100)}>
-					<span>Create 100 shapes</span>
-				</DropdownMenu.Item>
+					label={untranslated('Show dialog')}
+				/>
 				<DropdownMenu.Item
+					type="menu"
+					onClick={() => createNShapes(editor, 100)}
+					label={untranslated('Create 100 shapes')}
+				/>
+				<DropdownMenu.Item
+					type="menu"
 					onClick={() => {
 						function countDescendants({ children }: HTMLElement) {
 							let count = 0
@@ -158,27 +191,25 @@ const DebugMenuContent = track(function DebugMenuContent({
 
 						window.alert(`Shapes ${shapes.length}, DOM nodes:${descendants}`)
 					}}
-				>
-					<span>Count shapes and nodes</span>
-				</DropdownMenu.Item>
-
+					label={untranslated('Count shapes / nodes')}
+				/>
 				{(() => {
 					if (error) throw Error('oh no!')
 				})()}
 				<DropdownMenu.Item
+					type="menu"
 					onClick={() => {
 						setError(true)
 					}}
-				>
-					<span>Throw error</span>
-				</DropdownMenu.Item>
+					label={untranslated('Throw error')}
+				/>
 				<DropdownMenu.Item
+					type="menu"
 					onClick={() => {
 						hardResetEditor()
 					}}
-				>
-					<span>Hard reset</span>
-				</DropdownMenu.Item>
+					label={untranslated('Hard reset')}
+				/>
 			</DropdownMenu.Group>
 			<DropdownMenu.Group>
 				<DebugFlagToggle flag={debugFlags.debugSvg} />
@@ -206,8 +237,14 @@ function Toggle({
 	onChange: (newValue: boolean) => void
 }) {
 	return (
-		<DropdownMenu.CheckboxItem title={label} checked={value} onSelect={() => onChange(!value)}>
-			{label}
+		<DropdownMenu.CheckboxItem
+			title={untranslated(label)}
+			checked={value}
+			onSelect={() => onChange(!value)}
+		>
+			<span className="tlui-button__label" draggable={false}>
+				{label}
+			</span>
 		</DropdownMenu.CheckboxItem>
 	)
 }
@@ -262,14 +299,17 @@ function ExampleDialog({
 			<Dialog.Footer className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
 					<Button
+						type="normal"
 						onClick={() => setDontShowAgain(!dontShowAgain)}
-						iconLeft={dontShowAgain ? 'checkbox-checked' : 'checkbox-empty'}
+						iconLeft={dontShowAgain ? 'check' : 'checkbox-empty'}
 						style={{ marginRight: 'auto' }}
 					>
 						{`Don't show again`}
 					</Button>
 				)}
-				<Button onClick={onCancel}>{cancel}</Button>
+				<Button type="normal" onClick={onCancel}>
+					{cancel}
+				</Button>
 				<Button type="primary" onClick={async () => onContinue()}>
 					{confirm}
 				</Button>

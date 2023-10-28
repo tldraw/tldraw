@@ -22,7 +22,11 @@ export function CloseButton() {
 	return (
 		<div className="tlui-dialog__header__close">
 			<_Dialog.DialogClose data-testid="dialog.close" dir="ltr" asChild>
-				<Button aria-label="Close" onTouchEnd={(e) => (e.target as HTMLButtonElement).click()}>
+				<Button
+					type="icon"
+					aria-label="Close"
+					onTouchEnd={(e) => (e.target as HTMLButtonElement).click()}
+				>
 					<Icon small icon="cross-2" />
 				</Button>
 			</_Dialog.DialogClose>

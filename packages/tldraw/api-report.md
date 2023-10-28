@@ -1024,10 +1024,11 @@ export function parseTldrawJsonFile({ json, schema, }: {
 function RadioItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX.Element;
 
 // @public (undocumented)
-function Root({ id, children, modal, }: {
+function Root({ id, children, modal, debugOpen, }: {
     id: string;
     children: any;
     modal?: boolean;
+    debugOpen?: boolean;
 }): JSX.Element;
 
 // @public (undocumented)
@@ -1309,7 +1310,7 @@ export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElemen
     // (undocumented)
     spinner?: boolean;
     // (undocumented)
-    type?: 'danger' | 'normal' | 'primary';
+    type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
 
 // @public (undocumented)
@@ -1518,7 +1519,7 @@ export interface TLUiToast {
     // (undocumented)
     description?: string;
     // (undocumented)
-    icon?: string;
+    icon?: TLUiIconType;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -1534,7 +1535,7 @@ export interface TLUiToastAction {
     // (undocumented)
     onClick: () => void;
     // (undocumented)
-    type: 'primary' | 'secondary' | 'warn';
+    type: 'danger' | 'normal' | 'primary';
 }
 
 // @public (undocumented)

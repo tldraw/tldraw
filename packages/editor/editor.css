@@ -18,12 +18,15 @@
 	/* Radius */
 	--radius-0: 2px;
 	--radius-1: 4px;
-	--radius-2: 7px;
+	--radius-2: 6px;
 	--radius-3: 9px;
-	--radius-4: 12px;
-	--radius-5: 16px;
+	--radius-4: 13px;
+	--layer-background: 100;
 	--layer-grid: 150;
 	--layer-canvas: 200;
+	--layer-shapes: 300;
+	--layer-overlays: 400;
+	--layer-following-indicator: 1000;
 	/* Misc */
 	--tl-zoom: 1;
 	--tl-dpr-multiple: 100;
@@ -98,8 +101,10 @@
 	--color-brush-fill: rgba(144, 144, 144, 0.102);
 	--color-brush-stroke: rgba(144, 144, 144, 0.251);
 	--color-grid: rgb(109, 109, 109);
-	--color-low: rgb(237, 240, 242);
+	--color-low: hsl(204, 16%, 94%);
+	--color-low-border: hsl(204, 16%, 92%);
 	--color-culled: rgb(235, 238, 240);
+	--color-muted-none: rgba(0, 0, 0, 0);
 	--color-muted-0: rgba(0, 0, 0, 0.02);
 	--color-muted-1: rgba(0, 0, 0, 0.1);
 	--color-muted-2: rgba(0, 0, 0, 0.042);
@@ -116,19 +121,19 @@
 	--color-selection-stroke: #2f80ed;
 	--color-text-0: #1d1d1d;
 	--color-text-1: #2d2d2d;
-	--color-text-2: #5f6369;
-	--color-text-3: #b6b7ba;
+	--color-text-3: #a4a5a7;
+	--color-text-shadow: #ffffff;
 	--color-primary: #2f80ed;
 	--color-warn: #d10b0b;
 	--color-text: #000000;
 	--color-laser: #ff0000;
 
-	--shadow-1: 0px 1px 2px rgba(0, 0, 0, 0.22), 0px 1px 3px rgba(0, 0, 0, 0.09);
-	--shadow-2: 0px 0px 2px rgba(0, 0, 0, 0.12), 0px 2px 3px rgba(0, 0, 0, 0.24),
+	--shadow-1: 0px 1px 2px rgba(0, 0, 0, 0.25), 0px 1px 3px rgba(0, 0, 0, 0.09);
+	--shadow-2: 0px 0px 2px rgba(0, 0, 0, 0.16), 0px 2px 3px rgba(0, 0, 0, 0.24),
 		0px 2px 6px rgba(0, 0, 0, 0.1), inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3: 0px 1px 2px rgba(0, 0, 0, 0.25), 0px 2px 6px rgba(0, 0, 0, 0.14),
+	--shadow-3: 0px 1px 2px rgba(0, 0, 0, 0.28), 0px 2px 6px rgba(0, 0, 0, 0.14),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-4: 0px 0px 3px rgba(0, 0, 0, 0.16), 0px 5px 4px rgba(0, 0, 0, 0.16),
+	--shadow-4: 0px 0px 3px rgba(0, 0, 0, 0.19), 0px 5px 4px rgba(0, 0, 0, 0.16),
 		0px 2px 16px rgba(0, 0, 0, 0.06), inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
@@ -139,7 +144,9 @@
 	--color-brush-stroke: rgba(180, 180, 180, 0.25);
 	--color-grid: #909090;
 	--color-low: #2c3136;
-	--color-culled: rgb(47, 52, 57);
+	--color-low-border: #30363b
+	--color-culled: blue;
+	--color-muted-none: rgba(255, 255, 255, 0);
 	--color-muted-0: rgba(255, 255, 255, 0.02);
 	--color-muted-1: rgba(255, 255, 255, 0.1);
 	--color-muted-2: rgba(255, 255, 255, 0.05);
@@ -156,10 +163,10 @@
 	--color-selection-stroke: #2f80ed;
 	--color-text-0: #f0eded;
 	--color-text-1: #d9d9d9;
-	--color-text-2: #8e9094;
-	--color-text-3: #515a62;
+	--color-text-3: #6d747b;
+	--color-text-shadow: #292f35;
 	--color-primary: #2f80ed;
-	--color-warn: #d10b0b;
+	--color-warn: #ef6464;
 	--color-text: #f8f9fa;
 	--color-laser: #ff0000;
 
@@ -234,12 +241,12 @@ input,
 
 .tl-shapes {
 	position: relative;
-	z-index: 2;
+	z-index: var(--layer-shapes);
 }
 
 .tl-overlays {
 	position: relative;
-	z-index: 3;
+	z-index: var(--layer-overlays);
 }
 
 .tl-overlays__item {
@@ -275,6 +282,7 @@ input,
 	position: absolute;
 	background-color: var(--color-background);
 	inset: 0px;
+	z-index: var(--layer-background);
 }
 
 /* --------------------- Grid Layer --------------------- */
@@ -287,7 +295,7 @@ input,
 	height: 100%;
 	touch-action: none;
 	pointer-events: none;
-	z-index: 2;
+	z-index: var(--layer-grid);
 	contain: strict;
 }
 
@@ -586,7 +594,7 @@ input,
 	transform-origin: top right;
 	background-color: var(--color-background);
 	padding: 2px 4px;
-	border-radius: 4px;
+	border-radius: var(--radius-1);
 }
 
 /* --------------------- Nametag -------------------- */
@@ -967,7 +975,7 @@ input,
 	color: var(--color-text);
 	text-overflow: ellipsis;
 	text-decoration: none;
-	color: var(--color-text-2);
+	color: var(--color-text-1);
 	cursor: var(--tl-cursor-pointer);
 }
 
@@ -1516,17 +1524,18 @@ it from receiving any pointer events or affecting the cursor. */
 	width: 400px;
 	max-height: 100%;
 	background-color: var(--color-panel);
-	padding: var(--space-6);
-	border-radius: var(--radius-4);
+	padding: 16px;
+	border-radius: 16px;
 	box-shadow: var(--shadow-2);
 	font-size: 14px;
 	font-weight: 400;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-5);
 	overflow: auto;
 	z-index: 600;
+	gap: 12px;
 }
+
 .tl-error-boundary__content__expanded {
 	width: 600px;
 }
@@ -1549,7 +1558,7 @@ it from receiving any pointer events or affecting the cursor. */
 	overflow: auto;
 	font-size: 12px;
 	max-height: 320px;
-	margin: 0px;
+
 }
 
 .tl-error-boundary__content button {
@@ -1574,7 +1583,7 @@ it from receiving any pointer events or affecting the cursor. */
 	text-decoration: none;
 }
 .tl-error-boundary__content a:hover {
-	color: var(--color-text-2);
+	color: var(--color-text-1);
 }
 
 .tl-error-boundary__content__error {
@@ -1594,8 +1603,8 @@ it from receiving any pointer events or affecting the cursor. */
 	display: flex;
 	justify-content: space-between;
 	gap: var(--space-4);
-	margin: calc(var(--space-4) * -1);
-	margin-top: 0px;
+	margin: 0px;
+	margin-left: -4px;
 }
 .tl-error-boundary__content__actions__group {
 	display: flex;

@@ -141,6 +141,7 @@ const TldrawUiContent = React.memo(function TldrawUI({
 				{isFocusMode ? (
 					<div className="tlui-layout__top">
 						<Button
+							type="icon"
 							className="tlui-focus-button"
 							title={`${msg('focus-mode.toggle-focus-mode')}`}
 							icon="dot"

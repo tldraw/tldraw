@@ -30,6 +30,7 @@ export function ToggleToolLockedButton({ activeToolId }: ToggleToolLockedButtonP
 
 	return (
 		<Button
+			type="normal"
 			title={msg('action.toggle-tool-lock')}
 			className={classNames('tlui-toolbar__lock-button', {
 				'tlui-toolbar__lock-button__mobile': breakpoint < 5,

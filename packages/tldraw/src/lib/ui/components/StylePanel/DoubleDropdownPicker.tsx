@@ -1,6 +1,5 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
 import { SharedStyle, StyleProp, preventDefault } from '@tldraw/editor'
-import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -60,98 +59,92 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 			<div title={msg(label)} className="tlui-style-panel__double-select-picker-label">
 				{msg(label)}
 			</div>
-			<DropdownMenu.Root id={`style panel ${uiTypeA} A`}>
-				<Trigger
-					asChild
-					// Firefox fix: Stop the dropdown immediately closing after touch
-					onTouchEnd={(e) => preventDefault(e)}
-				>
-					<Button
-						data-testid={`style.${uiTypeA}`}
-						title={
-							msg(labelA) +
-							' — ' +
-							(valueA === null
-								? msg('style-panel.mixed')
-								: msg(`${uiTypeA}-style.${valueA}` as TLUiTranslationKey))
-						}
-						icon={iconA as any}
-						invertIcon
-						smallIcon
-					/>
-				</Trigger>
-				<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
-					<div
-						className={classNames('tlui-button-grid', {
-							'tlui-button-grid__two': itemsA.length < 4,
-							'tlui-button-grid__four': itemsA.length >= 4,
-						})}
+			<div className="tlui-buttons__horizontal">
+				<DropdownMenu.Root id={`style panel ${uiTypeA} A`}>
+					<Trigger
+						asChild
+						// Firefox fix: Stop the dropdown immediately closing after touch
+						onTouchEnd={(e) => preventDefault(e)}
 					>
-						{itemsA.map((item) => {
-							return (
-								<DropdownMenu.Item
-									className="tlui-button-grid__button"
-									title={
-										msg(labelA) +
-										' — ' +
-										msg(`${uiTypeA}-style.${item.value}` as TLUiTranslationKey)
-									}
-									data-testid={`style.${uiTypeA}.${item.value}`}
-									key={item.value}
-									icon={item.icon as TLUiIconType}
-									onClick={() => onValueChange(styleA, item.value, false)}
-									invertIcon
-								/>
-							)
-						})}
-					</div>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
-			<DropdownMenu.Root id={`style panel ${uiTypeB}`}>
-				<Trigger
-					asChild
-					// Firefox fix: Stop the dropdown immediately closing after touch
-					onTouchEnd={(e) => preventDefault(e)}
-				>
-					<Button
-						data-testid={`style.${uiTypeB}`}
-						title={
-							msg(labelB) +
-							' — ' +
-							(valueB === null
-								? msg('style-panel.mixed')
-								: msg(`${uiTypeB}-style.${valueB}` as TLUiTranslationKey))
-						}
-						icon={iconB as any}
-						smallIcon
-					/>
-				</Trigger>
-				<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
-					<div
-						className={classNames('tlui-button-grid', {
-							'tlui-button-grid__two': itemsA.length < 4,
-							'tlui-button-grid__four': itemsA.length >= 4,
-						})}
+						<Button
+							type="icon"
+							data-testid={`style.${uiTypeA}`}
+							title={
+								msg(labelA) +
+								' — ' +
+								(valueA === null
+									? msg('style-panel.mixed')
+									: msg(`${uiTypeA}-style.${valueA}` as TLUiTranslationKey))
+							}
+							icon={iconA as any}
+							invertIcon
+							smallIcon
+						/>
+					</Trigger>
+					<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+						<div className="tlui-buttons__grid">
+							{itemsA.map((item) => {
+								return (
+									<DropdownMenu.Item
+										type="icon"
+										title={
+											msg(labelA) +
+											' — ' +
+											msg(`${uiTypeA}-style.${item.value}` as TLUiTranslationKey)
+										}
+										data-testid={`style.${uiTypeA}.${item.value}`}
+										key={item.value}
+										icon={item.icon as TLUiIconType}
+										onClick={() => onValueChange(styleA, item.value, false)}
+										invertIcon
+									/>
+								)
+							})}
+						</div>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+				<DropdownMenu.Root id={`style panel ${uiTypeB}`}>
+					<Trigger
+						asChild
+						// Firefox fix: Stop the dropdown immediately closing after touch
+						onTouchEnd={(e) => preventDefault(e)}
 					>
-						{itemsB.map((item) => {
-							return (
-								<DropdownMenu.Item
-									className="tlui-button-grid__button"
-									title={
-										msg(labelB) +
-										' — ' +
-										msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)
-									}
-									data-testid={`style.${uiTypeB}.${item.value}`}
-									key={item.value}
-									icon={item.icon as TLUiIconType}
-									onClick={() => onValueChange(styleB, item.value, false)}
-								/>
-							)
-						})}
-					</div>
-				</DropdownMenu.Content>
-			</DropdownMenu.Root>
+						<Button
+							type="icon"
+							data-testid={`style.${uiTypeB}`}
+							title={
+								msg(labelB) +
+								' — ' +
+								(valueB === null
+									? msg('style-panel.mixed')
+									: msg(`${uiTypeB}-style.${valueB}` as TLUiTranslationKey))
+							}
+							icon={iconB as any}
+							smallIcon
+						/>
+					</Trigger>
+					<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
+						<div className="tlui-buttons__grid">
+							{itemsB.map((item) => {
+								return (
+									<DropdownMenu.Item
+										type="icon"
+										title={
+											msg(labelB) +
+											' — ' +
+											msg(`${uiTypeB}-style.${item.value}` as TLUiTranslationKey)
+										}
+										data-testid={`style.${uiTypeB}.${item.value}`}
+										key={item.value}
+										icon={item.icon as TLUiIconType}
+										onClick={() => onValueChange(styleB, item.value, false)}
+									/>
+								)
+							})}
+						</div>
+					</DropdownMenu.Content>
+				</DropdownMenu.Root>
+			</div>
 		</div>
 	)
 })

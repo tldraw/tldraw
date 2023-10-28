@@ -45,13 +45,13 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	return (
 		<M.Root id={`page item submenu ${index}`}>
 			<M.Trigger>
-				<Button title={msg('page-menu.submenu.title')} icon="dots-vertical" />
+				<Button type="icon" title={msg('page-menu.submenu.title')} icon="dots-vertical" />
 			</M.Trigger>
 			<M.Content alignOffset={0}>
 				<M.Group>
 					{onRename && (
 						<DropdownMenu.Item dir="ltr" onSelect={onRename} asChild>
-							<Button className="tlui-menu__button" label="page-menu.submenu.rename" />
+							<Button type="menu" label="page-menu.submenu.rename" />
 						</DropdownMenu.Item>
 					)}
 					<DropdownMenu.Item
@@ -60,23 +60,23 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 						disabled={pages.length >= MAX_PAGES}
 						asChild
 					>
-						<Button className="tlui-menu__button" label="page-menu.submenu.duplicate-page" />
+						<Button type="menu" label="page-menu.submenu.duplicate-page" />
 					</DropdownMenu.Item>
 					{index > 0 && (
 						<DropdownMenu.Item dir="ltr" onSelect={onMoveUp} asChild>
-							<Button className="tlui-menu__button" label="page-menu.submenu.move-up" />
+							<Button type="menu" label="page-menu.submenu.move-up" />
 						</DropdownMenu.Item>
 					)}
 					{index < listSize - 1 && (
 						<DropdownMenu.Item dir="ltr" onSelect={onMoveDown} asChild>
-							<Button className="tlui-menu__button" label="page-menu.submenu.move-down" />
+							<Button type="menu" label="page-menu.submenu.move-down" />
 						</DropdownMenu.Item>
 					)}
 				</M.Group>
 				{listSize > 1 && (
 					<M.Group>
 						<DropdownMenu.Item dir="ltr" onSelect={onDelete} asChild>
-							<Button className="tlui-menu__button" label="page-menu.submenu.delete" />
+							<Button type="menu" label="page-menu.submenu.delete" />
 						</DropdownMenu.Item>
 					</M.Group>
 				)}
