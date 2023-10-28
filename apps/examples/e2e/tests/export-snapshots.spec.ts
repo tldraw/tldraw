@@ -221,31 +221,27 @@ test.describe('Export snapshots', () => {
 })
 
 async function snapshotTest(page: Page) {
-	const downloadEvent = page.waitForEvent('download')
-	await page.click('[data-testid="main.menu"]')
-	await page.click('[data-testid="menu-item.edit"]')
-	await page.click('[data-testid="menu-item.export-as"]')
-	await page.click('[data-testid="menu-item.export-as-svg"]')
+	page.waitForEvent('download').then(async (download) => {
+		const path = (await download.path()) as string
+		assert(path)
+		await rename(path, path + '.svg')
+		await writeFile(
+			path + '.html',
+			`
+							<!DOCTYPE html>
+							<meta charset="utf-8" />
+							<meta name="viewport" content="width=device-width, initial-scale=1" />
+							<img src="${path}.svg" />
+			`,
+			'utf-8'
+		)
 
-	const download = await downloadEvent
-	const path = (await download.path()) as string
-	assert(path)
-	await rename(path, path + '.svg')
-	await writeFile(
-		path + '.html',
-		`
-            <!DOCTYPE html>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <img src="${path}.svg" />
-		`,
-		'utf-8'
-	)
-
-	await page.goto(`file://${path}.html`)
-	const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
-	await expect(page).toHaveScreenshot({
-		omitBackground: true,
-		clip,
+		await page.goto(`file://${path}.html`)
+		const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
+		await expect(page).toHaveScreenshot({
+			omitBackground: true,
+			clip,
+		})
 	})
+	await page.evaluate(() => (window as any)['tldraw-export']())
 }
