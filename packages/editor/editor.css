@@ -22,8 +22,11 @@
 	--radius-3: 9px;
 	--radius-4: 12px;
 	--radius-5: 16px;
+	--layer-background: 100;
 	--layer-grid: 150;
 	--layer-canvas: 200;
+	--layer-shapes: 300;
+	--layer-overlays: 400;
 	/* Misc */
 	--tl-zoom: 1;
 	--tl-dpr-multiple: 100;
@@ -142,7 +145,7 @@
 	--color-grid: #909090;
 	--color-low: #2c3136;
 	--color-low-border: #30363b
-	--color-culled: rgb(47, 52, 57);
+	--color-culled: blue;
 	--color-muted-none: rgba(255, 255, 255, 0);
 	--color-muted-0: rgba(255, 255, 255, 0.02);
 	--color-muted-1: rgba(255, 255, 255, 0.1);
@@ -238,12 +241,12 @@ input,
 
 .tl-shapes {
 	position: relative;
-	z-index: 2;
+	z-index: var(--layer-shapes);
 }
 
 .tl-overlays {
 	position: relative;
-	z-index: 3;
+	z-index: var(--layer-overlays);
 }
 
 .tl-overlays__item {
@@ -279,6 +282,7 @@ input,
 	position: absolute;
 	background-color: var(--color-background);
 	inset: 0px;
+	z-index: var(--layer-background);
 }
 
 /* --------------------- Grid Layer --------------------- */
@@ -291,7 +295,7 @@ input,
 	height: 100%;
 	touch-action: none;
 	pointer-events: none;
-	z-index: 2;
+	z-index: var(--layer-grid);
 	contain: strict;
 }
 

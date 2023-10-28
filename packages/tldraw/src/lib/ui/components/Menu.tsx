@@ -22,6 +22,7 @@ export const Menu = React.memo(function Menu() {
 					data-testid="main.menu"
 					title={msg('menu.title')}
 					icon="menu"
+					smallIcon
 				/>
 			</M.Trigger>
 			<M.Content alignOffset={0} sideOffset={6}>

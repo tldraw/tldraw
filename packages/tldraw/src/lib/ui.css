@@ -75,7 +75,7 @@
 		opacity: 0;
 	}
 
-	.tlui-button-2:hover::after {
+	.tlui-button-2:not(:disabled, :focus-visible):hover::after {
 		opacity: 1;
 	}
 }
@@ -286,14 +286,14 @@
 	display: flex;
 	flex-direction: row;
 }
-.tlui-buttons__horizontal > .tlui-button-2 {
+.tlui-buttons__horizontal > * {
 	margin-left: -2px;
 	margin-right: -2px;
 }
-.tlui-buttons__horizontal > .tlui-button-2:nth-of-type(1) {
+.tlui-buttons__horizontal > *:nth-child(1) {
 	margin-left: 0px;
 }
-.tlui-buttons__horizontal > .tlui-button-2:nth-last-of-type(1) {
+.tlui-buttons__horizontal > *:nth-last-child(1) {
 	margin-right: 0px;
 }
 
@@ -707,49 +707,6 @@
 
 .tlui-menu-zone *[data-state='open']::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
-}
-
-.tlui-menu-zone__controls {
-	position: relative;
-	display: flex;
-	align-items: center;
-	grid-row: 1;
-	grid-column: 1;
-	width: fit-content;
-	border-radius: var(--radius-1) var(--radius-1) var(--radius-4) var(--radius-1);
-	display: flex;
-	flex-direction: row;
-	z-index: var(--layer-panels);
-	pointer-events: all;
-}
-
-.tlui-menu-zone__divider {
-	width: 1px;
-	height: 18px;
-	background-color: var(--color-muted-1);
-}
-
-.tlui-menu-zone__controls > * {
-	margin-left: -2px;
-	margin-right: -2px;
-}
-
-.tlui-menu-zone__controls > *:first-child {
-	margin-left: 0px;
-}
-
-.tlui-menu-zone__controls > *:last-child {
-	margin-right: 0px;
-}
-
-.tlui-menu-zone__controls > .tlui-menu-zone__divider {
-	margin-left: 0px;
-	margin-right: 0px;
-}
-
-.tlui-menu-zone__controls .tlui-icon {
-	width: 15px;
-	height: 15px;
 }
 
 /* ------------------- Style Panel ------------------ */
@@ -1534,18 +1491,15 @@
 
 .tlui-navigation-zone__toggle .tlui-icon {
 	opacity: 0.24;
-	transition: opacity 0.2s ease-in-out;
 }
 
 .tlui-navigation-zone__toggle:active .tlui-icon {
 	opacity: 1;
-	transition: opacity 0.12s ease-in-out;
 }
 
 @media (hover: hover) {
 	.tlui-navigation-zone__toggle:hover .tlui-icon {
 		opacity: 1;
-		transition: opacity 0.12s ease-in-out;
 	}
 }
 
@@ -1821,7 +1775,7 @@
 }
 
 @media (hover: hover) {
-	.tlui-embed-dialog__item:hover::after {
+	.tlui-embed-dialog__item:not(:disabled, :focus-visible):hover::after {
 		display: block;
 		content: '';
 		position: absolute;

@@ -251,7 +251,7 @@ export const PageMenu = function PageMenu() {
 	}, [editor, msg, isReadonlyMode])
 
 	return (
-		<Popover id="pages" onOpenChange={onOpenChange} open={true}>
+		<Popover id="pages" onOpenChange={onOpenChange} open={isOpen}>
 			<PopoverTrigger>
 				<Button
 					className="tlui-page-menu__trigger tlui-menu__trigger"
