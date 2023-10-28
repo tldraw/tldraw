@@ -11,7 +11,6 @@ import { TLUiIconType } from '../icon-types'
 import { LanguageMenu } from './LanguageMenu'
 import { Button } from './primitives/Button'
 import * as M from './primitives/DropdownMenu'
-import { Icon } from './primitives/Icon'
 
 interface HelpMenuLink {
 	label: TLUiTranslationKey
@@ -34,9 +33,13 @@ export const HelpMenu = React.memo(function HelpMenu() {
 		<div className="tlui-help-menu">
 			<Root dir="ltr" open={isOpen} onOpenChange={onOpenChange} modal={false}>
 				<Trigger asChild dir="ltr">
-					<Button type="help" className="tlui-button-2" title={msg('help-menu.title')}>
-						<Icon icon="question-mark" small />
-					</Button>
+					<Button
+						type="help"
+						className="tlui-button-2"
+						smallIcon
+						title={msg('help-menu.title')}
+						icon="question-mark"
+					/>
 				</Trigger>
 				<Portal container={container} dir="ltr">
 					<Content
