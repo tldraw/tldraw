@@ -1519,7 +1519,7 @@ export interface TLUiToast {
     // (undocumented)
     description?: string;
     // (undocumented)
-    icon?: string;
+    icon?: TLUiIconType;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -1535,7 +1535,7 @@ export interface TLUiToastAction {
     // (undocumented)
     onClick: () => void;
     // (undocumented)
-    type: 'primary' | 'secondary' | 'warn';
+    type: 'danger' | 'normal' | 'primary';
 }
 
 // @public (undocumented)

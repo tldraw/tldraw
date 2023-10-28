@@ -40,23 +40,14 @@ function Toast({ toast }: { toast: TLUiToast }) {
 					<div className="tlui-toast__actions">
 						{toast.actions.map((action, i) => (
 							<T.Action key={i} altText={action.label} asChild onClick={action.onClick}>
-								<Button
-									type="normal"
-									className={
-										action.type === 'warn' ? 'tlui-button__warning' : 'tlui-button__primary'
-									}
-								>
-									{action.label}
-								</Button>
+								<Button type={action.type}>{action.label}</Button>
 							</T.Action>
 						))}
-						{hasActions && (
-							<T.Close asChild>
-								<Button type="normal" className="tlui-toast__close" style={{ marginLeft: 'auto' }}>
-									{toast.closeLabel ?? msg('toast.close')}
-								</Button>
-							</T.Close>
-						)}
+						<T.Close asChild>
+							<Button type="normal" className="tlui-toast__close" style={{ marginLeft: 'auto' }}>
+								{toast.closeLabel ?? msg('toast.close')}
+							</Button>
+						</T.Close>
 					</div>
 				)}
 			</div>

@@ -35,6 +35,15 @@
 	text-shadow: 1px 1px var(--color-panel);
 }
 
+.tlui-button:disabled {
+	color: var(--color-text-3);
+}
+
+.tlui-button-2 > * {
+	position: relative;
+	z-index: 1;
+}
+
 .tlui-button-2__label {
 	flex-grow: 2;
 	text-align: left;
@@ -53,7 +62,6 @@
 	inset: 4px;
 	background-color: transparent;
 	border-radius: 6px;
-	z-index: 1;
 }
 
 .tlui-button-2[aria-expanded='true']::after {
@@ -86,6 +94,26 @@
 	}
 }
 
+/* Primary / danger buttons */
+
+.tlui-button-2__primary {
+	color: var(--color-primary);
+}
+
+.tlui-button-2__danger {
+	color: var(--color-warn);
+}
+
+@media (hover: hover) {
+	.tlui-button-2__primary:not(:disabled, :focus-visible):hover {
+		color: var(--color-primary);
+	}
+
+	.tlui-button-2__danger:not(:disabled, :focus-visible):hover {
+		color: var(--color-warn);
+	}
+}
+
 /* Panel button */
 
 .tlui-button-2__panel {
@@ -102,10 +130,29 @@
 	padding: 0px;
 }
 
+/* Hinted */
+
+.tlui-button-2__icon[data-state='hinted']::after {
+	background: var(--color-hint);
+	opacity: 1;
+	/* box-shadow: inset 0 0 0 1px var(--color-muted-1); */
+}
+
+.tlui-button-2__icon[data-state='hinted']:not(:disabled, :focus-visible):active::after {
+	background: var(--color-hint);
+	opacity: 1;
+	/* box-shadow: inset 0 0 0 1px var(--color-text-3); */
+}
+
 @media (hover: hover) {
 	.tlui-button-2__icon::after {
 		inset: 4px;
 		border-radius: 6px;
+	}
+
+	.tlui-button-2__icon[data-state='hinted']:not(:disabled, :focus-visible):hover::after {
+		background: var(--color-hint);
+		/* box-shadow: inset 0 0 0 1px var(--color-text-3); */
 	}
 }
 
@@ -132,7 +179,11 @@
 	padding-left: 8px;
 }
 
-/* Tool button */
+.tlui-button-2__checkbox__indicator {
+	width: 16px;
+}
+
+/* Tool lock button */
 
 .tlui-toolbar__lock-button {
 	position: absolute;
@@ -184,6 +235,23 @@
 		inset: 4px;
 		border-radius: 8px;
 	}
+
+	.tlui-button-2__tool[data-state='selected']:not(:disabled, :focus-visible):hover {
+		color: var(--color-selected-contrast);
+	}
+}
+
+.tlui-button-2__tool[data-state='selected'] {
+	color: var(--color-selected-contrast);
+}
+
+.tlui-button-2__tool[data-state='selected']:not(:disabled, :focus-visible):active {
+	color: var(--color-selected-contrast);
+}
+
+.tlui-button-2__tool[data-state='selected']:not(:disabled)::after {
+	background: var(--color-selected);
+	opacity: 1;
 }
 
 /* Help */
@@ -443,7 +511,6 @@
 .tlui-button {
 	margin: 0px;
 	position: relative;
-	z-index: 1;
 	height: 44px;
 	display: flex;
 	align-items: center;
@@ -465,7 +532,6 @@
 
 .tlui-button::after {
 	content: '';
-	z-index: 1;
 	position: absolute;
 	right: 4px;
 	bottom: 4px;
@@ -541,62 +607,10 @@
 		z-index: 2;
 		color: var(--color-text-0);
 	}
-
-	/* 
-	.tlui-button:not(:disabled, :focus-visible):hover::after {
-		box-shadow: inset 0 0 0 1px var(--color-muted-1);
-	} */
-
-	.tlui-button__primary:not(:disabled, :focus-visible):hover {
-		color: var(--color-primary);
-	}
-
-	.tlui-button__warning:not(:disabled, :focus-visible):hover {
-		color: var(--color-warn);
-	}
 }
 
 .tlui-button:disabled {
 	color: var(--color-text-3);
-}
-
-/* Selected */
-
-.tlui-button[data-state='selected'] {
-	color: var(--color-selected-contrast);
-}
-
-.tlui-button[data-state='selected']:not(:disabled, :focus-visible):active {
-	color: var(--color-selected-contrast);
-}
-
-@media (hover: hover) {
-	.tlui-button[data-state='selected']:not(:disabled, :focus-visible):hover {
-		color: var(--color-selected-contrast);
-	}
-}
-
-.tlui-button[data-state='selected']:not(:disabled)::after {
-	background: var(--color-selected);
-}
-
-/* Hinted */
-
-.tlui-button[data-state='hinted']::after {
-	background: var(--color-hint);
-	/* box-shadow: inset 0 0 0 1px var(--color-muted-1); */
-}
-
-.tlui-button[data-state='hinted']:not(:disabled, :focus-visible):active::after {
-	background: var(--color-hint);
-	/* box-shadow: inset 0 0 0 1px var(--color-text-3); */
-}
-
-@media (hover: hover) {
-	.tlui-button[data-state='hinted']:not(:disabled, :focus-visible):hover::after {
-		background: var(--color-hint);
-		/* box-shadow: inset 0 0 0 1px var(--color-text-3); */
-	}
 }
 
 /* Focus Mode Button */
@@ -616,18 +630,6 @@
 .tlui-button.squished {
 	height: 36px;
 	width: 44px;
-}
-
-.tlui-button__primary {
-	color: var(--color-primary);
-}
-
-.tlui-button__warning {
-	color: var(--color-warn);
-}
-
-.tlui-button__danger {
-	color: var(--color-warn);
 }
 
 /* --------------------- Popover -------------------- */
@@ -669,7 +671,7 @@
 	grid-template-columns: 1fr auto auto;
 	justify-content: space-between;
 	padding-left: var(--space-4);
-	border-radius: var(--radius-1);
+	border-top: 1px solid var(--color-background);
 	font-size: 12px;
 	color: var(--color-text-1);
 	z-index: var(--layer-panels);
@@ -726,7 +728,8 @@
 }
 
 .tlui-menu-zone__controls > * {
-	margin: 0px -2px;
+	margin-left: -2px;
+	margin-right: -2px;
 }
 
 .tlui-menu-zone__controls > *:first-child {
@@ -738,7 +741,8 @@
 }
 
 .tlui-menu-zone__controls > .tlui-menu-zone__divider {
-	margin: 0px;
+	margin-left: 0px;
+	margin-right: 0px;
 }
 
 .tlui-menu-zone__controls .tlui-icon {
@@ -1117,52 +1121,38 @@
 /* Row of controls + lock button */
 .tlui-toolbar__extras {
 	position: relative;
+	z-index: 1;
 	width: 100%;
-	height: 44px;
 	pointer-events: none;
-}
-
-.tlui-toolbar__extras__hidden {
-	display: none;
+	top: 4px;
 }
 
 .tlui-toolbar__extras__controls {
 	display: flex;
-	flex-direction: row;
-	background-color: var(--color-low);
-	border-top-left-radius: var(--radius-3);
-	border-top-right-radius: var(--radius-3);
 	position: relative;
-	bottom: -4px;
+	flex-direction: row;
+	z-index: 1;
+	background-color: var(--color-low);
+	border-top-left-radius: var(--radius-4);
+	border-top-right-radius: var(--radius-4);
+	border: 4px solid var(--color-background);
 	margin-left: 8px;
 	margin-right: 0px;
 	pointer-events: all;
 	width: fit-content;
 }
 
-.tlui-toolbar__extras__controls::before {
-	content: '';
-	display: block;
-	position: absolute;
-	z-index: -1;
-	top: 0px;
-	left: 0px;
-	inset: -4px;
-	border: 4px solid var(--color-background);
-	border-radius: var(--radius-4);
-	border-bottom-left-radius: 0px;
-	border-bottom-right-radius: 0px;
-	background-color: var(--color-background);
+.tlui-toolbar__extras__controls > * {
+	margin-left: -2px;
+	margin-left: -2px;
 }
 
-.tlui-toolbar__extras__controls > .tlui-button,
-.tlui-toolbar__extras__controls > .tlui-popover > .tlui-button {
-	height: 40px;
-	width: 40px;
+.tlui-toolbar__extras__controls > *:nth-of-type(1) {
+	margin-left: 0px;
 }
 
-.tlui-toolbar__extras__controls .tlui-button::after {
-	border-radius: var(--radius-2);
+.tlui-toolbar__extras__controls > *:nth-last-of-type(1) {
+	margin-right: 0px;
 }
 
 .tlui-toolbar__tools {
@@ -1204,6 +1194,7 @@
 	position: absolute;
 	bottom: var(--space-3);
 	right: var(--space-3);
+	z-index: var(--layer-panels);
 }
 
 /* ------------------ Context Menu ------------------ */
@@ -1388,11 +1379,11 @@
 .tlui-toast__icon {
 	padding-top: var(--space-4);
 	padding-left: var(--space-4);
+	color: var(--color-text-1);
 }
 
 .tlui-toast__container {
 	min-width: 200px;
-	max-width: 280px;
 	display: flex;
 	flex-direction: row;
 	gap: var(--space-3);
@@ -1404,6 +1395,7 @@
 
 .tlui-toast__main {
 	flex-grow: 2;
+	max-width: 280px;
 }
 
 .tlui-toast__main:nth-child(1) > .tlui-toast__content {
@@ -1439,10 +1431,12 @@
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-start;
+	margin-left: -12px;
 }
 
 .tlui-toast__close {
 	align-self: flex-end;
+	flex-shrink: 0;
 }
 
 @media (prefers-reduced-motion: no-preference) {

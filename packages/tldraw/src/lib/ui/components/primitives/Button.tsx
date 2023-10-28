@@ -19,7 +19,7 @@ export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement>
 	kbd?: string
 	isChecked?: boolean
 	invertIcon?: boolean
-	type: 'primary' | 'danger' | 'normal' | 'low' | 'icon' | 'tool' | 'menu' | 'help'
+	type: 'normal' | 'primary' | 'danger' | 'low' | 'icon' | 'tool' | 'menu' | 'help'
 }
 
 /** @public */

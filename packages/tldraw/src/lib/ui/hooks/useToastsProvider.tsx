@@ -1,10 +1,11 @@
 import { Editor, uniqueId } from '@tldraw/editor'
 import { createContext, useCallback, useContext, useState } from 'react'
+import { TLUiIconType } from '../icon-types'
 
 /** @public */
 export interface TLUiToast {
 	id: string
-	icon?: string
+	icon?: TLUiIconType
 	title?: string
 	description?: string
 	actions?: TLUiToastAction[]
@@ -14,7 +15,7 @@ export interface TLUiToast {
 
 /** @public */
 export interface TLUiToastAction {
-	type: 'primary' | 'secondary' | 'warn'
+	type: 'primary' | 'danger' | 'normal'
 	label: string
 	onClick: () => void
 }

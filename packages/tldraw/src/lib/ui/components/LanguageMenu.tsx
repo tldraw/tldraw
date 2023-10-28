@@ -25,7 +25,7 @@ export function LanguageMenu() {
 							checked={locale === currentLanguage}
 							onSelect={() => handleLanguageSelect(locale)}
 						>
-							<span>{label}</span>
+							<span className="tlui-button-2__label">{label}</span>
 						</D.RadioItem>
 					))}
 				</D.Group>
