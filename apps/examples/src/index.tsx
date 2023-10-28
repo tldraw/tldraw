@@ -24,6 +24,7 @@ import ErrorBoundaryExample from './examples/ErrorBoundaryExample/ErrorBoundaryE
 import ExplodedExample from './examples/ExplodedExample'
 import ExternalContentSourcesExample from './examples/ExternalContentSourcesExample'
 import HideUiExample from './examples/HideUiExample'
+import MetaExample from './examples/MetaExample'
 import MultipleExample from './examples/MultipleExample'
 import PersistenceExample from './examples/PersistenceExample'
 import ReadOnlyExample from './examples/ReadOnlyExample'
@@ -72,6 +73,11 @@ export const allExamples: Example[] = [
 		title: 'Multiple editors',
 		path: 'multiple',
 		element: <MultipleExample />,
+	},
+	{
+		title: 'Meta Example',
+		path: 'meta',
+		element: <MetaExample />,
 	},
 	{
 		title: 'Readonly Example',
