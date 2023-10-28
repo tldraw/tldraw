@@ -81,7 +81,7 @@
 		opacity: 0;
 	}
 
-	.tlui-button:not(:disabled, :focus-visible):hover::after {
+	.tlui-button:not(:disabled):hover::after {
 		opacity: 1;
 	}
 }
