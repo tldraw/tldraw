@@ -16742,8 +16742,9 @@
                   "text": "icon?: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "string"
+                  "kind": "Reference",
+                  "text": "TLUiIconType",
+                  "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
                 },
                 {
                   "kind": "Content",
@@ -16923,7 +16924,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "'primary' | 'secondary' | 'warn'"
+                  "text": "'danger' | 'normal' | 'primary'"
                 },
                 {
                   "kind": "Content",

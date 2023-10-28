@@ -35,7 +35,7 @@
 	text-shadow: 1px 1px var(--color-panel);
 }
 
-.tlui-button:disabled {
+.tlui-button-2:disabled {
 	color: var(--color-text-3);
 }
 
@@ -274,6 +274,12 @@
 	}
 }
 
+/* Icon */
+
+.tlui-button-2__icon-left {
+	margin-right: var(--space-4);
+}
+
 /* Button Row */
 
 .tlui-buttons__horizontal {
@@ -507,7 +513,7 @@
 }
 
 /* --------------------- Button --------------------- */
-
+/* 
 .tlui-button {
 	margin: 0px;
 	position: relative;
@@ -571,25 +577,21 @@
 	.tlui-button:not([data-state='selected'], :disabled):hover::after {
 		background: var(--color-muted-2);
 	}
-}
+} */
 
-.tlui-icon-left {
-	margin-right: var(--space-4);
-}
-
-.tlui-button > * {
+/* .tlui-button > * {
 	position: relative;
 	z-index: 100;
 	color: inherit;
-}
-
+} */
+/* 
 .tlui-button > svg {
 	width: 18px;
 	height: 18px;
 	pointer-events: none;
-}
+} */
 
-.tlui-button:not(:disabled, :focus-visible, [data-state='open']):active {
+/* .tlui-button:not(:disabled, :focus-visible, [data-state='open']):active {
 	z-index: 2;
 	color: var(--color-text-0);
 }
@@ -611,25 +613,25 @@
 
 .tlui-button:disabled {
 	color: var(--color-text-3);
+} */
+
+/* Squished */
+
+/* .tlui-button.squished {
+	height: 36px;
+	width: 44px;
 }
+
+.tlui-button.squished {
+	height: 36px;
+	width: 44px;
+} */
 
 /* Focus Mode Button */
 
 .tlui-focus-button {
 	z-index: var(--layer-panels);
 	pointer-events: all;
-}
-
-/* Squished */
-
-.tlui-button.squished {
-	height: 36px;
-	width: 44px;
-}
-
-.tlui-button.squished {
-	height: 36px;
-	width: 44px;
 }
 
 /* --------------------- Popover -------------------- */
@@ -645,7 +647,7 @@
 	max-height: 75vh;
 	margin: 0px;
 	border: none;
-	border-radius: var(--radius-1);
+	border-radius: var(--radius-3);
 	background-color: var(--color-panel);
 	box-shadow: var(--shadow-3);
 	z-index: var(--layer-menus);
@@ -760,10 +762,10 @@
 	height: fit-content;
 	max-height: 100%;
 	margin: var(--space-3);
-	overflow: hidden;
 	touch-action: auto;
 	overscroll-behavior: none;
 	overflow-y: auto;
+	overflow-x: hidden;
 	color: var(--color-text);
 }
 
@@ -771,6 +773,8 @@
 	position: relative;
 	z-index: var(--layer-panels);
 	pointer-events: all;
+	width: 148px;
+	max-width: 148px;
 }
 
 .tlui-style-panel::-webkit-scrollbar {
@@ -803,29 +807,31 @@
 .tlui-style-panel__row {
 	display: flex;
 }
-.tlui-style-panel__row > *:nth-child(2) {
-	margin-left: -4px;
+/* Only really used for the alignment picker */
+.tlui-style-panel__row__extra-button {
+	margin-left: -2px;
+}
+
+.tlui-style-panel__double-select-picker__wrapper {
+	width: 100%;
+	max-width: 100%;
 }
 
 .tlui-style-panel__double-select-picker {
-	display: grid;
-	grid-template-columns: 1fr auto auto;
+	display: flex;
+	grid-template-columns: 1fr auto;
 	align-items: center;
 	padding-left: var(--space-4);
+	color: var(--color-text-1);
 	font-size: 12px;
-	width: 164px;
-}
-
-.tlui-style-panel__double-select-picker > .tlui-button {
-	min-width: 44px;
-	margin-left: -4px;
 }
 
 .tlui-style-panel__double-select-picker-label {
 	text-overflow: ellipsis;
 	overflow: hidden;
 	white-space: nowrap;
-	color: var(--color-text-1);
+	flex-grow: 2;
+	max-width: 100%;
 }
 
 .tlui-style-panel__section *[data-state='open']::after {
@@ -839,8 +845,8 @@
 	margin: 0px;
 	position: relative;
 	z-index: 1;
-	height: 44px;
-	max-height: 44px;
+	height: 40px;
+	max-height: 40px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -848,13 +854,14 @@
 	font-size: 12px;
 	font-weight: inherit;
 	color: var(--color-text-1);
-	padding: 13px;
+	padding: var(--space-4);
 	padding-left: 0px;
 	border: none;
 	outline: none;
 	text-overflow: ellipsis;
 	width: 100%;
 	user-select: all;
+	text-rendering: optimizeLegibility;
 	-webkit-user-select: auto !important;
 }
 
@@ -1140,19 +1147,6 @@
 	margin-right: 0px;
 	pointer-events: all;
 	width: fit-content;
-}
-
-.tlui-toolbar__extras__controls > * {
-	margin-left: -2px;
-	margin-left: -2px;
-}
-
-.tlui-toolbar__extras__controls > *:nth-of-type(1) {
-	margin-left: 0px;
-}
-
-.tlui-toolbar__extras__controls > *:nth-last-of-type(1) {
-	margin-right: 0px;
 }
 
 .tlui-toolbar__tools {
@@ -1463,7 +1457,7 @@
 }
 
 /* --------------------- Mobile --------------------- */
-
+/* 
 @media (max-width: 640px) {
 	.tlui-menu__group .tlui-button {
 		height: 40px;
@@ -1476,7 +1470,7 @@
 	.tlui-menu__group .tlui-button > .tlui-icon-left {
 		display: none;
 	}
-}
+} */
 
 /* --------------------- Bottom --------------------- */
 
@@ -1625,7 +1619,6 @@
 	align-items: center;
 	width: 100%;
 	padding-left: var(--space-4);
-	min-height: 44px;
 	border-bottom: 1px solid var(--color-divider);
 }
 
@@ -1636,7 +1629,6 @@
 .tlui-page-menu__header__title {
 	color: var(--color-text);
 	font-size: 12px;
-	font-weight: 500;
 	flex-grow: 2;
 }
 
@@ -1663,14 +1655,16 @@
 	flex-direction: row;
 	align-items: center;
 	justify-content: space-between;
+	gap: 0px;
 }
 
 .tlui-page-menu__item:nth-of-type(n + 2) {
 	margin-top: -4px;
 }
 
-.tlui-page-menu__item__button {
+.tlui-page-menu__item__button:not(:only-child) {
 	flex-grow: 2;
+	margin-right: -2px;
 }
 
 .tlui-page-menu__item__button > span {
@@ -1725,6 +1719,7 @@
 .tlui-page_menu__item__sortable__handle {
 	touch-action: none;
 	width: 32px;
+	min-width: 0px;
 	height: 40px;
 	cursor: grab;
 	color: var(--color-text-3);
@@ -1737,7 +1732,7 @@
 }
 
 .tlui-page-menu__item__input {
-	margin-left: 13px;
+	margin-left: 12px;
 	height: 100%;
 }
 
@@ -1745,12 +1740,17 @@
 /* If the user can hover, then visible but opacity zero until hover */
 /* If the user cannot hover, then not displayed unless editing, and then opacity 1 */
 
+.tlui-page_menu__item__button + .tlui-page_menu__item__submenu {
+	background-color: red;
+}
+
 .tlui-page_menu__item__submenu {
 	pointer-events: all;
 	flex: 0;
 	cursor: pointer;
 	margin: 0px;
 	display: none;
+	margin-left: -2px;
 }
 
 .tlui-page_menu__item__submenu[data-isediting='true'] {

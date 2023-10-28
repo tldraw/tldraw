@@ -233,25 +233,27 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 						value={align}
 						onValueChange={handleValueChange}
 					/>
-					{verticalAlign === undefined ? (
-						<Button
-							type="icon"
-							title={msg('style-panel.vertical-align')}
-							data-testid="vertical-align"
-							icon="vertical-align-center"
-							disabled
-						/>
-					) : (
-						<DropdownPicker
-							type="icon"
-							id="geo-vertical-alignment"
-							uiType="verticalAlign"
-							style={DefaultVerticalAlignStyle}
-							items={STYLES.verticalAlign}
-							value={verticalAlign}
-							onValueChange={handleValueChange}
-						/>
-					)}
+					<div className="tlui-style-panel__row__extra-button">
+						{verticalAlign === undefined ? (
+							<Button
+								type="icon"
+								title={msg('style-panel.vertical-align')}
+								data-testid="vertical-align"
+								icon="vertical-align-center"
+								disabled
+							/>
+						) : (
+							<DropdownPicker
+								type="icon"
+								id="geo-vertical-alignment"
+								uiType="verticalAlign"
+								style={DefaultVerticalAlignStyle}
+								items={STYLES.verticalAlign}
+								value={verticalAlign}
+								onValueChange={handleValueChange}
+							/>
+						)}
+					</div>
 				</div>
 			)}
 		</div>
