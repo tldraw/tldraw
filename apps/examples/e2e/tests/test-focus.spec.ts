@@ -119,19 +119,19 @@ test.describe('Focus', () => {
 
 		await (await page.$('body'))?.click()
 
-		expect(await EditorA.$('.tlui-button-2[data-testid="tools.draw"][data-state="selected"]')).toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')).toBe(
 			null
 		)
-		expect(await EditorB.$('.tlui-button-2[data-testid="tools.draw"][data-state="selected"]')).toBe(
+		expect(await EditorB.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')).toBe(
 			null
 		)
 
 		await page.keyboard.press('d')
 
 		expect(
-			await EditorA.$('.tlui-button-2[data-testid="tools.draw"][data-state="selected"]')
+			await EditorA.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')
 		).not.toBe(null)
-		expect(await EditorB.$('.tlui-button-2[data-testid="tools.draw"][data-state="selected"]')).toBe(
+		expect(await EditorB.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')).toBe(
 			null
 		)
 
@@ -140,10 +140,10 @@ test.describe('Focus', () => {
 		await page.keyboard.press('d')
 
 		expect(
-			await EditorA.$('.tlui-button-2[data-testid="tools.draw"][data-state="selected"]')
+			await EditorA.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')
 		).not.toBe(null)
 		expect(
-			await EditorB.$('.tlui-button-2[data-testid="tools.draw"][data-state="selected"]')
+			await EditorB.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')
 		).not.toBe(null)
 	})
 
@@ -154,10 +154,10 @@ test.describe('Focus', () => {
 		const EditorA = (await page.$(`.tl-container`))!
 		expect(EditorA).toBeTruthy()
 
-		const drawButton = await EditorA.$('.tlui-button-2[data-testid="tools.draw"]')
+		const drawButton = await EditorA.$('.tlui-button[data-testid="tools.draw"]')
 
 		// select button should be selected, not the draw button
-		expect(await EditorA.$('.tlui-button-2[data-testid="tools.draw"][data-state="selected"]')).toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')).toBe(
 			null
 		)
 
@@ -165,13 +165,13 @@ test.describe('Focus', () => {
 
 		// draw button should be selected now
 		expect(
-			await EditorA.$('.tlui-button-2[data-testid="tools.draw"][data-state="selected"]')
+			await EditorA.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')
 		).not.toBe(null)
 
 		await page.keyboard.press('v')
 
 		// select button should be selected again
-		expect(await EditorA.$('.tlui-button-2[data-testid="tools.draw"][data-state="selected"]')).toBe(
+		expect(await EditorA.$('.tlui-button[data-testid="tools.draw"][data-state="selected"]')).toBe(
 			null
 		)
 	})

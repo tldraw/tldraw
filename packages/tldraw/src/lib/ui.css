@@ -14,7 +14,7 @@
 
 /* Button */
 
-.tlui-button-2 {
+.tlui-button {
 	position: relative;
 	height: 40px;
 	min-width: 40px;
@@ -36,32 +36,32 @@
 	text-shadow: 1px 1px var(--color-text-shadow);
 }
 
-.tlui-button-2:disabled {
+.tlui-button:disabled {
 	color: var(--color-text-3);
 	text-shadow: none;
 }
 
-.tlui-button-2:disabled .tlui-kbd {
+.tlui-button:disabled .tlui-kbd {
 	color: var(--color-text-3);
 }
 
-.tlui-button-2 > * {
+.tlui-button > * {
 	position: relative;
 	z-index: 1;
 }
 
-.tlui-button-2__label {
+.tlui-button__label {
 	flex-grow: 2;
 	text-align: left;
 }
 
-.tlui-button-2:focus-visible:not(:hover) {
+.tlui-button:focus-visible:not(:hover) {
 	outline: 1px solid var(--color-selected);
 	outline-offset: -4px;
 	border-radius: var(--radius-3);
 }
 
-.tlui-button-2::after {
+.tlui-button::after {
 	display: block;
 	content: '';
 	position: absolute;
@@ -70,52 +70,52 @@
 	border-radius: var(--radius-2);
 }
 
-.tlui-button-2[aria-expanded='true']::after {
+.tlui-button[aria-expanded='true']::after {
 	background-color: var(--color-muted-0);
 	opacity: 1;
 }
 
 @media (hover: hover) {
-	.tlui-button-2::after {
+	.tlui-button::after {
 		background-color: var(--color-muted-2);
 		opacity: 0;
 	}
 
-	.tlui-button-2:not(:disabled, :focus-visible):hover::after {
+	.tlui-button:not(:disabled, :focus-visible):hover::after {
 		opacity: 1;
 	}
 }
 
 /* Low button  */
 
-.tlui-button-2__low {
+.tlui-button__low {
 	border-radius: var(--radius-3);
 	background-color: var(--color-low);
 }
 
 @media (hover: hover) {
-	.tlui-button-2__low::after {
+	.tlui-button__low::after {
 		background-color: var(--color-muted-2);
 	}
 }
 
 /* Primary / danger buttons */
 
-.tlui-button-2__primary {
+.tlui-button__primary {
 	color: var(--color-primary);
 }
 
-.tlui-button-2__danger {
+.tlui-button__danger {
 	color: var(--color-warn);
 	text-shadow: none;
 }
 
 @media (hover: hover) {
-	.tlui-button-2__primary:not(:disabled, :focus-visible):hover {
+	.tlui-button__primary:not(:disabled, :focus-visible):hover {
 		color: var(--color-primary);
 	}
 
-	.tlui-button-2__danger:not(:disabled, :focus-visible):hover {
+	.tlui-button__danger:not(:disabled, :focus-visible):hover {
 		color: var(--color-warn);
 		text-shadow: none;
 	}
@@ -123,13 +123,13 @@
 
 /* Panel button */
 
-.tlui-button-2__panel {
+.tlui-button__panel {
 	position: relative;
 }
 
 /* Icon button */
 
-.tlui-button-2__icon {
+.tlui-button__icon {
 	height: 40px;
 	width: 40px;
 	min-height: 40px;
@@ -139,25 +139,25 @@
 
 /* Hinted */
 
-.tlui-button-2__icon[data-state='hinted']::after {
+.tlui-button__icon[data-state='hinted']::after {
 	background: var(--color-hint);
 	opacity: 1;
 	/* box-shadow: inset 0 0 0 1px var(--color-muted-1); */
 }
 
-.tlui-button-2__icon[data-state='hinted']:not(:disabled, :focus-visible):active::after {
+.tlui-button__icon[data-state='hinted']:not(:disabled, :focus-visible):active::after {
 	background: var(--color-hint);
 	opacity: 1;
 	/* box-shadow: inset 0 0 0 1px var(--color-text-3); */
 }
 
 @media (hover: hover) {
-	.tlui-button-2__icon::after {
+	.tlui-button__icon::after {
 		inset: 4px;
 		border-radius: var(--radius-2);
 	}
 
-	.tlui-button-2__icon[data-state='hinted']:not(:disabled, :focus-visible):hover::after {
+	.tlui-button__icon[data-state='hinted']:not(:disabled, :focus-visible):hover::after {
 		background: var(--color-hint);
 		/* box-shadow: inset 0 0 0 1px var(--color-text-3); */
 	}
@@ -165,7 +165,7 @@
 
 /* Menu button */
 
-.tlui-button-2__menu {
+.tlui-button__menu {
 	height: 40px;
 	min-height: 40px;
 	min-width: 128px;
@@ -174,16 +174,16 @@
 	margin: -4px 0px;
 }
 
-.tlui-button-2__menu:nth-child(1) {
+.tlui-button__menu:nth-child(1) {
 	margin-top: 0px;
 }
 
-.tlui-button-2__menu:nth-last-child(1) {
+.tlui-button__menu:nth-last-child(1) {
 	margin-bottom: 0px;
 }
 
 @media (hover: hover) {
-	.tlui-button-2__menu::after {
+	.tlui-button__menu::after {
 		inset: 4px;
 		border-radius: var(--radius-2);
 	}
@@ -191,11 +191,11 @@
 
 /* Menu checkbox button */
 
-.tlui-button-2__checkbox {
+.tlui-button__checkbox {
 	padding-left: 8px;
 }
 
-.tlui-button-2__checkbox__indicator {
+.tlui-button__checkbox__indicator {
 	width: 15px;
 	height: 15px;
 }
@@ -221,7 +221,7 @@
 
 /* Tool button  */
 
-.tlui-button-2__tool {
+.tlui-button__tool {
 	position: relative;
 	height: 48px;
 	width: 48px;
@@ -229,41 +229,41 @@
 	margin-right: -2px;
 }
 
-.tlui-button-2__tool:nth-of-type(1) {
+.tlui-button__tool:nth-of-type(1) {
 	margin-left: 0px;
 }
 
-.tlui-button-2__tool:nth-last-of-type(1) {
+.tlui-button__tool:nth-last-of-type(1) {
 	margin-right: 0px;
 }
 
 @media (hover: hover) {
-	.tlui-button-2__tool::after {
+	.tlui-button__tool::after {
 		inset: 4px;
 		border-radius: 8px;
 	}
 
-	.tlui-button-2__tool[data-state='selected']:not(:disabled, :focus-visible):hover {
+	.tlui-button__tool[data-state='selected']:not(:disabled, :focus-visible):hover {
 		color: var(--color-selected-contrast);
 	}
 }
 
-.tlui-button-2__tool[data-state='selected'] {
+.tlui-button__tool[data-state='selected'] {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button-2__tool[data-state='selected']:not(:disabled, :focus-visible):active {
+.tlui-button__tool[data-state='selected']:not(:disabled, :focus-visible):active {
 	color: var(--color-selected-contrast);
 }
 
-.tlui-button-2__tool[data-state='selected']:not(:disabled)::after {
+.tlui-button__tool[data-state='selected']:not(:disabled)::after {
 	background: var(--color-selected);
 	opacity: 1;
 }
 
 /* Help */
 
-.tlui-button-2__help {
+.tlui-button__help {
 	height: 32px;
 	width: 32px;
 	padding: 0px;
@@ -274,7 +274,7 @@
 }
 
 @media (hover: hover) {
-	.tlui-button-2__help::after {
+	.tlui-button__help::after {
 		background-color: var(--color-muted-2);
 		border-radius: 100%;
 		inset: 4px;
@@ -283,7 +283,7 @@
 
 /* Icon */
 
-.tlui-button-2__icon-left {
+.tlui-button__icon-left {
 	margin-right: var(--space-4);
 }
 
@@ -311,19 +311,19 @@
 	grid-template-columns: repeat(4, auto);
 	grid-auto-flow: row;
 }
-.tlui-buttons__grid > .tlui-button-2 {
+.tlui-buttons__grid > .tlui-button {
 	margin: -2px;
 }
-.tlui-buttons__grid > .tlui-button-2:nth-of-type(4n) {
+.tlui-buttons__grid > .tlui-button:nth-of-type(4n) {
 	margin-right: 0px;
 }
-.tlui-buttons__grid > .tlui-button-2:nth-of-type(4n - 3) {
+.tlui-buttons__grid > .tlui-button:nth-of-type(4n - 3) {
 	margin-left: 0px;
 }
-.tlui-buttons__grid > .tlui-button-2:nth-of-type(-n + 4) {
+.tlui-buttons__grid > .tlui-button:nth-of-type(-n + 4) {
 	margin-top: 0px;
 }
-.tlui-buttons__grid > .tlui-button-2:nth-last-of-type(-n + 4) {
+.tlui-buttons__grid > .tlui-button:nth-last-of-type(-n + 4) {
 	margin-bottom: 0px;
 }
 
@@ -336,12 +336,12 @@
 }
 
 @media (max-width: 640px) {
-	.tlui-button-2__tool {
+	.tlui-button__tool {
 		height: 48px;
 		width: 44px;
 	}
 
-	.tlui-button-2__tool > .tlui-icon {
+	.tlui-button__tool > .tlui-icon {
 		height: 16px;
 		width: 16px;
 	}
@@ -350,7 +350,7 @@
 		visibility: hidden;
 	}
 
-	.tlui-menu__group .tlui-button-2__icon-left {
+	.tlui-menu__group .tlui-button__icon-left {
 		display: none;
 	}
 }

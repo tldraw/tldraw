@@ -170,7 +170,7 @@ function ContextMenuContent() {
 					return (
 						<_ContextMenu.CheckboxItem
 							key={id}
-							className="tlui-button-2 tlui-button-2__menu tlui-button-2__checkbox"
+							className="tlui-button tlui-button__menu tlui-button__checkbox"
 							dir="ltr"
 							disabled={item.disabled}
 							onSelect={(e) => {
@@ -182,7 +182,7 @@ function ContextMenuContent() {
 						>
 							<Icon small icon={item.checked ? 'check' : 'checkbox-empty'} />
 							{labelStr && (
-								<span className="tlui-button-2__label" draggable={false}>
+								<span className="tlui-button__label" draggable={false}>
 									{labelStr}
 								</span>
 							)}

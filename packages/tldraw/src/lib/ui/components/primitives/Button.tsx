@@ -49,12 +49,12 @@ export const Button = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(funct
 			type="button"
 			{...props}
 			title={props.title ?? labelStr}
-			className={classnames('tlui-button-2', `tlui-button-2__${type}`, props.className)}
+			className={classnames('tlui-button', `tlui-button__${type}`, props.className)}
 		>
-			{iconLeft && <Icon icon={iconLeft} className="tlui-button-2__icon-left" small />}
+			{iconLeft && <Icon icon={iconLeft} className="tlui-button__icon-left" small />}
 			{children}
 			{label && (
-				<span className="tlui-button-2__label" draggable={false}>
+				<span className="tlui-button__label" draggable={false}>
 					{labelStr}
 					{isChecked && <Icon icon="check" />}
 				</span>

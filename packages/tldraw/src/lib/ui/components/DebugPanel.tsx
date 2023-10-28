@@ -242,7 +242,7 @@ function Toggle({
 			checked={value}
 			onSelect={() => onChange(!value)}
 		>
-			<span className="tlui-button-2__label" draggable={false}>
+			<span className="tlui-button__label" draggable={false}>
 				{label}
 			</span>
 		</DropdownMenu.CheckboxItem>

@@ -35,7 +35,7 @@ export const HelpMenu = React.memo(function HelpMenu() {
 				<Trigger asChild dir="ltr">
 					<Button
 						type="help"
-						className="tlui-button-2"
+						className="tlui-button"
 						smallIcon
 						title={msg('help-menu.title')}
 						icon="question-mark"

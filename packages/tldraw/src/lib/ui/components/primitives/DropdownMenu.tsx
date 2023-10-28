@@ -193,7 +193,7 @@ export function CheckboxItem({ children, onSelect, ...rest }: DropdownMenuCheckb
 	return (
 		<DropdownMenu.CheckboxItem
 			dir="ltr"
-			className="tlui-button-2 tlui-button-2__menu tlui-button-2__checkbox"
+			className="tlui-button tlui-button__menu tlui-button__checkbox"
 			onSelect={(e) => {
 				onSelect?.(e)
 				preventDefault(e)
@@ -211,14 +211,14 @@ export function RadioItem({ children, onSelect, ...rest }: DropdownMenuCheckboxI
 	return (
 		<DropdownMenu.CheckboxItem
 			dir="ltr"
-			className="tlui-button-2 tlui-button-2__menu tlui-button-2__checkbox"
+			className="tlui-button tlui-button__menu tlui-button__checkbox"
 			onSelect={(e) => {
 				onSelect?.(e)
 				preventDefault(e)
 			}}
 			{...rest}
 		>
-			<div className="tlui-button-2__checkbox__indicator">
+			<div className="tlui-button__checkbox__indicator">
 				<DropdownMenu.ItemIndicator dir="ltr">
 					<Icon icon="check" small />
 				</DropdownMenu.ItemIndicator>
