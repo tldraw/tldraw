@@ -1105,7 +1105,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
         width: number;
     };
     // (undocumented)
-    indicator(shape: TLTextShape): JSX.Element;
+    indicator(shape: TLTextShape): JSX.Element | null;
     // (undocumented)
     isAspectRatioLocked: TLShapeUtilFlag<TLTextShape>;
     // (undocumented)
