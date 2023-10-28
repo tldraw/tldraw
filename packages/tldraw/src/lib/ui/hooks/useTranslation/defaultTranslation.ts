@@ -26,6 +26,7 @@ export const DEFAULT_TRANSLATION = {
 	'action.copy': 'Copy',
 	'action.cut': 'Cut',
 	'action.delete': 'Delete',
+	'action.unlock-all': 'Unlock all',
 	'action.distribute-horizontal': 'Distribute horizontally',
 	'action.distribute-vertical': 'Distribute vertically',
 	'action.distribute-horizontal.short': 'Distribute H',
@@ -250,6 +251,8 @@ export const DEFAULT_TRANSLATION = {
 		"Sorry, this project can't be shared because it's too large. We're working on it!",
 	'share-menu.upload-failed':
 		"Sorry, we couldn't upload your project at the moment. Please try again or let us know if the problem persists.",
+	'status.offline': 'Offline',
+	'status.online': 'Online',
 	'people-menu.title': 'People',
 	'people-menu.change-name': 'Change name',
 	'people-menu.change-color': 'Change color',

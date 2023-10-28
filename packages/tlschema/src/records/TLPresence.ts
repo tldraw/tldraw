@@ -16,7 +16,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	lastActivityTimestamp: number
 	color: string // can be any hex color
 	camera: { x: number; y: number; z: number }
-	selectedIds: TLShapeId[]
+	selectedShapeIds: TLShapeId[]
 	currentPageId: TLPageId
 	brush: Box2dModel | null
 	scribble: TLScribble | null
@@ -58,7 +58,7 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 			z: T.number,
 		}),
 		screenBounds: box2dModelValidator,
-		selectedIds: T.arrayOf(idValidator<TLShapeId>('shape')),
+		selectedShapeIds: T.arrayOf(idValidator<TLShapeId>('shape')),
 		currentPageId: idValidator<TLPageId>('page'),
 		brush: box2dModelValidator.nullable(),
 		scribble: scribbleValidator.nullable(),
@@ -73,10 +73,11 @@ export const instancePresenceVersions = {
 	RemoveInstanceId: 2,
 	AddChatMessage: 3,
 	AddMeta: 4,
+	RenameSelectedShapeIds: 5,
 } as const
 
 export const instancePresenceMigrations = defineMigrations({
-	currentVersion: instancePresenceVersions.AddMeta,
+	currentVersion: instancePresenceVersions.RenameSelectedShapeIds,
 	migrators: {
 		[instancePresenceVersions.AddScribbleDelay]: {
 			up: (instance) => {
@@ -122,6 +123,22 @@ export const instancePresenceMigrations = defineMigrations({
 				}
 			},
 		},
+		[instancePresenceVersions.RenameSelectedShapeIds]: {
+			up: (record) => {
+				const { selectedShapeIds, ...rest } = record
+				return {
+					selectedShapeIds: selectedShapeIds,
+					...rest,
+				}
+			},
+			down: (record) => {
+				const { selectedShapeIds, ...rest } = record
+				return {
+					selectedShapeIds: selectedShapeIds,
+					...rest,
+				}
+			},
+		},
 	},
 })
 
@@ -154,7 +171,7 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 		w: 1,
 		h: 1,
 	},
-	selectedIds: [],
+	selectedShapeIds: [],
 	brush: null,
 	scribble: null,
 	chatMessage: '',

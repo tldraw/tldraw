@@ -1,4 +1,5 @@
 import { defineMigrations } from '@tldraw/store'
+import { deepCopy } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { handleValidator } from '../misc/TLHandle'
 import { StyleProp } from '../styles/StyleProp'
@@ -32,4 +33,29 @@ export type TLLineShapeProps = ShapePropsType<typeof lineShapeProps>
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>
 
 /** @internal */
-export const lineShapeMigrations = defineMigrations({})
+export const lineShapeVersions = {
+	AddSnapHandles: 1,
+} as const
+
+/** @internal */
+export const lineShapeMigrations = defineMigrations({
+	currentVersion: lineShapeVersions.AddSnapHandles,
+	migrators: {
+		[lineShapeVersions.AddSnapHandles]: {
+			up: (record: any) => {
+				const handles = deepCopy(record.props.handles as Record<string, any>)
+				for (const id in handles) {
+					handles[id].canSnap = true
+				}
+				return { ...record, props: { ...record.props, handles } }
+			},
+			down: (record: any) => {
+				const handles = deepCopy(record.props.handles as Record<string, any>)
+				for (const id in handles) {
+					delete handles[id].canSnap
+				}
+				return { ...record, props: { ...record.props, handles } }
+			},
+		},
+	},
+})

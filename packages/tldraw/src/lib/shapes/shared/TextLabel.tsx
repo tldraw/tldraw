@@ -1,4 +1,5 @@
 import {
+	Box2d,
 	TLDefaultColorStyle,
 	TLDefaultFillStyle,
 	TLDefaultFontStyle,
@@ -27,6 +28,7 @@ export const TextLabel = React.memo(function TextLabel<
 	align,
 	verticalAlign,
 	wrap,
+	bounds,
 }: {
 	id: T['id']
 	type: T['type']
@@ -38,23 +40,29 @@ export const TextLabel = React.memo(function TextLabel<
 	wrap?: boolean
 	text: string
 	labelColor: TLDefaultColorStyle
+	bounds?: Box2d
 }) {
 	const {
 		rInput,
 		isEmpty,
 		isEditing,
-		isEditableFromHover,
 		handleFocus,
 		handleChange,
 		handleKeyDown,
 		handleBlur,
+		handleInputPointerDown,
+		handleDoubleClick,
 	} = useEditableText(id, type, text)
 
-	const isInteractive = isEditing || isEditableFromHover
 	const finalText = TextHelpers.normalizeTextForDom(text)
-	const hasText = finalText.trim().length > 0
+	const hasText = finalText.length > 0
+
 	const legacyAlign = isLegacyAlign(align)
 	const theme = useDefaultColorTheme()
+
+	if (!isEditing && !hasText) {
+		return null
+	}
 
 	return (
 		<div
@@ -64,30 +72,34 @@ export const TextLabel = React.memo(function TextLabel<
 			data-hastext={!isEmpty}
 			data-isediting={isEditing}
 			data-textwrap={!!wrap}
-			style={
-				hasText || isInteractive
+			style={{
+				justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
+				alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+				...(bounds
 					? {
-							justifyContent: align === 'middle' || legacyAlign ? 'center' : align,
-							alignItems: verticalAlign === 'middle' ? 'center' : verticalAlign,
+							top: bounds.minY,
+							left: bounds.minX,
+							width: bounds.width,
+							height: bounds.height,
+							position: 'absolute',
 					  }
-					: undefined
-			}
+					: {}),
+			}}
 		>
 			<div
 				className="tl-text-label__inner"
 				style={{
 					fontSize: LABEL_FONT_SIZES[size],
 					lineHeight: LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 'px',
-					minHeight: isEmpty ? LABEL_FONT_SIZES[size] * TEXT_PROPS.lineHeight + 32 : 0,
-					minWidth: isEmpty ? 33 : 0,
+					minHeight: TEXT_PROPS.lineHeight + 32,
+					minWidth: 0,
 					color: theme[labelColor].solid,
 				}}
 			>
 				<div className="tl-text tl-text-content" dir="ltr">
 					{finalText}
 				</div>
-				{isInteractive ? (
-					// Consider replacing with content-editable
+				{isEditing && (
 					<textarea
 						ref={rInput}
 						className="tl-text tl-text-input"
@@ -97,7 +109,7 @@ export const TextLabel = React.memo(function TextLabel<
 						autoCapitalize="false"
 						autoCorrect="false"
 						autoSave="false"
-						autoFocus={isEditing}
+						autoFocus
 						placeholder=""
 						spellCheck="true"
 						wrap="off"
@@ -109,8 +121,10 @@ export const TextLabel = React.memo(function TextLabel<
 						onKeyDown={handleKeyDown}
 						onBlur={handleBlur}
 						onContextMenu={stopEventPropagation}
+						onPointerDown={handleInputPointerDown}
+						onDoubleClick={handleDoubleClick}
 					/>
-				) : null}
+				)}
 			</div>
 		</div>
 	)

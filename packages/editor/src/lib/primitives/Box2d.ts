@@ -223,8 +223,8 @@ export class Box2d {
 		return Box2d.Includes(this, B)
 	}
 
-	containsPoint(V: VecLike | number, y?: number) {
-		return Box2d.ContainsPoint(this, V, y)
+	containsPoint(V: VecLike, margin = 0) {
+		return Box2d.ContainsPoint(this, V, margin)
 	}
 
 	getHandlePoint(handle: SelectionCorner | SelectionEdge) {
@@ -373,11 +373,13 @@ export class Box2d {
 		return Box2d.Collides(A, B) || Box2d.Contains(A, B)
 	}
 
-	static ContainsPoint = (A: Box2d, B: VecLike | number, y?: number) => {
-		if (typeof B === 'number') {
-			return !(B < A.minX || y! < A.minY || B > A.maxX || y! > A.maxY)
-		}
-		return !(B.x < A.minX || B.y < A.minY || B.x > A.maxX || B.y > A.maxY)
+	static ContainsPoint = (A: Box2d, B: VecLike, margin = 0) => {
+		return !(
+			B.x < A.minX - margin ||
+			B.y < A.minY - margin ||
+			B.x > A.maxX + margin ||
+			B.y > A.maxY + margin
+		)
 	}
 
 	static Common = (boxes: Box2d[]): Box2d => {
@@ -539,6 +541,16 @@ export class Box2d {
 
 	static Equals(a: Box2d | Box2dModel, b: Box2d | Box2dModel) {
 		return b.x === a.x && b.y === a.y && b.w === a.w && b.h === a.h
+	}
+
+	zeroFix() {
+		this.w = Math.max(1, this.w)
+		this.h = Math.max(1, this.h)
+		return this
+	}
+
+	static ZeroFix(other: Box2d | Box2dModel) {
+		return new Box2d(other.x, other.y, Math.max(1, other.w), Math.max(1, other.h))
 	}
 }
 

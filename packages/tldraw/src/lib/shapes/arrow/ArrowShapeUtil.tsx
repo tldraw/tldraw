@@ -1,9 +1,10 @@
 import {
+	Arc2d,
 	Box2d,
-	ComputedCache,
 	DefaultFontFamilies,
-	EMPTY_ARRAY,
-	Matrix2d,
+	Edge2d,
+	Group2d,
+	Rectangle2d,
 	SVGContainer,
 	ShapeUtil,
 	SvgExportContext,
@@ -17,32 +18,23 @@ import {
 	TLOnHandleChangeHandler,
 	TLOnResizeHandler,
 	TLOnTranslateStartHandler,
-	TLShapeId,
 	TLShapePartial,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilFlag,
 	Vec2d,
 	Vec2dModel,
-	VecLike,
 	arrowShapeMigrations,
 	arrowShapeProps,
-	computed,
 	deepCopy,
 	getArrowTerminalsInArrowSpace,
 	getArrowheadPathForType,
 	getCurvedArrowHandlePath,
 	getDefaultColorTheme,
-	getPointOnCircle,
 	getSolidCurvedArrowPath,
 	getSolidStraightArrowPath,
 	getStraightArrowHandlePath,
-	last,
-	linesIntersect,
-	longAngleDist,
-	minBy,
-	pointInPolygon,
-	shortAngleDist,
 	toDomPrecision,
+	useIsEditing,
 } from '@tldraw/editor'
 import React from 'react'
 import { ShapeFill, getShapeFillSvg, useDefaultColorTheme } from '../shared/ShapeFill'
@@ -63,6 +55,8 @@ import { ArrowTextLabel } from './components/ArrowTextLabel'
 
 let globalRenderIndex = 0
 
+export const ARROW_END_OFFSET = 0.1
+
 /** @public */
 export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	static override type = 'arrow' as const
@@ -71,12 +65,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 
 	override canEdit = () => true
 	override canBind = () => false
-	override isClosed = () => false
-	override canSnap = () => true
+	override canSnap = () => false
 	override hideResizeHandles: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideRotateHandle: TLShapeUtilFlag<TLArrowShape> = () => true
-	override hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape> = () => true
 	override hideSelectionBoundsBg: TLShapeUtilFlag<TLArrowShape> = () => true
+	override hideSelectionBoundsFg: TLShapeUtilFlag<TLArrowShape> = () => true
 
 	override getDefaultProps(): TLArrowShape['props'] {
 		return {
@@ -87,7 +80,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			labelColor: 'black',
 			bend: 0,
 			start: { type: 'point', x: 0, y: 0 },
-			end: { type: 'point', x: 0, y: 0 },
+			end: { type: 'point', x: 2, y: 0 },
 			arrowheadStart: 'none',
 			arrowheadEnd: 'arrow',
 			text: '',
@@ -95,114 +88,86 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	getBounds(shape: TLArrowShape) {
-		return Box2d.FromPoints(this.getOutlineWithoutLabel(shape))
-	}
+	getGeometry(shape: TLArrowShape) {
+		const info = this.editor.getArrowInfo(shape)!
 
-	getOutlineWithoutLabel(shape: TLArrowShape): Vec2d[] {
-		const info = this.editor.getArrowInfo(shape)
+		const bodyGeom = info.isStraight
+			? new Edge2d({
+					start: Vec2d.From(info.start.point),
+					end: Vec2d.From(info.end.point),
+			  })
+			: new Arc2d({
+					center: Vec2d.Cast(info.handleArc.center),
+					radius: info.handleArc.radius,
+					start: Vec2d.Cast(info.start.point),
+					end: Vec2d.Cast(info.end.point),
+					sweepFlag: info.bodyArc.sweepFlag,
+					largeArcFlag: info.bodyArc.largeArcFlag,
+			  })
 
-		if (!info) {
-			return []
-		}
+		let labelGeom: Rectangle2d | undefined
 
-		if (info.isStraight) {
-			if (info.isValid) {
-				return [Vec2d.From(info.start.point), Vec2d.From(info.end.point)]
-			} else {
-				return [new Vec2d(0, 0), new Vec2d(1, 1)]
-			}
-		}
+		if (shape.props.text.trim()) {
+			const bodyBounds = bodyGeom.bounds
 
-		if (!info.isValid) {
-			return [new Vec2d(0, 0), new Vec2d(1, 1)]
-		}
+			const { w, h } = this.editor.textMeasure.measureText(shape.props.text, {
+				...TEXT_PROPS,
+				fontFamily: FONT_FAMILIES[shape.props.font],
+				fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+				maxWidth: null,
+			})
 
-		const pointsToPush = Math.max(5, Math.ceil(Math.abs(info.bodyArc.length) / 16))
+			let width = w
+			let height = h
 
-		if (pointsToPush <= 0 && !isFinite(pointsToPush)) {
-			return [new Vec2d(0, 0), new Vec2d(1, 1)]
-		}
+			if (bodyBounds.width > bodyBounds.height) {
+				width = Math.max(Math.min(w, 64), Math.min(bodyBounds.width - 64, w))
 
-		const results: Vec2d[] = Array(pointsToPush)
-
-		const startAngle = Vec2d.Angle(info.bodyArc.center, info.start.point)
-		const endAngle = Vec2d.Angle(info.bodyArc.center, info.end.point)
-
-		const a = info.bodyArc.sweepFlag ? endAngle : startAngle
-		const b = info.bodyArc.sweepFlag ? startAngle : endAngle
-		const l = info.bodyArc.largeArcFlag ? -longAngleDist(a, b) : shortAngleDist(a, b)
-
-		const r = Math.max(1, info.bodyArc.radius)
-
-		for (let i = 0; i < pointsToPush; i++) {
-			const t = i / (pointsToPush - 1)
-			const angle = a + l * t
-			const point = getPointOnCircle(info.bodyArc.center.x, info.bodyArc.center.y, r, angle)
-			results[i] = point
-		}
-
-		return results
-	}
-
-	override getOutline(shape: TLArrowShape): Vec2d[] {
-		const outlineWithoutLabel = this.getOutlineWithoutLabel(shape)
-
-		const labelBounds = this.getLabelBounds(shape)
-		if (!labelBounds) {
-			return outlineWithoutLabel
-		}
-
-		const sides = labelBounds.sides
-		const sideIndexes = [0, 1, 2, 3]
-
-		// start with the first point...
-		let prevPoint = outlineWithoutLabel[0]
-		let didAddLabel = false
-		const result = [prevPoint]
-		for (let i = 1; i < outlineWithoutLabel.length; i++) {
-			// ...and use the next point to form a line segment for the outline.
-			const nextPoint = outlineWithoutLabel[i]
-
-			if (!didAddLabel) {
-				// find the index of the side of the label bounds that intersects the line segment
-				const nearestIntersectingSideIndex = minBy(
-					sideIndexes.filter((sideIndex) =>
-						linesIntersect(sides[sideIndex][0], sides[sideIndex][1], prevPoint, nextPoint)
-					),
-					(sideIndex) =>
-						Vec2d.DistanceToLineSegment(sides[sideIndex][0], sides[sideIndex][1], prevPoint)
+				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
+					shape.props.text,
+					{
+						...TEXT_PROPS,
+						fontFamily: FONT_FAMILIES[shape.props.font],
+						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+						maxWidth: width,
+					}
 				)
 
-				// if we've found one, start at that index and trace around all four corners of the label bounds
-				if (nearestIntersectingSideIndex !== undefined) {
-					const intersectingPoint = Vec2d.NearestPointOnLineSegment(
-						sides[nearestIntersectingSideIndex][0],
-						sides[nearestIntersectingSideIndex][1],
-						prevPoint
-					)
-
-					result.push(intersectingPoint)
-					for (let j = 0; j < 4; j++) {
-						const sideIndex = (nearestIntersectingSideIndex + j) % 4
-						result.push(sides[sideIndex][1])
-					}
-					result.push(intersectingPoint)
-
-					// we've added the label, so we can just continue with the rest of the outline as normal
-					didAddLabel = true
-				}
+				width = squishedWidth
+				height = squishedHeight
 			}
 
-			result.push(nextPoint)
-			prevPoint = nextPoint
+			if (width > 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]) {
+				width = 16 * ARROW_LABEL_FONT_SIZES[shape.props.size]
+
+				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(
+					shape.props.text,
+					{
+						...TEXT_PROPS,
+						fontFamily: FONT_FAMILIES[shape.props.font],
+						fontSize: ARROW_LABEL_FONT_SIZES[shape.props.size],
+						maxWidth: width,
+					}
+				)
+
+				width = squishedWidth
+				height = squishedHeight
+			}
+
+			labelGeom = new Rectangle2d({
+				x: info.middle.x - width / 2 - 4.25,
+				y: info.middle.y - height / 2 - 4.25,
+				width: width + 8.5,
+				height: height + 8.5,
+				isFilled: true,
+				isLabel: true,
+			})
 		}
 
-		return result
-	}
-
-	override snapPoints(_shape: TLArrowShape): Vec2d[] {
-		return EMPTY_ARRAY
+		return new Group2d({
+			children: labelGeom ? [bodyGeom, labelGeom] : [bodyGeom],
+			isSnappable: false,
+		})
 	}
 
 	override getHandles(shape: TLArrowShape): TLHandle[] {
@@ -218,7 +183,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			},
 			{
 				id: 'middle',
-				type: 'vertex',
+				type: 'virtual',
 				index: 'a2',
 				x: info.middle.x,
 				y: info.middle.y,
@@ -239,130 +204,127 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		shape,
 		{ handle, isPrecise }
 	) => {
-		const next = deepCopy(shape)
+		const handleId = handle.id as 'start' | 'middle' | 'end'
 
-		switch (handle.id) {
-			case 'start':
-			case 'end': {
-				const pageTransform = this.editor.getPageTransformById(next.id)!
-				const pointInPageSpace = Matrix2d.applyToPoint(pageTransform, handle)
+		if (handleId === 'middle') {
+			// Bending the arrow...
+			const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
-				if (this.editor.inputs.ctrlKey) {
-					next.props[handle.id] = {
-						type: 'point',
-						x: handle.x,
-						y: handle.y,
-					}
-				} else {
-					const target = last(
-						this.editor.sortedShapesArray.filter((hitShape) => {
-							if (hitShape.id === shape.id) {
-								// We're testing against the arrow
-								return
-							}
+			const delta = Vec2d.Sub(end, start)
+			const v = Vec2d.Per(delta)
 
-							const util = this.editor.getShapeUtil(hitShape)
-							if (!util.canBind(hitShape)) {
-								// The shape can't be bound to
-								return
-							}
+			const med = Vec2d.Med(end, start)
+			const A = Vec2d.Sub(med, v)
+			const B = Vec2d.Add(med, v)
 
-							// Check the page mask
-							const pageMask = this.editor.getPageMaskById(hitShape.id)
-							if (pageMask) {
-								if (!pointInPolygon(pointInPageSpace, pageMask)) return
-							}
+			const point = Vec2d.NearestPointOnLineSegment(A, B, handle, false)
+			let bend = Vec2d.Dist(point, med)
+			if (Vec2d.Clockwise(point, end, med)) bend *= -1
+			return { id: shape.id, type: shape.type, props: { bend } }
+		}
 
-							const pointInTargetSpace = this.editor.getPointInShapeSpace(
-								hitShape,
-								pointInPageSpace
-							)
+		// Start or end, pointing the arrow...
 
-							if (util.isClosed(hitShape)) {
-								// Test the polygon
-								return pointInPolygon(pointInTargetSpace, this.editor.getOutline(hitShape))
-							}
+		const next = deepCopy(shape) as TLArrowShape
 
-							// Test the point using the shape's idea of what a hit is
-							return util.hitTestPoint(hitShape, pointInTargetSpace)
-						})
-					)
+		const pageTransform = this.editor.getShapePageTransform(next.id)!
+		const pointInPageSpace = pageTransform.applyToPoint(handle)
 
-					if (target) {
-						const targetBounds = this.editor.getBounds(target)
-						const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
+		if (this.editor.inputs.ctrlKey) {
+			// todo: maybe double check that this isn't equal to the other handle too?
+			// Skip binding
+			next.props[handleId] = {
+				type: 'point',
+				x: handle.x,
+				y: handle.y,
+			}
+			return next
+		}
 
-						const prevHandle = next.props[handle.id]
+		const point = this.editor.getShapePageTransform(shape.id)!.applyToPoint(handle)
 
-						const startBindingId =
-							shape.props.start.type === 'binding' && shape.props.start.boundShapeId
-						const endBindingId = shape.props.end.type === 'binding' && shape.props.end.boundShapeId
+		const target = this.editor.getShapeAtPoint(point, {
+			hitInside: true,
+			hitFrameInside: true,
+			margin: 0,
+			filter: (targetShape) => {
+				return !targetShape.isLocked && this.editor.getShapeUtil(targetShape).canBind(targetShape)
+			},
+		})
 
-						let precise =
-							// If externally precise, then always precise
-							isPrecise ||
-							// If the other handle is bound to the same shape, then precise
-							((startBindingId || endBindingId) && startBindingId === endBindingId) ||
-							// If the other shape is not closed, then precise
-							!this.editor.getShapeUtil(target).isClosed(next)
+		if (!target) {
+			// todo: maybe double check that this isn't equal to the other handle too?
+			next.props[handleId] = {
+				type: 'point',
+				x: handle.x,
+				y: handle.y,
+			}
+			return next
+		}
 
-						if (
-							// If we're switching to a new bound shape, then precise only if moving slowly
-							prevHandle.type === 'point' ||
-							(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
-						) {
-							precise = this.editor.inputs.pointerVelocity.len() < 0.5
-						}
+		// we've got a target! the handle is being dragged over a shape, bind to it
 
-						if (precise) {
-							// Funky math but we want the snap distance to be 4 at the minimum and either
-							// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
-							precise =
-								Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
-								Math.max(
-									4,
-									Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)
-								) /
-									this.editor.zoomLevel
-						}
+		const targetGeometry = this.editor.getShapeGeometry(target)
+		const targetBounds = Box2d.ZeroFix(targetGeometry.bounds)
+		const pointInTargetSpace = this.editor.getPointInShapeSpace(target, pointInPageSpace)
 
-						next.props[handle.id] = {
-							type: 'binding',
-							boundShapeId: target.id,
-							normalizedAnchor: precise
-								? {
-										x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
-										y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
-								  }
-								: { x: 0.5, y: 0.5 },
-							isExact: this.editor.inputs.altKey,
-						}
-					} else {
-						next.props[handle.id] = {
-							type: 'point',
-							x: handle.x,
-							y: handle.y,
-						}
-					}
-				}
-				break
+		let precise = isPrecise
+
+		if (!precise) {
+			// If we're switching to a new bound shape, then precise only if moving slowly
+			const prevHandle = next.props[handleId]
+			if (
+				prevHandle.type === 'point' ||
+				(prevHandle.type === 'binding' && target.id !== prevHandle.boundShapeId)
+			) {
+				precise = this.editor.inputs.pointerVelocity.len() < 0.5
+			}
+		}
+
+		if (precise) {
+			// Turn off precision if we're within a certain distance to the center of the shape.
+			// Funky math but we want the snap distance to be 4 at the minimum and either
+			// 16 or 15% of the smaller dimension of the target shape, whichever is smaller
+			precise =
+				Vec2d.Dist(pointInTargetSpace, targetBounds.center) >
+				Math.max(4, Math.min(Math.min(targetBounds.width, targetBounds.height) * 0.15, 16)) /
+					this.editor.zoomLevel
+		}
+
+		if (!isPrecise) {
+			if (!targetGeometry.isClosed) {
+				precise = true
 			}
 
-			case 'middle': {
-				const { start, end } = getArrowTerminalsInArrowSpace(this.editor, next)
+			// Double check that we're not going to be doing an imprecise snap on
+			// the same shape twice, as this would result in a zero length line
+			const otherHandle = next.props[handleId === 'start' ? 'end' : 'start']
+			if (
+				otherHandle.type === 'binding' &&
+				target.id === otherHandle.boundShapeId &&
+				Vec2d.Equals(otherHandle.normalizedAnchor, { x: 0.5, y: 0.5 })
+			) {
+				precise = true
+			}
+		}
 
-				const delta = Vec2d.Sub(end, start)
-				const v = Vec2d.Per(delta)
+		next.props[handleId] = {
+			type: 'binding',
+			boundShapeId: target.id,
+			normalizedAnchor: precise
+				? {
+						x: (pointInTargetSpace.x - targetBounds.minX) / targetBounds.width,
+						y: (pointInTargetSpace.y - targetBounds.minY) / targetBounds.height,
+				  }
+				: { x: 0.5, y: 0.5 },
+			isExact: this.editor.inputs.altKey,
+		}
 
-				const med = Vec2d.Med(end, start)
-				const A = Vec2d.Sub(med, v)
-				const B = Vec2d.Add(med, v)
-
-				const point = Vec2d.NearestPointOnLineSegment(A, B, handle, false)
-				let bend = Vec2d.Dist(point, med)
-				if (Vec2d.Clockwise(point, end, med)) bend *= -1
-				next.props.bend = bend
-				break
+		if (next.props.start.type === 'binding' && next.props.end.type === 'binding') {
+			if (next.props.start.boundShapeId === next.props.end.boundShapeId) {
+				if (Vec2d.Equals(next.props.start.normalizedAnchor, next.props.end.normalizedAnchor)) {
+					next.props.end.normalizedAnchor.x += 0.05
+				}
 			}
 		}
 
@@ -370,25 +332,24 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override onTranslateStart: TLOnTranslateStartHandler<TLArrowShape> = (shape) => {
-		let startBinding: TLShapeId | null =
+		const startBindingId =
 			shape.props.start.type === 'binding' ? shape.props.start.boundShapeId : null
-		let endBinding: TLShapeId | null =
-			shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : null
+		const endBindingId = shape.props.end.type === 'binding' ? shape.props.end.boundShapeId : null
 
 		// If at least one bound shape is in the selection, do nothing;
 		// If no bound shapes are in the selection, unbind any bound shapes
 
+		const { selectedShapeIds } = this.editor
+
 		if (
-			(startBinding &&
-				(this.editor.isSelected(startBinding) || this.editor.isAncestorSelected(startBinding))) ||
-			(endBinding &&
-				(this.editor.isSelected(endBinding) || this.editor.isAncestorSelected(endBinding)))
+			(startBindingId &&
+				(selectedShapeIds.includes(startBindingId) ||
+					this.editor.isAncestorSelected(startBindingId))) ||
+			(endBindingId &&
+				(selectedShapeIds.includes(endBindingId) || this.editor.isAncestorSelected(endBindingId)))
 		) {
 			return
 		}
-
-		startBinding = null
-		endBinding = null
 
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
@@ -522,33 +483,6 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 	}
 
-	override hitTestPoint(shape: TLArrowShape, point: VecLike): boolean {
-		const outline = this.editor.getOutline(shape)
-		const zoomLevel = this.editor.zoomLevel
-		const offsetDist = STROKE_SIZES[shape.props.size] / zoomLevel
-
-		for (let i = 0; i < outline.length - 1; i++) {
-			const C = outline[i]
-			const D = outline[i + 1]
-
-			if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
-		}
-
-		return false
-	}
-
-	override hitTestLineSegment(shape: TLArrowShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.editor.getOutline(shape)
-
-		for (let i = 0; i < outline.length - 1; i++) {
-			const C = outline[i]
-			const D = outline[i + 1]
-			if (linesIntersect(A, B, C, D)) return true
-		}
-
-		return false
-	}
-
 	component(shape: TLArrowShape) {
 		// Not a class component, but eslint can't tell that :(
 		// eslint-disable-next-line react-hooks/rules-of-hooks
@@ -560,15 +494,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'select.pointing_handle',
 				'select.dragging_handle',
 				'arrow.dragging'
-			) && !this.editor.isReadOnly
+			) && !this.editor.instanceState.isReadonly
 
 		const info = this.editor.getArrowInfo(shape)
-		const bounds = this.editor.getBounds(shape)
-		const labelSize = this.getLabelBounds(shape)
+		const bounds = Box2d.ZeroFix(this.editor.getShapeGeometry(shape).bounds)
 
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const changeIndex = React.useMemo<number>(() => {
-			return this.editor.isSafari ? (globalRenderIndex += 1) : 0
+			return this.editor.environment.isSafari ? (globalRenderIndex += 1) : 0
 			// eslint-disable-next-line react-hooks/exhaustive-deps
 		}, [shape])
 
@@ -636,11 +569,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			}
 		)
 
+		const labelGeometry = shape.props.text.trim()
+			? (this.editor.getShapeGeometry<Group2d>(shape).children[1] as Rectangle2d)
+			: null
+
 		const maskStartArrowhead = !(
 			info.start.arrowhead === 'none' || info.start.arrowhead === 'arrow'
 		)
 		const maskEndArrowhead = !(info.end.arrowhead === 'none' || info.end.arrowhead === 'arrow')
-		const includeMask = maskStartArrowhead || maskEndArrowhead || labelSize
 
 		// NOTE: I know right setting `changeIndex` hacky-as right! But we need this because otherwise safari loses
 		// the mask, see <https://linear.app/tldraw/issue/TLD-1500/changing-arrow-color-makes-line-pass-through-text>
@@ -649,44 +585,43 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		return (
 			<>
 				<SVGContainer id={shape.id} style={{ minWidth: 50, minHeight: 50 }}>
-					{includeMask && (
-						<defs>
-							<mask id={maskId}>
+					{/* Yep */}
+					<defs>
+						<mask id={maskId}>
+							<rect
+								x={toDomPrecision(-100 + bounds.minX)}
+								y={toDomPrecision(-100 + bounds.minY)}
+								width={toDomPrecision(bounds.width + 200)}
+								height={toDomPrecision(bounds.height + 200)}
+								fill="white"
+							/>
+							{labelGeometry && (
 								<rect
-									x={toDomPrecision(-100 + bounds.minX)}
-									y={toDomPrecision(-100 + bounds.minY)}
-									width={toDomPrecision(bounds.width + 200)}
-									height={toDomPrecision(bounds.height + 200)}
-									fill="white"
+									x={labelGeometry.x}
+									y={labelGeometry.y}
+									width={labelGeometry.w}
+									height={labelGeometry.h}
+									fill="black"
+									rx={4}
+									ry={4}
 								/>
-								{labelSize && (
-									<rect
-										x={toDomPrecision(labelSize.x)}
-										y={toDomPrecision(labelSize.y)}
-										width={toDomPrecision(labelSize.w)}
-										height={toDomPrecision(labelSize.h)}
-										fill="black"
-										rx={4}
-										ry={4}
-									/>
-								)}
-								{as && maskStartArrowhead && (
-									<path
-										d={as}
-										fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'}
-										stroke="none"
-									/>
-								)}
-								{ae && maskEndArrowhead && (
-									<path
-										d={ae}
-										fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'}
-										stroke="none"
-									/>
-								)}
-							</mask>
-						</defs>
-					)}
+							)}
+							{as && maskStartArrowhead && (
+								<path
+									d={as}
+									fill={info.start.arrowhead === 'arrow' ? 'none' : 'black'}
+									stroke="none"
+								/>
+							)}
+							{ae && maskEndArrowhead && (
+								<path
+									d={ae}
+									fill={info.end.arrowhead === 'arrow' ? 'none' : 'black'}
+									stroke="none"
+								/>
+							)}
+						</mask>
+					</defs>
 					<g
 						fill="none"
 						stroke={theme[shape.props.color].solid}
@@ -697,17 +632,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					>
 						{handlePath}
 						{/* firefox will clip if you provide a maskURL even if there is no mask matching that URL in the DOM */}
-						<g {...(includeMask ? { mask: `url(#${maskId})` } : undefined)}>
-							{/* This rect needs to be here if we're creating a mask due to an svg quirk on Chrome */}
-							{includeMask && (
-								<rect
-									x={toDomPrecision(bounds.minX - 100)}
-									y={toDomPrecision(bounds.minY - 100)}
-									width={toDomPrecision(bounds.width + 200)}
-									height={toDomPrecision(bounds.height + 200)}
-									opacity={0}
-								/>
-							)}
+						<g mask={`url(#${maskId})`}>
+							<rect
+								x={toDomPrecision(bounds.minX - 100)}
+								y={toDomPrecision(bounds.minY - 100)}
+								width={toDomPrecision(bounds.width + 200)}
+								height={toDomPrecision(bounds.height + 200)}
+								opacity={0}
+							/>
 							<path
 								d={path}
 								strokeDasharray={strokeDasharray}
@@ -715,15 +647,14 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 							/>
 						</g>
 						{as && maskStartArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={as} color={shape.props.color} fill={shape.props.fill} />
+							<ShapeFill theme={theme} d={as} color={shape.props.color} fill={shape.props.fill} />
 						)}
 						{ae && maskEndArrowhead && shape.props.fill !== 'none' && (
-							<ShapeFill d={ae} color={shape.props.color} fill={shape.props.fill} />
+							<ShapeFill theme={theme} d={ae} color={shape.props.color} fill={shape.props.fill} />
 						)}
 						{as && <path d={as} />}
 						{ae && <path d={ae} />}
 					</g>
-					<path d={path} className="tl-hitarea-stroke" />
 				</SVGContainer>
 				<ArrowTextLabel
 					id={shape.id}
@@ -731,8 +662,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 					font={shape.props.font}
 					size={shape.props.size}
 					position={info.middle}
-					width={labelSize?.w ?? 0}
-					labelColor={shape.props.labelColor}
+					width={labelGeometry?.w ?? 0}
+					labelColor={theme[shape.props.labelColor].solid}
 				/>
 			</>
 		)
@@ -742,8 +673,13 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const { start, end } = getArrowTerminalsInArrowSpace(this.editor, shape)
 
 		const info = this.editor.getArrowInfo(shape)
-		const bounds = this.editor.getBounds(shape)
-		const labelSize = this.getLabelBounds(shape)
+		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
+		const bounds = geometry.bounds
+
+		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
+
+		// eslint-disable-next-line react-hooks/rules-of-hooks
+		const isEditing = useIsEditing(shape.id)
 
 		if (!info) return null
 		if (Vec2d.Equals(start, end)) return null
@@ -758,9 +694,22 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		const includeMask =
 			(as && info.start.arrowhead !== 'arrow') ||
 			(ae && info.end.arrowhead !== 'arrow') ||
-			labelSize !== null
+			!!labelGeometry
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
+
+		if (isEditing && labelGeometry) {
+			return (
+				<rect
+					x={toDomPrecision(labelGeometry.x)}
+					y={toDomPrecision(labelGeometry.y)}
+					width={labelGeometry.w}
+					height={labelGeometry.h}
+					rx={3.5}
+					ry={3.5}
+				/>
+			)
+		}
 
 		return (
 			<g>
@@ -774,15 +723,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 								height={bounds.h + 200}
 								fill="white"
 							/>
-							{labelSize && (
+							{labelGeometry && (
 								<rect
-									x={labelSize.x}
-									y={labelSize.y}
-									width={labelSize.w}
-									height={labelSize.h}
+									x={toDomPrecision(labelGeometry.x)}
+									y={toDomPrecision(labelGeometry.y)}
+									width={labelGeometry.w}
+									height={labelGeometry.h}
 									fill="black"
-									rx={4}
-									ry={4}
+									rx={3.5}
+									ry={3.5}
 								/>
 							)}
 							{as && (
@@ -819,78 +768,18 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				</g>
 				{as && <path d={as} />}
 				{ae && <path d={ae} />}
-				{labelSize && (
+				{labelGeometry && (
 					<rect
-						x={labelSize.x}
-						y={labelSize.y}
-						width={labelSize.w}
-						height={labelSize.h}
-						rx={4}
-						ry={4}
+						x={toDomPrecision(labelGeometry.x)}
+						y={toDomPrecision(labelGeometry.y)}
+						width={labelGeometry.w}
+						height={labelGeometry.h}
+						rx={3.5}
+						ry={3.5}
 					/>
 				)}
 			</g>
 		)
-	}
-
-	@computed get labelBoundsCache(): ComputedCache<Box2d | null, TLArrowShape> {
-		return this.editor.store.createComputedCache('labelBoundsCache', (shape) => {
-			const info = this.editor.getArrowInfo(shape)
-			const bounds = this.editor.getBounds(shape)
-			const { text, font, size } = shape.props
-
-			if (!info) return null
-			if (!text.trim()) return null
-
-			const { w, h } = this.editor.textMeasure.measureText(text, {
-				...TEXT_PROPS,
-				fontFamily: FONT_FAMILIES[font],
-				fontSize: ARROW_LABEL_FONT_SIZES[size],
-				width: 'fit-content',
-			})
-
-			let width = w
-			let height = h
-
-			if (bounds.width > bounds.height) {
-				width = Math.max(Math.min(w, 64), Math.min(bounds.width - 64, w))
-
-				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(text, {
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[font],
-					fontSize: ARROW_LABEL_FONT_SIZES[size],
-					width: width + 'px',
-				})
-
-				width = squishedWidth
-				height = squishedHeight
-			}
-
-			if (width > 16 * ARROW_LABEL_FONT_SIZES[size]) {
-				width = 16 * ARROW_LABEL_FONT_SIZES[size]
-
-				const { w: squishedWidth, h: squishedHeight } = this.editor.textMeasure.measureText(text, {
-					...TEXT_PROPS,
-					fontFamily: FONT_FAMILIES[font],
-					fontSize: ARROW_LABEL_FONT_SIZES[size],
-					width: width + 'px',
-				})
-
-				width = squishedWidth
-				height = squishedHeight
-			}
-
-			return new Box2d(
-				info.middle.x - (width + 8) / 2,
-				info.middle.y - (height + 8) / 2,
-				width + 8,
-				height + 8
-			)
-		})
-	}
-
-	getLabelBounds(shape: TLArrowShape): Box2d | null {
-		return this.labelBoundsCache.get(shape.id) || null
 	}
 
 	override onEditEnd: TLOnEditEndHandler<TLArrowShape> = (shape) => {
@@ -914,7 +803,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 	}
 
 	override toSvg(shape: TLArrowShape, ctx: SvgExportContext) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		ctx.addExportDef(getFillDefForExport(shape.props.fill, theme))
 
 		const color = theme[shape.props.color].solid
@@ -932,13 +821,15 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		// Arrowhead end path
 		const ae = info.end.arrowhead && getArrowheadPathForType(info, 'end', strokeWidth)
 
-		const bounds = this.editor.getBounds(shape)
-		const labelSize = this.getLabelBounds(shape)
+		const geometry = this.editor.getShapeGeometry<Group2d>(shape)
+		const bounds = geometry.bounds
+
+		const labelGeometry = shape.props.text.trim() ? (geometry.children[1] as Rectangle2d) : null
 
 		const maskId = (shape.id + '_clip').replace(':', '_')
 
 		// If we have any arrowheads, then mask the arrowheads
-		if (as || ae || labelSize) {
+		if (as || ae || !!labelGeometry) {
 			// Create mask for arrowheads
 
 			// Create defs
@@ -964,12 +855,12 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			if (ae) mask.appendChild(getArrowheadSvgMask(ae, info.end.arrowhead))
 
 			// Mask out text label if text is present
-			if (labelSize) {
+			if (labelGeometry) {
 				const labelMask = document.createElementNS('http://www.w3.org/2000/svg', 'rect')
-				labelMask.setAttribute('x', labelSize.x + '')
-				labelMask.setAttribute('y', labelSize.y + '')
-				labelMask.setAttribute('width', labelSize.w + '')
-				labelMask.setAttribute('height', labelSize.h + '')
+				labelMask.setAttribute('x', labelGeometry.x + '')
+				labelMask.setAttribute('y', labelGeometry.y + '')
+				labelMask.setAttribute('width', labelGeometry.w + '')
+				labelMask.setAttribute('height', labelGeometry.h + '')
 				labelMask.setAttribute('fill', 'black')
 
 				mask.appendChild(labelMask)
@@ -1039,7 +930,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 		}
 
 		// Text Label
-		if (labelSize) {
+		if (labelGeometry) {
 			ctx.addExportDef(getFontDefForExport(shape.props.font))
 
 			const opts = {
@@ -1048,9 +939,9 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				fontFamily: DefaultFontFamilies[shape.props.font],
 				padding: 0,
 				textAlign: 'middle' as const,
-				width: labelSize.w - 8,
+				width: labelGeometry.w - 8,
 				verticalTextAlign: 'middle' as const,
-				height: labelSize.h,
+				height: labelGeometry.h,
 				fontStyle: 'normal',
 				fontWeight: 'normal',
 				overflow: 'wrap' as const,
@@ -1069,8 +960,8 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				const x = parseFloat(child.getAttribute('x') || '0')
 				const y = parseFloat(child.getAttribute('y') || '0')
 
-				child.setAttribute('x', x + 4 + labelSize!.x + 'px')
-				child.setAttribute('y', y + labelSize!.y + 'px')
+				child.setAttribute('x', x + 4 + labelGeometry.x + 'px')
+				child.setAttribute('y', y + labelGeometry.y + 'px')
 			})
 
 			const textBgEl = textElm.cloneNode(true) as SVGTextElement

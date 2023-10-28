@@ -44,7 +44,7 @@ export interface AtomOptions<Value, Diff> {
  * ```ts
  * const name = atom('name', 'John')
  *
- * console.log(name.value) // 'John'
+ * print(name.value) // 'John'
  * ```
  *
  * @public

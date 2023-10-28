@@ -139,6 +139,8 @@ export type AssetUrls = {
 		'spline-line': string
 		'stack-horizontal': string
 		'stack-vertical': string
+		'status-offline': string
+		'status-online': string
 		'stretch-horizontal': string
 		'stretch-vertical': string
 		'text-align-center': string
@@ -226,6 +228,7 @@ export type AssetUrls = {
 		scratch: string
 		spotify: string
 		tldraw: string
+		val_town: string
 		vimeo: string
 		youtube: string
 	}

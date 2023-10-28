@@ -1,13 +1,15 @@
 import { TLArrowShapeArrowheadStyle } from '@tldraw/tlschema'
 import { VecLike } from '../../../../primitives/Vec2d'
 
-export type ArrowPoint = {
+/** @public */
+export type TLArrowPoint = {
 	handle: VecLike
 	point: VecLike
 	arrowhead: TLArrowShapeArrowheadStyle
 }
 
-export interface ArcInfo {
+/** @public */
+export interface TLArcInfo {
 	center: VecLike
 	radius: number
 	size: number
@@ -16,20 +18,21 @@ export interface ArcInfo {
 	sweepFlag: number
 }
 
-export type ArrowInfo =
+/** @public */
+export type TLArrowInfo =
 	| {
 			isStraight: false
-			start: ArrowPoint
-			end: ArrowPoint
+			start: TLArrowPoint
+			end: TLArrowPoint
 			middle: VecLike
-			handleArc: ArcInfo
-			bodyArc: ArcInfo
+			handleArc: TLArcInfo
+			bodyArc: TLArcInfo
 			isValid: boolean
 	  }
 	| {
 			isStraight: true
-			start: ArrowPoint
-			end: ArrowPoint
+			start: TLArrowPoint
+			end: TLArrowPoint
 			middle: VecLike
 			isValid: boolean
 			length: number

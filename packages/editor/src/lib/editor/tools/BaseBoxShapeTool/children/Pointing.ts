@@ -8,7 +8,7 @@ import { BaseBoxShapeTool } from '../BaseBoxShapeTool'
 export class Pointing extends StateNode {
 	static override id = 'pointing'
 
-	markId = 'creating'
+	markId = ''
 
 	wasFocusedOnEnter = false
 
@@ -25,10 +25,12 @@ export class Pointing extends StateNode {
 
 			const id = createShapeId()
 
+			this.markId = `creating:${id}`
+
 			this.editor.mark(this.markId)
 
-			this.editor.createShapes<TLBaseBoxShape>(
-				[
+			this.editor
+				.createShapes<TLBaseBoxShape>([
 					{
 						id,
 						type: shapeType,
@@ -39,9 +41,8 @@ export class Pointing extends StateNode {
 							h: 1,
 						},
 					},
-				],
-				true
-			)
+				])
+				.select(id)
 			this.editor.setCurrentTool('select.resizing', {
 				...info,
 				target: 'selection',
@@ -93,9 +94,12 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		const shape = this.editor.getShapeById<TLBaseBoxShape>(id)!
+		const shape = this.editor.getShape<TLBaseBoxShape>(id)!
 		const { w, h } = this.editor.getShapeUtil(shape).getDefaultProps() as TLBaseBoxShape['props']
-		const delta = this.editor.getDeltaInParentSpace(shape, new Vec2d(w / 2, h / 2))
+		const delta = new Vec2d(w / 2, h / 2)
+
+		const parentTransform = this.editor.getShapeParentTransform(shape)
+		if (parentTransform) delta.rot(-parentTransform.rotation())
 
 		this.editor.updateShapes<TLBaseBoxShape>([
 			{
@@ -106,7 +110,7 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		this.editor.setSelectedIds([id])
+		this.editor.setSelectedShapes([id])
 
 		if (this.editor.instanceState.isToolLocked) {
 			this.parent.transition('idle', {})

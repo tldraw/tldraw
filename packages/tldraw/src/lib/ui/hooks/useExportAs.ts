@@ -16,7 +16,10 @@ export function useExportAs() {
 	const msg = useTranslation()
 
 	return useCallback(
-		async function exportAs(ids: TLShapeId[] = editor.selectedIds, format: TLExportType = 'png') {
+		async function exportAs(
+			ids: TLShapeId[] = editor.selectedShapeIds,
+			format: TLExportType = 'png'
+		) {
 			if (ids.length === 0) {
 				ids = [...editor.currentPageShapeIds]
 			}
@@ -32,10 +35,10 @@ export function useExportAs() {
 
 			if (!svg) throw new Error('Could not construct SVG.')
 
-			let name = 'shapes'
+			let name = 'shapes' + getTimestamp()
 
 			if (ids.length === 1) {
-				const first = editor.getShapeById(ids[0])!
+				const first = editor.getShape(ids[0])!
 				if (editor.isShapeOfType<TLFrameShape>(first, 'frame')) {
 					name = first.props.name ?? 'frame'
 				} else {
@@ -46,7 +49,7 @@ export function useExportAs() {
 			switch (format) {
 				case 'svg': {
 					const dataURL = await getSvgAsDataUrl(svg)
-					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.svg`)
+					downloadDataURLAsFile(dataURL, `${name}.svg`)
 					return
 				}
 				case 'webp':
@@ -69,14 +72,14 @@ export function useExportAs() {
 
 					const dataURL = URL.createObjectURL(image)
 
-					downloadDataURLAsFile(dataURL, `${name || 'shapes'}.${format}`)
+					downloadDataURLAsFile(dataURL, `${name}.${format}`)
 
 					URL.revokeObjectURL(dataURL)
 					return
 				}
 
 				case 'json': {
-					const data = editor.getContent(ids)
+					const data = editor.getContentFromCurrentPage(ids)
 					const dataURL = URL.createObjectURL(
 						new Blob([JSON.stringify(data, null, 4)], { type: 'application/json' })
 					)
@@ -93,4 +96,17 @@ export function useExportAs() {
 		},
 		[editor, addToast, msg]
 	)
+}
+
+function getTimestamp() {
+	const now = new Date()
+
+	const year = String(now.getFullYear()).slice(2)
+	const month = String(now.getMonth() + 1).padStart(2, '0')
+	const day = String(now.getDate()).padStart(2, '0')
+	const hours = String(now.getHours()).padStart(2, '0')
+	const minutes = String(now.getMinutes()).padStart(2, '0')
+	const seconds = String(now.getSeconds()).padStart(2, '0')
+
+	return ` at ${year}-${month}-${day} ${hours}.${minutes}.${seconds}`
 }

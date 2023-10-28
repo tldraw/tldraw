@@ -1,4 +1,4 @@
-import { debugFlags, png } from '@tldraw/editor'
+import { PngHelpers, debugFlags } from '@tldraw/editor'
 import { getBrowserCanvasMaxSize } from '../shapes/shared/getBrowserCanvasMaxSize'
 
 /** @public */
@@ -110,7 +110,7 @@ export async function getSvgAsImage(
 	if (!blob) return null
 
 	const view = new DataView(await blob.arrayBuffer())
-	return png.setPhysChunk(view, effectiveScale, {
+	return PngHelpers.setPhysChunk(view, effectiveScale, {
 		type: 'image/' + type,
 	})
 }

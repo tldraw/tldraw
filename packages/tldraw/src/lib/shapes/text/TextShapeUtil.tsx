@@ -1,9 +1,9 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-	Box2d,
 	DefaultFontFamilies,
 	Editor,
 	HTMLContainer,
+	Rectangle2d,
 	ShapeUtil,
 	SvgExportContext,
 	TLOnEditEndHandler,
@@ -17,6 +17,7 @@ import {
 	textShapeMigrations,
 	textShapeProps,
 	toDomPrecision,
+	useEditor,
 } from '@tldraw/editor'
 import { createTextSvgElementFromSpans } from '../shared/createTextSvgElementFromSpans'
 import { FONT_FAMILIES, FONT_SIZES, TEXT_PROPS } from '../shared/default-shape-constants'
@@ -49,26 +50,19 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 		return sizeCache.get(shape.props, (props) => getTextSize(this.editor, props))
 	}
 
-	getBounds(shape: TLTextShape) {
+	getGeometry(shape: TLTextShape) {
 		const { scale } = shape.props
 		const { width, height } = this.getMinDimensions(shape)!
-		return new Box2d(0, 0, width * scale, height * scale)
+		return new Rectangle2d({
+			width: width * scale,
+			height: height * scale,
+			isFilled: true,
+		})
 	}
 
 	override canEdit = () => true
 
 	override isAspectRatioLocked: TLShapeUtilFlag<TLTextShape> = () => true
-
-	override getOutline(shape: TLTextShape) {
-		const bounds = this.editor.getBounds(shape)
-
-		return [
-			new Vec2d(0, 0),
-			new Vec2d(bounds.width, 0),
-			new Vec2d(bounds.width, bounds.height),
-			new Vec2d(0, bounds.height),
-		]
-	}
 
 	component(shape: TLTextShape) {
 		const {
@@ -77,18 +71,19 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			props: { text, color },
 		} = shape
 
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		const { width, height } = this.getMinDimensions(shape)
 
 		const {
 			rInput,
 			isEmpty,
 			isEditing,
-			isEditableFromHover,
 			handleFocus,
 			handleChange,
 			handleKeyDown,
 			handleBlur,
+			handleInputPointerDown,
+			handleDoubleClick,
 		} = useEditableText(id, type, text)
 
 		return (
@@ -98,7 +93,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					data-font={shape.props.font}
 					data-align={shape.props.align}
 					data-hastext={!isEmpty}
-					data-isediting={isEditing || isEditableFromHover}
+					data-isediting={isEditing}
 					data-textwrap={true}
 					style={{
 						fontSize: FONT_SIZES[shape.props.size],
@@ -113,7 +108,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 					<div className="tl-text tl-text-content" dir="ltr">
 						{text}
 					</div>
-					{isEditing || isEditableFromHover ? (
+					{isEditing ? (
 						<textarea
 							ref={rInput}
 							className="tl-text tl-text-input"
@@ -136,6 +131,8 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 							onBlur={handleBlur}
 							onTouchEnd={stopEventPropagation}
 							onContextMenu={stopEventPropagation}
+							onPointerDown={handleInputPointerDown}
+							onDoubleClick={handleDoubleClick}
 						/>
 					) : null}
 				</div>
@@ -144,15 +141,17 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	indicator(shape: TLTextShape) {
-		const bounds = this.getBounds(shape)
+		const bounds = this.editor.getShapeGeometry(shape).bounds
+		const editor = useEditor()
+		if (shape.props.autoSize && editor.editingShapeId === shape.id) return null
 		return <rect width={toDomPrecision(bounds.width)} height={toDomPrecision(bounds.height)} />
 	}
 
 	override toSvg(shape: TLTextShape, ctx: SvgExportContext) {
 		ctx.addExportDef(getFontDefForExport(shape.props.font))
 
-		const theme = getDefaultColorTheme(this.editor)
-		const bounds = this.getBounds(shape)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
+		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const text = shape.props.text
 
 		const width = bounds.width / (shape.props.scale ?? 1)
@@ -373,19 +372,19 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 function getTextSize(editor: Editor, props: TLTextShape['props']) {
 	const { font, text, autoSize, size, w } = props
 
-	const minWidth = 16
+	const minWidth = autoSize ? 16 : Math.max(16, w)
 	const fontSize = FONT_SIZES[size]
 
 	const cw = autoSize
-		? 'fit-content'
+		? null
 		: // `measureText` floors the number so we need to do the same here to avoid issues.
-		  Math.floor(Math.max(minWidth, w)) + 'px'
+		  Math.floor(Math.max(minWidth, w))
 
 	const result = editor.textMeasure.measureText(text, {
 		...TEXT_PROPS,
 		fontFamily: FONT_FAMILIES[font],
 		fontSize: fontSize,
-		width: cw,
+		maxWidth: cw,
 	})
 
 	// // If we're autosizing the measureText will essentially `Math.floor`

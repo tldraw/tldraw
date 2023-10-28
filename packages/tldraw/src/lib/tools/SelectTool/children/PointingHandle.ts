@@ -11,15 +11,21 @@ export class PointingHandle extends StateNode {
 		const initialTerminal = (info.shape as TLArrowShape).props[info.handle.id as 'start' | 'end']
 
 		if (initialTerminal?.type === 'binding') {
-			this.editor.hintingIds = [initialTerminal.boundShapeId]
+			this.editor.setHintingShapes([initialTerminal.boundShapeId])
 		}
 
-		this.editor.cursor = { type: 'grabbing', rotation: 0 }
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'grabbing', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	override onExit = () => {
-		this.editor.hintingIds = []
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.setHintingShapes([])
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {

@@ -1,3 +1,77 @@
+# v2.0.0-alpha.17 (Tue Oct 17 2023)
+
+#### 🔩 Dependency Updates
+
+- bump nanoid [#2078](https://github.com/tldraw/tldraw/pull/2078) ([@ds300](https://github.com/ds300))
+
+#### Authors: 1
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+
+---
+
+# v2.0.0-alpha.16 (Wed Oct 11 2023)
+
+#### 🏠 Internal
+
+- Publish api.json [#2034](https://github.com/tldraw/tldraw/pull/2034) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.0.0-alpha.15 (Fri Oct 06 2023)
+
+### Release Notes
+
+#### Fix shape drag perf ([#1932](https://github.com/tldraw/tldraw/pull/1932))
+
+- Fixes a perf regression for dragging shapes around
+
+#### Migrate snapshot ([#1843](https://github.com/tldraw/tldraw/pull/1843))
+
+- [editor] add `Store.migrateSnapshot`
+
+#### Editor commands API / effects ([#1778](https://github.com/tldraw/tldraw/pull/1778))
+
+- tbd
+
+#### tldraw zero - package shuffle ([#1710](https://github.com/tldraw/tldraw/pull/1710))
+
+- [@tldraw/editor] lots, wip
+- [@tldraw/ui] gone, merged to tldraw/tldraw
+- [@tldraw/polyfills] gone, merged to tldraw/editor
+- [@tldraw/primitives] gone, merged to tldraw/editor / tldraw/tldraw
+- [@tldraw/indices] gone, merged to tldraw/editor
+- [@tldraw/file-format] gone, merged to tldraw/tldraw
+
+---
+
+#### 💥 Breaking Change
+
+- SideEffectManager [#1785](https://github.com/tldraw/tldraw/pull/1785) ([@steveruizok](https://github.com/steveruizok))
+- Revert "Editor commands API / effects" [#1783](https://github.com/tldraw/tldraw/pull/1783) ([@steveruizok](https://github.com/steveruizok))
+- Editor commands API / effects [#1778](https://github.com/tldraw/tldraw/pull/1778) ([@steveruizok](https://github.com/steveruizok))
+- tldraw zero - package shuffle [#1710](https://github.com/tldraw/tldraw/pull/1710) ([@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))
+
+#### 🚀 Enhancement
+
+- Migrate snapshot [#1843](https://github.com/tldraw/tldraw/pull/1843) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- Fix shape drag perf [#1932](https://github.com/tldraw/tldraw/pull/1932) ([@ds300](https://github.com/ds300))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.14 (Tue Jul 04 2023)
 
 ### Release Notes

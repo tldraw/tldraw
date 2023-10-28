@@ -6,6 +6,7 @@ import { Box2d } from '../../primitives/Box2d'
 import { Vec2d } from '../../primitives/Vec2d'
 import { clamp } from '../../primitives/utils'
 
+/** @public */
 export type TLCollaboratorHintComponent = ComponentType<{
 	className?: string
 	point: Vec2dModel
@@ -15,6 +16,7 @@ export type TLCollaboratorHintComponent = ComponentType<{
 	color: string
 }>
 
+/** @public */
 export const DefaultCollaboratorHint: TLCollaboratorHintComponent = ({
 	className,
 	zoom,

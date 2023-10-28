@@ -8,18 +8,16 @@ import {
 	DefaultHorizontalAlignStyle,
 	DefaultSizeStyle,
 	DefaultVerticalAlignStyle,
-	Editor,
 	GeoShapeGeoStyle,
 	LineShapeSplineStyle,
 	ReadonlySharedStyleMap,
 	SharedStyle,
-	SharedStyleMap,
 	StyleProp,
 	minBy,
 	useEditor,
-	useValue,
 } from '@tldraw/editor'
 import React, { useCallback } from 'react'
+import { useRelevantStyles } from '../../hooks/useRevelantStyles'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { ButtonPicker } from '../primitives/ButtonPicker'
@@ -32,32 +30,15 @@ interface StylePanelProps {
 	isMobile?: boolean
 }
 
-const selectToolStyles = [DefaultColorStyle, DefaultDashStyle, DefaultFillStyle, DefaultSizeStyle]
-function getRelevantStyles(
-	editor: Editor
-): { styles: ReadonlySharedStyleMap; opacity: SharedStyle<number> } | null {
-	const styles = new SharedStyleMap(editor.sharedStyles)
-	const hasShape = editor.selectedIds.length > 0 || !!editor.root.current.value?.shapeType
-
-	if (styles.size === 0 && editor.isIn('select') && editor.selectedIds.length === 0) {
-		for (const style of selectToolStyles) {
-			styles.applyValue(style, editor.getStyleForNextShape(style))
-		}
-	}
-
-	if (styles.size === 0 && !hasShape) return null
-	return { styles, opacity: editor.sharedOpacity }
-}
-
 /** @internal */
 export const StylePanel = function StylePanel({ isMobile }: StylePanelProps) {
 	const editor = useEditor()
 
-	const relevantStyles = useValue('getRelevantStyles', () => getRelevantStyles(editor), [editor])
+	const relevantStyles = useRelevantStyles()
 
 	const handlePointerOut = useCallback(() => {
 		if (!isMobile) {
-			editor.isChangingStyle = false
+			editor.updateInstanceState({ isChangingStyle: false })
 		}
 	}, [editor, isMobile])
 
@@ -94,9 +75,14 @@ function useStyleChangeCallback() {
 	const editor = useEditor()
 
 	return React.useMemo(() => {
-		return function <T>(style: StyleProp<T>, value: T, squashing: boolean) {
-			editor.setStyle(style, value, squashing)
-			editor.isChangingStyle = true
+		return function handleStyleChange<T>(style: StyleProp<T>, value: T, squashing: boolean) {
+			editor.batch(() => {
+				if (editor.isIn('select')) {
+					editor.setStyleForSelectedShapes(style, value, { squashing })
+				}
+				editor.setStyleForNextShapes(style, value, { squashing })
+				editor.updateInstanceState({ isChangingStyle: true })
+			})
 		}
 	}, [editor])
 }
@@ -118,8 +104,13 @@ function CommonStylePickerSet({
 	const handleOpacityValueChange = React.useCallback(
 		(value: number, ephemeral: boolean) => {
 			const item = tldrawSupportedOpacities[value]
-			editor.setOpacity(item, ephemeral)
-			editor.isChangingStyle = true
+			editor.batch(() => {
+				if (editor.isIn('select')) {
+					editor.setOpacityForSelectedShapes(item, { ephemeral })
+				}
+				editor.setOpacityForNextShapes(item, { ephemeral })
+				editor.updateInstanceState({ isChangingStyle: true })
+			})
 		},
 		[editor]
 	)
@@ -142,7 +133,11 @@ function CommonStylePickerSet({
 
 	return (
 		<>
-			<div className="tlui-style-panel__section__common" aria-label="style panel styles">
+			<div
+				tabIndex={-1}
+				className="tlui-style-panel__section__common"
+				aria-label="style panel styles"
+			>
 				{color === undefined ? null : (
 					<ButtonPicker
 						title={msg('style-panel.color')}
@@ -157,7 +152,9 @@ function CommonStylePickerSet({
 					<Slider
 						data-testid="style.opacity"
 						value={opacityIndex >= 0 ? opacityIndex : tldrawSupportedOpacities.length - 1}
-						label={opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity}`}
+						label={
+							opacity.type === 'mixed' ? 'style-panel.mixed' : `opacity-style.${opacity.value}`
+						}
 						onValueChange={handleOpacityValueChange}
 						steps={tldrawSupportedOpacities.length - 1}
 						title={msg('style-panel.opacity')}

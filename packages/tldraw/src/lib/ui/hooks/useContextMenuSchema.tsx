@@ -55,38 +55,9 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 
-	const selectedCount = editor.selectedIds.length
+	const selectedCount = editor.selectedShapeIds.length
 
 	const oneSelected = selectedCount > 0
-
-	// const oneEmbedSelected = useValue(
-	// 	'oneEmbedSelected',
-	// 	() => {
-	// 		if (editor.selectedIds.length !== 1) return false
-	// 		return editor.selectedIds.some((selectedId) => {
-	// 			const shape = editor.getShapeById(selectedId)
-	// 			return shape && editor.isShapeOfType<TLEmbedShape>(shape, 'embed') && shape.props.url
-	// 		})
-	// 	},
-	// 	[]
-	// )
-
-	// const oneEmbeddableBookmarkSelected = useValue(
-	// 	'oneEmbeddableBookmarkSelected',
-	// 	() => {
-	// 		if (editor.selectedIds.length !== 1) return false
-	// 		return editor.selectedIds.some((selectedId) => {
-	// 			const shape = editor.getShapeById(selectedId)
-	// 			return (
-	// 				shape &&
-	// 				editor.isShapeOfType<TLBookmarkShape>(shape, 'bookmark') &&
-	// 				shape.props.url &&
-	// 				getEmbedInfo(shape.props.url)
-	// 			)
-	// 		})
-	// 	},
-	// 	[]
-	// )
 
 	const twoSelected = selectedCount > 1
 	const threeSelected = selectedCount > 2
@@ -112,9 +83,6 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 		let contextTLUiMenuSchema: TLUiContextTTLUiMenuSchemaContextType = compactMenuItems([
 			menuGroup(
 				'selection',
-				// oneEmbedSelected && menuItem(actions['open-embed-link']),
-				// oneEmbedSelected && !isShapeLocked && menuItem(actions['convert-to-bookmark']),
-				// oneEmbeddableBookmarkSelected && menuItem(actions['convert-to-embed']),
 				showAutoSizeToggle && menuItem(actions['toggle-auto-size']),
 				showEditLink && !isShapeLocked && menuItem(actions['edit-link']),
 				oneSelected && !isShapeLocked && menuItem(actions['duplicate']),

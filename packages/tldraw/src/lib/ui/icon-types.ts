@@ -131,6 +131,8 @@ export type TLUiIconType =
 	| 'spline-line'
 	| 'stack-horizontal'
 	| 'stack-vertical'
+	| 'status-offline'
+	| 'status-online'
 	| 'stretch-horizontal'
 	| 'stretch-vertical'
 	| 'text-align-center'
@@ -296,6 +298,8 @@ export const iconTypes = [
 	'spline-line',
 	'stack-horizontal',
 	'stack-vertical',
+	'status-offline',
+	'status-online',
 	'stretch-horizontal',
 	'stretch-vertical',
 	'text-align-center',

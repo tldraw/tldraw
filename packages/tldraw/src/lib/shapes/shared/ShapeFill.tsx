@@ -5,6 +5,7 @@ import {
 	TLDefaultFillStyle,
 	getDefaultColorTheme,
 	useEditor,
+	useIsDarkMode,
 	useValue,
 } from '@tldraw/editor'
 import React from 'react'
@@ -13,48 +14,45 @@ export interface ShapeFillProps {
 	d: string
 	fill: TLDefaultFillStyle
 	color: TLDefaultColorStyle
+	theme: TLDefaultColorTheme
 }
 
 export function useDefaultColorTheme() {
-	const editor = useEditor()
-	return getDefaultColorTheme(editor)
+	return getDefaultColorTheme({ isDarkMode: useIsDarkMode() })
 }
 
-export const ShapeFill = React.memo(function ShapeFill({ d, color, fill }: ShapeFillProps) {
-	const theme = useDefaultColorTheme()
+export const ShapeFill = React.memo(function ShapeFill({ theme, d, color, fill }: ShapeFillProps) {
 	switch (fill) {
 		case 'none': {
-			return <path className={'tl-hitarea-stroke'} fill="none" d={d} />
+			return null
 		}
 		case 'solid': {
-			return <path className={'tl-hitarea-fill-solid'} fill={theme[color].semi} d={d} />
+			return <path fill={theme[color].semi} d={d} />
 		}
 		case 'semi': {
-			return <path className={'tl-hitarea-fill-solid'} fill={theme.solid} d={d} />
+			return <path fill={theme.solid} d={d} />
 		}
 		case 'pattern': {
-			return <PatternFill color={color} fill={fill} d={d} />
+			return <PatternFill theme={theme} color={color} fill={fill} d={d} />
 		}
 	}
 })
 
-const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
+const PatternFill = function PatternFill({ d, color, theme }: ShapeFillProps) {
 	const editor = useEditor()
-	const theme = useDefaultColorTheme()
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
-	const isDarkMode = useValue('isDarkMode', () => editor.isDarkMode, [editor])
 
 	const intZoom = Math.ceil(zoomLevel)
 	const teenyTiny = editor.zoomLevel <= 0.18
 
 	return (
 		<>
-			<path className={'tl-hitarea-fill-solid'} fill={theme[color].pattern} d={d} />
+			<path fill={theme[color].pattern} d={d} />
 			<path
 				fill={
 					teenyTiny
 						? theme[color].semi
-						: `url(#${HASH_PATTERN_ZOOM_NAMES[intZoom + (isDarkMode ? '_dark' : '_light')]})`
+						: `url(#${HASH_PATTERN_ZOOM_NAMES[`${intZoom}_${theme.id}`]})`
 				}
 				d={d}
 			/>
@@ -62,12 +60,7 @@ const PatternFill = function PatternFill({ d, color }: ShapeFillProps) {
 	)
 }
 
-export function getShapeFillSvg({
-	d,
-	color,
-	fill,
-	theme,
-}: ShapeFillProps & { theme: TLDefaultColorTheme }) {
+export function getShapeFillSvg({ d, color, fill, theme }: ShapeFillProps) {
 	if (fill === 'none') {
 		return
 	}

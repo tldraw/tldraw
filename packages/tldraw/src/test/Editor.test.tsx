@@ -1,4 +1,11 @@
-import { BaseBoxShapeUtil, PageRecordType, TLShape, createShapeId } from '@tldraw/editor'
+import {
+	AssetRecordType,
+	BaseBoxShapeUtil,
+	PageRecordType,
+	TLShape,
+	createShapeId,
+	debounce,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 import { TL } from './test-jsx'
 
@@ -29,8 +36,8 @@ beforeEach(() => {
 	])
 
 	const page1 = editor.currentPageId
-	editor.createPage('page 2', ids.page2)
-	editor.setCurrentPageId(page1)
+	editor.createPage({ name: 'page 2', id: ids.page2 })
+	editor.setCurrentPage(page1)
 })
 
 const moveShapesToPage2 = () => {
@@ -44,82 +51,82 @@ const moveShapesToPage2 = () => {
 }
 
 describe('shapes that are moved to another page', () => {
-	it("should be excluded from the previous page's focusLayerId", () => {
-		editor.focusLayerId = ids.group1
-		expect(editor.focusLayerId).toBe(ids.group1)
+	it("should be excluded from the previous page's focusedGroupId", () => {
+		editor.setFocusedGroup(ids.group1)
+		expect(editor.focusedGroupId).toBe(ids.group1)
 		moveShapesToPage2()
-		expect(editor.focusLayerId).toBe(editor.currentPageId)
+		expect(editor.focusedGroupId).toBe(editor.currentPageId)
 	})
 
-	describe("should be excluded from the previous page's hintingIds", () => {
+	describe("should be excluded from the previous page's hintingShapeIds", () => {
 		test('[boxes]', () => {
-			editor.hintingIds = [ids.box1, ids.box2, ids.box3]
-			expect(editor.hintingIds).toEqual([ids.box1, ids.box2, ids.box3])
+			editor.setHintingShapes([ids.box1, ids.box2, ids.box3])
+			expect(editor.hintingShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.hintingIds).toEqual([])
+			expect(editor.hintingShapeIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.hintingIds = [ids.frame1]
-			expect(editor.hintingIds).toEqual([ids.frame1])
+			editor.setHintingShapes([ids.frame1])
+			expect(editor.hintingShapeIds).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.hintingIds).toEqual([ids.frame1])
+			expect(editor.hintingShapeIds).toEqual([ids.frame1])
 		})
 	})
 
-	describe("should be excluded from the previous page's editingId", () => {
+	describe("should be excluded from the previous page's editingShapeId", () => {
 		test('[root shape]', () => {
-			editor.editingId = ids.box1
-			expect(editor.editingId).toBe(ids.box1)
+			editor.setEditingShape(ids.box1)
+			expect(editor.editingShapeId).toBe(ids.box1)
 			moveShapesToPage2()
-			expect(editor.editingId).toBe(null)
+			expect(editor.editingShapeId).toBe(null)
 		})
 		test('[child of frame]', () => {
-			editor.editingId = ids.box2
-			expect(editor.editingId).toBe(ids.box2)
+			editor.setEditingShape(ids.box2)
+			expect(editor.editingShapeId).toBe(ids.box2)
 			moveShapesToPage2()
-			expect(editor.editingId).toBe(null)
+			expect(editor.editingShapeId).toBe(null)
 		})
 		test('[child of group]', () => {
-			editor.editingId = ids.box3
-			expect(editor.editingId).toBe(ids.box3)
+			editor.setEditingShape(ids.box3)
+			expect(editor.editingShapeId).toBe(ids.box3)
 			moveShapesToPage2()
-			expect(editor.editingId).toBe(null)
+			expect(editor.editingShapeId).toBe(null)
 		})
 		test('[frame that doesnt move]', () => {
-			editor.editingId = ids.frame1
-			expect(editor.editingId).toBe(ids.frame1)
+			editor.setEditingShape(ids.frame1)
+			expect(editor.editingShapeId).toBe(ids.frame1)
 			moveShapesToPage2()
-			expect(editor.editingId).toBe(ids.frame1)
+			expect(editor.editingShapeId).toBe(ids.frame1)
 		})
 	})
 
-	describe("should be excluded from the previous page's erasingIds", () => {
+	describe("should be excluded from the previous page's erasingShapeIds", () => {
 		test('[boxes]', () => {
-			editor.erasingIds = [ids.box1, ids.box2, ids.box3]
-			expect(editor.erasingIds).toEqual([ids.box1, ids.box2, ids.box3])
+			editor.setErasingShapes([ids.box1, ids.box2, ids.box3])
+			expect(editor.erasingShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.erasingIds).toEqual([])
+			expect(editor.erasingShapeIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.erasingIds = [ids.frame1]
-			expect(editor.erasingIds).toEqual([ids.frame1])
+			editor.setErasingShapes([ids.frame1])
+			expect(editor.erasingShapeIds).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.erasingIds).toEqual([ids.frame1])
+			expect(editor.erasingShapeIds).toEqual([ids.frame1])
 		})
 	})
 
-	describe("should be excluded from the previous page's selectedIds", () => {
+	describe("should be excluded from the previous page's selectedShapeIds", () => {
 		test('[boxes]', () => {
-			editor.setSelectedIds([ids.box1, ids.box2, ids.box3])
-			expect(editor.selectedIds).toEqual([ids.box1, ids.box2, ids.box3])
+			editor.setSelectedShapes([ids.box1, ids.box2, ids.box3])
+			expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.selectedIds).toEqual([])
+			expect(editor.selectedShapeIds).toEqual([])
 		})
 		test('[frame that does not move]', () => {
-			editor.setSelectedIds([ids.frame1])
-			expect(editor.selectedIds).toEqual([ids.frame1])
+			editor.setSelectedShapes([ids.frame1])
+			expect(editor.selectedShapeIds).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.selectedIds).toEqual([ids.frame1])
+			expect(editor.selectedShapeIds).toEqual([ids.frame1])
 		})
 	})
 })
@@ -150,13 +157,14 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 describe('Editor.sharedOpacity', () => {
 	it('should return the current opacity', () => {
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 1 })
-		editor.setOpacity(0.5)
+		editor.setOpacityForSelectedShapes(0.5)
+		editor.setOpacityForNextShapes(0.5)
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.5 })
 	})
 
 	it('should return opacity for a single selected shape', () => {
 		const { A } = editor.createShapesFromJsx(<TL.geo ref="A" opacity={0.3} x={0} y={0} />)
-		editor.setSelectedIds([A])
+		editor.setSelectedShapes([A])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
@@ -165,7 +173,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
 			<TL.geo ref="B" opacity={0.3} x={0} y={0} />,
 		])
-		editor.setSelectedIds([A, B])
+		editor.setSelectedShapes([A, B])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 
@@ -174,7 +182,7 @@ describe('Editor.sharedOpacity', () => {
 			<TL.geo ref="A" opacity={0.3} x={0} y={0} />,
 			<TL.geo ref="B" opacity={0.5} x={0} y={0} />,
 		])
-		editor.setSelectedIds([A, B])
+		editor.setSelectedShapes([A, B])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'mixed' })
 	})
 
@@ -184,7 +192,7 @@ describe('Editor.sharedOpacity', () => {
 				<TL.geo ref="A" opacity={0.3} x={0} y={0} />
 			</TL.group>,
 		])
-		editor.setSelectedIds([ids.group])
+		editor.setSelectedShapes([ids.group])
 		expect(editor.sharedOpacity).toStrictEqual({ type: 'shared', value: 0.3 })
 	})
 })
@@ -196,11 +204,12 @@ describe('Editor.setOpacity', () => {
 			<TL.geo ref="B" opacity={0.4} x={0} y={0} />,
 		])
 
-		editor.setSelectedIds([ids.A, ids.B])
-		editor.setOpacity(0.5)
+		editor.setSelectedShapes([ids.A, ids.B])
+		editor.setOpacityForSelectedShapes(0.5)
+		editor.setOpacityForNextShapes(0.5)
 
-		expect(editor.getShapeById(ids.A)!.opacity).toBe(0.5)
-		expect(editor.getShapeById(ids.B)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.A)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.B)!.opacity).toBe(0.5)
 	})
 
 	it('should traverse into groups and set opacity in their children', () => {
@@ -215,26 +224,29 @@ describe('Editor.setOpacity', () => {
 			</TL.group>,
 		])
 
-		editor.setSelectedIds([ids.groupA])
-		editor.setOpacity(0.5)
+		editor.setSelectedShapes([ids.groupA])
+		editor.setOpacityForSelectedShapes(0.5)
+		editor.setOpacityForNextShapes(0.5)
 
 		// a wasn't selected...
-		expect(editor.getShapeById(ids.boxA)!.opacity).toBe(1)
+		expect(editor.getShape(ids.boxA)!.opacity).toBe(1)
 
 		// b, c, & d were within a selected group...
-		expect(editor.getShapeById(ids.boxB)!.opacity).toBe(0.5)
-		expect(editor.getShapeById(ids.boxC)!.opacity).toBe(0.5)
-		expect(editor.getShapeById(ids.boxD)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxB)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxC)!.opacity).toBe(0.5)
+		expect(editor.getShape(ids.boxD)!.opacity).toBe(0.5)
 
 		// groups get skipped
-		expect(editor.getShapeById(ids.groupA)!.opacity).toBe(1)
-		expect(editor.getShapeById(ids.groupB)!.opacity).toBe(1)
+		expect(editor.getShape(ids.groupA)!.opacity).toBe(1)
+		expect(editor.getShape(ids.groupB)!.opacity).toBe(1)
 	})
 
 	it('stores opacity on opacityForNextShape', () => {
-		editor.setOpacity(0.5)
+		editor.setOpacityForSelectedShapes(0.5)
+		editor.setOpacityForNextShapes(0.5)
 		expect(editor.instanceState.opacityForNextShape).toBe(0.5)
-		editor.setOpacity(0.6)
+		editor.setOpacityForSelectedShapes(0.6)
+		editor.setOpacityForNextShapes(0.6)
 		expect(editor.instanceState.opacityForNextShape).toBe(0.6)
 	})
 })
@@ -285,7 +297,8 @@ describe("App's default tool", () => {
 	})
 	it('Is hand for readonly mode', () => {
 		editor = new TestEditor()
-		editor.isReadOnly = true
+		editor.updateInstanceState({ isReadonly: true })
+		editor.setCurrentTool('hand')
 		expect(editor.currentToolId).toBe('hand')
 	})
 })
@@ -344,91 +357,108 @@ describe('currentToolId', () => {
 })
 
 describe('isFocused', () => {
+	beforeEach(() => {
+		// lame but duplicated here since this was moved into a hook
+		const container = editor.getContainer()
+
+		const updateFocus = debounce(() => {
+			const { activeElement } = document
+			const { isFocused: wasFocused } = editor.instanceState
+			const isFocused =
+				document.hasFocus() && (container === activeElement || container.contains(activeElement))
+
+			if (wasFocused !== isFocused) {
+				editor.updateInstanceState({ isFocused })
+				editor.updateViewportScreenBounds()
+
+				if (!isFocused) {
+					// When losing focus, run complete() to ensure that any interacts end
+					editor.complete()
+				}
+			}
+		}, 32)
+
+		container.addEventListener('focusin', updateFocus)
+		container.addEventListener('focus', updateFocus)
+		container.addEventListener('focusout', updateFocus)
+		container.addEventListener('blur', updateFocus)
+	})
+
 	it('is false by default', () => {
-		expect(editor.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes true when you call .focus()', () => {
-		editor.isFocused = true
-		expect(editor.isFocused).toBe(true)
+		editor.updateInstanceState({ isFocused: true })
+		expect(editor.instanceState.isFocused).toBe(true)
 	})
 
 	it('becomes false when you call .blur()', () => {
-		editor.isFocused = true
-		expect(editor.isFocused).toBe(true)
+		editor.updateInstanceState({ isFocused: true })
+		expect(editor.instanceState.isFocused).toBe(true)
 
-		editor.isFocused = false
-		expect(editor.isFocused).toBe(false)
+		editor.updateInstanceState({ isFocused: false })
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('remains false when you call .blur()', () => {
-		expect(editor.isFocused).toBe(false)
-		editor.isFocused = false
-		expect(editor.isFocused).toBe(false)
+		expect(editor.instanceState.isFocused).toBe(false)
+		editor.updateInstanceState({ isFocused: false })
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes true when the container div receives a focus event', () => {
-		expect(editor.isFocused).toBe(false)
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 
 		editor.elm.focus()
 
-		expect(editor.isFocused).toBe(true)
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(true)
 	})
 
 	it('becomes false when the container div receives a blur event', () => {
-		editor.isFocused = true
-		expect(editor.isFocused).toBe(true)
+		editor.elm.focus()
+
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(true)
 
 		editor.elm.blur()
 
-		expect(editor.isFocused).toBe(false)
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
-	it('becomes true when a child of the app container div receives a focusin event', () => {
+	it.skip('becomes true when a child of the app container div receives a focusin event', () => {
+		// We need to skip this one because it's not actually true: the focusin event will bubble
+		// to the document.body, resulting in that being the active element. In reality, the editor's
+		// container would also have received a focus event, and after the editor's debounce ends,
+		// the container (or one of its descendants) will be the focused element.
 		editor.elm.blur()
-
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
-
-		expect(editor.isFocused).toBe(false)
-
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 		child.dispatchEvent(new FocusEvent('focusin', { bubbles: true }))
-
-		expect(editor.isFocused).toBe(true)
-
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(true)
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
-
-		expect(editor.isFocused).toBe(false)
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 
 	it('becomes false when a child of the app container div receives a focusout event', () => {
 		const child = document.createElement('div')
 		editor.elm.appendChild(child)
 
-		editor.isFocused = true
+		editor.updateInstanceState({ isFocused: true })
 
-		expect(editor.isFocused).toBe(true)
+		expect(editor.instanceState.isFocused).toBe(true)
 
 		child.dispatchEvent(new FocusEvent('focusout', { bubbles: true }))
 
-		expect(editor.isFocused).toBe(false)
-	})
-
-	it('calls .focus() and .blur() on the container div when you call .focus() and .blur() on the editor', () => {
-		const focusMock = jest.spyOn(editor.elm, 'focus').mockImplementation()
-		const blurMock = jest.spyOn(editor.elm, 'blur').mockImplementation()
-
-		expect(focusMock).not.toHaveBeenCalled()
-		expect(blurMock).not.toHaveBeenCalled()
-
-		editor.isFocused = true
-
-		expect(focusMock).toHaveBeenCalled()
-		expect(blurMock).not.toHaveBeenCalled()
-
-		editor.isFocused = false
-
-		expect(blurMock).toHaveBeenCalled()
+		jest.advanceTimersByTime(100)
+		expect(editor.instanceState.isFocused).toBe(false)
 	})
 })
 
@@ -463,12 +493,12 @@ describe('getShapeUtil', () => {
 			{ id: ids.box1, type: 'blorg', x: 100, y: 100, props: { w: 100, h: 100 } },
 		])
 		const page1 = editor.currentPageId
-		editor.createPage('page 2', ids.page2)
-		editor.setCurrentPageId(page1)
+		editor.createPage({ name: 'page 2', id: ids.page2 })
+		editor.setCurrentPage(page1)
 	})
 
 	it('accepts shapes', () => {
-		const shape = editor.getShapeById(ids.box1)!
+		const shape = editor.getShape(ids.box1)!
 		const util = editor.getShapeUtil(shape)
 		expect(util).toBeInstanceOf(myUtil)
 	})
@@ -489,5 +519,129 @@ describe('getShapeUtil', () => {
 		expect(() => editor.getShapeUtil('missing')).toThrowErrorMatchingInlineSnapshot(
 			`"No shape util found for type \\"missing\\""`
 		)
+	})
+})
+
+describe('snapshots', () => {
+	it('creates and loads a snapshot', () => {
+		const ids = {
+			imageA: createShapeId('imageA'),
+			boxA: createShapeId('boxA'),
+			imageAssetA: AssetRecordType.createId('imageAssetA'),
+		}
+
+		editor.createAssets([
+			{
+				type: 'image',
+				id: ids.imageAssetA,
+				typeName: 'asset',
+				props: {
+					w: 1200,
+					h: 800,
+					name: '',
+					isAnimated: false,
+					mimeType: 'png',
+					src: '',
+				},
+				meta: {},
+			},
+		])
+
+		editor.createShapes([
+			{ type: 'geo', x: 0, y: 0 },
+			{ type: 'geo', x: 100, y: 0 },
+			{
+				id: ids.imageA,
+				type: 'image',
+				props: {
+					playing: false,
+					url: '',
+					w: 1200,
+					h: 800,
+					assetId: ids.imageAssetA,
+				},
+				x: 0,
+				y: 1200,
+			},
+		])
+
+		const page2Id = PageRecordType.createId('page2')
+
+		editor.createPage({
+			id: page2Id,
+		})
+
+		editor.setCurrentPage(page2Id)
+
+		editor.createShapes([
+			{ type: 'geo', x: 0, y: 0 },
+			{ type: 'geo', x: 100, y: 0 },
+		])
+
+		editor.selectAll()
+
+		// now serialize
+
+		const snapshot = editor.store.getSnapshot()
+
+		const newEditor = new TestEditor()
+
+		newEditor.store.loadSnapshot(snapshot)
+
+		expect(editor.store.serialize()).toEqual(newEditor.store.serialize())
+	})
+})
+
+describe('when the user prefers dark UI', () => {
+	beforeEach(() => {
+		window.matchMedia = jest.fn().mockImplementation((query) => {
+			return {
+				matches: query === '(prefers-color-scheme: dark)',
+				media: query,
+				onchange: null,
+				addEventListener: jest.fn(),
+				removeEventListener: jest.fn(),
+				dispatchEvent: jest.fn(),
+			}
+		})
+	})
+	it('isDarkMode should be false by default', () => {
+		editor = new TestEditor({})
+		expect(editor.user.isDarkMode).toBe(false)
+	})
+	it('isDarkMode should be false when inferDarkMode is false', () => {
+		editor = new TestEditor({ inferDarkMode: false })
+		expect(editor.user.isDarkMode).toBe(false)
+	})
+	it('should be true if the editor was instantiated with inferDarkMode', () => {
+		editor = new TestEditor({ inferDarkMode: true })
+		expect(editor.user.isDarkMode).toBe(true)
+	})
+})
+
+describe('when the user prefers light UI', () => {
+	beforeEach(() => {
+		window.matchMedia = jest.fn().mockImplementation((query) => {
+			return {
+				matches: false,
+				media: query,
+				onchange: null,
+				addEventListener: jest.fn(),
+				removeEventListener: jest.fn(),
+				dispatchEvent: jest.fn(),
+			}
+		})
+	})
+	it('isDarkMode should be false by default', () => {
+		editor = new TestEditor({})
+		expect(editor.user.isDarkMode).toBe(false)
+	})
+	it('isDarkMode should be false when inferDarkMode is false', () => {
+		editor = new TestEditor({ inferDarkMode: false })
+		expect(editor.user.isDarkMode).toBe(false)
+	})
+	it('should be false if the editor was instantiated with inferDarkMode', () => {
+		editor = new TestEditor({ inferDarkMode: true })
+		expect(editor.user.isDarkMode).toBe(false)
 	})
 })

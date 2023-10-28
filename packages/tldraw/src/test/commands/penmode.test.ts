@@ -9,7 +9,7 @@ beforeEach(() => {
 
 it('ignores touch events while in pen mode', async () => {
 	editor.setCurrentTool('draw')
-	editor.isPenMode = true
+	editor.updateInstanceState({ isPenMode: true })
 	editor.dispatch({
 		type: 'pointer',
 		name: 'pointer_down',
@@ -23,5 +23,5 @@ it('ignores touch events while in pen mode', async () => {
 		target: 'canvas',
 	})
 
-	expect(editor.shapesArray.length).toBe(0)
+	expect(editor.currentPageShapes.length).toBe(0)
 })

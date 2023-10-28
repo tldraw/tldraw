@@ -12,6 +12,7 @@ export type TLScribbleComponent = ComponentType<{
 	className?: string
 }>
 
+/** @public */
 export const DefaultScribble: TLScribbleComponent = ({
 	scribble,
 	zoom,

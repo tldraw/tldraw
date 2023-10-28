@@ -36,9 +36,9 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 								disabled={currentPageId === page.id}
 								onSelect={() => {
 									editor.mark('move_shapes_to_page')
-									editor.moveShapesToPage(editor.selectedIds, page.id as TLPageId)
+									editor.moveShapesToPage(editor.selectedShapeIds, page.id as TLPageId)
 
-									const toPage = editor.getPageById(page.id)
+									const toPage = editor.getPage(page.id)
 
 									if (toPage) {
 										addToast({
@@ -50,7 +50,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 													type: 'primary',
 													onClick: () => {
 														editor.mark('change-page')
-														editor.setCurrentPageId(currentPageId)
+														editor.setCurrentPage(currentPageId)
 													},
 												},
 											],
@@ -77,13 +77,11 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 						<_ContextMenu.Item
 							key="new-page"
 							onSelect={() => {
-								editor.mark('move_shapes_to_page')
 								const newPageId = PageRecordType.createId()
-								const ids = editor.selectedIds
-								const oldPageId = editor.currentPageId
+								const ids = editor.selectedShapeIds
 								editor.batch(() => {
-									editor.createPage('Page 1', newPageId)
-									editor.setCurrentPageId(oldPageId)
+									editor.mark('move_shapes_to_page')
+									editor.createPage({ name: 'Page', id: newPageId })
 									editor.moveShapesToPage(ids, newPageId)
 								})
 							}}

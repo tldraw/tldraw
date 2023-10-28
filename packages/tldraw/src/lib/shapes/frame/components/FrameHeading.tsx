@@ -2,11 +2,12 @@ import {
 	SelectionEdge,
 	TLShapeId,
 	canonicalizeRotation,
+	getPointerInfo,
 	toDomPrecision,
 	useEditor,
 	useIsEditing,
 } from '@tldraw/editor'
-import { useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { FrameLabelInput } from './FrameLabelInput'
 
 export const FrameHeading = function FrameHeading({
@@ -22,10 +23,29 @@ export const FrameHeading = function FrameHeading({
 }) {
 	const editor = useEditor()
 
-	const pageRotation = canonicalizeRotation(editor.getPageRotationById(id))
+	const pageRotation = canonicalizeRotation(editor.getShapePageTransform(id)!.rotation())
 	const isEditing = useIsEditing(id)
 
 	const rInput = useRef<HTMLInputElement>(null)
+
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent) => {
+			const event = getPointerInfo(e)
+
+			// If we're editing the frame label, we shouldn't hijack the pointer event
+			if (editor.editingShapeId === id) return
+
+			editor.dispatch({
+				type: 'pointer',
+				name: 'pointer_down',
+				target: 'shape',
+				shape: editor.getShape(id)!,
+				...event,
+			})
+			e.preventDefault()
+		},
+		[editor, id]
+	)
 
 	useEffect(() => {
 		const el = rInput.current
@@ -77,9 +97,10 @@ export const FrameHeading = function FrameHeading({
 				maxWidth: `calc(var(--tl-zoom) * ${
 					labelSide === 'top' || labelSide === 'bottom' ? Math.ceil(width) : Math.ceil(height)
 				}px + var(--space-5))`,
-				bottom: Math.ceil(height),
+				bottom: '100%',
 				transform: `${labelTranslate} scale(var(--tl-scale)) translateX(calc(-1 * var(--space-3))`,
 			}}
+			onPointerDown={handlePointerDown}
 		>
 			<div className="tl-frame-heading-hit-area">
 				<FrameLabelInput ref={rInput} id={id} name={name} isEditing={isEditing} />

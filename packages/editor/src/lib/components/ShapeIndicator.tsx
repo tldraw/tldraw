@@ -11,7 +11,11 @@ import { OptionalErrorBoundary } from './ErrorBoundary'
 class ShapeWithPropsEquality {
 	constructor(public shape: TLShape | undefined) {}
 	equals(other: ShapeWithPropsEquality) {
-		return this.shape?.props === other?.shape?.props && this.shape?.meta === other?.shape?.meta
+		return (
+			this.shape?.isLocked === other?.shape?.isLocked &&
+			this.shape?.props === other?.shape?.props &&
+			this.shape?.meta === other?.shape?.meta
+		)
 	}
 }
 
@@ -28,7 +32,8 @@ export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }
 
 	const { ShapeIndicatorErrorFallback } = useEditorComponents()
 
-	if (!shape.shape) return null
+	if (!shape.shape || shape.shape.isLocked) return null
+
 	return (
 		<OptionalErrorBoundary
 			fallback={ShapeIndicatorErrorFallback}
@@ -45,12 +50,13 @@ export const InnerIndicator = ({ editor, id }: { editor: Editor; id: TLShapeId }
 	)
 }
 
-export type TLShapeIndicatorComponent = (props: {
+/** @public */
+export type TLShapeIndicatorComponent = React.ComponentType<{
 	id: TLShapeId
 	color?: string | undefined
 	opacity?: number
 	className?: string
-}) => JSX.Element | null
+}>
 
 const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opacity }) => {
 	const editor = useEditor()
@@ -58,7 +64,7 @@ const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opac
 	const transform = useValue(
 		'transform',
 		() => {
-			const pageTransform = editor.getPageTransformById(id)
+			const pageTransform = editor.getShapePageTransform(id)
 			if (!pageTransform) return ''
 			return pageTransform.toCssString()
 		},
@@ -79,4 +85,5 @@ const _ShapeIndicator: TLShapeIndicatorComponent = ({ id, className, color, opac
 	)
 }
 
+/** @public */
 export const ShapeIndicator = React.memo(_ShapeIndicator)

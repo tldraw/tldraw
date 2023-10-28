@@ -9,6 +9,31 @@ export { Tldraw } from './lib/Tldraw'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { defaultTools } from './lib/defaultTools'
+export { ArrowShapeTool } from './lib/shapes/arrow/ArrowShapeTool'
+export { ArrowShapeUtil } from './lib/shapes/arrow/ArrowShapeUtil'
+export { BookmarkShapeUtil } from './lib/shapes/bookmark/BookmarkShapeUtil'
+export { DrawShapeTool } from './lib/shapes/draw/DrawShapeTool'
+export { DrawShapeUtil } from './lib/shapes/draw/DrawShapeUtil'
+export { EmbedShapeUtil } from './lib/shapes/embed/EmbedShapeUtil'
+export { FrameShapeTool } from './lib/shapes/frame/FrameShapeTool'
+export { FrameShapeUtil } from './lib/shapes/frame/FrameShapeUtil'
+export { GeoShapeTool } from './lib/shapes/geo/GeoShapeTool'
+export { GeoShapeUtil } from './lib/shapes/geo/GeoShapeUtil'
+export { HighlightShapeTool } from './lib/shapes/highlight/HighlightShapeTool'
+export { HighlightShapeUtil } from './lib/shapes/highlight/HighlightShapeUtil'
+export { ImageShapeUtil } from './lib/shapes/image/ImageShapeUtil'
+export { LineShapeTool } from './lib/shapes/line/LineShapeTool'
+export { LineShapeUtil } from './lib/shapes/line/LineShapeUtil'
+export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
+export { NoteShapeUtil } from './lib/shapes/note/NoteShapeUtil'
+export { TextShapeTool } from './lib/shapes/text/TextShapeTool'
+export { TextShapeUtil } from './lib/shapes/text/TextShapeUtil'
+export { VideoShapeUtil } from './lib/shapes/video/VideoShapeUtil'
+export { EraserTool } from './lib/tools/EraserTool/EraserTool'
+export { HandTool } from './lib/tools/HandTool/HandTool'
+export { LaserTool } from './lib/tools/LaserTool/LaserTool'
+export { SelectTool } from './lib/tools/SelectTool/SelectTool'
+export { ZoomTool } from './lib/tools/ZoomTool/ZoomTool'
 // UI
 export { TldrawUi, type TldrawUiBaseProps, type TldrawUiProps } from './lib/ui/TldrawUi'
 export {
@@ -17,6 +42,8 @@ export {
 } from './lib/ui/TldrawUiContextProvider'
 export { setDefaultUiAssetUrls } from './lib/ui/assetUrls'
 export { ContextMenu, type TLUiContextMenuProps } from './lib/ui/components/ContextMenu'
+export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
+export { Spinner } from './lib/ui/components/Spinner'
 export { Button, type TLUiButtonProps } from './lib/ui/components/primitives/Button'
 export { Icon, type TLUiIconProps } from './lib/ui/components/primitives/Icon'
 export { Input, type TLUiInputProps } from './lib/ui/components/primitives/Input'
@@ -60,7 +87,9 @@ export {
 	type TLUiDialogsContextType,
 } from './lib/ui/hooks/useDialogsProvider'
 export {
-	useEvents,
+	UiEventsProvider,
+	useUiEvents,
+	type EventsProviderProps,
 	type TLUiEventContextType,
 	type TLUiEventHandler,
 	type TLUiEventSource,
@@ -110,12 +139,13 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
+export { setDefaultEditorAssetUrls } from './lib/utils/assetUrls'
 export {
-	ACCEPTED_IMG_TYPE,
-	getFileMetaData,
-	getImageSizeFromSrc,
-	getVideoSizeFromSrc,
-	isImage,
+	DEFAULT_ACCEPTED_IMG_TYPE,
+	DEFAULT_ACCEPTED_VID_TYPE,
+	containBoxSize,
+	getResizedImageDataUrl,
+	isGifAnimated,
 } from './lib/utils/assets'
 export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
 export { getEmbedInfo } from './lib/utils/embeds'

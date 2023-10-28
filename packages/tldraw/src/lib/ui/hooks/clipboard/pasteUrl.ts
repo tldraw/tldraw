@@ -1,4 +1,4 @@
-import { Editor, VecLike } from '@tldraw/editor'
+import { Editor, TLExternalContentSource, VecLike } from '@tldraw/editor'
 import { pasteFiles } from './pasteFiles'
 
 /**
@@ -7,10 +7,15 @@ import { pasteFiles } from './pasteFiles'
  *
  * @param editor - The editor instance.
  * @param url - The URL to paste.
- * @param point - (optional) The point at which to paste the file.
+ * @param point - The point at which to paste the file.
  * @internal
  */
-export async function pasteUrl(editor: Editor, url: string, point?: VecLike) {
+export async function pasteUrl(
+	editor: Editor,
+	url: string,
+	point?: VecLike,
+	sources?: TLExternalContentSource[]
+) {
 	// Lets see if its an image and we have CORs
 	try {
 		const resp = await fetch(url)
@@ -31,5 +36,6 @@ export async function pasteUrl(editor: Editor, url: string, point?: VecLike) {
 		type: 'url',
 		point,
 		url,
+		sources,
 	})
 }

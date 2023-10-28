@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react'
-import { preventDefault, releasePointerCapture, setPointerCapture } from '../utils/dom'
+import {
+	preventDefault,
+	releasePointerCapture,
+	setPointerCapture,
+	stopEventPropagation,
+} from '../utils/dom'
 import { getPointerInfo } from '../utils/getPointerInfo'
 import { useEditor } from './useEditor'
 
@@ -13,6 +18,17 @@ export function useCanvasEvents() {
 
 			function onPointerDown(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
+
+				if (e.button === 2) {
+					editor.dispatch({
+						type: 'pointer',
+						target: 'canvas',
+						name: 'right_click',
+						...getPointerInfo(e),
+					})
+					return
+				}
+
 				if (e.button !== 0 && e.button !== 1 && e.button !== 5) return
 
 				setPointerCapture(e.currentTarget, e)
@@ -21,8 +37,13 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_down',
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
+
+				if (editor.openMenus.length > 0) {
+					document.body.click()
+					editor.getContainer().focus()
+				}
 			}
 
 			function onPointerMove(e: React.PointerEvent) {
@@ -36,7 +57,7 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_move',
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
@@ -52,35 +73,29 @@ export function useCanvasEvents() {
 					type: 'pointer',
 					target: 'canvas',
 					name: 'pointer_up',
-					...getPointerInfo(e, editor.getContainer()),
+					...getPointerInfo(e),
 				})
 			}
 
 			function onPointerEnter(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
-
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_enter',
-					...getPointerInfo(e, editor.getContainer()),
-				})
+				if (editor.instanceState.isPenMode && e.pointerType !== 'pen') return
+				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
+				editor.updateInstanceState({ isHoveringCanvas: canHover ? true : null })
 			}
 
 			function onPointerLeave(e: React.PointerEvent) {
 				if ((e as any).isKilled) return
-
-				editor.dispatch({
-					type: 'pointer',
-					target: 'canvas',
-					name: 'pointer_leave',
-					...getPointerInfo(e, editor.getContainer()),
-				})
+				if (editor.instanceState.isPenMode && e.pointerType !== 'pen') return
+				const canHover = e.pointerType === 'mouse' || e.pointerType === 'pen'
+				editor.updateInstanceState({ isHoveringCanvas: canHover ? false : null })
 			}
 
 			function onTouchStart(e: React.TouchEvent) {
 				;(e as any).isKilled = true
-				document.body.click() // god damn it, but necessary for long presses to open the context menu
+				// todo: investigate whether this effects keyboard shortcuts
+				// god damn it, but necessary for long presses to open the context menu
+				document.body.click()
 				preventDefault(e)
 			}
 
@@ -104,14 +119,16 @@ export function useCanvasEvents() {
 
 				const files = Array.from(e.dataTransfer.files)
 
-				const rect = editor.getContainer().getBoundingClientRect()
-
 				await editor.putExternalContent({
 					type: 'files',
 					files,
-					point: editor.screenToPage(e.clientX - rect.x, e.clientY - rect.y),
+					point: editor.screenToPage({ x: e.clientX, y: e.clientY }),
 					ignoreParent: false,
 				})
+			}
+
+			function onClick(e: React.MouseEvent) {
+				stopEventPropagation(e)
 			}
 
 			return {
@@ -124,6 +141,7 @@ export function useCanvasEvents() {
 				onDrop,
 				onTouchStart,
 				onTouchEnd,
+				onClick,
 			}
 		},
 		[editor]

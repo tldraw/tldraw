@@ -53,8 +53,25 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.editAfterComplete = editAfterComplete
 
-		this.markId = isCreating ? 'creating' : this.editor.mark('translating')
-		this.handleEnter(info)
+		this.markId = isCreating ? `creating:${this.editor.onlySelectedShape!.id}` : 'translating'
+		this.editor.mark(this.markId)
+		this.isCloning = false
+		this.info = info
+
+		this.editor.setCursor({ type: 'move', rotation: 0 })
+		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
+
+		// Don't clone on create; otherwise clone on altKey
+		if (!this.isCreating) {
+			if (this.editor.inputs.altKey) {
+				this.startCloning()
+				return
+			}
+		}
+
+		this.snapshot = this.selectionSnapshot
+		this.handleStart()
+		this.updateShapes()
 		this.editor.on('tick', this.updateParent)
 	}
 
@@ -64,7 +81,10 @@ export class Translating extends StateNode {
 		this.selectionSnapshot = {} as any
 		this.snapshot = {} as any
 		this.editor.snaps.clear()
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 		this.dragAndDropManager.clear()
 	}
 
@@ -109,9 +129,10 @@ export class Translating extends StateNode {
 
 		this.isCloning = true
 		this.reset()
-		this.markId = this.editor.mark('translating')
+		this.markId = 'translating'
+		this.editor.mark(this.markId)
 
-		this.editor.duplicateShapes()
+		this.editor.duplicateShapes(Array.from(this.editor.selectedShapeIds))
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
 		this.handleStart()
@@ -122,7 +143,8 @@ export class Translating extends StateNode {
 		this.isCloning = false
 		this.snapshot = this.selectionSnapshot
 		this.reset()
-		this.markId = this.editor.mark('translating')
+		this.markId = 'translating'
+		this.editor.mark(this.markId)
 		this.updateShapes()
 	}
 
@@ -146,9 +168,8 @@ export class Translating extends StateNode {
 			if (this.editAfterComplete) {
 				const onlySelected = this.editor.onlySelectedShape
 				if (onlySelected) {
-					this.editor.editingId = onlySelected.id
-					this.editor.setCurrentTool('select')
-					this.editor.root.current.value!.transition('editing_shape', {})
+					this.editor.setEditingShape(onlySelected.id)
+					this.editor.setCurrentTool('select.editing_shape')
 				}
 			} else {
 				this.parent.transition('idle', {})
@@ -163,26 +184,6 @@ export class Translating extends StateNode {
 		} else {
 			this.parent.transition('idle', this.info)
 		}
-	}
-
-	protected handleEnter(info: TLPointerEventInfo & { target: 'shape' }) {
-		this.isCloning = false
-		this.info = info
-
-		this.editor.cursor = { type: 'move', rotation: 0 }
-		this.selectionSnapshot = getTranslatingSnapshot(this.editor)
-
-		// Don't clone on create; otherwise clone on altKey
-		if (!this.isCreating) {
-			if (this.editor.inputs.altKey) {
-				this.startCloning()
-				return
-			}
-		}
-
-		this.snapshot = this.selectionSnapshot
-		this.handleStart()
-		this.updateShapes()
 	}
 
 	protected handleStart() {
@@ -201,6 +202,8 @@ export class Translating extends StateNode {
 		if (changes.length > 0) {
 			this.editor.updateShapes(changes)
 		}
+
+		this.editor.setHoveredShape(null)
 	}
 
 	protected handleEnd() {
@@ -209,7 +212,7 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const current = this.editor.getShapeById(shape.id)!
+			const current = this.editor.getShape(shape.id)!
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onTranslateEnd?.(shape, current)
 			if (change) {
@@ -228,7 +231,7 @@ export class Translating extends StateNode {
 		const changes: TLShapePartial[] = []
 
 		movingShapes.forEach((shape) => {
-			const current = this.editor.getShapeById(shape.id)!
+			const current = this.editor.getShape(shape.id)!
 			const util = this.editor.getShapeUtil(shape)
 			const change = util.onTranslate?.(shape, current)
 			if (change) {
@@ -264,13 +267,13 @@ export class Translating extends StateNode {
 		const movingShapes: TLShape[] = []
 
 		shapeSnapshots.forEach((shapeSnapshot) => {
-			const shape = editor.getShapeById(shapeSnapshot.shape.id)
+			const shape = editor.getShape(shapeSnapshot.shape.id)
 			if (!shape) return null
 			movingShapes.push(shape)
 
 			const parentTransform = isPageId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getPageTransformById(shape.parentId)!)
+				: Matrix2d.Inverse(editor.getShapePageTransform(shape.parentId)!)
 
 			shapeSnapshot.parentTransform = parentTransform
 		})
@@ -282,18 +285,18 @@ function getTranslatingSnapshot(editor: Editor) {
 	const pagePoints: Vec2d[] = []
 
 	const shapeSnapshots = compact(
-		editor.selectedIds.map((id): null | MovingShapeSnapshot => {
-			const shape = editor.getShapeById(id)
+		editor.selectedShapeIds.map((id): null | MovingShapeSnapshot => {
+			const shape = editor.getShape(id)
 			if (!shape) return null
 			movingShapes.push(shape)
 
-			const pagePoint = editor.getPagePointById(id)
+			const pagePoint = editor.getShapePageTransform(id)!.point()
 			if (!pagePoint) return null
 			pagePoints.push(pagePoint)
 
 			const parentTransform = PageRecordType.isId(shape.parentId)
 				? null
-				: Matrix2d.Inverse(editor.getPageTransformById(shape.parentId)!)
+				: Matrix2d.Inverse(editor.getShapePageTransform(shape.parentId)!)
 
 			return {
 				shape,
@@ -307,12 +310,12 @@ function getTranslatingSnapshot(editor: Editor) {
 		averagePagePoint: Vec2d.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
-		initialPageBounds: editor.selectedPageBounds!,
+		initialPageBounds: editor.selectionPageBounds!,
 		initialSnapPoints:
-			editor.selectedIds.length === 1
-				? editor.snaps.snapPointsCache.get(editor.selectedIds[0])!
-				: editor.selectedPageBounds
-				? editor.selectedPageBounds.snapPoints.map((p, i) => ({
+			editor.selectedShapeIds.length === 1
+				? editor.snaps.snapPointsCache.get(editor.selectedShapeIds[0])!
+				: editor.selectionPageBounds
+				? editor.selectionPageBounds.snapPoints.map((p, i) => ({
 						id: 'selection:' + i,
 						x: p.x,
 						y: p.y,
@@ -344,7 +347,7 @@ export function moveShapesToPoint({
 }) {
 	const {
 		inputs,
-		isGridMode,
+		instanceState: { isGridMode },
 		documentSettings: { gridSize },
 	} = editor
 
@@ -366,7 +369,7 @@ export function moveShapesToPoint({
 	editor.snaps.clear()
 
 	const shouldSnap =
-		(editor.isSnapMode ? !inputs.ctrlKey : inputs.ctrlKey) &&
+		(editor.user.isSnapMode ? !inputs.ctrlKey : inputs.ctrlKey) &&
 		editor.inputs.pointerVelocity.len() < 0.5 // ...and if the user is not dragging fast
 
 	if (shouldSnap) {
@@ -404,6 +407,6 @@ export function moveShapesToPoint({
 				}
 			})
 		),
-		true
+		{ squashing: true }
 	)
 }

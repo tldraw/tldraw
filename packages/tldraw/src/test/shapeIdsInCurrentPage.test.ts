@@ -52,8 +52,8 @@ describe('shapeIdsInCurrentPage', () => {
 			{ type: 'geo', id: ids.box3 },
 		])
 		const id = PageRecordType.createId('page2')
-		editor.createPage('New Page 2', id)
-		editor.setCurrentPageId(id)
+		editor.createPage({ name: 'New Page 2', id })
+		editor.setCurrentPage(id)
 		editor.createShapes([
 			{ type: 'geo', id: ids.box4 },
 			{ type: 'geo', id: ids.box5 },
@@ -62,7 +62,7 @@ describe('shapeIdsInCurrentPage', () => {
 
 		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box4, ids.box5, ids.box6]))
 
-		editor.setCurrentPageId(editor.pages[0].id)
+		editor.setCurrentPage(editor.pages[0].id)
 
 		expect(new Set(editor.currentPageShapeIds)).toEqual(new Set([ids.box1, ids.box2, ids.box3]))
 	})

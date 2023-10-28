@@ -1,4 +1,4 @@
-import { TLFrameShape, TLShapeId, useEditor } from '@tldraw/editor'
+import { TLFrameShape, TLShapeId, stopEventPropagation, useEditor } from '@tldraw/editor'
 import { forwardRef, useCallback } from 'react'
 import { defaultEmptyAs } from '../FrameShapeUtil'
 
@@ -10,12 +10,12 @@ export const FrameLabelInput = forwardRef<
 
 	const handleKeyDown = useCallback(
 		(e: React.KeyboardEvent<HTMLInputElement>) => {
-			if (e.key === 'Enter') {
+			if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
 				// need to prevent the enter keydown making it's way up to the Idle state
 				// and sending us back into edit mode
-				e.stopPropagation()
+				stopEventPropagation(e)
 				e.currentTarget.blur()
-				editor.editingId = null
+				editor.setEditingShape(null)
 			}
 		},
 		[editor]
@@ -23,7 +23,7 @@ export const FrameLabelInput = forwardRef<
 
 	const handleBlur = useCallback(
 		(e: React.FocusEvent<HTMLInputElement>) => {
-			const shape = editor.getShapeById<TLFrameShape>(id)
+			const shape = editor.getShape<TLFrameShape>(id)
 			if (!shape) return
 
 			const name = shape.props.name
@@ -38,7 +38,7 @@ export const FrameLabelInput = forwardRef<
 						props: { name: value },
 					},
 				],
-				true
+				{ squashing: true }
 			)
 		},
 		[id, editor]
@@ -46,7 +46,7 @@ export const FrameLabelInput = forwardRef<
 
 	const handleChange = useCallback(
 		(e: React.ChangeEvent<HTMLInputElement>) => {
-			const shape = editor.getShapeById<TLFrameShape>(id)
+			const shape = editor.getShape<TLFrameShape>(id)
 			if (!shape) return
 
 			const name = shape.props.name
@@ -61,7 +61,7 @@ export const FrameLabelInput = forwardRef<
 						props: { name: value },
 					},
 				],
-				true
+				{ squashing: true }
 			)
 		},
 		[id, editor]

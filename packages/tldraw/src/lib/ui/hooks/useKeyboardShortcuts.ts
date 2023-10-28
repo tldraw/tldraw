@@ -1,4 +1,4 @@
-import { preventDefault, useEditor } from '@tldraw/editor'
+import { preventDefault, useEditor, useValue } from '@tldraw/editor'
 import hotkeys from 'hotkeys-js'
 import { useEffect } from 'react'
 import { useActions } from './useActions'
@@ -21,8 +21,11 @@ export function useKeyboardShortcuts() {
 	const isReadonly = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
+	const isFocused = useValue('is focused', () => editor.instanceState.isFocused, [editor])
 
 	useEffect(() => {
+		if (!isFocused) return
+
 		const container = editor.getContainer()
 
 		hotkeys.setScope(editor.store.id)
@@ -34,7 +37,7 @@ export function useKeyboardShortcuts() {
 		// Add hotkeys for actions and tools.
 		// Except those that in SKIP_KBDS!
 		const areShortcutsDisabled = () =>
-			(editor.isFocused && editor.isMenuOpen) || editor.editingId !== null || editor.crashingError
+			editor.isMenuOpen || editor.editingShapeId !== null || editor.crashingError
 
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
@@ -49,7 +52,9 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && editor.isReadOnly)) continue
+			if (!tool.kbd || (!tool.readonlyOk && editor.instanceState.isReadonly)) {
+				continue
+			}
 
 			if (SKIP_KBDS.includes(tool.id)) continue
 
@@ -63,7 +68,7 @@ export function useKeyboardShortcuts() {
 		return () => {
 			hotkeys.deleteScope(editor.store.id)
 		}
-	}, [actions, tools, isReadonly, editor])
+	}, [actions, tools, isReadonly, editor, isFocused])
 }
 
 function getHotkeysStringFromKbd(kbd: string) {
@@ -77,7 +82,11 @@ function getHotkeysStringFromKbd(kbd: string) {
 				if (chars[0] === '!') {
 					str = `shift+${chars[1]}`
 				} else if (chars[0] === '?') {
-					str = `alt+${chars[1]}`
+					if (chars.length === 3 && chars[1] === '!') {
+						str = `alt+shift+${chars[2]}`
+					} else {
+						str = `alt+${chars[1]}`
+					}
 				} else if (chars[0] === '$') {
 					if (chars[1] === '!') {
 						str = `cmd+shift+${chars[2]},ctrl+shift+${chars[2]}`

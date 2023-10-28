@@ -1,26 +1,31 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
-import { useEvents } from './useEventsProvider'
+import { useUiEvents } from './useEventsProvider'
 
 /** @public */
 export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 	const editor = useEditor()
 	const rIsOpen = useRef(false)
-	const trackEvent = useEvents()
+	const trackEvent = useUiEvents()
+
+	const rLastChange = useRef(0)
 
 	const onOpenChange = useCallback(
 		(isOpen: boolean) => {
+			// prevent multiple calls in quick succession
+			const now = Date.now()
+			if (now - rLastChange.current < 50) return
+			rLastChange.current = now
+
 			rIsOpen.current = isOpen
+
 			editor.batch(() => {
 				if (isOpen) {
 					editor.complete()
 					editor.addOpenMenu(id)
 				} else {
-					editor.deleteOpenMenu(id)
-					editor.openMenus.forEach((menuId) => {
-						if (menuId.startsWith(id)) {
-							editor.deleteOpenMenu(menuId)
-						}
+					editor.updateInstanceState({
+						openMenus: editor.openMenus.filter((m) => !m.startsWith(id)),
 					})
 				}
 

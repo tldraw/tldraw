@@ -92,8 +92,8 @@ export interface TLSessionStateSnapshot {
 	pageStates: Array<{
 		pageId: TLPageId
 		camera: { x: number; y: number; z: number }
-		selectedIds: TLShapeId[]
-		focusLayerId: TLShapeId | null
+		selectedShapeIds: TLShapeId[]
+		focusedGroupId: TLShapeId | null
 	}>
 }
 
@@ -113,8 +113,8 @@ const sessionStateSnapshotValidator: T.Validator<TLSessionStateSnapshot> = T.obj
 				y: T.number,
 				z: T.number,
 			}),
-			selectedIds: T.arrayOf(shapeIdValidator),
-			focusLayerId: shapeIdValidator.nullable(),
+			selectedShapeIds: T.arrayOf(shapeIdValidator),
+			focusedGroupId: shapeIdValidator.nullable(),
 		})
 	),
 })
@@ -189,8 +189,8 @@ export function createSessionStateSnapshotSignal(
 						y: camera?.y ?? 0,
 						z: camera?.z ?? 1,
 					},
-					selectedIds: ps?.selectedIds ?? [],
-					focusLayerId: ps?.focusLayerId ?? null,
+					selectedShapeIds: ps?.selectedShapeIds ?? [],
+					focusedGroupId: ps?.focusedGroupId ?? null,
 				} satisfies TLSessionStateSnapshot['pageStates'][0]
 			}),
 		} satisfies TLSessionStateSnapshot
@@ -257,8 +257,8 @@ export function loadSessionStateSnapshotIntoStore(
 		addDiff.added[pageStateId] = InstancePageStateRecordType.create({
 			id: InstancePageStateRecordType.createId(ps.pageId),
 			pageId: ps.pageId,
-			selectedIds: ps.selectedIds,
-			focusLayerId: ps.focusLayerId,
+			selectedShapeIds: ps.selectedShapeIds,
+			focusedGroupId: ps.focusedGroupId,
 		})
 	}
 
@@ -307,8 +307,8 @@ export function extractSessionStateFromLegacySnapshot(
 						y: camera.y,
 						z: camera.z,
 					},
-					selectedIds: ps.selectedIds,
-					focusLayerId: ps.focusLayerId,
+					selectedShapeIds: ps.selectedShapeIds,
+					focusedGroupId: ps.focusedGroupId,
 				}
 			}),
 	}

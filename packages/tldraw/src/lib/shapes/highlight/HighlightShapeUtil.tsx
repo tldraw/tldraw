@@ -1,25 +1,26 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
-	Box2d,
+	Circle2d,
+	Polygon2d,
 	SVGContainer,
 	ShapeUtil,
 	TLDefaultColorTheme,
 	TLDrawShapeSegment,
 	TLHighlightShape,
 	TLOnResizeHandler,
-	Vec2d,
 	VecLike,
 	getDefaultColorTheme,
 	highlightShapeMigrations,
 	highlightShapeProps,
 	last,
-	linesIntersect,
 	rng,
 } from '@tldraw/editor'
 import { getHighlightFreehandSettings, getPointsFromSegments } from '../draw/getPath'
 import { useDefaultColorTheme } from '../shared/ShapeFill'
 import { FONT_SIZES } from '../shared/default-shape-constants'
+import { getStrokeOutlinePoints } from '../shared/freehand/getStrokeOutlinePoints'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
+import { setStrokePointRadii } from '../shared/freehand/setStrokePointRadii'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
 import { useColorSpace } from '../shared/useColorSpace'
 import { useForceSolid } from '../shared/useForceSolid'
@@ -35,7 +36,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 
 	override hideResizeHandles = (shape: TLHighlightShape) => getIsDot(shape)
 	override hideRotateHandle = (shape: TLHighlightShape) => getIsDot(shape)
-	override hideSelectionBoundsBg = (shape: TLHighlightShape) => getIsDot(shape)
 	override hideSelectionBoundsFg = (shape: TLHighlightShape) => getIsDot(shape)
 
 	override getDefaultProps(): TLHighlightShape['props'] {
@@ -48,64 +48,25 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		}
 	}
 
-	getBounds(shape: TLHighlightShape) {
-		return Box2d.FromPoints(this.editor.getOutline(shape))
-	}
-
-	override getOutline(shape: TLHighlightShape) {
-		return getPointsFromSegments(shape.props.segments)
-	}
-
-	override getCenter(shape: TLHighlightShape): Vec2d {
-		return this.editor.getBounds(shape).center
-	}
-
-	override hitTestPoint(shape: TLHighlightShape, point: VecLike): boolean {
-		const outline = this.editor.getOutline(shape)
-		const zoomLevel = this.editor.zoomLevel
-		const offsetDist = getStrokeWidth(shape) / zoomLevel
-
-		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
-			if (shape.props.segments[0].points.some((pt) => Vec2d.Dist(point, pt) < offsetDist * 1.5)) {
-				return true
-			}
+	getGeometry(shape: TLHighlightShape) {
+		const strokeWidth = getStrokeWidth(shape)
+		if (getIsDot(shape)) {
+			return new Circle2d({
+				x: -strokeWidth / 2,
+				y: -strokeWidth / 2,
+				radius: strokeWidth / 2,
+				isFilled: true,
+			})
 		}
 
-		if (this.editor.getBounds(shape).containsPoint(point)) {
-			for (let i = 0; i < outline.length; i++) {
-				const C = outline[i]
-				const D = outline[(i + 1) % outline.length]
+		const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, true)
+		const opts = getHighlightFreehandSettings({ strokeWidth: sw, showAsComplete: true })
+		setStrokePointRadii(strokePoints, opts)
 
-				if (Vec2d.DistanceToLineSegment(C, D, point) < offsetDist) return true
-			}
-		}
-
-		return false
-	}
-
-	override hitTestLineSegment(shape: TLHighlightShape, A: VecLike, B: VecLike): boolean {
-		const outline = this.editor.getOutline(shape)
-
-		if (shape.props.segments.length === 1 && shape.props.segments[0].points.length < 4) {
-			const zoomLevel = this.editor.zoomLevel
-			const offsetDist = getStrokeWidth(shape) / zoomLevel
-
-			if (
-				shape.props.segments[0].points.some(
-					(pt) => Vec2d.DistanceToLineSegment(A, B, pt) < offsetDist * 1.5
-				)
-			) {
-				return true
-			}
-		}
-
-		for (let i = 0; i < outline.length - 1; i++) {
-			const C = outline[i]
-			const D = outline[i + 1]
-			if (linesIntersect(A, B, C, D)) return true
-		}
-
-		return false
+		return new Polygon2d({
+			points: getStrokeOutlinePoints(strokePoints, opts),
+			isFilled: true,
+		})
 	}
 
 	component(shape: TLHighlightShape) {
@@ -142,7 +103,6 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		const options = getHighlightFreehandSettings({
 			strokeWidth,
 			showAsComplete,
-			isPen: shape.props.isPen,
 		})
 		const strokePoints = getStrokePoints(allPointsFromSegments, options)
 
@@ -156,17 +116,13 @@ export class HighlightShapeUtil extends ShapeUtil<TLHighlightShape> {
 		return <path d={strokePath} />
 	}
 
-	override expandSelectionOutlinePx(shape: TLHighlightShape): number {
-		return getStrokeWidth(shape) / 2
-	}
-
 	override toSvg(shape: TLHighlightShape) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		return highlighterToSvg(getStrokeWidth(shape), shape, OVERLAY_OPACITY, theme)
 	}
 
 	override toBackgroundSvg(shape: TLHighlightShape) {
-		const theme = getDefaultColorTheme(this.editor)
+		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
 		return highlighterToSvg(getStrokeWidth(shape), shape, UNDERLAY_OPACITY, theme)
 	}
 
@@ -210,7 +166,11 @@ function getIndicatorDot(point: VecLike, sw: number) {
 	},0`
 }
 
-function getHighlightSvgPath(shape: TLHighlightShape, strokeWidth: number, forceSolid: boolean) {
+function getHighlightStrokePoints(
+	shape: TLHighlightShape,
+	strokeWidth: number,
+	forceSolid: boolean
+) {
 	const allPointsFromSegments = getPointsFromSegments(shape.props.segments)
 	const showAsComplete = shape.props.isComplete || last(shape.props.segments)?.type === 'straight'
 
@@ -222,13 +182,19 @@ function getHighlightSvgPath(shape: TLHighlightShape, strokeWidth: number, force
 	const options = getHighlightFreehandSettings({
 		strokeWidth: sw,
 		showAsComplete,
-		isPen: shape.props.isPen,
 	})
 	const strokePoints = getStrokePoints(allPointsFromSegments, options)
+
+	return { strokePoints, sw }
+}
+
+function getHighlightSvgPath(shape: TLHighlightShape, strokeWidth: number, forceSolid: boolean) {
+	const { strokePoints, sw } = getHighlightStrokePoints(shape, strokeWidth, forceSolid)
+
 	const solidStrokePath =
 		strokePoints.length > 1
 			? getSvgPathFromStrokePoints(strokePoints, false)
-			: getShapeDot(allPointsFromSegments[0])
+			: getShapeDot(shape.props.segments[0].points[0])
 
 	return { solidStrokePath, sw }
 }

@@ -1,5 +1,12 @@
-import { DefaultColorStyle, getDefaultColorTheme, useEditor, useValue } from '@tldraw/editor'
+import {
+	DefaultColorStyle,
+	TLDefaultColorStyle,
+	getDefaultColorTheme,
+	useEditor,
+	useValue,
+} from '@tldraw/editor'
 import { useCallback } from 'react'
+import { useRelevantStyles } from '../hooks/useRevelantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
 import { StylePanel } from './StylePanel/StylePanel'
 import { Button } from './primitives/Button'
@@ -10,17 +17,12 @@ export function MobileStylePanel() {
 	const editor = useEditor()
 	const msg = useTranslation()
 
-	const currentColor = useValue(
-		'current color',
-		() => {
-			const color = editor.sharedStyles.get(DefaultColorStyle)
-			if (!color) return 'var(--color-muted-1)'
-			if (color.type === 'mixed') return null
-			const theme = getDefaultColorTheme(editor)
-			return theme[color.value].solid
-		},
-		[editor]
-	)
+	const relevantStyles = useRelevantStyles()
+	const color = relevantStyles?.styles.get(DefaultColorStyle)
+	const theme = getDefaultColorTheme({ isDarkMode: editor.user.isDarkMode })
+	const currentColor = (
+		color?.type === 'shared' ? theme[color.value as TLDefaultColorStyle] : theme.black
+	).solid
 
 	const disableStylePanel = useValue(
 		'isHandOrEraserToolActive',
@@ -31,7 +33,7 @@ export function MobileStylePanel() {
 	const handleStylesOpenChange = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
-				editor.isChangingStyle = false
+				editor.updateInstanceState({ isChangingStyle: false })
 			}
 		},
 		[editor]
@@ -43,10 +45,12 @@ export function MobileStylePanel() {
 				<Button
 					className="tlui-toolbar__tools__button tlui-toolbar__styles__button"
 					data-testid="mobile.styles"
-					style={{ color: currentColor ?? 'var(--color-text)' }}
+					style={{
+						color: disableStylePanel ? 'var(--color-muted-1)' : currentColor,
+					}}
 					title={msg('style-panel.title')}
 				>
-					<Icon icon={currentColor ? 'blob' : 'mixed'} />
+					<Icon icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'} />
 				</Button>
 			</PopoverTrigger>
 			<PopoverContent side="top" align="end">

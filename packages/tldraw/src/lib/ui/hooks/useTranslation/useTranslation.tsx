@@ -9,7 +9,7 @@ import { TLUiTranslation, fetchTranslation } from './translations'
 export interface TLUiTranslationProviderProps {
 	children: any
 	/**
-	 * (optional) A collection of overrides different locales.
+	 * A collection of overrides different locales.
 	 *
 	 * @example
 	 *
@@ -39,7 +39,7 @@ export const TranslationProvider = track(function TranslationProvider({
 	children,
 }: TLUiTranslationProviderProps) {
 	const editor = useEditor()
-	const locale = editor.locale
+	const locale = editor.user.locale
 	const getAssetUrl = useAssetUrls()
 
 	const [currentTranslation, setCurrentTranslation] = React.useState<TLUiTranslation>(() => {

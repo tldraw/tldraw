@@ -1,4 +1,20 @@
 /** @public */
+export type TLCommandHistoryOptions = Partial<{
+	/**
+	 * When true, this command will be squashed with the previous command in the undo / redo stack.
+	 */
+	squashing: boolean
+	/**
+	 * When true, this command will not add anything to the undo / redo stack. Its change will never be undone or redone.
+	 */
+	ephemeral: boolean
+	/**
+	 * When true, adding this this command will not clear out the redo stack.
+	 */
+	preservesRedoStack: boolean
+}>
+
+/** @public */
 export type TLHistoryMark = {
 	type: 'STOP'
 	id: string

@@ -88,7 +88,7 @@
 		"prettier": "^2.8.6",
 		"prettier-plugin-organize-imports": "^3.2.2",
 		"rimraf": "^4.4.0",
-		"tsx": "^3.12.2",
+		"tsx": "^3.12.7",
 		"typescript": "^5.0.2",
 		"vercel": "^28.16.15"
 	},

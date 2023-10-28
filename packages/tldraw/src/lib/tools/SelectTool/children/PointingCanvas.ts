@@ -1,4 +1,5 @@
-import { StateNode, TLEventHandlers, isShapeId } from '@tldraw/editor'
+import { StateNode, TLEventHandlers } from '@tldraw/editor'
+import { selectOnCanvasPointerUp } from '../../selection-logic/selectOnCanvasPointerUp'
 
 export class PointingCanvas extends StateNode {
 	static override id = 'pointing_canvas'
@@ -7,7 +8,7 @@ export class PointingCanvas extends StateNode {
 		const { inputs } = this.editor
 
 		if (!inputs.shiftKey) {
-			if (this.editor.selectedIds.length > 0) {
+			if (this.editor.selectedShapeIds.length > 0) {
 				this.editor.mark('selecting none')
 				this.editor.selectNone()
 			}
@@ -21,6 +22,8 @@ export class PointingCanvas extends StateNode {
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = () => {
+		// todo: also make this deselect
+		selectOnCanvasPointerUp(this.editor)
 		this.complete()
 	}
 
@@ -33,27 +36,6 @@ export class PointingCanvas extends StateNode {
 	}
 
 	private complete() {
-		const { shiftKey } = this.editor.inputs
-		if (!shiftKey) {
-			this.editor.selectNone()
-			if (!this._clickWasInsideFocusedGroup()) {
-				this.editor.focusLayerId = this.editor.currentPageId
-			}
-		}
 		this.parent.transition('idle', {})
-	}
-
-	_clickWasInsideFocusedGroup() {
-		const { focusLayerId, inputs } = this.editor
-		if (!isShapeId(focusLayerId)) {
-			return false
-		}
-		const groupShape = this.editor.getShapeById(focusLayerId)
-		if (!groupShape) {
-			return false
-		}
-		const clickPoint = this.editor.getPointInShapeSpace(groupShape, inputs.currentPagePoint)
-		const util = this.editor.getShapeUtil(groupShape)
-		return util.hitTestPoint(groupShape, clickPoint)
 	}
 }

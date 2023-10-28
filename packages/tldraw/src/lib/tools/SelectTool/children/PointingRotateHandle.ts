@@ -12,10 +12,12 @@ export class PointingRotateHandle extends StateNode {
 
 	private updateCursor() {
 		const { selectionRotation } = this.editor
-		this.editor.cursor = {
-			type: CursorTypeMap[this.info.handle as RotateCorner],
-			rotation: selectionRotation,
-		}
+		this.editor.updateInstanceState({
+			cursor: {
+				type: CursorTypeMap[this.info.handle as RotateCorner],
+				rotation: selectionRotation,
+			},
+		})
 	}
 
 	override onEnter = (info: PointingRotateHandleInfo) => {
@@ -26,7 +28,10 @@ export class PointingRotateHandle extends StateNode {
 
 	override onExit = () => {
 		this.parent.currentToolIdMask = undefined
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 	}
 
 	override onPointerMove = () => {

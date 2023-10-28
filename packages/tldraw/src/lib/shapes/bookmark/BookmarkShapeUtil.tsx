@@ -28,7 +28,6 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 	override canResize = () => false
 
-	override hideSelectionBoundsBg = () => true
 	override hideSelectionBoundsFg = () => true
 
 	override getDefaultProps(): TLBookmarkShape['props'] {
@@ -42,17 +41,17 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 
 	override component(shape: TLBookmarkShape) {
 		const asset = (
-			shape.props.assetId ? this.editor.getAssetById(shape.props.assetId) : null
+			shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
 		) as TLBookmarkAsset
 
-		const pageRotation = this.editor.getPageRotation(shape)
+		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		const address = getHumanReadableAddress(shape)
 
 		return (
 			<HTMLContainer>
 				<div
-					className="tl-bookmark__container tl-hitarea-stroke"
+					className="tl-bookmark__container"
 					style={{
 						boxShadow: getRotatedBoxShadow(pageRotation),
 					}}
@@ -141,7 +140,7 @@ function updateBookmarkAssetOnUrlChange(editor: Editor, shape: TLBookmarkShape) 
 	// Derive the asset id from the URL
 	const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
 
-	if (editor.getAssetById(assetId)) {
+	if (editor.getAsset(assetId)) {
 		// Existing asset for this URL?
 		if (shape.props.assetId !== assetId) {
 			editor.updateShapes<TLBookmarkShape>([

@@ -1,3 +1,51 @@
+# v2.0.0-alpha.16 (Wed Oct 11 2023)
+
+#### 🏠 Internal
+
+- Publish api.json [#2034](https://github.com/tldraw/tldraw/pull/2034) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 1
+
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.0.0-alpha.15 (Fri Oct 06 2023)
+
+### Release Notes
+
+#### Editor commands API / effects ([#1778](https://github.com/tldraw/tldraw/pull/1778))
+
+- tbd
+
+#### tldraw zero - package shuffle ([#1710](https://github.com/tldraw/tldraw/pull/1710))
+
+- [@tldraw/editor] lots, wip
+- [@tldraw/ui] gone, merged to tldraw/tldraw
+- [@tldraw/polyfills] gone, merged to tldraw/editor
+- [@tldraw/primitives] gone, merged to tldraw/editor / tldraw/tldraw
+- [@tldraw/indices] gone, merged to tldraw/editor
+- [@tldraw/file-format] gone, merged to tldraw/tldraw
+
+---
+
+#### 💥 Breaking Change
+
+- Revert "Editor commands API / effects" [#1783](https://github.com/tldraw/tldraw/pull/1783) ([@steveruizok](https://github.com/steveruizok))
+- Editor commands API / effects [#1778](https://github.com/tldraw/tldraw/pull/1778) ([@steveruizok](https://github.com/steveruizok))
+- tldraw zero - package shuffle [#1710](https://github.com/tldraw/tldraw/pull/1710) ([@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))
+
+#### 🚀 Enhancement
+
+- [improvement] More selection logic [#1806](https://github.com/tldraw/tldraw/pull/1806) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.14 (Tue Jul 04 2023)
 
 #### 🐛 Bug Fix

@@ -10,7 +10,9 @@ import {
 } from '@tldraw/editor'
 
 export class MinimapManager {
-	constructor(public editor: Editor, private dpr: number) {}
+	constructor(public editor: Editor) {}
+
+	dpr = 1
 
 	colors = {
 		shapeFill: 'rgba(144, 144, 144, .1)',
@@ -102,11 +104,11 @@ export class MinimapManager {
 
 		const { x: screenX, y: screenY } = this.getScreenPoint(x, y)
 
-		return {
-			x: canvasPageBounds.minX + (screenX * contentPageBounds.width) / contentScreenBounds.width,
-			y: canvasPageBounds.minY + (screenY * contentPageBounds.height) / contentScreenBounds.height,
-			z: 1,
-		}
+		return new Vec2d(
+			canvasPageBounds.minX + (screenX * contentPageBounds.width) / contentScreenBounds.width,
+			canvasPageBounds.minY + (screenY * contentPageBounds.height) / contentScreenBounds.height,
+			1
+		)
 	}
 
 	minimapScreenPointToPagePoint = (
@@ -121,7 +123,7 @@ export class MinimapManager {
 		let { x: px, y: py } = this.getPagePoint(x, y)
 
 		if (clampToBounds) {
-			const shapesPageBounds = this.editor.allShapesCommonBounds
+			const shapesPageBounds = this.editor.currentPageBounds
 			const vpPageBounds = viewportPageBounds
 
 			const minX = (shapesPageBounds?.minX ?? 0) - vpPageBounds.width / 2
@@ -166,7 +168,7 @@ export class MinimapManager {
 			}
 		}
 
-		return { x: px, y: py }
+		return new Vec2d(px, py)
 	}
 
 	render = () => {
@@ -176,7 +178,7 @@ export class MinimapManager {
 		const { editor, canvasScreenBounds, canvasPageBounds, contentPageBounds, contentScreenBounds } =
 			this
 		const { width: cw, height: ch } = canvasScreenBounds
-		const { viewportPageBounds, selectedIds } = editor
+		const { viewportPageBounds, selectedShapeIds } = editor
 
 		if (!cvs || !pageBounds) {
 			return
@@ -212,7 +214,6 @@ export class MinimapManager {
 		const by = ry / 4
 
 		// shapes
-
 		const shapesPath = new Path2D()
 		const selectedPath = new Path2D()
 
@@ -225,7 +226,7 @@ export class MinimapManager {
 		for (let i = 0, n = pageBounds.length; i < n; i++) {
 			pb = pageBounds[i]
 			MinimapManager.roundedRect(
-				selectedIds.includes(pb.id) ? selectedPath : shapesPath,
+				selectedShapeIds.includes(pb.id) ? selectedPath : shapesPath,
 				pb.minX,
 				pb.minY,
 				pb.width,
@@ -234,6 +235,7 @@ export class MinimapManager {
 				clamp(ry, ay, pb.height / by)
 			)
 		}
+
 		// Fill the shapes paths
 		ctx.fillStyle = shapeFill
 		ctx.fill(shapesPath)
@@ -253,7 +255,7 @@ export class MinimapManager {
 
 		// Brush
 		{
-			const { brush } = editor
+			const { brush } = editor.instanceState
 			if (brush) {
 				const { x, y, w, h } = brush
 				ctx.beginPath()

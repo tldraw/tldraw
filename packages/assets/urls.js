@@ -434,6 +434,14 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/stack-vertical.svg', import.meta.url).href,
 				opts
 			),
+			'status-offline': formatAssetUrl(
+				new URL('./icons/icon/status-offline.svg', import.meta.url).href,
+				opts
+			),
+			'status-online': formatAssetUrl(
+				new URL('./icons/icon/status-online.svg', import.meta.url).href,
+				opts
+			),
 			'stretch-horizontal': formatAssetUrl(
 				new URL('./icons/icon/stretch-horizontal.svg', import.meta.url).href,
 				opts
@@ -623,6 +631,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 			scratch: formatAssetUrl(new URL('./embed-icons/scratch.png', import.meta.url).href, opts),
 			spotify: formatAssetUrl(new URL('./embed-icons/spotify.png', import.meta.url).href, opts),
 			tldraw: formatAssetUrl(new URL('./embed-icons/tldraw.png', import.meta.url).href, opts),
+			val_town: formatAssetUrl(new URL('./embed-icons/val_town.png', import.meta.url).href, opts),
 			vimeo: formatAssetUrl(new URL('./embed-icons/vimeo.png', import.meta.url).href, opts),
 			youtube: formatAssetUrl(new URL('./embed-icons/youtube.png', import.meta.url).href, opts),
 		},

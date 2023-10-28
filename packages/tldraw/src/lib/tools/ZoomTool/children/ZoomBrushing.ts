@@ -13,7 +13,7 @@ export class ZoomBrushing extends StateNode {
 	}
 
 	override onExit = () => {
-		this.editor.zoomBrush = null
+		this.editor.updateInstanceState({ zoomBrush: null })
 	}
 
 	override onPointerMove = () => {
@@ -34,7 +34,7 @@ export class ZoomBrushing extends StateNode {
 		} = this.editor
 
 		this.zoomBrush.setTo(Box2d.FromPoints([originPagePoint, currentPagePoint]))
-		this.editor.zoomBrush = this.zoomBrush.toJson()
+		this.editor.updateInstanceState({ zoomBrush: this.zoomBrush.toJson() })
 	}
 
 	private cancel() {
@@ -54,14 +54,7 @@ export class ZoomBrushing extends StateNode {
 			}
 		} else {
 			const zoomLevel = this.editor.inputs.altKey ? this.editor.zoomLevel / 2 : undefined
-			this.editor.zoomToBounds(
-				zoomBrush.x,
-				zoomBrush.y,
-				zoomBrush.width,
-				zoomBrush.height,
-				zoomLevel,
-				{ duration: 220 }
-			)
+			this.editor.zoomToBounds(zoomBrush, zoomLevel, { duration: 220 })
 		}
 
 		this.parent.transition('idle', this.info)

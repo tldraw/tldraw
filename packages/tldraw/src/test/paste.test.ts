@@ -1,16 +1,16 @@
-import { TLFrameShape, TLGeoShape } from '@tldraw/editor'
+import { TLFrameShape, TLGeoShape, approximately, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
 
 const ids = {
-	box1: TestEditor.CreateShapeId('box1'),
-	box2: TestEditor.CreateShapeId('box2'),
-	box3: TestEditor.CreateShapeId('box3'),
-	frame1: TestEditor.CreateShapeId('frame1'),
-	frame2: TestEditor.CreateShapeId('frame2'),
-	frame3: TestEditor.CreateShapeId('frame3'),
-	frame4: TestEditor.CreateShapeId('frame4'),
+	box1: createShapeId('box1'),
+	box2: createShapeId('box2'),
+	box3: createShapeId('box3'),
+	frame1: createShapeId('frame1'),
+	frame2: createShapeId('frame2'),
+	frame3: createShapeId('frame3'),
+	frame4: createShapeId('frame4'),
 }
 
 beforeEach(() => {
@@ -87,7 +87,7 @@ beforeEach(() => {
 })
 
 function getShapes() {
-	const arr = editor.shapesArray as any[]
+	const arr = editor.currentPageShapes as any[]
 
 	const results = { old: {}, new: {} } as {
 		old: Record<string, TLGeoShape | TLFrameShape>
@@ -95,7 +95,7 @@ function getShapes() {
 	}
 
 	Object.entries(ids).map(([normalId, shapeId]) => {
-		const shape = editor.getShapeById(shapeId as any) as any
+		const shape = editor.getShape(shapeId as any) as any
 		const newShape = arr.find((s) => s.id !== shapeId && s.props.w === shape?.props.w)
 		results.old[normalId] = shape
 		results.new[normalId] = newShape
@@ -110,7 +110,7 @@ it('Gets pasted shapes correctly', () => {
 	editor.selectNone()
 	let shapes = getShapes()
 
-	expect(editor.sortedShapesArray.map((m) => m.id)).toStrictEqual([
+	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -124,7 +124,7 @@ it('Gets pasted shapes correctly', () => {
 
 	shapes = getShapes()
 
-	expect(editor.sortedShapesArray.map((m) => m.id)).toStrictEqual([
+	expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
 		shapes.old.frame1.id,
 		shapes.old.frame2.id,
 		shapes.old.frame3.id,
@@ -174,7 +174,7 @@ describe('When pasting', () => {
 		expect(shapes.new.box1?.parentId).toBe(editor.currentPageId)
 		expect(shapes.new.box2?.parentId).toBe(editor.currentPageId)
 
-		expect(editor.sortedShapesArray.map((m) => m.id)).toStrictEqual([
+		expect(editor.currentPageShapesSorted.map((m) => m.id)).toStrictEqual([
 			shapes.old.frame1.id,
 			shapes.old.frame2.id,
 			shapes.old.frame3.id,
@@ -224,14 +224,16 @@ describe('When pasting', () => {
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
-		expect(editor.selectionPageCenter).toMatchObject(editor.getPageCenterById(ids.frame1)!)
+		expect(editor.selectionPageCenter).toMatchObject(
+			editor.getPageCenter(editor.getShape(ids.frame1)!)!
+		)
 	})
 
 	it('pastes shapes as children of the most common ancestor', () => {
-		editor.reparentShapesById([ids.frame3], ids.frame1)
-		editor.reparentShapesById([ids.frame4], ids.frame2)
-		editor.reparentShapesById([ids.box1], ids.frame3)
-		editor.reparentShapesById([ids.box2], ids.frame4)
+		editor.reparentShapes([ids.frame3], ids.frame1)
+		editor.reparentShapes([ids.frame4], ids.frame2)
+		editor.reparentShapes([ids.box1], ids.frame3)
+		editor.reparentShapes([ids.box2], ids.frame4)
 		/*
     Before:
     page
@@ -268,16 +270,16 @@ describe('When pasting', () => {
 
 		// Should put the pasted shapes centered in the frame
 		editor.select(shapes.new.box1!.id, shapes.new.box1!.id)
-		expect(editor.getPageBounds(shapes.old.box1)).toMatchObject(
-			editor.getPageBounds(shapes.new.box1)!
+		expect(editor.getShapePageBounds(shapes.old.box1)).toMatchObject(
+			editor.getShapePageBounds(shapes.new.box1)!
 		)
 	})
 
 	it('pastes shapes as children of the most common ancestor', () => {
-		editor.reparentShapesById([ids.frame3], ids.frame1)
-		editor.reparentShapesById([ids.frame4], ids.frame1)
-		editor.reparentShapesById([ids.box1], ids.frame3)
-		editor.reparentShapesById([ids.box2], ids.frame4)
+		editor.reparentShapes([ids.frame3], ids.frame1)
+		editor.reparentShapes([ids.frame4], ids.frame1)
+		editor.reparentShapes([ids.box1], ids.frame3)
+		editor.reparentShapes([ids.box2], ids.frame4)
 		/*
     Before:
     page
@@ -320,7 +322,7 @@ describe('When pasting', () => {
 })
 
 it('pastes shapes with children', () => {
-	editor.reparentShapesById([ids.box1, ids.box2], ids.frame3)
+	editor.reparentShapes([ids.box1, ids.box2], ids.frame3)
 	/*
   Before:
   page
@@ -361,7 +363,7 @@ it('pastes shapes with children', () => {
 describe('When pasting into frames...', () => {
 	it('Does not paste into a clipped frame', () => {
 		// clear the page
-		editor.selectAll().deleteShapes()
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
 
 		editor
 			// move the two frames far from all other shapes
@@ -396,7 +398,7 @@ describe('When pasting into frames...', () => {
 			.setScreenBounds({ x: 0, y: 0, w: 1000, h: 1000 })
 
 		// put frame2 inside frame1
-		editor.reparentShapesById([ids.frame2], ids.frame1)
+		editor.reparentShapes([ids.frame2], ids.frame1)
 
 		// move frame 2 so that it's clipped AND so that it covers the whole viewport
 		editor
@@ -414,21 +416,75 @@ describe('When pasting into frames...', () => {
 			])
 			// Make sure that frame 1 is brought to front
 			.select(ids.frame1)
-			.bringToFront()
+			.bringToFront(editor.selectedShapeIds)
 
-		editor.setCamera(-2000, -2000, 1)
+		editor.setCamera({ x: -2000, y: -2000, z: 1 })
 		editor.updateRenderingBounds()
 
 		// Copy box 1 (should be out of viewport)
 		editor.select(ids.box1).copy()
 
-		const shapesBefore = editor.shapesArray
+		const shapesBefore = editor.currentPageShapes
 		// Paste it
 		editor.paste()
 
-		const newShape = editor.shapesArray.find((s) => !shapesBefore.includes(s))!
+		const newShape = editor.currentPageShapes.find((s) => !shapesBefore.includes(s))!
 
 		// it should be on the canvas, NOT a child of frame2
 		expect(newShape.parentId).not.toBe(ids.frame2)
+	})
+
+	it('keeps things in the right place', () => {
+		// clear the page
+		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		// create a small box and copy it
+		editor.createShapes([
+			{
+				type: 'geo',
+				x: 0,
+				y: 0,
+				props: {
+					geo: 'rectangle',
+					w: 10,
+					h: 10,
+				},
+			},
+		])
+		editor.selectAll().copy()
+		// now delete it
+		editor.deleteShapes(editor.selectedShapeIds)
+
+		// create a big frame away from the origin, the size of the viewport
+		editor
+			.createShapes([
+				{
+					id: ids.frame1,
+					type: 'frame',
+					x: editor.viewportScreenBounds.w,
+					y: editor.viewportScreenBounds.h,
+					props: {
+						w: editor.viewportScreenBounds.w,
+						h: editor.viewportScreenBounds.h,
+					},
+				},
+			])
+			.selectAll()
+		// rotate the frame for hard mode
+		editor.rotateSelection(45)
+		// center on the center of the frame
+		editor.setCamera({ x: -editor.viewportScreenBounds.w, y: -editor.viewportScreenBounds.h, z: 1 })
+		// paste the box
+		editor.paste()
+		const boxId = editor.onlySelectedShape!.id
+		// it should be a child of the frame
+		expect(editor.onlySelectedShape?.parentId).toBe(ids.frame1)
+		// it should have pageBounds of 10x10 because it is not rotated relative to the viewport
+		expect(editor.getShapePageBounds(boxId)).toMatchObject({ w: 10, h: 10 })
+		// it should be in the middle of the frame
+		const framePageCenter = editor.getPageCenter(editor.getShape(ids.frame1)!)!
+		const boxPageCenter = editor.getPageCenter(editor.getShape(boxId)!)!
+
+		expect(approximately(framePageCenter.x, boxPageCenter.x)).toBe(true)
+		expect(approximately(framePageCenter.y, boxPageCenter.y)).toBe(true)
 	})
 })

@@ -1,7 +1,7 @@
 {
 	"name": "tldraw-vscode",
 	"description": "The tldraw extension for VS Code.",
-	"version": "2.0.11",
+	"version": "2.0.14",
 	"private": true,
 	"packageManager": "yarn@3.5.0",
 	"author": {
@@ -138,7 +138,7 @@
 		"@typescript-eslint/eslint-plugin": "^5.10.2",
 		"@typescript-eslint/parser": "^5.10.2",
 		"assert": "^2.0.0",
-		"esbuild": "^0.18.3",
+		"esbuild": "^0.18.4",
 		"fs-extra": "^11.1.0",
 		"lazyrepo": "0.0.0-alpha.27",
 		"lodash": "^4.17.21",
@@ -146,7 +146,7 @@
 		"process": "^0.11.10",
 		"ts-loader": "^9.2.5",
 		"tslib": "^2.4.0",
-		"tsx": "^3.12.6",
+		"tsx": "^3.12.7",
 		"vsce": "^2.15.0"
 	},
 	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",

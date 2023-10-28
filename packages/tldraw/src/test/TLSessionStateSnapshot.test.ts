@@ -30,8 +30,8 @@ describe('createSessionStateSnapshotSignal', () => {
 						y: 0,
 						z: 1,
 					},
-					focusLayerId: null,
-					selectedIds: [],
+					focusedGroupId: null,
+					selectedShapeIds: [],
 				},
 			],
 			version: 0,
@@ -52,12 +52,12 @@ describe('createSessionStateSnapshotSignal', () => {
 		expect(isGridMode).toBe(false)
 		expect(numPages).toBe(1)
 
-		editor.isGridMode = true
+		editor.updateInstanceState({ isGridMode: true })
 
 		expect(isGridMode).toBe(true)
 		expect(numPages).toBe(1)
 
-		editor.createPage('new page')
+		editor.createPage({ name: 'new page' })
 
 		expect(isGridMode).toBe(true)
 		expect(editor.pages.length).toBe(2)
@@ -70,7 +70,7 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 		let snapshot = createSessionStateSnapshotSignal(editor.store).value
 		if (!snapshot) throw new Error('snapshot is null')
 
-		expect(editor.isGridMode).toBe(false)
+		expect(editor.instanceState.isGridMode).toBe(false)
 		expect(editor.camera.x).toBe(0)
 		expect(editor.camera.y).toBe(0)
 
@@ -82,7 +82,7 @@ describe(loadSessionStateSnapshotIntoStore, () => {
 
 		loadSessionStateSnapshotIntoStore(editor.store, snapshot)
 
-		expect(editor.isGridMode).toBe(true)
+		expect(editor.instanceState.isGridMode).toBe(true)
 		expect(editor.camera.x).toBe(1)
 		expect(editor.camera.y).toBe(2)
 	})
@@ -118,8 +118,8 @@ describe(extractSessionStateFromLegacySnapshot, () => {
 				typeName: 'instance_page_state',
 				instanceId: 'instance:whatever',
 				pageId: 'page:whatever',
-				selectedIds: ['shape:whatever'],
-				focusLayerId: null,
+				selectedShapeIds: ['shape:whatever'],
+				focusedGroupId: null,
 			},
 		}
 
@@ -138,9 +138,9 @@ describe(extractSessionStateFromLegacySnapshot, () => {
 		        "y": 0,
 		        "z": 1,
 		      },
-		      "focusLayerId": null,
+		      "focusedGroupId": null,
 		      "pageId": "page:whatever",
-		      "selectedIds": Array [
+		      "selectedShapeIds": Array [
 		        "shape:whatever",
 		      ],
 		    },

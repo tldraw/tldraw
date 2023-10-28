@@ -184,7 +184,7 @@ const getDefaultPatterns = () => {
 
 function usePattern() {
 	const editor = useEditor()
-	const dpr = editor.devicePixelRatio
+	const dpr = editor.instanceState.devicePixelRatio
 	const [isReady, setIsReady] = useState(false)
 	const defaultPatterns = useMemo(() => getDefaultPatterns(), [])
 	const [backgroundUrls, setBackgroundUrls] = useState<PatternDef[]>(defaultPatterns)
@@ -250,7 +250,7 @@ function PatternFillDefForCanvas() {
 	const { defs, isReady } = usePattern()
 
 	useEffect(() => {
-		if (isReady && editor.isSafari) {
+		if (isReady && editor.environment.isSafari) {
 			const htmlLayer = findHtmlLayerParent(containerRef.current!)
 			if (htmlLayer) {
 				// Wait for `patternContext` to be picked up

@@ -10,6 +10,7 @@ import {
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useBreakpoint } from '../../hooks/useBreakpoint'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
+import { useReadonly } from '../../hooks/useReadonly'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { Button } from '../primitives/Button'
 import { Icon } from '../primitives/Icon'
@@ -33,9 +34,10 @@ export const PageMenu = function PageMenu() {
 
 	const pages = useValue('pages', () => editor.pages, [editor])
 	const currentPage = useValue('currentPage', () => editor.currentPage, [editor])
+	const currentPageId = useValue('currentPageId', () => editor.currentPageId, [editor])
 
 	// When in readonly mode, we don't allow a user to edit the pages
-	const isReadonlyMode = useValue('isReadonlyMode', () => editor.isReadOnly, [editor])
+	const isReadonlyMode = useReadonly()
 
 	// If the user has reached the max page count, we disable the "add page" button
 	const maxPageCountReached = useValue(
@@ -44,7 +46,9 @@ export const PageMenu = function PageMenu() {
 		[editor]
 	)
 
-	const isCoarsePointer = useValue('isCoarsePointer', () => editor.isCoarsePointer, [editor])
+	const isCoarsePointer = useValue('isCoarsePointer', () => editor.instanceState.isCoarsePointer, [
+		editor,
+	])
 
 	// The component has an "editing state" that may be toggled to expose additional controls
 	const [isEditing, setIsEditing] = useState(false)
@@ -83,7 +87,7 @@ export const PageMenu = function PageMenu() {
 		if (!isOpen) return
 		requestAnimationFrame(() => {
 			const elm = document.querySelector(
-				`[data-testid="page-menu-item-${currentPage.id}"]`
+				`[data-testid="page-menu-item-${currentPageId}"]`
 			) as HTMLDivElement
 
 			if (elm) {
@@ -105,7 +109,7 @@ export const PageMenu = function PageMenu() {
 				}
 			}
 		})
-	}, [ITEM_HEIGHT, currentPage, isOpen])
+	}, [ITEM_HEIGHT, currentPageId, isOpen])
 
 	const handlePointerDown = useCallback(
 		(e: React.PointerEvent<HTMLButtonElement>) => {
@@ -237,10 +241,13 @@ export const PageMenu = function PageMenu() {
 	const handleCreatePageClick = useCallback(() => {
 		if (isReadonlyMode) return
 
-		editor.mark('creating page')
-		const newPageId = PageRecordType.createId()
-		editor.createPage(msg('page-menu.new-page-initial-name'), newPageId)
-		setIsEditing(true)
+		editor.batch(() => {
+			editor.mark('creating page')
+			const newPageId = PageRecordType.createId()
+			editor.createPage({ name: msg('page-menu.new-page-initial-name'), id: newPageId })
+			editor.setCurrentPage(newPageId)
+			setIsEditing(true)
+		})
 	}, [editor, msg, isReadonlyMode])
 
 	return (
@@ -333,8 +340,6 @@ export const PageMenu = function PageMenu() {
 										</Button>
 									) : (
 										<div
-											id={`page-menu-item-${page.id}`}
-											data-testid={`page-menu-item-${page.id}`}
 											className="tlui-page_menu__item__sortable__title"
 											style={{ height: ITEM_HEIGHT }}
 										>
@@ -359,7 +364,7 @@ export const PageMenu = function PageMenu() {
 								>
 									<Button
 										className="tlui-page-menu__item__button tlui-page-menu__item__button__checkbox"
-										onClick={() => editor.setCurrentPageId(page.id)}
+										onClick={() => editor.setCurrentPage(page.id)}
 										onDoubleClick={toggleEditing}
 										isChecked={page.id === currentPage.id}
 										title={msg('page-menu.go-to-page')}
@@ -376,14 +381,16 @@ export const PageMenu = function PageMenu() {
 												item={page}
 												listSize={pages.length}
 												onRename={() => {
-													if (editor.isIos) {
+													if (editor.environment.isIos) {
 														const name = window.prompt('Rename page', page.name)
 														if (name && name !== page.name) {
 															editor.renamePage(page.id, name)
 														}
 													} else {
-														setIsEditing(true)
-														editor.setCurrentPageId(page.id)
+														editor.batch(() => {
+															setIsEditing(true)
+															editor.setCurrentPage(page.id)
+														})
 													}
 												}}
 											/>

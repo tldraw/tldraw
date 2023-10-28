@@ -14,10 +14,12 @@ export class PointingCropHandle extends StateNode {
 
 	private updateCursor(shape: TLShape) {
 		const cursorType = CursorTypeMap[this.info.handle!]
-		this.editor.cursor = {
-			type: cursorType,
-			rotation: shape.rotation,
-		}
+		this.editor.updateInstanceState({
+			cursor: {
+				type: cursorType,
+				rotation: shape.rotation,
+			},
+		})
 	}
 
 	override onEnter = (info: TLPointingCropHandleInfo) => {
@@ -27,11 +29,14 @@ export class PointingCropHandle extends StateNode {
 		if (!selectedShape) return
 
 		this.updateCursor(selectedShape)
-		this.editor.croppingId = selectedShape.id
+		this.editor.setCroppingShape(selectedShape.id)
 	}
 
 	override onExit = () => {
-		this.editor.cursor = { type: 'default', rotation: 0 }
+		this.editor.updateInstanceState(
+			{ cursor: { type: 'default', rotation: 0 } },
+			{ ephemeral: true }
+		)
 		this.parent.currentToolIdMask = undefined
 	}
 
@@ -50,7 +55,7 @@ export class PointingCropHandle extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.croppingId = null
+			this.editor.setCroppingShape(null)
 			this.parent.transition('idle', {})
 		}
 	}
@@ -71,7 +76,7 @@ export class PointingCropHandle extends StateNode {
 		if (this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, this.info)
 		} else {
-			this.editor.croppingId = null
+			this.editor.setCroppingShape(null)
 			this.parent.transition('idle', {})
 		}
 	}

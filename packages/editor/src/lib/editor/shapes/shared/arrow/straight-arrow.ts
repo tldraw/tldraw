@@ -7,7 +7,7 @@ import {
 	intersectLineSegmentPolyline,
 } from '../../../../primitives/intersect'
 import { Editor } from '../../../Editor'
-import { ArrowInfo } from './arrow-types'
+import { TLArrowInfo } from './arrow-types'
 import {
 	BOUND_ARROW_OFFSET,
 	BoundShapeInfo,
@@ -17,7 +17,7 @@ import {
 	getBoundShapeInfoForTerminal,
 } from './shared'
 
-export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): ArrowInfo {
+export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArrowInfo {
 	const { start, end, arrowheadStart, arrowheadEnd } = shape.props
 
 	const terminalsInArrowSpace = getArrowTerminalsInArrowSpace(editor, shape)
@@ -32,7 +32,7 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 	const startShapeInfo = getBoundShapeInfoForTerminal(editor, start)
 	const endShapeInfo = getBoundShapeInfoForTerminal(editor, end)
 
-	const arrowPageTransform = editor.getPageTransform(shape)!
+	const arrowPageTransform = editor.getShapePageTransform(shape)!
 
 	// Update the position of the arrowhead's end point
 	updateArrowheadPointWithBoundShape(
@@ -50,7 +50,8 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 		startShapeInfo
 	)
 
-	let minDist = MIN_ARROW_LENGTH
+	let offsetA = 0
+	let offsetB = 0
 
 	const isSelfIntersection =
 		startShapeInfo && endShapeInfo && startShapeInfo.shape === endShapeInfo.shape
@@ -66,14 +67,14 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 			// ...and if only the end shape intersected, then make it
 			// a short arrow ending at the end shape intersection.
 			if (startShapeInfo.isClosed) {
-				a.setTo(Vec2d.Nudge(b, a, minDist))
+				a.setTo(b.clone().add(uAB.clone().mul(MIN_ARROW_LENGTH)))
 			}
 		} else if (!endShapeInfo.didIntersect) {
 			// ...and if only the end shape intersected, or if neither
 			// shape intersected, then make it a short arrow starting
 			// at the start shape intersection.
 			if (endShapeInfo.isClosed) {
-				b.setTo(Vec2d.Nudge(a, b, minDist))
+				b.setTo(a.clone().sub(uAB.clone().mul(MIN_ARROW_LENGTH)))
 			}
 		}
 	}
@@ -85,48 +86,55 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): Arrow
 	// start point has an arrowhead offset the start point
 	if (!isSelfIntersection) {
 		if (startShapeInfo && arrowheadStart !== 'none' && !startShapeInfo.isExact) {
-			const offset =
+			offsetA =
 				BOUND_ARROW_OFFSET +
 				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in startShapeInfo.shape.props
 					? STROKE_SIZES[startShapeInfo.shape.props.size] / 2
 					: 0)
-
-			minDist -= offset
-			a.nudge(b, offset * (didFlip ? -1 : 1))
 		}
 
 		// If the arrow is bound non-exact to an end shape and the
 		// end point has an arrowhead offset the end point
 		if (endShapeInfo && arrowheadEnd !== 'none' && !endShapeInfo.isExact) {
-			const offset =
+			offsetB =
 				BOUND_ARROW_OFFSET +
 				STROKE_SIZES[shape.props.size] / 2 +
 				('size' in endShapeInfo.shape.props ? STROKE_SIZES[endShapeInfo.shape.props.size] / 2 : 0)
-
-			minDist -= offset
-			b.nudge(a, offset * (didFlip ? -1 : 1))
 		}
 	}
 
-	if (startShapeInfo && endShapeInfo) {
-		// If we have two bound shapes...
-		if (didFlip) {
-			// If we flipped, then make the arrow a short arrow from
-			// the start point towards where the end point should be.
-			b.setTo(Vec2d.Add(a, u.mul(-minDist)))
-		} else if (Vec2d.Dist(a, b) < MIN_ARROW_LENGTH / 2) {
-			// Otherwise, if the arrow is too short, make it a short
-			// arrow from the start point towards where the end point
-			// should be.
-			b.setTo(Vec2d.Add(a, u.mul(MIN_ARROW_LENGTH / 2)))
+	const tA = a.clone().add(u.clone().mul(offsetA * (didFlip ? -1 : 1)))
+	const tB = b.clone().sub(u.clone().mul(offsetB * (didFlip ? -1 : 1)))
+	const distAB = Vec2d.Dist(tA, tB)
+	if (distAB < MIN_ARROW_LENGTH) {
+		if (offsetA !== 0 && offsetB !== 0) {
+			offsetA *= -1.5
+			offsetB *= -1.5
+		} else if (offsetA !== 0) {
+			offsetA *= -2
+		} else if (offsetB !== 0) {
+			offsetB *= -2
+		} else {
+			if (distAB < 10) {
+				if (startShapeInfo) offsetA = -(10 - distAB)
+				else if (endShapeInfo) offsetB = -(10 - distAB)
+			}
 		}
 	}
+
+	a.add(u.clone().mul(offsetA * (didFlip ? -1 : 1)))
+	b.sub(u.clone().mul(offsetB * (didFlip ? -1 : 1)))
 
 	// If the handles flipped their order, then set the center handle
 	// to the midpoint of the terminals (rather than the midpoint of the
 	// arrow body); otherwise, it may not be "between" the other terminals.
 	if (didFlip) {
+		if (startShapeInfo && endShapeInfo) {
+			// If we have two bound shapes...then make the arrow a short arrow from
+			// the start point towards where the end point should be.
+			b.setTo(Vec2d.Add(a, u.clone().mul(-MIN_ARROW_LENGTH)))
+		}
 		c.setTo(Vec2d.Med(terminalsInArrowSpace.start, terminalsInArrowSpace.end))
 	} else {
 		c.setTo(Vec2d.Med(a, b))
@@ -204,12 +212,12 @@ function updateArrowheadPointWithBoundShape(
 }
 
 /** @public */
-export function getStraightArrowHandlePath(info: ArrowInfo & { isStraight: true }) {
+export function getStraightArrowHandlePath(info: TLArrowInfo & { isStraight: true }) {
 	return getArrowPath(info.start.handle, info.end.handle)
 }
 
 /** @public */
-export function getSolidStraightArrowPath(info: ArrowInfo & { isStraight: true }) {
+export function getSolidStraightArrowPath(info: TLArrowInfo & { isStraight: true }) {
 	return getArrowPath(info.start.point, info.end.point)
 }
 

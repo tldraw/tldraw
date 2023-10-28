@@ -1,3 +1,139 @@
+# v2.0.0-alpha.17 (Tue Oct 17 2023)
+
+#### 🚀 Enhancement
+
+- Same first page id for all editors [#2071](https://github.com/tldraw/tldraw/pull/2071) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🔩 Dependency Updates
+
+- bump nanoid [#2078](https://github.com/tldraw/tldraw/pull/2078) ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.0.0-alpha.16 (Wed Oct 11 2023)
+
+#### 🚀 Enhancement
+
+- Remove dot com ui styles [1/2] [#2039](https://github.com/tldraw/tldraw/pull/2039) ([@steveruizok](https://github.com/steveruizok))
+- prevent hover indicator from showing when pointer isn't over the canvas [#2023](https://github.com/tldraw/tldraw/pull/2023) ([@SomeHats](https://github.com/SomeHats))
+
+#### 🐛 Bug Fix
+
+- [fix] Page state migration [#2040](https://github.com/tldraw/tldraw/pull/2040) ([@steveruizok](https://github.com/steveruizok))
+- [fix] migrations for page state [#2038](https://github.com/tldraw/tldraw/pull/2038) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🏠 Internal
+
+- [fix] broken docs link [#2062](https://github.com/tldraw/tldraw/pull/2062) ([@steveruizok](https://github.com/steveruizok))
+- Remove fixup script [#2041](https://github.com/tldraw/tldraw/pull/2041) ([@steveruizok](https://github.com/steveruizok))
+- Publish api.json [#2034](https://github.com/tldraw/tldraw/pull/2034) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 2
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
+# v2.0.0-alpha.15 (Fri Oct 06 2023)
+
+### Release Notes
+
+#### Migrate snapshot ([#1843](https://github.com/tldraw/tldraw/pull/1843))
+
+- [editor] add `Store.migrateSnapshot`
+
+#### [fix] embeds switching / tldraw embed ([#1792](https://github.com/tldraw/tldraw/pull/1792))
+
+- [fix] tldraw embeds
+
+#### Editor commands API / effects ([#1778](https://github.com/tldraw/tldraw/pull/1778))
+
+- tbd
+
+#### [feature] Add val town embed ([#1777](https://github.com/tldraw/tldraw/pull/1777))
+
+- (feature) val town
+
+#### `ShapeUtil.getGeometry`, selection rewrite ([#1751](https://github.com/tldraw/tldraw/pull/1751))
+
+- [editor] Remove `ShapeUtil.getBounds`, `ShapeUtil.getOutline`, `ShapeUtil.hitTestPoint`, `ShapeUtil.hitTestLineSegment`
+- [editor] Add `ShapeUtil.getGeometry`
+- [editor] Add `Editor.getShapeGeometry`
+
+#### [fix] dark mode ([#1754](https://github.com/tldraw/tldraw/pull/1754))
+
+- [fix] dark mode colors not updating
+
+#### Remove helpers / extraneous API methods. ([#1745](https://github.com/tldraw/tldraw/pull/1745))
+
+- [tldraw] rename `useReadonly` to `useReadOnly`
+- [editor] remove `Editor.isDarkMode`
+- [editor] remove `Editor.isChangingStyle`
+- [editor] remove `Editor.isCoarsePointer`
+- [editor] remove `Editor.isDarkMode`
+- [editor] remove `Editor.isFocused`
+- [editor] remove `Editor.isGridMode`
+- [editor] remove `Editor.isPenMode`
+- [editor] remove `Editor.isReadOnly`
+- [editor] remove `Editor.isSnapMode`
+- [editor] remove `Editor.isToolLocked`
+- [editor] remove `Editor.locale`
+- [editor] rename `Editor.pageState` to `Editor.currentPageState`
+- [editor] add `Editor.pageStates`
+- [editor] add `Editor.setErasingIds`
+- [editor] add `Editor.setEditingId`
+- [editor] add several new component overrides
+
+#### tldraw zero - package shuffle ([#1710](https://github.com/tldraw/tldraw/pull/1710))
+
+- [@tldraw/editor] lots, wip
+- [@tldraw/ui] gone, merged to tldraw/tldraw
+- [@tldraw/polyfills] gone, merged to tldraw/editor
+- [@tldraw/primitives] gone, merged to tldraw/editor / tldraw/tldraw
+- [@tldraw/indices] gone, merged to tldraw/editor
+- [@tldraw/file-format] gone, merged to tldraw/tldraw
+
+#### Add cloud shape ([#1708](https://github.com/tldraw/tldraw/pull/1708))
+
+- Adds a cloud shape.
+
+---
+
+#### 💥 Breaking Change
+
+- Revert "Editor commands API / effects" [#1783](https://github.com/tldraw/tldraw/pull/1783) ([@steveruizok](https://github.com/steveruizok))
+- Editor commands API / effects [#1778](https://github.com/tldraw/tldraw/pull/1778) ([@steveruizok](https://github.com/steveruizok))
+- `ShapeUtil.getGeometry`, selection rewrite [#1751](https://github.com/tldraw/tldraw/pull/1751) ([@steveruizok](https://github.com/steveruizok))
+- More cleanup, focus bug fixes [#1749](https://github.com/tldraw/tldraw/pull/1749) ([@steveruizok](https://github.com/steveruizok))
+- Remove helpers / extraneous API methods. [#1745](https://github.com/tldraw/tldraw/pull/1745) ([@steveruizok](https://github.com/steveruizok))
+- tldraw zero - package shuffle [#1710](https://github.com/tldraw/tldraw/pull/1710) ([@steveruizok](https://github.com/steveruizok) [@SomeHats](https://github.com/SomeHats))
+
+#### 🚀 Enhancement
+
+- Fix arrow handle snapping, snapping to text labels, selection of text labels [#1910](https://github.com/tldraw/tldraw/pull/1910) ([@steveruizok](https://github.com/steveruizok))
+- Migrate snapshot [#1843](https://github.com/tldraw/tldraw/pull/1843) ([@steveruizok](https://github.com/steveruizok))
+- [feature] Add val town embed [#1777](https://github.com/tldraw/tldraw/pull/1777) ([@steveruizok](https://github.com/steveruizok))
+- Add cloud shape [#1708](https://github.com/tldraw/tldraw/pull/1708) ([@ds300](https://github.com/ds300))
+
+#### 🐛 Bug Fix
+
+- [fix] embeds switching / tldraw embed [#1792](https://github.com/tldraw/tldraw/pull/1792) ([@steveruizok](https://github.com/steveruizok))
+- [fix] dark mode [#1754](https://github.com/tldraw/tldraw/pull/1754) ([@steveruizok](https://github.com/steveruizok))
+
+#### Authors: 3
+
+- alex ([@SomeHats](https://github.com/SomeHats))
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.14 (Tue Jul 04 2023)
 
 ### Release Notes

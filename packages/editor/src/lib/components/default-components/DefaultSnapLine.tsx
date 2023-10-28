@@ -153,12 +153,14 @@ function GapsSnapLine({ gaps, direction, zoom }: { zoom: number } & GapsSnapLine
 	)
 }
 
+/** @public */
 export type TLSnapLineComponent = React.ComponentType<{
 	className?: string
 	line: SnapLine
 	zoom: number
 }>
 
+/** @public */
 export const DefaultSnapLine: TLSnapLineComponent = ({ className, line, zoom }) => {
 	return (
 		<svg className={classNames('tl-overlays__item', className)}>

@@ -37,8 +37,24 @@ jobs:
       - name: Install dependencies
         run: yarn
 
-      - name: Install Playwright browsers
+      - name: Get installed Playwright version
+        id: playwright-version
+        run: |
+          cd apps/examples
+          yarn info @playwright/test --json > playwright.json
+          echo "PLAYWRIGHT_VERSION=$(node -e "console.log(require('./playwright.json').children.Version)")" >> $GITHUB_ENV
+
+      - uses: actions/cache@v3
+        name: Check for Playwright browsers cache
+        id: playwright-cache
+        with:
+          path: |
+            ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+
+      - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium chrome
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
 
       - name: Run Playwright tests
         run: 'yarn e2e'
@@ -52,7 +68,10 @@ jobs:
           retention-days: 30
 
       - uses: shallwefootball/s3-upload-action@master
-        if: always()
+        # only upload if we have AWS credentials:
+        env:
+          HAS_AWS_KEY: ${{ secrets.AWS_S3_SECRET_KEY && '1' || '' }}
+        if: always() && env.HAS_AWS_KEY == '1'
         name: Upload S3
         id: s3
         with:

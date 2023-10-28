@@ -1,5 +1,6 @@
 import {
 	Editor,
+	FileHelpers,
 	MigrationFailureReason,
 	MigrationResult,
 	RecordId,
@@ -151,30 +152,6 @@ export function parseTldrawJsonFile({
 	}
 }
 
-/**
- * Convert a file to base64.
- *
- * @example
- *
- * ```ts
- * const A = fileToBase64('./test.png')
- * ```
- *
- * @param value - The file as a blob.
- * @public
- */
-function fileToBase64(file: Blob): Promise<string> {
-	return new Promise((resolve, reject) => {
-		if (file) {
-			const reader = new FileReader()
-			reader.readAsDataURL(file)
-			reader.onload = () => resolve(reader.result as string)
-			reader.onerror = (error) => reject(error)
-			reader.onabort = (error) => reject(error)
-		}
-	})
-}
-
 /** @public */
 export async function serializeTldrawJson(store: TLStore): Promise<string> {
 	const records: TLRecord[] = []
@@ -191,7 +168,9 @@ export async function serializeTldrawJson(store: TLStore): Promise<string> {
 					let assetSrcToSave
 					try {
 						// try to save the asset as a base64 string
-						assetSrcToSave = await fileToBase64(await (await fetch(record.props.src)).blob())
+						assetSrcToSave = await FileHelpers.fileToBase64(
+							await (await fetch(record.props.src)).blob()
+						)
 					} catch {
 						// if that fails, just save the original src
 						assetSrcToSave = record.props.src
@@ -312,11 +291,11 @@ export async function parseAndLoadDocument(
 		editor.updateViewportScreenBounds()
 		editor.updateRenderingBounds()
 
-		const bounds = editor.allShapesCommonBounds
+		const bounds = editor.currentPageBounds
 		if (bounds) {
-			editor.zoomToBounds(bounds.minX, bounds.minY, bounds.width, bounds.height, 1)
+			editor.zoomToBounds(bounds, 1)
 		}
 	})
 
-	if (forceDarkMode) editor.isDarkMode = true
+	if (forceDarkMode) editor.user.updateUserPreferences({ isDarkMode: true })
 }

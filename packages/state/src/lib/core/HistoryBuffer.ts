@@ -22,7 +22,7 @@ export class HistoryBuffer<Diff> {
 	 *
 	 * @param lastComputedEpoch - The epoch when the diff was computed.
 	 * @param currentEpoch - The current epoch.
-	 * @param diff - (optional) The diff to add, or else a reset value.
+	 * @param diff - The diff to add, or else a reset value.
 	 */
 	pushEntry(lastComputedEpoch: number, currentEpoch: number, diff: Diff | RESET_VALUE) {
 		if (diff === undefined) {

@@ -334,7 +334,7 @@ export class Vec2d {
 	}
 
 	static Len(A: VecLike): number {
-		return Math.sqrt(Vec2d.Len2(A))
+		return Math.hypot(A.x, A.y)
 	}
 
 	static Pry(A: VecLike, B: VecLike): number {

@@ -42,7 +42,61 @@ export {
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
 export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
+export { ShapeIndicator, type TLShapeIndicatorComponent } from './lib/components/ShapeIndicator'
+export {
+	DefaultBackground,
+	type TLBackgroundComponent,
+} from './lib/components/default-components/DefaultBackground'
+export {
+	DefaultBrush,
+	type TLBrushComponent,
+} from './lib/components/default-components/DefaultBrush'
+export {
+	DefaultCollaboratorHint,
+	type TLCollaboratorHintComponent,
+} from './lib/components/default-components/DefaultCollaboratorHint'
+export {
+	DefaultCursor,
+	type TLCursorComponent,
+} from './lib/components/default-components/DefaultCursor'
 export { DefaultErrorFallback } from './lib/components/default-components/DefaultErrorFallback'
+export { DefaultGrid, type TLGridComponent } from './lib/components/default-components/DefaultGrid'
+export {
+	DefaultHandle,
+	type TLHandleComponent,
+} from './lib/components/default-components/DefaultHandle'
+export {
+	DefaultHandles,
+	type TLHandlesComponent,
+} from './lib/components/default-components/DefaultHandles'
+export {
+	DefaultHoveredShapeIndicator,
+	type TLHoveredShapeIndicatorComponent,
+} from './lib/components/default-components/DefaultHoveredShapeIndicator'
+export {
+	DefaultScribble,
+	type TLScribbleComponent,
+} from './lib/components/default-components/DefaultScribble'
+export {
+	DefaultSelectionBackground,
+	type TLSelectionBackgroundComponent,
+} from './lib/components/default-components/DefaultSelectionBackground'
+export {
+	DefaultSelectionForeground,
+	type TLSelectionForegroundComponent,
+} from './lib/components/default-components/DefaultSelectionForeground'
+export {
+	DefaultSnapLine,
+	type TLSnapLineComponent,
+} from './lib/components/default-components/DefaultSnapLine'
+export {
+	DefaultSpinner,
+	type TLSpinnerComponent,
+} from './lib/components/default-components/DefaultSpinner'
+export {
+	DefaultSvgDefs,
+	type TLSvgDefsComponent,
+} from './lib/components/default-components/DefaultSvgDefs'
 export {
 	TAB_ID,
 	createSessionStateSnapshotSignal,
@@ -52,6 +106,7 @@ export {
 } from './lib/config/TLSessionStateSnapshot'
 export {
 	USER_COLORS,
+	defaultUserPreferences,
 	getFreshUserPreferences,
 	getUserPreferences,
 	setUserPreferences,
@@ -71,20 +126,23 @@ export {
 	DEFAULT_ANIMATION_OPTIONS,
 	DOUBLE_CLICK_DURATION,
 	DRAG_DISTANCE,
-	GRID_INCREMENT,
 	GRID_STEPS,
 	HASH_PATTERN_ZOOM_NAMES,
-	MAJOR_NUDGE_FACTOR,
+	HIT_TEST_MARGIN,
 	MAX_PAGES,
 	MAX_SHAPES_PER_PAGE,
 	MAX_ZOOM,
-	MINOR_NUDGE_FACTOR,
 	MIN_ZOOM,
 	MULTI_CLICK_DURATION,
 	SVG_PADDING,
 	ZOOMS,
 } from './lib/constants'
-export { Editor, type TLAnimationOptions, type TLEditorOptions } from './lib/editor/Editor'
+export {
+	Editor,
+	type TLAnimationOptions,
+	type TLEditorOptions,
+	type TLResizeShapeOptions,
+} from './lib/editor/Editor'
 export {
 	SnapManager,
 	type GapsSnapLine,
@@ -173,6 +231,7 @@ export {
 export {
 	type TLExternalAssetContent,
 	type TLExternalContent,
+	type TLExternalContentSource,
 } from './lib/editor/types/external-content'
 export {
 	type TLCommand,
@@ -187,6 +246,7 @@ export { getCursor } from './lib/hooks/useCursor'
 export { useEditor } from './lib/hooks/useEditor'
 export type { TLEditorComponents } from './lib/hooks/useEditorComponents'
 export { useIsCropping } from './lib/hooks/useIsCropping'
+export { useIsDarkMode } from './lib/hooks/useIsDarkMode'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
 export { usePeerIds } from './lib/hooks/usePeerIds'
@@ -206,6 +266,18 @@ export {
 export { Matrix2d, type Matrix2dModel } from './lib/primitives/Matrix2d'
 export { Vec2d, type VecLike } from './lib/primitives/Vec2d'
 export { EASINGS } from './lib/primitives/easings'
+export { Arc2d } from './lib/primitives/geometry/Arc2d'
+export { Circle2d } from './lib/primitives/geometry/Circle2d'
+export { CubicBezier2d } from './lib/primitives/geometry/CubicBezier2d'
+export { CubicSpline2d } from './lib/primitives/geometry/CubicSpline2d'
+export { Edge2d } from './lib/primitives/geometry/Edge2d'
+export { Ellipse2d } from './lib/primitives/geometry/Ellipse2d'
+export { Geometry2d } from './lib/primitives/geometry/Geometry2d'
+export { Group2d } from './lib/primitives/geometry/Group2d'
+export { Polygon2d } from './lib/primitives/geometry/Polygon2d'
+export { Polyline2d } from './lib/primitives/geometry/Polyline2d'
+export { Rectangle2d } from './lib/primitives/geometry/Rectangle2d'
+export { Stadium2d } from './lib/primitives/geometry/Stadium2d'
 export {
 	intersectLineSegmentPolygon,
 	intersectLineSegmentPolyline,
@@ -226,6 +298,7 @@ export {
 	canonicalizeRotation,
 	clamp,
 	clampRadians,
+	clockwiseAngleDist,
 	degreesToRadians,
 	getArcLength,
 	getPointOnCircle,
@@ -274,7 +347,6 @@ export { getPointerInfo } from './lib/utils/getPointerInfo'
 export { getSvgPathFromPoints } from './lib/utils/getSvgPathFromPoints'
 export { hardResetEditor } from './lib/utils/hardResetEditor'
 export { normalizeWheel } from './lib/utils/normalizeWheel'
-export { png } from './lib/utils/png'
 export { refreshPage } from './lib/utils/refreshPage'
 export {
 	getIndexAbove,

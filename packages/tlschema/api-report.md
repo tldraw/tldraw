@@ -14,6 +14,7 @@ import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
+import { StoreSnapshot } from '@tldraw/store';
 import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
@@ -110,9 +111,6 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 // @public
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
-// @internal (undocumented)
-export function CLIENT_FIXUP_SCRIPT(persistedStore: SerializedStore<TLRecord>): SerializedStore<TLRecord>;
-
 // @public
 export function createAssetValidator<Type extends string, Props extends JsonObject>(type: Type, props: T.Validator<Props>): T.ObjectValidator<{
     id: TLAssetId;
@@ -204,13 +202,45 @@ export const drawShapeProps: {
 export const EMBED_DEFINITIONS: readonly [{
     readonly type: "tldraw";
     readonly title: "tldraw";
-    readonly hostnames: readonly ["beta.tldraw.com", "lite.tldraw.com", "www.tldraw.com"];
+    readonly hostnames: readonly ["beta.tldraw.com", "tldraw.com"];
     readonly minWidth: 300;
     readonly minHeight: 300;
     readonly width: 720;
     readonly height: 500;
     readonly doesResize: true;
     readonly canUnmount: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "figma";
+    readonly title: "Figma";
+    readonly hostnames: readonly ["figma.com"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly canUnmount: true;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "google_maps";
+    readonly title: "Google Maps";
+    readonly hostnames: readonly ["google.*"];
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly canUnmount: false;
+    readonly toEmbedUrl: (url: string) => string | undefined;
+    readonly fromEmbedUrl: (url: string) => string | undefined;
+}, {
+    readonly type: "val_town";
+    readonly title: "Val Town";
+    readonly hostnames: readonly ["val.town"];
+    readonly minWidth: 260;
+    readonly minHeight: 100;
+    readonly width: 720;
+    readonly height: 500;
+    readonly doesResize: true;
+    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -259,26 +289,6 @@ export const EMBED_DEFINITIONS: readonly [{
         readonly 'allow-presentation': true;
     };
     readonly isAspectRatioLocked: true;
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-}, {
-    readonly type: "figma";
-    readonly title: "Figma";
-    readonly hostnames: readonly ["figma.com"];
-    readonly width: 720;
-    readonly height: 500;
-    readonly doesResize: true;
-    readonly canUnmount: true;
-    readonly toEmbedUrl: (url: string) => string | undefined;
-    readonly fromEmbedUrl: (url: string) => string | undefined;
-}, {
-    readonly type: "google_maps";
-    readonly title: "Google Maps";
-    readonly hostnames: readonly ["google.*"];
-    readonly width: 720;
-    readonly height: 500;
-    readonly doesResize: true;
-    readonly canUnmount: false;
     readonly toEmbedUrl: (url: string) => string | undefined;
     readonly fromEmbedUrl: (url: string) => string | undefined;
 }, {
@@ -439,12 +449,6 @@ export class EnumStyleProp<T> extends StyleProp<T> {
     // (undocumented)
     readonly values: readonly T[];
 }
-
-// @internal (undocumented)
-export function fixupRecord(oldRecord: TLRecord): {
-    record: any;
-    issues: string[];
-};
 
 // @internal (undocumented)
 export const frameShapeMigrations: Migrations;
@@ -870,6 +874,7 @@ export type TLDefaultColorStyle = T.TypeOf<typeof DefaultColorStyle>;
 
 // @public (undocumented)
 export type TLDefaultColorTheme = Expand<{
+    id: 'dark' | 'light';
     text: string;
     background: string;
     solid: string;
@@ -947,6 +952,8 @@ export type TLGroupShape = TLBaseShape<'group', TLGroupShapeProps>;
 export interface TLHandle {
     // (undocumented)
     canBind?: boolean;
+    // (undocumented)
+    canSnap?: boolean;
     id: string;
     // (undocumented)
     index: string;
@@ -988,11 +995,15 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     brush: Box2dModel | null;
     // (undocumented)
+    canMoveCamera: boolean;
+    // (undocumented)
     chatMessage: string;
     // (undocumented)
     currentPageId: TLPageId;
     // (undocumented)
     cursor: TLCursor;
+    // (undocumented)
+    devicePixelRatio: number;
     // (undocumented)
     exportBackground: boolean;
     // (undocumented)
@@ -1000,21 +1011,32 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     highlightedUserIds: string[];
     // (undocumented)
+    isChangingStyle: boolean;
+    // (undocumented)
     isChatting: boolean;
     // (undocumented)
+    isCoarsePointer: boolean;
+    // (undocumented)
     isDebugMode: boolean;
+    // (undocumented)
+    isFocused: boolean;
     // (undocumented)
     isFocusMode: boolean;
     // (undocumented)
     isGridMode: boolean;
+    isHoveringCanvas: boolean | null;
     // (undocumented)
     isPenMode: boolean;
+    // (undocumented)
+    isReadonly: boolean;
     // (undocumented)
     isToolLocked: boolean;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
     opacityForNextShape: TLOpacityType;
+    // (undocumented)
+    openMenus: string[];
     // (undocumented)
     screenBounds: Box2dModel;
     // (undocumented)
@@ -1034,23 +1056,23 @@ export type TLInstanceId = RecordId<TLInstance>;
 // @public
 export interface TLInstancePageState extends BaseRecord<'instance_page_state', TLInstancePageStateId> {
     // (undocumented)
-    croppingId: null | TLShapeId;
+    croppingShapeId: null | TLShapeId;
     // (undocumented)
-    editingId: null | TLShapeId;
+    editingShapeId: null | TLShapeId;
     // (undocumented)
-    erasingIds: TLShapeId[];
+    erasingShapeIds: TLShapeId[];
     // (undocumented)
-    focusLayerId: null | TLShapeId;
+    focusedGroupId: null | TLShapeId;
     // (undocumented)
-    hintingIds: TLShapeId[];
+    hintingShapeIds: TLShapeId[];
     // (undocumented)
-    hoveredId: null | TLShapeId;
+    hoveredShapeId: null | TLShapeId;
     // (undocumented)
     meta: JsonObject;
     // (undocumented)
     pageId: RecordId<TLPage>;
     // (undocumented)
-    selectedIds: TLShapeId[];
+    selectedShapeIds: TLShapeId[];
 }
 
 // @public (undocumented)
@@ -1087,7 +1109,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
     // (undocumented)
     scribble: null | TLScribble;
     // (undocumented)
-    selectedIds: TLShapeId[];
+    selectedShapeIds: TLShapeId[];
     // (undocumented)
     userId: string;
     // (undocumented)
@@ -1176,7 +1198,7 @@ export type TLStoreProps = {
 export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public (undocumented)
-export type TLStoreSnapshot = SerializedStore<TLRecord>;
+export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
 
 // @public (undocumented)
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
