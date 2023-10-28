@@ -1997,11 +1997,11 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function BreakPointProvider({ children }: "
+              "text": "export declare function BreakPointProvider({ forceMobileModeLayout, children, }: "
             },
             {
               "kind": "Content",
-              "text": "{\n    children: any;\n}"
+              "text": "{\n    forceMobileModeLayout: boolean;\n    children: any;\n}"
             },
             {
               "kind": "Content",
@@ -2026,7 +2026,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ children }",
+              "parameterName": "{ forceMobileModeLayout, children, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -13592,7 +13592,7 @@
           "excerptTokens": [
             {
               "kind": "Content",
-              "text": "export declare function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, children, }: "
+              "text": "export declare function TldrawUiContextProvider({ overrides, assetUrls, onUiEvent, forceMobileModeLayout, children, }: "
             },
             {
               "kind": "Reference",
@@ -13622,7 +13622,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ overrides, assetUrls, onUiEvent, children, }",
+              "parameterName": "{ overrides, assetUrls, onUiEvent, forceMobileModeLayout, children, }",
               "parameterTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -13710,6 +13710,33 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "children",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tldraw!TldrawUiContextProviderProps#forceMobileModeLayout:member",
+              "docComment": "/**\n * Force mobile mode layout.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "forceMobileModeLayout?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "forceMobileModeLayout",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
