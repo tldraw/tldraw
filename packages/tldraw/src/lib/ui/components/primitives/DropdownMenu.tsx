@@ -218,7 +218,6 @@ export function RadioItem({ children, onSelect, ...rest }: DropdownMenuCheckboxI
 			}}
 			{...rest}
 		>
-			{/* <Icon small icon={rest.checked ? 'check' : 'none'} /> */}
 			<div className="tlui-button-2__checkbox__indicator">
 				<DropdownMenu.ItemIndicator dir="ltr">
 					<Icon icon="check" small />

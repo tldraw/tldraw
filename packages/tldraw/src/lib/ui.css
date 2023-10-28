@@ -1135,12 +1135,6 @@
 	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
 }
 
-.tlui-toolbar__divider {
-	display: block;
-	background: var(--color-divider);
-	height: 18px;
-	width: 1px;
-}
 /* -------------------- Help Zone ------------------- */
 
 .tlui-help-menu {

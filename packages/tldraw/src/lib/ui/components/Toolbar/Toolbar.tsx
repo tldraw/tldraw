@@ -149,7 +149,6 @@ export const Toolbar = memo(function Toolbar() {
 						{showEditingTools && (
 							<>
 								{/* Draw / Eraser */}
-								<div className="tlui-toolbar__divider" />
 								{toolbarItems.slice(2, 4).map(({ toolItem }) => (
 									<ToolbarButton
 										key={toolItem.id}
@@ -159,7 +158,6 @@ export const Toolbar = memo(function Toolbar() {
 									/>
 								))}
 								{/* Everything Else */}
-								<div className="tlui-toolbar__divider" />
 								{itemsInPanel.map(({ toolItem }) => (
 									<ToolbarButton
 										key={toolItem.id}
