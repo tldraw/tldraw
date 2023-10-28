@@ -40,7 +40,7 @@ export function MobileStylePanel() {
 	)
 
 	return (
-		<Popover id="style menu" onOpenChange={handleStylesOpenChange} open>
+		<Popover id="style menu" onOpenChange={handleStylesOpenChange}>
 			<PopoverTrigger disabled={disableStylePanel}>
 				<Button
 					type="tool"
