@@ -6,10 +6,12 @@ const BreakpointContext = React.createContext(0)
 
 /** @public */
 export function BreakPointProvider({
-	forceMobileModeLayout,
+	minBreakpoint = 0,
+	maxBreakpoint = PORTRAIT_BREAKPOINTS.length,
 	children,
 }: {
-	forceMobileModeLayout: boolean
+	minBreakpoint?: number
+	maxBreakpoint?: number
 	children: any
 }) {
 	const editor = useEditor()
@@ -17,20 +19,34 @@ export function BreakPointProvider({
 	const breakpoint = useValue(
 		'breakpoint',
 		() => {
-			if (forceMobileModeLayout) {
-				return 1
+			// This will recompute the viewport screen bounds changes...
+			const { width } = editor.viewportScreenBounds
+
+			if (minBreakpoint < 0 || minBreakpoint > PORTRAIT_BREAKPOINTS.length) {
+				throw Error(
+					`Invalid minBreakpoint value, must be between 0 and ${PORTRAIT_BREAKPOINTS.length}`
+				)
 			}
 
-			const { width } = editor.viewportScreenBounds
-			const breakpoints = PORTRAIT_BREAKPOINTS
+			if (maxBreakpoint < 0 || minBreakpoint > PORTRAIT_BREAKPOINTS.length) {
+				throw Error(
+					`Invalid maxBreakpoint value, must be between 0 and ${PORTRAIT_BREAKPOINTS.length}`
+				)
+			}
 
-			for (let i = 0; i < breakpoints.length - 1; i++) {
-				if (width > breakpoints[i] && width <= breakpoints[i + 1]) {
+			if (maxBreakpoint < minBreakpoint) {
+				throw Error(
+					`Invalid maxBreakpoint value, must be greater than minBreakpoint (min: ${minBreakpoint}, max: ${maxBreakpoint})`
+				)
+			}
+
+			for (let i = minBreakpoint; i < maxBreakpoint - 1; i++) {
+				if (width > PORTRAIT_BREAKPOINTS[i] && width <= PORTRAIT_BREAKPOINTS[i + 1]) {
 					return i
 				}
 			}
 
-			return breakpoints.length
+			return maxBreakpoint
 		},
 		[editor]
 	)
@@ -40,14 +56,5 @@ export function BreakPointProvider({
 
 /** @public */
 export function useBreakpoint() {
-	let breakpoint = useContext(BreakpointContext)
-	const layoutQuery = new URL(window.location.href).searchParams.get('layout')
-
-	if (layoutQuery === 'desktop') {
-		breakpoint = 7
-	} else if (layoutQuery === 'mobile') {
-		breakpoint = 1
-	}
-
-	return breakpoint
+	return useContext(BreakpointContext)
 }
