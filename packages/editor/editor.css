@@ -121,8 +121,7 @@
 	--color-selection-stroke: #2f80ed;
 	--color-text-0: #1d1d1d;
 	--color-text-1: #2d2d2d;
-	--color-text-2: #5f6369;
-	--color-text-3: #b6b7ba;
+	--color-text-3: #97989a;
 	--color-text-shadow: #ffffff;
 	--color-primary: #2f80ed;
 	--color-warn: #d10b0b;
@@ -164,9 +163,8 @@
 	--color-selection-stroke: #2f80ed;
 	--color-text-0: #f0eded;
 	--color-text-1: #d9d9d9;
-	--color-text-2: #8e9094;
 	--color-text-3: #7d848a;
-	--color-text-shadow: #262b30;
+	--color-text-shadow: #292f35;
 	--color-primary: #2f80ed;
 	--color-warn: #d10b0b;
 	--color-text: #f8f9fa;
@@ -977,7 +975,7 @@ input,
 	color: var(--color-text);
 	text-overflow: ellipsis;
 	text-decoration: none;
-	color: var(--color-text-2);
+	color: var(--color-text-1);
 	cursor: var(--tl-cursor-pointer);
 }
 
@@ -1584,7 +1582,7 @@ it from receiving any pointer events or affecting the cursor. */
 	text-decoration: none;
 }
 .tl-error-boundary__content a:hover {
-	color: var(--color-text-2);
+	color: var(--color-text-1);
 }
 
 .tl-error-boundary__content__error {

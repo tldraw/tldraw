@@ -28,6 +28,7 @@
 	cursor: pointer;
 	pointer-events: all;
 	font-weight: inherit;
+	font-family: inherit;
 	text-rendering: optimizeLegibility;
 	font-size: 12px;
 	gap: 0px;
@@ -36,6 +37,11 @@
 }
 
 .tlui-button-2:disabled {
+	color: var(--color-text-3);
+	text-shadow: none;
+}
+
+.tlui-button-2:disabled .tlui-kbd {
 	color: var(--color-text-3);
 }
 
@@ -180,7 +186,8 @@
 }
 
 .tlui-button-2__checkbox__indicator {
-	width: 16px;
+	width: 15px;
+	height: 15px;
 }
 
 /* Tool lock button */
@@ -470,12 +477,12 @@
 	top: -1px;
 	background-color: var(--color-panel);
 	border-radius: 999px;
-	box-shadow: inset 0px 0px 0px 2px var(--color-text-2);
+	box-shadow: inset 0px 0px 0px 2px var(--color-text-1);
 }
 
 .tlui-slider__thumb:active {
 	cursor: grabbing;
-	box-shadow: inset 0px 0px 0px 2px var(--color-text-2), var(--shadow-1);
+	box-shadow: inset 0px 0px 0px 2px var(--color-text-1), var(--shadow-1);
 }
 
 .tlui-slider__thumb:focus-visible {
@@ -495,7 +502,7 @@
 	grid-auto-columns: minmax(1em, auto);
 	gap: 1px;
 	align-self: bottom;
-	color: var(--color-text-2);
+	color: var(--color-text-1);
 	margin-left: var(--space-4);
 }
 
@@ -1027,10 +1034,7 @@
 	font-size: inherit;
 	font-weight: inherit;
 	margin: 0px;
-	color: var(--color-text-2);
-	letter-spacing: 0.5px;
-	text-transform: uppercase;
-	font-size: 9px;
+	color: var(--color-text-3);
 	height: 32px;
 	display: flex;
 	align-items: center;
