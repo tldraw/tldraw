@@ -141,7 +141,7 @@
 	--color-brush-stroke: rgba(180, 180, 180, 0.25);
 	--color-grid: #909090;
 	--color-low: #2c3136;
-	--color-low-border: hsl(210, 10%, 21%);
+	--color-low-border: #30363b
 	--color-culled: rgb(47, 52, 57);
 	--color-muted-none: rgba(255, 255, 255, 0);
 	--color-muted-0: rgba(255, 255, 255, 0.02);
@@ -590,7 +590,7 @@ input,
 	transform-origin: top right;
 	background-color: var(--color-background);
 	padding: 2px 4px;
-	border-radius: 4px;
+	border-radius: var(--radius-1);
 }
 
 /* --------------------- Nametag -------------------- */

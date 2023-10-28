@@ -1,6 +1,5 @@
 import { Trigger } from '@radix-ui/react-dropdown-menu'
 import { SharedStyle, StyleProp, preventDefault } from '@tldraw/editor'
-import classNames from 'classnames'
 import * as React from 'react'
 import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
@@ -67,6 +66,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 					onTouchEnd={(e) => preventDefault(e)}
 				>
 					<Button
+						type="icon"
 						data-testid={`style.${uiTypeA}`}
 						title={
 							msg(labelA) +
@@ -81,16 +81,11 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 					/>
 				</Trigger>
 				<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
-					<div
-						className={classNames('tlui-button-grid', {
-							'tlui-button-grid__two': itemsA.length < 4,
-							'tlui-button-grid__four': itemsA.length >= 4,
-						})}
-					>
+					<div className="tlui-buttons__grid">
 						{itemsA.map((item) => {
 							return (
 								<DropdownMenu.Item
-									className="tlui-button-grid__button"
+									type="icon"
 									title={
 										msg(labelA) +
 										' — ' +
@@ -114,6 +109,7 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 					onTouchEnd={(e) => preventDefault(e)}
 				>
 					<Button
+						type="icon"
 						data-testid={`style.${uiTypeB}`}
 						title={
 							msg(labelB) +
@@ -127,16 +123,11 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 					/>
 				</Trigger>
 				<DropdownMenu.Content side="bottom" align="end" sideOffset={0} alignOffset={-2}>
-					<div
-						className={classNames('tlui-button-grid', {
-							'tlui-button-grid__two': itemsA.length < 4,
-							'tlui-button-grid__four': itemsA.length >= 4,
-						})}
-					>
+					<div className="tlui-buttons__grid">
 						{itemsB.map((item) => {
 							return (
 								<DropdownMenu.Item
-									className="tlui-button-grid__button"
+									type="icon"
 									title={
 										msg(labelB) +
 										' — ' +

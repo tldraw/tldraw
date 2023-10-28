@@ -101,7 +101,7 @@ function MenuContent() {
 							checked={item.checked}
 							disabled={item.disabled}
 						>
-							{labelStr && <span>{labelStr}</span>}
+							{labelStr && <span className="tlui-button-2__label">{labelStr}</span>}
 							{kbd && <Kbd>{kbd}</Kbd>}
 						</M.CheckboxItem>
 					)

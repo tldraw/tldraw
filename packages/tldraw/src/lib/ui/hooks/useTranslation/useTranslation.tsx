@@ -111,3 +111,7 @@ export function useTranslation() {
 		[translation]
 	)
 }
+
+export function untranslated(string: string) {
+	return string as TLUiTranslationKey
+}

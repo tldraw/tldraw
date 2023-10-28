@@ -157,7 +157,7 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 				</div>
 			</Dialog.Body>
 			<Dialog.Footer className="tlui-dialog__footer__actions">
-				<Button onClick={handleCancel} onTouchEnd={handleCancel}>
+				<Button type="normal" onClick={handleCancel} onTouchEnd={handleCancel}>
 					{msg('edit-link-dialog.cancel')}
 				</Button>
 				{isRemoving ? (

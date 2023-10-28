@@ -235,6 +235,7 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 					/>
 					{verticalAlign === undefined ? (
 						<Button
+							type="icon"
 							title={msg('style-panel.vertical-align')}
 							data-testid="vertical-align"
 							icon="vertical-align-center"
@@ -242,6 +243,7 @@ function TextStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 						/>
 					) : (
 						<DropdownPicker
+							type="icon"
 							id="geo-vertical-alignment"
 							uiType="verticalAlign"
 							style={DefaultVerticalAlignStyle}
@@ -267,6 +269,7 @@ function GeoStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	return (
 		<DropdownPicker
 			id="geo"
+			type="menu"
 			label={'style-panel.geo'}
 			uiType="geo"
 			style={GeoShapeGeoStyle}
@@ -288,6 +291,7 @@ function SplineStylePickerSet({ styles }: { styles: ReadonlySharedStyleMap }) {
 	return (
 		<DropdownPicker
 			id="spline"
+			type="menu"
 			label={'style-panel.spline'}
 			uiType="spline"
 			style={LineShapeSplineStyle}

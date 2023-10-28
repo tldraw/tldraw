@@ -75,6 +75,7 @@ function ZoomMenuItem(props: {
 
 	return (
 		<M.Item
+			type="menu"
 			label={actions[action].label}
 			kbd={actions[action].kbd}
 			data-testid={props['data-testid']}

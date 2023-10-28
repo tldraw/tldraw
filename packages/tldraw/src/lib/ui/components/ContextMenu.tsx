@@ -144,6 +144,7 @@ function ContextMenuContent() {
 					<_ContextMenu.Sub key={item.id} onOpenChange={handleSubOpenChange}>
 						<_ContextMenu.SubTrigger dir="ltr" disabled={item.disabled} asChild>
 							<Button
+								type="menu"
 								className="tlui-menu__button"
 								label={item.label}
 								data-testid={`menu-item.${item.id}`}
@@ -170,7 +171,7 @@ function ContextMenuContent() {
 					return (
 						<_ContextMenu.CheckboxItem
 							key={id}
-							className="tlui-button tlui-menu__button tlui-menu__checkbox-item"
+							className="tlui-button-2 tlui-button-2__menu"
 							dir="ltr"
 							disabled={item.disabled}
 							onSelect={(e) => {
@@ -199,6 +200,7 @@ function ContextMenuContent() {
 				return (
 					<_ContextMenu.Item key={id} dir="ltr" asChild>
 						<Button
+							type="menu"
 							className="tlui-menu__button"
 							data-testid={`menu-item.${id}`}
 							kbd={kbd}

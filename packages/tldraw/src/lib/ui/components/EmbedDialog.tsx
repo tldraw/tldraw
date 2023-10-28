@@ -88,6 +88,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 					</Dialog.Body>
 					<Dialog.Footer className="tlui-dialog__footer__actions">
 						<Button
+							type="normal"
 							onClick={() => {
 								setEmbedDefinition(null)
 								setEmbedInfoForUrl(null)
@@ -96,7 +97,7 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 							label="embed-dialog.back"
 						/>
 						<div className="tlui-embed__spacer" />
-						<Button label="embed-dialog.cancel" onClick={onClose} />
+						<Button type="normal" label="embed-dialog.cancel" onClick={onClose} />
 						<Button
 							type="primary"
 							disabled={!embedInfoForUrl}

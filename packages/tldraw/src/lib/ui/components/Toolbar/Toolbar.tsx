@@ -186,7 +186,7 @@ export const Toolbar = memo(function Toolbar() {
 										<M.Root id="toolbar overflow" modal={false}>
 											<M.Trigger>
 												<Button
-													className="tlui-toolbar__tools__button tlui-toolbar__overflow"
+													className="tlui-toolbar__overflow"
 													icon="chevron-up"
 													type="tool"
 													data-testid="tools.more"
@@ -221,7 +221,7 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 	const msg = useTranslation()
 
 	return (
-		<div className="tlui-button-grid__four tlui-button-grid__reverse">
+		<div className="tlui-buttons__grid">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {
 				return (
 					<M.Item
@@ -253,14 +253,13 @@ function ToolbarButton({
 }) {
 	return (
 		<Button
-			className="tlui-toolbar__tools__button"
+			type="tool"
 			data-testid={`tools.${item.id}`}
 			data-tool={item.id}
 			data-geo={item.meta?.geo ?? ''}
 			aria-label={item.label}
 			title={title}
 			icon={item.icon}
-			type="tool"
 			data-state={isSelected ? 'selected' : undefined}
 			onClick={() => item.onSelect('toolbar')}
 			onTouchStart={(e) => {
