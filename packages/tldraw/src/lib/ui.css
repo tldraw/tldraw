@@ -16,8 +16,8 @@
 
 .tlui-button-2 {
 	position: relative;
-	height: 44px;
-	min-width: 44px;
+	height: 40px;
+	min-width: 40px;
 	padding: 0px 12px;
 	display: flex;
 	align-items: center;
@@ -91,7 +91,6 @@
 .tlui-button-2__low {
 	border-radius: var(--radius-3);
 	background-color: var(--color-low);
-	border: 1px solid var(--color-low-border);
 }
 
 @media (hover: hover) {
@@ -108,6 +107,7 @@
 
 .tlui-button-2__danger {
 	color: var(--color-warn);
+	text-shadow: none;
 }
 
 @media (hover: hover) {
@@ -117,6 +117,7 @@
 
 	.tlui-button-2__danger:not(:disabled, :focus-visible):hover {
 		color: var(--color-warn);
+		text-shadow: none;
 	}
 }
 
@@ -170,6 +171,15 @@
 	min-width: 128px;
 	width: 100%;
 	gap: 8px;
+	margin: -4px 0px;
+}
+
+.tlui-button-2__menu:nth-child(1) {
+	margin-top: 0px;
+}
+
+.tlui-button-2__menu:nth-last-child(1) {
+	margin-bottom: 0px;
 }
 
 @media (hover: hover) {
@@ -230,7 +240,7 @@
 @media (hover: hover) {
 	.tlui-button-2__tool::after {
 		inset: 4px;
-		border-radius: var(--radius-3);
+		border-radius: 8px;
 	}
 
 	.tlui-button-2__tool[data-state='selected']:not(:disabled, :focus-visible):hover {
@@ -459,7 +469,7 @@
 	height: 3px;
 	width: 100%;
 	background-color: var(--color-muted-1);
-	border-radius: var(--radius-4);
+	border-radius: 14px;
 }
 
 .tlui-slider__range {
@@ -468,7 +478,7 @@
 	left: 0px;
 	height: 3px;
 	background-color: var(--color-selected);
-	border-radius: var(--radius-4);
+	border-radius: 14px;
 }
 
 .tlui-slider__thumb {
@@ -586,15 +596,6 @@
 	position: relative;
 	z-index: var(--layer-panels);
 	width: fit-content;
-}
-
-.tlui-menu-zone::before {
-	content: '';
-	display: block;
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	inset: 0px -4px -4px 0px;
 	border-right: 4px solid var(--color-background);
 	border-bottom: 4px solid var(--color-background);
 	border-bottom-right-radius: var(--radius-4);
@@ -927,7 +928,7 @@
 	display: flex;
 	flex-direction: row;
 	background-color: var(--color-low);
-	border-radius: var(--radius-4);
+	border-radius: 11px;
 	z-index: var(--layer-panels);
 	pointer-events: all;
 	position: relative;
@@ -1032,28 +1033,6 @@
 .tlui-menu__submenu__trigger[data-direction='left'][data-state='open']:not(:hover)::after {
 	border-radius: var(--radius-1);
 	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
-}
-
-.tlui-menu__button {
-	width: 100%;
-	justify-content: space-between;
-}
-
-.tlui-menu__button__wide {
-	max-width: initial;
-}
-
-.tlui-menu__button:nth-child(n + 2) {
-	margin-top: -8px;
-}
-
-.tlui-menu__button:nth-last-child(n + 2) {
-	margin-bottom: -8px;
-}
-
-.tlui-menu__button > span:only-child {
-	text-align: left;
-	flex-grow: 2;
 }
 
 /* ------------------ Actions Menu ------------------ */
@@ -1206,26 +1185,6 @@
 	border-right: 4px solid var(--color-background);
 	border-top-right-radius: var(--radius-4);
 	background-color: var(--color-low);
-}
-
-.tlui-navigation-zone__controls {
-	display: flex;
-	flex-direction: row;
-	width: min-content;
-	background-color: none;
-	overflow: hidden;
-}
-
-.tlui-navigation-zone__controls > .tlui-button {
-	margin-left: -2px;
-	margin-right: -2px;
-}
-
-.tlui-navigation-zone__controls > .tlui-button:nth-of-type(1) {
-	margin-left: 0px;
-}
-.tlui-navigation-zone__controls > .tlui-button:nth-last-of-type(1) {
-	margin-right: 0px;
 }
 
 .tlui-navigation-zone__toggle .tlui-icon {
@@ -1552,6 +1511,7 @@
 
 .tlui-embed-dialog__warning {
 	color: var(--color-warn);
+	text-shadow: none;
 }
 
 .tlui-embed-dialog__instruction__link {

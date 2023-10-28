@@ -17,7 +17,6 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 			<_ContextMenu.SubTrigger dir="ltr" asChild>
 				<Button
 					type="menu"
-					className="tlui-menu__button"
 					label="context-menu.move-to-page"
 					data-testid="menu-item.move-to-page"
 					icon="chevron-right"
@@ -63,7 +62,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 								<Button
 									type="menu"
 									title={page.name}
-									className="tlui-menu__button tlui-context-menu__move-to-page__name"
+									className="tlui-context-menu__move-to-page__name"
 								>
 									<span>{page.name}</span>
 								</Button>
@@ -92,7 +91,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 							<Button
 								type="menu"
 								title={msg('context.pages.new-page')}
-								className="tlui-menu__button tlui-context-menu__move-to-page__name"
+								className="tlui-context-menu__move-to-page__name"
 							>
 								{msg('context.pages.new-page')}
 							</Button>

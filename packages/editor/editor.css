@@ -19,9 +19,8 @@
 	--radius-0: 2px;
 	--radius-1: 4px;
 	--radius-2: 6px;
-	--radius-3: 8px;
-	--radius-4: 12px;
-	--radius-5: 16px;
+	--radius-3: 9px;
+	--radius-4: 13px;
 	--layer-background: 100;
 	--layer-grid: 150;
 	--layer-canvas: 200;
@@ -129,12 +128,12 @@
 	--color-text: #000000;
 	--color-laser: #ff0000;
 
-	--shadow-1: 0px 1px 2px rgba(0, 0, 0, 0.22), 0px 1px 3px rgba(0, 0, 0, 0.09);
-	--shadow-2: 0px 0px 2px rgba(0, 0, 0, 0.12), 0px 2px 3px rgba(0, 0, 0, 0.24),
+	--shadow-1: 0px 1px 2px rgba(0, 0, 0, 0.25), 0px 1px 3px rgba(0, 0, 0, 0.09);
+	--shadow-2: 0px 0px 2px rgba(0, 0, 0, 0.16), 0px 2px 3px rgba(0, 0, 0, 0.24),
 		0px 2px 6px rgba(0, 0, 0, 0.1), inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-3: 0px 1px 2px rgba(0, 0, 0, 0.25), 0px 2px 6px rgba(0, 0, 0, 0.14),
+	--shadow-3: 0px 1px 2px rgba(0, 0, 0, 0.28), 0px 2px 6px rgba(0, 0, 0, 0.14),
 		inset 0px 0px 0px 1px var(--color-panel-contrast);
-	--shadow-4: 0px 0px 3px rgba(0, 0, 0, 0.16), 0px 5px 4px rgba(0, 0, 0, 0.16),
+	--shadow-4: 0px 0px 3px rgba(0, 0, 0, 0.19), 0px 5px 4px rgba(0, 0, 0, 0.16),
 		0px 2px 16px rgba(0, 0, 0, 0.06), inset 0px 0px 0px 1px var(--color-panel-contrast);
 }
 
@@ -167,7 +166,7 @@
 	--color-text-3: #7d848a;
 	--color-text-shadow: #292f35;
 	--color-primary: #2f80ed;
-	--color-warn: #d10b0b;
+	--color-warn: #ef6464;
 	--color-text: #f8f9fa;
 	--color-laser: #ff0000;
 
@@ -1525,17 +1524,18 @@ it from receiving any pointer events or affecting the cursor. */
 	width: 400px;
 	max-height: 100%;
 	background-color: var(--color-panel);
-	padding: var(--space-6);
-	border-radius: var(--radius-4);
+	padding: 16px;
+	border-radius: 16px;
 	box-shadow: var(--shadow-2);
 	font-size: 14px;
 	font-weight: 400;
 	display: flex;
 	flex-direction: column;
-	gap: var(--space-5);
 	overflow: auto;
 	z-index: 600;
+	gap: 12px;
 }
+
 .tl-error-boundary__content__expanded {
 	width: 600px;
 }
@@ -1558,7 +1558,7 @@ it from receiving any pointer events or affecting the cursor. */
 	overflow: auto;
 	font-size: 12px;
 	max-height: 320px;
-	margin: 0px;
+
 }
 
 .tl-error-boundary__content button {
@@ -1603,8 +1603,8 @@ it from receiving any pointer events or affecting the cursor. */
 	display: flex;
 	justify-content: space-between;
 	gap: var(--space-4);
-	margin: calc(var(--space-4) * -1);
-	margin-top: 0px;
+	margin: 0px;
+	margin-left: -4px;
 }
 .tl-error-boundary__content__actions__group {
 	display: flex;

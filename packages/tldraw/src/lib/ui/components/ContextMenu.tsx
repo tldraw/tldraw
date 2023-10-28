@@ -145,7 +145,6 @@ function ContextMenuContent() {
 						<_ContextMenu.SubTrigger dir="ltr" disabled={item.disabled} asChild>
 							<Button
 								type="menu"
-								className="tlui-menu__button"
 								label={item.label}
 								data-testid={`menu-item.${item.id}`}
 								icon="chevron-right"
@@ -196,7 +195,6 @@ function ContextMenuContent() {
 					<_ContextMenu.Item key={id} dir="ltr" asChild>
 						<Button
 							type="menu"
-							className="tlui-menu__button"
 							data-testid={`menu-item.${id}`}
 							kbd={kbd}
 							label={labelToUse}

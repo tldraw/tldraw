@@ -76,7 +76,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 				{listSize > 1 && (
 					<M.Group>
 						<DropdownMenu.Item dir="ltr" onSelect={onDelete} asChild>
-							<Button type="menu" className="tlui-menu__button" label="page-menu.submenu.delete" />
+							<Button type="menu" label="page-menu.submenu.delete" />
 						</DropdownMenu.Item>
 					</M.Group>
 				)}
