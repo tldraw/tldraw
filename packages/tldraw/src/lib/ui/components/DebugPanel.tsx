@@ -268,15 +268,15 @@ function ExampleDialog({
 			<Dialog.Footer className="tlui-dialog__footer__actions">
 				{displayDontShowAgain && (
 					<Button
-						type="menu"
+						type="normal"
 						onClick={() => setDontShowAgain(!dontShowAgain)}
-						iconLeft={dontShowAgain ? 'checkbox-checked' : 'checkbox-empty'}
+						iconLeft={dontShowAgain ? 'check' : 'checkbox-empty'}
 						style={{ marginRight: 'auto' }}
 					>
 						{`Don't show again`}
 					</Button>
 				)}
-				<Button type="menu" onClick={onCancel}>
+				<Button type="normal" onClick={onCancel}>
 					{cancel}
 				</Button>
 				<Button type="primary" onClick={async () => onContinue()}>

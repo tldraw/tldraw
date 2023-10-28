@@ -953,7 +953,7 @@
 	cursor: default;
 	background-color: var(--color-panel);
 	box-shadow: var(--shadow-3);
-	border-radius: var(--radius-4);
+	border-radius: var(--radius-3);
 	font-size: 12px;
 	overflow: hidden;
 	min-width: 300px;
@@ -986,7 +986,7 @@
 }
 
 .tlui-dialog__body {
-	padding: var(--space-4) var(--space-6);
+	padding: var(--space-4) var(--space-4);
 	flex: 0 1;
 	overflow-y: auto;
 	overflow-x: hidden;
@@ -1398,7 +1398,7 @@
 	gap: var(--space-3);
 	background-color: var(--color-panel);
 	box-shadow: var(--shadow-2);
-	border-radius: var(--radius-4);
+	border-radius: var(--radius-3);
 	font-size: 12px;
 }
 
@@ -1722,10 +1722,6 @@
 
 .tlui-page_menu__item__sortable__title > .tlui-input__wrapper {
 	height: 100%;
-}
-
-.tlui-page_menu__item__sortable__button {
-	flex: 0;
 }
 
 .tlui-page_menu__item__sortable:focus-within {
