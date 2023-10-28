@@ -419,7 +419,7 @@
 	align-items: flex-start;
 	width: min-content;
 	gap: var(--space-3);
-	margin: var(--space-3);
+	margin: var(--space-2) var(--space-3);
 	white-space: nowrap;
 	pointer-events: none;
 	z-index: var(--layer-panels);
