@@ -18,8 +18,8 @@
 	/* Radius */
 	--radius-0: 2px;
 	--radius-1: 4px;
-	--radius-2: 7px;
-	--radius-3: 9px;
+	--radius-2: 6px;
+	--radius-3: 8px;
 	--radius-4: 12px;
 	--radius-5: 16px;
 	--layer-background: 100;
@@ -27,6 +27,7 @@
 	--layer-canvas: 200;
 	--layer-shapes: 300;
 	--layer-overlays: 400;
+	--layer-following-indicator: 1000;
 	/* Misc */
 	--tl-zoom: 1;
 	--tl-dpr-multiple: 100;

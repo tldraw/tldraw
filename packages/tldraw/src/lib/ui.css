@@ -57,8 +57,8 @@
 
 .tlui-button-2:focus-visible:not(:hover) {
 	outline: 1px solid var(--color-selected);
-	outline-offset: 0px;
-	border-radius: 2px;
+	outline-offset: -4px;
+	border-radius: var(--radius-3);
 }
 
 .tlui-button-2::after {
@@ -67,7 +67,7 @@
 	position: absolute;
 	inset: 4px;
 	background-color: transparent;
-	border-radius: 6px;
+	border-radius: var(--radius-2);
 }
 
 .tlui-button-2[aria-expanded='true']::after {
@@ -89,7 +89,7 @@
 /* Low button  */
 
 .tlui-button-2__low {
-	border-radius: 8px;
+	border-radius: var(--radius-3);
 	background-color: var(--color-low);
 	border: 1px solid var(--color-low-border);
 }
@@ -153,7 +153,7 @@
 @media (hover: hover) {
 	.tlui-button-2__icon::after {
 		inset: 4px;
-		border-radius: 6px;
+		border-radius: var(--radius-2);
 	}
 
 	.tlui-button-2__icon[data-state='hinted']:not(:disabled, :focus-visible):hover::after {
@@ -175,7 +175,7 @@
 @media (hover: hover) {
 	.tlui-button-2__menu::after {
 		inset: 4px;
-		border-radius: 6px;
+		border-radius: var(--radius-2);
 	}
 }
 
@@ -227,20 +227,10 @@
 	margin-right: 0px;
 }
 
-.tlui-layout__mobile .tlui-button-2__tool {
-	height: 48px;
-	width: 44px;
-}
-
-.tlui-layout__mobile .tlui-button-2__tool > .tlui-icon {
-	height: 16px;
-	width: 16px;
-}
-
 @media (hover: hover) {
 	.tlui-button-2__tool::after {
 		inset: 4px;
-		border-radius: 8px;
+		border-radius: var(--radius-3);
 	}
 
 	.tlui-button-2__tool[data-state='selected']:not(:disabled, :focus-visible):hover {
@@ -335,6 +325,26 @@
 	text-align: center;
 }
 
+@media (max-width: 640px) {
+	.tlui-button-2__tool {
+		height: 48px;
+		width: 44px;
+	}
+
+	.tlui-button-2__tool > .tlui-icon {
+		height: 16px;
+		width: 16px;
+	}
+
+	.tlui-kbd {
+		visibility: hidden;
+	}
+
+	.tlui-menu__group .tlui-button-2__icon-left {
+		display: none;
+	}
+}
+
 /* --------------------- Layout --------------------- */
 
 .tlui-layout {
@@ -403,12 +413,6 @@
 	white-space: nowrap;
 	pointer-events: none;
 	z-index: var(--layer-panels);
-}
-
-.tlui-helper-buttons > .tlui-button {
-	pointer-events: all;
-	background-color: var(--color-low);
-	border-radius: var(--radius-3);
 }
 
 /* ---------------------- Icon ---------------------- */
@@ -518,121 +522,6 @@
 .tlui-kbd:not(:last-child) {
 	margin-right: var(--space-2);
 }
-
-/* --------------------- Button --------------------- */
-/* 
-.tlui-button {
-	margin: 0px;
-	position: relative;
-	height: 44px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	font-family: inherit;
-	font-size: 12px;
-	font-weight: inherit;
-	color: var(--color-text-1);
-	padding: 0px 13px;
-	cursor: pointer;
-	border: none;
-	outline: none;
-	user-select: none;
-	white-space: nowrap;
-	overflow: hidden;
-	background: transparent;
-	text-shadow: 1px 1px 0px var(--color-panel);
-}
-
-.tlui-button::after {
-	content: '';
-	position: absolute;
-	right: 4px;
-	bottom: 4px;
-	display: block;
-	width: calc(100% - 8px);
-	height: calc(100% - 8px);
-	border-radius: var(--radius-3);
-	background-color: transparent;
-	pointer-events: none;
-}
-
-.tlui-button > span {
-	text-overflow: ellipsis;
-	overflow: hidden;
-	display: flex;
-	align-items: center;
-}
-
-.tlui-button > span:not(:only-child) {
-	flex-grow: 2;
-}
-
-.tlui-button > span > svg {
-	margin-left: var(--space-2);
-}
-
-.tlui-button:disabled {
-	cursor: default;
-	color: var(--color-text-3);
-}
-
-.tlui-button:not([data-state='selected'], :disabled):active::after {
-	background: var(--color-muted-2);
-}
-
-@media (hover: hover) {
-	.tlui-button:not([data-state='selected'], :disabled):hover::after {
-		background: var(--color-muted-2);
-	}
-} */
-
-/* .tlui-button > * {
-	position: relative;
-	z-index: 100;
-	color: inherit;
-} */
-/* 
-.tlui-button > svg {
-	width: 18px;
-	height: 18px;
-	pointer-events: none;
-} */
-
-/* .tlui-button:not(:disabled, :focus-visible, [data-state='open']):active {
-	z-index: 2;
-	color: var(--color-text-0);
-}
-
-.tlui-button:not(:hover, :disabled, [data-state='open']):focus-visible::after {
-	box-shadow: inset 0 0 0 2px var(--color-focus);
-}
-
-.tlui-button[data-state='selected']:not(:hover, :disabled):focus-visible::after {
-	box-shadow: inset 0 0 0 2px var(--color-focus);
-}
-
-@media (hover: hover) {
-	.tlui-button:not(:disabled, :focus-visible):hover {
-		z-index: 2;
-		color: var(--color-text-0);
-	}
-}
-
-.tlui-button:disabled {
-	color: var(--color-text-3);
-} */
-
-/* Squished */
-
-/* .tlui-button.squished {
-	height: 36px;
-	width: 44px;
-}
-
-.tlui-button.squished {
-	height: 36px;
-	width: 44px;
-} */
 
 /* Focus Mode Button */
 
@@ -984,81 +873,6 @@
 	margin-right: -4px;
 }
 
-.tlui-dialog__scrim {
-	display: block;
-	content: '';
-	bottom: 0px;
-	width: 100%;
-	height: 40px;
-	position: absolute;
-	background: linear-gradient(transparent, var(--color-panel));
-	border-bottom-left-radius: var(--radius-4);
-	border-bottom-right-radius: var(--radius-4);
-	pointer-events: none;
-}
-
-/* ---------------- Shortcuts ---------------- */
-
-.tlui-shortcuts-dialog__header {
-	border-bottom: 1px solid var(--color-divider);
-}
-
-.tlui-shortcuts-dialog__body {
-	position: relative;
-	columns: 1;
-	column-gap: var(--space-9);
-	pointer-events: all;
-	touch-action: auto;
-}
-
-@media (min-width: 475px) {
-	.tlui-shortcuts-dialog__body {
-		columns: 2;
-		column-gap: var(--space-9);
-	}
-}
-
-@media (min-width: 960px) {
-	.tlui-shortcuts-dialog__body {
-		columns: 3;
-		column-gap: var(--space-9);
-	}
-}
-
-.tlui-shortcuts-dialog__group {
-	break-inside: avoid-column;
-	padding-bottom: var(--space-6);
-}
-
-.tlui-shortcuts-dialog__group__title {
-	font-size: inherit;
-	font-weight: inherit;
-	margin: 0px;
-	color: var(--color-text-3);
-	height: 32px;
-	display: flex;
-	align-items: center;
-}
-
-.tlui-shortcuts-dialog__group__content {
-	display: flex;
-	flex-direction: column;
-	color: var(--color-text-1);
-}
-
-.tlui-shortcuts-dialog__key-pair {
-	display: flex;
-	gap: var(--space-4);
-	align-items: center;
-	justify-content: space-between;
-	height: 32px;
-}
-
-.tlui-shortcuts-dialog__key-pair__key {
-	flex: 1;
-	font-size: 12px;
-}
-
 /* --------------------- Toolbar -------------------- */
 
 /* Wide container */
@@ -1126,13 +940,15 @@
 	width: 40px;
 }
 
-.tlui-layout__mobile .tlui-toolbar__overflow {
-	width: 32px;
-	padding: 0px;
-}
+@media (max-width: 640px) {
+	.tlui-toolbar__overflow {
+		width: 32px;
+		padding: 0px;
+	}
 
-.tlui-toolbar *[data-state='open']::after {
-	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	.tlui-toolbar *[data-state='open']::after {
+		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--color-muted-2) 100%);
+	}
 }
 
 /* -------------------- Help Zone ------------------- */
@@ -1239,66 +1055,6 @@
 	text-align: left;
 	flex-grow: 2;
 }
-
-/* ------------------- Button Grid ------------------ */
-/* 
-.tlui-button-grid__button {
-	width: 44px;
-	height: 44px;
-}
-
-.tlui-button-grid__four {
-	display: grid;
-	grid-template-columns: 40px 40px 40px 44px;
-}
-
-.tlui-button-grid__four > .tlui-button-grid__button:nth-child(n + 5) {
-	margin-top: -2px;
-}
-
-.tlui-button-grid__four > .tlui-button-grid__button:nth-last-child(n + 5) {
-	margin-bottom: -2px;
-}
-
-.tlui-button-grid__three {
-	display: grid;
-	grid-template-columns: 40px 40px 44px;
-}
-
-.tlui-button-grid__three > .tlui-button-grid__button:nth-child(n + 4) {
-	margin-top: -2px;
-}
-
-.tlui-button-grid__three > .tlui-button-grid__button:nth-last-child(n + 4) {
-	margin-bottom: -2px;
-}
-
-.tlui-button-grid__two {
-	display: grid;
-	grid-template-columns: 40px 44px;
-}
-
-.tlui-button-grid__two > .tlui-button-grid__button:nth-child(n + 3) {
-	margin-top: -2px;
-}
-
-.tlui-button-grid__two > .tlui-button-grid__button:nth-last-child(n + 3) {
-	margin-bottom: -2px;
-} */
-
-/* 
-.tlui-button-grid__button:not(:nth-child(4n - 3)) {
-	margin-left: -2px;
-}
-
-.tlui-button-grid__button:not(:nth-child(4n)) {
-	margin-right: -2px;
-}*/
-/* 
-
-.tlui-button-grid__button:nth-last-child(1) {
-	margin-right: 0px;
-} */
 
 /* ------------------ Actions Menu ------------------ */
 
@@ -1411,22 +1167,6 @@
 		animation: swipe-out 100ms ease-out;
 	}
 }
-
-/* --------------------- Mobile --------------------- */
-/* 
-@media (max-width: 640px) {
-	.tlui-menu__group .tlui-button {
-		height: 40px;
-	}
-
-	.tlui-menu__group .tlui-button > .tlui-kbd {
-		display: none;
-	}
-
-	.tlui-menu__group .tlui-button > .tlui-icon-left {
-		display: none;
-	}
-} */
 
 /* --------------------- Bottom --------------------- */
 
@@ -1765,8 +1505,9 @@
 	display: flex;
 	text-align: left;
 	gap: var(--space-3);
+	margin: 0px -8px;
 	cursor: pointer;
-	padding: 0;
+	padding: 0px 4px;
 	align-items: center;
 	color: var(--color-text);
 	font-size: var(--font-size-1);
@@ -1778,17 +1519,13 @@
 		display: block;
 		content: '';
 		position: absolute;
-		inset: 0px;
+		inset: 4px;
 		background-color: var(--color-muted-2);
-		border-radius: var(--radius-4);
+		border-radius: var(--radius-1);
 	}
 }
 
 .tlui-embed-dialog__item__image {
-	padding: var(--space-3);
-}
-
-.tlui-embed-dialog__item__image__img {
 	width: 24px;
 	height: 24px;
 	display: flex;
@@ -1827,13 +1564,13 @@
 	color: var(--color-text-1);
 }
 
-.tlui-following {
+.tlui-following-indicator {
 	display: block;
 	position: absolute;
 	inset: 0px;
 	border-width: 2px;
 	border-style: solid;
-	z-index: 9999999;
+	z-index: var(--layer-following-indicator);
 	pointer-events: none;
 }
 
@@ -1856,4 +1593,66 @@
 	animation-duration: 0.12s;
 	animation-delay: 2s;
 	animation-fill-mode: forwards;
+}
+
+/* --------------- Keyboard shortcuts --------------- */
+
+.tlui-shortcuts-dialog__header {
+	border-bottom: 1px solid var(--color-divider);
+}
+
+.tlui-shortcuts-dialog__body {
+	position: relative;
+	columns: 1;
+	column-gap: var(--space-9);
+	pointer-events: all;
+	touch-action: auto;
+}
+
+@media (min-width: 475px) {
+	.tlui-shortcuts-dialog__body {
+		columns: 2;
+		column-gap: var(--space-9);
+	}
+}
+
+@media (min-width: 960px) {
+	.tlui-shortcuts-dialog__body {
+		columns: 3;
+		column-gap: var(--space-9);
+	}
+}
+
+.tlui-shortcuts-dialog__group {
+	break-inside: avoid-column;
+	padding-bottom: var(--space-6);
+}
+
+.tlui-shortcuts-dialog__group__title {
+	font-size: inherit;
+	font-weight: inherit;
+	margin: 0px;
+	color: var(--color-text-3);
+	height: 32px;
+	display: flex;
+	align-items: center;
+}
+
+.tlui-shortcuts-dialog__group__content {
+	display: flex;
+	flex-direction: column;
+	color: var(--color-text-1);
+}
+
+.tlui-shortcuts-dialog__key-pair {
+	display: flex;
+	gap: var(--space-4);
+	align-items: center;
+	justify-content: space-between;
+	height: 32px;
+}
+
+.tlui-shortcuts-dialog__key-pair__key {
+	flex: 1;
+	font-size: 12px;
 }

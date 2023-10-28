@@ -3,7 +3,7 @@ import { useRef, useState } from 'react'
 import { TLEmbedResult, getEmbedInfo } from '../../utils/embeds'
 import { useAssetUrls } from '../hooks/useAssetUrls'
 import { TLUiDialogProps } from '../hooks/useDialogsProvider'
-import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { untranslated, useTranslation } from '../hooks/useTranslation/useTranslation'
 import { Button } from './primitives/Button'
 import * as Dialog from './primitives/Dialog'
 import { Icon } from './primitives/Icon'
@@ -122,25 +122,20 @@ export const EmbedDialog = track(function EmbedDialog({ onClose }: TLUiDialogPro
 					<Dialog.Body className="tlui-embed-dialog__list">
 						{EMBED_DEFINITIONS.map((def) => {
 							return (
-								<button
+								<Button
+									type="menu"
 									key={def.type}
-									className="tlui-embed-dialog__item"
 									onClick={() => setEmbedDefinition(def)}
+									label={untranslated(def.title)}
 								>
-									<div className="tlui-embed-dialog__item__image">
-										<div
-											className="tlui-embed-dialog__item__image__img"
-											style={{
-												backgroundImage: `url(${assetUrls.embedIcons[def.type]})`,
-											}}
-										/>
-									</div>
-									<div className="tlui-embed-dialog__item__title">{def.title}</div>
-								</button>
+									<div
+										className="tlui-embed-dialog__item__image"
+										style={{ backgroundImage: `url(${assetUrls.embedIcons[def.type]})` }}
+									/>
+								</Button>
 							)
 						})}
 					</Dialog.Body>
-					<div className="tlui-dialog__scrim" />
 				</>
 			)}
 		</>
