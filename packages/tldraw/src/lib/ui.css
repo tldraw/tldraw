@@ -1329,7 +1329,7 @@
 }
 
 .tlui-page-menu__item__button__checkbox {
-	padding-left: 36px;
+	padding-left: 35px;
 }
 
 .tlui-page-menu__item__button__check {
@@ -1391,10 +1391,6 @@
 /* The more menu has complex CSS here: */
 /* If the user can hover, then visible but opacity zero until hover */
 /* If the user cannot hover, then not displayed unless editing, and then opacity 1 */
-
-.tlui-page_menu__item__button + .tlui-page_menu__item__submenu {
-	background-color: red;
-}
 
 .tlui-page_menu__item__submenu {
 	pointer-events: all;
