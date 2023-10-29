@@ -95,7 +95,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 							id: uniqueId(),
 							title: 'Something happened',
 							description: 'Hey, attend to this thing over here. It might be important!',
-							keepOpen: true,
+							keepOpen: false,
 							// icon?: string
 							// title?: string
 							// description?: string

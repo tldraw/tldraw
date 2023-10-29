@@ -64,7 +64,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 									title={page.name}
 									className="tlui-context-menu__move-to-page__name"
 								>
-									<span>{page.name}</span>
+									<span className="tlui-button__label">{page.name}</span>
 								</Button>
 							</_ContextMenu.Item>
 						))}
@@ -93,7 +93,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 								title={msg('context.pages.new-page')}
 								className="tlui-context-menu__move-to-page__name"
 							>
-								{msg('context.pages.new-page')}
+								<span className="tlui-button__label">{msg('context.pages.new-page')}</span>
 							</Button>
 						</_ContextMenu.Item>
 					</_ContextMenu.Group>

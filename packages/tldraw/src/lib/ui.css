@@ -1101,7 +1101,7 @@
 }
 
 .tlui-toast__title {
-	font-weight: inherit;
+	font-weight: bold;
 	color: var(--color-text-1);
 }
 
@@ -1112,11 +1112,16 @@
 	padding: 0px;
 }
 
+.tlui-toast__icon + .tlui-toast__main > .tlui-toast__actions {
+	margin-left: -12px;
+	padding-left: 0px;
+}
+
 .tlui-toast__actions {
 	display: flex;
 	flex-direction: row;
 	justify-content: flex-start;
-	margin-left: -12px;
+	margin-left: 0;
 }
 
 .tlui-toast__close {
