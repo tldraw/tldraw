@@ -7109,21 +7109,21 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!TLInstance#scribble:member",
+              "canonicalReference": "@tldraw/tlschema!TLInstance#scribbles:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "scribble: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "null | "
+                  "text": "scribbles: "
                 },
                 {
                   "kind": "Reference",
                   "text": "TLScribble",
                   "canonicalReference": "@tldraw/tlschema!TLScribble:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
                 },
                 {
                   "kind": "Content",
@@ -7133,7 +7133,7 @@
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "scribble",
+              "name": "scribbles",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
@@ -7915,21 +7915,21 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/tlschema!TLInstancePresence#scribble:member",
+              "canonicalReference": "@tldraw/tlschema!TLInstancePresence#scribbles:member",
               "docComment": "",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "scribble: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "null | "
+                  "text": "scribbles: "
                 },
                 {
                   "kind": "Reference",
                   "text": "TLScribble",
                   "canonicalReference": "@tldraw/tlschema!TLScribble:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
                 },
                 {
                   "kind": "Content",
@@ -7939,7 +7939,7 @@
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "scribble",
+              "name": "scribbles",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
@@ -8566,7 +8566,7 @@
             },
             {
               "kind": "Content",
-              "text": "{\n    points: "
+              "text": "{\n    id: string;\n    points: "
             },
             {
               "kind": "Reference",
@@ -8602,7 +8602,7 @@
             },
             {
               "kind": "Content",
-              "text": ">;\n    delay: number;\n}"
+              "text": ">;\n    delay: number;\n    shrink: number;\n    taper: boolean;\n}"
             },
             {
               "kind": "Content",
