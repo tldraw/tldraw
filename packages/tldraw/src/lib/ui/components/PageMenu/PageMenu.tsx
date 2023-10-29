@@ -330,7 +330,7 @@ export const PageMenu = function PageMenu() {
 										// to be fighting over scroll position. Nothing
 										// else seems to work!
 										<Button
-											type="icon"
+											type="normal"
 											className="tlui-page-menu__item__button"
 											onClick={() => {
 												const name = window.prompt('Rename page', page.name)
