@@ -1,18 +1,25 @@
-import { StateNode, TLEventHandlers, TLScribble } from '@tldraw/editor'
-import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
+import { StateNode, TLEventHandlers } from '@tldraw/editor'
 
 export class Lasering extends StateNode {
 	static override id = 'lasering'
 
-	scribble = {} as ScribbleManager
+	scribbleId = 'id'
 
 	override onEnter = () => {
-		this.startScribble()
+		const scribble = this.editor.scribbles.addScribble({
+			color: 'laser',
+			opacity: 0.7,
+			size: 4,
+			delay: 1200,
+			shrink: 0.05,
+			taper: true,
+		})
+		this.scribbleId = scribble.id
 		this.pushPointToScribble()
 	}
 
 	override onExit = () => {
-		this.scribble.stop()
+		this.editor.scribbles.stop(this.scribbleId)
 	}
 
 	override onPointerMove = () => {
@@ -23,35 +30,9 @@ export class Lasering extends StateNode {
 		this.complete()
 	}
 
-	private startScribble = () => {
-		if (this.scribble.tick) {
-			this.editor.off('tick', this.scribble?.tick)
-		}
-
-		this.scribble = new ScribbleManager({
-			onUpdate: this.onScribbleUpdate,
-			onComplete: this.onScribbleComplete,
-			color: 'laser',
-			opacity: 0.7,
-			size: 4,
-			delay: 1200,
-		})
-
-		this.editor.on('tick', this.scribble.tick)
-	}
-
 	private pushPointToScribble = () => {
 		const { x, y } = this.editor.inputs.currentPagePoint
-		this.scribble.addPoint(x, y)
-	}
-
-	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.editor.updateInstanceState({ scribble })
-	}
-
-	private onScribbleComplete = () => {
-		this.editor.off('tick', this.scribble.tick)
-		this.editor.updateInstanceState({ scribble: null })
+		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {

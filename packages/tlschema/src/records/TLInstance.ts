@@ -25,7 +25,7 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	highlightedUserIds: string[]
 	brush: Box2dModel | null
 	cursor: TLCursor
-	scribble: TLScribble | null
+	scribbles: TLScribble[]
 	isFocusMode: boolean
 	isDebugMode: boolean
 	isToolLocked: boolean
@@ -74,7 +74,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			opacityForNextShape: opacityValidator,
 			stylesForNextShape: T.object(stylesForNextShapeValidators),
 			cursor: cursorValidator,
-			scribble: scribbleValidator.nullable(),
+			scribbles: T.arrayOf(scribbleValidator),
 			isFocusMode: T.boolean,
 			isDebugMode: T.boolean,
 			isToolLocked: T.boolean,
@@ -108,7 +108,7 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			opacityForNextShape: 1,
 			stylesForNextShape: {},
 			brush: null,
-			scribble: null,
+			scribbles: [],
 			cursor: {
 				type: 'default',
 				rotation: 0,
@@ -160,11 +160,12 @@ export const instanceVersions = {
 	AddLonelyProperties: 19,
 	ReadOnlyReadonly: 20,
 	AddHoveringCanvas: 21,
+	AddScribbles: 22,
 } as const
 
 /** @public */
 export const instanceMigrations = defineMigrations({
-	currentVersion: instanceVersions.AddHoveringCanvas,
+	currentVersion: instanceVersions.AddScribbles,
 	migrators: {
 		[instanceVersions.AddTransparentExportBgs]: {
 			up: (instance: TLInstance) => {
@@ -472,6 +473,17 @@ export const instanceMigrations = defineMigrations({
 				return {
 					...record,
 				}
+			},
+		},
+		[instanceVersions.AddScribbles]: {
+			up: ({ scribble: _, ...record }) => {
+				return {
+					...record,
+					scribbles: [],
+				}
+			},
+			down: ({ scribbles: _, ...record }) => {
+				return { ...record, scribble: null }
 			},
 		},
 	},

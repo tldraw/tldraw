@@ -145,13 +145,24 @@ function GridWrapper() {
 
 function ScribbleWrapper() {
 	const editor = useEditor()
-	const scribble = useValue('scribble', () => editor.instanceState.scribble, [editor])
+	const scribbles = useValue('scribbles', () => editor.instanceState.scribbles, [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const { Scribble } = useEditorComponents()
 
-	if (!(Scribble && scribble)) return null
+	if (!(Scribble && scribbles.length)) return null
 
-	return <Scribble className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
+	return (
+		<>
+			{scribbles.map((scribble) => (
+				<Scribble
+					key={scribble.id}
+					className="tl-user-scribble"
+					scribble={scribble}
+					zoom={zoomLevel}
+				/>
+			))}
+		</>
+	)
 }
 
 function BrushWrapper() {

@@ -1607,6 +1607,22 @@ describe('add isHoveringCanvas to TLInstance', () => {
 	})
 })
 
+describe('add scribbles to TLInstance', () => {
+	const { up, down } = instanceMigrations.migrators[instanceVersions.AddScribbles]
+
+	test('up works as expected', () => {
+		expect(
+			up({
+				scribble: null,
+			})
+		).toEqual({ scribbles: [] })
+	})
+
+	test('down works as expected', () => {
+		expect(down({ scribbles: [] })).toEqual({ scribble: null })
+	})
+})
+
 /* ---  PUT YOUR MIGRATIONS TESTS ABOVE HERE --- */
 
 for (const migrator of allMigrators) {

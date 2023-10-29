@@ -823,6 +823,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         y: number;
         z: number;
     };
+    readonly scribbles: ScribbleRegionalDirector;
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
     get selectedShapeIds(): TLShapeId[];

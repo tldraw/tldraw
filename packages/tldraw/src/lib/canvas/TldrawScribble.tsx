@@ -13,7 +13,7 @@ export const TldrawScribble: TLScribbleComponent = ({
 
 	const stroke = getStroke(scribble.points, {
 		size: scribble.size / zoom,
-		start: { taper: true, easing: EASINGS.linear },
+		start: { taper: scribble.taper, easing: EASINGS.linear },
 		last: scribble.state === 'stopping',
 		simulatePressure: false,
 		streamline: 0.32,
