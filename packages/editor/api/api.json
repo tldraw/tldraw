@@ -15255,6 +15255,37 @@
               "name": "screenToPage"
             },
             {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!Editor#scribbles:member",
+              "docComment": "/**\n * A manager for the editor's scribbles.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly scribbles: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ScribbleManager",
+                  "canonicalReference": "@tldraw/editor!~ScribbleManager:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "scribbles",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#select:member(1)",
               "docComment": "/**\n * Select one or more shapes.\n *\n * @param ids - The ids to select.\n *\n * @example\n * ```ts\n * editor.select('id1')\n * editor.select('id1', 'id2')\n * ```\n *\n * @public\n */\n",

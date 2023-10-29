@@ -14,20 +14,26 @@ export const TL_SCRIBBLE_STATES = new Set(['starting', 'paused', 'active', 'stop
  *
  * @public */
 export type TLScribble = {
+	id: string
 	points: Vec2dModel[]
 	size: number
 	color: TLCanvasUiColor
 	opacity: number
 	state: SetValue<typeof TL_SCRIBBLE_STATES>
 	delay: number
+	shrink: number
+	taper: boolean
 }
 
 /** @internal */
 export const scribbleValidator: T.Validator<TLScribble> = T.object({
+	id: T.string,
 	points: T.arrayOf(vec2dModelValidator),
 	size: T.positiveNumber,
 	color: canvasUiColorTypeValidator,
 	opacity: T.number,
 	state: T.setEnum(TL_SCRIBBLE_STATES),
 	delay: T.number,
+	shrink: T.number,
+	taper: T.boolean,
 })

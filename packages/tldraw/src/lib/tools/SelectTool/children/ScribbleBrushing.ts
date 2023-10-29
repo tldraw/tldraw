@@ -5,14 +5,12 @@ import {
 	TLEventHandlers,
 	TLFrameShape,
 	TLGroupShape,
-	TLScribble,
 	TLShape,
 	TLShapeId,
 	Vec2d,
 	intersectLineSegmentPolyline,
 	pointInPolygon,
 } from '@tldraw/editor'
-import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
 
 export class ScribbleBrushing extends StateNode {
 	static override id = 'scribble_brushing'
@@ -21,7 +19,7 @@ export class ScribbleBrushing extends StateNode {
 
 	size = 0
 
-	scribble = {} as ScribbleManager
+	scribbleId = 'id'
 
 	initialSelectedShapeIds = new Set<TLShapeId>()
 	newlySelectedShapeIds = new Set<TLShapeId>()
@@ -34,7 +32,13 @@ export class ScribbleBrushing extends StateNode {
 		this.size = 0
 		this.hits.clear()
 
-		this.startScribble()
+		const scribbleItem = this.editor.scribbles.addScribble({
+			color: 'selection-stroke',
+			opacity: 0.32,
+			size: 12,
+		})
+
+		this.scribbleId = scribbleItem.id
 
 		this.updateScribbleSelection(true)
 
@@ -44,7 +48,7 @@ export class ScribbleBrushing extends StateNode {
 	}
 
 	override onExit = () => {
-		this.scribble.stop()
+		this.editor.scribbles.stop(this.scribbleId)
 	}
 
 	override onPointerMove = () => {
@@ -75,34 +79,9 @@ export class ScribbleBrushing extends StateNode {
 		this.complete()
 	}
 
-	private startScribble = () => {
-		if (this.scribble.tick) {
-			this.editor.off('tick', this.scribble?.tick)
-		}
-
-		this.scribble = new ScribbleManager({
-			onUpdate: this.onScribbleUpdate,
-			onComplete: this.onScribbleComplete,
-			color: 'selection-stroke',
-			opacity: 0.32,
-			size: 12,
-		})
-
-		this.editor.on('tick', this.scribble.tick)
-	}
-
 	private pushPointToScribble = () => {
 		const { x, y } = this.editor.inputs.currentPagePoint
-		this.scribble.addPoint(x, y)
-	}
-
-	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.editor.updateInstanceState({ scribble })
-	}
-
-	private onScribbleComplete = () => {
-		this.editor.off('tick', this.scribble.tick)
-		this.editor.updateInstanceState({ scribble: null })
+		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 
 	private updateScribbleSelection(addPoint: boolean) {

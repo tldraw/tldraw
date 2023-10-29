@@ -19,7 +19,7 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 	selectedShapeIds: TLShapeId[]
 	currentPageId: TLPageId
 	brush: Box2dModel | null
-	scribble: TLScribble | null
+	scribbles: TLScribble[]
 	screenBounds: Box2dModel
 	followingUserId: string | null
 	cursor: {
@@ -61,7 +61,7 @@ export const instancePresenceValidator: T.Validator<TLInstancePresence> = T.mode
 		selectedShapeIds: T.arrayOf(idValidator<TLShapeId>('shape')),
 		currentPageId: idValidator<TLPageId>('page'),
 		brush: box2dModelValidator.nullable(),
-		scribble: scribbleValidator.nullable(),
+		scribbles: T.arrayOf(scribbleValidator),
 		chatMessage: T.string,
 		meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 	})
@@ -173,7 +173,7 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	},
 	selectedShapeIds: [],
 	brush: null,
-	scribble: null,
+	scribbles: [],
 	chatMessage: '',
 	meta: {},
 }))

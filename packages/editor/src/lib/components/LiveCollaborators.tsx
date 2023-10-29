@@ -81,7 +81,7 @@ const Collaborator = track(function Collaborator({
 	} = useEditorComponents()
 
 	const { viewportPageBounds, zoomLevel } = editor
-	const { userId, chatMessage, brush, scribble, selectedShapeIds, userName, cursor, color } =
+	const { userId, chatMessage, brush, scribbles, selectedShapeIds, userName, cursor, color } =
 		latestPresence
 
 	// Add a little padding to the top-left of the viewport
@@ -124,15 +124,19 @@ const Collaborator = track(function Collaborator({
 					viewport={viewportPageBounds}
 				/>
 			) : null}
-			{scribble && CollaboratorScribble ? (
-				<CollaboratorScribble
-					className="tl-collaborator__scribble"
-					key={userId + '_scribble'}
-					scribble={scribble}
-					color={color}
-					zoom={zoomLevel}
-					opacity={scribble.color === 'laser' ? 0.5 : 0.1}
-				/>
+			{CollaboratorScribble && scribbles.length ? (
+				<>
+					{scribbles.map((scribble) => (
+						<CollaboratorScribble
+							key={userId + '_scribble_' + scribble.id}
+							className="tl-collaborator__scribble"
+							scribble={scribble}
+							color={color}
+							zoom={zoomLevel}
+							opacity={scribble.color === 'laser' ? 0.5 : 0.1}
+						/>
+					))}
+				</>
 			) : null}
 			{CollaboratorShapeIndicator &&
 				selectedShapeIds.map((shapeId) => (

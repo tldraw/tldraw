@@ -105,6 +105,7 @@ import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage
 import { ClickManager } from './managers/ClickManager'
 import { EnvironmentManager } from './managers/EnvironmentManager'
 import { HistoryManager } from './managers/HistoryManager'
+import { ScribbleManager } from './managers/ScribbleManager'
 import { SideEffectManager } from './managers/SideEffectManager'
 import { SnapManager } from './managers/SnapManager'
 import { TextManager } from './managers/TextManager'
@@ -263,6 +264,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.environment = new EnvironmentManager(this)
+		this.scribbles = new ScribbleManager(this)
 
 		// Cleanup
 
@@ -676,6 +678,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly environment: EnvironmentManager
+
+	/**
+	 * A manager for the editor's scribbles.
+	 *
+	 * @public
+	 */
+	readonly scribbles: ScribbleManager
 
 	/**
 	 * The current HTML element containing the editor.
