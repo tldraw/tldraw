@@ -14,7 +14,7 @@ type ScribbleItem = {
 }
 
 /** @public */
-export class ScribbleRegionalDirector {
+export class ScribbleManager {
 	scribbleItems = new Map<string, ScribbleItem>()
 	state = 'paused' as 'paused' | 'running'
 
