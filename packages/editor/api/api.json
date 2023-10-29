@@ -15265,8 +15265,8 @@
                 },
                 {
                   "kind": "Reference",
-                  "text": "ScribbleRegionalDirector",
-                  "canonicalReference": "@tldraw/editor!~ScribbleRegionalDirector:class"
+                  "text": "ScribbleManager",
+                  "canonicalReference": "@tldraw/editor!~ScribbleManager:class"
                 },
                 {
                   "kind": "Content",
