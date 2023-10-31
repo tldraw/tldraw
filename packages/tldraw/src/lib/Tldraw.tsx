@@ -1,8 +1,6 @@
 import {
 	Canvas,
 	Editor,
-	ErrorScreen,
-	LoadingScreen,
 	RecursivePartial,
 	StoreSnapshot,
 	TLOnMountHandler,
@@ -31,8 +29,7 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
-import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './utils/assetUrls'
-import { usePreloadAssets } from './utils/usePreloadAssets'
+import { TLEditorAssetUrls } from './utils/assetUrls'
 
 /** @public */
 export function Tldraw(
@@ -93,18 +90,6 @@ export function Tldraw(
 			() => [...defaultTools, ...defaultShapeTools, ...(rest.tools ?? [])],
 			[rest.tools]
 		),
-	}
-
-	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
-
-	const { done: preloadingComplete, error: preloadingError } = usePreloadAssets(assets)
-
-	if (preloadingError) {
-		return <ErrorScreen>Could not load assets. Please refresh the page.</ErrorScreen>
-	}
-
-	if (!preloadingComplete) {
-		return <LoadingScreen>Loading assets...</LoadingScreen>
 	}
 
 	return (
