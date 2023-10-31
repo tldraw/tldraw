@@ -5,6 +5,7 @@ import {
 	Ellipse2d,
 	Geometry2d,
 	Group2d,
+	HTMLContainer,
 	PI2,
 	Polygon2d,
 	Polyline2d,
@@ -521,22 +522,27 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return (
 			<>
 				<SVGContainer id={id}>{getShape()}</SVGContainer>
-				<TextLabel
-					id={id}
-					type={type}
-					font={font}
-					fill={fill}
-					size={size}
-					align={align}
-					verticalAlign={verticalAlign}
-					text={text}
-					labelColor={labelColor}
-					wrap
-					bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
-				/>
-				{shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
-				)}
+				<HTMLContainer
+					id={shape.id}
+					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+				>
+					<TextLabel
+						id={id}
+						type={type}
+						font={font}
+						fill={fill}
+						size={size}
+						align={align}
+						verticalAlign={verticalAlign}
+						text={text}
+						labelColor={labelColor}
+						wrap
+						bounds={props.geo === 'cloud' ? this.getGeometry(shape).bounds : undefined}
+					/>
+					{shape.props.url && (
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
+					)}
+				</HTMLContainer>
 			</>
 		)
 	}

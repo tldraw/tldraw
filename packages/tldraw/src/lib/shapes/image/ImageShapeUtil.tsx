@@ -154,10 +154,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 							<div className="tl-image__tg">GIF</div>
 						)}
 					</div>
+					{'url' in shape.props && shape.props.url && (
+						<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
+					)}
 				</HTMLContainer>
-				{'url' in shape.props && shape.props.url && (
-					<HyperlinkButton url={shape.props.url} zoomLevel={this.editor.zoomLevel} />
-				)}
 			</>
 		)
 	}
