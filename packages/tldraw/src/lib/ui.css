@@ -610,12 +610,12 @@
 
 .tlui-style-panel__wrapper {
 	box-shadow: var(--shadow-2);
-	border-radius: var(--radius-3);
+	border-radius: 8px;
 	pointer-events: all;
 	background-color: var(--color-panel);
 	height: fit-content;
 	max-height: 100%;
-	margin: var(--space-3);
+	margin: 5px 4px;
 	touch-action: auto;
 	overscroll-behavior: none;
 	overflow-y: auto;
