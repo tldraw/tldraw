@@ -281,12 +281,6 @@
 	}
 }
 
-/* Icon */
-
-.tlui-button__icon-left {
-	margin-right: var(--space-4);
-}
-
 /* Button Row */
 
 .tlui-buttons__horizontal {
