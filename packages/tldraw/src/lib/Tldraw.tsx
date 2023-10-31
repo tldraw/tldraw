@@ -29,7 +29,8 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
-import { TLEditorAssetUrls } from './utils/assetUrls'
+import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './utils/assetUrls'
+import { useLoadAssets } from './utils/useLoadAssets'
 
 /** @public */
 export function Tldraw(
@@ -91,6 +92,10 @@ export function Tldraw(
 			[rest.tools]
 		),
 	}
+
+	const assets = useDefaultEditorAssetsWithOverrides(rest.assetUrls)
+
+	useLoadAssets(assets)
 
 	return (
 		<TldrawEditor {...withDefaults}>
