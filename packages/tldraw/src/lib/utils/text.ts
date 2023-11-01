@@ -24,7 +24,7 @@ function stripCommonMinimumIndentation(text: string): string {
 	const lines = text.split('\n')
 
 	// remove any leading lines that are only whitespace or newlines
-	while (lines[0].trim().length === 0) {
+	while (lines[0] && lines[0].trim().length === 0) {
 		lines.shift()
 	}
 
