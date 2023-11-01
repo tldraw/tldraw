@@ -1,0 +1,7 @@
+import { cleanupText } from './text'
+
+describe(cleanupText, () => {
+	it('can handle the empty string', () => {
+		expect(cleanupText('')).toBe('')
+	})
+})
