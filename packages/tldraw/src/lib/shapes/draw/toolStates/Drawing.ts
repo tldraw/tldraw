@@ -43,63 +43,32 @@ export class Drawing extends StateNode {
 	pagePointWhereNextSegmentChanged = null as Vec2d | null
 
 	lastRecordedPoint = {} as Vec2d
-	mergeNextPoint = false
+
 	currentLineLength = 0
 
 	canDraw = false
 
 	markId = null as null | string
 
+	interval = -1 as any
+
 	override onEnter = (info: TLPointerEventInfo) => {
 		this.markId = null
 		this.info = info
 		this.canDraw = !this.editor.isMenuOpen
 		this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
+
 		if (this.canDraw) {
 			this.startShape()
 		}
+
+		this.editor.addListener('tick', this.updateShapes)
 	}
 
-	override onPointerMove: TLEventHandlers['onPointerMove'] = () => {
-		const {
-			editor: { inputs },
-		} = this
-
-		if (this.isPen !== inputs.isPen) {
-			// The user made a palm gesture before starting a pen gesture;
-			// ideally we'd start the new shape here but we could also just bail
-			// as the next interaction will work correctly
-			if (this.markId) {
-				this.editor.bailToMark(this.markId)
-				this.startShape()
-				return
-			}
-		} else {
-			// If we came in from a menu but have no started dragging...
-			if (!this.canDraw && inputs.isDragging) {
-				this.startShape()
-				this.canDraw = true // bad name
-			}
-		}
-
-		if (this.canDraw) {
-			// Don't update the shape if we haven't moved far enough from the last time we recorded a point
-			if (inputs.isPen) {
-				if (
-					Vec2d.Dist(inputs.currentPagePoint, this.lastRecordedPoint) >=
-					1 / this.editor.zoomLevel
-				) {
-					this.lastRecordedPoint = inputs.currentPagePoint.clone()
-					this.mergeNextPoint = false
-				} else {
-					this.mergeNextPoint = true
-				}
-			} else {
-				this.mergeNextPoint = false
-			}
-
-			this.updateShapes()
-		}
+	override onExit? = () => {
+		this.editor.removeListener('tick', this.updateShapes)
+		this.editor.snaps.clear()
+		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 	}
 
 	override onKeyDown: TLEventHandlers['onKeyDown'] = (info) => {
@@ -139,11 +108,6 @@ export class Drawing extends StateNode {
 		}
 
 		this.updateShapes()
-	}
-
-	override onExit? = () => {
-		this.editor.snaps.clear()
-		this.pagePointWhereCurrentSegmentChanged = this.editor.inputs.currentPagePoint.clone()
 	}
 
 	canClose() {
@@ -280,11 +244,42 @@ export class Drawing extends StateNode {
 		this.initialShape = this.editor.getShape<DrawableShape>(id)
 	}
 
-	private updateShapes() {
+	updateShapes = () => {
+		this._updateShapes(false)
+	}
+
+	private _updateShapes = (force = false) => {
 		const { inputs } = this.editor
 		const { initialShape } = this
 
 		if (!initialShape) return
+
+		if (this.isPen !== inputs.isPen) {
+			// The user made a palm gesture before starting a pen gesture;
+			// ideally we'd start the new shape here but we could also just bail
+			// as the next interaction will work correctly
+			if (this.markId) {
+				this.editor.bailToMark(this.markId)
+				this.startShape()
+				return
+			}
+		} else {
+			// If we came in from a menu but have no started dragging...
+			if (!this.canDraw && inputs.isDragging) {
+				this.startShape()
+				this.canDraw = true // bad name
+			}
+		}
+
+		if (!this.canDraw) return
+
+		const pointDist = Vec2d.Dist(inputs.currentPagePoint, this.lastRecordedPoint)
+
+		if (!force && pointDist === 0) {
+			return
+		}
+
+		this.lastRecordedPoint = inputs.currentPagePoint.clone()
 
 		const {
 			id,
@@ -585,7 +580,7 @@ export class Drawing extends StateNode {
 				const newSegment = newSegments[newSegments.length - 1]
 				const newPoints = [...newSegment.points]
 
-				if (newPoints.length && this.mergeNextPoint) {
+				if (newPoints.length && pointDist < 1 / this.editor.zoomLevel) {
 					const { z } = newPoints[newPoints.length - 1]
 					newPoints[newPoints.length - 1] = {
 						x: newPoint.x,
@@ -650,7 +645,6 @@ export class Drawing extends StateNode {
 					])
 
 					this.initialShape = structuredClone(this.editor.getShape<DrawableShape>(newShapeId)!)
-					this.mergeNextPoint = false
 					this.lastRecordedPoint = this.editor.inputs.currentPagePoint.clone()
 					this.currentLineLength = 0
 				}
