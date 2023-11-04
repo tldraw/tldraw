@@ -4,7 +4,7 @@ export class Idle extends StateNode {
 	static override id = 'idle'
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		this.parent.transition('drawing', info)
+		this.parent.transition('drawing-simple', info)
 	}
 
 	override onEnter = () => {

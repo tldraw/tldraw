@@ -308,7 +308,7 @@ export { Dialog }
 // @public (undocumented)
 export class DrawShapeTool extends StateNode {
     // (undocumented)
-    static children: () => (typeof Drawing | typeof Idle_2)[];
+    static children: () => (typeof Drawing | typeof DrawingSimple | typeof Idle_2)[];
     // (undocumented)
     static id: string;
     // (undocumented)
