@@ -1,12 +1,26 @@
+import { react } from '@tldraw/state'
 import { Vec2d } from '../../primitives/Vec2d'
+import { debugFlags } from '../../utils/debug-flags'
 import { Editor } from '../Editor'
 
-const FPS = 2
+const FPS = 60
 
 export class TickManager {
 	constructor(public editor: Editor) {
-		this.editor.disposables.add(this.dispose)
+		const unsub = react('debug flag change', this.reactToDebugFlag)
+		this.editor.disposables.add(() => {
+			unsub()
+			this.dispose()
+		})
 		this.start()
+	}
+
+	reactToDebugFlag = () => {
+		if (debugFlags.throttleTick.value) {
+			this.tickLength = 1000 / 30
+		} else {
+			this.tickLength = 1000 / FPS
+		}
 	}
 
 	tickLength = 1000 / FPS

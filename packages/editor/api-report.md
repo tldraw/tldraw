@@ -414,6 +414,7 @@ export const debugFlags: {
     logMessages: DebugFlag<any[]>;
     resetConnectionEveryPing: DebugFlag<boolean>;
     debugCursors: DebugFlag<boolean>;
+    throttleTick: DebugFlag<boolean>;
     forceSrgb: DebugFlag<boolean>;
     debugGeometry: DebugFlag<boolean>;
     hideShapes: DebugFlag<boolean>;

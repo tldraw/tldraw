@@ -216,6 +216,7 @@ const DebugMenuContent = track(function DebugMenuContent({
 				<DebugFlagToggle flag={debugFlags.forceSrgb} />
 				<DebugFlagToggle flag={debugFlags.debugGeometry} />
 				<DebugFlagToggle flag={debugFlags.hideShapes} />
+				<DebugFlagToggle flag={debugFlags.throttleTick} />
 			</DropdownMenu.Group>
 			<DropdownMenu.Group>
 				{Object.values(featureFlags).map((flag) => {

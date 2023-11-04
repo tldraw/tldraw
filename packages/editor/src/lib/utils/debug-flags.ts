@@ -49,6 +49,9 @@ export const debugFlags = {
 	debugCursors: createDebugValue('debugCursors', {
 		defaults: { all: false },
 	}),
+	throttleTick: createDebugValue('throttleTick', {
+		defaults: { all: false },
+	}),
 	forceSrgb: createDebugValue('forceSrgbColors', { defaults: { all: false } }),
 	debugGeometry: createDebugValue('debugGeometry', { defaults: { all: false } }),
 	hideShapes: createDebugValue('hideShapes', { defaults: { all: false } }),
