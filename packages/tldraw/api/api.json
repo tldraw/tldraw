@@ -2757,6 +2757,15 @@
                 },
                 {
                   "kind": "Reference",
+                  "text": "DrawingSimple",
+                  "canonicalReference": "@tldraw/tldraw!~DrawingSimple:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | typeof "
+                },
+                {
+                  "kind": "Reference",
                   "text": "Idle",
                   "canonicalReference": "@tldraw/tldraw!~Idle_2:class"
                 },
@@ -2775,7 +2784,7 @@
               "name": "children",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 6
+                "endIndex": 8
               },
               "isStatic": true,
               "isProtected": false,
