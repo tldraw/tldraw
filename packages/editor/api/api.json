@@ -41283,6 +41283,15 @@
             },
             {
               "kind": "Content",
+              "text": ";\n    point: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Vec2dModel",
+              "canonicalReference": "@tldraw/tlschema!Vec2dModel:interface"
+            },
+            {
+              "kind": "Content",
               "text": ";\n}"
             },
             {
@@ -41295,7 +41304,7 @@
           "name": "TLWheelEventInfo",
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 5
+            "endIndex": 7
           }
         },
         {
