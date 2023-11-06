@@ -460,6 +460,9 @@ export const DefaultHandles: TLHandlesComponent;
 export const DefaultHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
+export const DefaultOnTheCanvas: TLOnTheCanvas;
+
+// @public (undocumented)
 export const DefaultScribble: TLScribbleComponent;
 
 // @public (undocumented)
@@ -2321,6 +2324,9 @@ export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>;
 
 // @public (undocumented)
 export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
+
+// @public (undocumented)
+export type TLOnTheCanvas = ComponentType<object>;
 
 // @public (undocumented)
 export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>;

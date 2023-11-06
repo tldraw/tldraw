@@ -26,6 +26,7 @@ import ExternalContentSourcesExample from './examples/ExternalContentSourcesExam
 import HideUiExample from './examples/HideUiExample'
 import MetaExample from './examples/MetaExample'
 import MultipleExample from './examples/MultipleExample'
+import OnTheCanvasExample from './examples/OnTheCanvas'
 import PersistenceExample from './examples/PersistenceExample'
 import ReadOnlyExample from './examples/ReadOnlyExample'
 import ScrollExample from './examples/ScrollExample'
@@ -83,6 +84,11 @@ export const allExamples: Example[] = [
 		title: 'Readonly Example',
 		path: 'readonly',
 		element: <ReadOnlyExample />,
+	},
+	{
+		title: 'Things on the canvas',
+		path: 'things-on-the-canvas',
+		element: <OnTheCanvasExample />,
 	},
 	{
 		title: 'Scroll example',

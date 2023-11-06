@@ -74,6 +74,10 @@ export {
 	type TLHoveredShapeIndicatorComponent,
 } from './lib/components/default-components/DefaultHoveredShapeIndicator'
 export {
+	DefaultOnTheCanvas,
+	type TLOnTheCanvas,
+} from './lib/components/default-components/DefaultOnTheCanvas'
+export {
 	DefaultScribble,
 	type TLScribbleComponent,
 } from './lib/components/default-components/DefaultScribble'
