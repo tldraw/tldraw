@@ -106,10 +106,10 @@ describe('Locked shapes', () => {
 	it('Cannot be moved', () => {
 		const shape = editor.getShape(ids.lockedShapeA)
 		editor.pointerDown(150, 150, { target: 'shape', shape })
-		editor.expectToBeIn('select.idle')
+		editor.expectToBeIn('select.pointing_canvas')
 
 		editor.pointerMove(10, 10)
-		editor.expectToBeIn('select.idle')
+		editor.expectToBeIn('select.brushing')
 
 		editor.pointerUp()
 		editor.expectToBeIn('select.idle')
@@ -125,7 +125,7 @@ describe('Locked shapes', () => {
 
 		editor
 			.pointerDown(10, 10, { target: 'shape', shape })
-			.expectToBeIn('select.idle')
+			.expectToBeIn('select.pointing_canvas')
 			.pointerUp()
 			.expectToBeIn('select.idle')
 		expect(editor.selectedShapeIds).not.toContain(shape.id)
