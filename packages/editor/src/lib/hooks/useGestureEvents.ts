@@ -119,6 +119,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 				type: 'wheel',
 				name: 'wheel',
 				delta,
+				point: new Vec2d(event.x, event.y),
 				shiftKey: event.shiftKey,
 				altKey: event.altKey,
 				ctrlKey: event.metaKey || event.ctrlKey,

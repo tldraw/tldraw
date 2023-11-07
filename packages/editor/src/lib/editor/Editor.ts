@@ -121,7 +121,12 @@ import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { SvgExportContext, SvgExportDef } from './types/SvgExportContext'
 import { TLContent } from './types/clipboard-types'
 import { TLEventMap } from './types/emit-types'
-import { TLEventInfo, TLPinchEventInfo, TLPointerEventInfo } from './types/event-types'
+import {
+	TLEventInfo,
+	TLPinchEventInfo,
+	TLPointerEventInfo,
+	TLWheelEventInfo,
+} from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLCommandHistoryOptions } from './types/history-types'
 import { OptionalKeys, RequiredKeys } from './types/misc-types'
@@ -8324,11 +8329,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
-	 * Update the input points from a pointer or pinch event.
+	 * Update the input points from a pointer, pinch, or wheel event.
 	 *
 	 * @param info - The event info.
 	 */
-	private _updateInputsFromEvent(info: TLPointerEventInfo | TLPinchEventInfo): void {
+	private _updateInputsFromEvent(
+		info: TLPointerEventInfo | TLPinchEventInfo | TLWheelEventInfo
+	): void {
 		const { previousScreenPoint, previousPagePoint, currentScreenPoint, currentPagePoint } =
 			this.inputs
 
@@ -8645,6 +8652,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 				case 'wheel': {
 					if (!this.instanceState.canMoveCamera) return
+
+					this._updateInputsFromEvent(info)
 
 					if (this.isMenuOpen) {
 						// noop
