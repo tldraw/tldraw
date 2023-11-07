@@ -72,9 +72,9 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 							title={
 								msg(labelA) +
 								' — ' +
-								(valueA === null
+								(valueA === null || valueA.type === 'mixed'
 									? msg('style-panel.mixed')
-									: msg(`${uiTypeA}-style.${valueA}` as TLUiTranslationKey))
+									: msg(`${uiTypeA}-style.${valueA.value}` as TLUiTranslationKey))
 							}
 							icon={iconA as any}
 							invertIcon
@@ -115,9 +115,9 @@ export const DoubleDropdownPicker = React.memo(function DoubleDropdownPicker<T e
 							title={
 								msg(labelB) +
 								' — ' +
-								(valueB === null
+								(valueB === null || valueB.type === 'mixed'
 									? msg('style-panel.mixed')
-									: msg(`${uiTypeB}-style.${valueB}` as TLUiTranslationKey))
+									: msg(`${uiTypeB}-style.${valueB.value}` as TLUiTranslationKey))
 							}
 							icon={iconB as any}
 							smallIcon
