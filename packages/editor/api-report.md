@@ -978,7 +978,7 @@ export type GapsSnapLine = {
 
 // @public (undocumented)
 export abstract class Geometry2d {
-    constructor(opts: Geometry2dOptions);
+    constructor({ isFilled, isClosed, isLabel, isSnappable }: Geometry2dOptions);
     // (undocumented)
     get area(): number;
     // (undocumented)
@@ -1202,6 +1202,12 @@ export function HTMLContainer({ children, className, ...rest }: HTMLContainerPro
 
 // @public (undocumented)
 export type HTMLContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
+
+// @public (undocumented)
+export function HTMLUiContainer({ children, onPointerDown, onPointerUp, onPointerMove, onKeyDown, onKeyUp, className, ...rest }: HTMLUiContainerProps): JSX.Element;
+
+// @public (undocumented)
+export type HTMLUiContainerProps = React_3.HTMLAttributes<HTMLDivElement>;
 
 // @public
 export function intersectLineSegmentPolygon(a1: VecLike, a2: VecLike, points: VecLike[]): null | VecLike[];

@@ -40,6 +40,7 @@ export {
 	type TLErrorBoundaryProps,
 } from './lib/components/ErrorBoundary'
 export { HTMLContainer, type HTMLContainerProps } from './lib/components/HTMLContainer'
+export { HTMLUiContainer, type HTMLUiContainerProps } from './lib/components/HTMLUiContainer'
 export { PositionedOnCanvas } from './lib/components/PositionedOnCanvas'
 export { SVGContainer, type SVGContainerProps } from './lib/components/SVGContainer'
 export { ShapeIndicator, type TLShapeIndicatorComponent } from './lib/components/ShapeIndicator'

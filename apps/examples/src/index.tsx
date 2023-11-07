@@ -33,6 +33,7 @@ import ShapeMetaExample from './examples/ShapeMetaExample'
 import SnapshotExample from './examples/SnapshotExample/SnapshotExample'
 import StoreEventsExample from './examples/StoreEventsExample'
 import UiEventsExample from './examples/UiEventsExample'
+import UiShapeExample from './examples/UiShapeExample'
 import UserPresenceExample from './examples/UserPresenceExample'
 import ZonesExample from './examples/ZonesExample'
 import EndToEnd from './examples/end-to-end/end-to-end'
@@ -93,6 +94,11 @@ export const allExamples: Example[] = [
 		title: 'Custom shapes / tools',
 		path: 'custom-config',
 		element: <CustomConfigExample />,
+	},
+	{
+		title: 'Custom Shape (Interactive)',
+		path: 'custom-ui-shape',
+		element: <UiShapeExample />,
 	},
 	{
 		title: 'Sublibraries',

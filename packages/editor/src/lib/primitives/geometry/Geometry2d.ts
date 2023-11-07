@@ -7,20 +7,22 @@ export interface Geometry2dOptions {
 	isClosed: boolean
 	isLabel?: boolean
 	isSnappable?: boolean
+	isHoverable?: boolean
+	isSelectable?: boolean
 }
 
 /** @public */
 export abstract class Geometry2d {
-	isFilled = false
-	isClosed = true
-	isLabel = false
-	isSnappable = true
+	isFilled: boolean
+	isClosed: boolean
+	isLabel: boolean
+	isSnappable: boolean
 
-	constructor(opts: Geometry2dOptions) {
-		this.isFilled = opts.isFilled
-		this.isClosed = opts.isClosed
-		this.isSnappable = opts.isSnappable ?? false
-		this.isLabel = opts.isLabel ?? false
+	constructor({ isFilled, isClosed, isLabel = false, isSnappable = true }: Geometry2dOptions) {
+		this.isFilled = isFilled
+		this.isClosed = isClosed
+		this.isLabel = isLabel
+		this.isSnappable = isSnappable
 	}
 
 	abstract getVertices(): Vec2d[]

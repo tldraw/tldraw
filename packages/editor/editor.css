@@ -379,6 +379,12 @@ input,
 	color: inherit;
 }
 
+
+.tl-ui-container {
+	pointer-events: all;
+}
+
+
 /* --------------- Overlay Stack --------------- */
 
 /* back of the stack, behind user's stuff */
