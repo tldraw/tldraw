@@ -50,6 +50,10 @@ export class FrameShapeUtil extends BaseBoxShapeUtil<TLFrameShape> {
 	}
 
 	override component(shape: TLFrameShape) {
+		// We use this to get the latest shape props, which triggers a re-render
+		// so that we can update the label on rotation
+		this.editor.getShape(shape.id)
+
 		const bounds = this.editor.getShapeGeometry(shape).bounds
 		// eslint-disable-next-line react-hooks/rules-of-hooks
 		const theme = useDefaultColorTheme()
