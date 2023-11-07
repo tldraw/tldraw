@@ -524,7 +524,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				<SVGContainer id={id}>{getShape()}</SVGContainer>
 				<HTMLContainer
 					id={shape.id}
-					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h }}
+					style={{ overflow: 'hidden', width: shape.props.w, height: shape.props.h + props.growY }}
 				>
 					<TextLabel
 						id={id}
