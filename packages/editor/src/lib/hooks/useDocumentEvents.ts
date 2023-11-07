@@ -239,6 +239,11 @@ export function useDocumentEvents() {
 
 		// Prevent wheel events that occur inside of the container
 		const handleWheel = (e: WheelEvent) => {
+			// Prevent navigating back/forward with a trackpad
+			if (Math.abs(e.deltaX) >= Math.abs(e.deltaY)) {
+				preventDefault(e)
+			}
+
 			if (container.contains(e.target as Node) && (e.ctrlKey || e.metaKey)) {
 				preventDefault(e)
 			}
