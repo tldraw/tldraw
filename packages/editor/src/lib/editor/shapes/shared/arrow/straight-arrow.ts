@@ -25,6 +25,26 @@ export function getStraightArrowInfo(editor: Editor, shape: TLArrowShape): TLArr
 	const a = terminalsInArrowSpace.start.clone()
 	const b = terminalsInArrowSpace.end.clone()
 	const c = Vec2d.Med(a, b)
+
+	if (Vec2d.Equals(a, b)) {
+		return {
+			isStraight: true,
+			start: {
+				handle: a,
+				point: a,
+				arrowhead: shape.props.arrowheadStart,
+			},
+			end: {
+				handle: b,
+				point: b,
+				arrowhead: shape.props.arrowheadEnd,
+			},
+			middle: c,
+			isValid: false,
+			length: 0,
+		}
+	}
+
 	const uAB = Vec2d.Sub(b, a).uni()
 
 	// Update the arrowhead points using intersections with the bound shapes, if any.
