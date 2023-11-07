@@ -5894,30 +5894,6 @@
         },
         {
           "kind": "Variable",
-          "canonicalReference": "@tldraw/editor!DefaultOnTheCanvas:var",
-          "docComment": "/**\n * @public\n */\n",
-          "excerptTokens": [
-            {
-              "kind": "Content",
-              "text": "DefaultOnTheCanvas: "
-            },
-            {
-              "kind": "Reference",
-              "text": "TLOnTheCanvas",
-              "canonicalReference": "@tldraw/editor!TLOnTheCanvas:type"
-            }
-          ],
-          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultOnTheCanvas.tsx",
-          "isReadonly": true,
-          "releaseTag": "Public",
-          "name": "DefaultOnTheCanvas",
-          "variableTypeTokenRange": {
-            "startIndex": 1,
-            "endIndex": 2
-          }
-        },
-        {
-          "kind": "Variable",
           "canonicalReference": "@tldraw/editor!DefaultScribble:var",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -37971,6 +37947,37 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLInFrontOfTheCanvas:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLInFrontOfTheCanvas = "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<object>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultInFrontOfTheCanvas.tsx",
+          "releaseTag": "Public",
+          "name": "TLInFrontOfTheCanvas",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
           }
         },
         {
