@@ -37951,6 +37951,37 @@
         },
         {
           "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLInFrontOfTheCanvas:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLInFrontOfTheCanvas = "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<object>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultInFrontOfTheCanvas.tsx",
+          "releaseTag": "Public",
+          "name": "TLInFrontOfTheCanvas",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
+        },
+        {
+          "kind": "TypeAlias",
           "canonicalReference": "@tldraw/editor!TLInterruptEvent:type",
           "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
@@ -39007,6 +39038,37 @@
           "typeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@tldraw/editor!TLOnTheCanvas:type",
+          "docComment": "/**\n * @public\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export type TLOnTheCanvas = "
+            },
+            {
+              "kind": "Reference",
+              "text": "ComponentType",
+              "canonicalReference": "@types/react!React.ComponentType:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<object>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "fileUrlPath": "packages/editor/src/lib/components/default-components/DefaultOnTheCanvas.tsx",
+          "releaseTag": "Public",
+          "name": "TLOnTheCanvas",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
           }
         },
         {

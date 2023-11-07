@@ -21,6 +21,8 @@ import {
 	DefaultHoveredShapeIndicator,
 	TLHoveredShapeIndicatorComponent,
 } from '../components/default-components/DefaultHoveredShapeIndicator'
+import { TLInFrontOfTheCanvas } from '../components/default-components/DefaultInFrontOfTheCanvas'
+import { TLOnTheCanvas } from '../components/default-components/DefaultOnTheCanvas'
 import {
 	DefaultScribble,
 	TLScribbleComponent,
@@ -48,7 +50,7 @@ import {
 import { DefaultSpinner, TLSpinnerComponent } from '../components/default-components/DefaultSpinner'
 import { DefaultSvgDefs, TLSvgDefsComponent } from '../components/default-components/DefaultSvgDefs'
 
-interface BaseEditorComponents {
+export interface BaseEditorComponents {
 	Background: TLBackgroundComponent
 	SvgDefs: TLSvgDefsComponent
 	Brush: TLBrushComponent
@@ -68,6 +70,8 @@ interface BaseEditorComponents {
 	SelectionForeground: TLSelectionForegroundComponent
 	SelectionBackground: TLSelectionBackgroundComponent
 	HoveredShapeIndicator: TLHoveredShapeIndicatorComponent
+	OnTheCanvas: TLOnTheCanvas
+	InFrontOfTheCanvas: TLInFrontOfTheCanvas
 }
 
 /** @public */
@@ -113,6 +117,8 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 					SelectionBackground: DefaultSelectionBackground,
 					SelectionForeground: DefaultSelectionForeground,
 					HoveredShapeIndicator: DefaultHoveredShapeIndicator,
+					OnTheCanvas: null,
+					InFrontOfTheCanvas: null,
 					...overrides,
 				}),
 				[overrides]

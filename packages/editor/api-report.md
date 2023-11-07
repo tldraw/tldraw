@@ -2245,6 +2245,9 @@ export type TLHoveredShapeIndicatorComponent = ComponentType<{
 }>;
 
 // @public (undocumented)
+export type TLInFrontOfTheCanvas = ComponentType<object>;
+
+// @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
 
 // @public (undocumented)
@@ -2321,6 +2324,9 @@ export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>;
 
 // @public (undocumented)
 export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
+
+// @public (undocumented)
+export type TLOnTheCanvas = ComponentType<object>;
 
 // @public (undocumented)
 export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
