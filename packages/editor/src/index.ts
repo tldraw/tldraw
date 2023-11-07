@@ -73,10 +73,8 @@ export {
 	DefaultHoveredShapeIndicator,
 	type TLHoveredShapeIndicatorComponent,
 } from './lib/components/default-components/DefaultHoveredShapeIndicator'
-export {
-	DefaultOnTheCanvas,
-	type TLOnTheCanvas,
-} from './lib/components/default-components/DefaultOnTheCanvas'
+export { type TLInFrontOfTheCanvas } from './lib/components/default-components/DefaultInFrontOfTheCanvas'
+export { type TLOnTheCanvas } from './lib/components/default-components/DefaultOnTheCanvas'
 export {
 	DefaultScribble,
 	type TLScribbleComponent,

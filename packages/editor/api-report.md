@@ -460,9 +460,6 @@ export const DefaultHandles: TLHandlesComponent;
 export const DefaultHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
 
 // @public (undocumented)
-export const DefaultOnTheCanvas: TLOnTheCanvas;
-
-// @public (undocumented)
 export const DefaultScribble: TLScribbleComponent;
 
 // @public (undocumented)
@@ -2246,6 +2243,9 @@ export type TLHistoryMark = {
 export type TLHoveredShapeIndicatorComponent = ComponentType<{
     shapeId: TLShapeId;
 }>;
+
+// @public (undocumented)
+export type TLInFrontOfTheCanvas = ComponentType<object>;
 
 // @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;

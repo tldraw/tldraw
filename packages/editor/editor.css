@@ -285,18 +285,6 @@ input,
 	z-index: var(--layer-background);
 }
 
-/* -------------- Things on the canvas -------------- */
-
-.tl-things-on-the-canvas {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100px;
-	height: 100px;
-	overflow: visible;
-	pointer-events: all;
-}
-
 /* --------------------- Grid Layer --------------------- */
 
 .tl-grid {
