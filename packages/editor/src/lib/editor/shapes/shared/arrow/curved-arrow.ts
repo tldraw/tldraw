@@ -49,6 +49,25 @@ export function getCurvedArrowInfo(
 	const b = terminalsInArrowSpace.end.clone()
 	const c = middle.clone()
 
+	if (Vec2d.Equals(a, b)) {
+		return {
+			isStraight: true,
+			start: {
+				handle: a,
+				point: a,
+				arrowhead: shape.props.arrowheadStart,
+			},
+			end: {
+				handle: b,
+				point: b,
+				arrowhead: shape.props.arrowheadEnd,
+			},
+			middle: c,
+			isValid: false,
+			length: 0,
+		}
+	}
+
 	const isClockwise = shape.props.bend < 0
 	const distFn = isClockwise ? clockwiseAngleDist : counterClockwiseAngleDist
 
