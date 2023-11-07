@@ -19,6 +19,6 @@ To create a pull request:
 5. Run `yarn build` and then run tests with `yarn test`.
 6. Push your branch and open a PR. 🚀
 
-Before your code is merged, you will need to sign our [contributor license agreement](https://tldraw.dev/cla), which is handled automatically via GitHub comments. Your PR will be reviewed and merged in within a day or two if everything looks good.
+Before your code is merged, you will need to sign our [contributor license agreement](https://github.com/tldraw/tldraw/blob/main/CLA.md), which is handled automatically via GitHub comments. Your PR will be reviewed and merged in within a day or two if everything looks good.
 
 Please also see our [Code of Conduct](https://github.com/tldraw/tldraw/blob/main/CODE_OF_CONDUCT.md) for our expectations around contributor culture.

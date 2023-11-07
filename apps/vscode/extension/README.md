@@ -16,10 +16,16 @@
 
 ## Community
 
-### Support
+Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsyWMUJxd) or [start a discussion](https://github.com/tldraw/tldraw/discussions/new).
 
-Need help? Please [open an issue](https://github.com/tldraw/tldraw-beta/issues/new/choose) for support.
+## Contribution
 
-### Discussion
+Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
 
-Want to connect with the developers or users? Visit the [Discord channel](https://discord.gg/SBBEVCA4PG).
+## Open source license
+
+tldraw is open source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can learn more about tldraw's [license](https://github.com/tldraw/tldraw/blob/main/LICENSE.md) and other policies at the [tldraw GitHub repository](https://github.com/tldraw/tldraw).
+
+## Contact
+
+Find us on Twitter at [@tldraw](https://twitter.com/tldraw) or email [hello@tldraw.com](mailto://hello@tldraw.com). You can also [join our discord](https://discord.gg/rhsyWMUJxd) for quick help and support.

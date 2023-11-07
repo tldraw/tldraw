@@ -97,8 +97,6 @@ Have questions, comments or feedback? [Join our discord](https://discord.gg/rhsy
 
 You can find tldraw on npm [here](https://www.npmjs.com/package/@tldraw/tldraw?activeTab=versions).
 
-At the moment the tldraw package is in alpha. We also ship a canary version which is always up to date with the main branch of this repo.
-
 ## Contribution
 
 Please see our [contributing guide](https://github.com/tldraw/tldraw/blob/main/CONTRIBUTING.md). Found a bug? Please [submit an issue](https://github.com/tldraw/tldraw/issues/new).
