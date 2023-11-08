@@ -59,6 +59,10 @@ export function usePrint() {
 					display: none;
 				}
 
+				.tldraw__editor {
+					display: none;
+				}
+
 				.${className} {
 					display: block !important;
 					background: white;
