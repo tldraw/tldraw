@@ -296,9 +296,7 @@ export async function parseAndLoadDocument(
 		if (bounds) {
 			editor.zoomToBounds(bounds, 1)
 		}
-		if (editor.instanceState.isFocused !== isFocused) {
-			editor.updateInstanceState({ isFocused })
-		}
+		editor.updateInstanceState({ isFocused })
 	})
 
 	if (forceDarkMode) editor.user.updateUserPreferences({ isDarkMode: true })
