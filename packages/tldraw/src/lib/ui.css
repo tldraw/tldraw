@@ -304,6 +304,7 @@
 	display: grid;
 	grid-template-columns: repeat(4, auto);
 	grid-auto-flow: row;
+	overflow: hidden;
 }
 .tlui-buttons__grid > .tlui-button {
 	margin: -2px;
