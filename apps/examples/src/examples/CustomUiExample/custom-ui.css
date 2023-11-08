@@ -1,14 +1,9 @@
 .custom-layout {
-	position: absolute;
-	inset: 0px;
 	z-index: 300;
 	pointer-events: none;
 }
 
 .custom-toolbar {
-	position: absolute;
-	top: 0px;
-	left: 0px;
 	width: 100%;
 	display: flex;
 	align-items: center;

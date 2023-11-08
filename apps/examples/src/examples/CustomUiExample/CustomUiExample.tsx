@@ -1,22 +1,21 @@
-import { Canvas, Tldraw, track, useEditor } from '@tldraw/tldraw'
+import { Canvas, Editor, Tldraw, track } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import './custom-ui.css'
 
 export default function CustomUiExample() {
+	const [editor, setEditor] = useState<Editor | null>(null)
 	return (
-		<div className="tldraw__editor">
-			<Tldraw hideUi>
+		<div className="tldraw__editor" style={{ display: 'flex', flexDirection: 'column' }}>
+			{editor && <CustomUi editor={editor} />}
+			<Tldraw hideUi onMount={(editor) => setEditor(editor)}>
 				<Canvas />
-				<CustomUi />
 			</Tldraw>
 		</div>
 	)
 }
 
-const CustomUi = track(() => {
-	const editor = useEditor()
-
+const CustomUi = track(function CustomUi({ editor }) {
 	useEffect(() => {
 		const handleKeyUp = (e: KeyboardEvent) => {
 			switch (e.key) {
