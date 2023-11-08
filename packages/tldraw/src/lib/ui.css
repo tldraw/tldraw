@@ -353,20 +353,19 @@
 /* --------------------- Layout --------------------- */
 
 .tlui-layout {
-	position: relative;
+	position: absolute;
 	display: grid;
 	grid-template-columns: 1fr;
 	grid-template-rows: minmax(0px, 1fr) auto;
 	grid-auto-rows: auto;
-	height: 100%;
-	max-height: 100%;
 	overflow: clip;
 	pointer-events: none;
 	user-select: none;
 	contain: strict;
 	z-index: var(--layer-panels);
 	-webkit-transform: translate3d(0, 0, 0);
-	--sab: env(safe-area-inset-bottom);
+	inset: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+		env(safe-area-inset-left);
 }
 
 .tlui-layout__top {
@@ -879,7 +878,7 @@
 	align-items: center;
 	justify-content: center;
 	flex-grow: 2;
-	padding-bottom: calc(var(--space-3) + var(--sab));
+	padding-bottom: var(--space-3);
 }
 
 /* Centered Content */
