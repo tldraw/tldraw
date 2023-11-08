@@ -279,6 +279,7 @@ export async function parseAndLoadDocument(
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
 	transact(() => {
+		const isFocused = editor.instanceState.isFocused
 		editor.store.clear()
 		const [shapes, nonShapes] = partition(
 			parseFileResult.value.allRecords(),
@@ -290,10 +291,12 @@ export async function parseAndLoadDocument(
 		editor.history.clear()
 		editor.updateViewportScreenBounds()
 		editor.updateRenderingBounds()
-
 		const bounds = editor.currentPageBounds
 		if (bounds) {
 			editor.zoomToBounds(bounds, 1)
+		}
+		if (editor.instanceState.isFocused !== isFocused) {
+			editor.updateInstanceState({ isFocused })
 		}
 	})
 
