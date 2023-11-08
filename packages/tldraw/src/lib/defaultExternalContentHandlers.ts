@@ -4,7 +4,9 @@ import {
 	MediaHelpers,
 	TLAsset,
 	TLAssetId,
+	TLBookmarkShape,
 	TLEmbedShape,
+	TLShapeId,
 	TLShapePartial,
 	TLTextShape,
 	TLTextShapeProps,
@@ -354,6 +356,7 @@ export function registerDefaultExternalContentHandlers(
 			point ?? (editor.inputs.shiftKey ? editor.inputs.currentPagePoint : editor.viewportPageCenter)
 
 		const assetId: TLAssetId = AssetRecordType.createId(getHashForString(url))
+		const shape = createEmptyBookmarkShape(editor, url, position)
 
 		// Use an existing asset if we have one, or else else create a new one
 		let asset = editor.getAsset(assetId) as TLAsset
@@ -370,13 +373,25 @@ export function registerDefaultExternalContentHandlers(
 				editor.createAssets([asset])
 			}
 
-			createShapesForAssets(editor, [asset], position)
+			editor.updateShapes([
+				{
+					...shape,
+					props: {
+						...shape.props,
+						assetId: asset.id,
+					},
+				},
+			])
 		})
 	})
 }
 
-export async function createShapesForAssets(editor: Editor, assets: TLAsset[], position: VecLike) {
-	if (!assets.length) return
+export async function createShapesForAssets(
+	editor: Editor,
+	assets: TLAsset[],
+	position: VecLike
+): Promise<TLShapeId[]> {
+	if (!assets.length) return []
 
 	const currentPoint = Vec2d.From(position)
 	const partials: TLShapePartial[] = []
@@ -446,30 +461,62 @@ export async function createShapesForAssets(editor: Editor, assets: TLAsset[], p
 		editor.createShapes(partials).select(...partials.map((p) => p.id))
 
 		// Re-position shapes so that the center of the group is at the provided point
-		const { viewportPageBounds } = editor
-		let { selectionPageBounds } = editor
-
-		if (selectionPageBounds) {
-			const offset = selectionPageBounds!.center.sub(position)
-
-			editor.updateShapes(
-				editor.selectedShapes.map((shape) => {
-					const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
-					const localDelta = Vec2d.Rot(offset, -localRotation)
-					return {
-						id: shape.id,
-						type: shape.type,
-						x: shape.x! - localDelta.x,
-						y: shape.y! - localDelta.y,
-					}
-				})
-			)
-		}
-
-		// Zoom out to fit the shapes, if necessary
-		selectionPageBounds = editor.selectionPageBounds
-		if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
-			editor.zoomToSelection()
-		}
+		centerSelecitonAroundPoint(editor, position)
 	})
+
+	return partials.map((p) => p.id)
+}
+
+function centerSelecitonAroundPoint(editor: Editor, position: VecLike) {
+	// Re-position shapes so that the center of the group is at the provided point
+	const { viewportPageBounds } = editor
+	let { selectionPageBounds } = editor
+
+	if (selectionPageBounds) {
+		const offset = selectionPageBounds!.center.sub(position)
+
+		editor.updateShapes(
+			editor.selectedShapes.map((shape) => {
+				const localRotation = editor.getShapeParentTransform(shape).decompose().rotation
+				const localDelta = Vec2d.Rot(offset, -localRotation)
+				return {
+					id: shape.id,
+					type: shape.type,
+					x: shape.x! - localDelta.x,
+					y: shape.y! - localDelta.y,
+				}
+			})
+		)
+	}
+
+	// Zoom out to fit the shapes, if necessary
+	selectionPageBounds = editor.selectionPageBounds
+	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
+		editor.zoomToSelection()
+	}
+}
+
+export function createEmptyBookmarkShape(
+	editor: Editor,
+	url: string,
+	position: VecLike
+): TLBookmarkShape {
+	const partial: TLShapePartial = {
+		id: createShapeId(),
+		type: 'bookmark',
+		x: position.x - 150,
+		y: position.y - 160,
+		opacity: 1,
+		props: {
+			assetId: null,
+			url,
+		},
+	}
+
+	editor.batch(() => {
+		editor.createShapes([partial]).select(partial.id)
+		centerSelecitonAroundPoint(editor, position)
+	})
+
+	return editor.getShape(partial.id) as TLBookmarkShape
 }

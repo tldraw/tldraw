@@ -18,11 +18,14 @@ export async function pasteUrl(
 ) {
 	// Lets see if its an image and we have CORs
 	try {
-		const resp = await fetch(url)
-		if (resp.headers.get('content-type')?.match(/^image\//)) {
-			editor.mark('paste')
-			pasteFiles(editor, [url])
-			return
+		// skip this step if the url doesn't contain an image extension, treat it as a regular bookmark
+		if (new URL(url).pathname.match(/\.(png|jpe?g|gif|svg|webp)$/i)) {
+			const resp = await fetch(url, { method: 'HEAD' })
+			if (resp.headers.get('content-type')?.match(/^image\//)) {
+				editor.mark('paste')
+				pasteFiles(editor, [url])
+				return
+			}
 		}
 	} catch (err: any) {
 		if (err.message !== 'Failed to fetch') {
