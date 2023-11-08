@@ -6,7 +6,6 @@ import {
 	getDefaultColorTheme,
 	resizeBox,
 } from '@tldraw/tldraw'
-import { useState } from 'react'
 import { cardShapeMigrations } from './card-shape-migrations'
 import { cardShapeProps } from './card-shape-props'
 import { ICardShape } from './card-shape-types'
@@ -46,12 +45,7 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 
 	// Render method — the React component that will be rendered for the shape
 	component(shape: ICardShape) {
-		const bounds = this.editor.getShapeGeometry(shape).bounds
 		const theme = getDefaultColorTheme({ isDarkMode: this.editor.user.isDarkMode })
-
-		// Unfortunately eslint will think this is a class components
-		// eslint-disable-next-line react-hooks/rules-of-hooks
-		const [count, setCount] = useState(0)
 
 		return (
 			<HTMLContainer
@@ -67,16 +61,11 @@ export class CardShapeUtil extends ShapeUtil<ICardShape> {
 					fontWeight: shape.props.weight,
 					color: theme[shape.props.color].solid,
 				}}
+				onPointerDown={(e) => e.stopPropagation()}
 			>
-				<h2>Clicks: {count}</h2>
-				<button
-					onClick={() => setCount((count) => count + 1)}
-					// You need to stop the pointer down event on buttons
-					// that should prevent shape selection or click and drag
-					onPointerDown={(e) => e.stopPropagation()}
-				>
-					{bounds.w.toFixed()}x{bounds.h.toFixed()}
-				</button>
+				<a href="https://tldraw.com" target="_blank" rel="noreferrer">
+					Test
+				</a>
 			</HTMLContainer>
 		)
 	}
