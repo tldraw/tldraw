@@ -54,7 +54,7 @@ export function useExportAs() {
 				}
 				case 'webp':
 				case 'png': {
-					const image = await getSvgAsImage(svg, {
+					const image = await getSvgAsImage(svg, editor.environment.isSafari, {
 						type: format,
 						quality: 1,
 						scale: 2,

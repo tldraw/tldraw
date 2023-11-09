@@ -25,6 +25,7 @@ export function getSvgAsString(svg: SVGElement) {
 /** @public */
 export async function getSvgAsImage(
 	svg: SVGElement,
+	isSafari: boolean,
 	options: {
 		type: TLCopyType | TLExportType
 		quality: number
@@ -68,7 +69,9 @@ export async function getSvgAsImage(
 			// actually loaded. just waiting around a while is brittle, but
 			// there doesn't seem to be any better solution for now :( see
 			// https://bugs.webkit.org/show_bug.cgi?id=219770
-			await new Promise((resolve) => setTimeout(resolve, 250))
+			if (isSafari) {
+				await new Promise((resolve) => setTimeout(resolve, 250))
+			}
 
 			const canvas = document.createElement('canvas') as HTMLCanvasElement
 			const ctx = canvas.getContext('2d')!
