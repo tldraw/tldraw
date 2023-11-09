@@ -1,7 +1,7 @@
 import * as _ContextMenu from '@radix-ui/react-context-menu'
 import { Editor, preventDefault, useContainer, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
-import { useCallback, useState } from 'react'
+import { forwardRef, useCallback, useState } from 'react'
 import { TLUiMenuChild } from '../hooks/menuHelpers'
 import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
@@ -96,7 +96,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	)
 }
 
-function ContextMenuContent() {
+const ContextMenuContent = forwardRef(function ContextMenuContent() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const menuSchema = useContextMenuSchema()
@@ -226,4 +226,4 @@ function ContextMenuContent() {
 			</_ContextMenu.Content>
 		</_ContextMenu.Portal>
 	)
-}
+})
