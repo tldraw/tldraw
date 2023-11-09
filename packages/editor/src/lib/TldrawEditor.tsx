@@ -225,7 +225,7 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 			container.classList.remove('tl-theme__light')
 			container.classList.add('tl-theme__dark')
 		}
-	}, [container, user.userPreferences.get().isDarkMode])
+	}, [container, user])
 
 	switch (store.status) {
 		case 'error': {
