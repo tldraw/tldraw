@@ -44,7 +44,7 @@ export const PopoverContent: FC<{
 }> = ({ side, children, align = 'center', sideOffset = 8, alignOffset = 0 }) => {
 	const container = useContainer()
 	return (
-		<PopoverPrimitive.Portal dir="ltr" container={container}>
+		<PopoverPrimitive.Portal container={container}>
 			<PopoverPrimitive.Content
 				className="tlui-popover__content"
 				side={side}

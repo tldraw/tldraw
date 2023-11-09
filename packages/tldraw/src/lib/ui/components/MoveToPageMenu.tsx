@@ -22,7 +22,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 					icon="chevron-right"
 				/>
 			</_ContextMenu.SubTrigger>
-			<_ContextMenu.Portal container={container} dir="ltr">
+			<_ContextMenu.Portal container={container}>
 				<_ContextMenu.SubContent className="tlui-menu" sideOffset={-4} collisionPadding={4}>
 					<_ContextMenu.Group
 						dir="ltr"

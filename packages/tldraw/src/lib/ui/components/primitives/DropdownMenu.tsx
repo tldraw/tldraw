@@ -64,7 +64,7 @@ export function Content({
 	const container = useContainer()
 
 	return (
-		<DropdownMenu.Portal dir="ltr" container={container}>
+		<DropdownMenu.Portal container={container}>
 			<DropdownMenu.Content
 				className="tlui-menu"
 				align={align}
@@ -124,7 +124,7 @@ export function SubContent({
 }) {
 	const container = useContainer()
 	return (
-		<DropdownMenu.Portal container={container} dir="ltr">
+		<DropdownMenu.Portal container={container}>
 			<DropdownMenu.SubContent
 				className="tlui-menu tlui-menu__submenu__content"
 				alignOffset={alignOffset}
