@@ -57,7 +57,7 @@ export const ActionsMenu = memo(function ActionsMenu() {
 					smallIcon
 				/>
 			</PopoverTrigger>
-			<PopoverPrimitive.Portal dir="ltr" container={container}>
+			<PopoverPrimitive.Portal container={container}>
 				<PopoverPrimitive.Content
 					className="tlui-popover__content"
 					side="bottom"

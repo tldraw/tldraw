@@ -150,7 +150,7 @@ function ContextMenuContent() {
 								icon="chevron-right"
 							/>
 						</_ContextMenu.SubTrigger>
-						<_ContextMenu.Portal container={container} dir="ltr">
+						<_ContextMenu.Portal container={container}>
 							<_ContextMenu.SubContent className="tlui-menu" sideOffset={-4} collisionPadding={4}>
 								{item.children.map((child) => getContextMenuItem(editor, child, item, depth + 1))}
 							</_ContextMenu.SubContent>
@@ -215,7 +215,7 @@ function ContextMenuContent() {
 	}
 
 	return (
-		<_ContextMenu.Portal dir="ltr" container={container}>
+		<_ContextMenu.Portal container={container}>
 			<_ContextMenu.Content
 				className="tlui-menu scrollable"
 				alignOffset={-4}

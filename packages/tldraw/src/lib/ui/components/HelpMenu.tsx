@@ -41,7 +41,7 @@ export const HelpMenu = React.memo(function HelpMenu() {
 						icon="question-mark"
 					/>
 				</Trigger>
-				<Portal container={container} dir="ltr">
+				<Portal container={container}>
 					<Content
 						className="tlui-menu"
 						side="top"
