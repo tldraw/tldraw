@@ -1,11 +1,14 @@
 /// <reference types="react" />
 
-import * as Dialog from './lib/ui/components/primitives/Dialog'
-import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
-
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
 export { Tldraw } from './lib/Tldraw'
+export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
+export { TldrawHandles } from './lib/canvas/TldrawHandles'
+export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndicator'
+export { TldrawScribble } from './lib/canvas/TldrawScribble'
+export { TldrawSelectionBackground } from './lib/canvas/TldrawSelectionBackground'
+export { TldrawSelectionForeground } from './lib/canvas/TldrawSelectionForeground'
 export { defaultShapeTools } from './lib/defaultShapeTools'
 export { defaultShapeUtils } from './lib/defaultShapeUtils'
 export { defaultTools } from './lib/defaultTools'
@@ -159,3 +162,5 @@ export {
 } from './lib/utils/file'
 export { truncateStringWithEllipsis } from './lib/utils/text'
 export { Dialog, DropdownMenu }
+import * as Dialog from './lib/ui/components/primitives/Dialog'
+import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'
