@@ -202,7 +202,7 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 		}
 	}
 
-	get value(): Value {
+	get(): Value {
 		const value = this.__unsafe__getWithoutCapture()
 		maybeCaptureParent(this)
 		return value
@@ -211,7 +211,7 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
 		// need to call .value to ensure both that this derivation is up to date
 		// and that tracking happens correctly
-		this.value
+		this.get()
 
 		if (epoch >= this.lastChangedEpoch) {
 			return EMPTY_ARRAY
@@ -242,7 +242,7 @@ function computedAnnotation(
 				value: d,
 			})
 		}
-		return d.value
+		return d.get()
 	}
 
 	return descriptor

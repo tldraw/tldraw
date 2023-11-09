@@ -34,7 +34,7 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 	for (const [k, matcher] of Object.entries(query)) {
 		if ('eq' in matcher) {
 			const index = store.index(typeName, k as any)
-			const ids = index.value.get(matcher.eq)
+			const ids = index.get().get(matcher.eq)
 			if (ids) {
 				for (const id of ids) {
 					matchIds[k].add(id)
@@ -42,7 +42,7 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 			}
 		} else if ('neq' in matcher) {
 			const index = store.index(typeName, k as any)
-			for (const [value, ids] of index.value) {
+			for (const [value, ids] of index.get()) {
 				if (value !== matcher.neq) {
 					for (const id of ids) {
 						matchIds[k].add(id)
@@ -51,7 +51,7 @@ export function executeQuery<R extends UnknownRecord, TypeName extends R['typeNa
 			}
 		} else if ('gt' in matcher) {
 			const index = store.index(typeName, k as any)
-			for (const [value, ids] of index.value) {
+			for (const [value, ids] of index.get()) {
 				if (value > matcher.gt) {
 					for (const id of ids) {
 						matchIds[k].add(id)

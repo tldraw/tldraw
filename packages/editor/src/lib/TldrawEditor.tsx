@@ -221,11 +221,11 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 	const container = useContainer()
 
 	useLayoutEffect(() => {
-		if (user.userPreferences.value.isDarkMode) {
+		if (user.userPreferences.get().isDarkMode) {
 			container.classList.remove('tl-theme__light')
 			container.classList.add('tl-theme__dark')
 		}
-	}, [container, user.userPreferences.value.isDarkMode])
+	}, [container, user.userPreferences.get().isDarkMode])
 
 	switch (store.status) {
 		case 'error': {

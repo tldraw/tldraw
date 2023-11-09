@@ -12,7 +12,7 @@ test('useComputed returns a computed value', async () => {
 	function Component() {
 		const a = useAtom('a', 1)
 		theAtom = a
-		const b = useComputed('a+1', () => a.value + 1, [])
+		const b = useComputed('a+1', () => a.get() + 1, [])
 		theComputed = b
 		return <>{useValue(b)}</>
 	}
@@ -23,7 +23,7 @@ test('useComputed returns a computed value', async () => {
 	})
 
 	expect(theComputed).not.toBeNull()
-	expect(theComputed?.value).toBe(2)
+	expect(theComputed?.get()).toBe(2)
 	expect(theComputed?.name).toBe('useComputed(a+1)')
 	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
 
@@ -42,7 +42,7 @@ test('useComputed has a dependencies array that allows creating a new computed',
 		setCount = _setCount
 		const a = useAtom('a', 1)
 		theAtom = a
-		const b = useComputed('a+1', () => a.value + 1, [count])
+		const b = useComputed('a+1', () => a.get() + 1, [count])
 		theComputed = b
 		return <>{useValue(b)}</>
 	}
@@ -55,7 +55,7 @@ test('useComputed has a dependencies array that allows creating a new computed',
 	const initialComputed = theComputed
 
 	expect(theComputed).not.toBeNull()
-	expect(theComputed?.value).toBe(2)
+	expect(theComputed?.get()).toBe(2)
 	expect(theComputed?.name).toBe('useComputed(a+1)')
 	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
 
@@ -83,7 +83,7 @@ test('useComputed allows optionally passing options', async () => {
 		setCount = _setCount
 		const a = useAtom('a', 1)
 		theAtom = a
-		const b = useComputed('a+1', () => a.value + 1, { isEqual }, [count])
+		const b = useComputed('a+1', () => a.get() + 1, { isEqual }, [count])
 		theComputed = b
 		return <>{useValue(b)}</>
 	}
@@ -96,7 +96,7 @@ test('useComputed allows optionally passing options', async () => {
 	const initialComputed = theComputed
 
 	expect(theComputed).not.toBeNull()
-	expect(theComputed?.value).toBe(2)
+	expect(theComputed?.get()).toBe(2)
 	expect(theComputed?.name).toBe('useComputed(a+1)')
 	expect(view!.toJSON()).toMatchInlineSnapshot(`"2"`)
 

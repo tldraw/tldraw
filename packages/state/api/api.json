@@ -2141,6 +2141,34 @@
             },
             {
               "kind": "MethodSignature",
+              "canonicalReference": "@tldraw/state!Signal#get:member(1)",
+              "docComment": "/**\n * The current value of the signal. This is a reactive value, and will update when the signal changes. Any computed signal that depends on this signal will be lazily recomputed if this signal changes. Any effect that depends on this signal will be rescheduled if this signal changes.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "get(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "Value"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "get"
+            },
+            {
+              "kind": "MethodSignature",
               "canonicalReference": "@tldraw/state!Signal#getDiffSince:member(1)",
               "docComment": "/**\n * Returns the sequence of diffs between the the value at the given epoch and the current value. Returns the [[RESET_VALUE]] constant if there is not enough information to compute the diff sequence.\n *\n * @param epoch - The epoch to get diffs since.\n */\n",
               "excerptTokens": [
@@ -2238,33 +2266,6 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "name",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "@tldraw/state!Signal#value:member",
-              "docComment": "/**\n * The current value of the signal. This is a reactive value, and will update when the signal changes. Any computed signal that depends on this signal will be lazily recomputed if this signal changes. Any effect that depends on this signal will be rescheduled if this signal changes.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "readonly value: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "Value"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "value",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

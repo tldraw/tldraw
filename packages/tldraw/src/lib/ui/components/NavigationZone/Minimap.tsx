@@ -164,7 +164,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 	useQuickReactor(
 		'update when dpr changes',
 		() => {
-			const dpr = devicePixelRatio.value
+			const dpr = devicePixelRatio.get()
 			minimap.setDpr(dpr)
 
 			const canvas = rCanvas.current as HTMLCanvasElement
@@ -191,7 +191,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				currentPageBounds: commonBoundsOfAllShapesOnCurrentPage,
 			} = editor
 
-			const _dpr = devicePixelRatio.value // dereference
+			const _dpr = devicePixelRatio.get() // dereference
 
 			minimap.contentPageBounds = commonBoundsOfAllShapesOnCurrentPage
 				? Box2d.Expand(commonBoundsOfAllShapesOnCurrentPage, viewportPageBounds)
@@ -224,7 +224,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 			})
 
 			minimap.pageBounds = allShapeBounds
-			minimap.collaborators = presences.value
+			minimap.collaborators = presences.get()
 			minimap.render()
 		},
 		[editor, minimap]

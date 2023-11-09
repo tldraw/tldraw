@@ -454,7 +454,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				invalidParents.add(record.parentId)
 			}
 			// clean up any arrows bound to this shape
-			const bindings = this._arrowBindingsIndex.value[record.id]
+			const bindings = this._arrowBindingsIndex.get()[record.id]
 			if (bindings?.length) {
 				for (const { arrowId, handleId } of bindings) {
 					const arrow = this.getShape<TLArrowShape>(arrowId)
@@ -496,7 +496,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// if the shape's parent changed and it is bound to an arrow, update the arrow's parent
 			if (prev.parentId !== next.parentId) {
 				const reparentBoundArrows = (id: TLShapeId) => {
-					const boundArrows = this._arrowBindingsIndex.value[id]
+					const boundArrows = this._arrowBindingsIndex.get()[id]
 					if (boundArrows?.length) {
 						for (const arrow of boundArrows) {
 							reparentArrow(arrow.arrowId)
@@ -910,7 +910,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	getArrowsBoundTo(shapeId: TLShapeId) {
-		return this._arrowBindingsIndex.value[shapeId] || EMPTY_ARRAY
+		return this._arrowBindingsIndex.get()[shapeId] || EMPTY_ARRAY
 	}
 
 	@computed
@@ -987,7 +987,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					willCrashApp,
 				},
 				extras: {
-					activeStateNode: this.root.path.value,
+					activeStateNode: this.root.path.get(),
 					selectedShapes: this.selectedShapes,
 					editingShape: this.editingShapeId ? this.getShape(this.editingShapeId) : undefined,
 					inputs: this.inputs,
@@ -1049,7 +1049,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		while (ids.length > 0) {
 			const id = ids.pop()
 			if (!id) return true
-			const current = state.current.value
+			const current = state.current.get()
 			if (current?.id === id) {
 				if (ids.length === 0) return true
 				state = current
@@ -1098,7 +1098,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get currentTool(): StateNode | undefined {
-		return this.root.current.value
+		return this.root.current.get()
 	}
 
 	/**
@@ -1325,7 +1325,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get pageStates(): TLInstancePageState[] {
-		return this._pageStates.value
+		return this._pageStates.get()
 	}
 	/** @internal */
 	@computed private get _pageStates() {
@@ -2580,7 +2580,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			userId: { eq: userId },
 		}))
 
-		const presence = [...presences.value]
+		const presence = [...presences.get()]
 			.sort((a, b) => {
 				return a.lastActivityTimestamp - b.lastActivityTimestamp
 			})
@@ -2832,7 +2832,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		// If the leader is following us, then we can't follow them
-		if (leaderPresences.value.some((p) => p.followingUserId === thisUserId)) {
+		if (leaderPresences.get().some((p) => p.followingUserId === thisUserId)) {
 			return this
 		}
 
@@ -2851,7 +2851,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const moveTowardsUser = () => {
 			// Stop following if we can't find the user
-			const leaderPresence = [...leaderPresences.value]
+			const leaderPresence = [...leaderPresences.get()]
 				.sort((a, b) => {
 					return a.lastActivityTimestamp - b.lastActivityTimestamp
 				})
@@ -2959,7 +2959,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get cameraState() {
-		return this._cameraState.value
+		return this._cameraState.get()
 	}
 
 	// Camera state does two things: first, it allows us to subscribe to whether
@@ -3136,7 +3136,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get renderingBounds() {
-		return this._renderingBounds.value
+		return this._renderingBounds.get()
 	}
 
 	/** @internal */
@@ -3149,7 +3149,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get renderingBoundsExpanded() {
-		return this._renderingBoundsExpanded.value
+		return this._renderingBoundsExpanded.get()
 	}
 
 	/** @internal */
@@ -3203,7 +3203,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get pages(): TLPage[] {
-		return this._pages.value.sort(sortByIndex)
+		return this._pages.get().sort(sortByIndex)
 	}
 
 	/**
@@ -3251,7 +3251,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	get currentPageShapeIds() {
-		return this._currentPageShapeIds.value
+		return this._currentPageShapeIds.get()
 	}
 
 	/**
@@ -3596,7 +3596,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	get assets() {
-		return this._assets.value
+		return this._assets.get()
 	}
 
 	/**
@@ -4858,7 +4858,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getHighestIndexForParent(parent: TLParentId | TLPage | TLShape): string {
 		const parentId = typeof parent === 'string' ? parent : parent.id
-		const children = this._parentIdsToChildIds.value[parentId]
+		const children = this._parentIdsToChildIds.get()[parentId]
 
 		if (!children || children.length === 0) {
 			return 'a1'
@@ -4888,7 +4888,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	getSortedChildIdsForParent(parent: TLParentId | TLPage | TLShape): TLShapeId[] {
 		const parentId = typeof parent === 'string' ? parent : parent.id
-		const ids = this._parentIdsToChildIds.value[parentId]
+		const ids = this._parentIdsToChildIds.get()[parentId]
 		if (!ids) return EMPTY_ARRAY
 		return this._childIdsCache.get(ids, () => ids)
 	}
@@ -7142,7 +7142,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 
 			const deletedIds = [...allIds]
-			const arrowBindings = this._arrowBindingsIndex.value
+			const arrowBindings = this._arrowBindingsIndex.get()
 			const snapshots = compact(
 				deletedIds.flatMap((id) => {
 					const shape = this.getShape(id)
@@ -7190,7 +7190,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// For groups, ignore the styles of the group shape and instead include the styles of the
 			// group's children. These are the shapes that would have their styles changed if the
 			// user called `setStyle` on the current selection.
-			const childIds = this._parentIdsToChildIds.value[shape.id]
+			const childIds = this._parentIdsToChildIds.get()[shape.id]
 			if (!childIds) return
 
 			for (let i = 0, n = childIds.length; i < n; i++) {
@@ -7253,12 +7253,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If we're in selecting and if we have a selection, return the shared styles from the
 		// current selection
 		if (this.isIn('select') && this.selectedShapeIds.length > 0) {
-			return this._selectionSharedStyles.value
+			return this._selectionSharedStyles.get()
 		}
 
 		// If the current tool is associated with a shape, return the styles for that shape.
 		// Otherwise, just return an empty map.
-		const currentTool = this.root.current.value!
+		const currentTool = this.root.current.get()!
 		const styles = new SharedStyleMap()
 		if (currentTool.shapeType) {
 			for (const style of this.styleProps[currentTool.shapeType].keys()) {

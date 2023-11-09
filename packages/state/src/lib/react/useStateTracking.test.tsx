@@ -9,7 +9,7 @@ describe('useStateTracking', () => {
 
 		const Component = () => {
 			const val = useStateTracking('', () => {
-				return a.value
+				return a.get()
 			})
 			return <>You are {val} years old</>
 		}
@@ -48,7 +48,7 @@ describe('useStateTracking', () => {
 			const age = useStateTracking('', () => {
 				// eslint-disable-next-line react-hooks/rules-of-hooks
 				;[height, setHeight] = React.useState(20)
-				return _age.value
+				return _age.get()
 			})
 			return (
 				<>
@@ -110,12 +110,12 @@ describe('useStateTracking', () => {
 
 		const Component = () => {
 			const val = useStateTracking('', () => {
-				if (a.value === null) {
+				if (a.get() === null) {
 					throw new Promise<string>((r) => {
 						resolve = r
 					})
 				}
-				return a.value
+				return a.get()
 			})
 			return <>You are {val} years old</>
 		}
@@ -156,7 +156,7 @@ describe('useStateTracking', () => {
 		const Component = () => {
 			const val = useStateTracking('', () => {
 				numRenders++
-				return a.value
+				return a.get()
 			})
 			return <>You are {val} years old</>
 		}

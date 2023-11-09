@@ -62,7 +62,7 @@ declare global {
 
 if (typeof window !== 'undefined') {
 	window.tldrawLog = (message: any) => {
-		debugFlags.logMessages.set(debugFlags.logMessages.value.concat(message))
+		debugFlags.logMessages.set(debugFlags.logMessages.get().concat(message))
 	}
 }
 
@@ -82,7 +82,7 @@ if (typeof window !== 'undefined') {
 if (typeof Element !== 'undefined') {
 	const nativeElementRemoveChild = Element.prototype.removeChild
 	react('element removal logging', () => {
-		if (debugFlags.elementRemovalLogging.value) {
+		if (debugFlags.elementRemovalLogging.get()) {
 			Element.prototype.removeChild = function <T extends Node>(this: any, child: Node): T {
 				console.warn('[tldraw] removing child:', child)
 				return nativeElementRemoveChild.call(this, child) as T
@@ -130,7 +130,7 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 	if (typeof window !== 'undefined') {
 		if (def.shouldStoreForSession) {
 			react(`debug:${def.name}`, () => {
-				const currentValue = valueAtom.value
+				const currentValue = valueAtom.get()
 				try {
 					if (currentValue === defaultValue) {
 						window.sessionStorage.removeItem(`tldraw_debug:${def.name}`)
@@ -145,7 +145,7 @@ function createDebugValueBase<T>(def: DebugFlagDef<T>): DebugFlag<T> {
 
 		Object.defineProperty(window, `tldraw${def.name.replace(/^[a-z]/, (l) => l.toUpperCase())}`, {
 			get() {
-				return valueAtom.value
+				return valueAtom.get()
 			},
 			set(newValue) {
 				valueAtom.set(newValue)

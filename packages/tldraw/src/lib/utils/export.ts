@@ -100,7 +100,7 @@ export async function getSvgAsImage(
 	const blob = await new Promise<Blob | null>((resolve) =>
 		canvas.toBlob(
 			(blob) => {
-				if (!blob || debugFlags.throwToBlob.value) {
+				if (!blob || debugFlags.throwToBlob.get()) {
 					resolve(null)
 				}
 				resolve(blob)

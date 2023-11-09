@@ -74,11 +74,11 @@ export class StoreQueries<R extends UnknownRecord> {
 			'filterHistory:' + typeName,
 			(lastValue, lastComputedEpoch) => {
 				if (isUninitialized(lastValue)) {
-					return this.history.value
+					return this.history.get()
 				}
 
 				const diff = this.history.getDiffSince(lastComputedEpoch)
-				if (diff === RESET_VALUE) return this.history.value
+				if (diff === RESET_VALUE) return this.history.get()
 
 				const res = { added: {}, removed: {}, updated: {} } as RecordsDiff<S>
 				let numAdded = 0
@@ -137,7 +137,7 @@ export class StoreQueries<R extends UnknownRecord> {
 				}
 
 				if (numAdded || numRemoved || numUpdated) {
-					return withDiff(this.history.value, res)
+					return withDiff(this.history.get(), res)
 				} else {
 					return lastValue
 				}
@@ -192,10 +192,10 @@ export class StoreQueries<R extends UnknownRecord> {
 		const fromScratch = () => {
 			// deref typeHistory early so that the first time the incremental version runs
 			// it gets a diff to work with instead of having to bail to this from-scratch version
-			typeHistory.value
+			typeHistory.get()
 			const res = new Map<S[Property], Set<IdOf<S>>>()
-			for (const atom of objectMapValues(this.atoms.value)) {
-				const record = atom.value
+			for (const atom of objectMapValues(this.atoms.get())) {
+				const record = atom.get()
 				if (record.typeName === typeName) {
 					const value = (record as S)[property]
 					if (!res.has(value)) {
@@ -306,8 +306,8 @@ export class StoreQueries<R extends UnknownRecord> {
 		const ids = this.ids(typeName, queryCreator, name)
 
 		return computed<S | undefined>(name, () => {
-			for (const id of ids.value) {
-				return this.atoms.value[id]?.value as S
+			for (const id of ids.get()) {
+				return this.atoms.get()[id]?.get() as S
 			}
 			return undefined
 		})
@@ -329,12 +329,12 @@ export class StoreQueries<R extends UnknownRecord> {
 		const ids = this.ids(typeName, queryCreator, 'ids:' + name)
 
 		return computed<S[]>(name, () => {
-			return [...ids.value].map((id) => {
-				const atom = this.atoms.value[id]
+			return [...ids.get()].map((id) => {
+				const atom = this.atoms.get()[id]
 				if (!atom) {
 					throw new Error('no atom found for record id: ' + id)
 				}
-				return atom.value as S
+				return atom.get() as S
 			})
 		})
 	}
@@ -360,12 +360,12 @@ export class StoreQueries<R extends UnknownRecord> {
 
 		const fromScratch = () => {
 			// deref type history early to allow first incremental update to use diffs
-			typeHistory.value
+			typeHistory.get()
 			const query: QueryExpression<S> = queryCreator()
 			if (Object.keys(query).length === 0) {
 				return new Set<IdOf<S>>(
-					objectMapValues(this.atoms.value).flatMap((v) => {
-						const r = v.value
+					objectMapValues(this.atoms.get()).flatMap((v) => {
+						const r = v.get()
 						if (r.typeName === typeName) {
 							return r.id
 						} else {
@@ -394,7 +394,7 @@ export class StoreQueries<R extends UnknownRecord> {
 		return computed(
 			'query:' + name,
 			(prevValue, lastComputedEpoch) => {
-				const query = cachedQuery.value
+				const query = cachedQuery.get()
 				if (isUninitialized(prevValue)) {
 					return fromScratch()
 				}
@@ -455,7 +455,7 @@ export class StoreQueries<R extends UnknownRecord> {
 		if (ids.size === 0) {
 			return EMPTY_ARRAY
 		}
-		const atoms = this.atoms.value
-		return [...ids].map((id) => atoms[id].value as Extract<R, { typeName: TypeName }>)
+		const atoms = this.atoms.get()
+		return [...ids].map((id) => atoms[id].get() as Extract<R, { typeName: TypeName }>)
 	}
 }

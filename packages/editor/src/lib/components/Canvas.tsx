@@ -81,9 +81,9 @@ export function Canvas({ className }: { className?: string }) {
 		[editor]
 	)
 
-	const hideShapes = useValue('debug_shapes', () => debugFlags.hideShapes.value, [debugFlags])
-	const debugSvg = useValue('debug_svg', () => debugFlags.debugSvg.value, [debugFlags])
-	const debugGeometry = useValue('debug_geometry', () => debugFlags.debugGeometry.value, [
+	const hideShapes = useValue('debug_shapes', () => debugFlags.hideShapes.get(), [debugFlags])
+	const debugSvg = useValue('debug_svg', () => debugFlags.debugSvg.get(), [debugFlags])
+	const debugGeometry = useValue('debug_geometry', () => debugFlags.debugGeometry.get(), [
 		debugFlags,
 	])
 
@@ -480,7 +480,7 @@ const DebugSvgCopy = track(function DupSvg({ id }: { id: TLShapeId }) {
 })
 
 function UiLogger() {
-	const uiLog = useValue('debugging ui log', () => debugFlags.logMessages.value, [debugFlags])
+	const uiLog = useValue('debugging ui log', () => debugFlags.logMessages.get(), [debugFlags])
 
 	if (!uiLog.length) return null
 

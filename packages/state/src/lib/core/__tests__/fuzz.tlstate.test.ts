@@ -67,7 +67,7 @@ type Letter = (typeof LETTERS)[number]
 
 const unpack = (value: unknown): Letter => {
 	if (isComputed(value) || isAtom(value)) {
-		return unpack(value.value) as Letter
+		return unpack(value.get()) as Letter
 	}
 	return value as Letter
 }
@@ -307,15 +307,15 @@ class Test {
 				break
 			}
 			case 'deref_atom_in_derivation': {
-				this.systemState.atomsInDerivations[op.id].value
+				this.systemState.atomsInDerivations[op.id].get()
 				break
 			}
 			case 'deref_derivation': {
-				this.systemState.derivations[op.id].derivation.value
+				this.systemState.derivations[op.id].derivation.get()
 				break
 			}
 			case 'deref_derivation_in_derivation': {
-				this.systemState.derivationsInDerivations[op.id].value
+				this.systemState.derivationsInDerivations[op.id].get()
 				break
 			}
 			case 'update_atom_in_atom': {

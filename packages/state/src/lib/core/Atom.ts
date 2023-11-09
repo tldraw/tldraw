@@ -99,7 +99,7 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 		return this.current
 	}
 
-	get value() {
+	get() {
 		maybeCaptureParent(this)
 		return this.current
 	}

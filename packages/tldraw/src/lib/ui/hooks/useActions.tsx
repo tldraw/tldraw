@@ -278,12 +278,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: 'z',
 				onSelect(source) {
-					if (editor.root.current.value?.id === 'zoom') return
+					if (editor.root.current.get()?.id === 'zoom') return
 
 					trackEvent('zoom-tool', { source })
 					if (!(editor.inputs.shiftKey || editor.inputs.ctrlKey)) {
-						const currentTool = editor.root.current.value
-						if (currentTool && currentTool.current.value?.id === 'idle') {
+						const currentTool = editor.root.current.get()
+						if (currentTool && currentTool.current.get()?.id === 'idle') {
 							editor.setCurrentTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
 						}
 					}

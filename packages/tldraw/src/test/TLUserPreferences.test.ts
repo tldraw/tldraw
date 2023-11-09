@@ -37,7 +37,7 @@ describe('TLUserPreferences', () => {
 		expect(editor.user.isDarkMode).toBe(true)
 
 		userPreferences.set({
-			...userPreferences.value,
+			...userPreferences.get(),
 			isDarkMode: false,
 		})
 
@@ -46,7 +46,7 @@ describe('TLUserPreferences', () => {
 		editor.user.updateUserPreferences({ isDarkMode: true })
 
 		expect(editor.user.isDarkMode).toBe(true)
-		expect(userPreferences.value.isDarkMode).toBe(true)
+		expect(userPreferences.get().isDarkMode).toBe(true)
 	})
 
 	it('can have null values and it will use defaults', () => {

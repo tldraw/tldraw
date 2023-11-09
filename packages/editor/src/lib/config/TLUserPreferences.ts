@@ -189,7 +189,7 @@ function storeUserPreferences() {
 			USER_DATA_KEY,
 			JSON.stringify({
 				version: userMigrations.currentVersion,
-				user: globalUserPreferences.value,
+				user: globalUserPreferences.get(),
 			})
 		)
 	}
@@ -225,7 +225,7 @@ function broadcastUserPreferencesChange() {
 		type: broadcastEventKey,
 		origin: broadcastOrigin,
 		data: {
-			user: globalUserPreferences.value,
+			user: globalUserPreferences.get(),
 			version: userMigrations.currentVersion,
 		},
 	} satisfies UserChangeBroadcastMessage)
@@ -233,5 +233,5 @@ function broadcastUserPreferencesChange() {
 
 /** @public */
 export function getUserPreferences() {
-	return globalUserPreferences.value
+	return globalUserPreferences.get()
 }

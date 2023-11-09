@@ -213,7 +213,7 @@ export class SnapManager {
 	private _snapLines = atom<SnapLine[] | undefined>('snapLines', undefined)
 
 	get lines() {
-		return this._snapLines.value ?? (EMPTY_ARRAY as SnapLine[])
+		return this._snapLines.get() ?? (EMPTY_ARRAY as SnapLine[])
 	}
 
 	clear() {

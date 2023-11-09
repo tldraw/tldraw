@@ -17,7 +17,7 @@ test('useAtom returns an atom', async () => {
 	})
 
 	expect(theAtom).not.toBeNull()
-	expect(theAtom?.value).toBe('a')
+	expect(theAtom?.get()).toBe('a')
 	expect(theAtom?.name).toBe('useAtom(myAtom)')
 	expect(view!.toJSON()).toMatchInlineSnapshot(`"a"`)
 
@@ -44,7 +44,7 @@ test('useAtom supports taking an initializer', async () => {
 	})
 
 	expect(theAtom).not.toBeNull()
-	expect(theAtom?.value).toBe('a')
+	expect(theAtom?.get()).toBe('a')
 
 	expect(theAtom?.name).toBe('useAtom(myAtom)')
 	expect(view!.toJSON()).toMatchInlineSnapshot(`"a"`)

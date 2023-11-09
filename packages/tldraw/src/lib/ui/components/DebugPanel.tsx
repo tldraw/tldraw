@@ -65,7 +65,7 @@ export const DebugPanel = React.memo(function DebugPanel({
 
 const CurrentState = track(function CurrentState() {
 	const editor = useEditor()
-	return <div className="tlui-debug-panel__current-state">{editor.root.path.value}</div>
+	return <div className="tlui-debug-panel__current-state">{editor.root.path.get()}</div>
 })
 
 const ShapeCount = function ShapeCount() {
@@ -261,7 +261,7 @@ const DebugFlagToggle = track(function DebugFlagToggle({
 			label={flag.name
 				.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
 				.replace(/^[a-z]/, (m) => m.toUpperCase())}
-			value={flag.value}
+			value={flag.get()}
 			onChange={(newValue) => {
 				flag.set(newValue)
 				onChange?.(newValue)

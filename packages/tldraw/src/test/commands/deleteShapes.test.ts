@@ -92,20 +92,20 @@ describe('When deleting arrows', () => {
 		editor.select(ids.arrow1)
 		editor.mark('before deleting')
 		// @ts-expect-error
-		expect(editor._arrowBindingsIndex.value[ids.box1]).not.toBeUndefined()
+		expect(editor._arrowBindingsIndex.get()[ids.box1]).not.toBeUndefined()
 		// @ts-expect-error
-		expect(editor._arrowBindingsIndex.value[ids.box2]).not.toBeUndefined()
+		expect(editor._arrowBindingsIndex.get()[ids.box2]).not.toBeUndefined()
 
 		editor.deleteShapes(editor.selectedShapeIds) // delete the selected shapes
 		// @ts-expect-error
-		expect(editor._arrowBindingsIndex.value[ids.box1]).toBeUndefined()
+		expect(editor._arrowBindingsIndex.get()[ids.box1]).toBeUndefined()
 		// @ts-expect-error
-		expect(editor._arrowBindingsIndex.value[ids.box2]).toBeUndefined()
+		expect(editor._arrowBindingsIndex.get()[ids.box2]).toBeUndefined()
 
 		editor.undo()
 		// @ts-expect-error
-		expect(editor._arrowBindingsIndex.value[ids.box1]).not.toBeUndefined()
+		expect(editor._arrowBindingsIndex.get()[ids.box1]).not.toBeUndefined()
 		// @ts-expect-error
-		expect(editor._arrowBindingsIndex.value[ids.box2]).not.toBeUndefined()
+		expect(editor._arrowBindingsIndex.get()[ids.box2]).not.toBeUndefined()
 	})
 })

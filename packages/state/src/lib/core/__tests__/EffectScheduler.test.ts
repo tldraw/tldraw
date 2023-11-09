@@ -6,7 +6,7 @@ describe(EffectScheduler, () => {
 		const a = atom('a', 1)
 		let numReactions = 0
 		const scheduler = new EffectScheduler('test', () => {
-			a.value
+			a.get()
 			numReactions++
 		})
 		scheduler.attach()
@@ -26,7 +26,7 @@ describe(EffectScheduler, () => {
 		const a = atom('a', 1)
 		let numReactions = 0
 		const scheduler = new EffectScheduler('test', () => {
-			a.value
+			a.get()
 			numReactions++
 		})
 		scheduler.attach()
@@ -51,7 +51,7 @@ describe(EffectScheduler, () => {
 		const scheduler = new EffectScheduler(
 			'test',
 			() => {
-				a.value
+				a.get()
 				numReactions++
 			},
 			{

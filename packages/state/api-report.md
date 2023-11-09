@@ -114,10 +114,10 @@ export interface Signal<Value, Diff = unknown> {
     __unsafe__getWithoutCapture(): Value;
     // @internal (undocumented)
     children: ArraySet<Child>;
+    get(): Value;
     getDiffSince(epoch: number): Diff[] | RESET_VALUE;
     lastChangedEpoch: number;
     name: string;
-    readonly value: Value;
 }
 
 // @public
