@@ -13313,7 +13313,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!TldrawCropHandles:function(1)",
-          "docComment": "",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -13360,7 +13360,7 @@
         {
           "kind": "Interface",
           "canonicalReference": "@tldraw/tldraw!TldrawCropHandlesProps:interface",
-          "docComment": "",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -13595,7 +13595,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!TldrawHandles:var",
-          "docComment": "",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -13619,7 +13619,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!TldrawHoveredShapeIndicator:var",
-          "docComment": "",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -13643,7 +13643,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!TldrawScribble:var",
-          "docComment": "",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -13667,7 +13667,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!TldrawSelectionBackground:var",
-          "docComment": "",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -13691,7 +13691,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "@tldraw/tldraw!TldrawSelectionForeground:var",
-          "docComment": "",
+          "docComment": "/**\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
