@@ -175,7 +175,7 @@ export const useAllowUngroup = () => {
 	return useValue(
 		'allowUngroup',
 		() => editor.selectedShapeIds.some((id) => editor.getShape(id)?.type === 'group'),
-		[]
+		[editor]
 	)
 }
 
