@@ -6,6 +6,7 @@ import {
 	toDomPrecision,
 	useEditor,
 	useIsEditing,
+	useValue,
 } from '@tldraw/editor'
 import { useCallback, useEffect, useRef } from 'react'
 import { FrameLabelInput } from './FrameLabelInput'
@@ -22,8 +23,12 @@ export const FrameHeading = function FrameHeading({
 	height: number
 }) {
 	const editor = useEditor()
+	const pageRotation = useValue(
+		'shape rotation',
+		() => canonicalizeRotation(editor.getShapePageTransform(id)!.rotation()),
+		[editor, id]
+	)
 
-	const pageRotation = canonicalizeRotation(editor.getShapePageTransform(id)!.rotation())
 	const isEditing = useIsEditing(id)
 
 	const rInput = useRef<HTMLInputElement>(null)

@@ -109,6 +109,7 @@ export function Canvas({ className }: { className?: string }) {
 				</defs>
 			</svg>
 			<div ref={rHtmlLayer} className="tl-html-layer tl-shapes" draggable={false}>
+				<OnTheCanvasWrapper />
 				<SelectionBackgroundWrapper />
 				{hideShapes ? null : debugSvg ? <ShapesWithSVGs /> : <ShapesToDisplay />}
 			</div>
@@ -126,6 +127,7 @@ export function Canvas({ className }: { className?: string }) {
 					<SelectionForegroundWrapper />
 					<LiveCollaborators />
 				</div>
+				<InFrontOfTheCanvasWrapper />
 			</div>
 		</div>
 	)
@@ -145,13 +147,24 @@ function GridWrapper() {
 
 function ScribbleWrapper() {
 	const editor = useEditor()
-	const scribble = useValue('scribble', () => editor.instanceState.scribble, [editor])
+	const scribbles = useValue('scribbles', () => editor.instanceState.scribbles, [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const { Scribble } = useEditorComponents()
 
-	if (!(Scribble && scribble)) return null
+	if (!(Scribble && scribbles.length)) return null
 
-	return <Scribble className="tl-user-scribble" scribble={scribble} zoom={zoomLevel} />
+	return (
+		<>
+			{scribbles.map((scribble) => (
+				<Scribble
+					key={scribble.id}
+					className="tl-user-scribble"
+					scribble={scribble}
+					zoom={zoomLevel}
+				/>
+			))}
+		</>
+	)
 }
 
 function BrushWrapper() {
@@ -506,4 +519,16 @@ export function SelectionBackgroundWrapper() {
 	const { SelectionBackground } = useEditorComponents()
 	if (!selectionBounds || !SelectionBackground) return null
 	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />
+}
+
+export function OnTheCanvasWrapper() {
+	const { OnTheCanvas } = useEditorComponents()
+	if (!OnTheCanvas) return null
+	return <OnTheCanvas />
+}
+
+export function InFrontOfTheCanvasWrapper() {
+	const { InFrontOfTheCanvas } = useEditorComponents()
+	if (!InFrontOfTheCanvas) return null
+	return <InFrontOfTheCanvas />
 }

@@ -71,7 +71,8 @@ test.describe('smoke tests', () => {
 		expect(await getSelectedShapeColor()).toBe('black')
 
 		// when on a mobile device...
-		const hasMobileMenu = await page.isVisible('.tlui-toolbar__styles__button')
+		const mobileStylesButton = page.getByTestId('mobile.styles')
+		const hasMobileMenu = await mobileStylesButton.isVisible()
 
 		if (hasMobileMenu) {
 			// open the style menu

@@ -3,7 +3,6 @@ import {
 	SharedStyle,
 	StyleProp,
 	TLDefaultColorStyle,
-	clamp,
 	getDefaultColorTheme,
 	useEditor,
 	useValue,
@@ -24,7 +23,6 @@ export interface ButtonPickerProps<T extends string> {
 	style: StyleProp<T>
 	value: SharedStyle<T>
 	items: StyleValuesForUi<T>
-	columns?: 2 | 3 | 4
 	onValueChange: (style: StyleProp<T>, value: T, squashing: boolean) => void
 }
 
@@ -35,7 +33,7 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 		title,
 		style,
 		value,
-		columns = clamp(items.length, 2, 4),
+		// columns = clamp(items.length, 2, 4),
 		onValueChange,
 	} = props
 	const editor = useEditor()
@@ -99,15 +97,10 @@ function _ButtonPicker<T extends string>(props: ButtonPickerProps<T>) {
 	)
 
 	return (
-		<div
-			className={classNames('tlui-button-grid', {
-				'tlui-button-grid__two': columns === 2,
-				'tlui-button-grid__three': columns === 3,
-				'tlui-button-grid__four': columns === 4,
-			})}
-		>
+		<div className={classNames('tlui-buttons__grid')}>
 			{items.map((item) => (
 				<Button
+					type="icon"
 					key={item.value}
 					data-id={item.value}
 					data-testid={`style.${uiType}.${item.value}`}

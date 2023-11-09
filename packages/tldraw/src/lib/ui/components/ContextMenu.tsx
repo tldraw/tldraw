@@ -144,13 +144,13 @@ function ContextMenuContent() {
 					<_ContextMenu.Sub key={item.id} onOpenChange={handleSubOpenChange}>
 						<_ContextMenu.SubTrigger dir="ltr" disabled={item.disabled} asChild>
 							<Button
-								className="tlui-menu__button"
+								type="menu"
 								label={item.label}
 								data-testid={`menu-item.${item.id}`}
 								icon="chevron-right"
 							/>
 						</_ContextMenu.SubTrigger>
-						<_ContextMenu.Portal container={container} dir="ltr">
+						<_ContextMenu.Portal container={container}>
 							<_ContextMenu.SubContent className="tlui-menu" sideOffset={-4} collisionPadding={4}>
 								{item.children.map((child) => getContextMenuItem(editor, child, item, depth + 1))}
 							</_ContextMenu.SubContent>
@@ -170,7 +170,7 @@ function ContextMenuContent() {
 					return (
 						<_ContextMenu.CheckboxItem
 							key={id}
-							className="tlui-button tlui-menu__button tlui-menu__checkbox-item"
+							className="tlui-button tlui-button__menu tlui-button__checkbox"
 							dir="ltr"
 							disabled={item.disabled}
 							onSelect={(e) => {
@@ -180,17 +180,12 @@ function ContextMenuContent() {
 							title={labelStr ? labelStr : undefined}
 							checked={item.checked}
 						>
-							<div
-								className="tlui-menu__checkbox-item__check"
-								style={{
-									transformOrigin: '75% center',
-									transform: `scale(${item.checked ? 1 : 0.5})`,
-									opacity: item.checked ? 1 : 0.5,
-								}}
-							>
-								<Icon small icon={item.checked ? 'check' : 'checkbox-empty'} />
-							</div>
-							{labelStr && <span>{labelStr}</span>}
+							<Icon small icon={item.checked ? 'check' : 'checkbox-empty'} />
+							{labelStr && (
+								<span className="tlui-button__label" draggable={false}>
+									{labelStr}
+								</span>
+							)}
 							{kbd && <Kbd>{kbd}</Kbd>}
 						</_ContextMenu.CheckboxItem>
 					)
@@ -199,7 +194,7 @@ function ContextMenuContent() {
 				return (
 					<_ContextMenu.Item key={id} dir="ltr" asChild>
 						<Button
-							className="tlui-menu__button"
+							type="menu"
 							data-testid={`menu-item.${id}`}
 							kbd={kbd}
 							label={labelToUse}
@@ -220,7 +215,7 @@ function ContextMenuContent() {
 	}
 
 	return (
-		<_ContextMenu.Portal dir="ltr" container={container}>
+		<_ContextMenu.Portal container={container}>
 			<_ContextMenu.Content
 				className="tlui-menu scrollable"
 				alignOffset={-4}

@@ -111,7 +111,7 @@ export const Toolbar = memo(function Toolbar() {
 					{!isReadonly && (
 						<div className="tlui-toolbar__extras">
 							{breakpoint < 6 && !(activeToolId === 'hand' || activeToolId === 'zoom') && (
-								<div className="tlui-toolbar__extras__controls">
+								<div className="tlui-toolbar__extras__controls tlui-buttons__horizontal">
 									<UndoButton />
 									<RedoButton />
 									<TrashButton />
@@ -149,7 +149,6 @@ export const Toolbar = memo(function Toolbar() {
 						{showEditingTools && (
 							<>
 								{/* Draw / Eraser */}
-								<div className="tlui-toolbar__divider" />
 								{toolbarItems.slice(2, 4).map(({ toolItem }) => (
 									<ToolbarButton
 										key={toolItem.id}
@@ -159,7 +158,6 @@ export const Toolbar = memo(function Toolbar() {
 									/>
 								))}
 								{/* Everything Else */}
-								<div className="tlui-toolbar__divider" />
 								{itemsInPanel.map(({ toolItem }) => (
 									<ToolbarButton
 										key={toolItem.id}
@@ -186,8 +184,9 @@ export const Toolbar = memo(function Toolbar() {
 										<M.Root id="toolbar overflow" modal={false}>
 											<M.Trigger>
 												<Button
-													className="tlui-toolbar__tools__button tlui-toolbar__overflow"
+													className="tlui-toolbar__overflow"
 													icon="chevron-up"
+													type="tool"
 													data-testid="tools.more"
 													title={msg('tool-panel.more')}
 												/>
@@ -220,13 +219,14 @@ const OverflowToolsContent = track(function OverflowToolsContent({
 	const msg = useTranslation()
 
 	return (
-		<div className="tlui-button-grid__four tlui-button-grid__reverse">
+		<div className="tlui-buttons__grid">
 			{toolbarItems.map(({ toolItem: { id, meta, kbd, label, onSelect, icon } }) => {
 				return (
 					<M.Item
 						key={id}
+						type="icon"
 						className="tlui-button-grid__button"
-						data-testid={`tools.${id}`}
+						data-testid={`tools.more.${id}`}
 						data-tool={id}
 						data-geo={meta?.geo ?? ''}
 						aria-label={label}
@@ -251,7 +251,7 @@ function ToolbarButton({
 }) {
 	return (
 		<Button
-			className="tlui-toolbar__tools__button"
+			type="tool"
 			data-testid={`tools.${item.id}`}
 			data-tool={item.id}
 			data-geo={item.meta?.geo ?? ''}

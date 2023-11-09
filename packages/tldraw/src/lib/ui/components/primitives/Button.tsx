@@ -19,7 +19,7 @@ export interface TLUiButtonProps extends React.HTMLAttributes<HTMLButtonElement>
 	kbd?: string
 	isChecked?: boolean
 	invertIcon?: boolean
-	type?: 'primary' | 'danger' | 'normal'
+	type: 'normal' | 'primary' | 'danger' | 'low' | 'icon' | 'tool' | 'menu' | 'help'
 }
 
 /** @public */
@@ -32,7 +32,7 @@ export const Button = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(funct
 		smallIcon,
 		kbd,
 		isChecked = false,
-		type = 'normal',
+		type,
 		children,
 		spinner,
 		...props
@@ -51,10 +51,10 @@ export const Button = React.forwardRef<HTMLButtonElement, TLUiButtonProps>(funct
 			title={props.title ?? labelStr}
 			className={classnames('tlui-button', `tlui-button__${type}`, props.className)}
 		>
-			{iconLeft && <Icon icon={iconLeft} className="tlui-icon-left" small />}
+			{iconLeft && <Icon icon={iconLeft} className="tlui-button__icon-left" small />}
 			{children}
 			{label && (
-				<span draggable={false}>
+				<span className="tlui-button__label" draggable={false}>
 					{labelStr}
 					{isChecked && <Icon icon="check" />}
 				</span>

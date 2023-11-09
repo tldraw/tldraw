@@ -10,5 +10,5 @@ export function FollowingIndicator() {
 function FollowingIndicatorInner({ userId }: { userId: string }) {
 	const presence = usePresence(userId)
 	if (!presence) return null
-	return <div className="tlui-following" style={{ borderColor: presence.color }} />
+	return <div className="tlui-following-indicator" style={{ borderColor: presence.color }} />
 }

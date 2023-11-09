@@ -10,11 +10,14 @@ type PopoverProps = {
 	onOpenChange?: (isOpen: boolean) => void
 }
 
-export const Popover: FC<PopoverProps> = ({ id, children, onOpenChange }) => {
+export const Popover: FC<PopoverProps> = ({ id, children, onOpenChange, open }) => {
 	const [isOpen, handleOpenChange] = useMenuIsOpen(id, onOpenChange)
 
 	return (
-		<PopoverPrimitive.Root onOpenChange={handleOpenChange} open={isOpen}>
+		<PopoverPrimitive.Root
+			onOpenChange={handleOpenChange}
+			open={open || isOpen /* allow debugging */}
+		>
 			<div className="tlui-popover">{children}</div>
 		</PopoverPrimitive.Root>
 	)
@@ -41,7 +44,7 @@ export const PopoverContent: FC<{
 }> = ({ side, children, align = 'center', sideOffset = 8, alignOffset = 0 }) => {
 	const container = useContainer()
 	return (
-		<PopoverPrimitive.Portal dir="ltr" container={container}>
+		<PopoverPrimitive.Portal container={container}>
 			<PopoverPrimitive.Content
 				className="tlui-popover__content"
 				side={side}

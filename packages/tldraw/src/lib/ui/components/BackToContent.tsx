@@ -43,6 +43,7 @@ export function BackToContent() {
 		<Button
 			iconLeft={action.icon}
 			label={action.label}
+			type="low"
 			onClick={() => {
 				action.onSelect('helper-buttons')
 				setShowBackToContent(false)

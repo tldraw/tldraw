@@ -85,7 +85,6 @@ import { TLPointerEventName } from '@tldraw/editor';
 import { TLRecord } from '@tldraw/editor';
 import { TLRotationSnapshot } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
-import { TLScribble } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
@@ -95,7 +94,6 @@ import { TLShapeUtilFlag } from '@tldraw/editor';
 import { TLStore } from '@tldraw/editor';
 import { TLStoreWithStatus } from '@tldraw/editor';
 import { TLTextShape } from '@tldraw/editor';
-import { TLTickEvent } from '@tldraw/editor';
 import { TLUnknownShape } from '@tldraw/editor';
 import { TLVideoShape } from '@tldraw/editor';
 import { UnionValidator } from '@tldraw/editor';
@@ -1026,10 +1024,11 @@ export function parseTldrawJsonFile({ json, schema, }: {
 function RadioItem({ children, onSelect, ...rest }: DropdownMenuCheckboxItemProps): JSX.Element;
 
 // @public (undocumented)
-function Root({ id, children, modal, }: {
+function Root({ id, children, modal, debugOpen, }: {
     id: string;
     children: any;
     modal?: boolean;
+    debugOpen?: boolean;
 }): JSX.Element;
 
 // @public (undocumented)
@@ -1313,7 +1312,7 @@ export interface TLUiButtonProps extends React_3.HTMLAttributes<HTMLButtonElemen
     // (undocumented)
     spinner?: boolean;
     // (undocumented)
-    type?: 'danger' | 'normal' | 'primary';
+    type: 'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool';
 }
 
 // @public (undocumented)
@@ -1522,7 +1521,7 @@ export interface TLUiToast {
     // (undocumented)
     description?: string;
     // (undocumented)
-    icon?: string;
+    icon?: TLUiIconType;
     // (undocumented)
     id: string;
     // (undocumented)
@@ -1538,7 +1537,7 @@ export interface TLUiToastAction {
     // (undocumented)
     onClick: () => void;
     // (undocumented)
-    type: 'primary' | 'secondary' | 'warn';
+    type: 'danger' | 'normal' | 'primary';
 }
 
 // @public (undocumented)

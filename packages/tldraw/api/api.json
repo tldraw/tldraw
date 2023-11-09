@@ -4137,11 +4137,11 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "export declare function Root({ id, children, modal, }: "
+                  "text": "export declare function Root({ id, children, modal, debugOpen, }: "
                 },
                 {
                   "kind": "Content",
-                  "text": "{\n    id: string;\n    children: any;\n    modal?: boolean;\n}"
+                  "text": "{\n    id: string;\n    children: any;\n    modal?: boolean;\n    debugOpen?: boolean;\n}"
                 },
                 {
                   "kind": "Content",
@@ -4166,7 +4166,7 @@
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "{ id, children, modal, }",
+                  "parameterName": "{ id, children, modal, debugOpen, }",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
                     "endIndex": 2
@@ -14599,11 +14599,11 @@
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "type?: "
+                  "text": "type: "
                 },
                 {
                   "kind": "Content",
-                  "text": "'danger' | 'normal' | 'primary'"
+                  "text": "'danger' | 'help' | 'icon' | 'low' | 'menu' | 'normal' | 'primary' | 'tool'"
                 },
                 {
                   "kind": "Content",
@@ -14611,7 +14611,7 @@
                 }
               ],
               "isReadonly": false,
-              "isOptional": true,
+              "isOptional": false,
               "releaseTag": "Public",
               "name": "type",
               "propertyTypeTokenRange": {
@@ -16800,8 +16800,9 @@
                   "text": "icon?: "
                 },
                 {
-                  "kind": "Content",
-                  "text": "string"
+                  "kind": "Reference",
+                  "text": "TLUiIconType",
+                  "canonicalReference": "@tldraw/tldraw!TLUiIconType:type"
                 },
                 {
                   "kind": "Content",
@@ -16981,7 +16982,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "'primary' | 'secondary' | 'warn'"
+                  "text": "'danger' | 'normal' | 'primary'"
                 },
                 {
                   "kind": "Content",

@@ -823,6 +823,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         y: number;
         z: number;
     };
+    readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
     get selectedShapeIds(): TLShapeId[];
@@ -2244,6 +2245,9 @@ export type TLHoveredShapeIndicatorComponent = ComponentType<{
 }>;
 
 // @public (undocumented)
+export type TLInFrontOfTheCanvas = ComponentType<object>;
+
+// @public (undocumented)
 export type TLInterruptEvent = (info: TLInterruptEventInfo) => void;
 
 // @public (undocumented)
@@ -2320,6 +2324,9 @@ export type TLOnRotateHandler<T extends TLShape> = TLEventChangeHandler<T>;
 
 // @public (undocumented)
 export type TLOnRotateStartHandler<T extends TLShape> = TLEventStartHandler<T>;
+
+// @public (undocumented)
+export type TLOnTheCanvas = ComponentType<object>;
 
 // @public (undocumented)
 export type TLOnTranslateEndHandler<T extends TLShape> = TLEventChangeHandler<T>;
@@ -2591,6 +2598,7 @@ export type TLWheelEventInfo = TLBaseEventInfo & {
     type: 'wheel';
     name: 'wheel';
     delta: Vec2dModel;
+    point: Vec2dModel;
 };
 
 // @public

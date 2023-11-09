@@ -137,7 +137,7 @@ async function getExportedSvgBlob(editor: Editor, ids: TLShapeId[]) {
 }
 
 async function getExportedImageBlob(editor: Editor, ids: TLShapeId[], format: 'png' | 'jpeg') {
-	return await getSvgAsImage(await getExportSvgElement(editor, ids), {
+	return await getSvgAsImage(await getExportSvgElement(editor, ids), editor.environment.isSafari, {
 		type: format,
 		quality: 1,
 		scale: 2,

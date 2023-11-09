@@ -10,15 +10,17 @@ export function Root({
 	id,
 	children,
 	modal = false,
+	debugOpen = false,
 }: {
 	id: string
 	children: any
 	modal?: boolean
+	debugOpen?: boolean
 }) {
 	const [open, onOpenChange] = useMenuIsOpen(id)
 
 	return (
-		<DropdownMenu.Root open={open} dir="ltr" modal={modal} onOpenChange={onOpenChange}>
+		<DropdownMenu.Root open={debugOpen || open} dir="ltr" modal={modal} onOpenChange={onOpenChange}>
 			{children}
 		</DropdownMenu.Root>
 	)
@@ -62,7 +64,7 @@ export function Content({
 	const container = useContainer()
 
 	return (
-		<DropdownMenu.Portal dir="ltr" container={container}>
+		<DropdownMenu.Portal container={container}>
 			<DropdownMenu.Content
 				className="tlui-menu"
 				align={align}
@@ -101,7 +103,8 @@ export function SubTrigger({
 	return (
 		<DropdownMenu.SubTrigger dir="ltr" data-direction={dataDirection} data-testid={testId} asChild>
 			<Button
-				className="tlui-menu__button tlui-menu__submenu__trigger"
+				type="menu"
+				className="tlui-menu__submenu__trigger"
 				label={label}
 				icon="chevron-right"
 			/>
@@ -121,7 +124,7 @@ export function SubContent({
 }) {
 	const container = useContainer()
 	return (
-		<DropdownMenu.Portal container={container} dir="ltr">
+		<DropdownMenu.Portal container={container}>
 			<DropdownMenu.SubContent
 				className="tlui-menu tlui-menu__submenu__content"
 				alignOffset={alignOffset}
@@ -171,7 +174,7 @@ export function Item({ noClose, ...props }: DropdownMenuItemProps) {
 			asChild
 			onClick={noClose || props.isChecked !== undefined ? preventDefault : undefined}
 		>
-			<Button className="tlui-menu__button" {...props} />
+			<Button {...props} />
 		</DropdownMenu.Item>
 	)
 }
@@ -190,23 +193,14 @@ export function CheckboxItem({ children, onSelect, ...rest }: DropdownMenuCheckb
 	return (
 		<DropdownMenu.CheckboxItem
 			dir="ltr"
-			className="tlui-button tlui-menu__button tlui-menu__checkbox-item"
+			className="tlui-button tlui-button__menu tlui-button__checkbox"
 			onSelect={(e) => {
 				onSelect?.(e)
 				preventDefault(e)
 			}}
 			{...rest}
 		>
-			<div
-				className="tlui-menu__checkbox-item__check"
-				style={{
-					transformOrigin: '75% center',
-					transform: `scale(${rest.checked ? 1 : 0.5})`,
-					opacity: rest.checked ? 1 : 0.5,
-				}}
-			>
-				<Icon small icon={rest.checked ? 'check' : 'checkbox-empty'} />
-			</div>
+			<Icon small icon={rest.checked ? 'check' : 'checkbox-empty'} />
 			{children}
 		</DropdownMenu.CheckboxItem>
 	)
@@ -217,16 +211,18 @@ export function RadioItem({ children, onSelect, ...rest }: DropdownMenuCheckboxI
 	return (
 		<DropdownMenu.CheckboxItem
 			dir="ltr"
-			className="tlui-button tlui-menu__button tlui-menu__checkbox-item"
+			className="tlui-button tlui-button__menu tlui-button__checkbox"
 			onSelect={(e) => {
 				onSelect?.(e)
 				preventDefault(e)
 			}}
 			{...rest}
 		>
-			<DropdownMenu.ItemIndicator dir="ltr" className="tlui-menu__checkbox-item__check">
-				<Icon icon="check" />
-			</DropdownMenu.ItemIndicator>
+			<div className="tlui-button__checkbox__indicator">
+				<DropdownMenu.ItemIndicator dir="ltr">
+					<Icon icon="check" small />
+				</DropdownMenu.ItemIndicator>
+			</div>
 			{children}
 		</DropdownMenu.CheckboxItem>
 	)

@@ -151,6 +151,7 @@ export function Minimap({ shapeFill, selectFill, viewportFill }: MinimapProps) {
 				type: 'wheel',
 				name: 'wheel',
 				delta: offset,
+				point: new Vec2d(e.clientX, e.clientY),
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
 				ctrlKey: e.metaKey || e.ctrlKey,

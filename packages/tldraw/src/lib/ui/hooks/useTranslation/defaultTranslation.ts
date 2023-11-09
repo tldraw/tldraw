@@ -302,7 +302,7 @@ export const DEFAULT_TRANSLATION = {
 	'style-panel.align': 'Align',
 	'style-panel.vertical-align': 'Vertical align',
 	'style-panel.position': 'Position',
-	'style-panel.arrowheads': 'Arrowheads',
+	'style-panel.arrowheads': 'Arrows',
 	'style-panel.arrowhead-start': 'Start',
 	'style-panel.arrowhead-end': 'End',
 	'style-panel.color': 'Color',

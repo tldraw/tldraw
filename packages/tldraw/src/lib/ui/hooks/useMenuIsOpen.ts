@@ -35,6 +35,8 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 		[editor, id, cb]
 	)
 
+	const isOpen = useValue('is menu open', () => editor.openMenus.includes(id), [editor, id])
+
 	useEffect(() => {
 		// When the effect runs, if the menu is open then
 		// add it to the open menus list.
@@ -66,8 +68,6 @@ export function useMenuIsOpen(id: string, cb?: (isOpen: boolean) => void) {
 			}
 		}
 	}, [editor, id, trackEvent])
-
-	const isOpen = useValue('is menu open', () => editor.openMenus.includes(id), [editor, id])
 
 	return [isOpen, onOpenChange] as const
 }

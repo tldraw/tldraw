@@ -89,6 +89,7 @@ export type TLWheelEventInfo = TLBaseEventInfo & {
 	type: 'wheel'
 	name: 'wheel'
 	delta: Vec2dModel
+	point: Vec2dModel
 }
 
 /** @public */

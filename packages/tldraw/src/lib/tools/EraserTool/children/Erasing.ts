@@ -5,17 +5,15 @@ import {
 	TLFrameShape,
 	TLGroupShape,
 	TLPointerEventInfo,
-	TLScribble,
 	TLShapeId,
 	pointInPolygon,
 } from '@tldraw/editor'
-import { ScribbleManager } from '../../../shapes/shared/ScribbleManager'
 
 export class Erasing extends StateNode {
 	static override id = 'erasing'
 
 	private info = {} as TLPointerEventInfo
-	private scribble = {} as ScribbleManager
+	private scribbleId = 'id'
 	private markId = ''
 	private excludedShapeIds = new Set<TLShapeId>()
 
@@ -45,41 +43,22 @@ export class Erasing extends StateNode {
 				.map((shape) => shape.id)
 		)
 
-		this.startScribble()
-		this.update()
-	}
-
-	private startScribble = () => {
-		if (this.scribble.tick) {
-			this.editor.off('tick', this.scribble?.tick)
-		}
-
-		this.scribble = new ScribbleManager({
-			onUpdate: this.onScribbleUpdate,
-			onComplete: this.onScribbleComplete,
+		const scribble = this.editor.scribbles.addScribble({
 			color: 'muted-1',
 			size: 12,
 		})
+		this.scribbleId = scribble.id
 
-		this.editor.on('tick', this.scribble.tick)
+		this.update()
 	}
 
 	private pushPointToScribble = () => {
 		const { x, y } = this.editor.inputs.currentPagePoint
-		this.scribble.addPoint(x, y)
-	}
-
-	private onScribbleUpdate = (scribble: TLScribble) => {
-		this.editor.updateInstanceState({ scribble })
-	}
-
-	private onScribbleComplete = () => {
-		this.editor.off('tick', this.scribble.tick)
-		this.editor.updateInstanceState({ scribble: null })
+		this.editor.scribbles.addPoint(this.scribbleId, x, y)
 	}
 
 	override onExit = () => {
-		this.scribble.stop()
+		this.editor.scribbles.stop(this.scribbleId)
 	}
 
 	override onPointerMove = () => {

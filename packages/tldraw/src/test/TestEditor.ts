@@ -387,6 +387,7 @@ export class TestEditor extends Editor {
 		this.dispatch({
 			type: 'wheel',
 			name: 'wheel',
+			point: new Vec2d(this.inputs.currentScreenPoint.x, this.inputs.currentScreenPoint.y),
 			shiftKey: this.inputs.shiftKey,
 			ctrlKey: this.inputs.ctrlKey,
 			altKey: this.inputs.altKey,
