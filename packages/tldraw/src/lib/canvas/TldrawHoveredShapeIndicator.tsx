@@ -5,6 +5,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 
+/** @public */
 export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent = ({ shapeId }) => {
 	const editor = useEditor()
 	const showHoveredShapeIndicator = useValue(

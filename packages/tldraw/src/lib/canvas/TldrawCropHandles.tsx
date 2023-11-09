@@ -1,14 +1,21 @@
 import { toDomPrecision } from '@tldraw/editor'
 import classNames from 'classnames'
 
-interface CropHandlesProps {
+/** @public */
+export interface TldrawCropHandlesProps {
 	size: number
 	width: number
 	height: number
 	hideAlternateHandles: boolean
 }
 
-export function CropHandles({ size, width, height, hideAlternateHandles }: CropHandlesProps) {
+/** @public */
+export function TldrawCropHandles({
+	size,
+	width,
+	height,
+	hideAlternateHandles,
+}: TldrawCropHandlesProps) {
 	const cropStrokeWidth = toDomPrecision(size / 3)
 	const offset = cropStrokeWidth / 2
 

@@ -15,13 +15,9 @@ import {
 import classNames from 'classnames'
 import { useRef } from 'react'
 import { useReadonly } from '../ui/hooks/useReadonly'
-import { CropHandles } from './CropHandles'
+import { TldrawCropHandles } from './TldrawCropHandles'
 
-const IS_FIREFOX =
-	typeof navigator !== 'undefined' &&
-	navigator.userAgent &&
-	navigator.userAgent.toLowerCase().indexOf('firefox') > -1
-
+/** @public */
 export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 	function TldrawSelectionForeground({ bounds, rotation }: { bounds: Box2d; rotation: number }) {
 		const editor = useEditor()
@@ -102,7 +98,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 				editor.isShapeOfType<TLTextShape>(onlyShape, 'text'))
 
 		if (onlyShape && shouldDisplayBox) {
-			if (IS_FIREFOX && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
+			if (editor.environment.isFirefox && editor.isShapeOfType<TLEmbedShape>(onlyShape, 'embed')) {
 				shouldDisplayBox = false
 			}
 		}
@@ -437,7 +433,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 					)}
 					{/* Crop Handles */}
 					{showCropHandles && (
-						<CropHandles
+						<TldrawCropHandles
 							{...{
 								size,
 								width,
