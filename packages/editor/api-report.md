@@ -619,6 +619,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPageShapes(): TLShape[];
     get currentPageShapesSorted(): TLShape[];
     get currentPageState(): TLInstancePageState;
+    // @deprecated (undocumented)
     get currentTool(): StateNode | undefined;
     get currentToolId(): string;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
@@ -676,6 +677,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    getCurrentTool(): StateNode | undefined;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
     getInitialMetaForShape(_shape: TLShape): JsonObject;

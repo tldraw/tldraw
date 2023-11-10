@@ -830,7 +830,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * @deprecated Use `getCanRedo` instead.
 	 */
-	@computed get canRedo(): boolean {
+	get canRedo(): boolean {
 		return this.getCanRedo()
 	}
 
@@ -1111,8 +1111,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get currentTool(): StateNode | undefined {
+	@computed getCurrentTool(): StateNode | undefined {
 		return this.root.current.get()
+	}
+
+	/**
+	 * @deprecated Use `getCurrentTool` instead.
+	 */
+	get currentTool() {
+		return this.getCurrentTool()
 	}
 
 	/**
@@ -1121,7 +1128,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get currentToolId(): string {
-		const { currentTool } = this
+		const currentTool = this.getCurrentTool()
 		if (!currentTool) return ''
 		return currentTool.currentToolIdMask ?? currentTool.id
 	}
