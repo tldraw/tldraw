@@ -527,18 +527,18 @@ describe('computed as a decorator', () => {
 		class Foo {
 			a = atom('a', 1)
 			@computed
-			get b() {
+			getB() {
 				return this.a.get() * 2
 			}
 		}
 
 		const foo = new Foo()
 
-		expect(foo.b).toBe(2)
+		expect(foo.getB()).toBe(2)
 
 		foo.a.set(2)
 
-		expect(foo.b).toBe(4)
+		expect(foo.getB()).toBe(4)
 	})
 
 	it('can be used to decorate a class with custom properties', () => {
@@ -547,7 +547,7 @@ describe('computed as a decorator', () => {
 			a = atom('a', 1)
 
 			@computed({ isEqual: (a, b) => a.b === b.b })
-			get b() {
+			getB() {
 				numComputations++
 				return { b: this.a.get() * this.a.get() }
 			}
@@ -555,12 +555,12 @@ describe('computed as a decorator', () => {
 
 		const foo = new Foo()
 
-		const firstVal = foo.b
+		const firstVal = foo.getB()
 		expect(firstVal).toEqual({ b: 1 })
 
 		foo.a.set(-1)
 
-		const secondVal = foo.b
+		const secondVal = foo.getB()
 		expect(secondVal).toEqual({ b: 1 })
 
 		expect(firstVal).toBe(secondVal)
@@ -574,14 +574,14 @@ describe(getComputedInstance, () => {
 			a = atom('a', 1)
 
 			@computed({ isEqual: (a, b) => a.b === b.b })
-			get b() {
+			getB() {
 				return { b: this.a.get() * this.a.get() }
 			}
 		}
 
 		const foo = new Foo()
 
-		const bInst = getComputedInstance(foo, 'b')
+		const bInst = getComputedInstance(foo, 'getB')
 
 		expect(bInst).toBeDefined()
 		expect(bInst).toBeInstanceOf(_Computed)
