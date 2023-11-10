@@ -4,9 +4,9 @@ import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged } from './helpers'
-import { logDotValueWarning } from './logDotValueWarning'
 import { globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
+import { logComputedGetterWarning, logDotValueWarning } from './warnings'
 
 const UNINITIALIZED = Symbol('UNINITIALIZED')
 /**
@@ -230,7 +230,48 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	}
 }
 
+function computedMethodAnnotation(
+	options: ComputedOptions<any, any> = {},
+	_target: any,
+	key: string,
+	descriptor: PropertyDescriptor
+) {
+	const originalMethod = descriptor.value
+	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
+
+	descriptor.value = function (this: any) {
+		let d = this[derivationKey] as _Computed<any> | undefined
+
+		if (!d) {
+			d = new _Computed(key, originalMethod!.bind(this) as any, options)
+			Object.defineProperty(this, derivationKey, {
+				enumerable: false,
+				configurable: false,
+				writable: false,
+				value: d,
+			})
+		}
+		return d.get()
+	}
+
+	return descriptor
+}
+
 function computedAnnotation(
+	options: ComputedOptions<any, any> = {},
+	_target: any,
+	key: string,
+	descriptor: PropertyDescriptor
+) {
+	if (descriptor.get) {
+		logComputedGetterWarning()
+		return computedGetterAnnotation(options, _target, key, descriptor)
+	} else {
+		return computedMethodAnnotation(options, _target, key, descriptor)
+	}
+}
+
+function computedGetterAnnotation(
 	options: ComputedOptions<any, any> = {},
 	_target: any,
 	key: string,

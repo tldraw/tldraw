@@ -2,9 +2,9 @@ import { ArraySet } from './ArraySet'
 import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent } from './capture'
 import { EMPTY_ARRAY, equals } from './helpers'
-import { logDotValueWarning } from './logDotValueWarning'
 import { advanceGlobalEpoch, atomDidChange, globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
+import { logDotValueWarning } from './warnings'
 
 /**
  * The options to configure an atom, passed into the [[atom]] function.
