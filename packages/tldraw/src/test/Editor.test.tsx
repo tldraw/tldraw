@@ -151,7 +151,7 @@ it('Does not create an undo stack item when first clicking on an empty canvas', 
 	editor = new TestEditor()
 	editor.pointerMove(50, 50)
 	editor.click(0, 0)
-	expect(editor.canUndo).toBe(false)
+	expect(editor.getCanUndo()).toBe(false)
 })
 
 describe('Editor.sharedOpacity', () => {

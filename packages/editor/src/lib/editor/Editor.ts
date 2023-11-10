@@ -792,8 +792,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get canUndo(): boolean {
+	@computed getCanUndo(): boolean {
 		return this.history.numUndos > 0
+	}
+
+	/**
+	 * @deprecated Use `getCanUndo` instead.
+	 */
+	get canUndo(): boolean {
+		return this.getCanUndo()
 	}
 
 	/**

@@ -580,6 +580,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     cancel(): this;
     cancelDoubleClick(): void;
     get canRedo(): boolean;
+    // @deprecated (undocumented)
     get canUndo(): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
@@ -670,6 +671,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
+    getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
