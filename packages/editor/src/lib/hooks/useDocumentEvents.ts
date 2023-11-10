@@ -9,7 +9,7 @@ export function useDocumentEvents() {
 	const editor = useEditor()
 	const container = useContainer()
 
-	const isAppFocused = useValue('isFocused', () => editor.instanceState.isFocused, [editor])
+	const isAppFocused = useValue('isFocused', () => editor.getInstanceState().isFocused, [editor])
 
 	useEffect(() => {
 		if (typeof matchMedia === undefined) return
@@ -107,7 +107,7 @@ export function useDocumentEvents() {
 								ctrlKey: e.metaKey || e.ctrlKey,
 								pointerId: 0,
 								button: 0,
-								isPen: editor.instanceState.isPenMode,
+								isPen: editor.getInstanceState().isPenMode,
 								target: 'canvas',
 							}
 
@@ -191,7 +191,7 @@ export function useDocumentEvents() {
 						ctrlKey: e.metaKey || e.ctrlKey,
 						pointerId: 0,
 						button: 0,
-						isPen: editor.instanceState.isPenMode,
+						isPen: editor.getInstanceState().isPenMode,
 						target: 'canvas',
 					}
 					editor.dispatch(info)

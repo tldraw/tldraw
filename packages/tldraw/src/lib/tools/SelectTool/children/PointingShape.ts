@@ -151,7 +151,7 @@ export class PointingShape extends StateNode {
 										this.editor.select(selectingShape.id)
 
 										const util = this.editor.getShapeUtil(selectingShape)
-										if (this.editor.instanceState.isReadonly) {
+										if (this.editor.getInstanceState().isReadonly) {
 											if (!util.canEditInReadOnly(selectingShape)) {
 												return
 											}
@@ -195,7 +195,7 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			if (this.editor.instanceState.isReadonly) return
+			if (this.editor.getInstanceState().isReadonly) return
 			this.parent.transition('translating', info)
 		}
 	}

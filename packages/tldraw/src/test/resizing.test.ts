@@ -3832,16 +3832,16 @@ it('uses the cross cursor when create resizing', () => {
 	editor.pointerDown(0, 0)
 	editor.pointerMove(100, 100)
 	editor.expectToBeIn('select.resizing')
-	expect(editor.instanceState.cursor.type).toBe('cross')
-	expect(editor.instanceState.cursor.rotation).toBe(0)
+	expect(editor.getInstanceState().cursor.type).toBe('cross')
+	expect(editor.getInstanceState().cursor.rotation).toBe(0)
 
 	editor.pointerMove(120, 120)
-	expect(editor.instanceState.cursor.type).toBe('cross')
-	expect(editor.instanceState.cursor.rotation).toBe(0)
+	expect(editor.getInstanceState().cursor.type).toBe('cross')
+	expect(editor.getInstanceState().cursor.rotation).toBe(0)
 
 	editor.pointerMove(-120, -120)
-	expect(editor.instanceState.cursor.type).toBe('cross')
-	expect(editor.instanceState.cursor.rotation).toBe(0)
+	expect(editor.getInstanceState().cursor.type).toBe('cross')
+	expect(editor.getInstanceState().cursor.rotation).toBe(0)
 })
 
 describe('Resizing text from the right edge', () => {

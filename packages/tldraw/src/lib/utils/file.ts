@@ -279,7 +279,7 @@ export async function parseAndLoadDocument(
 	// this file before they'll get their camera etc.
 	// restored. we could change this in the future.
 	transact(() => {
-		const isFocused = editor.instanceState.isFocused
+		const isFocused = editor.getInstanceState().isFocused
 		editor.store.clear()
 		const [shapes, nonShapes] = partition(
 			parseFileResult.value.allRecords(),

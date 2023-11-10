@@ -33,8 +33,9 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		const bottomRightEvents = useSelectionEvents('bottom_right')
 		const bottomLeftEvents = useSelectionEvents('bottom_left')
 
-		const isDefaultCursor = !editor.isMenuOpen && editor.instanceState.cursor.type === 'default'
-		const isCoarsePointer = editor.instanceState.isCoarsePointer
+		const isDefaultCursor =
+			!editor.isMenuOpen && editor.getInstanceState().cursor.type === 'default'
+		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
 		const shapes = editor.selectedShapes
 		const onlyShape = editor.onlySelectedShape
@@ -54,7 +55,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		bounds = bounds.clone().expandBy(expandOutlineBy).zeroFix()
 
 		const zoom = editor.zoomLevel
-		const isChangingStyle = editor.instanceState.isChangingStyle
+		const isChangingStyle = editor.getInstanceState().isChangingStyle
 
 		const width = bounds.width
 		const height = bounds.height

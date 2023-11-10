@@ -35,7 +35,7 @@ beforeEach(() => {
 })
 
 function nudgeAndGet(ids: TLShapeId[], key: string, shiftKey: boolean) {
-	const step = editor.instanceState.isGridMode ? (shiftKey ? 50 : 10) : shiftKey ? 10 : 1
+	const step = editor.getInstanceState().isGridMode ? (shiftKey ? 50 : 10) : shiftKey ? 10 : 1
 	switch (key) {
 		case 'ArrowLeft': {
 			editor.mark('nudge')

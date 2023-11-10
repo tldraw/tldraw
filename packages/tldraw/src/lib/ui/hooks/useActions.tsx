@@ -402,7 +402,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('duplicate-shapes', { source })
 					const ids = editor.selectedShapeIds
 					const commonBounds = Box2d.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-					const offset = editor.instanceState.canMoveCamera
+					const offset = editor.getInstanceState().canMoveCamera
 						? {
 								x: commonBounds.width + 10,
 								y: 0,
@@ -955,7 +955,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-transparent', { source })
 					editor.updateInstanceState(
 						{
-							exportBackground: !editor.instanceState.exportBackground,
+							exportBackground: !editor.getInstanceState().exportBackground,
 						},
 						{ ephemeral: true }
 					)
@@ -970,7 +970,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: 'q',
 				onSelect(source) {
 					trackEvent('toggle-tool-lock', { source })
-					editor.updateInstanceState({ isToolLocked: !editor.instanceState.isToolLocked })
+					editor.updateInstanceState({ isToolLocked: !editor.getInstanceState().isToolLocked })
 				},
 				checkbox: true,
 			},
@@ -1006,7 +1006,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 							trackEvent('toggle-focus-mode', { source })
 							clearDialogs()
 							clearToasts()
-							editor.updateInstanceState({ isFocusMode: !editor.instanceState.isFocusMode })
+							editor.updateInstanceState({ isFocusMode: !editor.getInstanceState().isFocusMode })
 						})
 					})
 				},
@@ -1019,7 +1019,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				kbd: "$'",
 				onSelect(source) {
 					trackEvent('toggle-grid-mode', { source })
-					editor.updateInstanceState({ isGridMode: !editor.instanceState.isGridMode })
+					editor.updateInstanceState({ isGridMode: !editor.getInstanceState().isGridMode })
 				},
 				checkbox: true,
 			},
@@ -1031,7 +1031,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				onSelect(source) {
 					trackEvent('toggle-debug-mode', { source })
 					editor.updateInstanceState({
-						isDebugMode: !editor.instanceState.isDebugMode,
+						isDebugMode: !editor.getInstanceState().isDebugMode,
 					})
 				},
 				checkbox: true,

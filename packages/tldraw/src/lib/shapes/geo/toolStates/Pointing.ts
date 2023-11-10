@@ -117,7 +117,7 @@ export class Pointing extends StateNode {
 			},
 		])
 
-		if (this.editor.instanceState.isToolLocked) {
+		if (this.editor.getInstanceState().isToolLocked) {
 			this.parent.transition('idle', {})
 		} else {
 			this.editor.setCurrentTool('select', {})

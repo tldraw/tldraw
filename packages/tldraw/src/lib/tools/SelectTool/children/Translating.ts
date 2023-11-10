@@ -162,7 +162,7 @@ export class Translating extends StateNode {
 		this.dragAndDropManager.dropShapes(this.snapshot.movingShapes)
 		this.handleEnd()
 
-		if (this.editor.instanceState.isToolLocked && this.info.onInteractionEnd) {
+		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
 			if (this.editAfterComplete) {
@@ -345,10 +345,9 @@ export function moveShapesToPoint({
 	initialSelectionPageBounds: Box2d
 	initialSelectionSnapPoints: SnapPoint[]
 }) {
-	const {
-		inputs,
-		instanceState: { isGridMode },
-	} = editor
+	const { inputs } = editor
+
+	const isGridMode = editor.getInstanceState().isGridMode
 
 	const gridSize = editor.getDocumentSettings().gridSize
 

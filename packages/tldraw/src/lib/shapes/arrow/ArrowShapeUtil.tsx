@@ -494,7 +494,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				'select.pointing_handle',
 				'select.dragging_handle',
 				'arrow.dragging'
-			) && !this.editor.instanceState.isReadonly
+			) && !this.editor.getInstanceState().isReadonly
 
 		const info = this.editor.getArrowInfo(shape)
 		const bounds = Box2d.ZeroFix(this.editor.getShapeGeometry(shape).bounds)

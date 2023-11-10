@@ -137,7 +137,7 @@ function GridWrapper() {
 	const editor = useEditor()
 	const gridSize = useValue('gridSize', () => editor.getDocumentSettings().gridSize, [editor])
 	const { x, y, z } = useValue('camera', () => editor.camera, [editor])
-	const isGridMode = useValue('isGridMode', () => editor.instanceState.isGridMode, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const { Grid } = useEditorComponents()
 
 	if (!(Grid && isGridMode)) return null
@@ -147,7 +147,7 @@ function GridWrapper() {
 
 function ScribbleWrapper() {
 	const editor = useEditor()
-	const scribbles = useValue('scribbles', () => editor.instanceState.scribbles, [editor])
+	const scribbles = useValue('scribbles', () => editor.getInstanceState().scribbles, [editor])
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
 	const { Scribble } = useEditorComponents()
 
@@ -169,7 +169,7 @@ function ScribbleWrapper() {
 
 function BrushWrapper() {
 	const editor = useEditor()
-	const brush = useValue('brush', () => editor.instanceState.brush, [editor])
+	const brush = useValue('brush', () => editor.getInstanceState().brush, [editor])
 	const { Brush } = useEditorComponents()
 
 	if (!(Brush && brush)) return null
@@ -179,7 +179,7 @@ function BrushWrapper() {
 
 function ZoomBrushWrapper() {
 	const editor = useEditor()
-	const zoomBrush = useValue('zoomBrush', () => editor.instanceState.zoomBrush, [editor])
+	const zoomBrush = useValue('zoomBrush', () => editor.getInstanceState().zoomBrush, [editor])
 	const { ZoomBrush } = useEditorComponents()
 
 	if (!(ZoomBrush && zoomBrush)) return null
@@ -211,12 +211,18 @@ function HandlesWrapper() {
 	const { Handles } = useEditorComponents()
 
 	const zoomLevel = useValue('zoomLevel', () => editor.zoomLevel, [editor])
-	const isCoarse = useValue('coarse pointer', () => editor.instanceState.isCoarsePointer, [editor])
-	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
-	const isChangingStyle = useValue('isChangingStyle', () => editor.instanceState.isChangingStyle, [
+	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,
 	])
-	const isReadonly = useValue('isChangingStyle', () => editor.instanceState.isReadonly, [editor])
+	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
+	const isChangingStyle = useValue(
+		'isChangingStyle',
+		() => editor.getInstanceState().isChangingStyle,
+		[editor]
+	)
+	const isReadonly = useValue('isChangingStyle', () => editor.getInstanceState().isReadonly, [
+		editor,
+	])
 	const handles = useValue(
 		'handles',
 		() => (editor.onlySelectedShape ? editor.getShapeHandles(editor.onlySelectedShape) : undefined),
@@ -345,7 +351,7 @@ function SelectedIdIndicators() {
 					'select.pointing_shape',
 					'select.pointing_selection',
 					'select.pointing_handle'
-				) && !editor.instanceState.isChangingStyle
+				) && !editor.getInstanceState().isChangingStyle
 			)
 		},
 		[editor]
@@ -365,12 +371,14 @@ function SelectedIdIndicators() {
 const HoveredShapeIndicator = function HoveredShapeIndicator() {
 	const editor = useEditor()
 	const { HoveredShapeIndicator } = useEditorComponents()
-	const isCoarsePointer = useValue('coarse pointer', () => editor.instanceState.isCoarsePointer, [
-		editor,
-	])
+	const isCoarsePointer = useValue(
+		'coarse pointer',
+		() => editor.getInstanceState().isCoarsePointer,
+		[editor]
+	)
 	const isHoveringCanvas = useValue(
 		'hovering canvas',
-		() => editor.instanceState.isHoveringCanvas,
+		() => editor.getInstanceState().isHoveringCanvas,
 		[editor]
 	)
 	const hoveredShapeId = useValue('hovered id', () => editor.currentPageState.hoveredShapeId, [

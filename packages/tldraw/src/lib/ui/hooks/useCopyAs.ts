@@ -122,7 +122,7 @@ export function useCopyAs() {
 async function getExportSvgElement(editor: Editor, ids: TLShapeId[]) {
 	const svg = await editor.getSvg(ids, {
 		scale: 1,
-		background: editor.instanceState.exportBackground,
+		background: editor.getInstanceState().exportBackground,
 	})
 
 	if (!svg) throw new Error('Could not construct SVG.')

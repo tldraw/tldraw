@@ -21,7 +21,7 @@ export function useKeyboardShortcuts() {
 	const isReadonly = useReadonly()
 	const actions = useActions()
 	const tools = useTools()
-	const isFocused = useValue('is focused', () => editor.instanceState.isFocused, [editor])
+	const isFocused = useValue('is focused', () => editor.getInstanceState().isFocused, [editor])
 
 	useEffect(() => {
 		if (!isFocused) return
@@ -52,7 +52,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && editor.instanceState.isReadonly)) {
+			if (!tool.kbd || (!tool.readonlyOk && editor.getInstanceState().isReadonly)) {
 				continue
 			}
 

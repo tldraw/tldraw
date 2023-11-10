@@ -149,7 +149,7 @@ describe('TLSelectTool.Zooming', () => {
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(newBoundsX, newBoundsY)
 		editor.pointerMove(newBoundsX + newBoundsWidth, newBoundsY + newBoundsHeight)
-		expect(editor.instanceState.zoomBrush).toMatchObject({
+		expect(editor.getInstanceState().zoomBrush).toMatchObject({
 			x: newBoundsX,
 			y: newBoundsY,
 			w: newBoundsWidth,
@@ -186,7 +186,7 @@ describe('TLSelectTool.Zooming', () => {
 		editor.keyDown('Alt')
 		editor.pointerDown(newBoundsX, newBoundsY)
 		editor.pointerMove(newBoundsX + newBoundsWidth, newBoundsY + newBoundsHeight)
-		expect(editor.instanceState.zoomBrush).toMatchObject({
+		expect(editor.getInstanceState().zoomBrush).toMatchObject({
 			x: newBoundsX,
 			y: newBoundsY,
 			w: newBoundsWidth,

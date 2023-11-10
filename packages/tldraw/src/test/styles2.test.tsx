@@ -191,9 +191,9 @@ describe('Editor.setStyle', () => {
 	it('stores styles on stylesForNextShape', () => {
 		editor.setStyleForSelectedShapes(DefaultColorStyle, 'red')
 		editor.setStyleForNextShapes(DefaultColorStyle, 'red')
-		expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('red')
+		expect(editor.getInstanceState().stylesForNextShape[DefaultColorStyle.id]).toBe('red')
 		editor.setStyleForSelectedShapes(DefaultColorStyle, 'green')
 		editor.setStyleForNextShapes(DefaultColorStyle, 'green')
-		expect(editor.instanceState.stylesForNextShape[DefaultColorStyle.id]).toBe('green')
+		expect(editor.getInstanceState().stylesForNextShape[DefaultColorStyle.id]).toBe('green')
 	})
 })

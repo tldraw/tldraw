@@ -179,7 +179,7 @@ export class DraggingHandle extends StateNode {
 		this.editor.snaps.clear()
 
 		const { onInteractionEnd } = this.info
-		if (this.editor.instanceState.isToolLocked && onInteractionEnd) {
+		if (this.editor.getInstanceState().isToolLocked && onInteractionEnd) {
 			// Return to the tool that was active before this one,
 			// but only if tool lock is turned on!
 			this.editor.setCurrentTool(onInteractionEnd, { shapeId: this.shapeId })

@@ -98,7 +98,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.instanceState.isReadonly) break
+				if (this.editor.getInstanceState().isReadonly) break
 				if (this.editor.inputs.altKey) {
 					this.parent.transition('pointing_shape', info)
 				} else {
@@ -222,7 +222,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'selection': {
-				if (this.editor.instanceState.isReadonly) break
+				if (this.editor.getInstanceState().isReadonly) break
 
 				const { onlySelectedShape } = this.editor
 
@@ -271,7 +271,7 @@ export class Idle extends StateNode {
 				if (
 					shape.type !== 'video' &&
 					shape.type !== 'embed' &&
-					this.editor.instanceState.isReadonly
+					this.editor.getInstanceState().isReadonly
 				)
 					break
 
@@ -302,7 +302,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'handle': {
-				if (this.editor.instanceState.isReadonly) break
+				if (this.editor.getInstanceState().isReadonly) break
 				const { shape, handle } = info
 
 				const util = this.editor.getShapeUtil(shape)
@@ -475,7 +475,7 @@ export class Idle extends StateNode {
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
-		if (this.editor.instanceState.isReadonly) return
+		if (this.editor.getInstanceState().isReadonly) return
 
 		this.editor.mark('creating text shape')
 
@@ -500,7 +500,7 @@ export class Idle extends StateNode {
 		if (!shape) return
 
 		const util = this.editor.getShapeUtil(shape)
-		if (this.editor.instanceState.isReadonly) {
+		if (this.editor.getInstanceState().isReadonly) {
 			if (!util.canEditInReadOnly(shape)) {
 				return
 			}
@@ -536,7 +536,7 @@ export class Idle extends StateNode {
 
 		const { gridSize } = this.editor.getDocumentSettings()
 
-		const step = this.editor.instanceState.isGridMode
+		const step = this.editor.getInstanceState().isGridMode
 			? shiftKey
 				? gridSize * GRID_INCREMENT
 				: gridSize
@@ -548,7 +548,7 @@ export class Idle extends StateNode {
 	}
 
 	private canInteractWithShapeInReadOnly(shape: TLShape) {
-		if (!this.editor.instanceState.isReadonly) return true
+		if (!this.editor.getInstanceState().isReadonly) return true
 		const util = this.editor.getShapeUtil(shape)
 		if (util.canEditInReadOnly(shape)) return true
 		return false
