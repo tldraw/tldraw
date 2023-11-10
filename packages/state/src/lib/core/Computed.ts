@@ -4,6 +4,7 @@ import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent, startCapturingParents, stopCapturingParents } from './capture'
 import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged } from './helpers'
+import { logDotValueWarning } from './logDotValueWarning'
 import { globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
 
@@ -206,6 +207,14 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 		const value = this.__unsafe__getWithoutCapture()
 		maybeCaptureParent(this)
 		return value
+	}
+
+	/**
+	 * @deprecated Use [[get]] instead.
+	 */
+	get value() {
+		logDotValueWarning()
+		return this.get()
 	}
 
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {

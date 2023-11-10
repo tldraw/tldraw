@@ -118,6 +118,8 @@ export interface Signal<Value, Diff = unknown> {
     getDiffSince(epoch: number): Diff[] | RESET_VALUE;
     lastChangedEpoch: number;
     name: string;
+    // @deprecated (undocumented)
+    value: Value;
 }
 
 // @public
