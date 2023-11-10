@@ -1,3 +1,10 @@
+## 2.0.16
+- Fixed keyboard shortcuts.
+- Fixed edit link button stopping the mouse events from working.
+- Fixed a bug with grouping / ungrouping which prevented the actions menu from closing correctly.
+- Fixed arrowheads not being correctly localized in the Style panel.
+- Fixed a bug where arrows with length 0 could crash the app.
+
 ## 2.0.15
 - Bug fixes and performance improvements.
 
