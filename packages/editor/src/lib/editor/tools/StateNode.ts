@@ -130,7 +130,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	/**
 	 * This is a hack / escape hatch that will tell the editor to
-	 * report a different state as active (in `currentToolId`) when
+	 * report a different state as active (in `getCurrentToolId()`) when
 	 * this state is active. This is usually used when a tool transitions
 	 * to a child of a different state for a certain interaction and then
 	 * returns to the original tool when that interaction completes; and

@@ -8280,7 +8280,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentTool:member",
-              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentTool` instead.\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentTool` instead.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8315,7 +8315,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentToolId:member",
-              "docComment": "/**\n * The id of the current selected tool.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentToolId` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10166,6 +10166,37 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getCurrentTool"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentToolId:member(1)",
+              "docComment": "/**\n * The id of the current selected tool.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentToolId(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentToolId"
             },
             {
               "kind": "Method",
@@ -33274,7 +33305,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#_currentToolIdMask:member",
-              "docComment": "/**\n * This is a hack / escape hatch that will tell the editor to report a different state as active (in `currentToolId`) when this state is active. This is usually used when a tool transitions to a child of a different state for a certain interaction and then returns to the original tool when that interaction completes; and where we would want to show the original tool as active in the UI.\n *\n * @public\n */\n",
+              "docComment": "/**\n * This is a hack / escape hatch that will tell the editor to report a different state as active (in `getCurrentToolId()`) when this state is active. This is usually used when a tool transitions to a child of a different state for a certain interaction and then returns to the original tool when that interaction completes; and where we would want to show the original tool as active in the UI.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

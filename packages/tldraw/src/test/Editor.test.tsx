@@ -293,66 +293,66 @@ describe('Editor.TickManager', () => {
 describe("App's default tool", () => {
 	it('Is select for regular app', () => {
 		editor = new TestEditor()
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 	})
 	it('Is hand for readonly mode', () => {
 		editor = new TestEditor()
 		editor.updateInstanceState({ isReadonly: true })
 		editor.setCurrentTool('hand')
-		expect(editor.currentToolId).toBe('hand')
+		expect(editor.getCurrentToolId()).toBe('hand')
 	})
 })
 
 describe('currentToolId', () => {
 	it('is select by default', () => {
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 	})
 	it('is set to the last used tool', () => {
 		editor.setCurrentTool('draw')
-		expect(editor.currentToolId).toBe('draw')
+		expect(editor.getCurrentToolId()).toBe('draw')
 
 		editor.setCurrentTool('geo')
-		expect(editor.currentToolId).toBe('geo')
+		expect(editor.getCurrentToolId()).toBe('geo')
 	})
 	it('stays the selected tool during shape creation interactions that technically use the select tool', () => {
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 
-		expect(editor.currentToolId).toBe('geo')
+		expect(editor.getCurrentToolId()).toBe('geo')
 		expect(editor.root.path.get()).toBe('root.select.resizing')
 	})
 
 	it('reverts back to select if we finish the interaction', () => {
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 
-		expect(editor.currentToolId).toBe('geo')
+		expect(editor.getCurrentToolId()).toBe('geo')
 		expect(editor.root.path.get()).toBe('root.select.resizing')
 
 		editor.pointerUp(100, 100)
 
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 	})
 
 	it('stays on the selected tool if we cancel the interaction', () => {
-		expect(editor.currentToolId).toBe('select')
+		expect(editor.getCurrentToolId()).toBe('select')
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(0, 0)
 		editor.pointerMove(100, 100)
 
-		expect(editor.currentToolId).toBe('geo')
+		expect(editor.getCurrentToolId()).toBe('geo')
 		expect(editor.root.path.get()).toBe('root.select.resizing')
 
 		editor.cancel()
 
-		expect(editor.currentToolId).toBe('geo')
+		expect(editor.getCurrentToolId()).toBe('geo')
 	})
 })
 

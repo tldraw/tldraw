@@ -264,7 +264,7 @@ describe('<TldrawEditor />', () => {
 		await act(async () => editor.setCurrentTool('eraser'))
 
 		// Is the editor's current tool correct?
-		expect(editor.currentToolId).toBe('eraser')
+		expect(editor.getCurrentToolId()).toBe('eraser')
 	})
 })
 
@@ -387,6 +387,6 @@ describe('Custom shapes', () => {
 		await act(async () => editor.setCurrentTool('card'))
 
 		// Is the editor's current tool correct?
-		expect(editor.currentToolId).toBe('card')
+		expect(editor.getCurrentToolId()).toBe('card')
 	})
 })

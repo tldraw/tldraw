@@ -33,7 +33,7 @@ beforeEach(() => {
 
 it('enters the arrow state', () => {
 	editor.setCurrentTool('arrow')
-	expect(editor.currentToolId).toBe('arrow')
+	expect(editor.getCurrentToolId()).toBe('arrow')
 	editor.expectPathToBe('root.arrow.idle')
 })
 

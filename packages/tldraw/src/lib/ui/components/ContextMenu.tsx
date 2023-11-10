@@ -74,9 +74,11 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 		contextTLUiMenuSchema.length === 0 ||
 		(isReadonly && contextTLUiMenuSchema.every((item) => !item.readonlyOk))
 
-	const selectToolActive = useValue('isSelectToolActive', () => editor.currentToolId === 'select', [
-		editor,
-	])
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
 
 	const disabled = !selectToolActive || noItemsToShow
 

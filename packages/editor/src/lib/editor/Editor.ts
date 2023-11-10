@@ -1117,6 +1117,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * @deprecated Use `getCurrentTool` instead.
+	 * @public
 	 */
 	get currentTool() {
 		return this.getCurrentTool()
@@ -1127,10 +1128,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get currentToolId(): string {
+	@computed getCurrentToolId(): string {
 		const currentTool = this.getCurrentTool()
 		if (!currentTool) return ''
 		return currentTool.currentToolIdMask ?? currentTool.id
+	}
+
+	/**
+	 * @deprecated Use `getCurrentToolId` instead.
+	 */
+	get currentToolId() {
+		return this.getCurrentToolId()
 	}
 
 	/**
@@ -6839,7 +6847,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const parentId = this.findCommonAncestor(shapesToGroup) ?? this.currentPageId
 
 		// Only group when the select tool is active
-		if (this.currentToolId !== 'select') return this
+		if (this.getCurrentToolId() !== 'select') return this
 
 		// If not already in idle, cancel the current interaction (get back to idle)
 		if (!this.isIn('select.idle')) {
@@ -6889,7 +6897,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (ids.length === 0) return this
 
 		// Only ungroup when the select tool is active
-		if (this.currentToolId !== 'select') return this
+		if (this.getCurrentToolId() !== 'select') return this
 
 		// If not already in idle, cancel the current interaction (get back to idle)
 		if (!this.isIn('select.idle')) {
@@ -8758,7 +8766,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 							if (info.button === 5) {
 								// Eraser button activates eraser
-								this._restoreToolId = this.currentToolId
+								this._restoreToolId = this.getCurrentToolId()
 								this.complete()
 								this.setCurrentTool('eraser')
 							} else if (info.button === 1) {
