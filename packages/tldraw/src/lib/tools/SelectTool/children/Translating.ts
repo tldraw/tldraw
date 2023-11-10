@@ -348,8 +348,9 @@ export function moveShapesToPoint({
 	const {
 		inputs,
 		instanceState: { isGridMode },
-		documentSettings: { gridSize },
 	} = editor
+
+	const gridSize = editor.getDocumentSettings().gridSize
 
 	const delta = Vec2d.Sub(inputs.currentPagePoint, inputs.originPagePoint)
 

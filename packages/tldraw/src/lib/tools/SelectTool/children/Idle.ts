@@ -534,7 +534,7 @@ export class Idle extends StateNode {
 
 		if (!ephemeral) this.editor.mark('nudge shapes')
 
-		const { gridSize } = this.editor.documentSettings
+		const { gridSize } = this.editor.getDocumentSettings()
 
 		const step = this.editor.instanceState.isGridMode
 			? shiftKey

@@ -135,7 +135,7 @@ export function Canvas({ className }: { className?: string }) {
 
 function GridWrapper() {
 	const editor = useEditor()
-	const gridSize = useValue('gridSize', () => editor.documentSettings.gridSize, [editor])
+	const gridSize = useValue('gridSize', () => editor.getDocumentSettings().gridSize, [editor])
 	const { x, y, z } = useValue('camera', () => editor.camera, [editor])
 	const isGridMode = useValue('isGridMode', () => editor.instanceState.isGridMode, [editor])
 	const { Grid } = useEditorComponents()

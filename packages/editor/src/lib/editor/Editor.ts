@@ -1174,8 +1174,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 **/
-	@computed get documentSettings() {
+	@computed getDocumentSettings() {
 		return this.store.get(TLDOCUMENT_ID)!
+	}
+
+	/**
+	 * @deprecated Use `getDocumentSettings` instead.
+	 */
+	get documentSettings() {
+		return this.getDocumentSettings()
 	}
 
 	/**
@@ -1184,7 +1191,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	updateDocumentSettings(settings: Partial<TLDocument>): this {
-		this.store.put([{ ...this.documentSettings, ...settings }])
+		this.store.put([{ ...this.getDocumentSettings(), ...settings }])
 		return this
 	}
 

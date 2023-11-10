@@ -637,6 +637,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
+    // @deprecated (undocumented)
     get documentSettings(): TLDocument;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
@@ -680,6 +681,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
     getCurrentTool(): StateNode | undefined;
     getCurrentToolId(): string;
+    getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
