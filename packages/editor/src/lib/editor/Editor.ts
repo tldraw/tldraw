@@ -823,8 +823,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get canRedo(): boolean {
+	@computed getCanRedo(): boolean {
 		return this.history.numRedos > 0
+	}
+
+	/**
+	 * @deprecated Use `getCanRedo` instead.
+	 */
+	@computed get canRedo(): boolean {
+		return this.getCanRedo()
 	}
 
 	/**
