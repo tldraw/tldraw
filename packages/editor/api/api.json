@@ -7558,7 +7558,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#canUndo:member",
-              "docComment": "/**\n * Whether the app can undo.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCanUndo` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9966,6 +9966,37 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getAssetForExternalContent"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCanUndo:member(1)",
+              "docComment": "/**\n * Whether the app can undo.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCanUndo(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCanUndo"
             },
             {
               "kind": "Property",
