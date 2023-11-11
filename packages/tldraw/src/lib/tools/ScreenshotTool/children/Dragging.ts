@@ -40,7 +40,7 @@ export class Dragging extends StateNode {
 
 	private update() {
 		const {
-			inputs: { shiftKey, originPagePoint, currentPagePoint },
+			inputs: { shiftKey, altKey, originPagePoint, currentPagePoint },
 		} = this.editor
 
 		const box = Box2d.FromPoints([originPagePoint, currentPagePoint])
@@ -60,10 +60,17 @@ export class Dragging extends StateNode {
 				box.y = originPagePoint.y - box.h
 			}
 
-			this.box.setTo(box)
-		} else {
-			this.box.setTo(box)
+			box.setTo(box)
 		}
+
+		if (altKey) {
+			box.w *= 2
+			box.h *= 2
+			box.x = originPagePoint.x - box.w / 2
+			box.y = originPagePoint.y - box.h / 2
+		}
+
+		this.box.setTo(box)
 
 		this.editor.updateInstanceState({ screenshotBrush: this.box.toJson() })
 	}
