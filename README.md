@@ -29,7 +29,7 @@ yarn dev
 
 Open the example project at `localhost:5420`.
 
-## Licensing
+## License
 
 tldraw's source code and distributed packages are provided under the restrictive / copyleft [AGPL-3.0 license](https://github.com/tldraw/tldraw/blob/master/LICENSE.md). You may use and modify tldraw as long as your code is kept open source and licensed under the same AGPLv3 license.
 
