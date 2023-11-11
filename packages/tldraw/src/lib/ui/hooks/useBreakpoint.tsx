@@ -6,12 +6,10 @@ const BreakpointContext = React.createContext(0)
 
 /** @public */
 export function BreakPointProvider({
-	minBreakpoint = 0,
-	maxBreakpoint = PORTRAIT_BREAKPOINTS.length,
+	forceMobile = false,
 	children,
 }: {
-	minBreakpoint?: number
-	maxBreakpoint?: number
+	forceMobile?: boolean
 	children: any
 }) {
 	const editor = useEditor()
@@ -22,25 +20,9 @@ export function BreakPointProvider({
 			// This will recompute the viewport screen bounds changes...
 			const { width } = editor.viewportScreenBounds
 
-			if (minBreakpoint < 0 || minBreakpoint > PORTRAIT_BREAKPOINTS.length) {
-				throw Error(
-					`Invalid minBreakpoint value, must be between 0 and ${PORTRAIT_BREAKPOINTS.length}`
-				)
-			}
+			const maxBreakpoint = forceMobile ? 3 : PORTRAIT_BREAKPOINTS.length - 1
 
-			if (maxBreakpoint < 0 || minBreakpoint > PORTRAIT_BREAKPOINTS.length) {
-				throw Error(
-					`Invalid maxBreakpoint value, must be between 0 and ${PORTRAIT_BREAKPOINTS.length}`
-				)
-			}
-
-			if (maxBreakpoint < minBreakpoint) {
-				throw Error(
-					`Invalid maxBreakpoint value, must be greater than minBreakpoint (min: ${minBreakpoint}, max: ${maxBreakpoint})`
-				)
-			}
-
-			for (let i = minBreakpoint; i < maxBreakpoint - 1; i++) {
+			for (let i = 0; i < maxBreakpoint; i++) {
 				if (width > PORTRAIT_BREAKPOINTS[i] && width <= PORTRAIT_BREAKPOINTS[i + 1]) {
 					return i
 				}
