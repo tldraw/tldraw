@@ -4040,7 +4040,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!pageBounds) return
 		const pageMask = this._shapeMaskCache.get(shape)
 		if (pageMask) {
+			const { corners } = pageBounds
+			let a: VecLike,
+				b: VecLike,
+				isSame = true
+			for (let i = 0; i < pageMask.length; i++) {
+				a = pageMask[i]
+				b = corners[i]
+				if (!Vec2d.Equals(a, b)) {
+					isSame = false
+					break
+				}
+			}
+
+			if (isSame) return pageBounds.clone()
+
 			const intersection = intersectPolygonPolygon(pageMask, pageBounds.corners)
+
 			if (!intersection) return
 			return Box2d.FromPoints(intersection)
 		}
