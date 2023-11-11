@@ -19,7 +19,7 @@ Whenever you use one of our marks, you must always do so in a way that does not 
 
 Do not use the tldraw marks in any way that could mistakenly imply that tldraw has reviewed, approved or guaranteed your goods or services. You also cannot use our logo on your website in a way that suggests that your website is an official website or that we endorse your website. You can, though, say you like the tldraw software, that you use tldraw, that the analytics are powered by tldraw or that you participate in the tldraw community.
 
-Do use the "tl" prefix in a way that could mistakenly imply that your product is related to tldraw. For example, an analytics product that uses tldraw should not use the name "tlanalytics".
+Do not use the "tl" prefix in a way that could mistakenly imply that your product is related to tldraw. For example, an analytics product that uses tldraw should not use the name "tlanalytics".
 
 You may not use or register our marks or variations of them as part of your trademark, business, product, service, app, domain name, social media account or business indicator. You may not use our marks as a part of an advertising campaign. You may not display tldraw trademarks more prominently than your product, service or company name. You may not use tldraw trademarks on merchandise for sale (e.g., selling t-shirts, mugs, etc).
 
