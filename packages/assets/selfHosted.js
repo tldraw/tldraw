@@ -170,6 +170,7 @@ export function getAssetUrls(opts) {
 			'tool-note': formatAssetUrl('./icons/icon/tool-note.svg', opts),
 			'tool-pencil': formatAssetUrl('./icons/icon/tool-pencil.svg', opts),
 			'tool-pointer': formatAssetUrl('./icons/icon/tool-pointer.svg', opts),
+			'tool-screenshot': formatAssetUrl('./icons/icon/tool-screenshot.svg', opts),
 			'tool-text': formatAssetUrl('./icons/icon/tool-text.svg', opts),
 			trash: formatAssetUrl('./icons/icon/trash.svg', opts),
 			'triangle-down': formatAssetUrl('./icons/icon/triangle-down.svg', opts),

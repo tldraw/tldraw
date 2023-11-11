@@ -7109,6 +7109,38 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "@tldraw/tlschema!TLInstance#screenshotBrush:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "screenshotBrush: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Box2dModel",
+                  "canonicalReference": "@tldraw/tlschema!Box2dModel:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "screenshotBrush",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "@tldraw/tlschema!TLInstance#scribbles:member",
               "docComment": "",
               "excerptTokens": [

@@ -175,6 +175,7 @@ import iconsToolMedia from './icons/icon/tool-media.svg'
 import iconsToolNote from './icons/icon/tool-note.svg'
 import iconsToolPencil from './icons/icon/tool-pencil.svg'
 import iconsToolPointer from './icons/icon/tool-pointer.svg'
+import iconsToolScreenshot from './icons/icon/tool-screenshot.svg'
 import iconsToolText from './icons/icon/tool-text.svg'
 import iconsTrash from './icons/icon/trash.svg'
 import iconsTriangleDown from './icons/icon/triangle-down.svg'
@@ -389,6 +390,7 @@ export function getAssetUrlsByImport(opts) {
 			'tool-note': formatAssetUrl(iconsToolNote, opts),
 			'tool-pencil': formatAssetUrl(iconsToolPencil, opts),
 			'tool-pointer': formatAssetUrl(iconsToolPointer, opts),
+			'tool-screenshot': formatAssetUrl(iconsToolScreenshot, opts),
 			'tool-text': formatAssetUrl(iconsToolText, opts),
 			trash: formatAssetUrl(iconsTrash, opts),
 			'triangle-down': formatAssetUrl(iconsTriangleDown, opts),
