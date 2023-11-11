@@ -129,7 +129,7 @@ import {
 } from './types/event-types'
 import { TLExternalAssetContent, TLExternalContent } from './types/external-content'
 import { TLCommandHistoryOptions } from './types/history-types'
-import { OptionalKeys, RequiredKeys } from './types/misc-types'
+import { OptionalKeys, RequiredKeys, TLSvgOptions } from './types/misc-types'
 import { TLResizeHandle } from './types/selection-types'
 
 /** @public */
@@ -8062,16 +8062,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	async getSvg(
-		shapes: TLShapeId[] | TLShape[],
-		opts = {} as Partial<{
-			scale: number
-			background: boolean
-			padding: number
-			darkMode?: boolean
-			preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio']
-		}>
-	) {
+	async getSvg(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<TLSvgOptions>) {
 		const ids =
 			typeof shapes[0] === 'string'
 				? (shapes as TLShapeId[])
@@ -8098,12 +8089,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// --- Common bounding box of all shapes
 		let bbox = null
-		for (const { maskedPageBounds } of renderingShapes) {
-			if (!maskedPageBounds) continue
-			if (bbox) {
-				bbox.union(maskedPageBounds)
-			} else {
-				bbox = maskedPageBounds.clone()
+		if (opts.bounds) {
+			bbox = opts.bounds
+		} else {
+			for (const { maskedPageBounds } of renderingShapes) {
+				if (!maskedPageBounds) continue
+				if (bbox) {
+					bbox.union(maskedPageBounds)
+				} else {
+					bbox = maskedPageBounds.clone()
+				}
 			}
 		}
 

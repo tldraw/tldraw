@@ -32,6 +32,7 @@ export type TLUiIconType =
 	| 'blob'
 	| 'bring-forward'
 	| 'bring-to-front'
+	| 'camera'
 	| 'check'
 	| 'checkbox-checked'
 	| 'checkbox-empty'
@@ -199,6 +200,7 @@ export const iconTypes = [
 	'blob',
 	'bring-forward',
 	'bring-to-front',
+	'camera',
 	'check',
 	'checkbox-checked',
 	'checkbox-empty',

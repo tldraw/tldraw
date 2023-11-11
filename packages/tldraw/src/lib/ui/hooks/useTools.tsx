@@ -70,6 +70,17 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 				},
 			},
 			{
+				id: 'screenshot',
+				label: 'tool.screenshot',
+				readonlyOk: false,
+				icon: 'tool-screenshot',
+				kbd: 'j',
+				onSelect(source) {
+					editor.setCurrentTool('screenshot')
+					trackEvent('select-tool', { source, id: 'screenshot' })
+				},
+			},
+			{
 				id: 'eraser',
 				label: 'tool.eraser',
 				icon: 'tool-eraser',

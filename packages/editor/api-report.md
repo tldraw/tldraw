@@ -718,13 +718,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getStateDescendant(path: string): StateNode | undefined;
     // @internal (undocumented)
     getStyleForNextShape<T>(style: StyleProp<T>): T;
-    getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<{
-        scale: number;
-        background: boolean;
-        padding: number;
-        darkMode?: boolean | undefined;
-        preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
-    }>): Promise<SVGSVGElement | undefined>;
+    getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     get hintingShapeIds(): TLShapeId[];
@@ -2568,6 +2562,16 @@ export type TLStoreWithStatus = {
 
 // @public (undocumented)
 export type TLSvgDefsComponent = React.ComponentType;
+
+// @public (undocumented)
+export type TLSvgOptions = {
+    bounds: Box2d;
+    scale: number;
+    background: boolean;
+    padding: number;
+    darkMode?: boolean;
+    preserveAspectRatio: React.SVGAttributes<SVGSVGElement>['preserveAspectRatio'];
+};
 
 // @public (undocumented)
 export type TLTickEvent = (elapsed: number) => void;

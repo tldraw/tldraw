@@ -55,6 +55,7 @@ export interface BaseEditorComponents {
 	SvgDefs: TLSvgDefsComponent
 	Brush: TLBrushComponent
 	ZoomBrush: TLBrushComponent
+	ScreenshotBrush: TLBrushComponent
 	Cursor: TLCursorComponent
 	CollaboratorBrush: TLBrushComponent
 	CollaboratorCursor: TLCursorComponent
@@ -99,6 +100,7 @@ export function EditorComponentsProvider({ overrides, children }: ComponentsCont
 					SvgDefs: DefaultSvgDefs,
 					Brush: DefaultBrush,
 					ZoomBrush: DefaultBrush,
+					ScreenshotBrush: DefaultBrush,
 					CollaboratorBrush: DefaultBrush,
 					Cursor: DefaultCursor,
 					CollaboratorCursor: DefaultCursor,

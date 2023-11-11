@@ -140,6 +140,7 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/bring-to-front.svg', import.meta.url).href,
 				opts
 			),
+			camera: formatAssetUrl(new URL('./icons/icon/camera.svg', import.meta.url).href, opts),
 			check: formatAssetUrl(new URL('./icons/icon/check.svg', import.meta.url).href, opts),
 			'checkbox-checked': formatAssetUrl(
 				new URL('./icons/icon/checkbox-checked.svg', import.meta.url).href,

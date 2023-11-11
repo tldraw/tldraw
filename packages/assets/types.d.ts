@@ -40,6 +40,7 @@ export type AssetUrls = {
 		blob: string
 		'bring-forward': string
 		'bring-to-front': string
+		camera: string
 		check: string
 		'checkbox-checked': string
 		'checkbox-empty': string
