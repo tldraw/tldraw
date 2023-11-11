@@ -62,7 +62,9 @@ import { TLExitEventHandler } from '@tldraw/editor';
 import { TLFrameShape } from '@tldraw/editor';
 import { TLGeoShape } from '@tldraw/editor';
 import { TLHandle } from '@tldraw/editor';
+import { TLHandlesComponent } from '@tldraw/editor';
 import { TLHighlightShape } from '@tldraw/editor';
+import { TLHoveredShapeIndicatorComponent } from '@tldraw/editor';
 import { TLImageShape } from '@tldraw/editor';
 import { TLInterruptEvent } from '@tldraw/editor';
 import { TLKeyboardEvent } from '@tldraw/editor';
@@ -85,6 +87,9 @@ import { TLPointerEventName } from '@tldraw/editor';
 import { TLRecord } from '@tldraw/editor';
 import { TLRotationSnapshot } from '@tldraw/editor';
 import { TLSchema } from '@tldraw/editor';
+import { TLScribbleComponent } from '@tldraw/editor';
+import { TLSelectionBackgroundComponent } from '@tldraw/editor';
+import { TLSelectionForegroundComponent } from '@tldraw/editor';
 import { TLSelectionHandle } from '@tldraw/editor';
 import { TLShape } from '@tldraw/editor';
 import { TLShapeId } from '@tldraw/editor';
@@ -1218,6 +1223,21 @@ export function Tldraw(props: TldrawEditorBaseProps & ({
 export const TLDRAW_FILE_EXTENSION: ".tldr";
 
 // @public (undocumented)
+export function TldrawCropHandles({ size, width, height, hideAlternateHandles, }: TldrawCropHandlesProps): JSX.Element;
+
+// @public (undocumented)
+export interface TldrawCropHandlesProps {
+    // (undocumented)
+    height: number;
+    // (undocumented)
+    hideAlternateHandles: boolean;
+    // (undocumented)
+    size: number;
+    // (undocumented)
+    width: number;
+}
+
+// @public (undocumented)
 export interface TldrawFile {
     // (undocumented)
     records: UnknownRecord[];
@@ -1226,6 +1246,21 @@ export interface TldrawFile {
     // (undocumented)
     tldrawFileFormatVersion: number;
 }
+
+// @public (undocumented)
+export const TldrawHandles: TLHandlesComponent;
+
+// @public (undocumented)
+export const TldrawHoveredShapeIndicator: TLHoveredShapeIndicatorComponent;
+
+// @public (undocumented)
+export const TldrawScribble: TLScribbleComponent;
+
+// @public (undocumented)
+export const TldrawSelectionBackground: TLSelectionBackgroundComponent;
+
+// @public (undocumented)
+export const TldrawSelectionForeground: TLSelectionForegroundComponent;
 
 // @public (undocumented)
 export const TldrawUi: React_2.NamedExoticComponent<TldrawUiProps>;

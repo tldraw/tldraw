@@ -1,3 +1,85 @@
+# v2.0.0-alpha.18 (Fri Nov 10 2023)
+
+### Release Notes
+
+#### [fix] actions menu freezing ui ([#2187](https://github.com/tldraw/tldraw/pull/2187))
+
+- Fix actions menu not closing when clicking the canvas after grouping items via the actions menu.
+
+#### add missing semicolon ([#2182](https://github.com/tldraw/tldraw/pull/2182))
+
+- Fix typo in CSS file
+
+#### Fix crash with zero length arrow ([#2173](https://github.com/tldraw/tldraw/pull/2173))
+
+- Fix a hyper niche arrow crash with zero length arrows.
+
+#### Zooming improvement ([#2149](https://github.com/tldraw/tldraw/pull/2149))
+
+- Improves zooming for inactive windows.
+
+#### [feature] Things on the canvas ([#2150](https://github.com/tldraw/tldraw/pull/2150))
+
+- [editor] Adds two new components, `OnTheCanvas` and `InFrontOfTheCanvas`.
+
+#### [feature] multi-scribbles ([#2125](https://github.com/tldraw/tldraw/pull/2125))
+
+- [feature] multi scribbles
+
+#### Tighten up editor ui ([#2102](https://github.com/tldraw/tldraw/pull/2102))
+
+- Small adjustment to editor ui.
+
+#### Taha/initial shape in handle change ([#2117](https://github.com/tldraw/tldraw/pull/2117))
+
+- Add a brief release note for your PR here.
+
+#### Fix an issue with `addEventListener` in old Safari (pre v14) ([#2114](https://github.com/tldraw/tldraw/pull/2114))
+
+- Fixes an issue with `addEventListener` on MediaQueryList object in old versions of Safari.
+
+#### Remove (optional) from jsdocs ([#2109](https://github.com/tldraw/tldraw/pull/2109))
+
+- dev: Removed duplicate/inconsistent `(optional)`s from docs
+
+---
+
+#### 🚀 Enhancement
+
+- [feature] Things on the canvas [#2150](https://github.com/tldraw/tldraw/pull/2150) ([@steveruizok](https://github.com/steveruizok))
+- [feature] multi-scribbles [#2125](https://github.com/tldraw/tldraw/pull/2125) ([@steveruizok](https://github.com/steveruizok))
+- Tighten up editor ui [#2102](https://github.com/tldraw/tldraw/pull/2102) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🐛 Bug Fix
+
+- [fix] actions menu freezing ui [#2187](https://github.com/tldraw/tldraw/pull/2187) ([@steveruizok](https://github.com/steveruizok))
+- add missing semicolon [#2182](https://github.com/tldraw/tldraw/pull/2182) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+- fix scroll event coords [#2180](https://github.com/tldraw/tldraw/pull/2180) ([@ds300](https://github.com/ds300))
+- Fix crash with zero length arrow [#2173](https://github.com/tldraw/tldraw/pull/2173) ([@TodePond](https://github.com/TodePond))
+- Zooming improvement [#2149](https://github.com/tldraw/tldraw/pull/2149) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Fix an issue with `addEventListener` in old Safari (pre v14) [#2114](https://github.com/tldraw/tldraw/pull/2114) ([@MitjaBezensek](https://github.com/MitjaBezensek))
+
+#### 🏠 Internal
+
+- Revert "bump prerelease from alpha to beta" [#2192](https://github.com/tldraw/tldraw/pull/2192) ([@ds300](https://github.com/ds300))
+- bump prerelease from alpha to beta [#2148](https://github.com/tldraw/tldraw/pull/2148) ([@ds300](https://github.com/ds300))
+- Taha/initial shape in handle change [#2117](https://github.com/tldraw/tldraw/pull/2117) ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+#### 📝 Documentation
+
+- Add meta example [#2122](https://github.com/tldraw/tldraw/pull/2122) ([@steveruizok](https://github.com/steveruizok))
+- Remove (optional) from jsdocs [#2109](https://github.com/tldraw/tldraw/pull/2109) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 5
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+- Mitja Bezenšek ([@MitjaBezensek](https://github.com/MitjaBezensek))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+- Taha ([@Taha-Hassan-Git](https://github.com/Taha-Hassan-Git))
+
+---
+
 # v2.0.0-alpha.17 (Tue Oct 17 2023)
 
 ### Release Notes

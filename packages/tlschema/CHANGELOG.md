@@ -1,3 +1,29 @@
+# v2.0.0-alpha.18 (Fri Nov 10 2023)
+
+### Release Notes
+
+#### [feature] multi-scribbles ([#2125](https://github.com/tldraw/tldraw/pull/2125))
+
+- [feature] multi scribbles
+
+---
+
+#### 🚀 Enhancement
+
+- [feature] multi-scribbles [#2125](https://github.com/tldraw/tldraw/pull/2125) ([@steveruizok](https://github.com/steveruizok))
+
+#### 🏠 Internal
+
+- Revert "bump prerelease from alpha to beta" [#2192](https://github.com/tldraw/tldraw/pull/2192) ([@ds300](https://github.com/ds300))
+- bump prerelease from alpha to beta [#2148](https://github.com/tldraw/tldraw/pull/2148) ([@ds300](https://github.com/ds300))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Steve Ruiz ([@steveruizok](https://github.com/steveruizok))
+
+---
+
 # v2.0.0-alpha.17 (Tue Oct 17 2023)
 
 #### 🚀 Enhancement

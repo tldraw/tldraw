@@ -1,3 +1,29 @@
+# v2.0.0-alpha.18 (Fri Nov 10 2023)
+
+### Release Notes
+
+#### Remove (optional) from jsdocs ([#2109](https://github.com/tldraw/tldraw/pull/2109))
+
+- dev: Removed duplicate/inconsistent `(optional)`s from docs
+
+---
+
+#### 🏠 Internal
+
+- Revert "bump prerelease from alpha to beta" [#2192](https://github.com/tldraw/tldraw/pull/2192) ([@ds300](https://github.com/ds300))
+- bump prerelease from alpha to beta [#2148](https://github.com/tldraw/tldraw/pull/2148) ([@ds300](https://github.com/ds300))
+
+#### 📝 Documentation
+
+- Remove (optional) from jsdocs [#2109](https://github.com/tldraw/tldraw/pull/2109) ([@TodePond](https://github.com/TodePond))
+
+#### Authors: 2
+
+- David Sheldrick ([@ds300](https://github.com/ds300))
+- Lu Wilson ([@TodePond](https://github.com/TodePond))
+
+---
+
 # v2.0.0-alpha.16 (Wed Oct 11 2023)
 
 #### 🏠 Internal

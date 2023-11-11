@@ -41,6 +41,10 @@ export function useCanvasEvents() {
 				})
 
 				if (editor.openMenus.length > 0) {
+					editor.updateInstanceState({
+						openMenus: [],
+					})
+
 					document.body.click()
 					editor.getContainer().focus()
 				}
