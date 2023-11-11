@@ -4043,6 +4043,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const { corners } = pageBounds
 			if (corners.every((p, i) => Vec2d.Equals(p, pageMask[i]))) return pageBounds.clone()
 
+			// todo: find out why intersect polygon polygon for identical polygons produces zero w/h intersections
 			const intersection = intersectPolygonPolygon(pageMask, corners)
 			if (!intersection) return
 			return Box2d.FromPoints(intersection)
