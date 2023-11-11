@@ -3938,12 +3938,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this.store.createComputedCache<string, TLShape>('clipPathCache', (shape) => {
 			const pageMask = this._shapeMaskCache.get(shape.id)
 			if (!pageMask) return undefined
-			const pageTransform = this._shapePageTransformCache.get(shape.id)
-			if (!pageTransform) return undefined
-
 			if (pageMask.length === 0) {
 				return `polygon(0px 0px, 0px 0px, 0px 0px)`
 			}
+
+			const pageTransform = this._shapePageTransformCache.get(shape.id)
+			if (!pageTransform) return undefined
 
 			const localMask = Matrix2d.applyToPoints(Matrix2d.Inverse(pageTransform), pageMask)
 
@@ -4040,7 +4040,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!pageBounds) return
 		const pageMask = this._shapeMaskCache.get(shape)
 		if (pageMask) {
-			const intersection = intersectPolygonPolygon(pageMask, pageBounds.corners)
+			if (pageMask.length === 0) return undefined
+
+			const { corners } = pageBounds
+			if (corners.every((p, i) => Vec2d.Equals(p, pageMask[i]))) return pageBounds.clone()
+
+			// todo: find out why intersect polygon polygon for identical polygons produces zero w/h intersections
+			const intersection = intersectPolygonPolygon(pageMask, corners)
 			if (!intersection) return
 			return Box2d.FromPoints(intersection)
 		}
