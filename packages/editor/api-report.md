@@ -675,6 +675,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
+    // (undocumented)
+    getNearestDropParent(id: TLShape | TLShapeId, opts?: {
+        filter?: ((shape: TLShape) => boolean) | undefined;
+    }): TLPage | TLShape;
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
@@ -683,7 +687,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
-    getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
+    getShapeAndDescendantIds(shapes: TLShape[] | TLShapeId[]): Set<TLShapeId>;
     getShapeAtPoint(point: VecLike, opts?: {
         renderingOnly?: boolean | undefined;
         margin?: number | undefined;

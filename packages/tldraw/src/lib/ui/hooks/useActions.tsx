@@ -1087,6 +1087,42 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.toggleLock(editor.selectedShapeIds)
 				},
 			},
+			{
+				id: 'remove-parent',
+				// label: 'action.remove-parent',
+				// icon: 'remove-parent',
+				readonlyOk: false,
+				kbd: '!p',
+				onSelect(source) {
+					if (!hasSelectedShapes()) return
+					if (mustGoBackToSelectToolFirst()) return
+
+					trackEvent('remove-parent', { source })
+					editor.mark('remove-parent')
+
+					editor.batch(() => {
+						const { currentPageShapesSorted, selectedShapes } = editor
+						const shapesToRemove = selectedShapes.filter((s) => s.type === 'frame')
+						const childrenToReparent = compact(
+							shapesToRemove
+								.flatMap((s) => editor.getSortedChildIdsForParent(s))
+								.map((id) => editor.getShape(id))
+						).sort((a, b) => {
+							return currentPageShapesSorted.indexOf(a) - currentPageShapesSorted.indexOf(b)
+						})
+
+						for (let i = 0; i < childrenToReparent.length; i++) {
+							const shape = childrenToReparent[i]
+							const res = editor.getNearestDropParent(shape, {
+								filter: (parent) => !selectedShapes.includes(parent),
+							})
+							editor.reparentShapes([shape.id], res.id)
+						}
+
+						editor.deleteShapes(shapesToRemove)
+					})
+				},
+			},
 		])
 
 		if (overrides) {

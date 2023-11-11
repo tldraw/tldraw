@@ -4841,6 +4841,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this
 	}
 
+	getNearestDropParent(
+		id: TLShape | TLShapeId,
+		opts = {} as {
+			filter?: (shape: TLShape) => boolean
+		}
+	): TLShape | TLPage {
+		const droppingShape = this.getShape(id)!
+		const droppingShapeBounds = this.getShapePageBounds(droppingShape.id)!
+
+		const { currentPageRenderingShapesSorted } = this
+		const shapes = currentPageRenderingShapesSorted
+		for (let i = shapes.length - 1; i >= 0; i--) {
+			const s = shapes[i]
+			if (s === droppingShape) continue
+			if (opts.filter && !opts.filter(s)) continue
+			const util = this.getShapeUtil(s)
+			if (util.canDropShapes(s, [droppingShape])) {
+				const maskedBounds = this.getShapeMaskedPageBounds(s.id)
+				if (!maskedBounds) continue
+				if (maskedBounds.includes(droppingShapeBounds)) {
+					return s
+				}
+			}
+		}
+
+		return this.currentPage
+	}
+
 	/**
 	 * Get the index above the highest child of a given parent.
 	 *
@@ -4916,13 +4944,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Get the shape ids of all descendants of the given shapes (including the shapes themselves).
 	 *
-	 * @param ids - The ids of the shapes to get descendants of.
+	 * @param shapes - The shape (or shape ids) to get descendants of.
 	 *
 	 * @returns The decscendant ids.
 	 *
 	 * @public
 	 */
-	getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId> {
+	getShapeAndDescendantIds(shapes: TLShapeId[] | TLShape[]): Set<TLShapeId> {
+		const ids =
+			typeof shapes[0] === 'string'
+				? (shapes as TLShapeId[])
+				: (shapes as TLShape[]).map((s) => s.id)
 		const idsToInclude = new Set<TLShapeId>()
 
 		const idsToCheck = [...ids]

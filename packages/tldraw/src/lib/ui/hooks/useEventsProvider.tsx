@@ -84,6 +84,7 @@ export interface TLUiEventMap {
 	'open-cursor-chat': null
 	'zoom-tool': null
 	'unlock-all': null
+	'remove-parent': null
 }
 
 type Join<T, K> = K extends null
