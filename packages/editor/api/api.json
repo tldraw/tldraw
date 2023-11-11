@@ -10263,6 +10263,99 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getNearestDropParent:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getNearestDropParent(id: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", opts?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "{\n        filter?: ((shape: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ") => boolean) | undefined;\n    }"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLPage",
+                  "canonicalReference": "@tldraw/tlschema!TLPage:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 12
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "id",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 4
+                  },
+                  "isOptional": false
+                },
+                {
+                  "parameterName": "opts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 8
+                  },
+                  "isOptional": true
+                }
+              ],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getNearestDropParent"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getOutermostSelectableShape:member(1)",
               "docComment": "/**\n * Get the shape that should be selected when you click on a given shape, assuming there is nothing already selected. It will not return anything higher than or including the current focus layer.\n *\n * @param shape - The shape to get the outermost selectable shape for.\n *\n * @param filter - A function to filter the selectable shapes.\n *\n * @returns The outermost selectable shape.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -10862,11 +10955,20 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShapeAndDescendantIds:member(1)",
-              "docComment": "/**\n * Get the shape ids of all descendants of the given shapes (including the shapes themselves).\n *\n * @param ids - The ids of the shapes to get descendants of.\n *\n * @returns The decscendant ids.\n *\n * @public\n */\n",
+              "docComment": "/**\n * Get the shape ids of all descendants of the given shapes (including the shapes themselves).\n *\n * @param shapes - The shape (or shape ids) to get descendants of.\n *\n * @returns The decscendant ids.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "getShapeAndDescendantIds(ids: "
+                  "text": "getShapeAndDescendantIds(shapes: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[] | "
                 },
                 {
                   "kind": "Reference",
@@ -10906,18 +11008,18 @@
               ],
               "isStatic": false,
               "returnTypeTokenRange": {
-                "startIndex": 4,
-                "endIndex": 8
+                "startIndex": 6,
+                "endIndex": 10
               },
               "releaseTag": "Public",
               "isProtected": false,
               "overloadIndex": 1,
               "parameters": [
                 {
-                  "parameterName": "ids",
+                  "parameterName": "shapes",
                   "parameterTypeTokenRange": {
                     "startIndex": 1,
-                    "endIndex": 3
+                    "endIndex": 5
                   },
                   "isOptional": false
                 }

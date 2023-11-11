@@ -1092,7 +1092,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				// label: 'action.remove-parent',
 				// icon: 'remove-parent',
 				readonlyOk: false,
-				kbd: '!p',
+				kbd: '$⌫,$del,$backspace',
 				onSelect(source) {
 					if (!hasSelectedShapes()) return
 					if (mustGoBackToSelectToolFirst()) return
