@@ -23,6 +23,7 @@ import CustomUiExample from './examples/CustomUiExample/CustomUiExample'
 import ErrorBoundaryExample from './examples/ErrorBoundaryExample/ErrorBoundaryExample'
 import ExplodedExample from './examples/ExplodedExample'
 import ExternalContentSourcesExample from './examples/ExternalContentSourcesExample'
+import ForceMobileExample from './examples/ForceBreakpointExample'
 import HideUiExample from './examples/HideUiExample'
 import MetaExample from './examples/MetaExample'
 import MultipleExample from './examples/MultipleExample'
@@ -165,6 +166,11 @@ export const allExamples: Example[] = [
 		title: 'Snapshots',
 		path: 'snapshots',
 		element: <SnapshotExample />,
+	},
+	{
+		title: 'Force mobile breakpoint',
+		path: 'force-mobile',
+		element: <ForceMobileExample />,
 	},
 	{
 		title: 'Custom styles',
