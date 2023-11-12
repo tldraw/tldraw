@@ -34634,7 +34634,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "(id: string, info: any) => this"
+                  "text": "(id: string, info?: any) => this"
                 },
                 {
                   "kind": "Content",
