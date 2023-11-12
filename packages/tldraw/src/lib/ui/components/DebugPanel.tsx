@@ -65,7 +65,7 @@ export const DebugPanel = React.memo(function DebugPanel({
 
 const CurrentState = track(function CurrentState() {
 	const editor = useEditor()
-	return <div className="tlui-debug-panel__current-state">{editor.root.path.value}</div>
+	return <div className="tlui-debug-panel__current-state">{editor.path}</div>
 })
 
 const ShapeCount = function ShapeCount() {

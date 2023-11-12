@@ -72,7 +72,7 @@ const MyComponentInFront = track(() => {
 	)
 })
 
-const components: Partial<TLEditorComponents> = {
+const components: TLEditorComponents = {
 	OnTheCanvas: MyComponent,
 	InFrontOfTheCanvas: MyComponentInFront,
 	SnapLine: null,

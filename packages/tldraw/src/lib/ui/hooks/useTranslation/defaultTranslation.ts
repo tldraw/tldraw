@@ -180,7 +180,6 @@ export const DEFAULT_TRANSLATION = {
 	'tool.hand': 'Hand',
 	'tool.draw': 'Draw',
 	'tool.eraser': 'Eraser',
-	'tool.screenshot': 'Screenshot',
 	'tool.arrow-down': 'Arrow down',
 	'tool.arrow-left': 'Arrow left',
 	'tool.arrow-right': 'Arrow right',

@@ -109,7 +109,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	)
 
 	const menuSchema = useMemo<TLUiMenuSchema>(() => {
-		const menuSchema = compactMenuItems([
+		const menuSchema: TLUiMenuSchema = compactMenuItems([
 			menuGroup(
 				'menu',
 				menuSubmenu(

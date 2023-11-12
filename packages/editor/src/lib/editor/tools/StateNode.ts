@@ -25,10 +25,11 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		const { id, children, initial } = this.constructor as TLStateNodeConstructor
 
 		this.id = id
-		this.current = atom<StateNode | undefined>('toolState' + this.id, undefined)
+		this._isActive = atom<boolean>('toolIsActive' + this.id, false)
+		this._current = atom<StateNode | undefined>('toolState' + this.id, undefined)
 
 		this.path = computed('toolPath' + this.id, () => {
-			const current = this.current.value
+			const { current } = this
 			return this.id + (current ? `.${current.path.value}` : '')
 		})
 
@@ -41,7 +42,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this.children = Object.fromEntries(
 					children().map((Ctor) => [Ctor.id, new Ctor(this.editor, this)])
 				)
-				this.current.set(this.children[this.initial])
+				this._current.set(this.children[this.initial])
 			} else {
 				this.type = 'leaf'
 			}
@@ -53,7 +54,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				this.children = Object.fromEntries(
 					children().map((Ctor) => [Ctor.id, new Ctor(this.editor, this)])
 				)
-				this.current.set(this.children[this.initial])
+				this._current.set(this.children[this.initial])
 			}
 		}
 	}
@@ -65,14 +66,23 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	static children?: () => TLStateNodeConstructor[]
 
 	id: string
-	current: Atom<StateNode | undefined>
 	type: TLStateNodeType
 	shapeType?: string
 	initial?: string
 	children?: Record<string, StateNode>
 	parent: StateNode
 
-	isActive = false
+	private _current: Atom<StateNode | undefined>
+
+	@computed get current() {
+		return this._current.value
+	}
+
+	private _isActive: Atom<boolean>
+
+	@computed get isActive() {
+		return this._isActive.value
+	}
 
 	transition = (id: string, info: any) => {
 		const path = id.split('.')
@@ -81,7 +91,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 		for (let i = 0; i < path.length; i++) {
 			const id = path[i]
-			const prevChildState = currState.current.value
+			const prevChildState = currState.current
 			const nextChildState = currState.children?.[id]
 
 			if (!nextChildState) {
@@ -90,7 +100,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 			if (prevChildState?.id !== nextChildState.id) {
 				prevChildState?.exit(info, id)
-				currState.current.set(nextChildState)
+				currState._current.set(nextChildState)
 				nextChildState.enter(info, prevChildState?.id || 'initial')
 				if (!nextChildState.isActive) break
 			}
@@ -103,28 +113,28 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
-		const x = this.current.value
+		const x = this.current
 		this[cbName]?.(info as any)
-		if (this.current.value === x && this.isActive) {
+		if (this.current === x && this.isActive) {
 			x?.handleEvent(info)
 		}
 	}
 
 	enter = (info: any, from: string) => {
-		this.isActive = true
+		this._isActive.set(true)
 		this.onEnter?.(info, from)
 		if (this.children && this.initial && this.isActive) {
 			const initial = this.children[this.initial]
-			this.current.set(initial)
+			this._current.set(initial)
 			initial.enter(info, from)
 		}
 	}
 
 	exit = (info: any, from: string) => {
-		this.isActive = false
+		this._isActive.set(false)
 		this.onExit?.(info, from)
 		if (!this.isActive) {
-			this.current.value?.exit(info, from)
+			this.current?.exit(info, from)
 		}
 	}
 

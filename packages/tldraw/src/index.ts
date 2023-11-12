@@ -2,7 +2,7 @@
 
 // eslint-disable-next-line local/no-export-star
 export * from '@tldraw/editor'
-export { Tldraw } from './lib/Tldraw'
+export { Tldraw, type TldrawProps } from './lib/Tldraw'
 export { TldrawCropHandles, type TldrawCropHandlesProps } from './lib/canvas/TldrawCropHandles'
 export { TldrawHandles } from './lib/canvas/TldrawHandles'
 export { TldrawHoveredShapeIndicator } from './lib/canvas/TldrawHoveredShapeIndicator'
@@ -43,7 +43,7 @@ export {
 	TldrawUiContextProvider,
 	type TldrawUiContextProviderProps,
 } from './lib/ui/TldrawUiContextProvider'
-export { setDefaultUiAssetUrls } from './lib/ui/assetUrls'
+export { setDefaultUiAssetUrls, type TLUiAssetUrlOverrides } from './lib/ui/assetUrls'
 export { ContextMenu, type TLUiContextMenuProps } from './lib/ui/components/ContextMenu'
 export { OfflineIndicator } from './lib/ui/components/OfflineIndicator/OfflineIndicator'
 export { Spinner } from './lib/ui/components/Spinner'
@@ -150,6 +150,8 @@ export {
 	isGifAnimated,
 } from './lib/utils/assets/assets'
 export { getEmbedInfo } from './lib/utils/embeds/embeds'
+export { copyAs } from './lib/utils/export/copyAs'
+export { exportAs } from './lib/utils/export/exportAs'
 export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
 export {

@@ -260,6 +260,7 @@ export {
 	Box2d,
 	ROTATE_CORNER_TO_SELECTION_CORNER,
 	rotateSelectionHandle,
+	type BoxLike,
 	type RotateCorner,
 	type SelectionCorner,
 	type SelectionEdge,

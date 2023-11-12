@@ -515,10 +515,6 @@ export function getAssetUrlsByMetaUrl(opts) {
 				new URL('./icons/icon/tool-pointer.svg', import.meta.url).href,
 				opts
 			),
-			'tool-screenshot': formatAssetUrl(
-				new URL('./icons/icon/tool-screenshot.svg', import.meta.url).href,
-				opts
-			),
 			'tool-text': formatAssetUrl(
 				new URL('./icons/icon/tool-text.svg', import.meta.url).href,
 				opts

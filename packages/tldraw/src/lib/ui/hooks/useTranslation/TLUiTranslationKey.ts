@@ -180,7 +180,6 @@ export type TLUiTranslationKey =
 	| 'tool.hand'
 	| 'tool.draw'
 	| 'tool.eraser'
-	| 'tool.screenshot'
 	| 'tool.arrow-down'
 	| 'tool.arrow-left'
 	| 'tool.arrow-right'

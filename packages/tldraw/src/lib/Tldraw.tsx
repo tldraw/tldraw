@@ -3,7 +3,6 @@ import {
 	Editor,
 	ErrorScreen,
 	LoadingScreen,
-	RecursivePartial,
 	StoreSnapshot,
 	TLOnMountHandler,
 	TLRecord,
@@ -32,37 +31,30 @@ import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
 import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
-import {
-	TLEditorAssetUrls,
-	useDefaultEditorAssetsWithOverrides,
-} from './utils/static-assets/assetUrls'
+import { useDefaultEditorAssetsWithOverrides } from './utils/static-assets/assetUrls'
 
 /** @public */
-export function Tldraw(
-	props: TldrawEditorBaseProps &
-		(
-			| {
-					store: TLStore | TLStoreWithStatus
-			  }
-			| {
-					store?: undefined
-					persistenceKey?: string
-					sessionId?: string
-					defaultName?: string
-					/**
-					 * A snapshot to load for the store's initial data / schema.
-					 */
-					snapshot?: StoreSnapshot<TLRecord>
-			  }
-		) &
-		TldrawUiProps &
-		Partial<TLExternalContentProps> & {
-			/**
-			 * Urls for the editor to find fonts and other assets.
-			 */
-			assetUrls?: RecursivePartial<TLEditorAssetUrls>
-		}
-) {
+export type TldrawProps = TldrawEditorBaseProps &
+	(
+		| {
+				store: TLStore | TLStoreWithStatus
+		  }
+		| {
+				store?: undefined
+				persistenceKey?: string
+				sessionId?: string
+				defaultName?: string
+				/**
+				 * A snapshot to load for the store's initial data / schema.
+				 */
+				snapshot?: StoreSnapshot<TLRecord>
+		  }
+	) &
+	TldrawUiProps &
+	Partial<TLExternalContentProps>
+
+/** @public */
+export function Tldraw(props: TldrawProps) {
 	const {
 		children,
 		maxImageDimension,

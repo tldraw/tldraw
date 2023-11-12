@@ -7,7 +7,9 @@ import { useBreakpoint } from '../hooks/useBreakpoint'
 import { useContextMenuSchema } from '../hooks/useContextMenuSchema'
 import { useMenuIsOpen } from '../hooks/useMenuIsOpen'
 import { useReadonly } from '../hooks/useReadonly'
+import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { TLUiIconType } from '../icon-types'
 import { MoveToPageMenu } from './MoveToPageMenu'
 import { Button } from './primitives/Button'
 import { Icon } from './primitives/Icon'
@@ -114,6 +116,7 @@ const ContextMenuContent = forwardRef(function ContextMenuContent() {
 		parent: TLUiMenuChild | null,
 		depth: number
 	) {
+		if (!item) return null
 		if (isReadonly && !item.readonlyOk) return null
 
 		switch (item.type) {
@@ -145,7 +148,7 @@ const ContextMenuContent = forwardRef(function ContextMenuContent() {
 						<_ContextMenu.SubTrigger dir="ltr" disabled={item.disabled} asChild>
 							<Button
 								type="menu"
-								label={item.label}
+								label={item.label as TLUiTranslationKey}
 								data-testid={`menu-item.${item.id}`}
 								icon="chevron-right"
 							/>
@@ -163,7 +166,7 @@ const ContextMenuContent = forwardRef(function ContextMenuContent() {
 
 				const { id, checkbox, contextMenuLabel, label, onSelect, kbd, icon } = item.actionItem
 				const labelToUse = contextMenuLabel ?? label
-				const labelStr = labelToUse ? msg(labelToUse) : undefined
+				const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
 				if (checkbox) {
 					// Item is in a checkbox group
@@ -197,9 +200,9 @@ const ContextMenuContent = forwardRef(function ContextMenuContent() {
 							type="menu"
 							data-testid={`menu-item.${id}`}
 							kbd={kbd}
-							label={labelToUse}
+							label={labelToUse as TLUiTranslationKey}
 							disabled={item.disabled}
-							iconLeft={breakpoint < 3 && depth > 2 ? icon : undefined}
+							iconLeft={breakpoint < 3 && depth > 2 ? (icon as TLUiIconType) : undefined}
 							onClick={() => {
 								if (disableClicks) {
 									setDisableClicks(false)

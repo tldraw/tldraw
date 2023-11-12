@@ -322,7 +322,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.currentToolId).toBe('geo')
-		expect(editor.root.path.value).toBe('root.select.resizing')
+		expect(editor.path).toBe('select.resizing')
 	})
 
 	it('reverts back to select if we finish the interaction', () => {
@@ -333,7 +333,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.currentToolId).toBe('geo')
-		expect(editor.root.path.value).toBe('root.select.resizing')
+		expect(editor.path).toBe('select.resizing')
 
 		editor.pointerUp(100, 100)
 
@@ -348,7 +348,7 @@ describe('currentToolId', () => {
 		editor.pointerMove(100, 100)
 
 		expect(editor.currentToolId).toBe('geo')
-		expect(editor.root.path.value).toBe('root.select.resizing')
+		expect(editor.path).toBe('select.resizing')
 
 		editor.cancel()
 

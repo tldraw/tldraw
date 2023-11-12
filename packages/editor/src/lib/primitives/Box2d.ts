@@ -3,6 +3,9 @@ import { Vec2d, VecLike } from './Vec2d'
 import { PI, PI2, toPrecision } from './utils'
 
 /** @public */
+export type BoxLike = Box2dModel | Box2d
+
+/** @public */
 export type SelectionEdge = 'top' | 'right' | 'bottom' | 'left'
 
 /** @public */

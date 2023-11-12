@@ -275,6 +275,9 @@ export class Box2d {
     zeroFix(): this;
 }
 
+// @public (undocumented)
+export type BoxLike = Box2d | Box2dModel;
+
 // @internal (undocumented)
 export const CAMERA_SLIDE_FRICTION = 0.09;
 
@@ -587,6 +590,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @internal
     protected _clickManager: ClickManager;
     complete(): this;
+    containerBoundsToPageBounds(bounds: BoxLike): typeof bounds extends Box2d ? Box2d : Box2dModel;
     // @internal (undocumented)
     crash(error: unknown): this;
     // @internal
@@ -715,7 +719,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     getShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): T;
     getSortedChildIdsForParent(parent: TLPage | TLParentId | TLShape): TLShapeId[];
-    getStateDescendant(path: string): StateNode | undefined;
+    getStateDescendant<T extends StateNode>(path: string): T | undefined;
     // @internal (undocumented)
     getStyleForNextShape<T>(style: StyleProp<T>): T;
     getSvg(shapes: TLShape[] | TLShapeId[], opts?: Partial<TLSvgOptions>): Promise<SVGSVGElement | undefined>;
@@ -769,6 +773,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get onlySelectedShape(): null | TLShape;
     get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
+    pageBoundsToContainerBounds(bounds: BoxLike): typeof bounds extends Box2d ? Box2d : Box2dModel;
     get pages(): TLPage[];
     get pageStates(): TLInstancePageState[];
     pageToScreen(point: VecLike): {
@@ -778,6 +783,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     pan(offset: VecLike, animation?: TLAnimationOptions): this;
     panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
+    get path(): string;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, options?: {
         point?: VecLike;
@@ -1780,7 +1786,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     children?: Record<string, StateNode>;
     // (undocumented)
-    current: Atom<StateNode | undefined>;
+    get current(): StateNode | undefined;
     // (undocumented)
     get currentToolIdMask(): string | undefined;
     set currentToolIdMask(id: string | undefined);
@@ -1802,7 +1808,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     initial?: string;
     // (undocumented)
-    isActive: boolean;
+    get isActive(): boolean;
     // (undocumented)
     onCancel?: TLEventHandlers['onCancel'];
     // (undocumented)
@@ -2009,7 +2015,7 @@ export interface TldrawEditorBaseProps {
     autoFocus?: boolean;
     children?: any;
     className?: string;
-    components?: Partial<TLEditorComponents>;
+    components?: TLEditorComponents;
     inferDarkMode?: boolean;
     initialState?: string;
     onMount?: TLOnMountHandler;
@@ -2031,13 +2037,9 @@ export type TldrawEditorProps = TldrawEditorBaseProps & ({
 });
 
 // @public (undocumented)
-export type TLEditorComponents = {
+export type TLEditorComponents = Partial<{
     [K in keyof BaseEditorComponents]: BaseEditorComponents[K] | null;
-} & {
-    ErrorFallback: TLErrorFallbackComponent;
-    ShapeErrorFallback: TLShapeErrorFallbackComponent;
-    ShapeIndicatorErrorFallback: TLShapeIndicatorErrorFallbackComponent;
-};
+} & ErrorComponents>;
 
 // @public (undocumented)
 export interface TLEditorOptions {

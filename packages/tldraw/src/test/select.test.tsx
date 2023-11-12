@@ -19,7 +19,7 @@ describe(SelectTool, () => {
 			editor._transformPointerDownSpy.mockRestore()
 			editor._transformPointerUpSpy.mockRestore()
 			editor.setCurrentTool('select')
-			editor.expectPathToBe('root.select.idle')
+			editor.expectPathToBe('select.idle')
 			editor.doubleClick(50, 50, shapeId)
 
 			expect(editor.currentPageState.editingShapeId).toBe(shapeId)
@@ -37,7 +37,7 @@ describe(SelectTool, () => {
 
 			editor.pointerDown(150, 150).pointerUp()
 			expect(editor.currentPageState.editingShapeId).toBe(null)
-			expect(editor.root.path.value).toEqual('root.select.idle')
+			expect(editor.path).toEqual('select.idle')
 		})
 	})
 	it('does not allow pressing undo to end up in the editing state', () => {
@@ -144,7 +144,7 @@ describe('When brushing arrows', () => {
 		editor.setCurrentTool('select')
 		editor.pointerDown(0, 45)
 		editor.pointerMove(100, 55)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectPathToBe('select.brushing')
 		expect(editor.selectedShapeIds).toStrictEqual([ids.arrow1])
 	})
 
@@ -166,7 +166,7 @@ describe('When brushing arrows', () => {
 		editor.setCurrentTool('select')
 		editor.pointerDown(55, 45)
 		editor.pointerMove(45, 55)
-		editor.expectPathToBe('root.select.brushing')
+		editor.expectPathToBe('select.brushing')
 		expect(editor.selectedShapeIds).toStrictEqual([])
 	})
 })

@@ -862,7 +862,7 @@ describe('When resizing a shape with children', () => {
 				handle: 'top_left',
 			})
 			.pointerMove(0, 0)
-			.expectPathToBe('root.select.resizing')
+			.expectPathToBe('select.resizing')
 			// A's model should have changed by the offset
 			.expectShapeToMatch({
 				id: ids.boxA,
@@ -926,7 +926,7 @@ describe('When resizing a shape with children', () => {
 			})
 			.pointerMove(0, 0)
 			// .pointerMove(10, 10)
-			.expectPathToBe('root.select.resizing')
+			.expectPathToBe('select.resizing')
 			// A's model should have changed by the offset
 			.expectShapeToMatch({
 				id: ids.boxB,

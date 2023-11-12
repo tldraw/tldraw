@@ -32,15 +32,18 @@ import { useToasts } from './useToastsProvider'
 import { TLUiTranslationKey } from './useTranslation/TLUiTranslationKey'
 
 /** @public */
-export interface TLUiActionItem {
-	icon?: TLUiIconType
+export interface TLUiActionItem<
+	TransationKey extends string = string,
+	IconType extends string = string
+> {
+	icon?: IconType
 	id: string
 	kbd?: string
 	title?: string
-	label?: TLUiTranslationKey
-	menuLabel?: TLUiTranslationKey
-	shortcutsLabel?: TLUiTranslationKey
-	contextMenuLabel?: TLUiTranslationKey
+	label?: TransationKey
+	menuLabel?: TransationKey
+	shortcutsLabel?: TransationKey
+	contextMenuLabel?: TransationKey
 	readonlyOk: boolean
 	checkbox?: boolean
 	onSelect: (source: TLUiEventSource) => Promise<void> | void
@@ -98,7 +101,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			return editor.selectedShapeIds.length > 0
 		}
 
-		const actions = makeActions([
+		const actionItems: TLUiActionItem<TLUiTranslationKey, TLUiIconType>[] = [
 			{
 				id: 'edit-link',
 				label: 'action.edit-link',
@@ -278,12 +281,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				kbd: 'z',
 				onSelect(source) {
-					if (editor.root.current.value?.id === 'zoom') return
+					if (editor.root.current?.id === 'zoom') return
 
 					trackEvent('zoom-tool', { source })
 					if (!(editor.inputs.shiftKey || editor.inputs.ctrlKey)) {
-						const currentTool = editor.root.current.value
-						if (currentTool && currentTool.current.value?.id === 'idle') {
+						const currentTool = editor.root.current
+						if (currentTool && currentTool.current?.id === 'idle') {
 							editor.setCurrentTool('zoom', { onInteractionEnd: currentTool.id, maskAs: 'zoom' })
 						}
 					}
@@ -1087,7 +1090,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					editor.toggleLock(editor.selectedShapeIds)
 				},
 			},
-		])
+		]
+
+		const actions = makeActions(actionItems)
 
 		if (overrides) {
 			return overrides(editor, actions, undefined)

@@ -73,7 +73,6 @@ export function ToolbarSchemaProvider({ overrides, children }: TLUiToolbarSchema
 			toolbarItem(tools.highlight),
 			toolbarItem(tools.frame),
 			toolbarItem(tools.laser),
-			toolbarItem(tools.screenshot),
 		])
 
 		if (overrides) {

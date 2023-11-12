@@ -4,10 +4,13 @@ import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/static-asset
 import { TLUiIconType, iconTypes } from './icon-types'
 
 export type TLUiAssetUrls = TLEditorAssetUrls & {
-	icons: Record<TLUiIconType, string>
+	icons: Record<TLUiIconType | Exclude<string, TLUiIconType>, string>
 	translations: Record<(typeof LANGUAGES)[number]['locale'], string>
 	embedIcons: Record<(typeof EMBED_DEFINITIONS)[number]['type'], string>
 }
+
+/** @public */
+export type TLUiAssetUrlOverrides = RecursivePartial<TLUiAssetUrls>
 
 export let defaultUiAssetUrls: TLUiAssetUrls = {
 	...defaultEditorAssetUrls,

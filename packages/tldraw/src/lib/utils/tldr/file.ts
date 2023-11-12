@@ -216,7 +216,7 @@ export async function serializeTldrawJsonBlob(store: TLStore): Promise<Blob> {
 export async function parseAndLoadDocument(
 	editor: Editor,
 	document: string,
-	msg: (id: TLUiTranslationKey) => string,
+	msg: (id: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>) => string,
 	addToast: TLUiToastsContextType['addToast'],
 	onV1FileLoad?: () => void,
 	forceDarkMode?: boolean

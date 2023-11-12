@@ -3,6 +3,7 @@ import { useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode } from 'react'
 import { TldrawUiContextProvider, TldrawUiContextProviderProps } from './TldrawUiContextProvider'
+import { TLUiAssetUrlOverrides } from './assetUrls'
 import { BackToContent } from './components/BackToContent'
 import { DebugPanel } from './components/DebugPanel'
 import { Dialogs } from './components/Dialogs'
@@ -61,6 +62,9 @@ export interface TldrawUiBaseProps {
 	 * Additional items to add to the debug menu (will be deprecated)
 	 */
 	renderDebugMenuItems?: () => React.ReactNode
+
+	/** Asset URL override. */
+	assetUrls?: TLUiAssetUrlOverrides
 }
 
 /**

@@ -32,7 +32,6 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
 	exportBackground: boolean
 	screenBounds: Box2dModel
 	zoomBrush: Box2dModel | null
-	screenshotBrush: Box2dModel | null
 	chatMessage: string
 	isChatting: boolean
 	isPenMode: boolean
@@ -82,7 +81,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			exportBackground: T.boolean,
 			screenBounds: box2dModelValidator,
 			zoomBrush: box2dModelValidator.nullable(),
-			screenshotBrush: box2dModelValidator.nullable(),
 			isPenMode: T.boolean,
 			isGridMode: T.boolean,
 			chatMessage: T.string,
@@ -121,7 +119,6 @@ export function createInstanceRecordType(stylesById: Map<string, StyleProp<unkno
 			isToolLocked: false,
 			screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
 			zoomBrush: null,
-			screenshotBrush: null,
 			isGridMode: false,
 			isPenMode: false,
 			chatMessage: '',

@@ -10,7 +10,7 @@ beforeEach(() => {
 it('enters the line state', () => {
 	editor.setCurrentTool('line')
 	expect(editor.currentToolId).toBe('line')
-	editor.expectPathToBe('root.line.idle')
+	editor.expectPathToBe('line.idle')
 })
 
 describe('When in the idle state', () => {
@@ -19,7 +19,7 @@ describe('When in the idle state', () => {
 		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' })
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		editor.expectPathToBe('root.line.pointing')
+		editor.expectPathToBe('line.pointing')
 	})
 
 	it('returns to select on cancel', () => {
@@ -36,7 +36,7 @@ describe('When in the pointing state', () => {
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		expect(editor.hintingShapeIds.length).toBe(0)
-		editor.expectPathToBe('root.line.idle')
+		editor.expectPathToBe('line.idle')
 	})
 
 	it('bails on cancel', () => {
@@ -45,12 +45,12 @@ describe('When in the pointing state', () => {
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
 		expect(editor.hintingShapeIds.length).toBe(0)
-		editor.expectPathToBe('root.line.idle')
+		editor.expectPathToBe('line.idle')
 	})
 
 	it('enters the dragging state on pointer move', () => {
 		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerMove(10, 10)
-		editor.expectPathToBe('root.select.dragging_handle')
+		editor.expectPathToBe('select.dragging_handle')
 	})
 })
 
@@ -71,7 +71,7 @@ describe('When dragging the line', () => {
 				},
 			},
 		})
-		editor.expectPathToBe('root.select.dragging_handle')
+		editor.expectPathToBe('select.dragging_handle')
 	})
 
 	it('returns to select.idle, keeping shape, on pointer up', () => {
@@ -84,7 +84,7 @@ describe('When dragging the line', () => {
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		expect(editor.hintingShapeIds.length).toBe(0)
-		editor.expectPathToBe('root.select.idle')
+		editor.expectPathToBe('select.idle')
 	})
 
 	it('returns to line.idle, keeping shape, on pointer up if tool lock is enabled', () => {
@@ -98,7 +98,7 @@ describe('When dragging the line', () => {
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
 		expect(editor.hintingShapeIds.length).toBe(0)
-		editor.expectPathToBe('root.line.idle')
+		editor.expectPathToBe('line.idle')
 	})
 
 	it('bails on cancel', () => {
@@ -110,7 +110,7 @@ describe('When dragging the line', () => {
 			.cancel()
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
-		editor.expectPathToBe('root.line.idle')
+		editor.expectPathToBe('line.idle')
 	})
 })
 

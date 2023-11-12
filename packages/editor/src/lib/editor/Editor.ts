@@ -1,6 +1,7 @@
 import { EMPTY_ARRAY, atom, computed, transact } from '@tldraw/state'
 import { ComputedCache, RecordType } from '@tldraw/store'
 import {
+	Box2dModel,
 	CameraRecordType,
 	InstancePageStateRecordType,
 	PageRecordType,
@@ -76,7 +77,7 @@ import {
 	SVG_PADDING,
 	ZOOMS,
 } from '../constants'
-import { Box2d } from '../primitives/Box2d'
+import { Box2d, BoxLike } from '../primitives/Box2d'
 import { MatLike, Matrix2d, Matrix2dModel } from '../primitives/Matrix2d'
 import { Vec2d, VecLike } from '../primitives/Vec2d'
 import { EASINGS } from '../primitives/easings'
@@ -987,7 +988,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					willCrashApp,
 				},
 				extras: {
-					activeStateNode: this.root.path.value,
+					activeStateNode: this.path,
 					selectedShapes: this.selectedShapes,
 					editingShape: this.editingShapeId ? this.getShape(this.editingShapeId) : undefined,
 					inputs: this.inputs,
@@ -1031,6 +1032,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/* ------------------- Statechart ------------------- */
 
 	/**
+	 * The editor's current path of active states.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.path // "select.idle"
+	 * ```
+	 *
+	 * @public
+	 */
+	@computed get path() {
+		return this.root.path.value.split('root.')[1]
+	}
+
+	/**
 	 * Get whether a certain tool (or other state node) is currently active.
 	 *
 	 * @example
@@ -1049,7 +1064,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		while (ids.length > 0) {
 			const id = ids.pop()
 			if (!id) return true
-			const current = state.current.value
+			const current = state.current
 			if (current?.id === id) {
 				if (ids.length === 0) return true
 				state = current
@@ -1098,7 +1113,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get currentTool(): StateNode | undefined {
-		return this.root.current.value
+		return this.root.current
 	}
 
 	/**
@@ -1125,17 +1140,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	getStateDescendant(path: string): StateNode | undefined {
+	getStateDescendant<T extends StateNode>(path: string): T | undefined {
 		const ids = path.split('.').reverse()
 		let state = this.root as StateNode
 		while (ids.length > 0) {
 			const id = ids.pop()
-			if (!id) return state
+			if (!id) return state as T
 			const childState = state.children?.[id]
 			if (!childState) return undefined
 			state = childState
 		}
-		return state
+		return state as T
 	}
 
 	/* ---------------- Document Settings --------------- */
@@ -2809,6 +2824,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 			y: (point.y + cy) * cz + screenBounds.y,
 			z: point.z ?? 0.5,
 		}
+	}
+
+	/**
+	 * Convert a bounding box in page space to a bounding box in container space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.pageBoundsToOverlayBounds(new Box2d(0,0,100,100))
+	 * ```
+	 *
+	 * @param bounds - The bounds to convert.
+	 *
+	 * @public
+	 */
+	pageBoundsToContainerBounds(bounds: BoxLike): typeof bounds extends Box2d ? Box2d : Box2dModel {
+		const { zoomLevel } = this
+		const { x, y } = this.pageToScreen({ x: bounds.x, y: bounds.y })
+		if (bounds instanceof Box2d) {
+			return new Box2d(x, y, bounds.w * zoomLevel, bounds.h * zoomLevel)
+		}
+		return { x, y, w: bounds.w * zoomLevel, h: bounds.h * zoomLevel }
+	}
+
+	/**
+	 * Convert a bounding box in container space to a bounding box in page space.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.overlayBoundsToPageBounds(new Box2d(0,0,100,100))
+	 * ```
+	 *
+	 * @param bounds - The bounds to convert.
+	 *
+	 * @public
+	 */
+	containerBoundsToPageBounds(bounds: BoxLike): typeof bounds extends Box2d ? Box2d : Box2dModel {
+		const { zoomLevel } = this
+		const { x, y } = this.screenToPage({ x: bounds.x, y: bounds.y })
+		if (bounds instanceof Box2d) {
+			return new Box2d(x, y, bounds.w / zoomLevel, bounds.h / zoomLevel)
+		}
+		return { x, y, w: bounds.w / zoomLevel, h: bounds.h / zoomLevel }
 	}
 
 	// Following
@@ -7252,7 +7309,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		// If the current tool is associated with a shape, return the styles for that shape.
 		// Otherwise, just return an empty map.
-		const currentTool = this.root.current.value!
+		const currentTool = this.root.current!
 		const styles = new SharedStyleMap()
 		if (currentTool.shapeType) {
 			for (const style of this.styleProps[currentTool.shapeType].keys()) {

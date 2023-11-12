@@ -1040,8 +1040,6 @@ export interface TLInstance extends BaseRecord<'instance', TLInstanceId> {
     // (undocumented)
     screenBounds: Box2dModel;
     // (undocumented)
-    screenshotBrush: Box2dModel | null;
-    // (undocumented)
     scribbles: TLScribble[];
     // (undocumented)
     stylesForNextShape: Record<string, unknown>;

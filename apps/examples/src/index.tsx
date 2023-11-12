@@ -29,6 +29,7 @@ import MultipleExample from './examples/MultipleExample'
 import OnTheCanvasExample from './examples/OnTheCanvas'
 import PersistenceExample from './examples/PersistenceExample'
 import ReadOnlyExample from './examples/ReadOnlyExample'
+import ScreenshotToolExample from './examples/ScreenshotToolExample/ScreenshotToolExample'
 import ScrollExample from './examples/ScrollExample'
 import ShapeMetaExample from './examples/ShapeMetaExample'
 import SnapshotExample from './examples/SnapshotExample/SnapshotExample'
@@ -114,6 +115,11 @@ export const allExamples: Example[] = [
 		title: 'Custom UI',
 		path: 'custom-ui',
 		element: <CustomUiExample />,
+	},
+	{
+		title: 'Custom Tool (Screenshot)',
+		path: 'screenshot-tool',
+		element: <ScreenshotToolExample />,
 	},
 	{
 		title: 'Hide UI',

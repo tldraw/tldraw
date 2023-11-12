@@ -120,7 +120,6 @@ export function Canvas({ className }: { className?: string }) {
 					<BrushWrapper />
 					<ScribbleWrapper />
 					<ZoomBrushWrapper />
-					<ScreenshotBrushWrapper />
 					<SelectedIdIndicators />
 					<HoveredShapeIndicator />
 					<HintedShapeIndicator />
@@ -186,18 +185,6 @@ function ZoomBrushWrapper() {
 	if (!(ZoomBrush && zoomBrush)) return null
 
 	return <ZoomBrush className="tl-user-brush tl-zoom-brush" brush={zoomBrush} />
-}
-
-function ScreenshotBrushWrapper() {
-	const editor = useEditor()
-	const screenshotBrush = useValue('screenshotBrush', () => editor.instanceState.screenshotBrush, [
-		editor,
-	])
-	const { ScreenshotBrush } = useEditorComponents()
-
-	if (!(ScreenshotBrush && screenshotBrush)) return null
-
-	return <ScreenshotBrush className="tl-user-brush tl-screenshot-brush" brush={screenshotBrush} />
 }
 
 function SnapLinesWrapper() {

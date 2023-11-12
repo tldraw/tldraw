@@ -11,9 +11,9 @@ import { StyleValuesForUi } from './styles'
 interface DoubleDropdownPickerProps<T extends string> {
 	uiTypeA: string
 	uiTypeB: string
-	label: TLUiTranslationKey
-	labelA: TLUiTranslationKey
-	labelB: TLUiTranslationKey
+	label: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
+	labelA: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
+	labelB: TLUiTranslationKey | Exclude<string, TLUiTranslationKey>
 	itemsA: StyleValuesForUi<T>
 	itemsB: StyleValuesForUi<T>
 	styleA: StyleProp<T>

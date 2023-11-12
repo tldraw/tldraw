@@ -1,21 +1,26 @@
-import { Box2d, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
-import { copyAs } from '../../../utils/export/copyAs'
-import { exportAs } from '../../../utils/export/exportAs'
+import {
+	Box2d,
+	Box2dModel,
+	StateNode,
+	TLEventHandlers,
+	TLPointerEventInfo,
+	atom,
+	copyAs,
+	exportAs,
+} from '@tldraw/tldraw'
 
-export class Dragging extends StateNode {
+export class ScreenshotDragging extends StateNode {
 	static override id = 'dragging'
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
 
 	box = new Box2d()
 
+	screenshotBox = atom<Box2dModel>('screenshot brush', { x: 0, y: 0, w: 1, h: 1 })
+
 	override onEnter = (info: TLPointerEventInfo & { onInteractionEnd: string }) => {
 		this.info = info
 		this.update()
-	}
-
-	override onExit = () => {
-		this.editor.updateInstanceState({ screenshotBrush: null })
 	}
 
 	override onPointerMove = () => {
@@ -43,8 +48,9 @@ export class Dragging extends StateNode {
 			inputs: { shiftKey, altKey, originPagePoint, currentPagePoint },
 		} = this.editor
 
-		const box = Box2d.FromPoints([originPagePoint, currentPagePoint])
+		this.box = Box2d.FromPoints([originPagePoint, currentPagePoint])
 
+		const { box } = this
 		if (shiftKey) {
 			if (box.w > box.h * (16 / 9)) {
 				box.h = box.w * (9 / 16)
@@ -59,8 +65,6 @@ export class Dragging extends StateNode {
 			if (currentPagePoint.y < originPagePoint.y) {
 				box.y = originPagePoint.y - box.h
 			}
-
-			box.setTo(box)
 		}
 
 		if (altKey) {
@@ -70,9 +74,7 @@ export class Dragging extends StateNode {
 			box.y = originPagePoint.y - box.h / 2
 		}
 
-		this.box.setTo(box)
-
-		this.editor.updateInstanceState({ screenshotBrush: this.box.toJson() })
+		this.screenshotBox.set(box.toJson())
 	}
 
 	private cancel() {
@@ -82,7 +84,7 @@ export class Dragging extends StateNode {
 	private complete() {
 		const { box, editor } = this
 
-		// get all shapes under box
+		// get all shapes contained by or intersecting the box
 		const shapes = editor.currentPageShapes.filter((s) => {
 			const pageBounds = editor.getShapeMaskedPageBounds(s)
 			return pageBounds && box.includes(pageBounds)
@@ -90,18 +92,20 @@ export class Dragging extends StateNode {
 
 		if (shapes.length) {
 			if (editor.inputs.ctrlKey) {
+				// Copy the shapes to the clipboard
 				copyAs(
 					editor,
 					shapes.map((s) => s.id),
 					'png',
-					{ bounds: box, background: true }
+					{ bounds: box, background: editor.instanceState.exportBackground }
 				)
 			} else {
+				// Export the shapes as a png
 				exportAs(
 					editor,
 					shapes.map((s) => s.id),
 					'png',
-					{ bounds: box, background: true }
+					{ bounds: box, background: editor.instanceState.exportBackground }
 				)
 			}
 		}

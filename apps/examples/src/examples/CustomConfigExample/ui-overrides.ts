@@ -8,7 +8,7 @@ export const uiOverrides: TLUiOverrides = {
 		tools.card = {
 			id: 'card',
 			icon: 'color',
-			label: 'Card' as any,
+			label: 'Card',
 			kbd: 'c',
 			readonlyOk: false,
 			onSelect: () => {

@@ -1,6 +1,6 @@
-import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
+import { StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/tldraw'
 
-export class Idle extends StateNode {
+export class ScreenshotIdle extends StateNode {
 	static override id = 'idle'
 
 	info = {} as TLPointerEventInfo & { onInteractionEnd?: string }
