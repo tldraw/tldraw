@@ -2249,7 +2249,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!copyAs:function(1)",
-          "docComment": "",
+          "docComment": "/**\n * Copy the given shapes to the clipboard.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to copy.\n *\n * @param format - The format to copy as.\n *\n * @param opts - Options for the copy.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5317,7 +5317,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@tldraw/tldraw!exportAs:function(1)",
-          "docComment": "",
+          "docComment": "/**\n * Export the given shapes as files.\n *\n * @param editor - The editor instance.\n *\n * @param ids - The ids of the shapes to export.\n *\n * @param format - The format to export as.\n *\n * @param opts - Options for the export.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -15367,7 +15367,7 @@
               "text": "export interface TLUiContextMenuProps "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
+          "fileUrlPath": "packages/tldraw/.tsbuild-api/lib/ui/components/ContextMenu.d.ts",
           "releaseTag": "Public",
           "name": "TLUiContextMenuProps",
           "preserveMemberOrder": false,
@@ -15390,6 +15390,7 @@
                   "text": ";"
                 }
               ],
+              "fileUrlPath": "packages/tldraw/src/lib/ui/components/ContextMenu.tsx",
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
