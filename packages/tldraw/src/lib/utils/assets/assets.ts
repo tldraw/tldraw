@@ -1,5 +1,5 @@
-import { getBrowserCanvasMaxSize } from '../shapes/shared/getBrowserCanvasMaxSize'
-import { isAnimated } from './is-gif-animated'
+import { getBrowserCanvasMaxSize } from '../../shapes/shared/getBrowserCanvasMaxSize'
+import { isAnimated } from '../assets/is-gif-animated'
 
 type BoxWidthHeight = {
 	w: number

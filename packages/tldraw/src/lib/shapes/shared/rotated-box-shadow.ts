@@ -1,6 +1,6 @@
 import { Vec2d } from '@tldraw/editor'
 
-export const ROTATING_BOX_SHADOWS = [
+const ROTATING_BOX_SHADOWS = [
 	{
 		offsetX: 0,
 		offsetY: 2,

@@ -142,16 +142,20 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrides } from './lib/ui/overrides'
-export { setDefaultEditorAssetUrls } from './lib/utils/assetUrls'
 export {
 	DEFAULT_ACCEPTED_IMG_TYPE,
 	DEFAULT_ACCEPTED_VID_TYPE,
 	containBoxSize,
 	getResizedImageDataUrl,
 	isGifAnimated,
-} from './lib/utils/assets'
-export { buildFromV1Document, type LegacyTldrawDocument } from './lib/utils/buildFromV1Document'
-export { getEmbedInfo } from './lib/utils/embeds'
+} from './lib/utils/assets/assets'
+export { getEmbedInfo } from './lib/utils/embeds/embeds'
+export { setDefaultEditorAssetUrls } from './lib/utils/static-assets/assetUrls'
+export { truncateStringWithEllipsis } from './lib/utils/text/text'
+export {
+	buildFromV1Document,
+	type LegacyTldrawDocument,
+} from './lib/utils/tldr/buildFromV1Document'
 export {
 	TLDRAW_FILE_EXTENSION,
 	parseAndLoadDocument,
@@ -159,8 +163,7 @@ export {
 	serializeTldrawJson,
 	serializeTldrawJsonBlob,
 	type TldrawFile,
-} from './lib/utils/file'
-export { truncateStringWithEllipsis } from './lib/utils/text'
+} from './lib/utils/tldr/file'
 export { Dialog, DropdownMenu }
 import * as Dialog from './lib/ui/components/primitives/Dialog'
 import * as DropdownMenu from './lib/ui/components/primitives/DropdownMenu'

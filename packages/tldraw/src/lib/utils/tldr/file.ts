@@ -19,9 +19,9 @@ import {
 	partition,
 	transact,
 } from '@tldraw/editor'
-import { TLUiToastsContextType } from '../ui/hooks/useToastsProvider'
-import { TLUiTranslationKey } from '../ui/hooks/useTranslation/TLUiTranslationKey'
-import { buildFromV1Document } from './buildFromV1Document'
+import { TLUiToastsContextType } from '../../ui/hooks/useToastsProvider'
+import { TLUiTranslationKey } from '../../ui/hooks/useTranslation/TLUiTranslationKey'
+import { buildFromV1Document } from '../tldr/buildFromV1Document'
 
 /** @public */
 export const TLDRAW_FILE_MIMETYPE = 'application/vnd.tldraw+json' as const

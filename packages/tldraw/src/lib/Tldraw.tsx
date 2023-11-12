@@ -31,8 +31,11 @@ import { registerDefaultSideEffects } from './defaultSideEffects'
 import { defaultTools } from './defaultTools'
 import { TldrawUi, TldrawUiProps } from './ui/TldrawUi'
 import { ContextMenu } from './ui/components/ContextMenu'
-import { TLEditorAssetUrls, useDefaultEditorAssetsWithOverrides } from './utils/assetUrls'
-import { usePreloadAssets } from './utils/usePreloadAssets'
+import { usePreloadAssets } from './ui/hooks/usePreloadAssets'
+import {
+	TLEditorAssetUrls,
+	useDefaultEditorAssetsWithOverrides,
+} from './utils/static-assets/assetUrls'
 
 /** @public */
 export function Tldraw(

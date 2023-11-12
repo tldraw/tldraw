@@ -1,6 +1,6 @@
 import { EMBED_DEFINITIONS, LANGUAGES, RecursivePartial } from '@tldraw/editor'
 import { version } from '../ui/version'
-import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/assetUrls'
+import { TLEditorAssetUrls, defaultEditorAssetUrls } from '../utils/static-assets/assetUrls'
 import { TLUiIconType, iconTypes } from './icon-types'
 
 export type TLUiAssetUrls = TLEditorAssetUrls & {

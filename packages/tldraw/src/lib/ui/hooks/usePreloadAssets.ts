@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { TLEditorAssetUrls } from './assetUrls'
+import { TLEditorAssetUrls } from '../../utils/static-assets/assetUrls'
 
 export type TLTypeFace = {
 	url: string

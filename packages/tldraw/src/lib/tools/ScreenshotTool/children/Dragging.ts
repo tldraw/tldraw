@@ -1,6 +1,6 @@
 import { Box2d, StateNode, TLEventHandlers, TLPointerEventInfo } from '@tldraw/editor'
-import { copyAs } from '../../../ui/hooks/useCopyAs'
-import { exportAs } from '../../../ui/hooks/useExportAs'
+import { copyAs } from '../../../utils/export/copyAs'
+import { exportAs } from '../../../utils/export/exportAs'
 
 export class Dragging extends StateNode {
 	static override id = 'dragging'

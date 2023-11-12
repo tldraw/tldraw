@@ -15,9 +15,9 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useMemo } from 'react'
-import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds'
-import { getRotatedBoxShadow } from '../../utils/rotated-box-shadow'
+import { getEmbedInfo, getEmbedInfoUnsafely } from '../../utils/embeds/embeds'
 import { resizeBox } from '../shared/resizeBox'
+import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
 	return Object.entries(permissions)

@@ -17,7 +17,7 @@ import {
 	useEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
-import { getEmbedInfo } from '../../utils/embeds'
+import { getEmbedInfo } from '../../utils/embeds/embeds'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { TLUiIconType } from '../icon-types'

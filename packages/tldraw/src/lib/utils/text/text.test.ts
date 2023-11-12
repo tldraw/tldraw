@@ -1,4 +1,4 @@
-import { cleanupText } from './text'
+import { cleanupText } from '../text/text'
 
 describe(cleanupText, () => {
 	it('can handle the empty string', () => {
