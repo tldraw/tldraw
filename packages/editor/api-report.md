@@ -1850,7 +1850,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     shapeType?: string;
     // (undocumented)
-    transition: (id: string, info: any) => this;
+    transition: (id: string, info?: any) => this;
     // (undocumented)
     type: TLStateNodeType;
 }

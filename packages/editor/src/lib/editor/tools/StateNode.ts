@@ -84,7 +84,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		return this._isActive.value
 	}
 
-	transition = (id: string, info: any) => {
+	transition = (id: string, info: any = {}) => {
 		const path = id.split('.')
 
 		let currState = this as StateNode

@@ -1,7 +1,7 @@
 import { StateNode, TLInterruptEvent, TLKeyboardEvent, TLPointerEventInfo } from '@tldraw/editor'
-import { Idle } from './children/Idle'
-import { Pointing } from './children/Pointing'
-import { ZoomBrushing } from './children/ZoomBrushing'
+import { Idle } from './childStates/Idle'
+import { Pointing } from './childStates/Pointing'
+import { ZoomBrushing } from './childStates/ZoomBrushing'
 
 /** @public */
 export class ZoomTool extends StateNode {

@@ -9,7 +9,7 @@ import {
 } from '@tldraw/tldraw'
 import '@tldraw/tldraw/tldraw.css'
 import { ScreenshotTool } from './ScreenshotTool/ScreenshotTool'
-import { ScreenshotDragging } from './ScreenshotTool/children/Dragging'
+import { ScreenshotDragging } from './ScreenshotTool/childStates/Dragging'
 
 // There's a guide at the bottom of this file!
 

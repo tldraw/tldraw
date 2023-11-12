@@ -1,7 +1,7 @@
 import { StateNode, TLCancelEvent, TLInterruptEvent } from '@tldraw/tldraw'
-import { ScreenshotDragging } from './children/Dragging'
-import { ScreenshotIdle } from './children/Idle'
-import { ScreenshotPointing } from './children/Pointing'
+import { ScreenshotDragging } from './childStates/Dragging'
+import { ScreenshotIdle } from './childStates/Idle'
+import { ScreenshotPointing } from './childStates/Pointing'
 
 // There's a guide at the bottom of this file!
 
@@ -11,7 +11,7 @@ export class ScreenshotTool extends StateNode {
 	static override initial = 'idle'
 	static override children = () => [ScreenshotIdle, ScreenshotPointing, ScreenshotDragging]
 
-	// [3]
+	// [2]
 	override onEnter = () => {
 		this.editor.setCursor({ type: 'cross', rotation: 0 })
 	}
@@ -20,6 +20,7 @@ export class ScreenshotTool extends StateNode {
 		this.editor.setCursor({ type: 'default', rotation: 0 })
 	}
 
+	// [3]
 	override onInterrupt: TLInterruptEvent = () => {
 		this.complete()
 	}
@@ -37,9 +38,13 @@ export class ScreenshotTool extends StateNode {
 This file contains our screenshot tool. The tool is a StateNode with the `id` "screenshot".
 
 [1]
-It has three child state nodes, Idle, Pointing, and Dragging. Its initial state is `idle`.
+It has three child state nodes, ScreenshotIdle, ScreenshotPointing, and ScreenshotDragging. 
+Its initial state is `idle`.
 
 [2]
-This state has a reactive property, `screenshotBrush`, which will keep track of the bounds
-of the brush as we draw it.
+When the screenshot tool is entered, we set the cursor to a crosshair. When it is exited, we
+set the cursor back to the default cursor. 
+
+[3]
+When the screenshot tool is interrupted or cancelled, we transition back to the select tool.
 */
