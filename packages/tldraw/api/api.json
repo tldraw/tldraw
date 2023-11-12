@@ -2191,7 +2191,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
             "endIndex": 6
@@ -2260,7 +2260,7 @@
               "text": "string[]"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DEFAULT_ACCEPTED_IMG_TYPE",
@@ -2283,7 +2283,7 @@
               "text": "string[]"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "DEFAULT_ACCEPTED_VID_TYPE",
@@ -7223,7 +7223,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/embeds.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/embeds/embeds.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 4
@@ -7289,7 +7289,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "returnTypeTokenRange": {
             "startIndex": 7,
             "endIndex": 9
@@ -9161,7 +9161,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/assets/assets.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -11635,7 +11635,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "returnTypeTokenRange": {
             "startIndex": 5,
             "endIndex": 11
@@ -11991,7 +11991,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 5
@@ -12051,7 +12051,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 7
@@ -12097,7 +12097,7 @@
               "text": ";"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/assetUrls.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/static-assets/assetUrls.ts",
           "returnTypeTokenRange": {
             "startIndex": 3,
             "endIndex": 4
@@ -13178,7 +13178,7 @@
               "text": "\".tldr\""
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "TLDRAW_FILE_EXTENSION",
@@ -13506,7 +13506,7 @@
               "text": "export interface TldrawFile "
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/file.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/tldr/file.ts",
           "releaseTag": "Public",
           "name": "TldrawFile",
           "preserveMemberOrder": false,
@@ -17878,7 +17878,7 @@
               "text": "(str: string, maxLength: number) => string"
             }
           ],
-          "fileUrlPath": "packages/tldraw/src/lib/utils/text.ts",
+          "fileUrlPath": "packages/tldraw/src/lib/utils/text/text.ts",
           "isReadonly": true,
           "releaseTag": "Public",
           "name": "truncateStringWithEllipsis",
