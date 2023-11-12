@@ -61,6 +61,6 @@ To request the use of the trademarks in a manner or for a purpose not expressly 
 
 If you want to report misuse of a tldraw trademark, please email [hello@tldraw.io](mailto://hello@tldraw.io).
 
-Last updated: Movember 7 2023
+Last updated: November 7 2023
 
 These guidelines are based on the Model Trademark Guidelines, available at http://www.modeltrademarkguidelines.org., used under a Creative Commons Attribution 3.0 Unported license: https://creativecommons.org/licenses/by/3.0/deed.en_US
