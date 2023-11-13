@@ -11,11 +11,12 @@ export function useExportAs() {
 	const msg = useTranslation()
 
 	return useCallback(
-		(ids: TLShapeId[] = editor.selectedShapeIds, format: TLExportType = 'png') => {
+		(ids: TLShapeId[], format: TLExportType = 'png') => {
 			exportAs(editor, ids, format, {
 				scale: 1,
 				background: editor.instanceState.exportBackground,
-			}).catch(() => {
+			}).catch((e) => {
+				console.error(e.message)
 				addToast({
 					id: 'export-fail',
 					// icon: 'error',

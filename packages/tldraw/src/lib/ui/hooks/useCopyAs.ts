@@ -11,7 +11,7 @@ export function useCopyAs() {
 	const msg = useTranslation()
 
 	return useCallback(
-		(ids: TLShapeId[] = editor.selectedShapeIds, format: TLCopyType = 'svg') => {
+		(ids: TLShapeId[], format: TLCopyType = 'svg') => {
 			copyAs(editor, ids, format).catch(() => {
 				addToast({
 					id: 'copy-fail',

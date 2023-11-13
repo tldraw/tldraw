@@ -1680,7 +1680,7 @@ export function useCanUndo(): boolean;
 export function useContextMenuSchema(): TLUiMenuSchema;
 
 // @public (undocumented)
-export function useCopyAs(): (ids?: TLShapeId[], format?: TLCopyType) => void;
+export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
 // @public (undocumented)
 export function useDefaultHelpers(): {
@@ -1703,7 +1703,7 @@ export function useDefaultHelpers(): {
 export function useDialogs(): TLUiDialogsContextType;
 
 // @public (undocumented)
-export function useExportAs(): (ids?: TLShapeId[], format?: TLExportType) => void;
+export function useExportAs(): (ids: TLShapeId[], format?: TLExportType) => void;
 
 // @public (undocumented)
 export function useHelpMenuSchema(): TLUiMenuSchema;

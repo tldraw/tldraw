@@ -166,6 +166,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect(source) {
 					trackEvent('export-as', { format: 'svg', source })
+					console.log(editor.selectedShapeIds)
 					exportAs(editor.selectedShapeIds, 'svg')
 				},
 			},
@@ -1100,9 +1101,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 		return actions
 	}, [
+		editor,
 		trackEvent,
 		overrides,
-		editor,
 		addDialog,
 		insertMedia,
 		exportAs,

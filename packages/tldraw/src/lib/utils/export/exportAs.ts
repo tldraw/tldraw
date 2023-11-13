@@ -20,7 +20,7 @@ export function exportAs(
 	format: TLExportType = 'png',
 	opts = {} as Partial<TLSvgOptions>
 ) {
-	return editor.getSvg(ids ?? [...editor.currentPageShapeIds], opts).then((svg) => {
+	return editor.getSvg(ids?.length ? ids : [...editor.currentPageShapeIds], opts).then((svg) => {
 		if (!svg) {
 			throw new Error('Could not construct SVG.')
 		}
