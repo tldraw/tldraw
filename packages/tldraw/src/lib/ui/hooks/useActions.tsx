@@ -233,7 +233,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('toggle-auto-size', { source })
 					editor.mark('toggling auto size')
 					editor.updateShapes(
-						editor.selectedShapes
+						editor
+							.getSelectedShapes()
 							.filter(
 								(shape): shape is TLTextShape =>
 									editor.isShapeOfType<TLTextShape>(shape, 'text') && shape.props.autoSize === false
@@ -299,7 +300,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					editor.batch(() => {
 						trackEvent('convert-to-bookmark', { source })
-						const shapes = editor.selectedShapes
+						const shapes = editor.getSelectedShapes()
 
 						const createList: TLShapePartial[] = []
 						const deleteList: TLShapeId[] = []

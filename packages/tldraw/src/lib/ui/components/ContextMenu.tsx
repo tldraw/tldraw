@@ -35,8 +35,8 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 			} else {
 				// Weird route: selecting locked shapes on long press
 				if (editor.getInstanceState().isCoarsePointer) {
+					const selectedShapes = editor.getSelectedShapes()
 					const {
-						selectedShapes,
 						inputs: { currentPagePoint },
 					} = editor
 
@@ -45,7 +45,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 
 					if (
 						// if there are no selected shapes
-						!editor.selectedShapes.length ||
+						!editor.getSelectedShapes().length ||
 						// OR if none of the shapes at the point include the selected shape
 						!shapesAtPoint.some((s) => selectedShapes.includes(s))
 					) {

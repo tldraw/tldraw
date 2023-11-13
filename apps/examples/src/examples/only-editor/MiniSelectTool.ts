@@ -103,7 +103,7 @@ class PointingState extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerUp'] = () => {
 		if (this.editor.inputs.isDragging) {
-			this.parent.transition('dragging', { shapes: [...this.editor.selectedShapes] })
+			this.parent.transition('dragging', { shapes: [...this.editor.getSelectedShapes()] })
 		}
 	}
 }

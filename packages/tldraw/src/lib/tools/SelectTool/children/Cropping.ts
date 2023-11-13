@@ -60,7 +60,7 @@ export class Cropping extends StateNode {
 	}
 
 	private updateCursor() {
-		const selectedShape = this.editor.selectedShapes[0]
+		const selectedShape = this.editor.getSelectedShapes()[0]
 		if (!selectedShape) return
 
 		const cursorType = CursorTypeMap[this.info.handle!]

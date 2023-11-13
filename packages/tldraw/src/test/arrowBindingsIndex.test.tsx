@@ -236,7 +236,8 @@ describe('arrowBindingsIndex', () => {
 			editor.selectAll()
 			editor.duplicateShapes(editor.getSelectedShapeIds())
 
-			const [box1Clone, box2Clone] = editor.selectedShapes
+			const [box1Clone, box2Clone] = editor
+				.getSelectedShapes()
 				.filter((shape) => editor.isShapeOfType<TLGeoShape>(shape, 'geo'))
 				.sort((a, b) => a.x - b.x)
 

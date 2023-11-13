@@ -425,7 +425,7 @@ export class Idle extends StateNode {
 	override onKeyUp = (info: TLKeyboardEventInfo) => {
 		switch (info.code) {
 			case 'Enter': {
-				const { selectedShapes } = this.editor
+				const selectedShapes = this.editor.getSelectedShapes()
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups
 				if (

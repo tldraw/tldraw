@@ -182,7 +182,7 @@ describe('When cloning...', () => {
 		// Start cloning!
 		editor.keyDown('Alt')
 		expect(editor.currentPageShapeIds.size).toBe(4)
-		const newShape = editor.selectedShapes[0]
+		const newShape = editor.getSelectedShapes()[0]
 		expect(newShape.id).not.toBe(ids.box1)
 
 		editor

@@ -37,7 +37,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			!editor.getIsMenuOpen() && editor.getInstanceState().cursor.type === 'default'
 		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
-		const shapes = editor.selectedShapes
+		const shapes = editor.getSelectedShapes()
 		const onlyShape = editor.onlySelectedShape
 		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
 

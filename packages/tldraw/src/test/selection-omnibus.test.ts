@@ -75,9 +75,9 @@ describe('Hovering shapes', () => {
 		editor.pointerMove(50, 50)
 		editor.pointerDown()
 		expect(editor.isIn('select.pointing_shape')).toBe(true)
-		expect(editor.selectedShapes.length).toBe(1)
+		expect(editor.getSelectedShapes().length).toBe(1)
 		editor.pointerUp()
-		expect(editor.selectedShapes.length).toBe(1)
+		expect(editor.getSelectedShapes().length).toBe(1)
 		expect(editor.isIn('select.idle')).toBe(true)
 	})
 
@@ -85,10 +85,10 @@ describe('Hovering shapes', () => {
 		editor.pointerMove(50, 50)
 		editor.pointerDown()
 		expect(editor.isIn('select.pointing_canvas')).toBe(true)
-		expect(editor.selectedShapes.length).toBe(0)
+		expect(editor.getSelectedShapes().length).toBe(0)
 		editor.pointerUp()
 		expect(editor.isIn('select.idle')).toBe(true)
-		expect(editor.selectedShapes.length).toBe(1)
+		expect(editor.getSelectedShapes().length).toBe(1)
 	})
 
 	it('hovers the margins or inside of filled shapes', () => {

@@ -50,7 +50,7 @@ describe('when multiple shapes are selected', () => {
 	it('stretches horizontally and preserves aspect ratio', () => {
 		const videoA = createVideoShape()
 		editor.selectAll()
-		expect(editor.selectedShapes.length).toBe(4)
+		expect(editor.getSelectedShapes().length).toBe(4)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')
 		jest.advanceTimersByTime(1000)
 		const newHeight = (500 * 9) / 16
@@ -76,7 +76,7 @@ describe('when multiple shapes are selected', () => {
 	it('stretches vertically and preserves aspect ratio', () => {
 		const videoA = createVideoShape()
 		editor.selectAll()
-		expect(editor.selectedShapes.length).toBe(4)
+		expect(editor.getSelectedShapes().length).toBe(4)
 		editor.stretchShapes(editor.getSelectedShapeIds(), 'vertical')
 		jest.advanceTimersByTime(1000)
 		const newWidth = (500 * 16) / 9
