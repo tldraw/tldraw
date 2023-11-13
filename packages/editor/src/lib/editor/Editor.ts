@@ -1654,20 +1654,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * The app's only selected shape.
 	 *
-	 * @example
-	 * ```ts
-	 * editor.onlySelectedShape
-	 * ```
-	 *
 	 * @returns Null if there is no shape or more than one selected shape, otherwise the selected
 	 *   shape.
 	 *
 	 * @public
 	 * @readonly
 	 */
-	@computed get onlySelectedShape(): TLShape | null {
+	@computed getOnlySelectedShape(): TLShape | null {
 		const selectedShapes = this.getSelectedShapes()
 		return selectedShapes.length === 1 ? selectedShapes[0] : null
+	}
+
+	/**
+	 * @deprecated Use `getOnlySelectedShape` instead.
+	 */
+	get onlySelectedShape() {
+		return this.getOnlySelectedShape()
 	}
 
 	/**

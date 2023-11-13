@@ -689,6 +689,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInstanceState(): TLInstance;
     getIsMenuOpen(): boolean;
+    getOnlySelectedShape(): null | TLShape;
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
@@ -792,6 +793,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     mark(markId?: string, onUndo?: boolean, onRedo?: boolean): this;
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
+    // @deprecated (undocumented)
     get onlySelectedShape(): null | TLShape;
     // @deprecated (undocumented)
     get openMenus(): string[];

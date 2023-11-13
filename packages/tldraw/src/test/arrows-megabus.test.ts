@@ -18,7 +18,7 @@ const ids = {
 	arrow3: createShapeId('arrow3'),
 }
 
-const arrow = () => editor.onlySelectedShape as TLArrowShape
+const arrow = () => editor.getOnlySelectedShape() as TLArrowShape
 
 beforeEach(() => {
 	editor = new TestEditor()

@@ -488,24 +488,24 @@ describe("an arrow's parents", () => {
 
 		editor.setCurrentTool('frame')
 		editor.pointerDown(0, 0).pointerMove(100, 100).pointerUp()
-		frameId = editor.onlySelectedShape!.id
+		frameId = editor.getOnlySelectedShape()!.id
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(10, 10).pointerMove(20, 20).pointerUp()
-		boxAid = editor.onlySelectedShape!.id
+		boxAid = editor.getOnlySelectedShape()!.id
 		editor.setCurrentTool('geo')
 		editor.pointerDown(10, 80).pointerMove(20, 90).pointerUp()
-		boxBid = editor.onlySelectedShape!.id
+		boxBid = editor.getOnlySelectedShape()!.id
 		editor.setCurrentTool('geo')
 		editor.pointerDown(110, 10).pointerMove(120, 20).pointerUp()
-		boxCid = editor.onlySelectedShape!.id
+		boxCid = editor.getOnlySelectedShape()!.id
 	})
 
 	it("are updated when the arrow's bound shapes change", () => {
 		// draw arrow from a to empty space within frame, but don't pointer up yet
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(50, 50)
-		const arrowId = editor.onlySelectedShape!.id
+		const arrowId = editor.getOnlySelectedShape()!.id
 
 		expect(editor.getShape(arrowId)).toMatchObject({
 			props: {
@@ -540,7 +540,7 @@ describe("an arrow's parents", () => {
 		// draw arrow from a to b
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(15, 85).pointerUp()
-		const arrowId = editor.onlySelectedShape!.id
+		const arrowId = editor.getOnlySelectedShape()!.id
 
 		expect(editor.getShape(arrowId)).toMatchObject({
 			parentId: frameId,
@@ -564,7 +564,7 @@ describe("an arrow's parents", () => {
 		// draw arrow from a to c
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(15, 15).pointerMove(115, 15).pointerUp()
-		const arrowId = editor.onlySelectedShape!.id
+		const arrowId = editor.getOnlySelectedShape()!.id
 		expect(editor.getShape(arrowId)).toMatchObject({
 			parentId: editor.currentPageId,
 			props: {

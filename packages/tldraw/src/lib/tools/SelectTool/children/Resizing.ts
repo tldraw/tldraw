@@ -63,7 +63,9 @@ export class Resizing extends StateNode {
 		}
 
 		this.snapshot = this._createSnapshot()
-		this.markId = isCreating ? `creating:${this.editor.onlySelectedShape!.id}` : 'starting resizing'
+		this.markId = isCreating
+			? `creating:${this.editor.getOnlySelectedShape()!.id}`
+			: 'starting resizing'
 
 		if (!isCreating) this.editor.mark(this.markId)
 
@@ -107,8 +109,9 @@ export class Resizing extends StateNode {
 	private complete() {
 		this.handleResizeEnd()
 
-		if (this.editAfterComplete && this.editor.onlySelectedShape) {
-			this.editor.setEditingShape(this.editor.onlySelectedShape.id)
+		const onlySelectedShape = this.editor.getOnlySelectedShape()
+		if (this.editAfterComplete && onlySelectedShape) {
+			this.editor.setEditingShape(onlySelectedShape.id)
 			this.editor.setCurrentTool('select.editing_shape')
 			return
 		}

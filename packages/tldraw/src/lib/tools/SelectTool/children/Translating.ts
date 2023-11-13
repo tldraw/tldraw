@@ -53,7 +53,7 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.editAfterComplete = editAfterComplete
 
-		this.markId = isCreating ? `creating:${this.editor.onlySelectedShape!.id}` : 'translating'
+		this.markId = isCreating ? `creating:${this.editor.getOnlySelectedShape()!.id}` : 'translating'
 		this.editor.mark(this.markId)
 		this.isCloning = false
 		this.info = info
@@ -166,7 +166,7 @@ export class Translating extends StateNode {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
 			if (this.editAfterComplete) {
-				const onlySelected = this.editor.onlySelectedShape
+				const onlySelected = this.editor.getOnlySelectedShape()
 				if (onlySelected) {
 					this.editor.setEditingShape(onlySelected.id)
 					this.editor.setCurrentTool('select.editing_shape')

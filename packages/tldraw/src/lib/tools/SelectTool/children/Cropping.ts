@@ -229,7 +229,7 @@ export class Cropping extends StateNode {
 			inputs: { originPagePoint },
 		} = this.editor
 
-		const shape = this.editor.onlySelectedShape as TLImageShape
+		const shape = this.editor.getOnlySelectedShape() as TLImageShape
 
 		const selectionBounds = this.editor.selectionRotatedPageBounds!
 

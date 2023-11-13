@@ -15,7 +15,7 @@ export class Idle extends StateNode {
 		if (info.key === 'Enter') {
 			if (this.editor.getInstanceState().isReadonly) return null
 
-			const { onlySelectedShape } = this.editor
+			const onlySelectedShape = this.editor.getOnlySelectedShape()
 			// If the only selected shape is editable, start editing it
 			if (
 				onlySelectedShape &&

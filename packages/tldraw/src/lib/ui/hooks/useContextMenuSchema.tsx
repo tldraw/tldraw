@@ -76,7 +76,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 	const allowUngroup = useAllowUngroup()
 	const hasClipboardWrite = Boolean(window.navigator.clipboard?.write)
 	const showEditLink = useHasLinkShapeSelected()
-	const { onlySelectedShape } = editor
+	const onlySelectedShape = editor.getOnlySelectedShape()
 	const isShapeLocked = onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)
 
 	const contextTLUiMenuSchema = useMemo<TLUiMenuSchema>(() => {

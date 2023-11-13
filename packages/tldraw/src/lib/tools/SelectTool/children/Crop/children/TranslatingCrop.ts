@@ -88,7 +88,7 @@ export class TranslatingCrop extends StateNode {
 	}
 
 	private createSnapshot() {
-		const shape = this.editor.onlySelectedShape as ShapeWithCrop
+		const shape = this.editor.getOnlySelectedShape() as ShapeWithCrop
 		return { shape }
 	}
 

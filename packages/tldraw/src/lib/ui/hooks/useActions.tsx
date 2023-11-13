@@ -442,7 +442,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (mustGoBackToSelectToolFirst()) return
 
 					trackEvent('group-shapes', { source })
-					const { onlySelectedShape } = editor
+					const onlySelectedShape = editor.getOnlySelectedShape()
 					if (onlySelectedShape && editor.isShapeOfType<TLGroupShape>(onlySelectedShape, 'group')) {
 						editor.mark('ungroup')
 						editor.ungroupShapes(editor.getSelectedShapeIds())

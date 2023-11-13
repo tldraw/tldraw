@@ -38,7 +38,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
 		const shapes = editor.getSelectedShapes()
-		const onlyShape = editor.onlySelectedShape
+		const onlyShape = editor.getOnlySelectedShape()
 		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
 
 		// if all shapes have an expandBy for the selection outline, we can expand by the l

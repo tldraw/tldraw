@@ -27,7 +27,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 	const cb = useCallback(
 		(isOpen: boolean) => {
 			if (!isOpen) {
-				const { onlySelectedShape } = editor
+				const onlySelectedShape = editor.getOnlySelectedShape()
 
 				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
 					editor.setSelectedShapes([])

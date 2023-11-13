@@ -20,7 +20,7 @@ export const DefaultSelectionForeground: TLSelectionForegroundComponent = ({
 	const editor = useEditor()
 	const rSvg = useRef<SVGSVGElement>(null)
 
-	const onlyShape = useValue('only selected shape', () => editor.onlySelectedShape, [editor])
+	const onlyShape = useValue('only selected shape', () => editor.getOnlySelectedShape(), [editor])
 
 	// if all shapes have an expandBy for the selection outline, we can expand by the l
 	const expandOutlineBy = onlyShape
