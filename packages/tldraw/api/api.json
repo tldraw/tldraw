@@ -7264,6 +7264,22 @@
             },
             {
               "kind": "Content",
+              "text": ", type?: "
+            },
+            {
+              "kind": "Content",
+              "text": "string"
+            },
+            {
+              "kind": "Content",
+              "text": ", quality?: "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
               "text": "): "
             },
             {
@@ -7282,8 +7298,8 @@
           ],
           "fileUrlPath": "packages/tldraw/src/lib/utils/assets.ts",
           "returnTypeTokenRange": {
-            "startIndex": 7,
-            "endIndex": 9
+            "startIndex": 11,
+            "endIndex": 13
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -7311,6 +7327,22 @@
                 "endIndex": 6
               },
               "isOptional": false
+            },
+            {
+              "parameterName": "type",
+              "parameterTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "quality",
+              "parameterTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 10
+              },
+              "isOptional": true
             }
           ],
           "name": "getResizedImageDataUrl"

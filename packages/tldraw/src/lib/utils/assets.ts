@@ -1,3 +1,4 @@
+import downscale from 'downscale'
 import { getBrowserCanvasMaxSize } from '../shapes/shared/getBrowserCanvasMaxSize'
 import { isAnimated } from './is-gif-animated'
 
@@ -47,52 +48,34 @@ export function containBoxSize(
 export async function getResizedImageDataUrl(
 	dataURLForImage: string,
 	width: number,
-	height: number
+	height: number,
+	type = 'image/png',
+	quality = 0.8
 ): Promise<string> {
-	return await new Promise((resolve) => {
-		const img = new Image()
-		img.onload = async () => {
-			// Initialize the canvas and it's size
-			const canvas = document.createElement('canvas')
-			const ctx = canvas.getContext('2d')
+	let desiredWidth = width * 2
+	let desiredHeight = height * 2
 
-			if (!ctx) return
+	const canvasSizes = await getBrowserCanvasMaxSize()
 
-			const canvasSizes = await getBrowserCanvasMaxSize()
+	const aspectRatio = width / height
 
-			let desiredWidth = width * 2
-			let desiredHeight = height * 2
-			const aspectRatio = img.width / img.height
+	if (desiredWidth > canvasSizes.maxWidth) {
+		desiredWidth = canvasSizes.maxWidth
+		desiredHeight = desiredWidth / aspectRatio
+	}
 
-			if (desiredWidth > canvasSizes.maxWidth) {
-				desiredWidth = canvasSizes.maxWidth
-				desiredHeight = desiredWidth / aspectRatio
-			}
+	if (desiredHeight > canvasSizes.maxHeight) {
+		desiredHeight = canvasSizes.maxHeight
+		desiredWidth = desiredHeight * aspectRatio
+	}
 
-			if (desiredHeight > canvasSizes.maxHeight) {
-				desiredHeight = canvasSizes.maxHeight
-				desiredWidth = desiredHeight * aspectRatio
-			}
+	if (desiredWidth * desiredHeight > canvasSizes.maxArea) {
+		const ratio = Math.sqrt(canvasSizes.maxArea / (desiredWidth * desiredHeight))
+		desiredWidth *= ratio
+		desiredHeight *= ratio
+	}
 
-			if (desiredWidth * desiredHeight > canvasSizes.maxArea) {
-				const ratio = Math.sqrt(canvasSizes.maxArea / (desiredWidth * desiredHeight))
-				desiredWidth *= ratio
-				desiredHeight *= ratio
-			}
-
-			canvas.width = desiredWidth
-			canvas.height = desiredHeight
-
-			// Draw image and export to a data-uri
-			ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
-			const newDataURL = canvas.toDataURL()
-
-			// Do something with the result, like overwrite original
-			resolve(newDataURL)
-		}
-		img.crossOrigin = 'anonymous'
-		img.src = dataURLForImage
-	})
+	return await downscale(dataURLForImage, desiredWidth, desiredHeight, { imageType: type, quality })
 }
 
 /** @public */

@@ -673,7 +673,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 export function getEmbedInfo(inputUrl: string): TLEmbedResult;
 
 // @public
-export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number): Promise<string>;
+export function getResizedImageDataUrl(dataURLForImage: string, width: number, height: number, type?: string, quality?: number): Promise<string>;
 
 // @public (undocumented)
 function Group({ children, size, }: {
