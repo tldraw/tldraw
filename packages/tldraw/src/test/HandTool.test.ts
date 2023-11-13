@@ -143,17 +143,17 @@ describe('When in the pointing state', () => {
 describe('When in the dragging state', () => {
 	it('Moves the camera', () => {
 		editor.setCurrentTool('hand')
-		expect(editor.camera.x).toBe(0)
-		expect(editor.camera.y).toBe(0)
+		expect(editor.getCamera().x).toBe(0)
+		expect(editor.getCamera().y).toBe(0)
 		editor.pointerDown(50, 50)
 		editor.expectPathToBe('root.hand.pointing')
 		editor.pointerMove(75, 75)
-		expect(editor.camera.x).toBe(25)
-		expect(editor.camera.y).toBe(25)
+		expect(editor.getCamera().x).toBe(25)
+		expect(editor.getCamera().y).toBe(25)
 		editor.expectPathToBe('root.hand.dragging')
 		editor.pointerMove(100, 100)
-		expect(editor.camera.x).toBe(50)
-		expect(editor.camera.y).toBe(50)
+		expect(editor.getCamera().x).toBe(50)
+		expect(editor.getCamera().y).toBe(50)
 		editor.pointerUp()
 	})
 

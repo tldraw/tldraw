@@ -7400,41 +7400,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#camera:member",
-              "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get camera(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "import(\"@tldraw/tlschema\")."
-                },
-                {
-                  "kind": "Reference",
-                  "text": "TLCamera",
-                  "canonicalReference": "@tldraw/tlschema!TLCamera:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "camera",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#cameraState:member",
               "docComment": "/**\n * Whether the camera is moving or idle.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -9966,6 +9931,42 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getAssetForExternalContent"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCamera:member(1)",
+              "docComment": "/**\n * The current camera.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCamera(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "import(\"@tldraw/tlschema\")."
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLCamera",
+                  "canonicalReference": "@tldraw/tlschema!TLCamera:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCamera"
             },
             {
               "kind": "Method",
