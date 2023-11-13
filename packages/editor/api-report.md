@@ -694,6 +694,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
+    getHintingShapeIds(): TLShapeId[];
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
@@ -759,6 +760,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }>): Promise<SVGSVGElement | undefined>;
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
+    // @deprecated (undocumented)
     get hintingShapeIds(): TLShapeId[];
     get hintingShapes(): NonNullable<TLShape | undefined>[];
     readonly history: HistoryManager<this>;

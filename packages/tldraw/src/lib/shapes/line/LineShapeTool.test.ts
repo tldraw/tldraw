@@ -35,7 +35,7 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).pointerUp(0, 0)
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 		editor.expectPathToBe('root.line.idle')
 	})
 
@@ -44,7 +44,7 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('line').pointerDown(0, 0, { target: 'canvas' }).cancel()
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore)
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 		editor.expectPathToBe('root.line.idle')
 	})
 
@@ -83,7 +83,7 @@ describe('When dragging the line', () => {
 			.pointerUp(10, 10)
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 		editor.expectPathToBe('root.select.idle')
 	})
 
@@ -97,7 +97,7 @@ describe('When dragging the line', () => {
 			.pointerUp(10, 10)
 		const shapesAfter = editor.currentPageShapes.length
 		expect(shapesAfter).toBe(shapesBefore + 1)
-		expect(editor.hintingShapeIds.length).toBe(0)
+		expect(editor.getHintingShapeIds().length).toBe(0)
 		editor.expectPathToBe('root.line.idle')
 	})
 

@@ -2015,8 +2015,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get hintingShapeIds() {
+	@computed getHintingShapeIds() {
 		return this.getCurrentPageState().hintingShapeIds
+	}
+
+	/**
+	 * @deprecated Use `getHintingShapeIds` instead.
+	 */
+	get hintingShapeIds() {
+		return this.getHintingShapeIds()
 	}
 
 	/**
@@ -2025,7 +2032,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get hintingShapes() {
-		const { hintingShapeIds } = this
+		const hintingShapeIds = this.getHintingShapeIds()
 		return compact(hintingShapeIds.map((id) => this.getShape(id)))
 	}
 

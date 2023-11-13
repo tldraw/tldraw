@@ -406,7 +406,7 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 const HintedShapeIndicator = track(function HintedShapeIndicator() {
 	const editor = useEditor()
 
-	const ids = dedupe(editor.hintingShapeIds)
+	const ids = dedupe(editor.getHintingShapeIds())
 
 	if (!ids.length) return null
 
