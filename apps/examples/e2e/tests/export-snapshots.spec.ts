@@ -186,23 +186,10 @@ test.describe('Export snapshots', () => {
 		]
 	}
 
-	for (const [name, shapes] of Object.entries(snapshots)) {
-		test(`Exports with ${name}`, async ({ browser }) => {
-			const page = await browser.newPage()
-			await setupPage(page)
-			await page.evaluate((shapes) => {
-				editor
-					.updateInstanceState({ exportBackground: false })
-					.selectAll()
-					.deleteShapes(editor.selectedShapeIds)
-					.createShapes(shapes)
-			}, shapes as any)
+	const snapshotsToTest = Object.entries(snapshots)
+	const filteredSnapshots = snapshotsToTest // maybe we filter these down, there are a lot of them
 
-			await snapshotTest(page)
-		})
-	}
-
-	for (const [name, shapes] of Object.entries(snapshots)) {
+	for (const [name, shapes] of filteredSnapshots) {
 		test(`Exports with ${name} in dark mode`, async ({ browser }) => {
 			const page = await browser.newPage()
 			await setupPage(page)
@@ -218,30 +205,30 @@ test.describe('Export snapshots', () => {
 			await snapshotTest(page)
 		})
 	}
-})
 
-async function snapshotTest(page: Page) {
-	page.waitForEvent('download').then(async (download) => {
-		const path = (await download.path()) as string
-		assert(path)
-		await rename(path, path + '.svg')
-		await writeFile(
-			path + '.html',
-			`
+	async function snapshotTest(page: Page) {
+		page.waitForEvent('download').then(async (download) => {
+			const path = (await download.path()) as string
+			assert(path)
+			await rename(path, path + '.svg')
+			await writeFile(
+				path + '.html',
+				`
 							<!DOCTYPE html>
 							<meta charset="utf-8" />
 							<meta name="viewport" content="width=device-width, initial-scale=1" />
 							<img src="${path}.svg" />
 			`,
-			'utf-8'
-		)
+				'utf-8'
+			)
 
-		await page.goto(`file://${path}.html`)
-		const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
-		await expect(page).toHaveScreenshot({
-			omitBackground: true,
-			clip,
+			await page.goto(`file://${path}.html`)
+			const clip = await page.$eval('img', (img) => img.getBoundingClientRect())
+			await expect(page).toHaveScreenshot({
+				omitBackground: true,
+				clip,
+			})
 		})
-	})
-	await page.evaluate(() => (window as any)['tldraw-export']())
-}
+		await page.evaluate(() => (window as any)['tldraw-export']())
+	}
+})
