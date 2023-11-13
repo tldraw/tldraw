@@ -74,7 +74,7 @@ const INPUTS = ['input', 'select', 'textarea']
 function disallowClipboardEvents(editor: Editor) {
 	const { activeElement } = document
 	return (
-		editor.isMenuOpen ||
+		editor.getIsMenuOpen() ||
 		(activeElement &&
 			(activeElement.getAttribute('contenteditable') ||
 				INPUTS.indexOf(activeElement.tagName.toLowerCase()) > -1))
@@ -497,7 +497,7 @@ async function handleClipboardThings(editor: Editor, things: ClipboardThing[], p
  * @public
  */
 const handleNativeOrMenuCopy = (editor: Editor) => {
-	const content = editor.getContentFromCurrentPage(editor.selectedShapeIds)
+	const content = editor.getContentFromCurrentPage(editor.getSelectedShapeIds())
 	if (!content) {
 		if (navigator && navigator.clipboard) {
 			navigator.clipboard.writeText('')
@@ -570,7 +570,7 @@ export function useMenuClipboardEvents() {
 
 	const copy = useCallback(
 		function onCopy(source: TLUiEventSource) {
-			if (editor.selectedShapeIds.length === 0) return
+			if (editor.getSelectedShapeIds().length === 0) return
 
 			handleNativeOrMenuCopy(editor)
 			trackEvent('copy', { source })
@@ -580,10 +580,10 @@ export function useMenuClipboardEvents() {
 
 	const cut = useCallback(
 		function onCut(source: TLUiEventSource) {
-			if (editor.selectedShapeIds.length === 0) return
+			if (editor.getSelectedShapeIds().length === 0) return
 
 			handleNativeOrMenuCopy(editor)
-			editor.deleteShapes(editor.selectedShapeIds)
+			editor.deleteShapes(editor.getSelectedShapeIds())
 			trackEvent('cut', { source })
 		},
 		[editor, trackEvent]
@@ -625,13 +625,15 @@ export function useNativeClipboardEvents() {
 	const editor = useEditor()
 	const trackEvent = useUiEvents()
 
-	const appIsFocused = useValue('editor.isFocused', () => editor.instanceState.isFocused, [editor])
+	const appIsFocused = useValue('editor.isFocused', () => editor.getInstanceState().isFocused, [
+		editor,
+	])
 
 	useEffect(() => {
 		if (!appIsFocused) return
 		const copy = () => {
 			if (
-				editor.selectedShapeIds.length === 0 ||
+				editor.getSelectedShapeIds().length === 0 ||
 				editor.editingShapeId !== null ||
 				disallowClipboardEvents(editor)
 			)
@@ -642,13 +644,13 @@ export function useNativeClipboardEvents() {
 
 		function cut() {
 			if (
-				editor.selectedShapeIds.length === 0 ||
+				editor.getSelectedShapeIds().length === 0 ||
 				editor.editingShapeId !== null ||
 				disallowClipboardEvents(editor)
 			)
 				return
 			handleNativeOrMenuCopy(editor)
-			editor.deleteShapes(editor.selectedShapeIds)
+			editor.deleteShapes(editor.getSelectedShapeIds())
 			trackEvent('cut', { source: 'kbd' })
 		}
 

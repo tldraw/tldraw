@@ -28,9 +28,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		this._isActive = atom<boolean>('toolIsActive' + this.id, false)
 		this._current = atom<StateNode | undefined>('toolState' + this.id, undefined)
 
-		this.path = computed('toolPath' + this.id, () => {
-			const { current } = this
-			return this.id + (current ? `.${current.path.value}` : '')
+		this._path = computed('toolPath' + this.id, () => {
+			const current = this.getCurrent()
+			return this.id + (current ? `.${current.getPath()}` : '')
 		})
 
 		this.parent = parent ?? ({} as any)
@@ -59,8 +59,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 		}
 	}
 
-	path: Computed<string>
-
 	static id: string
 	static initial?: string
 	static children?: () => TLStateNodeConstructor[]
@@ -72,18 +70,50 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	children?: Record<string, StateNode>
 	parent: StateNode
 
+	/**
+	 * This node's path of active state nodes
+	 *
+	 * @public
+	 */
+	@computed getPath() {
+		return this._path.get()
+	}
+	_path: Computed<string>
+
+	/**
+	 * This node's current active child node, if any.
+	 *
+	 * @public
+	 */
+	@computed getCurrent() {
+		return this._current.get()
+	}
 	private _current: Atom<StateNode | undefined>
 
-	@computed get current() {
-		return this._current.value
+	/**
+	 * Whether this node is active.
+	 *
+	 * @public
+	 */
+	@computed getIsActive() {
+		return this._isActive.get()
 	}
-
 	private _isActive: Atom<boolean>
 
-	@computed get isActive() {
-		return this._isActive.value
-	}
-
+	/**
+	 * Transition to a new active child state node.
+	 *
+	 * @example
+	 * ```ts
+	 * parentState.transition('childStateA')
+	 * parentState.transition('childStateB', { myData: 4 })
+	 *```
+	 *
+	 * @param id - The id of the child state node to transition to.
+	 * @param info - Any data to pass to the `onEnter` and `onExit` handlers.
+	 *
+	 * @public
+	 */
 	transition = (id: string, info: any = {}) => {
 		const path = id.split('.')
 
@@ -91,7 +121,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 		for (let i = 0; i < path.length; i++) {
 			const id = path[i]
-			const prevChildState = currState.current
+			const prevChildState = currState.getCurrent()
 			const nextChildState = currState.children?.[id]
 
 			if (!nextChildState) {
@@ -102,7 +132,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 				prevChildState?.exit(info, id)
 				currState._current.set(nextChildState)
 				nextChildState.enter(info, prevChildState?.id || 'initial')
-				if (!nextChildState.isActive) break
+				if (!nextChildState.getIsActive()) break
 			}
 
 			currState = nextChildState
@@ -113,34 +143,36 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 
 	handleEvent = (info: Exclude<TLEventInfo, TLPinchEventInfo>) => {
 		const cbName = EVENT_NAME_MAP[info.name]
-		const x = this.current
+		const x = this.getCurrent()
 		this[cbName]?.(info as any)
-		if (this.current === x && this.isActive) {
+		if (this.getCurrent() === x && this.getIsActive()) {
 			x?.handleEvent(info)
 		}
 	}
 
+	// todo: move this logic into transition
 	enter = (info: any, from: string) => {
 		this._isActive.set(true)
 		this.onEnter?.(info, from)
-		if (this.children && this.initial && this.isActive) {
+		if (this.children && this.initial && this.getIsActive()) {
 			const initial = this.children[this.initial]
 			this._current.set(initial)
 			initial.enter(info, from)
 		}
 	}
 
+	// todo: move this logic into transition
 	exit = (info: any, from: string) => {
 		this._isActive.set(false)
 		this.onExit?.(info, from)
-		if (!this.isActive) {
-			this.current?.exit(info, from)
+		if (!this.getIsActive()) {
+			this.getCurrent()?.exit(info, from)
 		}
 	}
 
 	/**
 	 * This is a hack / escape hatch that will tell the editor to
-	 * report a different state as active (in `currentToolId`) when
+	 * report a different state as active (in `getCurrentToolId()`) when
 	 * this state is active. This is usually used when a tool transitions
 	 * to a child of a different state for a certain interaction and then
 	 * returns to the original tool when that interaction completes; and
@@ -151,7 +183,7 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
 	_currentToolIdMask = atom('curent tool id mask', undefined as string | undefined)
 
 	@computed get currentToolIdMask() {
-		return this._currentToolIdMask.value
+		return this._currentToolIdMask.get()
 	}
 
 	set currentToolIdMask(id: string | undefined) {

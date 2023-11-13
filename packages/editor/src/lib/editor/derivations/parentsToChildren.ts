@@ -11,7 +11,7 @@ export const parentsToChildren = (store: TLStore) => {
 
 	function fromScratch() {
 		const result: Parents2Children = {}
-		const shapeIds = shapeIdsQuery.value
+		const shapeIds = shapeIdsQuery.get()
 		const shapes = Array(shapeIds.size) as TLShape[]
 		shapeIds.forEach((id) => shapes.push(store.get(id)!))
 

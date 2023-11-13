@@ -17,9 +17,9 @@ describe('derivations', () => {
 
 		expect(derive).toHaveBeenCalledTimes(0)
 
-		expect(derivation.value).toBe(1)
-		expect(derivation.value).toBe(1)
-		expect(derivation.value).toBe(1)
+		expect(derivation.get()).toBe(1)
+		expect(derivation.get()).toBe(1)
+		expect(derivation.get()).toBe(1)
 
 		expect(derive).toHaveBeenCalledTimes(1)
 
@@ -28,13 +28,13 @@ describe('derivations', () => {
 		advanceGlobalEpoch()
 		advanceGlobalEpoch()
 
-		expect(derivation.value).toBe(1)
-		expect(derivation.value).toBe(1)
-		expect(derivation.value).toBe(1)
+		expect(derivation.get()).toBe(1)
+		expect(derivation.get()).toBe(1)
+		expect(derivation.get()).toBe(1)
 		advanceGlobalEpoch()
 		advanceGlobalEpoch()
-		expect(derivation.value).toBe(1)
-		expect(derivation.value).toBe(1)
+		expect(derivation.get()).toBe(1)
+		expect(derivation.get()).toBe(1)
 
 		expect(derive).toHaveBeenCalledTimes(1)
 
@@ -45,18 +45,18 @@ describe('derivations', () => {
 
 	it('will update when parent atoms update', () => {
 		const a = atom('', 1)
-		const double = jest.fn(() => a.value * 2)
+		const double = jest.fn(() => a.get() * 2)
 		const derivation = computed('', double)
 		const startEpoch = globalEpoch
 		expect(double).toHaveBeenCalledTimes(0)
 
-		expect(derivation.value).toBe(2)
+		expect(derivation.get()).toBe(2)
 		expect(double).toHaveBeenCalledTimes(1)
 
 		expect(derivation.lastChangedEpoch).toBe(startEpoch)
 
-		expect(derivation.value).toBe(2)
-		expect(derivation.value).toBe(2)
+		expect(derivation.get()).toBe(2)
+		expect(derivation.get()).toBe(2)
 		expect(double).toHaveBeenCalledTimes(1)
 		expect(derivation.lastChangedEpoch).toBe(startEpoch)
 
@@ -66,12 +66,12 @@ describe('derivations', () => {
 
 		expect(double).toHaveBeenCalledTimes(1)
 		expect(derivation.lastChangedEpoch).toBe(startEpoch)
-		expect(derivation.value).toBe(4)
+		expect(derivation.get()).toBe(4)
 
 		expect(double).toHaveBeenCalledTimes(2)
 		expect(derivation.lastChangedEpoch).toBe(nextEpoch)
 
-		expect(derivation.value).toBe(4)
+		expect(derivation.get()).toBe(4)
 		expect(double).toHaveBeenCalledTimes(2)
 		expect(derivation.lastChangedEpoch).toBe(nextEpoch)
 
@@ -81,7 +81,7 @@ describe('derivations', () => {
 		unrelatedAtom.set(3)
 		unrelatedAtom.set(5)
 
-		expect(derivation.value).toBe(4)
+		expect(derivation.get()).toBe(4)
 		expect(double).toHaveBeenCalledTimes(2)
 		expect(derivation.lastChangedEpoch).toBe(nextEpoch)
 	})
@@ -90,14 +90,14 @@ describe('derivations', () => {
 		const startEpoch = globalEpoch
 		const a = atom('', 1)
 
-		const derivation = computed('', () => a.value * 2, {
+		const derivation = computed('', () => a.get() * 2, {
 			historyLength: 3,
 			computeDiff: (a, b) => {
 				return b - a
 			},
 		})
 
-		derivation.value
+		derivation.get()
 
 		expect(derivation.getDiffSince(startEpoch)).toHaveLength(0)
 
@@ -123,37 +123,37 @@ describe('derivations', () => {
 		const a = atom('', 1)
 
 		const floor = jest.fn((n: number) => Math.floor(n))
-		const derivation = computed('', () => floor(a.value), {
+		const derivation = computed('', () => floor(a.get()), {
 			historyLength: 3,
 			computeDiff: (a, b) => {
 				return b - a
 			},
 		})
 
-		expect(derivation.value).toBe(1)
+		expect(derivation.get()).toBe(1)
 		expect(derivation.getDiffSince(startEpoch)).toHaveLength(0)
 
 		a.set(1.2)
 
-		expect(derivation.value).toBe(1)
+		expect(derivation.get()).toBe(1)
 		expect(derivation.getDiffSince(startEpoch)).toHaveLength(0)
 		expect(floor).toHaveBeenCalledTimes(2)
 
 		a.set(1.5)
 
-		expect(derivation.value).toBe(1)
+		expect(derivation.get()).toBe(1)
 		expect(derivation.getDiffSince(startEpoch)).toHaveLength(0)
 		expect(floor).toHaveBeenCalledTimes(3)
 
 		a.set(1.9)
 
-		expect(derivation.value).toBe(1)
+		expect(derivation.get()).toBe(1)
 		expect(derivation.getDiffSince(startEpoch)).toHaveLength(0)
 		expect(floor).toHaveBeenCalledTimes(4)
 
 		a.set(2.3)
 
-		expect(derivation.value).toBe(2)
+		expect(derivation.get()).toBe(2)
 		expect(derivation.getDiffSince(startEpoch)).toEqual([+1])
 		expect(floor).toHaveBeenCalledTimes(5)
 	})
@@ -162,15 +162,15 @@ describe('derivations', () => {
 		const startEpoch = globalEpoch
 		const a = atom('', 1)
 
-		const double = jest.fn(() => a.value * 2)
+		const double = jest.fn(() => a.get() * 2)
 		const derivation = computed('', double)
 
-		derivation.value
+		derivation.get()
 
 		expect(getLastCheckedEpoch(derivation)).toEqual(startEpoch)
 
 		advanceGlobalEpoch()
-		derivation.value
+		derivation.get()
 
 		expect(getLastCheckedEpoch(derivation)).toBeGreaterThan(startEpoch)
 
@@ -179,16 +179,16 @@ describe('derivations', () => {
 
 	it('receives UNINTIALIZED as the previousValue the first time it computes', () => {
 		const a = atom('', 1)
-		const double = jest.fn((_prevValue) => a.value * 2)
+		const double = jest.fn((_prevValue) => a.get() * 2)
 		const derivation = computed('', double)
 
-		expect(derivation.value).toBe(2)
+		expect(derivation.get()).toBe(2)
 
 		expect(isUninitialized(double.mock.calls[0][0])).toBe(true)
 
 		a.set(2)
 
-		expect(derivation.value).toBe(4)
+		expect(derivation.get()).toBe(4)
 		expect(isUninitialized(double.mock.calls[1][0])).toBe(false)
 		expect(double.mock.calls[1][0]).toBe(2)
 	})
@@ -197,17 +197,17 @@ describe('derivations', () => {
 		const a = atom('', 1)
 		const double = jest.fn((_prevValue, lastChangedEpoch) => {
 			expect(lastChangedEpoch).toBe(derivation.lastChangedEpoch)
-			return a.value * 2
+			return a.get() * 2
 		})
 		const derivation = computed('', double)
 
-		expect(derivation.value).toBe(2)
+		expect(derivation.get()).toBe(2)
 
 		const startEpoch = globalEpoch
 
 		a.set(2)
 
-		expect(derivation.value).toBe(4)
+		expect(derivation.get()).toBe(4)
 		expect(derivation.lastChangedEpoch).toBeGreaterThan(startEpoch)
 
 		expect(double).toHaveBeenCalledTimes(2)
@@ -221,13 +221,13 @@ describe('derivations', () => {
 		let numTimesComputed = 0
 		const fullName = computed('', () => {
 			numTimesComputed++
-			return `${firstName.value} ${lastName.value}`
+			return `${firstName.get()} ${lastName.get()}`
 		})
 
 		let numTimesReacted = 0
 		let name = ''
 		const r = reactor('', () => {
-			name = fullName.value
+			name = fullName.get()
 			numTimesReacted++
 		})
 
@@ -263,7 +263,7 @@ describe('derivations', () => {
 			expect(numTimesComputed).toBe(2)
 			expect(numTimesReacted).toBe(2)
 			expect(name).toBe('Jane Doe')
-			expect(fullName.value).toBe('Wilbur Jones')
+			expect(fullName.get()).toBe('Wilbur Jones')
 
 			expect(numTimesComputed).toBe(3)
 			expect(numTimesReacted).toBe(2)
@@ -279,23 +279,23 @@ describe('derivations', () => {
 		const firstName = atom('', 'John')
 		const lastName = atom('', 'Doe')
 
-		const fullName = computed('', () => `${firstName.value} ${lastName.value}`)
+		const fullName = computed('', () => `${firstName.get()} ${lastName.get()}`)
 
 		transaction((rollback) => {
 			firstName.set('Jane')
 			lastName.set('Jones')
-			expect(fullName.value).toBe('Jane Jones')
+			expect(fullName.get()).toBe('Jane Jones')
 			rollback()
 		})
 
-		expect(fullName.value).toBe('John Doe')
+		expect(fullName.get()).toBe('John Doe')
 	})
 
 	it('will add history items if a transaction is aborted', () => {
 		const a = atom('', 1)
 		const b = atom('', 1)
 
-		const c = computed('', () => a.value + b.value, {
+		const c = computed('', () => a.get() + b.get(), {
 			historyLength: 3,
 			computeDiff: (a, b) => b - a,
 		})
@@ -317,7 +317,7 @@ describe('derivations', () => {
 		const a = atom('', 1)
 		const b = atom('', 1)
 
-		const c = computed('', () => a.value + b.value, {
+		const c = computed('', () => a.get() + b.get(), {
 			historyLength: 3,
 			computeDiff: (a, b) => b - a,
 		})
@@ -341,7 +341,7 @@ function getIncrementalRecordMapper<In, Out>(
 	mapper: (t: In, k: string) => Out
 ): Computed<Record<string, Out>> {
 	function computeFromScratch() {
-		const input = obj.value
+		const input = obj.get()
 		return Object.fromEntries(Object.entries(input).map(([k, v]) => [k, mapper(v, k)]))
 	}
 	return computed('', (previousValue, lastComputedEpoch) => {
@@ -356,7 +356,7 @@ function getIncrementalRecordMapper<In, Out>(
 			return previousValue
 		}
 
-		const newUpstream = obj.value
+		const newUpstream = obj.get()
 
 		const result = { ...previousValue } as Record<string, Out>
 
@@ -442,7 +442,7 @@ describe('incremental derivations', () => {
 
 		const doubledNodes = getIncrementalRecordMapper(nodes, mapper)
 
-		expect(doubledNodes.value).toEqual({
+		expect(doubledNodes.get()).toEqual({
 			a: 2,
 			b: 4,
 			c: 6,
@@ -453,7 +453,7 @@ describe('incremental derivations', () => {
 
 		nodes.update((ns) => ({ ...ns, a: 10 }))
 
-		expect(doubledNodes.value).toEqual({
+		expect(doubledNodes.get()).toEqual({
 			a: 20,
 			b: 4,
 			c: 6,
@@ -466,7 +466,7 @@ describe('incremental derivations', () => {
 		// remove d
 		nodes.update(({ d: _d, ...others }) => others)
 
-		expect(doubledNodes.value).toEqual({
+		expect(doubledNodes.get()).toEqual({
 			a: 20,
 			b: 4,
 			c: 6,
@@ -476,7 +476,7 @@ describe('incremental derivations', () => {
 
 		nodes.update((ns) => ({ ...ns, f: 50, g: 60 }))
 
-		expect(doubledNodes.value).toEqual({
+		expect(doubledNodes.get()).toEqual({
 			a: 20,
 			b: 4,
 			c: 6,
@@ -486,9 +486,9 @@ describe('incremental derivations', () => {
 		})
 		expect(mapper).toHaveBeenCalledTimes(8)
 
-		nodes.set({ ...nodes.value })
+		nodes.set({ ...nodes.get() })
 		// no changes so no new calls to mapper
-		expect(doubledNodes.value).toEqual({
+		expect(doubledNodes.get()).toEqual({
 			a: 20,
 			b: 4,
 			c: 6,
@@ -510,7 +510,7 @@ describe('incremental derivations', () => {
 		// nothing was called because we didn't deref yet
 		expect(mapper).toHaveBeenCalledTimes(8)
 
-		expect(doubledNodes.value).toEqual({
+		expect(doubledNodes.get()).toEqual({
 			a: 8,
 			b: 18,
 			c: 34,
@@ -527,18 +527,18 @@ describe('computed as a decorator', () => {
 		class Foo {
 			a = atom('a', 1)
 			@computed
-			get b() {
-				return this.a.value * 2
+			getB() {
+				return this.a.get() * 2
 			}
 		}
 
 		const foo = new Foo()
 
-		expect(foo.b).toBe(2)
+		expect(foo.getB()).toBe(2)
 
 		foo.a.set(2)
 
-		expect(foo.b).toBe(4)
+		expect(foo.getB()).toBe(4)
 	})
 
 	it('can be used to decorate a class with custom properties', () => {
@@ -547,20 +547,20 @@ describe('computed as a decorator', () => {
 			a = atom('a', 1)
 
 			@computed({ isEqual: (a, b) => a.b === b.b })
-			get b() {
+			getB() {
 				numComputations++
-				return { b: this.a.value * this.a.value }
+				return { b: this.a.get() * this.a.get() }
 			}
 		}
 
 		const foo = new Foo()
 
-		const firstVal = foo.b
+		const firstVal = foo.getB()
 		expect(firstVal).toEqual({ b: 1 })
 
 		foo.a.set(-1)
 
-		const secondVal = foo.b
+		const secondVal = foo.getB()
 		expect(secondVal).toEqual({ b: 1 })
 
 		expect(firstVal).toBe(secondVal)
@@ -574,14 +574,14 @@ describe(getComputedInstance, () => {
 			a = atom('a', 1)
 
 			@computed({ isEqual: (a, b) => a.b === b.b })
-			get b() {
-				return { b: this.a.value * this.a.value }
+			getB() {
+				return { b: this.a.get() * this.a.get() }
 			}
 		}
 
 		const foo = new Foo()
 
-		const bInst = getComputedInstance(foo, 'b')
+		const bInst = getComputedInstance(foo, 'getB')
 
 		expect(bInst).toBeDefined()
 		expect(bInst).toBeInstanceOf(_Computed)
@@ -593,18 +593,18 @@ describe('computed isEqual', () => {
 		const isEqual = jest.fn((a, b) => a === b)
 
 		const a = atom('a', 1)
-		const b = computed('b', () => a.value * 2, { isEqual })
+		const b = computed('b', () => a.get() * 2, { isEqual })
 
-		expect(b.value).toBe(2)
+		expect(b.get()).toBe(2)
 		expect(isEqual).not.toHaveBeenCalled()
-		expect(b.value).toBe(2)
+		expect(b.get()).toBe(2)
 		expect(isEqual).not.toHaveBeenCalled()
 
 		a.set(2)
 
-		expect(b.value).toBe(4)
+		expect(b.get()).toBe(4)
 		expect(isEqual).toHaveBeenCalledTimes(1)
-		expect(b.value).toBe(4)
+		expect(b.get()).toBe(4)
 		expect(isEqual).toHaveBeenCalledTimes(1)
 	})
 })

@@ -36,7 +36,7 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 				}
 			} else {
 				// Weird route: selecting locked shapes on long press
-				if (editor.instanceState.isCoarsePointer) {
+				if (editor.getInstanceState().isCoarsePointer) {
 					const {
 						selectedShapes,
 						inputs: { currentPagePoint },
@@ -76,9 +76,11 @@ export const ContextMenu = function ContextMenu({ children }: { children: any })
 		contextTLUiMenuSchema.length === 0 ||
 		(isReadonly && contextTLUiMenuSchema.every((item) => !item.readonlyOk))
 
-	const selectToolActive = useValue('isSelectToolActive', () => editor.currentToolId === 'select', [
-		editor,
-	])
+	const selectToolActive = useValue(
+		'isSelectToolActive',
+		() => editor.getCurrentToolId() === 'select',
+		[editor]
+	)
 
 	const disabled = !selectToolActive || noItemsToShow
 

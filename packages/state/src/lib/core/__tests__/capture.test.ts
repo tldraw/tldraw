@@ -172,7 +172,7 @@ describe(unsafe__withoutCapture, () => {
 		const atomC = atom('c', 1)
 
 		const child = computed('', () => {
-			return atomA.value + atomB.value + unsafe__withoutCapture(() => atomC.value)
+			return atomA.get() + atomB.get() + unsafe__withoutCapture(() => atomC.get())
 		})
 
 		let lastValue: number | undefined
@@ -180,7 +180,7 @@ describe(unsafe__withoutCapture, () => {
 
 		react('', () => {
 			numReactions++
-			lastValue = child.value
+			lastValue = child.get()
 		})
 
 		expect(lastValue).toBe(3)
@@ -213,7 +213,7 @@ describe(unsafe__withoutCapture, () => {
 
 		react('', () => {
 			numReactions++
-			lastValue = atomA.value + atomB.value + unsafe__withoutCapture(() => atomC.value)
+			lastValue = atomA.get() + atomB.get() + unsafe__withoutCapture(() => atomC.get())
 		})
 
 		expect(lastValue).toBe(3)

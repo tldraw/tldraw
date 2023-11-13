@@ -108,7 +108,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 						editor.updateInstanceState(
 							{
 								stylesForNextShape: {
-									...editor.instanceState.stylesForNextShape,
+									...editor.getInstanceState().stylesForNextShape,
 									[GeoShapeGeoStyle.id]: id,
 								},
 							},

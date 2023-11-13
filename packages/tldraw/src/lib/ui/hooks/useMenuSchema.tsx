@@ -51,20 +51,22 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 
 	const isDarkMode = useValue('isDarkMode', () => editor.user.isDarkMode, [editor])
 	const animationSpeed = useValue('animationSpeed', () => editor.user.animationSpeed, [editor])
-	const isGridMode = useValue('isGridMode', () => editor.instanceState.isGridMode, [editor])
+	const isGridMode = useValue('isGridMode', () => editor.getInstanceState().isGridMode, [editor])
 	const isSnapMode = useValue('isSnapMode', () => editor.user.isSnapMode, [editor])
-	const isToolLock = useValue('isToolLock', () => editor.instanceState.isToolLocked, [editor])
-	const isFocusMode = useValue('isFocusMode', () => editor.instanceState.isFocusMode, [editor])
-	const isDebugMode = useValue('isDebugMode', () => editor.instanceState.isDebugMode, [editor])
+	const isToolLock = useValue('isToolLock', () => editor.getInstanceState().isToolLocked, [editor])
+	const isFocusMode = useValue('isFocusMode', () => editor.getInstanceState().isFocusMode, [editor])
+	const isDebugMode = useValue('isDebugMode', () => editor.getInstanceState().isDebugMode, [editor])
 	const exportBackground = useValue(
 		'exportBackground',
-		() => editor.instanceState.exportBackground,
+		() => editor.getInstanceState().exportBackground,
 		[editor]
 	)
 
 	const emptyPage = useValue('emptyPage', () => editor.currentPageShapeIds.size === 0, [editor])
 
-	const selectedCount = useValue('selectedCount', () => editor.selectedShapeIds.length, [editor])
+	const selectedCount = useValue('selectedCount', () => editor.getSelectedShapeIds().length, [
+		editor,
+	])
 	const noneSelected = selectedCount === 0
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1

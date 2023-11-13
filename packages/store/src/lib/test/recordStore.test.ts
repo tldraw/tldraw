@@ -66,7 +66,7 @@ describe('Store', () => {
 
 	it('allows records to be added', () => {
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
-		expect(store.query.records('author').value).toEqual([
+		expect(store.query.records('author').get()).toEqual([
 			{ id: 'author:tolkein', typeName: 'author', name: 'J.R.R Tolkein', isPseudonym: false },
 		])
 
@@ -80,7 +80,7 @@ describe('Store', () => {
 			},
 		])
 
-		expect(store.query.records('book').value).toEqual([
+		expect(store.query.records('book').get()).toEqual([
 			{
 				id: 'book:the-hobbit',
 				typeName: 'book',
@@ -217,7 +217,7 @@ describe('Store', () => {
 			expect(current).toEqual(
 				Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })
 			)
-			expect([...store.query.ids('author').value]).toEqual([Author.createId('tolkein')])
+			expect([...store.query.ids('author').get()]).toEqual([Author.createId('tolkein')])
 		})
 		store.put([Author.create({ name: 'J.R.R Tolkein', id: Author.createId('tolkein') })])
 
@@ -257,10 +257,16 @@ describe('Store', () => {
 			Author.create({ name: 'Cynan Jones', id: Author.createId('cj') }),
 			Author.create({ name: 'David Foster Wallace', id: Author.createId('dfw') }),
 		])
-		const Js = store.query.records('author').value.filter((r) => r.name.startsWith('J'))
+		const Js = store.query
+			.records('author')
+			.get()
+			.filter((r) => r.name.startsWith('J'))
 		expect(Js.map((j) => j.name).sort()).toEqual(['J.R.R Tolkein', 'James McAvoy'])
 
-		const david = store.query.records('author').value.find((r) => r.name.startsWith('David'))
+		const david = store.query
+			.records('author')
+			.get()
+			.find((r) => r.name.startsWith('David'))
 		expect(david?.name).toBe('David Foster Wallace')
 	})
 

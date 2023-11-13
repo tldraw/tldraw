@@ -18,8 +18,8 @@ export class PointingShape extends StateNode {
 	didSelectOnEnter = false
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const {
-			selectedShapeIds,
 			focusedGroupId,
 			selectionRotatedPageBounds: selectionBounds,
 			inputs: { currentPagePoint, shiftKey, altKey },
@@ -60,10 +60,10 @@ export class PointingShape extends StateNode {
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const {
 			zoomLevel,
 			focusedGroupId,
-			selectedShapeIds,
 			inputs: { currentPagePoint, shiftKey },
 		} = this.editor
 
@@ -151,7 +151,7 @@ export class PointingShape extends StateNode {
 										this.editor.select(selectingShape.id)
 
 										const util = this.editor.getShapeUtil(selectingShape)
-										if (this.editor.instanceState.isReadonly) {
+										if (this.editor.getInstanceState().isReadonly) {
 											if (!util.canEditInReadOnly(selectingShape)) {
 												return
 											}
@@ -180,7 +180,7 @@ export class PointingShape extends StateNode {
 
 				this.editor.mark('shift deselecting on pointer up')
 				this.editor.setSelectedShapes([
-					...this.editor.selectedShapeIds.filter((id) => !ancestors.find((a) => a.id === id)),
+					...this.editor.getSelectedShapeIds().filter((id) => !ancestors.find((a) => a.id === id)),
 					outermostSelectableShape.id,
 				])
 			} else {
@@ -195,7 +195,7 @@ export class PointingShape extends StateNode {
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {
 		if (this.editor.inputs.isDragging) {
-			if (this.editor.instanceState.isReadonly) return
+			if (this.editor.getInstanceState().isReadonly) return
 			this.parent.transition('translating', info)
 		}
 	}

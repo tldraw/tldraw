@@ -10,11 +10,9 @@ export class RootState extends StateNode {
 		switch (info.code) {
 			case 'KeyZ': {
 				if (!(info.shiftKey || info.ctrlKey)) {
-					const currentTool = this.current
-					if (currentTool && currentTool.current?.id === 'idle') {
-						if (this.children!['zoom']) {
-							this.editor.setCurrentTool('zoom', { ...info, onInteractionEnd: currentTool.id })
-						}
+					const currentTool = this.getCurrent()
+					if (currentTool && currentTool.getCurrent()?.id === 'idle' && this.children!['zoom']) {
+						this.editor.setCurrentTool('zoom', { ...info, onInteractionEnd: currentTool.id })
 					}
 				}
 				break

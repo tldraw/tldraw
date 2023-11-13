@@ -6785,7 +6785,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#alignShapes:member(1)",
-              "docComment": "/**\n * Align shape positions.\n *\n * @param shapes - The shapes (or shape ids) to align.\n *\n * @param operation - The align operation to apply.\n *\n * @example\n * ```ts\n * editor.alignShapes([box1, box2], 'left')\n * editor.alignShapes(editor.selectedShapeIds, 'left')\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Align shape positions.\n *\n * @param shapes - The shapes (or shape ids) to align.\n *\n * @param operation - The align operation to apply.\n *\n * @example\n * ```ts\n * editor.alignShapes([box1, box2], 'left')\n * editor.alignShapes(editor.getSelectedShapeIds(), 'left')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7265,7 +7265,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#batch:member(1)",
-              "docComment": "/**\n * Run a function in a batch, which will be undone/redone as a single action.\n *\n * @example\n * ```ts\n * editor.batch(() => {\n * \teditor.selectAll()\n * \teditor.deleteShapes(editor.selectedShapeIds)\n * \teditor.createShapes(myShapes)\n * \teditor.selectNone()\n * })\n *\n * editor.undo() // will undo all of the above\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Run a function in a batch, which will be undone/redone as a single action.\n *\n * @example\n * ```ts\n * editor.batch(() => {\n * \teditor.selectAll()\n * \teditor.deleteShapes(editor.getSelectedShapeIds())\n * \teditor.createShapes(myShapes)\n * \teditor.selectNone()\n * })\n *\n * editor.undo() // will undo all of the above\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7564,7 +7564,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#canRedo:member",
-              "docComment": "/**\n * Whether the app can redo.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCanRedo` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7594,7 +7594,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#canUndo:member",
-              "docComment": "/**\n * Whether the app can undo.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCanUndo` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8366,7 +8366,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentPageState:member",
-              "docComment": "/**\n * The current page state.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentPageState` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8397,7 +8397,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentTool:member",
-              "docComment": "/**\n * The current selected tool.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentTool` instead.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8410,10 +8410,6 @@
                 },
                 {
                   "kind": "Content",
-                  "text": " | undefined"
-                },
-                {
-                  "kind": "Content",
                   "text": ";"
                 }
               ],
@@ -8423,7 +8419,7 @@
               "name": "currentTool",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
-                "endIndex": 3
+                "endIndex": 2
               },
               "isStatic": false,
               "isProtected": false,
@@ -8432,7 +8428,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#currentToolId:member",
-              "docComment": "/**\n * The id of the current selected tool.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getCurrentToolId` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9001,7 +8997,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#distributeShapes:member(1)",
-              "docComment": "/**\n * Distribute shape positions.\n *\n * @param shapes - The shapes (or shape ids) to distribute.\n *\n * @param operation - Whether to distribute shapes horizontally or vertically.\n *\n * @example\n * ```ts\n * editor.distributeShapes([box1, box2], 'horizontal')\n * editor.distributeShapes(editor.selectedShapeIds, 'horizontal')\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Distribute shape positions.\n *\n * @param shapes - The shapes (or shape ids) to distribute.\n *\n * @param operation - Whether to distribute shapes horizontally or vertically.\n *\n * @example\n * ```ts\n * editor.distributeShapes([box1, box2], 'horizontal')\n * editor.distributeShapes(editor.getSelectedShapeIds(), 'horizontal')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9079,7 +9075,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#documentSettings:member",
-              "docComment": "/**\n * The global document settings that apply to all users.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getDocumentSettings` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9624,7 +9620,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#flipShapes:member(1)",
-              "docComment": "/**\n * Flip shape positions.\n *\n * @param shapes - The ids of the shapes to flip.\n *\n * @param operation - Whether to flip horizontally or vertically.\n *\n * @example\n * ```ts\n * editor.flipShapes([box1, box2], 'horizontal', 32)\n * editor.flipShapes(editor.selectedShapeIds, 'horizontal', 32)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Flip shape positions.\n *\n * @param shapes - The ids of the shapes to flip.\n *\n * @param operation - Whether to flip horizontally or vertically.\n *\n * @example\n * ```ts\n * editor.flipShapes([box1, box2], 'horizontal', 32)\n * editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal', 32)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10085,6 +10081,68 @@
               "name": "getAssetForExternalContent"
             },
             {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCanRedo:member(1)",
+              "docComment": "/**\n * Whether the app can redo.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCanRedo(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCanRedo"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCanUndo:member(1)",
+              "docComment": "/**\n * Whether the app can undo.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCanUndo(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCanUndo"
+            },
+            {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#getContainer:member",
               "docComment": "/**\n * The current HTML element containing the editor.\n *\n * @example\n * ```ts\n * const container = editor.getContainer()\n * ```\n *\n * @public\n */\n",
@@ -10185,6 +10243,133 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getContentFromCurrentPage"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentPageState:member(1)",
+              "docComment": "/**\n * The current page state.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentPageState(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstancePageState",
+                  "canonicalReference": "@tldraw/tlschema!TLInstancePageState:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentPageState"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentTool:member(1)",
+              "docComment": "/**\n * The current selected tool.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentTool(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StateNode",
+                  "canonicalReference": "@tldraw/editor!StateNode:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentTool"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getCurrentToolId:member(1)",
+              "docComment": "/**\n * The id of the current selected tool.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrentToolId(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrentToolId"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getDocumentSettings:member(1)",
+              "docComment": "/**\n * The global document settings that apply to all users.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getDocumentSettings(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLDocument",
+                  "canonicalReference": "@tldraw/tlschema!TLDocument:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getDocumentSettings"
             },
             {
               "kind": "Method",
@@ -10377,6 +10562,100 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getInitialMetaForShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getInstanceState:member(1)",
+              "docComment": "/**\n * The current instance's state.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getInstanceState(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstance",
+                  "canonicalReference": "@tldraw/tlschema!TLInstance:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getInstanceState"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getIsMenuOpen:member(1)",
+              "docComment": "/**\n * Get whether any menus are open.\n *\n * @example\n * ```ts\n * editor.isMenuOpen()\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getIsMenuOpen(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getIsMenuOpen"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getOpenMenus:member(1)",
+              "docComment": "/**\n * A set of strings representing any open menus. When menus are open, certain interactions will behave differently; for example, when a draw tool is selected and a menu is open, a pointer-down will not create a dot (because the user is probably trying to close the menu) however a pointer-down event followed by a drag will begin drawing a line (because the user is BOTH trying to close the menu AND start drawing a line).\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getOpenMenus(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getOpenMenus"
             },
             {
               "kind": "Method",
@@ -10599,6 +10878,73 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getPageStates:member(1)",
+              "docComment": "/**\n * Page states.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPageStates(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLInstancePageState",
+                  "canonicalReference": "@tldraw/tlschema!TLInstancePageState:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getPageStates"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getPath:member(1)",
+              "docComment": "/**\n * The editor's current path of active states.\n *\n * @example\n * ```ts\n * editor.path // \"select.idle\"\n * ```\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPath(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getPath"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getPointInParentSpace:member(1)",
               "docComment": "/**\n * Convert a delta in the current page space to a point in the local space of a shape's parent.\n *\n * @param shape - The shape to get the point in the local space of.\n *\n * @param point - The page point to get in the local space of the shape.\n *\n * @example\n * ```ts\n * editor.getPointInParentSpace(myShape.id, { x: 100, y: 100 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -10802,6 +11148,42 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getSelectedShapeAtPoint"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSelectedShapeIds:member(1)",
+              "docComment": "/**\n * The current selected ids.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelectedShapeIds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSelectedShapeIds"
             },
             {
               "kind": "Method",
@@ -12938,7 +13320,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#instanceState:member",
-              "docComment": "/**\n * The current instance's state.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getInstanceState` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13154,7 +13536,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#isMenuOpen:member",
-              "docComment": "/**\n * Get whether any menus are open.\n *\n * @example\n * ```ts\n * editor.isMenuOpen()\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getIsMenuOpen` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13926,7 +14308,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#openMenus:member",
-              "docComment": "/**\n * A set of strings representing any open menus. When menus are open, certain interactions will behave differently; for example, when a draw tool is selected and a menu is open, a pointer-down will not create a dot (because the user is probably trying to close the menu) however a pointer-down event followed by a drag will begin drawing a line (because the user is BOTH trying to close the menu AND start drawing a line).\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getOpenMenus` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -13956,7 +14338,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#packShapes:member(1)",
-              "docComment": "/**\n * Pack shapes into a grid centered on their current position. Based on potpack (https://github.com/mapbox/potpack).\n *\n * @param shapes - The shapes (or shape ids) to pack.\n *\n * @param gap - The padding to apply to the packed shapes. Defaults to 16.\n *\n * @example\n * ```ts\n * editor.packShapes([box1, box2], 32)\n * editor.packShapes(editor.selectedShapeIds, 32)\n * ```\n *\n */\n",
+              "docComment": "/**\n * Pack shapes into a grid centered on their current position. Based on potpack (https://github.com/mapbox/potpack).\n *\n * @param shapes - The shapes (or shape ids) to pack.\n *\n * @param gap - The padding to apply to the packed shapes. Defaults to 16.\n *\n * @example\n * ```ts\n * editor.packShapes([box1, box2], 32)\n * editor.packShapes(editor.getSelectedShapeIds(), 32)\n * ```\n *\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14150,7 +14532,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#pageStates:member",
-              "docComment": "/**\n * Page states.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getPageStates` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -14366,36 +14748,6 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "panZoomIntoView"
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!Editor#path:member",
-              "docComment": "/**\n * The editor's current path of active states.\n *\n * @example\n * ```ts\n * editor.path // \"select.idle\"\n * ```\n *\n * @public\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get path(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "path",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
             },
             {
               "kind": "Method",
@@ -15366,7 +15718,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#rotateShapesBy:member(1)",
-              "docComment": "/**\n * Rotate shapes by a delta in radians. Note: Currently, this assumes that the shapes are your currently selected shapes.\n *\n * @param shapes - The shapes (or shape ids) of the shapes to move.\n *\n * @param delta - The delta in radians to apply to the selection rotation.\n *\n * @example\n * ```ts\n * editor.rotateShapesBy(editor.selectedShapeIds, Math.PI)\n * editor.rotateShapesBy(editor.selectedShapeIds, Math.PI / 2)\n * ```\n *\n */\n",
+              "docComment": "/**\n * Rotate shapes by a delta in radians. Note: Currently, this assumes that the shapes are your currently selected shapes.\n *\n * @param shapes - The shapes (or shape ids) of the shapes to move.\n *\n * @param delta - The delta in radians to apply to the selection rotation.\n *\n * @example\n * ```ts\n * editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI)\n * editor.rotateShapesBy(editor.getSelectedShapeIds(), Math.PI / 2)\n * ```\n *\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -15617,7 +15969,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#selectedShapeIds:member",
-              "docComment": "/**\n * The current selected ids.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getSelectedShapeIds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -17211,7 +17563,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#stackShapes:member(1)",
-              "docComment": "/**\n * Stack shape.\n *\n * @param shapes - The shapes (or shape ids) to stack.\n *\n * @param operation - Whether to stack horizontally or vertically.\n *\n * @param gap - The gap to leave between shapes.\n *\n * @example\n * ```ts\n * editor.stackShapes([box1, box2], 'horizontal', 32)\n * editor.stackShapes(editor.selectedShapeIds, 'horizontal', 32)\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Stack shape.\n *\n * @param shapes - The shapes (or shape ids) to stack.\n *\n * @param operation - Whether to stack horizontally or vertically.\n *\n * @param gap - The gap to leave between shapes.\n *\n * @example\n * ```ts\n * editor.stackShapes([box1, box2], 'horizontal', 32)\n * editor.stackShapes(editor.getSelectedShapeIds(), 'horizontal', 32)\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -17446,7 +17798,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#stretchShapes:member(1)",
-              "docComment": "/**\n * Stretch shape sizes and positions to fill their common bounding box.\n *\n * @param shapes - The shapes (or shape ids) to stretch.\n *\n * @param operation - Whether to stretch shapes horizontally or vertically.\n *\n * @example\n * ```ts\n * editor.stretchShapes([box1, box2], 'horizontal')\n * editor.stretchShapes(editor.selectedShapeIds, 'horizontal')\n * ```\n *\n * @public\n */\n",
+              "docComment": "/**\n * Stretch shape sizes and positions to fill their common bounding box.\n *\n * @param shapes - The shapes (or shape ids) to stretch.\n *\n * @param operation - Whether to stretch shapes horizontally or vertically.\n *\n * @example\n * ```ts\n * editor.stretchShapes([box1, box2], 'horizontal')\n * editor.stretchShapes(editor.getSelectedShapeIds(), 'horizontal')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -33412,7 +33764,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#_currentToolIdMask:member",
-              "docComment": "/**\n * This is a hack / escape hatch that will tell the editor to report a different state as active (in `currentToolId`) when this state is active. This is usually used when a tool transitions to a child of a different state for a certain interaction and then returns to the original tool when that interaction completes; and where we would want to show the original tool as active in the UI.\n *\n * @public\n */\n",
+              "docComment": "/**\n * This is a hack / escape hatch that will tell the editor to report a different state as active (in `getCurrentToolId()`) when this state is active. This is usually used when a tool transitions to a child of a different state for a certain interaction and then returns to the original tool when that interaction completes; and where we would want to show the original tool as active in the UI.\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -33436,6 +33788,41 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "_currentToolIdMask",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isStatic": false,
+              "isProtected": false,
+              "isAbstract": false
+            },
+            {
+              "kind": "Property",
+              "canonicalReference": "@tldraw/editor!StateNode#_path:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "_path: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Computed",
+                  "canonicalReference": "@tldraw/state!Computed:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "_path",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
@@ -33579,41 +33966,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!StateNode#current:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get current(): "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "StateNode",
-                  "canonicalReference": "@tldraw/editor!StateNode:class"
-                },
-                {
-                  "kind": "Content",
-                  "text": " | undefined"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "current",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#currentToolIdMask:member",
               "docComment": "",
               "excerptTokens": [
@@ -33732,6 +34084,104 @@
               "isStatic": false,
               "isProtected": false,
               "isAbstract": false
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#getCurrent:member(1)",
+              "docComment": "/**\n * This node's current active child node, if any.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCurrent(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "StateNode",
+                  "canonicalReference": "@tldraw/editor!StateNode:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getCurrent"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#getIsActive:member(1)",
+              "docComment": "/**\n * Whether this node is active.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getIsActive(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getIsActive"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!StateNode#getPath:member(1)",
+              "docComment": "/**\n * This node's path of active state nodes\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPath(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getPath"
             },
             {
               "kind": "Property",
@@ -33907,36 +34357,6 @@
                 "endIndex": 2
               },
               "isStatic": true,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
-              "canonicalReference": "@tldraw/editor!StateNode#isActive:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "get isActive(): "
-                },
-                {
-                  "kind": "Content",
-                  "text": "boolean"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": true,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "isActive",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              },
-              "isStatic": false,
               "isProtected": false,
               "isAbstract": false
             },
@@ -34560,41 +34980,6 @@
             },
             {
               "kind": "Property",
-              "canonicalReference": "@tldraw/editor!StateNode#path:member",
-              "docComment": "",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "path: "
-                },
-                {
-                  "kind": "Reference",
-                  "text": "Computed",
-                  "canonicalReference": "@tldraw/state!Computed:interface"
-                },
-                {
-                  "kind": "Content",
-                  "text": "<string>"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "path",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 3
-              },
-              "isStatic": false,
-              "isProtected": false,
-              "isAbstract": false
-            },
-            {
-              "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#shapeType:member",
               "docComment": "",
               "excerptTokens": [
@@ -34626,7 +35011,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!StateNode#transition:member",
-              "docComment": "",
+              "docComment": "/**\n * Transition to a new active child state node.\n *\n * @param id - The id of the child state node to transition to.\n *\n * @param info - Any data to pass to the `onEnter` and `onExit` handlers.\n *\n * @example\n * ```ts\n * parentState.transition('childStateA')\n * parentState.transition('childStateB', { myData: 4 })\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

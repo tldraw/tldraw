@@ -116,7 +116,7 @@ describe(HistoryManager, () => {
 		editor.decrement()
 		expect(editor.getCount()).toBe(3)
 
-		const undos = [...editor.history._undos.value]
+		const undos = [...editor.history._undos.get()]
 		const parsedUndos = JSON.parse(JSON.stringify(undos))
 		editor.history._undos.set(stack(parsedUndos))
 

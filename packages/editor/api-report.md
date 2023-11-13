@@ -582,7 +582,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     get cameraState(): "idle" | "moving";
     cancel(): this;
     cancelDoubleClick(): void;
+    // @deprecated (undocumented)
     get canRedo(): boolean;
+    // @deprecated (undocumented)
     get canUndo(): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
@@ -620,8 +622,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPageShapeIds(): Set<TLShapeId>;
     get currentPageShapes(): TLShape[];
     get currentPageShapesSorted(): TLShape[];
+    // @deprecated (undocumented)
     get currentPageState(): TLInstancePageState;
-    get currentTool(): StateNode | undefined;
+    // @deprecated (undocumented)
+    get currentTool(): StateNode;
+    // @deprecated (undocumented)
     get currentToolId(): string;
     deleteAssets(assets: TLAsset[] | TLAssetId[]): this;
     deleteOpenMenu(id: string): this;
@@ -637,6 +642,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly disposables: Set<() => void>;
     dispose(): void;
     distributeShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
+    // @deprecated (undocumented)
     get documentSettings(): TLDocument;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
@@ -674,17 +680,29 @@ export class Editor extends EventEmitter<TLEventMap> {
     }[];
     getAsset(asset: TLAsset | TLAssetId): TLAsset | undefined;
     getAssetForExternalContent(info: TLExternalAssetContent): Promise<TLAsset | undefined>;
+    getCanRedo(): boolean;
+    getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    getCurrentPageState(): TLInstancePageState;
+    getCurrentTool(): StateNode;
+    getCurrentToolId(): string;
+    getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
+    getInstanceState(): TLInstance;
+    getIsMenuOpen(): boolean;
+    getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
+    getPageStates(): TLInstancePageState[];
+    getPath(): string;
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
+    getSelectedShapeIds(): TLShapeId[];
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
@@ -750,11 +768,13 @@ export class Editor extends EventEmitter<TLEventMap> {
         isPanning: boolean;
         pointerVelocity: Vec2d;
     };
+    // @deprecated (undocumented)
     get instanceState(): TLInstance;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
+    // @deprecated (undocumented)
     get isMenuOpen(): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         margin?: number | undefined;
@@ -771,10 +791,12 @@ export class Editor extends EventEmitter<TLEventMap> {
     moveShapesToPage(shapes: TLShape[] | TLShapeId[], pageId: TLPageId): this;
     nudgeShapes(shapes: TLShape[] | TLShapeId[], offset: VecLike, historyOptions?: TLCommandHistoryOptions): this;
     get onlySelectedShape(): null | TLShape;
+    // @deprecated (undocumented)
     get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     pageBoundsToContainerBounds(bounds: BoxLike): typeof bounds extends Box2d ? Box2d : Box2dModel;
     get pages(): TLPage[];
+    // @deprecated (undocumented)
     get pageStates(): TLInstancePageState[];
     pageToScreen(point: VecLike): {
         x: number;
@@ -783,7 +805,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     pan(offset: VecLike, animation?: TLAnimationOptions): this;
     panZoomIntoView(ids: TLShapeId[], animation?: TLAnimationOptions): this;
-    get path(): string;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, options?: {
         point?: VecLike;
@@ -826,6 +847,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
+    // @deprecated (undocumented)
     get selectedShapeIds(): TLShapeId[];
     get selectedShapes(): TLShape[];
     get selectionPageBounds(): Box2d | null;
@@ -1786,8 +1808,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     children?: Record<string, StateNode>;
     // (undocumented)
-    get current(): StateNode | undefined;
-    // (undocumented)
     get currentToolIdMask(): string | undefined;
     set currentToolIdMask(id: string | undefined);
     _currentToolIdMask: Atom<string | undefined, unknown>;
@@ -1797,6 +1817,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     enter: (info: any, from: string) => void;
     // (undocumented)
     exit: (info: any, from: string) => void;
+    getCurrent(): StateNode | undefined;
+    getIsActive(): boolean;
+    getPath(): string;
     // (undocumented)
     handleEvent: (info: Exclude<TLEventInfo, TLPinchEventInfo>) => void;
     // (undocumented)
@@ -1807,8 +1830,6 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     static initial?: string;
     // (undocumented)
     initial?: string;
-    // (undocumented)
-    get isActive(): boolean;
     // (undocumented)
     onCancel?: TLEventHandlers['onCancel'];
     // (undocumented)
@@ -1846,10 +1867,9 @@ export abstract class StateNode implements Partial<TLEventHandlers> {
     // (undocumented)
     parent: StateNode;
     // (undocumented)
-    path: Computed<string>;
+    _path: Computed<string>;
     // (undocumented)
     shapeType?: string;
-    // (undocumented)
     transition: (id: string, info?: any) => this;
     // (undocumented)
     type: TLStateNodeType;

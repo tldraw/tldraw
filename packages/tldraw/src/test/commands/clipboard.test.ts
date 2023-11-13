@@ -14,11 +14,11 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 
-	editor.selectAll().deleteShapes(editor.selectedShapeIds)
+	editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 })
 
 afterEach(() => {
-	editor.selectAll().deleteShapes(editor.selectedShapeIds)
+	editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 })
 
 const doMockClipboard = () => {
@@ -446,7 +446,7 @@ describe('When copying and pasting', () => {
 		editor
 			// Create group
 			.selectAll()
-			.groupShapes(editor.selectedShapeIds)
+			.groupShapes(editor.getSelectedShapeIds())
 			// Move the group
 			.updateShapes([
 				{

@@ -22,7 +22,7 @@ const CustomUi = track(() => {
 			switch (e.key) {
 				case 'Delete':
 				case 'Backspace': {
-					editor.deleteShapes(editor.selectedShapeIds)
+					editor.deleteShapes(editor.getSelectedShapeIds())
 					break
 				}
 				case 'v': {
@@ -54,21 +54,21 @@ const CustomUi = track(() => {
 			<div className="custom-toolbar">
 				<button
 					className="custom-button"
-					data-isactive={editor.currentToolId === 'select'}
+					data-isactive={editor.getCurrentToolId() === 'select'}
 					onClick={() => editor.setCurrentTool('select')}
 				>
 					Select
 				</button>
 				<button
 					className="custom-button"
-					data-isactive={editor.currentToolId === 'draw'}
+					data-isactive={editor.getCurrentToolId() === 'draw'}
 					onClick={() => editor.setCurrentTool('draw')}
 				>
 					Pencil
 				</button>
 				<button
 					className="custom-button"
-					data-isactive={editor.currentToolId === 'eraser'}
+					data-isactive={editor.getCurrentToolId() === 'eraser'}
 					onClick={() => editor.setCurrentTool('eraser')}
 				>
 					Eraser

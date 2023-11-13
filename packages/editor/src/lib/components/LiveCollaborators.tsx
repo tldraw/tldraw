@@ -38,7 +38,7 @@ const CollaboratorGuard = track(function CollaboratorGuard({
 
 	switch (collaboratorState) {
 		case 'inactive': {
-			const { followingUserId, highlightedUserIds } = editor.instanceState
+			const { followingUserId, highlightedUserIds } = editor.getInstanceState()
 			// If they're inactive and unless we're following them or they're highlighted, hide them
 			if (!(followingUserId === presence.userId || highlightedUserIds.includes(presence.userId))) {
 				return null
@@ -46,7 +46,7 @@ const CollaboratorGuard = track(function CollaboratorGuard({
 			break
 		}
 		case 'idle': {
-			const { highlightedUserIds } = editor.instanceState
+			const { highlightedUserIds } = editor.getInstanceState()
 			// If they're idle and following us and unless they have a chat message or are highlighted, hide them
 			if (
 				presence.followingUserId === editor.user.id &&

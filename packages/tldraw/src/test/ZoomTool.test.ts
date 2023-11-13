@@ -13,7 +13,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedShapeIds)
+		.deleteShapes(editor.getSelectedShapeIds())
 		.createShapes([{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
 })
 
@@ -149,7 +149,7 @@ describe('TLSelectTool.Zooming', () => {
 		editor.expectToBeIn('zoom.idle')
 		editor.pointerDown(newBoundsX, newBoundsY)
 		editor.pointerMove(newBoundsX + newBoundsWidth, newBoundsY + newBoundsHeight)
-		expect(editor.instanceState.zoomBrush).toMatchObject({
+		expect(editor.getInstanceState().zoomBrush).toMatchObject({
 			x: newBoundsX,
 			y: newBoundsY,
 			w: newBoundsWidth,
@@ -186,7 +186,7 @@ describe('TLSelectTool.Zooming', () => {
 		editor.keyDown('Alt')
 		editor.pointerDown(newBoundsX, newBoundsY)
 		editor.pointerMove(newBoundsX + newBoundsWidth, newBoundsY + newBoundsHeight)
-		expect(editor.instanceState.zoomBrush).toMatchObject({
+		expect(editor.getInstanceState().zoomBrush).toMatchObject({
 			x: newBoundsX,
 			y: newBoundsY,
 			w: newBoundsWidth,

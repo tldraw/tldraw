@@ -18,7 +18,7 @@ export const createPresenceStateDerivation =
 			const pageState = store.get(InstancePageStateRecordType.createId(instance?.currentPageId))
 			const camera = store.get(CameraRecordType.createId(instance?.currentPageId))
 			const pointer = store.get(TLPOINTER_ID)
-			const user = $user.value
+			const user = $user.get()
 			if (!pageState || !instance || !camera || !pointer || !user) {
 				return null
 			}

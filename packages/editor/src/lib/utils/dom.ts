@@ -37,7 +37,7 @@ export function loopToHtmlElement(elm: Element): HTMLElement {
  */
 export function preventDefault(event: React.BaseSyntheticEvent | Event) {
 	event.preventDefault()
-	if (debugFlags.preventDefaultLogging.value) {
+	if (debugFlags.preventDefaultLogging.get()) {
 		console.warn('preventDefault called on event:', event)
 	}
 }
@@ -48,11 +48,11 @@ export function setPointerCapture(
 	event: React.PointerEvent<Element> | PointerEvent
 ) {
 	element.setPointerCapture(event.pointerId)
-	if (debugFlags.pointerCaptureTracking.value) {
-		const trackingObj = debugFlags.pointerCaptureTrackingObject.value
+	if (debugFlags.pointerCaptureTracking.get()) {
+		const trackingObj = debugFlags.pointerCaptureTrackingObject.get()
 		trackingObj.set(element, (trackingObj.get(element) ?? 0) + 1)
 	}
-	if (debugFlags.pointerCaptureLogging.value) {
+	if (debugFlags.pointerCaptureLogging.get()) {
 		console.warn('setPointerCapture called on element:', element, event)
 	}
 }
@@ -67,8 +67,8 @@ export function releasePointerCapture(
 	}
 
 	element.releasePointerCapture(event.pointerId)
-	if (debugFlags.pointerCaptureTracking.value) {
-		const trackingObj = debugFlags.pointerCaptureTrackingObject.value
+	if (debugFlags.pointerCaptureTracking.get()) {
+		const trackingObj = debugFlags.pointerCaptureTrackingObject.get()
 		if (trackingObj.get(element) === 1) {
 			trackingObj.delete(element)
 		} else if (trackingObj.has(element)) {
@@ -77,7 +77,7 @@ export function releasePointerCapture(
 			console.warn('Release without capture')
 		}
 	}
-	if (debugFlags.pointerCaptureLogging.value) {
+	if (debugFlags.pointerCaptureLogging.get()) {
 		console.warn('releasePointerCapture called on element:', element, event)
 	}
 }

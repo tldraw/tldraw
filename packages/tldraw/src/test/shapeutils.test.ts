@@ -66,7 +66,7 @@ describe('When interacting with a shape...', () => {
 		util.onRotateEnd = fnEnd
 
 		editor.selectAll()
-		expect(editor.selectedShapeIds).toMatchObject([ids.frame1, ids.box1])
+		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
 
 		editor
 			.pointerDown(300, 300, {
@@ -115,7 +115,7 @@ describe('When interacting with a shape...', () => {
 		util.onResizeEnd = fnEnd
 
 		editor.selectAll()
-		expect(editor.selectedShapeIds).toMatchObject([ids.frame1, ids.box1])
+		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
 
 		editor.pointerDown(300, 300, {
 			target: 'selection',
@@ -152,7 +152,7 @@ describe('When interacting with a shape...', () => {
 		util.onTranslateEnd = fnEnd
 
 		editor.selectAll()
-		expect(editor.selectedShapeIds).toMatchObject([ids.frame1, ids.box1])
+		expect(editor.getSelectedShapeIds()).toMatchObject([ids.frame1, ids.box1])
 
 		// Translate the shapes...
 		editor.pointerDown(50, 50, ids.box1).pointerMove(50, 40).pointerUp(50, 40)
@@ -178,7 +178,7 @@ describe('When interacting with a shape...', () => {
 
 		// If a shape has an onClick handler, and if the handler returns nothing,
 		// then normal selection rules should apply.
-		expect(editor.selectedShapeIds.length).toBe(1)
+		expect(editor.getSelectedShapeIds().length).toBe(1)
 	})
 
 	it('Uses the shape utils onClick handler', () => {
@@ -199,6 +199,6 @@ describe('When interacting with a shape...', () => {
 
 		// If a shape has an onClick handler, and it returns something, then
 		// it should not be selected.
-		expect(editor.selectedShapeIds.length).toBe(0)
+		expect(editor.getSelectedShapeIds().length).toBe(0)
 	})
 })

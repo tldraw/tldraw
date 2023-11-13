@@ -18,7 +18,7 @@ export function usePeerIds() {
 
 	const $userIds = useComputed(
 		'userIds',
-		() => uniq($presences.value.map((p) => p.userId)).sort(),
+		() => uniq($presences.get().map((p) => p.userId)).sort(),
 		{ isEqual: (a, b) => a.join(',') === b.join?.(',') },
 		[$presences]
 	)

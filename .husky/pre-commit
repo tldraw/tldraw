@@ -10,4 +10,5 @@ fi
 
 npx lazy run build-api
 git add packages/*/api-report.md
+git add packages/*/api/api.json
 npx lint-staged

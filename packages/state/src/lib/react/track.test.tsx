@@ -135,7 +135,7 @@ test('tracked components update when the state they refernce updates', async () 
 	const a = atom('a', 1)
 
 	const C = track(function Component() {
-		return <>{a.value}</>
+		return <>{a.get()}</>
 	})
 
 	let view: ReactTestRenderer
@@ -160,7 +160,7 @@ test('things referenced in effects do not trigger updates', async () => {
 	const Component = track(function Component() {
 		numRenders++
 		useEffect(() => {
-			a.value
+			a.get()
 		}, [])
 		return <>hi</>
 	})
@@ -185,7 +185,7 @@ test('things referenced in effects do not trigger updates', async () => {
 test("tracked zombie-children don't throw", async () => {
 	const theAtom = atom<Record<string, number>>('map', { a: 1, b: 2, c: 3 })
 	const Parent = track(function Parent() {
-		const ids = Object.keys(theAtom.value)
+		const ids = Object.keys(theAtom.get())
 		return (
 			<>
 				{ids.map((id) => (
@@ -195,8 +195,8 @@ test("tracked zombie-children don't throw", async () => {
 		)
 	})
 	const Child = track(function Child({ id }: { id: string }) {
-		if (!(id in theAtom.value)) throw new Error('id not found!')
-		const value = theAtom.value[id]
+		if (!(id in theAtom.get())) throw new Error('id not found!')
+		const value = theAtom.get()[id]
 		return <>{value}</>
 	})
 

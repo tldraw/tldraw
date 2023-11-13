@@ -1,9 +1,10 @@
 import { ArraySet } from './ArraySet'
+import { HistoryBuffer } from './HistoryBuffer'
 import { maybeCaptureParent } from './capture'
 import { EMPTY_ARRAY, equals } from './helpers'
-import { HistoryBuffer } from './HistoryBuffer'
 import { advanceGlobalEpoch, atomDidChange, globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
+import { logDotValueWarning } from './warnings'
 
 /**
  * The options to configure an atom, passed into the [[atom]] function.
@@ -99,9 +100,17 @@ export class _Atom<Value, Diff = unknown> implements Atom<Value, Diff> {
 		return this.current
 	}
 
-	get value() {
+	get() {
 		maybeCaptureParent(this)
 		return this.current
+	}
+
+	/**
+	 * @deprecated Use [[Atom.get]] instead.
+	 */
+	get value() {
+		logDotValueWarning()
+		return this.get()
 	}
 
 	set(value: Value, diff?: Diff): Value {

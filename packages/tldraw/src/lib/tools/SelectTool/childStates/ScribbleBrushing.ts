@@ -26,7 +26,7 @@ export class ScribbleBrushing extends StateNode {
 
 	override onEnter = () => {
 		this.initialSelectedShapeIds = new Set<TLShapeId>(
-			this.editor.inputs.shiftKey ? this.editor.selectedShapeIds : []
+			this.editor.inputs.shiftKey ? this.editor.getSelectedShapeIds() : []
 		)
 		this.newlySelectedShapeIds = new Set<TLShapeId>()
 		this.size = 0

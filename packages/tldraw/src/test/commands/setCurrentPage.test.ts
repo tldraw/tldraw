@@ -40,9 +40,9 @@ describe('setCurrentPage', () => {
 
 	it("adding a page to the store by any means adds tab state for the page if it doesn't already exist", () => {
 		const page = PageRecordType.create({ name: 'test', index: 'a4' })
-		expect(editor.pageStates.find((p) => p.pageId === page.id)).toBeUndefined()
+		expect(editor.getPageStates().find((p) => p.pageId === page.id)).toBeUndefined()
 		editor.store.put([page])
-		expect(editor.pageStates.find((p) => p.pageId === page.id)).not.toBeUndefined()
+		expect(editor.getPageStates().find((p) => p.pageId === page.id)).not.toBeUndefined()
 	})
 
 	it('squashes', () => {

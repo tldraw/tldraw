@@ -113,7 +113,7 @@ export class Resizing extends StateNode {
 			return
 		}
 
-		if (this.editor.instanceState.isToolLocked && this.info.onInteractionEnd) {
+		if (this.editor.getInstanceState().isToolLocked && this.info.onInteractionEnd) {
 			this.editor.setCurrentTool(this.info.onInteractionEnd, {})
 			return
 		}
@@ -212,8 +212,8 @@ export class Resizing extends StateNode {
 			.sub(this.creationCursorOffset)
 		const originPagePoint = this.editor.inputs.originPagePoint.clone().sub(cursorHandleOffset)
 
-		if (this.editor.instanceState.isGridMode && !ctrlKey) {
-			const { gridSize } = this.editor.documentSettings
+		if (this.editor.getInstanceState().isGridMode && !ctrlKey) {
+			const { gridSize } = this.editor.getDocumentSettings()
 			currentPagePoint.snapToGrid(gridSize)
 		}
 
@@ -328,7 +328,7 @@ export class Resizing extends StateNode {
 		isFlippedY: boolean
 		rotation: number
 	}) {
-		const nextCursor = { ...this.editor.instanceState.cursor }
+		const nextCursor = { ...this.editor.getInstanceState().cursor }
 
 		switch (dragHandle) {
 			case 'top_left':
@@ -364,8 +364,8 @@ export class Resizing extends StateNode {
 	}
 
 	_createSnapshot = () => {
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
 		const {
-			selectedShapeIds,
 			selectionRotation,
 			inputs: { originPagePoint },
 		} = this.editor

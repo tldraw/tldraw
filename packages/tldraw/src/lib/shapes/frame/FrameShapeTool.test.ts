@@ -21,7 +21,7 @@ describe(FrameShapeTool, () => {
 
 		expect(editor.currentPageShapes.length).toBe(1)
 		expect(editor.currentPageShapes[0]?.type).toBe('frame')
-		expect(editor.selectedShapeIds[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.getSelectedShapeIds()[0]).toBe(editor.currentPageShapes[0]?.id)
 
 		editor.undo()
 
@@ -41,7 +41,7 @@ describe(FrameShapeTool, () => {
 
 		expect(editor.currentPageShapes.length).toBe(1)
 		expect(editor.currentPageShapes[0]?.type).toBe('frame')
-		expect(editor.selectedShapeIds[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.getSelectedShapeIds()[0]).toBe(editor.currentPageShapes[0]?.id)
 
 		editor.undo()
 

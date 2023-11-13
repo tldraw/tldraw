@@ -81,7 +81,7 @@ export function useGestureEvents(ref: React.RefObject<HTMLDivElement>) {
 		let pinchState = 'not sure' as 'not sure' | 'zooming' | 'panning'
 
 		const onWheel: Handler<'wheel', WheelEvent> = ({ event }) => {
-			if (!editor.instanceState.isFocused) {
+			if (!editor.getInstanceState().isFocused) {
 				return
 			}
 

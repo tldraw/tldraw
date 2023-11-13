@@ -6,6 +6,7 @@ import { GLOBAL_START_EPOCH } from './constants'
 import { EMPTY_ARRAY, equals, haveParentsChanged } from './helpers'
 import { globalEpoch } from './transactions'
 import { Child, ComputeDiff, RESET_VALUE, Signal } from './types'
+import { logComputedGetterWarning, logDotValueWarning } from './warnings'
 
 const UNINITIALIZED = Symbol('UNINITIALIZED')
 /**
@@ -202,16 +203,24 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 		}
 	}
 
-	get value(): Value {
+	get(): Value {
 		const value = this.__unsafe__getWithoutCapture()
 		maybeCaptureParent(this)
 		return value
 	}
 
+	/**
+	 * @deprecated Use [[get]] instead.
+	 */
+	get value() {
+		logDotValueWarning()
+		return this.get()
+	}
+
 	getDiffSince(epoch: number): RESET_VALUE | Diff[] {
 		// need to call .value to ensure both that this derivation is up to date
 		// and that tracking happens correctly
-		this.value
+		this.get()
 
 		if (epoch >= this.lastChangedEpoch) {
 			return EMPTY_ARRAY
@@ -221,7 +230,49 @@ export class _Computed<Value, Diff = unknown> implements Computed<Value, Diff> {
 	}
 }
 
+function computedMethodAnnotation(
+	options: ComputedOptions<any, any> = {},
+	_target: any,
+	key: string,
+	descriptor: PropertyDescriptor
+) {
+	const originalMethod = descriptor.value
+	const derivationKey = Symbol.for('__@tldraw/state__computed__' + key)
+
+	descriptor.value = function (this: any) {
+		let d = this[derivationKey] as _Computed<any> | undefined
+
+		if (!d) {
+			d = new _Computed(key, originalMethod!.bind(this) as any, options)
+			Object.defineProperty(this, derivationKey, {
+				enumerable: false,
+				configurable: false,
+				writable: false,
+				value: d,
+			})
+		}
+		return d.get()
+	}
+	descriptor.value[isComputedMethodKey] = true
+
+	return descriptor
+}
+
 function computedAnnotation(
+	options: ComputedOptions<any, any> = {},
+	_target: any,
+	key: string,
+	descriptor: PropertyDescriptor
+) {
+	if (descriptor.get) {
+		logComputedGetterWarning()
+		return computedGetterAnnotation(options, _target, key, descriptor)
+	} else {
+		return computedMethodAnnotation(options, _target, key, descriptor)
+	}
+}
+
+function computedGetterAnnotation(
 	options: ComputedOptions<any, any> = {},
 	_target: any,
 	key: string,
@@ -242,11 +293,13 @@ function computedAnnotation(
 				value: d,
 			})
 		}
-		return d.value
+		return d.get()
 	}
 
 	return descriptor
 }
+
+const isComputedMethodKey = '@@__isComputedMethod__@@'
 
 /**
  * Retrieves the underlying computed instance for a given property created with the [[computed]]
@@ -278,12 +331,15 @@ export function getComputedInstance<Obj extends object, Prop extends keyof Obj>(
 	obj: Obj,
 	propertyName: Prop
 ): Computed<Obj[Prop]> {
-	// deref to make sure it exists first
 	const key = Symbol.for('__@tldraw/state__computed__' + propertyName.toString())
 	let inst = obj[key as keyof typeof obj] as _Computed<Obj[Prop]> | undefined
 	if (!inst) {
 		// deref to make sure it exists first
-		obj[propertyName]
+		const val = obj[propertyName]
+		if (typeof val === 'function' && (val as any)[isComputedMethodKey]) {
+			val.call(obj)
+		}
+
 		inst = obj[key as keyof typeof obj] as _Computed<Obj[Prop]> | undefined
 	}
 	return inst as any

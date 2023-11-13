@@ -9,7 +9,7 @@ beforeEach(() => {
 
 it('enters the line state', () => {
 	editor.setCurrentTool('line')
-	expect(editor.currentToolId).toBe('line')
+	expect(editor.getCurrentToolId()).toBe('line')
 	editor.expectPathToBe('line.idle')
 })
 

@@ -115,9 +115,9 @@ describe('When center is true', () => {
 })
 
 test("if nothing changes it doesn't update the store", () => {
-	const originalScreenBounds = editor.instanceState.screenBounds
+	const originalScreenBounds = editor.getInstanceState().screenBounds
 	editor.setScreenBounds(originalScreenBounds, true)
-	expect(editor.instanceState.screenBounds).toBe(originalScreenBounds)
+	expect(editor.getInstanceState().screenBounds).toBe(originalScreenBounds)
 	editor.setScreenBounds({ ...originalScreenBounds }, true)
-	expect(editor.instanceState.screenBounds).toBe(originalScreenBounds)
+	expect(editor.getInstanceState().screenBounds).toBe(originalScreenBounds)
 })

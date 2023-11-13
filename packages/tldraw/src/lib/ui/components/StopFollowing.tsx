@@ -6,7 +6,7 @@ export const StopFollowing = track(function ExitPenMode() {
 	const editor = useEditor()
 	const actions = useActions()
 
-	if (!editor.instanceState.followingUserId) {
+	if (!editor.getInstanceState().followingUserId) {
 		return null
 	}
 

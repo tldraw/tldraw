@@ -213,7 +213,7 @@ export class SnapManager {
 	private _snapLines = atom<SnapLine[] | undefined>('snapLines', undefined)
 
 	get lines() {
-		return this._snapLines.value ?? (EMPTY_ARRAY as SnapLine[])
+		return this._snapLines.get() ?? (EMPTY_ARRAY as SnapLine[])
 	}
 
 	clear() {
@@ -248,7 +248,8 @@ export class SnapManager {
 	// TODO: make this an incremental derivation
 	@computed get snappableShapes(): GapNode[] {
 		const { editor } = this
-		const { selectedShapeIds, renderingBounds: renderingBounds } = editor
+		const { renderingBounds: renderingBounds } = editor
+		const selectedShapeIds = editor.getSelectedShapeIds()
 
 		const snappableShapes: GapNode[] = []
 
