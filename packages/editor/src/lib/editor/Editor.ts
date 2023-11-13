@@ -2031,9 +2031,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get hintingShapes() {
+	@computed getHintingShape() {
 		const hintingShapeIds = this.getHintingShapeIds()
 		return compact(hintingShapeIds.map((id) => this.getShape(id)))
+	}
+
+	/**
+	 * @deprecated Use `getHintingShape` instead.
+	 */
+	get hintingShape() {
+		return this.getHintingShape()
 	}
 
 	/**

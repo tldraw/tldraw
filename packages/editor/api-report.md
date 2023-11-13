@@ -694,6 +694,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
+    getHintingShape(): NonNullable<TLShape | undefined>[];
     getHintingShapeIds(): TLShapeId[];
     getHoveredShape(): TLShape | undefined;
     getHoveredShapeId(): null | TLShapeId;
@@ -761,8 +762,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     groupShapes(shapes: TLShape[] | TLShapeId[], groupId?: TLShapeId): this;
     hasAncestor(shape: TLShape | TLShapeId | undefined, ancestorId: TLShapeId): boolean;
     // @deprecated (undocumented)
+    get hintingShape(): NonNullable<TLShape | undefined>[];
+    // @deprecated (undocumented)
     get hintingShapeIds(): TLShapeId[];
-    get hintingShapes(): NonNullable<TLShape | undefined>[];
     readonly history: HistoryManager<this>;
     // @deprecated (undocumented)
     get hoveredShape(): TLShape | undefined;
