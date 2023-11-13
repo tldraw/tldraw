@@ -565,7 +565,7 @@ function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
 	const { selectionRotatedPageBounds: selectionBounds } = editor
 	if (!selectionBounds) return false
 
-	const { selectionRotation } = editor
+	const selectionRotation = editor.getSelectionRotation()
 	if (!selectionRotation) return selectionBounds.containsPoint(point)
 
 	return pointInPolygon(

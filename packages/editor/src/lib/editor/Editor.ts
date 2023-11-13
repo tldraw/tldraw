@@ -1701,7 +1701,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed get selectionRotation(): number {
+	@computed getSelectionRotation(): number {
 		const selectedShapeIds = this.getSelectedShapeIds()
 		if (selectedShapeIds.length === 0) {
 			return 0
@@ -1719,6 +1719,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `getSelectionRotation` instead.
+	 */
+	get selectionRotation() {
+		return this.getSelectionRotation()
+	}
+
+	/**
 	 * The bounds of the selection bounding box in the current page space.
 	 *
 	 * @readonly
@@ -1731,7 +1738,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return undefined
 		}
 
-		const { selectionRotation } = this
+		const selectionRotation = this.getSelectionRotation()
 		if (selectionRotation === 0) {
 			return this.getSelectionPageBounds()!
 		}

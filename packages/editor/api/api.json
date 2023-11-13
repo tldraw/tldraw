@@ -11155,6 +11155,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getSelectionRotation:member(1)",
+              "docComment": "/**\n * The rotation of the selection bounding box in the current page space.\n *\n * @readonly @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getSelectionRotation(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getSelectionRotation"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getShape:member(1)",
               "docComment": "/**\n * Get a shape by its id.\n *\n * @param id - The id of the shape to get.\n *\n * @example\n * ```ts\n * editor.getShape('box1')\n * ```\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -15988,7 +16019,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#selectionRotation:member",
-              "docComment": "/**\n * The rotation of the selection bounding box in the current page space.\n *\n * @readonly @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getSelectionRotation` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

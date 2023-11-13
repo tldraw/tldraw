@@ -835,7 +835,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('rotate-cw', { source })
 					editor.mark('rotate-cw')
-					const offset = editor.selectionRotation % (TAU / 2)
+					const offset = editor.getSelectionRotation() % (TAU / 2)
 					const dontUseOffset = approximately(offset, 0) || approximately(offset, TAU / 2)
 					editor.rotateShapesBy(
 						editor.getSelectedShapeIds(),
@@ -854,7 +854,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					trackEvent('rotate-ccw', { source })
 					editor.mark('rotate-ccw')
-					const offset = editor.selectionRotation % (TAU / 2)
+					const offset = editor.getSelectionRotation() % (TAU / 2)
 					const offsetCloseToZero = approximately(offset, 0)
 					editor.rotateShapesBy(
 						editor.getSelectedShapeIds(),

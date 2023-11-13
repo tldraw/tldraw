@@ -8,8 +8,8 @@ import { Vec2d } from '../primitives/Vec2d'
 /** @internal */
 export function getRotationSnapshot({ editor }: { editor: Editor }): TLRotationSnapshot | null {
 	const selectedShapes = editor.getSelectedShapes()
+	const selectionRotation = editor.getSelectionRotation()
 	const {
-		selectionRotation,
 		selectionRotatedPageBounds: selectionBounds,
 		inputs: { originPagePoint },
 	} = editor

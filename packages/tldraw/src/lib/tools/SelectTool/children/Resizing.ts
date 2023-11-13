@@ -368,8 +368,8 @@ export class Resizing extends StateNode {
 
 	_createSnapshot = () => {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
+		const selectionRotation = this.editor.getSelectionRotation()
 		const {
-			selectionRotation,
 			inputs: { originPagePoint },
 		} = this.editor
 

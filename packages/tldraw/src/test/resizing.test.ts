@@ -332,7 +332,7 @@ describe('When resizing mulitple shapes...', () => {
 				.select(ids.boxA)
 				.pointerDown(rotateStart.x, rotateStart.y, {
 					target: 'selection',
-					handle: rotateRotateCorner('top_left_rotate', -editor.selectionRotation),
+					handle: rotateRotateCorner('top_left_rotate', -editor.getSelectionRotation()),
 				})
 				.pointerMove(rotateEnd.x, rotateEnd.y)
 				.pointerUp()
@@ -367,7 +367,7 @@ describe('When resizing mulitple shapes...', () => {
 			editor
 				.pointerDown(resizeStart.x, resizeStart.y, {
 					target: 'selection',
-					handle: rotateSelectionHandle('top_left', -editor.selectionRotation),
+					handle: rotateSelectionHandle('top_left', -editor.getSelectionRotation()),
 				})
 				.pointerMove(resizeStart.x - 10, resizeStart.y - 10)
 				.pointerMove(resizeEnd.x, resizeEnd.y)
@@ -615,7 +615,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 
 		editor.pointerDown(30, 30, {
 			target: 'selection',
-			handle: rotateSelectionHandle('bottom_right', -editor.selectionRotation),
+			handle: rotateSelectionHandle('bottom_right', -editor.getSelectionRotation()),
 		})
 		editor.pointerMove(15, 15)
 

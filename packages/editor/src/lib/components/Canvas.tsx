@@ -522,7 +522,9 @@ function UiLogger() {
 
 export function SelectionForegroundWrapper() {
 	const editor = useEditor()
-	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
+	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
+		editor,
+	])
 	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
 		editor,
 	])
@@ -533,7 +535,9 @@ export function SelectionForegroundWrapper() {
 
 export function SelectionBackgroundWrapper() {
 	const editor = useEditor()
-	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
+	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
+		editor,
+	])
 	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
 		editor,
 	])

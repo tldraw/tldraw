@@ -224,8 +224,8 @@ export class Cropping extends StateNode {
 	}
 
 	private createSnapshot() {
+		const selectionRotation = this.editor.getSelectionRotation()
 		const {
-			selectionRotation,
 			inputs: { originPagePoint },
 		} = this.editor
 
