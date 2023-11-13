@@ -1,6 +1,3 @@
-//
-// this is fine for navigator.clipboard.write, but for fallbacks it's a
-
 import { Editor, TLShapeId, TLSvgOptions } from '@tldraw/editor'
 import { getSvgAsImage } from './export'
 
