@@ -2184,7 +2184,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/** @internal */
 	@computed
-	private get cameraId() {
+	private getCameraId() {
 		return CameraRecordType.createId(this.currentPageId)
 	}
 
@@ -2194,7 +2194,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get camera() {
-		return this.store.get(this.cameraId)!
+		return this.store.get(this.getCameraId())!
 	}
 
 	/**
