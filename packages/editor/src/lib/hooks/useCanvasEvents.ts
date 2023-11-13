@@ -40,7 +40,7 @@ export function useCanvasEvents() {
 					...getPointerInfo(e),
 				})
 
-				if (editor.openMenus.length > 0) {
+				if (editor.getOpenMenus().length > 0) {
 					editor.updateInstanceState({
 						openMenus: [],
 					})

@@ -1286,8 +1286,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get openMenus(): string[] {
+	@computed getOpenMenus(): string[] {
 		return this.getInstanceState().openMenus
+	}
+
+	/**
+	 * @deprecated Use `getOpenMenus` instead.
+	 */
+	get openMenus() {
+		return this.getOpenMenus()
 	}
 
 	/**
@@ -1301,7 +1308,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	addOpenMenu(id: string): this {
-		const menus = new Set(this.openMenus)
+		const menus = new Set(this.getOpenMenus())
 		if (!menus.has(id)) {
 			menus.add(id)
 			this.updateInstanceState({ openMenus: [...menus] })
@@ -1320,7 +1327,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deleteOpenMenu(id: string): this {
-		const menus = new Set(this.openMenus)
+		const menus = new Set(this.getOpenMenus())
 		if (menus.has(id)) {
 			menus.delete(id)
 			this.updateInstanceState({ openMenus: [...menus] })
@@ -1339,7 +1346,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get isMenuOpen(): boolean {
-		return this.openMenus.length > 0
+		return this.getOpenMenus().length > 0
 	}
 
 	/* --------------------- Cursor --------------------- */

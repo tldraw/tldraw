@@ -131,7 +131,7 @@ export function useDocumentEvents() {
 					}
 
 					// Don't do anything if we open menus open
-					if (editor.openMenus.length > 0) return
+					if (editor.getOpenMenus().length > 0) return
 
 					if (!editor.inputs.keys.has('Escape')) {
 						editor.inputs.keys.add('Escape')

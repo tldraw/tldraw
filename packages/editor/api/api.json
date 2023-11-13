@@ -10456,6 +10456,37 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getOpenMenus:member(1)",
+              "docComment": "/**\n * A set of strings representing any open menus. When menus are open, certain interactions will behave differently; for example, when a draw tool is selected and a menu is open, a pointer-down will not create a dot (because the user is probably trying to close the menu) however a pointer-down event followed by a drag will begin drawing a line (because the user is BOTH trying to close the menu AND start drawing a line).\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getOpenMenus(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getOpenMenus"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getOutermostSelectableShape:member(1)",
               "docComment": "/**\n * Get the shape that should be selected when you click on a given shape, assuming there is nothing already selected. It will not return anything higher than or including the current focus layer.\n *\n * @param shape - The shape to get the outermost selectable shape for.\n *\n * @param filter - A function to filter the selectable shapes.\n *\n * @returns The outermost selectable shape.\n *\n * @public\n */\n",
               "excerptTokens": [
@@ -13994,7 +14025,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#openMenus:member",
-              "docComment": "/**\n * A set of strings representing any open menus. When menus are open, certain interactions will behave differently; for example, when a draw tool is selected and a menu is open, a pointer-down will not create a dot (because the user is probably trying to close the menu) however a pointer-down event followed by a drag will begin drawing a line (because the user is BOTH trying to close the menu AND start drawing a line).\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getOpenMenus` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
