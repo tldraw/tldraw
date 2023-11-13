@@ -34,11 +34,11 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		const bottomLeftEvents = useSelectionEvents('bottom_left')
 
 		const isDefaultCursor =
-			!editor.isMenuOpen && editor.getInstanceState().cursor.type === 'default'
+			!editor.getIsMenuOpen() && editor.getInstanceState().cursor.type === 'default'
 		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
-		const shapes = editor.selectedShapes
-		const onlyShape = editor.onlySelectedShape
+		const shapes = editor.getSelectedShapes()
+		const onlyShape = editor.getOnlySelectedShape()
 		const isLockedShape = onlyShape && editor.isShapeOrAncestorLocked(onlyShape)
 
 		// if all shapes have an expandBy for the selection outline, we can expand by the l
@@ -46,7 +46,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
 			: 0
 
-		useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.selectionRotation, {
+		useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.getSelectionRotation(), {
 			x: -expandOutlineBy,
 			y: -expandOutlineBy,
 		})

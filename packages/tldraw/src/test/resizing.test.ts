@@ -243,9 +243,9 @@ describe('When resizing a rotated shape...', () => {
 		const initialPagePoint = editor.getShapePageTransform(ids.boxA)!.point()
 
 		const pt0 = Vec2d.From(initialPagePoint)
-		const pt1 = Vec2d.RotWith(initialPagePoint, editor.selectionPageBounds!.center, rotation)
+		const pt1 = Vec2d.RotWith(initialPagePoint, editor.getSelectionPageBounds()!.center, rotation)
 		const pt2 = Vec2d.Sub(initialPagePoint, offset).rotWith(
-			editor.selectionPageBounds!.center!,
+			editor.getSelectionPageBounds()!.center!,
 			rotation
 		)
 
@@ -332,7 +332,7 @@ describe('When resizing mulitple shapes...', () => {
 				.select(ids.boxA)
 				.pointerDown(rotateStart.x, rotateStart.y, {
 					target: 'selection',
-					handle: rotateRotateCorner('top_left_rotate', -editor.selectionRotation),
+					handle: rotateRotateCorner('top_left_rotate', -editor.getSelectionRotation()),
 				})
 				.pointerMove(rotateEnd.x, rotateEnd.y)
 				.pointerUp()
@@ -347,7 +347,7 @@ describe('When resizing mulitple shapes...', () => {
 
 			// Now drag to resize the selection bounds
 
-			const initialBounds = editor.selectionPageBounds!
+			const initialBounds = editor.getSelectionPageBounds()!
 
 			// oddly rotated shapes maintain aspect ratio when being resized (for now)
 			const aspectRatio = initialBounds.width / initialBounds.height
@@ -367,15 +367,15 @@ describe('When resizing mulitple shapes...', () => {
 			editor
 				.pointerDown(resizeStart.x, resizeStart.y, {
 					target: 'selection',
-					handle: rotateSelectionHandle('top_left', -editor.selectionRotation),
+					handle: rotateSelectionHandle('top_left', -editor.getSelectionRotation()),
 				})
 				.pointerMove(resizeStart.x - 10, resizeStart.y - 10)
 				.pointerMove(resizeEnd.x, resizeEnd.y)
 				.pointerUp()
 
-			expect(editor.selectionPageBounds!.point).toCloselyMatchObject(resizeEnd)
+			expect(editor.getSelectionPageBounds()!.point).toCloselyMatchObject(resizeEnd)
 			expect(new Vec2d(initialBounds.maxX, initialBounds.maxY)).toCloselyMatchObject(
-				new Vec2d(editor.selectionPageBounds!.maxX, editor.selectionPageBounds!.maxY)
+				new Vec2d(editor.getSelectionPageBounds()!.maxX, editor.getSelectionPageBounds()!.maxY)
 			)
 		}
 	)
@@ -423,7 +423,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		editor.pointerDown(30, 30, { target: 'selection', handle: 'bottom_right' })
 		editor.pointerMove(15, 15)
 
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 15, h: 15 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 10, y: 10, w: 5, h: 5 })
 
@@ -447,7 +447,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//  └──────────────────────────────────────────────────────────────────O
 
 		editor.pointerMove(60, 30)
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 60, h: 30 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 60, h: 30 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 20, h: 10 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 40, y: 20, w: 20, h: 10 })
 		// stretch vertically
@@ -482,7 +482,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// 60    │                    └──────────┘ │
 		//       └─────────────────────────────────O
 		editor.pointerMove(30, 60)
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 30, h: 60 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 30, h: 60 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 10, h: 20 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 20, y: 40, w: 10, h: 20 })
 
@@ -499,7 +499,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//   │         └───┘ │
 		//   └───────────────┘
 		editor.pointerMove(-15, -15)
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 15, h: 15 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: -5, y: -5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: -15, y: -15, w: 5, h: 5 })
 
@@ -523,7 +523,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//     └───────────────────────────────────O
 		editor.pointerMove(45, 45, { altKey: true })
 
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({
 			w: 60,
 			h: 60,
 			x: -15,
@@ -548,7 +548,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		editor.pointerMove(15, 8, { altKey: false, shiftKey: true })
 		jest.advanceTimersByTime(200)
 
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 15, h: 15 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 10, y: 10, w: 5, h: 5 })
 
@@ -571,7 +571,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//     │                      └──────────┘ │
 		//     └───────────────────────────────────O
 		editor.pointerMove(45, 16, { altKey: true, shiftKey: true })
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({
 			w: 60,
 			h: 60,
 			x: -15,
@@ -615,14 +615,14 @@ describe('Reisizing a selection of multiple shapes', () => {
 
 		editor.pointerDown(30, 30, {
 			target: 'selection',
-			handle: rotateSelectionHandle('bottom_right', -editor.selectionRotation),
+			handle: rotateSelectionHandle('bottom_right', -editor.getSelectionRotation()),
 		})
 		editor.pointerMove(15, 15)
 
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 10, y: 10, w: 5, h: 5 })
 
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 15, h: 15 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 
 		// strech horizontally
 
@@ -644,7 +644,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//  └──────────────────────────────────────────────────────────────────O
 
 		editor.pointerMove(60, 30)
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 60, h: 30 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 60, h: 30 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 20, h: 10 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 40, y: 20, w: 20, h: 10 })
 		// stretch vertically
@@ -679,7 +679,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		// 60    │                    └──────────┘ │
 		//       └─────────────────────────────────O
 		editor.pointerMove(30, 60)
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 30, h: 60 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 30, h: 60 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 10, h: 20 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 20, y: 40, w: 10, h: 20 })
 
@@ -696,7 +696,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//   │         └───┘ │
 		//   └───────────────┘
 		editor.pointerMove(-15, -15)
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 15, h: 15 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: -5, y: -5, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: -15, y: -15, w: 5, h: 5 })
 
@@ -719,7 +719,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//     │                      └──────────┘ │
 		//     └───────────────────────────────────O
 		editor.pointerMove(45, 45, { altKey: true })
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({
 			w: 60,
 			h: 60,
 			x: -15,
@@ -744,7 +744,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		editor.pointerMove(15, 8, { altKey: false, shiftKey: true })
 		jest.advanceTimersByTime(200)
 
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 15, h: 15 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 15, h: 15 })
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 5, h: 5 })
 		expect(roundedPageBounds(ids.boxB)).toMatchObject({ x: 10, y: 10, w: 5, h: 5 })
 
@@ -767,7 +767,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		//     │                      └──────────┘ │
 		//     └───────────────────────────────────O
 		editor.pointerMove(45, 16, { altKey: true, shiftKey: true })
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({
 			w: 60,
 			h: 60,
 			x: -15,
@@ -803,7 +803,7 @@ describe('Reisizing a selection of multiple shapes', () => {
 		editor.select(ids.boxA, ids.boxB)
 		editor.pointerDown(30, 30, { target: 'selection', handle: 'bottom_right' })
 		editor.pointerMove(60, 30)
-		expect(roundedBox(editor.selectionPageBounds!)).toMatchObject({ w: 60, h: 30 })
+		expect(roundedBox(editor.getSelectionPageBounds()!)).toMatchObject({ w: 60, h: 30 })
 		// A should stretch
 		expect(roundedPageBounds(ids.boxA)).toMatchObject({ x: 0, y: 0, w: 20, h: 10 })
 		// B should not
@@ -3570,13 +3570,13 @@ describe('nodes that have do not resize', () => {
 
 		editor.select(ids.boxA, noteBId, noteCId)
 
-		editor.flipShapes(editor.selectedShapeIds, 'horizontal')
+		editor.flipShapes(editor.getSelectedShapeIds(), 'horizontal')
 
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({ x: 300, y: 0, w: 200, h: 200 })
 		expect(editor.getShapePageBounds(noteBId)).toMatchObject({ x: 0, y: 0, w: 200, h: 200 })
 		expect(editor.getShapePageBounds(noteCId)).toMatchObject({ x: 300, y: 300, w: 200, h: 200 })
 
-		editor.flipShapes(editor.selectedShapeIds, 'vertical')
+		editor.flipShapes(editor.getSelectedShapeIds(), 'vertical')
 
 		expect(editor.getShapePageBounds(ids.boxA)).toMatchObject({
 			x: 300,

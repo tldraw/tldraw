@@ -64,7 +64,9 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 
 	const emptyPage = useValue('emptyPage', () => editor.currentPageShapeIds.size === 0, [editor])
 
-	const selectedCount = useValue('selectedCount', () => editor.selectedShapeIds.length, [editor])
+	const selectedCount = useValue('selectedCount', () => editor.getSelectedShapeIds().length, [
+		editor,
+	])
 	const noneSelected = selectedCount === 0
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1
@@ -82,7 +84,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const oneEmbedSelected = useValue(
 		'oneEmbedSelected',
 		() => {
-			const { onlySelectedShape } = editor
+			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return !!(
 				editor.isShapeOfType<TLEmbedShape>(onlySelectedShape, 'embed') &&
@@ -96,7 +98,7 @@ export function TLUiMenuSchemaProvider({ overrides, children }: TLUiMenuSchemaPr
 	const oneEmbeddableBookmarkSelected = useValue(
 		'oneEmbeddableBookmarkSelected',
 		() => {
-			const { onlySelectedShape } = editor
+			const onlySelectedShape = editor.getOnlySelectedShape()
 			if (!onlySelectedShape) return false
 			return !!(
 				editor.isShapeOfType<TLBookmarkShape>(onlySelectedShape, 'bookmark') &&

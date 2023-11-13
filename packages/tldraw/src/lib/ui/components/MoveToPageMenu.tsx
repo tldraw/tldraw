@@ -36,7 +36,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 								disabled={currentPageId === page.id}
 								onSelect={() => {
 									editor.mark('move_shapes_to_page')
-									editor.moveShapesToPage(editor.selectedShapeIds, page.id as TLPageId)
+									editor.moveShapesToPage(editor.getSelectedShapeIds(), page.id as TLPageId)
 
 									const toPage = editor.getPage(page.id)
 
@@ -79,7 +79,7 @@ export const MoveToPageMenu = track(function MoveToPageMenu() {
 							key="new-page"
 							onSelect={() => {
 								const newPageId = PageRecordType.createId()
-								const ids = editor.selectedShapeIds
+								const ids = editor.getSelectedShapeIds()
 								editor.batch(() => {
 									editor.mark('move_shapes_to_page')
 									editor.createPage({ name: 'Page', id: newPageId })

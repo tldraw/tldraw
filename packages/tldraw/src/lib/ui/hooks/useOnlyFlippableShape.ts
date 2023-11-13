@@ -12,7 +12,7 @@ export function useOnlyFlippableShape() {
 	return useValue(
 		'onlyFlippableShape',
 		() => {
-			const { selectedShapes } = editor
+			const selectedShapes = editor.getSelectedShapes()
 			return (
 				selectedShapes.length === 1 &&
 				selectedShapes.every(

@@ -8,7 +8,7 @@ export class PointingCanvas extends StateNode {
 		const { inputs } = this.editor
 
 		if (!inputs.shiftKey) {
-			if (this.editor.selectedShapeIds.length > 0) {
+			if (this.editor.getSelectedShapeIds().length > 0) {
 				this.editor.mark('selecting none')
 				this.editor.selectNone()
 			}

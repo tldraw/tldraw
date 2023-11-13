@@ -11,7 +11,7 @@ export class Idle extends StateNode {
 			{ ephemeral: true }
 		)
 
-		const { onlySelectedShape } = this.editor
+		const onlySelectedShape = this.editor.getOnlySelectedShape()
 
 		// well this fucking sucks. what the fuck.
 		// it's possible for a user to enter cropping, then undo
@@ -39,7 +39,7 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		if (this.editor.isMenuOpen) return
+		if (this.editor.getIsMenuOpen()) return
 
 		if (info.ctrlKey) {
 			this.cancel()

@@ -37,7 +37,7 @@ export const HelpMenuSchemaProvider = track(function HelpMenuSchemaProvider({
 	const editor = useEditor()
 	const actions = useActions()
 
-	const selectedCount = editor.selectedShapeIds.length
+	const selectedCount = editor.getSelectedShapeIds().length
 
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1

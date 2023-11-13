@@ -24,7 +24,7 @@ type ShapeWithMyMeta = TLShape & { meta: { label: string } }
 
 export const ShapeLabelUiWithHelper = track(function ShapeLabelUiWithHelper() {
 	const editor = useEditor()
-	const onlySelectedShape = editor.onlySelectedShape as ShapeWithMyMeta | null
+	const onlySelectedShape = editor.getOnlySelectedShape() as ShapeWithMyMeta | null
 
 	if (!onlySelectedShape) {
 		return null

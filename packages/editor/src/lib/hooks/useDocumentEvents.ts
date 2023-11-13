@@ -83,7 +83,7 @@ export function useDocumentEvents() {
 					break
 				}
 				case 'Tab': {
-					if (isFocusingInput() || editor.isMenuOpen) {
+					if (isFocusingInput() || editor.getIsMenuOpen()) {
 						return
 					}
 					break
@@ -126,7 +126,7 @@ export function useDocumentEvents() {
 					// escape de-selects them. Only when the user's selection is empty
 					// should we allow escape to do its normal thing.
 
-					if (editor.editingShape || editor.selectedShapeIds.length > 0) {
+					if (editor.getEditingShape() || editor.getSelectedShapeIds().length > 0) {
 						e.preventDefault()
 					}
 
@@ -147,7 +147,7 @@ export function useDocumentEvents() {
 					return
 				}
 				default: {
-					if (isFocusingInput() || editor.isMenuOpen) {
+					if (isFocusingInput() || editor.getIsMenuOpen()) {
 						return
 					}
 				}
@@ -170,7 +170,7 @@ export function useDocumentEvents() {
 			if ((e as any).isKilled) return
 			;(e as any).isKilled = true
 
-			if (isFocusingInput() || editor.isMenuOpen) {
+			if (isFocusingInput() || editor.getIsMenuOpen()) {
 				return
 			}
 

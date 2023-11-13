@@ -13,14 +13,14 @@ export class EditingShape extends StateNode {
 	static override id = 'editing_shape'
 
 	override onEnter = () => {
-		const { editingShape } = this.editor
+		const editingShape = this.editor.getEditingShape()
 		if (!editingShape) throw Error('Entered editing state without an editing shape')
 		updateHoveredId(this.editor)
 		this.editor.select(editingShape)
 	}
 
 	override onExit = () => {
-		const { editingShapeId } = this.editor.currentPageState
+		const { editingShapeId } = this.editor.getCurrentPageState()
 		if (!editingShapeId) return
 
 		// Clear the editing shape
@@ -62,7 +62,7 @@ export class EditingShape extends StateNode {
 			}
 			case 'shape': {
 				const { shape } = info
-				const { editingShape } = this.editor
+				const editingShape = this.editor.getEditingShape()
 
 				if (!editingShape) {
 					throw Error('Expected an editing shape!')

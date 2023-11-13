@@ -20,8 +20,8 @@ describe('creating frames', () => {
 	it('can be done', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		expect(editor.onlySelectedShape?.type).toBe('frame')
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getOnlySelectedShape()?.type).toBe('frame')
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 100,
 			y: 100,
 			w: 100,
@@ -31,9 +31,9 @@ describe('creating frames', () => {
 	it('will create with a default size if no dragging happens', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerUp(100, 100)
-		expect(editor.onlySelectedShape?.type).toBe('frame')
+		expect(editor.getOnlySelectedShape()?.type).toBe('frame')
 		const { w, h } = editor.getShapeUtil<TLFrameShape>('frame').getDefaultProps()
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 100 - w / 2,
 			y: 100 - h / 2,
 			w,
@@ -43,7 +43,7 @@ describe('creating frames', () => {
 	it('can be canceled while pointing', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).cancel().pointerUp(100, 100)
-		expect(editor.onlySelectedShape?.type).toBe(undefined)
+		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
 		expect(editor.currentPageShapes).toHaveLength(0)
 	})
 	it('can be canceled while dragging', () => {
@@ -52,35 +52,35 @@ describe('creating frames', () => {
 		editor.expectPathToBe('root.select.resizing')
 		editor.cancel()
 		editor.pointerUp()
-		expect(editor.onlySelectedShape?.type).toBe(undefined)
+		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
 		expect(editor.currentPageShapes).toHaveLength(0)
 	})
 	it('can be undone', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
-		expect(editor.onlySelectedShape?.type).toBe('frame')
+		expect(editor.getOnlySelectedShape()?.type).toBe('frame')
 		expect(editor.currentPageShapes).toHaveLength(1)
 
 		editor.undo()
 
-		expect(editor.onlySelectedShape?.type).toBe(undefined)
+		expect(editor.getOnlySelectedShape()?.type).toBe(undefined)
 		expect(editor.currentPageShapes).toHaveLength(0)
 	})
 	it('can be done inside other frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
-		const frameAId = editor.onlySelectedShape!.id
+		const frameAId = editor.getOnlySelectedShape()!.id
 
 		editor.setCurrentTool('frame')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
 		expect(editor.currentPageShapes).toHaveLength(2)
 
-		expect(editor.onlySelectedShape?.parentId).toEqual(frameAId)
+		expect(editor.getOnlySelectedShape()?.parentId).toEqual(frameAId)
 
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 125,
 			y: 125,
 			w: 50,
@@ -91,7 +91,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
-		const frameAId = editor.onlySelectedShape!.id
+		const frameAId = editor.getOnlySelectedShape()!.id
 
 		editor.rotateSelection(Math.PI / 2)
 
@@ -100,9 +100,9 @@ describe('creating frames', () => {
 
 		expect(editor.currentPageShapes).toHaveLength(2)
 
-		expect(editor.onlySelectedShape?.parentId).toEqual(frameAId)
+		expect(editor.getOnlySelectedShape()?.parentId).toEqual(frameAId)
 
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toCloselyMatchObject({
 			x: 125,
 			y: 125,
 			w: 50,
@@ -118,7 +118,7 @@ describe('creating frames', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(49, 149)
 
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 49,
 			y: 100,
 			w: 51,
@@ -128,7 +128,7 @@ describe('creating frames', () => {
 		// x should snap
 		editor.keyDown('Control')
 		expect(editor.snaps.lines).toHaveLength(1)
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 50,
 			y: 100,
 			w: 50,
@@ -184,7 +184,7 @@ describe('frame shapes', () => {
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
 		editor.resizeSelection({ scaleX: 0.5, scaleY: 0.5 }, 'bottom_right')
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toCloselyMatchObject({
 			x: 100,
 			y: 100,
 			w: 50,
@@ -198,7 +198,7 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 		editor.resizeSelection({ scaleX: 0.5, scaleY: 0.5 }, 'bottom_right', { altKey: true })
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toCloselyMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toCloselyMatchObject({
 			x: 125,
 			y: 125,
 			w: 50,
@@ -210,12 +210,12 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
-		const frameId = editor.onlySelectedShape!.id
+		const frameId = editor.getOnlySelectedShape()!.id
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
 
-		const boxId = editor.onlySelectedShape!.id
+		const boxId = editor.getOnlySelectedShape()!.id
 
 		editor.select(frameId)
 
@@ -239,42 +239,42 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
-		const frameId = editor.onlySelectedShape!.id
+		const frameId = editor.getOnlySelectedShape()!.id
 
 		editor.createShapes([
 			{ type: 'geo', id: ids.boxA, x: 250, y: 250, props: { w: 50, h: 50, fill: 'solid' } },
 		])
 
-		expect(editor.onlySelectedShape!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
 
 		editor.setCurrentTool('select')
 		editor.pointerDown(275, 275).pointerMove(150, 150)
 
 		jest.advanceTimersByTime(300)
 
-		expect(editor.onlySelectedShape!.id).toBe(ids.boxA)
-		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
+		expect(editor.getOnlySelectedShape()!.id).toBe(ids.boxA)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 
 		editor.pointerMove(275, 275)
 		jest.advanceTimersByTime(250)
 
-		expect(editor.onlySelectedShape!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
 
 		editor.pointerMove(150, 150)
 		jest.advanceTimersByTime(250)
 
-		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 
 		editor.pointerUp(150, 150)
 
-		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 	})
 
 	it('can have shapes dragged on top and dropped before the timeout fires', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
-		const frameId = editor.onlySelectedShape!.id
+		const frameId = editor.getOnlySelectedShape()!.id
 
 		// Create a new shape off of the frame
 		editor.createShapes([
@@ -282,37 +282,37 @@ describe('frame shapes', () => {
 		])
 
 		// It should be a child of the page
-		expect(editor.onlySelectedShape!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
 
 		// Drag the shape on top of the frame
 		editor.setCurrentTool('select')
 		editor.pointerDown(275, 275, ids.boxA).pointerMove(150, 150)
 
 		// The timeout has not fired yet, so the shape is still a child of the current page
-		expect(editor.onlySelectedShape!.parentId).toBe(editor.currentPageId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(editor.currentPageId)
 
 		// On pointer up, the shape should be dropped into the frame
 		editor.pointerUp()
-		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 	})
 
 	it('does not reparent shapes that are being dragged from within the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
-		const frameId = editor.onlySelectedShape!.id
+		const frameId = editor.getOnlySelectedShape()!.id
 
 		// create a box within the frame
 		editor.setCurrentTool('geo')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
-		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
-		const boxAid = editor.onlySelectedShape!.id
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
+		const boxAid = editor.getOnlySelectedShape()!.id
 
 		// create another box within the frame
 		editor.setCurrentTool('geo')
 		editor.pointerDown(130, 130).pointerMove(180, 180).pointerUp(180, 180)
-		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
-		const boxBid = editor.onlySelectedShape!.id
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
+		const boxBid = editor.getOnlySelectedShape()!.id
 
 		// dragging box A around should not cause the index to change or the frame to be highlighted
 
@@ -325,8 +325,8 @@ describe('frame shapes', () => {
 
 		jest.advanceTimersByTime(2500)
 
-		expect(editor.onlySelectedShape!.id).toBe(boxAid)
-		expect(editor.onlySelectedShape!.parentId).toBe(frameId)
+		expect(editor.getOnlySelectedShape()!.id).toBe(boxAid)
+		expect(editor.getOnlySelectedShape()!.parentId).toBe(frameId)
 		expect(editor.hintingShapeIds).toHaveLength(0)
 		// box A should still be beneath box B
 		expect(editor.getShape(boxAid)!.index.localeCompare(editor.getShape(boxBid)!.index)).toBe(-1)
@@ -355,12 +355,12 @@ describe('frame shapes', () => {
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
-		const innerBoxId = editor.onlySelectedShape!.id
+		const innerBoxId = editor.getOnlySelectedShape()!.id
 
 		// make a shape outside the frame
 		editor.setCurrentTool('geo')
 		editor.pointerDown(275, 125).pointerMove(280, 130).pointerUp(280, 130)
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 275,
 			y: 125,
 			w: 5,
@@ -370,13 +370,13 @@ describe('frame shapes', () => {
 		// drag it a pixel up, it should not snap even though it's at the same y as the box inside the frame
 		editor.setCurrentTool('select')
 		editor
-			.pointerDown(277.5, 127.5, editor.onlySelectedShape!.id)
+			.pointerDown(277.5, 127.5, editor.getOnlySelectedShape()!.id)
 			.pointerMove(287.5, 126.5)
 			.pointerMove(277.5, 126.5)
 
 		// now try to snap
 		editor.keyDown('Control')
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 275,
 			y: 124,
 			w: 5,
@@ -388,7 +388,7 @@ describe('frame shapes', () => {
 
 		editor.pointerMove(287.5, 126.5).pointerMove(277.5, 126.5)
 		expect(editor.snaps.lines).toHaveLength(1)
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 275,
 			y: 125,
 			w: 5,
@@ -399,17 +399,17 @@ describe('frame shapes', () => {
 	it('children of a frame will not snap to shapes outside the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		const frameId = editor.onlySelectedShape!.id
+		const frameId = editor.getOnlySelectedShape()!.id
 
 		// make a shape inside the frame
 		editor.setCurrentTool('geo')
 		editor.pointerDown(125, 125).pointerMove(175, 175).pointerUp(175, 175)
-		const innerBoxId = editor.onlySelectedShape!.id
+		const innerBoxId = editor.getOnlySelectedShape()!.id
 
 		// make a shape outside the frame
 		editor.setCurrentTool('geo')
 		editor.pointerDown(275, 125).pointerMove(280, 130).pointerUp(280, 130)
-		const outerBoxId = editor.onlySelectedShape!.id
+		const outerBoxId = editor.getOnlySelectedShape()!.id
 
 		editor.setCurrentTool('select')
 		editor.pointerDown(150, 150, innerBoxId).pointerMove(150, 50).pointerMove(150, 148)
@@ -429,7 +429,7 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(150, 150).pointerMove(250, 250).pointerUp(250, 250)
 
-		expect(editor.getShapePageBounds(editor.onlySelectedShape!)).toMatchObject({
+		expect(editor.getShapePageBounds(editor.getOnlySelectedShape()!)).toMatchObject({
 			x: 150,
 			y: 150,
 			w: 100,
@@ -437,13 +437,13 @@ describe('frame shapes', () => {
 		})
 
 		// mask should be a 50px box around the top left corner
-		expect(editor.getShapeClipPath(editor.onlySelectedShape!.id)).toMatchInlineSnapshot(
+		expect(editor.getShapeClipPath(editor.getOnlySelectedShape()!.id)).toMatchInlineSnapshot(
 			`"polygon(-50px -50px,50px -50px,50px 50px,-50px 50px)"`
 		)
 
-		editor.reparentShapes([editor.onlySelectedShape!.id], editor.currentPageId)
+		editor.reparentShapes([editor.getOnlySelectedShape()!.id], editor.currentPageId)
 
-		expect(editor.getShapeClipPath(editor.onlySelectedShape!.id)).toBeUndefined()
+		expect(editor.getShapeClipPath(editor.getOnlySelectedShape()!.id)).toBeUndefined()
 	})
 
 	it('masks its nested children', () => {
@@ -453,12 +453,12 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(150, 150).pointerMove(250, 250).pointerUp(250, 250)
 
-		const innerFrameId = editor.onlySelectedShape!.id
+		const innerFrameId = editor.getOnlySelectedShape()!.id
 
 		editor.setCurrentTool('geo')
 		editor.pointerDown(100, 100).pointerMove(250, 250).pointerUp(250, 250)
 
-		const boxId = editor.onlySelectedShape!.id
+		const boxId = editor.getOnlySelectedShape()!.id
 
 		editor.reparentShapes([boxId], innerFrameId)
 
@@ -471,12 +471,12 @@ describe('frame shapes', () => {
 	it('arrows started within the frame will bind to it and have the page as their parent', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		const frameId = editor.onlySelectedShape!.id
+		const frameId = editor.getOnlySelectedShape()!.id
 
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(150, 150).pointerMove(250, 250).pointerUp(250, 250)
 
-		const arrow = editor.onlySelectedShape! as TLArrowShape
+		const arrow = editor.getOnlySelectedShape()! as TLArrowShape
 
 		expect(arrow.props.start).toMatchObject({ boundShapeId: frameId })
 		expect(arrow.props.end).toMatchObject({ type: 'point' })
@@ -487,7 +487,7 @@ describe('frame shapes', () => {
 	it('arrows started within the frame can bind to a shape within the frame ', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		const frameId = editor.onlySelectedShape!.id
+		const frameId = editor.getOnlySelectedShape()!.id
 
 		editor.setCurrentTool('geo')
 		editor
@@ -496,12 +496,12 @@ describe('frame shapes', () => {
 			.pointerUp(175, 175)
 			.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
 			.setStyleForNextShapes(DefaultFillStyle, 'solid')
-		const boxId = editor.onlySelectedShape!.id
+		const boxId = editor.getOnlySelectedShape()!.id
 
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(150, 150).pointerMove(190, 190).pointerUp(190, 190)
 
-		const arrow = editor.onlySelectedShape! as TLArrowShape
+		const arrow = editor.getOnlySelectedShape()! as TLArrowShape
 
 		expect(arrow.props.start).toMatchObject({ boundShapeId: boxId })
 		expect(arrow.props.end).toMatchObject({ boundShapeId: frameId })
@@ -513,35 +513,35 @@ describe('frame shapes', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
 
-		const frameId = editor.onlySelectedShape!.id
+		const frameId = editor.getOnlySelectedShape()!.id
 
-		expect(editor.selectedShapeIds[0]).toBe(frameId)
-		expect(editor.currentPageState.editingShapeId).toBe(null)
+		expect(editor.getSelectedShapeIds()[0]).toBe(frameId)
+		expect(editor.getCurrentPageState().editingShapeId).toBe(null)
 
 		editor.setCurrentTool('select')
 
 		editor.keyDown('Enter')
 		editor.keyUp('Enter')
 
-		expect(editor.currentPageState.editingShapeId).toBe(frameId)
+		expect(editor.getCurrentPageState().editingShapeId).toBe(frameId)
 	})
 
 	it('can be selected with box brushing only if the whole frame is selected', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		const frameId = editor.onlySelectedShape!.id
+		const frameId = editor.getOnlySelectedShape()!.id
 
 		// select from outside the frame
 		editor.setCurrentTool('select')
 		editor.pointerDown(50, 50).pointerMove(150, 150)
 		editor.expectPathToBe('root.select.brushing')
 
-		expect(editor.selectedShapeIds).toHaveLength(0)
+		expect(editor.getSelectedShapeIds()).toHaveLength(0)
 
 		editor.pointerMove(250, 250)
 
-		expect(editor.selectedShapeIds).toHaveLength(1)
-		expect(editor.onlySelectedShape!.id).toBe(frameId)
+		expect(editor.getSelectedShapeIds()).toHaveLength(1)
+		expect(editor.getOnlySelectedShape()!.id).toBe(frameId)
 	})
 
 	it('can be selected with scribble brushing only if the drag starts outside the frame', () => {
@@ -555,33 +555,33 @@ describe('frame shapes', () => {
 		editor.pointerDown(150, 150).pointerMove(250, 250)
 		editor.expectPathToBe('root.select.brushing')
 
-		expect(editor.selectedShapeIds).toHaveLength(0)
+		expect(editor.getSelectedShapeIds()).toHaveLength(0)
 	})
 
 	it('children of a frame will not be selected from outside of the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		editor.onlySelectedShape!.id
+		editor.getOnlySelectedShape()!.id
 
 		// make a shape inside the frame that extends out of the frame
 		editor.setCurrentTool('geo')
 		editor.pointerDown(150, 150).pointerMove(400, 400).pointerUp(400, 400)
-		const innerBoxId = editor.onlySelectedShape!.id
+		const innerBoxId = editor.getOnlySelectedShape()!.id
 
 		// select from outside the frame via box brushing
 		editor.setCurrentTool('select')
 		editor.pointerDown(500, 500).pointerMove(300, 300).pointerUp(300, 300)
 
 		// Check if the inner box was selected
-		expect(editor.selectedShapeIds).toHaveLength(0)
+		expect(editor.getSelectedShapeIds()).toHaveLength(0)
 
 		// Select from outside the frame via box brushing
 		// but also include the frame in the selection
 		editor.pointerDown(400, 0).pointerMove(195, 175).pointerUp(195, 175)
 
 		// Check if the inner box was selected
-		expect(editor.selectedShapeIds).toHaveLength(1)
-		expect(editor.onlySelectedShape!.id).toBe(innerBoxId)
+		expect(editor.getSelectedShapeIds()).toHaveLength(1)
+		expect(editor.getOnlySelectedShape()!.id).toBe(innerBoxId)
 
 		// Deselect everything
 		editor.deselect()
@@ -594,13 +594,13 @@ describe('frame shapes', () => {
 
 		// Check if the inner box was selected
 		editor.pointerUp(300, 300)
-		expect(editor.selectedShapeIds).toHaveLength(0)
+		expect(editor.getSelectedShapeIds()).toHaveLength(0)
 	})
 
 	it('arrows will not bind to parts of shapes outside the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		editor.onlySelectedShape!.id
+		editor.getOnlySelectedShape()!.id
 
 		// make a shape inside the frame that extends out of the frame
 		editor.setCurrentTool('geo')
@@ -610,14 +610,14 @@ describe('frame shapes', () => {
 			.pointerUp(400, 400)
 			.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
 			.setStyleForNextShapes(DefaultFillStyle, 'solid')
-		const innerBoxId = editor.onlySelectedShape!.id
+		const innerBoxId = editor.getOnlySelectedShape()!.id
 
 		// Make an arrow that binds to the inner box's bottom right corner
 		editor.setCurrentTool('arrow')
 		editor.pointerDown(500, 500).pointerMove(375, 375)
 
 		// Check if the arrow's handles remain points
-		let arrow = editor.onlySelectedShape! as TLArrowShape
+		let arrow = editor.getOnlySelectedShape()! as TLArrowShape
 		expect(arrow.props.start).toMatchObject({
 			type: 'point',
 			x: 0,
@@ -633,7 +633,7 @@ describe('frame shapes', () => {
 		editor.pointerMove(175, 175).pointerUp(175, 175)
 
 		// Check if arrow's end handle is bound to the inner box
-		arrow = editor.onlySelectedShape! as TLArrowShape
+		arrow = editor.getOnlySelectedShape()! as TLArrowShape
 		expect(arrow.props.end).toMatchObject({ boundShapeId: innerBoxId })
 	})
 })
@@ -655,7 +655,7 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 	// └──────────────────────────┘
 	editor.setCurrentTool('frame')
 	editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-	const frameId = editor.onlySelectedShape!.id
+	const frameId = editor.getOnlySelectedShape()!.id
 
 	editor.setCurrentTool('geo')
 	editor
@@ -664,7 +664,7 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 		.pointerUp(120, 120)
 		.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
 		.setStyleForNextShapes(DefaultFillStyle, 'solid')
-	const boxAId = editor.onlySelectedShape!.id
+	const boxAId = editor.getOnlySelectedShape()!.id
 
 	editor.setCurrentTool('geo')
 	editor
@@ -673,7 +673,7 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 		.pointerUp(190, 120)
 		.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
 		.setStyleForNextShapes(DefaultFillStyle, 'solid')
-	const boxBId = editor.onlySelectedShape!.id
+	const boxBId = editor.getOnlySelectedShape()!.id
 
 	editor.setCurrentTool('geo')
 	editor
@@ -682,16 +682,16 @@ test('arrows bound to a shape within a group within a frame are reparented if th
 		.pointerUp(170, 170)
 		.setStyleForSelectedShapes(DefaultFillStyle, 'solid')
 		.setStyleForNextShapes(DefaultFillStyle, 'solid')
-	const boxCId = editor.onlySelectedShape!.id
+	const boxCId = editor.getOnlySelectedShape()!.id
 
 	editor.setCurrentTool('select')
 	editor.select(boxBId, boxCId)
-	editor.groupShapes(editor.selectedShapeIds)
-	const groupId = editor.onlySelectedShape!.id
+	editor.groupShapes(editor.getSelectedShapeIds())
+	const groupId = editor.getOnlySelectedShape()!.id
 
 	editor.setCurrentTool('arrow')
 	editor.pointerDown(115, 115).pointerMove(185, 115).pointerUp(185, 115)
-	const arrowId = editor.onlySelectedShape!.id
+	const arrowId = editor.getOnlySelectedShape()!.id
 
 	expect(editor.getArrowsBoundTo(boxAId)).toHaveLength(1)
 	expect(editor.getArrowsBoundTo(boxBId)).toHaveLength(1)
@@ -732,15 +732,15 @@ describe('When dragging a shape inside a group inside a frame', () => {
 	it('When dragging a shape out of a frame', () => {
 		editor.select(ids.box1, ids.box2)
 
-		expect(editor.selectedShapeIds).toHaveLength(2)
+		expect(editor.getSelectedShapeIds()).toHaveLength(2)
 
-		editor.groupShapes(editor.selectedShapeIds, ids.group1)
+		editor.groupShapes(editor.getSelectedShapeIds(), ids.group1)
 
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
 
 		editor.pointerMove(100, 100).click().click()
 
-		expect(editor.onlySelectedShape?.id).toBe(ids.box1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.box1)
 
 		editor.pointerMove(150, 150).pointerDown().pointerMove(140, 140)
 
@@ -752,16 +752,16 @@ describe('When dragging a shape inside a group inside a frame', () => {
 	it('reparents the shape to the page if it leaves the frame', () => {
 		editor.select(ids.box1, ids.box2)
 
-		expect(editor.selectedShapeIds).toHaveLength(2)
+		expect(editor.getSelectedShapeIds()).toHaveLength(2)
 
-		editor.groupShapes(editor.selectedShapeIds, ids.group1)
+		editor.groupShapes(editor.getSelectedShapeIds(), ids.group1)
 
 		expect(editor.getShape(ids.box1)!.parentId).toBe(ids.group1)
 
 		editor.pointerMove(100, 100).click().click()
 
-		expect(editor.onlySelectedShape?.id).toBe(ids.box1)
-		expect(editor.focusedGroupId).toBe(ids.group1)
+		expect(editor.getOnlySelectedShape()?.id).toBe(ids.box1)
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 
 		editor
 			.pointerMove(150, 150)

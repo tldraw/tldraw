@@ -88,7 +88,7 @@ const InsideOfEditorContext = () => {
 		let i = 0
 
 		const interval = setInterval(() => {
-			const selection = [...editor.selectedShapeIds]
+			const selection = [...editor.getSelectedShapeIds()]
 			editor.selectAll()
 			editor.setStyleForSelectedShapes(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')
 			editor.setStyleForNextShapes(DefaultColorStyle, i % 2 ? 'blue' : 'light-blue')

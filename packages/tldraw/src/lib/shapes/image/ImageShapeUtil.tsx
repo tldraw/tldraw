@@ -86,7 +86,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const isSelected = useValue(
 			'onlySelectedShape',
-			() => shape.id === this.editor.onlySelectedShape?.id,
+			() => shape.id === this.editor.getOnlySelectedShape()?.id,
 			[this.editor]
 		)
 

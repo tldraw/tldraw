@@ -22,7 +22,7 @@ const CustomUi = track(() => {
 			switch (e.key) {
 				case 'Delete':
 				case 'Backspace': {
-					editor.deleteShapes(editor.selectedShapeIds)
+					editor.deleteShapes(editor.getSelectedShapeIds())
 					break
 				}
 				case 'v': {

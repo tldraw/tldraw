@@ -1,7 +1,7 @@
 import { Editor, HIT_TEST_MARGIN, TLShape, isShapeId } from '@tldraw/editor'
 
 export function selectOnCanvasPointerUp(editor: Editor) {
-	const { selectedShapeIds } = editor
+	const selectedShapeIds = editor.getSelectedShapeIds()
 	const { shiftKey, altKey, currentPagePoint } = editor.inputs
 
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {
@@ -49,7 +49,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 				// Otherwise, if the group isn't selected and isn't our current
 				// focus layer, then we need to select the group instead.
 				if (
-					outermostSelectableShape.id === editor.focusedGroupId ||
+					outermostSelectableShape.id === editor.getFocusedGroupId() ||
 					selectedShapeIds.includes(outermostSelectableShape.id)
 				) {
 					shapeToSelect = hitShape
@@ -81,7 +81,7 @@ export function selectOnCanvasPointerUp(editor: Editor) {
 			// If the click was inside of the current focused group, then
 			// we keep that focused group; otherwise we clear the focused
 			// group (reset it to the page)
-			const { focusedGroupId } = editor
+			const focusedGroupId = editor.getFocusedGroupId()
 
 			if (isShapeId(focusedGroupId)) {
 				const groupShape = editor.getShape(focusedGroupId)!

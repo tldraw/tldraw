@@ -60,7 +60,7 @@ export class Cropping extends StateNode {
 	}
 
 	private updateCursor() {
-		const selectedShape = this.editor.selectedShapes[0]
+		const selectedShape = this.editor.getSelectedShapes()[0]
 		if (!selectedShape) return
 
 		const cursorType = CursorTypeMap[this.info.handle!]
@@ -224,14 +224,14 @@ export class Cropping extends StateNode {
 	}
 
 	private createSnapshot() {
+		const selectionRotation = this.editor.getSelectionRotation()
 		const {
-			selectionRotation,
 			inputs: { originPagePoint },
 		} = this.editor
 
-		const shape = this.editor.onlySelectedShape as TLImageShape
+		const shape = this.editor.getOnlySelectedShape() as TLImageShape
 
-		const selectionBounds = this.editor.selectionRotatedPageBounds!
+		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
 
 		const dragHandlePoint = Vec2d.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),

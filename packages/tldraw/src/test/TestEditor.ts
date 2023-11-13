@@ -131,7 +131,7 @@ export class TestEditor extends Editor {
 
 	clipboard = null as TLContent | null
 
-	copy = (ids = this.selectedShapeIds) => {
+	copy = (ids = this.getSelectedShapeIds()) => {
 		if (ids.length > 0) {
 			const content = this.getContentFromCurrentPage(ids)
 			if (content) {
@@ -141,7 +141,7 @@ export class TestEditor extends Editor {
 		return this
 	}
 
-	cut = (ids = this.selectedShapeIds) => {
+	cut = (ids = this.getSelectedShapeIds()) => {
 		if (ids.length > 0) {
 			const content = this.getContentFromCurrentPage(ids)
 			if (content) {
@@ -471,17 +471,16 @@ export class TestEditor extends Editor {
 			shiftKey = false,
 		}: { handle?: RotateCorner; shiftKey?: boolean } = {}
 	) {
-		if (this.selectedShapeIds.length === 0) {
+		if (this.getSelectedShapeIds().length === 0) {
 			throw new Error('No selection')
 		}
 
 		this.setCurrentTool('select')
 
-		const handlePoint = this.selectionRotatedPageBounds!.getHandlePoint(
-			ROTATE_CORNER_TO_SELECTION_CORNER[handle]
-		)
+		const handlePoint = this.getSelectionRotatedPageBounds()!
+			.getHandlePoint(ROTATE_CORNER_TO_SELECTION_CORNER[handle])
 			.clone()
-			.rotWith(this.selectionRotatedPageBounds!.point, this.selectionRotation)
+			.rotWith(this.getSelectionRotatedPageBounds()!.point, this.getSelectionRotation())
 
 		const targetHandlePoint = Vec2d.RotWith(handlePoint, this.selectionPageCenter!, angleRadians)
 
@@ -498,20 +497,21 @@ export class TestEditor extends Editor {
 	 * @public
 	 */
 	get selectionPageCenter() {
-		const { selectionRotatedPageBounds: selectionBounds, selectionRotation } = this
+		const selectionRotation = this.getSelectionRotation()
+		const selectionBounds = this.getSelectionRotatedPageBounds()
 		if (!selectionBounds) return null
 		return Vec2d.RotWith(selectionBounds.center, selectionBounds.point, selectionRotation)
 	}
 
 	translateSelection(dx: number, dy: number, options?: Partial<TLPointerEventInfo>) {
-		if (this.selectedShapeIds.length === 0) {
+		if (this.getSelectedShapeIds().length === 0) {
 			throw new Error('No selection')
 		}
 		this.setCurrentTool('select')
 
 		const center = this.selectionPageCenter!
 
-		this.pointerDown(center.x, center.y, this.selectedShapeIds[0])
+		this.pointerDown(center.x, center.y, this.getSelectedShapeIds()[0])
 		const numSteps = 10
 		for (let i = 1; i < numSteps; i++) {
 			this.pointerMove(center.x + (i * dx) / numSteps, center.y + (i * dy) / numSteps, options)
@@ -525,11 +525,11 @@ export class TestEditor extends Editor {
 		handle: SelectionHandle,
 		options?: Partial<TLPointerEventInfo>
 	) {
-		if (this.selectedShapeIds.length === 0) {
+		if (this.getSelectedShapeIds().length === 0) {
 			throw new Error('No selection')
 		}
 		this.setCurrentTool('select')
-		const bounds = this.selectionRotatedPageBounds!
+		const bounds = this.getSelectionRotatedPageBounds()!
 		const preRotationHandlePoint = bounds.getHandlePoint(handle)
 
 		const preRotationScaleOriginPoint = options?.altKey
@@ -541,11 +541,15 @@ export class TestEditor extends Editor {
 			preRotationScaleOriginPoint
 		)
 
-		const handlePoint = Vec2d.RotWith(preRotationHandlePoint, bounds.point, this.selectionRotation)
+		const handlePoint = Vec2d.RotWith(
+			preRotationHandlePoint,
+			bounds.point,
+			this.getSelectionRotation()
+		)
 		const targetHandlePoint = Vec2d.RotWith(
 			preRotationTargetHandlePoint,
 			bounds.point,
-			this.selectionRotation
+			this.getSelectionRotation()
 		)
 
 		this.pointerDown(handlePoint.x, handlePoint.y, { target: 'selection', handle }, options)

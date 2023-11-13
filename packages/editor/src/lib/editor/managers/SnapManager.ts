@@ -248,7 +248,8 @@ export class SnapManager {
 	// TODO: make this an incremental derivation
 	@computed get snappableShapes(): GapNode[] {
 		const { editor } = this
-		const { selectedShapeIds, renderingBounds: renderingBounds } = editor
+		const { renderingBounds: renderingBounds } = editor
+		const selectedShapeIds = editor.getSelectedShapeIds()
 
 		const snappableShapes: GapNode[] = []
 
@@ -285,7 +286,7 @@ export class SnapManager {
 
 	// This needs to be external from any expensive work
 	@computed get currentCommonAncestor() {
-		return this.editor.findCommonAncestor(this.editor.selectedShapes)
+		return this.editor.findCommonAncestor(this.editor.getSelectedShapes())
 	}
 
 	// Points which belong to snappable shapes

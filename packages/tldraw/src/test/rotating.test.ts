@@ -119,7 +119,7 @@ describe('When rotating...', () => {
 		editor.select(ids.box1)
 
 		const shapeA = editor.getShape(ids.box1)!
-		const box = editor.selectionPageBounds!
+		const box = editor.getSelectionPageBounds()!
 		const center = box.center.clone().toFixed()
 
 		expect(Vec2d.ToFixed(editor.getPageCenter(shapeA)!)).toMatchObject(center)
@@ -159,7 +159,7 @@ describe('When rotating...', () => {
 
 		editor.select(ids.box1, ids.box2)
 
-		const box = editor.selectionPageBounds!
+		const box = editor.getSelectionPageBounds()!
 		const center = box.center.clone()
 
 		editor.pointerDown(box.midX, box.minY, {
@@ -219,7 +219,7 @@ describe('When rotating...', () => {
 	it('restores initial points / rotation when cancelled', () => {
 		editor.select(ids.box1, ids.box2)
 
-		const box = editor.selectionPageBounds!
+		const box = editor.getSelectionPageBounds()!
 		const center = box.center.clone()
 
 		const shapeA = editor.getShape(ids.box1)!
@@ -246,7 +246,7 @@ describe('When rotating...', () => {
 	it('uses the same selection box center when rotating multiple times', () => {
 		editor.select(ids.box1, ids.box2)
 
-		const centerBefore = editor.selectionPageBounds!.center.clone()
+		const centerBefore = editor.getSelectionPageBounds()!.center.clone()
 
 		editor
 			.pointerDown(0, 0, {
@@ -256,7 +256,7 @@ describe('When rotating...', () => {
 			.pointerMove(50, 100)
 			.pointerUp()
 
-		const centerBetween = editor.selectionPageBounds!.center.clone()
+		const centerBetween = editor.getSelectionPageBounds()!.center.clone()
 
 		expect(centerBefore.toFixed().toJson()).toMatchObject(centerBetween.toFixed().toJson())
 
@@ -268,7 +268,7 @@ describe('When rotating...', () => {
 			.pointerMove(0, 0)
 			.pointerUp()
 
-		const centerAfter = editor.selectionPageBounds!.center.clone()
+		const centerAfter = editor.getSelectionPageBounds()!.center.clone()
 
 		expect(centerBefore.toFixed().toJson()).toMatchObject(centerAfter.toFixed().toJson())
 	})

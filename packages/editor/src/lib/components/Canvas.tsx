@@ -214,7 +214,9 @@ function HandlesWrapper() {
 	const isCoarse = useValue('coarse pointer', () => editor.getInstanceState().isCoarsePointer, [
 		editor,
 	])
-	const onlySelectedShape = useValue('onlySelectedShape', () => editor.onlySelectedShape, [editor])
+	const onlySelectedShape = useValue('onlySelectedShape', () => editor.getOnlySelectedShape(), [
+		editor,
+	])
 	const isChangingStyle = useValue(
 		'isChangingStyle',
 		() => editor.getInstanceState().isChangingStyle,
@@ -225,13 +227,24 @@ function HandlesWrapper() {
 	])
 	const handles = useValue(
 		'handles',
-		() => (editor.onlySelectedShape ? editor.getShapeHandles(editor.onlySelectedShape) : undefined),
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (onlySelectedShape) {
+				return editor.getShapeHandles(onlySelectedShape)
+			}
+			return undefined
+		},
 		[editor]
 	)
 	const transform = useValue(
 		'transform',
-		() =>
-			editor.onlySelectedShape ? editor.getShapePageTransform(editor.onlySelectedShape) : undefined,
+		() => {
+			const onlySelectedShape = editor.getOnlySelectedShape()
+			if (onlySelectedShape) {
+				return editor.getShapePageTransform(onlySelectedShape)
+			}
+			return undefined
+		},
 		[editor]
 	)
 
@@ -335,7 +348,7 @@ function SelectedIdIndicators() {
 	const editor = useEditor()
 	const selectedShapeIds = useValue(
 		'selectedShapeIds',
-		() => editor.currentPageState.selectedShapeIds,
+		() => editor.getCurrentPageState().selectedShapeIds,
 		[editor]
 	)
 	const shouldDisplay = useValue(
@@ -381,7 +394,7 @@ const HoveredShapeIndicator = function HoveredShapeIndicator() {
 		() => editor.getInstanceState().isHoveringCanvas,
 		[editor]
 	)
-	const hoveredShapeId = useValue('hovered id', () => editor.currentPageState.hoveredShapeId, [
+	const hoveredShapeId = useValue('hovered id', () => editor.getCurrentPageState().hoveredShapeId, [
 		editor,
 	])
 
@@ -509,10 +522,14 @@ function UiLogger() {
 
 export function SelectionForegroundWrapper() {
 	const editor = useEditor()
-	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
-	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
+	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
 		editor,
 	])
+	const selectionBounds = useValue(
+		'selection bounds',
+		() => editor.getSelectionRotatedPageBounds(),
+		[editor]
+	)
 	const { SelectionForeground } = useEditorComponents()
 	if (!selectionBounds || !SelectionForeground) return null
 	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
@@ -520,10 +537,14 @@ export function SelectionForegroundWrapper() {
 
 export function SelectionBackgroundWrapper() {
 	const editor = useEditor()
-	const selectionRotation = useValue('selection rotation', () => editor.selectionRotation, [editor])
-	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
+	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
 		editor,
 	])
+	const selectionBounds = useValue(
+		'selection bounds',
+		() => editor.getSelectionRotatedPageBounds(),
+		[editor]
+	)
 	const { SelectionBackground } = useEditorComponents()
 	if (!selectionBounds || !SelectionBackground) return null
 	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />

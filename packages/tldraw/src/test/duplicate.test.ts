@@ -14,12 +14,12 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 
-	editor.selectAll().deleteShapes(editor.selectedShapeIds)
+	editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 })
 it('creates new bindings for arrows when pasting', async () => {
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedShapeIds)
+		.deleteShapes(editor.getSelectedShapeIds())
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -47,7 +47,7 @@ it('creates new bindings for arrows when pasting', async () => {
 
 	const shapesBefore = editor.currentPageShapes
 
-	editor.selectAll().duplicateShapes(editor.selectedShapeIds)
+	editor.selectAll().duplicateShapes(editor.getSelectedShapeIds())
 
 	const shapesAfter = editor.currentPageShapes
 
@@ -174,17 +174,17 @@ describe('When duplicating shapes that include arrows', () => {
 	})
 
 	it('Preserves the same selection bounds', () => {
-		editor.selectAll().deleteShapes(editor.selectedShapeIds).createShapes(shapes).selectAll()
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).createShapes(shapes).selectAll()
 
-		const boundsBefore = editor.selectionRotatedPageBounds!
-		editor.duplicateShapes(editor.selectedShapeIds)
-		expect(editor.selectionRotatedPageBounds).toCloselyMatchObject(boundsBefore)
+		const boundsBefore = editor.getSelectionRotatedPageBounds()!
+		editor.duplicateShapes(editor.getSelectedShapeIds())
+		expect(editor.getSelectionRotatedPageBounds()).toCloselyMatchObject(boundsBefore)
 	})
 
 	it('Preserves the same selection bounds when only duplicating the arrows', () => {
 		editor
 			.selectAll()
-			.deleteShapes(editor.selectedShapeIds)
+			.deleteShapes(editor.getSelectedShapeIds())
 			.createShapes(shapes)
 			.select(
 				...editor.currentPageShapes
@@ -192,9 +192,9 @@ describe('When duplicating shapes that include arrows', () => {
 					.map((s) => s.id)
 			)
 
-		const boundsBefore = editor.selectionRotatedPageBounds!
-		editor.duplicateShapes(editor.selectedShapeIds)
-		const boundsAfter = editor.selectionRotatedPageBounds!
+		const boundsBefore = editor.getSelectionRotatedPageBounds()!
+		editor.duplicateShapes(editor.getSelectedShapeIds())
+		const boundsAfter = editor.getSelectionRotatedPageBounds()!
 
 		// It's not exactly exact, but close enough is plenty close
 		expect(Math.abs(boundsAfter.x - boundsBefore.x)).toBeLessThan(1)

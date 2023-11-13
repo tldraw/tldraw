@@ -53,7 +53,7 @@ export class Translating extends StateNode {
 		this.isCreating = isCreating
 		this.editAfterComplete = editAfterComplete
 
-		this.markId = isCreating ? `creating:${this.editor.onlySelectedShape!.id}` : 'translating'
+		this.markId = isCreating ? `creating:${this.editor.getOnlySelectedShape()!.id}` : 'translating'
 		this.editor.mark(this.markId)
 		this.isCloning = false
 		this.info = info
@@ -132,7 +132,7 @@ export class Translating extends StateNode {
 		this.markId = 'translating'
 		this.editor.mark(this.markId)
 
-		this.editor.duplicateShapes(Array.from(this.editor.selectedShapeIds))
+		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
 		this.handleStart()
@@ -166,7 +166,7 @@ export class Translating extends StateNode {
 			this.editor.setCurrentTool(this.info.onInteractionEnd)
 		} else {
 			if (this.editAfterComplete) {
-				const onlySelected = this.editor.onlySelectedShape
+				const onlySelected = this.editor.getOnlySelectedShape()
 				if (onlySelected) {
 					this.editor.setEditingShape(onlySelected.id)
 					this.editor.setCurrentTool('select.editing_shape')
@@ -285,7 +285,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	const pagePoints: Vec2d[] = []
 
 	const shapeSnapshots = compact(
-		editor.selectedShapeIds.map((id): null | MovingShapeSnapshot => {
+		editor.getSelectedShapeIds().map((id): null | MovingShapeSnapshot => {
 			const shape = editor.getShape(id)
 			if (!shape) return null
 			movingShapes.push(shape)
@@ -306,21 +306,26 @@ function getTranslatingSnapshot(editor: Editor) {
 		})
 	)
 
+	let initialSnapPoints: SnapPoint[] = []
+	if (editor.getSelectedShapeIds().length === 1) {
+		initialSnapPoints = editor.snaps.snapPointsCache.get(editor.getSelectedShapeIds()[0])!
+	} else {
+		const selectionPageBounds = editor.getSelectionPageBounds()
+		if (selectionPageBounds) {
+			initialSnapPoints = selectionPageBounds.snapPoints.map((p, i) => ({
+				id: 'selection:' + i,
+				x: p.x,
+				y: p.y,
+			}))
+		}
+	}
+
 	return {
 		averagePagePoint: Vec2d.Average(pagePoints),
 		movingShapes,
 		shapeSnapshots,
-		initialPageBounds: editor.selectionPageBounds!,
-		initialSnapPoints:
-			editor.selectedShapeIds.length === 1
-				? editor.snaps.snapPointsCache.get(editor.selectedShapeIds[0])!
-				: editor.selectionPageBounds
-				? editor.selectionPageBounds.snapPoints.map((p, i) => ({
-						id: 'selection:' + i,
-						x: p.x,
-						y: p.y,
-				  }))
-				: [],
+		initialPageBounds: editor.getSelectionPageBounds()!,
+		initialSnapPoints,
 	}
 }
 

@@ -21,7 +21,7 @@ describe(GeoShapeTool, () => {
 
 		expect(editor.currentPageShapes.length).toBe(1)
 		expect(editor.currentPageShapes[0]?.type).toBe('geo')
-		expect(editor.selectedShapeIds[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.getSelectedShapeIds()[0]).toBe(editor.currentPageShapes[0]?.id)
 
 		editor.undo()
 
@@ -41,7 +41,7 @@ describe(GeoShapeTool, () => {
 
 		expect(editor.currentPageShapes.length).toBe(1)
 		expect(editor.currentPageShapes[0]?.type).toBe('geo')
-		expect(editor.selectedShapeIds[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.getSelectedShapeIds()[0]).toBe(editor.currentPageShapes[0]?.id)
 
 		editor.undo()
 
@@ -103,7 +103,7 @@ describe('When in the idle state', () => {
 		expect(editor.currentPageShapes.length).toBe(2)
 
 		editor.selectAll()
-		expect(editor.selectedShapes.length).toBe(2)
+		expect(editor.getSelectedShapes().length).toBe(2)
 
 		editor.keyUp('Enter')
 		editor.expectPathToBe('root.select.idle')

@@ -63,7 +63,9 @@ export class Resizing extends StateNode {
 		}
 
 		this.snapshot = this._createSnapshot()
-		this.markId = isCreating ? `creating:${this.editor.onlySelectedShape!.id}` : 'starting resizing'
+		this.markId = isCreating
+			? `creating:${this.editor.getOnlySelectedShape()!.id}`
+			: 'starting resizing'
 
 		if (!isCreating) this.editor.mark(this.markId)
 
@@ -107,8 +109,9 @@ export class Resizing extends StateNode {
 	private complete() {
 		this.handleResizeEnd()
 
-		if (this.editAfterComplete && this.editor.onlySelectedShape) {
-			this.editor.setEditingShape(this.editor.onlySelectedShape.id)
+		const onlySelectedShape = this.editor.getOnlySelectedShape()
+		if (this.editAfterComplete && onlySelectedShape) {
+			this.editor.setEditingShape(onlySelectedShape.id)
 			this.editor.setCurrentTool('select.editing_shape')
 			return
 		}
@@ -364,13 +367,13 @@ export class Resizing extends StateNode {
 	}
 
 	_createSnapshot = () => {
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
+		const selectionRotation = this.editor.getSelectionRotation()
 		const {
-			selectedShapeIds,
-			selectionRotation,
 			inputs: { originPagePoint },
 		} = this.editor
 
-		const selectionBounds = this.editor.selectionRotatedPageBounds!
+		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
 
 		const dragHandlePoint = Vec2d.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),
@@ -415,7 +418,7 @@ export class Resizing extends StateNode {
 			selectionRotation,
 			selectedShapeIds,
 			canShapesDeform,
-			initialSelectionPageBounds: this.editor.selectionPageBounds!,
+			initialSelectionPageBounds: this.editor.getSelectionPageBounds()!,
 		}
 	}
 

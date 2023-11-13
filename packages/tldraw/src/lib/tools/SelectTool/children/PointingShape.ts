@@ -18,10 +18,10 @@ export class PointingShape extends StateNode {
 	didSelectOnEnter = false
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
+		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
+		const focusedGroupId = this.editor.getFocusedGroupId()
 		const {
-			selectedShapeIds,
-			focusedGroupId,
-			selectionRotatedPageBounds: selectionBounds,
 			inputs: { currentPagePoint, shiftKey, altKey },
 		} = this.editor
 
@@ -60,10 +60,10 @@ export class PointingShape extends StateNode {
 	}
 
 	override onPointerUp: TLEventHandlers['onPointerUp'] = (info) => {
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
+		const focusedGroupId = this.editor.getFocusedGroupId()
 		const {
 			zoomLevel,
-			focusedGroupId,
-			selectedShapeIds,
 			inputs: { currentPagePoint, shiftKey },
 		} = this.editor
 
@@ -180,7 +180,7 @@ export class PointingShape extends StateNode {
 
 				this.editor.mark('shift deselecting on pointer up')
 				this.editor.setSelectedShapes([
-					...this.editor.selectedShapeIds.filter((id) => !ancestors.find((a) => a.id === id)),
+					...this.editor.getSelectedShapeIds().filter((id) => !ancestors.find((a) => a.id === id)),
 					outermostSelectableShape.id,
 				])
 			} else {
