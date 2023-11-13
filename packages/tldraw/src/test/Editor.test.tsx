@@ -103,15 +103,15 @@ describe('shapes that are moved to another page', () => {
 	describe("should be excluded from the previous page's erasingShapeIds", () => {
 		test('[boxes]', () => {
 			editor.setErasingShapes([ids.box1, ids.box2, ids.box3])
-			expect(editor.erasingShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
+			expect(editor.getErasingShapeIds()).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.erasingShapeIds).toEqual([])
+			expect(editor.getErasingShapeIds()).toEqual([])
 		})
 		test('[frame that does not move]', () => {
 			editor.setErasingShapes([ids.frame1])
-			expect(editor.erasingShapeIds).toEqual([ids.frame1])
+			expect(editor.getErasingShapeIds()).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.erasingShapeIds).toEqual([ids.frame1])
+			expect(editor.getErasingShapeIds()).toEqual([ids.frame1])
 		})
 	})
 

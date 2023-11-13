@@ -9248,7 +9248,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#erasingShapeIds:member",
-              "docComment": "/**\n * The editor's current erasing ids.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getErasingShapeIds` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10408,6 +10408,42 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getEditingShapeId"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getErasingShapeIds:member(1)",
+              "docComment": "/**\n * The editor's current erasing ids.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getErasingShapeIds(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShapeId",
+                  "canonicalReference": "@tldraw/tlschema!TLShapeId:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getErasingShapeIds"
             },
             {
               "kind": "Method",

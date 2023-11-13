@@ -647,6 +647,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // @deprecated (undocumented)
     get editingShapeId(): null | TLShapeId;
     readonly environment: EnvironmentManager;
+    // @deprecated (undocumented)
     get erasingShapeIds(): TLShapeId[];
     get erasingShapes(): NonNullable<TLShape | undefined>[];
     // @internal (undocumented)
@@ -691,6 +692,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
     getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
+    getErasingShapeIds(): TLShapeId[];
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;

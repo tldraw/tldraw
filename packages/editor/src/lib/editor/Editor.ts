@@ -2073,8 +2073,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get erasingShapeIds() {
+	@computed getErasingShapeIds() {
 		return this.getCurrentPageState().erasingShapeIds
+	}
+
+	/**
+	 * @deprecated Use `getErasingShapeIds` instead.
+	 */
+	get erasingShapeIds() {
+		return this.getErasingShapeIds()
 	}
 
 	/**
@@ -2083,7 +2090,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get erasingShapes() {
-		const { erasingShapeIds } = this
+		const erasingShapeIds = this.getErasingShapeIds()
 		return compact(erasingShapeIds.map((id) => this.getShape(id)))
 	}
 
@@ -2106,7 +2113,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				? (shapes as TLShapeId[])
 				: (shapes as TLShape[]).map((shape) => shape.id)
 		ids.sort() // sort the incoming ids
-		const { erasingShapeIds } = this
+		const erasingShapeIds = this.getErasingShapeIds()
 		if (ids.length === erasingShapeIds.length) {
 			// if the new ids are the same length as the current ids, they might be the same.
 			// presuming the current ids are also sorted, check each item to see if it's the same;
@@ -3192,7 +3199,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// We only really need these if we're using editor state, but that's ok
 		const editingShapeId = this.getEditingShapeId()
 		const selectedShapeIds = this.getSelectedShapeIds()
-		const erasingShapeIds = this.erasingShapeIds
+		const erasingShapeIds = this.getErasingShapeIds()
 		const renderingBoundsExpanded = this.renderingBoundsExpanded
 
 		// If renderingBoundsMargin is set to Infinity, then we won't cull offscreen shapes

@@ -49,7 +49,7 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	}
 
 	component(shape: TLGroupShape) {
-		const isErasing = this.editor.erasingShapeIds.includes(shape.id)
+		const isErasing = this.editor.getErasingShapeIds().includes(shape.id)
 
 		const { hintingShapeIds } = this.editor.getCurrentPageState()
 		const isHintingOtherGroup =
