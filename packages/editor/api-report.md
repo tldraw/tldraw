@@ -701,6 +701,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
     getSelectionPageBounds(): Box2d | null;
+    getSelectionRotatedPageBounds(): Box2d | undefined;
     getSelectionRotation(): number;
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
@@ -858,7 +859,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     get selectedShapes(): TLShape[];
     // @deprecated (undocumented)
     get selectionPageBounds(): Box2d | null;
-    get selectionRotatedPageBounds(): Box2d | undefined;
     // @deprecated (undocumented)
     get selectionRotation(): number;
     selectNone(): this;

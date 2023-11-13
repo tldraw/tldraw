@@ -19,9 +19,9 @@ export class PointingShape extends StateNode {
 
 	override onEnter = (info: TLPointerEventInfo & { target: 'shape' }) => {
 		const selectedShapeIds = this.editor.getSelectedShapeIds()
+		const selectionBounds = this.editor.getSelectionRotatedPageBounds()
 		const {
 			focusedGroupId,
-			selectionRotatedPageBounds: selectionBounds,
 			inputs: { currentPagePoint, shiftKey, altKey },
 		} = this.editor
 

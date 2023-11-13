@@ -525,9 +525,11 @@ export function SelectionForegroundWrapper() {
 	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
 		editor,
 	])
-	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
-		editor,
-	])
+	const selectionBounds = useValue(
+		'selection bounds',
+		() => editor.getSelectionRotatedPageBounds(),
+		[editor]
+	)
 	const { SelectionForeground } = useEditorComponents()
 	if (!selectionBounds || !SelectionForeground) return null
 	return <SelectionForeground bounds={selectionBounds} rotation={selectionRotation} />
@@ -538,9 +540,11 @@ export function SelectionBackgroundWrapper() {
 	const selectionRotation = useValue('selection rotation', () => editor.getSelectionRotation(), [
 		editor,
 	])
-	const selectionBounds = useValue('selection bounds', () => editor.selectionRotatedPageBounds, [
-		editor,
-	])
+	const selectionBounds = useValue(
+		'selection bounds',
+		() => editor.getSelectionRotatedPageBounds(),
+		[editor]
+	)
 	const { SelectionBackground } = useEditorComponents()
 	if (!selectionBounds || !SelectionBackground) return null
 	return <SelectionBackground bounds={selectionBounds} rotation={selectionRotation} />

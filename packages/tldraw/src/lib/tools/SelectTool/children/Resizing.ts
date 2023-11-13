@@ -373,7 +373,7 @@ export class Resizing extends StateNode {
 			inputs: { originPagePoint },
 		} = this.editor
 
-		const selectionBounds = this.editor.selectionRotatedPageBounds!
+		const selectionBounds = this.editor.getSelectionRotatedPageBounds()!
 
 		const dragHandlePoint = Vec2d.RotWith(
 			selectionBounds.getHandlePoint(this.info.handle!),

@@ -562,7 +562,7 @@ export const MINOR_NUDGE_FACTOR = 1
 export const GRID_INCREMENT = 5
 
 function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
-	const { selectionRotatedPageBounds: selectionBounds } = editor
+	const selectionBounds = editor.getSelectionRotatedPageBounds()
 	if (!selectionBounds) return false
 
 	const selectionRotation = editor.getSelectionRotation()

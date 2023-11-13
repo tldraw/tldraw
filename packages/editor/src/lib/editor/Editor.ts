@@ -1731,7 +1731,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed get selectionRotatedPageBounds(): Box2d | undefined {
+	@computed getSelectionRotatedPageBounds(): Box2d | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
 
 		if (selectedShapeIds.length === 0) {
@@ -1763,6 +1763,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// now position box so that it's top-left corner is in the right place
 		boxFromRotatedVertices.point = boxFromRotatedVertices.point.rot(selectionRotation)
 		return boxFromRotatedVertices
+	}
+
+	/**
+	 * @deprecated Use `getSelectionRotatedPageBounds` instead.
+	 */
+	get selectionRotatedPageBounds() {
+		return this.getSelectionRotatedPageBounds()
 	}
 
 	// Focus Group
@@ -5469,7 +5476,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// "from" page's camera, then center the "to" page's camera on the
 			// pasted shapes
 			this.setCamera({ ...this.camera, z: fromPageZ })
-			this.centerOnPoint(this.selectionRotatedPageBounds!.center)
+			this.centerOnPoint(this.getSelectionRotatedPageBounds()!.center)
 		})
 
 		return this
