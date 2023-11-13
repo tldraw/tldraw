@@ -9585,7 +9585,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#focusedGroup:member",
-              "docComment": "/**\n * The current focused group.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getFocusedGroup` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10336,6 +10336,42 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getDroppingOverShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getFocusedGroup:member(1)",
+              "docComment": "/**\n * The current focused group.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getFocusedGroup(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getFocusedGroup"
             },
             {
               "kind": "Method",

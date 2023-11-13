@@ -1795,9 +1795,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get focusedGroup(): TLShape | undefined {
+	@computed getFocusedGroup(): TLShape | undefined {
 		const focusedGroupId = this.getFocusedGroupId()
 		return focusedGroupId ? this.getShape(focusedGroupId) : undefined
+	}
+
+	/**
+	 * @deprecated Use `getFocusedGroup` instead.
+	 */
+	get focusedGroup() {
+		return this.getFocusedGroup()
 	}
 
 	/**
@@ -1862,7 +1869,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	popFocusedGroupId(): this {
-		const { focusedGroup } = this
+		const focusedGroup = this.getFocusedGroup()
 
 		if (focusedGroup) {
 			// If we have a focused layer, look for an ancestor of the focused shape that is a group
@@ -5115,7 +5122,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let match = freshShape
 		let node = freshShape as TLShape | undefined
 
-		const { focusedGroup } = this
+		const focusedGroup = this.getFocusedGroup()
 
 		while (node) {
 			if (
