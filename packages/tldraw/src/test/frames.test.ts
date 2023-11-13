@@ -761,7 +761,7 @@ describe('When dragging a shape inside a group inside a frame', () => {
 		editor.pointerMove(100, 100).click().click()
 
 		expect(editor.getOnlySelectedShape()?.id).toBe(ids.box1)
-		expect(editor.focusedGroupId).toBe(ids.group1)
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 
 		editor
 			.pointerMove(150, 150)

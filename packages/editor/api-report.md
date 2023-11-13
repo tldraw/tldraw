@@ -667,6 +667,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
     get focusedGroup(): TLShape | undefined;
+    // @deprecated (undocumented)
     get focusedGroupId(): TLPageId | TLShapeId;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
@@ -685,6 +686,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getFocusedGroupId(): TLPageId | TLShapeId;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInstanceState(): TLInstance;
@@ -859,6 +861,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     get selectedShapes(): TLShape[];
     // @deprecated (undocumented)
     get selectionPageBounds(): Box2d | null;
+    // @deprecated (undocumented)
+    get selectionRotatedPageBounds(): Box2d | undefined;
     // @deprecated (undocumented)
     get selectionRotation(): number;
     selectNone(): this;

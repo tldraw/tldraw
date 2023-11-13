@@ -1779,8 +1779,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get focusedGroupId(): TLShapeId | TLPageId {
+	@computed getFocusedGroupId(): TLShapeId | TLPageId {
 		return this.getCurrentPageState().focusedGroupId ?? this.currentPageId
+	}
+
+	/**
+	 * @deprecated Use `getFocusedGroupId` instead.
+	 */
+	get focusedGroupId() {
+		return this.getFocusedGroupId()
 	}
 
 	/**
@@ -1789,7 +1796,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed get focusedGroup(): TLShape | undefined {
-		const { focusedGroupId } = this
+		const focusedGroupId = this.getFocusedGroupId()
 		return focusedGroupId ? this.getShape(focusedGroupId) : undefined
 	}
 
@@ -1816,7 +1823,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		if (id === this.focusedGroupId) return this
+		if (id === this.getFocusedGroupId()) return this
 		this._setFocusedGroupId(id)
 		return this
 	}
@@ -6603,7 +6610,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ partials }) => {
-				const { focusedGroupId } = this
+				const focusedGroupId = this.getFocusedGroupId()
 
 				// 1. Parents
 
@@ -6623,7 +6630,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						!partial.parentId ||
 						!(this.store.has(partial.parentId) || partials.some((p) => p.id === partial.parentId))
 					) {
-						let parentId: TLParentId = this.focusedGroupId
+						let parentId: TLParentId = this.getFocusedGroupId()
 
 						for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
 							const parent = currentPageShapesSorted[i]

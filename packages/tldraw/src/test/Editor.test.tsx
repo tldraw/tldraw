@@ -53,9 +53,9 @@ const moveShapesToPage2 = () => {
 describe('shapes that are moved to another page', () => {
 	it("should be excluded from the previous page's focusedGroupId", () => {
 		editor.setFocusedGroup(ids.group1)
-		expect(editor.focusedGroupId).toBe(ids.group1)
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 		moveShapesToPage2()
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 	})
 
 	describe("should be excluded from the previous page's hintingShapeIds", () => {
