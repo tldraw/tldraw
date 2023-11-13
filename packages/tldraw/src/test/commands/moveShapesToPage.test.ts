@@ -240,7 +240,7 @@ describe('arrows', () => {
 		editor.setCurrentTool('arrow').pointerDown(250, 250).pointerMove(450, 450).pointerUp(450, 450)
 
 		editor.moveShapesToPage([ids.box1, ids.box2], ids.page2)
-		const { selectionPageBounds } = editor
+		const selectionPageBounds = editor.getSelectionPageBounds()
 		expect(editor.viewportPageCenter).toMatchObject(selectionPageBounds!.center)
 	})
 })

@@ -23,7 +23,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 	const rSkipSelectOnFocus = useRef(false)
 	const rSelectionRanges = useRef<Range[] | null>()
 
-	const isEditing = useValue('isEditing', () => editor.editingShapeId === id, [editor, id])
+	const isEditing = useValue('isEditing', () => editor.getEditingShapeId() === id, [editor, id])
 
 	// If the shape is editing but the input element not focused, focus the element
 	useEffect(() => {
@@ -63,7 +63,7 @@ export function useEditableText<T extends Extract<TLShape, { props: { text: stri
 
 		requestAnimationFrame(() => {
 			const elm = rInput.current
-			const { editingShapeId } = editor
+			const editingShapeId = editor.getEditingShapeId()
 			// Did we move to a different shape?
 			if (elm && editingShapeId) {
 				// important! these ^v are two different things

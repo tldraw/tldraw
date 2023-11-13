@@ -180,7 +180,7 @@ export class Idle extends StateNode {
 								hitInside: false,
 						  })
 
-				const { focusedGroupId } = this.editor
+				const focusedGroupId = this.editor.getFocusedGroupId()
 
 				if (hitShape) {
 					if (this.editor.isShapeOfType<TLGroupShape>(hitShape, 'group')) {
@@ -388,7 +388,7 @@ export class Idle extends StateNode {
 
 	override onCancel: TLEventHandlers['onCancel'] = () => {
 		if (
-			this.editor.focusedGroupId !== this.editor.currentPageId &&
+			this.editor.getFocusedGroupId() !== this.editor.currentPageId &&
 			this.editor.getSelectedShapeIds().length > 0
 		) {
 			this.editor.popFocusedGroupId()
@@ -562,10 +562,10 @@ export const MINOR_NUDGE_FACTOR = 1
 export const GRID_INCREMENT = 5
 
 function isPointInRotatedSelectionBounds(editor: Editor, point: VecLike) {
-	const { selectionRotatedPageBounds: selectionBounds } = editor
+	const selectionBounds = editor.getSelectionRotatedPageBounds()
 	if (!selectionBounds) return false
 
-	const { selectionRotation } = editor
+	const selectionRotation = editor.getSelectionRotation()
 	if (!selectionRotation) return selectionBounds.containsPoint(point)
 
 	return pointInPolygon(

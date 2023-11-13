@@ -985,7 +985,7 @@ describe('Selects inside of groups', () => {
 		expect(editor.hoveredShapeId).toBe(ids.group1)
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-		expect(editor.focusedGroupId).toBe(ids.group1)
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 	})
 
 	it('selects a solid shape in a group when double clicking its margin', () => {
@@ -993,7 +993,7 @@ describe('Selects inside of groups', () => {
 		expect(editor.hoveredShapeId).toBe(ids.group1)
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-		expect(editor.focusedGroupId).toBe(ids.group1)
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 	})
 
 	// it('selects a hollow shape in a group when double clicking it', () => {
@@ -1009,7 +1009,7 @@ describe('Selects inside of groups', () => {
 		expect(editor.hoveredShapeId).toBe(ids.group1)
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.focusedGroupId).toBe(ids.group1)
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 	})
 
 	// it('double clicks a hollow shape when the focus layer is the shapes parent', () => {
@@ -1026,7 +1026,7 @@ describe('Selects inside of groups', () => {
 		expect(editor.hoveredShapeId).toBe(ids.group1)
 		editor.doubleClick()
 		editor.doubleClick()
-		expect(editor.editingShapeId).toBe(ids.box2)
+		expect(editor.getEditingShapeId()).toBe(ids.box2)
 		editor.expectToBeIn('select.editing_shape')
 	})
 
@@ -1308,58 +1308,58 @@ describe('When children / descendants of a group are selected', () => {
 	it('selects the child', () => {
 		editor.select(ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.focusedGroupId).toBe(ids.group1)
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 	})
 
 	it('selects the children', () => {
 		editor.select(ids.box1, ids.box2)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2])
-		expect(editor.focusedGroupId).toBe(ids.group1)
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 	})
 
 	it('does not allow parents and children to be selected, picking the parent', () => {
 		editor.select(ids.group1, ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
-		expect(editor.focusedGroupId).toBe(ids.group3)
+		expect(editor.getFocusedGroupId()).toBe(ids.group3)
 
 		editor.select(ids.group1, ids.box1, ids.box2)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
-		expect(editor.focusedGroupId).toBe(ids.group3)
+		expect(editor.getFocusedGroupId()).toBe(ids.group3)
 	})
 
 	it('does not allow ancestors and children to be selected, picking the ancestor', () => {
 		editor.select(ids.group3, ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 
 		editor.select(ids.group3, ids.box1, ids.box2)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 
 		editor.select(ids.group3, ids.group2, ids.box1)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 	})
 
 	it('picks the highest common focus layer id', () => {
 		editor.select(ids.box1, ids.box4) // child of group1, child of group 2
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box4])
-		expect(editor.focusedGroupId).toBe(ids.group3)
+		expect(editor.getFocusedGroupId()).toBe(ids.group3)
 	})
 
 	it('picks the highest common focus layer id', () => {
 		editor.select(ids.box1, ids.box5) // child of group1 and child of the page
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box5])
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 	})
 
 	it('sets the parent to the highest common ancestor', () => {
 		editor.selectNone()
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 		editor.select(ids.group3)
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 		editor.select(ids.group3, ids.box1)
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
 	})
 })
@@ -1382,10 +1382,10 @@ describe('When pressing the enter key with groups selected', () => {
 		editor.select(ids.group1, ids.group2)
 		editor.keyDown('Enter')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1, ids.group2])
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 		editor.keyUp('Enter')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3, ids.box4])
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 	})
 
 	it('repeats children of the groups on enter up', () => {
@@ -1394,10 +1394,10 @@ describe('When pressing the enter key with groups selected', () => {
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group3])
 		editor.keyDown('Enter').keyUp('Enter')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1, ids.group2])
-		expect(editor.focusedGroupId).toBe(ids.group3)
+		expect(editor.getFocusedGroupId()).toBe(ids.group3)
 		editor.keyDown('Enter').keyUp('Enter')
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3, ids.box4])
-		expect(editor.focusedGroupId).toBe(ids.group3)
+		expect(editor.getFocusedGroupId()).toBe(ids.group3)
 	})
 
 	it('does not select the children of the group if a non-group is also selected', () => {
@@ -1429,14 +1429,14 @@ describe('When double clicking an editable shape', () => {
 	it('starts editing on double click', () => {
 		editor.pointerMove(50, 50).doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.editingShapeId).toBe(ids.box1)
+		expect(editor.getEditingShapeId()).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')
 	})
 
 	it('does not start editing on double click if shift is down', () => {
 		editor.pointerMove(50, 50).keyDown('Shift').doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		editor.expectToBeIn('select.idle')
 	})
 
@@ -1445,12 +1445,12 @@ describe('When double clicking an editable shape', () => {
 
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-		expect(editor.editingShapeId).toBe(ids.box2)
+		expect(editor.getEditingShapeId()).toBe(ids.box2)
 		editor.expectToBeIn('select.editing_shape')
 
 		editor.doubleClick()
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box2])
-		expect(editor.editingShapeId).toBe(ids.box2)
+		expect(editor.getEditingShapeId()).toBe(ids.box2)
 		editor.expectToBeIn('select.editing_shape')
 	})
 
@@ -1460,13 +1460,13 @@ describe('When double clicking an editable shape', () => {
 		editor.selectNone()
 		editor.pointerMove(50, 50).click() // clicks on the shape label
 		expect(editor.getSelectedShapeIds()).toEqual([ids.group1])
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		editor.pointerMove(50, 50).click() // clicks on the shape label
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.editingShapeId).toBe(null)
+		expect(editor.getEditingShapeId()).toBe(null)
 		editor.pointerMove(50, 50).click() // clicks on the shape label
 		expect(editor.getSelectedShapeIds()).toEqual([ids.box1])
-		expect(editor.editingShapeId).toBe(ids.box1)
+		expect(editor.getEditingShapeId()).toBe(ids.box1)
 		editor.expectToBeIn('select.editing_shape')
 	})
 })

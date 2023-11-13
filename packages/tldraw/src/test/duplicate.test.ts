@@ -176,9 +176,9 @@ describe('When duplicating shapes that include arrows', () => {
 	it('Preserves the same selection bounds', () => {
 		editor.selectAll().deleteShapes(editor.getSelectedShapeIds()).createShapes(shapes).selectAll()
 
-		const boundsBefore = editor.selectionRotatedPageBounds!
+		const boundsBefore = editor.getSelectionRotatedPageBounds()!
 		editor.duplicateShapes(editor.getSelectedShapeIds())
-		expect(editor.selectionRotatedPageBounds).toCloselyMatchObject(boundsBefore)
+		expect(editor.getSelectionRotatedPageBounds()).toCloselyMatchObject(boundsBefore)
 	})
 
 	it('Preserves the same selection bounds when only duplicating the arrows', () => {
@@ -192,9 +192,9 @@ describe('When duplicating shapes that include arrows', () => {
 					.map((s) => s.id)
 			)
 
-		const boundsBefore = editor.selectionRotatedPageBounds!
+		const boundsBefore = editor.getSelectionRotatedPageBounds()!
 		editor.duplicateShapes(editor.getSelectedShapeIds())
-		const boundsAfter = editor.selectionRotatedPageBounds!
+		const boundsAfter = editor.getSelectionRotatedPageBounds()!
 
 		// It's not exactly exact, but close enough is plenty close
 		expect(Math.abs(boundsAfter.x - boundsBefore.x)).toBeLessThan(1)

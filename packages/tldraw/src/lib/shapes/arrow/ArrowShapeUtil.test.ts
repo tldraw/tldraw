@@ -143,7 +143,7 @@ describe('When translating the arrow', () => {
 
 	it('retains all handles if either bound shape is also translating', () => {
 		editor.select(ids.arrow1, ids.box2)
-		expect(editor.selectionPageBounds).toMatchObject({
+		expect(editor.getSelectionPageBounds()).toMatchObject({
 			x: 200,
 			y: 200,
 			w: 200,

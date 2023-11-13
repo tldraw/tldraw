@@ -461,16 +461,16 @@ export async function createShapesForAssets(
 		editor.createShapes(partials).select(...partials.map((p) => p.id))
 
 		// Re-position shapes so that the center of the group is at the provided point
-		centerSelecitonAroundPoint(editor, position)
+		centerSelectionAroundPoint(editor, position)
 	})
 
 	return partials.map((p) => p.id)
 }
 
-function centerSelecitonAroundPoint(editor: Editor, position: VecLike) {
+function centerSelectionAroundPoint(editor: Editor, position: VecLike) {
 	// Re-position shapes so that the center of the group is at the provided point
 	const { viewportPageBounds } = editor
-	let { selectionPageBounds } = editor
+	let selectionPageBounds = editor.getSelectionPageBounds()
 
 	if (selectionPageBounds) {
 		const offset = selectionPageBounds!.center.sub(position)
@@ -490,7 +490,7 @@ function centerSelecitonAroundPoint(editor: Editor, position: VecLike) {
 	}
 
 	// Zoom out to fit the shapes, if necessary
-	selectionPageBounds = editor.selectionPageBounds
+	selectionPageBounds = editor.getSelectionPageBounds()
 	if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 		editor.zoomToSelection()
 	}
@@ -515,7 +515,7 @@ export function createEmptyBookmarkShape(
 
 	editor.batch(() => {
 		editor.createShapes([partial]).select(partial.id)
-		centerSelecitonAroundPoint(editor, position)
+		centerSelectionAroundPoint(editor, position)
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape

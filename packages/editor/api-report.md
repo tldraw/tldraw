@@ -642,7 +642,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     get documentSettings(): TLDocument;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
+    // @deprecated (undocumented)
     get editingShape(): TLShape | undefined;
+    // @deprecated (undocumented)
     get editingShapeId(): null | TLShapeId;
     readonly environment: EnvironmentManager;
     get erasingShapeIds(): TLShapeId[];
@@ -666,7 +668,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     findCommonAncestor(shapes: TLShape[] | TLShapeId[], predicate?: (shape: TLShape) => boolean): TLShapeId | undefined;
     findShapeAncestor(shape: TLShape | TLShapeId, predicate: (parent: TLShape) => boolean): TLShape | undefined;
     flipShapes(shapes: TLShape[] | TLShapeId[], operation: 'horizontal' | 'vertical'): this;
+    // @deprecated (undocumented)
     get focusedGroup(): TLShape | undefined;
+    // @deprecated (undocumented)
     get focusedGroupId(): TLPageId | TLShapeId;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getArrowInfo(shape: TLArrowShape | TLShapeId): TLArrowInfo | undefined;
@@ -685,6 +689,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getEditingShape(): TLShape | undefined;
+    getEditingShapeId(): null | TLShapeId;
+    getFocusedGroup(): TLShape | undefined;
+    getFocusedGroupId(): TLPageId | TLShapeId;
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInstanceState(): TLInstance;
@@ -700,6 +708,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
     getSelectedShapeIds(): TLShapeId[];
     getSelectedShapes(): TLShape[];
+    getSelectionPageBounds(): Box2d | null;
+    getSelectionRotatedPageBounds(): Box2d | undefined;
+    getSelectionRotation(): number;
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
@@ -854,8 +865,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     get selectedShapeIds(): TLShapeId[];
     // @deprecated (undocumented)
     get selectedShapes(): TLShape[];
+    // @deprecated (undocumented)
     get selectionPageBounds(): Box2d | null;
+    // @deprecated (undocumented)
     get selectionRotatedPageBounds(): Box2d | undefined;
+    // @deprecated (undocumented)
     get selectionRotation(): number;
     selectNone(): this;
     sendBackward(shapes: TLShape[] | TLShapeId[]): this;

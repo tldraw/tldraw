@@ -46,7 +46,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 			? editor.getShapeUtil(onlyShape).expandSelectionOutlinePx(onlyShape)
 			: 0
 
-		useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.selectionRotation, {
+		useTransform(rSvg, bounds?.x, bounds?.y, 1, editor.getSelectionRotation(), {
 			x: -expandOutlineBy,
 			y: -expandOutlineBy,
 		})

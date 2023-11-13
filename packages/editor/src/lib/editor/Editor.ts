@@ -995,6 +995,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 	} {
 		try {
+			const editingShapeId = this.getEditingShapeId()
 			return {
 				tags: {
 					origin: origin,
@@ -1003,7 +1004,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				extras: {
 					activeStateNode: this.root.path.get(),
 					selectedShapes: this.getSelectedShapes(),
-					editingShape: this.editingShapeId ? this.getShape(this.editingShapeId) : undefined,
+					editingShape: editingShapeId ? this.getShape(editingShapeId) : undefined,
 					inputs: this.inputs,
 				},
 			}
@@ -1681,11 +1682,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get selectionPageBounds(): Box2d | null {
+	@computed getSelectionPageBounds(): Box2d | null {
 		const selectedShapeIds = this.getCurrentPageState().selectedShapeIds
 		if (selectedShapeIds.length === 0) return null
 
 		return Box2d.Common(compact(selectedShapeIds.map((id) => this.getShapePageBounds(id))))
+	}
+
+	/**
+	 * @deprecated Use `getSelectionPageBounds` instead.
+	 */
+	get selectionPageBounds() {
+		return this.getSelectionPageBounds()
 	}
 
 	/**
@@ -1694,7 +1702,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @readonly
 	 * @public
 	 */
-	@computed get selectionRotation(): number {
+	@computed getSelectionRotation(): number {
 		const selectedShapeIds = this.getSelectedShapeIds()
 		if (selectedShapeIds.length === 0) {
 			return 0
@@ -1712,21 +1720,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * @deprecated Use `getSelectionRotation` instead.
+	 */
+	get selectionRotation() {
+		return this.getSelectionRotation()
+	}
+
+	/**
 	 * The bounds of the selection bounding box in the current page space.
 	 *
 	 * @readonly
 	 * @public
 	 */
-	@computed get selectionRotatedPageBounds(): Box2d | undefined {
+	@computed getSelectionRotatedPageBounds(): Box2d | undefined {
 		const selectedShapeIds = this.getSelectedShapeIds()
 
 		if (selectedShapeIds.length === 0) {
 			return undefined
 		}
 
-		const { selectionRotation } = this
+		const selectionRotation = this.getSelectionRotation()
 		if (selectionRotation === 0) {
-			return this.selectionPageBounds!
+			return this.getSelectionPageBounds()!
 		}
 
 		if (selectedShapeIds.length === 1) {
@@ -1751,6 +1766,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return boxFromRotatedVertices
 	}
 
+	/**
+	 * @deprecated Use `getSelectionRotatedPageBounds` instead.
+	 */
+	get selectionRotatedPageBounds() {
+		return this.getSelectionRotatedPageBounds()
+	}
+
 	// Focus Group
 
 	/**
@@ -1758,8 +1780,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get focusedGroupId(): TLShapeId | TLPageId {
+	@computed getFocusedGroupId(): TLShapeId | TLPageId {
 		return this.getCurrentPageState().focusedGroupId ?? this.currentPageId
+	}
+
+	/**
+	 * @deprecated Use `getFocusedGroupId` instead.
+	 */
+	get focusedGroupId() {
+		return this.getFocusedGroupId()
 	}
 
 	/**
@@ -1767,9 +1796,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get focusedGroup(): TLShape | undefined {
-		const { focusedGroupId } = this
+	@computed getFocusedGroup(): TLShape | undefined {
+		const focusedGroupId = this.getFocusedGroupId()
 		return focusedGroupId ? this.getShape(focusedGroupId) : undefined
+	}
+
+	/**
+	 * @deprecated Use `getFocusedGroup` instead.
+	 */
+	get focusedGroup() {
+		return this.getFocusedGroup()
 	}
 
 	/**
@@ -1795,7 +1831,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			}
 		}
 
-		if (id === this.focusedGroupId) return this
+		if (id === this.getFocusedGroupId()) return this
 		this._setFocusedGroupId(id)
 		return this
 	}
@@ -1834,7 +1870,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	popFocusedGroupId(): this {
-		const { focusedGroup } = this
+		const focusedGroup = this.getFocusedGroup()
 
 		if (focusedGroup) {
 			// If we have a focused layer, look for an ancestor of the focused shape that is a group
@@ -1858,8 +1894,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get editingShapeId() {
+	@computed getEditingShapeId(): TLShapeId | null {
 		return this.getCurrentPageState().editingShapeId
+	}
+
+	/**
+	 * @deprecated Use `getEditingShapeId` instead.
+	 */
+	get editingShapeId() {
+		return this.getEditingShapeId()
 	}
 
 	/**
@@ -1867,9 +1910,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get editingShape(): TLShape | undefined {
-		const { editingShapeId } = this
+	@computed getEditingShape(): TLShape | undefined {
+		const editingShapeId = this.getEditingShapeId()
 		return editingShapeId ? this.getShape(editingShapeId) : undefined
+	}
+
+	/**
+	 * @deprecated Use `getEditingShape` instead.
+	 */
+	get editingShape() {
+		return this.getEditingShape()
 	}
 
 	/**
@@ -1887,7 +1937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	setEditingShape(shape: TLShapeId | TLShape | null): this {
 		const id = typeof shape === 'string' ? shape : shape?.id ?? null
-		if (id !== this.editingShapeId) {
+		if (id !== this.getEditingShapeId()) {
 			if (id) {
 				const shape = this.getShape(id)
 				if (shape && this.getShapeUtil(shape).canEdit(shape)) {
@@ -2226,7 +2276,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	zoomToContent(): this {
-		const bounds = this.selectionPageBounds ?? this.currentPageBounds
+		const bounds = this.getSelectionPageBounds() ?? this.currentPageBounds
 
 		if (bounds) {
 			this.zoomToBounds(bounds, Math.min(1, this.zoomLevel), { duration: 220 })
@@ -2383,7 +2433,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	zoomToSelection(animation?: TLAnimationOptions): this {
 		if (!this.getInstanceState().canMoveCamera) return this
 
-		const { selectionPageBounds } = this
+		const selectionPageBounds = this.getSelectionPageBounds()
 		if (!selectionPageBounds) return this
 
 		this.zoomToBounds(selectionPageBounds, Math.max(1, this.zoomLevel), animation)
@@ -3112,7 +3162,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let nextBackgroundIndex = MAX_SHAPES_PER_PAGE
 
 		// We only really need these if we're using editor state, but that's ok
-		const editingShapeId = this.editingShapeId
+		const editingShapeId = this.getEditingShapeId()
 		const selectedShapeIds = this.getSelectedShapeIds()
 		const erasingShapeIds = this.erasingShapeIds
 		const renderingBoundsExpanded = this.renderingBoundsExpanded
@@ -5087,7 +5137,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let match = freshShape
 		let node = freshShape as TLShape | undefined
 
-		const { focusedGroup } = this
+		const focusedGroup = this.getFocusedGroup()
 
 		while (node) {
 			if (
@@ -5378,7 +5428,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// If we've offset the duplicated shapes, check to see whether their new bounds is entirely
 				// contained in the current viewport. If not, then animate the camera to be centered on the
 				// new shapes.
-				const { viewportPageBounds, selectionPageBounds: selectionPageBounds } = this
+				const selectionPageBounds = this.getSelectionPageBounds()
+				const { viewportPageBounds } = this
 				if (selectionPageBounds && !viewportPageBounds.contains(selectionPageBounds)) {
 					this.centerOnPoint(selectionPageBounds.center, {
 						duration: ANIMATION_MEDIUM_MS,
@@ -5454,7 +5505,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// "from" page's camera, then center the "to" page's camera on the
 			// pasted shapes
 			this.setCamera({ ...this.camera, z: fromPageZ })
-			this.centerOnPoint(this.selectionRotatedPageBounds!.center)
+			this.centerOnPoint(this.getSelectionRotatedPageBounds()!.center)
 		})
 
 		return this
@@ -6581,7 +6632,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		},
 		{
 			do: ({ partials }) => {
-				const { focusedGroupId } = this
+				const focusedGroupId = this.getFocusedGroupId()
 
 				// 1. Parents
 
@@ -6601,7 +6652,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						!partial.parentId ||
 						!(this.store.has(partial.parentId) || partials.some((p) => p.id === partial.parentId))
 					) {
-						let parentId: TLParentId = this.focusedGroupId
+						let parentId: TLParentId = this.getFocusedGroupId()
 
 						for (let i = currentPageShapesSorted.length - 1; i >= 0; i--) {
 							const parent = currentPageShapesSorted[i]

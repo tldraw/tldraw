@@ -53,9 +53,9 @@ const moveShapesToPage2 = () => {
 describe('shapes that are moved to another page', () => {
 	it("should be excluded from the previous page's focusedGroupId", () => {
 		editor.setFocusedGroup(ids.group1)
-		expect(editor.focusedGroupId).toBe(ids.group1)
+		expect(editor.getFocusedGroupId()).toBe(ids.group1)
 		moveShapesToPage2()
-		expect(editor.focusedGroupId).toBe(editor.currentPageId)
+		expect(editor.getFocusedGroupId()).toBe(editor.currentPageId)
 	})
 
 	describe("should be excluded from the previous page's hintingShapeIds", () => {
@@ -76,27 +76,27 @@ describe('shapes that are moved to another page', () => {
 	describe("should be excluded from the previous page's editingShapeId", () => {
 		test('[root shape]', () => {
 			editor.setEditingShape(ids.box1)
-			expect(editor.editingShapeId).toBe(ids.box1)
+			expect(editor.getEditingShapeId()).toBe(ids.box1)
 			moveShapesToPage2()
-			expect(editor.editingShapeId).toBe(null)
+			expect(editor.getEditingShapeId()).toBe(null)
 		})
 		test('[child of frame]', () => {
 			editor.setEditingShape(ids.box2)
-			expect(editor.editingShapeId).toBe(ids.box2)
+			expect(editor.getEditingShapeId()).toBe(ids.box2)
 			moveShapesToPage2()
-			expect(editor.editingShapeId).toBe(null)
+			expect(editor.getEditingShapeId()).toBe(null)
 		})
 		test('[child of group]', () => {
 			editor.setEditingShape(ids.box3)
-			expect(editor.editingShapeId).toBe(ids.box3)
+			expect(editor.getEditingShapeId()).toBe(ids.box3)
 			moveShapesToPage2()
-			expect(editor.editingShapeId).toBe(null)
+			expect(editor.getEditingShapeId()).toBe(null)
 		})
 		test('[frame that doesnt move]', () => {
 			editor.setEditingShape(ids.frame1)
-			expect(editor.editingShapeId).toBe(ids.frame1)
+			expect(editor.getEditingShapeId()).toBe(ids.frame1)
 			moveShapesToPage2()
-			expect(editor.editingShapeId).toBe(ids.frame1)
+			expect(editor.getEditingShapeId()).toBe(ids.frame1)
 		})
 	})
 
