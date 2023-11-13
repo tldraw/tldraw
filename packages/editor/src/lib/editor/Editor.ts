@@ -296,7 +296,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					nextParentId = arrow.parentId
 				} else {
 					// if arrow has one binding, keep arrow on its own page
-					nextParentId = (startShape || endShape)?.parentId ?? parentPageId
+					nextParentId = parentPageId
 				}
 			} else {
 				return
