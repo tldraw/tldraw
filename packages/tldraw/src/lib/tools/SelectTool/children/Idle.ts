@@ -35,7 +35,7 @@ export class Idle extends StateNode {
 	}
 
 	override onPointerDown: TLEventHandlers['onPointerDown'] = (info) => {
-		if (this.editor.isMenuOpen) return
+		if (this.editor.getIsMenuOpen()) return
 
 		const shouldEnterCropMode = info.ctrlKey && getShouldEnterCropMode(this.editor)
 
@@ -66,9 +66,9 @@ export class Idle extends StateNode {
 					return
 				}
 
+				const selectedShapeIds = this.editor.getSelectedShapeIds()
 				const {
 					onlySelectedShape,
-					selectedShapeIds,
 					inputs: { currentPagePoint },
 				} = this.editor
 
@@ -140,7 +140,7 @@ export class Idle extends StateNode {
 					}
 					default: {
 						const { hoveredShape } = this.editor
-						if (hoveredShape && !this.editor.selectedShapeIds.includes(hoveredShape.id)) {
+						if (hoveredShape && !this.editor.getSelectedShapeIds().includes(hoveredShape.id)) {
 							this.onPointerDown({
 								...info,
 								shape: hoveredShape,
@@ -345,9 +345,9 @@ export class Idle extends StateNode {
 					return
 				}
 
+				const selectedShapeIds = this.editor.getSelectedShapeIds()
 				const {
 					onlySelectedShape,
-					selectedShapeIds,
 					inputs: { currentPagePoint },
 				} = this.editor
 
@@ -369,7 +369,7 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'shape': {
-				const { selectedShapeIds } = this.editor.currentPageState
+				const { selectedShapeIds } = this.editor.getCurrentPageState()
 				const { shape } = info
 
 				const targetShape = this.editor.getOutermostSelectableShape(
@@ -389,7 +389,7 @@ export class Idle extends StateNode {
 	override onCancel: TLEventHandlers['onCancel'] = () => {
 		if (
 			this.editor.focusedGroupId !== this.editor.currentPageId &&
-			this.editor.selectedShapeIds.length > 0
+			this.editor.getSelectedShapeIds().length > 0
 		) {
 			this.editor.popFocusedGroupId()
 		} else {
@@ -544,7 +544,7 @@ export class Idle extends StateNode {
 			? MAJOR_NUDGE_FACTOR
 			: MINOR_NUDGE_FACTOR
 
-		this.editor.nudgeShapes(this.editor.selectedShapeIds, delta.mul(step))
+		this.editor.nudgeShapes(this.editor.getSelectedShapeIds(), delta.mul(step))
 	}
 
 	private canInteractWithShapeInReadOnly(shape: TLShape) {

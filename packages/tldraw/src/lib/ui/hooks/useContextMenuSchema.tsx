@@ -55,7 +55,7 @@ export const TLUiContextMenuSchemaProvider = track(function TLUiContextMenuSchem
 
 	const onlyFlippableShapeSelected = useOnlyFlippableShape()
 
-	const selectedCount = editor.selectedShapeIds.length
+	const selectedCount = editor.getSelectedShapeIds().length
 
 	const oneSelected = selectedCount > 0
 

@@ -18,7 +18,7 @@ export default function OnlyEditorExample() {
 				onMount={(editor: Editor) => {
 					editor
 						.selectAll()
-						.deleteShapes(editor.selectedShapeIds)
+						.deleteShapes(editor.getSelectedShapeIds())
 						.createShapes([
 							{
 								id: createShapeId(),

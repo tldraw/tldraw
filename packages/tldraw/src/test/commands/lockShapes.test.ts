@@ -17,7 +17,7 @@ const ids = {
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
-	editor.deleteShapes(editor.selectedShapeIds)
+	editor.deleteShapes(editor.getSelectedShapeIds())
 	editor.createShapes([
 		{
 			id: ids.lockedShapeA,
@@ -83,10 +83,10 @@ beforeEach(() => {
 describe('Locking', () => {
 	it('Can lock shapes', () => {
 		editor.setSelectedShapes([ids.unlockedShapeA])
-		editor.toggleLock(editor.selectedShapeIds)
+		editor.toggleLock(editor.getSelectedShapeIds())
 		expect(editor.getShape(ids.unlockedShapeA)!.isLocked).toBe(true)
 		// Locking deselects the shape
-		expect(editor.selectedShapeIds).toEqual([])
+		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
 })
 
@@ -117,7 +117,7 @@ describe('Locked shapes', () => {
 
 	it('Cannot be selected with select all', () => {
 		editor.selectAll()
-		expect(editor.selectedShapeIds).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
+		expect(editor.getSelectedShapeIds()).toEqual([ids.unlockedShapeA, ids.unlockedShapeB])
 	})
 
 	it('Cannot be selected by clicking', () => {
@@ -128,7 +128,7 @@ describe('Locked shapes', () => {
 			.expectToBeIn('select.pointing_canvas')
 			.pointerUp()
 			.expectToBeIn('select.idle')
-		expect(editor.selectedShapeIds).not.toContain(shape.id)
+		expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
 	})
 
 	it('Cannot be edited', () => {
@@ -138,7 +138,7 @@ describe('Locked shapes', () => {
 		// We create a new shape and we edit that one
 		editor.doubleClick(10, 10, { target: 'shape', shape }).expectToBeIn('select.editing_shape')
 		expect(editor.currentPageShapes.length).toBe(shapeCount + 1)
-		expect(editor.selectedShapeIds).not.toContain(shape.id)
+		expect(editor.getSelectedShapeIds()).not.toContain(shape.id)
 	})
 
 	it('Cannot be grouped', () => {
@@ -169,7 +169,7 @@ describe('Unlocking', () => {
 			(id) => editor.getShape(id)!.isLocked
 		)
 		expect(lockedStatus).toStrictEqual([true, true])
-		editor.toggleLock(editor.selectedShapeIds)
+		editor.toggleLock(editor.getSelectedShapeIds())
 		lockedStatus = [ids.lockedShapeA, ids.lockedShapeB].map((id) => editor.getShape(id)!.isLocked)
 		expect(lockedStatus).toStrictEqual([false, false])
 	})

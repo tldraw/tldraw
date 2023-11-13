@@ -132,7 +132,7 @@ export class Translating extends StateNode {
 		this.markId = 'translating'
 		this.editor.mark(this.markId)
 
-		this.editor.duplicateShapes(Array.from(this.editor.selectedShapeIds))
+		this.editor.duplicateShapes(Array.from(this.editor.getSelectedShapeIds()))
 
 		this.snapshot = getTranslatingSnapshot(this.editor)
 		this.handleStart()
@@ -285,7 +285,7 @@ function getTranslatingSnapshot(editor: Editor) {
 	const pagePoints: Vec2d[] = []
 
 	const shapeSnapshots = compact(
-		editor.selectedShapeIds.map((id): null | MovingShapeSnapshot => {
+		editor.getSelectedShapeIds().map((id): null | MovingShapeSnapshot => {
 			const shape = editor.getShape(id)
 			if (!shape) return null
 			movingShapes.push(shape)
@@ -312,8 +312,8 @@ function getTranslatingSnapshot(editor: Editor) {
 		shapeSnapshots,
 		initialPageBounds: editor.selectionPageBounds!,
 		initialSnapPoints:
-			editor.selectedShapeIds.length === 1
-				? editor.snaps.snapPointsCache.get(editor.selectedShapeIds[0])!
+			editor.getSelectedShapeIds().length === 1
+				? editor.snaps.snapPointsCache.get(editor.getSelectedShapeIds()[0])!
 				: editor.selectionPageBounds
 				? editor.selectionPageBounds.snapPoints.map((p, i) => ({
 						id: 'selection:' + i,

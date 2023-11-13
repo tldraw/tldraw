@@ -21,7 +21,7 @@ describe(NoteShapeTool, () => {
 
 		expect(editor.currentPageShapes.length).toBe(1)
 		expect(editor.currentPageShapes[0]?.type).toBe('note')
-		expect(editor.selectedShapeIds[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.getSelectedShapeIds()[0]).toBe(editor.currentPageShapes[0]?.id)
 
 		editor.cancel() // leave edit mode
 
@@ -44,7 +44,7 @@ describe(NoteShapeTool, () => {
 
 		expect(editor.currentPageShapes.length).toBe(1)
 		expect(editor.currentPageShapes[0]?.type).toBe('note')
-		expect(editor.selectedShapeIds[0]).toBe(editor.currentPageShapes[0]?.id)
+		expect(editor.getSelectedShapeIds()[0]).toBe(editor.currentPageShapes[0]?.id)
 
 		editor.undo()
 

@@ -34,7 +34,7 @@ export const TldrawSelectionForeground: TLSelectionForegroundComponent = track(
 		const bottomLeftEvents = useSelectionEvents('bottom_left')
 
 		const isDefaultCursor =
-			!editor.isMenuOpen && editor.getInstanceState().cursor.type === 'default'
+			!editor.getIsMenuOpen() && editor.getInstanceState().cursor.type === 'default'
 		const isCoarsePointer = editor.getInstanceState().isCoarsePointer
 
 		const shapes = editor.selectedShapes

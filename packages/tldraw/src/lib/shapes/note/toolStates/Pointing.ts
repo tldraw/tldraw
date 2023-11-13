@@ -21,7 +21,7 @@ export class Pointing extends StateNode {
 	shape = {} as TLNoteShape
 
 	override onEnter = () => {
-		this.wasFocusedOnEnter = !this.editor.isMenuOpen
+		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
 		if (this.wasFocusedOnEnter) {
 			this.shape = this.createShape()
 		}

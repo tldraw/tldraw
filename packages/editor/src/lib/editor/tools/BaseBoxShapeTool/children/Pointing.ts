@@ -13,8 +13,7 @@ export class Pointing extends StateNode {
 	wasFocusedOnEnter = false
 
 	override onEnter = () => {
-		const { isMenuOpen } = this.editor
-		this.wasFocusedOnEnter = !isMenuOpen
+		this.wasFocusedOnEnter = !this.editor.getIsMenuOpen()
 	}
 
 	override onPointerMove: TLEventHandlers['onPointerMove'] = (info) => {

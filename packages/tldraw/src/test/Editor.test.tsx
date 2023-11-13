@@ -118,15 +118,15 @@ describe('shapes that are moved to another page', () => {
 	describe("should be excluded from the previous page's selectedShapeIds", () => {
 		test('[boxes]', () => {
 			editor.setSelectedShapes([ids.box1, ids.box2, ids.box3])
-			expect(editor.selectedShapeIds).toEqual([ids.box1, ids.box2, ids.box3])
+			expect(editor.getSelectedShapeIds()).toEqual([ids.box1, ids.box2, ids.box3])
 			moveShapesToPage2()
-			expect(editor.selectedShapeIds).toEqual([])
+			expect(editor.getSelectedShapeIds()).toEqual([])
 		})
 		test('[frame that does not move]', () => {
 			editor.setSelectedShapes([ids.frame1])
-			expect(editor.selectedShapeIds).toEqual([ids.frame1])
+			expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
 			moveShapesToPage2()
-			expect(editor.selectedShapeIds).toEqual([ids.frame1])
+			expect(editor.getSelectedShapeIds()).toEqual([ids.frame1])
 		})
 	})
 })

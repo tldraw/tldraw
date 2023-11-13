@@ -618,6 +618,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get currentPageShapeIds(): Set<TLShapeId>;
     get currentPageShapes(): TLShape[];
     get currentPageShapesSorted(): TLShape[];
+    // @deprecated (undocumented)
     get currentPageState(): TLInstancePageState;
     // @deprecated (undocumented)
     get currentTool(): StateNode | undefined;
@@ -679,6 +680,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCanUndo(): boolean;
     getContainer: () => HTMLElement;
     getContentFromCurrentPage(shapes: TLShape[] | TLShapeId[]): TLContent | undefined;
+    getCurrentPageState(): TLInstancePageState;
     getCurrentTool(): StateNode | undefined;
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
@@ -686,13 +688,16 @@ export class Editor extends EventEmitter<TLEventMap> {
     getHighestIndexForParent(parent: TLPage | TLParentId | TLShape): string;
     getInitialMetaForShape(_shape: TLShape): JsonObject;
     getInstanceState(): TLInstance;
+    getIsMenuOpen(): boolean;
     getOpenMenus(): string[];
     getOutermostSelectableShape(shape: TLShape | TLShapeId, filter?: (shape: TLShape) => boolean): TLShape;
     getPage(page: TLPage | TLPageId): TLPage | undefined;
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
+    getPageStates(): TLInstancePageState[];
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
+    getSelectedShapeIds(): TLShapeId[];
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
@@ -770,6 +775,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
+    // @deprecated (undocumented)
     get isMenuOpen(): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         margin?: number | undefined;
@@ -790,6 +796,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get openMenus(): string[];
     packShapes(shapes: TLShape[] | TLShapeId[], gap: number): this;
     get pages(): TLPage[];
+    // @deprecated (undocumented)
     get pageStates(): TLInstancePageState[];
     pageToScreen(point: VecLike): {
         x: number;
@@ -840,6 +847,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
+    // @deprecated (undocumented)
     get selectedShapeIds(): TLShapeId[];
     get selectedShapes(): TLShape[];
     get selectionPageBounds(): Box2d | null;

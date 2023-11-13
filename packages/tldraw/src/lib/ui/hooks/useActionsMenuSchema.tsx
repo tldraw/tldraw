@@ -40,7 +40,9 @@ export const ActionsMenuSchemaProvider = ({
 	const editor = useEditor()
 	const actions = useActions()
 
-	const selectedCount = useValue('selected count', () => editor.selectedShapeIds.length, [editor])
+	const selectedCount = useValue('selected count', () => editor.getSelectedShapeIds().length, [
+		editor,
+	])
 
 	const oneSelected = selectedCount > 0
 	const twoSelected = selectedCount > 1

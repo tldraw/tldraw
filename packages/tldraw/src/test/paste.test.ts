@@ -363,7 +363,7 @@ it('pastes shapes with children', () => {
 describe('When pasting into frames...', () => {
 	it('Does not paste into a clipped frame', () => {
 		// clear the page
-		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 
 		editor
 			// move the two frames far from all other shapes
@@ -416,7 +416,7 @@ describe('When pasting into frames...', () => {
 			])
 			// Make sure that frame 1 is brought to front
 			.select(ids.frame1)
-			.bringToFront(editor.selectedShapeIds)
+			.bringToFront(editor.getSelectedShapeIds())
 
 		editor.setCamera({ x: -2000, y: -2000, z: 1 })
 		editor.updateRenderingBounds()
@@ -436,7 +436,7 @@ describe('When pasting into frames...', () => {
 
 	it('keeps things in the right place', () => {
 		// clear the page
-		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 		// create a small box and copy it
 		editor.createShapes([
 			{
@@ -452,7 +452,7 @@ describe('When pasting into frames...', () => {
 		])
 		editor.selectAll().copy()
 		// now delete it
-		editor.deleteShapes(editor.selectedShapeIds)
+		editor.deleteShapes(editor.getSelectedShapeIds())
 
 		// create a big frame away from the origin, the size of the viewport
 		editor

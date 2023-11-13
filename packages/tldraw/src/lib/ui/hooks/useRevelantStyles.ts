@@ -21,9 +21,10 @@ export function useRelevantStyles(): {
 		'getRelevantStyles',
 		() => {
 			const styles = new SharedStyleMap(editor.sharedStyles)
-			const hasShape = editor.selectedShapeIds.length > 0 || !!editor.root.current.get()?.shapeType
+			const hasShape =
+				editor.getSelectedShapeIds().length > 0 || !!editor.root.current.get()?.shapeType
 
-			if (styles.size === 0 && editor.isIn('select') && editor.selectedShapeIds.length === 0) {
+			if (styles.size === 0 && editor.isIn('select') && editor.getSelectedShapeIds().length === 0) {
 				for (const style of selectToolStyles) {
 					styles.applyValue(style, editor.getStyleForNextShape(style))
 				}
