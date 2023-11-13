@@ -166,7 +166,7 @@ export const useThreeStackableItems = () => {
 /** @internal */
 export const useAllowGroup = () => {
 	const editor = useEditor()
-	return useValue('allowGroup', () => shapesWithUnboundArrows(editor).length > 1, [editor])
+	return useValue('allowGroup', () => editor.getSelectedShapes().length > 1, [editor])
 }
 
 /** @internal */
