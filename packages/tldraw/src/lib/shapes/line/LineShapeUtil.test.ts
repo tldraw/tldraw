@@ -142,7 +142,7 @@ describe('Misc', () => {
 		editor
 			.pointerDown(150, 0, { target: 'selection', handle: 'bottom' })
 			.pointerMove(150, 600) // Resize shape by 0, 600
-			.expectPathToBe('select.resizing')
+			.expectToBeIn('select.resizing')
 
 		expect(editor.getShape(id)!).toMatchSnapshot('line shape after resize')
 	})

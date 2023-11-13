@@ -1048,7 +1048,7 @@ describe('the select tool', () => {
 		expect(editor.getShapesAtPoint({ x: -305, y: -5 })).toMatchObject([])
 		editor.pointerDown(-305, -5, { target: 'canvas' }).pointerMove(35, 9, ids.boxB)
 
-		expect(editor.root.path.get()).toBe(`root.select.brushing`)
+		expect(editor.getPath()).toBe(`root.select.brushing`)
 		expect(editor.getSelectedShapeIds().includes(ids.boxA)).toBe(true)
 		expect(editor.getSelectedShapeIds().includes(ids.boxB)).toBe(true)
 

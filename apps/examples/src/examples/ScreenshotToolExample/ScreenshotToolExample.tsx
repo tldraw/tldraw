@@ -54,8 +54,7 @@ function ScreenshotBox() {
 		'screenshot brush',
 		() => {
 			// Check whether the screenshot tool (and its dragging state) is active
-			const { path } = editor
-			if (path !== 'screenshot.dragging') return null
+			if (editor.getPath() !== 'screenshot.dragging') return null
 
 			// Get screenshot.dragging state node
 			const draggingState = editor.getStateDescendant<ScreenshotDragging>('screenshot.dragging')!

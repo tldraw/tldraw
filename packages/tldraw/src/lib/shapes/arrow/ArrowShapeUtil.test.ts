@@ -379,7 +379,7 @@ describe('resizing', () => {
 			.pointerDown(150, 300, { target: 'selection', handle: 'bottom' })
 			.pointerMove(150, 600)
 
-			.expectPathToBe('select.resizing')
+			.expectToBeIn('select.resizing')
 
 		expect(editor.getShape(arrow1.id)).toMatchObject({
 			x: 0,
@@ -436,7 +436,7 @@ describe('resizing', () => {
 			.pointerDown(150, 300, { target: 'selection', handle: 'bottom' })
 			.pointerMove(150, -300)
 
-			.expectPathToBe('select.resizing')
+			.expectToBeIn('select.resizing')
 
 		expect(editor.getShape(arrow1.id)).toCloselyMatchObject({
 			props: {

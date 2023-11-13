@@ -280,15 +280,15 @@ describe('When cloning...', () => {
 		const count1 = editor.currentPageShapes.length
 
 		editor.pointerDown(50, 50, { shape: editor.getShape(groupId)!, target: 'shape' })
-		editor.expectPathToBe('select.pointing_shape')
+		editor.expectToBeIn('select.pointing_shape')
 
 		editor.pointerMove(199, 199)
-		editor.expectPathToBe('select.translating')
+		editor.expectToBeIn('select.translating')
 		expect(editor.currentPageShapes.length).toBe(count1) // 2 new box and group
 
 		editor.keyDown('Alt')
 
-		editor.expectPathToBe('select.translating')
+		editor.expectToBeIn('select.translating')
 		expect(editor.currentPageShapes.length).toBe(count1 + 3) // 2 new box and group
 
 		editor.keyUp('Alt')

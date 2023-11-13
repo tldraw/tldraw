@@ -59,7 +59,7 @@ describe(NoteShapeTool, () => {
 describe('When selecting the tool', () => {
 	it('selects the tool and enters the idle state', () => {
 		editor.setCurrentTool('note')
-		editor.expectPathToBe('note.idle')
+		editor.expectToBeIn('note.idle')
 	})
 })
 
@@ -67,19 +67,19 @@ describe('When in the idle state', () => {
 	it('Enters pointing state on pointer down', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(100, 100)
-		editor.expectPathToBe('note.pointing')
+		editor.expectToBeIn('note.pointing')
 	})
 
 	it('Switches back to select tool on cancel', () => {
 		editor.setCurrentTool('note')
 		editor.cancel()
-		editor.expectPathToBe('select.idle')
+		editor.expectToBeIn('select.idle')
 	})
 
 	it('Does nothing on interrupt', () => {
 		editor.setCurrentTool('note')
 		editor.interrupt()
-		editor.expectPathToBe('note.idle')
+		editor.expectToBeIn('note.idle')
 	})
 })
 
@@ -87,18 +87,18 @@ describe('When in the pointing state', () => {
 	it('Switches back to idle on cancel', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
-		editor.expectPathToBe('note.pointing')
+		editor.expectToBeIn('note.pointing')
 		editor.cancel()
-		editor.expectPathToBe('note.idle')
+		editor.expectToBeIn('note.idle')
 	})
 
 	it('Enters the select.translating state on drag start', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(51, 51) // not far enough!
-		editor.expectPathToBe('note.pointing')
+		editor.expectToBeIn('note.pointing')
 		editor.pointerMove(55, 55)
-		editor.expectPathToBe('select.translating')
+		editor.expectToBeIn('select.translating')
 	})
 
 	it('Returns to the note tool on cancel from translating', () => {
@@ -106,7 +106,7 @@ describe('When in the pointing state', () => {
 		editor.pointerDown(50, 50)
 		editor.pointerMove(55, 55)
 		editor.cancel()
-		editor.expectPathToBe('note.idle')
+		editor.expectToBeIn('note.idle')
 	})
 
 	it('Returns to the note tool on complete from translating when tool lock is enabled', () => {
@@ -115,14 +115,14 @@ describe('When in the pointing state', () => {
 		editor.pointerDown(50, 50)
 		editor.pointerMove(55, 55)
 		editor.pointerUp()
-		editor.expectPathToBe('note.idle')
+		editor.expectToBeIn('note.idle')
 	})
 
 	it('Returns to the idle state on interrupt', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.interrupt()
-		editor.expectPathToBe('note.idle')
+		editor.expectToBeIn('note.idle')
 	})
 
 	it('Creates a note and begins editing on pointer up', () => {
@@ -130,7 +130,7 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
-		editor.expectPathToBe('select.editing_shape')
+		editor.expectToBeIn('select.editing_shape')
 		expect(editor.currentPageShapes.length).toBe(1)
 	})
 
@@ -140,7 +140,7 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('note')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
-		editor.expectPathToBe('note.idle')
+		editor.expectToBeIn('note.idle')
 		expect(editor.currentPageShapes.length).toBe(1)
 	})
 })

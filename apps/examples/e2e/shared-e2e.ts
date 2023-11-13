@@ -5,7 +5,7 @@ export function sleep(ms: number) {
 	return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-// export async function expectPathToBe(page: Page, path: string) {
+// export async function expectToBeIn(page: Page, path: string) {
 // 	expect(await page.evaluate(() => editor.root.path.value)).toBe(path)
 // }
 

@@ -1,5 +1,5 @@
 import { createShapeId, TLImageShape } from '@tldraw/editor'
-import { MIN_CROP_SIZE } from '../lib/tools/SelectTool/children/Crop/crop-constants'
+import { MIN_CROP_SIZE } from '../lib/tools/SelectTool/childStates/Crop/crop-constants'
 import { TestEditor } from './TestEditor'
 
 jest.useFakeTimers()
@@ -90,12 +90,12 @@ describe('When in the select.idle state', () => {
 	it('double clicking an image should transition to select.crop', () => {
 		editor.select(ids.boxA)
 
-		editor.expectPathToBe('root.select.idle')
+		editor.expectToBeIn('root.select.idle')
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.boxA])
 		expect(editor.croppingShapeId).toBe(null)
 
 		editor.doubleClick(550, 550, ids.imageB)
-		editor.expectPathToBe('root.select.crop.idle')
+		editor.expectToBeIn('root.select.crop.idle')
 
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
 		expect(editor.croppingShapeId).toBe(ids.imageB)
@@ -103,14 +103,14 @@ describe('When in the select.idle state', () => {
 		editor.undo()
 
 		// first selection should have been a mark
-		editor.expectPathToBe('root.select.idle')
+		editor.expectToBeIn('root.select.idle')
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
 		expect(editor.croppingShapeId).toBe(null)
 
 		editor.undo()
 
 		// back to start
-		editor.expectPathToBe('root.select.idle')
+		editor.expectToBeIn('root.select.idle')
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.boxA])
 		expect(editor.croppingShapeId).toBe(null)
 
@@ -118,7 +118,7 @@ describe('When in the select.idle state', () => {
 			.redo() // select again
 			.redo() // crop again
 
-		editor.expectPathToBe('root.select.crop.idle')
+		editor.expectToBeIn('root.select.crop.idle')
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
 		expect(editor.croppingShapeId).toBe(ids.imageB)
 	})
@@ -128,49 +128,49 @@ describe('When in the select.idle state', () => {
 
 		// corner (two shapes)
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageA, ids.imageB)
 			.doubleClick(550, 550, {
 				target: 'selection',
 				handle: 'bottom_right',
 			})
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 
 		expect(editor.croppingShapeId).toBe(null)
 
 		// edge (two shapes)
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, {
 				target: 'selection',
 				handle: 'bottom',
 			})
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 
 		expect(editor.croppingShapeId).toBe(null)
 
 		// corner (one shape)
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageB)
 			.doubleClick(550, 550, {
 				target: 'selection',
 				handle: 'bottom_right',
 			})
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 
 		expect(editor.croppingShapeId).toBe(ids.imageB)
 
 		// edge (one shape)
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, {
 				target: 'selection',
 				handle: 'bottom',
 			})
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 
 		expect(editor.croppingShapeId).toBe(ids.imageB)
 	})
@@ -178,19 +178,19 @@ describe('When in the select.idle state', () => {
 	it('when only an image is selected pressing enter should transition to select.crop', () => {
 		// two shapes
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageA, ids.imageB)
 			.keyDown('Enter')
 			.keyUp('Enter')
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 
 		// one image
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageB)
 			.keyDown('Enter')
 			.keyUp('Enter')
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 
 		expect(editor.croppingShapeId).toBe(ids.imageB)
 	})
@@ -199,101 +199,101 @@ describe('When in the select.idle state', () => {
 		// two shapes / edge
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageA, ids.imageB)
 			.pointerDown(500, 550, { target: 'selection', handle: 'bottom', ctrlKey: true })
-			.expectPathToBe('root.select.brushing')
+			.expectToBeIn('root.select.brushing')
 
 		// two shapes / corner
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageA, ids.imageB)
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
-			.expectPathToBe('root.select.brushing')
+			.expectToBeIn('root.select.brushing')
 
 		// one shape / edge
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageB)
 			.pointerDown(500, 550, { target: 'selection', handle: 'bottom', ctrlKey: true })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 
 		// one shape / corner
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageB)
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 	})
 })
 
 describe('When in the crop.idle state', () => {
 	it('pressing escape should transition to select.idle', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 	})
 
 	it('pressing enter should transition to select.idle', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.keyDown('Enter')
 			.keyUp('Enter')
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 	})
 
 	it('pointing the canvas should point canvas', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.pointerMove(-100, -100)
 			.pointerDown()
-			.expectPathToBe('root.select.pointing_canvas')
+			.expectToBeIn('root.select.pointing_canvas')
 	})
 
 	it('pointing some other shape should start pointing the shape', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.pointerMove(550, 500)
 			.pointerDown()
-			.expectPathToBe('root.select.pointing_shape')
+			.expectToBeIn('root.select.pointing_shape')
 	})
 
 	it('pointing a selection handle should enter the select.pointing_crop_handle state', () => {
 		// corner
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: false })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 
 		//reset
 		editor.cancel().cancel()
 
 		// edge
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 	})
 
 	it('pointing the cropping image should enter the select.crop.translating_crop state', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(500, 600, { target: 'shape', shape: editor.getShape(ids.imageB) })
-			.expectPathToBe('root.select.crop.pointing_crop')
+			.expectToBeIn('root.select.crop.pointing_crop')
 
 		expect(editor.croppingShapeId).toBe(ids.imageB)
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageB])
@@ -301,11 +301,11 @@ describe('When in the crop.idle state', () => {
 
 	it('clicking another image shape should set that shape as the new cropping shape and transition to pointing_crop', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(100, 100, { target: 'shape', shape: editor.getShape(ids.imageA) })
-			.expectPathToBe('root.select.crop.pointing_crop')
+			.expectToBeIn('root.select.crop.pointing_crop')
 
 		expect(editor.croppingShapeId).toBe(ids.imageA)
 		expect(editor.getSelectedShapeIds()).toMatchObject([ids.imageA])
@@ -313,22 +313,22 @@ describe('When in the crop.idle state', () => {
 
 	it('rotating will return to select.crop.idle', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(500, 600, { target: 'selection', handle: 'top_left_rotate' })
-			.expectPathToBe('root.select.pointing_rotate_handle')
+			.expectToBeIn('root.select.pointing_rotate_handle')
 			.pointerMove(510, 590)
-			.expectPathToBe('root.select.rotating')
+			.expectToBeIn('root.select.rotating')
 			.pointerUp()
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 	})
 
 	it('nudges the cropped image', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 
 		const crop = () => editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
@@ -374,34 +374,34 @@ describe('When in the crop.idle state', () => {
 describe('When in the select.crop.pointing_crop state', () => {
 	it('pressing escape / cancel returns to select.crop.idle', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
-			.expectPathToBe('root.select.crop.pointing_crop')
+			.expectToBeIn('root.select.crop.pointing_crop')
 			.cancel()
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 	})
 	it('dragging enters select.crop.translating_crop', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
-			.expectPathToBe('root.select.crop.pointing_crop')
+			.expectToBeIn('root.select.crop.pointing_crop')
 			.pointerMove(560, 560)
-			.expectPathToBe('root.select.crop.translating_crop')
+			.expectToBeIn('root.select.crop.translating_crop')
 	})
 })
 
 describe('When in the select.crop.translating_crop state', () => {
 	it('moving the pointer should adjust the crop', () => {
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
-			.expectPathToBe('root.select.crop.pointing_crop')
+			.expectToBeIn('root.select.crop.pointing_crop')
 
 		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
@@ -413,7 +413,7 @@ describe('When in the select.crop.translating_crop state', () => {
 		// Move the pointer to the left
 		editor
 			.pointerMove(550 - imageWidth / 4, 550 - imageHeight / 4)
-			.expectPathToBe('root.select.crop.translating_crop')
+			.expectToBeIn('root.select.crop.translating_crop')
 
 		// Update should have run right away
 		const afterFirst = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
@@ -456,7 +456,7 @@ describe('When in the select.crop.translating_crop state', () => {
 			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
 			.keyDown('Shift')
 			.pointerMove(550 - imageWidth / 8, 550 - imageHeight / 8)
-			.expectPathToBe('root.select.crop.translating_crop')
+			.expectToBeIn('root.select.crop.translating_crop')
 
 		// Update should have run right away
 		const afterShiftDown = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
@@ -487,17 +487,17 @@ describe('When in the select.crop.translating_crop state', () => {
 		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
-			.expectPathToBe('root.select.crop.pointing_crop')
+			.expectToBeIn('root.select.crop.pointing_crop')
 			.pointerMove(250, 250)
-			.expectPathToBe('root.select.crop.translating_crop')
+			.expectToBeIn('root.select.crop.translating_crop')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 
-		editor.cancel().expectPathToBe('root.select.crop.idle')
+		editor.cancel().expectToBeIn('root.select.crop.idle')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
@@ -506,17 +506,17 @@ describe('When in the select.crop.translating_crop state', () => {
 		const before = editor.getShape<TLImageShape>(ids.imageB)!.props.crop!
 
 		editor
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(550, 550, { target: 'shape', shape: editor.getShape(ids.imageB) })
-			.expectPathToBe('root.select.crop.pointing_crop')
+			.expectToBeIn('root.select.crop.pointing_crop')
 			.pointerMove(250, 250)
-			.expectPathToBe('root.select.crop.translating_crop')
+			.expectToBeIn('root.select.crop.translating_crop')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 
-		editor.keyDown('Enter').keyUp('Enter').expectPathToBe('root.select.crop.idle')
+		editor.keyDown('Enter').keyUp('Enter').expectToBeIn('root.select.crop.idle')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 	})
@@ -526,24 +526,24 @@ describe('When in the select.pointing_crop_handle state', () => {
 	it('moving the pointer should transition to select.cropping', () => {
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageB)
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectPathToBe('root.select.cropping')
+			.expectToBeIn('root.select.cropping')
 	})
 
 	it('when entered from select.idle, pressing escape / cancel should return to idle and clear cropping idle', () => {
 		// coming from select.idle
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageB)
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 
 		expect(editor.croppingShapeId).toBe(null)
 	})
@@ -552,13 +552,13 @@ describe('When in the select.pointing_crop_handle state', () => {
 		// coming from idle
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: false })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 			.cancel()
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 
 		expect(editor.croppingShapeId).toBe(ids.imageB)
 	})
@@ -570,12 +570,12 @@ describe('When in the select.cropping state', () => {
 
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageB)
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectPathToBe('root.select.cropping')
+			.expectToBeIn('root.select.cropping')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 	})
@@ -585,14 +585,14 @@ describe('When in the select.cropping state', () => {
 
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageB)
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectPathToBe('root.select.cropping')
+			.expectToBeIn('root.select.cropping')
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
@@ -602,15 +602,15 @@ describe('When in the select.cropping state', () => {
 
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectPathToBe('root.select.cropping')
+			.expectToBeIn('root.select.cropping')
 			.cancel()
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).toMatchObject(before)
 	})
@@ -620,15 +620,15 @@ describe('When in the select.cropping state', () => {
 
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.doubleClick(550, 550, ids.imageB)
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom', ctrlKey: false })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectPathToBe('root.select.cropping')
+			.expectToBeIn('root.select.cropping')
 			.pointerUp()
-			.expectPathToBe('root.select.crop.idle')
+			.expectToBeIn('root.select.crop.idle')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 		editor.undo()
@@ -642,14 +642,14 @@ describe('When in the select.cropping state', () => {
 
 		editor
 			.cancel()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 			.select(ids.imageB)
 			.pointerDown(500, 600, { target: 'selection', handle: 'bottom_left', ctrlKey: true })
-			.expectPathToBe('root.select.pointing_crop_handle')
+			.expectToBeIn('root.select.pointing_crop_handle')
 			.pointerMove(510, 590)
-			.expectPathToBe('root.select.cropping')
+			.expectToBeIn('root.select.cropping')
 			.pointerUp()
-			.expectPathToBe('root.select.idle')
+			.expectToBeIn('root.select.idle')
 
 		expect(editor.getShape<TLImageShape>(ids.imageB)!.props.crop!).not.toMatchObject(before)
 		editor.undo()

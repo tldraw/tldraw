@@ -56,7 +56,7 @@ describe(GeoShapeTool, () => {
 describe('When selecting the tool', () => {
 	it('selects the tool and enters the idle state', () => {
 		editor.setCurrentTool('geo')
-		editor.expectPathToBe('geo.idle')
+		editor.expectToBeIn('geo.idle')
 	})
 })
 
@@ -64,19 +64,19 @@ describe('When in the idle state', () => {
 	it('Enters pointing state on pointer down', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(100, 100)
-		editor.expectPathToBe('geo.pointing')
+		editor.expectToBeIn('geo.pointing')
 	})
 
 	it('Switches back to select tool on cancel', () => {
 		editor.setCurrentTool('geo')
 		editor.cancel()
-		editor.expectPathToBe('select.idle')
+		editor.expectToBeIn('select.idle')
 	})
 
 	it('Does nothing on interrupt', () => {
 		editor.setCurrentTool('geo')
 		editor.interrupt()
-		editor.expectPathToBe('geo.idle')
+		editor.expectToBeIn('geo.idle')
 	})
 
 	it('Enters edit shape state on "Enter" key up when we have one geo shape', () => {
@@ -86,7 +86,7 @@ describe('When in the idle state', () => {
 		editor.pointerUp(100, 100)
 
 		editor.keyUp('Enter')
-		editor.expectPathToBe('select.editing_shape')
+		editor.expectToBeIn('select.editing_shape')
 	})
 
 	it('Does not enter edit shape state on "Enter" key up when multiple geo shapes are selected', () => {
@@ -106,7 +106,7 @@ describe('When in the idle state', () => {
 		expect(editor.selectedShapes.length).toBe(2)
 
 		editor.keyUp('Enter')
-		editor.expectPathToBe('select.idle')
+		editor.expectToBeIn('select.idle')
 	})
 })
 
@@ -114,32 +114,32 @@ describe('When in the pointing state', () => {
 	it('Switches back to idle on cancel', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
-		editor.expectPathToBe('geo.pointing')
+		editor.expectToBeIn('geo.pointing')
 		editor.cancel()
-		editor.expectPathToBe('geo.idle')
+		editor.expectToBeIn('geo.idle')
 	})
 
 	it('Enters the select.resizing state on drag start', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(51, 51) // not far enough!
-		editor.expectPathToBe('geo.pointing')
+		editor.expectToBeIn('geo.pointing')
 		editor.pointerMove(55, 55)
-		editor.expectPathToBe('select.resizing')
+		editor.expectToBeIn('select.resizing')
 	})
 
 	it('Enters the select.resizing state on pointer move', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.cancel()
-		editor.expectPathToBe('geo.idle')
+		editor.expectToBeIn('geo.idle')
 	})
 
 	it('Returns to the idle state on interrupt', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.interrupt()
-		editor.expectPathToBe('geo.idle')
+		editor.expectToBeIn('geo.idle')
 	})
 
 	it('Creates a geo and returns to select tool on pointer up', () => {
@@ -147,7 +147,7 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
-		editor.expectPathToBe('select.idle')
+		editor.expectToBeIn('select.idle')
 		expect(editor.currentPageShapes.length).toBe(1)
 	})
 
@@ -157,7 +157,7 @@ describe('When in the pointing state', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerUp(50, 50)
-		editor.expectPathToBe('geo.idle')
+		editor.expectToBeIn('geo.idle')
 		expect(editor.currentPageShapes.length).toBe(1)
 	})
 })
@@ -167,9 +167,9 @@ describe('When in the resizing state while creating a geo shape', () => {
 		editor.setCurrentTool('geo')
 		editor.pointerDown(50, 50)
 		editor.pointerMove(55, 55)
-		editor.expectPathToBe('select.resizing')
+		editor.expectToBeIn('select.resizing')
 		editor.cancel()
-		editor.expectPathToBe('geo.idle')
+		editor.expectToBeIn('geo.idle')
 	})
 
 	it('Returns to select.idle on complete', () => {
@@ -177,7 +177,7 @@ describe('When in the resizing state while creating a geo shape', () => {
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)
 		editor.pointerUp(100, 100)
-		editor.expectPathToBe('select.idle')
+		editor.expectToBeIn('select.idle')
 	})
 
 	it('Returns to geo.idle on complete if tool lock is enabled', () => {
@@ -186,6 +186,6 @@ describe('When in the resizing state while creating a geo shape', () => {
 		editor.pointerDown(50, 50)
 		editor.pointerMove(100, 100)
 		editor.pointerUp(100, 100)
-		editor.expectPathToBe('geo.idle')
+		editor.expectToBeIn('geo.idle')
 	})
 })

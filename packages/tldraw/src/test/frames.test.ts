@@ -49,7 +49,7 @@ describe('creating frames', () => {
 	it('can be canceled while dragging', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200)
-		editor.expectPathToBe('select.resizing')
+		editor.expectToBeIn('select.resizing')
 		editor.cancel()
 		editor.pointerUp()
 		expect(editor.onlySelectedShape?.type).toBe(undefined)
@@ -139,7 +139,7 @@ describe('creating frames', () => {
 	it('switches back to the select tool after creating', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(49, 149).pointerUp()
-		editor.expectPathToBe('select.idle')
+		editor.expectToBeIn('select.idle')
 	})
 })
 
@@ -534,7 +534,7 @@ describe('frame shapes', () => {
 		// select from outside the frame
 		editor.setCurrentTool('select')
 		editor.pointerDown(50, 50).pointerMove(150, 150)
-		editor.expectPathToBe('select.brushing')
+		editor.expectToBeIn('select.brushing')
 
 		expect(editor.getSelectedShapeIds()).toHaveLength(0)
 
@@ -547,13 +547,13 @@ describe('frame shapes', () => {
 	it('can be selected with scribble brushing only if the drag starts outside the frame', () => {
 		editor.setCurrentTool('frame')
 		editor.pointerDown(100, 100).pointerMove(200, 200).pointerUp(200, 200)
-		editor.expectPathToBe('select.idle')
+		editor.expectToBeIn('select.idle')
 
 		// select from inside the frame
 		editor.selectNone()
 		editor.setCurrentTool('select')
 		editor.pointerDown(150, 150).pointerMove(250, 250)
-		editor.expectPathToBe('select.brushing')
+		editor.expectToBeIn('select.brushing')
 
 		expect(editor.getSelectedShapeIds()).toHaveLength(0)
 	})
@@ -590,7 +590,7 @@ describe('frame shapes', () => {
 		editor.keyDown('alt').pointerDown(500, 500).pointerMove(300, 300)
 
 		// Check if in scribble brushing mode
-		editor.expectPathToBe('select.brushing')
+		editor.expectToBeIn('select.brushing')
 
 		// Check if the inner box was selected
 		editor.pointerUp(300, 300)
