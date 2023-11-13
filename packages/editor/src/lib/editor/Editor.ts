@@ -1976,9 +1976,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get hoveredShape(): TLShape | undefined {
+	@computed getHoveredShape(): TLShape | undefined {
 		const hoveredShapeId = this.getHoveredShapeId()
 		return hoveredShapeId ? this.getShape(hoveredShapeId) : undefined
+	}
+
+	/**
+	 * @deprecated Use `getHoveredShape` instead.
+	 */
+	get hoveredShape() {
+		return this.getHoveredShape()
 	}
 
 	/**

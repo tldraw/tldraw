@@ -10555,6 +10555,42 @@
             },
             {
               "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getHoveredShape:member(1)",
+              "docComment": "/**\n * The current hovered shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getHoveredShape(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getHoveredShape"
+            },
+            {
+              "kind": "Method",
               "canonicalReference": "@tldraw/editor!Editor#getHoveredShapeId:member(1)",
               "docComment": "/**\n * The current hovered shape id.\n *\n * @readonly @public\n */\n",
               "excerptTokens": [
@@ -13351,7 +13387,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#hoveredShape:member",
-              "docComment": "/**\n * The current hovered shape.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getHoveredShape` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
