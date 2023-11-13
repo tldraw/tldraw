@@ -9147,7 +9147,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@tldraw/editor!Editor#editingShape:member",
-              "docComment": "/**\n * The current editing shape.\n *\n * @public\n */\n",
+              "docComment": "/**\n * @deprecated\n *\n * Use `getEditingShape` instead.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10336,6 +10336,42 @@
               "isOptional": false,
               "isAbstract": false,
               "name": "getDroppingOverShape"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@tldraw/editor!Editor#getEditingShape:member(1)",
+              "docComment": "/**\n * The current editing shape.\n *\n * @public\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getEditingShape(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TLShape",
+                  "canonicalReference": "@tldraw/tlschema!TLShape:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "isProtected": false,
+              "overloadIndex": 1,
+              "parameters": [],
+              "isOptional": false,
+              "isAbstract": false,
+              "name": "getEditingShape"
             },
             {
               "kind": "Method",

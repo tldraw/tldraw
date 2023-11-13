@@ -642,6 +642,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     get documentSettings(): TLDocument;
     duplicatePage(page: TLPage | TLPageId, createId?: TLPageId): this;
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
+    // @deprecated (undocumented)
     get editingShape(): TLShape | undefined;
     // @deprecated (undocumented)
     get editingShapeId(): null | TLShapeId;
@@ -688,6 +689,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentToolId(): string;
     getDocumentSettings(): TLDocument;
     getDroppingOverShape(point: VecLike, droppingShapes?: TLShape[]): TLUnknownShape | undefined;
+    getEditingShape(): TLShape | undefined;
     getEditingShapeId(): null | TLShapeId;
     getFocusedGroup(): TLShape | undefined;
     getFocusedGroupId(): TLPageId | TLShapeId;

@@ -1910,9 +1910,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	@computed get editingShape(): TLShape | undefined {
+	@computed getEditingShape(): TLShape | undefined {
 		const editingShapeId = this.getEditingShapeId()
 		return editingShapeId ? this.getShape(editingShapeId) : undefined
+	}
+
+	/**
+	 * @deprecated Use `getEditingShape` instead.
+	 */
+	get editingShape() {
+		return this.getEditingShape()
 	}
 
 	/**
