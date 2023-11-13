@@ -23,7 +23,7 @@ beforeEach(() => {
 	editor = new TestEditor()
 	editor
 		.selectAll()
-		.deleteShapes(editor.selectedShapeIds)
+		.deleteShapes(editor.getSelectedShapeIds())
 		.createShapes([
 			{ id: ids.box1, type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } },
 			{ id: ids.box2, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } },
@@ -382,7 +382,7 @@ describe('When pointing an end shape', () => {
 
 describe('reparenting issue', () => {
 	it('Correctly sets index when reparenting', () => {
-		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 
 		// Create an arrow!
 		editor.setCurrentTool('arrow')
@@ -440,7 +440,7 @@ describe('reparenting issue', () => {
 	})
 
 	it('Correctly sets index when reparenting with multiple arrows', () => {
-		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 
 		// create two rectangles:
 		editor.createShapes([
@@ -494,7 +494,7 @@ describe('reparenting issue', () => {
 		expect(arrow2BoundIndex).toBe('a1G')
 
 		// nudge everything around and make sure we all stay in the right order
-		editor.selectAll().nudgeShapes(editor.selectedShapeIds, { x: -1, y: 0 })
+		editor.selectAll().nudgeShapes(editor.getSelectedShapeIds(), { x: -1, y: 0 })
 		expect(editor.getShape(arrow1Id)!.index).toBe('a1V')
 		expect(editor.getShape(arrow2Id)!.index).toBe('a1G')
 	})
@@ -502,7 +502,7 @@ describe('reparenting issue', () => {
 
 describe('line bug', () => {
 	it('works as expected when binding to a straight line', () => {
-		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 
 		expect(editor.currentPageShapes.length).toBe(0)
 
@@ -528,7 +528,7 @@ describe('line bug', () => {
 	})
 
 	it('works as expected when binding to a straight horizontal line', () => {
-		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 
 		expect(editor.currentPageShapes.length).toBe(0)
 

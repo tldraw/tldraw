@@ -1,7 +1,7 @@
 import { Editor, HIT_TEST_MARGIN, TLShape, isShapeId } from '@tldraw/editor'
 
 export function selectOnCanvasPointerUp(editor: Editor) {
-	const { selectedShapeIds } = editor
+	const selectedShapeIds = editor.getSelectedShapeIds()
 	const { shiftKey, altKey, currentPagePoint } = editor.inputs
 
 	const hitShape = editor.getShapeAtPoint(currentPagePoint, {

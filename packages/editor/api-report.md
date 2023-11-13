@@ -697,6 +697,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec2d;
     getSelectedShapeAtPoint(point: VecLike): TLShape | undefined;
+    getSelectedShapeIds(): TLShapeId[];
     getShape<T extends TLShape = TLShape>(shape: TLParentId | TLShape): T | undefined;
     getShapeAncestors(shape: TLShape | TLShapeId, acc?: TLShape[]): TLShape[];
     getShapeAndDescendantIds(ids: TLShapeId[]): Set<TLShapeId>;
@@ -846,6 +847,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
     selectAll(): this;
+    // @deprecated (undocumented)
     get selectedShapeIds(): TLShapeId[];
     get selectedShapes(): TLShape[];
     get selectionPageBounds(): Box2d | null;

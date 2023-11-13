@@ -20,7 +20,7 @@ export function updateHoveredId(editor: Editor) {
 	} else {
 		if (
 			outermostShape.id === editor.focusedGroupId ||
-			editor.selectedShapeIds.includes(outermostShape.id)
+			editor.getSelectedShapeIds().includes(outermostShape.id)
 		) {
 			shapeToHover = hitShape
 		} else {

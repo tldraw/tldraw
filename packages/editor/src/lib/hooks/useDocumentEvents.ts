@@ -126,7 +126,7 @@ export function useDocumentEvents() {
 					// escape de-selects them. Only when the user's selection is empty
 					// should we allow escape to do its normal thing.
 
-					if (editor.editingShape || editor.selectedShapeIds.length > 0) {
+					if (editor.editingShape || editor.getSelectedShapeIds().length > 0) {
 						e.preventDefault()
 					}
 

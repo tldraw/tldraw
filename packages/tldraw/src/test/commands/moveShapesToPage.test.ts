@@ -155,7 +155,7 @@ describe('arrows', () => {
 	let secondBox: TLShape
 
 	beforeEach(() => {
-		editor.selectAll().deleteShapes(editor.selectedShapeIds)
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
 		// draw a first box
 		editor.createShapes([
 			{

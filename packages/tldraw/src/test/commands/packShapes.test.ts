@@ -15,7 +15,7 @@ jest.useFakeTimers()
 beforeEach(() => {
 	editor = new TestEditor()
 	editor.selectAll()
-	editor.deleteShapes(editor.selectedShapeIds)
+	editor.deleteShapes(editor.getSelectedShapeIds())
 	editor.createShapes([
 		{
 			id: ids.boxA,
@@ -42,7 +42,7 @@ describe('editor.packShapes', () => {
 	it('packs shapes', () => {
 		editor.selectAll()
 		const centerBefore = editor.selectionRotatedPageBounds!.center.clone()
-		editor.packShapes(editor.selectedShapeIds, 16)
+		editor.packShapes(editor.getSelectedShapeIds(), 16)
 		jest.advanceTimersByTime(1000)
 		expect(editor.currentPageShapes.map((s) => ({ ...s, parentId: 'wahtever' }))).toMatchSnapshot(
 			'packed shapes'
@@ -53,7 +53,7 @@ describe('editor.packShapes', () => {
 
 	it('packs rotated shapes', () => {
 		editor.updateShapes([{ id: ids.boxA, type: 'geo', rotation: Math.PI }])
-		editor.selectAll().packShapes(editor.selectedShapeIds, 16)
+		editor.selectAll().packShapes(editor.getSelectedShapeIds(), 16)
 		jest.advanceTimersByTime(1000)
 		expect(editor.currentPageShapes.map((s) => ({ ...s, parentId: 'wahtever' }))).toMatchSnapshot(
 			'packed shapes'

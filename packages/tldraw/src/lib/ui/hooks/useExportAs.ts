@@ -17,7 +17,7 @@ export function useExportAs() {
 
 	return useCallback(
 		async function exportAs(
-			ids: TLShapeId[] = editor.selectedShapeIds,
+			ids: TLShapeId[] = editor.getSelectedShapeIds(),
 			format: TLExportType = 'png'
 		) {
 			if (ids.length === 0) {

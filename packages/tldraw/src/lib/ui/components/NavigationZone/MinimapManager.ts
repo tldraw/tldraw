@@ -178,7 +178,10 @@ export class MinimapManager {
 		const { editor, canvasScreenBounds, canvasPageBounds, contentPageBounds, contentScreenBounds } =
 			this
 		const { width: cw, height: ch } = canvasScreenBounds
-		const { viewportPageBounds, selectedShapeIds } = editor
+
+		const selectedShapeIds = this.editor.getSelectedShapeIds()
+
+		const { viewportPageBounds } = editor
 
 		if (!cvs || !pageBounds) {
 			return
